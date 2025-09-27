@@ -148,13 +148,13 @@ type PooledLDAPClientFactory struct {
 	metricsBin0TimeSum           atomic.Int64           // Sum of first-try acquisition times (nanoseconds)
 	metricsTimeoutFailures       atomic.Int64           // Failed acquires due to timeout
 	metricsPoolDrainedEvents     atomic.Int64           // Count of times pool was found empty during acquire
-	metricsUnhealthyDisposals    atomic.Int64           // Count of unhealthy client disposals
-	metricsCreateCount           atomic.Int64           // Total number of clients created
+	metricsClientsUnhealthy      atomic.Int64           // Count of unhealthy client disposals
+	metricsClientsCreated        atomic.Int64           // Total number of clients created
 	metricsCreateTimeSum         atomic.Int64           // Sum of all client creation times (nanoseconds)
-	metricsCreateFailAttempts    atomic.Int64           // Failed attempts to create clients
+	metricsCreateFailedAttempts  atomic.Int64           // Failed attempts to create clients
 	metricsCreateRetriesExceeded atomic.Int64           // Total retry failures after exhausting attempts
 	metricsManagerWakeupEvents   atomic.Int64           // Count of pool manager wakeups
-	metricsMaxActiveClients      atomic.Int32           // Maximum number of active clients at any time
+	metricsClientsMaxActive      atomic.Int32           // Maximum number of active clients at any time
 }
 
 func (f *PooledLDAPClientFactory) isClosing() bool {
@@ -274,7 +274,7 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 
 	if !pooled.IsHealthy() {
 		logging.Logger().Debug("Pooled LDAP client is not healthy, disposing")
-		f.metricsUnhealthyDisposals.Add(1)
+		f.metricsClientsUnhealthy.Add(1)
 		return f.disposeClient(pooled)
 	}
 
@@ -358,7 +358,7 @@ func (f *PooledLDAPClientFactory) acquire() (client *LDAPClientPooled, err error
 		if !client.IsHealthy() { // NOTE: we dispose expired clients only on release
 			logging.Logger().Debug("Received invalid client from LDAP pool, disposing")
 			_ = f.disposeClient(client)
-			f.metricsUnhealthyDisposals.Add(1)
+			f.metricsClientsUnhealthy.Add(1)
 			continue // for !f.isClosing()
 		}
 
@@ -409,7 +409,7 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient(f_pool chan *LDAPClientPool
 		start := time.Now()
 		client, err := f.new() // NOTE: new() adheres to config.Timeout, not config.Pooling.Timeout!
 		if err == nil {
-			f.metricsCreateCount.Add(1)
+			f.metricsClientsCreated.Add(1)
 			f.metricsCreateTimeSum.Add(time.Since(start).Nanoseconds())
 			// Fuzz client lifetime by +/- 10% to avoid mass exodus events
 			fuzzFactor := 0.90 + 0.2*rand.Float64() // [0.90..1.10)
@@ -420,8 +420,8 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient(f_pool chan *LDAPClientPool
 				active := f.activeCount.Add(1)
 				// Safely update max active clients metric
 				for {
-					current := f.metricsMaxActiveClients.Load()
-					if active <= current || f.metricsMaxActiveClients.CompareAndSwap(current, active) {
+					current := f.metricsClientsMaxActive.Load()
+					if active <= current || f.metricsClientsMaxActive.CompareAndSwap(current, active) {
 						break
 					}
 				}
@@ -434,7 +434,7 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient(f_pool chan *LDAPClientPool
 			}
 		}
 
-		f.metricsCreateFailAttempts.Add(1)
+		f.metricsCreateFailedAttempts.Add(1)
 		logging.Logger().Debugf("Failed to create new client for LDAP pool. Attempt %d/%d, Elapsed: %s: %v",
 			f.config.Pooling.Retries-attempts+1, f.config.Pooling.Retries+1, time.Since(start), err)
 
@@ -630,13 +630,13 @@ func (f *PooledLDAPClientFactory) metricsReset() {
 	f.metricsTimeoutFailures.Store(0)
 	f.metricsPoolDrainedEvents.Store(0)
 	f.metricsBin0TimeSum.Store(0)
-	f.metricsUnhealthyDisposals.Store(0)
-	f.metricsCreateCount.Store(0)
+	f.metricsClientsUnhealthy.Store(0)
+	f.metricsClientsCreated.Store(0)
 	f.metricsCreateTimeSum.Store(0)
-	f.metricsCreateFailAttempts.Store(0)
+	f.metricsCreateFailedAttempts.Store(0)
 	f.metricsCreateRetriesExceeded.Store(0)
 	f.metricsManagerWakeupEvents.Store(0)
-	f.metricsMaxActiveClients.Store(0)
+	f.metricsClientsMaxActive.Store(0)
 }
 
 // metricsSnapshot holds calculated metrics data
@@ -646,23 +646,25 @@ type metricsSnapshot struct {
 	durationHours          	float64
 	currentActive          	int
 	currentAvailable      	int
-	totalSuccessful       	int64
-	bin_10us_avg        		float64
-	avgCreationMs          	float64
-	avgActive              	float64
+	clientsAvgEstimate              	float64
+	clientsMaxActive       				int32
+
 	bin_10us               	int64 // <10us
+	bin_10us_avg        		float64
 	bin_100us              	int64 // <100us
 	bin_1ms                	int64 // <1ms
 	bin_10ms               	int64 // <10ms
 	bin_100ms              	int64 // [10ms..100ms)
 	bin_1s                 	int64 // [100ms..1s)
-	bin_remain             	int64 // ≥1s
+	bin_longer             	int64 // ≥1s
+	totalSuccessful       	int64
 	timeoutFailures        	int64
-	maxActiveClients       	int32
-	clientsCreated         	int64
-	unhealthyDisposals     	int64
-	creationFailures      	int64
-	creationFailedAttempts 	int64
+
+	clientsCreated         		int64
+	createTimeAvgMs         float64
+	createRetriesExceeded 	int64
+	createFailedAttempts 		int64
+	clientsUnhealthy     	int64
 	poolDrainedEvents      	int64
 	managerWakeupEvents    	int64
 }
@@ -678,8 +680,8 @@ func (f *PooledLDAPClientFactory) metricsCalculateSnapshot() *metricsSnapshot {
 	now := time.Now()
 	duration := now.Sub(f.metricsStartTime)
 
-	active := int(f.activeCount.Load())
-	available := len(f_pool)
+	poolActive := int(f.activeCount.Load())
+	poolAvailable := len(f_pool)
 
 	bin_10us := f.metricsSuccessfulBin0.Load()
 	bin_100us := f.metricsSuccessfulBin1.Load()
@@ -696,40 +698,42 @@ func (f *PooledLDAPClientFactory) metricsCalculateSnapshot() *metricsSnapshot {
 		bin_10us_avg = float64(f.metricsBin0TimeSum.Load()) / float64(bin_10us) / 1e3
 	}
 
-	var avgCreationMs float64
-	if f.metricsCreateCount.Load() > 0 {
-		avgCreationMs = float64(f.metricsCreateTimeSum.Load()) / float64(f.metricsCreateCount.Load()) / 1e6
+	var createTimeAvgMs float64
+	if f.metricsClientsCreated.Load() > 0 {
+		createTimeAvgMs = float64(f.metricsCreateTimeSum.Load()) / float64(f.metricsClientsCreated.Load()) / 1e6
 	}
 
-	// Calculate average number of active clients based on total lifetime
-	var avgActive float64
+	// Calculate estimated number of average active clients based on total lifetime
+	var clientsAvgEstimate float64
 	if duration.Hours() > 0 && f.clientLifetime > 0 {
-		totalClientHours := float64(f.metricsCreateCount.Load()) * min(f.clientLifetime.Hours(), duration.Hours())
-		avgActive = totalClientHours / duration.Hours()
+		totalClientHours := float64(f.metricsClientsCreated.Load()) * min(f.clientLifetime.Hours(), duration.Hours())
+		clientsAvgEstimate = totalClientHours / duration.Hours()
 	}
 
 	return &metricsSnapshot{
 		timestamp:              now.Format("2006-01-02T15:04:05Z07:00"),
 		durationHours:          duration.Hours(),
-		currentActive:          active,
-		currentAvailable:       available,
-		totalSuccessful:        totalSuccessful,
-		bin_10us_avg:        bin_10us_avg,
-		avgCreationMs:          avgCreationMs,
-		avgActive:              avgActive,
+		currentActive:          poolActive,
+		currentAvailable:       poolAvailable,
+
 		bin_10us:               bin_10us,
+		bin_10us_avg:        		bin_10us_avg,
 		bin_100us:              bin_100us,
 		bin_1ms:                bin_1ms,
 		bin_10ms:               bin_10ms,
 		bin_100ms:              bin_100ms,
 		bin_1s:                 bin_1s,
-		bin_remain:             bin_remain,
+		bin_longer:             bin_remain,
+		totalSuccessful:        totalSuccessful,
 		timeoutFailures:        f.metricsTimeoutFailures.Load(),
-		maxActiveClients:       f.metricsMaxActiveClients.Load(),
-		clientsCreated:         f.metricsCreateCount.Load(),
-		unhealthyDisposals:     f.metricsUnhealthyDisposals.Load(),
-		creationFailures:       f.metricsCreateRetriesExceeded.Load(),
-		creationFailedAttempts: f.metricsCreateFailAttempts.Load(),
+
+		clientsAvgEstimate:     clientsAvgEstimate,
+		clientsMaxActive:       f.metricsClientsMaxActive.Load(),
+		clientsCreated:         f.metricsClientsCreated.Load(),
+		createTimeAvgMs:        createTimeAvgMs,
+		createFailedAttempts: 	f.metricsCreateFailedAttempts.Load(),
+		createRetriesExceeded:  f.metricsCreateRetriesExceeded.Load(),
+		clientsUnhealthy:     	f.metricsClientsUnhealthy.Load(),
 		poolDrainedEvents:      f.metricsPoolDrainedEvents.Load(),
 		managerWakeupEvents:    f.metricsManagerWakeupEvents.Load(),
 	}
@@ -743,31 +747,31 @@ func (f *PooledLDAPClientFactory) Metrics() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"timestamp":                 snapshot.timestamp,
-		"metrics_duration_h":        snapshot.durationHours,
-		"current_active":            snapshot.currentActive,
-		"current_available":         snapshot.currentAvailable,
+		"timestamp":                snapshot.timestamp,
+		"metrics_duration_h":       snapshot.durationHours,
+		"current_active":           snapshot.currentActive,
+		"current_available":        snapshot.currentAvailable,
 		// Pooled client acquisition statistics
-		"bin_10us":                  snapshot.bin_10us,
-		"bin_100us":                 snapshot.bin_100us,
-		"bin_1ms":                   snapshot.bin_1ms,
-		"bin_10ms":                  snapshot.bin_10ms,
-		"bin_100ms":                 snapshot.bin_100ms,
-		"bin_1s":                    snapshot.bin_1s,
-		"bin_remain":                snapshot.bin_remain,
-		"bin_total":                 snapshot.totalSuccessful,
-		"bin_10us_avg":              snapshot.bin_10us_avg,
-		"failures_timeout":          snapshot.timeoutFailures,
+		"bin_10us":                 snapshot.bin_10us,
+		"bin_10us_avg":             snapshot.bin_10us_avg,
+		"bin_100us":                snapshot.bin_100us,
+		"bin_1ms":                  snapshot.bin_1ms,
+		"bin_10ms":                 snapshot.bin_10ms,
+		"bin_100ms":                snapshot.bin_100ms,
+		"bin_1s":                   snapshot.bin_1s,
+		"bin_remain":               snapshot.bin_longer,
+		"bin_total":                snapshot.totalSuccessful,
+		"failures_timeout":         snapshot.timeoutFailures,
 		// Pool management statistics
-		"clients_max":               snapshot.maxActiveClients,
-		"clients_avg":               snapshot.avgActive,
-		"clients_created":           snapshot.clientsCreated,
-		"clients_unhealthy":         snapshot.unhealthyDisposals,
-		"creation_avg_ms":           snapshot.avgCreationMs,
-		"creation_failures":         snapshot.creationFailures,
-		"creation_failed_attempts":  snapshot.creationFailedAttempts,
-		"pool_drained_events":       snapshot.poolDrainedEvents,
-		"manager_wakeup_events":     snapshot.managerWakeupEvents,
+		"clients_avg":              snapshot.clientsAvgEstimate,
+		"clients_max":              snapshot.clientsMaxActive,
+		"clients_created":          snapshot.clientsCreated,
+		"clients_unhealthy":        snapshot.clientsUnhealthy,
+		"creation_avg_ms":          snapshot.createTimeAvgMs,
+		"retries_exceeded":       	snapshot.createRetriesExceeded,
+		"creation_failed_attempts": snapshot.createFailedAttempts,
+		"pool_drained_events":      snapshot.poolDrainedEvents,
+		"manager_wakeup_events":    snapshot.managerWakeupEvents,
 	}
 }
 
@@ -777,7 +781,7 @@ func (f *PooledLDAPClientFactory) metricsCsvHeader() string {
 		"bin_10us,bin_100us,bin_1ms,bin_10ms,bin_100ms,bin_1s,bin_remain," +
 		"bin_total,bin_10us_avg,failures_timeout," +
 		"clients_max,clients_avg,clients_created,clients_unhealthy," +
-		"creation_avg_ms,creation_failures,creation_failed_attempts," +
+		"creation_avg_ms,retries_exceeded,creation_failed_attempts," +
 		"pool_drained_events,manager_wakeup_events"
 }
 
@@ -799,17 +803,17 @@ func (f *PooledLDAPClientFactory) metricsCsvData() string {
 		snapshot.bin_10ms,
 		snapshot.bin_100ms,
 		snapshot.bin_1s,
-		snapshot.bin_remain,
+		snapshot.bin_longer,
 		snapshot.totalSuccessful,
 		snapshot.bin_10us_avg,
 		snapshot.timeoutFailures,
-		snapshot.maxActiveClients,
-		snapshot.avgActive,
+		snapshot.clientsMaxActive,
+		snapshot.clientsAvgEstimate,
 		snapshot.clientsCreated,
-		snapshot.unhealthyDisposals,
-		snapshot.avgCreationMs,
-		snapshot.creationFailures,
-		snapshot.creationFailedAttempts,
+		snapshot.clientsUnhealthy,
+		snapshot.createTimeAvgMs,
+		snapshot.createRetriesExceeded,
+		snapshot.createFailedAttempts,
 		snapshot.poolDrainedEvents,
 		snapshot.managerWakeupEvents,
 	)
@@ -829,8 +833,8 @@ func (f *PooledLDAPClientFactory) metricsReport() {
 	fmt.Printf(" Report Time: %s\n", time.Now().Format("2006-01-02 15:04:05 MST"))
 	fmt.Printf(" Collection Duration: %.2f hours\n", snapshot.durationHours)
 	fmt.Printf(" Current State: %d active, %d available\n", snapshot.currentActive, snapshot.currentAvailable)
-	fmt.Printf(" Max Active Clients: %d\n", snapshot.maxActiveClients)
-	fmt.Printf(" Avg Active Clients: %.2f\n", snapshot.avgActive)
+	fmt.Printf(" Max Active Clients: %d\n", snapshot.clientsMaxActive)
+	fmt.Printf(" Avg Active Clients: %.2f\n", snapshot.clientsAvgEstimate)
 	fmt.Printf("\n Successful Acquisitions by Time Range:\n")
 	fmt.Printf("    <10us: %d   avg: %.2fμs\n", snapshot.bin_10us, snapshot.bin_10us_avg)
 	fmt.Printf("   <100us: %d\n", snapshot.bin_100us)
@@ -838,16 +842,16 @@ func (f *PooledLDAPClientFactory) metricsReport() {
 	fmt.Printf("    <10ms: %d\n", snapshot.bin_10ms)
 	fmt.Printf("   <100ms: %d\n", snapshot.bin_100ms)
 	fmt.Printf("      <1s: %d\n", snapshot.bin_1s)
-	fmt.Printf("      ≥1s: %d\n", snapshot.bin_remain)
+	fmt.Printf("      ≥1s: %d\n", snapshot.bin_longer)
 	fmt.Printf("    TOTAL: %d\n", snapshot.totalSuccessful)
 	fmt.Printf(" \nFailures:\n")
 	fmt.Printf("   Timeout failures: %d\n", snapshot.timeoutFailures)
 	fmt.Printf(" \nClient Management:\n")
 	fmt.Printf("            Clients created: %d\n", snapshot.clientsCreated)
-	fmt.Printf("        Unhealthy disposals: %d\n", snapshot.unhealthyDisposals)
-	fmt.Printf("          Avg creation time: %.2f ms\n", snapshot.avgCreationMs)
-	fmt.Printf("          Creation failures: %d\n", snapshot.creationFailures)
-	fmt.Printf("   Creation failed attempts: %d\n", snapshot.creationFailedAttempts)
+	fmt.Printf("        Unhealthy disposals: %d\n", snapshot.clientsUnhealthy)
+	fmt.Printf("          Avg creation time: %.2fms\n", snapshot.createTimeAvgMs)
+	fmt.Printf("          Creation failures: %d\n", snapshot.createRetriesExceeded)
+	fmt.Printf("   Creation failed attempts: %d\n", snapshot.createFailedAttempts)
 	fmt.Printf("        Pool drained events: %d\n", snapshot.poolDrainedEvents)
 	fmt.Printf("       Pool manager wakeups: %d\n", snapshot.managerWakeupEvents)
 	fmt.Printf("==========================================\n\n")
