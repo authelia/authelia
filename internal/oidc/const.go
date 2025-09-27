@@ -18,6 +18,10 @@ const (
 	ScopeAutheliaBearerAuthz = "authelia.bearer.authz"
 )
 
+const (
+	fmtAutheliaOpaqueOAuth2Token = "authelia_%s_" //nolint:gosec
+)
+
 // Registered Claim strings. See https://www.iana.org/assignments/jwt/jwt.xhtml.
 const (
 	ClaimJWTID                               = "jti"

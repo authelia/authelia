@@ -63,9 +63,9 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 	}
 
 	if config.Discovery.JWTResponseAccessTokens {
-		c.Strategy.Core = oauth2.NewCoreStrategy(c, "authelia_%s_", c.Strategy.JWT)
+		c.Strategy.Core = oauth2.NewCoreStrategy(c, fmtAutheliaOpaqueOAuth2Token, c.Strategy.JWT)
 	} else {
-		c.Strategy.Core = oauth2.NewCoreStrategy(c, "authelia_%s_", nil)
+		c.Strategy.Core = oauth2.NewCoreStrategy(c, fmtAutheliaOpaqueOAuth2Token, nil)
 	}
 
 	c.Strategy.OpenID = &openid.DefaultStrategy{

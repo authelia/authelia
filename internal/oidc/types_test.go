@@ -206,19 +206,3 @@ func (m *TestContext) GetClock() clock.Provider {
 func (m *TestContext) GetJWTWithTimeFuncOption() jwt.ParserOption {
 	return jwt.WithTimeFunc(m.GetClock().Now)
 }
-
-type TestCodeStrategy struct {
-	signature string
-}
-
-func (m *TestCodeStrategy) AuthorizeCodeSignature(ctx context.Context, token string) string {
-	return m.signature
-}
-
-func (m *TestCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester) (token string, signature string, err error) {
-	return "", "", nil
-}
-
-func (m *TestCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester, token string) (err error) {
-	return nil
-}

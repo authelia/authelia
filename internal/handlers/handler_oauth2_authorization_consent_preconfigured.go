@@ -264,13 +264,13 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 		}
 
 		if !config.HasExactGrants(scopes, audience) {
-			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration has scopes '%s' and audience '%s' which coes not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "))
+			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration has scopes '%s' and audience '%s' which does not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "))
 
 			continue
 		}
 
 		if !config.HasClaimsSignature(signature) {
-			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration had the requested claims '%s' which coes not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, config.RequestedClaims.String)
+			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration had the requested claims '%s' which does not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, config.RequestedClaims.String)
 
 			continue
 		}
