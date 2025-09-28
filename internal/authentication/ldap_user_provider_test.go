@@ -460,6 +460,9 @@ func TestShouldCheckLDAPServerExtensionsPooled(t *testing.T) {
 		mockClient.EXPECT().Close().Return(fmt.Errorf("close error")),
 	)
 
+	// health checks from Initialize() -> ReadinessCheck()
+	mockClient.EXPECT().IsClosing().Return(false).Times(2)
+
 	err := provider.StartupCheck()
 	assert.NoError(t, err)
 
@@ -469,7 +472,8 @@ func TestShouldCheckLDAPServerExtensionsPooled(t *testing.T) {
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHints)
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHintsDeprecated)
 
-	assert.EqualError(t, provider.Close(), "errors occurred closing the client pool: close error")
+	// error closing a pooled connection during pool cleanup considered irrelevant
+	assert.NoError(t, provider.Close())
 }
 
 func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntry(t *testing.T) {
