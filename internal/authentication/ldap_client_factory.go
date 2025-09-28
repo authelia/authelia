@@ -102,11 +102,11 @@ func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs 
 	}
 
 	factory = &PooledLDAPClientFactory{
-		log: 						logging.Logger().WithFields(map[string]any{"provider": "pooled ldap factory"}),
-		config:        	config,
-		tls:           	tlsc,
-		opts:          	opts,
-		dialer:        	dialer,
+		log:    logging.Logger().WithFields(map[string]any{"provider": "pooled ldap factory"}),
+		config: config,
+		tls:    tlsc,
+		opts:   opts,
+		dialer: dialer,
 		// these could possibly be configured, or initialized differently
 		minPoolSize:    int32(max(2, config.Pooling.Count/2)),
 		maxPoolSize:    int32(max(2, config.Pooling.Count)),
@@ -119,48 +119,48 @@ func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs 
 // PooledLDAPClientFactory is a LDAPClientFactory that takes another LDAPClientFactory and pools the
 // factory generated connections using a channel for thread safety.
 type PooledLDAPClientFactory struct {
-	log 												 *logrus.Entry
-	config                       *schema.AuthenticationBackendLDAP
-	tls                          *tls.Config
-	opts                         []ldap.DialOpt
-	dialer                       LDAPClientDialer
+	log    *logrus.Entry
+	config *schema.AuthenticationBackendLDAP
+	tls    *tls.Config
+	opts   []ldap.DialOpt
+	dialer LDAPClientDialer
 
 	// pool configuration - immutable after initialization
-	minPoolSize                  int32                  // Minimum number of pool connections to maintain (soft target)
-	maxPoolSize                  int32                  // Maximum number of pool connections (hard target)
-	clientLifetime               time.Duration          // Maximum lifetime for a pooled client (soft target)
+	minPoolSize    int32         // Minimum number of pool connections to maintain (soft target)
+	maxPoolSize    int32         // Maximum number of pool connections (hard target)
+	clientLifetime time.Duration // Maximum lifetime for a pooled client (soft target)
 
 	// Pool management
-	pool                         chan *LDAPClientPooled // Channel for available clients
-	activeCount                  atomic.Int32           // Atomic counter for active connections
-	clientSequence               atomic.Int32           // Atomic counter for client IDs
+	pool           chan *LDAPClientPooled // Channel for available clients
+	activeCount    atomic.Int32           // Atomic counter for active connections
+	clientSequence atomic.Int32           // Atomic counter for client IDs
 
 	// Synchronization
-	wakeup                       chan struct{}          // Channel for client requests
-	closing                      atomic.Bool            // Atomic flag indicating if the pool is closing
-	closed                       chan error             // Signals when poolManager has completed cleanup
-	ctx                          context.Context        // Context for cancellation
-	cancel                       context.CancelFunc     // Function to cancel the context
+	wakeup  chan struct{}      // Channel for client requests
+	closing atomic.Bool        // Atomic flag indicating if the pool is closing
+	closed  chan error         // Signals when poolManager has completed cleanup
+	ctx     context.Context    // Context for cancellation
+	cancel  context.CancelFunc // Function to cancel the context
 
 	// Metrics fields
-	metricsStartTime             time.Time              // When metrics collection started or was last reset
-	metricsSuccessfulBin0        atomic.Int64           // Successful acquires [0..10us)
-	metricsSuccessfulBin1        atomic.Int64           // Successful acquires [10us..100us)
-	metricsSuccessfulBin2        atomic.Int64           // Successful acquires [100us..1ms]
-	metricsSuccessfulBin3        atomic.Int64           // Successful acquires [1ms..10ms)
-	metricsSuccessfulBin4        atomic.Int64           // Successful acquires [10ms..100ms)
-	metricsSuccessfulBin5        atomic.Int64           // Successful acquires [100ms..1s)
-	metricsSuccessfulBin6        atomic.Int64           // Successful acquires [1s..timeout)
-	metricsBin0TimeSum           atomic.Int64           // Sum of first-try acquisition times (nanoseconds)
-	metricsTimeoutFailures       atomic.Int64           // Failed acquires due to timeout
-	metricsPoolDrainedEvents     atomic.Int64           // Count of times pool was found empty during acquire
-	metricsClientsUnhealthy      atomic.Int64           // Count of unhealthy client disposals
-	metricsClientsCreated        atomic.Int64           // Total number of clients created
-	metricsCreateTimeSum         atomic.Int64           // Sum of all client creation times (nanoseconds)
-	metricsCreateFailedAttempts  atomic.Int64           // Failed attempts to create clients
-	metricsCreateRetriesExceeded atomic.Int64           // Total retry failures after exhausting attempts
-	metricsManagerWakeupEvents   atomic.Int64           // Count of pool manager wakeups
-	metricsClientsMaxActive      atomic.Int32           // Maximum number of active clients at any time
+	metricsStartTime             time.Time    // When metrics collection started or was last reset
+	metricsSuccessfulBin0        atomic.Int64 // Successful acquires [0..10us)
+	metricsSuccessfulBin1        atomic.Int64 // Successful acquires [10us..100us)
+	metricsSuccessfulBin2        atomic.Int64 // Successful acquires [100us..1ms]
+	metricsSuccessfulBin3        atomic.Int64 // Successful acquires [1ms..10ms)
+	metricsSuccessfulBin4        atomic.Int64 // Successful acquires [10ms..100ms)
+	metricsSuccessfulBin5        atomic.Int64 // Successful acquires [100ms..1s)
+	metricsSuccessfulBin6        atomic.Int64 // Successful acquires [1s..timeout)
+	metricsBin0TimeSum           atomic.Int64 // Sum of first-try acquisition times (nanoseconds)
+	metricsTimeoutFailures       atomic.Int64 // Failed acquires due to timeout
+	metricsPoolDrainedEvents     atomic.Int64 // Count of times pool was found empty during acquire
+	metricsClientsUnhealthy      atomic.Int64 // Count of unhealthy client disposals
+	metricsClientsCreated        atomic.Int64 // Total number of clients created
+	metricsCreateTimeSum         atomic.Int64 // Sum of all client creation times (nanoseconds)
+	metricsCreateFailedAttempts  atomic.Int64 // Failed attempts to create clients
+	metricsCreateRetriesExceeded atomic.Int64 // Total retry failures after exhausting attempts
+	metricsManagerWakeupEvents   atomic.Int64 // Count of pool manager wakeups
+	metricsClientsMaxActive      atomic.Int32 // Maximum number of active clients at any time
 }
 
 func (f *PooledLDAPClientFactory) isClosing() bool {
@@ -550,8 +550,8 @@ func (f *PooledLDAPClientFactory) poolManager() {
 				continue
 			}
 
-			burstLimit := max(2, (f.minPoolSize+1)/2) 	// minPoolSize/2 rounded up, allow at least 2
-			request = min(request, burstLimit)        	// Goal 2: limit bursts
+			burstLimit := max(2, (f.minPoolSize+1)/2) // minPoolSize/2 rounded up, allow at least 2
+			request = min(request, burstLimit)        // Goal 2: limit bursts
 
 			f.log.WithFields(logrus.Fields{
 				"available": available,
@@ -560,7 +560,7 @@ func (f *PooledLDAPClientFactory) poolManager() {
 			}).Debug("LDAP Pool clients available, requesting increase")
 
 			for range request {
-				if !f.tryAddPooledClient(f_pool) {				// Goal 3: handle transient failures
+				if !f.tryAddPooledClient(f_pool) { // Goal 3: handle transient failures
 					break
 				}
 			}
@@ -671,31 +671,31 @@ func (f *PooledLDAPClientFactory) metricsReset() {
 // metricsSnapshot holds calculated metrics data
 // NOTE: stors may overlap with updates - this is considered acceptable
 type metricsSnapshot struct {
-	timestamp              	string
-	durationHours          	float64
-	currentActive          	int
-	currentAvailable      	int
-	clientsAvgEstimate      float64
-	clientsMaxActive       	int32
+	timestamp          string
+	durationHours      float64
+	currentActive      int
+	currentAvailable   int
+	clientsAvgEstimate float64
+	clientsMaxActive   int32
 
-	bin_10us               	int64 // <10us
-	bin_10us_avg        		float64
-	bin_100us              	int64 // <100us
-	bin_1ms                	int64 // <1ms
-	bin_10ms               	int64 // <10ms
-	bin_100ms              	int64 // [10ms..100ms)
-	bin_1s                 	int64 // [100ms..1s)
-	bin_longer             	int64 // ≥1s
-	totalSuccessful       	int64
-	timeoutFailures        	int64
+	bin_10us        int64 // <10us
+	bin_10us_avg    float64
+	bin_100us       int64 // <100us
+	bin_1ms         int64 // <1ms
+	bin_10ms        int64 // <10ms
+	bin_100ms       int64 // [10ms..100ms)
+	bin_1s          int64 // [100ms..1s)
+	bin_longer      int64 // ≥1s
+	totalSuccessful int64
+	timeoutFailures int64
 
-	clientsCreated         	int64
-	createTimeAvgMs         float64
-	createRetriesExceeded 	int64
-	createFailedAttempts 		int64
-	clientsUnhealthy     		int64
-	poolDrainedEvents      	int64
-	managerWakeupEvents    	int64
+	clientsCreated        int64
+	createTimeAvgMs       float64
+	createRetriesExceeded int64
+	createFailedAttempts  int64
+	clientsUnhealthy      int64
+	poolDrainedEvents     int64
+	managerWakeupEvents   int64
 }
 
 // thread-safe, creates a snapshot of current metrics with all calculations performed
@@ -740,31 +740,31 @@ func (f *PooledLDAPClientFactory) metricsCalculateSnapshot() *metricsSnapshot {
 	}
 
 	return &metricsSnapshot{
-		timestamp:              now.Format("2006-01-02T15:04:05Z07:00"),
-		durationHours:          duration.Hours(),
-		currentActive:          poolActive,
-		currentAvailable:       poolAvailable,
+		timestamp:        now.Format("2006-01-02T15:04:05Z07:00"),
+		durationHours:    duration.Hours(),
+		currentActive:    poolActive,
+		currentAvailable: poolAvailable,
 
-		bin_10us:               bin_10us,
-		bin_10us_avg:        		bin_10us_avg,
-		bin_100us:              bin_100us,
-		bin_1ms:                bin_1ms,
-		bin_10ms:               bin_10ms,
-		bin_100ms:              bin_100ms,
-		bin_1s:                 bin_1s,
-		bin_longer:             bin_remain,
-		totalSuccessful:        totalSuccessful,
-		timeoutFailures:        f.metricsTimeoutFailures.Load(),
+		bin_10us:        bin_10us,
+		bin_10us_avg:    bin_10us_avg,
+		bin_100us:       bin_100us,
+		bin_1ms:         bin_1ms,
+		bin_10ms:        bin_10ms,
+		bin_100ms:       bin_100ms,
+		bin_1s:          bin_1s,
+		bin_longer:      bin_remain,
+		totalSuccessful: totalSuccessful,
+		timeoutFailures: f.metricsTimeoutFailures.Load(),
 
-		clientsAvgEstimate:     clientsAvgEstimate,
-		clientsMaxActive:       f.metricsClientsMaxActive.Load(),
-		clientsCreated:         f.metricsClientsCreated.Load(),
-		createTimeAvgMs:        createTimeAvgMs,
-		createFailedAttempts: 	f.metricsCreateFailedAttempts.Load(),
-		createRetriesExceeded:  f.metricsCreateRetriesExceeded.Load(),
-		clientsUnhealthy:     	f.metricsClientsUnhealthy.Load(),
-		poolDrainedEvents:      f.metricsPoolDrainedEvents.Load(),
-		managerWakeupEvents:    f.metricsManagerWakeupEvents.Load(),
+		clientsAvgEstimate:    clientsAvgEstimate,
+		clientsMaxActive:      f.metricsClientsMaxActive.Load(),
+		clientsCreated:        f.metricsClientsCreated.Load(),
+		createTimeAvgMs:       createTimeAvgMs,
+		createFailedAttempts:  f.metricsCreateFailedAttempts.Load(),
+		createRetriesExceeded: f.metricsCreateRetriesExceeded.Load(),
+		clientsUnhealthy:      f.metricsClientsUnhealthy.Load(),
+		poolDrainedEvents:     f.metricsPoolDrainedEvents.Load(),
+		managerWakeupEvents:   f.metricsManagerWakeupEvents.Load(),
 	}
 }
 
@@ -776,28 +776,28 @@ func (f *PooledLDAPClientFactory) Metrics() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"timestamp":                snapshot.timestamp,
-		"metrics_duration_h":       snapshot.durationHours,
-		"current_active":           snapshot.currentActive,
-		"current_available":        snapshot.currentAvailable,
+		"timestamp":          snapshot.timestamp,
+		"metrics_duration_h": snapshot.durationHours,
+		"current_active":     snapshot.currentActive,
+		"current_available":  snapshot.currentAvailable,
 		// Pooled client acquisition statistics
-		"bin_10us":                 snapshot.bin_10us,
-		"bin_10us_avg":             snapshot.bin_10us_avg,
-		"bin_100us":                snapshot.bin_100us,
-		"bin_1ms":                  snapshot.bin_1ms,
-		"bin_10ms":                 snapshot.bin_10ms,
-		"bin_100ms":                snapshot.bin_100ms,
-		"bin_1s":                   snapshot.bin_1s,
-		"bin_remain":               snapshot.bin_longer,
-		"bin_total":                snapshot.totalSuccessful,
-		"failures_timeout":         snapshot.timeoutFailures,
+		"bin_10us":         snapshot.bin_10us,
+		"bin_10us_avg":     snapshot.bin_10us_avg,
+		"bin_100us":        snapshot.bin_100us,
+		"bin_1ms":          snapshot.bin_1ms,
+		"bin_10ms":         snapshot.bin_10ms,
+		"bin_100ms":        snapshot.bin_100ms,
+		"bin_1s":           snapshot.bin_1s,
+		"bin_remain":       snapshot.bin_longer,
+		"bin_total":        snapshot.totalSuccessful,
+		"failures_timeout": snapshot.timeoutFailures,
 		// Pool management statistics
 		"clients_avg":              snapshot.clientsAvgEstimate,
 		"clients_max":              snapshot.clientsMaxActive,
 		"clients_created":          snapshot.clientsCreated,
 		"clients_unhealthy":        snapshot.clientsUnhealthy,
 		"creation_avg_ms":          snapshot.createTimeAvgMs,
-		"retries_exceeded":       	snapshot.createRetriesExceeded,
+		"retries_exceeded":         snapshot.createRetriesExceeded,
 		"creation_failed_attempts": snapshot.createFailedAttempts,
 		"pool_drained_events":      snapshot.poolDrainedEvents,
 		"manager_wakeup_events":    snapshot.managerWakeupEvents,
@@ -890,9 +890,9 @@ func (f *PooledLDAPClientFactory) metricsReport() {
 // from being closed and instead relinquishes the connection back to the pool.
 type LDAPClientPooled struct {
 	ldap.Client
-	log       *logrus.Entry   // structured logger with client context
-	expiresAt time.Time       // expiration target, with some random fuzz
-	leased    atomic.Bool     // prevent double leasing / double returns
+	log       *logrus.Entry // structured logger with client context
+	expiresAt time.Time     // expiration target, with some random fuzz
+	leased    atomic.Bool   // prevent double leasing / double returns
 }
 
 func (c *LDAPClientPooled) IsExpired() bool {
