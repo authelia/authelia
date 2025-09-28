@@ -138,7 +138,7 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 	f.wakeup = make(chan struct{}, 1)
 	f.closed = make(chan error, 1)
 	f.ctx, f.cancel = context.WithCancel(context.Background())
-	if !f.tryAddPooledClient(f.pool) {
+	if !f.tryAddPooledClient() {
 		err = fmt.Errorf("LDAP pool couldn't acquire initial client")
 	} else if rerr := f.ReadinessCheck(); rerr != nil {
 		err = rerr
@@ -186,9 +186,9 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 	if !ok {
 		return client.Close()
 	}
-	if pool := f.pool; pool != nil && c.Client != nil && !c.Client.IsClosing() {
+	if c.Client != nil && !c.Client.IsClosing() {
 		select {
-		case pool <- c:
+		case f.pool <- c:
 			return nil
 		default:
 		}
@@ -234,13 +234,13 @@ func (f *PooledLDAPClientFactory) acquire() (client *LDAPClientPooled, err error
 	return nil, fmt.Errorf("error acquiring client: the pool is closed")
 }
 
-func (f *PooledLDAPClientFactory) tryAddPooledClient(pool chan *LDAPClientPooled) bool {
+func (f *PooledLDAPClientFactory) tryAddPooledClient() bool {
 	attempts := f.config.Pooling.Retries
 	sleep := f.config.Timeout / 8
 	for !f.closing_Load() {
 		if client, _ := f.new(); client != nil {
 			select {
-			case pool <- client:
+			case f.pool <- client:
 				f.activeCount_Add(1)
 				return true
 			default:
@@ -259,11 +259,9 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient(pool chan *LDAPClientPooled
 }
 
 func (f *PooledLDAPClientFactory) wakeupPoolManager() {
-	if wakeup := f.wakeup; wakeup != nil {
-		select {
-		case wakeup <- struct{}{}:
-		default:
-		}
+	select {
+	case f.wakeup <- struct{}{}:
+	default:
 	}
 }
 
@@ -280,7 +278,7 @@ func (f *PooledLDAPClientFactory) poolManager(ctx context.Context, pool chan *LD
 			}
 			active := f.activeCount_Load()
 			for range min(min(max(f.minPoolSize-active, 2-int32(len(pool))), f.maxPoolSize-active), max(2, (f.maxPoolSize+3)/4)) {
-				if !f.tryAddPooledClient(pool) {
+				if !f.tryAddPooledClient() {
 					break
 				}
 			}
@@ -298,13 +296,14 @@ poolCleanup:
 				return
 			}
 			_ = f.disposeClient(client)
+		case <-time.After(time.Millisecond * 100):
 		}
 	}
 	close(result)
 }
 
 func (f *PooledLDAPClientFactory) Close() (err error) {
-	if f.pool == nil || !f.closing_CompareAndSwap(false, true) {
+	if !f.closing_CompareAndSwap(false, true) {
 		return nil
 	}
 	f.wakeupPoolManager()
