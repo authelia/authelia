@@ -609,6 +609,9 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntryPoo
 		mockClient.EXPECT().Close().Return(nil),
 	)
 
+	// health checks from Initialize() -> ReadinessCheck()
+	mockClient.EXPECT().IsClosing().Return(false).Times(2)
+
 	err := provider.StartupCheck()
 	assert.NoError(t, err)
 
@@ -843,6 +846,9 @@ func TestShouldCheckLDAPServerControlTypesPooled(t *testing.T) {
 		clientClose,
 	)
 
+	// health checks from Initialize() -> ReadinessCheck()
+	mockClient.EXPECT().IsClosing().Return(false).Times(2)
+
 	err := provider.StartupCheck()
 	assert.NoError(t, err)
 
@@ -991,6 +997,9 @@ func TestShouldNotEnablePasswdModifyExtensionOrControlTypesPooled(t *testing.T) 
 		clientClose,
 	)
 
+	// health checks from Initialize() -> ReadinessCheck()
+	mockClient.EXPECT().IsClosing().Return(false).Times(2)
+
 	assert.NoError(t, provider.StartupCheck())
 
 	assert.False(t, provider.features.Extensions.PwdModifyExOp)
@@ -1129,6 +1138,9 @@ func TestShouldReturnCheckServerSearchErrorPooled(t *testing.T) {
 		clientClose,
 	)
 
+	// health checks from Initialize() -> ReadinessCheck()
+	mockClient.EXPECT().IsClosing().Return(false).Times(2)
+
 	err := provider.StartupCheck()
 	assert.EqualError(t, err, "error occurred during RootDSE search: could not perform the search")
 
@@ -1232,6 +1244,9 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 		mockClient.EXPECT().IsClosing().Return(false),
 		clientClose,
 	)
+
+	// health checks from Initialize() -> ReadinessCheck()
+	mockClient.EXPECT().IsClosing().Return(false).Times(2)
 
 	assert.NoError(t, provider.StartupCheck())
 	assert.NoError(t, provider.Close())

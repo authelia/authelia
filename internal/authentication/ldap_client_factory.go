@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -101,8 +102,13 @@ func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs 
 		config.Pooling.Timeout = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Timeout
 	}
 
+	traceLogger := logging.Logger().WithFields(map[string]any{"provider": "pooled ldap factory"})
+	if os.Getenv("LDAP_POOL_TRACE") != "" {
+		traceLogger.Logger.SetLevel(logrus.TraceLevel)
+	}
+
 	factory = &PooledLDAPClientFactory{
-		log:    logging.Logger().WithFields(map[string]any{"provider": "pooled ldap factory"}),
+		log:    traceLogger,
 		config: config,
 		tls:    tlsc,
 		opts:   opts,
@@ -308,7 +314,7 @@ func (f *PooledLDAPClientFactory) disposeClient(client *LDAPClientPooled) error 
 
 	remaining := f.activeCount.Add(-1)
 	f.log.WithField("remainingClients", remaining).Trace("Pooled LDAP client disposed")
-	f.wakeupPoolManager() // might need replacing
+	f.wakeupPoolManager() // allow for a pool top-up if needed
 	return client.Close()
 }
 
@@ -356,9 +362,8 @@ func (f *PooledLDAPClientFactory) acquire() (client *LDAPClientPooled, err error
 		// Avoid excessive wake-ups if the pool size is small and drained pools are common.
 		if len(f_pool) <= 1 && f.maxPoolSize > 5 {
 			f.wakeupPoolManager()
-		} //
+		}
 
-		// asset correctness
 		if !client.leased.CompareAndSwap(false, true) {
 			f.log.Warn("Received already leased client from LDAP pool, disposing")
 			_ = f.disposeClient(client)
@@ -504,12 +509,13 @@ func (f *PooledLDAPClientFactory) poolManager() {
 	f.wakeupPoolManager() // initial wakeup to prime the pool
 
 	// Set up metrics reporting
-	reportingInterval := time.Hour * 1
-	if _, exists := os.LookupEnv("INFRA_HOST"); exists {
-		reportingInterval = time.Second * 180
+	var ticker *time.Ticker
+	if env := os.Getenv("LDAP_POOL_REPORT"); env != "" {
+		if parsed, err := time.ParseDuration(env); err == nil && parsed > 0 {
+			ticker = time.NewTicker(parsed)
+			defer ticker.Stop()
+		}
 	}
-	ticker := time.NewTicker(reportingInterval)
-	defer ticker.Stop()
 
 	for !f.isClosing() {
 		select {
@@ -520,14 +526,14 @@ func (f *PooledLDAPClientFactory) poolManager() {
 			return // This exits the goroutine 'ungracefully', without further cleanup
 
 		case <-ticker.C:
-			f.metricsReport()
+			f.log.Info(f.metricsReport())
 
-		// Signalled by one OR MORE callers that initially failed to acquire a client, i.e. by the
-		// time this runs, the situation might have changed already. What we *do know* is that
-		// the pool is or was under pressure and we should pro-actively try to add more clients.
-		// Also used by disposeClinent() after decrementing f.activeCount to allow for a pool top-up.
-		// Also used by Close() after setting f.closing to initiate a pool cleanup and graceful exit
 		case <-f_wakeup:
+			// Signalled by one OR MORE callers that initially failed to acquire a client, i.e. by the
+			// time this runs, the situation might have changed already. What we *do know* is that
+			// the pool is or was under pressure and we should pro-actively try to add more clients.
+			// Also used by disposeClinent() after decrementing f.activeCount to allow for a pool top-up.
+			// Also used by Close() after setting f.closing to initiate a pool cleanup and graceful exit
 			f.metricsManagerWakeupEvents.Add(1)
 			if f.isClosing() {
 				goto poolCleanup
@@ -646,6 +652,7 @@ func (f *PooledLDAPClientFactory) Close() (err error) {
 }
 
 // thread-safe, resets all metrics counters and sets the start time to now
+// NOTE: stores may overlap with updates - this is considered acceptable
 func (f *PooledLDAPClientFactory) metricsReset() {
 	f.metricsStartTime = time.Now()
 	f.metricsSuccessfulBin0.Store(0)
@@ -669,7 +676,6 @@ func (f *PooledLDAPClientFactory) metricsReset() {
 }
 
 // metricsSnapshot holds calculated metrics data
-// NOTE: stors may overlap with updates - this is considered acceptable
 type metricsSnapshot struct {
 	timestamp          string
 	durationHours      float64
@@ -713,6 +719,11 @@ func (f *PooledLDAPClientFactory) metricsCalculateSnapshot() *metricsSnapshot {
 	poolAvailable := len(f_pool)
 
 	bin_10us := f.metricsSuccessfulBin0.Load()
+	var bin_10us_avg float64
+	if bin_10us > 0 {
+		bin_10us_avg = float64(f.metricsBin0TimeSum.Load()) / float64(bin_10us) / 1e3
+	}
+
 	bin_100us := f.metricsSuccessfulBin1.Load()
 	bin_1ms := f.metricsSuccessfulBin2.Load()
 	bin_10ms := f.metricsSuccessfulBin3.Load()
@@ -721,11 +732,6 @@ func (f *PooledLDAPClientFactory) metricsCalculateSnapshot() *metricsSnapshot {
 	bin_remain := f.metricsSuccessfulBin6.Load()
 
 	totalSuccessful := bin_10us + bin_100us + bin_1ms + bin_10ms + bin_100ms + bin_1s + bin_remain
-
-	var bin_10us_avg float64
-	if bin_10us > 0 {
-		bin_10us_avg = float64(f.metricsBin0TimeSum.Load()) / float64(bin_10us) / 1e3
-	}
 
 	var createTimeAvgMs float64
 	if f.metricsClientsCreated.Load() > 0 {
@@ -848,42 +854,46 @@ func (f *PooledLDAPClientFactory) metricsCsvData() string {
 	)
 }
 
-// thread-safe, metricsReport prints a formatted metrics report to stdout
-func (f *PooledLDAPClientFactory) metricsReport() {
-	fmt.Printf("\n======== LDAP Pool Metrics Report ========\n")
+// thread-safe, metricsReport returns a formatted metrics report as a string
+func (f *PooledLDAPClientFactory) metricsReport() string {
+	var report strings.Builder
+
+	report.WriteString("\n======== LDAP Pool Metrics Report ========\n")
 
 	snapshot := f.metricsCalculateSnapshot()
 	if snapshot == nil {
-		fmt.Printf("ERROR: Pool not initialized\n")
-		fmt.Printf("==========================================\n\n")
-		return
+		report.WriteString("ERROR: Pool not initialized\n")
+		report.WriteString("==========================================\n\n")
+		return report.String()
 	}
 
-	fmt.Printf(" Report Time: %s\n", time.Now().Format("2006-01-02 15:04:05 MST"))
-	fmt.Printf(" Collection Duration: %.2f hours\n", snapshot.durationHours)
-	fmt.Printf(" Current State: %d active, %d available\n", snapshot.currentActive, snapshot.currentAvailable)
-	fmt.Printf(" Max Active Clients: %d\n", snapshot.clientsMaxActive)
-	fmt.Printf(" Avg Active Clients: %.2f\n", snapshot.clientsAvgEstimate)
-	fmt.Printf("\n Successful Acquisitions by Time Range:\n")
-	fmt.Printf("    <10us: %d   avg: %.2fμs\n", snapshot.bin_10us, snapshot.bin_10us_avg)
-	fmt.Printf("   <100us: %d\n", snapshot.bin_100us)
-	fmt.Printf("     <1ms: %d\n", snapshot.bin_1ms)
-	fmt.Printf("    <10ms: %d\n", snapshot.bin_10ms)
-	fmt.Printf("   <100ms: %d\n", snapshot.bin_100ms)
-	fmt.Printf("      <1s: %d\n", snapshot.bin_1s)
-	fmt.Printf("      ≥1s: %d\n", snapshot.bin_longer)
-	fmt.Printf("    TOTAL: %d\n", snapshot.totalSuccessful)
-	fmt.Printf("\n Failures:\n")
-	fmt.Printf("   Timeout failures: %d\n", snapshot.timeoutFailures)
-	fmt.Printf("\n Client Management:\n")
-	fmt.Printf("            Clients created: %d\n", snapshot.clientsCreated)
-	fmt.Printf("        Unhealthy disposals: %d\n", snapshot.clientsUnhealthy)
-	fmt.Printf("          Avg creation time: %.2fms\n", snapshot.createTimeAvgMs)
-	fmt.Printf("          Creation failures: %d\n", snapshot.createRetriesExceeded)
-	fmt.Printf("   Creation failed attempts: %d\n", snapshot.createFailedAttempts)
-	fmt.Printf("        Pool drained events: %d\n", snapshot.poolDrainedEvents)
-	fmt.Printf("       Pool manager wakeups: %d\n", snapshot.managerWakeupEvents)
-	fmt.Printf("==========================================\n\n")
+	report.WriteString(fmt.Sprintf(" Report Time: %s\n", time.Now().Format("2006-01-02 15:04:05 MST")))
+	report.WriteString(fmt.Sprintf(" Collection Duration: %.2f hours\n", snapshot.durationHours))
+	report.WriteString(fmt.Sprintf(" Current State: %d active, %d available\n", snapshot.currentActive, snapshot.currentAvailable))
+	report.WriteString(fmt.Sprintf(" Max Active Clients: %d\n", snapshot.clientsMaxActive))
+	report.WriteString(fmt.Sprintf(" Avg Active Clients: %.2f\n", snapshot.clientsAvgEstimate))
+	report.WriteString("\n Successful Acquisitions by Time Range:\n")
+	report.WriteString(fmt.Sprintf("    <10us: %d   avg: %.2fμs\n", snapshot.bin_10us, snapshot.bin_10us_avg))
+	report.WriteString(fmt.Sprintf("   <100us: %d\n", snapshot.bin_100us))
+	report.WriteString(fmt.Sprintf("     <1ms: %d\n", snapshot.bin_1ms))
+	report.WriteString(fmt.Sprintf("    <10ms: %d\n", snapshot.bin_10ms))
+	report.WriteString(fmt.Sprintf("   <100ms: %d\n", snapshot.bin_100ms))
+	report.WriteString(fmt.Sprintf("      <1s: %d\n", snapshot.bin_1s))
+	report.WriteString(fmt.Sprintf("      ≥1s: %d\n", snapshot.bin_longer))
+	report.WriteString(fmt.Sprintf("    TOTAL: %d\n", snapshot.totalSuccessful))
+	report.WriteString("\n Failures:\n")
+	report.WriteString(fmt.Sprintf("   Timeout failures: %d\n", snapshot.timeoutFailures))
+	report.WriteString("\n Client Management:\n")
+	report.WriteString(fmt.Sprintf("            Clients created: %d\n", snapshot.clientsCreated))
+	report.WriteString(fmt.Sprintf("        Unhealthy disposals: %d\n", snapshot.clientsUnhealthy))
+	report.WriteString(fmt.Sprintf("          Avg creation time: %.2fms\n", snapshot.createTimeAvgMs))
+	report.WriteString(fmt.Sprintf("          Creation failures: %d\n", snapshot.createRetriesExceeded))
+	report.WriteString(fmt.Sprintf("   Creation failed attempts: %d\n", snapshot.createFailedAttempts))
+	report.WriteString(fmt.Sprintf("        Pool drained events: %d\n", snapshot.poolDrainedEvents))
+	report.WriteString(fmt.Sprintf("       Pool manager wakeups: %d\n", snapshot.managerWakeupEvents))
+	report.WriteString("==========================================\n\n")
+
+	return report.String()
 }
 
 // LDAPClientPooled is a decorator for the ldap.Client which handles the pooling functionality. i.e. prevents the client
