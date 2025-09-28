@@ -127,7 +127,7 @@ type PooledLDAPClientFactory struct {
 	closed         chan error
 	ctx            context.Context
 	cancel         context.CancelFunc
-	mu             sync.Mutex
+	mu             sync.Mutex // to implement the forbidden atomic operations
 }
 
 // atomic.Int32.Load, slow version
@@ -174,7 +174,7 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 	} else if rerr := f.ReadinessCheck(); rerr != nil {
 		err = rerr
 	} else {
-		go f.poolManager()
+		go f.poolManager(f.ctx, f.pool, f.wakeup, f.closed)
 		return nil
 	}
 	err = fmt.Errorf("LDAP pool initialization failed: %w", err)
@@ -185,11 +185,10 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 
 func (f *PooledLDAPClientFactory) ReadinessCheck() (err error) {
 	client, err := f.acquire()
-	if err != nil {
-		return err
+	if client != nil {
+		return f.ReleaseClient(client)
 	}
-	_ = f.ReleaseClient(client)
-	return nil
+	return err
 }
 
 func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (conn ldap.Client, err error) {
@@ -210,46 +209,39 @@ func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
 }
 
 func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) {
-	p, ok := client.(*LDAPClientPooled)
+	c, ok := client.(*LDAPClientPooled)
 	if !ok {
 		return client.Close()
 	}
-	f_pool := f.pool
-	if f_pool == nil || !p.IsHealthy() {
-		return f.disposeClient(p)
+	if pool := f.pool; pool != nil && c.IsHealthy() {
+		select {
+		case pool <- c:
+			return nil
+		default:
+		}
 	}
-	select {
-	case f_pool <- p:
-		return nil
-	default:
-		return f.disposeClient(p)
-	}
+	return f.disposeClient(c)
 }
 
 func (f *PooledLDAPClientFactory) disposeClient(client *LDAPClientPooled) error {
-	if client == nil {
-		return nil
-	}
 	f.activeCountAdd(-1)
 	f.wakeupPoolManager()
 	return client.Close()
 }
 
 func (f *PooledLDAPClientFactory) acquire() (client *LDAPClientPooled, err error) {
-	f_pool := f.pool
-	if f_pool == nil {
+	pool := f.pool
+	if pool == nil {
 		return nil, fmt.Errorf("pool is unitialized or closed")
 	}
 	deadline := time.Now().Add(f.config.Pooling.Timeout)
 	for !f.closingLoad() {
 		select {
-		case client = <-f_pool:
-			goto check_client
+		case client = <-pool:
 		default:
 			f.wakeupPoolManager()
 			select {
-			case client = <-f_pool:
-				goto check_client
+			case client = <-pool:
 			case <-time.After(time.Millisecond * 10):
 				if time.Now().After(deadline) {
 					return nil, fmt.Errorf("timeout waiting for client from LDAP pool")
@@ -257,8 +249,7 @@ func (f *PooledLDAPClientFactory) acquire() (client *LDAPClientPooled, err error
 				continue
 			}
 		}
-	check_client:
-		if len(f_pool) <= 1 && f.maxPoolSize > 5 {
+		if len(pool) <= 1 && f.maxPoolSize > 5 {
 			f.wakeupPoolManager()
 		}
 		if !client.IsHealthy() {
@@ -270,14 +261,13 @@ func (f *PooledLDAPClientFactory) acquire() (client *LDAPClientPooled, err error
 	return nil, fmt.Errorf("LDAP pool is closing, cannot acquire client")
 }
 
-func (f *PooledLDAPClientFactory) tryAddPooledClient(f_pool chan *LDAPClientPooled) bool {
+func (f *PooledLDAPClientFactory) tryAddPooledClient(pool chan *LDAPClientPooled) bool {
 	attempts := f.config.Pooling.Retries
 	sleep := f.config.Timeout / 8
 	for !f.closingLoad() {
-		client, err := f.new()
-		if err == nil {
+		if client, _ := f.new(); client != nil {
 			select {
-			case f_pool <- client:
+			case pool <- client:
 				f.activeCountAdd(1)
 				return true
 			default:
@@ -296,37 +286,28 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient(f_pool chan *LDAPClientPool
 }
 
 func (f *PooledLDAPClientFactory) wakeupPoolManager() {
-	f_wakeup := f.wakeup
-	if f_wakeup == nil {
-		return
-	}
-	select {
-	case f_wakeup <- struct{}{}:
-	default:
+	if wakeup := f.wakeup; wakeup != nil {
+		select {
+		case wakeup <- struct{}{}:
+		default:
+		}
 	}
 }
 
-func (f *PooledLDAPClientFactory) poolManager() {
-	f_ctx, f_pool, f_wakeup, f_closed := f.ctx, f.pool, f.wakeup, f.closed
+func (f *PooledLDAPClientFactory) poolManager(ctx context.Context, pool chan *LDAPClientPooled, wakeup chan struct{}, result chan error) {
 	f.wakeupPoolManager()
 	for !f.closingLoad() {
 		select {
-		case <-f_ctx.Done():
-			f_closed <- fmt.Errorf("pool context cancelled")
+		case <-ctx.Done():
+			result <- fmt.Errorf("pool context cancelled")
 			return
-		case <-f_wakeup:
+		case <-wakeup:
 			if f.closingLoad() {
 				goto poolCleanup
 			}
 			active := f.activeCountLoad()
-			available := int32(len(f_pool))
-			request := min(max(f.minPoolSize-active, 2-available), f.maxPoolSize-active)
-			if request <= 0 {
-				continue
-			}
-			request = min(request, max(2, (f.minPoolSize+1)/2))
-			for range request {
-				if !f.tryAddPooledClient(f_pool) {
+			for range min(min(max(f.minPoolSize-active, 2-int32(len(pool))), f.maxPoolSize-active), max(2, (f.maxPoolSize+3)/4)) {
+				if !f.tryAddPooledClient(pool) {
 					break
 				}
 			}
@@ -335,18 +316,18 @@ func (f *PooledLDAPClientFactory) poolManager() {
 poolCleanup:
 	for f.activeCountLoad() > 0 {
 		select {
-		case <-f_ctx.Done():
-			f_closed <- fmt.Errorf("pool context cancelled")
+		case <-ctx.Done():
+			result <- fmt.Errorf("pool context cancelled")
 			return
-		case client, ok := <-f_pool:
+		case client, ok := <-pool:
 			if !ok {
-				f_closed <- fmt.Errorf("pool channel unexpectedly closed")
+				result <- fmt.Errorf("pool channel unexpectedly closed")
 				return
 			}
 			_ = f.disposeClient(client)
 		}
 	}
-	close(f_closed)
+	close(result)
 }
 
 func (f *PooledLDAPClientFactory) Close() (err error) {
@@ -364,12 +345,7 @@ func (f *PooledLDAPClientFactory) Close() (err error) {
 		f.cancel()
 		err = fmt.Errorf("pool cleanup exceeded timeout")
 	}
-	f.pool = nil
-	f.wakeup = nil
-	f.closed = nil
-	f.ctx = nil
-	f.cancel = nil
-	cleanupCtx = nil
+	f.pool, f.wakeup, f.closed, f.ctx, f.cancel, cleanupCtx = nil, nil, nil, nil, nil, nil
 	return err
 }
 
