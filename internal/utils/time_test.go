@@ -277,20 +277,17 @@ func TestParseDurationString_AtoiErrors(t *testing.T) {
 		{
 			name:        "NumberTooSmallForInt",
 			input:       "-999999999999999999999999999999999999999999999999999999999999999999999",
-			expectedErr: `could not parse '-999999999999999999999999999999999999999999999999999999999999999999999' as a duration`, // Falls through to StandardizeDurationString
+			expectedErr: `could not parse '-999999999999999999999999999999999999999999999999999999999999999999999' as a duration`,
 		},
 		{
 			name:        "IntegerOverflow32Bit",
-			input:       "9999999999", // Larger than int32 max but fits in int64
-			expectedErr: "",           // No error on 64-bit systems
+			input:       "9999999999",
+			expectedErr: "",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// First verify that reOnlyNumeric matches these inputs
-			// (assuming reOnlyNumeric is your regex for numeric-only strings)
-
 			duration, err := ParseDurationString(tc.input)
 
 			if tc.expectedErr != "" {
@@ -298,26 +295,22 @@ func TestParseDurationString_AtoiErrors(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.expectedErr)
 				assert.Equal(t, time.Duration(0), duration)
 			} else {
-				// This case tests behavior on systems where large numbers might work
 				t.Logf("Input %s resulted in: duration=%v, err=%v", tc.input, duration, err)
 			}
 		})
 	}
 }
 
-// Test the correct behavior (function properly returns errors)
 func TestParseDurationString_CorrectErrorHandling(t *testing.T) {
 	input := "999999999999999999999999999999999999999999999999999999999999999999999"
 
 	duration, err := ParseDurationString(input)
 
-	// The function correctly returns the strconv.Atoi error
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "value out of range")
 	assert.Equal(t, time.Duration(0), duration)
 }
 
-// Additional edge cases for numeric inputs
 func TestParseDurationString_NumericEdgeCases(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -333,9 +326,10 @@ func TestParseDurationString_NumericEdgeCases(t *testing.T) {
 			hasError: false,
 		},
 		{
-			name:     "NegativeNumber",
-			input:    "-5",
-			expected: 0, // Negative numbers don't match reOnlyNumeric, fall through to StandardizeDurationString
+			name:  "NegativeNumber",
+			input: "-5",
+
+			expected: 0,
 			hasError: true,
 			errorMsg: "could not parse '-5' as a duration",
 		},
@@ -359,9 +353,11 @@ func TestParseDurationString_NumericEdgeCases(t *testing.T) {
 
 			if tc.hasError {
 				assert.Error(t, err)
+
 				if tc.errorMsg != "" {
 					assert.Contains(t, err.Error(), tc.errorMsg)
 				}
+
 				assert.Equal(t, time.Duration(0), duration)
 			} else {
 				assert.NoError(t, err)
@@ -421,13 +417,12 @@ func TestStandardizeDurationString_AtoiErrors(t *testing.T) {
 			assert.Contains(t, err.Error(), "value out of range")
 			assert.Empty(t, output)
 
-			// Verify it's the exact error we expect
 			assert.Equal(t, tc.expectedErr, err.Error())
 		})
 	}
 }
 
-// Test edge cases that should work (don't trigger Atoi errors)
+// Test edge cases that should work (don't trigger Atoi errors).
 func TestStandardizeDurationString_LargeButValidNumbers(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -441,7 +436,7 @@ func TestStandardizeDurationString_LargeButValidNumbers(t *testing.T) {
 		},
 		{
 			name:     "LargeButValid64BitNumber",
-			input:    "9223372036854775807s", // Max int64
+			input:    "9223372036854775807s",
 			expected: "9223372036854775807s",
 		},
 		{
@@ -461,9 +456,7 @@ func TestStandardizeDurationString_LargeButValidNumbers(t *testing.T) {
 	}
 }
 
-// Test that the function processes matches in order and fails on first Atoi error
 func TestStandardizeDurationString_FailsOnFirstAtoiError(t *testing.T) {
-	// This should fail on the first large number, not process the rest
 	input := "999999999999999999999999999999999999999999999999999999999999999999999h5m30s"
 
 	output, err := StandardizeDurationString(input)
@@ -472,7 +465,5 @@ func TestStandardizeDurationString_FailsOnFirstAtoiError(t *testing.T) {
 	assert.Contains(t, err.Error(), "value out of range")
 	assert.Empty(t, output)
 
-	// The error should be from the first match (the hours), not from minutes or seconds
 	assert.Contains(t, err.Error(), `parsing "999999999999999999999999999999999999999999999999999999999999999999999"`)
 }
-
