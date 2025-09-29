@@ -100,12 +100,12 @@
     "@testing-library/jest-dom": "6.8.0",
     "@testing-library/react": "16.3.0",
     "@types/node": "24.5.2",
-    "@types/react": "19.1.14",
+    "@types/react": "19.1.15",
     "@types/react-dom": "19.1.9",
     "@types/zxcvbn": "4.4.5",
     "@typescript-eslint/eslint-plugin": "8.44.1",
     "@typescript-eslint/parser": "8.44.1",
-    "@vitejs/plugin-react": "5.0.3",
+    "@vitejs/plugin-react": "5.0.4",
     "@vitest/coverage-istanbul": "3.2.4",
     "esbuild": "0.25.10",
     "eslint": "9.36.0",
@@ -127,6 +127,6 @@
     "vite-plugin-svgr": "4.5.0",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.2.4",
-    "vitest-preview": "0.0.2"
+    "vitest-preview": "0.0.3"
   }
 }
