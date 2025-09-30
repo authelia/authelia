@@ -57,8 +57,8 @@
     "qrcode.react": "4.2.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "react-i18next": "15.7.3",
-    "react-router-dom": "7.9.2",
+    "react-i18next": "16.0.0",
+    "react-router-dom": "7.9.3",
     "react-spinners": "0.17.0",
     "react18-input-otp": "1.1.4",
     "tss-react": "4.9.19",
@@ -94,18 +94,18 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "19.8.1",
-    "@commitlint/config-conventional": "19.8.1",
+    "@commitlint/cli": "20.1.0",
+    "@commitlint/config-conventional": "20.0.0",
     "@limegrass/eslint-plugin-import-alias": "1.5.2",
     "@testing-library/jest-dom": "6.8.0",
     "@testing-library/react": "16.3.0",
-    "@types/node": "24.5.2",
-    "@types/react": "19.1.13",
+    "@types/node": "24.6.0",
+    "@types/react": "19.1.16",
     "@types/react-dom": "19.1.9",
     "@types/zxcvbn": "4.4.5",
     "@typescript-eslint/eslint-plugin": "8.44.1",
     "@typescript-eslint/parser": "8.44.1",
-    "@vitejs/plugin-react": "5.0.3",
+    "@vitejs/plugin-react": "5.0.4",
     "@vitest/coverage-istanbul": "3.2.4",
     "esbuild": "0.25.10",
     "eslint": "9.36.0",
@@ -117,8 +117,8 @@
     "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "5.2.0",
-    "happy-dom": "18.0.1",
-    "lefthook": "1.13.4",
+    "happy-dom": "19.0.2",
+    "lefthook": "1.13.6",
     "prettier": "3.6.2",
     "typescript": "5.9.2",
     "vite": "7.1.7",
@@ -127,6 +127,6 @@
     "vite-plugin-svgr": "4.5.0",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.2.4",
-    "vitest-preview": "0.0.2"
+    "vitest-preview": "0.0.3"
   }
 }
