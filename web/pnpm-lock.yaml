@@ -99,8 +99,8 @@ importers:
         version: 4.4.2
     devDependencies:
       '@commitlint/cli':
-        specifier: 20.0.0
-        version: 20.0.0(@types/node@24.6.0)(typescript@5.9.2)
+        specifier: 20.1.0
+        version: 20.1.0(@types/node@24.6.0)(typescript@5.9.2)
       '@commitlint/config-conventional':
         specifier: 20.0.0
         version: 20.0.0
@@ -333,8 +333,8 @@ packages:
     resolution: {integrity: sha512-bkFqkLhh3pMBUQQkpVgWDWq/lqzc2678eUyDlTBhRqhCHFguYYGM0Efga7tYk4TogG/3x0EEl66/OQ+WGbWB/Q==}
     engines: {node: '>=6.9.0'}
 
-  '@commitlint/cli@20.0.0':
-    resolution: {integrity: sha512-I3D7Yldq8ZhOB3qEaTvXWIgib6tSZhbCpRObfFQ/aYI0J9AH8NMwT07Ak+bpE3n6Yn7EtbqEhQUkJZ/jZ5kCeQ==}
+  '@commitlint/cli@20.1.0':
+    resolution: {integrity: sha512-pW5ujjrOovhq5RcYv5xCpb4GkZxkO2+GtOdBW2/qrr0Ll9tl3PX0aBBobGQl3mdZUbOBgwAexEQLeH6uxL0VYg==}
     engines: {node: '>=v18'}
     hasBin: true
 
@@ -366,8 +366,8 @@ packages:
     resolution: {integrity: sha512-kWrX8SfWk4+4nCexfLaQT3f3EcNjJwJBsSZ5rMBw6JCd6OzXufFHgel2Curos4LKIxwec9WSvs2YUD87rXlxNQ==}
     engines: {node: '>=v18'}
 
-  '@commitlint/load@20.0.0':
-    resolution: {integrity: sha512-WiNKO9fDPlLY90Rruw2HqHKcghrmj5+kMDJ4GcTlX1weL8K07Q6b27C179DxnsrjGCRAKVwFKyzxV4x+xDY28Q==}
+  '@commitlint/load@20.1.0':
+    resolution: {integrity: sha512-qo9ER0XiAimATQR5QhvvzePfeDfApi/AFlC1G+YN+ZAY8/Ua6IRrDrxRvQAr+YXUKAxUsTDSp9KXeXLBPsNRWg==}
     engines: {node: '>=v18'}
 
   '@commitlint/message@20.0.0':
@@ -382,8 +382,8 @@ packages:
     resolution: {integrity: sha512-Ti7Y7aEgxsM1nkwA4ZIJczkTFRX/+USMjNrL9NXwWQHqNqrBX2iMi+zfuzZXqfZ327WXBjdkRaytJ+z5vNqTOA==}
     engines: {node: '>=v18'}
 
-  '@commitlint/resolve-extends@20.0.0':
-    resolution: {integrity: sha512-BA4vva1hY8y0/Hl80YDhe9TJZpRFMsUYzVxvwTLPTEBotbGx/gS49JlVvtF1tOCKODQp7pS7CbxCpiceBgp3Dg==}
+  '@commitlint/resolve-extends@20.1.0':
+    resolution: {integrity: sha512-cxKXQrqHjZT3o+XPdqDCwOWVFQiae++uwd9dUBC7f2MdV58ons3uUvASdW7m55eat5sRiQ6xUHyMWMRm6atZWw==}
     engines: {node: '>=v18'}
 
   '@commitlint/rules@20.0.0':
@@ -1747,10 +1747,6 @@ packages:
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
-
-  chalk@5.3.0:
-    resolution: {integrity: sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==}
-    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
   chalk@5.6.2:
     resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
@@ -4451,11 +4447,11 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
 
-  '@commitlint/cli@20.0.0(@types/node@24.6.0)(typescript@5.9.2)':
+  '@commitlint/cli@20.1.0(@types/node@24.6.0)(typescript@5.9.2)':
     dependencies:
       '@commitlint/format': 20.0.0
       '@commitlint/lint': 20.0.0
-      '@commitlint/load': 20.0.0(@types/node@24.6.0)(typescript@5.9.2)
+      '@commitlint/load': 20.1.0(@types/node@24.6.0)(typescript@5.9.2)
       '@commitlint/read': 20.0.0
       '@commitlint/types': 20.0.0
       tinyexec: 1.0.1
@@ -4488,7 +4484,7 @@ snapshots:
   '@commitlint/format@20.0.0':
     dependencies:
       '@commitlint/types': 20.0.0
-      chalk: 5.3.0
+      chalk: 5.6.2
 
   '@commitlint/is-ignored@20.0.0':
     dependencies:
@@ -4502,13 +4498,13 @@ snapshots:
       '@commitlint/rules': 20.0.0
       '@commitlint/types': 20.0.0
 
-  '@commitlint/load@20.0.0(@types/node@24.6.0)(typescript@5.9.2)':
+  '@commitlint/load@20.1.0(@types/node@24.6.0)(typescript@5.9.2)':
     dependencies:
       '@commitlint/config-validator': 20.0.0
       '@commitlint/execute-rule': 20.0.0
-      '@commitlint/resolve-extends': 20.0.0
+      '@commitlint/resolve-extends': 20.1.0
       '@commitlint/types': 20.0.0
-      chalk: 5.3.0
+      chalk: 5.6.2
       cosmiconfig: 9.0.0(typescript@5.9.2)
       cosmiconfig-typescript-loader: 6.1.0(@types/node@24.6.0)(cosmiconfig@9.0.0(typescript@5.9.2))(typescript@5.9.2)
       lodash.isplainobject: 4.0.6
@@ -4534,7 +4530,7 @@ snapshots:
       minimist: 1.2.8
       tinyexec: 1.0.1
 
-  '@commitlint/resolve-extends@20.0.0':
+  '@commitlint/resolve-extends@20.1.0':
     dependencies:
       '@commitlint/config-validator': 20.0.0
       '@commitlint/types': 20.0.0
@@ -4559,7 +4555,7 @@ snapshots:
   '@commitlint/types@20.0.0':
     dependencies:
       '@types/conventional-commits-parser': 5.0.0
-      chalk: 5.3.0
+      chalk: 5.6.2
 
   '@csstools/color-helpers@5.1.0': {}
 
@@ -5931,8 +5927,6 @@ snapshots:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
-
-  chalk@5.3.0: {}
 
   chalk@5.6.2: {}
 
