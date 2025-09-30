@@ -1,5 +1,5 @@
 ---
-pull_request_title: 'i18n: update translations'
+pull_request_title: 'i18n: update translations (%language%)'
 commit_message: 'i18n: update translation for %original_file_name% (%language%)'
 append_commit_message: false
 files:
