@@ -231,8 +231,8 @@ github.com/valyala/fasthttp v1.66.0 h1:M87A0Z7EayeyNaV6pfO3tUTUiYO0dZfEJnRGXTVNu
 github.com/valyala/fasthttp v1.66.0/go.mod h1:Y4eC+zwoocmXSVCB1JmhNbYtS7tZPRI2ztPB72EVObs=
 github.com/weppos/publicsuffix-go v0.50.0 h1:M178k6l8cnh9T1c1cStkhytVxdk5zPd6gGZf8ySIuVo=
 github.com/weppos/publicsuffix-go v0.50.0/go.mod h1:VXhClBYMlDrUsome4pOTpe68Ui0p6iQRAbyHQD1yKoU=
-github.com/wneessen/go-mail v0.7.1 h1:rvy63sp14N06/kdGqCYwW8Na5gDCXjTQM1E7So4PuKk=
-github.com/wneessen/go-mail v0.7.1/go.mod h1:+TkW6QP3EVkgTEqHtVmnAE/1MRhmzb8Y9/W3pweuS+k=
+github.com/wneessen/go-mail v0.7.2 h1:xxPnhZ6IZLSgxShebmZ6DPKh1b6OJcoHfzy7UjOkzS8=
+github.com/wneessen/go-mail v0.7.2/go.mod h1:+TkW6QP3EVkgTEqHtVmnAE/1MRhmzb8Y9/W3pweuS+k=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
