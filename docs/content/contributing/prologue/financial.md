@@ -26,7 +26,7 @@ was not prompted by any bug bounty program as we do not have one, but we hope to
 
 Potential usage for the money, ranked in order of priority:
 
-1. Put Authelia through a comprehensive [Security Audit](../../policies/security.md#help-wanted).
+1. Put Authelia through a comprehensive [Security Audit](../../overview/project/policies/security.md#help-wanted).
    1. Audit of Code Security via Analysis.
    2. Audit via Penetration Testing.
 2. Obtain formal accreditations.
@@ -42,7 +42,7 @@ Authelia is sponsored by several companies via indirect means. These companies d
 contributions are very important to us but not easily visible.
 
 If you feel you have a product or service that Authelia could benefit from please feel free to
-[contact](../../information/contact.md) us.
+[contact](../../overview/project/contact.md) us.
 
 In the event that an entity decides to sponsor an entire or large part of a formal and industry recognized audit we
 would be willing to discuss terms including but not limited to making formal acknowledgement in the form of a blog post,
@@ -55,8 +55,8 @@ the Authelia binary itself.
 
 We are currently directly looking for someone to sponsor:
 
-* [Security Audit](../../policies/security.md#help-wanted)
+* [Security Audit](../../overview/project/policies/security.md#help-wanted)
 
-To see a list of our sponsors please see the [sponsors section](../../information/about.md#sponsors) on the about page.
+To see a list of our sponsors please see the [sponsors section](../../overview/project/about.md#sponsors) on the about page.
 
 [Open Collective]: https://opencollective.com/authelia-sponsors

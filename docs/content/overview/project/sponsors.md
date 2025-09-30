@@ -1,5 +1,5 @@
 ---
-title: "About"
+title: "Sponsors"
 description: "About Authelia and the Authelia Team"
 summary: ""
 date: 2024-03-14T06:00:14+11:00
@@ -7,42 +7,21 @@ draft: false
 images: []
 toc: true
 aliases:
-  - /about
-  - /about.html
+  - /sponsors
+  - /sponsors.html
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---
-
-## What is Authelia?
-
-Authelia is a project with several open source developers who contribute to the project in their free time. We are not
-a company or another type of incorporated entity, and do not have any monetization model. Individuals and Organizations
-are free to contribute [financially](../contributing/prologue/financial.md) or with their time to the
-[documentation](../contributing/prologue/documentation-contributions.md) or
-[code base](../contributing/development/introduction.md).
-
-## Teams
-
-The following section describes the various teams within the Authelia project.
-
-### Core Team
-
-{{% profile-team name="core" %}}
-
-### Maintainers Team
-
-{{% profile-team name="maintainers" %}}
-
 ## Sponsors
 
 Authelia is sponsored by the organizations listed below. The organizations below sponsor us completely voluntarily
 and do not expect anything additional other than us mentioning them or having a code of conduct, and some do not even
 require either of those things.
 
-Please see the [sponsorship section](../contributing/prologue/financial.md#sponsorship) of the financial contributing
+Please see the [sponsorship section](../../contributing/prologue/financial.md#sponsorship) of the financial contributing
 page for more information on how to become a sponsor.
 
 ### Balto
@@ -86,30 +65,3 @@ Our [website and documentation](https://www.authelia.com) are built and hosted b
 [Netlify](https://www.netlify.com/?from=Authelia).
 
 [Open Collective]: https://opencollective.com/authelia-sponsors
-
-## Governance and Affiliations
-
-Authelia is free from any outside governance and is entirely governed as outlined on this page, in addition we do not
-have any affiliations which have ever asked this of us.
-
-Our affiliations with external companies will be transparently communicated in this section and the
-[sponsors](#sponsors) section.
-
-## Compliance
-
-The following section contains various compliance related information.
-
-### Key Individuals
-
-There is no key individual who if they were incapacitated or unavailable would prevent future operations of the project.
-
-All of the following areas can be reset or are otherwise accessible to all of the members of the [Core Team](#core-team):
-
-- Private Keys
-- Access Rights
-- Passwords
-
-### Bus Factor
-
-The Authelia team has a bus factor of 3. Meaning that the project would stall if 3 team members were suddenly hit by a
-bus.

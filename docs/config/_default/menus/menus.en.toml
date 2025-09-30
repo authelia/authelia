@@ -61,30 +61,30 @@
 
 [[footer]]
   name = "Privacy Policy"
-  url = "/policies/privacy"
+  url = "/overview/project/policies/privacy"
   weight = 10
 
 [[footer]]
   name = "Security Policy"
-  url = "/policies/security"
+  url = "/overview/project/policies/security"
   weight = 20
 
 [[footer]]
   name = "Versioning Policy"
-  url = "/policies/versioning"
+  url = "/overview/project/policies/versioning"
   weight = 30
 
 [[footer]]
   name = "Code of Conduct"
-  url = "/code-of-conduct"
+  url = "/overview/project/policies/code-of-conduct"
   weight = 40
 
 [[footer]]
   name = "About"
-  url = "/information/about"
+  url = "/overview/project/about"
   weight = 50
 
 [[footer]]
   name = "Contact"
-  url = "/information/contact"
+  url = "/overview/project/contact"
   weight = 60

@@ -157,7 +157,7 @@ Feature List:
 
 {{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 This version will contain one or more breaking changes per our
-[Versioning Policy](../../policies/versioning.md#experimental-features).
+[Versioning Policy](../../overview/project/policies/versioning.md#experimental-features).
 {{< /callout >}}
 
 Breaking Changes:
@@ -190,7 +190,7 @@ See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Pro
 
 {{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 This version will contain one or more breaking changes per our
-[Versioning Policy](../../policies/versioning.md#experimental-features).
+[Versioning Policy](../../overview/project/policies/versioning.md#experimental-features).
 {{< /callout >}}
 
 Breaking Changes:
@@ -254,7 +254,7 @@ This stage lists features which individually do not fit into a specific stage an
 
 {{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 This will be a planned breaking-change as per our
-[Versioning Policy](../../policies/versioning.md#experimental-features).
+[Versioning Policy](../../overview/project/policies/versioning.md#experimental-features).
 {{< /callout >}}
 
 The initial design of our [OpenID Connect 1.0] implementation was before
