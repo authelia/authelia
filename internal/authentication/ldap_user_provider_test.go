@@ -460,9 +460,6 @@ func TestShouldCheckLDAPServerExtensionsPooled(t *testing.T) {
 		mockClient.EXPECT().Close().Return(fmt.Errorf("close error")),
 	)
 
-	// health checks from Initialize() -> ReadinessCheck()
-	mockClient.EXPECT().IsClosing().Return(false).Times(2)
-
 	err := provider.StartupCheck()
 	assert.NoError(t, err)
 
@@ -609,9 +606,6 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntryPoo
 		mockClient.EXPECT().Close().Return(nil),
 	)
 
-	// health checks from Initialize() -> ReadinessCheck()
-	mockClient.EXPECT().IsClosing().Return(false).Times(2)
-
 	err := provider.StartupCheck()
 	assert.NoError(t, err)
 
@@ -641,7 +635,7 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntryPoo
 		Password:          "password",
 		AdditionalUsersDN: "ou=users",
 		BaseDN:            "dc=example,dc=com",
-		Pooling:           schema.AuthenticationBackendLDAPPooling{Count: 1},
+		Pooling:           schema.AuthenticationBackendLDAPPooling{Count: 2},
 	}
 
 	mockDialer := NewMockLDAPClientDialer(ctrl)
@@ -689,14 +683,20 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntryPoo
 		}, nil)
 
 	gomock.InOrder(
+		// two clients created in Initialize()
 		dialURL,
 		setTimeout,
 		clientBind,
-		mockClient.EXPECT().IsClosing().Return(true),
 		dialURLSecond,
 		setTimeoutSecond,
 		clientBindSecond,
+		// first client checked out and immediately disposed as stale
+		mockClient.EXPECT().IsClosing().Return(true),
+		mockClient.EXPECT().Close().Return(nil),
+		// second cliet checked out and used for the root DSE search
+		mockClientSecond.EXPECT().IsClosing().Return(false),
 		searchOIDs,
+		// second client returned to the pool and then closed during pool cleanup
 		mockClientSecond.EXPECT().IsClosing().Return(false),
 		mockClientSecond.EXPECT().Close().Return(nil),
 	)
@@ -846,9 +846,6 @@ func TestShouldCheckLDAPServerControlTypesPooled(t *testing.T) {
 		clientClose,
 	)
 
-	// health checks from Initialize() -> ReadinessCheck()
-	mockClient.EXPECT().IsClosing().Return(false).Times(2)
-
 	err := provider.StartupCheck()
 	assert.NoError(t, err)
 
@@ -997,9 +994,6 @@ func TestShouldNotEnablePasswdModifyExtensionOrControlTypesPooled(t *testing.T) 
 		clientClose,
 	)
 
-	// health checks from Initialize() -> ReadinessCheck()
-	mockClient.EXPECT().IsClosing().Return(false).Times(2)
-
 	assert.NoError(t, provider.StartupCheck())
 
 	assert.False(t, provider.features.Extensions.PwdModifyExOp)
@@ -1138,9 +1132,6 @@ func TestShouldReturnCheckServerSearchErrorPooled(t *testing.T) {
 		clientClose,
 	)
 
-	// health checks from Initialize() -> ReadinessCheck()
-	mockClient.EXPECT().IsClosing().Return(false).Times(2)
-
 	err := provider.StartupCheck()
 	assert.EqualError(t, err, "error occurred during RootDSE search: could not perform the search")
 
@@ -1244,9 +1235,6 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 		mockClient.EXPECT().IsClosing().Return(false),
 		clientClose,
 	)
-
-	// health checks from Initialize() -> ReadinessCheck()
-	mockClient.EXPECT().IsClosing().Return(false).Times(2)
 
 	assert.NoError(t, provider.StartupCheck())
 	assert.NoError(t, provider.Close())
