@@ -268,7 +268,7 @@ In addition it's important to note that the consent mode is merely a suggested d
 `explicit`, silently not perform certain expected actions, or should be expected to return an error the client. This
 mode is intended for development and testing, and is heavily discouraged in production.
 
-In addition the consent policy implementation is likely a target for a breaking refactoring before we stabilize the
+The consent policy implementation is likely a target for a breaking refactoring before we stabilize the
 OpenID Connect 1.0 Provider implementation due to additional understanding of how the specifications require us to
 handle Consent Flows.
 
