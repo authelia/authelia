@@ -255,12 +255,12 @@ func RFC6750Header(realm, scope string, err *oauthelia2.RFC6749Error) string {
 }
 
 // AccessResponderToClearMap returns a clear friendly map copy of the responder map values.
-func AccessResponderToClearMap(responder oauthelia2.AccessResponder) map[string]any {
-	if responder == nil {
+func AccessResponderToClearMap(r oauthelia2.AccessResponder) map[string]any {
+	if r == nil {
 		return nil
 	}
 
-	m := responder.ToMap()
+m := r.ToMap()
 
 	data := make(map[string]any, len(m))
 
