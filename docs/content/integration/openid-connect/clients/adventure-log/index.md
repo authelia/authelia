@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.10](https://github.com/authelia/authelia/releases/tag/v4.39.10)
+  - [v4.39.11](https://github.com/authelia/authelia/releases/tag/v4.39.11)
 - [AdventureLog]
   - [v0.9.0](https://github.com/seanmorley15/AdventureLog/releases/tag/v0.9.0)
 
