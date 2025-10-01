@@ -309,6 +309,10 @@ func HydrateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client oa
 
 // InitializeSessionDefaults ensures a *Session has safe initialized defaults for most purposes.
 func InitializeSessionDefaults(session *Session) {
+	if session == nil {
+		return
+	}
+
 	switch {
 	case session.DefaultSession == nil:
 		session.DefaultSession = &openid.DefaultSession{

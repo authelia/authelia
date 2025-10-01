@@ -623,6 +623,10 @@ func TestInitializeSessionDefaults(t *testing.T) {
 			&oidc.Session{},
 		},
 		{
+			"ShouldHandleNil",
+			nil,
+		},
+		{
 			"ShouldHandleMissingExtra",
 			&oidc.Session{
 				DefaultSession: &openid.DefaultSession{
@@ -640,16 +644,20 @@ func TestInitializeSessionDefaults(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			expected := &oidc.Session{
-				DefaultSession: &openid.DefaultSession{
-					Headers: &fjwt.Headers{
-						Extra: map[string]any{},
+			var expected *oidc.Session
+
+			if tc.have != nil {
+				expected = &oidc.Session{
+					DefaultSession: &openid.DefaultSession{
+						Headers: &fjwt.Headers{
+							Extra: map[string]any{},
+						},
+						Claims: &fjwt.IDTokenClaims{
+							Extra: map[string]any{},
+						},
 					},
-					Claims: &fjwt.IDTokenClaims{
-						Extra: map[string]any{},
-					},
-				},
-				Extra: map[string]any{},
+					Extra: map[string]any{},
+				}
 			}
 
 			oidc.InitializeSessionDefaults(tc.have)
