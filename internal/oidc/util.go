@@ -260,11 +260,11 @@ func AccessResponderToClearMap(r oauthelia2.AccessResponder) map[string]any {
 		return nil
 	}
 
-m := r.ToMap()
+	m := r.ToMap()
 
 	data := make(map[string]any, len(m))
 
-	for key, value := range responder.ToMap() {
+	for key, value := range r.ToMap() {
 		switch key {
 		case "access_token":
 			data[key] = "authelia_at_**************"
