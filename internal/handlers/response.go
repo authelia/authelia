@@ -135,6 +135,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 func HandlePasskeyResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string, isTwoFactor bool) {
 	if isTwoFactor {
 		Handle2FAResponse(ctx, targetURI)
+		return
 	}
 
 	Handle1FAResponse(ctx, targetURI, requestMethod, username, groups)
