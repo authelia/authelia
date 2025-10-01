@@ -414,7 +414,7 @@ func IsAccessToken(ctx Context, value string) (is bool, err error) {
 	var iss string
 
 	if iss, err = token.Claims.GetIssuer(); err != nil {
-		return false, fmt.Errorf("error occurred chekcing the token: error getting the token issuer claim: %w", err)
+		return false, fmt.Errorf("error occurred checking the token: error getting the token issuer claim: %w", err)
 	}
 
 	if strings.EqualFold(iss, issuer.String()) {
