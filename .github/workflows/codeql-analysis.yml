@@ -12,7 +12,6 @@
 #
 name: "CodeQL"
 
-# yamllint disable-line rule:truthy
 on:
   push:
     branches:
