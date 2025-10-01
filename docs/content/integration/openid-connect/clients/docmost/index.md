@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.10](https://github.com/authelia/authelia/releases/tag/v4.39.10)
+  - [v4.39.11](https://github.com/authelia/authelia/releases/tag/v4.39.11)
 - [Docmost]
   - [v0.22.2](https://github.com/docmost/docmost/releases/tag/v0.22.2)
 

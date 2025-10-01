@@ -12,7 +12,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Kiali | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Kiali with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.10](https://github.com/authelia/authelia/releases/tag/v4.39.10)
+  - [v4.39.11](https://github.com/authelia/authelia/releases/tag/v4.39.11)
 - [Kiali]
   - [v2.12.0](https://kiali.io/news/release-notes/#v2120)
 
