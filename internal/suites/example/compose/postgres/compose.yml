@@ -1,7 +1,7 @@
 ---
 services:
   postgres:
-    image: 'postgres:17'
+    image: 'postgres:18'
     environment:
       POSTGRES_PASSWORD: 'password'
       POSTGRES_USER: 'admin'
