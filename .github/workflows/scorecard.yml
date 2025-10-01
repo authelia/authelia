@@ -1,7 +1,6 @@
 ---
 name: 'Scorecard'
 
-# yamllint disable-line rule:truthy
 on:
   branch_protection_rule: {}
   schedule:
