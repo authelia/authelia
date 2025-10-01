@@ -382,7 +382,7 @@ func IsAccessToken(ctx Context, value string) (is bool, err error) {
 	}
 
 	// Opaque Authelia Access Tokens have the 'authelia_at_' prefix and contain a HMAC signature.
-	if strings.HasPrefix(value, fmt.Sprintf(fmtAutheliaOpaqueOAuth2Token, "at")) && strings.Count(value, ".") == 1 {
+	if strings.HasPrefix(value, fmt.Sprintf(fmtAutheliaOpaqueOAuth2Token, fmtValueOAuth2AccessToken)) && strings.Count(value, ".") == 1 {
 		return true, nil
 	}
 

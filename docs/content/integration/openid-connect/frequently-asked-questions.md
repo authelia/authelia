@@ -281,10 +281,10 @@ The following specific and intentional limitations exist:
       the Authorization Code Flow will not mint and grant a Refresh Token unless the relying party explicitly requests
       consent, with an option to automatically require explicit consent instead of silently ignoring the request for
       a Refresh Token.
-2. If the client requests the user is prompted to provide consent the mode will automatically be `explicit` regardless
+2. If the client requests the user is prompted to provide consent, the mode will automatically be `explicit` regardless
    of client registration configuration.
-3. If the client requests the user is prompted to login again then either the mode will either automatically be
-   `explicit` or the flow may also result in a failure that returns an error to the client regardless of the client
+3. If the client requests the user is prompted to login again, then the mode will either automatically be
+   `explicit` or the flow may also result in a failure that returns an error to the client, regardless of the client
    registration configuration.
 4. If the authorization request results in security sensitive tokens such as:
    1. Tokens that can be used as Bearer Tokens which impersonate users for the Authelia Authz endpoints.

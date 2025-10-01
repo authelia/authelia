@@ -22,6 +22,10 @@ const (
 	fmtAutheliaOpaqueOAuth2Token = "authelia_%s_" //nolint:gosec
 )
 
+const (
+	fmtValueOAuth2AccessToken = "at"
+)
+
 // Registered Claim strings. See https://www.iana.org/assignments/jwt/jwt.xhtml.
 const (
 	ClaimJWTID                               = "jti"

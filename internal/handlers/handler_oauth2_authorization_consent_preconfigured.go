@@ -147,8 +147,6 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 		err    error
 	)
 
-	ctx.Logger.Debug("Handling Consent Mode Pre-Configured Without ID")
-
 	if config, err = handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx, client, subject, requester); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentPreConfLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), err)
 
@@ -158,8 +156,6 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 	}
 
 	if config == nil {
-		ctx.Logger.Debug("Handling Consent Mode Pre-Configured Without ID (No Pre-Configured Consent)")
-
 		if requester.GetRequestForm().Get(oidc.FormParameterPrompt) == oidc.PromptNone {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the 'prompt' type of 'none' was requested but client is configured to require consent or pre-configured consent and the pre-configured consent was absent", requester.GetID(), client.GetID())
 
@@ -170,8 +166,6 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 
 		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, uuid.Nil, rw, r, requester)
 	}
-
-	ctx.Logger.Debug("Handling Consent Mode Pre-Configured Without ID (Pre-Configured Consent Found)")
 
 	if consent, err = handleOAuth2NewConsentSession(ctx, subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", err)
@@ -198,8 +192,6 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 	}
 
 	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
-		ctx.Logger.Debug("Handling Consent Mode Pre-Configured Without ID (Requires Login)")
-
 		handleOAuth2AuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
 
 		return nil, true
