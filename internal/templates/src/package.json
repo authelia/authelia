@@ -25,8 +25,8 @@
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
 		"@types/node": "24.6.1",
-		"@types/react": "19.1.16",
-		"@types/react-dom": "19.1.9",
+		"@types/react": "19.1.17",
+		"@types/react-dom": "19.1.11",
 		"eslint": "9.36.0",
 		"tsx": "4.20.6",
 		"vitest": "3.2.4"
