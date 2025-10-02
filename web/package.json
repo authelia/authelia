@@ -122,7 +122,7 @@
     "prettier": "3.6.2",
     "typescript": "5.9.3",
     "vite": "7.1.8",
-    "vite-plugin-checker": "0.10.2",
+    "vite-plugin-checker": "0.10.3",
     "vite-plugin-istanbul": "7.2.0",
     "vite-plugin-svgr": "4.5.0",
     "vite-tsconfig-paths": "5.1.4",
