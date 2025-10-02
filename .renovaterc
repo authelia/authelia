@@ -6,6 +6,7 @@
     ":separatePatchReleases",
     "workarounds:doNotUpgradeFromAlpineStableToEdge"
   ],
+  "rebaseWhen": "conflicted",
   "ignorePaths": [
     "docs/**"
   ],
