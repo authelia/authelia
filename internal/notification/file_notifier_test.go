@@ -28,6 +28,7 @@ func TestFileNotifier_StartupCheck(t *testing.T) {
 			setup: func(base string) string {
 				parent := filepath.Join(base, "notadir")
 				require.NoError(t, os.WriteFile(parent, []byte("x"), 0o600))
+
 				return filepath.Join(parent, "notify.log")
 			},
 			expectErr:  true,
@@ -38,6 +39,7 @@ func TestFileNotifier_StartupCheck(t *testing.T) {
 			setup: func(base string) string {
 				parent := filepath.Join(base, "adir")
 				require.NoError(t, os.MkdirAll(parent, 0o755))
+
 				return filepath.Join(parent, "notify.log")
 			},
 			expectErr: false,

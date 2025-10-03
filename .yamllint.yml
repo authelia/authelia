@@ -34,4 +34,6 @@ rules:
   line-length:
     max: 120
   octal-values: enable
+  truthy:
+    check-keys: false
 ...
