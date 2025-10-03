@@ -106,6 +106,8 @@ var (
 	ErrPasswordWeak = errors.New("your supplied password does not meet the password policy requirements")
 
 	ErrAuthenticationFailed = errors.New("authentication failed")
+
+	ErrCooldown = errors.New("cooldown")
 )
 
 const fileAuthenticationMode = 0600
