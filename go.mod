@@ -16,7 +16,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667
 	github.com/go-crypt/crypt v0.4.6
-	github.com/go-jose/go-jose/v4 v4.1.2
+	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-ldap/ldap/v3 v3.4.12
 	github.com/go-rod/rod v0.116.2
 	github.com/go-sql-driver/mysql v1.9.3
