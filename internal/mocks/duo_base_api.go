@@ -42,6 +42,27 @@ func (m *MockDuoBaseProvider) EXPECT() *MockDuoBaseProviderMockRecorder {
 	return m.recorder
 }
 
+// Call mocks base method.
+func (m *MockDuoBaseProvider) Call(method, uri string, params url.Values, options ...duoapi.DuoApiOption) (*http.Response, []byte, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{method, uri, params}
+	for _, a := range options {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Call", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].([]byte)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// Call indicates an expected call of Call.
+func (mr *MockDuoBaseProviderMockRecorder) Call(method, uri, params any, options ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{method, uri, params}, options...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockDuoBaseProvider)(nil).Call), varargs...)
+}
+
 // SignedCall mocks base method.
 func (m *MockDuoBaseProvider) SignedCall(method, uri string, params url.Values, options ...duoapi.DuoApiOption) (*http.Response, []byte, error) {
 	m.ctrl.T.Helper()
