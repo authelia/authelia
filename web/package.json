@@ -48,7 +48,7 @@
     "@fortawesome/react-fontawesome": "3.1.0",
     "@mui/icons-material": "7.3.4",
     "@mui/material": "7.3.4",
-    "@simplewebauthn/browser": "13.2.0",
+    "@simplewebauthn/browser": "13.2.2",
     "axios": "1.12.2",
     "broadcast-channel": "7.1.0",
     "i18next": "25.5.3",
