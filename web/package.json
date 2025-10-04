@@ -116,7 +116,7 @@
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-react": "7.37.5",
-    "eslint-plugin-react-hooks": "6.1.0",
+    "eslint-plugin-react-hooks": "6.1.1",
     "happy-dom": "19.0.2",
     "lefthook": "1.13.6",
     "prettier": "3.6.2",
