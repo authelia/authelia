@@ -262,3 +262,208 @@ func TestParseTimeStringWithLayouts(t *testing.T) {
 		})
 	}
 }
+
+func TestParseDurationString_AtoiErrors(t *testing.T) {
+	testCases := []struct {
+		name        string
+		input       string
+		expectedErr string
+	}{
+		{
+			name:        "NumberTooLargeForInt",
+			input:       "999999999999999999999999999999999999999999999999999999999999999999999",
+			expectedErr: `strconv.Atoi: parsing "999999999999999999999999999999999999999999999999999999999999999999999": value out of range`,
+		},
+		{
+			name:        "NumberTooSmallForInt",
+			input:       "-999999999999999999999999999999999999999999999999999999999999999999999",
+			expectedErr: `could not parse '-999999999999999999999999999999999999999999999999999999999999999999999' as a duration`,
+		},
+		{
+			name:        "IntegerOverflow32Bit",
+			input:       "9999999999",
+			expectedErr: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			duration, err := ParseDurationString(tc.input)
+
+			if tc.expectedErr != "" {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tc.expectedErr)
+				assert.Equal(t, time.Duration(0), duration)
+			} else {
+				t.Logf("Input %s resulted in: duration=%v, err=%v", tc.input, duration, err)
+			}
+		})
+	}
+}
+
+func TestParseDurationString_CorrectErrorHandling(t *testing.T) {
+	input := "999999999999999999999999999999999999999999999999999999999999999999999"
+
+	duration, err := ParseDurationString(input)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "value out of range")
+	assert.Equal(t, time.Duration(0), duration)
+}
+
+func TestParseDurationString_NumericEdgeCases(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected time.Duration
+		hasError bool
+		errorMsg string
+	}{
+		{
+			name:     "Zero",
+			input:    "0",
+			expected: 0,
+			hasError: false,
+		},
+		{
+			name:  "NegativeNumber",
+			input: "-5",
+
+			expected: 0,
+			hasError: true,
+			errorMsg: "could not parse '-5' as a duration",
+		},
+		{
+			name:     "MaxInt32",
+			input:    "2147483647",
+			expected: 2147483647 * time.Second,
+			hasError: false,
+		},
+		{
+			name:     "LeadingZeros",
+			input:    "000123",
+			expected: 123 * time.Second,
+			hasError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			duration, err := ParseDurationString(tc.input)
+
+			if tc.hasError {
+				assert.Error(t, err)
+
+				if tc.errorMsg != "" {
+					assert.Contains(t, err.Error(), tc.errorMsg)
+				}
+
+				assert.Equal(t, time.Duration(0), duration)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, duration)
+			}
+		})
+	}
+}
+func TestStandardizeDurationString_AtoiErrors(t *testing.T) {
+	testCases := []struct {
+		name        string
+		input       string
+		expectedErr string
+	}{
+		{
+			name:        "NumberTooLargeWithValidUnit",
+			input:       "999999999999999999999999999999999999999999999999999999999999999999999s",
+			expectedErr: `strconv.Atoi: parsing "999999999999999999999999999999999999999999999999999999999999999999999": value out of range`,
+		},
+		{
+			name:        "NumberTooLargeWithMinutes",
+			input:       "999999999999999999999999999999999999999999999999999999999999999999999m",
+			expectedErr: `strconv.Atoi: parsing "999999999999999999999999999999999999999999999999999999999999999999999": value out of range`,
+		},
+		{
+			name:        "NumberTooLargeWithHours",
+			input:       "999999999999999999999999999999999999999999999999999999999999999999999h",
+			expectedErr: `strconv.Atoi: parsing "999999999999999999999999999999999999999999999999999999999999999999999": value out of range`,
+		},
+		{
+			name:        "NumberTooLargeWithDays",
+			input:       "999999999999999999999999999999999999999999999999999999999999999999999d",
+			expectedErr: `strconv.Atoi: parsing "999999999999999999999999999999999999999999999999999999999999999999999": value out of range`,
+		},
+		{
+			name:        "NumberTooLargeWithSpaces",
+			input:       "999999999999999999999999999999999999999999999999999999999999999999999 seconds",
+			expectedErr: `strconv.Atoi: parsing "999999999999999999999999999999999999999999999999999999999999999999999": value out of range`,
+		},
+		{
+			name:        "MultipleUnitsOneLargeNumber",
+			input:       "5h999999999999999999999999999999999999999999999999999999999999999999999m30s",
+			expectedErr: `strconv.Atoi: parsing "999999999999999999999999999999999999999999999999999999999999999999999": value out of range`,
+		},
+		{
+			name:        "NegativeNumberTooLarge",
+			input:       "-999999999999999999999999999999999999999999999999999999999999999999999s",
+			expectedErr: `strconv.Atoi: parsing "999999999999999999999999999999999999999999999999999999999999999999999": value out of range`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			output, err := StandardizeDurationString(tc.input)
+
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "value out of range")
+			assert.Empty(t, output)
+
+			assert.Equal(t, tc.expectedErr, err.Error())
+		})
+	}
+}
+
+// Test edge cases that should work (don't trigger Atoi errors).
+func TestStandardizeDurationString_LargeButValidNumbers(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "MaxInt32",
+			input:    "2147483647s",
+			expected: "2147483647s",
+		},
+		{
+			name:     "LargeButValid64BitNumber",
+			input:    "9223372036854775807s",
+			expected: "9223372036854775807s",
+		},
+		{
+			name:     "MultipleValidLargeNumbers",
+			input:    "2147483647h2147483647m2147483647s",
+			expected: "2147483647h2147483647m2147483647s",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			output, err := StandardizeDurationString(tc.input)
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expected, output)
+		})
+	}
+}
+
+func TestStandardizeDurationString_FailsOnFirstAtoiError(t *testing.T) {
+	input := "999999999999999999999999999999999999999999999999999999999999999999999h5m30s"
+
+	output, err := StandardizeDurationString(input)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "value out of range")
+	assert.Empty(t, output)
+
+	assert.Contains(t, err.Error(), `parsing "999999999999999999999999999999999999999999999999999999999999999999999"`)
+}
