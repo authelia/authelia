@@ -87,7 +87,7 @@ func ParseDurationString(input string) (duration time.Duration, err error) {
 		var seconds int
 
 		if seconds, err = strconv.Atoi(input); err != nil {
-			return 0, nil
+			return 0, err
 		}
 
 		return time.Second * time.Duration(seconds), nil

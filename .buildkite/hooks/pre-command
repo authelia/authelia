@@ -64,6 +64,7 @@ fi
 if [[ "${BUILDKITE_LABEL}" == ":github: Deploy Artifacts" ]]; then
   buildkite-agent artifact download "authelia-*.tar.gz*" .
   buildkite-agent artifact download "authelia_*.deb*" .
+  buildkite-agent artifact download "checksums*" .
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":debian: :fedora: :ubuntu: Deploy APT" ]]; then
