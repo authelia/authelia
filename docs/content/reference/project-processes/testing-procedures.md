@@ -17,6 +17,7 @@ seo:
 This section documents Authelia's testing processes and procedures to ensure code quality and reliability.
 
 ## Types of Testing
+
 Authelia performs multiple types of testing:
 - Linting to enforce code quality and uniform style.
 - Unit testing to test code in isolation from other code to protect against regressions and unintended behavior.
@@ -32,6 +33,7 @@ Authelia performs multiple types of testing:
 ## Automated Testing
 
 ### Continuous Integration
+
 Testing is automatically executed on:
 - Every push to a branch.
 - Every pull request submission and revision, subject to approval for 3rd party pull requests.
@@ -40,11 +42,13 @@ Testing is automatically executed on:
 
 
 ### Test Execution Pipeline
+
 We make use of [Buildkite] as our CI/CD platform. All automated testing for public code is visible from the [Authelia Buildkite Dashboard](https://buildkite.com/authelia).
 A complete testing suite run averages ~9 minutes, subject to fluctuation.
 Testing agents are run on our hosted infrastructure using our [custom runner image.](https://github.com/authelia/buildkite)
 
 ### Test Coverage
+
 Authelia maintains comprehensive code coverage metrics to ensure thorough testing of the codebase:
 - Coverage reports are automatically generated for every test run.
 - Current coverage statistics and trends are available on our [Codecov dashboard](https://app.codecov.io/gh/authelia/authelia).
@@ -60,14 +64,17 @@ Authelia maintains comprehensive code coverage metrics to ensure thorough testin
 ## Merge and Release Requirements
 
 ### Pull Request Testing
+
 - All testing suites must pass before merge approval.
 - Tests run automatically via [Buildkite].
 
 ### Release Testing
+
 - Full test suite execution before any release.
 - For additional security measures related to releases see our [security measures](../../overview/security).
 
 ### Test Validation
+
 - Test results are automatically reported in pull requests.
 - Release candidates require 100% pass rate.
 
