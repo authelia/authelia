@@ -53,5 +53,6 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       20       |      4.39.0      |                                         Regulation Rework                                          |
 |       21       |      4.39.1      |                                MySQL Specific Fix for WebAuthn MDS                                 |
 |       22       |      4.39.2      |                OAuth 2.0 Consent Session Expiration Time instead of Subject Binding                |
+|       23       |     4.39.12      |                            OAuth 2.0 Device Code Flow Null Constraints                             |
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
