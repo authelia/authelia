@@ -16,13 +16,12 @@ on:
   push:
     branches:
       - master
-      - gh-pages
     paths:
       - 'go.mod'
       - 'go.sum'
       - '**/*.go'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
+      - '**/package.json'
+      - '**/pnpm-lock.yaml'
       - '**/*.ts'
       - '**/*.tsx'
       - '**/*.js'
@@ -35,8 +34,8 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '**/*.go'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
+      - '**/package.json'
+      - '**/pnpm-lock.yaml'
       - '**/*.ts'
       - '**/*.tsx'
       - '**/*.js'
