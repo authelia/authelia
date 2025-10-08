@@ -10,7 +10,7 @@ if [[ ${BUILDKITE_PULL_REQUEST} != "false" ]]; then
 fi
 
 if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} == 0 ]]; then
-  if [[ ${BUILDKITE_LABEL} == ":hammer_and_wrench: Unit Test" ]] || [[ ${BUILDKITE_LABEL} =~ ":selenium:" ]]; then
+  if [[ ${BUILDKITE_LABEL} == ":hammer_and_wrench: Unit Test" ]] || [[ ${BUILDKITE_LABEL} =~ :selenium: ]]; then
     echo "--- :codecov: Upload coverage reports"
     NAME="UnitTest"
     if [[ ${SUITE} != "" ]]; then
@@ -22,7 +22,7 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
       BUILDKITE_AGENT_META_DATA_CODECOV="-v"
     fi
     codecov -Z -c -f 'coverage*.txt' -n ${NAME} -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
-    if [[ ${BUILDKITE_LABEL} =~ ":selenium:" ]]; then
+    if [[ ${BUILDKITE_LABEL} =~ :selenium: ]]; then
       pnpm -C web report
     fi
     if [[ ${NAME} != "BypassAll" ]]; then
@@ -31,7 +31,7 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
   fi
 fi
 
-if [[ ${BUILDKITE_LABEL} =~ ":selenium:" ]] || [[ ${BUILDKITE_LABEL} =~ ":docker: Build Image" ]]; then
+if [[ ${BUILDKITE_LABEL} =~ :selenium: ]] || [[ ${BUILDKITE_LABEL} =~ :docker:\ Build\ Image ]]; then
   CONTAINERS=$(docker ps -a -q)
   if [[ ${CONTAINERS} != "" ]]; then
     echo "--- :docker: Remove lingering containers"
@@ -43,7 +43,7 @@ if [[ ${BUILDKITE_LABEL} == ":hammer_and_wrench: Unit Test" ]]; then
   buildkite-agent annotate --style "success" --context "ctx-success" < <(bash .buildkite/annotations/artifacts.sh)
 fi
 
-if [[ ${BUILDKITE_LABEL} =~ ":docker: Deploy" ]]; then
+if [[ ${BUILDKITE_LABEL} =~ :docker:\ Deploy ]]; then
   docker logout
   docker logout ghcr.io
 fi
