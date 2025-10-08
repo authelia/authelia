@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.11](https://github.com/authelia/authelia/releases/tag/v4.39.11)
+  - [v4.39.12](https://github.com/authelia/authelia/releases/tag/v4.39.12)
 - [Papra]
   - [v0.7.0](https://github.com/papra-hq/papra/releases/tag/%40papra%2Fapp-server%400.7.0)
 
