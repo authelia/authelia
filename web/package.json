@@ -22,7 +22,7 @@
       "eslint-plugin-testing-library": "7.12.0",
       "import-meta-resolve": "4.2.0",
       "path-to-regexp": "8.3.0",
-      "semver": "7.7.2",
+      "semver": "7.7.3",
       "vite": "7.1.9"
     },
     "peerDependencyRules": {
@@ -100,8 +100,8 @@
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.0",
     "@types/node": "24.7.0",
-    "@types/react": "19.2.1",
-    "@types/react-dom": "19.2.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.1",
     "@types/zxcvbn": "4.4.5",
     "@typescript-eslint/eslint-plugin": "8.46.0",
     "@typescript-eslint/parser": "8.46.0",
