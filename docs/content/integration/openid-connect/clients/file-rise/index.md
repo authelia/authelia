@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.11](https://github.com/authelia/authelia/releases/tag/v4.39.11)
+  - [v4.39.12](https://github.com/authelia/authelia/releases/tag/v4.39.12)
 - [FileRise]
   - [v1.3.9](https://github.com/error311/FileRise/releases/tag/v1.3.9)
 
