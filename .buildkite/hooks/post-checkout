@@ -3,7 +3,7 @@ set +u
 
 git fetch -q
 
-if [[ ! "${BUILDKITE_COMMAND}" =~ buildkite-agent\ pipeline\ upload ]] || [[ "${BUILDKITE_COMMAND}" =~ ^(aurpackages|e2etests)\.sh ]]; then
+if [[ ! "${BUILDKITE_COMMAND}" =~ ^\.buildkite/pipeline.sh ]]; then
   echo "--- :buildkite: Setting up Build environment"
   source bootstrap.sh
 
