@@ -21,6 +21,7 @@ There are several options which affect the loading of files:
 |           Name           |            Argument             |    Environment Variable     |                                    Description                                     |
 |:------------------------:|:-------------------------------:|:---------------------------:|:----------------------------------------------------------------------------------:|
 |   Configuration Paths    |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
+|   Configuration Reload   |               N/A               | `X_AUTHELIA_CONFIG_RELOAD`  | Enables reloading Authelia on the modification of one of the defined config paths  |
 | [Filters](#file-filters) | `--config.experimental.filters` | `X_AUTHELIA_CONFIG_FILTERS` |   A list of filters applied to every file from the Files or Directories options    |
 
 ### Configuration Paths
@@ -41,6 +42,25 @@ Configuration options can be discovered via either the Argument or Environment V
 If both are specified the Argument takes precedence and the Environment Variable is ignored. It is generally recommended
 that if you're using a container that you use the Environment Variable as this will allow you to execute other commands
 from the context of the container more easily.
+
+### Configuration Reload
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+If the configuration reload fails to validate the configuration or a provider fails to initialize this will cause an
+intentional crash of Authelia. This is expected behaviour and will not be changed. Users are expected to validate their
+configuration before writing the changes to disk.
+
+Changing a path that used to be a file into a directory is also not supported. Performing this action could result in
+unexpected and undesirable behaviour.
+{{< /callout >}}
+
+In the instance of a file system notify event being observed that is a file path defined in the
+[Configuration Paths](#configuration-paths), this will trigger a reload.
+
+In the instance of a file system change being
+observed that is a file within a directory path defined in the [Configuration Paths](#configuration-paths) this will
+also cause a reload, regardless if the file is effectively a configuration file or not, and regardless of the type of
+file system notify event that was observed.
 
 ## Formats
 
