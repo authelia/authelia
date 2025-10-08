@@ -51,6 +51,45 @@ The following artifacts are signed with this key:
 - **[APT Repository](../../integration/deployment/bare-metal.md#apt-repository)**
 - **[SLSA Provenance](#slsa-provenance)**
 
+You can verify the artifact signature using the gpg tool. Below is an example of verifying the Authelia releases:
+
+{{< envTabs "Verify Signatures" >}}
+{{< envTab "4.39.11+" >}}
+```shell
+# Download checksums and signature
+curl -fsSL \
+  -O https://github.com/authelia/authelia/releases/download/v4.39.11/authelia-v4.39.11-linux-amd64.tar.gz \
+  -O https://github.com/authelia/authelia/releases/download/v4.39.11/checksums.sha256 \
+  -O https://github.com/authelia/authelia/releases/download/v4.39.11/checksums.sha256.sig
+
+# Verify signature and checksums
+gpg --verify checksums.sha256.sig checksums.sha256 && sha256sum -c checksums.sha256
+```
+{{< /envTab >}}
+{{< envTab "Pre 4.39.11" >}}
+```shell
+gpg --verify authelia-v4.39.10-linux-amd64.tar.gz.sha256.sig authelia-v4.39.10-linux-amd64.tar.gz.sha256 && \
+ echo "$(cat authelia-v4.39.10-linux-amd64.tar.gz.sha256)  authelia-v4.39.10-linux-amd64.tar.gz" | sha256sum -c
+```
+{{< /envTab >}}
+{{< /envTabs >}}
+
+Note: We adjusted the format of checksums in 4.39.11 to make verification easier.
+
+Example output:
+```text
+gpg: Signature made Mon 15 Sep 2025 02:09:56 AM PDT
+gpg:                using RSA key C387CC1B5FFC25E55F75F3E6A228F3BD04CC9652
+gpg:                issuer "security@authelia.com"
+gpg: Good signature from "Authelia Security <security@authelia.com>" [unknown]
+gpg:                 aka "Authelia Security <team@authelia.com>" [unknown]
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: 1920 8591 5BD6 08A4 58AC  58DC E461 FA15 3128 6EEA
+     Subkey fingerprint: C387 CC1B 5FFC 25E5 5F75  F3E6 A228 F3BD 04CC 9652
+authelia-v4.39.10-linux-amd64.tar.gz: OK
+```
+
 ## SLSA Provenance
 
 In addition to artifact signatures, Authelia generates and signs **[SLSA Provenance]** for its
