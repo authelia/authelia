@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-set +u
+set +eu
 
 if [[ ${BUILDKITE_PULL_REQUEST} != "false" ]]; then
   if [[ ${BUILDKITE_LABEL} == ":service_dog: Linting" ]]; then
     echo "--- :go::service_dog: Provide in-line commentary for pull request"
-    .buildkite/lint.sh -reporter=github-pr-review
+    lint.sh -reporter=github-pr-review
   fi
 fi
 
