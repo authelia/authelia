@@ -24,7 +24,7 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
   cp -R /buildkite/.local .
 fi
 
-if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
+if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
   echo "--- :docker: Extract and load build container"
   mkdir coverage
   buildkite-agent artifact download "authelia-image-coverage.*" .
