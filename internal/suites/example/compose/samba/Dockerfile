@@ -5,7 +5,7 @@ echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/reposito
 apk add --no-cache \
 	bash \
 	krb5@edge \
-	openldap-clients@edge \
+	openldap-clients \
 	openssl \
 	samba-dc@edge \
 	supervisor
