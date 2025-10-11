@@ -261,7 +261,7 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 		case <-ctx.Done():
 			return nil, NewPoolCtxErr(ctx.Err())
 		case client = <-f.pool:
-			if client.IsClosing() || client.Client == nil {
+			if client.IsFailed() {
 				client.log.Trace("Client is closing or invalid")
 
 				if client, err = f.new(); err != nil {
@@ -314,6 +314,14 @@ type LDAPClientPooled struct {
 	ldap.Client
 
 	log *logrus.Entry
+}
+
+func (c *LDAPClientPooled) IsFailed() bool {
+	if c == nil || c.Client == nil {
+		return true
+	}
+
+	return c.IsClosing()
 }
 
 func getLDAPClient(address, username, password string, timeout time.Duration, dialer LDAPClientDialer, tls *tls.Config, startTLS bool, dialerOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
