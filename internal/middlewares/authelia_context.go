@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
@@ -624,6 +625,10 @@ func (ctx *AutheliaCtx) GetConfiguration() (config schema.Configuration) {
 // GetProviders returns the providers for this context.
 func (ctx *AutheliaCtx) GetProviders() (providers Providers) {
 	return ctx.Providers
+}
+
+func (ctx *AutheliaCtx) GetUserProvider() (provider authentication.UserProvider) {
+	return ctx.Providers.UserProvider
 }
 
 func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
