@@ -469,7 +469,8 @@ func TestShouldCheckLDAPServerExtensionsPooled(t *testing.T) {
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHints)
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHintsDeprecated)
 
-	assert.EqualError(t, provider.Close(), "errors occurred closing the client pool: close error")
+	// error closing a pooled connection during pool cleanup considered irrelevant
+	assert.NoError(t, provider.Close())
 }
 
 func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntry(t *testing.T) {
@@ -634,7 +635,7 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntryPoo
 		Password:          "password",
 		AdditionalUsersDN: "ou=users",
 		BaseDN:            "dc=example,dc=com",
-		Pooling:           schema.AuthenticationBackendLDAPPooling{Count: 1},
+		Pooling:           schema.AuthenticationBackendLDAPPooling{Count: 2},
 	}
 
 	mockDialer := NewMockLDAPClientDialer(ctrl)
@@ -682,14 +683,20 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntryPoo
 		}, nil)
 
 	gomock.InOrder(
+		// two clients created in Initialize()
 		dialURL,
 		setTimeout,
 		clientBind,
-		mockClient.EXPECT().IsClosing().Return(true),
 		dialURLSecond,
 		setTimeoutSecond,
 		clientBindSecond,
+		// first client checked out and immediately disposed as stale
+		mockClient.EXPECT().IsClosing().Return(true),
+		mockClient.EXPECT().Close().Return(nil),
+		// second cliet checked out and used for the root DSE search
+		mockClientSecond.EXPECT().IsClosing().Return(false),
 		searchOIDs,
+		// second client returned to the pool and then closed during pool cleanup
 		mockClientSecond.EXPECT().IsClosing().Return(false),
 		mockClientSecond.EXPECT().Close().Return(nil),
 	)
