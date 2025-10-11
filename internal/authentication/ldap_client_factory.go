@@ -242,12 +242,12 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 	defer f.mu.Unlock()
 
 	if f.closing {
-		return nil, fmt.Errorf("error acquiring client: the pool is closed")
+		return nil, NewPoolCtxErr(fmt.Errorf("error acquiring client: the pool is closed"))
 	}
 
 	if cap(f.pool) != f.config.Pooling.Count {
 		if err = f.Initialize(); err != nil {
-			return nil, fmt.Errorf("error acquiring client: error initializing buffer: %w", err)
+			return nil, NewPoolCtxErr(fmt.Errorf("error acquiring client: error initializing buffer: %w", err))
 		}
 	}
 
@@ -259,7 +259,7 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("error acquiring client: %w", err)
+			return nil, NewPoolCtxErr(ctx.Err())
 		case client = <-f.pool:
 			if client.IsClosing() || client.Client == nil {
 				client.log.Trace("Client is closing or invalid")
