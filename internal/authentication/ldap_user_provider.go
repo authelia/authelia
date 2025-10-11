@@ -85,7 +85,7 @@ func NewLDAPUserProviderWithFactory(config *schema.AuthenticationBackendLDAP, di
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (valid bool, err error) {
 	var (
-		client, uclient ldap.Client
+		client, uclient LDAPClient
 		profile         *ldapUserProfile
 	)
 
@@ -119,7 +119,7 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 // GetDetails retrieve the groups a user belongs to.
 func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, err error) {
 	var (
-		client  ldap.Client
+		client  LDAPClient
 		profile *ldapUserProfile
 	)
 
@@ -156,7 +156,7 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 // GetDetailsExtended retrieves the UserDetailsExtended values.
 func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
 	var (
-		client  ldap.Client
+		client  LDAPClient
 		profile *ldapUserProfileExtended
 	)
 
@@ -245,7 +245,7 @@ func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDet
 // UpdatePassword update the password of the given user.
 func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error) {
 	var (
-		client  ldap.Client
+		client  LDAPClient
 		profile *ldapUserProfile
 	)
 
@@ -308,7 +308,7 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 //nolint:gocyclo
 func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassword string) (err error) {
 	var (
-		client  ldap.Client
+		client  LDAPClient
 		profile *ldapUserProfile
 	)
 
@@ -405,7 +405,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	return nil
 }
 
-func (p *LDAPUserProvider) search(client ldap.Client, request *ldap.SearchRequest) (result *ldap.SearchResult, err error) {
+func (p *LDAPUserProvider) search(client LDAPClient, request *ldap.SearchRequest) (result *ldap.SearchResult, err error) {
 	if result, err = client.Search(request); err != nil {
 		if referral, ok := p.getReferral(err); ok {
 			if result == nil {
@@ -433,7 +433,7 @@ func (p *LDAPUserProvider) search(client ldap.Client, request *ldap.SearchReques
 
 func (p *LDAPUserProvider) searchReferral(referral string, request *ldap.SearchRequest, searchResult *ldap.SearchResult) (err error) {
 	var (
-		client ldap.Client
+		client LDAPClient
 		result *ldap.SearchResult
 	)
 
@@ -470,7 +470,7 @@ func (p *LDAPUserProvider) searchReferrals(request *ldap.SearchRequest, result *
 	return nil
 }
 
-func (p *LDAPUserProvider) getUserProfile(client ldap.Client, username string) (profile *ldapUserProfile, err error) {
+func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (profile *ldapUserProfile, err error) {
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
@@ -543,7 +543,7 @@ func (p *LDAPUserProvider) getUserProfileResultToProfile(username string, entry 
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) getUserProfileExtended(client ldap.Client, username string) (profile *ldapUserProfileExtended, err error) {
+func (p *LDAPUserProvider) getUserProfileExtended(client LDAPClient, username string) (profile *ldapUserProfileExtended, err error) {
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
@@ -632,7 +632,7 @@ func (p *LDAPUserProvider) getUserProfileResultToProfileExtended(username string
 	return &userProfile, nil
 }
 
-func (p *LDAPUserProvider) getUserGroups(client ldap.Client, username string, profile *ldapUserProfile) (groups []string, err error) {
+func (p *LDAPUserProvider) getUserGroups(client LDAPClient, username string, profile *ldapUserProfile) (groups []string, err error) {
 	request := ldap.NewSearchRequest(
 		p.groupsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
 		0, 0, false, p.resolveGroupsFilter(username, profile), p.groupsAttributes, nil,
@@ -657,7 +657,7 @@ func (p *LDAPUserProvider) getUserGroups(client ldap.Client, username string, pr
 	}
 }
 
-func (p *LDAPUserProvider) getUserGroupsRequestFilter(client ldap.Client, username string, _ *ldapUserProfile, request *ldap.SearchRequest) (groups []string, err error) {
+func (p *LDAPUserProvider) getUserGroupsRequestFilter(client LDAPClient, username string, _ *ldapUserProfile, request *ldap.SearchRequest) (groups []string, err error) {
 	var result *ldap.SearchResult
 
 	if result, err = p.search(client, request); err != nil {
@@ -673,7 +673,7 @@ func (p *LDAPUserProvider) getUserGroupsRequestFilter(client ldap.Client, userna
 	return groups, nil
 }
 
-func (p *LDAPUserProvider) getUserGroupsRequestMemberOf(client ldap.Client, username string, profile *ldapUserProfile, request *ldap.SearchRequest) (groups []string, err error) {
+func (p *LDAPUserProvider) getUserGroupsRequestMemberOf(client LDAPClient, username string, profile *ldapUserProfile, request *ldap.SearchRequest) (groups []string, err error) {
 	var result *ldap.SearchResult
 
 	if result, err = p.search(client, request); err != nil {
@@ -813,7 +813,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(input string, profile *ldapUserPr
 	return filter
 }
 
-func (p *LDAPUserProvider) modify(client ldap.Client, modifyRequest *ldap.ModifyRequest) (err error) {
+func (p *LDAPUserProvider) modify(client LDAPClient, modifyRequest *ldap.ModifyRequest) (err error) {
 	if err = client.Modify(modifyRequest); err != nil {
 		var (
 			referral string
@@ -827,7 +827,7 @@ func (p *LDAPUserProvider) modify(client ldap.Client, modifyRequest *ldap.Modify
 		p.log.Debugf("Attempting Modify on referred URL %s", referral)
 
 		var (
-			clientRef ldap.Client
+			clientRef LDAPClient
 			errRef    error
 		)
 		if clientRef, errRef = p.factory.GetClient(WithAddress(referral)); errRef != nil {
@@ -850,7 +850,7 @@ func (p *LDAPUserProvider) modify(client ldap.Client, modifyRequest *ldap.Modify
 	return nil
 }
 
-func (p *LDAPUserProvider) pwdModify(client ldap.Client, pwdModifyRequest *ldap.PasswordModifyRequest) (err error) {
+func (p *LDAPUserProvider) pwdModify(client LDAPClient, pwdModifyRequest *ldap.PasswordModifyRequest) (err error) {
 	if _, err = client.PasswordModify(pwdModifyRequest); err != nil {
 		var (
 			referral string
@@ -864,7 +864,7 @@ func (p *LDAPUserProvider) pwdModify(client ldap.Client, pwdModifyRequest *ldap.
 		p.log.Debugf("Attempting PwdModify ExOp (1.3.6.1.4.1.4203.1.11.1) on referred URL %s", referral)
 
 		var (
-			clientRef ldap.Client
+			clientRef LDAPClient
 			errRef    error
 		)
 		if clientRef, errRef = p.factory.GetClient(WithAddress(referral)); errRef != nil {

@@ -7,6 +7,7 @@ import (
 	"net/mail"
 	"net/url"
 
+	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/language"
 
@@ -321,4 +322,10 @@ func (e *PoolErr) Unwrap() error {
 
 func (e *PoolErr) IsDeadlineError() bool {
 	return e.isDeadlineError
+}
+
+type LDAPClient interface {
+	ldap.Client
+
+	WhoAmI(controls []ldap.Control) (*ldap.WhoAmIResult, error)
 }
