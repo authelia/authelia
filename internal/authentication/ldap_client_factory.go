@@ -123,20 +123,30 @@ type PooledLDAPClientFactory struct {
 	dialer LDAPClientDialer
 
 	pool chan *LDAPClientPooled
-	mu   sync.Mutex
 
 	sleep time.Duration
 
 	next int
 
+	mu      sync.Mutex
 	closing bool
 }
 
-func (f *PooledLDAPClientFactory) Initialize() (err error) {
+func (f *PooledLDAPClientFactory) isClosing() bool {
 	f.mu.Lock()
-
 	defer f.mu.Unlock()
 
+	return f.closing
+}
+
+func (f *PooledLDAPClientFactory) setClosing() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	f.closing = true
+}
+
+func (f *PooledLDAPClientFactory) Initialize() (err error) {
 	if f.pool != nil {
 		return nil
 	}
@@ -199,17 +209,11 @@ func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
 func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) {
 	f.log.Trace("Releasing Client")
 
-	f.mu.Lock()
-
-	if f.closing {
+	if f.isClosing() {
 		f.log.Trace("Pool is closing, closing the released client")
-
-		f.mu.Unlock()
 
 		return client.Close()
 	}
-
-	f.mu.Unlock()
 
 	var (
 		pool *LDAPClientPooled
@@ -236,11 +240,7 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClientPooled, err error) {
 	f.log.Trace("Acquiring Client")
 
-	f.mu.Lock()
-
-	defer f.mu.Unlock()
-
-	if f.closing {
+	if f.isClosing() {
 		return nil, NewPoolCtxErr(fmt.Errorf("error acquiring client: the pool is closed"))
 	}
 
@@ -272,11 +272,7 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 }
 
 func (f *PooledLDAPClientFactory) Close() (err error) {
-	f.mu.Lock()
-
-	defer f.mu.Unlock()
-
-	f.closing = true
+	f.setClosing()
 
 	close(f.pool)
 
