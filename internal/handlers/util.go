@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -96,4 +97,14 @@ func redactEmail(email string) string {
 	middle := strings.Repeat("*", len(localRunes)-2)
 
 	return first + middle + last + "@" + domain
+}
+
+func isRegulatorSkippedErr(err error) bool {
+	var e *authentication.PoolErr
+
+	if errors.As(err, &e) {
+		return e.IsDeadlineError()
+	}
+
+	return false
 }
