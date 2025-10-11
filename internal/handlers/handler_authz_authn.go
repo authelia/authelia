@@ -197,23 +197,9 @@ func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	cache := authentication.NewCredentialCacheHMAC(sha256.New, lifespan)
 
 	return func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
-		if valid, _ = cache.Valid(authorization.Basic()); valid {
-			return true, true, nil
-		}
+		username, password := authorization.Basic()
 
-		if valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic()); err != nil {
-			return false, false, err
-		}
-
-		if valid {
-			if err = cache.Put(authorization.Basic()); err != nil {
-				ctx.Logger.WithError(err).Errorf("Error occurred saving basic authorization credentials to cache for user '%s'", authorization.BasicUsername())
-			}
-
-			return true, false, nil
-		}
-
-		return false, false, nil
+		return cache.Check(ctx, username, password)
 	}
 }
 
