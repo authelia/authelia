@@ -510,6 +510,32 @@ schema version of the database.`
 authelia storage migrate down --target 20 --config config.yml
 authelia storage migrate down --target 20 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
+	cmdAutheliaStorageLogsShort = "Manage various types of logs"
+
+	cmdAutheliaStorageLogsLong = "Commands for managing different types of logs stored in the database"
+
+	cmdAutheliaStorageLogsAuthShort = "Manage authentication logs"
+
+	cmdAutheliaStorageLogsAuthLong = "Commands for managing authentication logs including pruning old entries and viewing statistics"
+
+	cmdAutheliaStorageLogsAuthStatsShort = "Show authentication logs statistics"
+
+	cmdAutheliaStorageLogsAuthStatsLong = "Display statistics about the authentication logs table including success/failure rates and record counts."
+
+	cmdAutheliaStorageLogsAuthStatsExample = `authelia storage logs auth stats`
+
+	cmdAutheliaStorageLogsAuthPruneShort = "Prune old authentication logs"
+
+	cmdAutheliaStorageLogsAuthPruneLong = `Prune authentication logs based on age criteria.
+
+This command helps manage the authentication_logs table which grows indefinitely.
+Use this to remove authentication records older than a specified period to
+prevent excessive database growth and improve performance.`
+
+	cmdAutheliaStorageLogsAuthPruneExample = `authelia storage logs auth prune --older-than 90d
+authelia storage logs auth prune --older-than 6m --batch-size 50000
+authelia storage logs auth prune --older-than 1y --dry-run`
+
 	cmdAutheliaConfigShort = "Perform config related actions"
 
 	cmdAutheliaConfigLong = `Perform config related actions.
@@ -712,6 +738,17 @@ This subcommand allows checking an OpenID Connect 1.0 claims hydration scenario 
 const (
 	storageMigrateDirectionUp   = "up"
 	storageMigrateDirectionDown = "down"
+)
+
+const (
+	storageLogs          = "logs"
+	storageLogsAuth      = "auth"
+	storageLogsAuthPrune = "prune"
+	storageLogsAuthStats = "stats"
+
+	cmdFlagLogsOlderThan = "older-than"
+	cmdFlagLogsBatchSize = "batch-size"
+	cmdFlagLogsDryRun    = "dry-run"
 )
 
 const (
