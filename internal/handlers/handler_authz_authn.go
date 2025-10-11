@@ -197,23 +197,9 @@ func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	cache := authentication.NewCredentialCacheHMAC(sha256.New, lifespan)
 
 	return func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
-		if valid, _ = cache.Valid(authorization.Basic()); valid {
-			return true, true, nil
-		}
+		username, password := authorization.Basic()
 
-		if valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic()); err != nil {
-			return false, false, err
-		}
-
-		if valid {
-			if err = cache.Put(authorization.Basic()); err != nil {
-				ctx.Logger.WithError(err).Errorf("Error occurred saving basic authorization credentials to cache for user '%s'", authorization.BasicUsername())
-			}
-
-			return true, false, nil
-		}
-
-		return false, false, nil
+		return cache.Check(ctx, username, password)
 	}
 }
 
@@ -332,7 +318,11 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 	var valid, cached bool
 
 	if valid, cached, err = s.basic(ctx, authn.Header.Authorization); err != nil {
-		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+		if isRegulatorSkippedErr(err) {
+			ctx.Logger.WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, authn.Header.Authorization.BasicUsername())
+		} else {
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+		}
 
 		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
 	}
