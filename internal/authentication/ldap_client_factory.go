@@ -201,13 +201,15 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 
 	f.mu.Lock()
 
-	defer f.mu.Unlock()
-
 	if f.closing {
 		f.log.Trace("Pool is closing, closing the released client")
 
+		f.mu.Unlock()
+
 		return client.Close()
 	}
+
+	f.mu.Unlock()
 
 	var (
 		pool *LDAPClientPooled
@@ -216,7 +218,6 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 	if pool, ok = client.(*LDAPClientPooled); !ok {
 		f.log.Trace("Unpooled client is being closed")
 
-		// Prevent extra or non-pool connections from being returned into the pool.
 		return client.Close()
 	}
 
@@ -224,11 +225,9 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 
 	select {
 	case f.pool <- pool:
-		pool.log.Trace("Returning pooled client to the pool")
-
 		return nil
 	default:
-		pool.log.Trace("Closing extra pooled client")
+		f.log.Trace("Pooled extra client is being closed")
 
 		return client.Close()
 	}
@@ -245,14 +244,6 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 		return nil, NewPoolCtxErr(fmt.Errorf("error acquiring client: the pool is closed"))
 	}
 
-	if cap(f.pool) != f.config.Pooling.Count {
-		if err = f.Initialize(); err != nil {
-			return nil, NewPoolCtxErr(fmt.Errorf("error acquiring client: error initializing buffer: %w", err))
-		}
-	}
-
-	f.log.Trace("Timeout Started")
-
 	ctx, cancel := context.WithTimeout(ctx, f.config.Pooling.Timeout)
 	defer cancel()
 
@@ -261,21 +252,21 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 		case <-ctx.Done():
 			return nil, NewPoolCtxErr(ctx.Err())
 		case client = <-f.pool:
-			if client.IsFailed() {
-				client.log.Trace("Client is closing or invalid")
-
-				if client, err = f.new(); err != nil {
-					f.log.WithError(err).Trace("Error acquiring new client")
-
-					time.Sleep(f.sleep)
-
-					continue
-				}
-
-				client.log.Trace("New client acquired")
+			if !client.IsFailed() {
+				return client, nil
 			}
 
-			return client, nil
+			client.log.Trace("Client is closing or invalid")
+
+			if client, err = f.new(); err == nil {
+				client.log.Trace("New client acquired")
+
+				return client, nil
+			}
+
+			f.log.WithError(err).Trace("Error acquiring new client")
+
+			time.Sleep(f.sleep)
 		}
 	}
 }
