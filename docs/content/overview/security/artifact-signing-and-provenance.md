@@ -65,16 +65,6 @@ curl -fsSL \
 # Verify signature and checksums
 gpg --verify checksums.sha256.sig checksums.sha256 && sha256sum -c checksums.sha256
 ```
-{{< /envTab >}}
-{{< envTab "Pre 4.39.11" >}}
-```shell
-gpg --verify authelia-v4.39.10-linux-amd64.tar.gz.sha256.sig authelia-v4.39.10-linux-amd64.tar.gz.sha256 && \
- echo "$(cat authelia-v4.39.10-linux-amd64.tar.gz.sha256)  authelia-v4.39.10-linux-amd64.tar.gz" | sha256sum -c
-```
-{{< /envTab >}}
-{{< /envTabs >}}
-
-Note: We adjusted the format of checksums in 4.39.11 to make verification easier.
 
 Example output:
 ```text
