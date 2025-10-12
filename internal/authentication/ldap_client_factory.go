@@ -247,7 +247,7 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 
 	if cap(f.pool) != f.config.Pooling.Count {
 		if err = f.Initialize(); err != nil {
-			return nil, fmt.Errorf("error acquiring client: error initializing buffer: %w", err)
+			return nil, fmt.Errorf("error acquiring client: failed to initialize pool: %w", err)
 		}
 	}
 
