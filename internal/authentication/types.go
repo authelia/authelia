@@ -7,7 +7,10 @@ import (
 	"net/mail"
 	"net/url"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/text/language"
+
+	"github.com/authelia/authelia/v4/internal/clock"
 )
 
 // UserDetails represent the details retrieved for a given user.
@@ -274,6 +277,14 @@ func (l Level) String() string {
 	default:
 		return "invalid"
 	}
+}
+
+type Context interface {
+	context.Context
+
+	GetUserProvider() UserProvider
+	GetLogger() *logrus.Entry
+	GetClock() clock.Provider
 }
 
 func NewPoolCtxErr(err error) error {
