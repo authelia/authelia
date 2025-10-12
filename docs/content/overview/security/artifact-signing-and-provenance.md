@@ -54,7 +54,7 @@ The following artifacts are signed with this key:
 ### Verification
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
-While prior releases can be verified, this specific process only applies after the 4.39.11 release.
+While prior releases can be verified, this _specific_ process only applies after the 4.39.11 release.
 {{< /callout >}}
 
 You can verify the artifact signature using the gpg tool. Below is an example verifying the Linux
@@ -88,6 +88,8 @@ authelia-v{{% latest %}}-linux-amd64-musl.tar.gz: OK
 authelia-v{{% latest %}}-linux-amd64.tar.gz: OK
 ```
 
+Note: The above warning from GPG is expected if you have not manually trusted the Authelia's gpg key. This is unnecessary for the purposes of verifying the integrity and authenticity of Authelia releases.
+
 ## SLSA Provenance
 
 In addition to artifact signatures, Authelia generates and signs **[SLSA Provenance]** for its
@@ -97,15 +99,15 @@ builds.
 environment were used. This helps users and systems verify that the software was built in a trustworthy and repeatable
 way.
 
-Authelia’s provenance conforms to **[SLSA Build Level 3](https://slsa.dev/spec/v1.1/levels#build-l3)**.
+Authelia’s provenance conforms to **[SLSA Build Level 3](https://slsa.dev/spec/v1.1/levels#build-l3)**. Which means that "forging the provenance or evading verification requires exploiting a vulnerability that is beyond the capabilities of most adversaries."
 
-The [SLSA Provenance] covers the release artifacts i.e. those ending with `.tar.gz` and `.deb`.
+The [SLSA Provenance] covers the release artifacts i.e. those ending with `.tar.gz` and `.deb` and does not include built docker images.
 
 ### Verification
 
 You can verify the [SLSA Provenance] using the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier). Below
-is an example verifying all of the Authelia release tarballs (add or
-remove artifacts depending on your requirements):
+is an example verifying all the Authelia release tarballs (add or
+remove artifacts depending on your requirements) for a specific version:
 
 ```shell
 V=v{{% latest %}}
