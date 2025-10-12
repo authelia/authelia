@@ -259,9 +259,9 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 	for {
 		select {
 		case <-ctx.Done():
-      if err = ctx.Err(); err != nil {
-			  return nil, fmt.Errorf("error acquiring client: %w", err)
-      }
+			if err = ctx.Err(); err != nil {
+				return nil, fmt.Errorf("error acquiring client: %w", err)
+			}
      
 			return nil, fmt.Errorf("error acquiring client: the cause is unknown")
 		case client = <-f.pool:
