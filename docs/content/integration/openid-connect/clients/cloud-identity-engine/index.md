@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.9](https://github.com/authelia/authelia/releases/tag/v4.39.9)
+  - [v4.39.12](https://github.com/authelia/authelia/releases/tag/v4.39.12)
 - [Cloud Identity Engine]
 
 {{% oidc-common %}}

@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.9](https://github.com/authelia/authelia/releases/tag/v4.39.9)
+  - [v4.39.12](https://github.com/authelia/authelia/releases/tag/v4.39.12)
 - [Envoy Gateway]
   - [v1.4.1](https://github.com/envoyproxy/gateway/releases/tag/v1.4.1)
 

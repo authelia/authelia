@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-set +u
+set +eu
 
 if [[ ${BUILDKITE_PULL_REQUEST} != "false" ]]; then
   if [[ ${BUILDKITE_LABEL} == ":service_dog: Linting" ]]; then
     echo "--- :go::service_dog: Provide in-line commentary for pull request"
-    .buildkite/lint.sh -reporter=github-pr-review
+    lint.sh -reporter=github-pr-review
   fi
 fi
 
 if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} == 0 ]]; then
-  if [[ ${BUILDKITE_LABEL} == ":hammer_and_wrench: Unit Test" ]] || [[ ${BUILDKITE_LABEL} =~ ":selenium:" ]]; then
+  if [[ ${BUILDKITE_LABEL} == ":hammer_and_wrench: Unit Test" ]] || [[ ${BUILDKITE_LABEL} =~ :selenium: ]]; then
     echo "--- :codecov: Upload coverage reports"
     NAME="UnitTest"
     if [[ ${SUITE} != "" ]]; then
@@ -22,7 +22,7 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
       BUILDKITE_AGENT_META_DATA_CODECOV="-v"
     fi
     codecov -Z -c -f 'coverage*.txt' -n ${NAME} -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
-    if [[ ${BUILDKITE_LABEL} =~ ":selenium:" ]]; then
+    if [[ ${BUILDKITE_LABEL} =~ :selenium: ]]; then
       pnpm -C web report
     fi
     if [[ ${NAME} != "BypassAll" ]]; then
@@ -31,7 +31,7 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
   fi
 fi
 
-if [[ ${BUILDKITE_LABEL} =~ ":selenium:" ]] || [[ ${BUILDKITE_LABEL} =~ ":docker: Build Image" ]]; then
+if [[ ${BUILDKITE_LABEL} =~ :selenium: ]] || [[ ${BUILDKITE_LABEL} =~ :docker:\ Build\ Image ]]; then
   CONTAINERS=$(docker ps -a -q)
   if [[ ${CONTAINERS} != "" ]]; then
     echo "--- :docker: Remove lingering containers"
@@ -43,7 +43,7 @@ if [[ ${BUILDKITE_LABEL} == ":hammer_and_wrench: Unit Test" ]]; then
   buildkite-agent annotate --style "success" --context "ctx-success" < <(bash .buildkite/annotations/artifacts.sh)
 fi
 
-if [[ ${BUILDKITE_LABEL} =~ ":docker: Deploy" ]]; then
+if [[ ${BUILDKITE_LABEL} =~ :docker:\ Deploy ]]; then
   docker logout
   docker logout ghcr.io
 fi
@@ -51,10 +51,12 @@ fi
 if [[ ${BUILDKITE_LABEL} == ":docker: Deploy Manifest" ]] && [[ ${BUILDKITE_BRANCH} == "master" ]] && [[ ${BUILDKITE_PULL_REQUEST} == "false" ]]; then
   echo "--- :docker: Removing tags for deleted branches"
   anontoken=$(curl -fsL --retry 3 'https://auth.docker.io/token?service=registry.docker.io&scope=repository:authelia/authelia:pull' | jq -r .token)
-  authtoken=$(curl -fs --retry 3 -H "Content-Type: application/json" -X POST -d '{"username": "'${DOCKER_USERNAME}'", "password": "'${DOCKER_PASSWORD}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+  authtoken=$(curl -fs --retry 3 -H "Content-Type: application/json" -X POST -d '{"username": "'${DOCKER_TOKEN_USERNAME}'", "password": "'${DOCKER_TOKEN}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
   dockerbranchtags=$(curl -fsL --retry 3 -H "Authorization: Bearer ${anontoken}" https://registry-1.docker.io/v2/authelia/authelia/tags/list | jq -r '.tags[] | select(startswith("PR") | not)' | sed -r '/^(latest|master|develop|v.*|([[:digit:]]+)\.?([[:digit:]]+)?\.?([[:digit:]]+)?)$/d' | sort)
   githubbranches=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/branches | jq -r '.[].name' | sort)
-
+  if [[ -z "${authtoken}" ]]; then
+    echo ":warning: docker.io auth token not acquired; DockerHub tag deletions will fail." >&2
+  fi
   for BRANCH_TAG in $(comm -23 <(echo "${dockerbranchtags}") <(echo "${githubbranches}")); do
     echo "Removing tag ${BRANCH_TAG} from docker.io"
     curl -fsL --retry 3 -o /dev/null -X DELETE -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${BRANCH_TAG}/

@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.9](https://github.com/authelia/authelia/releases/tag/v4.39.9)
+  - [v4.39.12](https://github.com/authelia/authelia/releases/tag/v4.39.12)
 - [Mailcow]
   - [v2025-03](https://github.com/mailcow/mailcow-dockerized/releases/tag/2025-03)
 

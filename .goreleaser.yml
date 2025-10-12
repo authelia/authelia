@@ -181,6 +181,35 @@ nfpms:
       signature:
         key_file: '{{ .Env.GPG_KEY_PATH }}'
 
+sboms:
+  - id: cdx-backend
+    ids: [linux-glibc, linux-musl, freebsd]
+    documents:
+      - "${artifact}.cdx.json"
+    args: ["$artifact", "-o", "cyclonedx-json=$document"]
+    disable: false
+
+  - id: spdx-backend
+    ids: [linux-glibc, linux-musl, freebsd]
+    documents:
+      - "${artifact}.spdx.json"
+    args: ["$artifact", "-o", "spdx-json=$document"]
+    disable: false
+
+  - id: cdx-frontend
+    ids: [public_html]
+    documents:
+      - "${artifact}.cdx.json"
+    args: ["../web", "--source-name", "$artifact", "-o", "cyclonedx-json=$document"]
+    disable: false
+
+  - id: spdx-frontend
+    ids: [public_html]
+    documents:
+      - "${artifact}.spdx.json"
+    args: ["../web", "--source-name", "$artifact", "-o", "spdx-json=$document"]
+    disable: false
+
 signs:
   - id: gpg
     signature: '${artifact}.sig'
@@ -191,10 +220,8 @@ signs:
       "--output", "${signature}",
       "--detach-sign", "${artifact}",
     ]
-    artifacts: all
+    artifacts: checksum
 
 checksum:
-  name_template: '{{ .ArtifactName }}.{{ .Algorithm }}'
-  algorithm: sha256
-  split: true
+  name_template: 'checksums.sha256'
 ...

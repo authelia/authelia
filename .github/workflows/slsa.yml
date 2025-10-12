@@ -1,6 +1,6 @@
 ---
 name: SLSA Provenance
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
