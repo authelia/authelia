@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
 
       # Initializes the CodeQL tools for scanning.
-      - name: I'nitialize CodeQL'
+      - name: 'Initialize CodeQL'
         uses: github/codeql-action/init@e296a935590eb16afc0c0108289f68c87e2a89a5  # v4.30.7
         with:
           # If you wish to specify custom queries, you can do so here or in a config file.
