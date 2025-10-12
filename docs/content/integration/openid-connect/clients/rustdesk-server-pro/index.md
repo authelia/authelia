@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.12](https://github.com/authelia/authelia/releases/tag/v4.39.12)
+  - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
 - [RustDesk Server Pro]
   - [v1.3.9](https://github.com/rustdesk/rustdesk/releases/tag/1.3.9)
 

@@ -126,24 +126,9 @@ type PooledLDAPClientFactory struct {
 
 	sleep time.Duration
 
-	next int
-
 	mu      sync.Mutex
+	next    int
 	closing bool
-}
-
-func (f *PooledLDAPClientFactory) isClosing() bool {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
-	return f.closing
-}
-
-func (f *PooledLDAPClientFactory) setClosing() {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
-	f.closing = true
 }
 
 func (f *PooledLDAPClientFactory) Initialize() (err error) {
@@ -188,49 +173,6 @@ func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (co
 	return f.acquire(context.Background())
 }
 
-// ReleaseClient returns a client using the pool or closes it.
-func (f *PooledLDAPClientFactory) ReleaseClient(client LDAPClient) (err error) {
-	f.log.Trace("Releasing Client")
-
-	if f.isClosing() {
-		f.log.Trace("Pooled/Unpooled Client is being summarily closed as the pool is closing")
-
-		return client.Close()
-	}
-
-	if pooled, ok := client.(*PooledLDAPClient); !ok {
-		f.log.Trace("Unpooled client is being closed")
-
-		return client.Close()
-	} else {
-		return f.release(pooled)
-	}
-}
-
-func (f *PooledLDAPClientFactory) Close() (err error) {
-	f.setClosing()
-
-	close(f.pool)
-
-	var errs []error
-
-	for client := range f.pool {
-		if client.IsClosing() {
-			continue
-		}
-
-		if err = client.Close(); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	if len(errs) > 0 {
-		return fmt.Errorf("errors occurred closing the client pool: %w", errors.Join(errs...))
-	}
-
-	return nil
-}
-
 // The dial function dials a new LDAPClient and wraps it as a PooledLDAPClient client.
 func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
 	var client LDAPClient
@@ -241,9 +183,9 @@ func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
 		return nil, fmt.Errorf("error occurred establishing new client for the pool: %w", err)
 	}
 
-	pooled = &PooledLDAPClient{LDAPClient: client, log: f.log.WithField("client", f.next)}
-
 	f.mu.Lock()
+
+	pooled = &PooledLDAPClient{LDAPClient: client, log: f.log.WithField("client", f.next)}
 
 	f.next++
 
@@ -252,6 +194,26 @@ func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
 	pooled.log.Trace("New pooled client created")
 
 	return pooled, nil
+}
+
+// ReleaseClient returns a client using the pool or closes it.
+func (f *PooledLDAPClientFactory) ReleaseClient(client LDAPClient) (err error) {
+	f.log.Trace("Releasing Client")
+
+	if f.isClosing() {
+		f.log.Trace("Pooled/Unpooled Client is summarily being closed as the pool is closing or closed")
+
+		return client.Close()
+	}
+
+	switch c := client.(type) {
+	case *PooledLDAPClient:
+		return f.release(c)
+	default:
+		f.log.Trace("Unpooled client is being closed")
+
+		return client.Close()
+	}
 }
 
 func (f *PooledLDAPClientFactory) release(client *PooledLDAPClient) (err error) {
@@ -280,7 +242,7 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *PooledLD
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, NewPoolCtxErr(ctx.Err())
+			return nil, NewPoolCtxErr(fmt.Errorf("error acquiring client: %w", ctx.Err()))
 		case client = <-f.pool:
 			if client.healthy() {
 				return client, nil
@@ -299,6 +261,44 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *PooledLD
 			time.Sleep(f.sleep)
 		}
 	}
+}
+
+func (f *PooledLDAPClientFactory) Close() (err error) {
+	f.setClosing()
+
+	close(f.pool)
+
+	var errs []error
+
+	for client := range f.pool {
+		if client.IsClosing() {
+			continue
+		}
+
+		if err = client.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("errors occurred closing the client pool: %w", errors.Join(errs...))
+	}
+
+	return nil
+}
+
+func (f *PooledLDAPClientFactory) isClosing() bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	return f.closing
+}
+
+func (f *PooledLDAPClientFactory) setClosing() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	f.closing = true
 }
 
 // PooledLDAPClient is a decorator for the LDAPClient which handles the pooling functionality. i.e. prevents the client

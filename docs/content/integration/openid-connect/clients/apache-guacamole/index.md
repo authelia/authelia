@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.12](https://github.com/authelia/authelia/releases/tag/v4.39.12)
+  - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
 - [Apache Guacamole]
   - [v1.5.5](https://guacamole.apache.org/releases/1.5.5/)
 
