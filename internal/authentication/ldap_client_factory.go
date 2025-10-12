@@ -176,7 +176,7 @@ func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (co
 	return f.acquire(context.Background())
 }
 
-// The new function creates a pool based client. This function is not thread safe.
+// The new function creates a pool based client. This function is not thread safe but is called from a function that requires holding a lock. The intended usage of this function IS thread safe.
 func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
 	var client ldap.Client
 
@@ -247,7 +247,7 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 
 	if cap(f.pool) != f.config.Pooling.Count {
 		if err = f.Initialize(); err != nil {
-			return nil, NewPoolCtxErr(fmt.Errorf("error acquiring client: error initializing buffer: %w", err))
+			return nil, NewPoolCtxErr(fmt.Errorf("error acquiring client: failed to initialize pool: %w", err))
 		}
 	}
 
@@ -259,7 +259,11 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, NewPoolCtxErr(ctx.Err())
+      if err = ctx.Err(); err != nil {
+			  return nil, fmt.Errorf("error acquiring client: %w", err)
+      }
+     
+			return nil, fmt.Errorf("error acquiring client: the cause is unknown")
 		case client = <-f.pool:
 			if client.IsClosing() || client.Client == nil {
 				client.log.Trace("Client is closing or invalid")
