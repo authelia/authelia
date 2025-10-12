@@ -20,17 +20,9 @@ func NewSession() (session *Session) {
 
 // NewSessionWithRequestedAt creates a new empty OpenIDSession struct with a specific requested at value.
 func NewSessionWithRequestedAt(requestedAt time.Time) (session *Session) {
-	session = &Session{
-		DefaultSession: &openid.DefaultSession{
-			Claims: &jwt.IDTokenClaims{
-				Extra: map[string]any{},
-			},
-			Headers: &jwt.Headers{
-				Extra: map[string]any{},
-			},
-		},
-		Extra: map[string]any{},
-	}
+	session = &Session{}
+
+	InitializeSessionDefaults(session)
 
 	session.SetRequestedAt(requestedAt.UTC())
 

@@ -2,7 +2,7 @@ module github.com/authelia/authelia/v4
 
 go 1.24.0
 
-toolchain go1.25.1
+toolchain go1.25.2
 
 require (
 	authelia.com/provider/oauth2 v0.2.17
@@ -16,8 +16,8 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667
 	github.com/go-crypt/crypt v0.4.6
-	github.com/go-jose/go-jose/v4 v4.1.2
-	github.com/go-ldap/ldap/v3 v3.4.11
+	github.com/go-jose/go-jose/v4 v4.1.3
+	github.com/go-ldap/ldap/v3 v3.4.12
 	github.com/go-rod/rod v0.116.2
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/go-viper/mapstructure/v2 v2.4.0
@@ -43,16 +43,16 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.66.0
+	github.com/valyala/fasthttp v1.67.0
 	github.com/weppos/publicsuffix-go v0.50.0
-	github.com/wneessen/go-mail v0.7.0
+	github.com/wneessen/go-mail v0.7.2
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.2
-	golang.org/x/net v0.44.0
+	golang.org/x/net v0.46.0
 	golang.org/x/sync v0.17.0
-	golang.org/x/term v0.35.0
-	golang.org/x/text v0.29.0
-	golang.org/x/time v0.13.0
+	golang.org/x/term v0.36.0
+	golang.org/x/text v0.30.0
+	golang.org/x/time v0.14.0
 )
 
 require (
@@ -111,10 +111,10 @@ require (
 	github.com/ysmood/leakless v0.9.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.3 // indirect
-	golang.org/x/crypto v0.42.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
 	golang.org/x/oauth2 v0.31.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250505200425-f936aa4a68b2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250505200425-f936aa4a68b2 // indirect
 	google.golang.org/protobuf v1.36.8 // indirect

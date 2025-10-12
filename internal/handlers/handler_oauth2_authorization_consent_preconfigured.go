@@ -66,13 +66,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 		return nil, true
 	}
 
-	if !consent.Subject.Valid && consent.Subject.UUID == uuid.Nil {
-		handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
-
-		return nil, true
-	}
-
-	if subject != consent.Subject.UUID {
+	if consent.Subject.Valid && consent.Subject.UUID != uuid.Nil && consent.Subject.UUID != subject {
 		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
@@ -103,6 +97,8 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 	}
 
 	if config != nil {
+		consent.Subject = uuid.NullUUID{UUID: subject, Valid: true}
+
 		oidc.ConsentGrant(consent, true, config.GrantedClaims)
 
 		consent.SetRespondedAt(ctx.Clock.Now(), config.ID)
@@ -264,13 +260,13 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 		}
 
 		if !config.HasExactGrants(scopes, audience) {
-			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration has scopes '%s' and audience '%s' which coes not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "))
+			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration has scopes '%s' and audience '%s' which does not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "))
 
 			continue
 		}
 
 		if !config.HasClaimsSignature(signature) {
-			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration had the requested claims '%s' which coes not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, config.RequestedClaims.String)
+			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration had the requested claims '%s' which does not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, config.RequestedClaims.String)
 
 			continue
 		}

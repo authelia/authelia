@@ -16,11 +16,15 @@ if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
   cd web && pnpm install && cd ../
 fi
 
+if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
+  buildkite-agent artifact download "*.spdx.json" .
+fi
+
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
   cp -R /buildkite/.local .
 fi
 
-if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
+if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
   echo "--- :docker: Extract and load build container"
   mkdir coverage
   buildkite-agent artifact download "authelia-image-coverage.*" .
@@ -60,6 +64,7 @@ fi
 if [[ "${BUILDKITE_LABEL}" == ":github: Deploy Artifacts" ]]; then
   buildkite-agent artifact download "authelia-*.tar.gz*" .
   buildkite-agent artifact download "authelia_*.deb*" .
+  buildkite-agent artifact download "checksums*" .
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":debian: :fedora: :ubuntu: Deploy APT" ]]; then
