@@ -9,6 +9,7 @@
 node_modules/
 
 # Coverage reports
+web/html/
 coverage/
 .nyc_output/
 coverage.txt
