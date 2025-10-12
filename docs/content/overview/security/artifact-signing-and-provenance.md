@@ -51,11 +51,14 @@ The following artifacts are signed with this key:
 - **[APT Repository](../../integration/deployment/bare-metal.md#apt-repository)**
 - **[SLSA Provenance](#slsa-provenance)**
 
-You can verify the artifact signature using the gpg tool. Below is an example of verifying the Authelia releases:
+### Verification
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
-This verification process only applies to releases after v4.39.11. 
+This verification process only applies to releases after v4.39.11.
 {{< /callout >}}
+
+You can verify the artifact signature using the gpg tool. Below is an example of verifying the Authelia releases:
+
 ```shell
 # Download checksums and signature
 curl -fsSL \
@@ -93,6 +96,8 @@ way.
 Authelia’s provenance conforms to **[SLSA Build Level 3](https://slsa.dev/spec/v1.1/levels#build-l3)**.
 
 The [SLSA Provenance] covers the release artifacts i.e. those ending with `.tar.gz` and `.deb`.
+
+### Verification
 
 You can verify the [SLSA Provenance] using the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier). Below
 is an example verifying the FreeBSD amd64 and Linux amd64 (musl) Authelia v4.39.8 release tarballs:
