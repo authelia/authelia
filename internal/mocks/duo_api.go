@@ -14,7 +14,6 @@ import (
 	reflect "reflect"
 
 	duo "github.com/authelia/authelia/v4/internal/duo"
-	middlewares "github.com/authelia/authelia/v4/internal/middlewares"
 	session "github.com/authelia/authelia/v4/internal/session"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -44,7 +43,7 @@ func (m *MockDuoProvider) EXPECT() *MockDuoProviderMockRecorder {
 }
 
 // AuthCall mocks base method.
-func (m *MockDuoProvider) AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (*duo.AuthResponse, error) {
+func (m *MockDuoProvider) AuthCall(ctx duo.Context, userSession *session.UserSession, values url.Values) (*duo.AuthResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AuthCall", ctx, userSession, values)
 	ret0, _ := ret[0].(*duo.AuthResponse)
@@ -58,23 +57,8 @@ func (mr *MockDuoProviderMockRecorder) AuthCall(ctx, userSession, values any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthCall", reflect.TypeOf((*MockDuoProvider)(nil).AuthCall), ctx, userSession, values)
 }
 
-// Call mocks base method.
-func (m *MockDuoProvider) Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method, path string) (*duo.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Call", ctx, userSession, values, method, path)
-	ret0, _ := ret[0].(*duo.Response)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Call indicates an expected call of Call.
-func (mr *MockDuoProviderMockRecorder) Call(ctx, userSession, values, method, path any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockDuoProvider)(nil).Call), ctx, userSession, values, method, path)
-}
-
 // PreAuthCall mocks base method.
-func (m *MockDuoProvider) PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (*duo.PreAuthResponse, error) {
+func (m *MockDuoProvider) PreAuthCall(ctx duo.Context, userSession *session.UserSession, values url.Values) (*duo.PreAuthResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PreAuthCall", ctx, userSession, values)
 	ret0, _ := ret[0].(*duo.PreAuthResponse)
@@ -86,4 +70,18 @@ func (m *MockDuoProvider) PreAuthCall(ctx *middlewares.AutheliaCtx, userSession 
 func (mr *MockDuoProviderMockRecorder) PreAuthCall(ctx, userSession, values any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PreAuthCall", reflect.TypeOf((*MockDuoProvider)(nil).PreAuthCall), ctx, userSession, values)
+}
+
+// StartupCheck mocks base method.
+func (m *MockDuoProvider) StartupCheck() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartupCheck")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StartupCheck indicates an expected call of StartupCheck.
+func (mr *MockDuoProviderMockRecorder) StartupCheck() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockDuoProvider)(nil).StartupCheck))
 }

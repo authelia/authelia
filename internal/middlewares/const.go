@@ -109,6 +109,7 @@ const (
 	ProviderNameUser             = "user"
 	ProviderNameNotification     = "notification"
 	ProviderNameExpressions      = "expressions"
+	ProviderNameDuo              = "duo"
 	ProviderNameWebAuthnMetaData = "webauthn-metadata"
 )
 

@@ -39,6 +39,7 @@ type MockAutheliaCtx struct {
 	NotifierMock     *MockNotifier
 	TOTPMock         *MockTOTP
 	RandomMock       *MockRandom
+	DuoMock          *MockDuoProvider
 
 	Clock clock.Fixed
 }
@@ -205,6 +206,8 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 		config.Session, nil)
 
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
+
+	mockAuthelia.DuoMock = NewMockDuoProvider(mockAuthelia.Ctrl)
 
 	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
 	providers.TOTP = mockAuthelia.TOTPMock
