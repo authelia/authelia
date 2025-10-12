@@ -332,7 +332,11 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 	var valid, cached bool
 
 	if valid, cached, err = s.basic(ctx, authn.Header.Authorization); err != nil {
-		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+		if isRegulatorSkippedErr(err) {
+			ctx.Logger.WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, authn.Header.Authorization.BasicUsername())
+		} else {
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+		}
 
 		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
 	}
