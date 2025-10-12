@@ -259,11 +259,7 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 	for {
 		select {
 		case <-ctx.Done():
-			if err = ctx.Err(); err != nil {
-				return nil, fmt.Errorf("error acquiring client: %w", err)
-			}
-     
-			return nil, fmt.Errorf("error acquiring client: the cause is unknown")
+			return nil, fmt.Errorf("error acquiring client: %w", ctx.Err())
 		case client = <-f.pool:
 			if client.IsClosing() || client.Client == nil {
 				client.log.Trace("Client is closing or invalid")
