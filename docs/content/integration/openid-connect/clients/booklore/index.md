@@ -7,8 +7,7 @@ draft: false
 images: []
 weight: 620
 toc: true
-aliases:
-  - '/integration/openid-connect/booklore/'
+aliases: []
 support:
   level: community
   versions: true
@@ -36,7 +35,6 @@ This example makes the following assumptions:
 - __Application Root URL:__ `https://booklore.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Client ID:__ `booklore`
-- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
