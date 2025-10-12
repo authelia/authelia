@@ -56,7 +56,6 @@ You can verify the artifact signature using the gpg tool. Below is an example of
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 This verification process only applies to releases after v4.39.11. 
 {{< /callout >}}
-{{< envTab "4.39.11+" >}}
 ```shell
 # Download checksums and signature
 curl -fsSL \
