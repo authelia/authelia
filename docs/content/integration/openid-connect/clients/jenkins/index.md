@@ -119,16 +119,16 @@ jenkins:
       groupsFieldName: "groups"
       logoutFromOpenidProvider: false
       properties:
-      - "pkce"
-      - escapeHatch:
-          group: "admin-users"
-          secret: "escapeHatch"
-          username: "escapeHatch"
+        - "pkce"
+        - escapeHatch:
+            group: "admin-users"
+            secret: "escapeHatch"
+            username: "escapeHatch"
       sendScopesInTokenRequest: true
       serverConfiguration:
         wellKnown:
           scopesOverride: "openid profile email groups"
-          wellKnownOpenIDConfigurationUrl: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration"
+          wellKnownOpenIDConfigurationUrl: "https://{{< sitevar name=\"subdomain-authelia\" nojs=\"auth\" >}}.{{< sitevar name=\"domain\" nojs=\"example.com\" >}}/.well-known/openid-configuration"
       userIdStrategy: "caseSensitive"
       userNameField: "preferred_username"
 ```
