@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
 - [Jenkins]
-  - [v2.516.3](https://www.jenkins.io/changelog/2.531)
+  - [v2.516.3](https://www.jenkins.io/changelog/2.516)
 
 {{% oidc-common %}}
 
