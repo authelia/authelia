@@ -23,9 +23,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
 - [Jenkins]
-  - [v2.453](https://www.jenkins.io/changelog/2.453/)
+  - [v2.516.3](https://www.jenkins.io/changelog/2.531)
 
 {{% oidc-common %}}
 
@@ -110,21 +110,27 @@ jenkins:
   systemMessage: "This Jenkins instance was configured using the Authelia example Configuration as Code, thanks Authelia!"
   securityRealm:
     oic:
-      automanualconfigure: auto
-      wellKnownOpenIDConfigurationUrl: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
-      clientId: jenkins
-      clientSecret: insecure_secret
-      tokenAuthMethod: client_secret_basic
-      scopes: openid profile email groups
-      userNameField: preferred_username
-      groupsFieldName: groups
-      fullNameFieldName: name
-      emailFieldName: email
-      pkceEnabled: true
-      # escapeHatchEnabled: <boolean>
-      # escapeHatchUsername: escapeHatchUsername
-      # escapeHatchSecret: <string:secret>
-      # escapeHatchGroup: <string>
+      clientId: "jenkins"
+      clientSecret: "insecure_secret"
+      disableSslVerification: false
+      emailFieldName: "email"
+      fullNameFieldName: "name"
+      groupIdStrategy: "caseSensitive"
+      groupsFieldName: "groups"
+      logoutFromOpenidProvider: false
+      properties:
+      - "pkce"
+      - escapeHatch:
+          group: "admin-users"
+          secret: "escapeHatch"
+          username: "escapeHatch"
+      sendScopesInTokenRequest: true
+      serverConfiguration:
+        wellKnown:
+          scopesOverride: "openid profile email groups"
+          wellKnownOpenIDConfigurationUrl: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration"
+      userIdStrategy: "caseSensitive"
+      userNameField: "preferred_username"
 ```
 
 #### Web GUI
@@ -137,17 +143,19 @@ To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 4. Configure the following options:
    - Client id: `jenkins`
    - Client secret: `insecure_secret`
-   - Configuration mode: `Automatic configuration`
+   - Configuration mode: `Discovery via well-known endpoint`
    - Well-known configuration endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-   - Override scopes: Enabled
-   - Scopes: `openid profile email groups`
-   - Under `Advanced`:
+     - Under `Advanced`:
+       - Override scopes: `openid profile email groups`
+   - Under `Advanced configuration`:
+     - Under `User fields`
      - User name field name: `preferred_username`
      - Full name field name: `name`
      - Email field name: `email`
      - Groups field name: `groups`
+   - Add the following properties:
      - Enable Proof Key for Code Exchange: Enabled
-     - Configure 'escape hatch' for when the OpenID Provider is unavailable: Consider using this setting
+     - Configure 'Escape Hatch' for when the OpenID Provider is unavailable: Consider using this setting
 
 ## See Also
 
