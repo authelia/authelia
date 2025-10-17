@@ -27,7 +27,7 @@
 		"@types/node": "24.7.2",
 		"@types/react": "19.2.2",
 		"@types/react-dom": "19.2.2",
-		"eslint": "9.37.0",
+		"eslint": "9.38.0",
 		"tsx": "4.20.6",
 		"vitest": "3.2.4"
 	},
