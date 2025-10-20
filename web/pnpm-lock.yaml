@@ -105,8 +105,8 @@ importers:
         specifier: 20.0.0
         version: 20.0.0
       '@limegrass/eslint-plugin-import-alias':
-        specifier: 1.5.2
-        version: 1.5.2(eslint@9.38.0(jiti@2.4.1))
+        specifier: 1.6.0
+        version: 1.6.0(eslint@9.38.0(jiti@2.4.1))
       '@testing-library/jest-dom':
         specifier: 6.9.1
         version: 6.9.1
@@ -901,8 +901,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.29':
     resolution: {integrity: sha512-uw6guiW/gcAGPDhLmd77/6lW8QLeiV5RUTsAX46Db6oLhGaVj4lhnPwb184s1bkc8kdVg/+h988dro8GRDpmYQ==}
 
-  '@limegrass/eslint-plugin-import-alias@1.5.2':
-    resolution: {integrity: sha512-vRbyz1k1G2wdjH23C9eRMq9Jz0c8Ynsa7C4fWMzZuy+jQZi/fLh1mhfQ7nbjCqsd7EzhjljUU4RSI59wuaUyGA==}
+  '@limegrass/eslint-plugin-import-alias@1.6.0':
+    resolution: {integrity: sha512-wGhyo/HeZYhtJqKMPHDKNF4BKyC45G/WVX7HZ5xfoyWqFSzev/uPSKzuaLsQbtUcwwLqLdMAiCmlv+4XIl6WrA==}
     peerDependencies:
       eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8.40.0 || ^9
 
@@ -5012,7 +5012,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@limegrass/eslint-plugin-import-alias@1.5.2(eslint@9.38.0(jiti@2.4.1))':
+  '@limegrass/eslint-plugin-import-alias@1.6.0(eslint@9.38.0(jiti@2.4.1))':
     dependencies:
       eslint: 9.38.0(jiti@2.4.1)
       fs-extra: 10.1.0
