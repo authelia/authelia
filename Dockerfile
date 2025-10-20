@@ -1,9 +1,10 @@
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-ARG BASE="authelia/base:latest"
+ARG TAG
+ARG SHA
 
-FROM ${BASE}
+FROM authelia/base:${TAG}@sha256:${SHA}
 
 ARG TARGETOS
 ARG TARGETARCH

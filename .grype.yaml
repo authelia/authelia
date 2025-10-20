@@ -1,0 +1,13 @@
+---
+ignore:
+  - vulnerability: CVE-2024-58251
+    package:
+      name: busybox
+      version: 1.37.0
+      type: binary
+  - vulnerability: CVE-2025-46394
+    package:
+      name: busybox
+      version: 1.37.0
+      type: binary
+...

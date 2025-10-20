@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.8](https://github.com/authelia/authelia/releases/tag/v4.39.8)
+  - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
 - [Home Assistant]
   - Application:
     - [v2025.4.2](https://github.com/home-assistant/core/releases/tag/2025.4.2)

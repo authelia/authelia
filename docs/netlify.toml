@@ -35,6 +35,11 @@
 
 # Redirects and rewrites — https://docs.netlify.com/routing/redirects/#syntax-for-the-netlify-configuration-file
 [[redirects]]
+  from = "/l/apt"
+  to = "/integration/deployment/bare-metal/#add-the-apt-repository"
+  status = 301
+
+[[redirects]]
   from = "/l/charts"
   to = "https://charts.authelia.com"
   status = 301

@@ -1,3 +1,4 @@
+^authelia$
 ^.git\/
 ^.github\/workflows\/.*\.yml
 ^.idea\/

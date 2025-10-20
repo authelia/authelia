@@ -11,7 +11,7 @@ before:
         bash -c 'cat > postinstall.sh <<EOF
         #!/bin/sh
 
-        # Trigger a reload of sysusers.d and tmpfiles.d to ensure the users and permissions are correct.
+        sed -i -e "s/u!/u /" /usr/lib/sysusers.d/authelia.conf
         systemd-sysusers
         systemd-tmpfiles --create
 
@@ -97,7 +97,7 @@ archives:
   - id: linux-glibc
     ids: [glibc]
     formats: tar.gz
-    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    name_template: '{{ .ProjectName }}{{ if .Env.BUILDKITE_TAG }}-{{ .Env.BUILDKITE_TAG }}{{ end }}-{{ .Os }}-{{ .Arch }}'  # yamllint disable-line rule:line-length
     files:
       - authelia.service
       - authelia@.service
@@ -112,7 +112,7 @@ archives:
   - id: linux-musl
     ids: [musl]
     formats: tar.gz
-    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}-musl'
+    name_template: '{{ .ProjectName }}{{ if .Env.BUILDKITE_TAG }}-{{ .Env.BUILDKITE_TAG }}{{ end }}-{{ .Os }}-{{ .Arch }}-musl'  # yamllint disable-line rule:line-length
     files:
       - authelia.service
       - authelia@.service
@@ -124,7 +124,7 @@ archives:
   - id: freebsd
     ids: [glibc]
     formats: tar.gz
-    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    name_template: '{{ .ProjectName }}{{ if .Env.BUILDKITE_TAG }}-{{ .Env.BUILDKITE_TAG }}{{ end }}-{{ .Os }}-{{ .Arch }}'  # yamllint disable-line rule:line-length
     files:
       - authelia-fb-rc.d
       - config.template.yml
@@ -135,7 +135,7 @@ archives:
   - id: public_html
     meta: true
     formats: tar.gz
-    name_template: '{{ .ProjectName }}-public_html'
+    name_template: '{{ .ProjectName }}{{ if .Env.BUILDKITE_TAG }}-{{ .Env.BUILDKITE_TAG }}{{ end }}-public_html'
     files:
       - src: internal/server/public_html/**
         dst: public_html
@@ -144,7 +144,7 @@ nfpms:
   - id: debian
     ids: [glibc]
     formats: [deb]
-    file_name_template: '{{ .PackageName }}_{{ if eq .Arch "arm" }}armhf{{ else }}{{ .Arch }}{{ end }}.deb'
+    file_name_template: '{{ .PackageName }}{{ if .Env.BUILDKITE_TAG }}_{{ trimprefix .Env.BUILDKITE_TAG "v" }}-1{{ end }}_{{ if eq .Arch "arm" }}armhf{{ else }}{{ .Arch }}{{ end }}.deb'  # yamllint disable-line rule:line-length
     vendor: Authelia
     homepage: https://www.authelia.com
     maintainer: Authelia Team <team@authelia.com>
@@ -156,6 +156,9 @@ nfpms:
     license: Apache-2.0
     provides:
       - authelia
+    release: 1
+    section: default
+    priority: extra
     contents:
       - src: config.template.yml
         dst: /etc/authelia/configuration.yml
@@ -174,6 +177,38 @@ nfpms:
         dst: /usr/lib/tmpfiles.d/authelia-config.conf
     scripts:
       postinstall: postinstall.sh
+    deb:
+      signature:
+        key_file: '{{ .Env.GPG_KEY_PATH }}'
+
+sboms:
+  - id: cdx-backend
+    ids: [linux-glibc, linux-musl, freebsd]
+    documents:
+      - "${artifact}.cdx.json"
+    args: ["$artifact", "-o", "cyclonedx-json=$document"]
+    disable: false
+
+  - id: spdx-backend
+    ids: [linux-glibc, linux-musl, freebsd]
+    documents:
+      - "${artifact}.spdx.json"
+    args: ["$artifact", "-o", "spdx-json=$document"]
+    disable: false
+
+  - id: cdx-frontend
+    ids: [public_html]
+    documents:
+      - "${artifact}.cdx.json"
+    args: ["../web", "--source-name", "$artifact", "-o", "cyclonedx-json=$document"]
+    disable: false
+
+  - id: spdx-frontend
+    ids: [public_html]
+    documents:
+      - "${artifact}.spdx.json"
+    args: ["../web", "--source-name", "$artifact", "-o", "spdx-json=$document"]
+    disable: false
 
 signs:
   - id: gpg
@@ -185,10 +220,8 @@ signs:
       "--output", "${signature}",
       "--detach-sign", "${artifact}",
     ]
-    artifacts: all
+    artifacts: checksum
 
 checksum:
-  name_template: '{{ .ArtifactName }}.{{ .Algorithm }}'
-  algorithm: sha256
-  split: true
+  name_template: 'checksums.sha256'
 ...

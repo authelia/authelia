@@ -74,7 +74,9 @@ func (d *Docker) Manifest(tags []string) error {
 		return err
 	}
 
-	args = append(args, "--label", "org.opencontainers.image.base.name=docker.io/"+BaseImageName+":"+indexDigest, "--build-arg", "BASE="+BaseImageName+":"+indexDigest)
+	_, sha, _ := strings.Cut(indexDigest, ":")
+
+	args = append(args, "--label", "org.opencontainers.image.base.name=docker.io/"+BaseImageName+":"+indexDigest, "--build-arg", "TAG="+baseImageTag, "--build-arg", "SHA="+sha)
 
 	digestAMD64, digestARM, digestARM64, err := getBaseImageDigests(baseImageTag)
 	if err != nil {

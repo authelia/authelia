@@ -1,6 +1,6 @@
 ---
 name: SLSA Provenance
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911  # v2.13.0
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a  # v2.13.1
         with:
           egress-policy: audit
 
@@ -53,14 +53,10 @@ jobs:
           echo "Artifact metadata retrieved"
 
           hashes=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" \
-            "${build_url}/artifacts" | jq -r --arg tag "${GITHUB_REF_NAME}" '
+            "${build_url}/artifacts?per_page=100" | jq -r '
               .[]
               | select(.filename | test("\\.(deb|tar\\.gz)$"))
-              | if .filename | test("\\.deb$") then
-                  "\(.sha256sum) \(.filename | sub("authelia_"; "authelia_" + $tag + "_"))"
-                else
-                  "\(.sha256sum) \(.filename | sub("authelia-"; "authelia-" + $tag + "-"))"
-                end
+              | "\(.sha256sum) \(.filename)"
             ' | base64 -w0)
 
           echo "hashes=${hashes}" >> "${GITHUB_OUTPUT}"

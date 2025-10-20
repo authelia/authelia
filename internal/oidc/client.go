@@ -564,6 +564,10 @@ func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, 
 			}
 
 			body.RequireLogin = RequestFormRequiresLogin(form, session.GetRequestedAt(), authTime)
+
+			if body.PreConfiguration && FormRequiresExplicitConsent(form) {
+				body.PreConfiguration = false
+			}
 		}
 	}
 
