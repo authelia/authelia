@@ -80,8 +80,8 @@ importers:
         specifier: 19.2.0
         version: 19.2.0(react@19.2.0)
       react-i18next:
-        specifier: 16.0.1
-        version: 16.0.1(i18next@25.6.0(typescript@5.9.3))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+        specifier: 16.1.0
+        version: 16.1.0(i18next@25.6.0(typescript@5.9.3))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
       react-router-dom:
         specifier: 7.9.4
         version: 7.9.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -105,8 +105,8 @@ importers:
         specifier: 20.0.0
         version: 20.0.0
       '@limegrass/eslint-plugin-import-alias':
-        specifier: 1.5.2
-        version: 1.5.2(eslint@9.38.0(jiti@2.4.1))
+        specifier: 1.6.0
+        version: 1.6.0(eslint@9.38.0(jiti@2.4.1))
       '@testing-library/jest-dom':
         specifier: 6.9.1
         version: 6.9.1
@@ -136,7 +136,7 @@ importers:
         version: 5.0.4(vite@7.1.10(@types/node@24.7.2)(jiti@2.4.1))
       '@vitest/coverage-istanbul':
         specifier: 3.2.4
-        version: 3.2.4(vitest@3.2.4(@types/node@24.7.2)(happy-dom@20.0.2)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)))
+        version: 3.2.4(vitest@3.2.4(@types/node@24.7.2)(happy-dom@20.0.7)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)))
       esbuild:
         specifier: 0.25.10
         version: 0.25.10
@@ -168,8 +168,8 @@ importers:
         specifier: 6.1.1
         version: 6.1.1(eslint@9.38.0(jiti@2.4.1))
       happy-dom:
-        specifier: 20.0.2
-        version: 20.0.2
+        specifier: 20.0.7
+        version: 20.0.7
       lefthook:
         specifier: 1.13.6
         version: 1.13.6
@@ -196,7 +196,7 @@ importers:
         version: 5.1.4(typescript@5.9.3)(vite@7.1.10(@types/node@24.7.2)(jiti@2.4.1))
       vitest:
         specifier: 3.2.4
-        version: 3.2.4(@types/node@24.7.2)(happy-dom@20.0.2)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6))
+        version: 3.2.4(@types/node@24.7.2)(happy-dom@20.0.7)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6))
       vitest-preview:
         specifier: 0.0.3
         version: 0.0.3(@types/node@24.7.2)(jiti@2.4.1)(postcss@8.5.6)
@@ -901,8 +901,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.29':
     resolution: {integrity: sha512-uw6guiW/gcAGPDhLmd77/6lW8QLeiV5RUTsAX46Db6oLhGaVj4lhnPwb184s1bkc8kdVg/+h988dro8GRDpmYQ==}
 
-  '@limegrass/eslint-plugin-import-alias@1.5.2':
-    resolution: {integrity: sha512-vRbyz1k1G2wdjH23C9eRMq9Jz0c8Ynsa7C4fWMzZuy+jQZi/fLh1mhfQ7nbjCqsd7EzhjljUU4RSI59wuaUyGA==}
+  '@limegrass/eslint-plugin-import-alias@1.6.0':
+    resolution: {integrity: sha512-wGhyo/HeZYhtJqKMPHDKNF4BKyC45G/WVX7HZ5xfoyWqFSzev/uPSKzuaLsQbtUcwwLqLdMAiCmlv+4XIl6WrA==}
     peerDependencies:
       eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8.40.0 || ^9
 
@@ -2495,8 +2495,8 @@ packages:
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
-  happy-dom@20.0.2:
-    resolution: {integrity: sha512-pYOyu624+6HDbY+qkjILpQGnpvZOusItCk+rvF5/V+6NkcgTKnbOldpIy22tBnxoaLtlM9nXgoqAcW29/B7CIw==}
+  happy-dom@20.0.7:
+    resolution: {integrity: sha512-CywLfzmYxP5OYpuAG0usFY0CpxJtwYR+w8Mms5J8W29Y2Pzf6rbfQS2M523tRZTb0oLA+URopPtnAQX2fupHZQ==}
     engines: {node: '>=20.0.0'}
 
   has-bigints@1.0.2:
@@ -3407,8 +3407,8 @@ packages:
     peerDependencies:
       react: ^19.2.0
 
-  react-i18next@16.0.1:
-    resolution: {integrity: sha512-0S//bpYEkCPjzuVmxDf9Z6+Y+ArNvpAUk7eDL4qNCZXjDh6Z9j6MZ+NThU7kMCOsmYmDCun3GYEwkiOjjZo9Ug==}
+  react-i18next@16.1.0:
+    resolution: {integrity: sha512-10qpoODc0ntrWpZdko9CQnl2Xf4VJXUAS9sa7WOkTrQzbbfyoSSUZ3Rsnpgt8la6qCxeB61yzYjyW8U1g3hUUg==}
     peerDependencies:
       i18next: '>= 25.5.2'
       react: '>= 16.8.0'
@@ -5012,7 +5012,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@limegrass/eslint-plugin-import-alias@1.5.2(eslint@9.38.0(jiti@2.4.1))':
+  '@limegrass/eslint-plugin-import-alias@1.6.0(eslint@9.38.0(jiti@2.4.1))':
     dependencies:
       eslint: 9.38.0(jiti@2.4.1)
       fs-extra: 10.1.0
@@ -5595,7 +5595,7 @@ snapshots:
     dependencies:
       open: 10.2.0
 
-  '@vitest/coverage-istanbul@3.2.4(vitest@3.2.4(@types/node@24.7.2)(happy-dom@20.0.2)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)))':
+  '@vitest/coverage-istanbul@3.2.4(vitest@3.2.4(@types/node@24.7.2)(happy-dom@20.0.7)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)))':
     dependencies:
       '@istanbuljs/schema': 0.1.3
       debug: 4.4.1
@@ -5607,7 +5607,7 @@ snapshots:
       magicast: 0.3.5
       test-exclude: 7.0.1
       tinyrainbow: 2.0.0
-      vitest: 3.2.4(@types/node@24.7.2)(happy-dom@20.0.2)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6))
+      vitest: 3.2.4(@types/node@24.7.2)(happy-dom@20.0.7)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6))
     transitivePeerDependencies:
       - supports-color
 
@@ -6939,7 +6939,7 @@ snapshots:
 
   graphemer@1.4.0: {}
 
-  happy-dom@20.0.2:
+  happy-dom@20.0.7:
     dependencies:
       '@types/node': 20.19.2
       '@types/whatwg-mimetype': 3.0.2
@@ -7813,7 +7813,7 @@ snapshots:
       react: 19.2.0
       scheduler: 0.27.0
 
-  react-i18next@16.0.1(i18next@25.6.0(typescript@5.9.3))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3):
+  react-i18next@16.1.0(i18next@25.6.0(typescript@5.9.3))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3):
     dependencies:
       '@babel/runtime': 7.28.4
       html-parse-stringify: 3.0.1
@@ -8598,7 +8598,7 @@ snapshots:
       - utf-8-validate
       - yaml
 
-  vitest@3.2.4(@types/node@24.7.2)(happy-dom@20.0.2)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)):
+  vitest@3.2.4(@types/node@24.7.2)(happy-dom@20.0.7)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)):
     dependencies:
       '@types/chai': 5.2.2
       '@vitest/expect': 3.2.4
@@ -8625,7 +8625,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.7.2
-      happy-dom: 20.0.2
+      happy-dom: 20.0.7
       jsdom: 27.0.0(postcss@8.5.6)
     transitivePeerDependencies:
       - jiti
