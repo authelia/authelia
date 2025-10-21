@@ -159,23 +159,62 @@ func IsReservedAttribute(key string) bool {
 }
 
 func toNativeValue(in ref.Val) (out any) {
-	switch val := in.Value().(type) {
+	return toNativeValueUntyped(in.Value())
+}
+
+func toNativeValueUntyped(in any) (out any) {
+	switch val := in.(type) {
+	case ref.Val:
+		return toNativeValue(val)
 	case []ref.Val:
-		vals := make([]any, len(val))
-
-		for i, v := range val {
-			vals[i] = toNativeValue(v)
-		}
-
-		return vals
+		return toNativeValueSlice(val)
 	case map[string]ref.Val:
-		vals := make(map[string]any)
-		for k, v := range val {
-			vals[k] = toNativeValue(v)
-		}
-
-		return vals
+		return toNativeValueMap(val)
+	case []any:
+		return toNativeValueUntypedSlice(val)
+	case map[string]any:
+		return toNativeValueUntypedMap(val)
 	default:
-		return val
+		return in
 	}
+}
+
+func toNativeValueSlice(in []ref.Val) (out []any) {
+	out = make([]any, 0, len(in))
+
+	for i, v := range in {
+		out[i] = toNativeValue(v)
+	}
+
+	return out
+}
+
+func toNativeValueUntypedSlice(in []any) (out []any) {
+	out = make([]any, 0, len(in))
+
+	for i, v := range in {
+		out[i] = toNativeValueUntyped(v)
+	}
+
+	return out
+}
+
+func toNativeValueMap(in map[string]ref.Val) (out map[string]any) {
+	out = make(map[string]any, len(in))
+
+	for k, v := range in {
+		out[k] = toNativeValue(v)
+	}
+
+	return out
+}
+
+func toNativeValueUntypedMap(in map[string]any) (out map[string]any) {
+	out = make(map[string]any, len(in))
+
+	for k, v := range in {
+		out[k] = toNativeValueUntyped(v)
+	}
+
+	return out
 }
