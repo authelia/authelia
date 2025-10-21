@@ -168,19 +168,19 @@ func toNativeValueUntyped(in any) (out any) {
 		return toNativeValue(val)
 	case []ref.Val:
 		return toNativeValueSlice(val)
-	case map[string]ref.Val:
-		return toNativeValueMap(val)
-	case []any:
-		return toNativeValueUntypedSlice(val)
-	case map[string]any:
-		return toNativeValueUntypedMap(val)
+	case map[ref.Val]ref.Val:
+		return toNativeValueRefValMap(val)
 	default:
 		return in
 	}
 }
 
+func toNativeValueString(in ref.Val) (out string) {
+	return in.ConvertToType(cel.StringType).Value().(string)
+}
+
 func toNativeValueSlice(in []ref.Val) (out []any) {
-	out = make([]any, 0, len(in))
+	out = make([]any, len(in))
 
 	for i, v := range in {
 		out[i] = toNativeValue(v)
@@ -189,31 +189,11 @@ func toNativeValueSlice(in []ref.Val) (out []any) {
 	return out
 }
 
-func toNativeValueUntypedSlice(in []any) (out []any) {
-	out = make([]any, 0, len(in))
-
-	for i, v := range in {
-		out[i] = toNativeValueUntyped(v)
-	}
-
-	return out
-}
-
-func toNativeValueMap(in map[string]ref.Val) (out map[string]any) {
+func toNativeValueRefValMap(in map[ref.Val]ref.Val) (out map[string]any) {
 	out = make(map[string]any, len(in))
 
 	for k, v := range in {
-		out[k] = toNativeValue(v)
-	}
-
-	return out
-}
-
-func toNativeValueUntypedMap(in map[string]any) (out map[string]any) {
-	out = make(map[string]any, len(in))
-
-	for k, v := range in {
-		out[k] = toNativeValueUntyped(v)
+		out[toNativeValueString(k)] = toNativeValue(v)
 	}
 
 	return out
