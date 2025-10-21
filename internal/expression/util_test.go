@@ -32,17 +32,6 @@ func TestNativeValues(t *testing.T) {
 				map[string]any{"name": "123", "oidcID": "123"},
 			},
 		},
-		{
-			"ShouldHandleComplexCaseSliceMapOutput",
-			`groups.map(i, {"name": i, "oidcID": i})`,
-			map[string]any{
-				"groups": []string{"abc", "123"},
-			},
-			[]any{
-				map[string]any{"name": "abc", "oidcID": "abc"},
-				map[string]any{"name": "123", "oidcID": "123"},
-			},
-		},
 	}
 
 	for _, tc := range testCases {
