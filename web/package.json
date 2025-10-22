@@ -117,7 +117,7 @@
     "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "6.1.1",
-    "happy-dom": "20.0.7",
+    "happy-dom": "20.0.8",
     "lefthook": "2.0.0",
     "prettier": "3.6.2",
     "typescript": "5.9.3",
