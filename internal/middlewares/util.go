@@ -3,6 +3,7 @@ package middlewares
 import (
 	"crypto/x509"
 
+	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -45,6 +46,7 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
 	providers.UserAttributeResolver = expression.NewUserAttributes(config)
 	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
+	providers.Duo = duo.New(config)
 
 	var err error
 	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath}); err != nil {

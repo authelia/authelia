@@ -13,88 +13,86 @@ import (
 )
 
 // DuoPOST handler for sending a push notification via duo api.
-func DuoPOST(duoAPI duo.Provider) middlewares.RequestHandler {
-	return func(ctx *middlewares.AutheliaCtx) {
-		var (
-			bodyJSON       = &bodySignDuoRequest{}
-			device, method string
+func DuoPOST(ctx *middlewares.AutheliaCtx) {
+	var (
+		bodyJSON       = &bodySignDuoRequest{}
+		device, method string
 
-			userSession session.UserSession
-			err         error
-		)
-		if err = ctx.ParseBody(bodyJSON); err != nil {
-			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDuo)
+		userSession session.UserSession
+		err         error
+	)
+	if err = ctx.ParseBody(bodyJSON); err != nil {
+		ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDuo)
 
-			respondUnauthorized(ctx, messageMFAValidationFailed)
+		respondUnauthorized(ctx, messageMFAValidationFailed)
 
-			return
-		}
-
-		if userSession, err = ctx.GetSession(); err != nil {
-			ctx.Error(fmt.Errorf("error occurred retrieving user session: %w", err), messageMFAValidationFailed)
-			return
-		}
-
-		remoteIP := ctx.RemoteIP().String()
-
-		duoDevice, err := ctx.Providers.StorageProvider.LoadPreferredDuoDevice(ctx, userSession.Username)
-		if err != nil {
-			ctx.Logger.Debugf("Error identifying preferred device for user %s: %s", userSession.Username, err)
-			ctx.Logger.Debugf("Starting Duo PreAuth for initial device selection of user: %s", userSession.Username)
-			device, method, err = HandleInitialDeviceSelection(ctx, &userSession, duoAPI, bodyJSON)
-		} else {
-			ctx.Logger.Debugf("Starting Duo PreAuth to check preferred device of user: %s", userSession.Username)
-			device, method, err = HandlePreferredDeviceCheck(ctx, &userSession, duoAPI, duoDevice.Device, duoDevice.Method, bodyJSON)
-		}
-
-		if err != nil {
-			ctx.Error(err, messageMFAValidationFailed)
-			return
-		}
-
-		if device == "" || method == "" {
-			return
-		}
-
-		ctx.Logger.Debugf("Starting Duo Auth attempt for %s with device %s and method %s from IP %s", userSession.Username, device, method, remoteIP)
-
-		values, err := SetValues(userSession, device, method, remoteIP, bodyJSON.TargetURL, bodyJSON.Passcode)
-		if err != nil {
-			ctx.Logger.Errorf("Failed to set values for Duo Auth Call for user '%s': %+v", userSession.Username, err)
-
-			respondUnauthorized(ctx, messageMFAValidationFailed)
-
-			return
-		}
-
-		authResponse, err := duoAPI.AuthCall(ctx, &userSession, values)
-		if err != nil {
-			ctx.Logger.Errorf("Failed to perform Duo Auth Call for user '%s': %+v", userSession.Username, err)
-
-			respondUnauthorized(ctx, messageMFAValidationFailed)
-
-			return
-		}
-
-		if authResponse.Result != allow {
-			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeDuo,
-				fmt.Errorf("duo auth result: %s, status: %s, message: %s", authResponse.Result, authResponse.Status,
-					authResponse.StatusMessage))
-
-			respondUnauthorized(ctx, messageMFAValidationFailed)
-
-			return
-		}
-
-		doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeDuo, nil)
-
-		HandleAllow(ctx, &userSession, bodyJSON)
+		return
 	}
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Error(fmt.Errorf("error occurred retrieving user session: %w", err), messageMFAValidationFailed)
+		return
+	}
+
+	remoteIP := ctx.RemoteIP().String()
+
+	duoDevice, err := ctx.Providers.StorageProvider.LoadPreferredDuoDevice(ctx, userSession.Username)
+	if err != nil {
+		ctx.Logger.Debugf("Error identifying preferred device for user %s: %s", userSession.Username, err)
+		ctx.Logger.Debugf("Starting Duo PreAuth for initial device selection of user: %s", userSession.Username)
+		device, method, err = HandleInitialDeviceSelection(ctx, &userSession, bodyJSON)
+	} else {
+		ctx.Logger.Debugf("Starting Duo PreAuth to check preferred device of user: %s", userSession.Username)
+		device, method, err = HandlePreferredDeviceCheck(ctx, &userSession, duoDevice.Device, duoDevice.Method, bodyJSON)
+	}
+
+	if err != nil {
+		ctx.Error(err, messageMFAValidationFailed)
+		return
+	}
+
+	if device == "" || method == "" {
+		return
+	}
+
+	ctx.Logger.Debugf("Starting Duo Auth attempt for %s with device %s and method %s from IP %s", userSession.Username, device, method, remoteIP)
+
+	values, err := SetValues(userSession, device, method, remoteIP, bodyJSON.TargetURL, bodyJSON.Passcode)
+	if err != nil {
+		ctx.Logger.Errorf("Failed to set values for Duo Auth Call for user '%s': %+v", userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
+	authResponse, err := ctx.Providers.Duo.AuthCall(ctx, &userSession, values)
+	if err != nil {
+		ctx.Logger.Errorf("Failed to perform Duo Auth Call for user '%s': %+v", userSession.Username, err)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
+	if authResponse.Result != allow {
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeDuo,
+			fmt.Errorf("duo auth result: %s, status: %s, message: %s", authResponse.Result, authResponse.Status,
+				authResponse.StatusMessage))
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
+	doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeDuo, nil)
+
+	HandleAllow(ctx, &userSession, bodyJSON)
 }
 
 // HandleInitialDeviceSelection handler for retrieving all available devices.
-func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.Provider, bodyJSON *bodySignDuoRequest) (device string, method string, err error) {
-	result, message, devices, enrollURL, err := DuoPreAuth(ctx, userSession, duoAPI)
+func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, bodyJSON *bodySignDuoRequest) (device string, method string, err error) {
+	result, message, devices, enrollURL, err := DuoPreAuth(ctx, userSession)
 	if err != nil {
 		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
 
@@ -138,8 +136,8 @@ func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *ses
 }
 
 // HandlePreferredDeviceCheck handler to check if the saved device and method is still valid.
-func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.Provider, device string, method string, bodyJSON *bodySignDuoRequest) (string, string, error) {
-	result, message, devices, enrollURL, err := DuoPreAuth(ctx, userSession, duoAPI)
+func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, device string, method string, bodyJSON *bodySignDuoRequest) (string, string, error) {
+	result, message, devices, enrollURL, err := DuoPreAuth(ctx, userSession)
 	if err != nil {
 		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
 
