@@ -44,7 +44,7 @@ to make a PR. We also encourage people to make PR's for variants where the diffe
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 Users wishing to override the locales files should be aware that we do not provide any guarantee
-that the file will not change in a breaking way between releases as per our [Versioning Policy](../../policies/versioning.md). Users who are planning to
+that the file will not change in a breaking way between releases as per our [Versioning Policy](../../overview/project/policies/versioning.md). Users who are planning to
 utilize these overrides should either check for changes to the files in the
 [en](https://github.com/authelia/authelia/tree/master/internal/server/locales/en) translation prior to upgrading or
 [Contribute](../../contributing/prologue/translations.md) their translation to ensure it is maintained.
