@@ -111,7 +111,7 @@
     "eslint": "9.38.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-formatter-rdjson": "1.0.6",
-    "eslint-formatter-visualstudio": "9.0.0",
+    "eslint-formatter-visualstudio": "9.0.1",
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-prettier": "5.5.4",
