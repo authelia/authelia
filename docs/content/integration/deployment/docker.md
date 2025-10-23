@@ -42,9 +42,9 @@ this section is not meant to document the daemon environment variables.
 
 ### Permission Context
 
-By default the container runs as the configured [Docker] daemon user. Users can control this behavior in several ways.
+By default the container runs as the configured Docker daemon user. Users can control this behavior in several ways.
 
-The first and recommended way is instructing the [Docker] daemon to run the *Authelia* container as another user. See
+The first and recommended way is instructing the Docker daemon to run the *Authelia* container as another user. See
 the [docker run] or [Docker Compose file reference documentation](https://docs.docker.com/compose/compose-file/05-services/#user)
 for more information. The best part of this method is the process will never have privileged access, and the only
 negative is the user must manually configure the filesystem permissions correctly.
@@ -54,14 +54,14 @@ itself will run as UID 0 (root). The advantage is the container will automatical
 filesystem correctly.
 
 The last method which is beyond our documentation or support is using the
-[user namespace](https://docs.docker.com/engine/security/userns-remap/) facility [Docker] provides.
+[user namespace](https://docs.docker.com/engine/security/userns-remap/) facility Docker provides.
 
 [docker run]: https://docs.docker.com/engine/reference/commandline/run/
 
 ## Docker Compose
 
 We provide two main [Docker Compose] examples which can be utilized to help test *Authelia* or can be adapted into your
-existing [Docker Compose].
+existing Docker Compose.
 
 * [Unbundled Example](#standalone-example)
 * [Bundle: lite](#lite)
@@ -69,7 +69,7 @@ existing [Docker Compose].
 
 ### Standalone Example
 
-The following examples are [Docker Compose] deployments with just *Authelia* and no bundled applications or
+The following examples are Docker Compose deployments with just *Authelia* and no bundled applications or
 proxies.
 
 It expects the following:
@@ -208,12 +208,12 @@ grep -Eo '"https://.*" ' ./authelia/notification.txt.
 #### Running the Proxy on the Host Instead of in a Container
 
 If you wish to run the proxy as a systemd service or other daemon, you will need to adjust the configuration. While this
-configuration is not specific to *Authelia* and is mostly a [Docker] concept we explain this here to help alleviate the
+configuration is not specific to *Authelia* and is mostly a Docker concept we explain this here to help alleviate the
 users asking how to accomplish this. It should be noted that we can't provide documentation or support for every
 architectural choice our users make and you should expect to do your own research to figure this out where possible.
 
 The example below includes the additional `ports` option which must be added in order to allow communication to
-*Authelia* from daemons on the [Docker] host. The other values are used to show context within the
+*Authelia* from daemons on the Docker host. The other values are used to show context within the
 [Standalone Example](#standalone-example) above. The example allows *Authelia* to be communicated with over the
 localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your specific needs.
 
