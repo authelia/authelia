@@ -150,8 +150,8 @@ importers:
         specifier: 1.0.6
         version: 1.0.6
       eslint-formatter-visualstudio:
-        specifier: 8.40.0
-        version: 8.40.0
+        specifier: 9.0.0
+        version: 9.0.0
       eslint-import-resolver-typescript:
         specifier: 4.4.4
         version: 4.4.4(eslint-plugin-import@2.32.0)(eslint@9.38.0(jiti@2.4.1))
@@ -2128,9 +2128,9 @@ packages:
   eslint-formatter-rdjson@1.0.6:
     resolution: {integrity: sha512-RiBsXfe340Mof5pVkg7u0UXiLTm3cRhF9XYUf4hVHEzpIwk5jAIbkifugPpn51CeNxj00RkJU1MfJYoHbUwLFg==}
 
-  eslint-formatter-visualstudio@8.40.0:
-    resolution: {integrity: sha512-TsbZJpvu0wclOoy5MEhETzxrVWMPDg5sejowvQfbqw9e0ooozbnX/1STGiGaO/fH1JWLQvqQ4qAmai2u/Kep1g==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  eslint-formatter-visualstudio@9.0.0:
+    resolution: {integrity: sha512-9063hzpJB7XJqdmZtByuZm3JEFS6azH+E/gwK5B2LUNGAwKMoEcjzFt8UbK8kJ8eedAgPv+5SgNerI7alZFBTQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   eslint-import-context@0.1.8:
     resolution: {integrity: sha512-bq+F7nyc65sKpZGT09dY0S0QrOnQtuDVIfyTGQ8uuvtMIF7oHp6CEP3mouN0rrnYF3Jqo6Ke0BfU/5wASZue1w==}
@@ -6473,7 +6473,7 @@ snapshots:
 
   eslint-formatter-rdjson@1.0.6: {}
 
-  eslint-formatter-visualstudio@8.40.0: {}
+  eslint-formatter-visualstudio@9.0.0: {}
 
   eslint-import-context@0.1.8(unrs-resolver@1.9.2):
     dependencies:
