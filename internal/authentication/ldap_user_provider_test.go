@@ -3507,135 +3507,6 @@ func TestShouldSkipEmptyGroupsResultMemberOf(t *testing.T) {
 	assert.Equal(t, details.Username, "John")
 }
 
-func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndResult(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	config := &schema.AuthenticationBackendLDAP{
-		Address:  testLDAPAddress,
-		User:     "cn=admin,dc=example,dc=com",
-		Password: "password",
-		Attributes: schema.AuthenticationBackendLDAPAttributes{
-			Username:    "uid",
-			Mail:        "mail",
-			DisplayName: "displayName",
-			MemberOf:    "memberOf",
-			GroupName:   "cn",
-		},
-		UsersFilter:       "uid={input}",
-		AdditionalUsersDN: "ou=users",
-		BaseDN:            "dc=example,dc=com",
-		PermitReferrals:   true,
-	}
-
-	mockDialer := NewMockLDAPClientDialer(ctrl)
-
-	mockClient := NewMockLDAPClient(ctrl)
-	mockClientReferral := NewMockLDAPClient(ctrl)
-	mockClientReferralAlt := NewMockLDAPClient(ctrl)
-
-	dialURL := mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil)
-
-	setTimeout := mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second * 0))
-
-	provider := NewLDAPUserProviderWithFactory(config, false, NewStandardLDAPClientFactory(config, nil, mockDialer))
-
-	clientBind := mockClient.EXPECT().
-		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
-		Return(nil)
-
-	clientClose := mockClient.EXPECT().Close()
-
-	searchGroups := mockClient.EXPECT().
-		Search(gomock.Any()).
-		Return(createGroupSearchResultModeFilter(provider.config.Attributes.GroupName, "group1", "group2"), nil)
-
-	searchProfile := mockClient.EXPECT().
-		Search(gomock.Any()).
-		Return(&ldap.SearchResult{
-			Entries:   []*ldap.Entry{},
-			Referrals: []string{"ldap://192.168.0.1"},
-		}, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
-
-	dialURLReferral := mockDialer.EXPECT().DialURL("ldap://192.168.0.1", gomock.Any()).Return(mockClientReferral, nil)
-
-	setTimeoutReferral := mockClientReferral.EXPECT().SetTimeout(gomock.Eq(time.Second * 0))
-
-	clientBindReferral := mockClientReferral.EXPECT().
-		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
-		Return(nil)
-
-	clientCloseReferral := mockClientReferral.EXPECT().Close()
-
-	searchProfileReferral := mockClientReferral.EXPECT().
-		Search(gomock.Any()).
-		Return(&ldap.SearchResult{
-			Entries: []*ldap.Entry{
-				{
-					DN: "uid=test,dc=example,dc=com",
-					Attributes: []*ldap.EntryAttribute{
-						{
-							Name:   "displayName",
-							Values: []string{"John Doe"},
-						},
-						{
-							Name:   "mail",
-							Values: []string{"test@example.com"},
-						},
-						{
-							Name:   "uid",
-							Values: []string{"John"},
-						},
-					},
-				},
-			},
-		}, nil)
-
-	dialURLReferralAlt := mockDialer.EXPECT().DialURL("ldap://192.168.0.1", gomock.Any()).Return(mockClientReferralAlt, nil)
-
-	setTimeoutReferralAlt := mockClientReferralAlt.EXPECT().SetTimeout(gomock.Eq(time.Second * 0))
-
-	clientBindReferralAlt := mockClientReferralAlt.EXPECT().
-		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
-		Return(nil)
-
-	clientCloseReferralAlt := mockClientReferralAlt.EXPECT().Close()
-
-	searchProfileReferralAlt := mockClientReferralAlt.EXPECT().
-		Search(gomock.Any()).
-		Return(&ldap.SearchResult{
-			Entries: []*ldap.Entry{
-				{
-					DN: "uid=test,dc=example,dc=com",
-					Attributes: []*ldap.EntryAttribute{
-						{
-							Name:   "displayName",
-							Values: []string{"John Doe"},
-						},
-						{
-							Name:   "mail",
-							Values: []string{"test@example.com"},
-						},
-						{
-							Name:   "uid",
-							Values: []string{"John"},
-						},
-					},
-				},
-			},
-		}, nil)
-
-	gomock.InOrder(dialURL, setTimeout, clientBind, searchProfile, dialURLReferral, setTimeoutReferral, clientBindReferral, searchProfileReferral, clientCloseReferral, dialURLReferralAlt, setTimeoutReferralAlt, clientBindReferralAlt, searchProfileReferralAlt, clientCloseReferralAlt, searchGroups, clientClose)
-
-	details, err := provider.GetDetails("john")
-	require.NoError(t, err)
-
-	assert.ElementsMatch(t, details.Groups, []string{"group1", "group2"})
-	assert.ElementsMatch(t, details.Emails, []string{"test@example.com"})
-	assert.Equal(t, details.DisplayName, "John Doe")
-	assert.Equal(t, details.Username, "John")
-}
-
 func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndNoResult(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -3680,7 +3551,7 @@ func TestShouldReturnUsernameFromLDAPWithReferralsInErrorAndNoResult(t *testing.
 
 	searchProfile := mockClient.EXPECT().
 		Search(gomock.Any()).
-		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+		Return(&ldap.SearchResult{Referrals: []string{"ldap://192.168.0.1"}}, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
 
 	dialURLReferral := mockDialer.EXPECT().DialURL("ldap://192.168.0.1", gomock.Any()).Return(mockClientReferral, nil)
 
@@ -3766,7 +3637,7 @@ func TestShouldReturnDialErrDuringReferralSearchUsernameFromLDAPWithReferralsInE
 
 	searchProfile := mockClient.EXPECT().
 		Search(gomock.Any()).
-		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+		Return(&ldap.SearchResult{Referrals: []string{"ldap://192.168.0.1"}}, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
 
 	dialURLReferral := mockDialer.EXPECT().DialURL("ldap://192.168.0.1", gomock.Any()).Return(nil, fmt.Errorf("failed to connect"))
 
@@ -3818,7 +3689,7 @@ func TestShouldReturnSearchErrDuringReferralSearchUsernameFromLDAPWithReferralsI
 
 	searchProfile := mockClient.EXPECT().
 		Search(gomock.Any()).
-		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+		Return(&ldap.SearchResult{Referrals: []string{"ldap://192.168.0.1"}}, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
 
 	dialURLReferral := mockDialer.EXPECT().DialURL("ldap://192.168.0.1", gomock.Any()).Return(mockClientReferral, nil)
 
@@ -3934,7 +3805,7 @@ func TestShouldReturnUsernameFromLDAPWithReferralsErr(t *testing.T) {
 
 	searchProfile := mockClient.EXPECT().
 		Search(gomock.Any()).
-		Return(&ldap.SearchResult{}, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
+		Return(&ldap.SearchResult{Referrals: []string{"ldap://192.168.0.1"}}, &ldap.Error{ResultCode: ldap.LDAPResultReferral, Err: errors.New("referral"), Packet: &testBERPacketReferral})
 
 	dialURLReferral := mockDialer.EXPECT().DialURL("ldap://192.168.0.1", gomock.Any()).Return(mockClientReferral, nil)
 
@@ -4220,8 +4091,8 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 		}, nil)
 
 	modify := mockClient.EXPECT().
-		Modify(modifyRequest).
-		Return(nil)
+		ModifyWithResult(modifyRequest).
+		Return(&ldap.ModifyResult{}, nil)
 
 	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, searchProfile, modify, clientClose)
 
@@ -4331,8 +4202,8 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 		}, nil)
 
 	modify := mockClient.EXPECT().
-		Modify(modifyRequest).
-		Return(nil)
+		ModifyWithResult(modifyRequest).
+		Return(&ldap.ModifyResult{}, nil)
 
 	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, searchProfile, modify, clientClose)
 
@@ -4444,8 +4315,8 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 		}, nil)
 
 	modify := mockClient.EXPECT().
-		Modify(modifyRequest).
-		Return(&ldap.Error{
+		ModifyWithResult(modifyRequest).
+		Return(&ldap.ModifyResult{Referral: "ldap://192.168.0.1"}, &ldap.Error{
 			ResultCode: ldap.LDAPResultReferral,
 			Err:        errors.New("error occurred"),
 			Packet:     &testBERPacketReferral,
@@ -4574,12 +4445,15 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 		}, nil)
 
 	modify := mockClient.EXPECT().
-		Modify(modifyRequest).
-		Return(&ldap.Error{
-			ResultCode: ldap.LDAPResultReferral,
-			Err:        errors.New("error occurred"),
-			Packet:     &testBERPacketReferral,
-		})
+		ModifyWithResult(modifyRequest).
+		Return(
+			&ldap.ModifyResult{Referral: "ldap://192.168.0.1"},
+			&ldap.Error{
+				ResultCode: ldap.LDAPResultReferral,
+				Err:        errors.New("error occurred"),
+				Packet:     &testBERPacketReferral,
+			},
+		)
 
 	dialURLReferral := mockDialer.EXPECT().DialURL("ldap://192.168.0.1", gomock.Any()).Return(nil, errors.New("tcp timeout"))
 
@@ -4693,12 +4567,15 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 		}, nil)
 
 	modify := mockClient.EXPECT().
-		Modify(modifyRequest).
-		Return(&ldap.Error{
-			ResultCode: ldap.LDAPResultReferral,
-			Err:        errors.New("error occurred"),
-			Packet:     &testBERPacketReferral,
-		})
+		ModifyWithResult(modifyRequest).
+		Return(
+			&ldap.ModifyResult{Referral: "ldap://192.168.0.1"},
+			&ldap.Error{
+				ResultCode: ldap.LDAPResultReferral,
+				Err:        errors.New("error occurred"),
+				Packet:     &testBERPacketReferral,
+			},
+		)
 
 	dialURLReferral := mockDialer.EXPECT().DialURL("ldap://192.168.0.1", gomock.Any()).Return(mockClientReferral, nil)
 
@@ -4827,8 +4704,8 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 		}, nil)
 
 	modify := mockClient.EXPECT().
-		Modify(modifyRequest).
-		Return(&ldap.Error{
+		ModifyWithResult(modifyRequest).
+		Return(&ldap.ModifyResult{Referral: "ldap://192.168.0.1"}, &ldap.Error{
 			ResultCode: ldap.LDAPResultReferral,
 			Err:        errors.New("error occurred"),
 			Packet:     &testBERPacketReferral,
@@ -5549,8 +5426,8 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 		}, nil)
 
 	passwdModify := mockClient.EXPECT().
-		Modify(modifyRequest).
-		Return(nil)
+		ModifyWithResult(modifyRequest).
+		Return(&ldap.ModifyResult{}, nil)
 
 	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, searchProfile, passwdModify, clientClose)
 
@@ -5663,8 +5540,8 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(
 		}, nil)
 
 	passwdModify := mockClient.EXPECT().
-		Modify(modifyRequest).
-		Return(nil)
+		ModifyWithResult(modifyRequest).
+		Return(&ldap.ModifyResult{}, nil)
 
 	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, searchProfile, passwdModify, clientClose)
 
@@ -5777,8 +5654,8 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 		}, nil)
 
 	passwdModify := mockClient.EXPECT().
-		Modify(modifyRequest).
-		Return(nil)
+		ModifyWithResult(modifyRequest).
+		Return(&ldap.ModifyResult{}, nil)
 
 	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, searchProfile, passwdModify, clientClose)
 
@@ -5887,8 +5764,8 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 		}, nil)
 
 	passwdModify := mockClient.EXPECT().
-		Modify(modifyRequest).
-		Return(nil)
+		ModifyWithResult(modifyRequest).
+		Return(&ldap.ModifyResult{}, nil)
 
 	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, searchProfile, passwdModify, clientClose)
 
@@ -6930,8 +6807,8 @@ func TestLDAPUserProviderChangePasswordErrors(t *testing.T) {
 				mockClient.EXPECT().Bind("uid=john,ou=users,dc=example,dc=com", "oldpass").
 					Return(nil)
 
-				mockClient.EXPECT().Modify(gomock.Any()).
-					Return(ldap.NewError(ldap.LDAPResultConstraintViolation, errors.New("password too weak")))
+				mockClient.EXPECT().ModifyWithResult(gomock.Any()).
+					Return(nil, ldap.NewError(ldap.LDAPResultConstraintViolation, errors.New("password too weak")))
 
 				mockClient.EXPECT().Close().Times(3)
 
