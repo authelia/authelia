@@ -236,7 +236,7 @@ func (e *UserAttributesExpressions) Resolve(name string, detailer UserDetailer, 
 			return nil, false
 		}
 
-		return val.Value(), true
+		return toNativeValue(val), true
 	}
 
 	return activation.ResolveName(name)

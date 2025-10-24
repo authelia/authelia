@@ -3,6 +3,7 @@ package expression
 import (
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types"
+	"github.com/google/cel-go/common/types/ref"
 )
 
 func optExtra(name string, attribute ExtraAttribute) (opt cel.EnvOption) {
@@ -155,4 +156,45 @@ func IsReservedAttribute(key string) bool {
 	default:
 		return false
 	}
+}
+
+func toNativeValue(in ref.Val) (out any) {
+	return toNativeValueUntyped(in.Value())
+}
+
+func toNativeValueUntyped(in any) (out any) {
+	switch val := in.(type) {
+	case ref.Val:
+		return toNativeValue(val)
+	case []ref.Val:
+		return toNativeValueSlice(val)
+	case map[ref.Val]ref.Val:
+		return toNativeValueRefValMap(val)
+	default:
+		return in
+	}
+}
+
+func toNativeValueString(in ref.Val) (out string) {
+	return in.ConvertToType(cel.StringType).Value().(string)
+}
+
+func toNativeValueSlice(in []ref.Val) (out []any) {
+	out = make([]any, len(in))
+
+	for i, v := range in {
+		out[i] = toNativeValue(v)
+	}
+
+	return out
+}
+
+func toNativeValueRefValMap(in map[ref.Val]ref.Val) (out map[string]any) {
+	out = make(map[string]any, len(in))
+
+	for k, v := range in {
+		out[toNativeValueString(k)] = toNativeValue(v)
+	}
+
+	return out
 }
