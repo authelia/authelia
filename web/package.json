@@ -9,7 +9,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@babel/traverse": "7.28.4",
+      "@babel/traverse": "7.28.5",
       "@babel/helpers": "7.28.4",
       "@babel/runtime": "7.28.4",
       "@typescript-eslint/eslint-plugin": "8.46.2",
@@ -23,7 +23,7 @@
       "import-meta-resolve": "4.2.0",
       "path-to-regexp": "8.3.0",
       "semver": "7.7.3",
-      "vite": "7.1.11"
+      "vite": "7.1.12"
     },
     "peerDependencyRules": {
       "allowedVersions": {
@@ -57,7 +57,7 @@
     "qrcode.react": "4.2.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "react-i18next": "16.1.4",
+    "react-i18next": "16.2.0",
     "react-router-dom": "7.9.4",
     "react-spinners": "0.17.0",
     "react18-input-otp": "1.1.4",
@@ -121,7 +121,7 @@
     "lefthook": "2.0.1",
     "prettier": "3.6.2",
     "typescript": "5.9.3",
-    "vite": "7.1.11",
+    "vite": "7.1.12",
     "vite-plugin-checker": "0.11.0",
     "vite-plugin-istanbul": "7.2.0",
     "vite-plugin-svgr": "4.5.0",
