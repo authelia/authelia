@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -407,20 +408,23 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 
 func (p *LDAPUserProvider) search(client ldap.Client, request *ldap.SearchRequest) (result *ldap.SearchResult, err error) {
 	if result, err = client.Search(request); err != nil {
-		if referral, ok := p.getReferral(err); ok {
-			if result == nil {
-				result = &ldap.SearchResult{
-					Referrals: []string{referral},
-				}
-			} else {
-				result.Referrals = append(result.Referrals, referral)
+		var e *ldap.Error
+
+		if !errors.As(err, &e) {
+			return nil, err
+		}
+
+		switch e.ResultCode {
+		case ldap.LDAPResultReferral:
+			if !p.config.PermitReferrals {
+				return nil, err
 			}
-		} else {
+		default:
 			return nil, err
 		}
 	}
 
-	if !p.config.PermitReferrals || len(result.Referrals) == 0 {
+	if !p.config.PermitReferrals || result == nil || len(result.Referrals) == 0 {
 		return result, nil
 	}
 
@@ -814,85 +818,95 @@ func (p *LDAPUserProvider) resolveGroupsFilter(input string, profile *ldapUserPr
 }
 
 func (p *LDAPUserProvider) modify(client ldap.Client, modifyRequest *ldap.ModifyRequest) (err error) {
-	if err = client.Modify(modifyRequest); err != nil {
-		var (
-			referral string
-			ok       bool
-		)
+	var result *ldap.ModifyResult
+	if result, err = client.ModifyWithResult(modifyRequest); err != nil {
+		var e *ldap.Error
 
-		if referral, ok = p.getReferral(err); !ok {
+		if !errors.As(err, &e) {
 			return err
 		}
 
-		p.log.Debugf("Attempting Modify on referred URL %s", referral)
-
-		var (
-			clientRef ldap.Client
-			errRef    error
-		)
-		if clientRef, errRef = p.factory.GetClient(WithAddress(referral)); errRef != nil {
-			return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
-		}
-
-		defer func() {
-			if err := p.factory.ReleaseClient(clientRef); err != nil {
-				p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		switch e.ResultCode {
+		case ldap.LDAPResultReferral:
+			if !p.config.PermitReferrals {
+				return err
 			}
-		}()
-
-		if errRef = clientRef.Modify(modifyRequest); errRef != nil {
-			return fmt.Errorf("error occurred performing modify on referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
+		default:
+			return err
 		}
+	}
 
+	if !p.config.PermitReferrals || result == nil || len(result.Referral) == 0 {
 		return nil
+	}
+
+	p.log.Debugf("Attempting Modify on referred URL %s", result.Referral)
+
+	var (
+		clientRef ldap.Client
+		errRef    error
+	)
+	if clientRef, errRef = p.factory.GetClient(WithAddress(result.Referral)); errRef != nil {
+		return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", result.Referral, errRef, err)
+	}
+
+	defer func() {
+		if err := p.factory.ReleaseClient(clientRef); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	if errRef = clientRef.Modify(modifyRequest); errRef != nil {
+		return fmt.Errorf("error occurred performing modify on referred LDAP server '%s': %+v. Original Error: %w", result.Referral, errRef, err)
 	}
 
 	return nil
 }
 
 func (p *LDAPUserProvider) pwdModify(client ldap.Client, pwdModifyRequest *ldap.PasswordModifyRequest) (err error) {
-	if _, err = client.PasswordModify(pwdModifyRequest); err != nil {
-		var (
-			referral string
-			ok       bool
-		)
+	var result *ldap.PasswordModifyResult
+	if result, err = client.PasswordModify(pwdModifyRequest); err != nil {
+		var e *ldap.Error
 
-		if referral, ok = p.getReferral(err); !ok {
+		if !errors.As(err, &e) {
 			return err
 		}
 
-		p.log.Debugf("Attempting PwdModify ExOp (1.3.6.1.4.1.4203.1.11.1) on referred URL %s", referral)
-
-		var (
-			clientRef ldap.Client
-			errRef    error
-		)
-		if clientRef, errRef = p.factory.GetClient(WithAddress(referral)); errRef != nil {
-			return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
-		}
-
-		defer func() {
-			if err := p.factory.ReleaseClient(clientRef); err != nil {
-				p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		switch e.ResultCode {
+		case ldap.LDAPResultReferral:
+			if !p.config.PermitReferrals {
+				return err
 			}
-		}()
-
-		if _, errRef = clientRef.PasswordModify(pwdModifyRequest); errRef != nil {
-			return fmt.Errorf("error occurred performing password modify on referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
+		default:
+			return err
 		}
+	}
 
+	if !p.config.PermitReferrals || result == nil || len(result.Referral) == 0 {
 		return nil
 	}
 
-	return nil
-}
+	p.log.Debugf("Attempting PwdModify ExOp (1.3.6.1.4.1.4203.1.11.1) on referred URL %s", result.Referral)
 
-func (p *LDAPUserProvider) getReferral(err error) (referral string, ok bool) {
-	if !p.config.PermitReferrals {
-		return "", false
+	var (
+		clientRef ldap.Client
+		errRef    error
+	)
+	if clientRef, errRef = p.factory.GetClient(WithAddress(result.Referral)); errRef != nil {
+		return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", result.Referral, errRef, err)
 	}
 
-	return ldapGetReferral(err)
+	defer func() {
+		if err := p.factory.ReleaseClient(clientRef); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	if _, errRef = clientRef.PasswordModify(pwdModifyRequest); errRef != nil {
+		return fmt.Errorf("error occurred performing password modify on referred LDAP server '%s': %+v. Original Error: %w", result.Referral, errRef, err)
+	}
+
+	return nil
 }
 
 func parseAttributeURI(username, attributeName, attribute, value string) (uri *url.URL, err error) {
