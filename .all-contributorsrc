@@ -1077,6 +1077,15 @@
         "bug",
         "userTesting"
       ]
+    },
+    {
+      "login": "pedorich-n",
+      "name": "Nikita Pedorich",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15573098?v=4",
+      "profile": "https://github.com/pedorich-n",
+      "contributions": [
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7,
