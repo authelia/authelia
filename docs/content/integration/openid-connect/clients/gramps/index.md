@@ -74,7 +74,7 @@ identity_providers:
 
 ### Application
 
-To configure [Gramps Web] there is one method, using [Environment Variables](#Environment-Variables).
+To configure [Gramps Web] there is one method, using [Environment Variables](#environment-variables).
 
 #### Environment Variables
 
