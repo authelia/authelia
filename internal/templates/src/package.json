@@ -17,9 +17,9 @@
 		"esbuild": "0.25.11",
 		"react": "19.2.0",
 		"react-dom": "19.2.0",
-		"react-email": "4.3.1",
+		"react-email": "4.3.2",
 		"tailwind-merge": "3.3.1",
-		"tailwindcss": "4.1.15",
+		"tailwindcss": "4.1.16",
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {
@@ -33,7 +33,7 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"@babel/traverse": "7.28.4",
+			"@babel/traverse": "7.28.5",
 			"@babel/helpers": "7.28.4",
 			"@babel/runtime": "7.28.4",
 			"brace-expansion": "4.0.1",
