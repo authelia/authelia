@@ -198,3 +198,37 @@ func toNativeValueRefValMap(in map[ref.Val]ref.Val) (out map[string]any) {
 
 	return out
 }
+
+func getStandardCELEnvOpts() []cel.EnvOption {
+	return []cel.EnvOption{
+		newAttributeUserUsername(),
+		newAttributeUserGroups(),
+		newAttributeUserDisplayName(),
+		newAttributeUserEmail(),
+		newAttributeUserEmailVerified(),
+		newAttributeUserEmails(),
+		newAttributeUserEmailsExtra(),
+		newAttributeUserGivenName(),
+		newAttributeUserMiddleName(),
+		newAttributeUserFamilyName(),
+		newAttributeUserNickname(),
+		newAttributeUserProfile(),
+		newAttributeUserPicture(),
+		newAttributeUserWebsite(),
+		newAttributeUserGender(),
+		newAttributeUserBirthdate(),
+		newAttributeUserZoneInfo(),
+		newAttributeUserLocale(),
+		newAttributeUserPhoneNumber(),
+		newAttributeUserPhoneNumberVerified(),
+		newAttributeUserPhoneExtension(),
+		newAttributeUserPhoneNumberRFC3966(),
+		newAttributeUserAddress(),
+		newAttributeUserStreetAddress(),
+		newAttributeUserLocality(),
+		newAttributeUserRegion(),
+		newAttributeUserPostalCode(),
+		newAttributeUserCountry(),
+		newAttributeUpdatedAt(),
+	}
+}

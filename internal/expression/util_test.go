@@ -36,37 +36,7 @@ func TestNativeValues(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			opts := []cel.EnvOption{
-				newAttributeUserUsername(),
-				newAttributeUserGroups(),
-				newAttributeUserDisplayName(),
-				newAttributeUserEmail(),
-				newAttributeUserEmailVerified(),
-				newAttributeUserEmails(),
-				newAttributeUserEmailsExtra(),
-				newAttributeUserGivenName(),
-				newAttributeUserMiddleName(),
-				newAttributeUserFamilyName(),
-				newAttributeUserNickname(),
-				newAttributeUserProfile(),
-				newAttributeUserPicture(),
-				newAttributeUserWebsite(),
-				newAttributeUserGender(),
-				newAttributeUserBirthdate(),
-				newAttributeUserZoneInfo(),
-				newAttributeUserLocale(),
-				newAttributeUserPhoneNumber(),
-				newAttributeUserPhoneNumberVerified(),
-				newAttributeUserPhoneExtension(),
-				newAttributeUserPhoneNumberRFC3966(),
-				newAttributeUserAddress(),
-				newAttributeUserStreetAddress(),
-				newAttributeUserLocality(),
-				newAttributeUserRegion(),
-				newAttributeUserPostalCode(),
-				newAttributeUserCountry(),
-				newAttributeUpdatedAt(),
-			}
+			opts := getStandardCELEnvOpts()
 
 			env, err := cel.NewEnv(opts...)
 			require.NoError(t, err)
