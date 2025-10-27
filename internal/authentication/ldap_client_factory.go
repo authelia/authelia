@@ -346,6 +346,7 @@ func ldapDialBind(address, username, password string, timeout time.Duration, dia
 		}
 	}
 
+	//nolint:staticcheck // TODO: Add additional bind logic here, such as MD5Bind, NTLMBind, NTLMUnauthenticatedBind, etc.
 	switch {
 	case config.Password == "":
 		err = client.UnauthenticatedBind(config.Username)
