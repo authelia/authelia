@@ -7,7 +7,7 @@ draft: false
 images: []
 weight: 620
 toc: true
-aliases; []
+aliases: []
 support:
   level: community
   versions: true
