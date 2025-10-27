@@ -160,37 +160,7 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 }
 
 func (e *UserAttributesExpressions) fileStartupCheck() (err error) {
-	opts := []cel.EnvOption{
-		newAttributeUserUsername(),
-		newAttributeUserGroups(),
-		newAttributeUserDisplayName(),
-		newAttributeUserEmail(),
-		newAttributeUserEmailVerified(),
-		newAttributeUserEmails(),
-		newAttributeUserEmailsExtra(),
-		newAttributeUserGivenName(),
-		newAttributeUserMiddleName(),
-		newAttributeUserFamilyName(),
-		newAttributeUserNickname(),
-		newAttributeUserProfile(),
-		newAttributeUserPicture(),
-		newAttributeUserWebsite(),
-		newAttributeUserGender(),
-		newAttributeUserBirthdate(),
-		newAttributeUserZoneInfo(),
-		newAttributeUserLocale(),
-		newAttributeUserPhoneNumber(),
-		newAttributeUserPhoneNumberVerified(),
-		newAttributeUserPhoneExtension(),
-		newAttributeUserPhoneNumberRFC3966(),
-		newAttributeUserAddress(),
-		newAttributeUserStreetAddress(),
-		newAttributeUserLocality(),
-		newAttributeUserRegion(),
-		newAttributeUserPostalCode(),
-		newAttributeUserCountry(),
-		newAttributeUpdatedAt(),
-	}
+	opts := getStandardCELEnvOpts()
 
 	for attribute, properties := range e.config.AuthenticationBackend.File.ExtraAttributes {
 		opts = append(opts, optExtra(attribute, properties))
@@ -236,7 +206,7 @@ func (e *UserAttributesExpressions) Resolve(name string, detailer UserDetailer, 
 			return nil, false
 		}
 
-		return val.Value(), true
+		return toNativeValue(val), true
 	}
 
 	return activation.ResolveName(name)
