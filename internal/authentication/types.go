@@ -327,5 +327,13 @@ func (e *PoolErr) IsDeadlineError() bool {
 type LDAPClient interface {
 	ldap.Client
 
-	WhoAmI(controls []ldap.Control) (*ldap.WhoAmIResult, error)
+	GSSAPIBind(client ldap.GSSAPIClient, servicePrincipal, authzid string) (err error)
+	GSSAPIBindRequest(client ldap.GSSAPIClient, req *ldap.GSSAPIBindRequest) (err error)
+	GSSAPIBindRequestWithAPOptions(client ldap.GSSAPIClient, req *ldap.GSSAPIBindRequest, APOptions []int) (err error)
+	MD5Bind(host, username, password string) error
+	DigestMD5Bind(digestMD5BindRequest *ldap.DigestMD5BindRequest) (*ldap.DigestMD5BindResult, error)
+	NTLMChallengeBind(challenge *ldap.NTLMBindRequest) (result *ldap.NTLMBindResult, err error)
+	NTLMBindWithHash(domain, username, hash string) (err error)
+	NTLMBind(domain, username, password string) (err error)
+	WhoAmI(controls []ldap.Control) (result *ldap.WhoAmIResult, err error)
 }
