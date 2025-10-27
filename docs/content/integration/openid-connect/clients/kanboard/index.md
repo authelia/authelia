@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
+  - [v4.39.14](https://github.com/authelia/authelia/releases/tag/v4.39.14)
 - [Kanboard]
   - [v1.2.46](https://github.com/kanboard/kanboard/releases/tag/v1.2.46)
 
