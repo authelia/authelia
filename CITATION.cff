@@ -1,0 +1,46 @@
+---
+cff-version: 1.2.0
+type: software
+title: Authelia
+license: Apache-2.0
+commit: 5a6e840e6f3f6b171ee05ce29e1c7cc2f3787ea4
+version: 4.39.13
+date-released: '2025-10-12'
+repository-code: 'https://github.com/authelia/authelia/'
+url: 'https://www.authelia.com/'
+abstract: >-
+  The Single Sign-On Multi-Factor portal for web apps, now
+  OpenID Certified™
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+authors:
+  - orcid: 'https://orcid.org/0009-0000-4673-5510'
+    given-names: James
+    family-names: Elliott
+    email: james.elliott@authelia.com
+  - given-names: Amir
+    family-names: Zarrinkafsh
+  - given-names: Clément
+    family-names: Michaud
+  - given-names: Brynn
+    family-names: Crowley
+  - given-names: Manuel
+    family-names: Nuñez
+keywords:
+  - docker
+  - kubernetes
+  - golang
+  - security
+  - ldap
+  - oauth2
+  - authentication
+  - sso
+  - webauthn
+  - two-factor
+  - multi-factor
+  - totp
+  - openid-connect
+  - 2fa
+  - mfa
+  - passkeys
