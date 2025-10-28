@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
 - [opkssh]
-  - [v0.7.0](https://github.com/openpubkey/opkssh/releases/tag/v0.7.0)
+  - [v0.10.0](https://github.com/openpubkey/opkssh/releases/tag/v0.10.0)
 
 {{% oidc-common %}}
 
@@ -85,7 +85,7 @@ To configure [opkssh] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 To log in using Authelia run:
 
 ```shell
-opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/,opkssh
+opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}},opkssh
 ```
 
 You will now see your unique user identifier `sub` in the CLI, copy it to set up the access control on the server.
@@ -106,7 +106,7 @@ Then add Authelia to the existing providers:
 
 ```yaml{title="~/.opk/config.yml"}
 providers:
-  - aliases: authelia
+  - alias: authelia
     issuer: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
     client_id: opkssh
     scopes: openid offline_access
@@ -133,7 +133,7 @@ Generally the configuration file is named `/etc/opk/providers`.
 To configure [opkssh] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```txt {title="/etc/opk/providers"}
-https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/ opkssh 24h
+https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} opkssh 24h
 ```
 
 In addition to above, the CLI will need to be used to map users manually.
@@ -141,7 +141,7 @@ In addition to above, the CLI will need to be used to map users manually.
 For example allow the user `john` with the user identifier of `f0919359-9d15-4e15-bcba-83b41620a073` to login as `root` :
 
 ```shell
-opkssh add root f0919359-9d15-4e15-bcba-83b41620a073 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/
+opkssh add root f0919359-9d15-4e15-bcba-83b41620a073 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 ```
 
 To set up access control not just for yourself but other users as well, use the [authelia storage user identifiers export](https://www.authelia.com/reference/cli/authelia/authelia_storage_user_identifiers_export/)

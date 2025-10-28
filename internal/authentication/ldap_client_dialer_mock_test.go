@@ -41,14 +41,14 @@ func (m *MockLDAPClientDialer) EXPECT() *MockLDAPClientDialerMockRecorder {
 }
 
 // DialURL mocks base method.
-func (m *MockLDAPClientDialer) DialURL(addr string, opts ...ldap.DialOpt) (ldap.Client, error) {
+func (m *MockLDAPClientDialer) DialURL(addr string, opts ...ldap.DialOpt) (LDAPClient, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{addr}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "DialURL", varargs...)
-	ret0, _ := ret[0].(ldap.Client)
+	ret0, _ := ret[0].(LDAPClient)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
