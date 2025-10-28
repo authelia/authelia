@@ -272,8 +272,6 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 }
 
 // ChangePassword is used to change a user's password but requires their old password to be successfully verified.
-//
-//nolint:gocyclo
 func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassword string) (err error) {
 	var (
 		client  ldap.Client
