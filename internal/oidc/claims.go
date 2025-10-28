@@ -392,6 +392,7 @@ type ClaimResolver func(attribute string) (value any, ok bool)
 type ClaimsStrategy interface {
 	ValidateClaimsRequests(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, requests *ClaimsRequests) (err error)
 	HydrateIDTokenClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any, implicit bool) (err error)
+	HydrateAccessTokenClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error)
 	HydrateUserInfoClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error)
 	HydrateClientCredentialsUserInfoClaims(ctx ClaimsStrategyContext, client Client, original, extra map[string]any) (err error)
 	MergeAccessTokenAudienceWithIDTokenAudience() (include bool)
@@ -622,6 +623,10 @@ func (s *CustomClaimsStrategy) HydrateIDTokenClaims(ctx ClaimsStrategyContext, s
 
 	s.hydrateClaimsRequested(ctx, strategy, client, requests, claims, resolve, requested, extra)
 
+	return nil
+}
+
+func (s *CustomClaimsStrategy) HydrateAccessTokenClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error) {
 	return nil
 }
 

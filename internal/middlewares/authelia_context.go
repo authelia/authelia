@@ -23,6 +23,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -627,8 +628,12 @@ func (ctx *AutheliaCtx) GetProviders() (providers Providers) {
 	return ctx.Providers
 }
 
-func (ctx *AutheliaCtx) GetUserProvider() (provider authentication.UserProvider) {
+func (ctx *AutheliaCtx) GetProviderUser() authentication.UserProvider {
 	return ctx.Providers.UserProvider
+}
+
+func (ctx *AutheliaCtx) GetProviderStorage() storage.Provider {
+	return ctx.Providers.StorageProvider
 }
 
 func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
