@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -263,40 +264,7 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
-	var controls []ldap.Control
-
-	switch {
-	case p.features.ControlTypes.MsftPwdPolHints:
-		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints})
-	case p.features.ControlTypes.MsftPwdPolHintsDeprecated:
-		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHintsDeprecated})
-	}
-
-	switch {
-	case p.features.Extensions.PwdModifyExOp:
-		pwdModifyRequest := ldap.NewPasswordModifyRequest(
-			profile.DN,
-			"",
-			password,
-		)
-
-		err = p.pwdModify(client, pwdModifyRequest)
-	case p.config.Implementation == schema.LDAPImplementationActiveDirectory:
-		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
-		// The password needs to be enclosed in quotes
-		// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/6e803168-f140-4d23-b2d3-c3a8ab5917d2
-		pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", password))
-		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
-
-		err = p.modify(client, modifyRequest)
-	default:
-		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
-		modifyRequest.Replace(ldapAttributeUserPassword, []string{password})
-
-		err = p.modify(client, modifyRequest)
-	}
-
-	if err != nil {
+	if err = p.setPassword(client, profile, username, "", password); err != nil {
 		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
@@ -304,8 +272,6 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 }
 
 // ChangePassword is used to change a user's password but requires their old password to be successfully verified.
-//
-//nolint:gocyclo
 func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassword string) (err error) {
 	var (
 		client  ldap.Client
@@ -326,15 +292,6 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 		return fmt.Errorf("unable to update password for user '%s'. Cause: %w", username, err)
 	}
 
-	var controls []ldap.Control
-
-	switch {
-	case p.features.ControlTypes.MsftPwdPolHints:
-		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints})
-	case p.features.ControlTypes.MsftPwdPolHintsDeprecated:
-		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHintsDeprecated})
-	}
-
 	userPasswordOk, err := p.CheckUserPassword(username, oldPassword)
 	if err != nil {
 		errorCode := getLDAPResultCode(err)
@@ -353,37 +310,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 		return ErrPasswordWeak
 	}
 
-	switch {
-	case p.features.Extensions.PwdModifyExOp:
-		pwdModifyRequest := ldap.NewPasswordModifyRequest(
-			profile.DN,
-			oldPassword,
-			newPassword,
-		)
-
-		err = p.pwdModify(client, pwdModifyRequest)
-	case p.config.Implementation == schema.LDAPImplementationActiveDirectory:
-		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
-		// The password needs to be enclosed in quotes
-		// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/6e803168-f140-4d23-b2d3-c3a8ab5917d2
-		pwdEncoded, err := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", newPassword))
-		if err != nil {
-			return fmt.Errorf("failed to encode new password for user '%s'. Cause: %w", username, err)
-		}
-
-		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
-
-		//nolint
-		err = p.modify(client, modifyRequest)
-	default:
-		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
-		modifyRequest.Replace(ldapAttributeUserPassword, []string{newPassword})
-
-		err = p.modify(client, modifyRequest)
-	}
-
-	//TODO: Better inform users regarding password reuse/password history.
-	if err != nil {
+	if err = p.setPassword(client, profile, username, oldPassword, newPassword); err != nil {
 		if errorCode := getLDAPResultCode(err); errorCode != -1 {
 			switch errorCode {
 			case ldap.LDAPResultInvalidCredentials,
@@ -405,22 +332,64 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	return nil
 }
 
+func (p *LDAPUserProvider) setPassword(client ldap.Client, profile *ldapUserProfile, username, oldPassword, newPassword string) (err error) {
+	var controls []ldap.Control
+
+	switch {
+	case p.features.ControlTypes.MsftPwdPolHints:
+		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints})
+	case p.features.ControlTypes.MsftPwdPolHintsDeprecated:
+		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHintsDeprecated})
+	}
+
+	switch {
+	case p.config.Implementation == schema.LDAPImplementationActiveDirectory:
+		var value string
+
+		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
+
+		if value, err = encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", newPassword)); err != nil {
+			return fmt.Errorf("error occurred encoding new password for user '%s': %w", username, err)
+		}
+
+		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{value})
+
+		return p.modify(client, modifyRequest)
+	case p.features.Extensions.PwdModifyExOp:
+		pwdModifyRequest := ldap.NewPasswordModifyRequest(
+			profile.DN,
+			oldPassword,
+			newPassword,
+		)
+
+		return p.pwdModify(client, pwdModifyRequest)
+	default:
+		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
+		modifyRequest.Replace(ldapAttributeUserPassword, []string{newPassword})
+
+		return p.modify(client, modifyRequest)
+	}
+}
+
 func (p *LDAPUserProvider) search(client ldap.Client, request *ldap.SearchRequest) (result *ldap.SearchResult, err error) {
 	if result, err = client.Search(request); err != nil {
-		if referral, ok := p.getReferral(err); ok {
-			if result == nil {
-				result = &ldap.SearchResult{
-					Referrals: []string{referral},
-				}
-			} else {
-				result.Referrals = append(result.Referrals, referral)
+		var e *ldap.Error
+
+		if !errors.As(err, &e) {
+			return nil, err
+		}
+
+		switch e.ResultCode {
+		case ldap.LDAPResultReferral:
+			if !p.config.PermitReferrals {
+				return nil, err
 			}
-		} else {
+		default:
 			return nil, err
 		}
 	}
 
-	if !p.config.PermitReferrals || len(result.Referrals) == 0 {
+	if !p.config.PermitReferrals || result == nil || len(result.Referrals) == 0 {
 		return result, nil
 	}
 
@@ -814,85 +783,95 @@ func (p *LDAPUserProvider) resolveGroupsFilter(input string, profile *ldapUserPr
 }
 
 func (p *LDAPUserProvider) modify(client ldap.Client, modifyRequest *ldap.ModifyRequest) (err error) {
-	if err = client.Modify(modifyRequest); err != nil {
-		var (
-			referral string
-			ok       bool
-		)
+	var result *ldap.ModifyResult
+	if result, err = client.ModifyWithResult(modifyRequest); err != nil {
+		var e *ldap.Error
 
-		if referral, ok = p.getReferral(err); !ok {
+		if !errors.As(err, &e) {
 			return err
 		}
 
-		p.log.Debugf("Attempting Modify on referred URL %s", referral)
-
-		var (
-			clientRef ldap.Client
-			errRef    error
-		)
-		if clientRef, errRef = p.factory.GetClient(WithAddress(referral)); errRef != nil {
-			return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
-		}
-
-		defer func() {
-			if err := p.factory.ReleaseClient(clientRef); err != nil {
-				p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		switch e.ResultCode {
+		case ldap.LDAPResultReferral:
+			if !p.config.PermitReferrals {
+				return err
 			}
-		}()
-
-		if errRef = clientRef.Modify(modifyRequest); errRef != nil {
-			return fmt.Errorf("error occurred performing modify on referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
+		default:
+			return err
 		}
+	}
 
+	if !p.config.PermitReferrals || result == nil || len(result.Referral) == 0 {
 		return nil
+	}
+
+	p.log.Debugf("Attempting Modify on referred URL %s", result.Referral)
+
+	var (
+		clientRef ldap.Client
+		errRef    error
+	)
+	if clientRef, errRef = p.factory.GetClient(WithAddress(result.Referral)); errRef != nil {
+		return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", result.Referral, errRef, err)
+	}
+
+	defer func() {
+		if err := p.factory.ReleaseClient(clientRef); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	if errRef = clientRef.Modify(modifyRequest); errRef != nil {
+		return fmt.Errorf("error occurred performing modify on referred LDAP server '%s': %+v. Original Error: %w", result.Referral, errRef, err)
 	}
 
 	return nil
 }
 
 func (p *LDAPUserProvider) pwdModify(client ldap.Client, pwdModifyRequest *ldap.PasswordModifyRequest) (err error) {
-	if _, err = client.PasswordModify(pwdModifyRequest); err != nil {
-		var (
-			referral string
-			ok       bool
-		)
+	var result *ldap.PasswordModifyResult
+	if result, err = client.PasswordModify(pwdModifyRequest); err != nil {
+		var e *ldap.Error
 
-		if referral, ok = p.getReferral(err); !ok {
+		if !errors.As(err, &e) {
 			return err
 		}
 
-		p.log.Debugf("Attempting PwdModify ExOp (1.3.6.1.4.1.4203.1.11.1) on referred URL %s", referral)
-
-		var (
-			clientRef ldap.Client
-			errRef    error
-		)
-		if clientRef, errRef = p.factory.GetClient(WithAddress(referral)); errRef != nil {
-			return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
-		}
-
-		defer func() {
-			if err := p.factory.ReleaseClient(clientRef); err != nil {
-				p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		switch e.ResultCode {
+		case ldap.LDAPResultReferral:
+			if !p.config.PermitReferrals {
+				return err
 			}
-		}()
-
-		if _, errRef = clientRef.PasswordModify(pwdModifyRequest); errRef != nil {
-			return fmt.Errorf("error occurred performing password modify on referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
+		default:
+			return err
 		}
+	}
 
+	if !p.config.PermitReferrals || result == nil || len(result.Referral) == 0 {
 		return nil
 	}
 
-	return nil
-}
+	p.log.Debugf("Attempting PwdModify ExOp (1.3.6.1.4.1.4203.1.11.1) on referred URL %s", result.Referral)
 
-func (p *LDAPUserProvider) getReferral(err error) (referral string, ok bool) {
-	if !p.config.PermitReferrals {
-		return "", false
+	var (
+		clientRef ldap.Client
+		errRef    error
+	)
+	if clientRef, errRef = p.factory.GetClient(WithAddress(result.Referral)); errRef != nil {
+		return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", result.Referral, errRef, err)
 	}
 
-	return ldapGetReferral(err)
+	defer func() {
+		if err := p.factory.ReleaseClient(clientRef); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	if _, errRef = clientRef.PasswordModify(pwdModifyRequest); errRef != nil {
+		return fmt.Errorf("error occurred performing password modify on referred LDAP server '%s': %+v. Original Error: %w", result.Referral, errRef, err)
+	}
+
+	return nil
 }
 
 func parseAttributeURI(username, attributeName, attribute, value string) (uri *url.URL, err error) {
