@@ -20,7 +20,7 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 		return err
 	}
 
-	var client ldap.Client
+	var client LDAPClient
 
 	if client, err = p.factory.GetClient(); err != nil {
 		return err
@@ -52,7 +52,7 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 	return nil
 }
 
-func (p *LDAPUserProvider) getServerSupportedFeatures(client ldap.Client) (features LDAPSupportedFeatures, err error) {
+func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (features LDAPSupportedFeatures, err error) {
 	var (
 		request *ldap.SearchRequest
 		result  *ldap.SearchResult
