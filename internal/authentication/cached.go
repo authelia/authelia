@@ -49,7 +49,7 @@ func (c *CredentialCacheHMAC) Check(ctx Context, username, password string) (val
 
 	var raw any
 
-	ctx.GetLogger().WithFields(map[string]any{"group": "basic-cache", "key": key, "username": username}).Debug("Attempting Single Flighted Check")
+	ctx.GetLogger().WithFields(map[string]any{"group": "basic-cache", "key": key, "username": username}).Trace("Attempting Single Flighted Check")
 
 	raw, err, _ = c.group.Do(key, c.check(ctx, username, password, key, sum))
 
@@ -80,7 +80,7 @@ func (c *CredentialCacheHMAC) sum(username, password string) (hex string, sum []
 
 func (c *CredentialCacheHMAC) check(ctx Context, username, password, key string, sum []byte) func() (value any, err error) {
 	return func() (value any, err error) {
-		ctx.GetLogger().WithFields(map[string]any{"group": "basic-cache", "key": key, "username": username}).Debug("Performing Single Flighted Check")
+		ctx.GetLogger().WithFields(map[string]any{"group": "basic-cache", "key": key, "username": username}).Trace("Performing Single Flighted Check")
 
 		var match, valid bool
 
