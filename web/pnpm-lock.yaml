@@ -136,7 +136,7 @@ importers:
         version: 5.1.0(vite@7.1.12(@types/node@24.9.1)(jiti@2.4.1))
       '@vitest/coverage-istanbul':
         specifier: 3.2.4
-        version: 3.2.4(vitest@3.2.4(@types/node@24.9.1)(happy-dom@20.0.8)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)))
+        version: 3.2.4(vitest@3.2.4(@types/node@24.9.1)(happy-dom@20.0.10)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)))
       esbuild:
         specifier: 0.25.11
         version: 0.25.11
@@ -168,8 +168,8 @@ importers:
         specifier: 6.1.1
         version: 6.1.1(eslint@9.38.0(jiti@2.4.1))
       happy-dom:
-        specifier: 20.0.8
-        version: 20.0.8
+        specifier: 20.0.10
+        version: 20.0.10
       lefthook:
         specifier: 2.0.1
         version: 2.0.1
@@ -196,7 +196,7 @@ importers:
         version: 5.1.4(typescript@5.9.3)(vite@7.1.12(@types/node@24.9.1)(jiti@2.4.1))
       vitest:
         specifier: 3.2.4
-        version: 3.2.4(@types/node@24.9.1)(happy-dom@20.0.8)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6))
+        version: 3.2.4(@types/node@24.9.1)(happy-dom@20.0.10)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6))
       vitest-preview:
         specifier: 0.0.3
         version: 0.0.3(@types/node@24.9.1)(jiti@2.4.1)(postcss@8.5.6)
@@ -2512,8 +2512,8 @@ packages:
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
-  happy-dom@20.0.8:
-    resolution: {integrity: sha512-TlYaNQNtzsZ97rNMBAm8U+e2cUQXNithgfCizkDgc11lgmN4j9CKMhO3FPGKWQYPwwkFcPpoXYF/CqEPLgzfOg==}
+  happy-dom@20.0.10:
+    resolution: {integrity: sha512-6umCCHcjQrhP5oXhrHQQvLB0bwb1UzHAHdsXy+FjtKoYjUhmNZsQL8NivwM1vDvNEChJabVrUYxUnp/ZdYmy2g==}
     engines: {node: '>=20.0.0'}
 
   has-bigints@1.0.2:
@@ -5636,7 +5636,7 @@ snapshots:
     dependencies:
       open: 10.2.0
 
-  '@vitest/coverage-istanbul@3.2.4(vitest@3.2.4(@types/node@24.9.1)(happy-dom@20.0.8)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)))':
+  '@vitest/coverage-istanbul@3.2.4(vitest@3.2.4(@types/node@24.9.1)(happy-dom@20.0.10)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)))':
     dependencies:
       '@istanbuljs/schema': 0.1.3
       debug: 4.4.1
@@ -5648,7 +5648,7 @@ snapshots:
       magicast: 0.3.5
       test-exclude: 7.0.1
       tinyrainbow: 2.0.0
-      vitest: 3.2.4(@types/node@24.9.1)(happy-dom@20.0.8)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6))
+      vitest: 3.2.4(@types/node@24.9.1)(happy-dom@20.0.10)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6))
     transitivePeerDependencies:
       - supports-color
 
@@ -6980,7 +6980,7 @@ snapshots:
 
   graphemer@1.4.0: {}
 
-  happy-dom@20.0.8:
+  happy-dom@20.0.10:
     dependencies:
       '@types/node': 20.19.2
       '@types/whatwg-mimetype': 3.0.2
@@ -8644,7 +8644,7 @@ snapshots:
       - utf-8-validate
       - yaml
 
-  vitest@3.2.4(@types/node@24.9.1)(happy-dom@20.0.8)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)):
+  vitest@3.2.4(@types/node@24.9.1)(happy-dom@20.0.10)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6)):
     dependencies:
       '@types/chai': 5.2.2
       '@vitest/expect': 3.2.4
@@ -8671,7 +8671,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.9.1
-      happy-dom: 20.0.8
+      happy-dom: 20.0.10
       jsdom: 27.0.0(postcss@8.5.6)
     transitivePeerDependencies:
       - jiti
