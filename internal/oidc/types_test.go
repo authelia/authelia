@@ -33,7 +33,6 @@ func TestNewSession(t *testing.T) {
 	assert.Equal(t, "", session.Subject)
 	require.NotNil(t, session.Claims)
 	assert.NotNil(t, session.Claims.Extra)
-	assert.NotNil(t, session.Extra)
 	require.NotNil(t, session.Headers)
 	assert.NotNil(t, session.Headers.Extra)
 }
@@ -76,7 +75,6 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	session := oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request, nil)
 
 	require.NotNil(t, session)
-	require.NotNil(t, session.Extra)
 	require.NotNil(t, session.Headers)
 	require.NotNil(t, session.Headers.Extra)
 	require.NotNil(t, session.Claims)
@@ -111,7 +109,6 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	session = oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request, claims)
 
 	require.NotNil(t, session)
-	require.NotNil(t, session.Extra)
 	require.NotNil(t, session.Headers)
 	require.NotNil(t, session.Headers.Extra)
 	require.NotNil(t, session.Claims)
