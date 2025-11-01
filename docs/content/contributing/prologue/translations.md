@@ -24,7 +24,7 @@ The way the translation process is facilitated is via [Crowdin]. We encourage me
 If the language you wish to translate is not on [Crowdin] then you have a few options:
 
 1. Ask for the language to be added via the [Crowdin] interface.
-2. Ask a maintainer to add it via one of the [contact options](../../information/contact.md).
+2. Ask a maintainer to add it via one of the [contact options](../../overview/project/contact.md).
 3. Make a pull request directly on GitHub modifying the translation files within
 [this directory](https://github.com/authelia/authelia/tree/master/internal/server/locales).
 
