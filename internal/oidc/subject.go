@@ -3,6 +3,7 @@ package oidc
 import (
 	"fmt"
 
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -56,11 +57,11 @@ func SubjectUUIDFromClaims(claims map[string]any) (subject uuid.UUID, err error)
 	)
 
 	if raw, ok = claims[ClaimSubject]; !ok {
-		return uuid.UUID{}, fmt.Errorf("error retrieving claim 'sub' from the original claims")
+		return uuid.UUID{}, oauthelia2.ErrServerError.WithDebug("Failed to find claim 'sub' in the original claims.")
 	}
 
 	if claim, ok = raw.(string); !ok {
-		return uuid.UUID{}, fmt.Errorf("error asserting claim 'sub' as a string from the original claims")
+		return uuid.UUID{}, oauthelia2.ErrServerError.WithDebug("Failed to parse claim 'sub' as a string.")
 	}
 
 	return SubjectUUIDFromSubjectString(claim)
@@ -69,7 +70,7 @@ func SubjectUUIDFromClaims(claims map[string]any) (subject uuid.UUID, err error)
 // SubjectUUIDFromSubjectString returns the subject uuid.UUID from a raw string value.
 func SubjectUUIDFromSubjectString(value string) (subject uuid.UUID, err error) {
 	if subject, err = uuid.Parse(value); err != nil {
-		return uuid.UUID{}, fmt.Errorf("error parsing claim 'sub' as a UUIDv4 from the original value: %w", err)
+		return uuid.UUID{}, oauthelia2.ErrServerError.WithDebug(fmt.Sprintf("Failed to parse subject '%s' as a UUID.", value))
 	}
 
 	return subject, nil

@@ -588,9 +588,6 @@ func TestHydrateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 					},
 					RequestedAt: time.Unix(1000, 0).UTC(),
 				},
-				AccessToken: &oidc.AccessTokenSession{
-					Claims: map[string]any{},
-				},
 			},
 			"",
 		},
@@ -658,9 +655,7 @@ func TestInitializeSessionDefaults(t *testing.T) {
 							Extra: map[string]any{},
 						},
 					},
-					AccessToken: &oidc.AccessTokenSession{
-						Claims: map[string]any{},
-					},
+					AccessToken: nil,
 				}
 			}
 
