@@ -1,5 +1,5 @@
 const excludedBranchPrefixes =
-    /^(docs|all-contributors\/|dependabot\/|renovate\/)/;
+    /^(docs|all-contributors\/)/;
 
 // PR commentary for Authelia branch based contributions
 on("pull_request.opened")

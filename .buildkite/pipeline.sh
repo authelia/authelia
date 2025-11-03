@@ -68,7 +68,7 @@ steps:
     depends_on:
       - "unit-test"
       - "build-docker-linux"
-    if: build.env("CI_BYPASS") != "true" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/
+    if: build.env("CI_BYPASS") != "true" && build.message !~ /^docs/
 
 EOF
 if [[ "${BUILDKITE_TAG}" != "" ]]; then
@@ -170,7 +170,7 @@ cat << EOF
     agents:
       upload: "fast"
     key: "build-docker-linux"
-    if: build.env("CI_BYPASS") != "true" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/
+    if: build.env("CI_BYPASS") != "true" && build.message !~ /^docs/
 
   - label: ":github: Deploy Artifacts"
     command: "ghartifacts.sh"

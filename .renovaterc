@@ -6,6 +6,7 @@
     ":separatePatchReleases",
     "workarounds:doNotUpgradeFromAlpineStableToEdge"
   ],
+  "branchPrefix": "renovate-",
   "rebaseWhen": "conflicted",
   "ignorePaths": [
     "docs/**"
@@ -18,6 +19,7 @@
   "enabledManagers": [
     "docker-compose",
     "dockerfile",
+    "github-actions",
     "gomod",
     "kubernetes",
     "npm"
@@ -47,6 +49,14 @@
       ],
       "addLabels": [
         "docker"
+      ]
+    },
+    {
+      "matchDatasources": [
+        "github-actions"
+      ],
+      "addLabels": [
+        "github_actions"
       ]
     },
     {
