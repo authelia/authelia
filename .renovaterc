@@ -6,7 +6,7 @@
     ":separatePatchReleases",
     "workarounds:doNotUpgradeFromAlpineStableToEdge"
   ],
-  "branchPrefix": "renovate-"
+  "branchPrefix": "renovate-",
   "rebaseWhen": "conflicted",
   "ignorePaths": [
     "docs/**"
