@@ -5,11 +5,9 @@ set +u
 DOCKER_IMAGE=authelia:dist
 
 if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
-  if [[ ! "${BUILDKITE_BRANCH}" =~ ^renovate/ ]]; then
-    echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
-    mv goreleaser/* ./
-    rm -rf goreleaser
-  fi
+  echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
+  mv goreleaser/* ./
+  rm -rf goreleaser
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
