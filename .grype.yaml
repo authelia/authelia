@@ -10,4 +10,54 @@ ignore:
       name: busybox
       version: 1.37.0
       type: binary
+  - vulnerability: CVE-2025-61725
+    package:
+      name: stdlib
+      version: go1.23.12
+      type: go-module
+  - vulnerability: CVE-2025-47912
+    package:
+      name: stdlib
+      version: go1.23.12
+      type: go-module
+  - vulnerability: CVE-2025-58186
+    package:
+      name: stdlib
+      version: go1.23.12
+      type: go-module
+  - vulnerability: CVE-2025-61724
+    package:
+      name: stdlib
+      version: go1.23.12
+      type: go-module
+  - vulnerability: CVE-2025-58188
+    package:
+      name: stdlib
+      version: go1.23.12
+      type: go-module
+  - vulnerability: CVE-2025-61723
+    package:
+      name: stdlib
+      version: go1.23.12
+      type: go-module
+  - vulnerability: CVE-2025-58189
+    package:
+      name: stdlib
+      version: go1.23.12
+      type: go-module
+  - vulnerability: CVE-2025-58185
+    package:
+      name: stdlib
+      version: go1.23.12
+      type: go-module
+  - vulnerability: CVE-2025-58187
+    package:
+      name: stdlib
+      version: go1.23.12
+      type: go-module
+  - vulnerability: CVE-2025-58183
+    package:
+      name: stdlib
+      version: go1.23.12
+      type: go-module
 ...
