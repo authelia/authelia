@@ -5,6 +5,7 @@ import { styled } from "@mui/material/styles";
 
 import AppBarItemAccountSettings from "@components/AppBarItemAccountSettings";
 import AppBarItemLanguage from "@components/AppBarItemLanguage";
+import AppBarItemTemplateSwitcher from "@components/AppBarItemTemplateSwitcher";
 import { Language } from "@models/LocaleInformation";
 import { UserInfo } from "@models/UserInfo";
 
@@ -28,6 +29,7 @@ const AppBarLoginPortal = function (props: Props) {
             <Typography sx={{ flexGrow: 1 }} />
             <StyledToolbar variant={"regular"}>
                 <Typography sx={{ flexGrow: 1 }} />
+                <AppBarItemTemplateSwitcher />
                 <AppBarItemLanguage
                     localeCurrent={props.localeCurrent}
                     localeList={props.localeList}

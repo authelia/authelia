@@ -18,6 +18,7 @@ import {
 } from "@constants/Routes";
 import LanguageContextProvider from "@contexts/LanguageContext";
 import LocalStorageMethodContextProvider from "@contexts/LocalStorageMethodContext";
+import { PortalTemplateProvider } from "@contexts/PortalTemplateContext";
 import ThemeContextProvider from "@contexts/ThemeContext";
 import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
@@ -51,13 +52,14 @@ function App() {
     return (
         <LanguageContextProvider i18n={i18n}>
             <ThemeContextProvider>
-                <Suspense fallback={<LoadingPage />}>
-                    <CssBaseline />
-                    <NotificationsContext.Provider value={{ notification, setNotification }}>
-                        <LocalStorageMethodContextProvider>
-                            <Router basename={getBasePath()}>
-                                <NotificationBar onClose={() => setNotification(null)} />
-                                <Routes>
+                <PortalTemplateProvider>
+                    <Suspense fallback={<LoadingPage />}>
+                        <CssBaseline />
+                        <NotificationsContext.Provider value={{ notification, setNotification }}>
+                            <LocalStorageMethodContextProvider>
+                                <Router basename={getBasePath()}>
+                                    <NotificationBar onClose={() => setNotification(null)} />
+                                    <Routes>
                                     <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
                                     <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
                                     <Route path={LogoutRoute} element={<SignOut />} />
@@ -77,11 +79,12 @@ function App() {
                                             />
                                         }
                                     />
-                                </Routes>
-                            </Router>
-                        </LocalStorageMethodContextProvider>
-                    </NotificationsContext.Provider>
-                </Suspense>
+                                    </Routes>
+                                </Router>
+                            </LocalStorageMethodContextProvider>
+                        </NotificationsContext.Provider>
+                    </Suspense>
+                </PortalTemplateProvider>
             </ThemeContextProvider>
         </LanguageContextProvider>
     );
