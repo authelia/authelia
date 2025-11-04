@@ -630,7 +630,7 @@ func (s *CustomClaimsStrategy) HydrateAccessTokenClaims(ctx ClaimsStrategyContex
 	resolver := ctx.GetProviderUserAttributeResolver()
 
 	if resolver == nil {
-		return oauthelia2.ErrServerError.WithDebug("The claims strategy had an error populating the ID Token Claims. Error occurred obtaining the attribute resolver.")
+		return oauthelia2.ErrServerError.WithDebug("The claims strategy had an error populating the Access Token Claims. Error occurred obtaining the attribute resolver.")
 	}
 
 	resolve := func(claim string) (value any, ok bool) {
@@ -648,7 +648,7 @@ func (s *CustomClaimsStrategy) HydrateUserInfoClaims(ctx ClaimsStrategyContext, 
 	resolver := ctx.GetProviderUserAttributeResolver()
 
 	if resolver == nil {
-		return oauthelia2.ErrServerError.WithDebug("The claims strategy had an error populating the ID Token Claims. Error occurred obtaining the attribute resolver.")
+		return oauthelia2.ErrServerError.WithDebug("The claims strategy had an error populating the User Info Claims. Error occurred obtaining the attribute resolver.")
 	}
 
 	resolve := func(attribute string) (value any, ok bool) {
