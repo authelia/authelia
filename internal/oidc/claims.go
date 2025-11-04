@@ -638,7 +638,7 @@ func (s *CustomClaimsStrategy) HydrateAccessTokenClaims(ctx ClaimsStrategyContex
 	}
 
 	s.hydrateClaimsOriginal(original, extra)
-	s.hydrateClaimsScoped(ctx, strategy, client, scopes, resolve, nil, extra)
+	s.hydrateClaimsScoped(ctx, strategy, client, scopes, resolve, s.claimsAccessToken, extra)
 
 	return nil
 }
