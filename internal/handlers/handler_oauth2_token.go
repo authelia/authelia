@@ -40,19 +40,23 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 		return
 	}
 
-	ctx.Logger.WithFields(map[string]any{
-		"client_id":                               client.GetID(),
-		"access_token_signed_response_kid":        client.GetAccessTokenSignedResponseKeyID(),
-		"access_token_signed_response_alg":        client.GetAccessTokenSignedResponseAlg(),
-		"access_token_encrypted_response_kid":     client.GetAccessTokenEncryptedResponseKeyID(),
-		"access_token_encrypted_response_alg":     client.GetAccessTokenEncryptedResponseAlg(),
-		"access_token_encrypted_response_enc":     client.GetAccessTokenEncryptedResponseEnc(),
-		"enable_jwt_profile_oauth2_access_tokens": client.GetEnableJWTProfileOAuthAccessTokens(),
-	}).Tracef("Access Request with id '%s' is being handled by a client", requester.GetID())
+	ctx.GetLogger().
+		WithFields(map[string]any{
+			"access_request_id":                       requester.GetID(),
+			"client_id":                               client.GetID(),
+			"subject":                                 session.Subject,
+			"access_token_signed_response_kid":        client.GetAccessTokenSignedResponseKeyID(),
+			"access_token_signed_response_alg":        client.GetAccessTokenSignedResponseAlg(),
+			"access_token_encrypted_response_kid":     client.GetAccessTokenEncryptedResponseKeyID(),
+			"access_token_encrypted_response_alg":     client.GetAccessTokenEncryptedResponseAlg(),
+			"access_token_encrypted_response_enc":     client.GetAccessTokenEncryptedResponseEnc(),
+			"enable_jwt_profile_oauth2_access_tokens": client.GetEnableJWTProfileOAuthAccessTokens(),
+		}).
+		Trace("Access Request is being handled by a provider")
 
 	ctx.Logger.Debugf("Access Request with id '%s' on client with id '%s' is being processed", requester.GetID(), client.GetID())
 
-	if handled := handleOAuth2TokenHydration(ctx, rw, req, requester, responder, client, session); handled {
+	if handled := handleOAuth2TokenHydration(ctx, rw, requester, client, session); handled {
 		return
 	}
 
@@ -73,14 +77,51 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 	ctx.Providers.OpenIDConnect.WriteAccessResponse(ctx, rw, requester, responder)
 }
 
-func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request, requester oauthelia2.AccessRequester, responder oauthelia2.AccessResponder, client oidc.Client, session *oidc.Session) (handled bool) {
+func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, requester oauthelia2.AccessRequester, client oidc.Client, session *oidc.Session) (handled bool) {
 	var err error
 
+	if requester.GetGrantTypes().ExactOne(oidc.GrantTypeClientCredentials) {
+		if err = oidc.HydrateClientCredentialsFlowSessionWithAccessRequest(ctx, client, session); err != nil {
+			ctx.GetLogger().
+				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
+				Error("Access Request encountered an error while trying to hydrate the Client Credentials Flow claims")
+
+			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
+
+			return true
+		}
+
+		if err = oidc.PopulateClientCredentialsFlowRequester(ctx, ctx.Providers.OpenIDConnect, client, requester); err != nil {
+			ctx.GetLogger().
+				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
+				Error("Access Request encountered an error while trying to populate the Client Credentials Flow requester")
+
+			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
+
+			return true
+		}
+
+		return false
+	}
+
 	if client.GetEnableJWTProfileOAuthAccessTokens() {
+		if len(session.Subject) == 0 {
+			ctx.GetLogger().
+				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+				Trace("Access Request JWT Profile Claims Processing Skipped as no subject was provided")
+
+			return false
+		}
+
 		var detailer oidc.UserDetailer
 
 		if detailer, err = oidc.UserDetailerFromSubjectString(ctx, session.Subject); err != nil {
-			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
+			ctx.GetLogger().
+				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
+				Error("Access Request encountered an error while trying to obtain the detailer to hydrate the JWT Profile Access Token claims")
 
 			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
@@ -90,7 +131,10 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		extra := map[string]any{}
 
 		if err = client.GetClaimsStrategy().HydrateAccessTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), nil, nil, detailer, requester.GetRequestedAt(), ctx.GetClock().Now(), nil, extra); err != nil {
-			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
+			ctx.GetLogger().
+				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
+				Error("Access Request encountered an error while trying to hydrate the JWT Profile Access Token claims")
 
 			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
@@ -106,24 +150,6 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 			} else {
 				session.AccessToken.Claims = extra
 			}
-		}
-	}
-
-	if requester.GetGrantTypes().ExactOne(oidc.GrantTypeClientCredentials) {
-		if err = oidc.HydrateClientCredentialsFlowSessionWithAccessRequest(ctx, client, session); err != nil {
-			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
-
-			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
-
-			return true
-		}
-
-		if err = oidc.PopulateClientCredentialsFlowRequester(ctx, ctx.Providers.OpenIDConnect, client, requester); err != nil {
-			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
-
-			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
-
-			return true
 		}
 	}
 
