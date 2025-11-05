@@ -31,6 +31,7 @@ import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
+import { getPortalHeadline, getPortalSubtitle } from "@utils/Configuration";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 
 export interface Props {
@@ -98,6 +99,8 @@ const FirstFactorForm = function (props: Props) {
     }, [loginChannel, redirectionURL, props]);
 
     const disabled = props.disabled;
+    const portalHeadline = getPortalHeadline();
+    const portalSubtitle = getPortalSubtitle();
 
     const handleRememberMeChange = () => {
         setRememberMe(!rememberMe);
@@ -241,7 +244,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     return (
-        <LoginLayout id="first-factor-stage" title={translate("Sign in")}>
+        <LoginLayout id="first-factor-stage" title={portalHeadline} subtitle={portalSubtitle}>
             <FormControl id={"form-login"}>
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12 }}>

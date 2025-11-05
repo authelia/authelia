@@ -60,25 +60,28 @@ function App() {
                                 <Router basename={getBasePath()}>
                                     <NotificationBar onClose={() => setNotification(null)} />
                                     <Routes>
-                                    <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
-                                    <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                                    <Route path={LogoutRoute} element={<SignOut />} />
-                                    <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
-                                    <Route path={RevokeResetPasswordRoute} element={<RevokeResetPasswordTokenView />} />
-                                    <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
-                                    <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
-                                    <Route
-                                        path={`${IndexRoute}*`}
-                                        element={
-                                            <LoginPortal
-                                                duoSelfEnrollment={getDuoSelfEnrollment()}
-                                                passkeyLogin={getPasskeyLogin()}
-                                                rememberMe={getRememberMe()}
-                                                resetPassword={getResetPassword()}
-                                                resetPasswordCustomURL={getResetPasswordCustomURL()}
-                                            />
-                                        }
-                                    />
+                                        <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
+                                        <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
+                                        <Route path={LogoutRoute} element={<SignOut />} />
+                                        <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
+                                        <Route
+                                            path={RevokeResetPasswordRoute}
+                                            element={<RevokeResetPasswordTokenView />}
+                                        />
+                                        <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
+                                        <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
+                                        <Route
+                                            path={`${IndexRoute}*`}
+                                            element={
+                                                <LoginPortal
+                                                    duoSelfEnrollment={getDuoSelfEnrollment()}
+                                                    passkeyLogin={getPasskeyLogin()}
+                                                    rememberMe={getRememberMe()}
+                                                    resetPassword={getResetPassword()}
+                                                    resetPasswordCustomURL={getResetPasswordCustomURL()}
+                                                />
+                                            }
+                                        />
                                     </Routes>
                                 </Router>
                             </LocalStorageMethodContextProvider>

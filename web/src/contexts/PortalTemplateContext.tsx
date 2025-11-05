@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
+import { PortalTemplateConfiguration } from "@models/PortalTemplateConfiguration";
 import {
     PortalTemplateDefinition,
     PortalTemplateName,
@@ -7,7 +8,6 @@ import {
     defaultTemplateManifest,
     portalTemplates,
 } from "@themes/portalTemplates";
-import { PortalTemplateConfiguration } from "@models/PortalTemplateConfiguration";
 
 interface PortalTemplateContextValue {
     template: PortalTemplateName;
@@ -227,8 +227,10 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
         templates: defaultTemplateManifest,
     });
     const mounted = useRef(true);
-    useEffect(() => () => {
-        mounted.current = false;
+    useEffect(() => {
+        return () => {
+            mounted.current = false;
+        };
     }, []);
 
     const loadDefinition = useCallback(async (templateName: PortalTemplateName): Promise<PortalTemplateDefinition> => {
@@ -240,7 +242,7 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
                       name: definitionJson.name ?? templateName,
                       interactive: definitionJson.interactive,
                   }
-                : portalTemplates[templateName] ?? portalTemplates[DEFAULT_TEMPLATE];
+                : (portalTemplates[templateName] ?? portalTemplates[DEFAULT_TEMPLATE]);
 
         let mergedDefinition = baseDefinition;
 
@@ -296,7 +298,8 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
 
     const switchTemplate = useCallback(
         async (templateName: PortalTemplateName) => {
-            const manifest = state.templates.length > 0 ? state.templates : mergeManifestWithDefault(defaultTemplateManifest);
+            const manifest =
+                state.templates.length > 0 ? state.templates : mergeManifestWithDefault(defaultTemplateManifest);
             const resolved = resolveCandidateFromManifest(manifest, templateName) ?? DEFAULT_TEMPLATE;
             const definition = await loadDefinition(resolved);
 

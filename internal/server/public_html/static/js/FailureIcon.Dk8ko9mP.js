@@ -1,0 +1,1 @@
+import{j as o}from"./index.B4PwAJYr.js";import{F as r,f as s}from"./SuccessIcon.DECb_tfH.js";const n=function(e){return o.jsx(r,{icon:s,size:"4x",color:"red",className:"failure-icon"})};export{n as F};

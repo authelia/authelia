@@ -258,6 +258,8 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 	opts = &TemplatedFileOptions{
 		AssetPath:               config.Server.AssetPath,
 		DuoSelfEnrollment:       strFalse,
+		PortalHeadline:          config.PortalHeadline,
+		PortalSubtitle:          config.PortalSubtitle,
 		PasskeyLogin:            strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
 		RememberMe:              strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:           strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
@@ -293,6 +295,8 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 type TemplatedFileOptions struct {
 	AssetPath              string
 	DuoSelfEnrollment      string
+	PortalHeadline         string
+	PortalSubtitle         string
 	PasskeyLogin           string
 	RememberMe             string
 	ResetPassword          string
@@ -329,6 +333,8 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
+		PortalHeadline:         options.PortalHeadline,
+		PortalSubtitle:         options.PortalSubtitle,
 		PasskeyLogin:           options.PasskeyLogin,
 		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
@@ -350,6 +356,8 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		Language:               language,
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
+		PortalHeadline:         options.PortalHeadline,
+		PortalSubtitle:         options.PortalSubtitle,
 		PasskeyLogin:           options.PasskeyLogin,
 		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
@@ -389,6 +397,8 @@ type TemplatedFileCommonData struct {
 	Language               string
 	LogoOverride           string
 	DuoSelfEnrollment      string
+	PortalHeadline         string
+	PortalSubtitle         string
 	PasskeyLogin           string
 	RememberMe             string
 	ResetPassword          string

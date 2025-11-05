@@ -69,6 +69,12 @@ switcher:
 
 This file is re-read on each page load, so deploying a new default does not require restarting the service.
 
+### Portal Headline Text
+
+Set the optional top-level configuration keys `portal_headline` and `portal_subtitle` to brand the login form
+directly from `configuration.yml`. When these values are empty or omitted the headings are hidden entirely,
+allowing templates to present a minimal chrome or rely on custom branding within the template itself.
+
 ## Publishing the Catalogue
 
 `static/branding/templates/manifest.json` describes the templates that should appear in the switcher:

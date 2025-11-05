@@ -461,6 +461,8 @@ var Keys = []string{
 	"telemetry.metrics.timeouts.write",
 	"theme",
 	"portal_template",
+	"portal_headline",
+	"portal_subtitle",
 	"portal_template_switcher",
 	"totp.algorithm",
 	"totp.allowed_algorithms",

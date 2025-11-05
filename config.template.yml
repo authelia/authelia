@@ -23,6 +23,19 @@
 ## The theme to display: light, dark, grey, auto.
 # theme: 'light'
 
+## Override the primary headline shown on the login portal. Leave unset to hide the headline.
+# portal_headline: ''
+
+## Override the subtitle shown beneath the login portal headline. Leave unset to hide the subtitle.
+# portal_subtitle: ''
+
+## The login portal template to apply. Set to 'none' to use the built-in default or provide the name of a template
+## present under assets/static/branding/templates.
+# portal_template: 'none'
+
+## Enable the in-portal template switcher palette allowing users to preview available templates.
+# portal_template_switcher: false
+
 ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
 ## disabled. This setting must be a method that is enabled.
 ## Options are totp, webauthn, mobile_push.
