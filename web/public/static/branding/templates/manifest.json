@@ -2,6 +2,6 @@
   {
     "name": "default",
     "displayName": "Authelia Default",
-    "description": "Baseline Authelia login layout with a neutral gradient backdrop."
+    "description": "Original Authelia login appearance using the stock Material UI theme."
   }
 ]

@@ -1,0 +1,1 @@
+import{j as t}from"./index.ChPl_EQa.js";import{S as o}from"./LogoutButton.BdEL_ptJ.js";const s=function(r){return t.jsx(o,{id:"switch-user-button",text:"Switch User",tooltip:"Logout and continue the current flow",preserve:!0})};export{s as S};

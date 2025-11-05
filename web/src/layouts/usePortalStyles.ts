@@ -10,6 +10,134 @@ type StyleParams = {
     template: PortalTemplateDefinition;
 };
 
+const useLegacyStyles = makeStyles({ name: "PortalLegacy" })((theme: Theme) => ({
+    page: {
+        minHeight: "100vh",
+        background: theme.palette.background.default,
+        color: theme.palette.text.primary,
+        display: "flex",
+        flexDirection: "column",
+    },
+    effectHost: {
+        display: "none",
+    },
+    root: {
+        minHeight: "90vh",
+        textAlign: "center",
+        padding: "3rem 1.5rem",
+        background: "transparent",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    rootContainer: {
+        paddingLeft: 32,
+        paddingRight: 32,
+        background: "transparent",
+        border: "none",
+        borderRadius: 0,
+        boxShadow: "none",
+    },
+    icon: {
+        margin: theme.spacing(),
+        width: "64px",
+        fill: theme.custom.icon,
+    },
+    body: {
+        marginTop: theme.spacing(),
+        paddingTop: theme.spacing(),
+        paddingBottom: theme.spacing(),
+    },
+    typography: {
+        "& .MuiTypography-h5, & .MuiTypography-h4, & .MuiTypography-h3": {
+            color: theme.palette.text.primary,
+            fontWeight: theme.typography.fontWeightMedium,
+            letterSpacing: theme.typography.h5.letterSpacing,
+            textShadow: "none",
+        },
+        "& .MuiTypography-h6": {
+            color: theme.palette.text.secondary,
+            fontWeight: theme.typography.fontWeightRegular,
+            marginTop: theme.spacing(0.5),
+        },
+        "& .MuiTypography-root": {
+            color: theme.palette.text.primary,
+            letterSpacing: theme.typography.body1.letterSpacing,
+        },
+        "& .MuiTypography-root strong": {
+            color: theme.palette.text.primary,
+        },
+    },
+    links: {
+        "& .MuiLink-root": {
+            color: theme.palette.primary.main,
+            fontWeight: theme.typography.fontWeightMedium,
+            textShadow: "none",
+        },
+        "& .MuiLink-root:hover": {
+            color: theme.palette.primary.dark,
+            textShadow: "none",
+        },
+    },
+    formElements: {
+        "& .MuiOutlinedInput-root": {
+            background: theme.palette.background.paper,
+            borderRadius: theme.shape.borderRadius,
+            backdropFilter: "none",
+        },
+        "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: theme.palette.divider,
+        },
+        "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: theme.palette.primary.main,
+            boxShadow: "none",
+        },
+        "& .MuiOutlinedInput-input": {
+            color: theme.palette.text.primary,
+        },
+        "& .MuiInputLabel-root": {
+            color: theme.palette.text.secondary,
+        },
+        "& .MuiInputLabel-root.Mui-focused": {
+            color: theme.palette.primary.main,
+        },
+    },
+    buttons: {
+        "& .MuiButton-contained": {
+            background: theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
+            borderRadius: theme.shape.borderRadius,
+            padding: theme.spacing(1, 2.5),
+            boxShadow: theme.shadows[2],
+        },
+        "& .MuiButton-contained:hover": {
+            background: theme.palette.primary.dark,
+            boxShadow: theme.shadows[4],
+        },
+        "& .MuiButton-outlined": {
+            color: theme.palette.primary.main,
+            borderColor: theme.palette.primary.main,
+            borderRadius: theme.shape.borderRadius,
+            padding: theme.spacing(1, 2.5),
+        },
+        "& .MuiButton-outlined:hover": {
+            borderColor: theme.palette.primary.dark,
+        },
+    },
+    status: {
+        "& .MuiAlert-root": {
+            background: theme.palette.background.paper,
+            border: `1px solid ${theme.palette.divider}`,
+            color: theme.palette.text.primary,
+        },
+        "& .MuiLinearProgress-bar": {
+            background: theme.palette.primary.main,
+        },
+        "& .MuiDivider-root": {
+            background: theme.palette.divider,
+        },
+    },
+}));
+
 const buildLayerStyles = (layer: BackgroundLayer | undefined, templateName: string) => {
     if (!layer) {
         return undefined;
@@ -280,9 +408,16 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
 });
 
 export const usePortalStyles = (template: PortalTemplateDefinition) => {
-    const { classes } = useStyles({ config: template.style, template });
+    const { classes: templateClasses } = useStyles({ config: template.style, template });
+    const { classes: legacyClasses } = useLegacyStyles();
 
     useEffect(() => {
+        if (template.name === "default") {
+            document.body.style.background = "";
+            document.body.style.color = "";
+            return;
+        }
+
         document.body.style.background = template.style.page.background;
         document.body.style.color = template.style.page.color;
 
@@ -292,5 +427,5 @@ export const usePortalStyles = (template: PortalTemplateDefinition) => {
         };
     }, [template]);
 
-    return classes;
+    return template.name === "default" ? legacyClasses : templateClasses;
 };

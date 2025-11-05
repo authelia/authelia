@@ -97,6 +97,10 @@ async function fetchPortalTemplateConfig(): Promise<PortalTemplateConfig | null>
     for (const source of sources) {
         const config = await fetchJSON(source);
         if (config) {
+            if (typeof config.status === "string" && config.data && typeof config.data === "object") {
+                return config.data as PortalTemplateConfig;
+            }
+
             return config as PortalTemplateConfig;
         }
     }
