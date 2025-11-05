@@ -86,7 +86,7 @@ const LoginLayout = function (props: Props) {
     })();
 
     return (
-        <Box className={classes.page}>
+        <Box className={classes.page} data-portal-role="page">
             <PortalTemplateEffectHost className={classes.effectHost} />
             <AppBarLoginPortal
                 userInfo={props.userInfo}
@@ -101,9 +101,10 @@ const LoginLayout = function (props: Props) {
                 spacing={0}
                 alignItems="center"
                 justifyContent="center"
+                data-portal-role="root"
             >
-                <Container maxWidth={inferredMaxWidth} className={rootEnhancer}>
-                    <Grid container className={classes.typography}>
+                <Container maxWidth={inferredMaxWidth} className={rootEnhancer} data-portal-role="card">
+                    <Grid container className={classes.typography} data-portal-role="content">
                         <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
                             <Grid size={{ xs: 12 }} maxWidth={"xs"}>

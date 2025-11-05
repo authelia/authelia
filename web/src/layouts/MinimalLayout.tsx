@@ -41,7 +41,7 @@ const MinimalLayout = function (props: Props) {
         `${classes.rootContainer} ${classes.typography} ${classes.links} ${classes.formElements} ${classes.buttons} ${classes.status}`.trim();
 
     return (
-        <Box className={classes.page}>
+        <Box className={classes.page} data-portal-role="page">
             <AppBarLoginPortal userInfo={props.userInfo} />
             <Grid
                 id={props.id}
@@ -50,9 +50,10 @@ const MinimalLayout = function (props: Props) {
                 spacing={0}
                 alignItems={"center"}
                 justifyContent={"center"}
+                data-portal-role="root"
             >
-                <Container maxWidth={"xs"} className={rootEnhancer}>
-                    <Grid container className={classes.typography}>
+                <Container maxWidth={"xs"} className={rootEnhancer} data-portal-role="card">
+                    <Grid container className={classes.typography} data-portal-role="content">
                         <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
                             <Grid size={{ xs: 12 }}>

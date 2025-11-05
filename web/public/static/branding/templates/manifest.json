@@ -2,6 +2,51 @@
   {
     "name": "default",
     "displayName": "Authelia Default",
-    "description": "Original Authelia login appearance using the stock Material UI theme."
+    "description": "Classic Authelia appearance for operators who prefer the stock layout."
+  },
+  {
+    "name": "gateway",
+    "displayName": "Gateway Flux",
+    "description": "Split control-room panel with glowing circuitry and a tight login column."
+  },
+  {
+    "name": "aurora",
+    "displayName": "Aurora Skies",
+    "description": "Tapered aurora sheets ripple across a midnight gradient and gather around a glassy form."
+  },
+  {
+    "name": "nebula",
+    "displayName": "Nebula Bloom",
+    "description": "Diffused nebula petals bloom across the scene while a capsule-style form floats in frosted glass."
+  },
+  {
+    "name": "wave",
+    "displayName": "Solar Drift",
+    "description": "Radiant solar tides sweep across the horizon while a sculpted login slab glows within layered glass."
+  },
+  {
+    "name": "horizon",
+    "displayName": "Neon Horizon",
+    "description": "Editorial split layout with sweeping gradients and a spotlighted authentication card."
+  },
+  {
+    "name": "particle",
+    "displayName": "Particle Field",
+    "description": "A deep-space particle cloud shimmers around a dark glass monolith with a radiant halo."
+  },
+  {
+    "name": "prism",
+    "displayName": "Prism Flow",
+    "description": "Compact slab framed by a prismatic halo and luminous split-light backdrop."
+  },
+  {
+    "name": "monolith",
+    "displayName": "Monolith Halo",
+    "description": "Stacked glass column with layered halos and a slim vertical flow for the login controls."
+  },
+  {
+    "name": "matrix",
+    "displayName": "Matrix Echo",
+    "description": "Grid-lined noir background with subtle data-flow columns and neon circuitry flourishes."
   }
 ]

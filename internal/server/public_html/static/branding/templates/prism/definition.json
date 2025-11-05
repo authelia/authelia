@@ -1,0 +1,199 @@
+{
+  "name": "prism",
+  "displayName": "Prism Flow",
+  "description": "A compact login slab framed by a prismatic halo and luminous split-light backdrop.",
+  "effect": {
+    "module": "./static/branding/templates/prism/effect.js?v=20251103"
+  },
+  "style": {
+    "page": {
+      "background": "radial-gradient(circle at 12% 15%, #0d1a32 0%, #071225 28%, #050915 55%, #04070f 100%)",
+      "color": "#eef5ff",
+      "before": {
+        "background": "radial-gradient(circle at 18% 32%, rgba(108, 198, 255, 0.35), transparent 62%), radial-gradient(circle at 78% 70%, rgba(104, 104, 255, 0.28), transparent 60%)",
+        "opacity": 0.85,
+        "blur": "90px",
+        "animation": {
+          "key": "filamentGlow",
+          "duration": "38s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "mixBlendMode": "screen"
+      },
+      "after": {
+        "background": "repeating-linear-gradient(132deg, rgba(91, 217, 255, 0.18) 0px, rgba(91, 217, 255, 0.18) 2px, transparent 18px, transparent 36px), repeating-linear-gradient(48deg, rgba(133, 121, 255, 0.15) 0px, rgba(133, 121, 255, 0.15) 1px, transparent 16px, transparent 32px)",
+        "backgroundSize": "220px 220px, 180px 180px",
+        "backgroundPosition": "center center",
+        "opacity": 0.8,
+        "mixBlendMode": "screen",
+        "transform": "scale(1.05)",
+        "transition": "opacity 0.6s ease",
+        "animation": {
+          "key": "filamentWeave",
+          "duration": "46s",
+          "timingFunction": "linear",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "root": {
+      "padding": "clamp(2.6rem, 5vw, 3.8rem) clamp(1.6rem, 4vw, 3rem)",
+      "background": "transparent",
+      "backdropFilter": "blur(28px)",
+      "before": {
+        "background": "radial-gradient(circle at var(--portal-pointer-x, 50%) calc(var(--portal-pointer-y, 50%) + 20%), rgba(90, 182, 255, 0.25), transparent 65%)",
+        "opacity": 0.7,
+        "blur": "70px",
+        "animation": {
+          "key": "filamentDrift",
+          "duration": "32s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "inset": "-22% -18% auto auto",
+        "position": "absolute"
+      },
+      "after": {
+        "background": "radial-gradient(circle at 22% 78%, rgba(138, 119, 255, 0.26), transparent 60%)",
+        "opacity": 0.55,
+        "blur": "58px",
+        "animation": {
+          "key": "filamentDrift",
+          "duration": "36s",
+          "timingFunction": "ease-in-out",
+          "direction": "reverse",
+          "iterationCount": "infinite"
+        },
+        "inset": "auto auto -24% -20%",
+        "position": "absolute"
+      }
+    },
+    "card": {
+      "background": "rgba(9, 16, 32, 0.88)",
+      "border": "1px solid rgba(108, 172, 255, 0.34)",
+      "borderRadius": "22px",
+      "padding": "clamp(1.9rem, 4vw, 2.5rem)",
+      "shadow": "0 32px 70px -34px rgba(6, 10, 24, 0.9)",
+      "color": "#f1f6ff",
+      "backdropFilter": "blur(18px)",
+      "overlay": {
+        "background": "radial-gradient(circle at var(--portal-pointer-x, 50%) var(--portal-pointer-y, 50%), rgba(126, 206, 255, 0.2), transparent 62%)",
+        "opacity": 0.75,
+        "transition": "opacity 0.6s ease, background-position 0.8s ease",
+        "animation": {
+          "key": "cardPulse",
+          "duration": "18s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "typography": {
+      "title": "#ffffff",
+      "subtitle": "rgba(204, 218, 255, 0.8)",
+      "body": "rgba(208, 220, 240, 0.75)",
+      "link": "#77c8ff",
+      "linkHover": "#c2e7ff",
+      "caption": "rgba(192, 206, 238, 0.7)",
+      "strong": "#ffffff",
+      "brand": "rgba(156, 186, 240, 0.68)"
+    },
+    "buttons": {
+      "containedGradient": "linear-gradient(125deg, #6bc8ff 0%, #4a9bff 52%, #85f0ff 100%)",
+      "containedHover": "linear-gradient(125deg, #7cd4ff 0%, #5ca8ff 52%, #9af5ff 100%)",
+      "text": "#031629",
+      "outlinedBorder": "rgba(120, 182, 255, 0.55)",
+      "outlinedHover": "rgba(150, 210, 255, 0.92)",
+      "outlinedBackground": "rgba(118, 176, 255, 0.18)",
+      "outlinedHoverBackground": "rgba(118, 176, 255, 0.28)",
+      "radius": "18px",
+      "padding": "0.85rem 1.35rem",
+      "shadow": "0 20px 38px -22px rgba(88, 158, 255, 0.6)",
+      "shadowHover": "0 26px 44px -20px rgba(88, 182, 255, 0.65)"
+    },
+    "form": {
+      "background": "rgba(9, 18, 36, 0.82)",
+      "border": "rgba(118, 176, 255, 0.32)",
+      "borderHover": "rgba(142, 196, 255, 0.52)",
+      "borderFocus": "rgba(94, 214, 255, 0.92)",
+      "focusShadow": "0 0 0 3px rgba(98, 206, 255, 0.25)",
+      "input": "#f4f8ff",
+      "label": "rgba(182, 204, 240, 0.78)",
+      "labelFocus": "#80e9ff"
+    },
+    "surface": {
+      "backdrop": "rgba(5, 12, 26, 0.85)",
+      "shadow": "0 26px 48px -30px rgba(4, 7, 16, 0.92)"
+    },
+    "status": {
+      "alertBackground": "rgba(255, 134, 170, 0.16)",
+      "alertBorder": "rgba(255, 134, 170, 0.38)",
+      "alertText": "#ffe5f0",
+      "progress": "#5be1ff",
+      "divider": "rgba(126, 178, 242, 0.25)",
+      "chipBackground": "rgba(126, 182, 255, 0.22)",
+      "chipText": "#e2efff",
+      "avatarGradient": "linear-gradient(135deg, rgba(115, 205, 255, 0.72), rgba(144, 145, 255, 0.65))",
+      "tooltipBackground": "rgba(11, 18, 32, 0.95)",
+      "tooltipBorder": "rgba(128, 186, 255, 0.36)",
+      "tableBorder": "rgba(114, 156, 222, 0.3)",
+      "tableText": "rgba(214, 226, 248, 0.78)",
+      "iconButton": "rgba(190, 212, 250, 0.78)",
+      "iconButtonHover": "#7fe5ff",
+      "adornment": "rgba(170, 198, 244, 0.68)"
+    },
+    "layout": {
+      "pageInset": "clamp(1.8rem, 4vw, 3.6rem)",
+      "rootInset": "clamp(1.5rem, 3vw, 2.8rem)",
+      "cardVariant": "default",
+      "maxWidth": "xs"
+    },
+    "animations": {
+      "filamentGlow": {
+        "0%": {
+          "transform": "translate3d(-4%, -3%, 0) scale(0.96)"
+        },
+        "50%": {
+          "transform": "translate3d(3%, 2%, 0) scale(1.04)"
+        },
+        "100%": {
+          "transform": "translate3d(-4%, -3%, 0) scale(0.96)"
+        }
+      },
+      "filamentWeave": {
+        "0%": {
+          "opacity": 0.78
+        },
+        "50%": {
+          "opacity": 0.92
+        },
+        "100%": {
+          "opacity": 0.78
+        }
+      },
+      "filamentDrift": {
+        "0%": {
+          "transform": "translate3d(-6%, 4%, 0)"
+        },
+        "50%": {
+          "transform": "translate3d(6%, -4%, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(-6%, 4%, 0)"
+        }
+      },
+      "cardPulse": {
+        "0%": {
+          "opacity": 0.65
+        },
+        "50%": {
+          "opacity": 0.85
+        },
+        "100%": {
+          "opacity": 0.65
+        }
+      }
+    }
+  }
+}

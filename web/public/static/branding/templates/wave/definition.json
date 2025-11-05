@@ -1,0 +1,196 @@
+{
+  "name": "wave",
+  "displayName": "Solar Drift",
+  "description": "Radiant solar tides sweep across the horizon while a sculpted form glows within layered glass.",
+  "effect": {
+    "module": "./static/branding/templates/wave/effect.js?v=20251103"
+  },
+  "style": {
+    "page": {
+      "background": "linear-gradient(160deg, #090b14 0%, #101b2c 46%, #16263a 100%)",
+      "color": "#f8fbff",
+      "before": {
+        "background": "conic-gradient(from 120deg at 35% 35%, rgba(255, 184, 116, 0.28), rgba(90, 160, 255, 0.22), transparent 70%)",
+        "opacity": 0.75,
+        "blur": "100px",
+        "animation": {
+          "key": "solarArc",
+          "duration": "32s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        }
+      },
+      "after": {
+        "background": "conic-gradient(from calc((var(--portal-pointer-x, 50%) - 50%) * 1deg) at 50% 50%, rgba(255, 184, 120, 0.24), rgba(108, 188, 255, 0.2), transparent 70%)",
+        "opacity": 0.8,
+        "blur": "84px",
+        "mixBlendMode": "screen",
+        "transform": "translate3d(0, calc((var(--portal-pointer-y, 50%) - 50%) * 0.18), 0) rotate(calc((var(--portal-pointer-x, 50%) - 50%) * 0.15deg))",
+        "transition": "transform 0.8s ease, filter 1.2s ease, opacity 0.6s ease",
+        "animation": {
+          "key": "solarWeave",
+          "duration": "40s",
+          "timingFunction": "linear",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "root": {
+      "padding": "clamp(2.2rem, 4.4vw, 3.2rem) clamp(1.6rem, 4vw, 2.8rem)",
+      "background": "transparent",
+      "backdropFilter": "blur(26px)",
+      "before": {
+        "background": "radial-gradient(circle at calc(var(--portal-pointer-x, 50%) + 14%) calc(var(--portal-pointer-y, 50%) + 24%), rgba(255, 182, 120, 0.26), transparent 65%)",
+        "opacity": 0.7,
+        "blur": "70px",
+        "animation": {
+          "key": "tidalGlow",
+          "duration": "28s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "inset": "auto -24% -24% auto",
+        "position": "absolute"
+      },
+      "after": {
+        "background": "radial-gradient(circle at 16% 72%, rgba(98, 180, 255, 0.28), transparent 60%)",
+        "opacity": 0.6,
+        "blur": "60px",
+        "animation": {
+          "key": "tidalGlow",
+          "duration": "30s",
+          "timingFunction": "ease-in-out",
+          "direction": "reverse",
+          "iterationCount": "infinite"
+        },
+        "inset": "-24% auto auto -22%",
+        "position": "absolute"
+      }
+    },
+    "card": {
+      "background": "rgba(14, 22, 36, 0.86)",
+      "border": "1px solid rgba(255, 188, 132, 0.28)",
+      "borderRadius": "24px",
+      "padding": "clamp(1.7rem, 4vw, 2.3rem)",
+      "shadow": "0 28px 62px -32px rgba(0, 0, 0, 0.78)",
+      "color": "#f8fbff",
+      "backdropFilter": "blur(18px)",
+      "overlay": {
+        "background": "linear-gradient(140deg, rgba(255, 184, 116, 0.18), rgba(118, 186, 255, 0.16))",
+        "opacity": 0.62,
+        "animation": {
+          "key": "solarSweep",
+          "duration": "20s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "typography": {
+      "title": "#ffffff",
+      "subtitle": "rgba(234, 242, 255, 0.82)",
+      "body": "rgba(216, 228, 244, 0.72)",
+      "link": "#ffb87a",
+      "linkHover": "#ffe4b3",
+      "caption": "rgba(204, 214, 232, 0.7)",
+      "strong": "#ffffff",
+      "brand": "rgba(192, 206, 230, 0.66)"
+    },
+    "buttons": {
+      "containedGradient": "linear-gradient(125deg, #ffb472 0%, #ff8b8f 48%, #76c2ff 100%)",
+      "containedHover": "linear-gradient(125deg, #ffc084 0%, #ff9fa3 48%, #8ad0ff 100%)",
+      "text": "#1a1f2a",
+      "outlinedBorder": "rgba(255, 193, 134, 0.6)",
+      "outlinedHover": "rgba(255, 193, 134, 0.9)",
+      "outlinedBackground": "rgba(255, 193, 134, 0.14)",
+      "outlinedHoverBackground": "rgba(255, 193, 134, 0.26)",
+      "radius": "18px",
+      "padding": "0.82rem 1.35rem",
+      "shadow": "0 20px 40px -22px rgba(255, 178, 120, 0.45)",
+      "shadowHover": "0 24px 44px -20px rgba(255, 198, 150, 0.55)"
+    },
+    "form": {
+      "background": "rgba(12, 20, 32, 0.82)",
+      "border": "rgba(255, 188, 132, 0.3)",
+      "borderHover": "rgba(255, 198, 150, 0.48)",
+      "borderFocus": "rgba(122, 206, 255, 0.92)",
+      "focusShadow": "0 0 0 3px rgba(118, 198, 255, 0.26)",
+      "input": "#f6f9ff",
+      "label": "rgba(218, 228, 240, 0.78)",
+      "labelFocus": "#ffd39c"
+    },
+    "surface": {
+      "backdrop": "rgba(8, 14, 26, 0.82)",
+      "shadow": "0 24px 46px -30px rgba(0, 0, 0, 0.82)"
+    },
+    "status": {
+      "alertBackground": "rgba(255, 150, 122, 0.18)",
+      "alertBorder": "rgba(255, 150, 122, 0.4)",
+      "alertText": "#ffe5d8",
+      "progress": "#78d6ff",
+      "divider": "rgba(255, 200, 150, 0.26)",
+      "chipBackground": "rgba(255, 206, 150, 0.2)",
+      "chipText": "#fff1e0",
+      "avatarGradient": "linear-gradient(135deg, rgba(255, 192, 140, 0.66), rgba(110, 192, 255, 0.7))",
+      "tooltipBackground": "rgba(12, 18, 30, 0.94)",
+      "tooltipBorder": "rgba(122, 194, 255, 0.34)",
+      "tableBorder": "rgba(140, 188, 226, 0.28)",
+      "tableText": "rgba(220, 230, 242, 0.78)",
+      "iconButton": "rgba(210, 220, 236, 0.78)",
+      "iconButtonHover": "#ffd7aa",
+      "adornment": "rgba(192, 210, 234, 0.66)"
+    },
+    "layout": {
+      "pageInset": "clamp(1.6rem, 3.6vw, 3.2rem)",
+      "rootInset": "clamp(1.3rem, 2.8vw, 2.6rem)",
+      "cardVariant": "default",
+      "maxWidth": "xs"
+    },
+    "animations": {
+      "solarArc": {
+        "0%": {
+          "transform": "translate3d(-8%, -6%, 0) scale(0.94)"
+        },
+        "50%": {
+          "transform": "translate3d(6%, 6%, 0) scale(1.05)"
+        },
+        "100%": {
+          "transform": "translate3d(-8%, -6%, 0) scale(0.94)"
+        }
+      },
+      "solarWeave": {
+        "0%": {
+          "background-position": "0% 50%, 50% 50%, 50% 50%"
+        },
+        "50%": {
+          "background-position": "50% 55%, 52% 52%, 48% 48%"
+        },
+        "100%": {
+          "background-position": "0% 50%, 50% 50%, 50% 50%"
+        }
+      },
+      "tidalGlow": {
+        "0%": {
+          "transform": "translate3d(-6%, 6%, 0)"
+        },
+        "50%": {
+          "transform": "translate3d(6%, -4%, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(-6%, 6%, 0)"
+        }
+      },
+      "solarSweep": {
+        "0%": {
+          "transform": "translate3d(-14%, -6%, 0)"
+        },
+        "50%": {
+          "transform": "translate3d(12%, 4%, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(-14%, -6%, 0)"
+        }
+      }
+    }
+  }
+}

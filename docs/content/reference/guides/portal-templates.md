@@ -42,6 +42,7 @@ static/
         ├── manifest.json
         └── <template-name>/
             ├── definition.json
+            ├── style.css            # optional CSS overrides
             ├── config.json          # optional overrides
             └── effect.js            # optional JavaScript module
 ```
@@ -57,7 +58,7 @@ switcher:
 
 ```json
 {
-  "template": "nebula-bloom",
+  "template": "nebula",
   "enableTemplateSwitcher": true
 }
 ```
@@ -82,12 +83,12 @@ allowing templates to present a minimal chrome or rely on custom branding within
 ```json
 [
   {
-    "name": "nebula-bloom",
+    "name": "nebula",
     "displayName": "Nebula Bloom",
     "description": "Soft gradients with animated particles."
   },
   {
-    "name": "gateway-flux",
+    "name": "gateway",
     "displayName": "Gateway Flux",
     "description": "Split panel layout with hero messaging.",
     "interactive": "pointer"
@@ -114,7 +115,7 @@ Example skeleton:
 
 ```json
 {
-  "name": "nebula-bloom",
+  "name": "nebula",
   "displayName": "Nebula Bloom",
   "description": "Soft gradients with animated particles.",
   "style": {
@@ -129,7 +130,7 @@ Example skeleton:
     }
   },
   "effect": {
-    "module": "./static/branding/templates/nebula-bloom/effect.js?v=1"
+    "module": "./static/branding/templates/nebula/effect.js?v=1"
   }
 }
 ```
@@ -157,6 +158,21 @@ definition. For example:
 
 Omitting the file is perfectly valid. When merging fails due to invalid JSON, Authelia logs an error and falls
 back to the base definition.
+
+## Optional CSS
+
+If a template directory contains `style.css`, Authelia injects it into the document head whenever that template
+is active. The stylesheet is fetched with `cache: "no-store"` on each switch so you can iterate rapidly without
+rebuilding the bundle. The following selectors remain stable across releases and make targeting straightforward:
+
+- `body[data-portal-template="<name>"]`: set for every template, including the built-in `default`.
+- `[data-portal-role="page"]`, `[data-portal-role="root"]`, and `[data-portal-role="card"]`: wrap the viewport,
+  root grid, and primary login container.
+- `[data-portal-role="content"]`: contains the logo, headings, and first-factor form.
+
+Use CSS for traditional layout tweaks (split panels, decorative pseudo-elements, additional gradients) while
+keeping theme tokens in `definition.json`. This hybrid approach mirrors how the example catalogue included in
+the repository layers dramatic visuals on top of the structured design tokens.
 
 ## Authoring Effect Modules
 

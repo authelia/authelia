@@ -29,6 +29,7 @@ type PortalTemplateConfig = PortalTemplateConfiguration;
 const DEFAULT_TEMPLATE: PortalTemplateName = "default";
 const STORAGE_KEY = "authelia.portal.template";
 const noop = () => undefined;
+const templateStyleCache = new Map<string, HTMLStyleElement>();
 
 const PortalTemplateContext = createContext<PortalTemplateContextValue>({
     template: DEFAULT_TEMPLATE,
@@ -223,6 +224,63 @@ const chooseTemplate = (
     };
 };
 
+const applyTemplateStyle = async (templateName: string) => {
+    if (typeof document === "undefined") {
+        return;
+    }
+
+    const disableAll = () => {
+        templateStyleCache.forEach((element) => {
+            element.disabled = true;
+            element.media = "print";
+        });
+    };
+
+    disableAll();
+
+    const existing = templateStyleCache.get(templateName);
+
+    try {
+        const response = await fetch(`./static/branding/templates/${templateName}/style.css`, {
+            cache: "no-store",
+        });
+
+        if (!response.ok) {
+            if (response.status !== 404) {
+                console.warn(`Failed to load CSS for portal template '${templateName}' (${response.status}).`);
+            }
+
+            if (existing) {
+                existing.disabled = false;
+                existing.media = "all";
+            }
+
+            return;
+        }
+
+        const css = await response.text();
+        let element = existing;
+
+        if (!element) {
+            element = document.createElement("style");
+            element.type = "text/css";
+            element.setAttribute("data-portal-template-style", templateName);
+            templateStyleCache.set(templateName, element);
+            document.head.appendChild(element);
+        }
+
+        element.textContent = css;
+        element.disabled = false;
+        element.media = "all";
+    } catch (error) {
+        if (existing) {
+            existing.disabled = false;
+            existing.media = "all";
+        }
+        console.warn(`Failed to apply CSS for portal template '${templateName}'`, error);
+    }
+};
+
 export const PortalTemplateProvider = ({ children }: { children: React.ReactNode }) => {
     const [state, setState] = useState<PortalTemplateState>({
         template: DEFAULT_TEMPLATE,
@@ -321,6 +379,14 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
         },
         [loadDefinition, state.templates],
     );
+
+    useEffect(() => {
+        if (!state.template) {
+            return;
+        }
+
+        void applyTemplateStyle(state.template);
+    }, [state.template]);
 
     const value = useMemo<PortalTemplateContextValue>(
         () => ({

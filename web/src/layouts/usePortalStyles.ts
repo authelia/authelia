@@ -412,10 +412,20 @@ export const usePortalStyles = (template: PortalTemplateDefinition) => {
     const { classes: legacyClasses } = useLegacyStyles();
 
     useEffect(() => {
+        if (typeof document === "undefined") {
+            return;
+        }
+
+        document.body.dataset.portalTemplate = template.name;
+
         if (template.name === "default") {
             document.body.style.background = "";
             document.body.style.color = "";
-            return;
+            return () => {
+                document.body.style.background = "";
+                document.body.style.color = "";
+                delete document.body.dataset.portalTemplate;
+            };
         }
 
         document.body.style.background = template.style.page.background;
@@ -424,6 +434,7 @@ export const usePortalStyles = (template: PortalTemplateDefinition) => {
         return () => {
             document.body.style.background = "";
             document.body.style.color = "";
+            delete document.body.dataset.portalTemplate;
         };
     }, [template]);
 

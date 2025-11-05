@@ -1,0 +1,209 @@
+{
+  "name": "aurora",
+  "displayName": "Aurora Skies",
+  "description": "Tapered aurora sheets ripple across a midnight gradient and gather around a glassy, compact card.",
+  "effect": {
+    "module": "./static/branding/templates/aurora/effect.js?v=20251103"
+  },
+  "style": {
+    "page": {
+      "background": "radial-gradient(circle at 20% 12%, #08102b 0%, #050b1c 35%, #040716 100%)",
+      "color": "#f0f7ff",
+      "before": {
+        "background": "conic-gradient(from 140deg at 45% 45%, rgba(86, 219, 255, 0.32), rgba(144, 126, 255, 0.28), transparent 70%)",
+        "backgroundSize": "190% 190%",
+        "backgroundPosition": "calc(48% + (var(--portal-pointer-x, 50%) - 50%) * -0.45) calc(48% + (var(--portal-pointer-y, 50%) - 50%) * -0.35)",
+        "opacity": 0.9,
+        "blur": "90px",
+        "animation": {
+          "key": "auroraStream",
+          "duration": "28s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "transform": "translate3d(calc((var(--portal-pointer-x, 50%) - 50%) * -0.22), calc((var(--portal-pointer-y, 50%) - 50%) * -0.32), 0)",
+        "transition": "transform 0.85s ease, background-position 1s ease",
+        "mixBlendMode": "screen"
+      },
+      "after": {
+        "background": "linear-gradient(145deg, rgba(92, 214, 255, 0.24) 0%, rgba(168, 134, 255, 0.28) 45%, transparent 80%)",
+        "backgroundSize": "200% 200%",
+        "backgroundPosition": "calc(52% + (var(--portal-pointer-x, 50%) - 50%) * 0.35) calc(48% + (var(--portal-pointer-y, 50%) - 50%) * 0.28)",
+        "opacity": 0.9,
+        "blur": "96px",
+        "mixBlendMode": "screen",
+        "transform": "translate3d(calc((var(--portal-pointer-x, 50%) - 50%) * 0.22), calc((var(--portal-pointer-y, 50%) - 50%) * 0.26), 0) scale(1.06)",
+        "transition": "transform 0.85s ease, background-position 0.95s ease, opacity 0.6s ease",
+        "animation": {
+          "key": "auroraPulse",
+          "duration": "24s",
+          "timingFunction": "ease-in-out",
+          "direction": "alternate",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "root": {
+      "padding": "clamp(2.4rem, 4.6vw, 3.4rem)",
+      "background": "transparent",
+      "backdropFilter": "blur(26px)",
+      "before": {
+        "background": "radial-gradient(circle at calc(var(--portal-pointer-x, 50%) - 12%) calc(var(--portal-pointer-y, 50%) + 18%), rgba(92, 214, 255, 0.26), transparent 70%)",
+        "opacity": 0.78,
+        "blur": "78px",
+        "animation": {
+          "key": "auroraDrift",
+          "duration": "30s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "transform": "translate3d(calc((var(--portal-pointer-x, 50%) - 50%) * 0.28), calc((var(--portal-pointer-y, 50%) - 50%) * -0.24), 0)",
+        "transition": "transform 0.8s ease",
+        "inset": "auto -22% -24% auto",
+        "position": "absolute"
+      },
+      "after": {
+        "background": "radial-gradient(circle at 18% 74%, rgba(146, 132, 255, 0.28), transparent 60%)",
+        "opacity": 0.6,
+        "blur": "60px",
+        "animation": {
+          "key": "auroraDrift",
+          "duration": "34s",
+          "timingFunction": "ease-in-out",
+          "direction": "reverse",
+          "iterationCount": "infinite"
+        },
+        "inset": "-26% auto auto -24%",
+        "position": "absolute"
+      }
+    },
+    "card": {
+      "background": "rgba(12, 20, 42, 0.82)",
+      "border": "1px solid rgba(118, 186, 255, 0.32)",
+      "borderRadius": "22px",
+      "padding": "clamp(1.8rem, 4vw, 2.4rem)",
+      "shadow": "0 28px 64px -32px rgba(0, 10, 28, 0.85)",
+      "color": "#f4f9ff",
+      "backdropFilter": "blur(18px)",
+      "overlay": {
+        "background": "linear-gradient(145deg, rgba(120, 196, 255, 0.16), rgba(148, 110, 255, 0.18))",
+        "opacity": 0.65,
+        "animation": {
+          "key": "auroraSweep",
+          "duration": "22s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "typography": {
+      "title": "#ffffff",
+      "subtitle": "rgba(204, 218, 255, 0.82)",
+      "body": "rgba(208, 220, 242, 0.74)",
+      "link": "#8ae7ff",
+      "linkHover": "#c8f6ff",
+      "caption": "rgba(196, 206, 240, 0.7)",
+      "strong": "#ffffff",
+      "brand": "rgba(180, 198, 248, 0.7)"
+    },
+    "buttons": {
+      "containedGradient": "linear-gradient(120deg, #68caff 0%, #6f7bff 55%, #9b79ff 100%)",
+      "containedHover": "linear-gradient(120deg, #7fd6ff 0%, #8791ff 55%, #b786ff 100%)",
+      "text": "#061428",
+      "outlinedBorder": "rgba(132, 192, 255, 0.65)",
+      "outlinedHover": "rgba(160, 214, 255, 0.95)",
+      "outlinedBackground": "rgba(122, 186, 255, 0.14)",
+      "outlinedHoverBackground": "rgba(122, 186, 255, 0.26)",
+      "radius": "18px",
+      "padding": "0.85rem 1.35rem",
+      "shadow": "0 22px 44px -20px rgba(94, 176, 255, 0.6)",
+      "shadowHover": "0 28px 48px -18px rgba(102, 186, 255, 0.72)"
+    },
+    "form": {
+      "background": "rgba(10, 18, 34, 0.78)",
+      "border": "rgba(120, 186, 255, 0.34)",
+      "borderHover": "rgba(146, 206, 255, 0.5)",
+      "borderFocus": "rgba(104, 216, 255, 0.92)",
+      "focusShadow": "0 0 0 3px rgba(108, 210, 255, 0.28)",
+      "input": "#f1f6ff",
+      "label": "rgba(186, 206, 240, 0.78)",
+      "labelFocus": "#86f0ff"
+    },
+    "surface": {
+      "backdrop": "rgba(4, 10, 24, 0.82)",
+      "shadow": "0 22px 48px -30px rgba(0, 6, 18, 0.88)"
+    },
+    "status": {
+      "alertBackground": "rgba(255, 134, 176, 0.18)",
+      "alertBorder": "rgba(255, 134, 176, 0.4)",
+      "alertText": "#ffe3ed",
+      "progress": "#6be0ff",
+      "divider": "rgba(132, 188, 255, 0.24)",
+      "chipBackground": "rgba(122, 188, 255, 0.2)",
+      "chipText": "#e4f0ff",
+      "avatarGradient": "linear-gradient(135deg, rgba(138, 198, 255, 0.7), rgba(166, 140, 255, 0.6))",
+      "tooltipBackground": "rgba(8, 14, 28, 0.94)",
+      "tooltipBorder": "rgba(136, 192, 255, 0.34)",
+      "tableBorder": "rgba(118, 164, 234, 0.28)",
+      "tableText": "rgba(216, 226, 248, 0.78)",
+      "iconButton": "rgba(186, 208, 248, 0.78)",
+      "iconButtonHover": "#82e3ff",
+      "adornment": "rgba(174, 198, 244, 0.68)"
+    },
+    "layout": {
+      "pageInset": "clamp(1.4rem, 3vw, 3rem)",
+      "rootInset": "clamp(1.2rem, 2.6vw, 2.6rem)",
+      "cardVariant": "default",
+      "maxWidth": "xs"
+    },
+    "animations": {
+      "auroraStream": {
+        "0%": {
+          "transform": "translate3d(-14%, -12%, 0) scale(0.88) rotate(-6deg)"
+        },
+        "50%": {
+          "transform": "translate3d(12%, 14%, 0) scale(1.12) rotate(4deg)"
+        },
+        "100%": {
+          "transform": "translate3d(-14%, -12%, 0) scale(0.88) rotate(-6deg)"
+        }
+      },
+      "auroraPulse": {
+        "0%": {
+          "opacity": 0.25,
+          "transform": "scale(0.92)"
+        },
+        "50%": {
+          "opacity": 0.98,
+          "transform": "scale(1.08)"
+        },
+        "100%": {
+          "opacity": 0.25,
+          "transform": "scale(0.92)"
+        }
+      },
+      "auroraDrift": {
+        "0%": {
+          "transform": "translate3d(-14%, 10%, 0)"
+        },
+        "50%": {
+          "transform": "translate3d(14%, -12%, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(-14%, 10%, 0)"
+        }
+      },
+      "auroraSweep": {
+        "0%": {
+          "transform": "translate3d(-18%, -10%, 0) rotate(-6deg)"
+        },
+        "50%": {
+          "transform": "translate3d(16%, 8%, 0) rotate(6deg)"
+        },
+        "100%": {
+          "transform": "translate3d(-18%, -10%, 0) rotate(-6deg)"
+        }
+      }
+    }
+  }
+}

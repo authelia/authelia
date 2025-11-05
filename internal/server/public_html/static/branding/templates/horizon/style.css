@@ -1,0 +1,59 @@
+body[data-portal-template="horizon"] [data-portal-role="root"] {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: clamp(1.8rem, 5vw, 3.4rem);
+    align-items: stretch;
+}
+
+body[data-portal-template="horizon"] [data-portal-role="root"]::after {
+    content: "";
+    position: absolute;
+    inset: clamp(1.6rem, 3vw, 2.6rem);
+    inset-right: auto;
+    width: min(540px, 46vw);
+    border-radius: 28px;
+    background:
+        linear-gradient(135deg, rgba(255, 168, 118, 0.32), rgba(255, 108, 176, 0.28)),
+        repeating-linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.18),
+            rgba(255, 255, 255, 0.18) 6px,
+            rgba(255, 255, 255, 0.02) 6px,
+            rgba(255, 255, 255, 0.02) 18px
+        ),
+        radial-gradient(circle at 80% 35%, rgba(255, 212, 156, 0.32), transparent 60%);
+    opacity: 0.8;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    filter: saturate(120%) blur(1px);
+}
+
+body[data-portal-template="horizon"] [data-portal-role="card"] {
+    order: 2;
+    margin-left: auto;
+    max-width: min(440px, 40vw);
+    background: rgba(10, 12, 26, 0.82);
+    border: 1px solid rgba(255, 198, 184, 0.28);
+    box-shadow: 0 30px 90px -48px rgba(10, 8, 20, 0.88);
+}
+
+@media (max-width: 1024px) {
+    body[data-portal-template="horizon"] [data-portal-role="root"] {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    body[data-portal-template="horizon"] [data-portal-role="root"]::after {
+        inset: clamp(1.4rem, 3vw, 2.2rem);
+        width: auto;
+        opacity: 0.45;
+    }
+
+    body[data-portal-template="horizon"] [data-portal-role="card"] {
+        order: 1;
+        max-width: min(460px, 88vw);
+        margin: 0 auto;
+    }
+}

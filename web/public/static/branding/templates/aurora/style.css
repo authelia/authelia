@@ -1,0 +1,42 @@
+body[data-portal-template="aurora"] {
+    --aurora-border: rgba(132, 196, 255, 0.42);
+    --aurora-highlight-a: rgba(122, 228, 255, 0.38);
+    --aurora-highlight-b: rgba(178, 134, 255, 0.32);
+}
+
+body[data-portal-template="aurora"] [data-portal-role="card"] {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--aurora-border);
+    box-shadow: 0 26px 72px -36px rgba(12, 42, 96, 0.88);
+    backdrop-filter: blur(22px);
+}
+
+body[data-portal-template="aurora"] [data-portal-role="card"]::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 28% 22%, var(--aurora-highlight-a), transparent 58%),
+        radial-gradient(circle at 78% 76%, var(--aurora-highlight-b), transparent 62%);
+    opacity: 0.7;
+    mix-blend-mode: screen;
+    animation: aurora-border-wave 16s ease-in-out infinite alternate;
+}
+
+body[data-portal-template="aurora"] [data-portal-role="content"] {
+    row-gap: clamp(1rem, 3.5vw, 1.8rem);
+}
+
+@keyframes aurora-border-wave {
+    0% {
+        transform: translate3d(-3%, -2%, 0) scale(1.03);
+        opacity: 0.55;
+    }
+    100% {
+        transform: translate3d(3%, 3%, 0) scale(1.08);
+        opacity: 0.85;
+    }
+}

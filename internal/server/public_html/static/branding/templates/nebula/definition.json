@@ -1,0 +1,207 @@
+{
+  "name": "nebula",
+  "displayName": "Nebula Bloom",
+  "description": "Diffused nebula petals bloom across the scene while a capsule-style form floats in frosted glass.",
+  "effect": {
+    "module": "./static/branding/templates/nebula/effect.js?v=20251103"
+  },
+  "style": {
+    "page": {
+      "background": "linear-gradient(160deg, #13162c 0%, #1c2341 45%, #25305a 100%)",
+      "color": "#f4f7ff",
+      "before": {
+        "background": "conic-gradient(from 160deg at 40% 42%, rgba(248, 134, 192, 0.26), rgba(124, 178, 255, 0.24), transparent 70%)",
+        "backgroundSize": "230% 230%",
+        "backgroundPosition": "calc(46% + (var(--portal-pointer-x, 50%) - 50%) * -0.38) calc(46% + (var(--portal-pointer-y, 50%) - 50%) * -0.34)",
+        "opacity": 0.65,
+        "blur": "140px",
+        "animation": {
+          "key": "nebulaVeil",
+          "duration": "24s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "transform": "translate3d(calc((var(--portal-pointer-x, 50%) - 50%) * -0.2), calc((var(--portal-pointer-y, 50%) - 50%) * -0.22), 0)",
+        "transition": "transform 0.75s ease, background-position 0.9s ease",
+        "mixBlendMode": "screen",
+        "zIndex": -3
+      },
+      "after": {
+        "background": "linear-gradient(135deg, rgba(110, 168, 255, 0.28) 0%, rgba(255, 148, 196, 0.22) 45%, transparent 95%)",
+        "backgroundSize": "220% 220%",
+        "backgroundPosition": "calc(54% + (var(--portal-pointer-x, 50%) - 50%) * 0.36) calc(46% + (var(--portal-pointer-y, 50%) - 50%) * 0.3)",
+        "opacity": 0.78,
+        "blur": "128px",
+        "mixBlendMode": "screen",
+        "transform": "translate3d(calc((var(--portal-pointer-x, 50%) - 50%) * 0.26), calc((var(--portal-pointer-y, 50%) - 50%) * 0.26), 0) scale(1.08)",
+        "transition": "transform 0.8s ease, background-position 0.9s ease, opacity 0.6s ease",
+        "animation": {
+          "key": "nebulaGlow",
+          "duration": "22s",
+          "timingFunction": "ease-in-out",
+          "direction": "alternate",
+          "iterationCount": "infinite"
+        },
+        "zIndex": -2
+      }
+    },
+    "root": {
+      "padding": "clamp(2rem, 4vw, 3rem) clamp(1.4rem, 4vw, 2.4rem)",
+      "background": "transparent",
+      "before": {
+        "background": "radial-gradient(circle at 72% 84%, rgba(82, 132, 232, 0.28), transparent 65%)",
+        "opacity": 0.5,
+        "blur": "140px",
+        "animation": {
+          "key": "nebulaFloat",
+          "duration": "28s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "inset": "auto -28% -24% auto",
+        "position": "absolute",
+        "zIndex": -1
+      },
+      "after": {
+        "background": "radial-gradient(circle at 16% 72%, rgba(232, 152, 240, 0.22), transparent 60%)",
+        "opacity": 0.46,
+        "blur": "120px",
+        "animation": {
+          "key": "nebulaFloat",
+          "duration": "32s",
+          "timingFunction": "ease-in-out",
+          "direction": "reverse",
+          "iterationCount": "infinite"
+        },
+        "inset": "-26% auto auto -24%",
+        "position": "absolute",
+        "zIndex": -1
+      }
+    },
+    "card": {
+      "background": "rgba(18, 24, 46, 0.48)",
+      "border": "1px solid rgba(134, 168, 255, 0.3)",
+      "borderRadius": "28px",
+      "padding": "clamp(1.8rem, 4vw, 2.3rem)",
+      "shadow": "0 24px 60px -28px rgba(4, 8, 28, 0.58)",
+      "color": "#f2f6ff",
+      "backdropFilter": "blur(34px)",
+      "overlay": {
+        "background": "linear-gradient(135deg, rgba(144, 178, 255, 0.18), rgba(248, 130, 214, 0.12))",
+        "opacity": 0.5,
+        "animation": {
+          "key": "nebulaSweep",
+          "duration": "18s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "typography": {
+      "title": "#f9f6ff",
+      "subtitle": "rgba(212, 224, 255, 0.88)",
+      "body": "rgba(194, 208, 240, 0.78)",
+      "link": "#92b8ff",
+      "linkHover": "#d0ddff",
+      "caption": "rgba(170, 188, 232, 0.7)",
+      "strong": "#ffffff",
+      "brand": "rgba(156, 182, 228, 0.72)"
+    },
+    "buttons": {
+      "containedGradient": "linear-gradient(128deg, #7ea0ff 0%, #ff7de1 52%, #ffb784 100%)",
+      "containedHover": "linear-gradient(128deg, #95b0ff 0%, #ff8fe6 52%, #ffc794 100%)",
+      "text": "#060c24",
+      "outlinedBorder": "rgba(148, 182, 255, 0.56)",
+      "outlinedHover": "rgba(148, 182, 255, 0.9)",
+      "outlinedBackground": "rgba(148, 182, 255, 0.16)",
+      "outlinedHoverBackground": "rgba(148, 182, 255, 0.28)",
+      "radius": "18px",
+      "padding": "0.82rem 1.35rem",
+      "shadow": "0 22px 44px -22px rgba(140, 162, 255, 0.4)",
+      "shadowHover": "0 28px 52px -22px rgba(246, 148, 255, 0.48)"
+    },
+    "form": {
+      "background": "rgba(20, 28, 52, 0.72)",
+      "border": "rgba(142, 178, 255, 0.38)",
+      "borderHover": "rgba(156, 194, 255, 0.58)",
+      "borderFocus": "rgba(132, 206, 255, 0.92)",
+      "focusShadow": "0 0 0 3px rgba(118, 186, 255, 0.24)",
+      "input": "#f7faff",
+      "label": "rgba(198, 208, 236, 0.78)",
+      "labelFocus": "#a3d2ff"
+    },
+    "surface": {
+      "backdrop": "rgba(16, 22, 42, 0.58)",
+      "shadow": "0 26px 48px -30px rgba(6, 10, 30, 0.6)"
+    },
+    "status": {
+      "alertBackground": "rgba(255, 168, 214, 0.22)",
+      "alertBorder": "rgba(255, 168, 214, 0.42)",
+      "alertText": "#ffe6f3",
+      "progress": "#8ebcff",
+      "divider": "rgba(146, 168, 220, 0.32)",
+      "chipBackground": "rgba(150, 186, 255, 0.26)",
+      "chipText": "#e6f0ff",
+      "avatarGradient": "linear-gradient(135deg, rgba(150, 188, 255, 0.68), rgba(254, 156, 210, 0.65))",
+      "tooltipBackground": "rgba(20, 26, 46, 0.94)",
+      "tooltipBorder": "rgba(156, 186, 255, 0.36)",
+      "tableBorder": "rgba(156, 188, 240, 0.3)",
+      "tableText": "rgba(214, 224, 248, 0.82)",
+      "iconButton": "rgba(216, 226, 255, 0.82)",
+      "iconButtonHover": "#9fbfff",
+      "adornment": "rgba(168, 190, 240, 0.72)"
+    },
+    "layout": {
+      "pageInset": "clamp(1.2rem, 3.4vw, 3rem)",
+      "rootInset": "clamp(1.1rem, 2.6vw, 2.4rem)",
+      "cardVariant": "default",
+      "maxWidth": "xs"
+    },
+    "animations": {
+      "nebulaVeil": {
+        "0%": {
+          "transform": "translate3d(-14%, -12%, 0) scale(0.9)"
+        },
+        "50%": {
+          "transform": "translate3d(10%, 9%, 0) scale(1.1)"
+        },
+        "100%": {
+          "transform": "translate3d(-14%, -12%, 0) scale(0.9)"
+        }
+      },
+      "nebulaGlow": {
+        "0%": {
+          "opacity": 0.35
+        },
+        "50%": {
+          "opacity": 0.9
+        },
+        "100%": {
+          "opacity": 0.35
+        }
+      },
+      "nebulaFloat": {
+        "0%": {
+          "transform": "translate3d(-12%, 8%, 0)"
+        },
+        "50%": {
+          "transform": "translate3d(12%, -10%, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(-12%, 8%, 0)"
+        }
+      },
+      "nebulaSweep": {
+        "0%": {
+          "transform": "translate3d(-16%, -6%, 0)"
+        },
+        "50%": {
+          "transform": "translate3d(14%, 6%, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(-16%, -6%, 0)"
+        }
+      }
+    }
+  }
+}
