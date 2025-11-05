@@ -191,8 +191,15 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
     const cardBackdrop = config.card.backdropFilter ?? (variant === "minimal" ? "none" : "blur(28px)");
     const cardOverflow = config.card.overflow ?? (variant === "minimal" ? "visible" : "hidden");
     const cardOverlay = variant === "minimal" ? undefined : config.card.overlay;
-    const rootJustify = config.layout?.rootJustify ?? "center";
-    const rootAlign = config.layout?.rootAlign ?? "center";
+    const rootJustify = config.layout?.rootJustify ?? "flex-start";
+    const rootAlign = config.layout?.rootAlign ?? "flex-start";
+    const rootPadding = config.root.padding ?? config.layout?.rootInset ?? "0 1.5rem 3rem";
+    const rootPaddingTop =
+        config.root.paddingTop ??
+        config.layout?.rootInsetTop ??
+        (config.root.padding !== undefined ? "0" : undefined) ??
+        "0";
+    const rootPaddingBottom = config.root.paddingBottom ?? config.layout?.rootInsetBottom;
     const containerMaxWidth =
         config.layout?.containerMaxWidth ?? (variant === "minimal" ? "min(1080px, 100%)" : undefined);
     const containerMargin = config.layout?.containerMargin ?? (variant === "minimal" ? "0 auto" : undefined);
@@ -202,7 +209,6 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
         ...keyframes,
         page: {
             position: "relative",
-            minHeight: "100vh",
             overflow: "hidden",
             background: config.page.background,
             color: config.page.color,
@@ -222,10 +228,11 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
         root: {
             position: "relative",
             zIndex: 1,
-            minHeight: "100vh",
             textAlign: variant === "minimal" ? "left" : "center",
             isolation: "isolate",
-            padding: config.root.padding ?? config.layout?.rootInset ?? "3rem 1.5rem",
+            padding: rootPadding,
+            ...(rootPaddingTop !== undefined ? { paddingTop: rootPaddingTop } : {}),
+            ...(rootPaddingBottom !== undefined ? { paddingBottom: rootPaddingBottom } : {}),
             display: "flex",
             alignItems: rootAlign,
             justifyContent: rootJustify,

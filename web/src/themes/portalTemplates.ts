@@ -40,6 +40,8 @@ export type PortalStyleConfig = {
     };
     root: {
         padding?: string;
+        paddingTop?: string;
+        paddingBottom?: string;
         background?: string;
         border?: string;
         before?: BackgroundLayer;
@@ -113,6 +115,8 @@ export type PortalStyleConfig = {
     layout?: {
         pageInset?: string;
         rootInset?: string;
+        rootInsetTop?: string;
+        rootInsetBottom?: string;
         cardVariant?: "default" | "minimal" | "panel";
         cardClipPath?: string;
         maxWidth?: "xs" | "sm" | "md" | "lg" | "xl" | false;
