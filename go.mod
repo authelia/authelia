@@ -2,7 +2,7 @@ module github.com/authelia/authelia/v4
 
 go 1.24.0
 
-toolchain go1.25.3
+toolchain go1.25.4
 
 require (
 	authelia.com/provider/oauth2 v0.2.17
