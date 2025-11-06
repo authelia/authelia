@@ -1,0 +1,8 @@
+<h4>Merge Queue Build</h4>
+<dl class="flex flex-wrap mxn1">
+  <div class="m1">
+    <dd>
+      CI/CD steps were skipped because this build was already tested before entering the merge queue.
+    </dd>
+  </div>
+</dl>
