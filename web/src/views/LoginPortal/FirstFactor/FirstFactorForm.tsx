@@ -93,12 +93,19 @@ const FirstFactorForm = function (props: Props) {
     }, [focusUsername]);
 
     useEffect(() => {
-        loginChannel.addEventListener("message", (authenticated) => {
+        const handleMessage = (authenticated: boolean) => {
             if (authenticated) {
                 props.onChannelStateChange();
             }
-        });
-    }, [loginChannel, redirectionURL, props]);
+        };
+
+        loginChannel.addEventListener("message", handleMessage);
+
+        return () => {
+            loginChannel.removeEventListener("message", handleMessage);
+            loginChannel.close().catch((error) => console.error("Failed to close login broadcast channel", error));
+        };
+    }, [loginChannel, props]);
 
     const disabled = props.disabled;
     const portalHeadline = getPortalHeadline();

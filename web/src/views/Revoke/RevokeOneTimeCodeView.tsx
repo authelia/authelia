@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -7,7 +7,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useID } from "@hooks/Revoke";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { deleteUserSessionElevation } from "@services/UserSessionElevation";
-import LoadingPage from "@views/LoadingPage/LoadingPage";
+import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
 
 const RevokeOneTimeCodeView = function () {
     const { t: translate } = useTranslation();
@@ -16,7 +16,8 @@ const RevokeOneTimeCodeView = function () {
     const id = useID();
     const navigate = useRouterNavigate();
 
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [statusMessage, setStatusMessage] = useState(translate("Revoking one-time code..."));
 
     useEffect(() => {
         return () => {
@@ -38,21 +39,30 @@ const RevokeOneTimeCodeView = function () {
     }, [navigate]);
 
     const handleRevoke = useCallback(async () => {
-        if (!id) return;
-
-        const ok = await deleteUserSessionElevation(id);
-
-        if (ok) {
-            createSuccessNotification(translate("Successfully revoked the One-Time Code"));
-        } else {
-            createErrorNotification(translate("Failed to revoke the One-Time Code"));
+        if (!id) {
+            return;
         }
 
-        handleRedirect();
+        try {
+            const ok = await deleteUserSessionElevation(id);
+
+            if (ok) {
+                createSuccessNotification(translate("Successfully revoked the One-Time Code"));
+            } else {
+                createErrorNotification(translate("Failed to revoke the One-Time Code"));
+            }
+        } catch (error) {
+            console.error(error);
+            createErrorNotification(translate("An unexpected error occurred while revoking the One-Time Code"));
+        } finally {
+            setStatusMessage(translate("Redirecting..."));
+            handleRedirect();
+        }
     }, [createErrorNotification, createSuccessNotification, handleRedirect, id, translate]);
 
     useEffect(() => {
         if (!id) {
+            setStatusMessage(translate("The One-Time Code identifier was not provided"));
             createErrorNotification(translate("The One-Time Code identifier was not provided"));
 
             handleRedirect();
@@ -60,10 +70,10 @@ const RevokeOneTimeCodeView = function () {
             return;
         }
 
-        handleRevoke().catch(console.error);
+        handleRevoke();
     }, [createErrorNotification, handleRedirect, handleRevoke, id, translate]);
 
-    return <LoadingPage />;
+    return <BaseLoadingPage message={statusMessage} />;
 };
 
 export default RevokeOneTimeCodeView;

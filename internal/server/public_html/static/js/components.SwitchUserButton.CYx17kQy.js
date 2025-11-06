@@ -1,1 +1,0 @@
-import{j as t}from"./index.Cnoc1xvA.js";import{S as o}from"./components.LogoutButton._TVK0X7b.js";const s=function(r){return t.jsx(o,{id:"switch-user-button",text:"Switch User",tooltip:"Logout and continue the current flow",preserve:!0})};export{s as S};

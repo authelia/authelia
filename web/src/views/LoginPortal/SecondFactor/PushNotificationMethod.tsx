@@ -58,12 +58,12 @@ const PushNotificationMethod = function (props: Props) {
     const [enroll_url, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
 
-    const { onSignInSuccess, onSignInError } = props;
+    const { onSignInSuccess, onSignInError, registered, onSelectionClick } = props;
     const onSignInErrorRef = useRef(onSignInError);
     const onSignInSuccessRef = useRef(onSignInSuccess);
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
-    const completionTimeout = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimit = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const completionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         onSignInErrorRef.current = onSignInError;
@@ -231,9 +231,12 @@ const PushNotificationMethod = function (props: Props) {
         async function (device: DuoDevicePostRequest) {
             try {
                 await completeDuoDeviceSelectionProcess(device);
-                if (!props.registered) {
+                if (!mounted.current) {
+                    return;
+                }
+                if (!registered) {
                     setState(State.SignInInProgress);
-                    props.onSelectionClick();
+                    onSelectionClick();
                 } else {
                     setState(State.SignInInProgress);
                 }
@@ -242,7 +245,7 @@ const PushNotificationMethod = function (props: Props) {
                 onSignInErrorRef.current(new Error(translate("There was an issue updating preferred Duo device")));
             }
         },
-        [onSignInErrorRef, props, translate],
+        [mounted, onSelectionClick, onSignInErrorRef, registered, translate],
     );
 
     const handleDuoDeviceSelected = useCallback(
