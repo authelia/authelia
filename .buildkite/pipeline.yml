@@ -7,17 +7,9 @@ steps:
   - block: "Public fork needs approval"
     if: build.pull_request.repository.fork == true
 
-  # Blocking pipeline for master branch deployments (concurrency_group).
+  # Pipeline for all others (tagged commits/local branches/PRs).
   - label: ":pipeline: Setup Pipeline"
     command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
-    concurrency: 1
-    concurrency_group: "deployments"
-    if: build.branch == "master"
-
-  # Non-blocking pipeline for all others (tagged commits/local branches/PRs).
-  - label: ":pipeline: Setup Pipeline"
-    command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
-    if: build.branch != "master"
 
 notify:
   - webhook: "<REDACTED WEBHOOK_URL>"
