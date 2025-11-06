@@ -65,9 +65,12 @@ const PushNotificationMethod = function (props: Props) {
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
+        return () => {
+            if (timeoutRateLimit.current !== null) {
+                clearTimeout(timeoutRateLimit.current);
+                timeoutRateLimit.current = null;
+            }
+        };
     }, []);
 
     const handleRateLimited = useCallback(
@@ -81,11 +84,15 @@ const PushNotificationMethod = function (props: Props) {
             onSignInErrorCallback(new Error(translate("You have made too many requests")));
 
             timeoutRateLimit.current = setTimeout(() => {
+                if (!mounted.current) {
+                    timeoutRateLimit.current = null;
+                    return;
+                }
                 setState(State.Failure);
                 timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
-        [onSignInErrorCallback, translate],
+        [mounted, onSignInErrorCallback, translate],
     );
 
     const handleFetchDuoDevices = useCallback(async () => {

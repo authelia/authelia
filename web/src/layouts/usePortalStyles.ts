@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import { Theme } from "@mui/material";
+import type { CSSObject } from "tss-react";
 import { makeStyles } from "tss-react/mui";
 
 import { BackgroundLayer, PortalStyleConfig, PortalTemplateDefinition } from "@themes/portalTemplates";
@@ -179,7 +180,20 @@ const buildLayerStyles = (layer: BackgroundLayer | undefined, templateName: stri
     } as const;
 };
 
-const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: Theme, { config, template }) => {
+const useStyles = makeStyles<
+    StyleParams,
+    | "page"
+    | "effectHost"
+    | "root"
+    | "rootContainer"
+    | "icon"
+    | "body"
+    | "typography"
+    | "links"
+    | "formElements"
+    | "buttons"
+    | "status"
+>({ name: "PortalTemplates" })((theme: Theme, { config, template }) => {
     const keyframes = Object.entries(config.animations ?? {}).reduce<Record<string, Record<string, string | number>>>(
         (accumulator, [key, frames]) => {
             accumulator[`@keyframes portal-${template.name}-${key}`] = frames as Record<string, string | number>;
@@ -188,20 +202,75 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
         {},
     );
     const variant = config.layout?.cardVariant ?? "default";
-    const cardBackdrop = config.card.backdropFilter ?? (variant === "minimal" ? "none" : "blur(28px)");
-    const cardOverflow = config.card.overflow ?? (variant === "minimal" ? "visible" : "hidden");
-    const cardOverlay = variant === "minimal" ? undefined : config.card.overlay;
+    const isMinimal = variant === "minimal";
+    const isPanel = variant === "panel";
+    const cardBackdrop = config.card.backdropFilter ?? (isMinimal ? "none" : "blur(28px)");
+    const cardOverflow = config.card.overflow ?? (isMinimal ? "visible" : "hidden");
+    const cardOverlay = isMinimal ? undefined : config.card.overlay;
     const rootJustify = config.layout?.rootJustify ?? "flex-start";
     const rootAlign = config.layout?.rootAlign ?? "flex-start";
     const rootPadding = config.root.padding ?? config.layout?.rootInset ?? "0 1.5rem 3rem";
-    const hasExplicitRootPadding = config.root.padding !== undefined;
-    const rootPaddingTop =
-        config.root.paddingTop ?? config.layout?.rootInsetTop ?? (hasExplicitRootPadding ? "0" : undefined) ?? "0";
+    const rootPaddingTop = config.root.paddingTop ?? config.layout?.rootInsetTop;
     const rootPaddingBottom = config.root.paddingBottom ?? config.layout?.rootInsetBottom;
-    const containerMaxWidth =
-        config.layout?.containerMaxWidth ?? (variant === "minimal" ? "min(1080px, 100%)" : undefined);
-    const containerMargin = config.layout?.containerMargin ?? (variant === "minimal" ? "0 auto" : undefined);
+    const containerMaxWidth = config.layout?.containerMaxWidth ?? (isMinimal ? "min(1080px, 100%)" : undefined);
+    const containerMargin = config.layout?.containerMargin ?? (isMinimal ? "0 auto" : undefined);
     const containerWidth = config.layout?.containerWidth;
+    const rootContainerStyles: CSSObject = {
+        position: "relative",
+        overflow: cardOverflow,
+        background: config.card.background,
+        border: config.card.border,
+        borderRadius: config.card.borderRadius,
+        padding: config.card.padding,
+        color: config.card.color,
+        boxShadow: config.card.shadow,
+        backdropFilter: cardBackdrop,
+        clipPath: config.layout?.cardClipPath,
+        margin: containerMargin,
+        maxWidth: containerMaxWidth,
+        width: containerWidth,
+        "&::before": buildLayerStyles(cardOverlay, template.name),
+    };
+
+    if (!isMinimal) {
+        rootContainerStyles[theme.breakpoints.down("md")] = {
+            padding: "clamp(1.8rem, 6vw, 2.2rem)",
+            borderRadius: config.card.borderRadius,
+        } as CSSObject;
+        rootContainerStyles[theme.breakpoints.down("sm")] = {
+            padding: "1.75rem 1.4rem",
+        } as CSSObject;
+    }
+
+    if (isPanel) {
+        rootContainerStyles.display = "grid";
+        rootContainerStyles.gridTemplateColumns = "minmax(0, 1.05fr) minmax(0, 0.85fr)";
+        rootContainerStyles.gap = "clamp(1.6rem, 4vw, 2.6rem)";
+        rootContainerStyles.alignItems = "stretch";
+        rootContainerStyles.padding = config.card.padding ?? "clamp(2.4rem, 5vw, 3rem)";
+        rootContainerStyles.position = "relative";
+        rootContainerStyles.overflow = cardOverflow;
+        rootContainerStyles["&::after"] = {
+            content: "''",
+            position: "absolute",
+            inset: "-25% -45% -25% 55%",
+            background:
+                "linear-gradient(165deg, rgba(0, 255, 170, 0.25) 0%, rgba(0, 211, 255, 0.22) 60%, rgba(0, 98, 255, 0) 100%)",
+            opacity: 0.45,
+            pointerEvents: "none",
+            mixBlendMode: "screen",
+        } as CSSObject;
+    }
+
+    if (isMinimal) {
+        rootContainerStyles.background = config.card.background ?? "transparent";
+        rootContainerStyles.border = config.card.border ?? "none";
+        rootContainerStyles.borderRadius = config.card.borderRadius ?? "0px";
+        rootContainerStyles.boxShadow = config.card.shadow ?? "none";
+        rootContainerStyles.padding = config.card.padding ?? "0";
+        rootContainerStyles.backdropFilter = cardBackdrop;
+        rootContainerStyles.overflow = cardOverflow;
+    }
 
     return {
         ...keyframes,
@@ -227,7 +296,7 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
         root: {
             position: "relative",
             zIndex: 1,
-            textAlign: variant === "minimal" ? "left" : "center",
+            textAlign: isMinimal ? "left" : "center",
             isolation: "isolate",
             padding: rootPadding,
             ...(rootPaddingTop === undefined ? {} : { paddingTop: rootPaddingTop }),
@@ -239,65 +308,7 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
             "&::before": buildLayerStyles(config.root.before, template.name),
             "&::after": buildLayerStyles(config.root.after, template.name),
         },
-        rootContainer: {
-            position: "relative",
-            overflow: cardOverflow,
-            background: config.card.background,
-            border: config.card.border,
-            borderRadius: config.card.borderRadius,
-            padding: config.card.padding,
-            color: config.card.color,
-            boxShadow: config.card.shadow,
-            backdropFilter: cardBackdrop,
-            clipPath: config.layout?.cardClipPath,
-            margin: containerMargin,
-            maxWidth: containerMaxWidth,
-            width: containerWidth,
-            "&::before": buildLayerStyles(cardOverlay, template.name),
-            ...(variant !== "minimal"
-                ? {
-                      [theme.breakpoints.down("md")]: {
-                          padding: "clamp(1.8rem, 6vw, 2.2rem)",
-                          borderRadius: config.card.borderRadius,
-                      },
-                      [theme.breakpoints.down("sm")]: {
-                          padding: "1.75rem 1.4rem",
-                      },
-                  }
-                : {}),
-            ...(variant === "panel"
-                ? {
-                      display: "grid",
-                      gridTemplateColumns: "minmax(0, 1.05fr) minmax(0, 0.85fr)",
-                      gap: "clamp(1.6rem, 4vw, 2.6rem)",
-                      alignItems: "stretch",
-                      padding: config.card.padding ?? "clamp(2.4rem, 5vw, 3rem)",
-                      position: "relative" as const,
-                      overflow: cardOverflow,
-                      "&::after": {
-                          content: "''",
-                          position: "absolute",
-                          inset: "-25% -45% -25% 55%",
-                          background:
-                              "linear-gradient(165deg, rgba(0, 255, 170, 0.25) 0%, rgba(0, 211, 255, 0.22) 60%, rgba(0, 98, 255, 0) 100%)",
-                          opacity: 0.45,
-                          pointerEvents: "none",
-                          mixBlendMode: "screen",
-                      },
-                  }
-                : {}),
-            ...(variant === "minimal"
-                ? {
-                      background: config.card.background ?? "transparent",
-                      border: config.card.border ?? "none",
-                      borderRadius: config.card.borderRadius ?? "0px",
-                      boxShadow: config.card.shadow ?? "none",
-                      padding: config.card.padding ?? "0",
-                      backdropFilter: cardBackdrop,
-                      overflow: cardOverflow,
-                  }
-                : {}),
-        },
+        rootContainer: rootContainerStyles,
         icon: {
             margin: theme.spacing(),
             width: "64px",
@@ -311,7 +322,7 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
             display: "flex",
             flexDirection: "column",
             gap: "1.1rem",
-            alignItems: variant === "minimal" ? "flex-start" : "stretch",
+            alignItems: isMinimal ? "flex-start" : "stretch",
         },
         typography: {
             "& .MuiTypography-h5, & .MuiTypography-h4, & .MuiTypography-h3": {

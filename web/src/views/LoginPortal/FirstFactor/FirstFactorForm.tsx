@@ -25,6 +25,7 @@ import { makeStyles } from "tss-react/mui";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
+import { useIsMountedRef } from "@hooks/Mounted";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
@@ -57,6 +58,7 @@ const FirstFactorForm = function (props: Props) {
     const { id: flowID, flow, subflow } = useFlow();
     const userCode = useUserCode();
     const { createErrorNotification } = useNotifications();
+    const mounted = useIsMountedRef();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
@@ -135,12 +137,19 @@ const FirstFactorForm = function (props: Props) {
                 userCode,
             );
 
+            if (!mounted.current) {
+                return;
+            }
+
             setLoading(false);
 
             await loginChannel.postMessage(true);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
+            if (!mounted.current) {
+                return;
+            }
             createErrorNotification(translate("Incorrect username or password"));
             setLoading(false);
             props.onAuthenticationStop();
@@ -162,6 +171,7 @@ const FirstFactorForm = function (props: Props) {
         createErrorNotification,
         translate,
         focusPassword,
+        mounted,
     ]);
 
     const handleResetPasswordClick = () => {

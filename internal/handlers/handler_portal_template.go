@@ -3,6 +3,8 @@ package handlers
 import (
 	"strings"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
@@ -26,5 +28,7 @@ func PortalTemplateGET(ctx *middlewares.AutheliaCtx) {
 
 	if err := ctx.SetJSONBody(response); err != nil {
 		ctx.Logger.Errorf("Unable to set portal template response in body: %s", err)
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		return
 	}
 }

@@ -1,32 +1,22 @@
-const globalScope = typeof globalThis === "undefined" ? undefined : globalThis;
+const globalScope = (() => {
+  try {
+    return globalThis;
+  } catch {
+    return undefined;
+  }
+})();
 
-const documentInstance =
-  typeof globalScope !== "undefined" && "document" in globalScope ? globalScope.document : null;
+const documentInstance = globalScope?.document ?? null;
 
-const requestFrame =
-  typeof globalScope !== "undefined" && typeof globalScope.requestAnimationFrame === "function"
-    ? globalScope.requestAnimationFrame.bind(globalScope)
-    : undefined;
+const requestFrame = globalScope?.requestAnimationFrame?.bind(globalScope);
+const cancelFrame = globalScope?.cancelAnimationFrame?.bind(globalScope);
+const addGlobalListener = globalScope?.addEventListener?.bind(globalScope);
+const removeGlobalListener = globalScope?.removeEventListener?.bind(globalScope);
 
-const cancelFrame =
-  typeof globalScope !== "undefined" && typeof globalScope.cancelAnimationFrame === "function"
-    ? globalScope.cancelAnimationFrame.bind(globalScope)
-    : undefined;
-
-const addGlobalListener =
-  typeof globalScope !== "undefined" && typeof globalScope.addEventListener === "function"
-    ? globalScope.addEventListener.bind(globalScope)
-    : undefined;
-
-const removeGlobalListener =
-  typeof globalScope !== "undefined" && typeof globalScope.removeEventListener === "function"
-    ? globalScope.removeEventListener.bind(globalScope)
-    : undefined;
-
-const getDevicePixelRatio = () =>
-  typeof globalScope !== "undefined" && typeof globalScope.devicePixelRatio === "number"
-    ? globalScope.devicePixelRatio
-    : 1;
+const getDevicePixelRatio = () => {
+  const ratio = globalScope?.devicePixelRatio;
+  return Number.isFinite(ratio) ? ratio : 1;
+};
 
 const TAU = Math.PI * 2;
 const PARTICLE_COUNT = 140;
@@ -35,22 +25,16 @@ function random(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-const project = (x, y, z, width, height, pointerX, pointerY) => {
+const project = (x, y, z, width, height) => {
   const perspective = 1 / (1 - z * 0.75);
-  const px = width * 0.5 + (x + (pointerX - 0.5) * 1.6) * width * 0.48 * perspective;
-  const py = height * 0.45 + (y + (pointerY - 0.5) * 1.7) * height * 0.52 * perspective;
+  const px = width * 0.5 + x * width * 0.48 * perspective;
+  const py = height * 0.45 + y * height * 0.52 * perspective;
   const scale = perspective;
   return { x: px, y: py, scale };
 };
 
 export function mount({ container }) {
-  if (
-    !documentInstance ||
-    typeof documentInstance.createElement !== "function" ||
-    typeof requestFrame !== "function" ||
-    typeof addGlobalListener !== "function" ||
-    typeof removeGlobalListener !== "function"
-  ) {
+  if (!documentInstance?.createElement || !requestFrame || !addGlobalListener || !removeGlobalListener) {
     return undefined;
   }
 
@@ -73,10 +57,6 @@ export function mount({ container }) {
     height: 0,
     dpr: getDevicePixelRatio(),
     raf: 0,
-    pointerX: 0.5,
-    pointerY: 0.5,
-    smoothX: 0.5,
-    smoothY: 0.5,
     particles: [],
   };
 
@@ -107,7 +87,7 @@ export function mount({ container }) {
   };
 
   const draw = (timestamp) => {
-    const { width, height, dpr, pointerX, pointerY, particles } = state;
+    const { width, height, dpr, particles } = state;
     if (width === 0 || height === 0) {
       state.raf = requestFrame(draw);
       return;
@@ -117,14 +97,11 @@ export function mount({ container }) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    state.smoothX += (pointerX - state.smoothX) * 0.05;
-    state.smoothY += (pointerY - state.smoothY) * 0.05;
-
     const time = timestamp * 0.0011;
 
     ctx.globalCompositeOperation = "lighter";
 
-    particles.forEach((particle, index) => {
+    for (const [index, particle] of particles.entries()) {
       const speed = particle.baseSpeed + (index / PARTICLE_COUNT) * 0.0009;
       const theta = particle.theta + time * speed * 90;
       const phi = particle.phi + time * speed * 65;
@@ -133,24 +110,16 @@ export function mount({ container }) {
       const y = Math.sin(theta) * Math.sin(phi) * particle.distance;
       const z = Math.cos(phi) * particle.distance;
 
-      const { x: screenX, y: screenY, scale } = project(x, y, z, width, height, state.smoothX, state.smoothY);
+      const { x: screenX, y: screenY, scale } = project(x, y, z, width, height);
       const radius = Math.max(0.5, particle.radius * scale * 1.6);
       const twinkle = Math.sin(time * particle.twinkle + index) * 0.45 + 0.75;
 
-      const gradient = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, radius * 3.4);
       const alpha = Math.min(1, particle.baseAlpha * (0.6 + twinkle));
-      gradient.addColorStop(0, `hsla(${particle.hue}, ${particle.saturation}%, ${particle.lightness}%, ${alpha})`);
-      gradient.addColorStop(
-        0.4,
-        `hsla(${particle.hue + 12}, ${particle.saturation - 8}%, ${particle.lightness + 6}%, ${alpha * 0.6})`,
-      );
-      gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-
-      ctx.fillStyle = gradient;
+      ctx.fillStyle = `hsla(${particle.hue}, ${particle.saturation}%, ${particle.lightness}%, ${alpha})`;
       ctx.beginPath();
       ctx.arc(screenX, screenY, radius * 3.4, 0, TAU);
       ctx.fill();
-    });
+    }
 
     ctx.restore();
     state.raf = requestFrame(draw);
@@ -163,13 +132,9 @@ export function mount({ container }) {
   addGlobalListener("resize", resize, { passive: true });
 
   return () => {
-    if (typeof cancelFrame === "function") {
-      cancelFrame(state.raf);
-    }
-    removeGlobalListener("resize", resize);
-    if (canvas.parentElement === container) {
-      container.removeChild(canvas);
-    }
+    cancelFrame?.(state.raf);
+    removeGlobalListener?.("resize", resize);
+    canvas.remove();
   };
 }
 

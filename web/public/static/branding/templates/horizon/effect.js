@@ -1,32 +1,22 @@
-const globalScope = typeof globalThis === "undefined" ? undefined : globalThis;
+const globalScope = (() => {
+  try {
+    return globalThis;
+  } catch {
+    return undefined;
+  }
+})();
 
-const documentInstance =
-  typeof globalScope !== "undefined" && "document" in globalScope ? globalScope.document : null;
+const documentInstance = globalScope?.document ?? null;
 
-const requestFrame =
-  typeof globalScope !== "undefined" && typeof globalScope.requestAnimationFrame === "function"
-    ? globalScope.requestAnimationFrame.bind(globalScope)
-    : undefined;
+const requestFrame = globalScope?.requestAnimationFrame?.bind(globalScope);
+const cancelFrame = globalScope?.cancelAnimationFrame?.bind(globalScope);
+const addGlobalListener = globalScope?.addEventListener?.bind(globalScope);
+const removeGlobalListener = globalScope?.removeEventListener?.bind(globalScope);
 
-const cancelFrame =
-  typeof globalScope !== "undefined" && typeof globalScope.cancelAnimationFrame === "function"
-    ? globalScope.cancelAnimationFrame.bind(globalScope)
-    : undefined;
-
-const addGlobalListener =
-  typeof globalScope !== "undefined" && typeof globalScope.addEventListener === "function"
-    ? globalScope.addEventListener.bind(globalScope)
-    : undefined;
-
-const removeGlobalListener =
-  typeof globalScope !== "undefined" && typeof globalScope.removeEventListener === "function"
-    ? globalScope.removeEventListener.bind(globalScope)
-    : undefined;
-
-const getDevicePixelRatio = () =>
-  typeof globalScope !== "undefined" && typeof globalScope.devicePixelRatio === "number"
-    ? globalScope.devicePixelRatio
-    : 1;
+const getDevicePixelRatio = () => {
+  const ratio = globalScope?.devicePixelRatio;
+  return Number.isFinite(ratio) ? ratio : 1;
+};
 
 export const EFFECT_VERSION = "2025-11-13T01:20Z";
 
@@ -48,13 +38,7 @@ function createGlows(width, height) {
 }
 
 export function mount({ container }) {
-  if (
-    !documentInstance ||
-    typeof documentInstance.createElement !== "function" ||
-    typeof requestFrame !== "function" ||
-    typeof addGlobalListener !== "function" ||
-    typeof removeGlobalListener !== "function"
-  ) {
+  if (!documentInstance?.createElement || !requestFrame || !addGlobalListener || !removeGlobalListener) {
     return undefined;
   }
 
@@ -64,8 +48,6 @@ export function mount({ container }) {
   if (!ctx) {
     return undefined;
   }
-
-  console.log("[Neon Horizon] effect v2025-11-13 shape panel loaded");
 
   canvas.style.position = "absolute";
   canvas.style.inset = "0";
@@ -148,7 +130,7 @@ export function mount({ container }) {
     ctx.globalCompositeOperation = "lighter";
     const time = timestamp * 0.0013;
 
-    glows.forEach((glow, index) => {
+    for (const [index, glow] of glows.entries()) {
       glow.x += glow.driftX;
       glow.y += glow.driftY + Math.sin(time * (0.6 + index * 0.03)) * 0.2;
 
@@ -176,7 +158,7 @@ export function mount({ container }) {
       ctx.beginPath();
       ctx.arc(glow.x, glow.y, glow.radius, 0, Math.PI * 2);
       ctx.fill();
-    });
+    }
 
     ctx.restore();
     state.raf = requestFrame(draw);
@@ -187,13 +169,9 @@ export function mount({ container }) {
   addGlobalListener("resize", resize, { passive: true });
 
   return () => {
-    if (typeof cancelFrame === "function") {
-      cancelFrame(state.raf);
-    }
-    removeGlobalListener("resize", resize);
-    if (canvas.parentElement === container) {
-      container.removeChild(canvas);
-    }
+    cancelFrame?.(state.raf);
+    removeGlobalListener?.("resize", resize);
+    canvas.remove();
   };
 }
 

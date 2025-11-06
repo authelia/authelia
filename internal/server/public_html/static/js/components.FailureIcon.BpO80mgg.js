@@ -1,0 +1,1 @@
+import{j as o}from"./index.BAKKlMLi.js";import{F as r,f as s}from"./components.SuccessIcon.C6YNXyF1.js";const i=function(){return o.jsx(r,{icon:s,size:"4x",color:"red",className:"failure-icon"})};export{i as F};

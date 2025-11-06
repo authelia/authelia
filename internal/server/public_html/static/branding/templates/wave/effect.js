@@ -1,32 +1,22 @@
-const globalScope = typeof globalThis === "undefined" ? undefined : globalThis;
+const globalScope = (() => {
+  try {
+    return globalThis;
+  } catch {
+    return undefined;
+  }
+})();
 
-const documentInstance =
-  typeof globalScope !== "undefined" && "document" in globalScope ? globalScope.document : null;
+const documentInstance = globalScope?.document ?? null;
 
-const requestFrame =
-  typeof globalScope !== "undefined" && typeof globalScope.requestAnimationFrame === "function"
-    ? globalScope.requestAnimationFrame.bind(globalScope)
-    : undefined;
+const requestFrame = globalScope?.requestAnimationFrame?.bind(globalScope);
+const cancelFrame = globalScope?.cancelAnimationFrame?.bind(globalScope);
+const addGlobalListener = globalScope?.addEventListener?.bind(globalScope);
+const removeGlobalListener = globalScope?.removeEventListener?.bind(globalScope);
 
-const cancelFrame =
-  typeof globalScope !== "undefined" && typeof globalScope.cancelAnimationFrame === "function"
-    ? globalScope.cancelAnimationFrame.bind(globalScope)
-    : undefined;
-
-const addGlobalListener =
-  typeof globalScope !== "undefined" && typeof globalScope.addEventListener === "function"
-    ? globalScope.addEventListener.bind(globalScope)
-    : undefined;
-
-const removeGlobalListener =
-  typeof globalScope !== "undefined" && typeof globalScope.removeEventListener === "function"
-    ? globalScope.removeEventListener.bind(globalScope)
-    : undefined;
-
-const getDevicePixelRatio = () =>
-  typeof globalScope !== "undefined" && typeof globalScope.devicePixelRatio === "number"
-    ? globalScope.devicePixelRatio
-    : 1;
+const getDevicePixelRatio = () => {
+  const ratio = globalScope?.devicePixelRatio;
+  return Number.isFinite(ratio) ? ratio : 1;
+};
 
 const TAU = Math.PI * 2;
 
@@ -35,13 +25,7 @@ function lerp(a, b, t) {
 }
 
 export function mount({ container }) {
-  if (
-    !documentInstance ||
-    typeof documentInstance.createElement !== "function" ||
-    typeof requestFrame !== "function" ||
-    typeof addGlobalListener !== "function" ||
-    typeof removeGlobalListener !== "function"
-  ) {
+  if (!documentInstance?.createElement || !requestFrame || !addGlobalListener || !removeGlobalListener) {
     return undefined;
   }
 
@@ -64,8 +48,6 @@ export function mount({ container }) {
     height: 0,
     dpr: getDevicePixelRatio(),
     raf: 0,
-    pointerX: 0.5,
-    pointerY: 0.5,
   };
 
   const resize = () => {
@@ -80,10 +62,11 @@ export function mount({ container }) {
   };
 
   const drawWave = (time, amplitude, wavelength, speed, colorStops) => {
-    const { width, height, pointerX } = state;
+    const { width, height } = state;
     ctx.beginPath();
-    const baseY = lerp(height * 0.35, height * 0.6, state.pointerY);
-    const offset = (time * speed + pointerX * 4) % TAU;
+    const baseAnchor = 0.5 + Math.sin(time * 0.25) * 0.05;
+    const baseY = lerp(height * 0.35, height * 0.6, baseAnchor);
+    const offset = (time * speed + Math.sin(time * 0.18) * 0.6) % TAU;
     const step = width / 120;
 
     ctx.moveTo(0, baseY);
@@ -97,9 +80,9 @@ export function mount({ container }) {
     ctx.closePath();
 
     const gradient = ctx.createLinearGradient(0, baseY - amplitude, 0, baseY + amplitude * 2);
-    colorStops.forEach(([stop, color]) => {
+    for (const [stop, color] of colorStops) {
       gradient.addColorStop(stop, color);
-    });
+    }
     ctx.fillStyle = gradient;
     ctx.globalCompositeOperation = "lighter";
     ctx.fill();
@@ -146,13 +129,9 @@ export function mount({ container }) {
   addGlobalListener("resize", resize, { passive: true });
 
   return () => {
-    if (typeof cancelFrame === "function") {
-      cancelFrame(state.raf);
-    }
-    removeGlobalListener("resize", resize);
-    if (canvas.parentElement === container) {
-      container.removeChild(canvas);
-    }
+    cancelFrame?.(state.raf);
+    removeGlobalListener?.("resize", resize);
+    canvas.remove();
   };
 }
 

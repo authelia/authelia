@@ -41,6 +41,14 @@ const PortalTemplateContext = createContext<PortalTemplateContextValue>({
 
 type MergeableRecord = Record<string, unknown>;
 
+const globalScope: typeof globalThis | undefined = (() => {
+    try {
+        return globalThis;
+    } catch {
+        return undefined;
+    }
+})();
+
 function isMergeableRecord(value: unknown): value is MergeableRecord {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -58,7 +66,7 @@ function deepMerge<T extends MergeableRecord>(target: T, source?: Partial<T>): T
 
         const targetValue = output[key];
         if (isMergeableRecord(targetValue) && isMergeableRecord(sourceValue)) {
-            output[key] = deepMerge(targetValue, sourceValue as MergeableRecord);
+            output[key] = deepMerge(targetValue, sourceValue);
         } else {
             output[key] = sourceValue;
         }
@@ -67,7 +75,7 @@ function deepMerge<T extends MergeableRecord>(target: T, source?: Partial<T>): T
     return output as T;
 }
 
-async function fetchJSON(path: string): Promise<any | null> {
+async function fetchJSON<T>(path: string): Promise<T | null> {
     try {
         const response = await fetch(path, { cache: "no-store" });
         if (!response.ok) {
@@ -82,29 +90,105 @@ async function fetchJSON(path: string): Promise<any | null> {
             return null;
         }
 
-        return JSON.parse(text);
+        return JSON.parse(text) as T;
     } catch (error) {
         console.error(`Failed to load portal template configuration from ${path}`, error);
         return null;
     }
 }
 
+type PortalTemplateConfigEnvelope = {
+    status: string;
+    data?: unknown;
+};
+
+const isPortalTemplateConfig = (value: unknown): value is PortalTemplateConfig => {
+    if (!value || typeof value !== "object") {
+        return false;
+    }
+
+    const candidate = value as Record<string, unknown>;
+    const templateValue = candidate.template;
+    const switcherValue = candidate.enableTemplateSwitcher;
+
+    if (templateValue !== undefined && typeof templateValue !== "string") {
+        return false;
+    }
+
+    if (switcherValue !== undefined && typeof switcherValue !== "boolean") {
+        return false;
+    }
+
+    return true;
+};
+
+const isPortalTemplateConfigEnvelope = (value: unknown): value is PortalTemplateConfigEnvelope => {
+    if (!value || typeof value !== "object") {
+        return false;
+    }
+
+    return typeof (value as { status?: unknown }).status === "string";
+};
+
 async function fetchPortalTemplateConfig(): Promise<PortalTemplateConfig | null> {
     const sources = ["./api/portal/template", "./static/branding/portal-template.json"];
 
     for (const source of sources) {
-        const config = await fetchJSON(source);
-        if (config) {
-            if (typeof config.status === "string" && config.data && typeof config.data === "object") {
-                return config.data as PortalTemplateConfig;
-            }
+        const config = await fetchJSON<unknown>(source);
+        if (!config) {
+            continue;
+        }
 
-            return config as PortalTemplateConfig;
+        if (isPortalTemplateConfigEnvelope(config) && isPortalTemplateConfig(config.data)) {
+            return config.data;
+        }
+
+        if (isPortalTemplateConfig(config)) {
+            return config;
         }
     }
 
     return null;
 }
+
+const sanitizeManifestEntry = (entry: unknown): PortalTemplateSummary | null => {
+    if (!entry || typeof entry !== "object") {
+        return null;
+    }
+
+    const record = entry as Record<string, unknown>;
+    const rawName = typeof record.name === "string" ? record.name.trim() : "";
+    const displayName = typeof record.displayName === "string" ? record.displayName.trim() : "";
+    const description = typeof record.description === "string" ? record.description.trim() : "";
+
+    if (!rawName || !displayName || !description) {
+        return null;
+    }
+
+    const summary: PortalTemplateSummary = {
+        name: rawName as PortalTemplateName,
+        displayName,
+        description,
+    };
+
+    if (record.interactive === "pointer") {
+        summary.interactive = "pointer";
+    }
+
+    if (typeof record.stylePath === "string" && record.stylePath.trim().length > 0) {
+        summary.stylePath = record.stylePath;
+    }
+
+    if (typeof record.definitionPath === "string" && record.definitionPath.trim().length > 0) {
+        summary.definitionPath = record.definitionPath;
+    }
+
+    if (typeof record.effectPath === "string" && record.effectPath.trim().length > 0) {
+        summary.effectPath = record.effectPath;
+    }
+
+    return summary;
+};
 
 function sanitizeManifest(manifest: unknown): PortalTemplateSummary[] | null {
     if (!Array.isArray(manifest)) {
@@ -113,39 +197,16 @@ function sanitizeManifest(manifest: unknown): PortalTemplateSummary[] | null {
 
     const summaries: PortalTemplateSummary[] = [];
     for (const entry of manifest) {
-        if (entry === null || typeof entry !== "object") {
-            continue;
+        const sanitized = sanitizeManifestEntry(entry);
+        if (sanitized) {
+            summaries.push(sanitized);
         }
-        const { name, displayName, description, interactive, stylePath, definitionPath, effectPath } =
-            entry as PortalTemplateSummary;
-        if (typeof name !== "string" || typeof displayName !== "string" || typeof description !== "string") {
-            continue;
-        }
-        const sanitized: PortalTemplateSummary = { name, displayName, description };
-        if (typeof interactive === "string") {
-            sanitized.interactive = interactive;
-        }
-        if (typeof stylePath === "string" && stylePath.trim().length > 0) {
-            sanitized.stylePath = stylePath;
-        }
-        if (typeof definitionPath === "string" && definitionPath.trim().length > 0) {
-            sanitized.definitionPath = definitionPath;
-        }
-        if (typeof effectPath === "string" && effectPath.trim().length > 0) {
-            sanitized.effectPath = effectPath;
-        }
-        summaries.push(sanitized);
     }
 
     return summaries.length > 0 ? summaries : null;
 }
 
-const getLocalStorage = (): Storage | null => {
-    if (typeof globalThis === "undefined" || !("localStorage" in globalThis)) {
-        return null;
-    }
-    return globalThis.localStorage ?? null;
-};
+const getLocalStorage = (): Storage | null => globalScope?.localStorage ?? null;
 
 const getStoredTemplate = (): string | null => {
     const storage = getLocalStorage();
@@ -202,13 +263,10 @@ const mergeManifestWithDefault = (manifest: PortalTemplateSummary[]): PortalTemp
     return merged;
 };
 
-const getDocumentInstance = (): Document | null => {
-    if (typeof globalThis === "undefined" || !("document" in globalThis) || !globalThis.document) {
-        return null;
-    }
+const isPortalTemplateName = (value: string): value is PortalTemplateName =>
+    Object.prototype.hasOwnProperty.call(portalTemplates, value);
 
-    return globalThis.document;
-};
+const getDocumentInstance = (): Document | null => globalScope?.document ?? null;
 
 const findSummary = (manifest: PortalTemplateSummary[], name: string) =>
     manifest.find((entry) => entry.name.toLowerCase() === name.toLowerCase());
@@ -249,7 +307,7 @@ const resolveCandidateFromManifest = (
     manifest: PortalTemplateSummary[],
     candidate?: string | null,
 ): PortalTemplateName | null => {
-    if (candidate === null || candidate === undefined) {
+    if (candidate == null) {
         return null;
     }
 
@@ -263,11 +321,11 @@ const resolveCandidateFromManifest = (
 
     const match = manifest.find((entry) => entry.name.toLowerCase() === normalized);
     if (match) {
-        return match.name as PortalTemplateName;
+        return match.name;
     }
 
-    if (portalTemplates[normalized]) {
-        return normalized as PortalTemplateName;
+    if (isPortalTemplateName(normalized)) {
+        return normalized;
     }
 
     return null;
@@ -321,7 +379,7 @@ const applyTemplateStyle = async (templateName: string, summary?: PortalTemplate
 
         let element = existing;
 
-        if (element === undefined || element === null) {
+        if (element == null) {
             element = documentInstance.createElement("style");
             element.dataset.portalTemplateStyle = templateName;
             templateStyleCache.set(templateName, element);
@@ -393,15 +451,14 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
         ): Promise<PortalTemplateDefinition> => {
             const definitionPath =
                 summary?.definitionPath ?? `./static/branding/templates/${templateName}/definition.json`;
-            const definitionJson = definitionPath ? await fetchJSON(definitionPath) : null;
-            const baseDefinition: PortalTemplateDefinition =
-                definitionJson && definitionJson.style
-                    ? {
-                          ...definitionJson,
-                          name: definitionJson.name ?? templateName,
-                          interactive: definitionJson.interactive,
-                      }
-                    : (portalTemplates[templateName] ?? portalTemplates[DEFAULT_TEMPLATE]);
+            const definitionJson = definitionPath ? await fetchJSON<PortalTemplateDefinition>(definitionPath) : null;
+            const baseDefinition: PortalTemplateDefinition = definitionJson?.style
+                ? {
+                      ...definitionJson,
+                      name: definitionJson.name ?? templateName,
+                      interactive: definitionJson.interactive,
+                  }
+                : (portalTemplates[templateName] ?? portalTemplates[DEFAULT_TEMPLATE]);
 
             if (summary?.effectPath) {
                 return {
@@ -481,7 +538,7 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
     );
 
     useEffect(() => {
-        if (state.template === undefined || state.template === null) {
+        if (state.template == null) {
             return;
         }
 

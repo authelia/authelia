@@ -49,6 +49,7 @@ const ResetPasswordStep2 = function () {
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
             createErrorNotification(translate("You have made too many requests"));
+            setFormDisabled(false);
         },
         [createErrorNotification, translate],
     );
@@ -67,7 +68,7 @@ const ResetPasswordStep2 = function () {
 
             if (response && response.limited) {
                 handleRateLimited(response.retryAfter);
-
+                setFormDisabled(false);
                 return;
             }
 
@@ -88,8 +89,8 @@ const ResetPasswordStep2 = function () {
     }, [handleSubmitReset]);
 
     const doResetPassword = async () => {
-        setPassword1("");
-        setPassword2("");
+        setErrorPassword1(false);
+        setErrorPassword2(false);
 
         if (password1 === "" || password2 === "") {
             if (password1 === "") {
@@ -114,6 +115,8 @@ const ResetPasswordStep2 = function () {
             await resetPassword(password1);
 
             createSuccessNotification(translate("Password has been reset"));
+            setPassword1("");
+            setPassword2("");
             setTimeout(() => navigate(IndexRoute), 1500);
         } catch (err) {
             console.error(err);
@@ -128,6 +131,7 @@ const ResetPasswordStep2 = function () {
             } else {
                 createErrorNotification(translate("There was an issue resetting the password"));
             }
+            setFormDisabled(false);
         }
     };
 

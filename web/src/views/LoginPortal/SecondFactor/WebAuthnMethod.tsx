@@ -47,6 +47,10 @@ const WebAuthnMethod = function (props: Props) {
             setState(WebAuthnTouchState.WaitTouch);
             const optionsStatus = await getWebAuthnOptions();
 
+            if (!mounted.current) {
+                return;
+            }
+
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
                 setState(WebAuthnTouchState.Failure);
                 onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
@@ -67,6 +71,9 @@ const WebAuthnMethod = function (props: Props) {
             }
 
             if (result.response == null) {
+                if (!mounted.current) {
+                    return;
+                }
                 onSignInErrorCallback(
                     new Error(translate("The browser did not respond with the expected attestation data")),
                 );
@@ -89,6 +96,9 @@ const WebAuthnMethod = function (props: Props) {
             );
 
             if (response.data.status === "OK" && response.status === 200) {
+                if (!mounted.current) {
+                    return;
+                }
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
                 return;
             }

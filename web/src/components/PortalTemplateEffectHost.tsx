@@ -57,6 +57,24 @@ const PortalTemplateEffectHost = ({ className }: Props) => {
         let disposed = false;
         let cleanup: (() => void) | void;
 
+        const runCleanup = () => {
+            if (typeof cleanup === "function") {
+                try {
+                    cleanup();
+                } catch (error) {
+                    console.error("An error occurred while cleaning up the portal template effect.", error);
+                }
+            }
+            cleanup = undefined;
+        };
+
+        const assignCleanup = (nextCleanup: (() => void) | void) => {
+            cleanup = nextCleanup;
+            if (disposed) {
+                runCleanup();
+            }
+        };
+
         const resolvedURL = resolveModuleURL(effectModulePath);
 
         import(/* @vite-ignore */ resolvedURL)
@@ -77,9 +95,10 @@ const PortalTemplateEffectHost = ({ className }: Props) => {
                 });
 
                 if (result instanceof Promise) {
-                    cleanup = await result;
+                    const awaited = await result;
+                    assignCleanup(awaited);
                 } else {
-                    cleanup = result;
+                    assignCleanup(result);
                 }
             })
             .catch((error) => {
@@ -90,13 +109,7 @@ const PortalTemplateEffectHost = ({ className }: Props) => {
 
         return () => {
             disposed = true;
-            if (typeof cleanup === "function") {
-                try {
-                    cleanup();
-                } catch (error) {
-                    console.error("An error occurred while cleaning up the portal template effect.", error);
-                }
-            }
+            runCleanup();
             host.replaceChildren();
         };
     }, [definition, effectModulePath]);
