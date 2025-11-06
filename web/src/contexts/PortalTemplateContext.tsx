@@ -224,7 +224,7 @@ const chooseTemplate = (
     };
 };
 
-const applyTemplateStyle = async (templateName: string) => {
+const applyTemplateStyle = async (templateName: string, summary?: PortalTemplateSummary) => {
     if (typeof document === "undefined") {
         return;
     }
@@ -241,15 +241,38 @@ const applyTemplateStyle = async (templateName: string) => {
     const existing = templateStyleCache.get(templateName);
 
     try {
-        const response = await fetch(`./static/branding/templates/${templateName}/style.css`, {
-            cache: "no-store",
-        });
+        const candidates = [
+            summary?.stylePath,
+            `./static/branding/templates/${templateName}/style.css`,
+        ].filter((value): value is string => Boolean(value && value.trim().length > 0));
 
-        if (!response.ok) {
-            if (response.status !== 404) {
-                console.warn(`Failed to load CSS for portal template '${templateName}' (${response.status}).`);
+        let css: string | null = null;
+        let resolvedPath: string | undefined;
+
+        for (const candidate of candidates) {
+            try {
+                const response = await fetch(candidate, { cache: "no-store" });
+                if (!response.ok) {
+                    if (response.status !== 404) {
+                        console.warn(
+                            `Failed to load CSS for portal template '${templateName}' from '${candidate}' (${response.status}).`,
+                        );
+                    }
+                    continue;
+                }
+
+                css = await response.text();
+                resolvedPath = candidate;
+                break;
+            } catch (error) {
+                console.warn(
+                    `Error fetching CSS for portal template '${templateName}' from '${candidate}'.`,
+                    error,
+                );
             }
+        }
 
+        if (css === null) {
             if (existing) {
                 existing.disabled = false;
                 existing.media = "all";
@@ -258,7 +281,6 @@ const applyTemplateStyle = async (templateName: string) => {
             return;
         }
 
-        const css = await response.text();
         let element = existing;
 
         if (!element) {
@@ -267,6 +289,10 @@ const applyTemplateStyle = async (templateName: string) => {
             element.setAttribute("data-portal-template-style", templateName);
             templateStyleCache.set(templateName, element);
             document.head.appendChild(element);
+        }
+
+        if (resolvedPath) {
+            element.setAttribute("data-portal-template-style-path", resolvedPath);
         }
 
         element.textContent = css;
@@ -295,8 +321,11 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
         };
     }, []);
 
-    const loadDefinition = useCallback(async (templateName: PortalTemplateName): Promise<PortalTemplateDefinition> => {
-        const definitionJson = await fetchJSON(`./static/branding/templates/${templateName}/definition.json`);
+    const loadDefinition = useCallback(
+        async (templateName: PortalTemplateName, summary?: PortalTemplateSummary): Promise<PortalTemplateDefinition> => {
+            const definitionPath =
+                summary?.definitionPath ?? `./static/branding/templates/${templateName}/definition.json`;
+            const definitionJson = definitionPath ? await fetchJSON(definitionPath) : null;
         const baseDefinition: PortalTemplateDefinition =
             definitionJson && definitionJson.style
                 ? {
@@ -306,24 +335,35 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
                   }
                 : (portalTemplates[templateName] ?? portalTemplates[DEFAULT_TEMPLATE]);
 
-        let mergedDefinition = baseDefinition;
+            let mergedDefinition = baseDefinition;
 
-        const overrides = await fetchJSON(`./static/branding/templates/${templateName}/config.json`);
-        if (overrides) {
-            try {
-                const overrideStyle = overrides.style ?? overrides;
-                mergedDefinition = {
-                    ...baseDefinition,
-                    style: deepMerge(baseDefinition.style, overrideStyle ?? {}),
-                };
-            } catch (error) {
-                console.error(`Failed to merge overrides for template '${templateName}'`, error);
-                mergedDefinition = baseDefinition;
+            const overrides = await fetchJSON(`./static/branding/templates/${templateName}/config.json`);
+            if (overrides) {
+                try {
+                    const overrideStyle = overrides.style ?? overrides;
+                    mergedDefinition = {
+                        ...baseDefinition,
+                        style: deepMerge(baseDefinition.style, overrideStyle ?? {}),
+                    };
+                } catch (error) {
+                    console.error(`Failed to merge overrides for template '${templateName}'`, error);
+                    mergedDefinition = baseDefinition;
+                }
             }
-        }
 
-        return mergedDefinition;
-    }, []);
+            if (summary?.effectPath) {
+                mergedDefinition = {
+                    ...mergedDefinition,
+                    effect: {
+                        module: summary.effectPath,
+                    },
+                };
+            }
+
+            return mergedDefinition;
+        },
+        [],
+    );
 
     useEffect(() => {
         let isMounted = true;
@@ -335,7 +375,8 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
             const baseConfig = await fetchPortalTemplateConfig();
             const storedTemplate = getStoredTemplate();
             const { name: templateName, persist } = chooseTemplate(manifest, storedTemplate, baseConfig?.template);
-            const definition = await loadDefinition(templateName);
+            const summary = manifest.find((entry) => entry.name.toLowerCase() === templateName.toLowerCase());
+            const definition = await loadDefinition(templateName, summary);
 
             if (isMounted && mounted.current) {
                 setState({
@@ -348,6 +389,8 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
                 if (persist) {
                     setStoredTemplate(templateName);
                 }
+
+                await applyTemplateStyle(templateName, summary);
             }
         };
 
@@ -363,7 +406,8 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
             const manifest =
                 state.templates.length > 0 ? state.templates : mergeManifestWithDefault(defaultTemplateManifest);
             const resolved = resolveCandidateFromManifest(manifest, templateName) ?? DEFAULT_TEMPLATE;
-            const definition = await loadDefinition(resolved);
+            const summary = manifest.find((entry) => entry.name.toLowerCase() === resolved.toLowerCase());
+            const definition = await loadDefinition(resolved, summary);
 
             if (!mounted.current) {
                 return;
@@ -375,6 +419,8 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
                 definition,
             }));
 
+            await applyTemplateStyle(resolved, summary);
+
             setStoredTemplate(resolved);
         },
         [loadDefinition, state.templates],
@@ -385,8 +431,11 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
             return;
         }
 
-        void applyTemplateStyle(state.template);
-    }, [state.template]);
+        const summary = state.templates.find(
+            (entry) => entry.name.toLowerCase() === state.template.toLowerCase(),
+        );
+        void applyTemplateStyle(state.template, summary);
+    }, [state.template, state.templates]);
 
     const value = useMemo<PortalTemplateContextValue>(
         () => ({

@@ -134,6 +134,9 @@ export interface PortalTemplateSummary {
     displayName: string;
     description: string;
     interactive?: "pointer";
+    stylePath?: string;
+    definitionPath?: string;
+    effectPath?: string;
 }
 
 export interface PortalTemplateDefinition extends PortalTemplateSummary {
