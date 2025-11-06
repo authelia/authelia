@@ -76,7 +76,7 @@ steps:
     if: build.env("CI_BYPASS") != "true" && build.message !~ /^docs/
 
 EOF
-if [[ "${BUILDKITE_TAG}" != "" ]]; then
+if [[ ${BUILDKITE_TAG} != "" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [baseimage]"
     trigger: "baseimage"
@@ -177,6 +177,14 @@ cat << EOF
     agents:
       upload: "fast"
     key: "build-docker-linux"
+EOF
+if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
+cat << EOF
+    concurrency: 1
+    concurrency_group: "deployments"
+EOF
+fi
+cat << EOF
     if: build.env("CI_BYPASS") != "true" && build.message !~ /^docs/
 
   - label: ":github: Deploy Artifacts"
