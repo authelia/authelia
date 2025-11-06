@@ -241,10 +241,9 @@ const applyTemplateStyle = async (templateName: string, summary?: PortalTemplate
     const existing = templateStyleCache.get(templateName);
 
     try {
-        const candidates = [
-            summary?.stylePath,
-            `./static/branding/templates/${templateName}/style.css`,
-        ].filter((value): value is string => Boolean(value && value.trim().length > 0));
+        const candidates = [summary?.stylePath, `./static/branding/templates/${templateName}/style.css`].filter(
+            (value): value is string => Boolean(value && value.trim().length > 0),
+        );
 
         let css: string | null = null;
         let resolvedPath: string | undefined;
@@ -265,10 +264,7 @@ const applyTemplateStyle = async (templateName: string, summary?: PortalTemplate
                 resolvedPath = candidate;
                 break;
             } catch (error) {
-                console.warn(
-                    `Error fetching CSS for portal template '${templateName}' from '${candidate}'.`,
-                    error,
-                );
+                console.warn(`Error fetching CSS for portal template '${templateName}' from '${candidate}'.`, error);
             }
         }
 
@@ -323,18 +319,21 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
     }, []);
 
     const loadDefinition = useCallback(
-        async (templateName: PortalTemplateName, summary?: PortalTemplateSummary): Promise<PortalTemplateDefinition> => {
+        async (
+            templateName: PortalTemplateName,
+            summary?: PortalTemplateSummary,
+        ): Promise<PortalTemplateDefinition> => {
             const definitionPath =
                 summary?.definitionPath ?? `./static/branding/templates/${templateName}/definition.json`;
             const definitionJson = definitionPath ? await fetchJSON(definitionPath) : null;
-        const baseDefinition: PortalTemplateDefinition =
-            definitionJson && definitionJson.style
-                ? {
-                      ...definitionJson,
-                      name: definitionJson.name ?? templateName,
-                      interactive: definitionJson.interactive,
-                  }
-                : (portalTemplates[templateName] ?? portalTemplates[DEFAULT_TEMPLATE]);
+            const baseDefinition: PortalTemplateDefinition =
+                definitionJson && definitionJson.style
+                    ? {
+                          ...definitionJson,
+                          name: definitionJson.name ?? templateName,
+                          interactive: definitionJson.interactive,
+                      }
+                    : (portalTemplates[templateName] ?? portalTemplates[DEFAULT_TEMPLATE]);
 
             if (summary?.effectPath) {
                 return {
@@ -454,9 +453,7 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
             return;
         }
 
-        const summary = state.templates.find(
-            (entry) => entry.name.toLowerCase() === state.template.toLowerCase(),
-        );
+        const summary = state.templates.find((entry) => entry.name.toLowerCase() === state.template.toLowerCase());
         void applyTemplateStyle(state.template, summary).catch((error) => {
             console.error(error);
         });

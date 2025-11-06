@@ -214,6 +214,7 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
             color: config.page.color,
             display: "flex",
             flexDirection: "column",
+            minHeight: "100vh",
             ...(config.layout?.pageInset ? { padding: config.layout.pageInset } : {}),
             "&::before": buildLayerStyles(config.page.before, template.name),
             "&::after": buildLayerStyles(config.page.after, template.name),
