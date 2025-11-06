@@ -36,6 +36,11 @@ if [[ ${BUILDKITE_PULL_REQUEST_DRAFT} == "true" ]] && [[ ${BUILDKITE_BRANCH} =~ 
   buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/draft
 fi
 
+if [[ ${BUILDKITE_BRANCH} =~ ^gh-readonly-queue/.* ]]; then
+  CI_BYPASS="true"
+  buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/merge-queue
+fi
+
 cat << EOF
 env:
   BUILD_DUO: ${BUILD_DUO}
