@@ -10,7 +10,7 @@ body[data-portal-template="horizon"] [data-portal-role="root"]::after {
     content: "";
     position: absolute;
     inset: clamp(1.6rem, 3vw, 2.6rem);
-    inset-right: auto;
+    right: auto;
     width: min(540px, 46vw);
     border-radius: 28px;
     background:

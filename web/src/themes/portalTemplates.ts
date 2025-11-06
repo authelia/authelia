@@ -1,6 +1,6 @@
 import { CSSProperties } from "react";
 
-export type PortalTemplateName = string;
+export type PortalTemplateName = string & { readonly __portalTemplateNameBrand?: never };
 
 type KeyframeMap = Record<string, CSSProperties>;
 

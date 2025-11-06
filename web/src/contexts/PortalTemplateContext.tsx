@@ -39,35 +39,32 @@ const PortalTemplateContext = createContext<PortalTemplateContextValue>({
     switchTemplate: noop,
 });
 
-function deepMerge<T>(target: T, source: Partial<T>): T {
-    if (source === undefined || source === null) {
+type MergeableRecord = Record<string, unknown>;
+
+function isMergeableRecord(value: unknown): value is MergeableRecord {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function deepMerge<T extends MergeableRecord>(target: T, source?: Partial<T>): T {
+    if (!source) {
         return target;
     }
 
-    const output: any = Array.isArray(target) ? [...(target as any)] : { ...(target as any) };
-    Object.keys(source).forEach((key) => {
-        const typedKey = key as keyof T;
-        const sourceValue = (source as any)[typedKey];
+    const output: MergeableRecord = { ...target };
+    for (const [key, sourceValue] of Object.entries(source)) {
         if (sourceValue === undefined) {
-            return;
+            continue;
         }
 
-        const targetValue = (output as any)[typedKey];
-        if (
-            sourceValue &&
-            typeof sourceValue === "object" &&
-            !Array.isArray(sourceValue) &&
-            targetValue &&
-            typeof targetValue === "object" &&
-            !Array.isArray(targetValue)
-        ) {
-            (output as any)[typedKey] = deepMerge(targetValue, sourceValue);
+        const targetValue = output[key];
+        if (isMergeableRecord(targetValue) && isMergeableRecord(sourceValue)) {
+            output[key] = deepMerge(targetValue, sourceValue as MergeableRecord);
         } else {
-            (output as any)[typedKey] = sourceValue;
+            output[key] = sourceValue;
         }
-    });
+    }
 
-    return output;
+    return output as T;
 }
 
 async function fetchJSON(path: string): Promise<any | null> {
@@ -115,29 +112,49 @@ function sanitizeManifest(manifest: unknown): PortalTemplateSummary[] | null {
     }
 
     const summaries: PortalTemplateSummary[] = [];
-    manifest.forEach((entry) => {
-        if (!entry || typeof entry !== "object") {
-            return;
+    for (const entry of manifest) {
+        if (entry === null || typeof entry !== "object") {
+            continue;
         }
-        const { name, displayName, description, interactive } = entry as PortalTemplateSummary;
+        const { name, displayName, description, interactive, stylePath, definitionPath, effectPath } =
+            entry as PortalTemplateSummary;
         if (typeof name !== "string" || typeof displayName !== "string" || typeof description !== "string") {
-            return;
+            continue;
         }
-        summaries.push({ name, displayName, description, interactive });
-    });
+        const sanitized: PortalTemplateSummary = { name, displayName, description };
+        if (typeof interactive === "string") {
+            sanitized.interactive = interactive;
+        }
+        if (typeof stylePath === "string" && stylePath.trim().length > 0) {
+            sanitized.stylePath = stylePath;
+        }
+        if (typeof definitionPath === "string" && definitionPath.trim().length > 0) {
+            sanitized.definitionPath = definitionPath;
+        }
+        if (typeof effectPath === "string" && effectPath.trim().length > 0) {
+            sanitized.effectPath = effectPath;
+        }
+        summaries.push(sanitized);
+    }
 
     return summaries.length > 0 ? summaries : null;
 }
 
-const hasStorage = () => typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+const getLocalStorage = (): Storage | null => {
+    if (typeof globalThis === "undefined" || !("localStorage" in globalThis)) {
+        return null;
+    }
+    return globalThis.localStorage ?? null;
+};
 
 const getStoredTemplate = (): string | null => {
-    if (!hasStorage()) {
+    const storage = getLocalStorage();
+    if (storage === null) {
         return null;
     }
 
     try {
-        return window.localStorage.getItem(STORAGE_KEY);
+        return storage.getItem(STORAGE_KEY);
     } catch (error) {
         console.warn("Failed to read stored portal template preference.", error);
         return null;
@@ -145,16 +162,18 @@ const getStoredTemplate = (): string | null => {
 };
 
 const setStoredTemplate = (template: string | null) => {
-    if (!hasStorage()) {
+    const storage = getLocalStorage();
+    if (storage === null) {
         return;
     }
 
     try {
-        if (!template) {
-            window.localStorage.removeItem(STORAGE_KEY);
-        } else {
-            window.localStorage.setItem(STORAGE_KEY, template);
+        if (template) {
+            storage.setItem(STORAGE_KEY, template);
+            return;
         }
+
+        storage.removeItem(STORAGE_KEY);
     } catch (error) {
         console.warn("Failed to persist portal template preference.", error);
     }
@@ -166,27 +185,78 @@ const mergeManifestWithDefault = (manifest: PortalTemplateSummary[]): PortalTemp
 
     const addEntry = (entry: PortalTemplateSummary) => {
         const key = entry.name.toLowerCase();
-        if (!seen.has(key)) {
-            seen.add(key);
-            merged.push(entry);
+        if (seen.has(key)) {
+            return;
         }
+        seen.add(key);
+        merged.push(entry);
     };
 
-    defaultTemplateManifest.forEach(addEntry);
-    manifest.forEach(addEntry);
+    for (const entry of defaultTemplateManifest) {
+        addEntry(entry);
+    }
+    for (const entry of manifest) {
+        addEntry(entry);
+    }
 
     return merged;
+};
+
+const getDocumentInstance = (): Document | null => {
+    if (typeof globalThis === "undefined" || !("document" in globalThis) || !globalThis.document) {
+        return null;
+    }
+
+    return globalThis.document;
+};
+
+const findSummary = (manifest: PortalTemplateSummary[], name: string) =>
+    manifest.find((entry) => entry.name.toLowerCase() === name.toLowerCase());
+
+const fetchTemplateCss = async (
+    templateName: string,
+    summary?: PortalTemplateSummary,
+): Promise<{ css: string; path?: string } | null> => {
+    const candidates = [summary?.stylePath, `./static/branding/templates/${templateName}/style.css`].filter(
+        (value): value is string => Boolean(value && value.trim().length > 0),
+    );
+
+    for (const candidate of candidates) {
+        try {
+            const response = await fetch(candidate, { cache: "no-store" });
+            if (!response.ok) {
+                if (response.status !== 404) {
+                    console.warn(
+                        `Failed to load CSS for portal template '${templateName}' from '${candidate}' (${response.status}).`,
+                    );
+                }
+                continue;
+            }
+
+            const css = await response.text();
+            if (css) {
+                return { css, path: candidate };
+            }
+        } catch (error) {
+            console.warn(`Error fetching CSS for portal template '${templateName}' from '${candidate}'.`, error);
+        }
+    }
+
+    return null;
 };
 
 const resolveCandidateFromManifest = (
     manifest: PortalTemplateSummary[],
     candidate?: string | null,
 ): PortalTemplateName | null => {
-    if (!candidate) {
+    if (candidate === null || candidate === undefined) {
         return null;
     }
 
-    const normalized = candidate.toLowerCase();
+    const normalized = candidate.trim().toLowerCase();
+    if (!normalized) {
+        return null;
+    }
     if (normalized === "none") {
         return DEFAULT_TEMPLATE;
     }
@@ -225,50 +295,21 @@ const chooseTemplate = (
 };
 
 const applyTemplateStyle = async (templateName: string, summary?: PortalTemplateSummary) => {
-    if (typeof document === "undefined") {
+    const documentInstance = getDocumentInstance();
+    if (documentInstance === null) {
         return;
     }
 
-    const disableAll = () => {
-        templateStyleCache.forEach((element) => {
-            element.disabled = true;
-            element.media = "print";
-        });
-    };
-
-    disableAll();
+    for (const element of templateStyleCache.values()) {
+        element.disabled = true;
+        element.media = "print";
+    }
 
     const existing = templateStyleCache.get(templateName);
 
     try {
-        const candidates = [summary?.stylePath, `./static/branding/templates/${templateName}/style.css`].filter(
-            (value): value is string => Boolean(value && value.trim().length > 0),
-        );
-
-        let css: string | null = null;
-        let resolvedPath: string | undefined;
-
-        for (const candidate of candidates) {
-            try {
-                const response = await fetch(candidate, { cache: "no-store" });
-                if (!response.ok) {
-                    if (response.status !== 404) {
-                        console.warn(
-                            `Failed to load CSS for portal template '${templateName}' from '${candidate}' (${response.status}).`,
-                        );
-                    }
-                    continue;
-                }
-
-                css = await response.text();
-                resolvedPath = candidate;
-                break;
-            } catch (error) {
-                console.warn(`Error fetching CSS for portal template '${templateName}' from '${candidate}'.`, error);
-            }
-        }
-
-        if (css === null) {
+        const result = await fetchTemplateCss(templateName, summary);
+        if (result === null) {
             if (existing) {
                 existing.disabled = false;
                 existing.media = "all";
@@ -280,19 +321,21 @@ const applyTemplateStyle = async (templateName: string, summary?: PortalTemplate
 
         let element = existing;
 
-        if (!element) {
-            element = document.createElement("style");
-            element.type = "text/css";
-            element.setAttribute("data-portal-template-style", templateName);
+        if (element === undefined || element === null) {
+            element = documentInstance.createElement("style");
+            element.dataset.portalTemplateStyle = templateName;
             templateStyleCache.set(templateName, element);
-            document.head.appendChild(element);
+            documentInstance.head.appendChild(element);
         }
 
-        if (resolvedPath) {
-            element.setAttribute("data-portal-template-style-path", resolvedPath);
+        element.dataset.portalTemplateStyle = templateName;
+        if (result.path) {
+            element.dataset.portalTemplateStylePath = result.path;
+        } else {
+            delete element.dataset.portalTemplateStylePath;
         }
 
-        element.textContent = css;
+        element.textContent = result.css;
         element.disabled = false;
         element.media = "all";
     } catch (error) {
@@ -301,6 +344,31 @@ const applyTemplateStyle = async (templateName: string, summary?: PortalTemplate
             existing.media = "all";
         }
         console.warn(`Failed to apply CSS for portal template '${templateName}'`, error);
+        throw error;
+    }
+};
+
+const applyTemplateWithFallback = async (
+    manifest: PortalTemplateSummary[],
+    templateName: PortalTemplateName,
+    loadDefinition: (name: PortalTemplateName, summary?: PortalTemplateSummary) => Promise<PortalTemplateDefinition>,
+): Promise<{ template: PortalTemplateName; definition: PortalTemplateDefinition }> => {
+    const summary = findSummary(manifest, templateName);
+    const definition = await loadDefinition(templateName, summary);
+
+    try {
+        await applyTemplateStyle(templateName, summary);
+        return { template: templateName, definition };
+    } catch (error) {
+        console.error(error);
+        const fallbackSummary = findSummary(manifest, DEFAULT_TEMPLATE);
+        const fallbackDefinition = await loadDefinition(DEFAULT_TEMPLATE, fallbackSummary);
+        try {
+            await applyTemplateStyle(DEFAULT_TEMPLATE, fallbackSummary);
+        } catch (fallbackError) {
+            console.error(fallbackError);
+        }
+        return { template: DEFAULT_TEMPLATE, definition: fallbackDefinition };
     }
 };
 
@@ -359,29 +427,11 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
             const baseConfig = await fetchPortalTemplateConfig();
             const storedTemplate = getStoredTemplate();
             const { name: templateName, persist } = chooseTemplate(manifest, storedTemplate, baseConfig?.template);
-            const summary = manifest.find((entry) => entry.name.toLowerCase() === templateName.toLowerCase());
-            const definition = await loadDefinition(templateName, summary);
-
-            let resolvedTemplate = templateName;
-            let resolvedDefinition = definition;
-            let resolvedSummary = summary;
-
-            try {
-                await applyTemplateStyle(templateName, summary);
-            } catch (error) {
-                console.error(error);
-                const fallbackSummary = manifest.find(
-                    (entry) => entry.name.toLowerCase() === DEFAULT_TEMPLATE.toLowerCase(),
-                );
-                resolvedTemplate = DEFAULT_TEMPLATE;
-                resolvedDefinition = await loadDefinition(DEFAULT_TEMPLATE, fallbackSummary);
-                resolvedSummary = fallbackSummary;
-                try {
-                    await applyTemplateStyle(DEFAULT_TEMPLATE, fallbackSummary);
-                } catch (fallbackError) {
-                    console.error(fallbackError);
-                }
-            }
+            const { template: resolvedTemplate, definition: resolvedDefinition } = await applyTemplateWithFallback(
+                manifest,
+                templateName,
+                loadDefinition,
+            );
 
             if (isMounted && mounted.current) {
                 setState({
@@ -409,33 +459,15 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
             const manifest =
                 state.templates.length > 0 ? state.templates : mergeManifestWithDefault(defaultTemplateManifest);
             const resolved = resolveCandidateFromManifest(manifest, templateName) ?? DEFAULT_TEMPLATE;
-            const summary = manifest.find((entry) => entry.name.toLowerCase() === resolved.toLowerCase());
-            const definition = await loadDefinition(resolved, summary);
-
-            if (!mounted.current) {
+            if (mounted.current === false) {
                 return;
             }
 
-            let templateToApply = resolved;
-            let definitionToApply = definition;
-            let summaryToApply = summary;
-
-            try {
-                await applyTemplateStyle(resolved, summary);
-            } catch (error) {
-                console.error(error);
-                const fallbackSummary = manifest.find(
-                    (entry) => entry.name.toLowerCase() === DEFAULT_TEMPLATE.toLowerCase(),
-                );
-                templateToApply = DEFAULT_TEMPLATE;
-                definitionToApply = await loadDefinition(DEFAULT_TEMPLATE, fallbackSummary);
-                summaryToApply = fallbackSummary;
-                try {
-                    await applyTemplateStyle(DEFAULT_TEMPLATE, fallbackSummary);
-                } catch (fallbackError) {
-                    console.error(fallbackError);
-                }
-            }
+            const { template: templateToApply, definition: definitionToApply } = await applyTemplateWithFallback(
+                manifest,
+                resolved,
+                loadDefinition,
+            );
 
             setState((prev) => ({
                 ...prev,
@@ -449,7 +481,7 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
     );
 
     useEffect(() => {
-        if (!state.template) {
+        if (state.template === undefined || state.template === null) {
             return;
         }
 

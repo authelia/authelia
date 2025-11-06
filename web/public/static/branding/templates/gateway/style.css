@@ -11,7 +11,7 @@ body[data-portal-template="gateway"] [data-portal-role="root"]::before {
     content: "";
     position: absolute;
     inset: clamp(1.5rem, 3vw, 2.4rem);
-    inset-right: auto;
+    right: auto;
     width: min(520px, 48vw);
     border-radius: 32px;
     background:
@@ -27,7 +27,7 @@ body[data-portal-template="gateway"] [data-portal-role="root"]::before {
 
 body[data-portal-template="gateway"] [data-portal-role="card"] {
     order: 2;
-    max-width: min(480px, 42vw);
+    max-width: min(460px, 44vw);
     margin-left: auto;
     position: relative;
     z-index: 1;
@@ -54,7 +54,7 @@ body[data-portal-template="gateway"] [data-portal-role="content"] {
 
     body[data-portal-template="gateway"] [data-portal-role="card"] {
         order: 1;
-        max-width: min(480px, 90vw);
+        max-width: min(460px, 90vw);
         margin: 0 auto;
     }
 }

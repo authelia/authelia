@@ -1,4 +1,33 @@
-/* eslint-disable */
+const globalScope = typeof globalThis === "undefined" ? undefined : globalThis;
+
+const documentInstance =
+  typeof globalScope !== "undefined" && "document" in globalScope ? globalScope.document : null;
+
+const requestFrame =
+  typeof globalScope !== "undefined" && typeof globalScope.requestAnimationFrame === "function"
+    ? globalScope.requestAnimationFrame.bind(globalScope)
+    : undefined;
+
+const cancelFrame =
+  typeof globalScope !== "undefined" && typeof globalScope.cancelAnimationFrame === "function"
+    ? globalScope.cancelAnimationFrame.bind(globalScope)
+    : undefined;
+
+const addGlobalListener =
+  typeof globalScope !== "undefined" && typeof globalScope.addEventListener === "function"
+    ? globalScope.addEventListener.bind(globalScope)
+    : undefined;
+
+const removeGlobalListener =
+  typeof globalScope !== "undefined" && typeof globalScope.removeEventListener === "function"
+    ? globalScope.removeEventListener.bind(globalScope)
+    : undefined;
+
+const getDevicePixelRatio = () =>
+  typeof globalScope !== "undefined" && typeof globalScope.devicePixelRatio === "number"
+    ? globalScope.devicePixelRatio
+    : 1;
+
 const TAU = Math.PI * 2;
 
 function lerp(a, b, t) {
@@ -6,7 +35,17 @@ function lerp(a, b, t) {
 }
 
 export function mount({ container }) {
-  const canvas = document.createElement("canvas");
+  if (
+    !documentInstance ||
+    typeof documentInstance.createElement !== "function" ||
+    typeof requestFrame !== "function" ||
+    typeof addGlobalListener !== "function" ||
+    typeof removeGlobalListener !== "function"
+  ) {
+    return undefined;
+  }
+
+  const canvas = documentInstance.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
   if (!ctx) {
@@ -23,7 +62,7 @@ export function mount({ container }) {
   const state = {
     width: 0,
     height: 0,
-    dpr: window.devicePixelRatio || 1,
+    dpr: getDevicePixelRatio(),
     raf: 0,
     pointerX: 0.5,
     pointerY: 0.5,
@@ -31,7 +70,7 @@ export function mount({ container }) {
 
   const resize = () => {
     const rect = container.getBoundingClientRect();
-    state.dpr = window.devicePixelRatio || 1;
+    state.dpr = getDevicePixelRatio();
     state.width = rect.width;
     state.height = rect.height;
     canvas.width = Math.max(1, Math.floor(rect.width * state.dpr));
@@ -69,7 +108,7 @@ export function mount({ container }) {
   const draw = (timestamp) => {
     const { width, height, dpr } = state;
     if (width === 0 || height === 0) {
-      state.raf = requestAnimationFrame(draw);
+      state.raf = requestFrame(draw);
       return;
     }
 
@@ -98,17 +137,19 @@ export function mount({ container }) {
     ]);
 
     ctx.restore();
-    state.raf = requestAnimationFrame(draw);
+    state.raf = requestFrame(draw);
   };
 
   resize();
-  state.raf = requestAnimationFrame(draw);
+  state.raf = requestFrame(draw);
 
-  window.addEventListener("resize", resize);
+  addGlobalListener("resize", resize, { passive: true });
 
   return () => {
-    cancelAnimationFrame(state.raf);
-    window.removeEventListener("resize", resize);
+    if (typeof cancelFrame === "function") {
+      cancelFrame(state.raf);
+    }
+    removeGlobalListener("resize", resize);
     if (canvas.parentElement === container) {
       container.removeChild(canvas);
     }

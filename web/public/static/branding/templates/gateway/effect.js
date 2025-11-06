@@ -1,4 +1,32 @@
-/* eslint-disable */
+const globalScope = typeof globalThis === "undefined" ? undefined : globalThis;
+
+const documentInstance =
+  typeof globalScope !== "undefined" && "document" in globalScope ? globalScope.document : null;
+
+const requestFrame =
+  typeof globalScope !== "undefined" && typeof globalScope.requestAnimationFrame === "function"
+    ? globalScope.requestAnimationFrame.bind(globalScope)
+    : undefined;
+
+const cancelFrame =
+  typeof globalScope !== "undefined" && typeof globalScope.cancelAnimationFrame === "function"
+    ? globalScope.cancelAnimationFrame.bind(globalScope)
+    : undefined;
+
+const addGlobalListener =
+  typeof globalScope !== "undefined" && typeof globalScope.addEventListener === "function"
+    ? globalScope.addEventListener.bind(globalScope)
+    : undefined;
+
+const removeGlobalListener =
+  typeof globalScope !== "undefined" && typeof globalScope.removeEventListener === "function"
+    ? globalScope.removeEventListener.bind(globalScope)
+    : undefined;
+
+const getDevicePixelRatio = () =>
+  typeof globalScope !== "undefined" && typeof globalScope.devicePixelRatio === "number"
+    ? globalScope.devicePixelRatio
+    : 1;
 
 export const EFFECT_VERSION = "2025-11-13T02:05Z";
 
@@ -10,7 +38,17 @@ function random(min, max) {
 }
 
 export function mount({ container }) {
-  const canvas = document.createElement("canvas");
+  if (
+    !documentInstance ||
+    typeof documentInstance.createElement !== "function" ||
+    typeof requestFrame !== "function" ||
+    typeof addGlobalListener !== "function" ||
+    typeof removeGlobalListener !== "function"
+  ) {
+    return undefined;
+  }
+
+  const canvas = documentInstance.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
   if (!ctx) {
@@ -27,7 +65,7 @@ export function mount({ container }) {
 
   let width = 0;
   let height = 0;
-  let dpr = window.devicePixelRatio || 1;
+  let dpr = getDevicePixelRatio();
   const particles = [];
   const pointer = { x: 0, y: 0, active: false };
   let animationFrame = 0;
@@ -36,7 +74,7 @@ export function mount({ container }) {
     const rect = container.getBoundingClientRect();
     width = rect.width;
     height = rect.height;
-    dpr = window.devicePixelRatio || 1;
+    dpr = getDevicePixelRatio();
 
     canvas.width = Math.max(1, Math.floor(width * dpr));
     canvas.height = Math.max(1, Math.floor(height * dpr));
@@ -58,25 +96,25 @@ export function mount({ container }) {
     }
   };
 
-  const updateParticle = (p) => {
-    p.x += p.vx;
-    p.y += p.vy;
+  const updateParticle = (particle) => {
+    particle.x += particle.vx;
+    particle.y += particle.vy;
 
-    if (p.x <= 0 || p.x >= width) {
-      p.vx *= -1;
-      p.x = Math.max(0, Math.min(width, p.x));
+    if (particle.x <= 0 || particle.x >= width) {
+      particle.vx *= -1;
+      particle.x = Math.max(0, Math.min(width, particle.x));
     }
-    if (p.y <= 0 || p.y >= height) {
-      p.vy *= -1;
-      p.y = Math.max(0, Math.min(height, p.y));
+    if (particle.y <= 0 || particle.y >= height) {
+      particle.vy *= -1;
+      particle.y = Math.max(0, Math.min(height, particle.y));
     }
 
-    p.vx += random(-0.005, 0.005);
-    p.vy += random(-0.005, 0.005);
+    particle.vx += random(-0.005, 0.005);
+    particle.vy += random(-0.005, 0.005);
 
     if (pointer.active) {
-      const dx = p.x - pointer.x;
-      const dy = p.y - pointer.y;
+      const dx = particle.x - pointer.x;
+      const dy = particle.y - pointer.y;
       const distSq = dx * dx + dy * dy;
       if (distSq < POINTER_RADIUS * POINTER_RADIUS && distSq > 1) {
         const dist = Math.sqrt(distSq);
@@ -84,17 +122,17 @@ export function mount({ container }) {
         const strength = falloff * falloff * 0.18;
         const nx = dx / dist;
         const ny = dy / dist;
-        p.vx += nx * strength;
-        p.vy += ny * strength;
+        particle.vx += nx * strength;
+        particle.vy += ny * strength;
       }
     }
 
-    const speed = Math.hypot(p.vx, p.vy);
+    const speed = Math.hypot(particle.vx, particle.vy);
     const maxSpeed = 0.28;
     if (speed > maxSpeed) {
       const scale = maxSpeed / speed;
-      p.vx *= scale;
-      p.vy *= scale;
+      particle.vx *= scale;
+      particle.vy *= scale;
     }
   };
 
@@ -108,10 +146,10 @@ export function mount({ container }) {
 
     ctx.globalAlpha = 1;
     ctx.fillStyle = "rgba(120, 160, 255, 0.55)";
-    for (const p of particles) {
-      updateParticle(p);
+    for (const particle of particles) {
+      updateParticle(particle);
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -139,7 +177,7 @@ export function mount({ container }) {
     }
     ctx.globalAlpha = 1;
 
-    animationFrame = requestAnimationFrame(draw);
+    animationFrame = requestFrame(draw);
   };
 
   const handlePointerMove = (event) => {
@@ -154,17 +192,19 @@ export function mount({ container }) {
   };
 
   resize();
-  animationFrame = requestAnimationFrame(draw);
+  animationFrame = requestFrame(draw);
 
-  container.addEventListener("pointermove", handlePointerMove);
-  container.addEventListener("pointerleave", handlePointerLeave);
-  window.addEventListener("resize", resize);
+  container.addEventListener("pointermove", handlePointerMove, { passive: true });
+  container.addEventListener("pointerleave", handlePointerLeave, { passive: true });
+  addGlobalListener("resize", resize, { passive: true });
 
   return () => {
-    cancelAnimationFrame(animationFrame);
+    if (typeof cancelFrame === "function") {
+      cancelFrame(animationFrame);
+    }
     container.removeEventListener("pointermove", handlePointerMove);
     container.removeEventListener("pointerleave", handlePointerLeave);
-    window.removeEventListener("resize", resize);
+    removeGlobalListener("resize", resize);
     if (canvas.parentElement === container) {
       container.removeChild(canvas);
     }

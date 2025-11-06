@@ -25,8 +25,12 @@ function resolveModuleURL(modulePath: string): string {
         return modulePath;
     }
 
+    if (typeof globalThis === "undefined" || !("location" in globalThis) || !globalThis.location) {
+        return modulePath;
+    }
+
     const basePath = getBasePath() ?? "";
-    const baseURL = new URL(basePath.endsWith("/") ? basePath : `${basePath}/`, window.location.origin);
+    const baseURL = new URL(basePath.endsWith("/") ? basePath : `${basePath}/`, globalThis.location.origin);
 
     return new URL(modulePath, baseURL).toString();
 }

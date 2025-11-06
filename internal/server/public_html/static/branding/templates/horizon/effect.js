@@ -1,4 +1,32 @@
-/* eslint-disable */
+const globalScope = typeof globalThis === "undefined" ? undefined : globalThis;
+
+const documentInstance =
+  typeof globalScope !== "undefined" && "document" in globalScope ? globalScope.document : null;
+
+const requestFrame =
+  typeof globalScope !== "undefined" && typeof globalScope.requestAnimationFrame === "function"
+    ? globalScope.requestAnimationFrame.bind(globalScope)
+    : undefined;
+
+const cancelFrame =
+  typeof globalScope !== "undefined" && typeof globalScope.cancelAnimationFrame === "function"
+    ? globalScope.cancelAnimationFrame.bind(globalScope)
+    : undefined;
+
+const addGlobalListener =
+  typeof globalScope !== "undefined" && typeof globalScope.addEventListener === "function"
+    ? globalScope.addEventListener.bind(globalScope)
+    : undefined;
+
+const removeGlobalListener =
+  typeof globalScope !== "undefined" && typeof globalScope.removeEventListener === "function"
+    ? globalScope.removeEventListener.bind(globalScope)
+    : undefined;
+
+const getDevicePixelRatio = () =>
+  typeof globalScope !== "undefined" && typeof globalScope.devicePixelRatio === "number"
+    ? globalScope.devicePixelRatio
+    : 1;
 
 export const EFFECT_VERSION = "2025-11-13T01:20Z";
 
@@ -20,7 +48,17 @@ function createGlows(width, height) {
 }
 
 export function mount({ container }) {
-  const canvas = document.createElement("canvas");
+  if (
+    !documentInstance ||
+    typeof documentInstance.createElement !== "function" ||
+    typeof requestFrame !== "function" ||
+    typeof addGlobalListener !== "function" ||
+    typeof removeGlobalListener !== "function"
+  ) {
+    return undefined;
+  }
+
+  const canvas = documentInstance.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
   if (!ctx) {
@@ -40,14 +78,14 @@ export function mount({ container }) {
   const state = {
     width: 0,
     height: 0,
-    dpr: window.devicePixelRatio || 1,
+    dpr: getDevicePixelRatio(),
     raf: 0,
     glows: [],
   };
 
   const resize = () => {
     const rect = container.getBoundingClientRect();
-    state.dpr = window.devicePixelRatio || 1;
+    state.dpr = getDevicePixelRatio();
     state.width = Math.max(1, rect.width);
     state.height = Math.max(1, rect.height);
     canvas.width = Math.floor(state.width * state.dpr);
@@ -84,9 +122,12 @@ export function mount({ container }) {
       ctx.lineWidth = 2 + i * 2;
       ctx.beginPath();
       ctx.moveTo(-width * 0.1, height * (0.1 + t * 0.6));
-      const controlX = panelWidth * (0.6 + t * 0.25);
-      const controlY = height * (0.2 + t * 0.6);
-      ctx.quadraticCurveTo(controlX, height * (0.05 + t * 0.4), panelWidth - width * 0.12, height * (0.6 + t * 0.35));
+      ctx.quadraticCurveTo(
+        panelWidth * (0.6 + t * 0.25),
+        height * (0.05 + t * 0.4),
+        panelWidth - width * 0.12,
+        height * (0.6 + t * 0.35),
+      );
       ctx.stroke();
     }
   };
@@ -94,7 +135,7 @@ export function mount({ container }) {
   const draw = (timestamp) => {
     const { width, height, dpr, glows } = state;
     if (width === 0 || height === 0) {
-      state.raf = requestAnimationFrame(draw);
+      state.raf = requestFrame(draw);
       return;
     }
 
@@ -125,7 +166,10 @@ export function mount({ container }) {
 
       const gradient = ctx.createRadialGradient(glow.x, glow.y, 0, glow.x, glow.y, glow.radius);
       gradient.addColorStop(0, `hsla(${glow.hue}, ${glow.saturation}%, ${glow.lightness}%, ${glow.alpha})`);
-      gradient.addColorStop(0.45, `hsla(${glow.hue + 30}, ${glow.saturation - 10}%, ${glow.lightness + 10}%, ${glow.alpha * 0.65})`);
+      gradient.addColorStop(
+        0.45,
+        `hsla(${glow.hue + 30}, ${glow.saturation - 10}%, ${glow.lightness + 10}%, ${glow.alpha * 0.65})`,
+      );
       gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
       ctx.fillStyle = gradient;
@@ -135,16 +179,18 @@ export function mount({ container }) {
     });
 
     ctx.restore();
-    state.raf = requestAnimationFrame(draw);
+    state.raf = requestFrame(draw);
   };
 
   resize();
-  state.raf = requestAnimationFrame(draw);
-  window.addEventListener("resize", resize);
+  state.raf = requestFrame(draw);
+  addGlobalListener("resize", resize, { passive: true });
 
   return () => {
-    cancelAnimationFrame(state.raf);
-    window.removeEventListener("resize", resize);
+    if (typeof cancelFrame === "function") {
+      cancelFrame(state.raf);
+    }
+    removeGlobalListener("resize", resize);
     if (canvas.parentElement === container) {
       container.removeChild(canvas);
     }

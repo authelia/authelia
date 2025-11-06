@@ -194,11 +194,9 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
     const rootJustify = config.layout?.rootJustify ?? "flex-start";
     const rootAlign = config.layout?.rootAlign ?? "flex-start";
     const rootPadding = config.root.padding ?? config.layout?.rootInset ?? "0 1.5rem 3rem";
+    const hasExplicitRootPadding = config.root.padding !== undefined;
     const rootPaddingTop =
-        config.root.paddingTop ??
-        config.layout?.rootInsetTop ??
-        (config.root.padding !== undefined ? "0" : undefined) ??
-        "0";
+        config.root.paddingTop ?? config.layout?.rootInsetTop ?? (hasExplicitRootPadding ? "0" : undefined) ?? "0";
     const rootPaddingBottom = config.root.paddingBottom ?? config.layout?.rootInsetBottom;
     const containerMaxWidth =
         config.layout?.containerMaxWidth ?? (variant === "minimal" ? "min(1080px, 100%)" : undefined);
@@ -232,8 +230,8 @@ const useStyles = makeStyles<StyleParams>({ name: "PortalTemplates" })((theme: T
             textAlign: variant === "minimal" ? "left" : "center",
             isolation: "isolate",
             padding: rootPadding,
-            ...(rootPaddingTop !== undefined ? { paddingTop: rootPaddingTop } : {}),
-            ...(rootPaddingBottom !== undefined ? { paddingBottom: rootPaddingBottom } : {}),
+            ...(rootPaddingTop === undefined ? {} : { paddingTop: rootPaddingTop }),
+            ...(rootPaddingBottom === undefined ? {} : { paddingBottom: rootPaddingBottom }),
             display: "flex",
             alignItems: rootAlign,
             justifyContent: rootJustify,

@@ -1,4 +1,33 @@
-/* eslint-disable */
+const globalScope = typeof globalThis === "undefined" ? undefined : globalThis;
+
+const documentInstance =
+  typeof globalScope !== "undefined" && "document" in globalScope ? globalScope.document : null;
+
+const requestFrame =
+  typeof globalScope !== "undefined" && typeof globalScope.requestAnimationFrame === "function"
+    ? globalScope.requestAnimationFrame.bind(globalScope)
+    : undefined;
+
+const cancelFrame =
+  typeof globalScope !== "undefined" && typeof globalScope.cancelAnimationFrame === "function"
+    ? globalScope.cancelAnimationFrame.bind(globalScope)
+    : undefined;
+
+const addGlobalListener =
+  typeof globalScope !== "undefined" && typeof globalScope.addEventListener === "function"
+    ? globalScope.addEventListener.bind(globalScope)
+    : undefined;
+
+const removeGlobalListener =
+  typeof globalScope !== "undefined" && typeof globalScope.removeEventListener === "function"
+    ? globalScope.removeEventListener.bind(globalScope)
+    : undefined;
+
+const getDevicePixelRatio = () =>
+  typeof globalScope !== "undefined" && typeof globalScope.devicePixelRatio === "number"
+    ? globalScope.devicePixelRatio
+    : 1;
+
 const TAU = Math.PI * 2;
 const PARTICLE_COUNT = 140;
 
@@ -6,8 +35,26 @@ function random(min, max) {
   return Math.random() * (max - min) + min;
 }
 
+const project = (x, y, z, width, height, pointerX, pointerY) => {
+  const perspective = 1 / (1 - z * 0.75);
+  const px = width * 0.5 + (x + (pointerX - 0.5) * 1.6) * width * 0.48 * perspective;
+  const py = height * 0.45 + (y + (pointerY - 0.5) * 1.7) * height * 0.52 * perspective;
+  const scale = perspective;
+  return { x: px, y: py, scale };
+};
+
 export function mount({ container }) {
-  const canvas = document.createElement("canvas");
+  if (
+    !documentInstance ||
+    typeof documentInstance.createElement !== "function" ||
+    typeof requestFrame !== "function" ||
+    typeof addGlobalListener !== "function" ||
+    typeof removeGlobalListener !== "function"
+  ) {
+    return undefined;
+  }
+
+  const canvas = documentInstance.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
   if (!ctx) {
@@ -24,7 +71,7 @@ export function mount({ container }) {
   const state = {
     width: 0,
     height: 0,
-    dpr: window.devicePixelRatio || 1,
+    dpr: getDevicePixelRatio(),
     raf: 0,
     pointerX: 0.5,
     pointerY: 0.5,
@@ -50,7 +97,7 @@ export function mount({ container }) {
 
   const resize = () => {
     const rect = container.getBoundingClientRect();
-    state.dpr = window.devicePixelRatio || 1;
+    state.dpr = getDevicePixelRatio();
     state.width = rect.width;
     state.height = rect.height;
     canvas.width = Math.max(1, Math.floor(rect.width * state.dpr));
@@ -59,18 +106,10 @@ export function mount({ container }) {
     canvas.style.height = `${rect.height}px`;
   };
 
-  const project = (x, y, z, width, height, pointerX, pointerY) => {
-    const perspective = 1 / (1 - z * 0.75);
-    const px = width * 0.5 + (x + (pointerX - 0.5) * 1.6) * width * 0.48 * perspective;
-    const py = height * 0.45 + (y + (pointerY - 0.5) * 1.7) * height * 0.52 * perspective;
-    const scale = perspective;
-    return { x: px, y: py, scale };
-  };
-
   const draw = (timestamp) => {
     const { width, height, dpr, pointerX, pointerY, particles } = state;
     if (width === 0 || height === 0) {
-      state.raf = requestAnimationFrame(draw);
+      state.raf = requestFrame(draw);
       return;
     }
 
@@ -101,7 +140,10 @@ export function mount({ container }) {
       const gradient = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, radius * 3.4);
       const alpha = Math.min(1, particle.baseAlpha * (0.6 + twinkle));
       gradient.addColorStop(0, `hsla(${particle.hue}, ${particle.saturation}%, ${particle.lightness}%, ${alpha})`);
-      gradient.addColorStop(0.4, `hsla(${particle.hue + 12}, ${particle.saturation - 8}%, ${particle.lightness + 6}%, ${alpha * 0.6})`);
+      gradient.addColorStop(
+        0.4,
+        `hsla(${particle.hue + 12}, ${particle.saturation - 8}%, ${particle.lightness + 6}%, ${alpha * 0.6})`,
+      );
       gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
       ctx.fillStyle = gradient;
@@ -111,18 +153,20 @@ export function mount({ container }) {
     });
 
     ctx.restore();
-    state.raf = requestAnimationFrame(draw);
+    state.raf = requestFrame(draw);
   };
 
   createParticles();
   resize();
-  state.raf = requestAnimationFrame(draw);
+  state.raf = requestFrame(draw);
 
-  window.addEventListener("resize", resize);
+  addGlobalListener("resize", resize, { passive: true });
 
   return () => {
-    cancelAnimationFrame(state.raf);
-    window.removeEventListener("resize", resize);
+    if (typeof cancelFrame === "function") {
+      cancelFrame(state.raf);
+    }
+    removeGlobalListener("resize", resize);
     if (canvas.parentElement === container) {
       container.removeChild(canvas);
     }

@@ -115,31 +115,56 @@
       "pageInset": "clamp(1.6rem, 4vw, 3rem)",
       "rootInset": "clamp(1.2rem, 3.2vw, 2.6rem)",
       "cardVariant": "default",
-      "maxWidth": "xs",
+      "maxWidth": false,
       "rootJustify": "center",
       "rootAlign": "center",
-      "containerMaxWidth": "360px",
-      "containerMargin": "0"
+      "containerMaxWidth": "min(460px, 100%)",
+      "containerMargin": "0 auto"
     },
     "animations": {
       "gridShift": {
-        "0%": { "transform": "translate3d(0, 0, 0)" },
-        "100%": { "transform": "translate3d(0, -12px, 0)" }
+        "0%": {
+          "transform": "translate3d(0, 0, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(0, -12px, 0)"
+        }
       },
       "haloPulse": {
-        "0%": { "opacity": 0.45 },
-        "50%": { "opacity": 0.9 },
-        "100%": { "opacity": 0.45 }
+        "0%": {
+          "opacity": 0.45
+        },
+        "50%": {
+          "opacity": 0.9
+        },
+        "100%": {
+          "opacity": 0.45
+        }
       },
       "haloDrift": {
-        "0%": { "transform": "translate3d(-3%, -4%, 0)" },
-        "50%": { "transform": "translate3d(3%, 4%, 0)" },
-        "100%": { "transform": "translate3d(-3%, -4%, 0)" }
+        "0%": {
+          "transform": "translate3d(-3%, -4%, 0)"
+        },
+        "50%": {
+          "transform": "translate3d(3%, 4%, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(-3%, -4%, 0)"
+        }
       },
       "cardGlow": {
-        "0%": { "opacity": 0.42, "transform": "translate3d(-4%, -4%, 0)" },
-        "50%": { "opacity": 0.85, "transform": "translate3d(2%, 2%, 0)" },
-        "100%": { "opacity": 0.42, "transform": "translate3d(-4%, -4%, 0)" }
+        "0%": {
+          "opacity": 0.42,
+          "transform": "translate3d(-4%, -4%, 0)"
+        },
+        "50%": {
+          "opacity": 0.85,
+          "transform": "translate3d(2%, 2%, 0)"
+        },
+        "100%": {
+          "opacity": 0.42,
+          "transform": "translate3d(-4%, -4%, 0)"
+        }
       }
     }
   }
