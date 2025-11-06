@@ -7,7 +7,7 @@ steps:
   - block: "Public fork needs approval"
     if: build.pull_request.repository.fork == true
 
-  # Non-blocking pipeline for all others (tagged commits/local branches/PRs).
+  # Pipeline for all others (tagged commits/local branches/PRs).
   - label: ":pipeline: Setup Pipeline"
     command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
 
