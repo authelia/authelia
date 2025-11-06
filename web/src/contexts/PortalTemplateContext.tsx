@@ -352,13 +352,22 @@ const chooseTemplate = (
     };
 };
 
-const applyTemplateStyle = async (templateName: string, summary?: PortalTemplateSummary) => {
+const applyTemplateStyle = async (
+    templateName: string,
+    summary: PortalTemplateSummary | undefined,
+    signal: AbortSignal | null,
+    ownerToken: number,
+    ownerRef: React.MutableRefObject<number>,
+) => {
     const documentInstance = getDocumentInstance();
-    if (documentInstance === null) {
+    if (documentInstance === null || signal?.aborted || ownerToken !== ownerRef.current) {
         return;
     }
 
     for (const element of templateStyleCache.values()) {
+        if (ownerToken !== ownerRef.current || signal?.aborted) {
+            return;
+        }
         element.disabled = true;
         element.media = "print";
     }
@@ -367,13 +376,14 @@ const applyTemplateStyle = async (templateName: string, summary?: PortalTemplate
 
     try {
         const result = await fetchTemplateCss(templateName, summary);
-        if (result === null) {
-            if (existing) {
-                existing.disabled = false;
-                existing.media = "all";
-                existing.textContent = "";
-            }
+        if (signal?.aborted || ownerToken !== ownerRef.current) {
+            return;
+        }
 
+        if (result === null) {
+            if (signal?.aborted || ownerToken !== ownerRef.current) {
+                return;
+            }
             throw new Error(`CSS for portal template '${templateName}' could not be loaded from any candidate path.`);
         }
 
@@ -393,11 +403,15 @@ const applyTemplateStyle = async (templateName: string, summary?: PortalTemplate
             delete element.dataset.portalTemplateStylePath;
         }
 
+        if (signal?.aborted || ownerToken !== ownerRef.current) {
+            return;
+        }
+
         element.textContent = result.css;
         element.disabled = false;
         element.media = "all";
     } catch (error) {
-        if (existing) {
+        if (existing && ownerToken === ownerRef.current && !signal?.aborted) {
             existing.disabled = false;
             existing.media = "all";
         }
@@ -410,19 +424,28 @@ const applyTemplateWithFallback = async (
     manifest: PortalTemplateSummary[],
     templateName: PortalTemplateName,
     loadDefinition: (name: PortalTemplateName, summary?: PortalTemplateSummary) => Promise<PortalTemplateDefinition>,
+    signal: AbortSignal | null,
+    ownerToken: number,
+    ownerRef: React.MutableRefObject<number>,
 ): Promise<{ template: PortalTemplateName; definition: PortalTemplateDefinition }> => {
     const summary = findSummary(manifest, templateName);
     const definition = await loadDefinition(templateName, summary);
 
     try {
-        await applyTemplateStyle(templateName, summary);
+        await applyTemplateStyle(templateName, summary, signal, ownerToken, ownerRef);
+        if (signal?.aborted || ownerToken !== ownerRef.current) {
+            return { template: templateName, definition };
+        }
         return { template: templateName, definition };
     } catch (error) {
+        if (signal?.aborted || ownerToken !== ownerRef.current) {
+            throw error;
+        }
         console.error(error);
         const fallbackSummary = findSummary(manifest, DEFAULT_TEMPLATE);
         const fallbackDefinition = await loadDefinition(DEFAULT_TEMPLATE, fallbackSummary);
         try {
-            await applyTemplateStyle(DEFAULT_TEMPLATE, fallbackSummary);
+            await applyTemplateStyle(DEFAULT_TEMPLATE, fallbackSummary, signal, ownerToken, ownerRef);
         } catch (fallbackError) {
             console.error(fallbackError);
         }
@@ -443,6 +466,8 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
             mounted.current = false;
         };
     }, []);
+    const styleOwnerRef = useRef(0);
+    const styleAbortController = useRef<AbortController | null>(null);
 
     const loadDefinition = useCallback(
         async (
@@ -484,22 +509,44 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
             const baseConfig = await fetchPortalTemplateConfig();
             const storedTemplate = getStoredTemplate();
             const { name: templateName, persist } = chooseTemplate(manifest, storedTemplate, baseConfig?.template);
-            const { template: resolvedTemplate, definition: resolvedDefinition } = await applyTemplateWithFallback(
-                manifest,
-                templateName,
-                loadDefinition,
-            );
+            const controller = new AbortController();
+            styleAbortController.current?.abort();
+            styleAbortController.current = controller;
+            const ownerToken = styleOwnerRef.current + 1;
+            styleOwnerRef.current = ownerToken;
+            try {
+                const { template: resolvedTemplate, definition: resolvedDefinition } = await applyTemplateWithFallback(
+                    manifest,
+                    templateName,
+                    loadDefinition,
+                    controller.signal,
+                    ownerToken,
+                    styleOwnerRef,
+                );
 
-            if (isMounted && mounted.current) {
-                setState({
-                    template: resolvedTemplate,
-                    definition: resolvedDefinition,
-                    allowSwitcher: Boolean(baseConfig?.enableTemplateSwitcher),
-                    templates: manifest,
-                });
+                if (controller.signal.aborted || ownerToken !== styleOwnerRef.current) {
+                    return;
+                }
 
-                if (persist && resolvedTemplate === templateName) {
-                    setStoredTemplate(templateName);
+                if (isMounted && mounted.current) {
+                    setState({
+                        template: resolvedTemplate,
+                        definition: resolvedDefinition,
+                        allowSwitcher: Boolean(baseConfig?.enableTemplateSwitcher),
+                        templates: manifest,
+                    });
+
+                    if (persist && resolvedTemplate === templateName) {
+                        setStoredTemplate(templateName);
+                    }
+                }
+            } catch (error) {
+                if (!controller.signal.aborted && ownerToken === styleOwnerRef.current) {
+                    console.error(error);
+                }
+            } finally {
+                if (styleAbortController.current === controller) {
+                    styleAbortController.current = null;
                 }
             }
         };
@@ -520,33 +567,44 @@ export const PortalTemplateProvider = ({ children }: { children: React.ReactNode
                 return;
             }
 
-            const { template: templateToApply, definition: definitionToApply } = await applyTemplateWithFallback(
-                manifest,
-                resolved,
-                loadDefinition,
-            );
+            const controller = new AbortController();
+            styleAbortController.current?.abort();
+            styleAbortController.current = controller;
+            const ownerToken = styleOwnerRef.current + 1;
+            styleOwnerRef.current = ownerToken;
+            try {
+                const { template: templateToApply, definition: definitionToApply } = await applyTemplateWithFallback(
+                    manifest,
+                    resolved,
+                    loadDefinition,
+                    controller.signal,
+                    ownerToken,
+                    styleOwnerRef,
+                );
 
-            setState((prev) => ({
-                ...prev,
-                template: templateToApply,
-                definition: definitionToApply,
-            }));
+                if (controller.signal.aborted || ownerToken !== styleOwnerRef.current) {
+                    return;
+                }
 
-            setStoredTemplate(templateToApply);
+                setState((prev) => ({
+                    ...prev,
+                    template: templateToApply,
+                    definition: definitionToApply,
+                }));
+
+                setStoredTemplate(templateToApply);
+            } catch (error) {
+                if (!controller.signal.aborted && ownerToken === styleOwnerRef.current) {
+                    console.error(error);
+                }
+            } finally {
+                if (styleAbortController.current === controller) {
+                    styleAbortController.current = null;
+                }
+            }
         },
         [loadDefinition, state.templates],
     );
-
-    useEffect(() => {
-        if (state.template == null) {
-            return;
-        }
-
-        const summary = state.templates.find((entry) => entry.name.toLowerCase() === state.template.toLowerCase());
-        void applyTemplateStyle(state.template, summary).catch((error) => {
-            console.error(error);
-        });
-    }, [state.template, state.templates]);
 
     const value = useMemo<PortalTemplateContextValue>(
         () => ({

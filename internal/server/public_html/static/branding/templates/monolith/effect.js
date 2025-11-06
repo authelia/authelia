@@ -49,6 +49,10 @@ function createSparks(width, height) {
 }
 
 export function mount({ container }) {
+  if (!container?.appendChild) {
+    return undefined;
+  }
+
   if (!documentInstance?.createElement || !requestFrame || !addGlobalListener || !removeGlobalListener) {
     return undefined;
   }
@@ -59,8 +63,6 @@ export function mount({ container }) {
   if (!ctx) {
     return undefined;
   }
-
-  console.log("[Monolith Halo] effect v2025-11-10 loaded");
 
   canvas.style.position = "absolute";
   canvas.style.inset = "0";
@@ -82,8 +84,19 @@ export function mount({ container }) {
   const resize = () => {
     const rect = container.getBoundingClientRect();
     state.dpr = getDevicePixelRatio();
-    state.width = Math.max(1, rect.width);
-    state.height = Math.max(1, rect.height);
+    state.width = Math.max(0, rect.width);
+    state.height = Math.max(0, rect.height);
+
+    if (state.width === 0 || state.height === 0) {
+      canvas.width = 1;
+      canvas.height = 1;
+      canvas.style.width = "1px";
+      canvas.style.height = "1px";
+      state.halos = [];
+      state.sparks = [];
+      return;
+    }
+
     canvas.width = Math.floor(state.width * state.dpr);
     canvas.height = Math.floor(state.height * state.dpr);
     canvas.style.width = `${state.width}px`;

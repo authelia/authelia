@@ -29,6 +29,7 @@ func PortalTemplateGET(ctx *middlewares.AutheliaCtx) {
 	if err := ctx.SetJSONBody(response); err != nil {
 		ctx.Logger.Errorf("Unable to set portal template response in body: %s", err)
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+
 		return
 	}
 }

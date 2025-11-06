@@ -20,6 +20,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
     const handleRetry = () => {
         setState(WebAuthnTouchState.WaitTouch);
+        setStarted(false);
     };
 
     const handleStart = useCallback(async () => {
@@ -29,6 +30,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
             const optionsStatus = await getWebAuthnOptions();
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
+                if (!mounted.current) return;
                 setState(WebAuthnTouchState.Failure);
                 console.error(new Error(translate("Failed to initiate security key sign in process")));
 
@@ -38,18 +40,18 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
             const result = await getWebAuthnResult(optionsStatus.options);
 
             if (result.result !== AssertionResult.Success) {
-                if (!mounted.current) return;
-
-                setState(WebAuthnTouchState.Failure);
-
-                console.error(new Error(translate(AssertionResultFailureString(result.result))));
-
+                if (mounted.current) {
+                    setState(WebAuthnTouchState.Failure);
+                    console.error(new Error(translate(AssertionResultFailureString(result.result))));
+                }
                 return;
             }
 
             if (result.response == null) {
                 console.error(new Error(translate("The browser did not respond with the expected attestation data")));
-                setState(WebAuthnTouchState.Failure);
+                if (mounted.current) {
+                    setState(WebAuthnTouchState.Failure);
+                }
 
                 return;
             }
@@ -61,6 +63,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
             const response = await postWebAuthnResponse(result.response);
 
             if (response.data.status === "OK" && response.status === 200) {
+                if (!mounted.current) return;
                 props.onSecondFactorSuccess();
                 return;
             }

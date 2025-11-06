@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -16,9 +16,24 @@ const RevokeOneTimeCodeView = function () {
     const id = useID();
     const navigate = useRouterNavigate();
 
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current !== null) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
+        };
+    }, []);
+
     const handleRedirect = useCallback(() => {
-        setTimeout(() => {
+        if (timeoutRef.current !== null) {
+            clearTimeout(timeoutRef.current);
+        }
+        timeoutRef.current = setTimeout(() => {
             navigate(IndexRoute, false);
+            timeoutRef.current = null;
         }, 1500);
     }, [navigate]);
 

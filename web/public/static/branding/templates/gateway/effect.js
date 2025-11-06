@@ -28,6 +28,10 @@ function random(min, max) {
 }
 
 export function mount({ container }) {
+  if (!container?.appendChild) {
+    return undefined;
+  }
+
   if (!documentInstance?.createElement || !requestFrame || !addGlobalListener || !removeGlobalListener) {
     return undefined;
   }
