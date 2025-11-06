@@ -7,46 +7,72 @@
   {
     "name": "gateway",
     "displayName": "Gateway Flux",
-    "description": "Split control-room panel with glowing circuitry and a tight login column."
+    "description": "Split control-room panel with glowing circuitry and a tight login column.",
+    "definitionPath": "./static/branding/templates/gateway/definition.json",
+    "stylePath": "./static/branding/templates/gateway/style.css",
+    "effectPath": "./static/branding/templates/gateway/effect.js"
   },
   {
     "name": "aurora",
     "displayName": "Aurora Skies",
-    "description": "Tapered aurora sheets ripple across a midnight gradient and gather around a glassy form."
+    "description": "Tapered aurora sheets ripple across a midnight gradient and gather around a glassy form.",
+    "definitionPath": "./static/branding/templates/aurora/definition.json",
+    "stylePath": "./static/branding/templates/aurora/style.css",
+    "effectPath": "./static/branding/templates/aurora/effect.js"
   },
   {
     "name": "nebula",
     "displayName": "Nebula Bloom",
-    "description": "Diffused nebula petals bloom across the scene while a capsule-style form floats in frosted glass."
+    "description": "Diffused nebula petals bloom across the scene while a capsule-style form floats in frosted glass.",
+    "definitionPath": "./static/branding/templates/nebula/definition.json",
+    "stylePath": "./static/branding/templates/nebula/style.css",
+    "effectPath": "./static/branding/templates/nebula/effect.js"
   },
   {
     "name": "wave",
     "displayName": "Solar Drift",
-    "description": "Radiant solar tides sweep across the horizon while a sculpted login slab glows within layered glass."
+    "description": "Radiant solar tides sweep across the horizon while a sculpted login slab glows within layered glass.",
+    "definitionPath": "./static/branding/templates/wave/definition.json",
+    "stylePath": "./static/branding/templates/wave/style.css",
+    "effectPath": "./static/branding/templates/wave/effect.js"
   },
   {
     "name": "horizon",
     "displayName": "Neon Horizon",
-    "description": "Editorial split layout with sweeping gradients and a spotlighted authentication card."
+    "description": "Editorial split layout with sweeping gradients and a spotlighted authentication card.",
+    "definitionPath": "./static/branding/templates/horizon/definition.json",
+    "stylePath": "./static/branding/templates/horizon/style.css",
+    "effectPath": "./static/branding/templates/horizon/effect.js"
   },
   {
     "name": "particle",
     "displayName": "Particle Field",
-    "description": "A deep-space particle cloud shimmers around a dark glass monolith with a radiant halo."
+    "description": "A deep-space particle cloud shimmers around a dark glass monolith with a radiant halo.",
+    "definitionPath": "./static/branding/templates/particle/definition.json",
+    "stylePath": "./static/branding/templates/particle/style.css",
+    "effectPath": "./static/branding/templates/particle/effect.js"
   },
   {
     "name": "prism",
     "displayName": "Prism Flow",
-    "description": "Compact slab framed by a prismatic halo and luminous split-light backdrop."
+    "description": "Compact slab framed by a prismatic halo and luminous split-light backdrop.",
+    "definitionPath": "./static/branding/templates/prism/definition.json",
+    "stylePath": "./static/branding/templates/prism/style.css",
+    "effectPath": "./static/branding/templates/prism/effect.js"
   },
   {
     "name": "monolith",
     "displayName": "Monolith Halo",
-    "description": "Stacked glass column with layered halos and a slim vertical flow for the login controls."
+    "description": "Stacked glass column with layered halos and a slim vertical flow for the login controls.",
+    "definitionPath": "./static/branding/templates/monolith/definition.json",
+    "stylePath": "./static/branding/templates/monolith/style.css",
+    "effectPath": "./static/branding/templates/monolith/effect.js"
   },
   {
     "name": "matrix",
     "displayName": "Matrix Echo",
-    "description": "Grid-lined noir background with subtle data-flow columns and neon circuitry flourishes."
+    "description": "Grid-lined noir background with subtle data-flow columns and neon circuitry flourishes.",
+    "definitionPath": "./static/branding/templates/matrix/definition.json",
+    "stylePath": "./static/branding/templates/matrix/style.css"
   }
 ]

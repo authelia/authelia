@@ -42,14 +42,14 @@ static/
         ├── manifest.json
         └── <template-name>/
             ├── definition.json
-            ├── style.css            # optional CSS overrides
-            ├── config.json          # optional overrides
+            ├── style.css            # required stylesheet for the template
             └── effect.js            # optional JavaScript module
 ```
 
-Each template folder name becomes the runtime `name` that end users select from the palette. Only files that
-exist in this structure are served by Authelia, allowing you to add or remove templates without changing the
-binary.
+Each template folder name becomes the runtime `name` that end users select from the palette. The loader always
+expects a `style.css` file for non-default templates so that visual adjustments live in standard stylesheets.
+Only files that exist in this structure are served by Authelia, allowing you to add or remove templates without
+changing the binary.
 
 ## Controlling the Active Template
 
@@ -96,19 +96,25 @@ allowing templates to present a minimal chrome or rely on custom branding within
 
 ## Publishing the Catalogue
 
-`static/branding/templates/manifest.json` describes the templates that should appear in the switcher:
+`static/branding/templates/manifest.json` describes the templates that should appear in the switcher and where
+to fetch their assets:
 
 ```json
 [
   {
     "name": "nebula",
     "displayName": "Nebula Bloom",
-    "description": "Soft gradients with animated particles."
+    "description": "Soft gradients with animated particles.",
+    "definitionPath": "./static/branding/templates/nebula/definition.json",
+    "stylePath": "./static/branding/templates/nebula/style.css",
+    "effectPath": "./static/branding/templates/nebula/effect.js"
   },
   {
     "name": "gateway",
     "displayName": "Gateway Flux",
     "description": "Split panel layout with hero messaging.",
+    "stylePath": "./static/branding/templates/gateway/style.css",
+    "effectPath": "./static/branding/templates/gateway/effect.js",
     "interactive": "pointer"
   }
 ]
@@ -119,15 +125,19 @@ Only entries listed here are available for selection. Each object must include:
 - `name`: matches the folder name inside `templates/`.
 - `displayName`: the label displayed in the UI palette.
 - `description`: short helper text shown in the switcher.
+- `stylePath`: relative (or absolute) path to the stylesheet. If omitted Authelia falls back to
+  `./static/branding/templates/<name>/style.css`.
+- `definitionPath` (optional): override the default `definition.json` path.
+- `effectPath` (optional): loads the given JavaScript module and mounts it into the effect host.
 - `interactive` (optional): set to `"pointer"` to indicate additional interactivity; this is purely advisory for
   the UI.
 
 ## Designing Template Definitions
 
-`definition.json` contains the baseline styling for a template. At minimum the file must provide a `style`
-object following the schema used by [`@themes/portalTemplates.ts`](https://github.com/authelia/authelia/blob/master/web/src/themes/portalTemplates.ts).
-Fields map to logical areas of the UI (page, root container, card, typography, buttons, form controls, and
-status colours). Only the properties you specify are applied; everything else inherits from the built-in default.
+`definition.json` provides lightweight metadata and optional behavioural hints for a template. The file
+inherits the schema from [`@themes/portalTemplates.ts`](https://github.com/authelia/authelia/blob/master/web/src/themes/portalTemplates.ts)
+but you rarely need to populate the full `style` object now that styling lives in CSS. Most templates only
+specify identification fields and `layout` preferences while deferring all visual rules to `style.css`.
 
 Example skeleton:
 
@@ -136,61 +146,53 @@ Example skeleton:
   "name": "nebula",
   "displayName": "Nebula Bloom",
   "description": "Soft gradients with animated particles.",
-  "style": {
-    "page": {
-      "background": "linear-gradient(135deg, #121726, #331b44)"
-    },
-    "card": {
-      "background": "rgba(14, 18, 36, 0.85)",
-      "borderRadius": "16px",
-      "padding": "2.25rem 2rem",
-      "color": "#f0f4ff"
-    }
-  },
   "effect": {
     "module": "./static/branding/templates/nebula/effect.js?v=1"
+  },
+  "layout": {
+    "cardVariant": "minimal",
+    "maxWidth": "xs"
   }
 }
 ```
 
 - `name`, `displayName`, and `description` default to the manifest values when omitted, but keeping them in sync
   is recommended for clarity.
+- `layout` (optional) tweaks placement defaults (card variant, container width, alignment) without relying on CSS.
 - `effect` (optional) references a JavaScript module that can render animations in the dedicated background host.
   Version query strings are useful for cache busting during updates.
 
-## Optional Overrides
+## Template CSS
 
-If you need to customise a template per deployment, add `config.json` inside the template directory. Its
-contents are deep-merged into the definition `style`, allowing subtle adjustments without copying the full
-definition. For example:
-
-```json
-{
-  "style": {
-    "card": {
-      "background": "rgba(10, 12, 26, 0.75)"
-    }
-  }
-}
-```
-
-Omitting the file is perfectly valid. When merging fails due to invalid JSON, Authelia logs an error and falls
-back to the base definition.
-
-## Optional CSS
-
-If a template directory contains `style.css`, Authelia injects it into the document head whenever that template
-is active. The stylesheet is fetched with `cache: "no-store"` on each switch so you can iterate rapidly without
-rebuilding the bundle. The following selectors remain stable across releases and make targeting straightforward:
+Every template directory must include `style.css`. Authelia injects the stylesheet into the document head
+whenever that template is active, using `cache: "no-store"` so you can iterate rapidly without rebuilding the
+bundle. The following selectors remain stable across releases and make targeting straightforward:
 
 - `body[data-portal-template="<name>"]`: set for every template, including the built-in `default`.
 - `[data-portal-role="page"]`, `[data-portal-role="root"]`, and `[data-portal-role="card"]`: wrap the viewport,
   root grid, and primary login container.
 - `[data-portal-role="content"]`: contains the logo, headings, and first-factor form.
+- `.portal-template-effect`: host element for any JavaScript-driven visual effects.
 
 Use CSS for traditional layout tweaks (split panels, decorative pseudo-elements, additional gradients) while
 keeping theme tokens in `definition.json`. This hybrid approach mirrors how the example catalogue included in
 the repository layers dramatic visuals on top of the structured design tokens.
+
+Example skeleton:
+
+```css
+body[data-portal-template=\"nebula\"] {
+    color: #f5f7ff;
+    background: radial-gradient(circle at 30% 20%, #1b1e3d, #090b19 65%);
+}
+
+body[data-portal-template=\"nebula\"] [data-portal-role=\"card\"] {
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(24px);
+    box-shadow: 0 28px 64px -36px rgba(5, 8, 20, 0.85);
+}
+```
 
 ## Authoring Effect Modules
 
