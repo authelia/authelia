@@ -118,7 +118,7 @@
       "maxWidth": false,
       "rootJustify": "center",
       "rootAlign": "center",
-      "containerMaxWidth": "min(500px, 100%)",
+      "containerMaxWidth": "min(460px, 100%)",
       "containerMargin": "0 auto"
     },
     "animations": {

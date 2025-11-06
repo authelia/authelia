@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 )
 
@@ -25,7 +26,7 @@ func TestPortalTemplateDefault(t *testing.T) {
 	var body okResponse
 	assert.NoError(t, json.Unmarshal(mock.Ctx.Response.Body(), &body))
 	assert.Equal(t, "OK", body.Status)
-	assert.Equal(t, "none", body.Data.Template)
+	assert.Equal(t, schema.PortalTemplateNone, body.Data.Template)
 	assert.False(t, body.Data.EnableTemplateSwitcher)
 }
 

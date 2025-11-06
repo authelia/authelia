@@ -83,6 +83,11 @@ const (
 )
 
 const (
+	// PortalTemplateNone is the sentinel value that disables runtime template overrides.
+	PortalTemplateNone = "none"
+)
+
+const (
 	// LDAPGroupSearchModeFilter is the string for the filter group search mode.
 	LDAPGroupSearchModeFilter = "filter"
 

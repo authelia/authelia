@@ -21,11 +21,13 @@ func ValidateTheme(config *schema.Configuration, validator *schema.StructValidat
 		validator.Push(fmt.Errorf(errFmtThemeName, utils.StringJoinOr(validThemeNames), config.Theme))
 	}
 
-	if config.PortalTemplate != "" {
-		config.PortalTemplate = strings.ToLower(config.PortalTemplate)
+	if config.PortalTemplate == "" {
+		return
+	}
 
-		if config.PortalTemplate != "none" && !rePortalTemplateName.MatchString(config.PortalTemplate) {
-			validator.Push(fmt.Errorf(errFmtPortalTemplateName, config.PortalTemplate))
-		}
+	config.PortalTemplate = strings.ToLower(config.PortalTemplate)
+
+	if config.PortalTemplate != schema.PortalTemplateNone && !rePortalTemplateName.MatchString(config.PortalTemplate) {
+		validator.Push(fmt.Errorf(errFmtPortalTemplateName, config.PortalTemplate))
 	}
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"strings"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
@@ -15,7 +16,7 @@ type portalTemplateConfigurationBody struct {
 func PortalTemplateGET(ctx *middlewares.AutheliaCtx) {
 	template := ctx.Configuration.PortalTemplate
 	if template == "" {
-		template = "none"
+		template = schema.PortalTemplateNone
 	}
 
 	response := portalTemplateConfigurationBody{

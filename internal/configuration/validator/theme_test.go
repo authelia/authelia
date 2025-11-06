@@ -40,13 +40,13 @@ func (suite *Theme) TestShouldRaiseErrorWhenInvalidThemeProvided() {
 }
 
 func (suite *Theme) TestShouldAcceptPortalTemplateNone() {
-	suite.config.PortalTemplate = "none"
+	suite.config.PortalTemplate = schema.PortalTemplateNone
 
 	ValidateTheme(suite.config, suite.validator)
 
 	suite.Assert().Len(suite.validator.Warnings(), 0)
 	suite.Assert().Len(suite.validator.Errors(), 0)
-	suite.Assert().Equal("none", suite.config.PortalTemplate)
+	suite.Assert().Equal(schema.PortalTemplateNone, suite.config.PortalTemplate)
 }
 
 func (suite *Theme) TestShouldNormalizePortalTemplateToLower() {

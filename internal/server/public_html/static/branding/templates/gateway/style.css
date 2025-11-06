@@ -27,7 +27,7 @@ body[data-portal-template="gateway"] [data-portal-role="root"]::before {
 
 body[data-portal-template="gateway"] [data-portal-role="card"] {
     order: 2;
-    max-width: min(500px, 46vw);
+    max-width: min(460px, 44vw);
     margin-left: auto;
     position: relative;
     z-index: 1;
@@ -54,7 +54,7 @@ body[data-portal-template="gateway"] [data-portal-role="content"] {
 
     body[data-portal-template="gateway"] [data-portal-role="card"] {
         order: 1;
-        max-width: min(500px, 92vw);
+        max-width: min(460px, 90vw);
         margin: 0 auto;
     }
 }
