@@ -68,6 +68,24 @@ switcher:
 - `enableTemplateSwitcher` (optional, default `false`): when `true`, authenticated and unauthenticated users
   can pick templates in the portal header. Their selection persists across page reloads for the session.
 
+### Configuration Keys
+
+Portal behaviour can also be managed directly in `configuration.yml`:
+
+```yaml
+portal:
+  portal_template: nebula          # Optional. Name from the manifest (or `none`/`default`).
+  portal_template_switcher: true   # Optional. Enables the in-portal switcher.
+  portal_headline: "AndrewMohawk SSO Portal"
+  portal_subtitle: "Authenticate to access homelab services"
+```
+
+- `portal_template` sets the initial template. Unknown values fall back to `default`.
+- `portal_template_switcher` toggles the palette UI and persists the user’s choice via `localStorage`.
+- `portal_headline` / `portal_subtitle` provide optional copy above the login form; omit them to hide the headings.
+
+Configuration changes are applied on the next page load; a service restart is not required.
+
 This file is re-read on each page load, so deploying a new default does not require restarting the service.
 
 ### Portal Headline Text
