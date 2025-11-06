@@ -64,6 +64,11 @@ function deepMerge<T extends MergeableRecord>(target: T, source?: Partial<T>): T
             continue;
         }
 
+        if (sourceValue === null) {
+            output[key] = null;
+            continue;
+        }
+
         const targetValue = output[key];
         if (isMergeableRecord(targetValue) && isMergeableRecord(sourceValue)) {
             output[key] = deepMerge(targetValue, sourceValue);
