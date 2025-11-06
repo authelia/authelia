@@ -24,7 +24,7 @@ seo:
 - [Authelia]
   - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
 - [Gramps Web]
-  - [v25.10.1](https://github.com/gramps-project/gramps-web/releases/tag/v25.10.1)
+  - [v25.10.2](https://github.com/gramps-project/gramps-web/releases/tag/v25.10.2)
 
 {{% oidc-common %}}
 
@@ -62,7 +62,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'http://gramps.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/callback/?provider=custom'
+          - 'https://gramps.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/callback/?provider=custom'
         scopes:
           - 'openid'
           - 'profile'
