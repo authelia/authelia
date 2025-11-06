@@ -92,6 +92,7 @@ cat << EOF
 
 EOF
 fi
+if [[ ${CI_BYPASS} != "true" ]]; then
 if [[ ${BUILD_DUO} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-duo]"
@@ -136,6 +137,7 @@ cat << EOF
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
 
 EOF
+fi
 fi
 cat << EOF
   - label: ":docker: Build Image [coverage]"
