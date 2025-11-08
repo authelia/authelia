@@ -12,14 +12,14 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "0.5.7",
-		"@react-email/render": "1.4.0",
+		"@react-email/components": "1.0.0",
+		"@react-email/render": "2.0.0",
 		"esbuild": "0.25.12",
 		"react": "19.2.0",
 		"react-dom": "19.2.0",
-		"react-email": "4.3.2",
+		"react-email": "5.0.1",
 		"tailwind-merge": "3.3.1",
-		"tailwindcss": "4.1.16",
+		"tailwindcss": "4.1.17",
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {
@@ -29,7 +29,7 @@
 		"@types/react-dom": "19.2.2",
 		"eslint": "9.39.1",
 		"tsx": "4.20.6",
-		"vitest": "4.0.7"
+		"vitest": "4.0.8"
 	},
 	"pnpm": {
 		"overrides": {
@@ -40,7 +40,7 @@
 			"esbuild": "0.25.12",
 			"nanoid": "5.1.6",
 			"prismjs": "1.30.0",
-			"vite": "7.2.0"
+			"vite": "7.2.2"
 		}
 	}
 }

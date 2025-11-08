@@ -23,9 +23,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
 - [Gitea]
-  - [v1.17.0](https://github.com/go-gitea/gitea/releases/tag/v1.17.0)
+  - [v1.25.1](https://github.com/go-gitea/gitea/releases/tag/v1.25.1)
 
 {{% oidc-common %}}
 
@@ -64,8 +64,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
-        require_pkce: true
-        pkce_challenge_method: 'S256'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
           - 'https://gitea.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/authelia/callback'
         scopes:
