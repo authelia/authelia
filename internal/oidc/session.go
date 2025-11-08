@@ -42,15 +42,15 @@ func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string,
 }
 
 type AccessTokenSession struct {
-	Headers map[string]any `json:"headers"`
-	Claims  map[string]any `json:"claims"`
+	Headers map[string]any `json:"-"`
+	Claims  map[string]any `json:"-"`
 }
 
 // Session holds OpenID Connect 1.0 Session information.
 type Session struct {
 	*openid.DefaultSession `json:"id_token"`
 
-	AccessToken *AccessTokenSession `json:"access_token,omitempty"`
+	AccessToken *AccessTokenSession `json:"-"`
 
 	ChallengeID           uuid.NullUUID   `json:"challenge_id"`
 	ClientID              string          `json:"client_id"`

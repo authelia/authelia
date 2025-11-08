@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -60,7 +61,16 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 		return
 	}
 
-	ctx.Logger.Tracef("Access Request with id '%s' on client with id '%s' response is being generated for session with type '%T'", requester.GetID(), client.GetID(), requester.GetSession())
+	result := session.GetJWTClaims().(*jwt.JWTClaims)
+
+	ctx.GetLogger().WithFields(map[string]any{
+		"access_request_id": requester.GetID(),
+		"client_id":         client.GetID(),
+		"subject":           session.Subject,
+		"extra":             result.Extra,
+	}).Debug("Access Request Claims Result")
+
+	ctx.GetLogger().Tracef("Access Request with id '%s' on client with id '%s' response is being generated for session with type '%T'", requester.GetID(), client.GetID(), requester.GetSession())
 
 	if responder, err = ctx.Providers.OpenIDConnect.NewAccessResponse(ctx, requester); err != nil {
 		ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
@@ -107,6 +117,8 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	if client.GetEnableJWTProfileOAuthAccessTokens() {
+		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": requester.GetGrantedScopes()}).Debug("Hydrate JWT Profile Access Token claims")
+
 		if len(session.Subject) == 0 {
 			ctx.GetLogger().
 				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
@@ -140,6 +152,8 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 			return true
 		}
+
+		ctx.GetLogger().WithFields(map[string]any{"extra": extra}).Debug("Access Request JWT Profile Claims Result")
 
 		if len(extra) != 0 {
 			if session.AccessToken == nil {
