@@ -62,12 +62,14 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 	}
 
 	result := session.GetJWTClaims().(*jwt.JWTClaims)
+	result2 := requester.GetSession().(*oidc.Session).GetJWTClaims().(*jwt.JWTClaims)
 
 	ctx.GetLogger().WithFields(map[string]any{
 		"access_request_id": requester.GetID(),
 		"client_id":         client.GetID(),
 		"subject":           session.Subject,
 		"extra":             result.Extra,
+		"extra2":            result2.Extra,
 	}).Debug("Access Request Claims Result")
 
 	ctx.GetLogger().Tracef("Access Request with id '%s' on client with id '%s' response is being generated for session with type '%T'", requester.GetID(), client.GetID(), requester.GetSession())
