@@ -10,9 +10,6 @@ log:
 
 accessLog: {}
 
-pilot:
-  dashboard: false
-
 global:
   sendAnonymousUsage: false
   checkNewVersion: false
