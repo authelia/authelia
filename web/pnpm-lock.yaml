@@ -186,8 +186,8 @@ importers:
         specifier: 0.11.0
         version: 0.11.0(eslint@9.39.1(jiti@2.4.1))(typescript@5.9.3)(vite@7.2.2(@types/node@24.10.0)(jiti@2.4.1))
       vite-plugin-istanbul:
-        specifier: 7.2.0
-        version: 7.2.0(vite@7.2.2(@types/node@24.10.0)(jiti@2.4.1))
+        specifier: 7.2.1
+        version: 7.2.1(vite@7.2.2(@types/node@24.10.0)(jiti@2.4.1))
       vite-plugin-svgr:
         specifier: 4.5.0
         version: 4.5.0(rollup@4.46.2)(typescript@5.9.3)(vite@7.2.2(@types/node@24.10.0)(jiti@2.4.1))
@@ -1237,6 +1237,9 @@ packages:
 
   '@types/babel__generator@7.6.5':
     resolution: {integrity: sha512-h9yIuWbJKdOPLJTbmSpPzkF67e659PbQDba7ifWm5BJ8xTv+sDmS7rFmywkWOvXedGTivCdeGSIIX8WLcRTz8w==}
+
+  '@types/babel__generator@7.6.8':
+    resolution: {integrity: sha512-ASsj+tpEDsEiFr1arWrlN6V3mdfjRMZt6LtK/Vp/kreFLnr5QH5+DhvD5nINYZXzwJvXeGq+05iUXcAzVrqWtw==}
 
   '@types/babel__template@7.4.2':
     resolution: {integrity: sha512-/AVzPICMhMOMYoSx9MoKpGDKdBRsIXMNByh1PXSZoa+v6ZoLa8xxtsT/uLQ/NJm0XVAWl/BvId4MlDeXJaeIZQ==}
@@ -3985,8 +3988,8 @@ packages:
       vue-tsc:
         optional: true
 
-  vite-plugin-istanbul@7.2.0:
-    resolution: {integrity: sha512-bZGwPaFBRMSUAhBMlkezr+XRzPidqMhuL28svdVUzy6ltI8aQbkZfGKwHk7sJgVrQ1QCFdg6lFwFApK1SN1xUw==}
+  vite-plugin-istanbul@7.2.1:
+    resolution: {integrity: sha512-DSPi4ulvYsjnP44sTI5oriNosbM0E6m3uoCxjdxboTtVzxSkFwcDy3/JnSYKebjr+ZToJwVLTms+2CM0rmbbzQ==}
     peerDependencies:
       vite: 7.2.2
 
@@ -5265,6 +5268,10 @@ snapshots:
       '@types/babel__traverse': 7.20.2
 
   '@types/babel__generator@7.6.5':
+    dependencies:
+      '@babel/types': 7.28.5
+
+  '@types/babel__generator@7.6.8':
     dependencies:
       '@babel/types': 7.28.5
 
@@ -8417,10 +8424,11 @@ snapshots:
       eslint: 9.39.1(jiti@2.4.1)
       typescript: 5.9.3
 
-  vite-plugin-istanbul@7.2.0(vite@7.2.2(@types/node@24.10.0)(jiti@2.4.1)):
+  vite-plugin-istanbul@7.2.1(vite@7.2.2(@types/node@24.10.0)(jiti@2.4.1)):
     dependencies:
-      '@babel/generator': 7.28.3
+      '@babel/generator': 7.28.5
       '@istanbuljs/load-nyc-config': 1.1.0
+      '@types/babel__generator': 7.6.8
       espree: 10.4.0
       istanbul-lib-instrument: 6.0.3
       picocolors: 1.1.1
