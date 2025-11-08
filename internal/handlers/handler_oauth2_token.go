@@ -117,7 +117,7 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	if client.GetEnableJWTProfileOAuthAccessTokens() {
-		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": requester.GetGrantedScopes()}).Debug("Hydrate JWT Profile Access Token claims")
+		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": requester.GetRequestedScopes()}).Debug("Hydrate JWT Profile Access Token claims")
 
 		if len(session.Subject) == 0 {
 			ctx.GetLogger().
@@ -142,7 +142,7 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		extra := map[string]any{}
 
-		if err = client.GetClaimsStrategy().HydrateAccessTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), nil, nil, detailer, requester.GetRequestedAt(), ctx.GetClock().Now(), nil, extra); err != nil {
+		if err = client.GetClaimsStrategy().HydrateAccessTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetRequestedScopes(), nil, nil, detailer, requester.GetRequestedAt(), ctx.GetClock().Now(), nil, extra); err != nil {
 			ctx.GetLogger().
 				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
 				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
