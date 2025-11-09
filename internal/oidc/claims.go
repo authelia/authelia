@@ -387,7 +387,7 @@ func (r *ClaimRequest) Matches(value any) (match bool) {
 	return false
 }
 
-type ClaimResolver func(attribute string) (value any, ok bool)
+type ClaimResolver func(attribute string, requestedValue any, requestedValues []any) (value any, ok bool)
 
 type ClaimsStrategy interface {
 	ValidateClaimsRequests(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, requests *ClaimsRequests) (err error)
@@ -607,12 +607,10 @@ func (s *CustomClaimsStrategy) HydrateIDTokenClaims(ctx ClaimsStrategyContext, s
 		return oauthelia2.ErrServerError.WithDebug("The claims strategy had an error populating the ID Token Claims. Error occurred obtaining the attribute resolver.")
 	}
 
-	resolve := func(claim string) (value any, ok bool) {
-		return resolver.Resolve(claim, detailer, updated)
-	}
-
 	s.hydrateClaimsOriginal(original, extra)
 	s.hydrateClaimsAudience(client, original, extra)
+
+	resolve := newResolveFunc(resolver, detailer, updated)
 
 	if implicit {
 		s.hydrateClaimsScoped(ctx, strategy, client, scopes, resolve, nil, extra)
@@ -633,11 +631,10 @@ func (s *CustomClaimsStrategy) HydrateUserInfoClaims(ctx ClaimsStrategyContext, 
 		return oauthelia2.ErrServerError.WithDebug("The claims strategy had an error populating the ID Token Claims. Error occurred obtaining the attribute resolver.")
 	}
 
-	resolve := func(attribute string) (value any, ok bool) {
-		return resolver.Resolve(attribute, detailer, updated)
-	}
-
 	s.hydrateClaimsOriginalUserInfo(original, extra)
+
+	resolve := newResolveFunc(resolver, detailer, updated)
+
 	s.hydrateClaimsScoped(ctx, strategy, client, scopes, resolve, nil, extra)
 	s.hydrateClaimsScopedUserInfo(ctx, strategy, client, scopes, resolve, requested, nil, extra)
 	s.hydrateClaimsRequested(ctx, strategy, client, requests, claims, resolve, requested, extra)
@@ -768,7 +765,17 @@ func (s *CustomClaimsStrategy) hydrateClaim(_ Client, claim, attribute string, a
 		return
 	}
 
-	value, ok := resolve(attribute)
+	var (
+		requestedValue  any
+		requestedValues []any
+	)
+
+	if request != nil {
+		requestedValue = request.Value
+		requestedValues = request.Values
+	}
+
+	value, ok := resolve(attribute, requestedValue, requestedValues)
 
 	if !ok || value == nil {
 		return
@@ -840,4 +847,24 @@ func GetAudienceFromClaims(claims map[string]any) (audience []string, ok bool) {
 	}
 
 	return audience, ok
+}
+
+func newResolveFunc(resolver expression.UserAttributeResolver, detailer UserDetailer, updated time.Time) ClaimResolver {
+	return func(claim string, requestedValue any, requestedValues []any) (value any, ok bool) {
+		extra := map[string]any{}
+
+		if requestedValue != nil {
+			extra[expression.AttributeOpenIDAuthorizationRequestClaimValue] = requestedValue
+		}
+
+		if requestedValues != nil {
+			extra[expression.AttributeOpenIDAuthorizationRequestClaimValues] = requestedValues
+		}
+
+		if len(extra) != 0 {
+			return resolver.ResolveWithExtra(claim, detailer, updated, extra)
+		}
+
+		return resolver.Resolve(claim, detailer, updated)
+	}
 }

@@ -6,8 +6,9 @@ import (
 	"github.com/google/cel-go/interpreter"
 )
 
-func NewUserDetailerActivation(detailer UserDetailer, updated time.Time) *UserDetailerActivation {
+func NewUserDetailerActivation(parent interpreter.Activation, detailer UserDetailer, updated time.Time) *UserDetailerActivation {
 	return &UserDetailerActivation{
+		parent: parent,
 		detailer: &UserAttributeResolverDetailer{
 			UserDetailer: detailer,
 			updated:      updated,
@@ -16,6 +17,7 @@ func NewUserDetailerActivation(detailer UserDetailer, updated time.Time) *UserDe
 }
 
 type UserDetailerActivation struct {
+	parent   interpreter.Activation
 	detailer ExtendedUserDetailer
 }
 
@@ -103,6 +105,10 @@ func (a *UserDetailerActivation) ResolveName(name string) (object any, found boo
 		}
 	}
 
+	if a.parent != nil {
+		return a.parent.ResolveName(name)
+	}
+
 	return nil, false
 }
 
@@ -143,5 +149,5 @@ func (a *UserDetailerActivation) address() (address map[string]any) {
 }
 
 func (a *UserDetailerActivation) Parent() interpreter.Activation {
-	return nil
+	return a.parent
 }

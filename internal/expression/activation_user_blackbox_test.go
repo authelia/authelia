@@ -24,37 +24,39 @@ func TestUserDetailerActivationBlackBox(t *testing.T) {
 		}
 	}
 
-	activation = NewUserDetailerActivation(&authentication.UserDetailsExtended{
-		GivenName:      "john",
-		FamilyName:     "smith",
-		MiddleName:     "jones",
-		Nickname:       "johnny",
-		Profile:        mustParseURI("https://authellia.com/jsmith"),
-		Picture:        mustParseURI("https://authellia.com/jsmith.jpg"),
-		Website:        mustParseURI("https://authellia.com"),
-		Gender:         "male",
-		Birthdate:      "2020",
-		ZoneInfo:       "zoney",
-		Locale:         nil,
-		PhoneNumber:    "123567",
-		PhoneExtension: "123",
-		Address: &authentication.UserDetailsAddress{
-			StreetAddress: "123 Bay St",
-			Locality:      "General",
-			Region:        "Region",
-			PostalCode:    "445500",
-			Country:       "US",
-		},
-		Extra: map[string]any{
-			"example": 1,
-		},
-		UserDetails: &authentication.UserDetails{
-			Username:    "jsmith",
-			DisplayName: "John Smith",
-			Emails:      []string{"jsmith@example.com", "alt@example.com"},
-			Groups:      []string{"admin"},
-		},
-	}, time.Unix(100000000, 0))
+	activation = NewUserDetailerActivation(
+		nil,
+		&authentication.UserDetailsExtended{
+			GivenName:      "john",
+			FamilyName:     "smith",
+			MiddleName:     "jones",
+			Nickname:       "johnny",
+			Profile:        mustParseURI("https://authellia.com/jsmith"),
+			Picture:        mustParseURI("https://authellia.com/jsmith.jpg"),
+			Website:        mustParseURI("https://authellia.com"),
+			Gender:         "male",
+			Birthdate:      "2020",
+			ZoneInfo:       "zoney",
+			Locale:         nil,
+			PhoneNumber:    "123567",
+			PhoneExtension: "123",
+			Address: &authentication.UserDetailsAddress{
+				StreetAddress: "123 Bay St",
+				Locality:      "General",
+				Region:        "Region",
+				PostalCode:    "445500",
+				Country:       "US",
+			},
+			Extra: map[string]any{
+				"example": 1,
+			},
+			UserDetails: &authentication.UserDetails{
+				Username:    "jsmith",
+				DisplayName: "John Smith",
+				Emails:      []string{"jsmith@example.com", "alt@example.com"},
+				Groups:      []string{"admin"},
+			},
+		}, time.Unix(100000000, 0))
 
 	testCases := []struct {
 		name     string
@@ -104,11 +106,13 @@ func TestUserDetailerActivationBlackBox(t *testing.T) {
 }
 
 func TestUserDetailerActivationBlackBoxNoValues(t *testing.T) {
-	activation := NewUserDetailerActivation(&authentication.UserDetailsExtended{
-		UserDetails: &authentication.UserDetails{
-			Username: "jsmith",
-		},
-	}, time.Unix(100000000, 0))
+	activation := NewUserDetailerActivation(
+		nil,
+		&authentication.UserDetailsExtended{
+			UserDetails: &authentication.UserDetails{
+				Username: "jsmith",
+			},
+		}, time.Unix(100000000, 0))
 
 	testCases := []struct {
 		name     string
