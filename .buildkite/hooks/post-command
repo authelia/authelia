@@ -53,7 +53,7 @@ if [[ ${BUILDKITE_LABEL} == ":docker: Deploy Manifest" ]] && [[ ${BUILDKITE_BRAN
   anontoken=$(curl -fsL --retry 3 'https://auth.docker.io/token?service=registry.docker.io&scope=repository:authelia/authelia:pull' | jq -r .token)
   authtoken=$(curl -fs --retry 3 -H "Content-Type: application/json" -X POST -d '{"username": "'${DOCKER_TOKEN_USERNAME}'", "password": "'${DOCKER_TOKEN}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
   dockerbranchtags=$(curl -fsL --retry 3 -H "Authorization: Bearer ${anontoken}" https://registry-1.docker.io/v2/authelia/authelia/tags/list | jq -r '.tags[] | select(startswith("PR") | not)' | sed -r '/^(latest|master|develop|v.*|([[:digit:]]+)\.?([[:digit:]]+)?\.?([[:digit:]]+)?)$/d' | sort)
-  githubbranches=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/branches | jq -r '.[].name' | sort)
+  githubbranches=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/branches?per_page=100 | jq -r '.[].name' | sort)
   if [[ -z "${authtoken}" ]]; then
     echo ":warning: docker.io auth token not acquired; DockerHub tag deletions will fail." >&2
   fi
@@ -71,7 +71,7 @@ if [[ ${BUILDKITE_LABEL} == ":docker: Deploy Manifest" ]] && [[ ${BUILDKITE_BRAN
 
   echo "--- :docker: Removing tags for merged or closed pull requests"
   dockerprtags=$(curl -fsL --retry 3 -H "Authorization: Bearer ${anontoken}" https://registry-1.docker.io/v2/authelia/authelia/tags/list | jq -r '.tags[] | select(startswith("PR"))' | sort)
-  githubprs=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/pulls | jq -r '.[].number' | sed -e 's/^/PR/' | sort)
+  githubprs=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/pulls?per_page=100 | jq -r '.[].number' | sed -e 's/^/PR/' | sort)
 
   for PR_TAG in $(comm -23 <(echo "${dockerprtags}") <(echo "${githubprs}")); do
     echo "Removing tag ${PR_TAG} from docker.io"

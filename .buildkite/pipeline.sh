@@ -36,6 +36,11 @@ if [[ ${BUILDKITE_PULL_REQUEST_DRAFT} == "true" ]] && [[ ${BUILDKITE_BRANCH} =~ 
   buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/draft
 fi
 
+if [[ ${BUILDKITE_BRANCH} =~ ^gh-readonly-queue/.* ]]; then
+  CI_BYPASS="true"
+  buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/merge-queue
+fi
+
 cat << EOF
 env:
   BUILD_DUO: ${BUILD_DUO}
@@ -68,10 +73,10 @@ steps:
     depends_on:
       - "unit-test"
       - "build-docker-linux"
-    if: build.env("CI_BYPASS") != "true" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/
+    if: build.env("CI_BYPASS") != "true" && build.message !~ /^docs/
 
 EOF
-if [[ "${BUILDKITE_TAG}" != "" ]]; then
+if [[ ${BUILDKITE_TAG} != "" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [baseimage]"
     trigger: "baseimage"
@@ -87,6 +92,7 @@ cat << EOF
 
 EOF
 fi
+if [[ ${CI_BYPASS} != "true" ]]; then
 if [[ ${BUILD_DUO} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-duo]"
@@ -132,6 +138,7 @@ cat << EOF
 
 EOF
 fi
+fi
 cat << EOF
   - label: ":docker: Build Image [coverage]"
     command: "authelia-scripts docker build --container=coverage"
@@ -170,7 +177,15 @@ cat << EOF
     agents:
       upload: "fast"
     key: "build-docker-linux"
-    if: build.env("CI_BYPASS") != "true" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/
+EOF
+if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
+cat << EOF
+    concurrency: 1
+    concurrency_group: "deployments"
+EOF
+fi
+cat << EOF
+    if: build.env("CI_BYPASS") != "true" && build.message !~ /^docs/
 
   - label: ":github: Deploy Artifacts"
     command: "ghartifacts.sh"

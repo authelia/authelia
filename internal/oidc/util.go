@@ -475,7 +475,7 @@ func ValidateSectorIdentifierURI(ctx ClientContext, cache map[string][]string, s
 	var invalidRedirectURIs []string //nolint:prealloc
 
 	for _, rawRedirectURI := range redirectURIs {
-		if _, match := oauthelia2.IsMatchingRedirectURI(rawRedirectURI, sectorRedirectURIs); match {
+		if _, match := oauthelia2.IsMatchingRedirectURI(rawRedirectURI, sectorRedirectURIs, &oauthelia2.BestPracticeURIComparisonStrategy{}); match {
 			continue
 		}
 

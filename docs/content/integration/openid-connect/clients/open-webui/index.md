@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
+  - [v4.39.14](https://github.com/authelia/authelia/releases/tag/v4.39.14)
 - [Open WebUI]
   - [v0.6.13](https://github.com/open-webui/open-webui/releases/tag/v0.6.13)
 
@@ -107,6 +107,7 @@ ENABLE_OAUTH_ROLE_MANAGEMENT=true
 OAUTH_ALLOWED_ROLES=openwebui,openwebui-admin
 OAUTH_ADMIN_ROLES=openwebui-admin
 OAUTH_ROLES_CLAIM=groups
+OAUTH_CODE_CHALLENGE_METHOD=S256
 ```
 
 ###### Docker Compose
@@ -127,6 +128,7 @@ services:
       OAUTH_ALLOWED_ROLES: 'openwebui,openwebui-admin'
       OAUTH_ADMIN_ROLES: 'openwebui-admin'
       OAUTH_ROLES_CLAIM: 'groups'
+      OAUTH_CODE_CHALLENGE_METHOD: 'S256'
 ```
 
 ## See Also

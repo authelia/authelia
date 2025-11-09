@@ -3,7 +3,7 @@
 set +u
 
 INTEGRATION() {
-  if [[ "${BUILDKITE_BRANCH}" =~ ^renovate/ ]]; then
+  if [[ "${BUILDKITE_BRANCH}" =~ ^renovate- ]]; then
     sed -i "s/${CONTAINER}/${CONTAINER}:renovate/" "${FILE}"
   elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
     sed -i "s/${CONTAINER}/${CONTAINER}:${BUILDKITE_BRANCH}/" "${FILE}"
@@ -44,9 +44,9 @@ if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
     FILE="internal/suites/example/compose/haproxy/compose.yml"
     INTEGRATION
   elif [[ "${BUILD_SAMBA}" == "true" ]] && [[ "${SUITE}" == "ActiveDirectory" ]]; then
-      CONTAINER="integration-samba"
-      FILE="internal/suites/example/compose/samba/compose.yml"
-      INTEGRATION
+    CONTAINER="integration-samba"
+    FILE="internal/suites/example/compose/samba/compose.yml"
+    INTEGRATION
   fi
 fi
 
