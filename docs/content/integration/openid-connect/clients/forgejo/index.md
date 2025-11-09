@@ -169,7 +169,7 @@ Follow the instructions in [Web GUI](#web-gui) with the following additions
 {{< figure src="forgejo-sshpubkey.png" alt="Forgejo" width="300" >}}
 
 #### CLI
-forgejo v13.0.0 adds the flag `--attribute-ssh-public-key` enabling the forgejo provider configuration to be done entirely from the CLI. Follow the instructions from [CLI](#cli), and change the following command:
+Follow the instructions from [CLI](#cli), and change the following command:
 
 2. Run `forgejo admin auth add-oauth --auto-discover-url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration --name=authelia --provider=openidConnect  --key=forgejo --secret=insecure_secret  --scopes='openid email profile groups forgejo' --attribute-ssh-public-key=sshpubkey`
 
