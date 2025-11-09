@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
 - [Forgejo]
-  - [v11.0.2](https://codeberg.org/forgejo/forgejo/releases/tag/v11.0.2)
+  - [v13.0.2](https://codeberg.org/forgejo/forgejo/releases/tag/v13.0.2)
 
 {{% oidc-common %}}
 
