@@ -143,6 +143,14 @@ func newAttributeUpdatedAt() cel.EnvOption {
 	return cel.Variable(AttributeUserUpdatedAt, cel.IntType)
 }
 
+func newAttributeOAuth2AuthorizationRequestClaimValue() cel.EnvOption {
+	return cel.Variable(AttributeOpenIDAuthorizationRequestClaimValue, cel.DynType)
+}
+
+func newAttributeOAuth2AuthorizationRequestClaimValues() cel.EnvOption {
+	return cel.Variable(AttributeOpenIDAuthorizationRequestClaimValues, cel.ListType(cel.DynType))
+}
+
 func IsReservedAttribute(key string) bool {
 	switch key {
 	case AttributeUserUsername, AttributeUserGroups, AttributeUserDisplayName, AttributeUserEmail, AttributeUserEmails,
@@ -151,7 +159,7 @@ func IsReservedAttribute(key string) bool {
 		AttributeUserWebsite, AttributeUserGender, AttributeUserBirthdate, AttributeUserZoneInfo, AttributeUserLocale,
 		AttributeUserPhoneNumber, AttributeUserPhoneNumberRFC3966, AttributeUserPhoneExtension,
 		AttributeUserPhoneNumberVerified, AttributeUserAddress, AttributeUserStreetAddress, AttributeUserLocality,
-		AttributeUserRegion, AttributeUserPostalCode, AttributeUserCountry, AttributeUserUpdatedAt:
+		AttributeUserRegion, AttributeUserPostalCode, AttributeUserCountry, AttributeUserUpdatedAt, AttributeOpenIDAuthorizationRequestClaimValue:
 		return true
 	default:
 		return false
@@ -230,5 +238,7 @@ func getStandardCELEnvOpts() []cel.EnvOption {
 		newAttributeUserPostalCode(),
 		newAttributeUserCountry(),
 		newAttributeUpdatedAt(),
+		newAttributeOAuth2AuthorizationRequestClaimValue(),
+		newAttributeOAuth2AuthorizationRequestClaimValues(),
 	}
 }
