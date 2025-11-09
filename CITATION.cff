@@ -4,8 +4,8 @@ type: software
 title: Authelia
 license: Apache-2.0
 commit: 5a6e840e6f3f6b171ee05ce29e1c7cc2f3787ea4
-version: 4.39.13
-date-released: '2025-10-12'
+version: v4.39.14
+date-released: '2025-10-27'
 repository-code: 'https://github.com/authelia/authelia/'
 url: 'https://www.authelia.com/'
 abstract: >-
