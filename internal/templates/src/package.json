@@ -12,35 +12,35 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "0.5.7",
-		"@react-email/render": "1.4.0",
-		"esbuild": "0.25.11",
+		"@react-email/components": "1.0.0",
+		"@react-email/render": "2.0.0",
+		"esbuild": "0.27.0",
 		"react": "19.2.0",
 		"react-dom": "19.2.0",
-		"react-email": "4.3.1",
-		"tailwind-merge": "3.3.1",
-		"tailwindcss": "4.1.16",
+		"react-email": "5.0.1",
+		"tailwind-merge": "3.4.0",
+		"tailwindcss": "4.1.17",
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@types/node": "24.9.1",
+		"@types/node": "24.10.0",
 		"@types/react": "19.2.2",
 		"@types/react-dom": "19.2.2",
-		"eslint": "9.38.0",
+		"eslint": "9.39.1",
 		"tsx": "4.20.6",
-		"vitest": "3.2.4"
+		"vitest": "4.0.8"
 	},
 	"pnpm": {
 		"overrides": {
-			"@babel/traverse": "7.28.4",
+			"@babel/traverse": "7.28.5",
 			"@babel/helpers": "7.28.4",
 			"@babel/runtime": "7.28.4",
 			"brace-expansion": "4.0.1",
-			"esbuild": "0.25.11",
+			"esbuild": "0.27.0",
 			"nanoid": "5.1.6",
 			"prismjs": "1.30.0",
-			"vite": "7.1.11"
+			"vite": "7.2.2"
 		}
 	}
 }

@@ -23,9 +23,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.13](https://github.com/authelia/authelia/releases/tag/v4.39.13)
+  - [v4.39.14](https://github.com/authelia/authelia/releases/tag/v4.39.14)
 - [Forgejo]
-  - [v11.0.2](https://codeberg.org/forgejo/forgejo/releases/tag/v11.0.2)
+  - [v13.0.2](https://codeberg.org/forgejo/forgejo/releases/tag/v13.0.2)
 
 {{% oidc-common %}}
 
@@ -169,7 +169,9 @@ Follow the instructions in [Web GUI](#web-gui) with the following additions
 {{< figure src="forgejo-sshpubkey.png" alt="Forgejo" width="300" >}}
 
 #### CLI
-As of `forgejo version 12.0.1+gitea-1.22.0` there doesn't appear to be a CLI flag to specify the Public SSH key attribute and from testing this does not work if left empty. The custom `forgejo` scope can be added to the original command but it is still necessary to set the attribute using the Web UI or API.
+Follow the instructions from [CLI](#cli), and change the following command:
+
+2. Run `forgejo admin auth add-oauth --auto-discover-url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration --name=authelia --provider=openidConnect  --key=forgejo --secret=insecure_secret  --scopes='openid email profile groups forgejo' --attribute-ssh-public-key=sshpubkey`
 
 ## See Also
 

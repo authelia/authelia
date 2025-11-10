@@ -29,12 +29,6 @@ func newBuildCmd() (cmd *cobra.Command) {
 func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 	branch := os.Getenv("BUILDKITE_BRANCH")
 
-	if strings.HasPrefix(branch, "renovate/") {
-		buildFrontend(branch)
-		log.Info("Skip building Authelia for deps...")
-		os.Exit(0)
-	}
-
 	log.Info("Building Authelia...")
 
 	cmdCleanRun(cobraCmd, args)
@@ -51,7 +45,7 @@ func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 	}
 
 	log.Debug("Building Authelia frontend...")
-	buildFrontend(branch)
+	buildFrontend()
 
 	log.Debug("Building swagger-ui frontend...")
 	buildSwagger()
@@ -126,7 +120,7 @@ func buildAutheliaBinaryGO(xflags []string) {
 	}
 }
 
-func buildFrontend(branch string) {
+func buildFrontend() {
 	cmd := utils.CommandWithStdout("pnpm", "install", "--ignore-scripts")
 	cmd.Dir = webDirectory
 
@@ -135,14 +129,12 @@ func buildFrontend(branch string) {
 		log.Fatal(err)
 	}
 
-	if !strings.HasPrefix(branch, "renovate/") {
-		cmd = utils.CommandWithStdout("pnpm", "build")
-		cmd.Dir = webDirectory
+	cmd = utils.CommandWithStdout("pnpm", "build")
+	cmd.Dir = webDirectory
 
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
