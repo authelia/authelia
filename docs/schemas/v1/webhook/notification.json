@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/authelia/authelia/blob/master/docs/schemas/v1/webhook/notification.json",
+  "title": "Authelia Webhook Notification",
+  "description": "Schema for notification webhooks sent by Authelia for user identity verification events",
+  "type": "object",
+  "required": [
+    "$schema",
+    "recipient",
+    "subject",
+    "body",
+    "timestamp"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "JSON Schema reference URL for this webhook payload format",
+      "const": "https://github.com/authelia/authelia/blob/master/docs/schemas/v1/webhook/notification.json"
+    },
+    "recipient": {
+      "type": "string",
+      "format": "email",
+      "description": "Email address of the notification recipient (user receiving the notification)",
+      "examples": [
+        "user@example.com",
+        "admin@authelia.com"
+      ]
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject line of the notification message",
+      "minLength": 1,
+      "examples": [
+        "[Authelia] Password Reset",
+        "[Authelia] Register Your Security Key",
+        "[Authelia] Confirm Your Identity"
+      ]
+    },
+    "body": {
+      "type": "string",
+      "description": "Plaintext body content of the notification message, rendered from email templates",
+      "minLength": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp when the notification was generated and sent",
+      "examples": [
+        "2024-03-14T06:00:14Z",
+        "2024-11-11T00:32:27Z"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$comment": "This schema defines the webhook payload structure for Authelia user notifications. Webhooks are sent for identity verification events including password resets, TOTP registration, WebAuthn registration, and other user-specific communications that would otherwise be sent via email or written to the filesystem notifier.",
+  "examples": [
+    {
+      "$schema": "https://github.com/authelia/authelia/blob/master/docs/schemas/v1/webhook/notification.json",
+      "recipient": "user@example.com",
+      "subject": "[Authelia] Password Reset",
+      "body": "Click here to reset your password: https://authelia.example.com/reset?token=abc123",
+      "timestamp": "2024-03-14T06:00:14Z"
+    },
+    {
+      "$schema": "https://github.com/authelia/authelia/blob/master/docs/schemas/v1/webhook/notification.json",
+      "recipient": "admin@example.com",
+      "subject": "[Authelia] Register Your Security Key",
+      "body": "Follow the link below to register your security key:\n\nhttps://authelia.example.com/webauthn/register?token=def456\n\nThis link expires in 5 minutes.",
+      "timestamp": "2024-11-11T00:32:27Z"
+    }
+  ]
+}

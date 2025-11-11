@@ -7,11 +7,12 @@ WORKDIR /node/src/app
 
 COPY --link web ./
 
-# Install the dependencies and build
+# Install git (required by lefthook) and build dependencies
 RUN \
+	apk add --no-cache git && \
 	yarn global add pnpm && \
-	pnpm install --frozen-lockfile && \
-	pnpm coverage
+	pnpm install --frozen-lockfile --ignore-scripts && \
+	pnpm build
 
 # =======================================
 # ===== Build image for the backend =====
