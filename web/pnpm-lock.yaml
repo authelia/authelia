@@ -15,7 +15,7 @@ overrides:
   babel: 7.26.10
   brace-expansion: 4.0.1
   esbuild: 0.27.0
-  eslint-plugin-jest: 29.0.1
+  eslint-plugin-jest: 29.1.0
   eslint-plugin-testing-library: 7.13.3
   import-meta-resolve: 4.2.0
   path-to-regexp: 8.3.0
