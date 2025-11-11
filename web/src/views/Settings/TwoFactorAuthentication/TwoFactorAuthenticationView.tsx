@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -16,9 +16,7 @@ import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthen
 import WebAuthnCredentialsDisabledPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsDisabledPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
 
-interface Props {}
-
-const TwoFactorAuthenticationView = function (props: Props) {
+const TwoFactorAuthenticationView = function () {
     const { t: translate } = useTranslation("settings");
 
     const [refreshState, setRefreshState] = useState(0);
@@ -32,8 +30,9 @@ const TwoFactorAuthenticationView = function (props: Props) {
     const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
     const [userWebAuthnCredentials, fetchUserWebAuthnCredentials, , fetchUserWebAuthnCredentialsError] =
         useUserWebAuthnCredentials();
-    const [hasTOTP, setHasTOTP] = useState(false);
-    const [hasWebAuthn, setHasWebAuthn] = useState(false);
+
+    const hasTOTP = useMemo(() => userInfo?.has_totp ?? false, [userInfo?.has_totp]);
+    const hasWebAuthn = useMemo(() => userInfo?.has_webauthn ?? false, [userInfo?.has_webauthn]);
 
     const handleRefreshWebAuthnState = () => {
         setRefreshState((refreshState) => refreshState + 1);
@@ -58,20 +57,6 @@ const TwoFactorAuthenticationView = function (props: Props) {
             setLocalStorageMethod([...configuration.available_methods][0]);
         }
     }, [configuration, localStorageMethodAvailable, setLocalStorageMethod]);
-
-    useEffect(() => {
-        if (userInfo === undefined) {
-            return;
-        }
-
-        if (userInfo.has_webauthn !== hasWebAuthn) {
-            setHasWebAuthn(userInfo.has_webauthn);
-        }
-
-        if (userInfo.has_totp !== hasTOTP) {
-            setHasTOTP(userInfo.has_totp);
-        }
-    }, [hasTOTP, hasWebAuthn, userInfo]);
 
     useEffect(() => {
         if (!enabledTOTP) {
@@ -142,50 +127,48 @@ const TwoFactorAuthenticationView = function (props: Props) {
     };
 
     return (
-        <Fragment>
-            <Grid container spacing={2}>
-                {renderSecondFactorDisabled() ? (
-                    <Grid size={{ xs: 12 }} display="flex" justifyContent="center" alignItems="center">
-                        <Paper>
-                            <Typography variant={"h6"} sx={{ p: 6 }} text-align="center">
-                                {translate("There are no protected applications that require a second factor method")}
-                            </Typography>
-                        </Paper>
-                    </Grid>
-                ) : null}
-                {!renderSecondFactorDisabled() && enabledTOTP ? (
-                    <Grid size={{ xs: 12 }}>
-                        <OneTimePasswordPanel
+        <Grid container spacing={2}>
+            {renderSecondFactorDisabled() ? (
+                <Grid size={{ xs: 12 }} display="flex" justifyContent="center" alignItems="center">
+                    <Paper>
+                        <Typography variant={"h6"} sx={{ p: 6 }} text-align="center">
+                            {translate("There are no protected applications that require a second factor method")}
+                        </Typography>
+                    </Paper>
+                </Grid>
+            ) : null}
+            {!renderSecondFactorDisabled() && enabledTOTP ? (
+                <Grid size={{ xs: 12 }}>
+                    <OneTimePasswordPanel
+                        info={userInfo}
+                        config={userTOTPConfig}
+                        handleRefreshState={handleRefreshTOTPState}
+                    />
+                </Grid>
+            ) : null}
+            {!renderSecondFactorDisabled() || enabledWebAuthn ? (
+                <Grid size={{ xs: 12 }}>
+                    {enabledWebAuthn ? (
+                        <WebAuthnCredentialsPanel
                             info={userInfo}
-                            config={userTOTPConfig}
-                            handleRefreshState={handleRefreshTOTPState}
+                            credentials={userWebAuthnCredentials}
+                            handleRefreshState={handleRefreshWebAuthnState}
                         />
-                    </Grid>
-                ) : null}
-                {!renderSecondFactorDisabled() || enabledWebAuthn ? (
-                    <Grid size={{ xs: 12 }}>
-                        {enabledWebAuthn ? (
-                            <WebAuthnCredentialsPanel
-                                info={userInfo}
-                                credentials={userWebAuthnCredentials}
-                                handleRefreshState={handleRefreshWebAuthnState}
-                            />
-                        ) : (
-                            <WebAuthnCredentialsDisabledPanel />
-                        )}
-                    </Grid>
-                ) : null}
-                {configuration && userInfo ? (
-                    <Grid size={{ xs: 12 }}>
-                        <TwoFactorAuthenticationOptionsPanel
-                            config={configuration}
-                            info={userInfo}
-                            refresh={handleRefreshUserInfo}
-                        />
-                    </Grid>
-                ) : undefined}
-            </Grid>
-        </Fragment>
+                    ) : (
+                        <WebAuthnCredentialsDisabledPanel />
+                    )}
+                </Grid>
+            ) : null}
+            {configuration && userInfo ? (
+                <Grid size={{ xs: 12 }}>
+                    <TwoFactorAuthenticationOptionsPanel
+                        config={configuration}
+                        info={userInfo}
+                        refresh={handleRefreshUserInfo}
+                    />
+                </Grid>
+            ) : undefined}
+        </Grid>
     );
 };
 

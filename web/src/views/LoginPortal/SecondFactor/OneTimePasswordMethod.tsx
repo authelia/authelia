@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -33,14 +33,44 @@ const OneTimePasswordMethod = function (props: Props) {
     const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
 
     const [passcode, setPasscode] = useState("");
-    const [state, setState] = useState(
+
+    const stateReducer = useCallback(
+        (state: State, action: { type: "idle" | "success" | "failure" | "in_progress" | "rate_limited" }) => {
+            switch (action.type) {
+                case "idle":
+                    return State.Idle;
+                case "success":
+                    return State.Success;
+                case "failure":
+                    return State.Failure;
+                case "in_progress":
+                    return State.InProgress;
+                case "rate_limited":
+                    return State.RateLimited;
+                default:
+                    return state;
+            }
+        },
+        [],
+    );
+
+    const [state, dispatch] = useReducer(
+        stateReducer,
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
 
     const { onSignInSuccess, onSignInError } = props;
-    const onSignInErrorCallback = useRef(onSignInError).current;
-    const onSignInSuccessCallback = useRef(onSignInSuccess).current;
+    const onSignInErrorCallback = useRef(onSignInError);
+    const onSignInSuccessCallback = useRef(onSignInSuccess);
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        onSignInErrorCallback.current = onSignInError;
+    }, [onSignInError]);
+
+    useEffect(() => {
+        onSignInSuccessCallback.current = onSignInSuccess;
+    }, [onSignInSuccess]);
 
     useEffect(() => {
         if (timeoutRateLimit.current === null) return;
@@ -51,8 +81,8 @@ const OneTimePasswordMethod = function (props: Props) {
     useEffect(() => {
         if (err) {
             console.error(err);
-            onSignInErrorCallback(new Error(translate("Could not obtain user settings")));
-            setState(State.Failure);
+            onSignInErrorCallback.current(new Error(translate("Could not obtain user settings")));
+            dispatch({ type: "failure" });
         }
     }, [onSignInErrorCallback, err, translate]);
 
@@ -68,48 +98,58 @@ const OneTimePasswordMethod = function (props: Props) {
                 clearTimeout(timeoutRateLimit.current);
             }
 
-            setState(State.RateLimited);
+            dispatch({ type: "rate_limited" });
 
-            onSignInErrorCallback(new Error(translate("You have made too many requests")));
+            onSignInErrorCallback.current(new Error(translate("You have made too many requests")));
 
             timeoutRateLimit.current = setTimeout(() => {
-                setState(State.Idle);
+                dispatch({ type: "idle" });
                 timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
         [onSignInErrorCallback, translate],
     );
 
-    const signInFunc = useCallback(async () => {
-        if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
-            return;
+    useEffect(() => {
+        if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
+            dispatch({ type: "success" });
         }
+    }, [props.authenticationLevel]);
 
-        const passcodeStr = `${passcode}`;
-
-        if (!passcode || passcodeStr.length !== (resp?.digits || 6)) {
-            return;
-        }
-
-        try {
-            setState(State.InProgress);
-            const res = await completeTOTPSignIn(passcodeStr, redirectionURL, flowID, flow, subflow, userCode);
-
-            if (!res) {
-                onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
-                setState(State.Failure);
-            } else if (!res.limited) {
-                setState(State.Success);
-                onSignInSuccessCallback(res && res.data ? res.data.redirect : undefined);
-            } else {
-                handleRateLimited(res.retryAfter);
+    useEffect(() => {
+        const signInFunc = async () => {
+            if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
+                return;
             }
-        } catch (err) {
-            console.error(err);
-            onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
-            setState(State.Failure);
-        }
-        setPasscode("");
+
+            const passcodeStr = `${passcode}`;
+
+            if (!passcode || passcodeStr.length !== (resp?.digits || 6)) {
+                return;
+            }
+
+            try {
+                dispatch({ type: "in_progress" });
+                const res = await completeTOTPSignIn(passcodeStr, redirectionURL, flowID, flow, subflow, userCode);
+
+                if (!res) {
+                    onSignInErrorCallback.current(new Error(translate("The One-Time Password might be wrong")));
+                    dispatch({ type: "failure" });
+                } else if (res.limited) {
+                    handleRateLimited(res.retryAfter);
+                } else {
+                    dispatch({ type: "success" });
+                    onSignInSuccessCallback.current(res?.data?.redirect);
+                }
+            } catch (err) {
+                console.error(err);
+                onSignInErrorCallback.current(new Error(translate("The One-Time Password might be wrong")));
+                dispatch({ type: "failure" });
+            }
+            setPasscode("");
+        };
+
+        signInFunc().catch(console.error);
     }, [
         props.registered,
         props.authenticationLevel,
@@ -125,17 +165,6 @@ const OneTimePasswordMethod = function (props: Props) {
         onSignInSuccessCallback,
         handleRateLimited,
     ]);
-
-    // Set successful state if user is already authenticated.
-    useEffect(() => {
-        if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
-            setState(State.Success);
-        }
-    }, [props.authenticationLevel, setState]);
-
-    useEffect(() => {
-        signInFunc().catch(console.error);
-    }, [signInFunc]);
 
     let methodState = MethodContainerState.METHOD;
     if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
