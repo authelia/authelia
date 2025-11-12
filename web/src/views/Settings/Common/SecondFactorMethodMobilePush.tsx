@@ -24,13 +24,13 @@ type ComponentState = {
 };
 
 type Action =
-    | { type: "set_status"; status: ComponentState["status"] }
-    | { type: "set_devices"; devices: SelectableDevice[] }
-    | { type: "start_push" }
-    | { type: "push_success" }
-    | { type: "push_failure" }
-    | { type: "select_devices"; devices: SelectableDevice[] }
-    | { type: "rate_limited" };
+    | { type: "setStatus"; status: ComponentState["status"] }
+    | { type: "setDevices"; devices: SelectableDevice[] }
+    | { type: "startPush" }
+    | { type: "pushSuccess" }
+    | { type: "pushFailure" }
+    | { type: "selectDevices"; devices: SelectableDevice[] }
+    | { type: "rateLimited" };
 
 const initialState: ComponentState = {
     status: "pushing",
@@ -39,19 +39,19 @@ const initialState: ComponentState = {
 
 function reducer(state: ComponentState, action: Action): ComponentState {
     switch (action.type) {
-        case "set_status":
+        case "setStatus":
             return { ...state, status: action.status };
-        case "set_devices":
+        case "setDevices":
             return { ...state, devices: action.devices };
-        case "start_push":
+        case "startPush":
             return { ...state, status: "pushing" };
-        case "push_success":
+        case "pushSuccess":
             return { ...state, status: "success" };
-        case "push_failure":
+        case "pushFailure":
             return { ...state, status: "failure" };
-        case "select_devices":
+        case "selectDevices":
             return { ...state, status: "selecting", devices: action.devices };
-        case "rate_limited":
+        case "rateLimited":
             return { ...state, status: "rate_limited" };
         default:
             return state;
@@ -84,12 +84,12 @@ const SecondFactorMethodMobilePush = function (props: Props) {
                 clearTimeout(timeoutRateLimit.current);
             }
 
-            dispatch({ type: "rate_limited" });
+            dispatch({ type: "rateLimited" });
 
             createErrorNotification(translate("You have made too many requests"));
 
             timeoutRateLimit.current = setTimeout(() => {
-                dispatch({ type: "push_failure" });
+                dispatch({ type: "pushFailure" });
                 timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
@@ -106,19 +106,19 @@ const SecondFactorMethodMobilePush = function (props: Props) {
                             for (const d of res.data.devices) {
                                 selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities });
                             }
-                            dispatch({ type: "select_devices", devices: selectableDevices });
+                            dispatch({ type: "selectDevices", devices: selectableDevices });
                             break;
                         }
                         case "enroll":
                             createErrorNotification(translate("No compatible device found"));
-                            dispatch({ type: "push_failure" });
+                            dispatch({ type: "pushFailure" });
                             break;
                         case "deny":
                             createErrorNotification(translate("Device selection was denied by Duo policy"));
-                            dispatch({ type: "push_failure" });
+                            dispatch({ type: "pushFailure" });
                             break;
                         default:
-                            dispatch({ type: "push_success" });
+                            dispatch({ type: "pushSuccess" });
                             props.onSecondFactorSuccess();
                             break;
                     }
@@ -126,11 +126,11 @@ const SecondFactorMethodMobilePush = function (props: Props) {
                     handleRateLimited(res.retryAfter);
                 } else {
                     createErrorNotification(translate("There was an issue completing sign in process"));
-                    dispatch({ type: "push_failure" });
+                    dispatch({ type: "pushFailure" });
                 }
             } else {
                 createErrorNotification(translate("There was an issue completing sign in process"));
-                dispatch({ type: "push_failure" });
+                dispatch({ type: "pushFailure" });
             }
         },
         [createErrorNotification, handleRateLimited, props, translate],
@@ -145,20 +145,20 @@ const SecondFactorMethodMobilePush = function (props: Props) {
                     for (const d of res.devices) {
                         selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities });
                     }
-                    dispatch({ type: "select_devices", devices: selectableDevices });
+                    dispatch({ type: "selectDevices", devices: selectableDevices });
                     break;
                 }
                 case "allow":
                     createErrorNotification(translate("Device selection was bypassed by Duo policy"));
-                    dispatch({ type: "push_success" });
+                    dispatch({ type: "pushSuccess" });
                     break;
                 case "deny":
                     createErrorNotification(translate("Device selection was denied by Duo policy"));
-                    dispatch({ type: "push_failure" });
+                    dispatch({ type: "pushFailure" });
                     break;
                 case "enroll":
                     createErrorNotification(translate("No compatible device found"));
-                    dispatch({ type: "push_failure" });
+                    dispatch({ type: "pushFailure" });
                     break;
             }
         } catch (err) {
@@ -174,7 +174,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
         } catch (err) {
             console.error(err);
             createErrorNotification(translate("There was an issue completing sign in process"));
-            dispatch({ type: "push_failure" });
+            dispatch({ type: "pushFailure" });
         }
     }, [handlePushResponse, createErrorNotification, translate]);
 
@@ -182,7 +182,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
         async function (device: DuoDevicePostRequest) {
             try {
                 await completeDuoDeviceSelectionProcess(device);
-                dispatch({ type: "start_push" });
+                dispatch({ type: "startPush" });
             } catch (err) {
                 console.error(err);
                 console.error(new Error(translate("There was an issue updating preferred Duo device")));
@@ -208,7 +208,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
         return (
             <DeviceSelectionContainer
                 devices={state.devices}
-                onBack={() => dispatch({ type: "start_push" })}
+                onBack={() => dispatch({ type: "startPush" })}
                 onSelect={handleDuoDeviceSelected}
             />
         );
@@ -228,7 +228,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
             <Box className={classes.container}>
                 <Box className={classes.icon}>{icon}</Box>
                 <Box className={state.status === "failure" ? "" : "hidden"}>
-                    <Button color="secondary" onClick={() => dispatch({ type: "start_push" })}>
+                    <Button color="secondary" onClick={() => dispatch({ type: "startPush" })}>
                         Retry
                     </Button>
                 </Box>

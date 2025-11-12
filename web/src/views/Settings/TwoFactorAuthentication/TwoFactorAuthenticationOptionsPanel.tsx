@@ -22,14 +22,14 @@ type ComponentState = {
     method: SecondFactorMethod | undefined;
 };
 
-type Action = { type: "set_method"; method: SecondFactorMethod };
+type Action = { type: "setMethod"; method: SecondFactorMethod };
 
 const initialState: ComponentState = {
     method: undefined,
 };
 
 function reducer(state: ComponentState, action: Action): ComponentState {
-    if (action.type === "set_method") {
+    if (action.type === "setMethod") {
         return { ...state, method: action.method };
     }
     return state;
@@ -48,7 +48,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     useEffect(() => {
         if (props.info === undefined) return;
 
-        dispatch({ type: "set_method", method: props.info.method });
+        dispatch({ type: "setMethod", method: props.info.method });
     }, [props.info]);
 
     const methods = useMemo(() => {
@@ -78,7 +78,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                     createErrorNotification(translate("There was an issue updating preferred second factor method"));
                 })
                 .then(() => {
-                    dispatch({ type: "set_method", method: value });
+                    dispatch({ type: "setMethod", method: value });
                 })
                 .finally(() => {
                     props.refresh();

@@ -13,7 +13,7 @@ type ComponentState = {
     status: State;
 };
 
-type Action = { type: "set_passcode"; passcode: string } | { type: "set_status"; status: State } | { type: "sign_in" };
+type Action = { type: "setPasscode"; passcode: string } | { type: "setStatus"; status: State } | { type: "signIn" };
 
 const initialState: ComponentState = {
     passcode: "",
@@ -22,11 +22,11 @@ const initialState: ComponentState = {
 
 function reducer(state: ComponentState, action: Action): ComponentState {
     switch (action.type) {
-        case "set_passcode":
+        case "setPasscode":
             return { ...state, passcode: action.passcode };
-        case "set_status":
+        case "setStatus":
             return { ...state, status: action.status };
-        case "sign_in":
+        case "signIn":
             return { ...state, status: State.InProgress };
         default:
             return state;
@@ -58,7 +58,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
     useEffect(() => {
         if (fetchConfigError) {
             console.error(fetchConfigError);
-            dispatch({ type: "set_status", status: State.Failure });
+            dispatch({ type: "setStatus", status: State.Failure });
         }
     }, [fetchConfigError]);
 
@@ -72,12 +72,12 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
                 clearTimeout(timeoutRateLimit.current);
             }
 
-            dispatch({ type: "set_status", status: State.RateLimited });
+            dispatch({ type: "setStatus", status: State.RateLimited });
 
             createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
 
             timeoutRateLimit.current = setTimeout(() => {
-                dispatch({ type: "set_status", status: State.Idle });
+                dispatch({ type: "setStatus", status: State.Idle });
                 timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
@@ -95,7 +95,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
             }
 
             try {
-                dispatch({ type: "sign_in" });
+                dispatch({ type: "signIn" });
 
                 const res = await completeTOTPSignIn(passcodeStr);
 
@@ -103,26 +103,26 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
                     if (res.limited) {
                         handleRateLimited(res.retryAfter);
                     } else {
-                        dispatch({ type: "set_status", status: State.Success });
+                        dispatch({ type: "setStatus", status: State.Success });
                         onSecondFactorSuccess();
                     }
                 } else {
                     createErrorNotification(translate("The One-Time Password might be wrong", { ns: "portal" }));
-                    dispatch({ type: "set_status", status: State.Failure });
+                    dispatch({ type: "setStatus", status: State.Failure });
                 }
             } catch (err) {
                 console.error(err);
-                dispatch({ type: "set_status", status: State.Failure });
+                dispatch({ type: "setStatus", status: State.Failure });
             }
 
-            dispatch({ type: "set_passcode", passcode: "" });
+            dispatch({ type: "setPasscode", passcode: "" });
         },
         [config, handleRateLimited, createErrorNotification, translate, onSecondFactorSuccess],
     );
 
     const handlePasscodeChange = useCallback(
         (value: string) => {
-            dispatch({ type: "set_passcode", passcode: value });
+            dispatch({ type: "setPasscode", passcode: value });
             if (config && value.length === config.digits && status === State.Idle) {
                 handleSignIn(value);
             }

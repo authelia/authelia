@@ -34,25 +34,7 @@ const OneTimePasswordMethod = function (props: Props) {
 
     const [passcode, setPasscode] = useState("");
 
-    const stateReducer = useCallback(
-        (state: State, action: { type: "idle" | "success" | "failure" | "in_progress" | "rate_limited" }) => {
-            switch (action.type) {
-                case "idle":
-                    return State.Idle;
-                case "success":
-                    return State.Success;
-                case "failure":
-                    return State.Failure;
-                case "in_progress":
-                    return State.InProgress;
-                case "rate_limited":
-                    return State.RateLimited;
-                default:
-                    return state;
-            }
-        },
-        [],
-    );
+    const stateReducer = useCallback((_state: State, action: { type: State }) => action.type, []);
 
     const [state, dispatch] = useReducer(
         stateReducer,
@@ -82,7 +64,7 @@ const OneTimePasswordMethod = function (props: Props) {
         if (err) {
             console.error(err);
             onSignInErrorCallback.current(new Error(translate("Could not obtain user settings")));
-            dispatch({ type: "failure" });
+            dispatch({ type: State.Failure });
         }
     }, [onSignInErrorCallback, err, translate]);
 
@@ -98,12 +80,12 @@ const OneTimePasswordMethod = function (props: Props) {
                 clearTimeout(timeoutRateLimit.current);
             }
 
-            dispatch({ type: "rate_limited" });
+            dispatch({ type: State.RateLimited });
 
             onSignInErrorCallback.current(new Error(translate("You have made too many requests")));
 
             timeoutRateLimit.current = setTimeout(() => {
-                dispatch({ type: "idle" });
+                dispatch({ type: State.Idle });
                 timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
@@ -112,7 +94,7 @@ const OneTimePasswordMethod = function (props: Props) {
 
     useEffect(() => {
         if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
-            dispatch({ type: "success" });
+            dispatch({ type: State.Success });
         }
     }, [props.authenticationLevel]);
 
@@ -129,22 +111,22 @@ const OneTimePasswordMethod = function (props: Props) {
             }
 
             try {
-                dispatch({ type: "in_progress" });
+                dispatch({ type: State.InProgress });
                 const res = await completeTOTPSignIn(passcodeStr, redirectionURL, flowID, flow, subflow, userCode);
 
                 if (!res) {
                     onSignInErrorCallback.current(new Error(translate("The One-Time Password might be wrong")));
-                    dispatch({ type: "failure" });
+                    dispatch({ type: State.Failure });
                 } else if (res.limited) {
                     handleRateLimited(res.retryAfter);
                 } else {
-                    dispatch({ type: "success" });
+                    dispatch({ type: State.Success });
                     onSignInSuccessCallback.current(res?.data?.redirect);
                 }
             } catch (err) {
                 console.error(err);
                 onSignInErrorCallback.current(new Error(translate("The One-Time Password might be wrong")));
-                dispatch({ type: "failure" });
+                dispatch({ type: State.Failure });
             }
             setPasscode("");
         };
