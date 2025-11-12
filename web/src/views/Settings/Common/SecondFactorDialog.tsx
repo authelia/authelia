@@ -131,14 +131,14 @@ const SecondFactorDialog = function (props: Props) {
         dispatch({ type: "setActiveStep", payload: 1 });
     };
 
-    const handleSuccess = () => {
+    const handleSuccess = useCallback(() => {
         dispatch({ type: "setClosing", payload: true });
         dispatch({ type: "setActiveStep", payload: 2 });
 
         setTimeout(() => {
             handleClose(true, true);
         }, 1500);
-    };
+    }, [handleClose]);
 
     useLayoutEffect(() => {
         if (closing || !opening || !elevation) return;
@@ -168,15 +168,15 @@ const SecondFactorDialog = function (props: Props) {
 
         switch (method) {
             case SecondFactorMethod.WebAuthn:
-                return <SecondFactorMethodWebAuthn onSecondFactorSuccess={handleSuccess} closing={closing} />;
+                return <SecondFactorMethodWebAuthn onSecondFactorSuccess={handleSuccess} />;
             case SecondFactorMethod.TOTP:
-                return <SecondFactorMethodOneTimePassword onSecondFactorSuccess={handleSuccess} closing={closing} />;
+                return <SecondFactorMethodOneTimePassword onSecondFactorSuccess={handleSuccess} />;
             case SecondFactorMethod.MobilePush:
-                return <SecondFactorMethodMobilePush onSecondFactorSuccess={handleSuccess} closing={closing} />;
+                return <SecondFactorMethodMobilePush onSecondFactorSuccess={handleSuccess} />;
             default:
                 return null;
         }
-    }, [elevation, method, handleSuccess, closing]);
+    }, [elevation, method, handleSuccess]);
 
     const renderContent = () => {
         if (activeStep === 2) {
