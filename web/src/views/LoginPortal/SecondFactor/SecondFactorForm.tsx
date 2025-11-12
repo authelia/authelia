@@ -1,4 +1,4 @@
-import React, { lazy, useEffect, useState } from "react";
+import React, { lazy, useState } from "react";
 
 import { Box, Button, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -55,11 +55,7 @@ const SecondFactorForm = function (props: Props) {
     const { createErrorNotification } = useNotifications();
 
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
-    const [stateWebAuthnSupported, setStateWebAuthnSupported] = useState(false);
-
-    useEffect(() => {
-        setStateWebAuthnSupported(browserSupportsWebAuthn());
-    }, [setStateWebAuthnSupported]);
+    const [stateWebAuthnSupported] = useState(browserSupportsWebAuthn());
 
     const handleMethodSelectionClick = () => {
         setMethodSelectionOpen(true);
