@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 
 import { Box, Breakpoint, Container, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -42,7 +42,6 @@ const LoginLayout = function (props: Props) {
         <UserSvg className={classes.icon} />
     );
 
-    // handle the language selection
     const handleChangeLanguage = (locale: string) => {
         setLocale(locale);
     };
@@ -59,11 +58,14 @@ const LoginLayout = function (props: Props) {
     }, []);
 
     useEffect(() => {
-        fetchLocaleInformation().then();
+        const fetchData = async () => {
+            await fetchLocaleInformation();
+        };
+        void fetchData();
     }, [fetchLocaleInformation]);
 
     useEffect(() => {
-        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
+        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
 
     return (
@@ -82,10 +84,7 @@ const LoginLayout = function (props: Props) {
                 alignItems="center"
                 justifyContent="center"
             >
-                <Container
-                    maxWidth={props.maxWidth === undefined ? "xs" : props.maxWidth}
-                    className={classes.rootContainer}
-                >
+                <Container maxWidth={props.maxWidth ?? "xs"} className={classes.rootContainer}>
                     <Grid container>
                         <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
@@ -93,7 +92,7 @@ const LoginLayout = function (props: Props) {
                                 <TypographyWithTooltip
                                     variant={"h5"}
                                     value={props.title}
-                                    tooltip={props.titleTooltip !== null ? props.titleTooltip : undefined}
+                                    tooltip={props.titleTooltip ?? undefined}
                                 />
                             </Grid>
                         ) : null}
@@ -102,7 +101,7 @@ const LoginLayout = function (props: Props) {
                                 <TypographyWithTooltip
                                     variant={"h6"}
                                     value={props.subtitle}
-                                    tooltip={props.subtitleTooltip !== null ? props.subtitleTooltip : undefined}
+                                    tooltip={props.subtitleTooltip ?? undefined}
                                 />
                             </Grid>
                         ) : null}
