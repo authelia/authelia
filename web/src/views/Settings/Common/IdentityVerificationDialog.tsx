@@ -37,7 +37,6 @@ const IdentityVerificationDialog = function (props: Props) {
 
     const { createErrorNotification } = useNotifications();
 
-    const [open, setOpen] = useState(false);
     const [closing, setClosing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -45,18 +44,20 @@ const IdentityVerificationDialog = function (props: Props) {
     const [codeInput, setCodeInput] = useState("");
     const [codeDelete, setCodeDelete] = useState<string>();
     const [codeError, setCodeError] = useState(false);
+    const [ready, setReady] = useState(false);
     const codeRef = useRef<HTMLInputElement>(null);
+
+    const open = ready && !closing && props.opening && !!props.elevation;
 
     const handleClose = useCallback(
         (ok: boolean) => {
-            setOpen(false);
-
             setCodeInput("");
             setCodeDelete(undefined);
             setCodeError(false);
             setLoading(false);
             setSuccess(false);
             setClosing(false);
+            setReady(false);
             props.handleClosed(ok);
         },
         [props],
@@ -98,26 +99,6 @@ const IdentityVerificationDialog = function (props: Props) {
         codeRef.current?.focus();
     }, [createErrorNotification, translate]);
 
-    const handleLoad = useCallback(async () => {
-        if (props.elevation && (props.elevation.elevated || props.elevation.skip_second_factor)) {
-            handleClose(true);
-
-            return;
-        }
-
-        if (open) {
-            return;
-        }
-
-        const attempt = await generateUserSessionElevation();
-
-        if (!attempt) throw new Error("Failed to load the data.");
-
-        setCodeDelete(attempt.delete_id);
-        props.handleOpened();
-        setOpen(true);
-    }, [handleClose, open, props]);
-
     const handleSubmit = useCallback(async () => {
         if (codeInput === "") return;
 
@@ -132,15 +113,12 @@ const IdentityVerificationDialog = function (props: Props) {
     }, [codeInput, handleFailure, handleSuccess]);
 
     const handleSubmitKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        async (event: React.KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
-                if (!codeInput.length) {
+                if (codeInput.length === 0) {
                     setCodeError(true);
-                } else if (codeInput.length) {
-                    handleSubmit();
                 } else {
-                    setCodeError(false);
-                    codeRef.current?.focus();
+                    await handleSubmit();
                 }
             }
         },
@@ -152,11 +130,28 @@ const IdentityVerificationDialog = function (props: Props) {
             return;
         }
 
-        handleLoad().catch(console.error);
-    }, [closing, handleLoad, props.elevation, props.opening]);
+        if (props.elevation.elevated || props.elevation.skip_second_factor) {
+            props.handleClosed(true);
+            return;
+        }
+
+        if (ready) return;
+
+        generateUserSessionElevation()
+            .then((attempt) => {
+                if (!attempt) throw new Error("Failed to load the data.");
+
+                setCodeDelete(attempt.delete_id);
+                props.handleOpened();
+                setReady(true);
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }, [closing, props.opening, props.elevation, ready, handleClose, props]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setCodeInput(e.target.value.replace(/\s/g, ""));
+        setCodeInput(e.target.value.replaceAll(/\s/g, ""));
         setCodeError(false);
     };
 
@@ -200,7 +195,6 @@ const IdentityVerificationDialog = function (props: Props) {
                         <OneTimeCodeTextField
                             id={"one-time-code"}
                             label={"One-Time Code"}
-                            autoFocus={true} // TODO: error jsx-a11y/no-autofocus : The autoFocus prop should not be used, as it can reduce usability and accessibility for users.
                             value={codeInput}
                             onChange={handleChange}
                             error={codeError}
