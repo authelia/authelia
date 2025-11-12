@@ -19,22 +19,22 @@ import DeviceSelectionContainer, {
 } from "@views/LoginPortal/SecondFactor/DeviceSelectionContainer";
 
 type ComponentState = {
-    status: "pushing" | "selecting" | "success" | "failure" | "rate_limited";
+    status: "failure" | "pushing" | "rate_limited" | "selecting" | "success";
     devices: SelectableDevice[];
 };
 
 type Action =
-    | { type: "set_status"; status: ComponentState["status"] }
-    | { type: "set_devices"; devices: SelectableDevice[] }
-    | { type: "start_push" }
-    | { type: "push_success" }
     | { type: "push_failure" }
+    | { type: "push_success" }
+    | { type: "rate_limited" }
     | { type: "select_devices"; devices: SelectableDevice[] }
-    | { type: "rate_limited" };
+    | { type: "set_devices"; devices: SelectableDevice[] }
+    | { type: "set_status"; status: ComponentState["status"] }
+    | { type: "start_push" };
 
 const initialState: ComponentState = {
-    status: "pushing",
     devices: [],
+    status: "pushing",
 };
 
 function reducer(state: ComponentState, action: Action): ComponentState {
@@ -50,7 +50,7 @@ function reducer(state: ComponentState, action: Action): ComponentState {
         case "push_failure":
             return { ...state, status: "failure" };
         case "select_devices":
-            return { ...state, status: "selecting", devices: action.devices };
+            return { ...state, devices: action.devices, status: "selecting" };
         case "rate_limited":
             return { ...state, status: "rate_limited" };
         default:
@@ -104,9 +104,9 @@ const SecondFactorMethodMobilePush = function (props: Props) {
                         case "auth": {
                             const selectableDevices = [] as SelectableDevice[];
                             for (const d of res.data.devices) {
-                                selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities });
+                                selectableDevices.push({ id: d.device, methods: d.capabilities, name: d.display_name });
                             }
-                            dispatch({ type: "select_devices", devices: selectableDevices });
+                            dispatch({ devices: selectableDevices, type: "select_devices" });
                             break;
                         }
                         case "enroll":
@@ -143,9 +143,9 @@ const SecondFactorMethodMobilePush = function (props: Props) {
                 case "auth": {
                     const selectableDevices = [] as SelectableDevice[];
                     for (const d of res.devices) {
-                        selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities });
+                        selectableDevices.push({ id: d.device, methods: d.capabilities, name: d.display_name });
                     }
-                    dispatch({ type: "select_devices", devices: selectableDevices });
+                    dispatch({ devices: selectableDevices, type: "select_devices" });
                     break;
                 }
                 case "allow":
@@ -249,9 +249,9 @@ const useStyles = makeStyles()(() => ({
         height: "120px",
     },
     icon: {
-        width: "64px",
-        height: "64px",
         display: "inline-block",
+        height: "64px",
+        width: "64px",
     },
 }));
 

@@ -36,14 +36,14 @@ const DecisionFormScopes: React.FC<Props> = (props: Props) => {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
+    scopesList: {
+        backgroundColor: theme.palette.background.paper,
+        display: "inline-block",
+        marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
+    },
     scopesListContainer: {
         textAlign: "center",
-    },
-    scopesList: {
-        display: "inline-block",
-        backgroundColor: theme.palette.background.paper,
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
     },
 }));
 

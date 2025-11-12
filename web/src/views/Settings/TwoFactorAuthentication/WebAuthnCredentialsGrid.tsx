@@ -17,7 +17,7 @@ const WebAuthnCredentialsGrid = function (props: Props) {
     return (
         <Grid container spacing={3}>
             {props.credentials.map((credential, index) => (
-                <Grid size={{ xs: 12, md: 6, xl: 3 }} key={index}>
+                <Grid size={{ md: 6, xl: 3, xs: 12 }} key={index}>
                     <WebAuthnCredentialItem
                         index={index}
                         credential={credential}

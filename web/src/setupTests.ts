@@ -14,24 +14,24 @@ const localStorageMock: LocalStorageMock = (function () {
     let store: LocalStorageMock = {};
 
     return {
-        getItem(key: string | number) {
-            return store[key];
-        },
-
-        setItem(key: string | number, value: any) {
-            store[key] = value;
-        },
-
         clear() {
             store = {};
         },
 
-        removeItem(key: string | number) {
+        getAll() {
+            return store;
+        },
+
+        getItem(key: number | string) {
+            return store[key];
+        },
+
+        removeItem(key: number | string) {
             delete store[key];
         },
 
-        getAll() {
-            return store;
+        setItem(key: number | string, value: any) {
+            store[key] = value;
         },
     };
 })();

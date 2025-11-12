@@ -13,7 +13,7 @@ interface Props {
 
 const OneTimePasswordDeleteDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const handleCancel = () => {
         props.handleClose();

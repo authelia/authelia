@@ -51,7 +51,7 @@ const SecondFactorForm = function (props: Props) {
 
     const navigate = useRouterNavigate();
     const flowPresent = useFlowPresent();
-    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
     const { createErrorNotification } = useNotifications();
 
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
@@ -180,10 +180,10 @@ const useStyles = makeStyles()((theme: Theme) => ({
     methodContainer: {
         border: "1px solid #d6d6d6",
         borderRadius: "10px",
-        padding: theme.spacing(4),
-        marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
         minWidth: "300px",
+        padding: theme.spacing(4),
     },
 }));
 

@@ -58,7 +58,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
     useEffect(() => {
         if (fetchConfigError) {
             console.error(fetchConfigError);
-            dispatch({ type: "set_status", status: State.Failure });
+            dispatch({ status: State.Failure, type: "set_status" });
         }
     }, [fetchConfigError]);
 
@@ -72,12 +72,12 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
                 clearTimeout(timeoutRateLimit.current);
             }
 
-            dispatch({ type: "set_status", status: State.RateLimited });
+            dispatch({ status: State.RateLimited, type: "set_status" });
 
             createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
 
             timeoutRateLimit.current = setTimeout(() => {
-                dispatch({ type: "set_status", status: State.Idle });
+                dispatch({ status: State.Idle, type: "set_status" });
                 timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
@@ -103,26 +103,26 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
                     if (res.limited) {
                         handleRateLimited(res.retryAfter);
                     } else {
-                        dispatch({ type: "set_status", status: State.Success });
+                        dispatch({ status: State.Success, type: "set_status" });
                         onSecondFactorSuccess();
                     }
                 } else {
                     createErrorNotification(translate("The One-Time Password might be wrong", { ns: "portal" }));
-                    dispatch({ type: "set_status", status: State.Failure });
+                    dispatch({ status: State.Failure, type: "set_status" });
                 }
             } catch (err) {
                 console.error(err);
-                dispatch({ type: "set_status", status: State.Failure });
+                dispatch({ status: State.Failure, type: "set_status" });
             }
 
-            dispatch({ type: "set_passcode", passcode: "" });
+            dispatch({ passcode: "", type: "set_passcode" });
         },
         [config, handleRateLimited, createErrorNotification, translate, onSecondFactorSuccess],
     );
 
     const handlePasscodeChange = useCallback(
         (value: string) => {
-            dispatch({ type: "set_passcode", passcode: value });
+            dispatch({ passcode: value, type: "set_passcode" });
             if (config && value.length === config.digits && status === State.Idle) {
                 handleSignIn(value);
             }

@@ -27,7 +27,7 @@ const PasskeyForm = function (props: Props) {
 
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const mounted = useIsMountedRef();
 
     const [loading, setLoading] = useState(false);

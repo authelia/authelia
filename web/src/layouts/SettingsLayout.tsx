@@ -95,7 +95,7 @@ const SettingsLayout = function (props: Props) {
                     <Typography
                         variant={"h6"}
                         component={"div"}
-                        sx={{ flexGrow: 1, display: { xs: drawerOpen ? "none" : "block" } }}
+                        sx={{ display: { xs: drawerOpen ? "none" : "block" }, flexGrow: 1 }}
                     >
                         {translate("Settings")}
                     </Typography>
@@ -112,14 +112,14 @@ const SettingsLayout = function (props: Props) {
                         keepMounted: true,
                     }}
                     sx={{
-                        display: { xs: "block" },
                         "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
+                        display: { xs: "block" },
                     }}
                 >
                     {drawer}
                 </SwipeableDrawer>
             </Box>
-            <Box component="main" sx={{ flexGrow: 1, p: { xs: 0, sm: 3 } }}>
+            <Box component="main" sx={{ flexGrow: 1, p: { sm: 3, xs: 0 } }}>
                 <Toolbar />
                 {props.children}
             </Box>
@@ -135,20 +135,20 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-    { keyname: "overview", text: "Overview", pathname: SettingsRoute, icon: <Dashboard color={"primary"} /> },
+    { icon: <Dashboard color={"primary"} />, keyname: "overview", pathname: SettingsRoute, text: "Overview" },
     {
-        keyname: "security",
-        text: "Security",
-        pathname: `${SettingsRoute}${SecuritySubRoute}`,
         icon: <Security color={"primary"} />,
+        keyname: "security",
+        pathname: `${SettingsRoute}${SecuritySubRoute}`,
+        text: "Security",
     },
     {
-        keyname: "twofactor",
-        text: "Two-Factor Authentication",
-        pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
         icon: <SystemSecurityUpdateGood color={"primary"} />,
+        keyname: "twofactor",
+        pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
+        text: "Two-Factor Authentication",
     },
-    { keyname: "close", text: "Close", pathname: IndexRoute, icon: <Close color={"error"} /> },
+    { icon: <Close color={"error"} />, keyname: "close", pathname: IndexRoute, text: "Close" },
 ];
 
 const DrawerNavItem = function (props: NavItem) {

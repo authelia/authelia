@@ -65,10 +65,10 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const { classes, cx } = useStyles();
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [selected, setSelected] = useState<Options>({ algorithm: "", length: 6, period: 30 });
-    const [defaults, setDefaults] = useState<Options | null>(null);
+    const [defaults, setDefaults] = useState<null | Options>(null);
     const [available, setAvailable] = useState<AvailableOptions>({
         algorithms: [],
         lengths: [],
@@ -77,8 +77,8 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
 
     const [activeStep, setActiveStep] = useState(0);
 
-    const [secretURL, setSecretURL] = useState<string | null>(null);
-    const [secretValue, setSecretValue] = useState<string | null>(null);
+    const [secretURL, setSecretURL] = useState<null | string>(null);
+    const [secretValue, setSecretValue] = useState<null | string>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [hasErrored, setHasErrored] = useState(false);
@@ -486,7 +486,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid size={{ xs: 12 }} sx={{ display: { xs: "none", md: "block" } }}>
+                        <Grid size={{ xs: 12 }} sx={{ display: { md: "block", xs: "none" } }}>
                             <Box>
                                 <Typography className={classes.googleAuthenticatorText}>
                                     {translate("Need Google Authenticator?")}
@@ -583,44 +583,44 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    qrcode: {
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-        padding: theme.spacing(),
-        backgroundColor: "white",
+    failureIcon: {
+        color: red[400],
+        fontSize: "8rem",
+        left: "calc(128px - 64px)",
+        position: "absolute",
+        top: "calc(128px - 64px)",
     },
     fuzzy: {
         filter: "blur(10px)",
     },
-    secret: {
-        marginTop: theme.spacing(1),
-        marginBottom: theme.spacing(1),
-        width: "256px",
-    },
+    googleAuthenticatorBadges: {},
     googleAuthenticatorText: {
         fontSize: theme.typography.fontSize * 0.8,
     },
-    googleAuthenticatorBadges: {},
-    qrcodeContainer: {
-        position: "relative",
-        display: "inline-block",
-    },
     loader: {
-        position: "absolute",
-        top: "calc(128px - 64px)",
-        left: "calc(128px - 64px)",
         color: "rgba(255, 255, 255, 0.5)",
-    },
-    failureIcon: {
+        left: "calc(128px - 64px)",
         position: "absolute",
         top: "calc(128px - 64px)",
-        left: "calc(128px - 64px)",
-        color: red[400],
-        fontSize: "8rem",
+    },
+    qrcode: {
+        backgroundColor: "white",
+        marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
+        padding: theme.spacing(),
+    },
+    qrcodeContainer: {
+        display: "inline-block",
+        position: "relative",
+    },
+    secret: {
+        marginBottom: theme.spacing(1),
+        marginTop: theme.spacing(1),
+        width: "256px",
     },
     success: {
-        marginBottom: theme.spacing(2),
         flex: "0 0 100%",
+        marginBottom: theme.spacing(2),
     },
 }));
 

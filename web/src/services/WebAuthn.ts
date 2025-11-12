@@ -142,11 +142,11 @@ export async function postWebAuthnResponse(
     userCode?: string,
 ) {
     return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
-        response,
-        targetURL,
-        flowID,
         flow,
+        flowID,
+        response,
         subflow,
+        targetURL,
         userCode,
     });
 }
@@ -188,13 +188,13 @@ export async function postWebAuthnPasskeyResponse(
     subflow?: string,
 ) {
     const data: PostFirstFactorPasskeyBody = {
-        response,
-        keepMeLoggedIn,
-        targetURL,
-        requestMethod,
-        flowID,
         flow,
+        flowID,
+        keepMeLoggedIn,
+        requestMethod,
+        response,
         subflow,
+        targetURL,
     };
 
     return axios.post<ServiceResponse<SignInResponse>>(FirstFactorPasskeyPath, data);
@@ -258,16 +258,16 @@ async function postWebAuthnRegistrationResponse(
 
 export async function finishWebAuthnRegistration(response: RegistrationResponseJSON) {
     let result = {
-        status: AttestationResult.Failure,
         message: "Device registration failed.",
+        status: AttestationResult.Failure,
     };
 
     try {
         const resp = await postWebAuthnRegistrationResponse(response);
         if (resp.data.status === "OK" && (resp.status === 200 || resp.status === 201)) {
             return {
-                status: AttestationResult.Success,
                 message: "",
+                status: AttestationResult.Success,
             };
         }
     } catch (error) {
@@ -289,9 +289,9 @@ export async function deleteUserWebAuthnCredential(credentialID: string) {
 
 export async function updateUserWebAuthnCredential(credentialID: string, description: string) {
     return axios<AuthenticationOKResponse>({
+        data: { description: description },
         method: "PUT",
         url: `${WebAuthnCredentialPath}/${credentialID}`,
-        data: { description: description },
         validateStatus: validateStatusAuthentication,
     });
 }

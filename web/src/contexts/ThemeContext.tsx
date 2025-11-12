@@ -9,7 +9,7 @@ import { getTheme } from "@utils/Configuration";
 
 const MediaQueryDarkMode = "(prefers-color-scheme: dark)";
 
-export const ThemeContext = createContext<ValueProps | null>(null);
+export const ThemeContext = createContext<null | ValueProps>(null);
 
 export interface Props {
     children: React.ReactNode;
@@ -73,9 +73,9 @@ export default function ThemeContextProvider(props: Props) {
     return (
         <ThemeContext.Provider
             value={{
+                setThemeName: callback,
                 theme,
                 themeName,
-                setThemeName: callback,
             }}
         >
             <ThemeWrapper>{props.children}</ThemeWrapper>

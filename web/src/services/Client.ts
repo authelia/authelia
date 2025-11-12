@@ -94,7 +94,7 @@ export async function Get<T = undefined>(path: string): Promise<T> {
     return d;
 }
 
-export async function GetWithOptionalData<T = undefined>(path: string): Promise<T | null> {
+export async function GetWithOptionalData<T = undefined>(path: string): Promise<null | T> {
     const res = await axios.get<ServiceResponse<T>>(path);
 
     if (res.status !== 200 || hasServiceError(res).errored) {

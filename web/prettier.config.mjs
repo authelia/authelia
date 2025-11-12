@@ -1,9 +1,9 @@
 export default {
-    printWidth: 120,
-    tabWidth: 4,
-    bracketSpacing: true,
     bracketSameLine: false,
+    bracketSpacing: true,
+    printWidth: 120,
     semi: true,
     singleQuote: false,
+    tabWidth: 4,
     trailingComma: "all",
 };

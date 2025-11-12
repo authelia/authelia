@@ -1,4 +1,4 @@
-let hasLocalStorageSupport: null | boolean = null;
+let hasLocalStorageSupport: boolean | null = null;
 const testKey = "authelia.test";
 const testValue = "foo";
 

@@ -28,14 +28,14 @@ const BaseLoadingPage = function (props: Props) {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
+    gridInner: {
+        display: "inline-block",
+        textAlign: "center",
+    },
     gridOuter: {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
-    },
-    gridInner: {
-        textAlign: "center",
-        display: "inline-block",
     },
 }));
 

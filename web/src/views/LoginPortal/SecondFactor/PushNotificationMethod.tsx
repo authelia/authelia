@@ -49,7 +49,7 @@ const PushNotificationMethod = function (props: Props) {
     const { t: translate } = useTranslation();
     const { classes } = useStyles();
 
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
 
     const [state, setState] = useState(
@@ -60,7 +60,7 @@ const PushNotificationMethod = function (props: Props) {
     const [enrollUrl, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
 
-    const { onSignInSuccess, onSignInError } = props;
+    const { onSignInError, onSignInSuccess } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
 
@@ -75,8 +75,8 @@ const PushNotificationMethod = function (props: Props) {
     const processDevices = useCallback((devices: any[]) => {
         return devices.map((d: { device: any; display_name: any; capabilities: any }) => ({
             id: d.device,
-            name: d.display_name,
             methods: d.capabilities,
+            name: d.display_name,
         }));
     }, []);
 
@@ -117,7 +117,7 @@ const PushNotificationMethod = function (props: Props) {
                 case "auth": {
                     let selectableDevices = [] as SelectableDevice[];
                     for (const d of res.devices) {
-                        selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities });
+                        selectableDevices.push({ id: d.device, methods: d.capabilities, name: d.display_name });
                     }
                     setDevices(selectableDevices);
                     setState(State.Selection);
@@ -286,9 +286,9 @@ const PushNotificationMethod = function (props: Props) {
 
 const useStyles = makeStyles()(() => ({
     icon: {
-        width: "64px",
-        height: "64px",
         display: "inline-block",
+        height: "64px",
+        width: "64px",
     },
 }));
 

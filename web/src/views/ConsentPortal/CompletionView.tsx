@@ -70,11 +70,11 @@ export default CompletionView;
 
 interface ErrorProps {
     error: string;
-    error_description: string | null;
-    error_hint: string | null;
-    error_debug: string | null;
-    error_status_code: string | null;
-    error_uri: string | null;
+    error_description: null | string;
+    error_hint: null | string;
+    error_debug: null | string;
+    error_status_code: null | string;
+    error_uri: null | string;
 }
 const CompletionErrorView: React.FC<ErrorProps> = (props: ErrorProps) => {
     const { t: translate } = useTranslation(["consent"]);

@@ -72,10 +72,10 @@ export interface OKResponse {
     status: "OK";
 }
 
-export type AuthenticationResponse<T> = Response<T> | AuthenticationErrorResponse;
-export type AuthenticationOKResponse = OKResponse | AuthenticationErrorResponse;
-export type OptionalDataServiceResponse<T> = OptionalDataResponse<T> | ErrorResponse;
-export type ServiceResponse<T> = Response<T> | ErrorResponse;
+export type AuthenticationResponse<T> = AuthenticationErrorResponse | Response<T>;
+export type AuthenticationOKResponse = AuthenticationErrorResponse | OKResponse;
+export type OptionalDataServiceResponse<T> = ErrorResponse | OptionalDataResponse<T>;
+export type ServiceResponse<T> = ErrorResponse | Response<T>;
 
 function toErrorResponse<T>(resp: AxiosResponse<ServiceResponse<T>>): ErrorResponse | undefined {
     if (resp.data && "status" in resp.data && resp.data["status"] === "KO") {
@@ -130,7 +130,7 @@ function getRetryAfter(resp: AxiosResponse): number {
 export function toDataRateLimited<T>(resp: AxiosResponse<ServiceResponse<T>>): RateLimitedData<T> | undefined {
     if (resp.data && "status" in resp.data) {
         if (resp.data["status"] === "OK") {
-            return { limited: false, retryAfter: 0, data: resp.data.data as T };
+            return { data: resp.data.data as T, limited: false, retryAfter: 0 };
         } else if (resp.data["status"] === "KO") {
             return { limited: resp.status === 429, retryAfter: getRetryAfter(resp) };
         } else if (resp.status === 429) {

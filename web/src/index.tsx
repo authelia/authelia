@@ -7,15 +7,14 @@ import { TssCacheProvider } from "tss-react";
 
 import "@root/index.css";
 import App from "@root/App";
-
 import "@i18n/index";
 
 const nonce = document.head.querySelector("[property=csp-nonce][content]")?.getAttribute("content") || undefined;
 
 const muiCache = createCache({
     key: "mui",
-    prepend: true,
     nonce: nonce,
+    prepend: true,
 });
 
 const tssCache = createCache({

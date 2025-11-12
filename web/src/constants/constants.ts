@@ -1,6 +1,6 @@
 export const GoogleAuthenticator = {
-    googlePlay: "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en_us",
     appleStore: "https://apps.apple.com/us/app/google-authenticator/id388497605",
+    googlePlay: "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en_us",
 };
 
 export const EncodedName = [81, 88, 86, 48, 97, 71, 86, 115, 97, 87, 69, 61];

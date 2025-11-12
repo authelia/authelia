@@ -17,9 +17,9 @@ export interface Props {
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     alignItems: "flex-start",
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(2),
     marginX: "auto",
+    paddingBottom: theme.spacing(2),
+    paddingTop: theme.spacing(1),
 }));
 
 const AppBarLoginPortal = function (props: Props) {

@@ -53,7 +53,7 @@ const FirstFactorForm = function (props: Props) {
     const navigate = useNavigate();
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
     const { createErrorNotification } = useNotifications();
 
@@ -393,19 +393,19 @@ const useStyles = makeStyles()((theme: Theme) => ({
     actionRow: {
         display: "flex",
         flexDirection: "row",
-        marginTop: theme.spacing(-1),
         marginBottom: theme.spacing(-1),
+        marginTop: theme.spacing(-1),
     },
-    resetLink: {
-        cursor: "pointer",
-        paddingTop: 13.5,
-        paddingBottom: 13.5,
+    flexEnd: {
+        justifyContent: "flex-end",
     },
     rememberMe: {
         flexGrow: 1,
     },
-    flexEnd: {
-        justifyContent: "flex-end",
+    resetLink: {
+        cursor: "pointer",
+        paddingBottom: 13.5,
+        paddingTop: 13.5,
     },
 }));
 

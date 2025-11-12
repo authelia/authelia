@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 interface PersistentStorage {
-    getItem(key: string): string | null;
+    getItem(key: string): null | string;
     setItem(key: string, value: any): void;
 }
 

@@ -26,14 +26,14 @@ const getStandardPasswordInfo = (
         feedback = translate("Must be at least {{len}} characters in length", {
             len: policy.min_length,
         });
-        return { passwordScore, maxScore, feedback, feedbackTitle };
+        return { feedback, feedbackTitle, maxScore, passwordScore };
     }
 
     if (policy.max_length !== 0 && password.length > policy.max_length) {
         feedback = translate("Must not be more than {{len}} characters in length", {
             len: policy.max_length,
         });
-        return { passwordScore, maxScore, feedback, feedbackTitle };
+        return { feedback, feedbackTitle, maxScore, passwordScore };
     }
 
     let required = 0;
@@ -42,28 +42,28 @@ const getStandardPasswordInfo = (
 
     const checks = [
         {
-            require: policy.require_lowercase,
-            regex: /[a-z]/,
             message: "Must have at least one lowercase letter",
+            regex: /[a-z]/,
+            require: policy.require_lowercase,
         },
         {
-            require: policy.require_uppercase,
-            regex: /[A-Z]/,
             message: "Must have at least one UPPERCASE letter",
+            regex: /[A-Z]/,
+            require: policy.require_uppercase,
         },
         {
-            require: policy.require_number,
-            regex: /\d/,
             message: "Must have at least one number",
+            regex: /\d/,
+            require: policy.require_number,
         },
         {
-            require: policy.require_special,
-            regex: /[^a-z0-9]/i,
             message: "Must have at least one special character",
+            regex: /[^a-z0-9]/i,
+            require: policy.require_special,
         },
     ];
 
-    for (const { require, regex, message } of checks) {
+    for (const { message, regex, require } of checks) {
         if (require) {
             required++;
             if (regex.test(password)) {
@@ -85,33 +85,33 @@ const getStandardPasswordInfo = (
     feedback = warning;
     passwordScore = score;
 
-    return { passwordScore, maxScore, feedback, feedbackTitle };
+    return { feedback, feedbackTitle, maxScore, passwordScore };
 };
 
 const getZXCVBNPasswordInfo = (password: string) => {
-    const { score, feedback: zxcvbnFeedback } = zxcvbn(password);
+    const { feedback: zxcvbnFeedback, score } = zxcvbn(password);
     return {
-        passwordScore: score,
-        maxScore: 4,
         feedback: "",
         feedbackTitle: zxcvbnFeedback.warning,
+        maxScore: 4,
+        passwordScore: score,
     };
 };
 
 const PasswordMeter = function (props: Props) {
     const { t: translate } = useTranslation();
 
-    const { passwordScore, maxScore, feedback, feedbackTitle, isZXCVBN } = useMemo(() => {
+    const { feedback, feedbackTitle, isZXCVBN, maxScore, passwordScore } = useMemo(() => {
         const password = props.value;
         const policy = props.policy;
 
         if (!policy) {
             return {
-                passwordScore: 0,
-                maxScore: 3,
                 feedback: "",
                 feedbackTitle: "",
                 isZXCVBN: false,
+                maxScore: 3,
+                passwordScore: 0,
             };
         }
 
@@ -128,11 +128,11 @@ const PasswordMeter = function (props: Props) {
         }
 
         return {
-            passwordScore: 0,
-            maxScore: 3,
             feedback: "",
             feedbackTitle: "",
             isZXCVBN: false,
+            maxScore: 3,
+            passwordScore: 0,
         };
     }, [props, translate]);
 
@@ -140,7 +140,7 @@ const PasswordMeter = function (props: Props) {
         ? ["#D32F2F", "#FF5722", "#FFEB3B", "#AFB42B", "#62D32F"]
         : ["#D32F2F", "#FF5722", "#FFEB3B", "#62D32F"];
 
-    const { classes } = useStyles({ progressColor, passwordScore, maxScore });
+    const { classes } = useStyles({ maxScore, passwordScore, progressColor });
 
     return (
         <Box className={classes.progressContainer}>
@@ -164,26 +164,26 @@ PasswordMeter.defaultProps = {
 };
 
 const useStyles = makeStyles<{ progressColor: string[]; passwordScore: number; maxScore: number }>()(
-    (theme: Theme, { progressColor, passwordScore, maxScore }) => ({
+    (theme: Theme, { maxScore, passwordScore, progressColor }) => ({
+        feedback: {
+            fontSize: "0.7rem",
+            textAlign: "left",
+            whiteSpace: "break-spaces",
+        },
+        feedbackTitle: {
+            fontSize: "0.85rem",
+            textAlign: "left",
+            whiteSpace: "break-spaces",
+        },
         progressBar: {
+            backgroundColor: progressColor[passwordScore],
             height: "5px",
             marginTop: "2px",
-            backgroundColor: progressColor[passwordScore],
-            width: `${passwordScore * (100 / maxScore)}%`,
             transition: "width .5s linear",
+            width: `${passwordScore * (100 / maxScore)}%`,
         },
         progressContainer: {
             width: "100%",
-        },
-        feedbackTitle: {
-            whiteSpace: "break-spaces",
-            textAlign: "left",
-            fontSize: "0.85rem",
-        },
-        feedback: {
-            whiteSpace: "break-spaces",
-            textAlign: "left",
-            fontSize: "0.7rem",
         },
     }),
 );

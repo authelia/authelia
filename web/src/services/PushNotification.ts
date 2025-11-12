@@ -21,10 +21,10 @@ export function completePushNotificationSignIn(
     userCode?: string,
 ) {
     const body: CompletePushSignInBody = {
-        targetURL,
-        flowID,
         flow,
+        flowID,
         subflow,
+        targetURL,
         userCode,
     };
 

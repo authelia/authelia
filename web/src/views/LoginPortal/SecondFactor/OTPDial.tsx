@@ -69,26 +69,26 @@ function Icon(props: IconProps) {
 }
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    timeProgress: {},
-    register: {
-        marginTop: theme.spacing(),
+    inputError: {
+        border: "1px solid rgba(255, 2, 2, 0.95)",
+    },
+    otpDigitInput: {
+        border: "1px solid rgba(0,0,0,0.3)",
+        borderRadius: "5px",
+        boxSizing: "content-box",
+        fontSize: "1rem",
+        marginLeft: theme.spacing(0.5),
+        marginRight: theme.spacing(0.5),
+        padding: theme.spacing() + " !important",
     },
     otpInput: {
         display: "inline-block",
         marginTop: theme.spacing(2),
     },
-    otpDigitInput: {
-        boxSizing: "content-box",
-        padding: theme.spacing() + " !important",
-        marginLeft: theme.spacing(0.5),
-        marginRight: theme.spacing(0.5),
-        fontSize: "1rem",
-        borderRadius: "5px",
-        border: "1px solid rgba(0,0,0,0.3)",
+    register: {
+        marginTop: theme.spacing(),
     },
-    inputError: {
-        border: "1px solid rgba(255, 2, 2, 0.95)",
-    },
+    timeProgress: {},
 }));
 
 export default OTPDial;

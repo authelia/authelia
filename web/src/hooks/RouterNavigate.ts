@@ -14,7 +14,7 @@ export function useRouterNavigate() {
             preserveSearchParams: boolean = true,
             preserveFlow: boolean = true,
             preserveRedirection: boolean = true,
-            searchParamsOverride: URLSearchParams | undefined = undefined,
+            searchParamsOverride: undefined | URLSearchParams = undefined,
         ) => {
             if (searchParamsOverride && URLSearchParamsHasValues(searchParamsOverride)) {
                 navigate({ pathname: pathname, search: `?${searchParamsOverride.toString()}` });

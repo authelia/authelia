@@ -124,20 +124,20 @@ const useStyles = makeStyles()((theme: Theme) => ({
         height: "200px",
     },
     containerFlex: {
+        alignContent: "center",
+        alignItems: "center",
         display: "flex",
         flexWrap: "wrap",
         height: "100%",
-        width: "100%",
-        alignItems: "center",
-        alignContent: "center",
         justifyContent: "center",
+        width: "100%",
     },
     containerMethod: {
         marginBottom: theme.spacing(2),
     },
     info: {
-        marginBottom: theme.spacing(2),
         flex: "0 0 100%",
+        marginBottom: theme.spacing(2),
     },
     infoTypography: {
         color: "#5858ff",

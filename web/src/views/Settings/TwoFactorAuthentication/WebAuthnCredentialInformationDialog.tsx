@@ -54,7 +54,7 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                             </DialogContentText>
                         ) : null}
                         <Grid container spacing={2}>
-                            <Grid size={{ md: 3 }} sx={{ display: { xs: "none", md: "block" } }}>
+                            <Grid size={{ md: 3 }} sx={{ display: { md: "block", xs: "none" } }}>
                                 <Fragment />
                             </Grid>
                             <Grid size={{ xs: 12 }}>
@@ -114,8 +114,8 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                             <PropertyText
                                 name={translate("Added")}
                                 value={translate("{{when, datetime}}", {
-                                    when: new Date(props.credential.created_at),
                                     formatParams: { when: FormatDateHumanReadable },
+                                    when: new Date(props.credential.created_at),
                                 })}
                             />
                             <PropertyText
@@ -123,8 +123,8 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                                 value={
                                     props.credential.last_used_at
                                         ? translate("{{when, datetime}}", {
-                                              when: new Date(props.credential.last_used_at),
                                               formatParams: { when: FormatDateHumanReadable },
+                                              when: new Date(props.credential.last_used_at),
                                           })
                                         : translate("Never")
                                 }

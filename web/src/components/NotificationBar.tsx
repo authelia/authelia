@@ -22,7 +22,7 @@ const NotificationBar = function (props: Props) {
     return (
         <Snackbar
             open={shouldSnackbarBeOpen}
-            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            anchorOrigin={{ horizontal: "right", vertical: "top" }}
             autoHideDuration={notification ? notification.timeout * 1000 : 10000}
             onClose={props.onClose}
             slots={{ transition: NotificationBarTransition }}

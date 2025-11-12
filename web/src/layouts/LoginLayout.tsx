@@ -20,12 +20,12 @@ import { getLogoOverride } from "@utils/Configuration";
 export interface Props {
     id?: string;
     children?: ReactNode;
-    title?: string | null;
-    titleTooltip?: string | null;
-    subtitle?: string | null;
-    subtitleTooltip?: string | null;
+    title?: null | string;
+    titleTooltip?: null | string;
+    subtitle?: null | string;
+    subtitleTooltip?: null | string;
     userInfo?: UserInfo;
-    maxWidth?: false | Breakpoint;
+    maxWidth?: Breakpoint | false;
 }
 
 const LoginLayout = function (props: Props) {
@@ -118,6 +118,16 @@ const LoginLayout = function (props: Props) {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
+    body: {
+        marginTop: theme.spacing(),
+        paddingBottom: theme.spacing(),
+        paddingTop: theme.spacing(),
+    },
+    icon: {
+        fill: theme.custom.icon,
+        margin: theme.spacing(),
+        width: "64px",
+    },
     root: {
         minHeight: "90vh",
         textAlign: "center",
@@ -126,18 +136,8 @@ const useStyles = makeStyles()((theme: Theme) => ({
         paddingLeft: 32,
         paddingRight: 32,
     },
-    title: {},
     subtitle: {},
-    icon: {
-        margin: theme.spacing(),
-        width: "64px",
-        fill: theme.custom.icon,
-    },
-    body: {
-        marginTop: theme.spacing(),
-        paddingTop: theme.spacing(),
-        paddingBottom: theme.spacing(),
-    },
+    title: {},
 }));
 
 export default LoginLayout;

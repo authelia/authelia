@@ -1,15 +1,12 @@
 export default {
+    defaultIgnores: true,
     extends: ["@commitlint/config-conventional"],
+    helpUrl: "https://www.authelia.com/contributing/guidelines/commit-message/",
     rules: {
         "body-max-line-length": [2, "always", "Infinity"],
         "body-min-length": [2, "always", 20],
         "header-case": [2, "always", "lower-case"],
         "header-max-length": [2, "always", 72],
-        "type-enum": [
-            2,
-            "always",
-            ["build", "ci", "docs", "feat", "fix", "i18n", "perf", "refactor", "release", "revert", "test"],
-        ],
         "scope-enum": [
             2,
             "always",
@@ -58,7 +55,10 @@ export default {
                 "webauthn",
             ],
         ],
+        "type-enum": [
+            2,
+            "always",
+            ["build", "ci", "docs", "feat", "fix", "i18n", "perf", "refactor", "release", "revert", "test"],
+        ],
     },
-    defaultIgnores: true,
-    helpUrl: "https://www.authelia.com/contributing/guidelines/commit-message/",
 };

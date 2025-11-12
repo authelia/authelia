@@ -21,7 +21,7 @@ const ResetPasswordStep1 = function () {
     const [rateLimited, setRateLimited] = useState(false);
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
-    const { createInfoNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createInfoNotification } = useNotifications();
     const navigate = useNavigate();
     const { t: translate } = useTranslation();
 

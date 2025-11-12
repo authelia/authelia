@@ -41,9 +41,9 @@ const useStyles = makeStyles()((theme: Theme) => ({
     mainContainer: {
         border: "1px solid #d6d6d6",
         borderRadius: "10px",
-        padding: theme.spacing(4),
-        marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
+        padding: theme.spacing(4),
     },
 }));
 
