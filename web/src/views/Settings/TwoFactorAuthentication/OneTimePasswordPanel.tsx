@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 
 import { Box, Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -86,34 +86,23 @@ const OneTimePasswordPanel = function (props: Props) {
         setDialogSFOpening(false);
     };
 
-    const handleIVDialogClosed = useCallback(
-        (ok: boolean) => {
-            if (!ok) {
-                console.warn(
-                    "Identity Verification dialog close callback failed, it was likely cancelled by the user.",
-                );
+    const handleIVDialogClosed = (ok: boolean) => {
+        if (!ok) {
+            console.warn("Identity Verification dialog close callback failed, it was likely cancelled by the user.");
 
-                handleResetState();
+            handleResetState();
 
-                return;
-            }
+            return;
+        }
 
-            setElevation(undefined);
+        setElevation(undefined);
 
-            if (dialogRegisterOpening) {
-                handleOpenDialogRegister();
-            } else if (dialogDeleteOpening) {
-                handleOpenDialogDelete();
-            }
-        },
-        [
-            dialogDeleteOpening,
-            dialogRegisterOpening,
-            handleOpenDialogDelete,
-            handleOpenDialogRegister,
-            handleResetState,
-        ],
-    );
+        if (dialogRegisterOpening) {
+            handleOpenDialogRegister();
+        } else if (dialogDeleteOpening) {
+            handleOpenDialogDelete();
+        }
+    };
 
     const handleIVDialogOpened = () => {
         setDialogIVOpening(false);
@@ -195,11 +184,11 @@ const OneTimePasswordPanel = function (props: Props) {
                     <Grid size={{ xs: 12 }}>
                         <Tooltip
                             title={
-                                !registered
-                                    ? translate("Click to add a {{item}} to your account", {
+                                registered
+                                    ? translate("You can only register a single One-Time Password")
+                                    : translate("Click to add a {{item}} to your account", {
                                           item: translate("One-Time Password"),
                                       })
-                                    : translate("You can only register a single One-Time Password")
                             }
                         >
                             <Box component={"span"}>
