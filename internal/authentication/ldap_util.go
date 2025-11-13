@@ -72,6 +72,8 @@ func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (features LDAPSupportedFe
 					features.Extensions.PwdModify = true
 				case ldapOIDExtensionTLS:
 					features.Extensions.TLS = true
+				case ldapOIDExtensionWhoAmI:
+					features.Extensions.WhoAmI = true
 				}
 			}
 		}
