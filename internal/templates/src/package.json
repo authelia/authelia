@@ -12,7 +12,7 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "1.0.0",
+		"@react-email/components": "1.0.1",
 		"@react-email/render": "2.0.0",
 		"esbuild": "0.27.0",
 		"react": "19.2.0",
@@ -25,7 +25,7 @@
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
 		"@types/node": "24.10.1",
-		"@types/react": "19.2.3",
+		"@types/react": "19.2.4",
 		"@types/react-dom": "19.2.3",
 		"eslint": "9.39.1",
 		"tsx": "4.20.6",
