@@ -6,10 +6,6 @@ type LDAPClient struct {
 	features LDAPSupportedFeatures
 }
 
-func (c *LDAPClient) SetFeatures(features LDAPSupportedFeatures) {
-	c.features = features
-}
-
-func (c *LDAPClient) Features() LDAPSupportedFeatures {
+func (c *LDAPClient) Features() (features LDAPSupportedFeatures) {
 	return c.features
 }

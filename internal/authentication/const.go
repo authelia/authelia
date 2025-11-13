@@ -16,7 +16,7 @@ const (
 	// OID Reference: http://oidref.com/1.3.6.1.4.1.4203.1.11.1
 	//
 	// See the linked documents for more information.
-	ldapOIDExtensionPwdModifyExOp = "1.3.6.1.4.1.4203.1.11.1"
+	ldapOIDExtensionPwdModify = "1.3.6.1.4.1.4203.1.11.1"
 
 	// LDAP Extension OID: Transport Layer Security.
 	//
@@ -106,6 +106,8 @@ var (
 	ErrPasswordWeak = errors.New("your supplied password does not meet the password policy requirements")
 
 	ErrAuthenticationFailed = errors.New("authentication failed")
+
+	ErrLDAPHealthCheckFailedEntryCount = errors.New("incorrect number entries found when performing RootDSE search")
 )
 
 const fileAuthenticationMode = 0600
