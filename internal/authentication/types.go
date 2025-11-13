@@ -246,6 +246,7 @@ type LDAPSupportedExtensions struct {
 
 	TLS       bool
 	PwdModify bool
+	WhoAmI    bool
 }
 
 // LDAPSupportedControlTypes represents control types which a server may support which are implemented in code.
