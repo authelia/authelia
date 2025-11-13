@@ -21,8 +21,8 @@ import (
 // LDAPClientFactory an interface describing factories that produce LDAPConnection implementations.
 type LDAPClientFactory interface {
 	Initialize() (err error)
-	GetClient(opts ...LDAPClientFactoryOption) (client LDAPClient, err error)
-	ReleaseClient(client LDAPClient) (err error)
+	GetClient(opts ...LDAPClientFactoryOption) (client LDAPBaseClient, err error)
+	ReleaseClient(client LDAPBaseClient) (err error)
 	Close() (err error)
 }
 
@@ -59,11 +59,11 @@ func (f *StandardLDAPClientFactory) Initialize() (err error) {
 	return nil
 }
 
-func (f *StandardLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (client LDAPClient, err error) {
+func (f *StandardLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (client LDAPBaseClient, err error) {
 	return ldapDialBind(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
 }
 
-func (f *StandardLDAPClientFactory) ReleaseClient(client LDAPClient) (err error) {
+func (f *StandardLDAPClientFactory) ReleaseClient(client LDAPBaseClient) (err error) {
 	if err = client.Close(); err != nil {
 		return fmt.Errorf("error occurred closing LDAP client: %w", err)
 	}
@@ -163,7 +163,7 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 }
 
 // GetClient opens new client using the pool.
-func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (conn LDAPClient, err error) {
+func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (conn LDAPBaseClient, err error) {
 	if len(opts) != 0 {
 		f.log.Trace("Dialing new unpooled client")
 
@@ -175,7 +175,7 @@ func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (co
 
 // The dial function dials a new LDAPClient and wraps it as a PooledLDAPClient client.
 func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
-	var client LDAPClient
+	var client LDAPBaseClient
 
 	f.log.Trace("Dialing new pooled client")
 
@@ -185,7 +185,7 @@ func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
 
 	f.mu.Lock()
 
-	pooled = &PooledLDAPClient{LDAPClient: client, log: f.log.WithField("client", f.next)}
+	pooled = &PooledLDAPClient{LDAPBaseClient: client, log: f.log.WithField("client", f.next)}
 
 	f.next++
 
@@ -197,7 +197,7 @@ func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
 }
 
 // ReleaseClient returns a client using the pool or closes it.
-func (f *PooledLDAPClientFactory) ReleaseClient(client LDAPClient) (err error) {
+func (f *PooledLDAPClientFactory) ReleaseClient(client LDAPBaseClient) (err error) {
 	f.log.Trace("Releasing Client")
 
 	if f.isClosing() {
@@ -304,13 +304,13 @@ func (f *PooledLDAPClientFactory) setClosing() {
 // PooledLDAPClient is a decorator for the LDAPClient which handles the pooling functionality. i.e. prevents the client
 // from being closed and instead relinquishes the connection back to the pool.
 type PooledLDAPClient struct {
-	LDAPClient
+	LDAPBaseClient
 
 	log *logrus.Entry
 }
 
 func (c *PooledLDAPClient) healthy() bool {
-	if c == nil || c.LDAPClient == nil || c.IsClosing() {
+	if c == nil || c.LDAPBaseClient == nil || c.IsClosing() {
 		return false
 	}
 
@@ -321,7 +321,7 @@ func (c *PooledLDAPClient) healthy() bool {
 	return true
 }
 
-func ldapDialBind(address, username, password string, timeout time.Duration, dialer LDAPClientDialer, tls *tls.Config, startTLS bool, dialOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client LDAPClient, err error) {
+func ldapDialBind(address, username, password string, timeout time.Duration, dialer LDAPClientDialer, tls *tls.Config, startTLS bool, dialOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client LDAPExtendedClient, err error) {
 	config := &LDAPClientFactoryOptions{
 		Address:  address,
 		Username: username,
@@ -332,11 +332,12 @@ func ldapDialBind(address, username, password string, timeout time.Duration, dia
 		opt(config)
 	}
 
-	if client, err = dialer.DialURL(config.Address, dialOpts...); err != nil {
+	var base LDAPBaseClient
+	if base, err = dialer.DialURL(config.Address, dialOpts...); err != nil {
 		return nil, fmt.Errorf("error occurred dialing address: %w", err)
 	}
 
-	client.SetTimeout(timeout)
+	base.SetTimeout(timeout)
 
 	if tls != nil && startTLS {
 		if err = client.StartTLS(tls); err != nil {

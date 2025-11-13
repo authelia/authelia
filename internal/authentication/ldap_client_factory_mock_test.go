@@ -54,14 +54,14 @@ func (mr *MockLDAPClientFactoryMockRecorder) Close() *gomock.Call {
 }
 
 // GetClient mocks base method.
-func (m *MockLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (LDAPClient, error) {
+func (m *MockLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (LDAPBaseClient, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetClient", varargs...)
-	ret0, _ := ret[0].(LDAPClient)
+	ret0, _ := ret[0].(LDAPBaseClient)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -87,7 +87,7 @@ func (mr *MockLDAPClientFactoryMockRecorder) Initialize() *gomock.Call {
 }
 
 // ReleaseClient mocks base method.
-func (m *MockLDAPClientFactory) ReleaseClient(client LDAPClient) error {
+func (m *MockLDAPClientFactory) ReleaseClient(client LDAPBaseClient) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReleaseClient", client)
 	ret0, _ := ret[0].(error)
