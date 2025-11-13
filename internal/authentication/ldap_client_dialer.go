@@ -9,7 +9,7 @@ import (
 // LDAPClientDialer is an abstract type that dials a LDAPClient.
 type LDAPClientDialer interface {
 	// DialURL takes a single address and dials it returning the LDAPClient.
-	DialURL(addr string, opts ...ldap.DialOpt) (client LDAPClient, err error)
+	DialURL(addr string, opts ...ldap.DialOpt) (client LDAPBaseClient, err error)
 }
 
 // NewLDAPClientDialerStandard returns a new *LDAPClientDialerStandard.
@@ -22,7 +22,7 @@ func NewLDAPClientDialerStandard() *LDAPClientDialerStandard {
 type LDAPClientDialerStandard struct{}
 
 // DialURL takes a single address and dials it returning the LDAPClient.
-func (d *LDAPClientDialerStandard) DialURL(addr string, opts ...ldap.DialOpt) (client LDAPClient, err error) {
+func (d *LDAPClientDialerStandard) DialURL(addr string, opts ...ldap.DialOpt) (client LDAPBaseClient, err error) {
 	if client, err = ldap.DialURL(addr, opts...); err != nil {
 		return nil, fmt.Errorf("failed to dial LDAP server at %s: %w", addr, err)
 	}

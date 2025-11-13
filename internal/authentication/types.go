@@ -324,7 +324,7 @@ func (e *PoolErr) IsDeadlineError() bool {
 	return e.isDeadlineError
 }
 
-type LDAPClient interface {
+type LDAPBaseClient interface {
 	ldap.Client
 
 	GSSAPIBind(client ldap.GSSAPIClient, servicePrincipal, authzid string) (err error)
@@ -336,4 +336,11 @@ type LDAPClient interface {
 	NTLMBindWithHash(domain, username, hash string) (err error)
 	NTLMBind(domain, username, password string) (err error)
 	WhoAmI(controls []ldap.Control) (result *ldap.WhoAmIResult, err error)
+}
+
+type LDAPExtendedClient interface {
+	LDAPBaseClient
+
+	SetFeatures(features LDAPSupportedFeatures)
+	Features() LDAPSupportedFeatures
 }
