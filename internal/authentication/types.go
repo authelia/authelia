@@ -242,12 +242,16 @@ type LDAPSupportedFeatures struct {
 
 // LDAPSupportedExtensions represents extensions which a server may support which are implemented in code.
 type LDAPSupportedExtensions struct {
-	TLS           bool
-	PwdModifyExOp bool
+	OIDs []string
+
+	TLS       bool
+	PwdModify bool
 }
 
 // LDAPSupportedControlTypes represents control types which a server may support which are implemented in code.
 type LDAPSupportedControlTypes struct {
+	OIDs []string
+
 	MsftPwdPolHints           bool
 	MsftPwdPolHintsDeprecated bool
 }
@@ -341,6 +345,5 @@ type LDAPBaseClient interface {
 type LDAPExtendedClient interface {
 	LDAPBaseClient
 
-	SetFeatures(features LDAPSupportedFeatures)
-	Features() LDAPSupportedFeatures
+	Features() (features LDAPSupportedFeatures)
 }
