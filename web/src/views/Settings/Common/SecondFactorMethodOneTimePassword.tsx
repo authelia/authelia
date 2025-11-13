@@ -13,7 +13,7 @@ type ComponentState = {
     status: State;
 };
 
-type Action = { type: "setPasscode"; passcode: string } | { type: "setStatus"; status: State } | { type: "signIn" };
+type Action = { type: "setPasscode"; passcode: string } | { type: "setStatus"; status: State };
 
 const initialState: ComponentState = {
     passcode: "",
@@ -26,8 +26,6 @@ function reducer(state: ComponentState, action: Action): ComponentState {
             return { ...state, passcode: action.passcode };
         case "setStatus":
             return { ...state, status: action.status };
-        case "signIn":
-            return { ...state, status: State.InProgress };
         default:
             return state;
     }
@@ -95,7 +93,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
             }
 
             try {
-                dispatch({ type: "signIn" });
+                dispatch({ type: "setStatus", status: State.InProgress });
 
                 const res = await completeTOTPSignIn(passcodeStr);
 
@@ -123,7 +121,12 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
     const handlePasscodeChange = useCallback(
         (value: string) => {
             dispatch({ type: "setPasscode", passcode: value });
-            if (config && value.length === config.digits && status === State.Idle) {
+            if (
+                config &&
+                value.length === config.digits &&
+                status !== State.InProgress &&
+                status !== State.RateLimited
+            ) {
                 handleSignIn(value);
             }
         },

@@ -70,6 +70,10 @@ const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
     }, [userCode, navigate, props.state.authentication_level]);
 
     useEffect(() => {
+        autoSubmittedRef.current = false;
+    }, [userCode]);
+
+    useEffect(() => {
         if (
             !userCode ||
             props.state.authentication_level === AuthenticationLevel.Unauthenticated ||

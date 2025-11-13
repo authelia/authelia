@@ -43,6 +43,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
     const handleRetry = () => {
         dispatch({ type: "setStatus", status: WebAuthnTouchState.WaitTouch });
+        dispatch({ type: "setStarted", started: false });
     };
 
     const handleStart = useCallback(async () => {

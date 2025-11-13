@@ -6,13 +6,14 @@ import { useTranslation } from "react-i18next";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoGET } from "@hooks/UserInfo";
+import { Configuration } from "@models/Configuration";
 import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
 import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog";
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
 import ChangePasswordDialog from "@views/Settings/Security/ChangePasswordDialog";
 
 interface PasswordChangeButtonProps {
-    configuration: any;
+    configuration: Configuration | undefined;
     translate: (key: string) => string;
     handleChangePassword: () => void;
 }
@@ -24,13 +25,13 @@ const PasswordChangeButton = ({ configuration, translate, handleChangePassword }
             variant="contained"
             sx={{ p: 1, width: "100%" }}
             onClick={handleChangePassword}
-            disabled={configuration?.password_change_disabled || false}
+            disabled={!configuration || configuration.password_change_disabled}
         >
             {translate("Change Password")}
         </Button>
     );
 
-    return configuration?.password_change_disabled ? (
+    return !configuration || configuration.password_change_disabled ? (
         <Tooltip title={translate("This is disabled by your administrator")}>
             <Box component={"span"}>{buttonContent}</Box>
         </Tooltip>

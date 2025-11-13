@@ -57,6 +57,9 @@ const SignOut = function () {
         const performSignOut = async () => {
             try {
                 const res = await signOut(redirectionURL);
+                if (!mounted.current) {
+                    return;
+                }
                 if (res?.safeTargetURL) {
                     setSafeRedirect(true);
                 }
