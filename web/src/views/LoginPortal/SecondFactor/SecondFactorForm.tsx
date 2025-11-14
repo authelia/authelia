@@ -55,7 +55,7 @@ const SecondFactorForm = function (props: Props) {
     const { createErrorNotification } = useNotifications();
 
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
-    const [stateWebAuthnSupported] = useState(browserSupportsWebAuthn());
+    const stateWebAuthnSupported = browserSupportsWebAuthn();
 
     const handleMethodSelectionClick = () => {
         setMethodSelectionOpen(true);

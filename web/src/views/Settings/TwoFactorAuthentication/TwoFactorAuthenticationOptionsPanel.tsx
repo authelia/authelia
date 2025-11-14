@@ -73,12 +73,12 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
             const value = toSecondFactorMethod(event.target.value as Method2FA);
 
             setPreferred2FAMethod(value)
+                .then(() => {
+                    dispatch({ type: "setMethod", method: value });
+                })
                 .catch((err) => {
                     console.error(err);
                     createErrorNotification(translate("There was an issue updating preferred second factor method"));
-                })
-                .then(() => {
-                    dispatch({ type: "setMethod", method: value });
                 })
                 .finally(() => {
                     props.refresh();

@@ -40,7 +40,7 @@ export default function LocalStorageMethodContextProvider(props: Props) {
         }
     }, []);
 
-    const listener = (ev: globalThis.StorageEvent): any => {
+    const listener = useCallback((ev: globalThis.StorageEvent): any => {
         if (ev.key !== LocalStorageSecondFactorMethod) {
             return;
         }
@@ -52,7 +52,7 @@ export default function LocalStorageMethodContextProvider(props: Props) {
         } else {
             setLocalStorageMethod(undefined);
         }
-    };
+    }, []);
 
     useEffect(() => {
         if (!localStorageMethodAvailable) return;
@@ -62,7 +62,7 @@ export default function LocalStorageMethodContextProvider(props: Props) {
         return () => {
             globalThis.removeEventListener("storage", listener);
         };
-    }, [localStorageMethodAvailable]);
+    }, [localStorageMethodAvailable, listener]);
 
     const value = useMemo(
         () => ({

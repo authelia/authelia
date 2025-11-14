@@ -55,9 +55,12 @@ const OneTimePasswordMethod = function (props: Props) {
     }, [onSignInSuccess]);
 
     useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
+        return () => {
+            if (timeoutRateLimit.current !== null) {
+                clearTimeout(timeoutRateLimit.current);
+                timeoutRateLimit.current = null;
+            }
+        };
     }, []);
 
     useEffect(() => {

@@ -26,7 +26,7 @@ const ConsentPortal: React.FC<Props> = (props: Props) => {
 
     useEffect(() => {
         fetchState();
-    }, [fetchState, fetchUserInfo]);
+    }, [fetchState]);
 
     useEffect(() => {
         if (state) {

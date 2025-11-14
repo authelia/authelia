@@ -148,7 +148,7 @@ const IdentityVerificationDialog = function (props: Props) {
             .catch((error) => {
                 console.error(error);
             });
-    }, [closing, props.opening, props.elevation, ready, handleClose, props]);
+    }, [closing, props.opening, props.elevation, ready, props]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setCodeInput(e.target.value.replaceAll(/\s/g, ""));

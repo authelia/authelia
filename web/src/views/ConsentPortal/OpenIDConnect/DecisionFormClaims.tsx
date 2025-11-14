@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useState } from "react";
+import React, { Fragment, useCallback, useEffect } from "react";
 
 import { Box, Checkbox, FormControlLabel, List, Theme, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -18,18 +18,16 @@ const DecisionFormClaims: React.FC<Props> = ({ onChangeChecked, claims, essentia
 
     const { classes } = useStyles();
 
-    const [checked, setChecked] = useState<string[]>(claims || []);
+    const checked = claims || [];
 
     const handleClaimCheckboxOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setChecked((prevState) => {
-            const checking = !prevState.includes(event.target.value);
+        const checking = !checked.includes(event.target.value);
 
-            if (checking) {
-                return [...prevState, event.target.value];
-            } else {
-                return prevState.filter((value) => value !== event.target.value);
-            }
-        });
+        if (checking) {
+            onChangeChecked([...checked, event.target.value]);
+        } else {
+            onChangeChecked(checked.filter((value) => value !== event.target.value));
+        }
     };
 
     useEffect(() => {

@@ -73,9 +73,12 @@ const SecondFactorMethodMobilePush = function (props: Props) {
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
+        return () => {
+            if (timeoutRateLimit.current !== null) {
+                clearTimeout(timeoutRateLimit.current);
+                timeoutRateLimit.current = null;
+            }
+        };
     }, []);
 
     const handleRateLimited = useCallback(
@@ -193,7 +196,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     const handleDuoDeviceSelected = useCallback(
         (device: SelectedDevice) => {
-            void updateDuoDevice({ device: device.id, method: device.method });
+            updateDuoDevice({ device: device.id, method: device.method });
         },
         [updateDuoDevice],
     );

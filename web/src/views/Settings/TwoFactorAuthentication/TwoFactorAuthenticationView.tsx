@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -31,8 +31,8 @@ const TwoFactorAuthenticationView = function () {
     const [userWebAuthnCredentials, fetchUserWebAuthnCredentials, , fetchUserWebAuthnCredentialsError] =
         useUserWebAuthnCredentials();
 
-    const hasTOTP = useMemo(() => userInfo?.has_totp ?? false, [userInfo?.has_totp]);
-    const hasWebAuthn = useMemo(() => userInfo?.has_webauthn ?? false, [userInfo?.has_webauthn]);
+    const hasTOTP = userInfo?.has_totp ?? false;
+    const hasWebAuthn = userInfo?.has_webauthn ?? false;
 
     const handleRefreshWebAuthnState = () => {
         setRefreshState((refreshState) => refreshState + 1);
@@ -167,7 +167,7 @@ const TwoFactorAuthenticationView = function () {
                         refresh={handleRefreshUserInfo}
                     />
                 </Grid>
-            ) : undefined}
+            ) : null}
         </Grid>
     );
 };
