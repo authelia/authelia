@@ -105,8 +105,6 @@ type bodySignDuoRequest struct {
 	Flow      string `json:"flow"`
 	SubFlow   string `json:"subflow"`
 	UserCode  string `json:"userCode"`
-	Device    string `json:"device"`
-	Method    string `json:"method"`
 }
 
 // bodyPreferred2FAMethod the selected 2FA method.

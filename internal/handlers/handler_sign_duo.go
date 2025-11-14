@@ -60,39 +60,11 @@ func DuoPOST(duoAPI duo.Provider) middlewares.RequestHandler {
 			return
 		}
 
-		device, method, err := SelectDeviceAndMethod(ctx, &userSession, duoAPI, bodyJSON)
-		if err != nil {
-			ctx.Error(err, messageMFAValidationFailed)
-			return
-		}
-
-		if device == "" || method == "" {
-			return
-		}
-
-		remoteIP := ctx.RemoteIP().String()
-		if err := PerformDuoAuthentication(ctx, &userSession, duoAPI, device, method, remoteIP, bodyJSON); err != nil {
+		if err := HandleDuoAuthentication(ctx, &userSession, duoAPI, bodyJSON); err != nil {
 			respondUnauthorized(ctx, messageMFAValidationFailed)
 			return
 		}
-
-		HandleAllow(ctx, &userSession, bodyJSON)
 	}
-}
-
-// SelectDeviceAndMethod determines the device and method to use for Duo authentication.
-func SelectDeviceAndMethod(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.Provider, bodyJSON *bodySignDuoRequest) (device, method string, err error) {
-	duoDevice, loadErr := ctx.Providers.StorageProvider.LoadPreferredDuoDevice(ctx, userSession.Username)
-	if loadErr != nil {
-		ctx.Logger.Debugf("Error identifying preferred device for user '%s': %s", userSession.Username, loadErr)
-		ctx.Logger.Debugf("Starting Duo PreAuth for initial device selection of user: '%s'", userSession.Username)
-
-		return HandleInitialDeviceSelection(ctx, userSession, duoAPI, bodyJSON)
-	}
-
-	ctx.Logger.Debugf("Starting Duo PreAuth to check preferred device of user: '%s'", userSession.Username)
-
-	return HandlePreferredDeviceCheck(ctx, userSession, duoAPI, duoDevice.Device, duoDevice.Method, bodyJSON)
 }
 
 // PerformDuoAuthentication executes the Duo authentication call.
@@ -124,6 +96,22 @@ func PerformDuoAuthentication(ctx *middlewares.AutheliaCtx, userSession *session
 	return nil
 }
 
+// PerformDuoAuthenticationIfValid performs Duo authentication if device and method are valid.
+func PerformDuoAuthenticationIfValid(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.Provider, device, method string, bodyJSON *bodySignDuoRequest) error {
+	if device == "" || method == "" {
+		return nil
+	}
+
+	remoteIP := ctx.RemoteIP().String()
+	if err := PerformDuoAuthentication(ctx, userSession, duoAPI, device, method, remoteIP, bodyJSON); err != nil {
+		return err
+	}
+
+	HandleAllow(ctx, userSession, bodyJSON)
+
+	return nil
+}
+
 // HandleInitialDeviceSelection handler for retrieving all available devices.
 func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.Provider, bodyJSON *bodySignDuoRequest) (device string, method string, err error) {
 	result, message, devices, enrollURL, err := DuoPreAuth(ctx, userSession, duoAPI)
@@ -135,6 +123,26 @@ func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *ses
 	}
 
 	return HandleDuoPreAuthResult(ctx, userSession, result, message, devices, enrollURL, bodyJSON)
+}
+
+// HandleDuoAuthentication handles the complete Duo authentication flow.
+func HandleDuoAuthentication(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.Provider, bodyJSON *bodySignDuoRequest) error {
+	duoDevice, err := ctx.Providers.StorageProvider.LoadPreferredDuoDevice(ctx, userSession.Username)
+	if err != nil {
+		selectedDevice, selectedMethod, err := HandleInitialDeviceSelection(ctx, userSession, duoAPI, bodyJSON)
+		if err != nil {
+			return err
+		}
+
+		return PerformDuoAuthenticationIfValid(ctx, userSession, duoAPI, selectedDevice, selectedMethod, bodyJSON)
+	}
+
+	selectedDevice, selectedMethod, err := HandlePreferredDeviceCheck(ctx, userSession, duoAPI, duoDevice.Device, duoDevice.Method, bodyJSON)
+	if err != nil {
+		return err
+	}
+
+	return PerformDuoAuthenticationIfValid(ctx, userSession, duoAPI, selectedDevice, selectedMethod, bodyJSON)
 }
 
 // HandleDuoPreAuthResult processes the result of a DuoPreAuth call and handles common response logic.
@@ -165,7 +173,7 @@ func HandleDuoPreAuthResult(ctx *middlewares.AutheliaCtx, userSession *session.U
 		return "", "", nil
 
 	case auth:
-		return HandleAuthResult(ctx, userSession, devices, bodyJSON.Device, bodyJSON.Method, "", "")
+		return HandleAuthResult(ctx, userSession, devices, "", "")
 
 	default:
 		return "", "", fmt.Errorf("unknown result: %s", result)
@@ -190,14 +198,8 @@ func HandleNoDevicesAvailable(ctx *middlewares.AutheliaCtx, userSession *session
 }
 
 // SelectDeviceFromAvailable selects the best device from available options.
-func SelectDeviceFromAvailable(devices []DuoDevice, requestedDevice, requestedMethod, storedDevice, storedMethod string) (device, method string) {
-	if requestedDevice != "" && requestedMethod != "" {
-		if selectedDevice, selectedMethod := FindValidDevice(devices, requestedDevice, requestedMethod); selectedDevice != "" {
-			return selectedDevice, selectedMethod
-		}
-	}
-
-	if storedDevice != "" && storedMethod != "" && (storedDevice != requestedDevice || storedMethod != requestedMethod) {
+func SelectDeviceFromAvailable(devices []DuoDevice, storedDevice, storedMethod string) (device, method string) {
+	if storedDevice != "" && storedMethod != "" {
 		if selectedDevice, selectedMethod := FindValidDevice(devices, storedDevice, storedMethod); selectedDevice != "" {
 			return selectedDevice, selectedMethod
 		}
@@ -207,7 +209,7 @@ func SelectDeviceFromAvailable(devices []DuoDevice, requestedDevice, requestedMe
 }
 
 // HandleAuthResult handles the auth result case for device selection.
-func HandleAuthResult(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, devices []DuoDevice, requestedDevice, requestedMethod, storedDevice, storedMethod string) (device, method string, err error) {
+func HandleAuthResult(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, devices []DuoDevice, storedDevice, storedMethod string) (device, method string, err error) {
 	if devices == nil {
 		if err := HandleNoDevicesAvailable(ctx, userSession, storedDevice); err != nil {
 			return "", "", err
@@ -216,7 +218,7 @@ func HandleAuthResult(ctx *middlewares.AutheliaCtx, userSession *session.UserSes
 		return "", "", nil
 	}
 
-	selectedDevice, selectedMethod := SelectDeviceFromAvailable(devices, requestedDevice, requestedMethod, storedDevice, storedMethod)
+	selectedDevice, selectedMethod := SelectDeviceFromAvailable(devices, storedDevice, storedMethod)
 	if selectedDevice != "" {
 		return selectedDevice, selectedMethod, nil
 	}
@@ -269,7 +271,7 @@ func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *sessi
 
 		return "", "", nil
 	case auth:
-		return HandleAuthResult(ctx, userSession, devices, bodyJSON.Device, bodyJSON.Method, storedDevice, storedMethod)
+		return HandleAuthResult(ctx, userSession, devices, storedDevice, storedMethod)
 
 	default:
 		return "", "", fmt.Errorf("unknown result: %s", result)

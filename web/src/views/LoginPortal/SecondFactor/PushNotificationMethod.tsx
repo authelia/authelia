@@ -176,15 +176,7 @@ const PushNotificationMethod = function (props: Props) {
 
         try {
             setState(State.SignInInProgress);
-            const res = await completePushNotificationSignIn(
-                redirectionURL,
-                flowID,
-                flow,
-                subflow,
-                userCode,
-                preferredDevice?.device,
-                preferredDevice?.method,
-            );
+            const res = await completePushNotificationSignIn(redirectionURL, flowID, flow, subflow, userCode);
             if (!mounted.current) return;
             if (!res) {
                 throw new Error(translate("There was an issue completing sign in process"));
@@ -228,15 +220,12 @@ const PushNotificationMethod = function (props: Props) {
         flow,
         subflow,
         userCode,
-        preferredDevice?.device,
-        preferredDevice?.method,
         mounted,
         onSignInError,
         translate,
         handleRateLimited,
         processDevices,
         handleSuccess,
-        setPreferredDevice,
     ]);
 
     const updateDuoDevice = useCallback(
@@ -260,7 +249,6 @@ const PushNotificationMethod = function (props: Props) {
     const handleDuoDeviceSelected = useCallback(
         (device: SelectedDevice) => {
             const selected = { device: device.id, method: device.method };
-            console.log(preferredDevice, selected);
             const isDifferent =
                 selected.device !== preferredDevice?.device || selected.method !== preferredDevice?.method;
 
