@@ -97,7 +97,7 @@ type bodyEditWebAuthnCredentialRequest struct {
 	Description string `json:"description"`
 }
 
-// bodySignDuoRequest is the  model of the request body of Duo 2FA authentication endpoint.
+// bodySignDuoRequest is the model of the request body of Duo 2FA authentication endpoint.
 type bodySignDuoRequest struct {
 	TargetURL string `json:"targetURL"`
 	Passcode  string `json:"passcode"`
@@ -105,6 +105,8 @@ type bodySignDuoRequest struct {
 	Flow      string `json:"flow"`
 	SubFlow   string `json:"subflow"`
 	UserCode  string `json:"userCode"`
+	Device    string `json:"device"`
+	Method    string `json:"method"`
 }
 
 // bodyPreferred2FAMethod the selected 2FA method.
@@ -183,9 +185,11 @@ type DuoDevice struct {
 
 // DuoDevicesResponse represents all available user devices and methods as well as an optional enrollment url.
 type DuoDevicesResponse struct {
-	Result    string      `json:"result" valid:"required"`
-	Devices   []DuoDevice `json:"devices,omitempty"`
-	EnrollURL string      `json:"enroll_url,omitempty"`
+	Result          string      `json:"result" valid:"required"`
+	Devices         []DuoDevice `json:"devices,omitempty"`
+	EnrollURL       string      `json:"enroll_url,omitempty"`
+	PreferredDevice string      `json:"preferred_device,omitempty"`
+	PreferredMethod string      `json:"preferred_method,omitempty"`
 }
 
 // DuoSignResponse represents a result of the preauth and or auth call with further optional info.
@@ -194,6 +198,8 @@ type DuoSignResponse struct {
 	Devices   []DuoDevice `json:"devices,omitempty"`
 	Redirect  string      `json:"redirect,omitempty"`
 	EnrollURL string      `json:"enroll_url,omitempty"`
+	Device    string      `json:"device,omitempty"`
+	Method    string      `json:"method,omitempty"`
 }
 
 // StateResponse represents the response sent by the state endpoint.

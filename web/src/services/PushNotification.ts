@@ -11,6 +11,8 @@ interface CompletePushSignInBody {
     flow?: string;
     subflow?: string;
     userCode?: string;
+    device?: string;
+    method?: string;
 }
 
 export function completePushNotificationSignIn(
@@ -19,6 +21,8 @@ export function completePushNotificationSignIn(
     flow?: string,
     subflow?: string,
     userCode?: string,
+    device?: string,
+    method?: string,
 ) {
     const body: CompletePushSignInBody = {
         targetURL,
@@ -26,6 +30,8 @@ export function completePushNotificationSignIn(
         flow,
         subflow,
         userCode,
+        device,
+        method,
     };
 
     return PostWithOptionalResponseRateLimited<DuoSignInResponse>(CompletePushNotificationSignInPath, body);
@@ -36,12 +42,16 @@ export interface DuoSignInResponse {
     devices: DuoDevice[];
     redirect: string;
     enroll_url: string;
+    device?: string;
+    method?: string;
 }
 
 export interface DuoDevicesGetResponse {
     result: string;
     devices: DuoDevice[];
     enroll_url: string;
+    preferred_device?: string;
+    preferred_method?: string;
 }
 
 export interface DuoDevice {
@@ -52,6 +62,10 @@ export interface DuoDevice {
 
 export async function initiateDuoDeviceSelectionProcess() {
     return Get<DuoDevicesGetResponse>(InitiateDuoDeviceSelectionPath);
+}
+
+export async function getPreferredDuoDevice() {
+    return Get<DuoDevicesGetResponse>(CompletePushNotificationSignInPath);
 }
 
 export interface DuoDevicePostRequest {
