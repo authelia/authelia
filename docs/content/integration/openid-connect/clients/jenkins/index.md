@@ -87,6 +87,9 @@ identity_providers:
           - 'profile'
           - 'email'
           - 'groups'
+          - 'offline_access'
+          - 'address'
+          - 'phone'
         response_types:
           - 'code'
         grant_types:
