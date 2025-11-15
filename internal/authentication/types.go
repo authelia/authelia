@@ -242,12 +242,17 @@ type LDAPSupportedFeatures struct {
 
 // LDAPSupportedExtensions represents extensions which a server may support which are implemented in code.
 type LDAPSupportedExtensions struct {
-	TLS           bool
-	PwdModifyExOp bool
+	OIDs []string
+
+	TLS       bool
+	PwdModify bool
+	WhoAmI    bool
 }
 
 // LDAPSupportedControlTypes represents control types which a server may support which are implemented in code.
 type LDAPSupportedControlTypes struct {
+	OIDs []string
+
 	MsftPwdPolHints           bool
 	MsftPwdPolHintsDeprecated bool
 }
@@ -324,7 +329,7 @@ func (e *PoolErr) IsDeadlineError() bool {
 	return e.isDeadlineError
 }
 
-type LDAPClient interface {
+type LDAPBaseClient interface {
 	ldap.Client
 
 	GSSAPIBind(client ldap.GSSAPIClient, servicePrincipal, authzid string) (err error)
@@ -336,4 +341,10 @@ type LDAPClient interface {
 	NTLMBindWithHash(domain, username, hash string) (err error)
 	NTLMBind(domain, username, password string) (err error)
 	WhoAmI(controls []ldap.Control) (result *ldap.WhoAmIResult, err error)
+}
+
+type LDAPExtendedClient interface {
+	LDAPBaseClient
+
+	Features() (features LDAPSupportedFeatures)
 }

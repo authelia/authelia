@@ -1,10 +1,7 @@
 package authentication
 
 import (
-	"fmt"
 	"strings"
-
-	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -20,7 +17,7 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 		return err
 	}
 
-	var client LDAPClient
+	var client LDAPExtendedClient
 
 	if client, err = p.factory.GetClient(); err != nil {
 		return err
@@ -32,68 +29,34 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 		}
 	}()
 
-	if p.features, err = p.getServerSupportedFeatures(client); err != nil {
-		return err
+	features := client.Features()
+
+	controlTypes, extensions := none, none
+
+	if len(features.ControlTypes.OIDs) != 0 {
+		controlTypes = strings.Join(features.ControlTypes.OIDs, ", ")
 	}
 
-	if !p.features.Extensions.PwdModifyExOp && !p.disableResetPassword &&
+	if len(features.Extensions.OIDs) != 0 {
+		extensions = strings.Join(features.Extensions.OIDs, ", ")
+	}
+
+	p.log.Debugf("LDAP Supported OIDs. Control Types: %s. Extensions: %s", controlTypes, extensions)
+
+	if !features.Extensions.PwdModify && !p.disableResetPassword &&
 		p.config.Implementation != schema.LDAPImplementationActiveDirectory {
 		p.log.Warn("Your LDAP server implementation may not support a method for password hashing " +
 			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
 			"attribute when users reset their password via Authelia.")
 	}
 
-	if p.features.Extensions.TLS && !p.config.StartTLS && !p.config.Address.IsExplicitlySecure() {
+	if features.Extensions.TLS && !p.config.StartTLS && !p.config.Address.IsExplicitlySecure() {
 		p.log.Error("Your LDAP Server supports TLS but you don't appear to be utilizing it. We strongly " +
 			"recommend using the scheme 'ldaps://' or enabling the StartTLS option to secure connections with your " +
 			"LDAP Server.")
 	}
 
 	return nil
-}
-
-func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (features LDAPSupportedFeatures, err error) {
-	var (
-		request *ldap.SearchRequest
-		result  *ldap.SearchResult
-	)
-
-	request = ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, ldapBaseObjectFilter, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
-
-	if result, err = client.Search(request); err != nil {
-		if p.config.PermitFeatureDetectionFailure {
-			p.log.WithError(err).Warnf("Error occurred during RootDSE search. This may result in reduced functionality.")
-
-			return features, nil
-		}
-
-		return features, fmt.Errorf("error occurred during RootDSE search: %w", err)
-	}
-
-	if len(result.Entries) != 1 {
-		p.log.Errorf("The LDAP Server did not respond appropriately to a RootDSE search. This may result in reduced functionality.")
-
-		return features, nil
-	}
-
-	var controlTypeOIDs, extensionOIDs []string
-
-	controlTypeOIDs, extensionOIDs, features = ldapGetFeatureSupportFromEntry(result.Entries[0])
-
-	controlTypes, extensions := none, none
-
-	if len(controlTypeOIDs) != 0 {
-		controlTypes = strings.Join(controlTypeOIDs, ", ")
-	}
-
-	if len(extensionOIDs) != 0 {
-		extensions = strings.Join(extensionOIDs, ", ")
-	}
-
-	p.log.Debugf("LDAP Supported OIDs. Control Types: %s. Extensions: %s", controlTypes, extensions)
-
-	return features, nil
 }
 
 //nolint:gocyclo
