@@ -6,10 +6,39 @@ import { useTranslation } from "react-i18next";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoGET } from "@hooks/UserInfo";
+import { Configuration } from "@models/Configuration";
 import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
 import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog";
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
 import ChangePasswordDialog from "@views/Settings/Security/ChangePasswordDialog";
+
+interface PasswordChangeButtonProps {
+    configuration: Configuration | undefined;
+    translate: (key: string) => string;
+    handleChangePassword: () => void;
+}
+
+const PasswordChangeButton = ({ configuration, translate, handleChangePassword }: PasswordChangeButtonProps) => {
+    const buttonContent = (
+        <Button
+            id="change-password-button"
+            variant="contained"
+            sx={{ p: 1, width: "100%" }}
+            onClick={handleChangePassword}
+            disabled={!configuration || configuration.password_change_disabled}
+        >
+            {translate("Change Password")}
+        </Button>
+    );
+
+    return !configuration || configuration.password_change_disabled ? (
+        <Tooltip title={translate("This is disabled by your administrator")}>
+            <Box component={"span"}>{buttonContent}</Box>
+        </Tooltip>
+    ) : (
+        buttonContent
+    );
+};
 
 const SettingsView = function () {
     const { t: translate } = useTranslation(["settings", "portal"]);
@@ -125,28 +154,6 @@ const SettingsView = function () {
         fetchConfiguration();
     }, [fetchUserInfo, fetchConfiguration]);
 
-    const PasswordChangeButton = () => {
-        const buttonContent = (
-            <Button
-                id="change-password-button"
-                variant="contained"
-                sx={{ p: 1, width: "100%" }}
-                onClick={handleChangePassword}
-                disabled={configuration?.password_change_disabled || false}
-            >
-                {translate("Change Password")}
-            </Button>
-        );
-
-        return configuration?.password_change_disabled ? (
-            <Tooltip title={translate("This is disabled by your administrator")}>
-                <Box component={"span"}>{buttonContent}</Box>
-            </Tooltip>
-        ) : (
-            buttonContent
-        );
-    };
-
     return (
         <Fragment>
             <SecondFactorDialog
@@ -219,8 +226,8 @@ const SettingsView = function () {
                                 {userInfo?.emails && userInfo.emails.length > 1 && (
                                     <List sx={{ width: "100%", padding: 0, pl: 4 }}>
                                         {" "}
-                                        {userInfo.emails.slice(1).map((email: string, index: number) => (
-                                            <ListItem key={index} sx={{ paddingTop: 0, paddingBottom: 0 }}>
+                                        {userInfo.emails.slice(1).map((email: string) => (
+                                            <ListItem key={email} sx={{ paddingTop: 0, paddingBottom: 0 }}>
                                                 <Typography>{email}</Typography>
                                             </ListItem>
                                         ))}
@@ -232,7 +239,11 @@ const SettingsView = function () {
                             >
                                 <Typography>{translate("Password")}: ●●●●●●●●</Typography>
                             </Box>
-                            <PasswordChangeButton />
+                            <PasswordChangeButton
+                                configuration={configuration}
+                                translate={translate}
+                                handleChangePassword={handleChangePassword}
+                            />
                         </Box>
                     </Stack>
                 </Paper>

@@ -1,6 +1,4 @@
-import { createContext, useContext, useRef } from "react";
-
-import { AlertColor } from "@mui/material";
+import { createContext, useCallback, useContext } from "react";
 
 import { Notification } from "@models/Notifications";
 
@@ -16,27 +14,40 @@ interface NotificationContextProps {
 const NotificationsContext = createContext<NotificationContextProps>({ notification: null, setNotification: () => {} });
 
 export function useNotifications() {
-    let useNotificationsProps = useContext(NotificationsContext);
+    const { notification, setNotification } = useContext(NotificationsContext);
 
-    const notificationBuilder = (level: AlertColor) => {
-        return (message: string, timeout?: number) => {
-            useNotificationsProps.setNotification({
+    const createNotification = useCallback(
+        (level: "info" | "success" | "warning" | "error", message: string, timeout?: number) => {
+            setNotification({
                 level,
                 message,
-                timeout: timeout ? timeout : defaultOptions.timeout,
+                timeout: timeout ?? defaultOptions.timeout,
             });
-        };
-    };
+        },
+        [setNotification],
+    );
 
-    const resetNotification = () => useNotificationsProps.setNotification(null);
-    const createInfoNotification = useRef(notificationBuilder("info")).current;
-    const createSuccessNotification = useRef(notificationBuilder("success")).current;
-    const createWarnNotification = useRef(notificationBuilder("warning")).current;
-    const createErrorNotification = useRef(notificationBuilder("error")).current;
-    const isActive = useNotificationsProps.notification !== null;
+    const resetNotification = useCallback(() => setNotification(null), [setNotification]);
+    const createInfoNotification = useCallback(
+        (message: string, timeout?: number) => createNotification("info", message, timeout),
+        [createNotification],
+    );
+    const createSuccessNotification = useCallback(
+        (message: string, timeout?: number) => createNotification("success", message, timeout),
+        [createNotification],
+    );
+    const createWarnNotification = useCallback(
+        (message: string, timeout?: number) => createNotification("warning", message, timeout),
+        [createNotification],
+    );
+    const createErrorNotification = useCallback(
+        (message: string, timeout?: number) => createNotification("error", message, timeout),
+        [createNotification],
+    );
+    const isActive = notification !== null;
 
     return {
-        notification: useNotificationsProps.notification,
+        notification,
         resetNotification,
         createInfoNotification,
         createSuccessNotification,

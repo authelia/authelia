@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 
 import { Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -102,38 +102,25 @@ const WebAuthnCredentialsPanel = function (props: Props) {
         setDialogSFOpening(false);
     };
 
-    const handleIVDialogClosed = useCallback(
-        (ok: boolean) => {
-            if (!ok) {
-                console.warn(
-                    "Identity Verification dialog close callback failed, it was likely cancelled by the user.",
-                );
+    const handleIVDialogClosed = (ok: boolean) => {
+        if (!ok) {
+            console.warn("Identity Verification dialog close callback failed, it was likely cancelled by the user.");
 
-                handleResetState();
+            handleResetState();
 
-                return;
-            }
+            return;
+        }
 
-            setElevation(undefined);
+        setElevation(undefined);
 
-            if (dialogRegisterOpening) {
-                handleOpenDialogRegister();
-            } else if (dialogDeleteOpening) {
-                handleOpenDialogDelete();
-            } else if (dialogEditOpening) {
-                handleOpenDialogEdit();
-            }
-        },
-        [
-            dialogDeleteOpening,
-            dialogEditOpening,
-            dialogRegisterOpening,
-            handleOpenDialogDelete,
-            handleOpenDialogEdit,
-            handleOpenDialogRegister,
-            handleResetState,
-        ],
-    );
+        if (dialogRegisterOpening) {
+            handleOpenDialogRegister();
+        } else if (dialogDeleteOpening) {
+            handleOpenDialogDelete();
+        } else if (dialogEditOpening) {
+            handleOpenDialogEdit();
+        }
+    };
 
     const handleIVDialogOpened = () => {
         setDialogIVOpening(false);

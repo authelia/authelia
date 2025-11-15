@@ -5,9 +5,9 @@ import {
 } from "@services/UserInfoTOTPConfiguration";
 
 export function useUserInfoTOTPConfiguration() {
-    return useRemoteCall(getUserInfoTOTPConfiguration, []);
+    return useRemoteCall(getUserInfoTOTPConfiguration);
 }
 
 export function useUserInfoTOTPConfigurationOptional() {
-    return useRemoteCall(getUserInfoTOTPConfigurationOptional, []);
+    return useRemoteCall(getUserInfoTOTPConfigurationOptional);
 }

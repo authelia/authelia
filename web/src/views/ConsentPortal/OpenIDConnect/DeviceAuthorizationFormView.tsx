@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Box, Button, FormControl, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -29,11 +29,13 @@ const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent", "settings"]);
     const theme = useTheme();
 
-    const [code, setCode] = useState("");
-
     const userCode = useUserCode();
 
+    const [code, setCode] = useState(userCode || "");
+
     const navigate = useRouterNavigate();
+
+    const autoSubmittedRef = useRef(false);
 
     const handleCode = useCallback(
         (code: string) => {
@@ -68,11 +70,19 @@ const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
     }, [userCode, navigate, props.state.authentication_level]);
 
     useEffect(() => {
-        if (!userCode || props.state.authentication_level === AuthenticationLevel.Unauthenticated) {
+        autoSubmittedRef.current = false;
+    }, [userCode]);
+
+    useEffect(() => {
+        if (
+            !userCode ||
+            props.state.authentication_level === AuthenticationLevel.Unauthenticated ||
+            autoSubmittedRef.current
+        ) {
             return;
         }
 
-        setCode(userCode);
+        autoSubmittedRef.current = true;
         handleCode(userCode);
     }, [handleCode, props.state.authentication_level, userCode]);
 

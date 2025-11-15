@@ -1,4 +1,4 @@
-import React, { Fragment, lazy, useEffect, useState } from "react";
+import React, { Fragment, lazy, useEffect } from "react";
 
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
@@ -21,29 +21,20 @@ const ConsentPortal: React.FC<Props> = (props: Props) => {
 
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
     const [state, fetchState, , fetchStateError] = useAutheliaState();
-    const [loading, setLoading] = useState(true);
-
+    const loading = !state || (state.authentication_level >= AuthenticationLevel.OneFactor && !userInfo);
     const { createErrorNotification, resetNotification } = useNotifications();
 
     useEffect(() => {
         fetchState();
-    }, [fetchState, fetchUserInfo]);
+    }, [fetchState]);
 
     useEffect(() => {
         if (state) {
             if (state.authentication_level >= AuthenticationLevel.OneFactor) {
                 fetchUserInfo();
-            } else {
-                setLoading(false);
             }
         }
     }, [state, fetchUserInfo]);
-
-    useEffect(() => {
-        if (userInfo) {
-            setLoading(false);
-        }
-    }, [userInfo]);
 
     useEffect(() => {
         if (fetchUserInfoError) {

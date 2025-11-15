@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useReducer } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -7,29 +7,53 @@ import { useIsMountedRef } from "@hooks/Mounted";
 import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
 import { getWebAuthnOptions, getWebAuthnResult, postWebAuthnResponse } from "@services/WebAuthn";
 
+type ComponentState = {
+    status: WebAuthnTouchState;
+    started: boolean;
+};
+
+type Action = { type: "setStatus"; status: WebAuthnTouchState } | { type: "setStarted"; started: boolean };
+
+const initialState: ComponentState = {
+    status: WebAuthnTouchState.WaitTouch,
+    started: false,
+};
+
+function reducer(state: ComponentState, action: Action): ComponentState {
+    switch (action.type) {
+        case "setStatus":
+            return { ...state, status: action.status };
+        case "setStarted":
+            return { ...state, started: action.started };
+        default:
+            return state;
+    }
+}
+
 export interface Props {
-    closing: boolean;
     onSecondFactorSuccess: () => void;
 }
 
 const SecondFactorMethodWebAuthn = function (props: Props) {
-    const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
-    const [started, setStarted] = useState(false);
+    const [state, dispatch] = useReducer(reducer, initialState);
     const mounted = useIsMountedRef();
     const { t: translate } = useTranslation();
 
+    const { status, started } = state;
+
     const handleRetry = () => {
-        setState(WebAuthnTouchState.WaitTouch);
+        dispatch({ type: "setStatus", status: WebAuthnTouchState.WaitTouch });
+        dispatch({ type: "setStarted", started: false });
     };
 
     const handleStart = useCallback(async () => {
-        setStarted(true);
+        dispatch({ type: "setStarted", started: true });
 
         try {
             const optionsStatus = await getWebAuthnOptions();
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
-                setState(WebAuthnTouchState.Failure);
+                dispatch({ type: "setStatus", status: WebAuthnTouchState.Failure });
                 console.error(new Error(translate("Failed to initiate security key sign in process")));
 
                 return;
@@ -40,7 +64,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
             if (result.result !== AssertionResult.Success) {
                 if (!mounted.current) return;
 
-                setState(WebAuthnTouchState.Failure);
+                dispatch({ type: "setStatus", status: WebAuthnTouchState.Failure });
 
                 console.error(new Error(translate(AssertionResultFailureString(result.result))));
 
@@ -49,14 +73,14 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
             if (result.response == null) {
                 console.error(new Error(translate("The browser did not respond with the expected attestation data")));
-                setState(WebAuthnTouchState.Failure);
+                dispatch({ type: "setStatus", status: WebAuthnTouchState.Failure });
 
                 return;
             }
 
             if (!mounted.current) return;
 
-            setState(WebAuthnTouchState.InProgress);
+            dispatch({ type: "setStatus", status: WebAuthnTouchState.InProgress });
 
             const response = await postWebAuthnResponse(result.response);
 
@@ -68,13 +92,13 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
             if (!mounted.current) return;
 
             console.error(new Error(translate("The server rejected the security key")));
-            setState(WebAuthnTouchState.Failure);
+            dispatch({ type: "setStatus", status: WebAuthnTouchState.Failure });
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             console.error(err);
-            setState(WebAuthnTouchState.Failure);
+            dispatch({ type: "setStatus", status: WebAuthnTouchState.Failure });
         }
     }, [mounted, props, translate]);
 
@@ -84,7 +108,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
         handleStart().catch(console.error);
     }, [handleStart, started]);
 
-    return <WebAuthnTryIcon onRetryClick={handleRetry} webauthnTouchState={state} />;
+    return <WebAuthnTryIcon onRetryClick={handleRetry} webauthnTouchState={status} />;
 };
 
 export default SecondFactorMethodWebAuthn;
