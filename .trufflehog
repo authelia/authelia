@@ -8,4 +8,5 @@
 ^internal\/configuration\/test_resources\/
 ^internal\/suites\/.*\/configuration\.yml$
 ^internal\/suites\/common\/pki\/.*\.pem$
+^\.pnpm-store\/
 ^.*_test\.go$

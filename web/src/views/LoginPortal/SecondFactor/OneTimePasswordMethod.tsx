@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { RedirectionURL } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
+import { useIsMountedRef } from "@hooks/Mounted";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
@@ -41,11 +42,15 @@ const OneTimePasswordMethod = function (props: Props) {
     const onSignInErrorCallback = useRef(onSignInError).current;
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
+    const mounted = useIsMountedRef();
 
     useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
+        return () => {
+            if (timeoutRateLimit.current !== null) {
+                clearTimeout(timeoutRateLimit.current);
+                timeoutRateLimit.current = null;
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -73,11 +78,16 @@ const OneTimePasswordMethod = function (props: Props) {
             onSignInErrorCallback(new Error(translate("You have made too many requests")));
 
             timeoutRateLimit.current = setTimeout(() => {
+                if (!mounted.current) {
+                    timeoutRateLimit.current = null;
+                    return;
+                }
+
                 setState(State.Idle);
                 timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
-        [onSignInErrorCallback, translate],
+        [mounted, onSignInErrorCallback, translate],
     );
 
     const signInFunc = useCallback(async () => {
@@ -95,6 +105,10 @@ const OneTimePasswordMethod = function (props: Props) {
             setState(State.InProgress);
             const res = await completeTOTPSignIn(passcodeStr, redirectionURL, flowID, flow, subflow, userCode);
 
+            if (!mounted.current) {
+                return;
+            }
+
             if (!res) {
                 onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
                 setState(State.Failure);
@@ -106,6 +120,9 @@ const OneTimePasswordMethod = function (props: Props) {
             }
         } catch (err) {
             console.error(err);
+            if (!mounted.current) {
+                return;
+            }
             onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
             setState(State.Failure);
         }
@@ -124,6 +141,7 @@ const OneTimePasswordMethod = function (props: Props) {
         translate,
         onSignInSuccessCallback,
         handleRateLimited,
+        mounted,
     ]);
 
     // Set successful state if user is already authenticated.

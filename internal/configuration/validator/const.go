@@ -363,7 +363,8 @@ const (
 
 // Theme Error constants.
 const (
-	errFmtThemeName = "option 'theme' must be one of %s but it's configured as '%s'"
+	errFmtThemeName          = "option 'theme' must be one of %s but it's configured as '%s'"
+	errFmtPortalTemplateName = "option 'portal_template' contains invalid characters: '%s'"
 )
 
 // NTP Error constants.

@@ -1,17 +1,19 @@
 import React, { ReactNode, useCallback, useEffect, useState } from "react";
 
-import { Box, Breakpoint, Container, Theme } from "@mui/material";
+import { Box, Breakpoint, Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import UserSvg from "@assets/images/user.svg?react";
 import AppBarLoginPortal from "@components/AppBarLoginPortal";
 import Brand from "@components/Brand";
+import PortalTemplateEffectHost from "@components/PortalTemplateEffectHost";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import TypographyWithTooltip from "@components/TypographyWithTooltip";
 import { EncodedName } from "@constants/constants";
 import { useLanguageContext } from "@contexts/LanguageContext";
+import { usePortalTemplate } from "@contexts/PortalTemplateContext";
+import { usePortalStyles } from "@layouts/usePortalStyles";
 import { Language } from "@models/LocaleInformation";
 import { UserInfo } from "@models/UserInfo";
 import { getLocaleInformation } from "@services/LocaleInformation";
@@ -34,7 +36,8 @@ const LoginLayout = function (props: Props) {
 
     const [localeList, setLocaleList] = useState<Language[]>([]);
 
-    const { classes } = useStyles();
+    const { definition } = usePortalTemplate();
+    const classes = usePortalStyles(definition);
 
     const logo = getLogoOverride() ? (
         <Box component={"img"} src="./static/media/logo.png" alt="Logo" className={classes.icon} />
@@ -42,7 +45,6 @@ const LoginLayout = function (props: Props) {
         <UserSvg className={classes.icon} />
     );
 
-    // handle the language selection
     const handleChangeLanguage = (locale: string) => {
         setLocale(locale);
     };
@@ -66,8 +68,26 @@ const LoginLayout = function (props: Props) {
         document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
     }, [translate]);
 
+    const rootEnhancer =
+        `${classes.rootContainer} ${classes.typography} ${classes.links} ${classes.formElements} ${classes.buttons} ${classes.status}`.trim();
+
+    const templateMaxWidth = definition.style.layout?.maxWidth;
+    const inferredMaxWidth: false | Breakpoint = (() => {
+        if (props.maxWidth !== undefined) {
+            return props.maxWidth;
+        }
+        if (templateMaxWidth === undefined) {
+            return "xs";
+        }
+        if (templateMaxWidth === false) {
+            return false;
+        }
+        return templateMaxWidth as Breakpoint;
+    })();
+
     return (
-        <Box>
+        <Box className={classes.page} data-portal-role="page">
+            <PortalTemplateEffectHost className={classes.effectHost} />
             <AppBarLoginPortal
                 userInfo={props.userInfo}
                 onLocaleChange={handleChangeLanguage}
@@ -81,12 +101,10 @@ const LoginLayout = function (props: Props) {
                 spacing={0}
                 alignItems="center"
                 justifyContent="center"
+                data-portal-role="root"
             >
-                <Container
-                    maxWidth={props.maxWidth === undefined ? "xs" : props.maxWidth}
-                    className={classes.rootContainer}
-                >
-                    <Grid container>
+                <Container maxWidth={inferredMaxWidth} className={rootEnhancer} data-portal-role="card">
+                    <Grid container className={classes.typography} data-portal-role="content">
                         <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
                             <Grid size={{ xs: 12 }} maxWidth={"xs"}>
@@ -109,7 +127,9 @@ const LoginLayout = function (props: Props) {
                         <Grid size={{ xs: 12 }} className={classes.body}>
                             {props.children}
                         </Grid>
-                        <Brand />
+                        <Grid size={{ xs: 12 }} className={classes.links}>
+                            <Brand />
+                        </Grid>
                     </Grid>
                 </Container>
                 <PrivacyPolicyDrawer />
@@ -117,28 +137,5 @@ const LoginLayout = function (props: Props) {
         </Box>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
-        minHeight: "90vh",
-        textAlign: "center",
-    },
-    rootContainer: {
-        paddingLeft: 32,
-        paddingRight: 32,
-    },
-    title: {},
-    subtitle: {},
-    icon: {
-        margin: theme.spacing(),
-        width: "64px",
-        fill: theme.custom.icon,
-    },
-    body: {
-        marginTop: theme.spacing(),
-        paddingTop: theme.spacing(),
-        paddingBottom: theme.spacing(),
-    },
-}));
 
 export default LoginLayout;

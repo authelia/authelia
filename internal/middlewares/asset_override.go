@@ -3,6 +3,7 @@ package middlewares
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 )
@@ -13,13 +14,41 @@ func AssetOverride(root string, strip int, next fasthttp.RequestHandler) fasthtt
 		return next
 	}
 
-	handler := fasthttp.FSHandler(root, strip)
+	rootAbs, err := filepath.Abs(root)
+	if err != nil {
+		rootAbs = root
+	}
+
+	handler := fasthttp.FSHandler(rootAbs, strip)
 	stripper := fasthttp.NewPathSlashesStripper(strip)
+	rootPrefix := rootAbs + string(os.PathSeparator)
 
 	return func(ctx *fasthttp.RequestCtx) {
-		asset := filepath.Join(root, string(stripper(ctx)))
+		requestPath := string(stripper(ctx))
+		cleaned := filepath.Clean(requestPath)
+		cleaned = strings.TrimPrefix(cleaned, string(os.PathSeparator))
 
-		if _, err := os.Stat(asset); err != nil {
+		if cleaned == "" || cleaned == "." {
+			next(ctx)
+
+			return
+		}
+
+		if cleaned == ".." || strings.HasPrefix(cleaned, ".."+string(os.PathSeparator)) {
+			ctx.Error(fasthttp.StatusMessage(fasthttp.StatusForbidden), fasthttp.StatusForbidden)
+
+			return
+		}
+
+		asset := filepath.Join(rootAbs, cleaned)
+		if asset != rootAbs && !strings.HasPrefix(asset, rootPrefix) {
+			ctx.Error(fasthttp.StatusMessage(fasthttp.StatusForbidden), fasthttp.StatusForbidden)
+
+			return
+		}
+
+		info, err := os.Stat(asset)
+		if err != nil || info.IsDir() {
 			next(ctx)
 
 			return

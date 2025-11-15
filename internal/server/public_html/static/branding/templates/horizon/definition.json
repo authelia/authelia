@@ -1,0 +1,176 @@
+{
+  "name": "horizon",
+  "displayName": "Neon Horizon",
+  "description": "Split hero layout with a luminous editorial panel on the left and a compact glass login on the right.",
+  "effect": {
+    "module": "./static/branding/templates/horizon/effect.js?v=20251113b"
+  },
+  "style": {
+    "page": {
+      "background": "linear-gradient(145deg, #160626 0%, #0f0421 55%, #070217 100%)",
+      "color": "#f6f4ff",
+      "before": {
+        "background": "linear-gradient(120deg, rgba(142, 66, 210, 0.85) 0%, rgba(222, 95, 198, 0.78) 42%, rgba(255, 168, 162, 0.72) 80%)",
+        "mixBlendMode": "screen",
+        "opacity": 1,
+        "inset": "-12% 46% -22% -18%",
+        "transform": "skewX(-12deg)",
+        "animation": {
+          "key": "heroShift",
+          "duration": "34s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite",
+          "direction": "alternate"
+        }
+      },
+      "after": {
+        "background": "radial-gradient(circle at 24% 42%, rgba(255, 214, 234, 0.55), rgba(255, 214, 234, 0) 68%), radial-gradient(circle at 12% 78%, rgba(132, 90, 255, 0.4), rgba(132, 90, 255, 0) 60%)",
+        "opacity": 0.9,
+        "blur": "60px",
+        "mixBlendMode": "screen",
+        "animation": {
+          "key": "heroPulse",
+          "duration": "28s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "root": {
+      "padding": "clamp(3.2rem, 6vw, 5rem) clamp(2.4rem, 6vw, 4.4rem)",
+      "background": "linear-gradient(110deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0))",
+      "before": {
+        "background": "linear-gradient(140deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0))",
+        "opacity": 0.9,
+        "inset": "6% 44% 10% -10%",
+        "transform": "skewX(-10deg)",
+        "animation": {
+          "key": "heroFloat",
+          "duration": "24s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite",
+          "direction": "alternate"
+        }
+      },
+      "after": {
+        "background": "linear-gradient(190deg, rgba(32, 16, 62, 0.45), rgba(12, 6, 32, 0))",
+        "opacity": 0.8,
+        "inset": "-10% 48% -18% -6%",
+        "transform": "skewX(-8deg)",
+        "animation": {
+          "key": "heroFloat",
+          "duration": "30s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "card": {
+      "background": "rgba(12, 10, 28, 0.86)",
+      "border": "1px solid rgba(142, 160, 255, 0.28)",
+      "borderRadius": "28px",
+      "padding": "clamp(2.2rem, 4vw, 3rem)",
+      "shadow": "0 48px 120px -46px rgba(5, 4, 16, 0.85)",
+      "color": "#f7f7ff",
+      "overlay": {
+        "background": "linear-gradient(135deg, rgba(106, 140, 255, 0.22), rgba(238, 118, 190, 0.18))",
+        "opacity": 0.9,
+        "animation": {
+          "key": "panelGlow",
+          "duration": "26s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite",
+          "direction": "alternate"
+        }
+      }
+    },
+    "typography": {
+      "title": "#ffffff",
+      "subtitle": "rgba(214, 220, 255, 0.78)",
+      "body": "rgba(204, 212, 248, 0.76)",
+      "caption": "rgba(170, 180, 232, 0.72)",
+      "strong": "#ffffff",
+      "link": "#8ab6ff",
+      "linkHover": "#d7e6ff",
+      "brand": "rgba(168, 184, 238, 0.7)"
+    },
+    "buttons": {
+      "containedGradient": "linear-gradient(128deg, #6f7bff 0%, #8c5eff 48%, #ff79c9 100%)",
+      "containedHover": "linear-gradient(128deg, #7f8cff 0%, #9c6eff 52%, #ff8ad3 100%)",
+      "text": "#0f0824",
+      "outlinedBorder": "rgba(124, 156, 255, 0.55)",
+      "outlinedHover": "rgba(165, 198, 255, 0.9)",
+      "outlinedBackground": "rgba(124, 156, 255, 0.16)",
+      "outlinedHoverBackground": "rgba(124, 156, 255, 0.26)",
+      "radius": "18px",
+      "padding": "0.85rem 1.45rem",
+      "shadow": "0 24px 52px -26px rgba(118, 156, 255, 0.55)",
+      "shadowHover": "0 30px 60px -24px rgba(255, 144, 213, 0.6)"
+    },
+    "form": {
+      "background": "rgba(9, 8, 24, 0.82)",
+      "border": "1px solid rgba(138, 170, 255, 0.35)",
+      "borderHover": "rgba(160, 198, 255, 0.55)",
+      "borderFocus": "rgba(144, 214, 255, 0.95)",
+      "focusShadow": "0 0 0 3px rgba(120, 188, 255, 0.28)",
+      "input": "#f9f9ff",
+      "label": "rgba(184, 198, 238, 0.74)",
+      "labelFocus": "#8fe8ff"
+    },
+    "surface": {
+      "backdrop": "rgba(6, 4, 18, 0.78)",
+      "shadow": "0 40px 96px -40px rgba(4, 2, 12, 0.92)"
+    },
+    "status": {
+      "alertBackground": "rgba(255, 148, 204, 0.2)",
+      "alertBorder": "rgba(255, 148, 204, 0.38)",
+      "alertText": "#ffe0f0",
+      "progress": "#7dc3ff",
+      "divider": "rgba(132, 172, 240, 0.34)",
+      "chipBackground": "rgba(134, 182, 255, 0.24)",
+      "chipText": "#e7f2ff",
+      "avatarGradient": "linear-gradient(135deg, rgba(124, 176, 255, 0.72), rgba(226, 118, 204, 0.68))",
+      "tooltipBackground": "rgba(9, 6, 20, 0.94)",
+      "tooltipBorder": "rgba(132, 180, 255, 0.36)",
+      "tableBorder": "rgba(126, 170, 236, 0.32)",
+      "tableText": "rgba(212, 226, 252, 0.82)",
+      "iconButton": "rgba(204, 220, 255, 0.84)",
+      "iconButtonHover": "#8de6ff",
+      "adornment": "rgba(168, 198, 252, 0.74)"
+    },
+    "layout": {
+      "pageInset": "clamp(1.6rem, 4.2vw, 3.6rem)",
+      "rootInset": "clamp(1.4rem, 3.8vw, 3.2rem)",
+      "cardVariant": "default",
+      "cardClipPath": "none",
+      "maxWidth": "lg",
+      "rootJustify": "flex-end",
+      "rootAlign": "center",
+      "containerMaxWidth": "460px",
+      "containerWidth": "100%",
+      "containerMargin": "0"
+    },
+    "animations": {
+      "heroShift": {
+        "0%": { "transform": "skewX(-12deg) translate3d(-4%, 0, 0)" },
+        "50%": { "transform": "skewX(-12deg) translate3d(3%, 0, 0)" },
+        "100%": { "transform": "skewX(-12deg) translate3d(-4%, 0, 0)" }
+      },
+      "heroPulse": {
+        "0%": { "opacity": 0.6, "transform": "scale(0.96)" },
+        "50%": { "opacity": 1, "transform": "scale(1.05)" },
+        "100%": { "opacity": 0.6, "transform": "scale(0.96)" }
+      },
+      "heroFloat": {
+        "0%": { "transform": "skewX(-10deg) translate3d(-3%, -4%, 0)" },
+        "50%": { "transform": "skewX(-10deg) translate3d(2%, 4%, 0)" },
+        "100%": { "transform": "skewX(-10deg) translate3d(-3%, -4%, 0)" }
+      },
+      "panelGlow": {
+        "0%": { "opacity": 0.5, "transform": "translate3d(-6%, -6%, 0) scale(0.96)" },
+        "50%": { "opacity": 0.92, "transform": "translate3d(2%, 4%, 0) scale(1.02)" },
+        "100%": { "opacity": 0.5, "transform": "translate3d(-6%, -6%, 0) scale(0.96)" }
+      }
+    }
+  }
+}

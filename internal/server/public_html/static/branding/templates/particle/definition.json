@@ -1,0 +1,197 @@
+{
+  "name": "particle",
+  "displayName": "Particle Field",
+  "description": "A deep-space particle cloud shimmers around a dark glass monolith with a radiant halo.",
+  "effect": {
+    "module": "./static/branding/templates/particle/effect.js?v=20251103"
+  },
+  "style": {
+    "page": {
+      "background": "radial-gradient(circle at 50% 15%, #030415 0%, #03030d 40%, #020208 100%)",
+      "color": "#f5f9ff",
+      "before": {
+        "background": "radial-gradient(circle, rgba(98, 130, 255, 0.18) 0, transparent 55%), radial-gradient(circle, rgba(116, 255, 203, 0.12) 0, transparent 65%)",
+        "opacity": 0.6,
+        "blur": "80px",
+        "animation": {
+          "key": "particleBloom",
+          "duration": "40s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        }
+      },
+      "after": {
+        "background": "radial-gradient(circle at var(--portal-pointer-x, 50%) var(--portal-pointer-y, 50%), rgba(118, 184, 255, 0.28), transparent 60%), radial-gradient(circle at calc(var(--portal-pointer-x, 50%) - 12%) calc(var(--portal-pointer-y, 50%) + 18%), rgba(126, 255, 202, 0.24), transparent 62%), repeating-radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.12) 0px, rgba(255, 255, 255, 0.12) 1px, transparent 3px, transparent 12px)",
+        "backgroundSize": "100% 100%, 100% 100%, 360px 360px",
+        "backgroundPosition": "calc(50% + (var(--portal-pointer-x, 50%) - 50%) * 0.3) calc(50% + (var(--portal-pointer-y, 50%) - 50%) * 0.3), calc(48% + (var(--portal-pointer-x, 50%) - 50%) * -0.25) calc(55% + (var(--portal-pointer-y, 50%) - 50%) * 0.35), calc((var(--portal-pointer-x, 50%) - 50%) * 4) calc((var(--portal-pointer-y, 50%) - 50%) * -4)",
+        "opacity": 0.85,
+        "mixBlendMode": "screen",
+        "transition": "background-position 0.9s ease, opacity 0.6s ease",
+        "animation": {
+          "key": "particleDrift",
+          "duration": "32s",
+          "timingFunction": "linear",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "root": {
+      "padding": "clamp(2rem, 4vw, 3.2rem) clamp(1.5rem, 3.6vw, 2.6rem)",
+      "background": "transparent",
+      "backdropFilter": "blur(24px)",
+      "before": {
+        "background": "radial-gradient(circle at calc(var(--portal-pointer-x, 50%) + 14%) calc(var(--portal-pointer-y, 50%) - 12%), rgba(122, 188, 255, 0.24), transparent 64%)",
+        "opacity": 0.7,
+        "blur": "68px",
+        "animation": {
+          "key": "particleOrbit",
+          "duration": "30s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "inset": "auto -24% -24% auto",
+        "position": "absolute"
+      },
+      "after": {
+        "background": "radial-gradient(circle at 18% 80%, rgba(80, 216, 182, 0.26), transparent 60%)",
+        "opacity": 0.58,
+        "blur": "62px",
+        "animation": {
+          "key": "particleOrbit",
+          "duration": "34s",
+          "timingFunction": "ease-in-out",
+          "direction": "reverse",
+          "iterationCount": "infinite"
+        },
+        "inset": "-26% auto auto -22%",
+        "position": "absolute"
+      }
+    },
+    "card": {
+      "background": "rgba(8, 16, 36, 0.86)",
+      "border": "1px solid rgba(126, 200, 255, 0.3)",
+      "borderRadius": "22px",
+      "padding": "clamp(1.6rem, 3.6vw, 2.2rem)",
+      "shadow": "0 26px 60px -34px rgba(0, 0, 0, 0.78)",
+      "color": "#f4f8ff",
+      "backdropFilter": "blur(18px)",
+      "overlay": {
+        "background": "radial-gradient(circle at var(--portal-pointer-x, 50%) var(--portal-pointer-y, 50%), rgba(116, 196, 255, 0.2), transparent 60%)",
+        "opacity": 0.65,
+        "transition": "opacity 0.6s ease",
+        "animation": {
+          "key": "particlePulse",
+          "duration": "18s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "typography": {
+      "title": "#ffffff",
+      "subtitle": "rgba(214, 230, 252, 0.82)",
+      "body": "rgba(200, 216, 236, 0.72)",
+      "link": "#7adfff",
+      "linkHover": "#c4f4ff",
+      "caption": "rgba(186, 204, 230, 0.7)",
+      "strong": "#ffffff",
+      "brand": "rgba(168, 188, 220, 0.64)"
+    },
+    "buttons": {
+      "containedGradient": "linear-gradient(125deg, #6cc0ff 0%, #60f0ff 48%, #97ffcf 100%)",
+      "containedHover": "linear-gradient(125deg, #7cd1ff 0%, #7af6ff 48%, #b0ffd9 100%)",
+      "text": "#031628",
+      "outlinedBorder": "rgba(134, 206, 255, 0.58)",
+      "outlinedHover": "rgba(134, 206, 255, 0.92)",
+      "outlinedBackground": "rgba(134, 206, 255, 0.16)",
+      "outlinedHoverBackground": "rgba(134, 206, 255, 0.28)",
+      "radius": "16px",
+      "padding": "0.8rem 1.28rem",
+      "shadow": "0 18px 36px -20px rgba(108, 192, 255, 0.5)",
+      "shadowHover": "0 22px 42px -18px rgba(132, 214, 255, 0.6)"
+    },
+    "form": {
+      "background": "rgba(6, 14, 30, 0.82)",
+      "border": "rgba(126, 200, 255, 0.28)",
+      "borderHover": "rgba(136, 214, 255, 0.48)",
+      "borderFocus": "rgba(118, 238, 255, 0.9)",
+      "focusShadow": "0 0 0 3px rgba(118, 224, 255, 0.32)",
+      "input": "#f2f8ff",
+      "label": "rgba(188, 210, 240, 0.76)",
+      "labelFocus": "#7ce8ff"
+    },
+    "surface": {
+      "backdrop": "rgba(4, 10, 22, 0.84)",
+      "shadow": "0 24px 46px -32px rgba(0, 0, 0, 0.82)"
+    },
+    "status": {
+      "alertBackground": "rgba(124, 220, 255, 0.16)",
+      "alertBorder": "rgba(124, 220, 255, 0.38)",
+      "alertText": "#ecf8ff",
+      "progress": "#75f0ff",
+      "divider": "rgba(122, 202, 255, 0.24)",
+      "chipBackground": "rgba(122, 202, 255, 0.2)",
+      "chipText": "#e0f6ff",
+      "avatarGradient": "linear-gradient(135deg, rgba(124, 210, 255, 0.72), rgba(118, 245, 214, 0.68))",
+      "tooltipBackground": "rgba(6, 12, 24, 0.94)",
+      "tooltipBorder": "rgba(132, 206, 255, 0.32)",
+      "tableBorder": "rgba(120, 184, 230, 0.28)",
+      "tableText": "rgba(214, 232, 250, 0.78)",
+      "iconButton": "rgba(182, 210, 240, 0.78)",
+      "iconButtonHover": "#82eaff",
+      "adornment": "rgba(164, 196, 232, 0.68)"
+    },
+    "layout": {
+      "pageInset": "clamp(1.4rem, 3.2vw, 3rem)",
+      "rootInset": "clamp(1.2rem, 2.6vw, 2.5rem)",
+      "cardVariant": "default",
+      "maxWidth": "xs"
+    },
+    "animations": {
+      "particleBloom": {
+        "0%": {
+          "transform": "translate3d(-6%, -6%, 0) scale(0.95)"
+        },
+        "50%": {
+          "transform": "translate3d(6%, 4%, 0) scale(1.05)"
+        },
+        "100%": {
+          "transform": "translate3d(-6%, -6%, 0) scale(0.95)"
+        }
+      },
+      "particleDrift": {
+        "0%": {
+          "background-position": "50% 50%, 50% 50%, 0% 0%"
+        },
+        "50%": {
+          "background-position": "52% 48%, 46% 54%, 50% 50%"
+        },
+        "100%": {
+          "background-position": "50% 50%, 50% 50%, 100% 100%"
+        }
+      },
+      "particleOrbit": {
+        "0%": {
+          "transform": "translate3d(-6%, 6%, 0)"
+        },
+        "50%": {
+          "transform": "translate3d(6%, -6%, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(-6%, 6%, 0)"
+        }
+      },
+      "particlePulse": {
+        "0%": {
+          "opacity": 0.58
+        },
+        "50%": {
+          "opacity": 0.88
+        },
+        "100%": {
+          "opacity": 0.58
+        }
+      }
+    }
+  }
+}

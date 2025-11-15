@@ -7,6 +7,6 @@ export function useIsMountedRef() {
         return () => {
             isMountedRef.current = false;
         };
-    });
+    }, []);
     return isMountedRef;
 }

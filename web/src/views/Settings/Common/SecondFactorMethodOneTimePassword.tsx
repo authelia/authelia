@@ -2,6 +2,7 @@ import React, { Fragment, useCallback, useEffect, useRef, useState } from "react
 
 import { useTranslation } from "react-i18next";
 
+import { useIsMountedRef } from "@hooks/Mounted";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
@@ -21,13 +22,17 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
     const { createErrorNotification } = useNotifications();
 
     const [config, fetchConfig, , fetchConfigError] = useUserInfoTOTPConfiguration();
+    const mounted = useIsMountedRef();
 
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
+        return () => {
+            if (timeoutRateLimit.current !== null) {
+                clearTimeout(timeoutRateLimit.current);
+                timeoutRateLimit.current = null;
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -52,11 +57,15 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
             createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
 
             timeoutRateLimit.current = setTimeout(() => {
+                if (!mounted.current) {
+                    timeoutRateLimit.current = null;
+                    return;
+                }
                 setState(State.Idle);
                 timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
-        [createErrorNotification, translate],
+        [createErrorNotification, translate, mounted],
     );
 
     const handleSignIn = useCallback(async () => {
@@ -73,6 +82,10 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
             const res = await completeTOTPSignIn(passcodeStr);
 
+            if (!mounted.current) {
+                return;
+            }
+
             if (res) {
                 if (!res.limited) {
                     setState(State.Success);
@@ -85,11 +98,14 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
             }
         } catch (err) {
             console.error(err);
+            if (!mounted.current) {
+                return;
+            }
             setState(State.Failure);
         }
 
         setPasscode("");
-    }, [passcode, config, handleRateLimited, createErrorNotification, translate]);
+    }, [passcode, config, handleRateLimited, createErrorNotification, translate, mounted]);
 
     useEffect(() => {
         handleSignIn().catch(console.error);

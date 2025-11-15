@@ -1,0 +1,171 @@
+{
+  "name": "gateway",
+  "displayName": "Gateway Flux",
+  "description": "Compact login slab hovering in a neon control-room backdrop with interactive particle links.",
+  "effect": {
+    "module": "./static/branding/templates/gateway/effect.js?v=20251113"
+  },
+  "style": {
+    "page": {
+      "background": "linear-gradient(135deg, rgba(69, 211, 255, 0.12), transparent 45%), linear-gradient(305deg, rgba(255, 113, 194, 0.1), transparent 55%), #090819",
+      "color": "#f7f6ff",
+      "before": {
+        "background": "linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
+        "size": "100% 24px",
+        "opacity": 1,
+        "pointerEvents": "none",
+        "animation": {
+          "key": "gridShift",
+          "duration": "22s",
+          "timingFunction": "linear",
+          "iterationCount": "infinite",
+          "direction": "alternate"
+        }
+      },
+      "after": {
+        "background": "radial-gradient(circle at 20% 80%, rgba(69, 211, 255, 0.18), transparent 60%), radial-gradient(circle at 72% 20%, rgba(255, 113, 194, 0.16), transparent 55%)",
+        "opacity": 0.85,
+        "animation": {
+          "key": "haloPulse",
+          "duration": "30s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite",
+          "direction": "alternate"
+        }
+      }
+    },
+    "root": {
+      "padding": "clamp(2.4rem, 6vw, 4.5rem) clamp(1.5rem, 5vw, 3.6rem)",
+      "background": "transparent"
+    },
+    "card": {
+      "background": "rgba(18, 16, 36, 0.88)",
+      "border": "1px solid rgba(69, 211, 255, 0.22)",
+      "borderRadius": "18px",
+      "padding": "clamp(1.6rem, 3.4vw, 2.1rem)",
+      "shadow": "0 16px 52px rgba(9, 8, 25, 0.6)",
+      "color": "#f7f6ff",
+      "overlay": {
+        "background": "linear-gradient(130deg, rgba(255, 113, 194, 0.14), transparent 60%)",
+        "opacity": 0.8,
+        "animation": {
+          "key": "cardGlow",
+          "duration": "24s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite",
+          "direction": "alternate"
+        }
+      }
+    },
+    "typography": {
+      "title": "#ffffff",
+      "subtitle": "rgba(167, 165, 214, 0.85)",
+      "body": "rgba(183, 188, 224, 0.78)",
+      "caption": "rgba(150, 153, 196, 0.7)",
+      "strong": "#ffffff",
+      "link": "#45d3ff",
+      "linkHover": "#ffd479",
+      "brand": "rgba(143, 142, 210, 0.7)"
+    },
+    "buttons": {
+      "containedGradient": "linear-gradient(120deg, rgba(255, 113, 194, 0.24), rgba(69, 211, 255, 0.28))",
+      "containedHover": "linear-gradient(120deg, rgba(255, 113, 194, 0.32), rgba(69, 211, 255, 0.34))",
+      "text": "#f7f6ff",
+      "outlinedBorder": "rgba(143, 140, 210, 0.35)",
+      "outlinedHover": "rgba(143, 140, 210, 0.6)",
+      "outlinedBackground": "rgba(16, 14, 30, 0.8)",
+      "outlinedHoverBackground": "rgba(16, 14, 30, 0.92)",
+      "radius": "10px",
+      "padding": "0.55rem 1rem",
+      "shadow": "0 18px 40px rgba(9, 8, 25, 0.55)",
+      "shadowHover": "0 22px 46px rgba(9, 8, 25, 0.7)"
+    },
+    "form": {
+      "background": "rgba(16, 14, 30, 0.8)",
+      "border": "1px solid rgba(143, 143, 210, 0.35)",
+      "borderHover": "rgba(143, 143, 210, 0.5)",
+      "borderFocus": "rgba(69, 211, 255, 0.65)",
+      "focusShadow": "0 0 0 3px rgba(69, 211, 255, 0.18)",
+      "input": "#f7f6ff",
+      "label": "rgba(143, 140, 210, 0.78)",
+      "labelFocus": "#45d3ff"
+    },
+    "surface": {
+      "backdrop": "rgba(11, 10, 28, 0.82)",
+      "shadow": "0 26px 60px rgba(9, 8, 25, 0.78)"
+    },
+    "status": {
+      "alertBackground": "rgba(255, 113, 194, 0.12)",
+      "alertBorder": "rgba(255, 113, 194, 0.28)",
+      "alertText": "#ff8a9d",
+      "progress": "#45d3ff",
+      "divider": "rgba(143, 140, 210, 0.28)",
+      "chipBackground": "rgba(69, 211, 255, 0.16)",
+      "chipText": "#f7f6ff",
+      "avatarGradient": "linear-gradient(135deg, rgba(255, 113, 194, 0.42), rgba(69, 211, 255, 0.4))",
+      "tooltipBackground": "rgba(16, 14, 30, 0.9)",
+      "tooltipBorder": "rgba(143, 140, 210, 0.32)",
+      "tableBorder": "rgba(143, 140, 210, 0.22)",
+      "tableText": "rgba(214, 218, 248, 0.86)",
+      "iconButton": "rgba(203, 205, 242, 0.8)",
+      "iconButtonHover": "#45d3ff",
+      "adornment": "rgba(143, 140, 210, 0.72)"
+    },
+    "layout": {
+      "pageInset": "clamp(1.6rem, 4vw, 3rem)",
+      "rootInset": "clamp(1.2rem, 3.2vw, 2.6rem)",
+      "cardVariant": "default",
+      "maxWidth": false,
+      "rootJustify": "center",
+      "rootAlign": "center",
+      "containerMaxWidth": "min(460px, 100%)",
+      "containerMargin": "0 auto"
+    },
+    "animations": {
+      "gridShift": {
+        "0%": {
+          "transform": "translate3d(0, 0, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(0, -12px, 0)"
+        }
+      },
+      "haloPulse": {
+        "0%": {
+          "opacity": 0.45
+        },
+        "50%": {
+          "opacity": 0.9
+        },
+        "100%": {
+          "opacity": 0.45
+        }
+      },
+      "haloDrift": {
+        "0%": {
+          "transform": "translate3d(-3%, -4%, 0)"
+        },
+        "50%": {
+          "transform": "translate3d(3%, 4%, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(-3%, -4%, 0)"
+        }
+      },
+      "cardGlow": {
+        "0%": {
+          "opacity": 0.42,
+          "transform": "translate3d(-4%, -4%, 0)"
+        },
+        "50%": {
+          "opacity": 0.85,
+          "transform": "translate3d(2%, 2%, 0)"
+        },
+        "100%": {
+          "opacity": 0.42,
+          "transform": "translate3d(-4%, -4%, 0)"
+        }
+      }
+    }
+  }
+}

@@ -1,15 +1,16 @@
 import React, { ReactNode, useEffect } from "react";
 
-import { Box, Container, Theme } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import UserSvg from "@assets/images/user.svg?react";
 import AppBarLoginPortal from "@components/AppBarLoginPortal";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import TypographyWithTooltip from "@components/TypographyWithTooltip";
 import { EncodedName } from "@constants/constants";
+import { usePortalTemplate } from "@contexts/PortalTemplateContext";
+import { usePortalStyles } from "@layouts/usePortalStyles";
 import { UserInfo } from "@models/UserInfo";
 import { getLogoOverride } from "@utils/Configuration";
 
@@ -23,7 +24,8 @@ export interface Props {
 const MinimalLayout = function (props: Props) {
     const { t: translate } = useTranslation();
 
-    const { classes } = useStyles();
+    const { definition } = usePortalTemplate();
+    const classes = usePortalStyles(definition);
 
     const logo = getLogoOverride() ? (
         <Box component={"img"} src="./static/media/logo.png" alt="Logo" className={classes.icon} />
@@ -35,8 +37,11 @@ const MinimalLayout = function (props: Props) {
         document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
     }, [translate]);
 
+    const rootEnhancer =
+        `${classes.rootContainer} ${classes.typography} ${classes.links} ${classes.formElements} ${classes.buttons} ${classes.status}`.trim();
+
     return (
-        <Box>
+        <Box className={classes.page} data-portal-role="page">
             <AppBarLoginPortal userInfo={props.userInfo} />
             <Grid
                 id={props.id}
@@ -45,9 +50,10 @@ const MinimalLayout = function (props: Props) {
                 spacing={0}
                 alignItems={"center"}
                 justifyContent={"center"}
+                data-portal-role="root"
             >
-                <Container maxWidth={"xs"} className={classes.rootContainer}>
-                    <Grid container>
+                <Container maxWidth={"xs"} className={rootEnhancer} data-portal-role="card">
+                    <Grid container className={classes.typography} data-portal-role="content">
                         <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
                             <Grid size={{ xs: 12 }}>
@@ -64,26 +70,5 @@ const MinimalLayout = function (props: Props) {
         </Box>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
-        minHeight: "90vh",
-        textAlign: "center",
-    },
-    rootContainer: {
-        paddingLeft: 32,
-        paddingRight: 32,
-    },
-    icon: {
-        margin: theme.spacing(),
-        width: "64px",
-        fill: theme.custom.icon,
-    },
-    body: {
-        marginTop: theme.spacing(),
-        paddingTop: theme.spacing(),
-        paddingBottom: theme.spacing(),
-    },
-}));
 
 export default MinimalLayout;

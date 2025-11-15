@@ -46,3 +46,13 @@ export function getPrivacyPolicyRequireAccept() {
 export function getTheme() {
     return getEmbeddedVariable("theme");
 }
+
+export function getPortalHeadline(): string | null {
+    const value = getEmbeddedVariable("portalheadline");
+    return value.trim().length > 0 ? value : null;
+}
+
+export function getPortalSubtitle(): string | null {
+    const value = getEmbeddedVariable("portalsubtitle");
+    return value.trim().length > 0 ? value : null;
+}

@@ -25,12 +25,14 @@ import { makeStyles } from "tss-react/mui";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
+import { useIsMountedRef } from "@hooks/Mounted";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
+import { getPortalHeadline, getPortalSubtitle } from "@utils/Configuration";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 
 export interface Props {
@@ -56,6 +58,7 @@ const FirstFactorForm = function (props: Props) {
     const { id: flowID, flow, subflow } = useFlow();
     const userCode = useUserCode();
     const { createErrorNotification } = useNotifications();
+    const mounted = useIsMountedRef();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
@@ -90,14 +93,23 @@ const FirstFactorForm = function (props: Props) {
     }, [focusUsername]);
 
     useEffect(() => {
-        loginChannel.addEventListener("message", (authenticated) => {
+        const handleMessage = (authenticated: boolean) => {
             if (authenticated) {
                 props.onChannelStateChange();
             }
-        });
-    }, [loginChannel, redirectionURL, props]);
+        };
+
+        loginChannel.addEventListener("message", handleMessage);
+
+        return () => {
+            loginChannel.removeEventListener("message", handleMessage);
+            loginChannel.close().catch((error) => console.error("Failed to close login broadcast channel", error));
+        };
+    }, [loginChannel, props]);
 
     const disabled = props.disabled;
+    const portalHeadline = getPortalHeadline();
+    const portalSubtitle = getPortalSubtitle();
 
     const handleRememberMeChange = () => {
         setRememberMe(!rememberMe);
@@ -132,12 +144,19 @@ const FirstFactorForm = function (props: Props) {
                 userCode,
             );
 
+            if (!mounted.current) {
+                return;
+            }
+
             setLoading(false);
 
             await loginChannel.postMessage(true);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
+            if (!mounted.current) {
+                return;
+            }
             createErrorNotification(translate("Incorrect username or password"));
             setLoading(false);
             props.onAuthenticationStop();
@@ -159,6 +178,7 @@ const FirstFactorForm = function (props: Props) {
         createErrorNotification,
         translate,
         focusPassword,
+        mounted,
     ]);
 
     const handleResetPasswordClick = () => {
@@ -241,7 +261,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     return (
-        <LoginLayout id="first-factor-stage" title={translate("Sign in")}>
+        <LoginLayout id="first-factor-stage" title={portalHeadline} subtitle={portalSubtitle}>
             <FormControl id={"form-login"}>
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12 }}>

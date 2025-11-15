@@ -1,0 +1,27 @@
+body[data-portal-template="matrix"] [data-portal-role="page"]::before {
+    content: "";
+    position: fixed;
+    inset: -10%;
+    pointer-events: none;
+    background-image:
+        linear-gradient(90deg, rgba(102, 255, 196, 0.14) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(102, 255, 196, 0.14) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mix-blend-mode: lighten;
+    opacity: 0.45;
+    animation: matrix-scroll 36s linear infinite;
+}
+
+body[data-portal-template="matrix"] [data-portal-role="card"] {
+    border: 1px solid rgba(114, 255, 214, 0.28);
+    box-shadow: 0 34px 84px -52px rgba(0, 20, 12, 0.85);
+}
+
+@keyframes matrix-scroll {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+    100% {
+        transform: translate3d(-42px, -42px, 0);
+    }
+}

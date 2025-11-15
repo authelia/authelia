@@ -45,13 +45,20 @@ const SecondFactorMethodMobilePush = function (props: Props) {
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
+        return () => {
+            if (timeoutRateLimit.current !== null) {
+                clearTimeout(timeoutRateLimit.current);
+                timeoutRateLimit.current = null;
+            }
+        };
     }, []);
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
+            if (!mounted.current) {
+                return;
+            }
+
             if (timeoutRateLimit.current) {
                 clearTimeout(timeoutRateLimit.current);
             }
@@ -61,11 +68,15 @@ const SecondFactorMethodMobilePush = function (props: Props) {
             createErrorNotification(translate("You have made too many requests"));
 
             timeoutRateLimit.current = setTimeout(() => {
+                if (!mounted.current) {
+                    timeoutRateLimit.current = null;
+                    return;
+                }
                 setState(State.Failure);
                 timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
-        [createErrorNotification, translate],
+        [createErrorNotification, mounted, translate],
     );
 
     const handleSelectDevice = useCallback(async () => {

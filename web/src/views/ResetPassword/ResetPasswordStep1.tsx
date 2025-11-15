@@ -26,9 +26,12 @@ const ResetPasswordStep1 = function () {
     const { t: translate } = useTranslation();
 
     useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
-
-        return clearTimeout(timeoutRateLimit.current);
+        return () => {
+            if (timeoutRateLimit.current !== null) {
+                clearTimeout(timeoutRateLimit.current);
+                timeoutRateLimit.current = null;
+            }
+        };
     }, []);
 
     const handleRateLimited = useCallback(

@@ -1,0 +1,181 @@
+{
+  "name": "monolith",
+  "displayName": "Monolith Halo",
+  "description": "Compact glass column with layered halos and a slim login stack designed for focus.",
+  "effect": {
+    "module": "./static/branding/templates/monolith/effect.js?v=20251110"
+  },
+  "style": {
+    "page": {
+      "background": "linear-gradient(160deg, #05060d 0%, #0a1624 48%, #101e33 100%)",
+      "color": "#f2f6ff",
+      "before": {
+        "background": "radial-gradient(circle at 40% 18%, rgba(124, 176, 255, 0.3), transparent 60%), radial-gradient(circle at 68% 82%, rgba(255, 150, 210, 0.22), transparent 62%)",
+        "opacity": 0.78,
+        "blur": "120px",
+        "animation": {
+          "key": "monolithGlow",
+          "duration": "34s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "mixBlendMode": "screen",
+        "zIndex": -3
+      },
+      "after": {
+        "background": "conic-gradient(from 140deg at 50% 50%, rgba(92, 138, 255, 0.25), rgba(178, 118, 255, 0.2), transparent 80%)",
+        "opacity": 0.65,
+        "blur": "95px",
+        "animation": {
+          "key": "monolithSheen",
+          "duration": "28s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "zIndex": -2
+      }
+    },
+    "root": {
+      "padding": "clamp(3rem, 6vw, 4rem) clamp(1.6rem, 4vw, 3rem)",
+      "background": "linear-gradient(120deg, rgba(8, 16, 30, 0.72), rgba(8, 14, 28, 0.5))",
+      "before": {
+        "background": "radial-gradient(circle at 48% 0%, rgba(125, 182, 255, 0.32), transparent 70%)",
+        "opacity": 0.85,
+        "blur": "140px",
+        "animation": {
+          "key": "monolithHalo",
+          "duration": "36s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "inset": "-22% -18% auto -18%",
+        "position": "absolute",
+        "zIndex": -1
+      },
+      "after": {
+        "background": "linear-gradient(200deg, rgba(255, 138, 214, 0.24), rgba(17, 28, 64, 0))",
+        "opacity": 0.7,
+        "blur": "120px",
+        "animation": {
+          "key": "monolithHalo",
+          "duration": "40s",
+          "timingFunction": "ease-in-out",
+          "direction": "reverse",
+          "iterationCount": "infinite"
+        },
+        "inset": "auto -24% -28% -24%",
+        "position": "absolute",
+        "zIndex": -1
+      }
+    },
+    "card": {
+      "background": "rgba(9, 16, 32, 0.82)",
+      "border": "1px solid rgba(118, 168, 255, 0.32)",
+      "borderRadius": "32px",
+      "padding": "clamp(2.4rem, 4.2vw, 2.9rem)",
+      "shadow": "0 48px 120px -44px rgba(2, 5, 14, 0.85)",
+      "color": "#f4f8ff",
+      "backdropFilter": "blur(28px)",
+      "overflow": "hidden",
+      "overlay": {
+        "background": "linear-gradient(180deg, rgba(148, 192, 255, 0.18), rgba(123, 108, 255, 0.25) 45%, rgba(12, 18, 38, 0.9) 80%)",
+        "opacity": 0.8,
+        "animation": {
+          "key": "monolithColumn",
+          "duration": "22s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite",
+          "direction": "alternate"
+        }
+      }
+    },
+    "typography": {
+      "title": "#ffffff",
+      "subtitle": "rgba(216, 226, 255, 0.8)",
+      "body": "rgba(202, 214, 244, 0.78)",
+      "caption": "rgba(186, 198, 230, 0.72)",
+      "strong": "#ffffff",
+      "link": "#87caff",
+      "linkHover": "#d2ecff",
+      "brand": "rgba(170, 190, 232, 0.7)"
+    },
+    "buttons": {
+      "containedGradient": "linear-gradient(130deg, #7a98ff 0%, #64d4ff 52%, #9d74ff 100%)",
+      "containedHover": "linear-gradient(130deg, #88a6ff 0%, #72e0ff 50%, #a982ff 100%)",
+      "text": "#071024",
+      "outlinedBorder": "rgba(138, 190, 255, 0.5)",
+      "outlinedHover": "rgba(168, 214, 255, 0.9)",
+      "outlinedBackground": "rgba(138, 190, 255, 0.16)",
+      "outlinedHoverBackground": "rgba(138, 190, 255, 0.26)",
+      "radius": "20px",
+      "padding": "0.82rem 1.35rem",
+      "shadow": "0 26px 48px -24px rgba(112, 180, 255, 0.52)",
+      "shadowHover": "0 34px 58px -22px rgba(144, 210, 255, 0.6)"
+    },
+    "form": {
+      "background": "rgba(7, 14, 28, 0.82)",
+      "border": "1px solid rgba(130, 180, 255, 0.34)",
+      "borderHover": "rgba(160, 206, 255, 0.54)",
+      "borderFocus": "rgba(138, 218, 255, 0.96)",
+      "focusShadow": "0 0 0 3px rgba(140, 204, 255, 0.28)",
+      "input": "#f4f8ff",
+      "label": "rgba(194, 208, 240, 0.74)",
+      "labelFocus": "#91e0ff"
+    },
+    "surface": {
+      "backdrop": "rgba(6, 12, 30, 0.72)",
+      "shadow": "0 40px 90px -38px rgba(2, 5, 14, 0.88)"
+    },
+    "status": {
+      "alertBackground": "rgba(255, 142, 215, 0.2)",
+      "alertBorder": "rgba(255, 142, 215, 0.38)",
+      "alertText": "#ffe1f3",
+      "progress": "#7fd8ff",
+      "divider": "rgba(140, 188, 250, 0.34)",
+      "chipBackground": "rgba(140, 192, 255, 0.24)",
+      "chipText": "#e8f2ff",
+      "avatarGradient": "linear-gradient(140deg, rgba(142, 196, 255, 0.72), rgba(190, 138, 255, 0.68))",
+      "tooltipBackground": "rgba(7, 12, 26, 0.95)",
+      "tooltipBorder": "rgba(132, 184, 255, 0.34)",
+      "tableBorder": "rgba(128, 178, 244, 0.3)",
+      "tableText": "rgba(210, 224, 248, 0.85)",
+      "iconButton": "rgba(210, 224, 252, 0.82)",
+      "iconButtonHover": "#93e4ff",
+      "adornment": "rgba(178, 206, 255, 0.78)"
+    },
+    "layout": {
+      "pageInset": "clamp(1.4rem, 3.4vw, 3.2rem)",
+      "rootInset": "clamp(1.2rem, 3vw, 2.8rem)",
+      "cardVariant": "default",
+      "cardClipPath": "none",
+      "maxWidth": "sm",
+      "rootJustify": "center",
+      "rootAlign": "center",
+      "containerMaxWidth": "560px",
+      "containerWidth": "100%",
+      "containerMargin": "0"
+    },
+    "animations": {
+      "monolithGlow": {
+        "0%": { "transform": "translate3d(-6%, -4%, 0) scale(0.94)" },
+        "50%": { "transform": "translate3d(6%, 4%, 0) scale(1.05)" },
+        "100%": { "transform": "translate3d(-6%, -4%, 0) scale(0.94)" }
+      },
+      "monolithSheen": {
+        "0%": { "opacity": 0.45, "transform": "rotate(0deg) scale(0.96)" },
+        "50%": { "opacity": 0.85, "transform": "rotate(5deg) scale(1.06)" },
+        "100%": { "opacity": 0.45, "transform": "rotate(0deg) scale(0.96)" }
+      },
+      "monolithHalo": {
+        "0%": { "transform": "translate3d(-6%, 4%, 0)" },
+        "50%": { "transform": "translate3d(6%, -5%, 0)" },
+        "100%": { "transform": "translate3d(-6%, 4%, 0)" }
+      },
+      "monolithColumn": {
+        "0%": { "transform": "translate3d(0, -6%, 0) scaleY(0.98)" },
+        "50%": { "transform": "translate3d(0, 6%, 0) scaleY(1.04)" },
+        "100%": { "transform": "translate3d(0, -6%, 0) scaleY(0.98)" }
+      }
+    }
+  }
+}

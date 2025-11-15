@@ -1,0 +1,42 @@
+body[data-portal-template="monolith"] [data-portal-role="card"] {
+    position: relative;
+}
+
+body[data-portal-template="monolith"] [data-portal-role="card"]::after {
+    content: "";
+    position: absolute;
+    inset: 18% 14% 6%;
+    border-radius: 50% 50% 42% 42%;
+    background: radial-gradient(circle at 50% 10%, rgba(122, 180, 255, 0.28), transparent 70%);
+    filter: blur(24px);
+    opacity: 0.6;
+    mix-blend-mode: screen;
+    pointer-events: none;
+}
+
+body[data-portal-template="monolith"] [data-portal-role="content"] {
+    row-gap: clamp(0.9rem, 2.4vw, 1.4rem);
+}
+
+body[data-portal-template="monolith"] [data-portal-role="page"]::after {
+    content: "";
+    position: fixed;
+    inset: -30% -20%;
+    pointer-events: none;
+    background: conic-gradient(from 90deg at 50% 50%, rgba(120, 176, 255, 0.18), rgba(255, 148, 210, 0.16), transparent 78%);
+    filter: blur(80px);
+    opacity: 0.5;
+    mix-blend-mode: screen;
+    animation: monolith-ring 22s ease-in-out infinite alternate;
+}
+
+@keyframes monolith-ring {
+    0% {
+        transform: rotate(0deg) scale(0.96);
+        opacity: 0.4;
+    }
+    100% {
+        transform: rotate(12deg) scale(1.05);
+        opacity: 0.65;
+    }
+}

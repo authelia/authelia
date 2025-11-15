@@ -1,0 +1,193 @@
+{
+  "name": "matrix",
+  "displayName": "Neon Grid",
+  "description": "A neon lattice hums with cascading glyphs while a compact holo-card hovers in the foreground.",
+  "interactive": "pointer",
+  "style": {
+    "page": {
+      "background": "radial-gradient(circle at 50% 20%, #020607 0%, #020c0c 45%, #021012 100%)",
+      "color": "#d4ffe2",
+      "before": {
+        "background": "repeating-linear-gradient(180deg, rgba(0, 255, 127, 0.08) 0px, rgba(0, 255, 127, 0.08) 2px, transparent 4px), repeating-linear-gradient(90deg, rgba(0, 255, 191, 0.06) 0px, transparent 12px)",
+        "opacity": 0.8,
+        "animation": {
+          "key": "matrixRain",
+          "duration": "16s",
+          "timingFunction": "linear",
+          "iterationCount": "infinite"
+        },
+        "mixBlendMode": "screen"
+      },
+      "after": {
+        "background": "repeating-linear-gradient(90deg, rgba(0, 255, 160, 0.18) 0px, rgba(0, 255, 160, 0.18) 1px, transparent 1px, transparent 18px)",
+        "backgroundSize": "220px 100%",
+        "backgroundPosition": "calc((var(--portal-pointer-x, 50%) - 50%) * 0.6) 0%",
+        "opacity": 0.74,
+        "mixBlendMode": "screen",
+        "transform": "skewY(calc((var(--portal-pointer-x, 50%) - 50%) * 0.02)) translate3d(calc((var(--portal-pointer-x, 50%) - 50%) * 0.18), 0, 0)",
+        "transition": "transform 0.6s ease, background-position 0.8s ease",
+        "animation": {
+          "key": "matrixPulse",
+          "duration": "28s",
+          "timingFunction": "ease-in-out",
+          "direction": "alternate",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "root": {
+      "padding": "clamp(2.1rem, 4vw, 3rem) clamp(1.4rem, 4vw, 2.6rem)",
+      "background": "transparent",
+      "backdropFilter": "blur(20px)",
+      "before": {
+        "background": "radial-gradient(circle at calc(var(--portal-pointer-x, 50%) + 12%) calc(var(--portal-pointer-y, 50%) + 12%), rgba(0, 255, 191, 0.26), transparent 65%)",
+        "opacity": 0.66,
+        "blur": "62px",
+        "animation": {
+          "key": "matrixGrid",
+          "duration": "24s",
+          "timingFunction": "ease-in-out",
+          "iterationCount": "infinite"
+        },
+        "inset": "auto -22% -22% auto",
+        "position": "absolute"
+      },
+      "after": {
+        "background": "radial-gradient(circle at 18% 78%, rgba(0, 255, 140, 0.3), transparent 60%)",
+        "opacity": 0.58,
+        "blur": "60px",
+        "animation": {
+          "key": "matrixGrid",
+          "duration": "26s",
+          "timingFunction": "ease-in-out",
+          "direction": "reverse",
+          "iterationCount": "infinite"
+        },
+        "inset": "-24% auto auto -22%",
+        "position": "absolute"
+      }
+    },
+    "card": {
+      "background": "rgba(3, 24, 18, 0.84)",
+      "border": "1px solid rgba(0, 255, 170, 0.32)",
+      "borderRadius": "22px",
+      "padding": "clamp(1.6rem, 3.8vw, 2.3rem)",
+      "shadow": "0 26px 60px -34px rgba(0, 0, 0, 0.78)",
+      "color": "#d4ffe2",
+      "backdropFilter": "blur(16px)",
+      "overlay": {
+        "background": "linear-gradient(130deg, rgba(0, 255, 191, 0.2), rgba(0, 168, 112, 0.16))",
+        "opacity": 0.58,
+        "animation": {
+          "key": "matrixSweep",
+          "duration": "18s",
+          "timingFunction": "linear",
+          "iterationCount": "infinite"
+        }
+      }
+    },
+    "typography": {
+      "title": "#58ffc0",
+      "subtitle": "rgba(150, 255, 210, 0.85)",
+      "body": "rgba(190, 255, 220, 0.74)",
+      "link": "#3cfba0",
+      "linkHover": "#9fffd4",
+      "caption": "rgba(182, 240, 212, 0.7)",
+      "strong": "#ffffff",
+      "brand": "rgba(138, 236, 196, 0.62)"
+    },
+    "buttons": {
+      "containedGradient": "linear-gradient(135deg, #00ff97 0%, #00ffbf 48%, #4affff 100%)",
+      "containedHover": "linear-gradient(135deg, #32ffad 0%, #32ffd2 48%, #76ffff 100%)",
+      "text": "#012117",
+      "outlinedBorder": "rgba(0, 255, 170, 0.6)",
+      "outlinedHover": "rgba(0, 255, 170, 0.9)",
+      "outlinedBackground": "rgba(0, 168, 104, 0.2)",
+      "outlinedHoverBackground": "rgba(0, 168, 104, 0.3)",
+      "radius": "16px",
+      "padding": "0.78rem 1.28rem",
+      "shadow": "0 18px 34px -20px rgba(0, 255, 170, 0.45)",
+      "shadowHover": "0 22px 42px -20px rgba(0, 255, 170, 0.58)"
+    },
+    "form": {
+      "background": "rgba(2, 22, 16, 0.82)",
+      "border": "rgba(0, 255, 170, 0.28)",
+      "borderHover": "rgba(0, 255, 170, 0.5)",
+      "borderFocus": "rgba(0, 255, 170, 0.9)",
+      "focusShadow": "0 0 0 3px rgba(0, 255, 170, 0.32)",
+      "input": "#d4ffe2",
+      "label": "rgba(158, 255, 212, 0.78)",
+      "labelFocus": "#63ffc4"
+    },
+    "surface": {
+      "backdrop": "rgba(1, 14, 10, 0.85)",
+      "shadow": "0 22px 44px -30px rgba(0, 0, 0, 0.85)"
+    },
+    "status": {
+      "alertBackground": "rgba(0, 255, 170, 0.16)",
+      "alertBorder": "rgba(0, 255, 170, 0.4)",
+      "alertText": "#d8ffe9",
+      "progress": "#1affae",
+      "divider": "rgba(0, 255, 170, 0.26)",
+      "chipBackground": "rgba(0, 255, 170, 0.18)",
+      "chipText": "#d4ffe2",
+      "avatarGradient": "linear-gradient(135deg, rgba(0, 255, 170, 0.72), rgba(0, 255, 140, 0.62))",
+      "tooltipBackground": "rgba(2, 16, 12, 0.94)",
+      "tooltipBorder": "rgba(0, 255, 170, 0.3)",
+      "tableBorder": "rgba(0, 255, 170, 0.28)",
+      "tableText": "rgba(192, 255, 220, 0.78)",
+      "iconButton": "rgba(0, 255, 170, 0.72)",
+      "iconButtonHover": "#63ffc4",
+      "adornment": "rgba(0, 255, 170, 0.62)"
+    },
+    "layout": {
+      "pageInset": "clamp(1.4rem, 3.4vw, 3rem)",
+      "rootInset": "clamp(1.2rem, 2.6vw, 2.5rem)",
+      "cardVariant": "default",
+      "maxWidth": "xs"
+    },
+    "animations": {
+      "matrixRain": {
+        "0%": {
+          "background-position": "0 0"
+        },
+        "100%": {
+          "background-position": "0 100%"
+        }
+      },
+      "matrixPulse": {
+        "0%": {
+          "opacity": 0.32
+        },
+        "50%": {
+          "opacity": 0.86
+        },
+        "100%": {
+          "opacity": 0.32
+        }
+      },
+      "matrixGrid": {
+        "0%": {
+          "transform": "translate3d(-6%, 6%, 0) scale(0.96)"
+        },
+        "50%": {
+          "transform": "translate3d(6%, -6%, 0) scale(1.04)"
+        },
+        "100%": {
+          "transform": "translate3d(-6%, 6%, 0) scale(0.96)"
+        }
+      },
+      "matrixSweep": {
+        "0%": {
+          "transform": "translate3d(-8%, -8%, 0)"
+        },
+        "50%": {
+          "transform": "translate3d(8%, 8%, 0)"
+        },
+        "100%": {
+          "transform": "translate3d(-8%, -8%, 0)"
+        }
+      }
+    }
+  }
+}

@@ -31,7 +31,7 @@ export async function getUserSessionElevation() {
 
     if (res.status !== 200 || hasServiceError(res).errored) {
         throw new Error(
-            `Failed POST to ${UserSessionElevationPath}. Code: ${res.status}. Message: ${hasServiceError(res).message}`,
+            `Failed GET to ${UserSessionElevationPath}. Code: ${res.status}. Message: ${hasServiceError(res).message}`,
         );
     }
 

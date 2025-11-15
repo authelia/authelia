@@ -18,7 +18,7 @@ const SignOutButton = function (props: Props) {
     const doSignOut = useSignOut();
 
     const handleSignOutClick = useCallback(() => {
-        doSignOut(props.preserve ? props.preserve : false);
+        doSignOut(props.preserve ?? false);
     }, [doSignOut, props.preserve]);
 
     return props.tooltip ? (
