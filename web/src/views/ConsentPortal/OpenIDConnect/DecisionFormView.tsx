@@ -93,6 +93,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
             getConsentResponse(flowID, userCode)
                 .then((r) => {
                     setResponse(r);
+                    setClaims(r.claims || []);
                 })
                 .catch((error) => {
                     setError(error);
@@ -261,7 +262,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
             if (event.key === "Enter") {
                 event.preventDefault();
 
-                if (!password.length) {
+                if (password.length === 0) {
                     focusPassword();
                 } else {
                     handleAcceptConsent().catch(console.error);
@@ -320,9 +321,9 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                             }
                                         >
                                             <Typography className={classes.clientDescription}>
-                                                {response.client_description !== ""
-                                                    ? response.client_description
-                                                    : response?.client_id}
+                                                {response.client_description === ""
+                                                    ? response?.client_id
+                                                    : response.client_description}
                                             </Typography>
                                         </Tooltip>
                                     </Box>
@@ -334,7 +335,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                 </Grid>
                                 <DecisionFormScopes scopes={response.scopes} />
                                 <DecisionFormClaims
-                                    claims={response.claims}
+                                    claims={claims}
                                     essential_claims={response.essential_claims}
                                     onChangeChecked={(claims) => setClaims(claims)}
                                 />

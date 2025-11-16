@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect } from "react";
+import React, { Fragment, useCallback, useMemo } from "react";
 
 import { Box, Checkbox, FormControlLabel, List, Theme, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -18,7 +18,7 @@ const DecisionFormClaims: React.FC<Props> = ({ onChangeChecked, claims, essentia
 
     const { classes } = useStyles();
 
-    const checked = claims || [];
+    const checked = useMemo(() => claims || [], [claims]);
 
     const handleClaimCheckboxOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const checking = !checked.includes(event.target.value);
@@ -29,10 +29,6 @@ const DecisionFormClaims: React.FC<Props> = ({ onChangeChecked, claims, essentia
             onChangeChecked(checked.filter((value) => value !== event.target.value));
         }
     };
-
-    useEffect(() => {
-        onChangeChecked(checked);
-    }, [checked, onChangeChecked]);
 
     const claimChecked = useCallback(
         (claim: string) => {

@@ -167,7 +167,7 @@ const PushNotificationMethod = function (props: Props) {
             console.error(err);
             onSignInError(new Error(translate("There was an issue fetching Duo device(s)")));
         }
-    }, [mounted, onSignInError, translate, props.duoSelfEnrollment, setPreferredDevice]);
+    }, [mounted, onSignInError, translate, props.duoSelfEnrollment, setPreferredDevice, processDevices, state]);
 
     const handleSignIn = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -232,10 +232,7 @@ const PushNotificationMethod = function (props: Props) {
         async function (device: DuoDevicePostRequest) {
             try {
                 await completeDuoDeviceSelectionProcess(device);
-                if (props.registered) {
-                    setState(State.SignInInProgress);
-                } else {
-                    setState(State.SignInInProgress);
+                if (!props.registered) {
                     props.onSelectionClick();
                 }
             } catch (err) {
@@ -253,12 +250,20 @@ const PushNotificationMethod = function (props: Props) {
                 selected.device !== preferredDevice?.device || selected.method !== preferredDevice?.method;
 
             setPreferredDevice(selected);
-            if (isDifferent) {
-                updateDuoDevice(selected);
-            }
 
-            setState(State.SignInInProgress);
-            handleSignIn();
+            const doSignIn = () => {
+                handleSignIn();
+            };
+
+            if (isDifferent) {
+                updateDuoDevice(selected)
+                    .then(doSignIn)
+                    .catch(() => {
+                        setState(State.Failure);
+                    });
+            } else {
+                doSignIn();
+            }
         },
         [updateDuoDevice, preferredDevice, handleSignIn, setPreferredDevice],
     );

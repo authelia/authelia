@@ -32,6 +32,7 @@ type Props = {
 };
 
 const IdentityVerificationDialog = function (props: Props) {
+    const { elevation, opening, handleClosed, handleOpened } = props;
     const { t: translate } = useTranslation("settings");
     const { classes } = useStyles();
 
@@ -47,7 +48,7 @@ const IdentityVerificationDialog = function (props: Props) {
     const [ready, setReady] = useState(false);
     const codeRef = useRef<HTMLInputElement>(null);
 
-    const open = ready && !closing && props.opening && !!props.elevation;
+    const open = React.useMemo(() => ready && !closing && opening && !!elevation, [ready, closing, opening, elevation]);
 
     const handleClose = useCallback(
         (ok: boolean) => {
@@ -58,9 +59,9 @@ const IdentityVerificationDialog = function (props: Props) {
             setSuccess(false);
             setClosing(false);
             setReady(false);
-            props.handleClosed(ok);
+            handleClosed(ok);
         },
-        [props],
+        [handleClosed],
     );
 
     const handleDelete = useCallback(async () => {
@@ -126,12 +127,12 @@ const IdentityVerificationDialog = function (props: Props) {
     );
 
     useEffect(() => {
-        if (closing || !props.opening || !props.elevation) {
+        if (closing || !opening || !elevation) {
             return;
         }
 
-        if (props.elevation.elevated || props.elevation.skip_second_factor) {
-            props.handleClosed(true);
+        if (elevation.elevated || elevation.skip_second_factor) {
+            handleClosed(true);
             return;
         }
 
@@ -142,13 +143,13 @@ const IdentityVerificationDialog = function (props: Props) {
                 if (!attempt) throw new Error("Failed to load the data.");
 
                 setCodeDelete(attempt.delete_id);
-                props.handleOpened();
+                handleOpened();
                 setReady(true);
             })
             .catch((error) => {
                 console.error(error);
             });
-    }, [closing, props.opening, props.elevation, ready, props]);
+    }, [closing, opening, elevation, ready, handleClosed, handleOpened]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setCodeInput(e.target.value.replaceAll(/\s/g, ""));
