@@ -27,7 +27,7 @@ const WebAuthnMethod = function (props: Props) {
     const { t: translate } = useTranslation();
 
     const redirectionURL = useQueryParam(RedirectionURL);
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
     const mounted = useIsMountedRef();
 
@@ -35,7 +35,7 @@ const WebAuthnMethod = function (props: Props) {
 
     const [state, dispatch] = useReducer(stateReducer, WebAuthnTouchState.WaitTouch);
 
-    const { onSignInSuccess, onSignInError } = props;
+    const { onSignInError, onSignInSuccess } = props;
     const signInInitiatedRef = useRef(false);
 
     const doInitiateSignIn = useCallback(async () => {

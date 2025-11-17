@@ -23,7 +23,7 @@ const PasswordForm = function (props: Props) {
     const { t: translate } = useTranslation(["portal", "settings"]);
 
     const redirectionURL = useQueryParam(RedirectionURL);
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
 
     const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState("");

@@ -17,7 +17,7 @@ import { FormatDateHumanReadable } from "@i18n/formats";
 import { UserInfoTOTPConfiguration, toAlgorithmString } from "@models/TOTPConfiguration";
 
 interface Props {
-    config: UserInfoTOTPConfiguration | undefined | null;
+    config: null | undefined | UserInfoTOTPConfiguration;
     open: boolean;
     handleClose: () => void;
 }
@@ -41,7 +41,7 @@ const OneTimePasswordInformationDialog = function (props: Props) {
                             {translate("Extended information for One-Time Password")}
                         </DialogContentText>
                         <Grid container spacing={2}>
-                            <Grid size={{ md: 3 }} sx={{ display: { xs: "none", md: "block" } }}>
+                            <Grid size={{ md: 3 }} sx={{ display: { md: "block", xs: "none" } }}>
                                 <Fragment />
                             </Grid>
                             <Grid size={{ xs: 12 }}>
@@ -69,8 +69,8 @@ const OneTimePasswordInformationDialog = function (props: Props) {
                             <PropertyText
                                 name={translate("Added")}
                                 value={translate("{{when, datetime}}", {
-                                    when: new Date(props.config.created_at),
                                     formatParams: { when: FormatDateHumanReadable },
+                                    when: new Date(props.config.created_at),
                                 })}
                             />
                             <PropertyText
@@ -78,8 +78,8 @@ const OneTimePasswordInformationDialog = function (props: Props) {
                                 value={
                                     props.config.last_used_at
                                         ? translate("{{when, datetime}}", {
-                                              when: new Date(props.config.last_used_at),
                                               formatParams: { when: FormatDateHumanReadable },
+                                              when: new Date(props.config.last_used_at),
                                           })
                                         : translate("Never")
                                 }

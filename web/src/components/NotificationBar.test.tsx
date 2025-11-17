@@ -7,8 +7,8 @@ import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
 
 const testNotification: Notification = {
-    message: "Test notification",
     level: "success",
+    message: "Test notification",
     timeout: 3,
 };
 

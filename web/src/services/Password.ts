@@ -36,15 +36,15 @@ export async function postFirstFactor(
     userCode?: string,
 ) {
     const data: PostFirstFactorBody = {
-        username,
-        password,
-        keepMeLoggedIn: rememberMe,
-        targetURL,
-        requestMethod,
-        flowID,
         flow,
+        flowID,
+        keepMeLoggedIn: rememberMe,
+        password,
+        requestMethod,
         subflow,
+        targetURL,
         userCode,
+        username,
     };
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, data);
@@ -61,12 +61,12 @@ export async function postFirstFactorReauthenticate(
     userCode?: string,
 ) {
     const data: PostFirstFactorReauthenticateBody = {
-        password,
-        targetURL,
-        requestMethod,
-        flowID,
         flow,
+        flowID,
+        password,
+        requestMethod,
         subflow,
+        targetURL,
         userCode,
     };
 
@@ -90,11 +90,11 @@ export async function postSecondFactor(
     subflow?: string,
 ) {
     const data: PostSecondFactorBody = {
-        password,
-        targetURL,
-        flowID,
         flow,
+        flowID,
+        password,
         subflow,
+        targetURL,
     };
 
     const res = await PostWithOptionalResponse<SignInResponse>(CompletePasswordSignInPath, data);

@@ -11,7 +11,7 @@ import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 const RevokeOneTimeCodeView = function () {
     const { t: translate } = useTranslation();
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const id = useID();
     const navigate = useRouterNavigate();

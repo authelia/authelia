@@ -24,19 +24,19 @@ const IconWithContext = function (props: IconWithContextProps) {
 };
 
 const useStyles = makeStyles<{ iconSize: number }>()((theme: Theme, { iconSize }) => ({
-    root: {},
-    iconContainer: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-    },
-    icon: {
-        width: iconSize,
-        height: iconSize,
-    },
     context: {
         display: "block",
     },
+    icon: {
+        height: iconSize,
+        width: iconSize,
+    },
+    iconContainer: {
+        alignItems: "center",
+        display: "flex",
+        flexDirection: "column",
+    },
+    root: {},
 }));
 
 export default IconWithContext;

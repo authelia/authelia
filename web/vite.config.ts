@@ -90,10 +90,20 @@ export default defineConfig(({ mode }) => {
         optimizeDeps: {
             include: ["@emotion/react", "@emotion/styled"],
         },
+        plugins: [
+            checkerPlugin({
+                eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx", useFlatConfig: true },
+                typescript: true,
+            }),
+            istanbulPlugin,
+            react(),
+            svgr(),
+            tsconfigPaths(),
+        ],
         server: {
+            allowedHosts: ["login.example.com", ...allowedHosts],
             open: false,
             port: 3000,
-            allowedHosts: ["login.example.com", ...allowedHosts],
         },
         test: {
             coverage: {
@@ -106,15 +116,5 @@ export default defineConfig(({ mode }) => {
             },
             setupFiles: ["src/setupTests.ts"],
         },
-        plugins: [
-            checkerPlugin({
-                eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx", useFlatConfig: true },
-                typescript: true,
-            }),
-            istanbulPlugin,
-            react(),
-            svgr(),
-            tsconfigPaths(),
-        ],
     };
 });

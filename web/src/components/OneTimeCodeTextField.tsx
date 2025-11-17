@@ -9,9 +9,9 @@ const OneTimeCodeTextField = function (props: TextFieldProps) {
             slotProps={{
                 htmlInput: {
                     style: {
-                        textTransform: "uppercase",
-                        textAlign: "center",
                         letterSpacing: ".5rem",
+                        textAlign: "center",
+                        textTransform: "uppercase",
                     },
                 },
             }}

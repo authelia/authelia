@@ -16,7 +16,7 @@ import { getLogoOverride } from "@utils/Configuration";
 export interface Props {
     id?: string;
     children?: ReactNode;
-    title?: string | null;
+    title?: null | string;
     userInfo?: UserInfo;
 }
 
@@ -66,6 +66,16 @@ const MinimalLayout = function (props: Props) {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
+    body: {
+        marginTop: theme.spacing(),
+        paddingBottom: theme.spacing(),
+        paddingTop: theme.spacing(),
+    },
+    icon: {
+        fill: theme.custom.icon,
+        margin: theme.spacing(),
+        width: "64px",
+    },
     root: {
         minHeight: "90vh",
         textAlign: "center",
@@ -73,16 +83,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
     rootContainer: {
         paddingLeft: 32,
         paddingRight: 32,
-    },
-    icon: {
-        margin: theme.spacing(),
-        width: "64px",
-        fill: theme.custom.icon,
-    },
-    body: {
-        marginTop: theme.spacing(),
-        paddingTop: theme.spacing(),
-        paddingBottom: theme.spacing(),
     },
 }));
 

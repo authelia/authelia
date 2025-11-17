@@ -61,7 +61,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useRouterNavigate();
     const redirect = useRedirector();
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
 
     const [password, setPassword] = useState("");
@@ -500,13 +500,13 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    clientDescription: {
-        fontWeight: 600,
-    },
     button: {
         marginLeft: theme.spacing(),
         marginRight: theme.spacing(),
         width: "100%",
+    },
+    clientDescription: {
+        fontWeight: 600,
     },
 }));
 

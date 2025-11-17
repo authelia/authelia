@@ -157,17 +157,17 @@ const MethodItem = function (props: MethodItemProps) {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    item: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-        width: "100%",
+    buttonRoot: {
+        display: "block",
     },
     icon: {
         display: "inline-block",
         fill: "white",
     },
-    buttonRoot: {
-        display: "block",
+    item: {
+        paddingBottom: theme.spacing(4),
+        paddingTop: theme.spacing(4),
+        width: "100%",
     },
 }));
 

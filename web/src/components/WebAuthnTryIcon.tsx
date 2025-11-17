@@ -52,7 +52,7 @@ const WebAuthnTryIcon = function (props: Props) {
     );
 
     return (
-        <Box sx={{ minHeight: 101, display: "inline-block" }}>
+        <Box sx={{ display: "inline-block", minHeight: 101 }}>
             {touch}
             {failure}
         </Box>

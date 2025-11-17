@@ -32,7 +32,7 @@ type Props = {
 };
 
 const IdentityVerificationDialog = function (props: Props) {
-    const { elevation, opening, handleClosed, handleOpened } = props;
+    const { elevation, handleClosed, handleOpened, opening } = props;
     const { t: translate } = useTranslation("settings");
     const { classes } = useStyles();
 
@@ -162,8 +162,8 @@ const IdentityVerificationDialog = function (props: Props) {
                             display: "flex",
                             flexDirection: "column",
                             m: "auto",
-                            width: "fit-content",
                             padding: "5.0rem",
+                            width: "fit-content",
                         }}
                     >
                         <SuccessIcon />
@@ -184,8 +184,8 @@ const IdentityVerificationDialog = function (props: Props) {
                             display: "flex",
                             flexDirection: "column",
                             m: "auto",
-                            width: "fit-content",
                             marginY: "2.5rem",
+                            width: "fit-content",
                         }}
                     >
                         <OneTimeCodeTextField
@@ -230,13 +230,13 @@ const IdentityVerificationDialog = function (props: Props) {
 
 const useStyles = makeStyles()((theme: Theme) => ({
     success: {
-        marginBottom: theme.spacing(2),
-        flex: "0 0 100%",
         display: "flex",
+        flex: "0 0 100%",
         flexDirection: "column",
         m: "auto",
-        width: "fit-content",
+        marginBottom: theme.spacing(2),
         marginY: "2.5rem",
+        width: "fit-content",
     },
 }));
 

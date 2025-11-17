@@ -41,12 +41,12 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
     const { classes } = useStyles();
 
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
     const [activeStep, setActiveStep] = useState(0);
-    const [options, setOptions] = useState<PublicKeyCredentialCreationOptionsJSON | null>(null);
-    const [timeout, setTimeout] = useState<number | null>(null);
+    const [options, setOptions] = useState<null | PublicKeyCredentialCreationOptionsJSON>(null);
+    const [timeout, setTimeout] = useState<null | number>(null);
     const [description, setDescription] = useState("");
     const [errorDescription, setErrorDescription] = useState(false);
 
@@ -308,8 +308,8 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
 
 const useStyles = makeStyles()((theme: Theme) => ({
     icon: {
-        paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),
+        paddingTop: theme.spacing(4),
     },
     instruction: {
         paddingBottom: theme.spacing(4),

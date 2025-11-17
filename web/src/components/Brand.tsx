@@ -44,8 +44,8 @@ const Brand = function (props: Props) {
 
 const useStyles = makeStyles()((theme: Theme) => ({
     links: {
-        fontSize: "0.7rem",
         color: grey[500],
+        fontSize: "0.7rem",
     },
 }));
 

@@ -5,7 +5,7 @@ import { makeStyles } from "tss-react/mui";
 
 export interface Props {
     value: number;
-    height?: string | number;
+    height?: number | string;
 }
 
 const LinearProgressBar = function (props: Props) {
@@ -14,7 +14,7 @@ const LinearProgressBar = function (props: Props) {
     return (
         <LinearProgress
             variant="determinate"
-            classes={{ root: classes.root, determinate: classes.determinate }}
+            classes={{ determinate: classes.determinate, root: classes.root }}
             value={props.value}
             className={classes.default}
         />
@@ -22,14 +22,14 @@ const LinearProgressBar = function (props: Props) {
 };
 
 const useStyles = makeStyles<{ props: Props }>()((theme: Theme, { props }) => ({
-    root: {
-        height: props.height ? props.height : theme.spacing(),
+    default: {
+        marginTop: theme.spacing(),
     },
     determinate: {
         transition: "transform .2s linear",
     },
-    default: {
-        marginTop: theme.spacing(),
+    root: {
+        height: props.height ? props.height : theme.spacing(),
     },
 }));
 

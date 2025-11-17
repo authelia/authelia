@@ -28,7 +28,7 @@ const OneTimePasswordMethod = function (props: Props) {
     const { t: translate } = useTranslation();
 
     const redirectionURL = useQueryParam(RedirectionURL);
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
     const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
 
@@ -41,7 +41,7 @@ const OneTimePasswordMethod = function (props: Props) {
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
 
-    const { onSignInSuccess, onSignInError } = props;
+    const { onSignInError, onSignInSuccess } = props;
     const onSignInErrorCallback = useRef(onSignInError);
     const onSignInSuccessCallback = useRef(onSignInSuccess);
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);

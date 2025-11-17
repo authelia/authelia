@@ -34,10 +34,10 @@ const CredentialItem = function (props: Props) {
         <Paper variant={"outlined"} id={props.id}>
             <Box sx={{ p: 3 }}>
                 <Grid container size={{ xs: 12 }} alignItems={"center"} height={"100%"}>
-                    <Grid container size={{ xs: 2, sm: 1 }} marginRight={{ xs: 1, md: 2, xl: 3 }}>
+                    <Grid container size={{ sm: 1, xs: 2 }} marginRight={{ md: 2, xl: 3, xs: 1 }}>
                         {props.icon}
                     </Grid>
-                    <Grid size={{ xs: 3, sm: 6 }}>
+                    <Grid size={{ sm: 6, xs: 3 }}>
                         <Stack direction={"column"}>
                             <Stack direction={"row"}>
                                 <Typography
@@ -47,21 +47,21 @@ const CredentialItem = function (props: Props) {
                                 >
                                     {props.description}
                                 </Typography>
-                                <Typography display={{ xs: "none", sm: "inline" }} variant={"body2"} px={2}>
+                                <Typography display={{ sm: "inline", xs: "none" }} variant={"body2"} px={2}>
                                     {props.qualifier}
                                 </Typography>
                             </Stack>
-                            <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
+                            <Typography variant={"caption"} display={{ sm: "block", xs: "none" }}>
                                 {`${translate("Added")} ${timeSinceAdded}`}
                             </Typography>
-                            <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
+                            <Typography variant={"caption"} display={{ sm: "block", xs: "none" }}>
                                 {props.last_used_at === undefined
                                     ? translate("Never used")
                                     : `${translate("Last Used")} ${timeSinceLastUsed}`}
                             </Typography>
                         </Stack>
                     </Grid>
-                    <Grid size={{ xs: 6, sm: 4 }}>
+                    <Grid size={{ sm: 4, xs: 6 }}>
                         <Grid
                             container
                             size={{ xs: 12 }}
@@ -70,7 +70,7 @@ const CredentialItem = function (props: Props) {
                             height={"100%"}
                         >
                             {props.handleInformation ? (
-                                <Grid size={{ xs: 3, lg: 4 }}>
+                                <Grid size={{ lg: 4, xs: 3 }}>
                                     <TooltipElement
                                         tooltip={
                                             props.problem ? props.tooltipInformationProblem : props.tooltipInformation
@@ -87,7 +87,7 @@ const CredentialItem = function (props: Props) {
                                 </Grid>
                             ) : null}
                             {props.handleEdit ? (
-                                <Grid size={{ xs: 3, lg: 4 }}>
+                                <Grid size={{ lg: 4, xs: 3 }}>
                                     <TooltipElement tooltip={props.tooltipEdit}>
                                         <IconButton
                                             color={"primary"}
@@ -99,7 +99,7 @@ const CredentialItem = function (props: Props) {
                                     </TooltipElement>
                                 </Grid>
                             ) : null}
-                            <Grid size={{ xs: 3, lg: 4 }}>
+                            <Grid size={{ lg: 4, xs: 3 }}>
                                 <Tooltip title={props.tooltipDelete}>
                                     <IconButton
                                         color={"primary"}

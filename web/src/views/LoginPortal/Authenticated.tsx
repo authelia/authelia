@@ -23,8 +23,8 @@ const Authenticated = function () {
 
 const useStyles = makeStyles()((theme: Theme) => ({
     iconContainer: {
-        marginBottom: theme.spacing(2),
         flex: "0 0 100%",
+        marginBottom: theme.spacing(2),
     },
 }));
 

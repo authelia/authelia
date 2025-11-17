@@ -9,11 +9,11 @@ import { formatClaim } from "@services/ConsentOpenIDConnect";
 
 export interface Props {
     onChangeChecked: (claims: string[]) => void;
-    claims: string[] | null;
-    essential_claims: string[] | null;
+    claims: null | string[];
+    essential_claims: null | string[];
 }
 
-const DecisionFormClaims: React.FC<Props> = ({ onChangeChecked, claims, essential_claims }: Props) => {
+const DecisionFormClaims: React.FC<Props> = ({ claims, essential_claims, onChangeChecked }: Props) => {
     const { t: translate } = useTranslation(["consent"]);
 
     const { classes } = useStyles();
@@ -81,10 +81,10 @@ const useStyles = makeStyles()((theme: Theme) => ({
         textAlign: "center",
     },
     list: {
-        display: "inline-block",
         backgroundColor: theme.palette.background.paper,
-        marginTop: theme.spacing(2),
+        display: "inline-block",
         marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
     },
 }));
 

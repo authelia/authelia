@@ -15,11 +15,11 @@ export default [
             },
         },
         settings: {
-            react: {
-                version: "detect",
-            },
             "import/resolver": {
                 typescript: {},
+            },
+            react: {
+                version: "detect",
             },
         },
     },

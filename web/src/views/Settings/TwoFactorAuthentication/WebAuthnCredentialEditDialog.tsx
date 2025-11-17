@@ -15,7 +15,7 @@ interface Props {
 
 const WebAuthnCredentialEditDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [credentialDescription, setCredentialDescription] = useState("");
     const descriptionRef = useRef<HTMLInputElement>(null);

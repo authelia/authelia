@@ -8,7 +8,7 @@ export interface Props {
     tooltip: string;
     children: ReactNode;
     childrenCopied?: ReactNode;
-    value: string | null;
+    value: null | string;
     xs?: number;
     msTimeoutCopying?: number;
     msTimeoutCopied?: number;
