@@ -2,9 +2,14 @@ package suites
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"net/url"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -182,6 +187,124 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 
 	s.verifyIsOIDCErrorPage(s.T(), s.Context(ctx), "access_denied", errorDescription, "",
 		"random-string-here")
+}
+
+func (s *OIDCScenario) TestShouldIssueDeviceAuthorizationBearerToken() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	c := NewHTTPClient()
+	clientID := "device-code"
+	clientSecret := "foobar"
+	scope := "openid profile email groups"
+
+	metadataURL := fmt.Sprintf("%s/.well-known/openid-configuration", LoginBaseURL)
+	resp, err := c.Get(metadataURL)
+	assert.NoError(s.T(), err)
+
+	defer resp.Body.Close()
+
+	assert.Equal(s.T(), http.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	assert.NoError(s.T(), err)
+
+	var metadata map[string]interface{}
+
+	err = json.Unmarshal(body, &metadata)
+	assert.NoError(s.T(), err)
+
+	deviceAuthEndpoint, ok := metadata["device_authorization_endpoint"].(string)
+	assert.True(s.T(), ok)
+
+	tokenEndpoint, ok := metadata["token_endpoint"].(string)
+	assert.True(s.T(), ok)
+
+	data := url.Values{}
+	data.Set("client_id", clientID)
+	data.Set("scope", scope)
+
+	deviceResp, err := c.PostForm(deviceAuthEndpoint, data)
+	assert.NoError(s.T(), err)
+
+	defer deviceResp.Body.Close()
+
+	assert.Equal(s.T(), http.StatusOK, deviceResp.StatusCode)
+
+	deviceBody, err := io.ReadAll(deviceResp.Body)
+	assert.NoError(s.T(), err)
+
+	var deviceData map[string]interface{}
+
+	err = json.Unmarshal(deviceBody, &deviceData)
+	assert.NoError(s.T(), err)
+
+	deviceCode, ok := deviceData["device_code"].(string)
+	assert.True(s.T(), ok)
+
+	_, ok = deviceData["user_code"].(string)
+	assert.True(s.T(), ok)
+
+	_, ok = deviceData["verification_uri"].(string)
+	assert.True(s.T(), ok)
+
+	verificationURIComplete, ok := deviceData["verification_uri_complete"].(string)
+	assert.True(s.T(), ok)
+
+	s.doVisit(s.T(), s.Context(ctx), verificationURIComplete)
+
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), testUsername, "password", false)
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	s.doValidateTOTP(s.T(), s.Context(ctx), testUsername)
+
+	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
+	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept").Click("left", 1)
+	assert.NoError(s.T(), err)
+
+	s.verifyBodyContains(s.T(), s.Context(ctx), "Consent has been accepted and processed")
+
+	var token map[string]interface{}
+
+	for i := 0; i < 30; i++ {
+		time.Sleep(1 * time.Second)
+
+		tokenData := url.Values{}
+		tokenData.Set("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
+		tokenData.Set("device_code", deviceCode)
+		tokenData.Set("client_id", clientID)
+		tokenData.Set("client_secret", clientSecret)
+
+		tokenResp, err := c.PostForm(tokenEndpoint, tokenData)
+		if err != nil {
+			continue
+		}
+
+		tokenBody, err := io.ReadAll(tokenResp.Body)
+		tokenResp.Body.Close()
+
+		if err != nil {
+			continue
+		}
+
+		if tokenResp.StatusCode == http.StatusOK {
+			err = json.Unmarshal(tokenBody, &token)
+			if err != nil {
+				continue
+			}
+
+			break
+		}
+	}
+
+	assert.Equal(s.T(), "bearer", token["token_type"])
+	assert.True(s.T(), strings.HasPrefix(token["access_token"].(string), "authelia_at_"))
+	assert.Equal(s.T(), scope, token["scope"])
+	assert.NotEmpty(s.T(), token["id_token"])
 }
 
 func TestRunOIDCScenario(t *testing.T) {
