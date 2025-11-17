@@ -169,6 +169,12 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.HEAD("/static/media/logo.png", middlewares.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
 	r.GET("/static/media/logo.png", middlewares.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
 
+	r.HEAD("/static/branding/portal-template.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerPublicHTML))
+	r.GET("/static/branding/portal-template.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerPublicHTML))
+
+	r.HEAD("/static/branding/templates/{filepath:*}", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerPublicHTML))
+	r.GET("/static/branding/templates/{filepath:*}", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerPublicHTML))
+
 	r.HEAD("/static/{filepath:*}", handlerPublicHTML)
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 
@@ -215,6 +221,8 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
+
+	r.GET("/api/portal/template", middlewareAPI(handlers.PortalTemplateGET))
 
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))
 

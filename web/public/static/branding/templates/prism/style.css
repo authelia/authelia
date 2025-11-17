@@ -1,0 +1,35 @@
+body[data-portal-template="prism"] [data-portal-role="root"] {
+    position: relative;
+}
+
+body[data-portal-template="prism"] [data-portal-role="root"]::before {
+    content: "";
+    position: absolute;
+    inset: clamp(1.8rem, 4vw, 2.6rem);
+    border-radius: 28px;
+    background:
+        linear-gradient(135deg, rgba(92, 132, 255, 0.18), rgba(156, 92, 255, 0.2)),
+        radial-gradient(circle at 65% 40%, rgba(255, 174, 236, 0.22), transparent 65%);
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: 0.6;
+    animation: prism-halo 16s ease-in-out infinite alternate;
+}
+
+body[data-portal-template="prism"] [data-portal-role="card"] {
+    background: rgba(6, 10, 28, 0.76);
+    border: 1px solid rgba(176, 156, 255, 0.32);
+    backdrop-filter: blur(32px);
+    box-shadow: 0 46px 120px -60px rgba(4, 8, 24, 0.92);
+}
+
+@keyframes prism-halo {
+    0% {
+        transform: translate3d(-2%, -3%, 0) scale(0.98);
+        opacity: 0.48;
+    }
+    100% {
+        transform: translate3d(2%, 3%, 0) scale(1.03);
+        opacity: 0.7;
+    }
+}

@@ -1,0 +1,55 @@
+body[data-portal-template="nebula"] {
+    --nebula-border: rgba(214, 188, 255, 0.45);
+    --nebula-glow: rgba(96, 66, 156, 0.32);
+    --nebula-haze: rgba(248, 201, 255, 0.14);
+}
+
+body[data-portal-template="nebula"]::before {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 20% 35%, rgba(244, 206, 255, 0.18), transparent 62%),
+        radial-gradient(circle at 76% 68%, rgba(118, 174, 255, 0.18), transparent 64%);
+    filter: blur(48px);
+    opacity: 0.85;
+    mix-blend-mode: screen;
+    animation: nebula-drift 26s ease-in-out infinite alternate;
+    z-index: 0;
+}
+
+body[data-portal-template="nebula"] [data-portal-role="card"] {
+    position: relative;
+    background: rgba(10, 12, 26, 0.62);
+    border: 1px solid var(--nebula-border);
+    box-shadow: 0 36px 82px -40px rgba(5, 8, 22, 0.9);
+    backdrop-filter: blur(28px);
+}
+
+body[data-portal-template="nebula"] [data-portal-role="card"]::before {
+    content: "";
+    position: absolute;
+    inset: 4%;
+    border-radius: inherit;
+    background:
+        conic-gradient(from 140deg at 60% 40%, rgba(254, 234, 255, 0.28), transparent 60%),
+        radial-gradient(circle at 32% 72%, rgba(132, 176, 255, 0.22), transparent 70%);
+    opacity: 0.6;
+    pointer-events: none;
+    mix-blend-mode: lighten;
+    filter: blur(12px);
+}
+
+body[data-portal-template="nebula"] [data-portal-role="content"] {
+    row-gap: clamp(1.2rem, 3vw, 2rem);
+}
+
+@keyframes nebula-drift {
+    0% {
+        transform: translate3d(-4%, -2%, 0) scale(1.04);
+    }
+    100% {
+        transform: translate3d(5%, 4%, 0) scale(1.08);
+    }
+}

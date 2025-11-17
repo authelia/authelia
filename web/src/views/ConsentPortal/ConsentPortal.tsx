@@ -23,7 +23,7 @@ const ConsentPortal: React.FC<Props> = (props: Props) => {
     const [state, fetchState, , fetchStateError] = useAutheliaState();
     const [loading, setLoading] = useState(true);
 
-    const { createErrorNotification, resetNotification } = useNotifications();
+    const { createErrorNotification } = useNotifications();
 
     useEffect(() => {
         fetchState();
@@ -46,15 +46,21 @@ const ConsentPortal: React.FC<Props> = (props: Props) => {
     }, [userInfo]);
 
     useEffect(() => {
-        if (fetchUserInfoError) {
-            createErrorNotification(translate("There was an issue retrieving user preferences"));
+        if (!fetchUserInfoError) {
+            return;
         }
-    }, [fetchUserInfoError, resetNotification, createErrorNotification, translate]);
+
+        setLoading(false);
+        createErrorNotification(translate("There was an issue retrieving user preferences"));
+    }, [fetchUserInfoError, createErrorNotification, translate]);
 
     useEffect(() => {
-        if (fetchStateError) {
-            createErrorNotification(translate("There was an issue retrieving the current user state"));
+        if (!fetchStateError) {
+            return;
         }
+
+        setLoading(false);
+        createErrorNotification(translate("There was an issue retrieving the current user state"));
     }, [fetchStateError, createErrorNotification, translate]);
 
     return (

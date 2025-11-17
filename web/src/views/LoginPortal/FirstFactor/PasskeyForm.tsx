@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useRef, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, CircularProgress, Divider, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -31,8 +31,16 @@ const PasskeyForm = function (props: Props) {
     const mounted = useIsMountedRef();
 
     const [loading, setLoading] = useState(false);
+    const onSignInErrorRef = useRef(props.onAuthenticationError);
+    const onSignInSuccessRef = useRef(props.onAuthenticationSuccess);
 
-    const onSignInErrorCallback = useRef(props.onAuthenticationError).current;
+    useEffect(() => {
+        onSignInErrorRef.current = props.onAuthenticationError;
+    }, [props.onAuthenticationError]);
+
+    useEffect(() => {
+        onSignInSuccessRef.current = props.onAuthenticationSuccess;
+    }, [props.onAuthenticationSuccess]);
 
     const handleAuthenticationStart = useCallback(() => {
         props.onAuthenticationStart();
@@ -45,7 +53,7 @@ const PasskeyForm = function (props: Props) {
     }, [props]);
 
     const handleSignIn = useCallback(async () => {
-        if (!mounted || loading) {
+        if (!mounted.current || loading) {
             return;
         }
 
@@ -55,8 +63,11 @@ const PasskeyForm = function (props: Props) {
             const optionsStatus = await getWebAuthnPasskeyOptions();
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
+                if (!mounted.current) {
+                    return;
+                }
                 handleAuthenticationStop();
-                onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
+                onSignInErrorRef.current(new Error(translate("Failed to initiate security key sign in process")));
 
                 return;
             }
@@ -64,17 +75,21 @@ const PasskeyForm = function (props: Props) {
             const result = await getWebAuthnResult(optionsStatus.options);
 
             if (result.result !== AssertionResult.Success) {
-                if (!mounted.current) return;
-
+                if (!mounted.current) {
+                    return;
+                }
                 handleAuthenticationStop();
 
-                onSignInErrorCallback(new Error(translate(AssertionResultFailureString(result.result))));
+                onSignInErrorRef.current(new Error(translate(AssertionResultFailureString(result.result))));
 
                 return;
             }
 
             if (result.response == null) {
-                onSignInErrorCallback(
+                if (!mounted.current) {
+                    return;
+                }
+                onSignInErrorRef.current(
                     new Error(translate("The browser did not respond with the expected attestation data")),
                 );
                 handleAuthenticationStop();
@@ -82,7 +97,9 @@ const PasskeyForm = function (props: Props) {
                 return;
             }
 
-            if (!mounted.current) return;
+            if (!mounted.current) {
+                return;
+            }
 
             const response = await postWebAuthnPasskeyResponse(
                 result.response,
@@ -94,24 +111,30 @@ const PasskeyForm = function (props: Props) {
                 subflow,
             );
 
-            handleAuthenticationStop();
-
-            if (response.data.status === "OK" && response.status === 200) {
-                props.onAuthenticationSuccess(response.data.data ? response.data.data.redirect : undefined);
+            if (!mounted.current) {
                 return;
             }
 
-            if (!mounted.current) return;
-
-            onSignInErrorCallback(new Error(translate("The server rejected the security key")));
-        } catch (err) {
             handleAuthenticationStop();
 
-            // If the request was initiated and the user changed 2FA method in the meantime,
-            // the process is interrupted to avoid updating state of unmounted component.
-            if (!mounted.current) return;
+            if (response.data.status === "OK" && response.status === 200) {
+                onSignInSuccessRef.current(response.data.data ? response.data.data.redirect : undefined);
+                return;
+            }
+
+            if (!mounted.current) {
+                return;
+            }
+
+            onSignInErrorRef.current(new Error(translate("The server rejected the security key")));
+        } catch (err) {
+            if (!mounted.current) {
+                return;
+            }
+            handleAuthenticationStop();
+
             console.error(err);
-            onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
+            onSignInErrorRef.current(new Error(translate("Failed to initiate security key sign in process")));
         }
     }, [
         mounted,
@@ -124,7 +147,8 @@ const PasskeyForm = function (props: Props) {
         flow,
         subflow,
         handleAuthenticationStop,
-        onSignInErrorCallback,
+        onSignInErrorRef,
+        onSignInSuccessRef,
         translate,
     ]);
 

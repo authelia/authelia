@@ -1,0 +1,44 @@
+body[data-portal-template="wave"] [data-portal-role="page"]::before {
+    content: "";
+    position: fixed;
+    inset: -25%;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse at 35% 25%, rgba(255, 188, 120, 0.24), transparent 65%),
+        radial-gradient(ellipse at 70% 75%, rgba(255, 102, 158, 0.22), transparent 68%);
+    filter: blur(72px);
+    opacity: 0.7;
+    animation: solar-wave 18s ease-in-out infinite alternate;
+    z-index: 0;
+}
+
+body[data-portal-template="wave"] [data-portal-role="card"] {
+    position: relative;
+    max-width: clamp(380px, 38vw, 520px);
+    border-radius: 26px;
+    border: 1px solid rgba(255, 210, 168, 0.38);
+    box-shadow: 0 36px 96px -48px rgba(12, 10, 32, 0.88);
+    overflow: hidden;
+}
+
+body[data-portal-template="wave"] [data-portal-role="card"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 188, 120, 0.18), rgba(255, 102, 158, 0.12));
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+body[data-portal-template="wave"] [data-portal-role="content"] {
+    row-gap: clamp(1rem, 2.8vw, 1.6rem);
+}
+
+@keyframes solar-wave {
+    0% {
+        transform: translate3d(-6%, -4%, 0) scale(1.05) rotate(-2deg);
+    }
+    100% {
+        transform: translate3d(5%, 6%, 0) scale(1.12) rotate(2deg);
+    }
+}

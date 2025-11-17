@@ -1,37 +1,43 @@
 import { useCallback, useEffect, useState } from "react";
 
+const INTERVAL_MS = 100;
+
 export function useTimer(timeoutMs: number): [number, () => void, () => void] {
-    const Interval = 100;
-    const [startDate, setStartDate] = useState(undefined as Date | undefined);
+    const [startTimestamp, setStartTimestamp] = useState<number | null>(null);
     const [percent, setPercent] = useState(0);
 
     const trigger = useCallback(() => {
         setPercent(0);
-        setStartDate(new Date());
-    }, [setStartDate, setPercent]);
+        setStartTimestamp(Date.now());
+    }, []);
 
     const clear = useCallback(() => {
         setPercent(0);
-        setStartDate(undefined);
+        setStartTimestamp(null);
     }, []);
 
     useEffect(() => {
-        if (!startDate) {
-            return;
+        if (startTimestamp === null) {
+            return undefined;
         }
 
-        const intervalNode = setInterval(() => {
-            const elapsedMs = startDate ? new Date().getTime() - startDate.getTime() : 0;
-            let p = (elapsedMs / timeoutMs) * 100.0;
-            if (p >= 100) {
-                p = 100;
-                setStartDate(undefined);
-            }
-            setPercent(p);
-        }, Interval);
+        const update = () => {
+            const elapsedMs = Date.now() - startTimestamp;
+            const completion = Math.min(100, (elapsedMs / timeoutMs) * 100);
 
-        return () => clearInterval(intervalNode);
-    }, [startDate, setPercent, setStartDate, timeoutMs]);
+            setPercent(completion);
+
+            if (completion >= 100) {
+                setStartTimestamp(null);
+            }
+        };
+
+        const intervalId = setInterval(update, INTERVAL_MS);
+
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [startTimestamp, timeoutMs]);
 
     return [percent, trigger, clear];
 }

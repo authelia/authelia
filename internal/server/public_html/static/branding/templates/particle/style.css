@@ -1,0 +1,39 @@
+body[data-portal-template="particle"]::before {
+    content: "";
+    position: fixed;
+    inset: -18%;
+    background:
+        radial-gradient(circle at 30% 30%, rgba(132, 210, 255, 0.18), transparent 62%),
+        radial-gradient(circle at 70% 70%, rgba(80, 120, 255, 0.16), transparent 65%);
+    filter: blur(56px);
+    opacity: 0.6;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    animation: particle-flicker 20s ease-in-out infinite alternate;
+}
+
+body[data-portal-template="particle"] [data-portal-role="card"] {
+    border: 1px solid rgba(132, 180, 255, 0.38);
+    box-shadow: 0 28px 68px -36px rgba(2, 8, 24, 0.92);
+}
+
+body[data-portal-template="particle"] [data-portal-role="card"]::after {
+    content: "";
+    position: absolute;
+    inset: 12%;
+    border-radius: inherit;
+    border: 1px solid rgba(120, 154, 255, 0.28);
+    opacity: 0.65;
+    pointer-events: none;
+}
+
+@keyframes particle-flicker {
+    0% {
+        transform: translate3d(-6%, -4%, 0) scale(0.98);
+        opacity: 0.45;
+    }
+    100% {
+        transform: translate3d(6%, 4%, 0) scale(1.05);
+        opacity: 0.75;
+    }
+}

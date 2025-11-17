@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Theme, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -27,6 +27,7 @@ const SignOut = function () {
     const [timedOut, setTimedOut] = useState(false);
     const [safeRedirect, setSafeRedirect] = useState(false);
     const [query] = useSearchParams();
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const doSignOut = useCallback(async () => {
         try {
@@ -34,8 +35,8 @@ const SignOut = function () {
             if (res !== undefined && res.safeTargetURL) {
                 setSafeRedirect(true);
             }
-            setTimeout(() => {
-                if (!mounted) {
+            timeoutRef.current = setTimeout(() => {
+                if (!mounted.current) {
                     return;
                 }
                 setTimedOut(true);
@@ -48,15 +49,19 @@ const SignOut = function () {
 
     useEffect(() => {
         doSignOut();
+
+        return () => {
+            if (timeoutRef.current !== null) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
+        };
     }, [doSignOut]);
 
     if (timedOut) {
         if (redirectionURL && safeRedirect) {
-            console.log("Redirecting to safe target URL: " + redirectionURL);
             redirector(redirectionURL);
         } else {
-            console.log("Redirecting to index route");
-
             if (query.has(RedirectionRestoreURL)) {
                 const search = new URLSearchParams();
 
