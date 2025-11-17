@@ -31,8 +31,7 @@ func ldapGetFeatureSupportFromClient(client LDAPBaseClient) (features LDAPSuppor
 		result  *ldap.SearchResult
 	)
 
-	request = ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, ldapBaseObjectFilter, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
+	request = ldapNewSearchRequestRootDSE()
 
 	if result, err = client.Search(request); err != nil {
 		return features, fmt.Errorf("error occurred during RootDSE search: %w", err)
@@ -184,4 +183,9 @@ func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties
 	}
 
 	return values, nil
+}
+
+func ldapNewSearchRequestRootDSE() *ldap.SearchRequest {
+	return ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
+		1, 0, false, ldapBaseObjectFilter, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
 }
