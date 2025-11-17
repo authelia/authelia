@@ -251,21 +251,25 @@ const PushNotificationMethod = function (props: Props) {
 
             setPreferredDevice(selected);
 
-            const doSignIn = () => {
-                handleSignIn();
-            };
-
             if (isDifferent) {
                 updateDuoDevice(selected)
-                    .then(doSignIn)
+                    .then(() => {
+                        if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
+                            setState(State.Success);
+                        } else {
+                            handleSignIn();
+                        }
+                    })
                     .catch(() => {
                         setState(State.Failure);
                     });
+            } else if (props.authenticationLevel >= AuthenticationLevel.TwoFactor) {
+                setState(State.Success);
             } else {
-                doSignIn();
+                setState(State.SignInInProgress);
             }
         },
-        [updateDuoDevice, preferredDevice, handleSignIn, setPreferredDevice],
+        [updateDuoDevice, preferredDevice, handleSignIn, setPreferredDevice, props.authenticationLevel],
     );
 
     useEffect(() => {
