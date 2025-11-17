@@ -1,6 +1,7 @@
 import limegrassImportAlias from "@limegrass/eslint-plugin-import-alias";
 import tsParser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
+import perfectionist from "eslint-plugin-perfectionist";
 import prettierPluginRecommended from "eslint-plugin-prettier/recommended";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
@@ -32,11 +33,11 @@ export default [
             ...reactPlugin.configs.recommended.rules,
             ...reactHooksPlugin.configs.recommended.rules,
 
-            "react/react-in-jsx-scope": "off",
+            "import/no-webpack-loader-syntax": "error",
+            "no-restricted-globals": ["error", "event", "fdescribe"],
             "react/jsx-pascal-case": ["warn", { allowAllCaps: true }],
             "react/prop-types": "off",
-            "no-restricted-globals": ["error", "event", "fdescribe"],
-            "import/no-webpack-loader-syntax": "error",
+            "react/react-in-jsx-scope": "off",
         },
     },
 
@@ -44,43 +45,38 @@ export default [
         plugins: {
             "@limegrass/import-alias": limegrassImportAlias,
             import: importPlugin,
+            perfectionist,
         },
-        rules: {
-            ...importPlugin.configs.errors.rules,
-            ...importPlugin.configs.warnings.rules,
-        },
+        rules: {},
     },
 
     {
         rules: {
-            "import/order": [
+            "perfectionist/sort-array-includes": ["error"],
+            "perfectionist/sort-imports": [
                 "error",
                 {
-                    groups: ["builtin", "external", "internal"],
-                    pathGroups: [
+                    customGroups: [
                         {
-                            pattern: "react",
-                            group: "external",
-                            position: "before",
+                            elementNamePattern: ["^react$"],
+                            groupName: "react",
                         },
                     ],
-                    pathGroupsExcludedImportTypes: ["react"],
-                    "newlines-between": "always",
-                    alphabetize: {
-                        order: "asc",
-                        caseInsensitive: true,
-                    },
+                    groups: ["react", ["builtin", "external"], "tsconfig-path", ["parent", "sibling", "index"]],
+                    tsconfig: { rootDir: "." },
                 },
             ],
-            "sort-imports": [
+            "perfectionist/sort-intersection-types": "off",
+            "perfectionist/sort-named-imports": [
                 "error",
                 {
+                    alphabet: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
                     ignoreCase: false,
-                    ignoreDeclarationSort: true,
-                    ignoreMemberSort: false,
-                    allowSeparatedGroups: false,
+                    type: "custom",
                 },
             ],
+            "perfectionist/sort-objects": ["error"],
+            "perfectionist/sort-union-types": ["error"],
         },
     },
 
