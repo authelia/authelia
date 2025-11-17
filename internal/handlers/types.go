@@ -196,8 +196,6 @@ type DuoSignResponse struct {
 	Devices   []DuoDevice `json:"devices,omitempty"`
 	Redirect  string      `json:"redirect,omitempty"`
 	EnrollURL string      `json:"enroll_url,omitempty"`
-	Device    string      `json:"device,omitempty"`
-	Method    string      `json:"method,omitempty"`
 }
 
 // StateResponse represents the response sent by the state endpoint.
