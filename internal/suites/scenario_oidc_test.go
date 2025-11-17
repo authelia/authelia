@@ -301,6 +301,7 @@ func (s *OIDCScenario) TestShouldIssueDeviceAuthorizationBearerToken() {
 		}
 	}
 
+	assert.NotEmpty(s.T(), token, "Failed to obtain token after polling device authorization endpoint.")
 	assert.Equal(s.T(), "bearer", token["token_type"])
 	assert.True(s.T(), strings.HasPrefix(token["access_token"].(string), "authelia_at_"))
 	assert.Equal(s.T(), scope, token["scope"])
