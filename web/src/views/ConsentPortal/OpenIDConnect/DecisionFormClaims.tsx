@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useState } from "react";
+import React, { Fragment, useCallback, useMemo } from "react";
 
 import { Box, Checkbox, FormControlLabel, List, Theme, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -13,34 +13,22 @@ export interface Props {
     essential_claims: string[] | null;
 }
 
-const DecisionFormClaims: React.FC<Props> = (props: Props) => {
+const DecisionFormClaims: React.FC<Props> = ({ onChangeChecked, claims, essential_claims }: Props) => {
     const { t: translate } = useTranslation(["consent"]);
 
     const { classes } = useStyles();
 
-    const [checked, setChecked] = useState<string[]>([]);
+    const checked = useMemo(() => claims || [], [claims]);
 
     const handleClaimCheckboxOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setChecked((prevState) => {
-            const checking = !prevState.includes(event.target.value);
+        const checking = !checked.includes(event.target.value);
 
-            if (checking) {
-                return [...prevState, event.target.value];
-            } else {
-                return prevState.filter((value) => value !== event.target.value);
-            }
-        });
-    };
-
-    useEffect(() => {
-        if (props.claims) {
-            setChecked(props.claims);
+        if (checking) {
+            onChangeChecked([...checked, event.target.value]);
+        } else {
+            onChangeChecked(checked.filter((value) => value !== event.target.value));
         }
-    }, [props.claims]);
-
-    useEffect(() => {
-        props.onChangeChecked(checked);
-    }, [checked, props]);
+    };
 
     const claimChecked = useCallback(
         (claim: string) => {
@@ -49,7 +37,7 @@ const DecisionFormClaims: React.FC<Props> = (props: Props) => {
         [checked],
     );
 
-    const hasClaims = props?.essential_claims || props?.claims;
+    const hasClaims = essential_claims || claims;
 
     return (
         <Fragment>
@@ -57,7 +45,7 @@ const DecisionFormClaims: React.FC<Props> = (props: Props) => {
                 <Grid size={{ xs: 12 }}>
                     <Box className={classes.container}>
                         <List className={classes.list}>
-                            {props.essential_claims?.map((claim: string) => (
+                            {essential_claims?.map((claim: string) => (
                                 <Tooltip key={`${claim}-essential`} title={translate("Claim", { name: claim })}>
                                     <FormControlLabel
                                         control={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
@@ -65,7 +53,7 @@ const DecisionFormClaims: React.FC<Props> = (props: Props) => {
                                     />
                                 </Tooltip>
                             ))}
-                            {props.claims?.map((claim: string) => (
+                            {claims?.map((claim: string) => (
                                 <Tooltip key={claim} title={translate("Claim", { name: claim })}>
                                     <FormControlLabel
                                         control={

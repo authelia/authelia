@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 
 import { Box, Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -74,11 +74,34 @@ const OneTimePasswordPanel = function (props: Props) {
         if (changed) {
             handleElevationRefresh()
                 .catch(console.error)
-                .then(() => {
-                    setDialogIVOpening(true);
+                .then((refreshedElevation) => {
+                    if (refreshedElevation) {
+                        const isElevatedFromRefresh =
+                            refreshedElevation.elevated || refreshedElevation.skip_second_factor;
+                        if (isElevatedFromRefresh) {
+                            setElevation(undefined);
+                            if (dialogRegisterOpening) {
+                                handleOpenDialogRegister();
+                            } else if (dialogDeleteOpening) {
+                                handleOpenDialogDelete();
+                            }
+                        } else {
+                            setDialogIVOpening(true);
+                        }
+                    }
                 });
         } else {
-            setDialogIVOpening(true);
+            const isElevated = elevation && (elevation.elevated || elevation.skip_second_factor);
+            if (isElevated) {
+                setElevation(undefined);
+                if (dialogRegisterOpening) {
+                    handleOpenDialogRegister();
+                } else if (dialogDeleteOpening) {
+                    handleOpenDialogDelete();
+                }
+            } else {
+                setDialogIVOpening(true);
+            }
         }
     };
 
@@ -107,22 +130,23 @@ const OneTimePasswordPanel = function (props: Props) {
             }
         },
         [
-            dialogDeleteOpening,
-            dialogRegisterOpening,
-            handleOpenDialogDelete,
-            handleOpenDialogRegister,
             handleResetState,
+            handleOpenDialogRegister,
+            handleOpenDialogDelete,
+            dialogRegisterOpening,
+            dialogDeleteOpening,
         ],
     );
 
-    const handleIVDialogOpened = () => {
+    const handleIVDialogOpened = useCallback(() => {
         setDialogIVOpening(false);
-    };
+    }, []);
 
     const handleElevationRefresh = async () => {
         const result = await getUserSessionElevation();
 
         setElevation(result);
+        return result;
     };
 
     const handleElevation = () => {
@@ -195,11 +219,11 @@ const OneTimePasswordPanel = function (props: Props) {
                     <Grid size={{ xs: 12 }}>
                         <Tooltip
                             title={
-                                !registered
-                                    ? translate("Click to add a {{item}} to your account", {
+                                registered
+                                    ? translate("You can only register a single One-Time Password")
+                                    : translate("Click to add a {{item}} to your account", {
                                           item: translate("One-Time Password"),
                                       })
-                                    : translate("You can only register a single One-Time Password")
                             }
                         >
                             <Box component={"span"}>

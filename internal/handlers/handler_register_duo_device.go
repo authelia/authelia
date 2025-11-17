@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/duo"
@@ -12,20 +12,14 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// DuoDevicesGET handler for retrieving available devices and capabilities from duo api.
+// DuoDevicesGET handler for retrieving available devices and capabilities from Duo API.
 func DuoDevicesGET(duoAPI duo.Provider) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
-		var (
-			userSession session.UserSession
-			err         error
-		)
-		if userSession, err = ctx.GetSession(); err != nil {
+		userSession, err := ctx.GetSession()
+		if err != nil {
 			ctx.Error(fmt.Errorf("failed to get session data: %w", err), messageMFAValidationFailed)
 			return
 		}
-
-		values := url.Values{}
-		values.Set("username", userSession.Username)
 
 		ctx.Logger.Debugf("Starting Duo PreAuth for %s", userSession.Username)
 
@@ -35,55 +29,43 @@ func DuoDevicesGET(duoAPI duo.Provider) middlewares.RequestHandler {
 			return
 		}
 
-		if result == auth {
+		response := DuoDevicesResponse{}
+
+		switch result {
+		case auth:
 			if devices == nil {
 				ctx.Logger.Debugf("No applicable device/method available for Duo user %s", userSession.Username)
 
-				if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll}); err != nil {
-					ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
-				}
-
-				return
+				response.Result = enroll
+			} else {
+				response.Result = auth
+				response.Devices = devices
 			}
 
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: auth, Devices: devices}); err != nil {
-				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
-			}
+			SendDuoDevicesResponse(ctx, response)
 
-			return
-		}
-
-		if result == allow {
+		case allow:
 			ctx.Logger.Debugf("Device selection not possible for user %s, because Duo authentication was bypassed - Defaults to Auto Push", userSession.Username)
 
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: allow}); err != nil {
-				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
-			}
+			response.Result = allow
+			SendDuoDevicesResponse(ctx, response)
 
-			return
-		}
-
-		if result == enroll {
+		case enroll:
 			ctx.Logger.Debugf("Duo user: %s not enrolled", userSession.Username)
 
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
-				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
-			}
+			response.Result = enroll
+			response.EnrollURL = enrollURL
+			SendDuoDevicesResponse(ctx, response)
 
-			return
-		}
-
-		if result == deny {
+		case deny:
 			ctx.Logger.Debugf("Duo User not allowed to authenticate: %s", userSession.Username)
 
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: deny}); err != nil {
-				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
-			}
+			response.Result = deny
+			SendDuoDevicesResponse(ctx, response)
 
-			return
+		default:
+			ctx.Error(fmt.Errorf("duo PreAuth API errored for %s: %s - %s", userSession.Username, result, message), messageMFAValidationFailed)
 		}
-
-		ctx.Error(fmt.Errorf("duo PreAuth API errored for %s: %s - %s", userSession.Username, result, message), messageMFAValidationFailed)
 	}
 }
 
@@ -121,7 +103,7 @@ func DuoDevicePOST(ctx *middlewares.AutheliaCtx) {
 	ctx.ReplyOK()
 }
 
-// DuoDeviceDELETE deletes the useres preferred Duo device and method.
+// DuoDeviceDELETE deletes the users preferred Duo device and method.
 func DuoDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
@@ -140,4 +122,11 @@ func DuoDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 	}
 
 	ctx.ReplyOK()
+}
+
+// SendDuoDevicesResponse sends a JSON response for Duo device operations.
+func SendDuoDevicesResponse(ctx *middlewares.AutheliaCtx, response DuoDevicesResponse) {
+	if err := ctx.SetJSONBody(response); err != nil {
+		ctx.Error(errors.New(errStrRespBody), messageMFAValidationFailed)
+	}
 }

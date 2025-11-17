@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 
 import { Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -90,11 +90,38 @@ const WebAuthnCredentialsPanel = function (props: Props) {
         if (changed) {
             handleElevationRefresh()
                 .catch(console.error)
-                .then(() => {
-                    setDialogIVOpening(true);
+                .then((refreshedElevation) => {
+                    if (refreshedElevation) {
+                        const isElevatedFromRefresh =
+                            refreshedElevation.elevated || refreshedElevation.skip_second_factor;
+                        if (isElevatedFromRefresh) {
+                            setElevation(undefined);
+                            if (dialogRegisterOpening) {
+                                handleOpenDialogRegister();
+                            } else if (dialogDeleteOpening) {
+                                handleOpenDialogDelete();
+                            } else if (dialogEditOpening) {
+                                handleOpenDialogEdit();
+                            }
+                        } else {
+                            setDialogIVOpening(true);
+                        }
+                    }
                 });
         } else {
-            setDialogIVOpening(true);
+            const isElevated = elevation && (elevation.elevated || elevation.skip_second_factor);
+            if (isElevated) {
+                setElevation(undefined);
+                if (dialogRegisterOpening) {
+                    handleOpenDialogRegister();
+                } else if (dialogDeleteOpening) {
+                    handleOpenDialogDelete();
+                } else if (dialogEditOpening) {
+                    handleOpenDialogEdit();
+                }
+            } else {
+                setDialogIVOpening(true);
+            }
         }
     };
 
@@ -125,24 +152,25 @@ const WebAuthnCredentialsPanel = function (props: Props) {
             }
         },
         [
-            dialogDeleteOpening,
-            dialogEditOpening,
-            dialogRegisterOpening,
+            handleResetState,
+            handleOpenDialogRegister,
             handleOpenDialogDelete,
             handleOpenDialogEdit,
-            handleOpenDialogRegister,
-            handleResetState,
+            dialogRegisterOpening,
+            dialogDeleteOpening,
+            dialogEditOpening,
         ],
     );
 
-    const handleIVDialogOpened = () => {
+    const handleIVDialogOpened = useCallback(() => {
         setDialogIVOpening(false);
-    };
+    }, []);
 
     const handleElevationRefresh = async () => {
         const result = await getUserSessionElevation();
 
         setElevation(result);
+        return result;
     };
 
     const handleElevation = () => {
