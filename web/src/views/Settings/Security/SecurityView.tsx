@@ -82,12 +82,34 @@ const SettingsView = function () {
 
         if (changed) {
             handleElevationRefresh()
-                .catch(console.error)
-                .then(() => {
-                    setDialogIVOpening(true);
+                .then((refreshedElevation) => {
+                    if (refreshedElevation) {
+                        const isElevatedFromRefresh =
+                            refreshedElevation.elevated || refreshedElevation.skip_second_factor;
+                        if (isElevatedFromRefresh) {
+                            setElevation(undefined);
+                            if (dialogPWChangeOpening) {
+                                handleOpenChangePWDialog();
+                            }
+                        } else {
+                            setDialogIVOpening(true);
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.error(error);
+                    createErrorNotification(translate("Failed to get session elevation status"));
                 });
         } else {
-            setDialogIVOpening(true);
+            const isElevated = elevation && (elevation.elevated || elevation.skip_second_factor);
+            if (isElevated) {
+                setElevation(undefined);
+                if (dialogPWChangeOpening) {
+                    handleOpenChangePWDialog();
+                }
+            } else {
+                setDialogIVOpening(true);
+            }
         }
     };
 
@@ -120,12 +142,9 @@ const SettingsView = function () {
     };
 
     const handleElevationRefresh = async () => {
-        try {
-            const result = await getUserSessionElevation();
-            setElevation(result);
-        } catch {
-            createErrorNotification(translate("Failed to get session elevation status"));
-        }
+        const result = await getUserSessionElevation();
+        setElevation(result);
+        return result;
     };
 
     const handleElevation = () => {

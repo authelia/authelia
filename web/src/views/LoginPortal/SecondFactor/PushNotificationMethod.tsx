@@ -312,7 +312,7 @@ const PushNotificationMethod = function (props: Props) {
             registered={props.registered}
             state={methodState}
             onSelectClick={handleFetchDuoDevices}
-            onRegisterClick={() => window.open(enrollUrl, "_blank")}
+            onRegisterClick={() => window.open(enrollUrl, "_blank", "noopener,noreferrer")}
         >
             <Box className={classes.icon}>{icon}</Box>
             <Box className={state === State.Failure ? "" : "hidden"}>

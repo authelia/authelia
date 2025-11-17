@@ -74,11 +74,34 @@ const OneTimePasswordPanel = function (props: Props) {
         if (changed) {
             handleElevationRefresh()
                 .catch(console.error)
-                .then(() => {
-                    setDialogIVOpening(true);
+                .then((refreshedElevation) => {
+                    if (refreshedElevation) {
+                        const isElevatedFromRefresh =
+                            refreshedElevation.elevated || refreshedElevation.skip_second_factor;
+                        if (isElevatedFromRefresh) {
+                            setElevation(undefined);
+                            if (dialogRegisterOpening) {
+                                handleOpenDialogRegister();
+                            } else if (dialogDeleteOpening) {
+                                handleOpenDialogDelete();
+                            }
+                        } else {
+                            setDialogIVOpening(true);
+                        }
+                    }
                 });
         } else {
-            setDialogIVOpening(true);
+            const isElevated = elevation && (elevation.elevated || elevation.skip_second_factor);
+            if (isElevated) {
+                setElevation(undefined);
+                if (dialogRegisterOpening) {
+                    handleOpenDialogRegister();
+                } else if (dialogDeleteOpening) {
+                    handleOpenDialogDelete();
+                }
+            } else {
+                setDialogIVOpening(true);
+            }
         }
     };
 
@@ -86,32 +109,44 @@ const OneTimePasswordPanel = function (props: Props) {
         setDialogSFOpening(false);
     };
 
-    const handleIVDialogClosed = (ok: boolean) => {
-        if (!ok) {
-            console.warn("Identity Verification dialog close callback failed, it was likely cancelled by the user.");
+    const handleIVDialogClosed = useCallback(
+        (ok: boolean) => {
+            if (!ok) {
+                console.warn(
+                    "Identity Verification dialog close callback failed, it was likely cancelled by the user.",
+                );
 
-            handleResetState();
+                handleResetState();
 
-            return;
-        }
+                return;
+            }
 
-        setElevation(undefined);
+            setElevation(undefined);
 
-        if (dialogRegisterOpening) {
-            handleOpenDialogRegister();
-        } else if (dialogDeleteOpening) {
-            handleOpenDialogDelete();
-        }
-    };
+            if (dialogRegisterOpening) {
+                handleOpenDialogRegister();
+            } else if (dialogDeleteOpening) {
+                handleOpenDialogDelete();
+            }
+        },
+        [
+            handleResetState,
+            handleOpenDialogRegister,
+            handleOpenDialogDelete,
+            dialogRegisterOpening,
+            dialogDeleteOpening,
+        ],
+    );
 
-    const handleIVDialogOpened = () => {
+    const handleIVDialogOpened = useCallback(() => {
         setDialogIVOpening(false);
-    };
+    }, []);
 
     const handleElevationRefresh = async () => {
         const result = await getUserSessionElevation();
 
         setElevation(result);
+        return result;
     };
 
     const handleElevation = () => {

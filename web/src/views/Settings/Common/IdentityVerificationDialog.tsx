@@ -131,11 +131,6 @@ const IdentityVerificationDialog = function (props: Props) {
             return;
         }
 
-        if (elevation.elevated || elevation.skip_second_factor) {
-            handleClosed(true);
-            return;
-        }
-
         if (ready) return;
 
         generateUserSessionElevation()
@@ -149,7 +144,7 @@ const IdentityVerificationDialog = function (props: Props) {
             .catch((error) => {
                 console.error(error);
             });
-    }, [closing, opening, elevation, ready, handleClosed, handleOpened]);
+    }, [closing, opening, elevation, ready, handleOpened]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setCodeInput(e.target.value.replaceAll(/\s/g, ""));

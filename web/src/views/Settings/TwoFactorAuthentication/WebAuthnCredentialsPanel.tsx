@@ -90,11 +90,38 @@ const WebAuthnCredentialsPanel = function (props: Props) {
         if (changed) {
             handleElevationRefresh()
                 .catch(console.error)
-                .then(() => {
-                    setDialogIVOpening(true);
+                .then((refreshedElevation) => {
+                    if (refreshedElevation) {
+                        const isElevatedFromRefresh =
+                            refreshedElevation.elevated || refreshedElevation.skip_second_factor;
+                        if (isElevatedFromRefresh) {
+                            setElevation(undefined);
+                            if (dialogRegisterOpening) {
+                                handleOpenDialogRegister();
+                            } else if (dialogDeleteOpening) {
+                                handleOpenDialogDelete();
+                            } else if (dialogEditOpening) {
+                                handleOpenDialogEdit();
+                            }
+                        } else {
+                            setDialogIVOpening(true);
+                        }
+                    }
                 });
         } else {
-            setDialogIVOpening(true);
+            const isElevated = elevation && (elevation.elevated || elevation.skip_second_factor);
+            if (isElevated) {
+                setElevation(undefined);
+                if (dialogRegisterOpening) {
+                    handleOpenDialogRegister();
+                } else if (dialogDeleteOpening) {
+                    handleOpenDialogDelete();
+                } else if (dialogEditOpening) {
+                    handleOpenDialogEdit();
+                }
+            } else {
+                setDialogIVOpening(true);
+            }
         }
     };
 
@@ -102,34 +129,48 @@ const WebAuthnCredentialsPanel = function (props: Props) {
         setDialogSFOpening(false);
     };
 
-    const handleIVDialogClosed = (ok: boolean) => {
-        if (!ok) {
-            console.warn("Identity Verification dialog close callback failed, it was likely cancelled by the user.");
+    const handleIVDialogClosed = useCallback(
+        (ok: boolean) => {
+            if (!ok) {
+                console.warn(
+                    "Identity Verification dialog close callback failed, it was likely cancelled by the user.",
+                );
 
-            handleResetState();
+                handleResetState();
 
-            return;
-        }
+                return;
+            }
 
-        setElevation(undefined);
+            setElevation(undefined);
 
-        if (dialogRegisterOpening) {
-            handleOpenDialogRegister();
-        } else if (dialogDeleteOpening) {
-            handleOpenDialogDelete();
-        } else if (dialogEditOpening) {
-            handleOpenDialogEdit();
-        }
-    };
+            if (dialogRegisterOpening) {
+                handleOpenDialogRegister();
+            } else if (dialogDeleteOpening) {
+                handleOpenDialogDelete();
+            } else if (dialogEditOpening) {
+                handleOpenDialogEdit();
+            }
+        },
+        [
+            handleResetState,
+            handleOpenDialogRegister,
+            handleOpenDialogDelete,
+            handleOpenDialogEdit,
+            dialogRegisterOpening,
+            dialogDeleteOpening,
+            dialogEditOpening,
+        ],
+    );
 
-    const handleIVDialogOpened = () => {
+    const handleIVDialogOpened = useCallback(() => {
         setDialogIVOpening(false);
-    };
+    }, []);
 
     const handleElevationRefresh = async () => {
         const result = await getUserSessionElevation();
 
         setElevation(result);
+        return result;
     };
 
     const handleElevation = () => {
