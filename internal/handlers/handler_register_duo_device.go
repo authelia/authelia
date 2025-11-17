@@ -13,78 +13,76 @@ import (
 )
 
 // DuoDevicesGET handler for retrieving available devices and capabilities from duo api.
-func DuoDevicesGET(duoAPI duo.Provider) middlewares.RequestHandler {
-	return func(ctx *middlewares.AutheliaCtx) {
-		var (
-			userSession session.UserSession
-			err         error
-		)
-		if userSession, err = ctx.GetSession(); err != nil {
-			ctx.Error(fmt.Errorf("failed to get session data: %w", err), messageMFAValidationFailed)
-			return
-		}
-
-		values := url.Values{}
-		values.Set("username", userSession.Username)
-
-		ctx.Logger.Debugf("Starting Duo PreAuth for %s", userSession.Username)
-
-		result, message, devices, enrollURL, err := DuoPreAuth(ctx, &userSession, duoAPI)
-		if err != nil {
-			ctx.Error(fmt.Errorf("duo PreAuth API errored: %w", err), messageMFAValidationFailed)
-			return
-		}
-
-		if result == auth {
-			if devices == nil {
-				ctx.Logger.Debugf("No applicable device/method available for Duo user %s", userSession.Username)
-
-				if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll}); err != nil {
-					ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
-				}
-
-				return
-			}
-
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: auth, Devices: devices}); err != nil {
-				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
-			}
-
-			return
-		}
-
-		if result == allow {
-			ctx.Logger.Debugf("Device selection not possible for user %s, because Duo authentication was bypassed - Defaults to Auto Push", userSession.Username)
-
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: allow}); err != nil {
-				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
-			}
-
-			return
-		}
-
-		if result == enroll {
-			ctx.Logger.Debugf("Duo user: %s not enrolled", userSession.Username)
-
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
-				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
-			}
-
-			return
-		}
-
-		if result == deny {
-			ctx.Logger.Debugf("Duo User not allowed to authenticate: %s", userSession.Username)
-
-			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: deny}); err != nil {
-				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
-			}
-
-			return
-		}
-
-		ctx.Error(fmt.Errorf("duo PreAuth API errored for %s: %s - %s", userSession.Username, result, message), messageMFAValidationFailed)
+func DuoDevicesGET(ctx *middlewares.AutheliaCtx) {
+	var (
+		userSession session.UserSession
+		err         error
+	)
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Error(fmt.Errorf("failed to get session data: %w", err), messageMFAValidationFailed)
+		return
 	}
+
+	values := url.Values{}
+	values.Set("username", userSession.Username)
+
+	ctx.Logger.Debugf("Starting Duo PreAuth for %s", userSession.Username)
+
+	result, message, devices, enrollURL, err := DuoPreAuth(ctx, &userSession)
+	if err != nil {
+		ctx.Error(fmt.Errorf("duo PreAuth API errored: %w", err), messageMFAValidationFailed)
+		return
+	}
+
+	if result == auth {
+		if devices == nil {
+			ctx.Logger.Debugf("No applicable device/method available for Duo user %s", userSession.Username)
+
+			if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll}); err != nil {
+				ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
+			}
+
+			return
+		}
+
+		if err := ctx.SetJSONBody(DuoDevicesResponse{Result: auth, Devices: devices}); err != nil {
+			ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
+		}
+
+		return
+	}
+
+	if result == allow {
+		ctx.Logger.Debugf("Device selection not possible for user %s, because Duo authentication was bypassed - Defaults to Auto Push", userSession.Username)
+
+		if err := ctx.SetJSONBody(DuoDevicesResponse{Result: allow}); err != nil {
+			ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
+		}
+
+		return
+	}
+
+	if result == enroll {
+		ctx.Logger.Debugf("Duo user: %s not enrolled", userSession.Username)
+
+		if err := ctx.SetJSONBody(DuoDevicesResponse{Result: enroll, EnrollURL: enrollURL}); err != nil {
+			ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
+		}
+
+		return
+	}
+
+	if result == deny {
+		ctx.Logger.Debugf("Duo User not allowed to authenticate: %s", userSession.Username)
+
+		if err := ctx.SetJSONBody(DuoDevicesResponse{Result: deny}); err != nil {
+			ctx.Error(fmt.Errorf("unable to set JSON body in response"), messageMFAValidationFailed)
+		}
+
+		return
+	}
+
+	ctx.Error(fmt.Errorf("duo PreAuth API errored for %s: %s - %s", userSession.Username, result, message), messageMFAValidationFailed)
 }
 
 // DuoDevicePOST update the user preferences regarding Duo device and method.
@@ -121,7 +119,7 @@ func DuoDevicePOST(ctx *middlewares.AutheliaCtx) {
 	ctx.ReplyOK()
 }
 
-// DuoDeviceDELETE deletes the useres preferred Duo device and method.
+// DuoDeviceDELETE deletes the users preferred Duo device and method.
 func DuoDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession

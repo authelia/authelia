@@ -1,26 +1,38 @@
 package duo
 
 import (
+	"context"
 	"encoding/json"
+	"net"
 	"net/http"
 	"net/url"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
+	"github.com/sirupsen/logrus"
 
-	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
+
+type Context interface {
+	context.Context
+
+	GetLogger() *logrus.Entry
+	RemoteIP() net.IP
+}
 
 // BaseProvider describes the upstream provider we intend to utilize. Implemented by duoapi.
 type BaseProvider interface {
 	SignedCall(method string, uri string, params url.Values, options ...duoapi.DuoApiOption) (*http.Response, []byte, error)
+	Call(method string, uri string, params url.Values, options ...duoapi.DuoApiOption) (*http.Response, []byte, error)
 }
 
 // The Provider interface is used to describe this provider for the purpose of mock testing.
 type Provider interface {
-	Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method string, path string) (response *Response, err error)
-	PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *PreAuthResponse, err error)
-	AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *AuthResponse, err error)
+	model.StartupCheck
+
+	PreAuthCall(ctx Context, userSession *session.UserSession, values url.Values) (response *PreAuthResponse, err error)
+	AuthCall(ctx Context, userSession *session.UserSession, values url.Values) (response *AuthResponse, err error)
 }
 
 // Production implementation of the Provider interface.
