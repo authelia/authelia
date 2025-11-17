@@ -36,8 +36,6 @@ export interface DuoSignInResponse {
     devices: DuoDevice[];
     redirect: string;
     enroll_url: string;
-    device?: string;
-    method?: string;
 }
 
 export interface DuoDevicesGetResponse {

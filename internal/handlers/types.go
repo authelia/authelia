@@ -181,7 +181,7 @@ type DuoDevice struct {
 	Capabilities []string `json:"capabilities"`
 }
 
-// DuoDevicesResponse represents all available user devices and methods as well as an optional enrollment url.
+// DuoDevicesResponse represents all available user devices and methods, the user's preferred device and method selections, and an optional enrollment url.
 type DuoDevicesResponse struct {
 	Result          string      `json:"result" valid:"required"`
 	Devices         []DuoDevice `json:"devices,omitempty"`
@@ -196,8 +196,6 @@ type DuoSignResponse struct {
 	Devices   []DuoDevice `json:"devices,omitempty"`
 	Redirect  string      `json:"redirect,omitempty"`
 	EnrollURL string      `json:"enroll_url,omitempty"`
-	Device    string      `json:"device,omitempty"`
-	Method    string      `json:"method,omitempty"`
 }
 
 // StateResponse represents the response sent by the state endpoint.
