@@ -1,33 +1,24 @@
-import { LinearProgress, Theme } from "@mui/material";
-import { makeStyles } from "tss-react/mui";
+import { LinearProgress } from "@mui/material";
 
 export interface Props {
     value: number;
+    height?: number | string;
 }
 
 const LinearProgressBar = function (props: Props) {
-    const { classes } = useStyles({ props: props });
-
     return (
         <LinearProgress
             variant="determinate"
-            classes={{ determinate: classes.determinate, root: classes.root }}
             value={props.value}
-            className={classes.default}
+            sx={{
+                "& .MuiLinearProgress-determinate": {
+                    transition: "transform .2s linear",
+                },
+                height: props.height ? props.height : (theme) => theme.spacing(),
+                marginTop: (theme) => theme.spacing(),
+            }}
         />
     );
 };
-
-const useStyles = makeStyles<{ props: Props }>()((theme: Theme) => ({
-    default: {
-        marginTop: theme.spacing(),
-    },
-    determinate: {
-        transition: "transform .2s linear",
-    },
-    root: {
-        height: theme.spacing(),
-    },
-}));
 
 export default LinearProgressBar;

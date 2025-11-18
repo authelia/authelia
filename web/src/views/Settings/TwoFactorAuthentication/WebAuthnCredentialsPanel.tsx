@@ -296,7 +296,6 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                         ) : (
                             <WebAuthnCredentialsGrid
                                 credentials={props.credentials}
-                                handleRefreshState={props.handleRefreshState}
                                 handleInformation={handleInformation}
                                 handleEdit={handleEdit}
                                 handleDelete={handleDelete}

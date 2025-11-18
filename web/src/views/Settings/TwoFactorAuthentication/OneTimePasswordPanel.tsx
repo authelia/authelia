@@ -255,7 +255,6 @@ const OneTimePasswordPanel = function (props: Props) {
                             <OneTimePasswordConfiguration
                                 config={props.config}
                                 handleInformation={handleInformation}
-                                handleRefresh={props.handleRefreshState}
                                 handleDelete={handleDelete}
                             />
                         </Grid>

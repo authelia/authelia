@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { Box } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -15,6 +15,7 @@ interface Props {
 const WebAuthnRegisterIcon = function (props: Props) {
     const { classes } = useStyles();
 
+    const theme = useTheme();
     const [timerPercent, triggerTimer] = useTimer(props.timeout);
 
     useEffect(() => {
@@ -24,7 +25,7 @@ const WebAuthnRegisterIcon = function (props: Props) {
     return (
         <Box className={classes.icon} sx={{ minHeight: 101 }}>
             <IconWithContext icon={<FingerTouchIcon size={64} animated strong />}>
-                <LinearProgressBar value={timerPercent} />
+                <LinearProgressBar value={timerPercent} height={theme.spacing(2)} />
             </IconWithContext>
         </Box>
     );

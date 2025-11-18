@@ -14,9 +14,7 @@ import LoadingPage from "@views/LoadingPage/LoadingPage";
 const OpenIDConnect = lazy(() => import("@views/ConsentPortal/OpenIDConnect/ConsentPortal"));
 const CompletionView = lazy(() => import("@views/ConsentPortal/CompletionView"));
 
-export interface Props {}
-
-const ConsentPortal: FC<Props> = () => {
+const ConsentPortal: FC = () => {
     const { t: translate } = useTranslation();
 
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
@@ -67,10 +65,7 @@ const ConsentPortalRouter: FC<RouterProps> = (props: RouterProps) => {
                 path={`${ConsentOpenIDSubRoute}/*`}
                 element={<OpenIDConnect userInfo={props.userInfo} state={props.state} />}
             />
-            <Route
-                path={ConsentCompletionSubRoute}
-                element={<CompletionView userInfo={props.userInfo} state={props.state} />}
-            />
+            <Route path={ConsentCompletionSubRoute} element={<CompletionView />} />
         </Routes>
     );
 };
