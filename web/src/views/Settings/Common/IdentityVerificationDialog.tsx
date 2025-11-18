@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
     Box,
@@ -27,7 +27,7 @@ import {
 type Props = {
     elevation?: UserSessionElevation;
     opening: boolean;
-    handleClosed: (ok: boolean) => void;
+    handleClosed: (_ok: boolean) => void;
     handleOpened: () => void;
 };
 
@@ -48,7 +48,7 @@ const IdentityVerificationDialog = function (props: Props) {
     const [ready, setReady] = useState(false);
     const codeRef = useRef<HTMLInputElement>(null);
 
-    const open = React.useMemo(() => ready && !closing && opening && !!elevation, [ready, closing, opening, elevation]);
+    const open = useMemo(() => ready && !closing && opening && !!elevation, [ready, closing, opening, elevation]);
 
     const handleClose = useCallback(
         (ok: boolean) => {
@@ -114,7 +114,7 @@ const IdentityVerificationDialog = function (props: Props) {
     }, [codeInput, handleFailure, handleSuccess]);
 
     const handleSubmitKeyDown = useCallback(
-        async (event: React.KeyboardEvent<HTMLDivElement>) => {
+        async (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
                 if (codeInput.length === 0) {
                     setCodeError(true);
@@ -146,7 +146,7 @@ const IdentityVerificationDialog = function (props: Props) {
             });
     }, [closing, opening, elevation, ready, handleOpened]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setCodeInput(e.target.value.replaceAll(/\s/g, ""));
         setCodeError(false);
     };

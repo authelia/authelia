@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useRef, useState } from "react";
+import { Fragment, useCallback, useRef, useState } from "react";
 
 import { Button, CircularProgress, Divider, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -18,8 +18,8 @@ export interface Props {
 
     onAuthenticationStart: () => void;
     onAuthenticationStop: () => void;
-    onAuthenticationError: (err: Error) => void;
-    onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onAuthenticationError: (_err: Error) => void;
+    onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const PasskeyForm = function (props: Props) {
@@ -131,7 +131,7 @@ const PasskeyForm = function (props: Props) {
     return (
         <Fragment>
             <Grid size={{ xs: 12 }}>
-                <Divider component="div" role="presentation">
+                <Divider component="div">
                     <Typography sx={{ textTransform: "uppercase" }}>{translate("or")}</Typography>
                 </Divider>
             </Grid>

@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import { Fragment } from "react";
 
 import { Box, Theme } from "@mui/material";
 import OtpInput from "react18-input-otp";
@@ -15,9 +15,10 @@ export interface Props {
     digits: number;
     period: number;
 
-    onChange: (passcode: string) => void;
+    onChange: (_passcode: string) => void;
 }
 
+/* eslint-disable no-unused-vars */
 export enum State {
     Idle = 1,
     InProgress = 2,
@@ -53,17 +54,18 @@ const OTPDial = function (props: Props) {
 };
 
 interface IconProps {
-    state: State;
-    period: number;
+    readonly state: State;
+    readonly period: number;
 }
 
 function Icon(props: IconProps) {
     return (
         <Fragment>
-            {props.state !== State.Success ? (
+            {props.state === State.Success ? (
+                <SuccessIcon />
+            ) : (
                 <TimerIcon backgroundColor="#000" color="#FFFFFF" width={64} height={64} period={props.period} />
-            ) : null}
-            {props.state === State.Success ? <SuccessIcon /> : null}
+            )}
         </Fragment>
     );
 }

@@ -2,7 +2,7 @@ import "@testing-library/jest-dom";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-i18n.use(initReactI18next).init({
+await i18n.use(initReactI18next).init({
     resources: { en: { testNS: {} } },
 });
 
@@ -36,14 +36,14 @@ const localStorageMock: LocalStorageMock = (function () {
     };
 })();
 
-Object.defineProperty(window, "localStorage", { value: localStorageMock });
+Object.defineProperty(globalThis, "localStorage", { value: localStorageMock });
 
-document.body.setAttribute("data-basepath", "");
-document.body.setAttribute("data-duoselfenrollment", "true");
-document.body.setAttribute("data-rememberme", "true");
-document.body.setAttribute("data-resetpassword", "true");
-document.body.setAttribute("data-resetpasswordcustomurl", "");
-document.body.setAttribute("data-privacypolicyurl", "");
-document.body.setAttribute("data-privacypolicyaccept", "false");
-document.body.setAttribute("data-passkeylogin", "true");
-document.body.setAttribute("data-theme", "light");
+document.body.dataset.basepath = "";
+document.body.dataset.duoselfenrollment = "true";
+document.body.dataset.rememberme = "true";
+document.body.dataset.resetpassword = "true";
+document.body.dataset.resetpasswordcustomurl = "";
+document.body.dataset.privacypolicyurl = "";
+document.body.dataset.privacypolicyaccept = "false";
+document.body.dataset.passkeylogin = "true";
+document.body.dataset.theme = "light";

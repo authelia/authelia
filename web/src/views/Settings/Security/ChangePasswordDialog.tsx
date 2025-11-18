@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Dispatch, KeyboardEvent, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 
 import {
     Button,
@@ -177,11 +177,11 @@ const ChangePasswordDialog = (props: Props) => {
 
     const useHandleKeyDown = (
         passwordState: string,
-        setError: React.Dispatch<React.SetStateAction<boolean>>,
-        nextRef?: React.RefObject<HTMLInputElement | null>,
+        setError: Dispatch<SetStateAction<boolean>>,
+        nextRef?: RefObject<HTMLInputElement | null>,
     ) => {
         return useCallback(
-            (event: React.KeyboardEvent<HTMLDivElement>) => {
+            (event: KeyboardEvent<HTMLDivElement>) => {
                 if (event.key === "Enter") {
                     if (!passwordState.length) {
                         setError(true);

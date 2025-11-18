@@ -1,6 +1,3 @@
-import React from "react";
-
-import { Theme } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 
 import style from "@components/FingerTouchIcon.module.css";
@@ -57,6 +54,6 @@ const FingerTouchIcon = function (props: Props) {
     );
 };
 
-const useStyles = makeStyles()((theme: Theme) => ({}));
+const useStyles = makeStyles()(() => ({}));
 
 export default FingerTouchIcon;

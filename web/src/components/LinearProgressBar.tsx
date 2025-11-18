@@ -1,11 +1,8 @@
-import React from "react";
-
 import { LinearProgress, Theme } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 
 export interface Props {
     value: number;
-    height?: number | string;
 }
 
 const LinearProgressBar = function (props: Props) {
@@ -21,7 +18,7 @@ const LinearProgressBar = function (props: Props) {
     );
 };
 
-const useStyles = makeStyles<{ props: Props }>()((theme: Theme, { props }) => ({
+const useStyles = makeStyles<{ props: Props }>()((theme: Theme) => ({
     default: {
         marginTop: theme.spacing(),
     },
@@ -29,7 +26,7 @@ const useStyles = makeStyles<{ props: Props }>()((theme: Theme, { props }) => ({
         transition: "transform .2s linear",
     },
     root: {
-        height: props.height ? props.height : theme.spacing(),
+        height: theme.spacing(),
     },
 }));
 

@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import { Fragment, JSX } from "react";
 
 import { Box, Tooltip } from "@mui/material";
 import { TooltipProps } from "@mui/material/Tooltip";
@@ -9,7 +9,7 @@ export interface Props extends TooltipProps {
 
 interface ComponentProps extends Omit<Props, "render"> {}
 
-const ComponentWithTooltip = function (props: Props): React.JSX.Element {
+const ComponentWithTooltip = function (props: Props): JSX.Element {
     const tooltipProps = props as ComponentProps;
 
     return (

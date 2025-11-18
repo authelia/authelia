@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -42,7 +42,7 @@ export interface Props {
 
     onAuthenticationStart: () => void;
     onAuthenticationStop: () => void;
-    onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
     onChannelStateChange: () => void;
 }
 
@@ -163,7 +163,7 @@ const FirstFactorForm = function (props: Props) {
 
     const handleResetPasswordClick = () => {
         if (props.resetPassword) {
-            if (props.resetPasswordCustomURL !== "") {
+            if (props.resetPasswordCustomURL) {
                 window.open(props.resetPasswordCustomURL);
             } else {
                 navigate(ResetPasswordStep1Route);
@@ -172,7 +172,7 @@ const FirstFactorForm = function (props: Props) {
     };
 
     const handleUsernameKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     setUsernameError(true);
@@ -188,7 +188,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handlePasswordKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     focusUsername();
@@ -203,7 +203,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handlePasswordKeyUp = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (password.length <= 1) {
                 setPasswordCapsLock(false);
                 setPasswordCapsLockPartial(false);
@@ -227,7 +227,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handleRememberMeKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLButtonElement>) => {
+        (event: KeyboardEvent<HTMLButtonElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     focusUsername();

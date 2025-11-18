@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { LocalStorageSecondFactorMethod } from "@constants/LocalStorage";
 import { SecondFactorMethod } from "@models/Methods";
@@ -8,12 +8,12 @@ import { Method2FA, isMethod2FA, toMethod2FA, toSecondFactorMethod } from "@serv
 export const LocalStorageMethodContext = createContext<null | ValueProps>(null);
 
 export interface Props {
-    readonly children: React.ReactNode;
+    readonly children: ReactNode;
 }
 
 export interface ValueProps {
     localStorageMethod: SecondFactorMethod | undefined;
-    setLocalStorageMethod: (value: SecondFactorMethod | undefined) => void;
+    setLocalStorageMethod: (_value: SecondFactorMethod | undefined) => void;
     localStorageMethodAvailable: boolean;
 }
 

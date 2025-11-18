@@ -1,5 +1,3 @@
-import React from "react";
-
 import TextField, { TextFieldProps } from "@mui/material/TextField";
 
 const OneTimeCodeTextField = function (props: TextFieldProps) {

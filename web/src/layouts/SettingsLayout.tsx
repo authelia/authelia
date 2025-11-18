@@ -1,4 +1,4 @@
-import React, { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
+import { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
 import { Close, Dashboard, Menu, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
 import {
@@ -27,7 +27,6 @@ import {
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {
-    id?: string;
     children?: ReactNode;
     drawerWidth?: number;
 }
@@ -39,10 +38,10 @@ const SettingsLayout = function (props: Props) {
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
-        document.title = translate("Settings - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
+        document.title = translate("Settings - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
 
-    const drawerWidth = props.drawerWidth === undefined ? defaultDrawerWidth : props.drawerWidth;
+    const drawerWidth = props.drawerWidth ?? defaultDrawerWidth;
 
     const handleToggleDrawer = (event: SyntheticEvent) => {
         if (
@@ -56,7 +55,7 @@ const SettingsLayout = function (props: Props) {
         setDrawerOpen((state) => !state);
     };
 
-    const container = window !== undefined ? () => window.document.body : undefined;
+    const container = typeof globalThis === "undefined" ? undefined : () => globalThis.document.body;
 
     const drawer = (
         <Box onClick={handleToggleDrawer} sx={{ textAlign: "center" }}>
@@ -152,7 +151,8 @@ const navItems: NavItem[] = [
 ];
 
 const DrawerNavItem = function (props: NavItem) {
-    const selected = window.location.pathname === props.pathname || window.location.pathname === props.pathname + "/";
+    const selected =
+        globalThis.location.pathname === props.pathname || globalThis.location.pathname === props.pathname + "/";
     const navigate = useRouterNavigate();
 
     const handleOnClick = useCallback(() => {

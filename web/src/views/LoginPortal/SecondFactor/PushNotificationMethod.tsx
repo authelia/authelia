@@ -26,6 +26,7 @@ import DeviceSelectionContainer, {
 } from "@views/LoginPortal/SecondFactor/DeviceSelectionContainer";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
+/* eslint-disable no-unused-vars */
 export enum State {
     SignInInProgress = 1,
     Success = 2,
@@ -41,9 +42,9 @@ export interface Props {
     duoSelfEnrollment: boolean;
     registered: boolean;
 
-    onSignInError: (err: Error) => void;
+    onSignInError: (_err: Error) => void;
     onSelectionClick: () => void;
-    onSignInSuccess: (redirectURL: string | undefined) => void;
+    onSignInSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const PushNotificationMethod = function (props: Props) {

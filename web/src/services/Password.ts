@@ -48,7 +48,7 @@ export async function postFirstFactor(
     };
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, data);
-    return res ? res : ({} as SignInResponse);
+    return res ?? ({} as SignInResponse);
 }
 
 export async function postFirstFactorReauthenticate(
@@ -71,7 +71,7 @@ export async function postFirstFactorReauthenticate(
     };
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorReauthenticatePath, data);
-    return res ? res : ({} as SignInResponse);
+    return res ?? ({} as SignInResponse);
 }
 
 interface PostSecondFactorBody {
@@ -98,5 +98,5 @@ export async function postSecondFactor(
     };
 
     const res = await PostWithOptionalResponse<SignInResponse>(CompletePasswordSignInPath, data);
-    return res ? res : ({} as SignInResponse);
+    return res ?? ({} as SignInResponse);
 }

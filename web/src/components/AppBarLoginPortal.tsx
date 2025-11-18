@@ -1,5 +1,3 @@
-import React from "react";
-
 import { AppBar, Toolbar, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
@@ -12,7 +10,7 @@ export interface Props {
     userInfo?: UserInfo;
     localeCurrent?: string;
     localeList?: Language[];
-    onLocaleChange?: (locale: string) => void;
+    onLocaleChange?: (_locale: string) => void;
 }
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({

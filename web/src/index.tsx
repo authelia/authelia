@@ -1,4 +1,4 @@
-import React, { StrictMode } from "react";
+import { StrictMode } from "react";
 
 import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";

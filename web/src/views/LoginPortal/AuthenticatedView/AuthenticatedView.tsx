@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";

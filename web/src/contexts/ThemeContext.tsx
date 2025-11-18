@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { Theme, ThemeProvider } from "@mui/material";
 
@@ -12,13 +12,13 @@ const MediaQueryDarkMode = "(prefers-color-scheme: dark)";
 export const ThemeContext = createContext<null | ValueProps>(null);
 
 export interface Props {
-    children: React.ReactNode;
+    readonly children: ReactNode;
 }
 
 export interface ValueProps {
     theme: Theme;
     themeName: string;
-    setThemeName: (value: string) => void;
+    setThemeName: (_value: string) => void;
 }
 
 export default function ThemeContextProvider(props: Props) {
@@ -27,8 +27,8 @@ export default function ThemeContextProvider(props: Props) {
 
     useEffect(() => {
         if (themeName === themes.ThemeNameAuto) {
-            const query = window.matchMedia(MediaQueryDarkMode);
-            if (query.addEventListener) {
+            const query = globalThis.matchMedia?.(MediaQueryDarkMode);
+            if (query?.addEventListener) {
                 query.addEventListener("change", mediaQueryListener);
 
                 return () => {
@@ -41,10 +41,10 @@ export default function ThemeContextProvider(props: Props) {
     }, [themeName]);
 
     useEffect(() => {
-        window.addEventListener("storage", storageListener);
+        globalThis.addEventListener?.("storage", storageListener);
 
         return () => {
-            window.removeEventListener("storage", storageListener);
+            globalThis.removeEventListener?.("storage", storageListener);
         };
     }, []);
 
@@ -70,14 +70,17 @@ export default function ThemeContextProvider(props: Props) {
         setLocalStorage(LocalStorageThemeName, name);
     }, []);
 
+    const value = useMemo(
+        () => ({
+            setThemeName: callback,
+            theme,
+            themeName,
+        }),
+        [callback, theme, themeName],
+    );
+
     return (
-        <ThemeContext.Provider
-            value={{
-                setThemeName: callback,
-                theme,
-                themeName,
-            }}
-        >
+        <ThemeContext.Provider value={value}>
             <ThemeWrapper>{props.children}</ThemeWrapper>
         </ThemeContext.Provider>
     );
@@ -100,7 +103,7 @@ function ThemeWrapper(props: Props) {
 
 function GetCurrentThemeName() {
     if (localStorageAvailable()) {
-        const local = window.localStorage.getItem(LocalStorageThemeName);
+        const local = globalThis.localStorage?.getItem(LocalStorageThemeName);
 
         if (local) {
             return local;
@@ -125,15 +128,15 @@ function ThemeFromName(name: string) {
         case themes.ThemeNameOled:
             return themes.Oled;
         case themes.ThemeNameAuto:
-            return window.matchMedia(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
+            return globalThis.matchMedia?.(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
         default:
-            return window.matchMedia(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
+            return globalThis.matchMedia?.(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
     }
 }
 
 const getUserThemeName = () => {
     if (localStorageAvailable()) {
-        const value = window.localStorage.getItem(LocalStorageThemeName);
+        const value = globalThis.localStorage?.getItem(LocalStorageThemeName);
 
         if (value) {
             return value;

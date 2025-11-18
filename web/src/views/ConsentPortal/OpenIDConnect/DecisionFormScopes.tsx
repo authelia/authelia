@@ -1,4 +1,4 @@
-import React from "react";
+import { FC } from "react";
 
 import { Box, List, ListItem, ListItemIcon, ListItemText, Theme, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -12,7 +12,7 @@ export interface Props {
     scopes: string[];
 }
 
-const DecisionFormScopes: React.FC<Props> = (props: Props) => {
+const DecisionFormScopes: FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent"]);
 
     const { classes } = useStyles();

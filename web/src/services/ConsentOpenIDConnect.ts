@@ -128,12 +128,14 @@ export function getClaimDescription(claim: string): string {
 function setClaimCase(claim: string): string {
     claim = (claim.charAt(0).toUpperCase() + claim.slice(1)).replace("_verified", " (Verified)").replace("_", " ");
 
+    let result = "";
     for (let i = 0; i < claim.length; i++) {
-        const j = i + 1;
-
-        if (claim[i] === " " && j < claim.length) {
-            claim.charAt(j).toUpperCase();
+        if (i === 0 || claim[i - 1] === " ") {
+            result += claim[i].toUpperCase();
+        } else {
+            result += claim[i];
         }
     }
-    return claim;
+
+    return result;
 }

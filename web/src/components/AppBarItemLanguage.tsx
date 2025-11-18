@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useMemo, useState } from "react";
+import { Fragment, MouseEvent, useCallback, useMemo, useState } from "react";
 
 import { ExpandLess, ExpandMore, Language as LanguageIcon } from "@mui/icons-material";
 import { Box, Collapse, IconButton, ListItemText, Menu, MenuItem, Tooltip, Typography, useTheme } from "@mui/material";
@@ -9,7 +9,7 @@ import { ChildLocale, Language, Locale } from "@models/LocaleInformation";
 export interface Props {
     localeCurrent?: string;
     localeList?: Language[];
-    onChange?: (lng: string) => void;
+    onChange?: (_lng: string) => void;
 }
 
 const Fallbacks: { [id: string]: string } = {
@@ -29,7 +29,7 @@ const AppBarItemLanguage = function (props: Props) {
 
     const render = props.localeList !== undefined && props.localeCurrent !== undefined && props.onChange !== undefined;
 
-    const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    const handleMenuClick = (event: MouseEvent<HTMLElement>) => {
         setElementLanguage(event.currentTarget);
     };
 

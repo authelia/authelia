@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 import { Alert, AlertTitle, Box, Theme } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -15,7 +15,7 @@ export interface Props {
 const getStandardPasswordInfo = (
     password: string,
     policy: PasswordPolicyConfiguration,
-    translate: (key: string, options?: any) => string,
+    translate: (_key: string, _options?: any) => string,
 ) => {
     let feedback = "";
     let feedbackTitle = "";
@@ -164,7 +164,7 @@ PasswordMeter.defaultProps = {
 };
 
 const useStyles = makeStyles<{ progressColor: string[]; passwordScore: number; maxScore: number }>()(
-    (theme: Theme, { maxScore, passwordScore, progressColor }) => ({
+    (_theme: Theme, { maxScore, passwordScore, progressColor }) => ({
         feedback: {
             fontSize: "0.7rem",
             textAlign: "left",

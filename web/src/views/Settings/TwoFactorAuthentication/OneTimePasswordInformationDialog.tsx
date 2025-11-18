@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import { Fragment } from "react";
 
 import {
     Button,
@@ -31,19 +31,13 @@ const OneTimePasswordInformationDialog = function (props: Props) {
                 {translate("One-Time Password Information")}
             </DialogTitle>
             <DialogContent>
-                {!props.config ? (
-                    <DialogContentText sx={{ mb: 3 }}>
-                        {translate("The One-Time Password information is not loaded")}
-                    </DialogContentText>
-                ) : (
+                {props.config ? (
                     <Fragment>
                         <DialogContentText sx={{ mb: 3 }}>
                             {translate("Extended information for One-Time Password")}
                         </DialogContentText>
                         <Grid container spacing={2}>
-                            <Grid size={{ md: 3 }} sx={{ display: { md: "block", xs: "none" } }}>
-                                <Fragment />
-                            </Grid>
+                            <Grid size={{ md: 3 }} sx={{ display: { md: "block", xs: "none" } }} />
                             <Grid size={{ xs: 12 }}>
                                 <Divider />
                             </Grid>
@@ -86,6 +80,10 @@ const OneTimePasswordInformationDialog = function (props: Props) {
                             />
                         </Grid>
                     </Fragment>
+                ) : (
+                    <DialogContentText sx={{ mb: 3 }}>
+                        {translate("The One-Time Password information is not loaded")}
+                    </DialogContentText>
                 )}
             </DialogContent>
             <DialogActions>
@@ -98,14 +96,14 @@ const OneTimePasswordInformationDialog = function (props: Props) {
 };
 
 interface PropertyTextProps {
-    name: string;
-    value: string;
-    xs?: number;
+    readonly name: string;
+    readonly value: string;
+    readonly xs?: number;
 }
 
 function PropertyText(props: PropertyTextProps) {
     return (
-        <Grid size={{ xs: props.xs !== undefined ? props.xs : 12 }}>
+        <Grid size={{ xs: props.xs ?? 12 }}>
             <Typography display="inline" sx={{ fontWeight: "bold" }}>
                 {`${props.name}: `}
             </Typography>

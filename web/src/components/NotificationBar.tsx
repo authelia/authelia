@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Alert, Slide, SlideProps, Snackbar } from "@mui/material";
 
 import { useNotifications } from "@hooks/NotificationsContext";

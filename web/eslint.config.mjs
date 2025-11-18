@@ -47,11 +47,21 @@ export default [
             import: importPlugin,
             perfectionist,
         },
-        rules: {},
-    },
-
-    {
         rules: {
+            "no-restricted-imports": [
+                "error",
+                {
+                    paths: [
+                        {
+                            importNames: ["default"],
+                            message:
+                                "Default React import is no longer required in React 17+ because JSX is automatically transformed without React in scope.",
+                            name: "react",
+                        },
+                    ],
+                },
+            ],
+            "no-unused-vars": ["error", { args: "all", argsIgnorePattern: "^_" }],
             "perfectionist/sort-array-includes": ["error"],
             "perfectionist/sort-imports": [
                 "error",

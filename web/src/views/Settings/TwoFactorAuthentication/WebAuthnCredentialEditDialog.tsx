@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -27,7 +27,7 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
     };
 
     const handleUpdate = () => {
-        if (!credentialDescription.length) {
+        if (credentialDescription.length === 0) {
             setErrorDescription(true);
         } else {
             handleEdit(credentialDescription).catch(console.error);
@@ -99,7 +99,6 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                     {translate("Enter a new description for this WebAuthn Credential")}
                 </DialogContentText>
                 <TextField
-                    autoFocus // TODO: error jsx-a11y/no-autofocus : The autoFocus prop should not be used, as it can reduce usability and accessibility for users.
                     inputRef={descriptionRef}
                     id="webauthn-credential-description"
                     label={translate("Description")}

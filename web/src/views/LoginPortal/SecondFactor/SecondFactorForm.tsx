@@ -1,4 +1,4 @@
-import React, { lazy, useState } from "react";
+import { lazy, useState } from "react";
 
 import { Box, Button, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -42,7 +42,7 @@ export interface Props {
     duoSelfEnrollment: boolean;
 
     onMethodChanged: () => void;
-    onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const SecondFactorForm = function (props: Props) {
@@ -118,7 +118,6 @@ const SecondFactorForm = function (props: Props) {
                                 <PasswordMethod
                                     id="password-method"
                                     authenticationLevel={props.authenticationLevel}
-                                    userInfo={props.userInfo}
                                     onAuthenticationSuccess={props.onAuthenticationSuccess}
                                 />
                             }

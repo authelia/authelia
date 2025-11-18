@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import { Fragment, MouseEvent, useState } from "react";
 
 import { Logout, Settings } from "@mui/icons-material";
 import { Avatar, Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
@@ -43,7 +43,7 @@ const AppBarItemAccountSettings = function (props: Props) {
 
     const open = Boolean(elementAccountSettings);
 
-    const handleAccountSettingsClick = (event: React.MouseEvent<HTMLElement>) => {
+    const handleAccountSettingsClick = (event: MouseEvent<HTMLElement>) => {
         setElementAccountSettings(event.currentTarget);
     };
 

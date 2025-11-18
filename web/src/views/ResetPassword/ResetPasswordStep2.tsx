@@ -47,7 +47,7 @@ const ResetPasswordStep2 = function () {
     const processToken = useQueryParam(IdentityToken);
 
     const handleRateLimited = useCallback(
-        (retryAfter: number) => {
+        (_retryAfter: number) => {
             createErrorNotification(translate("You have made too many requests")); // TODO: Do we want to add the amount of seconds a user should retry in the message?
         },
         [createErrorNotification, translate],

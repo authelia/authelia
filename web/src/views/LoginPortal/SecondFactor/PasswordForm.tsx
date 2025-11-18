@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -15,7 +15,7 @@ import { IsCapsLockModified } from "@services/CapsLock";
 import { postSecondFactor } from "@services/Password";
 
 export interface Props {
-    onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const PasswordForm = function (props: Props) {
@@ -67,7 +67,7 @@ const PasswordForm = function (props: Props) {
     }, [createErrorNotification, focusPassword, password, props, redirectionURL, translate, flowID, flow, subflow]);
 
     const handlePasswordKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
                 if (!password.length) {
                     focusPassword();
@@ -80,7 +80,7 @@ const PasswordForm = function (props: Props) {
     );
 
     const handlePasswordKeyUp = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (password.length <= 1) {
                 setPasswordCapsLock(false);
                 setPasswordCapsLockPartial(false);

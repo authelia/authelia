@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Delete } from "@mui/icons-material";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -8,18 +6,19 @@ interface Props {
     open: boolean;
     title: string;
     text: string;
-    handleClose: (ok: boolean) => void;
+    onConfirm: () => void;
+    onCancel: () => void;
 }
 
 const DeleteDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const handleCancel = () => {
-        props.handleClose(false);
+        props.onCancel();
     };
 
     const handleDelete = () => {
-        props.handleClose(true);
+        props.onConfirm();
     };
 
     return (

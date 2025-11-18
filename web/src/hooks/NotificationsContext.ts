@@ -8,7 +8,7 @@ const defaultOptions = {
 
 interface NotificationContextProps {
     notification: Notification | null;
-    setNotification: (n: Notification | null) => void;
+    setNotification: (_n: Notification | null) => void;
 }
 
 const NotificationsContext = createContext<NotificationContextProps>({ notification: null, setNotification: () => {} });

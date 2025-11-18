@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Fingerprint } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 
@@ -9,9 +7,9 @@ import CredentialItem from "@views/Settings/TwoFactorAuthentication/CredentialIt
 interface Props {
     index: number;
     credential: WebAuthnCredential;
-    handleInformation: (index: number) => void;
-    handleEdit: (index: number) => void;
-    handleDelete: (index: number) => void;
+    handleInformation: (_index: number) => void;
+    handleEdit: (_index: number) => void;
+    handleDelete: (_index: number) => void;
 }
 
 const WebAuthnCredentialItem = function (props: Props) {

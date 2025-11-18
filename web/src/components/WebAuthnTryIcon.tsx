@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import { Box, Button, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";

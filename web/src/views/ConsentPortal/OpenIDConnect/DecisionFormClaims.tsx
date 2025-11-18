@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useMemo } from "react";
+import { ChangeEvent, FC, Fragment, useCallback, useMemo } from "react";
 
 import { Box, Checkbox, FormControlLabel, List, Theme, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -8,19 +8,19 @@ import { makeStyles } from "tss-react/mui";
 import { formatClaim } from "@services/ConsentOpenIDConnect";
 
 export interface Props {
-    onChangeChecked: (claims: string[]) => void;
+    onChangeChecked: (_claims: string[]) => void;
     claims: null | string[];
     essential_claims: null | string[];
 }
 
-const DecisionFormClaims: React.FC<Props> = ({ claims, essential_claims, onChangeChecked }: Props) => {
+const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeChecked }: Props) => {
     const { t: translate } = useTranslation(["consent"]);
 
     const { classes } = useStyles();
 
     const checked = useMemo(() => claims || [], [claims]);
 
-    const handleClaimCheckboxOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleClaimCheckboxOnChange = (event: ChangeEvent<HTMLInputElement>) => {
         const checking = !checked.includes(event.target.value);
 
         if (checking) {

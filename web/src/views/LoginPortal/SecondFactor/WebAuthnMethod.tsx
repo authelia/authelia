@@ -19,8 +19,8 @@ export interface Props {
     registered: boolean;
 
     onRegisterClick: () => void;
-    onSignInError: (err: Error) => void;
-    onSignInSuccess: (redirectURL: string | undefined) => void;
+    onSignInError: (_err: Error) => void;
+    onSignInSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const WebAuthnMethod = function (props: Props) {

@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 
 import { Box, Theme } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
@@ -23,7 +23,7 @@ const IconWithContext = function (props: IconWithContextProps) {
     );
 };
 
-const useStyles = makeStyles<{ iconSize: number }>()((theme: Theme, { iconSize }) => ({
+const useStyles = makeStyles<{ iconSize: number }>()((_theme: Theme, { iconSize }) => ({
     context: {
         display: "block",
     },

@@ -14,7 +14,7 @@ import ChangePasswordDialog from "@views/Settings/Security/ChangePasswordDialog"
 
 interface PasswordChangeButtonProps {
     configuration: Configuration | undefined;
-    translate: (key: string) => string;
+    translate: (_key: string) => string;
     handleChangePassword: () => void;
 }
 

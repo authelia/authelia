@@ -37,7 +37,7 @@ type Props = {
     elevation?: UserSessionElevation;
     info?: UserInfo;
     opening: boolean;
-    handleClosed: (ok: boolean, changed: boolean) => void;
+    handleClosed: (_ok: boolean, _changed: boolean) => void;
     handleOpened: () => void;
 };
 

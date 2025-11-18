@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import { ReactNode, useState } from "react";
 
 import { Box, Button, Container, Theme, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -6,6 +6,7 @@ import { makeStyles } from "tss-react/mui";
 
 import PushNotificationIcon from "@components/PushNotificationIcon";
 
+/* eslint-disable no-unused-vars */
 export enum State {
     DEVICE = 1,
     METHOD = 2,
@@ -23,20 +24,19 @@ export interface SelectedDevice {
 }
 
 export interface Props {
-    children?: ReactNode;
     devices: SelectableDevice[];
 
     onBack: () => void;
-    onSelect: (device: SelectedDevice) => void;
+    onSelect: (_device: SelectedDevice) => void;
 }
 const DefaultDeviceSelectionContainer = function (props: Props) {
     const [state, setState] = useState(State.DEVICE);
     const [device, setDevice] = useState([] as unknown as SelectableDevice);
 
-    const handleDeviceSelected = (selecteddevice: SelectableDevice) => {
-        if (selecteddevice.methods.length === 1) handleMethodSelected(selecteddevice.methods[0], selecteddevice.id);
+    const handleDeviceSelected = (selectedDevice: SelectableDevice) => {
+        if (selectedDevice.methods.length === 1) handleMethodSelected(selectedDevice.methods[0], selectedDevice.id);
         else {
-            setDevice(selecteddevice);
+            setDevice(selectedDevice);
             setState(State.METHOD);
         }
     };
@@ -55,7 +55,7 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
                         return (
                             <DeviceItem
                                 id={index}
-                                key={index}
+                                key={value.id}
                                 device={value}
                                 onSelect={() => handleDeviceSelected(value)}
                             />
@@ -71,7 +71,7 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
                         return (
                             <MethodItem
                                 id={index}
-                                key={index}
+                                key={value}
                                 method={value}
                                 onSelect={() => handleMethodSelected(value)}
                             />

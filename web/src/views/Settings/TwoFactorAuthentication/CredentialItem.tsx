@@ -1,4 +1,4 @@
-import React from "react";
+import { MouseEvent, ReactElement, ReactNode } from "react";
 
 import { Delete, Edit, InfoOutlined, ReportProblem } from "@mui/icons-material";
 import { Box, Paper, Stack, Tooltip, Typography } from "@mui/material";
@@ -10,7 +10,7 @@ import { useRelativeTime } from "@hooks/RelativeTimeString";
 
 interface Props {
     id: string;
-    icon?: React.ReactNode;
+    icon?: ReactNode;
     description: string;
     qualifier: string;
     problem?: boolean;
@@ -20,9 +20,9 @@ interface Props {
     tooltipInformationProblem?: string;
     tooltipEdit?: string;
     tooltipDelete: string;
-    handleInformation?: (event: React.MouseEvent<HTMLElement>) => void;
-    handleEdit?: (event: React.MouseEvent<HTMLElement>) => void;
-    handleDelete: (event: React.MouseEvent<HTMLElement>) => void;
+    handleInformation?: (_event: MouseEvent<HTMLElement>) => void;
+    handleEdit?: (_event: MouseEvent<HTMLElement>) => void;
+    handleDelete: (_event: MouseEvent<HTMLElement>) => void;
 }
 
 const CredentialItem = function (props: Props) {
@@ -120,7 +120,7 @@ const CredentialItem = function (props: Props) {
 
 interface TooltipElementProps {
     tooltip?: string;
-    children: React.ReactElement<any, any>;
+    children: ReactElement<any, any>;
 }
 
 const TooltipElement = function (props: TooltipElementProps) {

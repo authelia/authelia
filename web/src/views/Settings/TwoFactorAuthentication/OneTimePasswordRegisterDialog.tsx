@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -108,7 +108,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
         (async () => {
             props.setClosed();
 
-            if (secretURL !== "") {
+            if (secretURL) {
                 try {
                     await stopTOTPRegister();
                 } catch (err) {
@@ -243,7 +243,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
         })();
     }, [activeStep, dialState, dialValue, dialValue.length, handleFinished, props.open, selected.length]);
 
-    const handleChangeAlgorithm = (ev: React.ChangeEvent<HTMLInputElement>, value: string) => {
+    const handleChangeAlgorithm = (ev: ChangeEvent<HTMLInputElement>, value: string) => {
         setSelected((prevState) => {
             return {
                 ...prevState,
@@ -254,22 +254,22 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
         ev.preventDefault();
     };
 
-    const handleChangeLength = (ev: React.ChangeEvent<HTMLInputElement>, value: string) => {
+    const handleChangeLength = (ev: ChangeEvent<HTMLInputElement>, value: string) => {
         setSelected((prevState) => {
             return {
                 ...prevState,
-                length: parseInt(value),
+                length: Number.parseInt(value),
             };
         });
 
         ev.preventDefault();
     };
 
-    const handleChangePeriod = (ev: React.ChangeEvent<HTMLInputElement>, value: string) => {
+    const handleChangePeriod = (ev: ChangeEvent<HTMLInputElement>, value: string) => {
         setSelected((prevState) => {
             return {
                 ...prevState,
-                period: parseInt(value),
+                period: Number.parseInt(value),
             };
         });
 
@@ -435,10 +435,10 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                         </Grid>
                         <Grid size={{ xs: 12 }} hidden={!showQRCode}>
                             <Box className={cx(qrcodeFuzzyStyle, classes.qrcodeContainer)}>
-                                {secretURL !== null ? (
+                                {secretURL ? (
                                     <Link href={secretURL} underline="hover">
                                         <QRCodeSVG value={secretURL} className={classes.qrcode} size={200} />
-                                        {!hasErrored && isLoading ? (
+                                        {isLoading && !hasErrored ? (
                                             <CircularProgress className={classes.loader} size={128} />
                                         ) : null}
                                         {hasErrored ? (
@@ -475,7 +475,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                         id={"secret-url"}
                                         label={translate("Secret")}
                                         className={classes.secret}
-                                        value={secretURL === null ? "" : secretURL}
+                                        value={secretURL ?? ""}
                                         multiline={true}
                                         slotProps={{
                                             input: {
@@ -504,23 +504,21 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 );
             case 2:
                 return (
-                    <Fragment>
-                        <Grid size={{ xs: 12 }} paddingY={4}>
-                            {success ? (
-                                <Box className={classes.success}>
-                                    <SuccessIcon />
-                                </Box>
-                            ) : (
-                                <OTPDial
-                                    passcode={dialValue}
-                                    state={dialState}
-                                    digits={selected.length}
-                                    period={selected.period}
-                                    onChange={setDialValue}
-                                />
-                            )}
-                        </Grid>
-                    </Fragment>
+                    <Grid size={{ xs: 12 }} paddingY={4}>
+                        {success ? (
+                            <Box className={classes.success}>
+                                <SuccessIcon />
+                            </Box>
+                        ) : (
+                            <OTPDial
+                                passcode={dialValue}
+                                state={dialState}
+                                digits={selected.length}
+                                period={selected.period}
+                                onChange={setDialValue}
+                            />
+                        )}
+                    </Grid>
                 );
         }
     }
@@ -537,10 +535,10 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
                     <Grid size={{ xs: 12 }}>
                         <Stepper activeStep={activeStep}>
-                            {steps.map((label, index) => {
+                            {steps.map((label) => {
                                 const stepProps: { completed?: boolean } = {};
                                 const labelProps: {
-                                    optional?: React.ReactNode;
+                                    optional?: ReactNode;
                                 } = {};
                                 return (
                                     <Step key={label} {...stepProps}>

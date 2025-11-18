@@ -1,6 +1,4 @@
-import React from "react";
-
-import { Box, Theme, Typography, useTheme } from "@mui/material";
+import { Box, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import ScaleLoader from "react-spinners/ScaleLoader";
 import { makeStyles } from "tss-react/mui";
@@ -27,7 +25,7 @@ const BaseLoadingPage = function (props: Props) {
     );
 };
 
-const useStyles = makeStyles()((theme: Theme) => ({
+const useStyles = makeStyles()(() => ({
     gridInner: {
         display: "inline-block",
         textAlign: "center",

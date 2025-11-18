@@ -1,4 +1,4 @@
-import React, { Fragment, ReactNode } from "react";
+import { Fragment, ReactNode } from "react";
 
 import { Box, Link, Theme, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import { makeStyles } from "tss-react/mui";
 import InformationIcon from "@components/InformationIcon";
 import Authenticated from "@views/LoginPortal/Authenticated";
 
+/* eslint-disable no-unused-vars */
 export enum State {
     ALREADY_AUTHENTICATED = 1,
     NOT_REGISTERED = 2,
@@ -31,11 +32,12 @@ const DefaultMethodContainer = function (props: Props) {
 
     const { classes, cx } = useStyles();
 
-    const registerMessage = props.registered
-        ? props.title === "Push Notification"
-            ? ""
-            : translate("Manage devices")
-        : translate("Register device");
+    let registerMessage;
+    if (props.registered) {
+        registerMessage = props.title === translate("Push Notification") ? "" : translate("Manage devices");
+    } else {
+        registerMessage = translate("Register device");
+    }
 
     let container: ReactNode;
     let stateClass: string = "";
@@ -76,13 +78,22 @@ const DefaultMethodContainer = function (props: Props) {
 };
 
 interface NotRegisteredContainerProps {
-    title: string;
-    duoSelfEnrollment: boolean;
+    readonly title: string;
+    readonly duoSelfEnrollment: boolean;
 }
 
 function NotRegisteredContainer(props: NotRegisteredContainerProps) {
     const { t: translate } = useTranslation();
     const { classes } = useStyles();
+
+    let infoText;
+    if (props.title === translate("Push Notification")) {
+        infoText = props.duoSelfEnrollment
+            ? translate("Register your first device by clicking on the link below")
+            : translate("Contact your administrator to register a device");
+    } else {
+        infoText = translate("Register your first device by clicking on the link below");
+    }
 
     return (
         <Fragment>
@@ -92,20 +103,14 @@ function NotRegisteredContainer(props: NotRegisteredContainerProps) {
             <Typography className={classes.infoTypography}>
                 {translate("The resource you're attempting to access requires two-factor authentication")}
             </Typography>
-            <Typography className={classes.infoTypography}>
-                {props.title === "Push Notification"
-                    ? props.duoSelfEnrollment
-                        ? translate("Register your first device by clicking on the link below")
-                        : translate("Contact your administrator to register a device")
-                    : translate("Register your first device by clicking on the link below")}
-            </Typography>
+            <Typography className={classes.infoTypography}>{infoText}</Typography>
         </Fragment>
     );
 }
 
 interface MethodContainerProps {
-    explanation: string;
-    children: ReactNode;
+    readonly explanation: string;
+    readonly children: ReactNode;
 }
 
 function MethodContainer(props: MethodContainerProps) {

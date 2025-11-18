@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useMemo, useState } from "react";
 
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
 import { CssBaseline } from "@mui/material";
@@ -48,12 +48,14 @@ function App() {
     const [notification, setNotification] = useState(null as Notification | null);
     const { i18n } = useTranslation();
 
+    const notificationsContextValue = useMemo(() => ({ notification, setNotification }), [notification]);
+
     return (
         <LanguageContextProvider i18n={i18n}>
             <ThemeContextProvider>
                 <Suspense fallback={<LoadingPage />}>
                     <CssBaseline />
-                    <NotificationsContext.Provider value={{ notification, setNotification }}>
+                    <NotificationsContext.Provider value={notificationsContextValue}>
                         <LocalStorageMethodContextProvider>
                             <Router basename={getBasePath()}>
                                 <NotificationBar onClose={() => setNotification(null)} />

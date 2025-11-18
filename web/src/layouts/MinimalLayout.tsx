@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 
 import { Box, Container, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -32,7 +32,7 @@ const MinimalLayout = function (props: Props) {
     );
 
     useEffect(() => {
-        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
+        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
 
     return (
