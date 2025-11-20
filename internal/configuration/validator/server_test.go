@@ -710,20 +710,45 @@ func TestServerAuthzEndpointDefaults(t *testing.T) {
 		{
 			"ShouldSetDefaultSchemes",
 			map[string]schema.ServerEndpointsAuthz{
-				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
-					{
-						Name:    "HeaderAuthorization",
-						Schemes: []string{},
-					},
-				}},
+				"example": {
+					Implementation: "ForwardAuth",
+					AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
+						{
+							Name:    "HeaderAuthorization",
+							Schemes: []string{},
+						},
+					}},
 			},
 			map[string]schema.ServerEndpointsAuthz{
-				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
-					{
-						Name:    "HeaderAuthorization",
-						Schemes: []string{"basic"},
-					},
-				}},
+				"example": {
+					Implementation: "ForwardAuth",
+					AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
+						{
+							Name:    "HeaderAuthorization",
+							Schemes: []string{"basic"},
+						},
+					}},
+			},
+		},
+		{
+			"ShouldSetDefaultStrategies",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {
+					Implementation: "ForwardAuth",
+				},
+			},
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {
+					Implementation: "ForwardAuth",
+					AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
+						{
+							Name:    "HeaderAuthorization",
+							Schemes: []string{"basic"},
+						},
+						{
+							Name: "CookieSession",
+						},
+					}},
 			},
 		},
 	}
