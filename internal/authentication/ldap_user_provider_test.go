@@ -1260,13 +1260,9 @@ func TestShouldPermitRootDSEFailure(t *testing.T) {
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
-		Return(nil, errors.New("could not perform the search"))
-
 	clientClose := mockClient.EXPECT().Close()
 
-	gomock.InOrder(dialURL, setTimeout, search, clientBind, searchOIDs, clientClose)
+	gomock.InOrder(dialURL, setTimeout, search, clientBind, clientClose)
 
 	assert.NoError(t, provider.StartupCheck())
 }
@@ -1315,12 +1311,8 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 	gomock.InOrder(
 		dialURL,
 		setTimeout,
-		clientBind,
-		mockClient.EXPECT().WhoAmI(nil),
-		mockClient.EXPECT().IsClosing().Return(false),
-		mockClient.EXPECT().WhoAmI(nil),
 		searchOIDs,
-		mockClient.EXPECT().IsClosing().Return(false),
+		clientBind,
 		clientClose,
 	)
 
@@ -4176,6 +4168,26 @@ func TestShouldNotUpdateUserPasswordGetDetails(t *testing.T) {
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDExtensionPwdModify},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -4188,7 +4200,7 @@ func TestShouldNotUpdateUserPasswordGetDetails(t *testing.T) {
 		Search(gomock.Any()).
 		Return(nil, &ldap.Error{ResultCode: ldap.LDAPResultProtocolError, Err: errors.New("permission error")})
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, clientClose)
 
 	require.NoError(t, provider.StartupCheck())
 
@@ -4259,6 +4271,26 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -4295,7 +4327,7 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 		ModifyWithResult(modifyRequest).
 		Return(&ldap.ModifyResult{}, nil)
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, modify, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, modify, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
@@ -4370,6 +4402,26 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -4406,7 +4458,7 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 		ModifyWithResult(modifyRequest).
 		Return(&ldap.ModifyResult{}, nil)
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, modify, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, modify, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
@@ -4483,6 +4535,46 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	dseSearchReferral := mockClientReferral.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -4537,7 +4629,7 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 		Modify(modifyRequest).
 		Return(nil)
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, modify, dialURLReferral, setTimeoutReferral, clientBindReferral, mockClientReferral.EXPECT().WhoAmI(nil), modifyReferral, clientCloseReferral, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, modify, dialURLReferral, setTimeoutReferral, dseSearchReferral, clientBindReferral, modifyReferral, clientCloseReferral, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
@@ -4613,6 +4705,26 @@ func TestShouldUpdateUserPasswordMSADWithReferralsButIncorrectErrorType(t *testi
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -4649,7 +4761,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsButIncorrectErrorType(t *testi
 		ModifyWithResult(modifyRequest).
 		Return(&ldap.ModifyResult{Referral: "ldap://192.168.0.1"}, fmt.Errorf("referral"))
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, modify, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, modify, clientClose)
 
 	require.NoError(t, provider.StartupCheck())
 	assert.EqualError(t, provider.UpdatePassword("john", "password"), "unable to update password. Cause: referral")
@@ -4722,6 +4834,26 @@ func TestShouldUpdateUserPasswordMSADWithReferralsButIncorrectResultCode(t *test
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -4762,7 +4894,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsButIncorrectResultCode(t *test
 			Packet:     &testBERPacketReferral,
 		})
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, modify, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, modify, clientClose)
 
 	require.NoError(t, provider.StartupCheck())
 
@@ -4836,6 +4968,26 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -4881,7 +5033,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 
 	dialURLReferral := mockDialer.EXPECT().DialURL("ldap://192.168.0.1", gomock.Any()).Return(nil, errors.New("tcp timeout"))
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, modify, dialURLReferral, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, modify, dialURLReferral, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
@@ -4939,6 +5091,46 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	dseSearchReferral := mockClientReferral.EXPECT().
 		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
@@ -5019,7 +5211,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 			Packet:     &testBERPacketReferral,
 		})
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, modify, dialURLReferral, setTimeoutReferral, clientBindReferral, mockClientReferral.EXPECT().WhoAmI(nil), modifyReferral, clientCloseReferral, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, modify, dialURLReferral, setTimeoutReferral, dseSearchReferral, clientBindReferral, modifyReferral, clientCloseReferral, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
@@ -5095,6 +5287,26 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -5135,7 +5347,7 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 			Packet:     &testBERPacketReferral,
 		})
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, modify, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, modify, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
@@ -5207,6 +5419,26 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDExtensionPwdModify},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -5243,7 +5475,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 		PasswordModify(pwdModifyRequest).
 		Return(nil, nil)
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, passwdModify, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, passwdModify, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
@@ -5298,6 +5530,46 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDExtensionPwdModify},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDExtensionPwdModify},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	dseSearchReferral := mockClientReferral.EXPECT().
 		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
@@ -5373,7 +5645,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T
 		PasswordModify(pwdModifyRequest).
 		Return(&ldap.PasswordModifyResult{}, nil)
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, passwdModify, dialURLReferral, setTimeoutReferral, clientBindReferral, mockClientReferral.EXPECT().WhoAmI(nil), passwdModifyReferral, clientCloseReferral, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, passwdModify, dialURLReferral, setTimeoutReferral, dseSearchReferral, clientBindReferral, passwdModifyReferral, clientCloseReferral, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
@@ -5446,6 +5718,26 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsButBadResultC
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDExtensionPwdModify},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -5488,7 +5780,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsButBadResultC
 			Packet:     &testBERPacketReferral,
 		})
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, passwdModify, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, passwdModify, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
@@ -5560,6 +5852,26 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsButBadErrorTy
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDExtensionPwdModify},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -5598,7 +5910,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsButBadErrorTy
 			Referral: "ldap://192.168.0.1",
 		}, fmt.Errorf("referral"))
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, passwdModify, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, passwdModify, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
@@ -5670,6 +5982,26 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithoutReferrals(t *testin
 			},
 		}, nil)
 
+	dseSearch := mockClient.EXPECT().
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   ldapSupportedExtensionAttribute,
+							Values: []string{ldapOIDExtensionPwdModify},
+						},
+						{
+							Name:   ldapSupportedControlAttribute,
+							Values: []string{},
+						},
+					},
+				},
+			},
+		}, nil)
+
 	clientCloseOIDs := mockClient.EXPECT().Close()
 
 	clientBind := mockClient.EXPECT().
@@ -5712,7 +6044,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithoutReferrals(t *testin
 			Packet:     &testBERPacketReferral,
 		})
 
-	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, clientBindOIDs, mockClient.EXPECT().WhoAmI(nil), searchOIDs, clientCloseOIDs, dialURL, setTimeout, clientBind, mockClient.EXPECT().WhoAmI(nil), searchProfile, passwdModify, clientClose)
+	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, passwdModify, clientClose)
 
 	err := provider.StartupCheck()
 	require.NoError(t, err)
