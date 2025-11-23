@@ -4077,6 +4077,14 @@ func TestShouldNotUpdateUserPasswordConnect(t *testing.T) {
 
 	mockClient := NewMockLDAPClient(ctrl)
 
+	dialURLOIDs := mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil)
+
+	clientBindOIDs := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	clientCloseOIDs := mockClient.EXPECT().Close()
+
 	dialURL := mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(nil, errors.New("tcp timeout"))
 
 	provider := NewLDAPUserProviderWithFactory(config, false, NewStandardLDAPClientFactory(config, nil, mockDialer))
@@ -4103,7 +4111,7 @@ func TestShouldNotUpdateUserPasswordConnect(t *testing.T) {
 			},
 		}, nil)
 
-	gomock.InOrder(dialURL, setTimeout, dseSearch)
+	gomock.InOrder(dialURLOIDs, setTimeout, dseSearch, clientBindOIDs, clientCloseOIDs, dialURL)
 
 	require.NoError(t, provider.StartupCheck())
 
