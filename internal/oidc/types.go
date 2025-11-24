@@ -218,7 +218,7 @@ type Context interface {
 	GetConfiguration() (config schema.Configuration)
 	GetJWTWithTimeFuncOption() (option jwt.ParserOption)
 	GetProviderStorage() storage.Provider
-	GetProviderUser() authentication.UserProvider
+	GetProviderAuthentication() authentication.UserProvider
 	GetProviderUserAttributeResolver() expression.UserAttributeResolver
 
 	context.Context
