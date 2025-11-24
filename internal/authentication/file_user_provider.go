@@ -60,7 +60,7 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 	defer p.mutex.Unlock()
 
 	if now.Before(p.timeoutReload) {
-		return false, nil
+		return false, ErrCooldown
 	}
 
 	switch err = p.database.Load(); {
