@@ -316,7 +316,7 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 	config := &tls.Config{
 		ServerName:         hostname,
 		InsecureSkipVerify: true,             //nolint:gosec // This is used solely to determine the TLS socket information.
-		MinVersion:         tls.VersionSSL30, //nolint:staticcheck // This is used solely to determine the TLS socket information.
+		MinVersion:         tls.VersionSSL30, //nolint:staticcheck
 		MaxVersion:         tls.VersionTLS13,
 		CipherSuites:       suites,
 	}
