@@ -81,7 +81,7 @@ cat << EOF
   - label: ":rocket: Trigger Pipeline [baseimage]"
     trigger: "baseimage"
     build:
-      message: "${BUILDKITE_MESSAGE}"
+      message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       env:
         AUTHELIA_RELEASE: "${BUILDKITE_TAG//v}"
         BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
@@ -98,7 +98,7 @@ cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-duo]"
     trigger: "integration-duo"
     build:
-      message: "${BUILDKITE_MESSAGE}"
+      message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
       branch: "${BUILDKITE_BRANCH}"
       env:
@@ -113,7 +113,7 @@ cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-haproxy]"
     trigger: "integration-haproxy"
     build:
-      message: "${BUILDKITE_MESSAGE}"
+      message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
       branch: "${BUILDKITE_BRANCH}"
       env:
@@ -128,7 +128,7 @@ cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-samba]"
     trigger: "integration-samba"
     build:
-      message: "${BUILDKITE_MESSAGE}"
+      message: "${BUILDKITE_MESSAGE%%$'\n'*}"
       commit: "${BUILDKITE_COMMIT}"
       branch: "${BUILDKITE_BRANCH}"
       env:
