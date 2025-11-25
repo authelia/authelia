@@ -362,7 +362,7 @@ func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, d
 		features:       features,
 	}
 
-	if tls != nil && !config.Address.IsExplicitlySecure() && (client.Features().Extensions.TLS || config.StartTLS) {
+	if tls != nil && !config.Address.IsExplicitlySecure() && config.StartTLS {
 		if err = client.StartTLS(tls); err != nil {
 			_ = client.Close()
 
@@ -370,7 +370,8 @@ func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, d
 		}
 	}
 
-	//nolint:staticcheck // TODO: Add additional bind logic here, such as MD5Bind, NTLMBind, NTLMUnauthenticatedBind, etc.
+	// TODO: Add additional bind logic here, such as MD5Bind, NTLMBind, NTLMUnauthenticatedBind, etc.
+	//nolint:staticcheck
 	switch {
 	case options.Password == "":
 		err = client.UnauthenticatedBind(options.Username)
