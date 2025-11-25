@@ -37,10 +37,6 @@ definitions:
     # Number attribute example
     access_level:
       expression: '"admin" in groups ? 10 : 5'
-
-    # OpenID Connect 1.0 Claims Value contextual example
-    check_openid_values:
-      expression: '"example" in openid_authreq_claim_values'
 ```
 
 ## Options

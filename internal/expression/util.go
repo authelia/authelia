@@ -159,7 +159,8 @@ func IsReservedAttribute(key string) bool {
 		AttributeUserWebsite, AttributeUserGender, AttributeUserBirthdate, AttributeUserZoneInfo, AttributeUserLocale,
 		AttributeUserPhoneNumber, AttributeUserPhoneNumberRFC3966, AttributeUserPhoneExtension,
 		AttributeUserPhoneNumberVerified, AttributeUserAddress, AttributeUserStreetAddress, AttributeUserLocality,
-		AttributeUserRegion, AttributeUserPostalCode, AttributeUserCountry, AttributeUserUpdatedAt, AttributeOpenIDAuthorizationRequestClaimValue:
+		AttributeUserRegion, AttributeUserPostalCode, AttributeUserCountry, AttributeUserUpdatedAt,
+		AttributeOpenIDAuthorizationRequestClaimValue, AttributeOpenIDAuthorizationRequestClaimValues:
 		return true
 	default:
 		return false
