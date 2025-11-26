@@ -13,6 +13,7 @@ type ExtraAttribute interface {
 
 type UserAttributeResolver interface {
 	Resolve(name string, detailer UserDetailer, updated time.Time) (object any, found bool)
+	ResolveWithExtra(name string, detailer UserDetailer, updated time.Time, extra map[string]any) (object any, found bool)
 
 	model.StartupCheck
 }

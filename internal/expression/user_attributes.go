@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types/ref"
+	"github.com/google/cel-go/interpreter"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -156,6 +157,8 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 		opts = append(opts, optExtra(attribute, properties))
 	}
 
+	opts = append(opts, newAttributeOAuth2AuthorizationRequestClaimValue(), newAttributeOAuth2AuthorizationRequestClaimValues())
+
 	return e.setup(opts...)
 }
 
@@ -195,7 +198,17 @@ func (e *UserAttributesExpressions) setup(opts ...cel.EnvOption) (err error) {
 }
 
 func (e *UserAttributesExpressions) Resolve(name string, detailer UserDetailer, updated time.Time) (object any, found bool) {
-	activation := &UserDetailerActivation{detailer: &UserAttributeResolverDetailer{UserDetailer: detailer, updated: updated}}
+	return e.ResolveWithExtra(name, detailer, updated, nil)
+}
+
+func (e *UserAttributesExpressions) ResolveWithExtra(name string, detailer UserDetailer, updated time.Time, extra map[string]any) (object any, found bool) {
+	var parent interpreter.Activation
+
+	if extra != nil {
+		parent = &MapActivation{values: extra}
+	}
+
+	activation := &UserDetailerActivation{parent: parent, detailer: &UserAttributeResolverDetailer{UserDetailer: detailer, updated: updated}}
 
 	if program, ok := e.programs[name]; ok {
 		var (
@@ -220,6 +233,18 @@ func (e *UserAttributes) StartupCheck() (err error) {
 
 func (e *UserAttributes) Resolve(name string, detailer UserDetailer, updated time.Time) (object any, found bool) {
 	activation := &UserDetailerActivation{detailer: &UserAttributeResolverDetailer{UserDetailer: detailer, updated: updated}}
+
+	return activation.ResolveName(name)
+}
+
+func (e *UserAttributes) ResolveWithExtra(name string, detailer UserDetailer, updated time.Time, extra map[string]any) (object any, found bool) {
+	var parent interpreter.Activation
+
+	if extra != nil {
+		parent = &MapActivation{values: extra}
+	}
+
+	activation := &UserDetailerActivation{parent: parent, detailer: &UserAttributeResolverDetailer{UserDetailer: detailer, updated: updated}}
 
 	return activation.ResolveName(name)
 }
