@@ -141,9 +141,7 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 	sort.Strings(authzs)
 
 	for _, name := range authzs {
-		endpoint := config.Server.Endpoints.Authz[name]
-
-		validateServerEndpointsAuthzEndpoint(config, name, endpoint, validator)
+		validateServerEndpointsAuthzEndpoint(config, name, validator)
 
 		for _, oName := range authzs {
 			oEndpoint := config.Server.Endpoints.Authz[oName]
@@ -162,7 +160,7 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 			}
 		}
 
-		validateServerEndpointsAuthzStrategies(name, endpoint.Implementation, endpoint.AuthnStrategies, validator)
+		validateServerEndpointsAuthzStrategies(config, name, validator)
 	}
 }
 
@@ -330,7 +328,9 @@ func validateServerEndpointsRateLimitBuckets(name string, config *schema.ServerE
 	}
 }
 
-func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name string, endpoint schema.ServerEndpointsAuthz, validator *schema.StructValidator) {
+func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name string, validator *schema.StructValidator) {
+	endpoint := config.Server.Endpoints.Authz[name]
+
 	if name == legacy {
 		switch endpoint.Implementation {
 		case schema.AuthzImplementationLegacy:
@@ -356,10 +356,12 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 }
 
 //nolint:gocyclo
-func validateServerEndpointsAuthzStrategies(name, implementation string, strategies []schema.ServerEndpointsAuthzAuthnStrategy, validator *schema.StructValidator) {
+func validateServerEndpointsAuthzStrategies(config *schema.Configuration, name string, validator *schema.StructValidator) {
+	endpoint := config.Server.Endpoints.Authz[name]
+
 	var defaults []schema.ServerEndpointsAuthzAuthnStrategy
 
-	switch implementation {
+	switch endpoint.Implementation {
 	case schema.AuthzImplementationLegacy:
 		defaults = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameLegacy].AuthnStrategies
 	case schema.AuthzImplementationAuthRequest:
@@ -370,15 +372,19 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 		defaults = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].AuthnStrategies
 	}
 
-	if len(strategies) == 0 {
-		copy(strategies, defaults)
+	if len(config.Server.Endpoints.Authz[name].AuthnStrategies) == 0 {
+		endpoint.AuthnStrategies = make([]schema.ServerEndpointsAuthzAuthnStrategy, len(defaults))
+
+		copy(endpoint.AuthnStrategies, defaults)
+
+		config.Server.Endpoints.Authz[name] = endpoint
 
 		return
 	}
 
-	names := make([]string, 0, len(strategies))
+	names := make([]string, 0, len(endpoint.AuthnStrategies))
 
-	for i, strategy := range strategies {
+	for i, strategy := range endpoint.AuthnStrategies {
 		if strategy.Name != "" && utils.IsStringInSlice(strategy.Name, names) {
 			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategyDuplicate, name, strategy.Name))
 		}
@@ -397,7 +403,7 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 		default:
 			if utils.IsStringInSlice(strategy.Name, validAuthzAuthnHeaderStrategies) {
 				if len(strategy.Schemes) == 0 {
-					strategies[i].Schemes = defaults[0].Schemes
+					endpoint.AuthnStrategies[i].Schemes = defaults[0].Schemes
 				} else {
 					for _, scheme := range strategy.Schemes {
 						if !utils.IsStringInSliceFold(scheme, validAuthzAuthnStrategySchemes) {
@@ -410,4 +416,6 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 			}
 		}
 	}
+
+	config.Server.Endpoints.Authz[name] = endpoint
 }
