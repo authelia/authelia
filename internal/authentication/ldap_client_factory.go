@@ -11,6 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/url"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -569,8 +571,16 @@ func ldapDialBindOpts(log *logrus.Entry, config *schema.AuthenticationBackendLDA
 		discovery:      discovery,
 	}
 
-	if tls != nil && !config.Address.IsExplicitlySecure() && config.StartTLS {
-		if err = client.StartTLS(tls); err != nil {
+	secure := ldapIsAddressSecure(config, options.Address)
+
+	if !secure && !config.StartTLS && discovery.Extensions.TLS {
+		log.WithField("address", options.Address).Warn("Your LDAP Server advertises support for StartTLS but it is not being used. We strongly " +
+			"recommend using the scheme 'ldaps://' or enabling the StartTLS option to secure connections with your " +
+			"LDAP Server.")
+	}
+
+	if tls != nil && !secure && config.StartTLS {
+		if err = ldapStartTLS(client, tls, config.Timeout); err != nil {
 			_ = client.Close()
 
 			return nil, fmt.Errorf("error occurred performing starttls: %w", err)
@@ -592,4 +602,35 @@ func ldapDialBindOpts(log *logrus.Entry, config *schema.AuthenticationBackendLDA
 	}
 
 	return client, nil
+}
+
+func ldapIsAddressSecure(config *schema.AuthenticationBackendLDAP, address string) bool {
+	u, err := url.Parse(address)
+	if err != nil {
+		return config.Address.IsExplicitlySecure()
+	}
+
+	return strings.EqualFold(u.Scheme, schema.AddressSchemeLDAPS)
+}
+
+func ldapStartTLS(client LDAPExtendedClient, config *tls.Config, timeout time.Duration) (err error) {
+	if timeout <= 0 {
+		return client.StartTLS(config)
+	}
+
+	result := make(chan error, 1)
+
+	go func() {
+		result <- client.StartTLS(config)
+	}()
+
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	select {
+	case err = <-result:
+		return err
+	case <-timer.C:
+		return fmt.Errorf("%w after %s", ErrLDAPStartTLSTimeout, timeout)
+	}
 }

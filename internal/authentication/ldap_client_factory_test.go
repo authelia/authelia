@@ -5,17 +5,21 @@
 package authentication
 
 import (
+	"crypto/tls"
 	"errors"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 )
 
 func TestPooledLDAPClientFactoryShouldNotDialPerRequest(t *testing.T) {
@@ -875,4 +879,114 @@ func testLDAPRootDSESearchResult() *ldap.SearchResult {
 			},
 		},
 	}
+}
+
+func TestLDAPDialBindOptsStartTLS(t *testing.T) {
+	testCases := []struct {
+		name     string
+		address  *schema.AddressLDAP
+		dial     string
+		startTLS bool
+		expected bool
+		warn     bool
+	}{
+		{"ShouldNotUpgradeWhenAdvertised", testLDAPAddress, testLDAPURL, false, false, true},
+		{"ShouldUpgradeWhenForced", testLDAPAddress, testLDAPURL, true, true, false},
+		{"ShouldNotUpgradeExplicitlySecure", testLDAPSAddress, testLDAPSURL, false, false, false},
+		{"ShouldNotUpgradeSecureReferral", testLDAPAddress, "ldaps://referral.example.com", false, false, false},
+		{"ShouldNotUpgradeSecureReferralWhenForced", testLDAPAddress, "ldaps://referral.example.com", true, false, false},
+		{"ShouldWarnInsecureReferral", testLDAPSAddress, "ldap://referral.example.com", false, false, true},
+		{"ShouldUpgradeInsecureReferralWhenForced", testLDAPAddress, "ldap://referral.example.com", true, true, false},
+		{"ShouldNotUpgradeUnixSocket", MustParseAddress("ldapi:///var/run/slapd.sock"), "ldapi:///var/run/slapd.sock", false, false, true},
+		{"ShouldUpgradeUnixSocketWhenForced", MustParseAddress("ldapi:///var/run/slapd.sock"), "ldapi:///var/run/slapd.sock", true, true, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			config := &schema.AuthenticationBackendLDAP{
+				Address:  tc.address,
+				User:     "cn=admin,dc=example,dc=com",
+				Password: "password",
+				StartTLS: tc.startTLS,
+			}
+
+			mockDialer := NewMockLDAPClientDialer(ctrl)
+			mockClient := NewMockLDAPClient(ctrl)
+
+			calls := []any{
+				mockDialer.EXPECT().DialURL(tc.dial, gomock.Any()).Return(mockClient, nil),
+				mockClient.EXPECT().SetTimeout(gomock.Any()),
+				NewRootDSESearchRequest(mockClient, nil),
+			}
+
+			if tc.expected {
+				calls = append(calls, mockClient.EXPECT().StartTLS(gomock.Not(gomock.Nil())).Return(nil))
+			}
+
+			calls = append(calls, mockClient.EXPECT().Bind("cn=admin,dc=example,dc=com", "password").Return(nil))
+
+			gomock.InOrder(calls...)
+
+			logger := logrus.New()
+			hook := test.NewLocal(logger)
+
+			client, err := ldapDialBindOpts(logger.WithFields(nil), config, mockDialer, &tls.Config{}, nil, ldapClientFactoryOptions(config, WithAddress(tc.dial)))
+
+			require.NoError(t, err)
+			require.NotNil(t, client)
+
+			if tc.warn {
+				require.Len(t, hook.AllEntries(), 1)
+				assert.Equal(t, logrus.WarnLevel, hook.LastEntry().Level)
+				assert.Equal(t, tc.dial, hook.LastEntry().Data["address"])
+				assert.Contains(t, hook.LastEntry().Message, "Your LDAP Server advertises support for StartTLS but it is not being used.")
+			} else {
+				assert.Empty(t, hook.AllEntries())
+			}
+		})
+	}
+}
+
+func TestLDAPDialBindOptsStartTLSTimeout(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	config := &schema.AuthenticationBackendLDAP{
+		Address:  testLDAPAddress,
+		User:     "cn=admin,dc=example,dc=com",
+		Password: "password",
+		StartTLS: true,
+		Timeout:  time.Millisecond * 50,
+	}
+
+	mockDialer := NewMockLDAPClientDialer(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	unblock := make(chan struct{})
+
+	gomock.InOrder(
+		mockDialer.EXPECT().DialURL(testLDAPURL, gomock.Any()).Return(mockClient, nil),
+		mockClient.EXPECT().SetTimeout(config.Timeout),
+		NewRootDSESearchRequest(mockClient, nil),
+		mockClient.EXPECT().StartTLS(gomock.Any()).DoAndReturn(func(_ *tls.Config) error {
+			<-unblock
+
+			return errors.New("use of closed network connection")
+		}),
+	)
+
+	mockClient.EXPECT().Close().DoAndReturn(func() error {
+		close(unblock)
+
+		return nil
+	})
+
+	client, err := ldapDialBindOpts(logging.Logger().WithFields(nil), config, mockDialer, &tls.Config{}, nil, ldapClientFactoryOptions(config))
+
+	assert.Nil(t, client)
+	assert.EqualError(t, err, "error occurred performing starttls: timeout exceeded performing the tls handshake after 50ms")
+	assert.ErrorIs(t, err, ErrLDAPStartTLSTimeout)
 }
