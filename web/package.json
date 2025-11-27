@@ -123,7 +123,7 @@
         "eslint-plugin-react-hooks": "7.0.1",
         "happy-dom": "20.0.10",
         "lefthook": "2.0.4",
-        "prettier": "3.7.0",
+        "prettier": "3.7.1",
         "rollup": "4.53.3",
         "typescript": "5.9.3",
         "vite": "7.2.4",
