@@ -1,4 +1,5 @@
 import react from "@vitejs/plugin-react";
+import type { OutputOptions, RollupOptions } from "rollup";
 import { defineConfig, loadEnv } from "vite";
 import checkerPlugin from "vite-plugin-checker";
 import istanbul from "vite-plugin-istanbul";
@@ -30,81 +31,66 @@ export default defineConfig(({ mode }) => {
             outDir: "../internal/server/public_html",
             rollupOptions: {
                 output: {
-                    assetFileNames: ({ name }) => {
-                        if (name && name.endsWith(".css")) {
+                    assetFileNames: (assetInfo) => {
+                        if (assetInfo.names.some((name) => name.endsWith(".css"))) {
                             return "static/css/[name].[hash].[ext]";
                         }
 
                         return "static/media/[name].[hash].[ext]";
                     },
                     chunkFileNames: (chunkInfo) => {
-                        switch (chunkInfo.name) {
-                            case "index":
+                        if (chunkInfo.name === "index") {
+                            return `static/js/[name].[hash].js`;
+                        } else {
+                            if (chunkInfo.moduleIds.length === 0) {
                                 return `static/js/[name].[hash].js`;
-                            default:
-                                if (chunkInfo.moduleIds.length === 0) {
-                                    return `static/js/[name].[hash].js`;
-                                }
+                            }
 
-                                const last = chunkInfo.moduleIds[chunkInfo.moduleIds.length - 1];
+                            const last = chunkInfo.moduleIds.at(-1);
 
-                                if (last.includes("@mui/")) {
-                                    return `static/js/mui.[name].[hash].js`;
-                                }
+                            if (last?.includes("@mui/")) {
+                                return `static/js/mui.[name].[hash].js`;
+                            }
 
-                                const match = last.match(/authelia\/web\/src\/([a-zA-Z]+)\/([a-zA-Z]+)/);
+                            if (last) {
+                                const regexp = /authelia\/web\/src\/([a-zA-Z]+)\/([a-zA-Z]+)/;
+                                const match = regexp.exec(last);
 
                                 if (match) {
-                                    switch (match[2]) {
-                                        case "LoginPortal":
-                                            return `static/js/portal.[name].[hash].js`;
-                                        case "ResetPassword":
-                                            return `static/js/reset-password.[name].[hash].js`;
-                                        case "Settings":
-                                            switch (chunkInfo.name) {
-                                                case "SettingsRouter":
-                                                    return `static/js/settings.router.[hash].js`;
-                                                default:
-                                                    return `static/js/settings.[name].[hash].js`;
-                                            }
-                                        default:
-                                            switch (chunkInfo.name) {
-                                                case "LoginLayout":
-                                                    return `static/js/${match[1]}.Login.[hash].js`;
-                                                case "MinimalLayout":
-                                                    return `static/js/${match[1]}.Minimal.[hash].js`;
-                                                default:
-                                                    return `static/js/${match[1]}.[name].[hash].js`;
-                                            }
+                                    if (match[2] === "LoginPortal") {
+                                        return `static/js/portal.[name].[hash].js`;
+                                    } else if (match[2] === "ResetPassword") {
+                                        return `static/js/reset-password.[name].[hash].js`;
+                                    } else if (match[2] === "Settings") {
+                                        if (chunkInfo.name === "SettingsRouter") {
+                                            return `static/js/settings.router.[hash].js`;
+                                        } else {
+                                            return `static/js/settings.[name].[hash].js`;
+                                        }
+                                    } else {
+                                        if (chunkInfo.name === "LoginLayout") {
+                                            return `static/js/${match[1]}.Login.[hash].js`;
+                                        }
+
+                                        if (chunkInfo.name === "MinimalLayout") {
+                                            return `static/js/${match[1]}.Minimal.[hash].js`;
+                                        }
+
+                                        return `static/js/${match[1]}.[name].[hash].js`;
                                     }
                                 }
+                            }
 
-                                return `static/js/[name].[hash].js`;
+                            return `static/js/[name].[hash].js`;
                         }
                     },
                     entryFileNames: `static/js/[name].[hash].js`,
-                },
-            },
+                } as OutputOptions,
+            } as RollupOptions,
             sourcemap,
         },
         optimizeDeps: {
             include: ["@emotion/react", "@emotion/styled"],
-        },
-        server: {
-            open: false,
-            port: 3000,
-            allowedHosts: ["login.example.com", ...allowedHosts],
-        },
-        test: {
-            coverage: {
-                provider: "istanbul",
-            },
-            environment: "happy-dom",
-            globals: true,
-            onConsoleLog() {
-                return false;
-            },
-            setupFiles: ["src/setupTests.ts"],
         },
         plugins: [
             checkerPlugin({
@@ -116,5 +102,18 @@ export default defineConfig(({ mode }) => {
             svgr(),
             tsconfigPaths(),
         ],
+        server: {
+            allowedHosts: ["login.example.com", ...allowedHosts],
+            open: false,
+            port: 3000,
+        },
+        test: {
+            coverage: {
+                provider: "istanbul",
+            },
+            environment: "happy-dom",
+            globals: true,
+            setupFiles: ["src/setupTests.ts"],
+        },
     };
 });

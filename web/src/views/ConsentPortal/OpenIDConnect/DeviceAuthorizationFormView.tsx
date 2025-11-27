@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import { Box, Button, FormControl, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -25,7 +25,7 @@ export interface Props {
     state: AutheliaState;
 }
 
-const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
+const DeviceAuthorizationFormView: FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent", "settings"]);
     const theme = useTheme();
 

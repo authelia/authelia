@@ -14,11 +14,11 @@ import ChangePasswordDialog from "@views/Settings/Security/ChangePasswordDialog"
 
 interface PasswordChangeButtonProps {
     configuration: Configuration | undefined;
-    translate: (key: string) => string;
+    translate: (_key: string) => string;
     handleChangePassword: () => void;
 }
 
-const PasswordChangeButton = ({ configuration, translate, handleChangePassword }: PasswordChangeButtonProps) => {
+const PasswordChangeButton = ({ configuration, handleChangePassword, translate }: PasswordChangeButtonProps) => {
     const buttonContent = (
         <Button
             id="change-password-button"
@@ -198,31 +198,31 @@ const SettingsView = function () {
 
             <Container
                 sx={{
-                    display: "flex",
-                    justifyContent: "center",
                     alignItems: "flex-start",
+                    display: "flex",
                     height: "100vh",
+                    justifyContent: "center",
                     pt: 8,
                 }}
             >
                 <Paper
                     variant="outlined"
                     sx={{
-                        display: "flex",
-                        justifyContent: "center",
                         alignItems: "center",
+                        display: "flex",
                         height: "auto",
+                        justifyContent: "center",
                     }}
                 >
                     <Stack spacing={2} sx={{ m: 2, width: "100%" }}>
-                        <Box sx={{ p: { xs: 1, md: 3 } }}>
+                        <Box sx={{ p: { md: 3, xs: 1 } }}>
                             <Box
                                 sx={{
-                                    width: "100%",
-                                    p: 1.25,
-                                    mb: 1,
                                     border: `1px solid ${theme.palette.grey[600]}`,
                                     borderRadius: 1,
+                                    mb: 1,
+                                    p: 1.25,
+                                    width: "100%",
                                 }}
                             >
                                 <Typography>
@@ -231,11 +231,11 @@ const SettingsView = function () {
                             </Box>
                             <Box
                                 sx={{
-                                    width: "100%",
-                                    p: 1.25,
-                                    mb: 1,
                                     border: `1px solid ${theme.palette.grey[600]}`,
                                     borderRadius: 1,
+                                    mb: 1,
+                                    p: 1.25,
+                                    width: "100%",
                                 }}
                             >
                                 <Box display="flex" alignItems="center">
@@ -243,10 +243,10 @@ const SettingsView = function () {
                                     <Typography>{userInfo?.emails?.[0] || ""}</Typography>
                                 </Box>
                                 {userInfo?.emails && userInfo.emails.length > 1 && (
-                                    <List sx={{ width: "100%", padding: 0, pl: 4 }}>
+                                    <List sx={{ padding: 0, pl: 4, width: "100%" }}>
                                         {" "}
                                         {userInfo.emails.slice(1).map((email: string) => (
-                                            <ListItem key={email} sx={{ paddingTop: 0, paddingBottom: 0 }}>
+                                            <ListItem key={email} sx={{ paddingBottom: 0, paddingTop: 0 }}>
                                                 <Typography>{email}</Typography>
                                             </ListItem>
                                         ))}
@@ -254,7 +254,7 @@ const SettingsView = function () {
                                 )}
                             </Box>
                             <Box
-                                sx={{ p: 1.25, mb: 1, border: `1px solid ${theme.palette.grey[600]}`, borderRadius: 1 }}
+                                sx={{ border: `1px solid ${theme.palette.grey[600]}`, borderRadius: 1, mb: 1, p: 1.25 }}
                             >
                                 <Typography>{translate("Password")}: ●●●●●●●●</Typography>
                             </Box>

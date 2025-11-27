@@ -54,10 +54,10 @@ export async function generateUserSessionElevation() {
 }
 
 export async function verifyUserSessionElevation(otc: string) {
-    const res = await axios<OKResponse | ErrorResponse>({
+    const res = await axios<ErrorResponse | OKResponse>({
+        data: { otc: otc },
         method: "PUT",
         url: UserSessionElevationPath,
-        data: { otc: otc },
         validateStatus: validateStatusOneTimeCode,
     });
 
@@ -65,7 +65,7 @@ export async function verifyUserSessionElevation(otc: string) {
 }
 
 export async function deleteUserSessionElevation(deleteID: string) {
-    const res = await axios<OKResponse | ErrorResponse>({
+    const res = await axios<ErrorResponse | OKResponse>({
         method: "DELETE",
         url: `${UserSessionElevationPath}/${deleteID}`,
     });

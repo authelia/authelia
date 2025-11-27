@@ -59,7 +59,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
     useEffect(() => {
         if (fetchConfigError) {
             console.error(fetchConfigError);
-            dispatch({ type: "setStatus", status: State.Failure });
+            dispatch({ status: State.Failure, type: "setStatus" });
         }
     }, [fetchConfigError]);
 
@@ -73,12 +73,12 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
                 clearTimeout(timeoutRateLimit.current);
             }
 
-            dispatch({ type: "setStatus", status: State.RateLimited });
+            dispatch({ status: State.RateLimited, type: "setStatus" });
 
             createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
 
             timeoutRateLimit.current = setTimeout(() => {
-                dispatch({ type: "setStatus", status: State.Idle });
+                dispatch({ status: State.Idle, type: "setStatus" });
                 timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
@@ -96,7 +96,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
             }
 
             try {
-                dispatch({ type: "setStatus", status: State.InProgress });
+                dispatch({ status: State.InProgress, type: "setStatus" });
 
                 const res = await completeTOTPSignIn(passcodeStr);
 
@@ -104,26 +104,26 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
                     if (res.limited) {
                         handleRateLimited(res.retryAfter);
                     } else {
-                        dispatch({ type: "setStatus", status: State.Success });
+                        dispatch({ status: State.Success, type: "setStatus" });
                         onSecondFactorSuccess();
                     }
                 } else {
                     createErrorNotification(translate("The One-Time Password might be wrong", { ns: "portal" }));
-                    dispatch({ type: "setStatus", status: State.Failure });
+                    dispatch({ status: State.Failure, type: "setStatus" });
                 }
             } catch (err) {
                 console.error(err);
-                dispatch({ type: "setStatus", status: State.Failure });
+                dispatch({ status: State.Failure, type: "setStatus" });
             }
 
-            dispatch({ type: "setPasscode", passcode: "" });
+            dispatch({ passcode: "", type: "setPasscode" });
         },
         [config, handleRateLimited, createErrorNotification, translate, onSecondFactorSuccess],
     );
 
     const handlePasscodeChange = useCallback(
         (value: string) => {
-            dispatch({ type: "setPasscode", passcode: value });
+            dispatch({ passcode: value, type: "setPasscode" });
             if (
                 config &&
                 value.length === config.digits &&

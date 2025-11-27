@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
@@ -8,7 +6,7 @@ import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {}
 
-const HomeButton = function (props: Props) {
+const HomeButton = function () {
     const { t: translate } = useTranslation(["portal"]);
 
     const navigate = useRouterNavigate();

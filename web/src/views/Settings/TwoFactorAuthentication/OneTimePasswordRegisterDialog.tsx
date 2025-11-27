@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -65,10 +65,10 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const { classes, cx } = useStyles();
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [selected, setSelected] = useState<Options>({ algorithm: "", length: 6, period: 30 });
-    const [defaults, setDefaults] = useState<Options | null>(null);
+    const [defaults, setDefaults] = useState<null | Options>(null);
     const [available, setAvailable] = useState<AvailableOptions>({
         algorithms: [],
         lengths: [],
@@ -77,8 +77,8 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
 
     const [activeStep, setActiveStep] = useState(0);
 
-    const [secretURL, setSecretURL] = useState<string | null>(null);
-    const [secretValue, setSecretValue] = useState<string | null>(null);
+    const [secretURL, setSecretURL] = useState<null | string>(null);
+    const [secretValue, setSecretValue] = useState<null | string>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [hasErrored, setHasErrored] = useState(false);
@@ -108,7 +108,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
         (async () => {
             props.setClosed();
 
-            if (secretURL !== "") {
+            if (secretURL) {
                 try {
                     await stopTOTPRegister();
                 } catch (err) {
@@ -243,7 +243,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
         })();
     }, [activeStep, dialState, dialValue, dialValue.length, handleFinished, props.open, selected.length]);
 
-    const handleChangeAlgorithm = (ev: React.ChangeEvent<HTMLInputElement>, value: string) => {
+    const handleChangeAlgorithm = (ev: ChangeEvent<HTMLInputElement>, value: string) => {
         setSelected((prevState) => {
             return {
                 ...prevState,
@@ -254,22 +254,22 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
         ev.preventDefault();
     };
 
-    const handleChangeLength = (ev: React.ChangeEvent<HTMLInputElement>, value: string) => {
+    const handleChangeLength = (ev: ChangeEvent<HTMLInputElement>, value: string) => {
         setSelected((prevState) => {
             return {
                 ...prevState,
-                length: parseInt(value),
+                length: Number.parseInt(value),
             };
         });
 
         ev.preventDefault();
     };
 
-    const handleChangePeriod = (ev: React.ChangeEvent<HTMLInputElement>, value: string) => {
+    const handleChangePeriod = (ev: ChangeEvent<HTMLInputElement>, value: string) => {
         setSelected((prevState) => {
             return {
                 ...prevState,
-                period: parseInt(value),
+                period: Number.parseInt(value),
             };
         });
 
@@ -435,10 +435,10 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                         </Grid>
                         <Grid size={{ xs: 12 }} hidden={!showQRCode}>
                             <Box className={cx(qrcodeFuzzyStyle, classes.qrcodeContainer)}>
-                                {secretURL !== null ? (
+                                {secretURL ? (
                                     <Link href={secretURL} underline="hover">
                                         <QRCodeSVG value={secretURL} className={classes.qrcode} size={200} />
-                                        {!hasErrored && isLoading ? (
+                                        {isLoading && !hasErrored ? (
                                             <CircularProgress className={classes.loader} size={128} />
                                         ) : null}
                                         {hasErrored ? (
@@ -475,7 +475,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                         id={"secret-url"}
                                         label={translate("Secret")}
                                         className={classes.secret}
-                                        value={secretURL === null ? "" : secretURL}
+                                        value={secretURL ?? ""}
                                         multiline={true}
                                         slotProps={{
                                             input: {
@@ -486,7 +486,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid size={{ xs: 12 }} sx={{ display: { xs: "none", md: "block" } }}>
+                        <Grid size={{ xs: 12 }} sx={{ display: { md: "block", xs: "none" } }}>
                             <Box>
                                 <Typography className={classes.googleAuthenticatorText}>
                                     {translate("Need Google Authenticator?")}
@@ -504,23 +504,21 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 );
             case 2:
                 return (
-                    <Fragment>
-                        <Grid size={{ xs: 12 }} paddingY={4}>
-                            {success ? (
-                                <Box className={classes.success}>
-                                    <SuccessIcon />
-                                </Box>
-                            ) : (
-                                <OTPDial
-                                    passcode={dialValue}
-                                    state={dialState}
-                                    digits={selected.length}
-                                    period={selected.period}
-                                    onChange={setDialValue}
-                                />
-                            )}
-                        </Grid>
-                    </Fragment>
+                    <Grid size={{ xs: 12 }} paddingY={4}>
+                        {success ? (
+                            <Box className={classes.success}>
+                                <SuccessIcon />
+                            </Box>
+                        ) : (
+                            <OTPDial
+                                passcode={dialValue}
+                                state={dialState}
+                                digits={selected.length}
+                                period={selected.period}
+                                onChange={setDialValue}
+                            />
+                        )}
+                    </Grid>
                 );
         }
     }
@@ -537,10 +535,10 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
                     <Grid size={{ xs: 12 }}>
                         <Stepper activeStep={activeStep}>
-                            {steps.map((label, index) => {
+                            {steps.map((label) => {
                                 const stepProps: { completed?: boolean } = {};
                                 const labelProps: {
-                                    optional?: React.ReactNode;
+                                    optional?: ReactNode;
                                 } = {};
                                 return (
                                     <Step key={label} {...stepProps}>
@@ -583,44 +581,44 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    qrcode: {
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-        padding: theme.spacing(),
-        backgroundColor: "white",
+    failureIcon: {
+        color: red[400],
+        fontSize: "8rem",
+        left: "calc(128px - 64px)",
+        position: "absolute",
+        top: "calc(128px - 64px)",
     },
     fuzzy: {
         filter: "blur(10px)",
     },
-    secret: {
-        marginTop: theme.spacing(1),
-        marginBottom: theme.spacing(1),
-        width: "256px",
-    },
+    googleAuthenticatorBadges: {},
     googleAuthenticatorText: {
         fontSize: theme.typography.fontSize * 0.8,
     },
-    googleAuthenticatorBadges: {},
-    qrcodeContainer: {
-        position: "relative",
-        display: "inline-block",
-    },
     loader: {
-        position: "absolute",
-        top: "calc(128px - 64px)",
-        left: "calc(128px - 64px)",
         color: "rgba(255, 255, 255, 0.5)",
-    },
-    failureIcon: {
+        left: "calc(128px - 64px)",
         position: "absolute",
         top: "calc(128px - 64px)",
-        left: "calc(128px - 64px)",
-        color: red[400],
-        fontSize: "8rem",
+    },
+    qrcode: {
+        backgroundColor: "white",
+        marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
+        padding: theme.spacing(),
+    },
+    qrcodeContainer: {
+        display: "inline-block",
+        position: "relative",
+    },
+    secret: {
+        marginBottom: theme.spacing(1),
+        marginTop: theme.spacing(1),
+        width: "256px",
     },
     success: {
-        marginBottom: theme.spacing(2),
         flex: "0 0 100%",
+        marginBottom: theme.spacing(2),
     },
 }));
 

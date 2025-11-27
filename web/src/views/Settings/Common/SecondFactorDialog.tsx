@@ -37,7 +37,7 @@ type Props = {
     elevation?: UserSessionElevation;
     info?: UserInfo;
     opening: boolean;
-    handleClosed: (ok: boolean, changed: boolean) => void;
+    handleClosed: (_ok: boolean, _changed: boolean) => void;
     handleOpened: () => void;
 };
 
@@ -51,18 +51,18 @@ type State = {
 
 type Action =
     | { type: "reset" }
-    | { type: "setOpen"; payload: boolean }
-    | { type: "setLoading"; payload: boolean }
-    | { type: "setClosing"; payload: boolean }
     | { type: "setActiveStep"; payload: number }
-    | { type: "setMethod"; payload: SecondFactorMethod | undefined };
+    | { type: "setClosing"; payload: boolean }
+    | { type: "setLoading"; payload: boolean }
+    | { type: "setMethod"; payload: SecondFactorMethod | undefined }
+    | { type: "setOpen"; payload: boolean };
 
 const initialState: State = {
-    open: false,
-    loading: false,
-    closing: false,
     activeStep: 0,
+    closing: false,
+    loading: false,
     method: undefined,
+    open: false,
 };
 
 function reducer(state: State, action: Action): State {
@@ -85,12 +85,12 @@ function reducer(state: State, action: Action): State {
 }
 
 const SecondFactorDialog = function (props: Props) {
-    const { elevation, info, opening, handleClosed, handleOpened } = props;
+    const { elevation, handleClosed, handleOpened, info, opening } = props;
     const { t: translate } = useTranslation(["settings", "portal"]);
     const { classes } = useStyles();
 
     const [state, dispatch] = useReducer(reducer, initialState);
-    const { open, loading, closing, activeStep, method } = state;
+    const { activeStep, closing, loading, method, open } = state;
 
     const resetState = useCallback(() => {
         dispatch({ type: "reset" });
@@ -127,13 +127,13 @@ const SecondFactorDialog = function (props: Props) {
     const handleClick = (method: SecondFactorMethod) => {
         if (closing) return;
 
-        dispatch({ type: "setMethod", payload: method });
-        dispatch({ type: "setActiveStep", payload: 1 });
+        dispatch({ payload: method, type: "setMethod" });
+        dispatch({ payload: 1, type: "setActiveStep" });
     };
 
     const handleSuccess = useCallback(() => {
-        dispatch({ type: "setClosing", payload: true });
-        dispatch({ type: "setActiveStep", payload: 2 });
+        dispatch({ payload: true, type: "setClosing" });
+        dispatch({ payload: 2, type: "setActiveStep" });
 
         setTimeout(() => {
             handleClose(true, true);
@@ -153,11 +153,11 @@ const SecondFactorDialog = function (props: Props) {
 
         if (!open) {
             handleOpened();
-            dispatch({ type: "setOpen", payload: true });
+            dispatch({ payload: true, type: "setOpen" });
         }
 
         if (!elevation.factor_knowledge) {
-            dispatch({ type: "setActiveStep", payload: 1 });
+            dispatch({ payload: 1, type: "setActiveStep" });
         }
     }, [closing, resetState, handleClosed, open, elevation, opening, handleOpened]);
 
@@ -187,8 +187,8 @@ const SecondFactorDialog = function (props: Props) {
                         display: "flex",
                         flexDirection: "column",
                         m: "auto",
-                        width: "fit-content",
                         padding: "5.0rem",
+                        width: "fit-content",
                     }}
                 >
                     <SuccessIcon />
@@ -276,13 +276,13 @@ const SecondFactorDialog = function (props: Props) {
 
 const useStyles = makeStyles()((theme: Theme) => ({
     success: {
-        marginBottom: theme.spacing(2),
-        flex: "0 0 100%",
         display: "flex",
+        flex: "0 0 100%",
         flexDirection: "column",
         m: "auto",
-        width: "fit-content",
+        marginBottom: theme.spacing(2),
         marginY: "2.5rem",
+        width: "fit-content",
     },
 }));
 

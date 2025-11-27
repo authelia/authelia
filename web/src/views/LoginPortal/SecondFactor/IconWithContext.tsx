@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 
 import { Box, Theme } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
@@ -23,20 +23,20 @@ const IconWithContext = function (props: IconWithContextProps) {
     );
 };
 
-const useStyles = makeStyles<{ iconSize: number }>()((theme: Theme, { iconSize }) => ({
-    root: {},
-    iconContainer: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-    },
-    icon: {
-        width: iconSize,
-        height: iconSize,
-    },
+const useStyles = makeStyles<{ iconSize: number }>()((_theme: Theme, { iconSize }) => ({
     context: {
         display: "block",
     },
+    icon: {
+        height: iconSize,
+        width: iconSize,
+    },
+    iconContainer: {
+        alignItems: "center",
+        display: "flex",
+        flexDirection: "column",
+    },
+    root: {},
 }));
 
 export default IconWithContext;

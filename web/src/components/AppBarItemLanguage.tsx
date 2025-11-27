@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useMemo, useState } from "react";
+import { Fragment, MouseEvent, useCallback, useMemo, useState } from "react";
 
 import { ExpandLess, ExpandMore, Language as LanguageIcon } from "@mui/icons-material";
 import { Box, Collapse, IconButton, ListItemText, Menu, MenuItem, Tooltip, Typography, useTheme } from "@mui/material";
@@ -9,7 +9,7 @@ import { ChildLocale, Language, Locale } from "@models/LocaleInformation";
 export interface Props {
     localeCurrent?: string;
     localeList?: Language[];
-    onChange?: (lng: string) => void;
+    onChange?: (_lng: string) => void;
 }
 
 const Fallbacks: { [id: string]: string } = {
@@ -29,7 +29,7 @@ const AppBarItemLanguage = function (props: Props) {
 
     const render = props.localeList !== undefined && props.localeCurrent !== undefined && props.onChange !== undefined;
 
-    const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    const handleMenuClick = (event: MouseEvent<HTMLElement>) => {
         setElementLanguage(event.currentTarget);
     };
 
@@ -92,14 +92,14 @@ const AppBarItemLanguage = function (props: Props) {
 
         return locales.filter(filterParent).map((parent) => {
             const locale: Locale = {
-                display: handleLanguageDisplayName(parent.locale, parent.display),
-                locale: parent.locale,
                 children: locales.filter(filterChildren(parent)).map((child) => {
                     return {
                         display: handleLanguageDisplayName(child.locale, child.display),
                         locale: child.locale,
                     };
                 }),
+                display: handleLanguageDisplayName(parent.locale, parent.display),
+                locale: parent.locale,
             };
 
             if (locale.children.length === 1) {
@@ -130,7 +130,7 @@ const AppBarItemLanguage = function (props: Props) {
 
     return render ? (
         <Fragment>
-            <Box sx={{ display: "flex", alignItems: "center", textAlign: "center" }}>
+            <Box sx={{ alignItems: "center", display: "flex", textAlign: "center" }}>
                 <Tooltip title={translate("Language")}>
                     <IconButton
                         id={"language-button"}
@@ -158,19 +158,19 @@ const AppBarItemLanguage = function (props: Props) {
                     paper: {
                         elevation: 0,
                         sx: {
-                            maxHeight: { xs: "80vh", sm: "70vh", md: "50vh", lg: "40vh" },
-                            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
                             "&::before": {
-                                content: '""',
-                                position: "relative",
-                                top: 0,
-                                right: 14,
-                                width: 10,
-                                height: 10,
                                 bgcolor: "background.paper",
+                                content: '""',
+                                height: 10,
+                                position: "relative",
+                                right: 14,
+                                top: 0,
                                 transform: "translateY(-50%) rotate(45deg)",
+                                width: 10,
                                 zIndex: 0,
                             },
+                            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                            maxHeight: { lg: "40vh", md: "50vh", sm: "70vh", xs: "80vh" },
                         },
                     },
                 }}

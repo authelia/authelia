@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -20,15 +20,15 @@ export interface Props {
     registered: boolean;
 
     onRegisterClick: () => void;
-    onSignInError: (err: Error) => void;
-    onSignInSuccess: (redirectURL: string | undefined) => void;
+    onSignInError: (_err: Error) => void;
+    onSignInSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const OneTimePasswordMethod = function (props: Props) {
     const { t: translate } = useTranslation();
 
     const redirectionURL = useQueryParam(RedirectionURL);
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
     const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
 
@@ -41,7 +41,7 @@ const OneTimePasswordMethod = function (props: Props) {
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
 
-    const { onSignInSuccess, onSignInError } = props;
+    const { onSignInError, onSignInSuccess } = props;
     const onSignInErrorCallback = useRef(onSignInError);
     const onSignInSuccessCallback = useRef(onSignInSuccess);
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);

@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import { Fragment, MouseEvent, useState } from "react";
 
 import { QrCode2 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
@@ -9,8 +9,8 @@ import OneTimePasswordInformationDialog from "@views/Settings/TwoFactorAuthentic
 
 interface Props {
     config: UserInfoTOTPConfiguration;
-    handleInformation: (event: React.MouseEvent<HTMLElement>) => void;
-    handleDelete: (event: React.MouseEvent<HTMLElement>) => void;
+    handleInformation: (_event: MouseEvent<HTMLElement>) => void;
+    handleDelete: (_event: MouseEvent<HTMLElement>) => void;
 }
 
 const OneTimePasswordCredentialItem = function (props: Props) {

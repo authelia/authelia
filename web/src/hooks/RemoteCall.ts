@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-type PromisifiedFunction<Ret> = (...args: any) => Promise<Ret>;
+type PromisifiedFunction<Ret> = (..._args: any) => Promise<Ret>;
 
 export function useRemoteCall<Ret>(
     fn: PromisifiedFunction<Ret>,

@@ -1,12 +1,10 @@
-import React from "react";
-
 import { render } from "@testing-library/react";
 
 import TypographyWithTooltip, { Props } from "@components/TypographyWithTooltip";
 
 const defaultProps: Props = {
-    variant: "h5",
     value: "Example",
+    variant: "h5",
 };
 
 it("renders without crashing", () => {

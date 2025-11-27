@@ -8,7 +8,7 @@ const defaultOptions = {
 
 interface NotificationContextProps {
     notification: Notification | null;
-    setNotification: (n: Notification | null) => void;
+    setNotification: (_n: Notification | null) => void;
 }
 
 const NotificationsContext = createContext<NotificationContextProps>({ notification: null, setNotification: () => {} });
@@ -17,7 +17,7 @@ export function useNotifications() {
     const { notification, setNotification } = useContext(NotificationsContext);
 
     const createNotification = useCallback(
-        (level: "info" | "success" | "warning" | "error", message: string, timeout?: number) => {
+        (level: "error" | "info" | "success" | "warning", message: string, timeout?: number) => {
             setNotification({
                 level,
                 message,
@@ -47,13 +47,13 @@ export function useNotifications() {
     const isActive = notification !== null;
 
     return {
-        notification,
-        resetNotification,
+        createErrorNotification,
         createInfoNotification,
         createSuccessNotification,
         createWarnNotification,
-        createErrorNotification,
         isActive,
+        notification,
+        resetNotification,
     };
 }
 

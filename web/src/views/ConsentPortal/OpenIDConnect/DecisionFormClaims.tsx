@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useMemo } from "react";
+import { ChangeEvent, FC, Fragment, useCallback, useMemo } from "react";
 
 import { Box, Checkbox, FormControlLabel, List, Theme, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -8,19 +8,19 @@ import { makeStyles } from "tss-react/mui";
 import { formatClaim } from "@services/ConsentOpenIDConnect";
 
 export interface Props {
-    onChangeChecked: (claims: string[]) => void;
-    claims: string[] | null;
-    essential_claims: string[] | null;
+    onChangeChecked: (_claims: string[]) => void;
+    claims: null | string[];
+    essential_claims: null | string[];
 }
 
-const DecisionFormClaims: React.FC<Props> = ({ onChangeChecked, claims, essential_claims }: Props) => {
+const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeChecked }: Props) => {
     const { t: translate } = useTranslation(["consent"]);
 
     const { classes } = useStyles();
 
     const checked = useMemo(() => claims || [], [claims]);
 
-    const handleClaimCheckboxOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleClaimCheckboxOnChange = (event: ChangeEvent<HTMLInputElement>) => {
         const checking = !checked.includes(event.target.value);
 
         if (checking) {
@@ -81,10 +81,10 @@ const useStyles = makeStyles()((theme: Theme) => ({
         textAlign: "center",
     },
     list: {
-        display: "inline-block",
         backgroundColor: theme.palette.background.paper,
-        marginTop: theme.spacing(2),
+        display: "inline-block",
         marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
     },
 }));
 

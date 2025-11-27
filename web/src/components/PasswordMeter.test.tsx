@@ -12,11 +12,11 @@ it("renders without crashing", () => {
                 max_length: 0,
                 min_length: 4,
                 min_score: 0,
+                mode: PasswordPolicyMode.Standard,
                 require_lowercase: false,
                 require_number: false,
                 require_special: false,
                 require_uppercase: false,
-                mode: PasswordPolicyMode.Standard,
             }}
         />,
     );
@@ -30,11 +30,11 @@ it("renders adjusted height without crashing", () => {
                 max_length: 0,
                 min_length: 4,
                 min_score: 0,
+                mode: PasswordPolicyMode.Standard,
                 require_lowercase: false,
                 require_number: false,
                 require_special: false,
                 require_uppercase: false,
-                mode: PasswordPolicyMode.Standard,
             }}
         />,
     );
@@ -49,11 +49,11 @@ it("displays warning message on password too large", async () => {
                 max_length: maxLength,
                 min_length: 4,
                 min_score: 0,
+                mode: PasswordPolicyMode.Standard,
                 require_lowercase: true,
                 require_number: true,
                 require_special: true,
                 require_uppercase: true,
-                mode: PasswordPolicyMode.Standard,
             }}
         />,
     );
@@ -71,11 +71,11 @@ it("displays warning message on password too short", async () => {
                 max_length: 0,
                 min_length: minLength,
                 min_score: 0,
+                mode: PasswordPolicyMode.Standard,
                 require_lowercase: true,
                 require_number: true,
                 require_special: true,
                 require_uppercase: true,
-                mode: PasswordPolicyMode.Standard,
             }}
         />,
     );
@@ -92,11 +92,11 @@ it("displays warning message on password policy fail", async () => {
                 max_length: 0,
                 min_length: 0,
                 min_score: 0,
+                mode: PasswordPolicyMode.Standard,
                 require_lowercase: true,
                 require_number: true,
                 require_special: true,
                 require_uppercase: true,
-                mode: PasswordPolicyMode.Standard,
             }}
         />,
     );

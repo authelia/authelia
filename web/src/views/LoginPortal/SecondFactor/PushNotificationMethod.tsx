@@ -26,6 +26,7 @@ import DeviceSelectionContainer, {
 } from "@views/LoginPortal/SecondFactor/DeviceSelectionContainer";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
+/* eslint-disable no-unused-vars */
 export enum State {
     SignInInProgress = 1,
     Success = 2,
@@ -41,16 +42,16 @@ export interface Props {
     duoSelfEnrollment: boolean;
     registered: boolean;
 
-    onSignInError: (err: Error) => void;
+    onSignInError: (_err: Error) => void;
     onSelectionClick: () => void;
-    onSignInSuccess: (redirectURL: string | undefined) => void;
+    onSignInSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const PushNotificationMethod = function (props: Props) {
     const { t: translate } = useTranslation();
     const { classes } = useStyles();
 
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
 
     const [state, setState] = useState(
@@ -62,9 +63,9 @@ const PushNotificationMethod = function (props: Props) {
     const [devices, setDevices] = useState([] as SelectableDevice[]);
     const [preferredDevice, setPreferredDevice] = useState<{ device?: string; method?: string }>({});
 
-    const { onSignInSuccess, onSignInError } = props;
+    const { onSignInError, onSignInSuccess } = props;
     const signInInitiatedRef = useRef(false);
-    const stateRef = useRef<State | null>(null);
+    const stateRef = useRef<null | State>(null);
 
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
     const timeoutSuccess = useRef<NodeJS.Timeout | null>(null);
@@ -99,8 +100,8 @@ const PushNotificationMethod = function (props: Props) {
     const processDevices = useCallback((devices: any[]) => {
         return devices.map((d: { device: any; display_name: any; capabilities: any }) => ({
             id: d.device,
-            name: d.display_name,
             methods: d.capabilities,
+            name: d.display_name,
         }));
     }, []);
 
@@ -330,9 +331,9 @@ const PushNotificationMethod = function (props: Props) {
 
 const useStyles = makeStyles()(() => ({
     icon: {
-        width: "64px",
-        height: "64px",
         display: "inline-block",
+        height: "64px",
+        width: "64px",
     },
 }));
 
