@@ -407,6 +407,17 @@ The following information covers some security topics some users may wish to be 
 offer hardening to the flows in differing ways (i.e. some validate the authorization server and some validate the
 client / Relying Party) which are not essential but recommended.
 
+#### Explicit JWT Typing
+
+Where relevant Authelia enforces validation of the JWT type header (`typ`) against the appropriate explicit value. This
+is done to prevent JWTs from being used in a way which is not intended. Specifically the following types are enforced by
+default:
+
+|             Use Case              |    JWT Type Header Value    |                                          Reference                                          |
+|:---------------------------------:|:---------------------------:|:-------------------------------------------------------------------------------------------:|
+|         Client Assertion          | `client-authentication+jwt` | [RFC7523bis](https://www.ietf.org/archive/id/draft-ietf-oauth-rfc7523bis-03.html#section-4) |
+| JWT-Secured Authorization Request |    `oauth-authz-req+jwt`    |              [RFC9101](https://www.rfc-editor.org/rfc/rfc9101.html#section-4)               |
+
 #### Pushed Authorization Requests Endpoint
 
 The [Pushed Authorization Requests] endpoint is discussed in depth in [RFC9126] as well as in the
@@ -536,6 +547,11 @@ either implemented, have our eye on, or are refusing to implement.
 |                                       Authentication Method Reference Values                                       |   Complete    |                                           [RFC8176]                                           |
 | Security Assertion Markup Language (SAML) 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants |     None      |                                           [RFC7522]                                           |
 |                                                JSON Web Token (JWT)                                                |   Complete    |                                           [RFC7519]                                           |
+|                                              JSON Web Signature (JWS)                                              |   Complete    |                                           [RFC7515]                                           |
+|                                             JSON Web Encryption (JWE)                                              |   Complete    |                                           [RFC7516]                                           |
+|                                                 JSON Web Key (JWK)                                                 |   Complete    |                                           [RFC7517]                                           |
+|                                       JSON Web Token Best Current Practices                                        |   Complete    |                                           [RFC8725]                                           |
+|                                  JSON Web Token Best Current Practices (Revised)                                   |   Complete    |        [RFC8725bis](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-rfc8725bis)        |
 
 ## Footnotes
 
@@ -652,6 +668,7 @@ either implemented, have our eye on, or are refusing to implement.
 [RFC7591]: https://datatracker.ietf.org/doc/html/rfc7591
 [RFC7592]: https://datatracker.ietf.org/doc/html/rfc7592
 [RFC8705]: https://datatracker.ietf.org/doc/html/rfc8705
+[RFC8725]: https://datatracker.ietf.org/doc/html/rfc8725
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
 [RFC6750]: https://datatracker.ietf.org/doc/html/rfc6750
 [RFC7521]: https://datatracker.ietf.org/doc/html/rfc7521
