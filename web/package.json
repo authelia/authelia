@@ -49,7 +49,7 @@
         "@fortawesome/fontawesome-svg-core": "7.1.0",
         "@fortawesome/free-regular-svg-icons": "7.1.0",
         "@fortawesome/free-solid-svg-icons": "7.1.0",
-        "@fortawesome/react-fontawesome": "3.1.0",
+        "@fortawesome/react-fontawesome": "3.1.1",
         "@mui/icons-material": "7.3.5",
         "@mui/material": "7.3.5",
         "@simplewebauthn/browser": "13.2.2",
