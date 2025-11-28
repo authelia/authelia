@@ -331,10 +331,6 @@ func InitializeSessionDefaults(session *Session) {
 		session.Claims.Extra = make(map[string]any)
 	}
 
-	if session.Extra == nil {
-		session.Extra = make(map[string]any)
-	}
-
 	if session.Headers == nil {
 		session.Headers = &fjwt.Headers{
 			Extra: make(map[string]any),
