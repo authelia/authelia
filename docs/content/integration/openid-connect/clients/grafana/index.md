@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.14](https://github.com/authelia/authelia/releases/tag/v4.39.14)
+  - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
 - [Grafana]
   - [v12.0.2](https://github.com/grafana/grafana/releases/tag/v12.0.2)
 
