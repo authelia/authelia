@@ -16,7 +16,6 @@ func init() {
 		"internal/suites/example/compose/nginx/portal/compose.yml",
 		"internal/suites/example/compose/smtp/compose.yml",
 		"internal/suites/example/compose/postgres/compose.yml",
-		"internal/suites/example/compose/ldap/compose.yml",
 	})
 
 	setup := func(suitePath string) (err error) {
