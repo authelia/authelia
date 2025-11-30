@@ -106,7 +106,7 @@ services:
       DT_OAUTH2_SCOPES: 'openid profile email'
       DT_OAUTH2_AUTH_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
       DT_OAUTH2_TOKEN_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
-      DT_OAUTH2_INFO_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
+      DT_OAUTH2_USER_INFO_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
       DT_OAUTH2_REDIRECT_URL: 'https://donetick.{{< sitevar name="domain" nojs="example.com" >}}/auth/oauth2'
 ```
 
