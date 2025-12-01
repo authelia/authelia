@@ -55,7 +55,7 @@
         "@simplewebauthn/browser": "13.2.2",
         "axios": "1.13.2",
         "broadcast-channel": "7.2.0",
-        "i18next": "25.6.3",
+        "i18next": "25.7.1",
         "i18next-browser-languagedetector": "8.2.0",
         "i18next-http-backend": "3.0.2",
         "qrcode.react": "4.2.0",
