@@ -27,6 +27,10 @@ authelia-image-dev.tar
 
 /authelia
 __debug_bin
+cmd/dev/authelia
+cmd/dev/authelia-gen
+cmd/dev/authelia-scripts
+cmd/dev/authelia-suites
 
 internal/suites/common/pki/ca/*.private.pem
 
