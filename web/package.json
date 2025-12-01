@@ -27,7 +27,7 @@
             "js-yaml": "4.1.1",
             "path-to-regexp": "8.3.0",
             "semver": "7.7.3",
-            "vite": "7.2.4"
+            "vite": "7.2.6"
         },
         "peerDependencyRules": {
             "allowedVersions": {
@@ -126,7 +126,7 @@
         "prettier": "3.7.3",
         "rollup": "4.53.3",
         "typescript": "5.9.3",
-        "vite": "7.2.4",
+        "vite": "7.2.6",
         "vite-plugin-checker": "0.11.0",
         "vite-plugin-istanbul": "7.2.1",
         "vite-plugin-svgr": "4.5.0",
