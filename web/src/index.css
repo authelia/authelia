@@ -1,10 +1,13 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  background: #081727;
+  min-height: 100vh;
+  color: hsla(0, 0%, 100%, 0.74);
+  line-height: 1.5;
 }
 
 code {
@@ -18,6 +21,126 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0; 
 }
 
+/* Accent color for form inputs */
+input, textarea, select {
+  accent-color: #2aa2c1;
+  font-family: inherit;
+}
+
+/* Autofill styling - matches dark theme */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #1e2b39 inset !important;
+  -webkit-text-fill-color: hsla(0, 0%, 100%, 0.74) !important;
+  caret-color: hsla(0, 0%, 100%, 0.74) !important;
+  border-radius: 8px !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .hidden {
   display: none;
+}
+
+/* Custom scrollbar styling - matches theme guide */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #081727;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2f3d4d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a4a5c;
+}
+
+/* Focus visible states - matches theme guide */
+*:focus-visible {
+  outline: 2px solid #2aa2c1;
+  outline-offset: 2px;
+}
+
+/* Modern animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 250ms ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 200ms ease-out;
+}
+
+.animate-slide-in-top {
+  animation: slideInFromTop 250ms ease-out;
+}
+
+/* Transition utilities matching theme guide */
+.transition-colors {
+  transition: color 200ms ease-in-out, background-color 200ms ease-in-out, border-color 200ms ease-in-out;
+}
+
+.transition-all {
+  transition: all 200ms ease-in-out;
+}
+
+.transition-opacity {
+  transition: opacity 200ms ease-in-out;
+}
+
+/* Custom CSS variables matching theme guide */
+:root {
+  --colors-01dp: #1e2b39;
+  --color-background: #081727;
+  --color-surface: #1e2b39;
+  --color-border: #2f3d4d;
+  --color-border-hover: #3a4a5c;
+  --color-primary: #2aa2c1;
+  --color-primary-hover: #238a9f;
+  --color-success: #30a46c;
+  --color-danger: #dc3545;
+  --color-danger-alt: #b91c1c;
+  --color-danger-hover: #991b1b;
+  --color-text-primary: hsla(0, 0%, 100%, 0.74);
+  --color-text-secondary: hsla(0, 0%, 100%, 0.51);
+  --color-text-white: #ffffff;
 }

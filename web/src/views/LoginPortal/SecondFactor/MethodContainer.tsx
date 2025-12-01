@@ -145,7 +145,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
         marginBottom: theme.spacing(2),
     },
     infoTypography: {
-        color: "#5858ff",
+        color: theme.palette.text.secondary,
     },
 }));
 

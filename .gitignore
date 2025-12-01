@@ -29,3 +29,24 @@ authelia-image-dev.tar
 __debug_bin
 
 internal/suites/common/pki/ca/*.private.pem
+
+# Local development files
+authelia.log
+db.sqlite3
+notifications.txt
+users_database.yml
+run-dev.sh
+run-dev-docker.sh
+run-dev-hotreload.sh
+config.yml
+
+# Secrets directory
+secrets/
+
+
+# Development documentation
+CANNOT_MOVE_TO_THEME.md
+web/theme.md
+
+# Development/testing components
+web/src/components/ExampleThemeComponent.tsx

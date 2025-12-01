@@ -1,0 +1,1 @@
+import{j as o}from"./index.J4YSomth.js";import{F as r,f as s}from"./components.SuccessIcon.C3pLKly2.js";const i=function(){return o.jsx(r,{icon:s,size:"4x",color:"red",className:"failure-icon"})};export{i as F};

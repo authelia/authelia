@@ -103,9 +103,20 @@ export default defineConfig(({ mode }) => {
             tsconfigPaths(),
         ],
         server: {
-            allowedHosts: ["login.example.com", ...allowedHosts],
+            allowedHosts: ["login.example.com", "adgpi0mox", "auth-dev.adgone.co.tz", "auth-dev-deep.adgone.co.tz", ...allowedHosts],
             open: false,
             port: 3000,
+            host: '0.0.0.0',
+            proxy: {
+                "/api": {
+                    target: "http://192.168.88.248:9010",
+                    changeOrigin: true,
+                },
+                "/locales": {
+                    target: "http://192.168.88.248:9010",
+                    changeOrigin: true,
+                },
+            },
         },
         test: {
             coverage: {

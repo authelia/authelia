@@ -1,12 +1,31 @@
-{
-  "Base":"{{ .Base }}",
-  "DuoSelfEnrollment":"{{ .DuoSelfEnrollment }}",
-  "LogoOverride":"{{ .LogoOverride }}",
-  "PasskeyLogin":"{{ .PasskeyLogin }}",
-  "RememberMe":"{{ .RememberMe }}",
-  "ResetPassword":"{{ .ResetPassword }}",
-  "ResetPasswordCustomURL":"{{ .ResetPasswordCustomURL }}",
-  "PrivacyPolicyURL":"{{ .PrivacyPolicyURL }}",
-  "PrivacyPolicyAccept":"{{ .PrivacyPolicyAccept }}",
-  "Theme":"{{ .Theme }}"
-}
+<!doctype html>
+<html lang="{{ .Language }}">
+    <head>
+        <base href="{{ .BaseURL }}" />
+        <meta property="csp-nonce" content="{{ .CSPNonce }}" />
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <link rel="manifest" href="./manifest.json" />
+        <link rel="icon" href="./favicon.ico" />
+        <title></title>
+      <script type="module" crossorigin src="./static/js/index.J4YSomth.js"></script>
+      <link rel="stylesheet" crossorigin href="./static/css/index.ChexMFeY.css">
+    </head>
+
+    <body
+        data-basepath="{{ .Base }}"
+        data-duoselfenrollment="{{ .DuoSelfEnrollment }}"
+        data-logooverride="{{ .LogoOverride }}"
+        data-privacypolicyurl="{{ .PrivacyPolicyURL }}"
+        data-privacypolicyaccept="{{ .PrivacyPolicyAccept }}"
+        data-passkeylogin="{{ .PasskeyLogin }}"
+        data-rememberme="{{ .RememberMe }}"
+        data-resetpassword="{{ .ResetPassword }}"
+        data-resetpasswordcustomurl="{{ .ResetPasswordCustomURL }}"
+        data-theme="{{ .Theme }}"
+    >
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="root"></div>
+    </body>
+</html>

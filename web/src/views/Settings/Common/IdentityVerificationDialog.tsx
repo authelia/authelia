@@ -152,8 +152,27 @@ const IdentityVerificationDialog = function (props: Props) {
     };
 
     return (
-        <Dialog id={"dialog-verify-one-time-code"} open={open} onClose={handleCancelled}>
-            <DialogTitle>{translate("Identity Verification")}</DialogTitle>
+        <Dialog 
+            id={"dialog-verify-one-time-code"} 
+            open={open} 
+            onClose={handleCancelled}
+            PaperProps={{
+                sx: {
+                    backgroundColor: '#1e2b39',
+                    border: '1px solid #2f3d4d',
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                }
+            }}
+        >
+            <DialogTitle sx={{ 
+                color: '#FFFFFF',
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                borderBottom: '1px solid #2f3d4d',
+            }}>
+                {translate("Identity Verification")}
+            </DialogTitle>
             {success ? (
                 <DialogContent>
                     <Box
@@ -170,13 +189,13 @@ const IdentityVerificationDialog = function (props: Props) {
                     </Box>
                 </DialogContent>
             ) : (
-                <DialogContent dividers>
-                    <DialogContentText gutterBottom>
+                <DialogContent dividers sx={{ borderColor: '#2f3d4d' }}>
+                    <DialogContentText gutterBottom sx={{ color: 'hsla(0, 0%, 100%, 0.74)' }}>
                         {translate(
                             "In order to perform this action policy enforcement requires additional identity verification and a One-Time Code has been sent to your email",
                         )}
                     </DialogContentText>
-                    <DialogContentText gutterBottom>
+                    <DialogContentText gutterBottom sx={{ color: 'hsla(0, 0%, 100%, 0.51)' }}>
                         {translate("Closing this dialog or selecting cancel will invalidate the One-Time Code")}
                     </DialogContentText>
                     <Box
@@ -202,23 +221,36 @@ const IdentityVerificationDialog = function (props: Props) {
                 </DialogContent>
             )}
             {success ? null : (
-                <DialogActions>
+                <DialogActions sx={{ borderTop: '1px solid #2f3d4d', padding: '16px 24px' }}>
                     <Button
                         id={"dialog-cancel"}
-                        variant={"contained"}
-                        color={"error"}
+                        variant={"outlined"}
                         disabled={loading}
                         onClick={handleCancelled}
+                        sx={{
+                            borderColor: '#2f3d4d',
+                            color: '#FFFFFF',
+                            '&:hover': {
+                                backgroundColor: 'hsla(206, 100%, 50%, 0.04)',
+                                borderColor: '#2f3d4d',
+                            }
+                        }}
                     >
                         {translate("Cancel")}
                     </Button>
                     <Button
                         id={"dialog-verify"}
                         variant={"contained"}
-                        color={"info"}
                         disabled={loading}
                         startIcon={loading ? <CircularProgress color="inherit" size={20} /> : undefined}
                         onClick={handleSubmit}
+                        sx={{
+                            backgroundColor: '#2aa2c1',
+                            '&:hover': {
+                                backgroundColor: '#238a9f',
+                            },
+                            boxShadow: 'none',
+                        }}
                     >
                         {translate("Verify")}
                     </Button>

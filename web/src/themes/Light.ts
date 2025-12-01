@@ -2,34 +2,88 @@ import { createTheme } from "@mui/material/styles";
 
 const Light = createTheme({
     custom: {
-        icon: "#000",
-        loadingBar: "#000",
+        icon: "#2aa2c1",
+        loadingBar: "#2aa2c1",
+    },
+    typography: {
+        fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        h1: {
+            fontWeight: 700,
+            fontSize: '2.25rem',
+            color: '#FFFFFF',
+        },
+        h2: {
+            fontWeight: 700,
+            fontSize: '1.5rem',
+            color: '#FFFFFF',
+        },
+        h5: {
+            fontWeight: 600,
+            fontSize: '1.25rem',
+            color: '#FFFFFF',
+        },
+        h6: {
+            fontWeight: 600,
+            fontSize: '1rem',
+            color: 'hsla(0, 0%, 100%, 0.74)',
+        },
+        body1: {
+            fontSize: '0.875rem',
+            color: 'hsla(0, 0%, 100%, 0.74)',
+        },
+        button: {
+            textTransform: 'none',
+            fontWeight: 600,
+        },
     },
     palette: {
         action: {
             activatedOpacity: 0.12,
-            active: "rgba(0, 0, 0, 0.54)",
-            disabled: "rgba(0, 0, 0, 0.26)",
-            disabledBackground: "rgba(0, 0, 0, 0.12)",
+            active: "rgba(42, 162, 193, 0.54)",
+            disabled: "rgba(255, 255, 255, 0.26)",
+            disabledBackground: "rgba(255, 255, 255, 0.12)",
             disabledOpacity: 0.38,
-            focus: "rgba(0, 0, 0, 0.12)",
+            focus: "rgba(42, 162, 193, 0.12)",
             focusOpacity: 0.12,
-            hover: "rgba(0, 0, 0, 0.04)",
+            hover: "hsla(206, 100%, 50%, 0.04)",
             hoverOpacity: 0.04,
-            selected: "rgba(0, 0, 0, 0.08)",
+            selected: "rgba(42, 162, 193, 0.08)",
             selectedOpacity: 0.08,
         },
         background: {
-            default: "#fff",
-            paper: "#fff",
+            default: "#081727",
+            paper: "#1e2b39",
         },
         contrastThreshold: 3,
-        divider: "rgba(0, 0, 0, 0.12)",
+        divider: "#2f3d4d",
+        primary: {
+            main: "#2aa2c1",
+            light: "#3ab5d4",
+            dark: "#238a9f",
+            contrastText: "#ffffff",
+        },
+        secondary: {
+            main: "#2aa2c1",
+            light: "#3ab5d4",
+            dark: "#238a9f",
+            contrastText: "#ffffff",
+        },
         error: {
             contrastText: "#ffffff",
-            dark: "#d32f2f",
-            light: "#e57373",
-            main: "#f44336",
+            dark: "#991b1b",
+            light: "#ff6b6b",
+            main: "#dc3545",
+        },
+        success: {
+            contrastText: "#ffffff",
+            dark: "#2d8659",
+            light: "#4aba7f",
+            main: "#30a46c",
+        },
+        text: {
+            primary: "hsla(0, 0%, 100%, 0.74)",
+            secondary: "hsla(0, 0%, 100%, 0.51)",
+            disabled: "hsla(0, 0%, 100%, 0.38)",
         },
         grey: {
             "100": "#f5f5f5",
@@ -53,34 +107,14 @@ const Light = createTheme({
             light: "#64b5f6",
             main: "#2196f3",
         },
-        mode: "light",
-        primary: {
-            main: "#1976d2",
-        },
-        secondary: {
-            contrastText: "#ffffff",
-            dark: "#c51162",
-            light: "#ff4081",
-            main: "#f50057",
-        },
-        success: {
-            contrastText: "rgba(0, 0, 0, 0.87)",
-            dark: "#388e3c",
-            light: "#81c784",
-            main: "#4caf50",
-        },
-        text: {
-            disabled: "rgba(0, 0, 0, 0.38)",
-            primary: "rgba(0, 0, 0, 0.87)",
-            secondary: "rgba(0, 0, 0, 0.54)",
-        },
-        tonalOffset: 0.2,
         warning: {
-            contrastText: "rgba(0, 0, 0, 0.87)",
+            contrastText: "#ffffff",
             dark: "#f57c00",
             light: "#ffb74d",
             main: "#ff9800",
         },
+        mode: "dark",
+        tonalOffset: 0.2,
     },
 });
 

@@ -260,6 +260,21 @@ const FirstFactorForm = function (props: Props) {
                             autoCapitalize="none"
                             autoComplete="username"
                             onKeyDown={handleUsernameKeyDown}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: '8px',
+                                    transition: 'all 0.3s ease-in-out',
+                                    '&:hover fieldset': {
+                                        borderColor: 'primary.main',
+                                    },
+                                    '&.Mui-focused fieldset': {
+                                        borderWidth: '2px',
+                                    },
+                                },
+                                '& .MuiInputLabel-root': {
+                                    fontSize: '0.95rem',
+                                },
+                            }}
                         />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
@@ -279,6 +294,21 @@ const FirstFactorForm = function (props: Props) {
                             autoComplete="current-password"
                             onKeyDown={handlePasswordKeyDown}
                             onKeyUp={handlePasswordKeyUp}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: '8px',
+                                    transition: 'all 0.3s ease-in-out',
+                                    '&:hover fieldset': {
+                                        borderColor: 'primary.main',
+                                    },
+                                    '&.Mui-focused fieldset': {
+                                        borderWidth: '2px',
+                                    },
+                                },
+                                '& .MuiInputLabel-root': {
+                                    fontSize: '0.95rem',
+                                },
+                            }}
                             slotProps={{
                                 input: {
                                     endAdornment: (
@@ -349,11 +379,24 @@ const FirstFactorForm = function (props: Props) {
                             variant="contained"
                             color="primary"
                             fullWidth={true}
-                            endIcon={loading ? <CircularProgress size={20} /> : null}
+                            endIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
                             disabled={disabled}
                             onClick={handleSignIn}
+                            sx={{
+                                height: '48px',
+                                borderRadius: '8px',
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                boxShadow: 'none',
+                                transition: 'background-color 0.2s ease-in-out',
+                                '&:hover': {
+                                    boxShadow: 'none',
+                                    backgroundColor: '#238a9f',
+                                },
+                            }}
                         >
-                            {translate("Sign in")}
+                            {translate("Sign in to continue")}
                         </Button>
                     </Grid>
                     {props.passkeyLogin ? (
@@ -393,19 +436,31 @@ const useStyles = makeStyles()((theme: Theme) => ({
     actionRow: {
         display: "flex",
         flexDirection: "row",
-        marginBottom: theme.spacing(-1),
-        marginTop: theme.spacing(-1),
+        marginBottom: theme.spacing(1),
+        marginTop: theme.spacing(1),
     },
     flexEnd: {
         justifyContent: "flex-end",
     },
     rememberMe: {
         flexGrow: 1,
+        "& .MuiFormControlLabel-label": {
+            fontSize: "0.9rem",
+            color: theme.palette.text.secondary,
+        },
     },
     resetLink: {
         cursor: "pointer",
         paddingBottom: 13.5,
         paddingTop: 13.5,
+        fontSize: "0.9rem",
+        fontWeight: 600,
+        color: theme.palette.primary.main,
+        transition: "all 0.2s ease-in-out",
+        "&:hover": {
+            color: theme.palette.primary.dark,
+            textDecoration: "none",
+        },
     },
 }));
 
