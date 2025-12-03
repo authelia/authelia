@@ -42,11 +42,11 @@ export const IdentityVerificationJWT = ({
 }: Props) => {
     return (
         <Html lang="en" dir="ltr">
+            <Tailwind>
             <Head />
 			{!hidePreview ? (
 				<Preview>{title ? title : 'Confirm an action'}</Preview>
 			) : null}
-            <Tailwind>
                 <Body className="bg-white my-auto mx-auto font-sans px-2">
                     <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] max-w-[465px]">
                         <Heading className="text-black text-[24px] font-normal text-center p-0 my-[30px] mx-0">
