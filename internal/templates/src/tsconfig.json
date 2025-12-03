@@ -24,7 +24,7 @@
 		"module": "CommonJS",
 		"noUncheckedIndexedAccess": true,
 		"resolveJsonModule": true,
-		"types": ["vitest/globals"],
+		"types": ["node"],
 		"outDir": "dist"
   	},
 	"include": [

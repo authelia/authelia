@@ -2,22 +2,19 @@ A ONE-TIME CODE HAS BEEN GENERATED TO COMPLETE A REQUESTED ACTION
 
 Hi {{ .DisplayName }},
 
-This notification has been sent to you in order to verify your identity to
-change security details for your account at {{ .Domain }}.
+This notification has been sent to you in order to verify your identity to change security details for your account at {{ .Domain }}.
 
 Do not share this notification or the content of this notification with anyone.
 
-The following one-time code should only be used in the prompt displayed in your
-browser.
+The following one-time code should only be used in the prompt displayed in your browser.
 
---------------------------------------------------------------------------------
+----------------------------------------
 
 {{ .OneTimeCode }}
 
---------------------------------------------------------------------------------
+----------------------------------------
 
-If you did not initiate the process your credentials may have been compromised
-and you should:
+If you did not initiate the process your credentials may have been compromised and you should:
 
  1. Revoke this code using the provided links below
  2. Reset your password or other login credentials
@@ -25,16 +22,12 @@ and you should:
 
 {{ .RevocationLinkText }} {{ .RevocationLinkURL }}
 
-To revoke the code click the above button or alternatively copy and paste this
-URL into your browser:
+To revoke the code click the above button or alternatively copy and paste this URL into your browser:
 
 {{ .RevocationLinkURL }} {{ .RevocationLinkURL }}
 
---------------------------------------------------------------------------------
+----------------------------------------
 
-This notification was intended for {{ .DisplayName }}. This one-time code was
-generated due to an action from {{ .RemoteIP }}. If you do not believe that your
-actions could have triggered this event or if you are concerned about your
-account's safety, please follow the explicit directions in this notification.
+This notification was intended for {{ .DisplayName }}. This one-time code was generated due to an action from {{ .RemoteIP }}. If you do not believe that your actions could have triggered this event or if you are concerned about your account's safety, please follow the explicit directions in this notification.
 
 Powered by Authelia https://www.authelia.com

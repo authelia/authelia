@@ -43,11 +43,11 @@ export const Event = ({
 					  }: Props) => {
 	return (
 		<Html lang="en" dir="ltr">
-			<Head />
+            <Tailwind>
+            <Head />
 			{!hidePreview ? (
 				<Preview>An important event has occurred with your account</Preview>
 			) : null}
-			<Tailwind>
 				<Body className="bg-white my-auto mx-auto font-sans px-2">
 					<Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] max-w-[465px]">
 						{title ? <Text className="text-black text-[24px] font-normal text-center p-0 my-[30px] mx-0">{title}</Text> : null}

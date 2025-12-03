@@ -4,8 +4,6 @@
 	"description": "",
 	"scripts": {
 		"dev": "email dev",
-		"buildx": "email build",
-		"build": "tsc && node dist/index.js",
 		"render": "tsc && node dist/index.js"
 	},
 	"keywords": [],
@@ -38,6 +36,7 @@
 			"@babel/runtime": "7.28.4",
 			"brace-expansion": "4.0.1",
 			"esbuild": "0.27.1",
+            "glob": "13.0.0",
             "js-yaml": "4.1.1",
 			"nanoid": "5.1.6",
 			"prismjs": "1.30.0",
