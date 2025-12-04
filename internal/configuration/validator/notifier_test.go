@@ -35,14 +35,14 @@ func (suite *NotifierSuite) SetupTest() {
 Common Tests.
 */
 func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() {
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
 
 	suite.config.SMTP = nil
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Require().True(suite.validator.HasErrors())
@@ -53,7 +53,7 @@ func (suite *NotifierSuite) TestShouldEnsureAtLeastSMTPOrFilesystemIsProvided() 
 }
 
 func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Errors(), 0)
 
@@ -61,7 +61,7 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 		Filename: "test",
 	}
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Require().True(suite.validator.HasErrors())
@@ -75,7 +75,7 @@ func (suite *NotifierSuite) TestShouldEnsureEitherSMTPOrFilesystemIsProvided() {
 SMTP Tests.
 */
 func (suite *NotifierSuite) TestSMTPShouldSetTLSDefaults() {
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
@@ -90,7 +90,7 @@ func (suite *NotifierSuite) TestSMTPShouldSetDefaultsWithLegacyAddress() {
 	suite.config.SMTP.Host = "xyz" //nolint:staticcheck
 	suite.config.SMTP.Port = 123   //nolint:staticcheck
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
@@ -105,7 +105,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorWithAddressAndLegacyAddress() {
 	suite.config.SMTP.Host = "fgh" //nolint:staticcheck
 	suite.config.SMTP.Port = 123   //nolint:staticcheck
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Equal(&schema.AddressSMTP{Address: MustParseAddress("smtp://example.com:25")}, suite.config.SMTP.Address)
 	suite.Equal(exampleDotCom, suite.config.SMTP.TLS.ServerName)
@@ -121,7 +121,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorWithAddressAndLegacyAddress() {
 func (suite *NotifierSuite) TestSMTPShouldErrorWithInvalidAddressScheme() {
 	suite.config.SMTP.Address = &schema.AddressSMTP{Address: MustParseAddress("udp://example.com:25")}
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Equal(&schema.AddressSMTP{Address: MustParseAddress("udp://example.com:25")}, suite.config.SMTP.Address)
 	suite.Equal(exampleDotCom, suite.config.SMTP.TLS.ServerName)
@@ -137,7 +137,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorWithInvalidAddressScheme() {
 func (suite *NotifierSuite) TestSMTPShouldDefaultStartupCheckAddress() {
 	suite.Equal(mail.Address{Name: "", Address: ""}, suite.config.SMTP.StartupCheckAddress)
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
@@ -151,7 +151,7 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 		MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
 	}
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
@@ -166,7 +166,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorOnSSL30() {
 		MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 	}
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
@@ -180,7 +180,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorOnTLSMinVerGreaterThanMaxVer() {
 		MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS10},
 	}
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
@@ -191,7 +191,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorOnTLSMinVerGreaterThanMaxVer() {
 func (suite *NotifierSuite) TestSMTPShouldWarnOnDisabledSTARTTLS() {
 	suite.config.SMTP.DisableStartTLS = true
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Require().Len(suite.validator.Warnings(), 1)
 	suite.Len(suite.validator.Errors(), 0)
@@ -201,14 +201,14 @@ func (suite *NotifierSuite) TestSMTPShouldWarnOnDisabledSTARTTLS() {
 
 func (suite *NotifierSuite) TestSMTPShouldEnsureHostAndPortAreProvided() {
 	suite.config.FileSystem = nil
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
 
 	suite.config.SMTP.Address = nil
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	errors := suite.validator.Errors()
 
@@ -221,7 +221,7 @@ func (suite *NotifierSuite) TestSMTPShouldEnsureHostAndPortAreProvided() {
 func (suite *NotifierSuite) TestSMTPShouldEnsureSenderIsProvided() {
 	suite.config.SMTP.Sender = mail.Address{}
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Require().True(suite.validator.HasErrors())
@@ -236,7 +236,7 @@ func (suite *NotifierSuite) TestTemplatesEmptyDir() {
 
 	suite.config.TemplatePath = dir
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
@@ -249,7 +249,7 @@ func (suite *NotifierSuite) TestTemplatesEmptyDirNoExist() {
 
 	suite.config.TemplatePath = p
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 1)
@@ -265,14 +265,14 @@ func (suite *NotifierSuite) TestFileShouldEnsureFilenameIsProvided() {
 	suite.config.FileSystem = &schema.NotifierFileSystem{
 		Filename: "test",
 	}
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
 
 	suite.config.FileSystem.Filename = ""
 
-	ValidateNotifier(&suite.config, suite.validator)
+	ValidateNotifier(&suite.config, suite.validator, nil)
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Require().True(suite.validator.HasErrors())
