@@ -1,0 +1,36 @@
+# Node modules
+node_modules
+web/node_modules
+.pnpm-store
+
+# Build artifacts
+dist
+coverage
+.nyc_output
+
+# Git
+.git
+.github
+
+# IDE
+.vscode
+.idea
+
+# Local dev files
+*.log
+db.sqlite3
+notifications.txt
+users_database.yml
+secrets
+
+# Dev scripts
+run-dev*.sh
+
+# Documentation
+docs
+examples
+
+# Test files
+**/*_test.go
+**/*.test.ts
+**/*.test.tsx

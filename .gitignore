@@ -39,11 +39,9 @@ authelia.log
 db.sqlite3
 notifications.txt
 users_database.yml
-run-dev.sh
 run-dev-docker.sh
-run-dev-hotreload.sh
 config.yml
-
+Dockerfile.build
 # Secrets directory
 secrets/
 
@@ -54,3 +52,4 @@ web/theme.md
 
 # Development/testing components
 web/src/components/ExampleThemeComponent.tsx
+frontend.dev.logsinternal/server/public_html/static/

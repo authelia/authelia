@@ -1,0 +1,74 @@
+# ========================================
+# ===== Build image for the frontend =====
+# ========================================
+FROM node:22-alpine AS builder-frontend
+
+WORKDIR /node/src/app
+
+COPY web ./
+
+# Install the dependencies and build (skip git hooks and linting)
+RUN \
+yarn global add pnpm && \
+pnpm install --frozen-lockfile --ignore-scripts && \
+NODE_ENV=production pnpm build --mode production
+
+# =======================================
+# ===== Build image for the backend =====
+# =======================================
+FROM golang:1.24-bookworm AS builder-backend
+
+WORKDIR /go/src/app
+
+COPY go.mod go.sum ./
+
+RUN \
+echo ">> Downloading go modules..." && \
+go mod download
+
+COPY . ./
+
+# Prepare static files to be embedded in Go binary (Vite outputs to ../internal/server/public_html)
+COPY --from=builder-frontend /node/src/internal/server/public_html /go/src/app/internal/server/public_html
+
+ARG LDFLAGS_EXTRA
+
+RUN \
+	cp -r api internal/server/public_html/api && \
+	echo ">> Starting go build..." && \
+	GOEXPERIMENT="nosynchashtriemap" \
+	CGO_ENABLED=1 \
+	CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" \
+	CGO_LDFLAGS="-Wl,-z,relro,-z,now" \
+	GOMEMLIMIT=512MiB \
+	go build -p 1 \
+	-tags dev \
+	-ldflags "-linkmode=external -s -w ${LDFLAGS_EXTRA}" \
+	-trimpath \
+	-buildmode=pie \
+	-o authelia \
+	./cmd/authelia
+
+# ===================================
+# ===== Authelia official image =====
+# ===================================
+FROM authelia/base:latest
+
+WORKDIR /app
+
+ENV \
+PATH="/app:${PATH}" \
+PUID=0 \
+PGID=0 \
+X_AUTHELIA_CONFIG="/config/configuration.yml"
+
+COPY --from=builder-backend /go/src/app/authelia /go/src/app/LICENSE /go/src/app/entrypoint.sh /go/src/app/healthcheck.sh ./
+
+COPY --from=builder-backend /go/src/app/.healthcheck.env ./
+
+RUN chmod 666 /app/.healthcheck.env && chmod +x /app/authelia /app/entrypoint.sh /app/healthcheck.sh
+
+EXPOSE 9091
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=1m CMD /app/healthcheck.sh

@@ -1,0 +1,19 @@
+FROM debian:bookworm-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates tzdata && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY authelia LICENSE entrypoint.sh healthcheck.sh .healthcheck.env ./
+RUN chmod +x /app/authelia /app/entrypoint.sh /app/healthcheck.sh && chmod 666 /app/.healthcheck.env
+
+ENV PATH="/app:${PATH}" \
+    PUID=0 \
+    PGID=0 \
+    X_AUTHELIA_CONFIG="/config/configuration.yml"
+
+EXPOSE 9091
+ENTRYPOINT ["/app/entrypoint.sh"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=1m CMD /app/healthcheck.sh

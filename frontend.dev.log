@@ -1,0 +1,23 @@
+
+> authelia@4.39.15 start /home/adgpi0/authelia/authelia/web
+> vite --host
+
+Port 3000 is in use, trying another one...
+Port 3001 is in use, trying another one...
+
+  VITE v7.2.4  ready in 2157 ms
+
+  ➜  Local:   http://localhost:3002/
+  ➜  Network: http://192.168.88.248:3002/
+  ➜  Network: http://172.17.77.26:3002/
+  ➜  Network: http://172.17.0.1:3002/
+  ➜  Network: http://172.24.0.1:3002/
+  ➜  Network: http://192.168.144.1:3002/
+  ➜  Network: http://172.30.0.1:3002/
+  ➜  Network: http://172.50.0.1:3002/
+  ➜  Network: http://172.21.0.1:3002/
+  ➜  Network: http://172.27.0.1:3002/
+  ➜  Network: http://192.168.224.1:3002/
+  ➜  Network: http://192.168.48.1:3002/
+  ➜  Network: http://100.111.97.66:3002/
+ ELIFECYCLE  Command failed.
