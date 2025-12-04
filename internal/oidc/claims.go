@@ -392,6 +392,7 @@ type ClaimResolver func(attribute string, requestedValue any, requestedValues []
 type ClaimsStrategy interface {
 	ValidateClaimsRequests(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, requests *ClaimsRequests) (err error)
 	HydrateIDTokenClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any, implicit bool) (err error)
+	HydrateAccessTokenClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error)
 	HydrateUserInfoClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error)
 	HydrateClientCredentialsUserInfoClaims(ctx ClaimsStrategyContext, client Client, original, extra map[string]any) (err error)
 	MergeAccessTokenAudienceWithIDTokenAudience() (include bool)
@@ -623,12 +624,29 @@ func (s *CustomClaimsStrategy) HydrateIDTokenClaims(ctx ClaimsStrategyContext, s
 	return nil
 }
 
+func (s *CustomClaimsStrategy) HydrateAccessTokenClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error) {
+	resolver := ctx.GetProviderUserAttributeResolver()
+
+	if resolver == nil {
+		return oauthelia2.ErrServerError.WithDebug("The claims strategy had an error populating the Access Token Claims. Error occurred obtaining the attribute resolver.")
+	}
+
+	resolve := func(claim string) (value any, ok bool) {
+		return resolver.Resolve(claim, detailer, updated)
+	}
+
+	s.hydrateClaimsOriginal(original, extra)
+	s.hydrateClaimsScoped(ctx, strategy, client, scopes, resolve, s.claimsAccessToken, extra)
+
+	return nil
+}
+
 // HydrateUserInfoClaims hydrates the UserInfo endpoint claims for an Access Token.
 func (s *CustomClaimsStrategy) HydrateUserInfoClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error) {
 	resolver := ctx.GetProviderUserAttributeResolver()
 
 	if resolver == nil {
-		return oauthelia2.ErrServerError.WithDebug("The claims strategy had an error populating the ID Token Claims. Error occurred obtaining the attribute resolver.")
+		return oauthelia2.ErrServerError.WithDebug("The claims strategy had an error populating the User Info Claims. Error occurred obtaining the attribute resolver.")
 	}
 
 	s.hydrateClaimsOriginalUserInfo(original, extra)
