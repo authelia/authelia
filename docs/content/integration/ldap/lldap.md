@@ -100,7 +100,7 @@ the following conditions:
 ##### Users Filter
 
 ```text
-(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
+(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
 ```
 
 ##### Groups Filter
