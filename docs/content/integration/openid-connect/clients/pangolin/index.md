@@ -67,6 +67,7 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
+          - 'groups'
         response_types:
           - 'code'
         grant_types:
