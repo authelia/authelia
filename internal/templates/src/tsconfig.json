@@ -24,17 +24,9 @@
 		"module": "CommonJS",
 		"noUncheckedIndexedAccess": true,
 		"resolveJsonModule": true,
-		"types": ["node"],
+		"types": ["node", "vitest/globals"],
 		"outDir": "dist"
   	},
-	"include": [
-		"**/*.ts",
-		"**/*.tsx",
-		".next/types/**/*.ts"],
-	"exclude": [
-		"tsconfig.export.json",
-		".next",
-		"cli",
-		"node_modules"
-	]
+	"include": ["**/*.ts", "**/*.tsx"],
+	"exclude": ["node_modules"]
 }

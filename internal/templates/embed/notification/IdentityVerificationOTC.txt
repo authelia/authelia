@@ -20,11 +20,9 @@ If you did not initiate the process your credentials may have been compromised a
  2. Reset your password or other login credentials
  3. Contact an Administrator
 
-{{ .RevocationLinkText }} {{ .RevocationLinkURL }}
+To revoke the code, click the link below:
 
-To revoke the code click the above button or alternatively copy and paste this URL into your browser:
-
-{{ .RevocationLinkURL }} {{ .RevocationLinkURL }}
+{{ .RevocationLinkURL }}
 
 ----------------------------------------
 

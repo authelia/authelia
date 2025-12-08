@@ -10,11 +10,7 @@ Do not share this notification or the content of this notification with anyone.
 
 If you made this request, click the validation link below.
 
-{{ .LinkText }} {{ .LinkURL }}
-
-Alternatively, copy and paste this URL into your browser:
-
-{{ .LinkURL }} {{ .LinkURL }}
+{{ .LinkURL }}
 
 ----------------------------------------
 
@@ -24,11 +20,9 @@ If you did NOT initiate this request, your credentials may have been compromised
  2. Reset your password or other login credentials
  3. Contact an Administrator
 
-{{ .RevocationLinkText }} {{ .RevocationLinkURL }}
+To revoke the code, click the link below:
 
-To revoke the code click the above button or alternatively copy and paste this URL into your browser:
-
-{{ .RevocationLinkURL }} {{ .RevocationLinkURL }}
+{{ .RevocationLinkURL }}
 
 ----------------------------------------
 
