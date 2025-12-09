@@ -15,7 +15,7 @@ support:
   integration: true
 seo:
   title: "Wapy.dev | OpenID Connect 1.0 | Integration"
-  description: "Step-by-step guide to configuring Wapy.Deb with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
+  description: "Step-by-step guide to configuring Wapy.dev with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---
@@ -35,7 +35,7 @@ This example makes the following assumptions:
 
 - __Application Root URL:__ `https://payments.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `{< sitevar name="client_id" nojs="wapydev" >}}`
+- __Client ID:__ `{{< sitevar name="client_id" nojs="wapydev" >}}`
 - __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
