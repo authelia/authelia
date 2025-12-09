@@ -1,6 +1,6 @@
 ---
-title: "Wapy.Dev"
-description: "Integrating Wapy.Dev with the Authelia OpenID Connect 1.0 Provider."
+title: "Wapy.dev"
+description: "Integrating Wapy.dev with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
 date: 2025-12-09T19:19:00+01:00
 draft: false
@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "Wapy.Dev | OpenID Connect 1.0 | Integration"
+  title: "Wapy.dev | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Wapy.Deb with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -24,7 +24,7 @@ seo:
 
 - [Authelia]
   - [v4.39.0](https://github.com/authelia/authelia/releases/tag/v4.39.0)
-- [Wapy.Dev]
+- [Wapy.dev]
   - [v2.1.2](https://github.com/meceware/wapy.dev/releases/tag/v2.1.2)
 
 {{% oidc-common %}}
@@ -46,7 +46,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Wapy.Dev] which will
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Wapy.dev] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -82,11 +82,11 @@ identity_providers:
 
 ### Application
 
-To configure [Wapy.Dev] there is one method, using the [Environment options](#environment-options).
+To configure [Wapy.dev] there is one method, using the [Environment options](#environment-options).
 
 #### Environment options
 
-To configure [Wapy.Dev] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
+To configure [Wapy.dev] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Edit your environment variables for Wapy.dev.
 2. Configure the following options:
