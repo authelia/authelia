@@ -55,13 +55,13 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-      - client_id: 'wapydev'
+      - client_id: '{{< sitevar name="client_id" nojs="wapydev" >}}'
         client_name: 'wapydev'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         sector_identifier_uri: ''
         public: false
         redirect_uris:
-          - 'https://payments.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/oauth2/callback/{{< sitevar name="client_id" nojs="wapydev" >}}'
+          - 'https://payments.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/oauth2/callback/{{< sitevar name="auth_provider" nojs="authelia" >}}'
         audience: []
         scopes:
           - 'openid'
@@ -90,12 +90,12 @@ To configure [Wapy.dev] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 
 1. Edit your environment variables for Wapy.dev.
 2. Configure the following options:
-    - GENERIC_AUTH_PROVIDER=`authelia`
+    - GENERIC_AUTH_PROVIDER=`{{< sitevar name="auth_provider" nojs="authelia" >}}`
     - GENERIC_AUTH_CLIENT_ID=`{{< sitevar name="client_id" nojs="wapydev" >}}`
     - GENERIC_AUTH_CLIENT_SECRET=`insecure_secret`
     - GENERIC_AUTH_ISSUER=`https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
     - GENERIC_AUTH_SCOPE=`openid email profile`
-4. Save the variables and restart container if needed.
+3. Save the variables and restart container if needed.
 
 ## See Also
 
