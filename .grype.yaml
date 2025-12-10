@@ -10,4 +10,15 @@ ignore:
       name: busybox
       version: 1.37.0
       type: binary
-...
+  - vulnerability: CVE-2025-61727
+    package:
+      name: stdlib
+      type: go-module
+    fix-state: not-fixed
+    reason: "Lefthook dev dependency built with Go 1.25.0"
+  - vulnerability: CVE-2025-61729
+    package:
+      name: stdlib
+      type: go-module
+    fix-state: not-fixed
+    reason: "Lefthook dev dependency built with Go 1.25.0"
