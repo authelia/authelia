@@ -22,3 +22,4 @@ ignore:
       type: go-module
     fix-state: not-fixed
     reason: "Lefthook dev dependency built with Go 1.25.0"
+...
