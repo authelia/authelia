@@ -41,12 +41,18 @@ func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string,
 	return session
 }
 
+type AccessTokenSession struct {
+	Headers map[string]any `json:"-"`
+	Claims  map[string]any `json:"-"`
+}
+
 // Session holds OpenID Connect 1.0 Session information.
 type Session struct {
 	*openid.DefaultSession `json:"id_token"`
 
+	AccessToken *AccessTokenSession `json:"-"`
+
 	ChallengeID           uuid.NullUUID   `json:"challenge_id"`
-	KID                   string          `json:"kid"`
 	ClientID              string          `json:"client_id"`
 	ClientCredentials     bool            `json:"client_credentials"`
 	ExcludeNotBeforeClaim bool            `json:"exclude_nbf_claim"`
@@ -54,6 +60,78 @@ type Session struct {
 	ClaimRequests         *ClaimsRequests `json:"claim_requests,omitempty"`
 	GrantedClaims         []string        `json:"granted_claims,omitempty"`
 	Extra                 map[string]any  `json:"extra"`
+}
+
+// GetJWTHeader returns the *jwt.Headers for the OAuth 2.0 JWT Profile Access Token.
+func (s *Session) GetJWTHeader() (headers *jwt.Headers) {
+	headers = &jwt.Headers{
+		Extra: map[string]any{
+			JWTHeaderKeyType: JWTHeaderTypeValueAccessTokenJWT,
+		},
+	}
+
+	if s.AccessToken != nil {
+		for key, value := range s.AccessToken.Headers {
+			headers.Extra[key] = value
+		}
+	}
+
+	return headers
+}
+
+// GetJWTClaims returns the jwt.JWTClaimsContainer for the OAuth 2.0 JWT Profile Access Tokens.
+func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
+	//nolint:prealloc
+	var (
+		allowed []string
+		amr     bool
+	)
+
+	for _, cl := range s.AllowedTopLevelClaims {
+		switch cl {
+		case ClaimJWTID, ClaimIssuer, ClaimSubject, ClaimAudience, ClaimExpirationTime, ClaimNotBefore, ClaimIssuedAt, ClaimClientIdentifier, ClaimScopeNonStandard, ClaimExtra:
+			continue
+		case ClaimAuthenticationMethodsReference:
+			amr = true
+
+			continue
+		}
+
+		allowed = append(allowed, cl)
+	}
+
+	claims := &jwt.JWTClaims{
+		Subject:   s.Subject,
+		ExpiresAt: s.GetExpiresAt(oauthelia2.AccessToken),
+		IssuedAt:  time.Now().UTC(),
+		Extra:     map[string]any{},
+	}
+
+	if s.AccessToken != nil {
+		for key, value := range s.AccessToken.Claims {
+			claims.Extra[key] = value
+		}
+	}
+
+	if s.DefaultSession != nil && s.Claims != nil {
+		for _, allowedClaim := range allowed {
+			if cl, ok := s.Claims.Extra[allowedClaim]; ok {
+				claims.Extra[allowedClaim] = cl
+			}
+		}
+
+		claims.Issuer = s.Claims.Issuer
+
+		if amr && len(s.Claims.AuthenticationMethodsReferences) != 0 {
+			claims.Extra[ClaimAuthenticationMethodsReference] = s.Claims.AuthenticationMethodsReferences
+		}
+	}
+
+	if len(s.ClientID) != 0 {
+		claims.Extra[ClaimClientIdentifier] = s.ClientID
+	}
+
+	return claims
 }
 
 func (s *Session) SetValuesFromRequester(requester oauthelia2.Requester) {
@@ -108,74 +186,6 @@ func (s *Session) GetChallengeID() (challenge uuid.NullUUID) {
 	return s.ChallengeID
 }
 
-// GetJWTHeader returns the *jwt.Headers for the OAuth 2.0 JWT Profile Access Token.
-func (s *Session) GetJWTHeader() (headers *jwt.Headers) {
-	headers = &jwt.Headers{
-		Extra: map[string]any{
-			JWTHeaderKeyType: JWTHeaderTypeValueAccessTokenJWT,
-		},
-	}
-
-	if len(s.KID) != 0 {
-		headers.Extra[JWTHeaderKeyIdentifier] = s.KID
-	}
-
-	return headers
-}
-
-// GetJWTClaims returns the jwt.JWTClaimsContainer for the OAuth 2.0 JWT Profile Access Tokens.
-func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
-	//nolint:prealloc
-	var (
-		allowed []string
-		amr     bool
-	)
-
-	for _, cl := range s.AllowedTopLevelClaims {
-		switch cl {
-		case ClaimJWTID, ClaimIssuer, ClaimSubject, ClaimAudience, ClaimExpirationTime, ClaimNotBefore, ClaimIssuedAt, ClaimClientIdentifier, ClaimScopeNonStandard, ClaimExtra:
-			continue
-		case ClaimAuthenticationMethodsReference:
-			amr = true
-
-			continue
-		}
-
-		allowed = append(allowed, cl)
-	}
-
-	claims := &jwt.JWTClaims{
-		Subject:   s.Subject,
-		ExpiresAt: s.GetExpiresAt(oauthelia2.AccessToken),
-		IssuedAt:  time.Now().UTC(),
-		Extra:     map[string]any{},
-	}
-
-	if len(s.Extra) > 0 {
-		claims.Extra[ClaimExtra] = s.Extra
-	}
-
-	if s.DefaultSession != nil && s.Claims != nil {
-		for _, allowedClaim := range allowed {
-			if cl, ok := s.Claims.Extra[allowedClaim]; ok {
-				claims.Extra[allowedClaim] = cl
-			}
-		}
-
-		claims.Issuer = s.Claims.Issuer
-
-		if amr && len(s.Claims.AuthenticationMethodsReferences) != 0 {
-			claims.Extra[ClaimAuthenticationMethodsReference] = s.Claims.AuthenticationMethodsReferences
-		}
-	}
-
-	if len(s.ClientID) != 0 {
-		claims.Extra[ClaimClientIdentifier] = s.ClientID
-	}
-
-	return claims
-}
-
 // GetIDTokenClaims returns the *jwt.IDTokenClaims for this session.
 func (s *Session) GetIDTokenClaims() (claims *jwt.IDTokenClaims) {
 	if s.DefaultSession == nil {
@@ -187,7 +197,11 @@ func (s *Session) GetIDTokenClaims() (claims *jwt.IDTokenClaims) {
 
 // GetExtraClaims returns the Extra/Unregistered claims for this session.
 func (s *Session) GetExtraClaims() map[string]any {
-	return s.Extra
+	if s.AccessToken == nil {
+		return nil
+	}
+
+	return s.AccessToken.Claims
 }
 
 // Clone copies the OpenIDSession to a new oauthelia2.Session.
