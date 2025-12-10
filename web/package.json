@@ -66,7 +66,7 @@
         "react-router-dom": "7.10.1",
         "react-spinners": "0.17.0",
         "react18-input-otp": "1.1.4",
-        "tss-react": "4.9.19",
+        "tss-react": "4.9.20",
         "zxcvbn": "4.4.2"
     },
     "scripts": {
