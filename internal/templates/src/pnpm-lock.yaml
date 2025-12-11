@@ -41,8 +41,8 @@ importers:
         specifier: 3.4.0
         version: 3.4.0
       tailwindcss:
-        specifier: 4.1.17
-        version: 4.1.17
+        specifier: 4.1.18
+        version: 4.1.18
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -1435,8 +1435,8 @@ packages:
   tailwind-merge@3.4.0:
     resolution: {integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==}
 
-  tailwindcss@4.1.17:
-    resolution: {integrity: sha512-j9Ee2YjuQqYT9bbRTfTZht9W/ytp5H+jJpZKiYdP/bpnXARAuELt9ofP0lPnmHjbga7SNQIxdTAXCmtKVYjN+Q==}
+  tailwindcss@4.1.18:
+    resolution: {integrity: sha512-4+Z+0yiYyEtUVCScyfHCxOYP06L5Ne+JiHhY2IjR2KWMIWhJOYZKLSGZaP5HkZ8+bY0cxfzwDE5uOmzFXyIwxw==}
 
   terser@5.31.5:
     resolution: {integrity: sha512-YPmas0L0rE1UyLL/llTWA0SiDOqIcAQYLeUj7cJYzXHlRTAnMSg9pPe4VJ5PlKvTrPQsdVFuiRiwyeNlYgwh2Q==}
@@ -1940,7 +1940,7 @@ snapshots:
     dependencies:
       '@react-email/text': 0.1.5(react@19.2.1)
       react: 19.2.1
-      tailwindcss: 4.1.17
+      tailwindcss: 4.1.18
     optionalDependencies:
       '@react-email/body': 0.2.0(react@19.2.1)
       '@react-email/button': 0.2.0(react@19.2.1)
@@ -2874,7 +2874,7 @@ snapshots:
 
   tailwind-merge@3.4.0: {}
 
-  tailwindcss@4.1.17: {}
+  tailwindcss@4.1.18: {}
 
   terser@5.31.5:
     dependencies:
