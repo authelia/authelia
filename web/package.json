@@ -128,7 +128,7 @@
         "rollup": "4.53.3",
         "typescript": "5.9.3",
         "vite": "7.2.7",
-        "vite-plugin-checker": "0.11.0",
+        "vite-plugin-checker": "0.12.0",
         "vite-plugin-istanbul": "7.2.1",
         "vite-plugin-svgr": "4.5.0",
         "vite-tsconfig-paths": "5.1.4",
