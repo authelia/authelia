@@ -191,8 +191,8 @@ importers:
         specifier: 7.2.7
         version: 7.2.7(@types/node@24.10.3)(jiti@2.4.1)
       vite-plugin-checker:
-        specifier: 0.11.0
-        version: 0.11.0(eslint@9.39.1(jiti@2.4.1))(typescript@5.9.3)(vite@7.2.7(@types/node@24.10.3)(jiti@2.4.1))
+        specifier: 0.12.0
+        version: 0.12.0(eslint@9.39.1(jiti@2.4.1))(typescript@5.9.3)(vite@7.2.7(@types/node@24.10.3)(jiti@2.4.1))
       vite-plugin-istanbul:
         specifier: 7.2.1
         version: 7.2.1(vite@7.2.7(@types/node@24.10.3)(jiti@2.4.1))
@@ -271,10 +271,6 @@ packages:
 
   '@babel/helper-string-parser@7.27.1':
     resolution: {integrity: sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/helper-validator-identifier@7.27.1':
-    resolution: {integrity: sha512-D2hP9eA+Sqx1kBZgzxZh0y1trbuU+JoDkiEwqhQ36nodYqJwyEIhPSdMNd7lOm/4io72luTPWH20Yda0xOuUow==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-validator-identifier@7.28.5':
@@ -3897,12 +3893,12 @@ packages:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
 
-  vite-plugin-checker@0.11.0:
-    resolution: {integrity: sha512-iUdO9Pl9UIBRPAragwi3as/BXXTtRu4G12L3CMrjx+WVTd9g/MsqNakreib9M/2YRVkhZYiTEwdH2j4Dm0w7lw==}
+  vite-plugin-checker@0.12.0:
+    resolution: {integrity: sha512-CmdZdDOGss7kdQwv73UyVgLPv0FVYe5czAgnmRX2oKljgEvSrODGuClaV3PDR2+3ou7N/OKGauDDBjy2MB07Rg==}
     engines: {node: '>=16.11'}
     peerDependencies:
       '@biomejs/biome': '>=1.7'
-      eslint: '>=7'
+      eslint: '>=9.39.1'
       meow: ^13.2.0
       optionator: ^0.9.4
       oxlint: '>=1'
@@ -4207,7 +4203,7 @@ snapshots:
 
   '@babel/code-frame@7.27.1':
     dependencies:
-      '@babel/helper-validator-identifier': 7.27.1
+      '@babel/helper-validator-identifier': 7.28.5
       js-tokens: 4.0.0
       picocolors: 1.1.1
 
@@ -4277,8 +4273,6 @@ snapshots:
   '@babel/helper-plugin-utils@7.27.1': {}
 
   '@babel/helper-string-parser@7.27.1': {}
-
-  '@babel/helper-validator-identifier@7.27.1': {}
 
   '@babel/helper-validator-identifier@7.28.5': {}
 
@@ -8282,7 +8276,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite-plugin-checker@0.11.0(eslint@9.39.1(jiti@2.4.1))(typescript@5.9.3)(vite@7.2.7(@types/node@24.10.3)(jiti@2.4.1)):
+  vite-plugin-checker@0.12.0(eslint@9.39.1(jiti@2.4.1))(typescript@5.9.3)(vite@7.2.7(@types/node@24.10.3)(jiti@2.4.1)):
     dependencies:
       '@babel/code-frame': 7.27.1
       chokidar: 4.0.3
