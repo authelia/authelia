@@ -23,7 +23,7 @@
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
 		"@react-email/preview-server": "5.0.7",
-		"@types/node": "24.10.3",
+		"@types/node": "25.0.1",
 		"@types/react": "19.2.7",
 		"@types/react-dom": "19.2.3",
 		"eslint": "9.39.1",
