@@ -156,8 +156,10 @@ To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider,
           <OidScopes>
             <string>groups</string>
           </OidScopes>
+          <SchemeOverride>https</SchemeOverride>
           <CanonicalLinks></CanonicalLinks>
           <DisableHttps>false</DisableHttps>
+          <DisablePushedAuthorization>true</DisablePushedAuthorization>
           <DoNotValidateEndpoints>false</DoNotValidateEndpoints>
           <DoNotValidateIssuerName>false</DoNotValidateIssuerName>
         </PluginConfiguration>
@@ -188,6 +190,8 @@ To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider,
     - Role Claim: `groups`
     - Request Additional Scopes: `groups`
     - Set default username claim: `preferred_username`
+    - Set Disable Pushed Authorization: `true`
+    - Set Scheme Override: `https`
 6. All other options may remain unchecked or unconfigured.
 7. Click `Save`.
 8. To log in visit `https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/start/authelia`.
