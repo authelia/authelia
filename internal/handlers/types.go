@@ -69,6 +69,19 @@ type bodySignPasskeyRequest struct {
 	Response json.RawMessage `json:"response"`
 }
 
+// bodySignKerberosRequest is the  model of the request body of Kerberos 1FA authentication endpoint.
+type bodySignKerberosRequest struct {
+	TargetURL      string `json:"targetURL"`
+	RequestMethod  string `json:"requestMethod"`
+	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn"`
+	FlowID         string `json:"flowID"`
+	Flow           string `json:"flow"`
+	SubFlow        string `json:"subflow"`
+	UserCode       string `json:"userCode"`
+
+	Response json.RawMessage `json:"response"`
+}
+
 // bodyGETUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
 type bodyGETUserSessionElevate struct {
 	RequireSecondFactor bool `json:"require_second_factor"`
