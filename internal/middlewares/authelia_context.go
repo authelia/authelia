@@ -6,12 +6,17 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jcmturner/gokrb5/v8/keytab"
+	"github.com/jcmturner/gokrb5/v8/service"
+	"github.com/jcmturner/gokrb5/v8/spnego"
+	"github.com/jcmturner/gokrb5/v8/types"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -686,6 +691,37 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) 
 	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
 
 	return webauthn.New(config)
+}
+
+func (ctx *AutheliaCtx) GetSPNEGOProvider() (spnegoService *spnego.SPNEGO, err error) {
+	// todo: load kt in context
+	kt := &keytab.Keytab{}
+
+	// read file bytes
+	keyTabFile := "/etc/krb5.keytab"
+	if ctx.Configuration.SPNEGO.Keytab != "" {
+		keyTabFile = ctx.Configuration.SPNEGO.Keytab
+	}
+
+	file, err := os.ReadFile(keyTabFile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create SPNEGO service: failed to read keytab file '%s': %w", keyTabFile, err)
+	}
+
+	err = kt.Unmarshal(file)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create SPNEGO service: failed to unmarshal keytab file '%s': %w", keyTabFile, err)
+	}
+
+	host, err := types.GetHostAddress(ctx.RemoteAddr().String())
+
+	if err == nil {
+		spnegoService = spnego.SPNEGOService(kt, service.ClientAddress(host))
+		return
+	} else {
+		spnegoService = spnego.SPNEGOService(kt)
+		return
+	}
 }
 
 // Value is a shaded method of context.Context which returns the AutheliaCtx struct if the key is the internal key
