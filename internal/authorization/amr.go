@@ -38,6 +38,7 @@ type AuthenticationMethodsReferences struct {
 	WebAuthnSoftware             bool
 	WebAuthnUserPresence         bool
 	WebAuthnUserVerified         bool
+	Kerberos                     bool
 }
 
 // FactorKnowledge returns true if a "something you know" factor of authentication was used.
