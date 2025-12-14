@@ -332,6 +332,11 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialDELETE))
 	}
 
+	// SPNEGO KRB5 Authentication related Endpoint.
+	if !config.SPNEGO.Disable {
+		r.POST("/api/firstfactor/spnego", middlewareAPI(handlers.FirstFactorSPNEGOPOST))
+	}
+
 	// Configure DUO api endpoint only if configuration exists.
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.Provider
