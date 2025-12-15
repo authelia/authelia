@@ -16,7 +16,7 @@ overrides:
   body-parser: 2.2.1
   brace-expansion: 4.0.1
   esbuild: 0.27.1
-  eslint-plugin-jest: 29.4.0
+  eslint-plugin-jest: 29.5.0
   eslint-plugin-testing-library: 7.13.6
   express: 5.2.1
   glob: 13.0.0
@@ -200,8 +200,8 @@ importers:
         specifier: 4.5.0
         version: 4.5.0(rollup@4.53.3)(typescript@5.9.3)(vite@7.2.7(@types/node@25.0.2)(jiti@2.4.1))
       vite-tsconfig-paths:
-        specifier: 5.1.4
-        version: 5.1.4(typescript@5.9.3)(vite@7.2.7(@types/node@25.0.2)(jiti@2.4.1))
+        specifier: 6.0.1
+        version: 6.0.1(typescript@5.9.3)(vite@7.2.7(@types/node@25.0.2)(jiti@2.4.1))
       vitest:
         specifier: 4.0.15
         version: 4.0.15(@types/node@25.0.2)(happy-dom@20.0.11)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6))
@@ -1887,15 +1887,6 @@ packages:
 
   debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-
-  debug@4.3.7:
-    resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
-    engines: {node: '>=6.0'}
     peerDependencies:
       supports-color: '*'
     peerDependenciesMeta:
@@ -3937,8 +3928,8 @@ packages:
     peerDependencies:
       vite: 7.2.7
 
-  vite-tsconfig-paths@5.1.4:
-    resolution: {integrity: sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w==}
+  vite-tsconfig-paths@6.0.1:
+    resolution: {integrity: sha512-OQuYkfCQhc2T+n//0N7/oogTosgiSyZQ7dydrpUlH5SbnFTtplpekdY4GMi6jDwEpiwWlqeUJMyPfC2ePM1+2A==}
     peerDependencies:
       vite: 7.2.7
     peerDependenciesMeta:
@@ -5949,10 +5940,6 @@ snapshots:
       is-data-view: 1.0.2
 
   debug@3.2.7:
-    dependencies:
-      ms: 2.1.3
-
-  debug@4.3.7:
     dependencies:
       ms: 2.1.3
 
@@ -8310,9 +8297,9 @@ snapshots:
       - supports-color
       - typescript
 
-  vite-tsconfig-paths@5.1.4(typescript@5.9.3)(vite@7.2.7(@types/node@25.0.2)(jiti@2.4.1)):
+  vite-tsconfig-paths@6.0.1(typescript@5.9.3)(vite@7.2.7(@types/node@25.0.2)(jiti@2.4.1)):
     dependencies:
-      debug: 4.3.7
+      debug: 4.4.3
       globrex: 0.1.2
       tsconfck: 3.0.3(typescript@5.9.3)
     optionalDependencies:
