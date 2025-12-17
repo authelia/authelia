@@ -41,7 +41,7 @@
 			"js-yaml": "4.1.1",
 			"nanoid": "5.1.6",
 			"prismjs": "1.30.0",
-			"vite": "7.2.7"
+			"vite": "7.3.0"
 		},
 		"onlyBuiltDependencies": [
 			"esbuild",
