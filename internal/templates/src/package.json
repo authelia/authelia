@@ -12,7 +12,7 @@
 	"dependencies": {
 		"@react-email/components": "1.0.1",
 		"@react-email/render": "2.0.0",
-		"esbuild": "0.27.1",
+		"esbuild": "0.27.2",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",
 		"react-email": "5.0.8",
@@ -36,7 +36,7 @@
 			"@babel/helpers": "7.28.4",
 			"@babel/runtime": "7.28.4",
 			"brace-expansion": "4.0.1",
-			"esbuild": "0.27.1",
+			"esbuild": "0.27.2",
 			"glob": "13.0.0",
 			"js-yaml": "4.1.1",
 			"nanoid": "5.1.6",
