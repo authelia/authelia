@@ -125,7 +125,7 @@
         "happy-dom": "20.0.11",
         "lefthook": "2.0.12",
         "prettier": "3.7.4",
-        "rollup": "4.53.5",
+        "rollup": "4.54.0",
         "typescript": "5.9.3",
         "vite": "7.3.0",
         "vite-plugin-checker": "0.12.0",
