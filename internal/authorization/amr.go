@@ -96,7 +96,7 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 	}
 
 	if r.Kerberos {
-		amr = append(amr, AMRSoftwareSecuredKey)
+		amr = append(amr, AMRWindowsIntegratedAuthentication)
 	}
 
 	if r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware {
