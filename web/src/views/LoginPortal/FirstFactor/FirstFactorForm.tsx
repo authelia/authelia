@@ -189,8 +189,6 @@ const FirstFactorForm = function (props: Props) {
             createErrorNotification(translate("SPNEGO authentication failed"));
             setLoading(false);
             props.onAuthenticationStop();
-            setPassword("");
-            focusPassword();
         }
     }, [
         props,
