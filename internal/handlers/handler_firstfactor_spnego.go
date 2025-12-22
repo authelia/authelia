@@ -73,7 +73,7 @@ func parseSPNEGOToken(header string) (*spnego.SPNEGOToken, error) {
 	return &st, nil
 }
 
-// FirstFactorPasskeyPOST handler completes the assertion ceremony after verifying the challenge.
+// FirstFactorSPNEGOPOST handler completes the assertion ceremony after verifying the challenge.
 //
 //nolint:gocyclo
 func FirstFactorSPNEGOPOST(ctx *middlewares.AutheliaCtx) {
@@ -228,7 +228,7 @@ func FirstFactorSPNEGOPOST(ctx *middlewares.AutheliaCtx) {
 			ctx.SetStatusCode(fasthttp.StatusForbidden)
 			ctx.SetJSONError(messageMFAValidationFailed)
 
-			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthTypePasskey, logFmtActionAuthentication, userDetails.Username)
+			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthTypeKerberos, logFmtActionAuthentication, userDetails.Username)
 
 			return
 		}
