@@ -69,8 +69,8 @@ type bodySignPasskeyRequest struct {
 	Response json.RawMessage `json:"response"`
 }
 
-// bodySignKerberosRequest is the  model of the request body of Kerberos 1FA authentication endpoint.
-type bodySignKerberosRequest struct {
+// bodyFirstFactorKerberosRequest is the  model of the request body of Kerberos 1FA authentication endpoint.
+type bodyFirstFactorKerberosRequest struct {
 	TargetURL      string `json:"targetURL"`
 	RequestMethod  string `json:"requestMethod"`
 	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn"`
