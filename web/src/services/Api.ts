@@ -8,6 +8,7 @@ export const OpenIDConnectConsentPath = basePath + "/api/oidc/consent";
 export const OpenIDConnectDeviceAuthorizationPath = basePath + "/api/oidc/device-authorization";
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
+export const FirstFactorSpnego = basePath + "/api/firstfactor/spnego";
 export const FirstFactorPasskeyPath = basePath + "/api/firstfactor/passkey";
 export const FirstFactorReauthenticatePath = basePath + "/api/firstfactor/reauthenticate";
 

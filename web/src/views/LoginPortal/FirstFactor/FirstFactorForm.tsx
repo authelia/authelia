@@ -8,6 +8,7 @@ import {
     Button,
     Checkbox,
     CircularProgress,
+    Divider,
     FormControl,
     FormControlLabel,
     IconButton,
@@ -29,6 +30,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
+import { spnegoPostFirstFactor } from "@root/services/Spnego";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
@@ -39,6 +41,7 @@ export interface Props {
     rememberMe: boolean;
     resetPassword: boolean;
     resetPasswordCustomURL: string;
+    spnegoLogin: boolean;
 
     onAuthenticationStart: () => void;
     onAuthenticationStop: () => void;
@@ -147,6 +150,49 @@ const FirstFactorForm = function (props: Props) {
     }, [
         username,
         password,
+        props,
+        rememberMe,
+        redirectionURL,
+        requestMethod,
+        flowID,
+        flow,
+        subflow,
+        userCode,
+        loginChannel,
+        createErrorNotification,
+        translate,
+        focusPassword,
+    ]);
+
+    const spnegoLogin = useCallback(async () => {
+        setLoading(true);
+
+        props.onAuthenticationStart();
+
+        try {
+            const res = await spnegoPostFirstFactor(
+                rememberMe,
+                redirectionURL,
+                requestMethod,
+                flowID,
+                flow,
+                subflow,
+                userCode,
+            );
+
+            setLoading(false);
+
+            await loginChannel.postMessage(true);
+            props.onAuthenticationSuccess(res ? res.redirect : undefined);
+        } catch (err) {
+            console.error(err);
+            createErrorNotification(translate("SPNEGO authentication failed"));
+            setLoading(false);
+            props.onAuthenticationStop();
+            setPassword("");
+            focusPassword();
+        }
+    }, [
         props,
         rememberMe,
         redirectionURL,
@@ -356,6 +402,7 @@ const FirstFactorForm = function (props: Props) {
                             {translate("Sign in")}
                         </Button>
                     </Grid>
+
                     {props.passkeyLogin ? (
                         <PasskeyForm
                             disabled={props.disabled}
@@ -381,6 +428,31 @@ const FirstFactorForm = function (props: Props) {
                             >
                                 {translate("Reset password?")}
                             </Link>
+                        </Grid>
+                    ) : null}
+
+                    {props.spnegoLogin ? (
+                        <Grid size={{ xs: 12 }}>
+                            <Divider
+                                orientation="horizontal"
+                                variant="middle"
+                                flexItem
+                                style={{
+                                    marginBottom: 16,
+                                }}
+                            />
+
+                            <Button
+                                id="spnego-login-button"
+                                variant="contained"
+                                color="primary"
+                                fullWidth={true}
+                                endIcon={loading ? <CircularProgress size={20} /> : null}
+                                disabled={disabled}
+                                onClick={spnegoLogin}
+                            >
+                                {translate("Login with SPNEGO")}
+                            </Button>
                         </Grid>
                     ) : null}
                 </Grid>
