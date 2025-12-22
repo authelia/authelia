@@ -48,7 +48,7 @@ func (r AuthenticationMethodsReferences) FactorKnowledge() bool {
 
 // FactorPossession returns true if a "something you have" factor of authentication was used.
 func (r AuthenticationMethodsReferences) FactorPossession() bool {
-	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.Kerberos
 }
 
 // MultiFactorAuthentication returns true if multiple factors were used.
@@ -63,7 +63,7 @@ func (r AuthenticationMethodsReferences) ChannelBrowser() bool {
 
 // ChannelService returns true if a non-browser service was used to authenticate.
 func (r AuthenticationMethodsReferences) ChannelService() bool {
-	return r.Duo
+	return r.Duo || r.Kerberos
 }
 
 // MultiChannelAuthentication returns true if the user used more than one channel to authenticate.
@@ -90,6 +90,10 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 
 	if r.Duo {
 		amr = append(amr, AMRShortMessageService)
+	}
+
+	if r.Kerberos {
+		amr = append(amr, AMRSoftwareSecuredKey)
 	}
 
 	if r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware {
