@@ -1663,4 +1663,16 @@ session:
               # -----BEGIN CERTIFICATE-----
               # ...
               # -----END CERTIFICATE-----
+
+# SPNEGO:
+  ## Disable SPNEGO authentication.
+  # disable: true
+
+  ## The path to the keytab file.
+  # keytab: '/path/to/keytab/file'
+
+  ## The principal to use from the keytab.
+  # principal: ''
+
+
 ...
