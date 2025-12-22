@@ -693,11 +693,11 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) 
 	return webauthn.New(config)
 }
 
-func (ctx *AutheliaCtx) GetSPNEGOProvider() (spnegoService *spnego.SPNEGO, err error) {
+func (ctx *AutheliaCtx) GetSPNEGOProvider() (*spnego.SPNEGO, error) {
 	// todo: load kt in context
 	kt := &keytab.Keytab{}
 
-	// read file bytes
+	// read file bytes.
 	keyTabFile := "/etc/krb5.keytab"
 	if ctx.Configuration.SPNEGO.Keytab != "" {
 		keyTabFile = ctx.Configuration.SPNEGO.Keytab
@@ -713,14 +713,22 @@ func (ctx *AutheliaCtx) GetSPNEGOProvider() (spnegoService *spnego.SPNEGO, err e
 		return nil, fmt.Errorf("unable to create SPNEGO service: failed to unmarshal keytab file '%s': %w", keyTabFile, err)
 	}
 
+	for _, entry := range kt.Entries {
+		if entry.Principal.String() == ctx.Configuration.SPNEGO.Principal {
+			goto PrincipalFound
+		}
+	}
+
+	return nil, fmt.Errorf("unable to create SPNEGO service: principal '%s' not found in keytab file '%s'", ctx.Configuration.SPNEGO.Principal, keyTabFile)
+
+PrincipalFound:
+
 	host, err := types.GetHostAddress(ctx.RemoteAddr().String())
 
 	if err == nil {
-		spnegoService = spnego.SPNEGOService(kt, service.ClientAddress(host))
-		return
+		return spnego.SPNEGOService(kt, service.DecodePAC(false), service.ClientAddress(host), service.KeytabPrincipal(ctx.Configuration.SPNEGO.Principal)), nil
 	} else {
-		spnegoService = spnego.SPNEGOService(kt)
-		return
+		return spnego.SPNEGOService(kt, service.KeytabPrincipal(ctx.Configuration.SPNEGO.Principal)), nil
 	}
 }
 
