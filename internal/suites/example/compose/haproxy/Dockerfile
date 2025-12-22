@@ -1,4 +1,4 @@
-FROM haproxy:3.3.0-alpine@sha256:bda550a1038ef57a62f8a03eba3dd389a50774738efaccceefbb7189b3286f3f
+FROM haproxy:3.3.1-alpine@sha256:48a5e38c6858fe479c727ebc49984ada607b73c76de2425486dcad4f3df02e1b
 USER root
 
 RUN \
