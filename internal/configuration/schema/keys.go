@@ -417,6 +417,7 @@ var Keys = []string{
 	"spnego.disable",
 	"spnego.keytab",
 	"spnego.principal",
+	"spnego.realm",
 	"storage.encryption_key",
 	"storage.local.path",
 	"storage.mysql.address",
