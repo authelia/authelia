@@ -61,12 +61,12 @@ func (r AuthenticationMethodsReferences) MultiFactorAuthentication() bool {
 
 // ChannelBrowser returns true if a browser was used to authenticate.
 func (r AuthenticationMethodsReferences) ChannelBrowser() bool {
-	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.Kerberos
 }
 
 // ChannelService returns true if a non-browser service was used to authenticate.
 func (r AuthenticationMethodsReferences) ChannelService() bool {
-	return r.Duo || r.Kerberos
+	return r.Duo
 }
 
 // MultiChannelAuthentication returns true if the user used more than one channel to authenticate.
