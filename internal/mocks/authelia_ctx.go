@@ -16,7 +16,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -213,8 +212,6 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia.RandomMock = NewMockRandom(mockAuthelia.Ctrl)
 
 	providers.Random = random.NewMathematical()
-
-	providers.SPNEGOProvider = authentication.NewSPNEGOKeytabProvider(&config.SPNEGO)
 
 	var err error
 	if providers.Templates, err = templates.New(templates.Config{}); err != nil {

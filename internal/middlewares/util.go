@@ -38,7 +38,6 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.Random = &random.Cryptographical{}
 	providers.StorageProvider = storage.NewProvider(config, caCertPool)
 	providers.Authorizer = authorization.NewAuthorizer(config)
-	providers.SPNEGOProvider = authentication.NewSPNEGOKeytabProvider(&config.SPNEGO)
 	providers.NTP = ntp.NewProvider(&config.NTP)
 	providers.PasswordPolicy = NewPasswordPolicyProvider(config.PasswordPolicy)
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, clock.New())
@@ -67,6 +66,12 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 
 	if config.Telemetry.Metrics.Enabled {
 		providers.Metrics = metrics.NewPrometheus()
+	}
+
+	if !config.SPNEGO.Disable {
+		if providers.SPNEGOProvider, err = authentication.NewSPNEGOKeytabProvider(&config.SPNEGO); err != nil {
+			errs = append(errs, err)
+		}
 	}
 
 	return providers, warns, errs
