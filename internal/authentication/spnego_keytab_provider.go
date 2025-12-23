@@ -14,6 +14,10 @@ type SPNEGOKeytabProvider struct {
 }
 
 func NewSPNEGOKeytabProvider(config *schema.SPNEGO) *SPNEGOKeytabProvider {
+	// do not initialize if disabled
+	if config.Disable {
+		return nil
+	}
 
 	keyTabFile := "/etc/krb5.keytab"
 	if config.Keytab != "" {
@@ -22,7 +26,7 @@ func NewSPNEGOKeytabProvider(config *schema.SPNEGO) *SPNEGOKeytabProvider {
 
 	kt, err := keytab.Load(keyTabFile)
 	if err != nil {
-		panic("unable to load SPNEGO keytab file: " + err.Error())
+		return nil
 	}
 
 	return &SPNEGOKeytabProvider{
@@ -32,6 +36,8 @@ func NewSPNEGOKeytabProvider(config *schema.SPNEGO) *SPNEGOKeytabProvider {
 }
 
 func (p *SPNEGOKeytabProvider) GetKeytab() (*keytab.Keytab, error) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
 	return p.kt, nil
 }
 
@@ -39,7 +45,16 @@ func (p *SPNEGOKeytabProvider) Reload() (reloaded bool, err error) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
-	kt, err := keytab.Load(p.config.Keytab)
+	if p.config.Disable {
+		return false, nil
+	}
+
+	keyTabFile := "/etc/krb5.keytab"
+	if p.config.Keytab != "" {
+		keyTabFile = p.config.Keytab
+	}
+
+	kt, err := keytab.Load(keyTabFile)
 	if err != nil {
 		return false, err
 	}
