@@ -89,7 +89,7 @@ To configure [Wapy.dev] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 
 1. Edit your environment variables for Wapy.dev.
 2. Configure the following options:
-    - GENERIC_AUTH_PROVIDER=`{{< sitevar name="auth_provider" nojs="authelia" >}}`
+    - GENERIC_AUTH_PROVIDER=`authelia`
     - GENERIC_AUTH_CLIENT_ID=`wapy`
     - GENERIC_AUTH_CLIENT_SECRET=`insecure_secret`
     - GENERIC_AUTH_ISSUER=`https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
