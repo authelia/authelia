@@ -1,7 +1,7 @@
 ---
 services:
   nginx-portal:
-    image: nginx:1.29.3-alpine
+    image: nginx:1.29.4-alpine
     volumes:
       - ./example/compose/nginx/portal/nginx.conf:/etc/nginx/nginx.conf
       - ./common/pki:/pki

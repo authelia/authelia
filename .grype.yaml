@@ -10,4 +10,14 @@ ignore:
       name: busybox
       version: 1.37.0
       type: binary
+  - vulnerability: CVE-2025-61727
+    package:
+      name: stdlib
+      version: go1.25.4
+      type: go-module
+  - vulnerability: CVE-2025-61729
+    package:
+      name: stdlib
+      version: go1.25.4
+      type: go-module
 ...

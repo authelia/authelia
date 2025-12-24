@@ -1,7 +1,7 @@
 ---
 services:
   envoy:
-    image: envoyproxy/envoy:v1.36.2
+    image: envoyproxy/envoy:v1.36.4
     volumes:
       - ./example/compose/envoy/envoy.yaml:/etc/envoy/envoy.yaml
       - ./common/pki:/pki
