@@ -76,7 +76,6 @@ identity_providers:
           - 'fragment'
         authorization_policy: 'two_factor'
         token_endpoint_auth_method: 'client_secret_post'
-
 ```
 
 ### Application
