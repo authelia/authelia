@@ -100,7 +100,7 @@ GENERIC_AUTH_SCOPE=openid email profile
 
 ```yaml {title="compose.yml"}
 services:
-  wud:
+  wapy:
     environment:
       GENERIC_AUTH_PROVIDER: 'authelia'
       GENERIC_AUTH_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
