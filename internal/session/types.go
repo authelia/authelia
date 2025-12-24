@@ -65,9 +65,10 @@ type WebAuthn struct {
 
 // Identity of the user who is being verified.
 type Identity struct {
-	Username    string
-	Email       string
-	DisplayName string
+	Username        string
+	Email           string
+	DisplayName     string
+	AlternateEmails []string
 }
 
 // Elevations describes various session elevations.

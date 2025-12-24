@@ -128,6 +128,11 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 		}
 	}
 
+	if !utils.IsStringInSlice("mailAlternateAddress", p.usersAttributes) {
+		p.usersAttributes = append(p.usersAttributes, "mailAlternateAddress")
+		p.usersAttributesExtended = append(p.usersAttributesExtended, "mailAlternateAddress")
+	}
+
 	attributesExtended := []string{
 		p.config.Attributes.GivenName,
 		p.config.Attributes.MiddleName,

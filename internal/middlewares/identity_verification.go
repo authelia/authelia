@@ -109,7 +109,14 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		ctx.Logger.Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
 			identity.Username, identity.Email)
 
-		if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationJWTEmailTemplate(), data); err != nil {
+		// Here, the identity has access to identity.AlternateEmails.  We could do a 'send' to each of them.  Or, we could modify the 'Address()' function
+		// to pick the first alternate if it exists or something like that.  But per my reading of the threads, the thing that would make the most sense,
+		// would be to has the desired email passed in on the context.  Then, modify Address() to take this as a parameter, and use that email, or, return
+		// an error.  (Or the default maybe if none is specified?).  Hard to say, but, I'm not sure how to actually get that wired in here.
+
+		ctx.Logger.Debugf("Recovery address is %s", identity.RecoveryAddress())
+
+		if err = ctx.Providers.Notifier.Send(ctx, identity.RecoveryAddress(), args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationJWTEmailTemplate(), data); err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}

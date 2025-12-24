@@ -137,9 +137,7 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 		return nil, err
 	}
 
-	var (
-		groups []string
-	)
+	var groups []string
 
 	if groups, err = p.getUserGroups(client, username, profile); err != nil {
 		return nil, err
@@ -174,9 +172,7 @@ func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDet
 		return nil, err
 	}
 
-	var (
-		groups []string
-	)
+	var groups []string
 
 	if groups, err = p.getUserGroups(client, username, profile.ldapUserProfile); err != nil {
 		return nil, err
@@ -382,7 +378,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 		err = p.modify(client, modifyRequest)
 	}
 
-	//TODO: Better inform users regarding password reuse/password history.
+	// TODO: Better inform users regarding password reuse/password history.
 	if err != nil {
 		if errorCode := getLDAPResultCode(err); errorCode != -1 {
 			switch errorCode {
@@ -538,6 +534,12 @@ func (p *LDAPUserProvider) getUserProfileResultToProfile(username string, entry 
 
 	if userProfile.DN == "" {
 		return nil, fmt.Errorf("user '%s' must have a distinguished name but the result returned an empty distinguished name", username)
+	}
+
+	alternateEmail := getValueFromEntry(entry, "mailAlternateAddress")
+
+	if len(alternateEmail) > 0 {
+		userProfile.Emails = append(userProfile.Emails, alternateEmail)
 	}
 
 	return &userProfile, nil

@@ -217,7 +217,6 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identity, error) {
 	var requestBody resetPasswordStep1RequestBody
-
 	err := json.Unmarshal(ctx.PostBody(), &requestBody)
 	if err != nil {
 		return nil, err
@@ -233,9 +232,10 @@ func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identi
 	}
 
 	return &session.Identity{
-		Username:    requestBody.Username,
-		DisplayName: details.DisplayName,
-		Email:       details.Emails[0],
+		Username:        requestBody.Username,
+		DisplayName:     details.DisplayName,
+		Email:           details.Emails[0],
+		AlternateEmails: details.Emails[1:],
 	}, nil
 }
 
