@@ -7,8 +7,7 @@ draft: false
 images: []
 weight: 620
 toc: true
-aliases:
-  - '/integration/openid-connect/wapy-dev/'
+aliases: []
 support:
   level: community
   versions: true
@@ -33,9 +32,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://payments.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Application Root URL:__ `https://wapy.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `{{< sitevar name="client_id" nojs="wapydev" >}}`
+- __Client ID:__ `wapy`
 - __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
@@ -55,13 +54,13 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-      - client_id: '{{< sitevar name="client_id" nojs="wapydev" >}}'
+      - client_id: 'wapy'
         client_name: 'wapydev'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         sector_identifier_uri: ''
         public: false
         redirect_uris:
-          - 'https://payments.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/oauth2/callback/{{< sitevar name="auth_provider" nojs="authelia" >}}'
+          - 'https://wapy.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/oauth2/callback/authelia'
         audience: []
         scopes:
           - 'openid'
@@ -91,7 +90,7 @@ To configure [Wapy.dev] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 1. Edit your environment variables for Wapy.dev.
 2. Configure the following options:
     - GENERIC_AUTH_PROVIDER=`{{< sitevar name="auth_provider" nojs="authelia" >}}`
-    - GENERIC_AUTH_CLIENT_ID=`{{< sitevar name="client_id" nojs="wapydev" >}}`
+    - GENERIC_AUTH_CLIENT_ID=`wapy`
     - GENERIC_AUTH_CLIENT_SECRET=`insecure_secret`
     - GENERIC_AUTH_ISSUER=`https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
     - GENERIC_AUTH_SCOPE=`openid email profile`
