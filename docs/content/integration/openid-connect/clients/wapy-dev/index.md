@@ -80,20 +80,34 @@ identity_providers:
 
 ### Application
 
-To configure [Wapy.dev] there is one method, using the [Environment options](#environment-options).
+To configure [Wapy.dev] there is one method, using the [Environment Variables](#environment-variables).
 
-#### Environment options
+#### Environment Variables
 
-To configure [Wapy.dev] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
+To configure [Wapy.dev] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
 
-1. Edit your environment variables for Wapy.dev.
-2. Configure the following options:
-    - GENERIC_AUTH_PROVIDER=`authelia`
-    - GENERIC_AUTH_CLIENT_ID=`wapy`
-    - GENERIC_AUTH_CLIENT_SECRET=`insecure_secret`
-    - GENERIC_AUTH_ISSUER=`https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-    - GENERIC_AUTH_SCOPE=`openid email profile`
-3. Save the variables and restart container if needed.
+##### Standard
+
+```shell {title=".env"}
+GENERIC_AUTH_PROVIDER=authelia
+GENERIC_AUTH_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
+GENERIC_AUTH_CLIENT_ID=wapy
+GENERIC_AUTH_CLIENT_SECRET=insecure_secret
+GENERIC_AUTH_SCOPE=openid email profile
+```
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  wud:
+    environment:
+      GENERIC_AUTH_PROVIDER: 'authelia'
+      GENERIC_AUTH_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+      GENERIC_AUTH_CLIENT_ID: 'wapy'
+      GENERIC_AUTH_CLIENT_SECRET: 'insecure_secret'
+      GENERIC_AUTH_SCOPE: 'openid email profile'
+```
 
 ## See Also
 
