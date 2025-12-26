@@ -151,6 +151,45 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 	}, nil
 }
 
+func (p *LDAPUserProvider) GetDetailsForPrincipal(
+	principal string,
+) (details *UserDetails, err error) {
+	var (
+		client  LDAPExtendedClient
+		profile *ldapUserProfile
+	)
+
+	if client, err = p.factory.GetClient(); err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	if profile, err = p.getUserProfileByPrincipal(client, principal); err != nil {
+		return nil, err
+	}
+
+	var (
+		groups []string
+	)
+
+	// Using the principal as input here as the 'username' is using used for logging purposes.
+	if groups, err = p.getUserGroups(client, principal, profile); err != nil {
+		return nil, err
+	}
+
+	return &UserDetails{
+		Username:    profile.Username,
+		DisplayName: profile.DisplayName,
+		Emails:      profile.Emails,
+		Groups:      groups,
+	}, nil
+}
+
 // GetDetailsExtended retrieves the UserDetailsExtended values.
 func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
 	var (
@@ -436,11 +475,46 @@ func (p *LDAPUserProvider) searchReferrals(request *ldap.SearchRequest, result *
 	return nil
 }
 
+func (p *LDAPUserProvider) getUserProfileByPrincipal(
+	client LDAPExtendedClient, principal string) (profile *ldapUserProfile, err error) {
+	query := p.resolveUsersFilter(p.config.PrincipalsFilter, principal)
+
+	// Search for the given principal.
+	request := ldap.NewSearchRequest(
+		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		1, 0, false, query, p.usersAttributes, nil,
+	)
+
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attr", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		Trace("Performing user search by principal")
+
+	var result *ldap.SearchResult
+
+	if result, err = p.search(client, request); err != nil {
+		return nil, fmt.Errorf("cannot find user DN of principal '%s'. Cause: %w", principal, err)
+	}
+
+	if len(result.Entries) == 0 {
+		return nil, ErrUserNotFound
+	}
+
+	if len(result.Entries) > 1 {
+		return nil, fmt.Errorf("there were %d users found when searching for principal '%s' but there should only be 1", len(result.Entries), principal)
+	}
+
+	return p.getUserProfileResultToProfile(principal, result.Entries[0])
+}
+
 func (p *LDAPUserProvider) getUserProfile(client LDAPExtendedClient, username string) (profile *ldapUserProfile, err error) {
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, p.resolveUsersFilter(username), p.usersAttributes, nil,
+		1, 0, false, p.resolveUsersFilter(p.config.UsersFilter, username), p.usersAttributes, nil,
 	)
 
 	p.log.
@@ -513,7 +587,7 @@ func (p *LDAPUserProvider) getUserProfileExtended(client LDAPExtendedClient, use
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, p.resolveUsersFilter(username), p.usersAttributesExtended, nil,
+		1, 0, false, p.resolveUsersFilter(p.config.UsersFilter, username), p.usersAttributesExtended, nil,
 	)
 
 	p.log.
@@ -710,9 +784,7 @@ attributes:
 	return ""
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
-	filter = p.config.UsersFilter
-
+func (p *LDAPUserProvider) resolveUsersFilter(filter string, input string) string {
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
 		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))

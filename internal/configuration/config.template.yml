@@ -541,7 +541,7 @@ identity_validation:
     # additional_principals_dn: 'ou=users'
 
     ## The principal filter used in search queries to find the user profile based on input filled in login form.
-    ## 
+    ##
     ## Recommended setting is as follows:
     ## - FreeIPA: (&(krbPrincipalName={input})(objectClass=krbPrincipalAux))
     ## - Microsoft Active Directory: (&(userPrincipalName={input})(objectClass=user))
