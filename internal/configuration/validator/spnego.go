@@ -12,18 +12,18 @@ func ValidateSpnego(config *schema.Configuration, validator *schema.StructValida
 	}
 
 	if len(config.SPNEGO.Keytab) == 0 {
-		validator.Push(fmt.Errorf("SPNEGO Kerberos authentication is enabled but no keytab file path is configured"))
-	}
-
-	if config.AuthenticationBackend.LDAP == nil {
-		validator.Push(fmt.Errorf("SPNEGO Kerberos authentication is enabled but no LDAP authentication backend is enabled"))
+		validator.Push(fmt.Errorf("spnego: option 'keytab' must be provided"))
 	}
 
 	if config.SPNEGO.Principal == "" {
-		validator.Push(fmt.Errorf("SPNEGO Kerberos authentication is enabled but no service principal is configured"))
+		validator.Push(fmt.Errorf("spnego: option 'principal' must be provided"))
 	}
 
 	if config.SPNEGO.Realm == "" {
-		validator.Push(fmt.Errorf("SPNEGO Kerberos authentication is enabled but no Kerberos realm is configured"))
+		validator.Push(fmt.Errorf("spnego: option 'realm' must be provided"))
+	}
+
+	if config.AuthenticationBackend.LDAP == nil {
+		validator.Push(fmt.Errorf("spnego: kerberos authentication requires LDAP backend to be configured"))
 	}
 }
