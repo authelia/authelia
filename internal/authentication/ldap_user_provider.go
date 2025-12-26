@@ -37,6 +37,14 @@ type LDAPUserProvider struct {
 	usersFilterReplacementDateTimeUnixEpoch            bool
 	usersFilterReplacementDateTimeMicrosoftNTTimeEpoch bool
 
+	principalsBaseDN                                        string
+	principalsAttributes                                    []string
+	principalsAttributesExtended                            []string
+	principalsFilterReplacementInput                        bool
+	principalsFilterReplacementDateTimeGeneralized          bool
+	principalsFilterReplacementDateTimeUnixEpoch            bool
+	principalsFilterReplacementDateTimeMicrosoftNTTimeEpoch bool
+
 	// Dynamically generated groups values.
 	groupsBaseDN                        string
 	groupsAttributes                    []string
@@ -76,6 +84,7 @@ func NewLDAPUserProviderWithFactory(config *schema.AuthenticationBackendLDAP, di
 
 	provider.parseDynamicUsersConfiguration()
 	provider.parseDynamicGroupsConfiguration()
+	provider.parseDynamicPrincipalsConfiguration()
 
 	return provider
 }
@@ -477,12 +486,10 @@ func (p *LDAPUserProvider) searchReferrals(request *ldap.SearchRequest, result *
 
 func (p *LDAPUserProvider) getUserProfileByPrincipal(
 	client LDAPExtendedClient, principal string) (profile *ldapUserProfile, err error) {
-	query := p.resolveUsersFilter(p.config.PrincipalsFilter, principal)
-
 	// Search for the given principal.
 	request := ldap.NewSearchRequest(
-		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, query, p.usersAttributes, nil,
+		p.principalsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		1, 0, false, p.resolvePrincipalsFilter(p.config.PrincipalsFilter, principal), p.principalsAttributes, nil,
 	)
 
 	p.log.
@@ -782,6 +789,29 @@ attributes:
 	}
 
 	return ""
+}
+
+func (p *LDAPUserProvider) resolvePrincipalsFilter(filter string, input string) string {
+	if p.principalsFilterReplacementInput {
+		// The {input} placeholder is replaced by the username input.
+		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+	}
+
+	if p.principalsFilterReplacementDateTimeGeneralized {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeGeneralized, p.clock.Now().UTC().Format(ldapGeneralizedTimeDateTimeFormat))
+	}
+
+	if p.principalsFilterReplacementDateTimeUnixEpoch {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeUnixEpoch, strconv.Itoa(int(p.clock.Now().Unix())))
+	}
+
+	if p.principalsFilterReplacementDateTimeMicrosoftNTTimeEpoch {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch, strconv.FormatUint(utils.UnixNanoTimeToMicrosoftNTEpoch(p.clock.Now().UnixNano()), 10))
+	}
+
+	p.log.Tracef("Detected principal filter is %s", filter)
+
+	return filter
 }
 
 func (p *LDAPUserProvider) resolveUsersFilter(filter string, input string) string {

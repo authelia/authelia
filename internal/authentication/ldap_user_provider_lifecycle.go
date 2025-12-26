@@ -66,7 +66,6 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderDisplayNameAttribute, p.config.Attributes.DisplayName)
 	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderMailAttribute, p.config.Attributes.Mail)
 	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderMemberOfAttribute, p.config.Attributes.MemberOf)
-	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderPrincipalAttribute, p.config.Attributes.Principal)
 
 	p.log.Tracef("Dynamically generated users filter is %s", p.config.UsersFilter)
 
@@ -151,6 +150,98 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 
 	p.log.Tracef("Detected user filter replacements that need to be resolved per lookup are: %s=%v",
 		ldapPlaceholderInput, p.usersFilterReplacementInput)
+}
+
+func (p *LDAPUserProvider) parseDynamicPrincipalsConfiguration() {
+	p.config.PrincipalsFilter = strings.ReplaceAll(p.config.PrincipalsFilter, ldapPlaceholderDistinguishedNameAttribute, p.config.Attributes.DistinguishedName)
+	p.config.PrincipalsFilter = strings.ReplaceAll(p.config.PrincipalsFilter, ldapPlaceholderUsernameAttribute, p.config.Attributes.Username)
+	p.config.PrincipalsFilter = strings.ReplaceAll(p.config.PrincipalsFilter, ldapPlaceholderDisplayNameAttribute, p.config.Attributes.DisplayName)
+	p.config.PrincipalsFilter = strings.ReplaceAll(p.config.PrincipalsFilter, ldapPlaceholderMailAttribute, p.config.Attributes.Mail)
+	p.config.PrincipalsFilter = strings.ReplaceAll(p.config.PrincipalsFilter, ldapPlaceholderMemberOfAttribute, p.config.Attributes.MemberOf)
+	p.config.PrincipalsFilter = strings.ReplaceAll(p.config.PrincipalsFilter, ldapPlaceholderPrincipalAttribute, p.config.Attributes.Principal)
+	p.log.Tracef("Dynamically generated principals filter is %s", p.config.PrincipalsFilter)
+
+	if len(p.config.Attributes.Username) != 0 && !utils.IsStringInSlice(p.config.Attributes.Username, p.principalsAttributes) {
+		p.principalsAttributes = append(p.principalsAttributes, p.config.Attributes.Username)
+		p.principalsAttributesExtended = append(p.principalsAttributesExtended, p.config.Attributes.Username)
+	}
+
+	if len(p.config.Attributes.Mail) != 0 && !utils.IsStringInSlice(p.config.Attributes.Mail, p.principalsAttributes) {
+		p.principalsAttributes = append(p.principalsAttributes, p.config.Attributes.Mail)
+		p.principalsAttributesExtended = append(p.principalsAttributesExtended, p.config.Attributes.Mail)
+	}
+
+	if len(p.config.Attributes.DisplayName) != 0 && !utils.IsStringInSlice(p.config.Attributes.DisplayName, p.principalsAttributes) {
+		p.principalsAttributes = append(p.principalsAttributes, p.config.Attributes.DisplayName)
+		p.principalsAttributesExtended = append(p.principalsAttributesExtended, p.config.Attributes.DisplayName)
+	}
+
+	if len(p.config.Attributes.MemberOf) != 0 {
+		if !utils.IsStringInSlice(p.config.Attributes.MemberOf, p.principalsAttributes) {
+			p.principalsAttributes = append(p.principalsAttributes, p.config.Attributes.MemberOf)
+			p.principalsAttributesExtended = append(p.principalsAttributesExtended, p.config.Attributes.MemberOf)
+		}
+	}
+
+	attributesExtended := []string{
+		p.config.Attributes.GivenName,
+		p.config.Attributes.MiddleName,
+		p.config.Attributes.FamilyName,
+		p.config.Attributes.Nickname,
+		p.config.Attributes.Gender,
+		p.config.Attributes.Birthdate,
+		p.config.Attributes.Website,
+		p.config.Attributes.Profile,
+		p.config.Attributes.Picture,
+		p.config.Attributes.ZoneInfo,
+		p.config.Attributes.Locale,
+		p.config.Attributes.PhoneNumber,
+		p.config.Attributes.PhoneExtension,
+		p.config.Attributes.StreetAddress,
+		p.config.Attributes.Locality,
+		p.config.Attributes.Region,
+		p.config.Attributes.PostalCode,
+		p.config.Attributes.Country,
+	}
+
+	for _, attribute := range attributesExtended {
+		if len(attribute) != 0 && !utils.IsStringInSlice(attribute, p.principalsAttributesExtended) {
+			p.principalsAttributesExtended = append(p.principalsAttributesExtended, attribute)
+		}
+	}
+
+	for attribute := range p.config.Attributes.Extra {
+		if !utils.IsStringInSlice(attribute, p.principalsAttributesExtended) {
+			p.principalsAttributesExtended = append(p.principalsAttributesExtended, attribute)
+		}
+	}
+
+	if p.config.AdditionalPrincipalsDN != "" {
+		p.principalsBaseDN = p.config.AdditionalPrincipalsDN + "," + p.config.BaseDN
+	} else {
+		p.principalsBaseDN = p.config.BaseDN
+	}
+
+	p.log.Tracef("Dynamically generated principals BaseDN is %s", p.principalsBaseDN)
+
+	if strings.Contains(p.config.PrincipalsFilter, ldapPlaceholderInput) {
+		p.principalsFilterReplacementInput = true
+	}
+
+	if strings.Contains(p.config.PrincipalsFilter, ldapPlaceholderDateTimeGeneralized) {
+		p.principalsFilterReplacementDateTimeGeneralized = true
+	}
+
+	if strings.Contains(p.config.PrincipalsFilter, ldapPlaceholderDateTimeUnixEpoch) {
+		p.principalsFilterReplacementDateTimeUnixEpoch = true
+	}
+
+	if strings.Contains(p.config.PrincipalsFilter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch) {
+		p.principalsFilterReplacementDateTimeMicrosoftNTTimeEpoch = true
+	}
+
+	p.log.Tracef("Detected principals filter replacements that need to be resolved per lookup are: %s=%v",
+		ldapPlaceholderInput, p.principalsFilterReplacementInput)
 }
 
 func (p *LDAPUserProvider) parseDynamicGroupsConfiguration() {
