@@ -794,8 +794,6 @@ attributes:
 func (p *LDAPUserProvider) resolvePrincipalsFilter(input string) string {
 	filter := p.config.PrincipalsFilter
 
-	fmt.Println("principals filter is ", p.config.PrincipalsFilter)
-
 	if p.principalsFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
 		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
