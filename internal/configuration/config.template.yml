@@ -538,6 +538,16 @@ identity_validation:
     ## (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     # users_filter: '(&({username_attribute}={input})(objectClass=person))'
 
+    # additional_principals_dn: 'ou=users'
+
+    ## The principal filter used in search queries to find the user profile based on input filled in login form.
+    ## 
+    ## Recommended setting is as follows:
+    ## - FreeIPA: (&(krbPrincipalName={input})(objectClass=krbPrincipalAux))
+    ## - Microsoft Active Directory: (&(userPrincipalName={input})(objectClass=user))
+    ##
+    # principals_filter: '(&(krbPrincipalName={input})(objectClass=krbPrincipalAux))'
+
     ## The additional_groups_dn is prefixed to base_dn and delimited by a comma when searching for groups.
     ## i.e. with this set to OU=Groups and base_dn set to DC=a,DC=com; OU=Groups,DC=a,DC=com is searched for groups.
     # additional_groups_dn: 'ou=groups'

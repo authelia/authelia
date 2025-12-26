@@ -145,6 +145,9 @@ type AuthenticationBackendLDAP struct {
 	GroupsFilter       string `koanf:"groups_filter" yaml:"groups_filter,omitempty" toml:"groups_filter,omitempty" json:"groups_filter,omitempty" jsonschema:"title=Groups Filter" jsonschema_description:"The LDAP filter used to search for group objects."`
 	GroupSearchMode    string `koanf:"group_search_mode" yaml:"group_search_mode,omitempty" toml:"group_search_mode,omitempty" json:"group_search_mode,omitempty" jsonschema:"default=filter,enum=filter,enum=memberof,title=Groups Search Modes" jsonschema_description:"The LDAP group search mode used to search for group objects."`
 
+	AdditionalPrincipalsDN string `koanf:"additional_principals_dn" yaml:"additional_principals_dn,omitempty" toml:"additional_principals_dn,omitempty" json:"additional_principals_dn,omitempty" jsonschema:"title=Additional Principal Base" jsonschema_description:"The base in addition to the Base DN for all directory server operations for principals."`
+	PrincipalsFilter       string `koanf:"principals_filter" yaml:"principals_filter,omitempty" toml:"principals_filter,omitempty" json:"principals_filter,omitempty" jsonschema:"title=Principal Filter" jsonschema_description:"The LDAP filter used to search for principal objects."`
+
 	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" yaml:"attributes,omitempty" toml:"attributes,omitempty" json:"attributes,omitempty"`
 
 	PermitReferrals               bool `koanf:"permit_referrals" yaml:"permit_referrals" toml:"permit_referrals" json:"permit_referrals" jsonschema:"default=false,title=Permit Referrals" jsonschema_description:"Enables chasing LDAP referrals."`
