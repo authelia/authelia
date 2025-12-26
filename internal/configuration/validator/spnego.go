@@ -7,19 +7,20 @@ import (
 )
 
 func ValidateSpnego(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.SPNEGO.Disable == true {
+	if !config.SPNEGO.Enabled {
 		return
 	}
+
+	if len(config.SPNEGO.Keytab) == 0 {
+		validator.Push(fmt.Errorf("SPNEGO Kerberos authentication is enabled but no keytab file path is configured"))
+	}
+
 	if config.AuthenticationBackend.LDAP == nil {
 		validator.Push(fmt.Errorf("SPNEGO Kerberos authentication is enabled but no LDAP authentication backend is enabled"))
 	}
 
 	if config.SPNEGO.Principal == "" {
 		validator.Push(fmt.Errorf("SPNEGO Kerberos authentication is enabled but no service principal is configured"))
-	}
-
-	if config.SPNEGO.Keytab == "" {
-		validator.Push(fmt.Errorf("SPNEGO Kerberos authentication is enabled but no keytab file path is configured"))
 	}
 
 	if config.SPNEGO.Realm == "" {

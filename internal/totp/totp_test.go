@@ -123,7 +123,7 @@ func TestTOTPGenerateCustom(t *testing.T) {
 				assert.Equal(t, tc.digits, c.Digits)
 				assert.Equal(t, tc.algorithm, c.Algorithm)
 
-				expectedSecretLen := int(tc.secretSize) //nolint:gosec
+				expectedSecretLen := int(tc.secretSize)
 				if tc.secret != "" {
 					expectedSecretLen = base32.StdEncoding.WithPadding(base32.NoPadding).DecodedLen(len(tc.secret))
 				}

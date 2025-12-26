@@ -139,7 +139,7 @@ func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, inval
 	}
 
 	credential.ValidationOptions = totp.ValidateOpts{
-		Period:    uint(uperiod), //nolint:gosec // This is a test function.
+		Period:    uint(uperiod),
 		Skew:      1,
 		Digits:    otp.Digits(udigits),
 		Algorithm: alg,

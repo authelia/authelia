@@ -22,7 +22,6 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 		case AMRUserPresence:
 			amr.WebAuthnUserVerified = true
 		case AMRWindowsIntegratedAuthentication:
-			// Kerberos is the only WIA method Authelia supports currently.
 			amr.Kerberos = true
 		}
 	}

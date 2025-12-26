@@ -3,8 +3,9 @@ package authentication
 import (
 	"sync"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/jcmturner/gokrb5/v8/keytab"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 type SPNEGOKeytabProvider struct {
@@ -14,12 +15,7 @@ type SPNEGOKeytabProvider struct {
 }
 
 func NewSPNEGOKeytabProvider(config *schema.SPNEGO) (*SPNEGOKeytabProvider, error) {
-	keyTabFile := "/etc/krb5.keytab"
-	if config.Keytab != "" {
-		keyTabFile = config.Keytab
-	}
-
-	kt, err := keytab.Load(keyTabFile)
+	kt, err := keytab.Load(config.Keytab)
 	if err != nil {
 		return nil, err
 	}
@@ -33,6 +29,7 @@ func NewSPNEGOKeytabProvider(config *schema.SPNEGO) (*SPNEGOKeytabProvider, erro
 func (p *SPNEGOKeytabProvider) GetKeytab() (*keytab.Keytab, error) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
+
 	return p.kt, nil
 }
 

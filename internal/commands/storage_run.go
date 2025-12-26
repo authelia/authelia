@@ -1417,7 +1417,7 @@ func runStorageUserTOTPGenerate(ctx context.Context, w io.Writer, store storage.
 
 	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
 
-	if c, err = totpProvider.GenerateCustom(totp.NewContext(ctx, &clock.Real{}, &random.Cryptographical{}), username, config.TOTP.DefaultAlgorithm, secret, uint32(config.TOTP.DefaultDigits), uint(config.TOTP.DefaultPeriod), uint(config.TOTP.SecretSize)); err != nil { //nolint:gosec // Validated at runtime.
+	if c, err = totpProvider.GenerateCustom(totp.NewContext(ctx, &clock.Real{}, &random.Cryptographical{}), username, config.TOTP.DefaultAlgorithm, secret, uint32(config.TOTP.DefaultDigits), uint(config.TOTP.DefaultPeriod), uint(config.TOTP.SecretSize)); err != nil {
 		return err
 	}
 

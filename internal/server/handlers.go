@@ -78,7 +78,7 @@ func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
 			if matches := reTLSRequestOnPlainTextSocketErr.FindStringSubmatch(err.Error()); len(matches) == 3 {
 				if version, verr := utils.TLSVersionFromBytesString(matches[1] + matches[2]); verr == nil && version != -1 {
 					statusCode = fasthttp.StatusBadRequest
-					message = fmt.Sprintf(errFmtMessageServerTLSVersion, tls.VersionName(uint16(version))) //nolint:gosec // This conversion is safe as the only versions potentially returned are from the crypto/tls pkg.
+					message = fmt.Sprintf(errFmtMessageServerTLSVersion, tls.VersionName(uint16(version)))
 				}
 			}
 		}
@@ -332,8 +332,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialDELETE))
 	}
 
-	// SPNEGO KRB5 Authentication related Endpoint.
-	if !config.SPNEGO.Disable {
+	if config.SPNEGO.Enabled {
 		r.POST("/api/firstfactor/spnego", middlewareAPI(handlers.FirstFactorSPNEGOPOST))
 	}
 

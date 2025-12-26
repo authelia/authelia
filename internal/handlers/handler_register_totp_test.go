@@ -145,8 +145,8 @@ func TestTOTPRegisterPUT(t *testing.T) {
 						Return(*totp.NewTOTPOptionsFromSchema(mock.Ctx.Configuration.TOTP)),
 					mock.TOTPMock.
 						EXPECT().
-						GenerateCustom(mock.Ctx, testUsername, mock.Ctx.Configuration.TOTP.DefaultAlgorithm, "", uint32(mock.Ctx.Configuration.TOTP.DefaultDigits), uint(mock.Ctx.Configuration.TOTP.DefaultPeriod), uint(0)).                                      //nolint:gosec
-						Return(&model.TOTPConfiguration{Username: testUsername, Algorithm: mock.Ctx.Configuration.TOTP.DefaultAlgorithm, Digits: uint32(mock.Ctx.Configuration.TOTP.DefaultDigits), Period: uint(mock.Ctx.Configuration.TOTP.DefaultPeriod)}, nil), //nolint:gosec
+						GenerateCustom(mock.Ctx, testUsername, mock.Ctx.Configuration.TOTP.DefaultAlgorithm, "", uint32(mock.Ctx.Configuration.TOTP.DefaultDigits), uint(mock.Ctx.Configuration.TOTP.DefaultPeriod), uint(0)).
+						Return(&model.TOTPConfiguration{Username: testUsername, Algorithm: mock.Ctx.Configuration.TOTP.DefaultAlgorithm, Digits: uint32(mock.Ctx.Configuration.TOTP.DefaultDigits), Period: uint(mock.Ctx.Configuration.TOTP.DefaultPeriod)}, nil),
 				)
 			},
 			`{"status":"OK","data":{"base32_secret":"","otpauth_url":"otpauth://totp/:john?algorithm=SHA1\u0026digits=6\u0026issuer=\u0026period=30\u0026secret="}}`,
@@ -251,7 +251,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 						Return(*totp.NewTOTPOptionsFromSchema(mock.Ctx.Configuration.TOTP)),
 					mock.TOTPMock.
 						EXPECT().
-						GenerateCustom(mock.Ctx, testUsername, mock.Ctx.Configuration.TOTP.DefaultAlgorithm, "", uint32(mock.Ctx.Configuration.TOTP.DefaultDigits), uint(mock.Ctx.Configuration.TOTP.DefaultPeriod), uint(0)). //nolint:gosec
+						GenerateCustom(mock.Ctx, testUsername, mock.Ctx.Configuration.TOTP.DefaultAlgorithm, "", uint32(mock.Ctx.Configuration.TOTP.DefaultDigits), uint(mock.Ctx.Configuration.TOTP.DefaultPeriod), uint(0)).
 						Return(nil, fmt.Errorf("no issuer")),
 				)
 			},

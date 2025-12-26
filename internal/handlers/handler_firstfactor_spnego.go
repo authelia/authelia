@@ -26,10 +26,6 @@ const (
 	// spnegoNegTokenRespIncompleteKRB5 - Response token specifying incomplete context and KRB5 as the supported mechtype.
 	spnegoNegTokenRespIncompleteKRB5 = "Negotiate oRQwEqADCgEBoQsGCSqGSIb3EgECAg==" // #nosec
 
-	// HTTPHeaderAuthRequest is the header that will hold authn/z information.
-	HTTPHeaderAuthRequest = "Authorization"
-	// HTTPHeaderAuthResponse is the header that will hold SPNEGO data from the server.
-	HTTPHeaderAuthResponse = "WWW-Authenticate"
 	// HTTPHeaderAuthResponseValueKey is the key in the auth header for SPNEGO.
 	HTTPHeaderAuthResponseValueKey = "Negotiate"
 	ctxCredentials                 = "github.com/jcmturner/gokrb5/v8/ctxCredentials" // #nosec
@@ -38,7 +34,7 @@ const (
 func parseAuthorizationHeader(header []byte) (string, error) {
 	s := strings.SplitN(string(header), " ", 2)
 	if len(s) != 2 || s[0] != HTTPHeaderAuthResponseValueKey {
-		return "", fmt.Errorf("missing or malformed %s header", HTTPHeaderAuthRequest)
+		return "", fmt.Errorf("missing or malformed %s header", fasthttp.HeaderAuthorization)
 	}
 
 	return s[1], nil
@@ -90,13 +86,12 @@ func FirstFactorSPNEGOPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	header, err := parseAuthorizationHeader(ctx.Request.Header.Peek(HTTPHeaderAuthRequest))
+	header, err := parseAuthorizationHeader(ctx.Request.Header.Peek(fasthttp.HeaderAuthorization))
 	if err != nil {
-		// This NEEDS to be a 401 to trigger the client to send the ticket.
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
-		ctx.Response.Header.Set(HTTPHeaderAuthResponse, HTTPHeaderAuthResponseValueKey)
+		ctx.Response.Header.Set(fasthttp.HeaderWWWAuthenticate, HTTPHeaderAuthResponseValueKey)
 
-		ctx.Logger.WithError(fmt.Errorf("missing or malformed %s header", HTTPHeaderAuthRequest)).Errorf(logFmtErrKerberosAuthenticationChallengeGenerate, errStrReqHeaderParse)
+		ctx.Logger.WithError(fmt.Errorf("missing or malformed %s header", fasthttp.HeaderAuthorization)).Errorf(logFmtErrKerberosAuthenticationChallengeGenerate, errStrReqHeaderParse)
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypeKerberos, nil)
 
@@ -105,9 +100,8 @@ func FirstFactorSPNEGOPOST(ctx *middlewares.AutheliaCtx) {
 
 	token, err := parseSPNEGOToken(header)
 	if err != nil {
-		// This NEEDS to be a 401 to trigger the client to send the ticket.
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
-		ctx.Response.Header.Set(HTTPHeaderAuthResponse, spnegoNegTokenRespIncompleteKRB5)
+		ctx.Response.Header.Set(fasthttp.HeaderWWWAuthenticate, spnegoNegTokenRespIncompleteKRB5)
 
 		ctx.Logger.WithError(fmt.Errorf("error parsing SPNEGO token: %w", err)).Errorf(logFmtErrKerberosAuthenticationChallengeGenerate, errStrReqHeaderParse)
 
@@ -119,7 +113,7 @@ func FirstFactorSPNEGOPOST(ctx *middlewares.AutheliaCtx) {
 	kerberosProvider, err := ctx.GetSPNEGOProvider()
 	if err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.Response.Header.Set(HTTPHeaderAuthResponse, spnegoNegTokenRespReject)
+		ctx.Response.Header.Set(fasthttp.HeaderWWWAuthenticate, spnegoNegTokenRespReject)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
 		ctx.Logger.WithError(err).Errorf(logFmtErrKerberosAuthenticationChallengeGenerate, "error obtaining SPNEGO service")
@@ -130,6 +124,27 @@ func FirstFactorSPNEGOPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	authed, context, status := kerberosProvider.AcceptSecContext(token)
+
+	if status.Code == gssapi.StatusContinueNeeded {
+		// we need to continue the negotiation.
+		ctx.Response.Header.Set(fasthttp.HeaderWWWAuthenticate, spnegoNegTokenRespIncompleteKRB5)
+		respondUnauthorized(ctx, messageAuthenticationFailed)
+
+		return
+	}
+
+	if status.Code != gssapi.StatusComplete || !authed {
+		if isRegulatorSkippedErr(err) {
+			ctx.Logger.WithError(err).Errorf("Unsuccessful %s authentication attempt", regulation.AuthTypeKerberos)
+		} else {
+			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypeKerberos, err)
+		}
+
+		ctx.Response.Header.Set(fasthttp.HeaderWWWAuthenticate, spnegoNegTokenRespReject)
+		respondUnauthorized(ctx, messageAuthenticationFailed)
+
+		return
+	}
 
 	var (
 		userDetails  *authentication.UserDetails
@@ -158,27 +173,6 @@ func FirstFactorSPNEGOPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthTypeKerberos, userDetails.Username)
 
-		respondUnauthorized(ctx, messageAuthenticationFailed)
-
-		return
-	}
-
-	if status.Code == gssapi.StatusContinueNeeded {
-		// we need to continue the negotiation.
-		ctx.Response.Header.Set(HTTPHeaderAuthResponse, spnegoNegTokenRespIncompleteKRB5)
-		respondUnauthorized(ctx, messageAuthenticationFailed)
-
-		return
-	}
-
-	if status.Code != gssapi.StatusComplete && status.Code != gssapi.StatusContinueNeeded || !authed {
-		if isRegulatorSkippedErr(err) {
-			ctx.Logger.WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthTypeKerberos, userDetails.Username)
-		} else {
-			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userDetails.Username, nil), regulation.AuthTypeKerberos, err)
-		}
-
-		ctx.Response.Header.Set(HTTPHeaderAuthResponse, spnegoNegTokenRespReject)
 		respondUnauthorized(ctx, messageAuthenticationFailed)
 
 		return
@@ -257,7 +251,7 @@ func FirstFactorSPNEGOPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.Response.Header.Set(HTTPHeaderAuthResponse, spnegoNegTokenRespKRBAcceptCompleted)
+	ctx.Response.Header.Set(fasthttp.HeaderWWWAuthenticate, spnegoNegTokenRespKRBAcceptCompleted)
 
 	if len(bodyJSON.Flow) > 0 {
 		handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
