@@ -489,7 +489,7 @@ func (p *LDAPUserProvider) getUserProfileByPrincipal(
 	// Search for the given principal.
 	request := ldap.NewSearchRequest(
 		p.principalsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, p.resolvePrincipalsFilter(p.config.PrincipalsFilter, principal), p.principalsAttributes, nil,
+		1, 0, false, p.resolvePrincipalsFilter(principal), p.principalsAttributes, nil,
 	)
 
 	p.log.
@@ -521,7 +521,7 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPExtendedClient, username st
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, p.resolveUsersFilter(p.config.UsersFilter, username), p.usersAttributes, nil,
+		1, 0, false, p.resolveUsersFilter(username), p.usersAttributes, nil,
 	)
 
 	p.log.
@@ -594,7 +594,7 @@ func (p *LDAPUserProvider) getUserProfileExtended(client LDAPExtendedClient, use
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, p.resolveUsersFilter(p.config.UsersFilter, username), p.usersAttributesExtended, nil,
+		1, 0, false, p.resolveUsersFilter(username), p.usersAttributesExtended, nil,
 	)
 
 	p.log.
@@ -791,7 +791,11 @@ attributes:
 	return ""
 }
 
-func (p *LDAPUserProvider) resolvePrincipalsFilter(filter string, input string) string {
+func (p *LDAPUserProvider) resolvePrincipalsFilter(input string) string {
+	filter := p.config.PrincipalsFilter
+
+	fmt.Println("principals filter is ", p.config.PrincipalsFilter)
+
 	if p.principalsFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
 		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
@@ -814,7 +818,9 @@ func (p *LDAPUserProvider) resolvePrincipalsFilter(filter string, input string) 
 	return filter
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(filter string, input string) string {
+func (p *LDAPUserProvider) resolveUsersFilter(input string) string {
+	filter := p.config.UsersFilter
+
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
 		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))

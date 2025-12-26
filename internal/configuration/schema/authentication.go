@@ -334,7 +334,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis = Auth
 var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = AuthenticationBackendLDAP{
 	UsersFilter:      "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
 	GroupsFilter:     "(&(member={dn})(objectClass=groupOfNames))",
-	PrincipalsFilter: "(&({principal_attribute}={input})(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
+	PrincipalsFilter: "(&({principal_attribute}={input})(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>=20251226135332.2Z)(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>=20251226135332.2Z)))",
 	GroupSearchMode:  ldapGroupSearchModeFilter,
 	Attributes: AuthenticationBackendLDAPAttributes{
 		Username:    ldapAttrUserID,

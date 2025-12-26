@@ -6875,7 +6875,7 @@ func TestShouldParseDynamicConfiguration(t *testing.T) {
 	assert.Equal(t, "ou=users,dc=example,dc=com", provider.usersBaseDN)
 	assert.Equal(t, "ou=groups,dc=example,dc=com", provider.groupsBaseDN)
 
-	assert.Equal(t, "(&(|(uid=test@example.com)(mail=test@example.com))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpiresM>=133147241190000000)(accountExpiresU>=1670250519)(accountExpiresG>=20221205142839.0Z)))", provider.resolveUsersFilter(provider.config.UsersFilter, "test@example.com"))
+	assert.Equal(t, "(&(|(uid=test@example.com)(mail=test@example.com))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpiresM>=133147241190000000)(accountExpiresU>=1670250519)(accountExpiresG>=20221205142839.0Z)))", provider.resolveUsersFilter("test@example.com"))
 	assert.Equal(t, "(&(|(member=cn=admin,dc=example,dc=com)(member=test@example.com)(member=test))(objectClass=group))", provider.resolveGroupsFilter("test@example.com", &ldapUserProfile{Username: "test", DN: "cn=admin,dc=example,dc=com"}))
 }
 
