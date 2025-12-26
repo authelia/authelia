@@ -702,7 +702,7 @@ func (ctx *AutheliaCtx) GetSPNEGOProvider() (*spnego.SPNEGO, error) {
 		return spnego.SPNEGOService(kt, service.KeytabPrincipal(ctx.Configuration.SPNEGO.Principal)), nil
 	}
 
-	return spnego.SPNEGOService(kt, service.DecodePAC(true), service.ClientAddress(host), service.KeytabPrincipal(ctx.Configuration.SPNEGO.Principal)), nil
+	return spnego.SPNEGOService(kt, service.DecodePAC(false), service.ClientAddress(host), service.KeytabPrincipal(ctx.Configuration.SPNEGO.Principal)), nil
 }
 
 // Value is a shaded method of context.Context which returns the AutheliaCtx struct if the key is the internal key
