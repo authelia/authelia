@@ -37,12 +37,7 @@ func (p *SPNEGOKeytabProvider) Reload() (reloaded bool, err error) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
-	keyTabFile := "/etc/krb5.keytab"
-	if p.config.Keytab != "" {
-		keyTabFile = p.config.Keytab
-	}
-
-	kt, err := keytab.Load(keyTabFile)
+	kt, err := keytab.Load(p.config.Keytab)
 	if err != nil {
 		return false, err
 	}
