@@ -66,6 +66,7 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderDisplayNameAttribute, p.config.Attributes.DisplayName)
 	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderMailAttribute, p.config.Attributes.Mail)
 	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderMemberOfAttribute, p.config.Attributes.MemberOf)
+	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderPrincipalAttribute, p.config.Attributes.Principal)
 
 	p.log.Tracef("Dynamically generated users filter is %s", p.config.UsersFilter)
 

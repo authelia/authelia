@@ -167,32 +167,32 @@ type AuthenticationBackendLDAPPooling struct {
 
 // AuthenticationBackendLDAPAttributes represents the configuration related to LDAP server attributes.
 type AuthenticationBackendLDAPAttributes struct {
-	DistinguishedName string `koanf:"distinguished_name" yaml:"distinguished_name,omitempty" toml:"distinguished_name,omitempty" json:"distinguished_name,omitempty" jsonschema:"title=Attribute: Distinguished Name" jsonschema_description:"The directory server attribute which contains the distinguished name for all objects."`
-	Username          string `koanf:"username" yaml:"username,omitempty" toml:"username,omitempty" json:"username,omitempty" jsonschema:"title=Attribute: User Username" jsonschema_description:"The directory server attribute which contains the username for all users."`
-	DisplayName       string `koanf:"display_name" yaml:"display_name,omitempty" toml:"display_name,omitempty" json:"display_name,omitempty" jsonschema:"title=Attribute: User Display Name" jsonschema_description:"The directory server attribute which contains the display name for all users."`
-	FamilyName        string `koanf:"family_name" yaml:"family_name,omitempty" toml:"family_name,omitempty" json:"family_name,omitempty" jsonschema:"title=Attribute: Family Name" jsonschema_description:"The directory server attribute which contains the family name for all users."`
-	GivenName         string `koanf:"given_name" yaml:"given_name,omitempty" toml:"given_name,omitempty" json:"given_name,omitempty" jsonschema:"title=Attribute: Given Name" jsonschema_description:"The directory server attribute which contains the given name for all users."`
-	MiddleName        string `koanf:"middle_name" yaml:"middle_name,omitempty" toml:"middle_name,omitempty" json:"middle_name,omitempty" jsonschema:"title=Attribute: Middle Name" jsonschema_description:"The directory server attribute which contains the middle name for all users."`
-	Nickname          string `koanf:"nickname" yaml:"nickname,omitempty" toml:"nickname,omitempty" json:"nickname,omitempty" jsonschema:"title=Attribute: Nickname" jsonschema_description:"The directory server attribute which contains the nickname for all users."`
-	Gender            string `koanf:"gender" yaml:"gender,omitempty" toml:"gender,omitempty" json:"gender,omitempty" jsonschema:"title=Attribute: Gender" jsonschema_description:"The directory server attribute which contains the gender for all users."`
-	Birthdate         string `koanf:"birthdate" yaml:"birthdate,omitempty" toml:"birthdate,omitempty" json:"birthdate,omitempty" jsonschema:"title=Attribute: Birthdate" jsonschema_description:"The directory server attribute which contains the birthdate for all users."`
-	Website           string `koanf:"website" yaml:"website,omitempty" toml:"website,omitempty" json:"website,omitempty" jsonschema:"title=Attribute: Website" jsonschema_description:"The directory server attribute which contains the website URL for all users."`
-	Profile           string `koanf:"profile" yaml:"profile,omitempty" toml:"profile,omitempty" json:"profile,omitempty" jsonschema:"title=Attribute: Profile" jsonschema_description:"The directory server attribute which contains the profile URL for all users."`
-	Picture           string `koanf:"picture" yaml:"picture,omitempty" toml:"picture,omitempty" json:"picture,omitempty" jsonschema:"title=Attribute: Picture" jsonschema_description:"The directory server attribute which contains the picture URL for all users."`
-	ZoneInfo          string `koanf:"zoneinfo" yaml:"zoneinfo,omitempty" toml:"zoneinfo,omitempty" json:"zoneinfo,omitempty" jsonschema:"title=Attribute: Zone Information" jsonschema_description:"The directory server attribute which contains the time zone information for all users."`
-	Locale            string `koanf:"locale" yaml:"locale,omitempty" toml:"locale,omitempty" json:"locale,omitempty" jsonschema:"title=Attribute: Locale" jsonschema_description:"The directory server attribute which contains the locale information for all users."`
-	PhoneNumber       string `koanf:"phone_number" yaml:"phone_number,omitempty" toml:"phone_number,omitempty" json:"phone_number,omitempty" jsonschema:"title=Attribute: Phone Number" jsonschema_description:"The directory server attribute which contains the phone number for all users."`
-	PhoneExtension    string `koanf:"phone_extension" yaml:"phone_extension,omitempty" toml:"phone_extension,omitempty" json:"phone_extension,omitempty" jsonschema:"title=Attribute: Phone Extension" jsonschema_description:"The directory server attribute which contains the phone extension for all users."`
-	StreetAddress     string `koanf:"street_address" yaml:"street_address,omitempty" toml:"street_address,omitempty" json:"street_address,omitempty" jsonschema:"title=Attribute: Street Address" jsonschema_description:"The directory server attribute which contains the street address for all users."`
-	Locality          string `koanf:"locality" yaml:"locality,omitempty" toml:"locality,omitempty" json:"locality,omitempty" jsonschema:"title=Attribute: Locality" jsonschema_description:"The directory server attribute which contains the locality for all users."`
-	Region            string `koanf:"region" yaml:"region,omitempty" toml:"region,omitempty" json:"region,omitempty" jsonschema:"title=Attribute: Region" jsonschema_description:"The directory server attribute which contains the region for all users."`
-	PostalCode        string `koanf:"postal_code" yaml:"postal_code,omitempty" toml:"postal_code,omitempty" json:"postal_code,omitempty" jsonschema:"title=Attribute: Postal Code" jsonschema_description:"The directory server attribute which contains the postal code for all users."`
-	Country           string `koanf:"country" yaml:"country,omitempty" toml:"country,omitempty" json:"country,omitempty" jsonschema:"title=Attribute: Country" jsonschema_description:"The directory server attribute which contains the country for all users."`
-	Mail              string `koanf:"mail" yaml:"mail,omitempty" toml:"mail,omitempty" json:"mail,omitempty" jsonschema:"title=Attribute: User Mail" jsonschema_description:"The directory server attribute which contains the mail address for all users and groups."`
-	MemberOf          string `koanf:"member_of" yaml:"member_of,omitempty" toml:"member_of,omitempty" json:"member_of,omitempty" jsonschema:"title=Attribute: Member Of" jsonschema_description:"The directory server attribute which contains the objects that an object is a member of."`
-	GroupName         string `koanf:"group_name" yaml:"group_name,omitempty" toml:"group_name,omitempty" json:"group_name,omitempty" jsonschema:"title=Attribute: Group Name" jsonschema_description:"The directory server attribute which contains the group name for all groups."`
-
-	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
+	DistinguishedName string                                                  `koanf:"distinguished_name" yaml:"distinguished_name,omitempty" toml:"distinguished_name,omitempty" json:"distinguished_name,omitempty" jsonschema:"title=Attribute: Distinguished Name" jsonschema_description:"The directory server attribute which contains the distinguished name for all objects."`
+	Username          string                                                  `koanf:"username" yaml:"username,omitempty" toml:"username,omitempty" json:"username,omitempty" jsonschema:"title=Attribute: User Username" jsonschema_description:"The directory server attribute which contains the username for all users."`
+	DisplayName       string                                                  `koanf:"display_name" yaml:"display_name,omitempty" toml:"display_name,omitempty" json:"display_name,omitempty" jsonschema:"title=Attribute: User Display Name" jsonschema_description:"The directory server attribute which contains the display name for all users."`
+	FamilyName        string                                                  `koanf:"family_name" yaml:"family_name,omitempty" toml:"family_name,omitempty" json:"family_name,omitempty" jsonschema:"title=Attribute: Family Name" jsonschema_description:"The directory server attribute which contains the family name for all users."`
+	GivenName         string                                                  `koanf:"given_name" yaml:"given_name,omitempty" toml:"given_name,omitempty" json:"given_name,omitempty" jsonschema:"title=Attribute: Given Name" jsonschema_description:"The directory server attribute which contains the given name for all users."`
+	MiddleName        string                                                  `koanf:"middle_name" yaml:"middle_name,omitempty" toml:"middle_name,omitempty" json:"middle_name,omitempty" jsonschema:"title=Attribute: Middle Name" jsonschema_description:"The directory server attribute which contains the middle name for all users."`
+	Nickname          string                                                  `koanf:"nickname" yaml:"nickname,omitempty" toml:"nickname,omitempty" json:"nickname,omitempty" jsonschema:"title=Attribute: Nickname" jsonschema_description:"The directory server attribute which contains the nickname for all users."`
+	Gender            string                                                  `koanf:"gender" yaml:"gender,omitempty" toml:"gender,omitempty" json:"gender,omitempty" jsonschema:"title=Attribute: Gender" jsonschema_description:"The directory server attribute which contains the gender for all users."`
+	Birthdate         string                                                  `koanf:"birthdate" yaml:"birthdate,omitempty" toml:"birthdate,omitempty" json:"birthdate,omitempty" jsonschema:"title=Attribute: Birthdate" jsonschema_description:"The directory server attribute which contains the birthdate for all users."`
+	Website           string                                                  `koanf:"website" yaml:"website,omitempty" toml:"website,omitempty" json:"website,omitempty" jsonschema:"title=Attribute: Website" jsonschema_description:"The directory server attribute which contains the website URL for all users."`
+	Profile           string                                                  `koanf:"profile" yaml:"profile,omitempty" toml:"profile,omitempty" json:"profile,omitempty" jsonschema:"title=Attribute: Profile" jsonschema_description:"The directory server attribute which contains the profile URL for all users."`
+	Picture           string                                                  `koanf:"picture" yaml:"picture,omitempty" toml:"picture,omitempty" json:"picture,omitempty" jsonschema:"title=Attribute: Picture" jsonschema_description:"The directory server attribute which contains the picture URL for all users."`
+	ZoneInfo          string                                                  `koanf:"zoneinfo" yaml:"zoneinfo,omitempty" toml:"zoneinfo,omitempty" json:"zoneinfo,omitempty" jsonschema:"title=Attribute: Zone Information" jsonschema_description:"The directory server attribute which contains the time zone information for all users."`
+	Locale            string                                                  `koanf:"locale" yaml:"locale,omitempty" toml:"locale,omitempty" json:"locale,omitempty" jsonschema:"title=Attribute: Locale" jsonschema_description:"The directory server attribute which contains the locale information for all users."`
+	PhoneNumber       string                                                  `koanf:"phone_number" yaml:"phone_number,omitempty" toml:"phone_number,omitempty" json:"phone_number,omitempty" jsonschema:"title=Attribute: Phone Number" jsonschema_description:"The directory server attribute which contains the phone number for all users."`
+	PhoneExtension    string                                                  `koanf:"phone_extension" yaml:"phone_extension,omitempty" toml:"phone_extension,omitempty" json:"phone_extension,omitempty" jsonschema:"title=Attribute: Phone Extension" jsonschema_description:"The directory server attribute which contains the phone extension for all users."`
+	StreetAddress     string                                                  `koanf:"street_address" yaml:"street_address,omitempty" toml:"street_address,omitempty" json:"street_address,omitempty" jsonschema:"title=Attribute: Street Address" jsonschema_description:"The directory server attribute which contains the street address for all users."`
+	Locality          string                                                  `koanf:"locality" yaml:"locality,omitempty" toml:"locality,omitempty" json:"locality,omitempty" jsonschema:"title=Attribute: Locality" jsonschema_description:"The directory server attribute which contains the locality for all users."`
+	Region            string                                                  `koanf:"region" yaml:"region,omitempty" toml:"region,omitempty" json:"region,omitempty" jsonschema:"title=Attribute: Region" jsonschema_description:"The directory server attribute which contains the region for all users."`
+	PostalCode        string                                                  `koanf:"postal_code" yaml:"postal_code,omitempty" toml:"postal_code,omitempty" json:"postal_code,omitempty" jsonschema:"title=Attribute: Postal Code" jsonschema_description:"The directory server attribute which contains the postal code for all users."`
+	Country           string                                                  `koanf:"country" yaml:"country,omitempty" toml:"country,omitempty" json:"country,omitempty" jsonschema:"title=Attribute: Country" jsonschema_description:"The directory server attribute which contains the country for all users."`
+	Mail              string                                                  `koanf:"mail" yaml:"mail,omitempty" toml:"mail,omitempty" json:"mail,omitempty" jsonschema:"title=Attribute: User Mail" jsonschema_description:"The directory server attribute which contains the mail address for all users and groups."`
+	MemberOf          string                                                  `koanf:"member_of" yaml:"member_of,omitempty" toml:"member_of,omitempty" json:"member_of,omitempty" jsonschema:"title=Attribute: Member Of" jsonschema_description:"The directory server attribute which contains the objects that an object is a member of."`
+	GroupName         string                                                  `koanf:"group_name" yaml:"group_name,omitempty" toml:"group_name,omitempty" json:"group_name,omitempty" jsonschema:"title=Attribute: Group Name" jsonschema_description:"The directory server attribute which contains the group name for all groups."`
+	Principal         string                                                  `koanf:"principal" yaml:"principal,omitempty" toml:"principal,omitempty" json:"principal,omitempty" jsonschema:"title=Attribute: Principal" jsonschema_description:"The directory server attribute which contains the principal name for all principals."`
+	Extra             map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
 type AuthenticationBackendLDAPAttributesAttribute struct {
@@ -283,9 +283,10 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = Authenti
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory represents the default LDAP config for the LDAPImplementationActiveDirectory Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory = AuthenticationBackendLDAP{
-	UsersFilter:     "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))",
-	GroupsFilter:    "(&(member={dn})(|(sAMAccountType=268435456)(sAMAccountType=536870912)))",
-	GroupSearchMode: ldapGroupSearchModeFilter,
+	UsersFilter:      "(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))",
+	GroupsFilter:     "(&(member={dn})(|(sAMAccountType=268435456)(sAMAccountType=536870912)))",
+	PrincipalsFilter: "(&({principal_attribute}={input})(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))",
+	GroupSearchMode:  ldapGroupSearchModeFilter,
 	Attributes: AuthenticationBackendLDAPAttributes{
 		DistinguishedName: ldapAttrDistinguishedName,
 		Username:          ldapAttrSAMAccountName,
@@ -303,6 +304,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 		Country:           "c",
 		MemberOf:          ldapAttrMemberOf,
 		GroupName:         ldapAttrCommonName,
+		Principal:         "userPrincipalName",
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{
@@ -330,15 +332,17 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis = Auth
 
 // DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA represents the default LDAP config for the LDAPImplementationFreeIPA Implementation.
 var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = AuthenticationBackendLDAP{
-	UsersFilter:     "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
-	GroupsFilter:    "(&(member={dn})(objectClass=groupOfNames))",
-	GroupSearchMode: ldapGroupSearchModeFilter,
+	UsersFilter:      "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
+	GroupsFilter:     "(&(member={dn})(objectClass=groupOfNames))",
+	PrincipalsFilter: "(&({principal_attribute}={input})(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))",
+	GroupSearchMode:  ldapGroupSearchModeFilter,
 	Attributes: AuthenticationBackendLDAPAttributes{
 		Username:    ldapAttrUserID,
 		DisplayName: ldapAttrDisplayName,
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
+		Principal:   "krbPrincipalName",
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{

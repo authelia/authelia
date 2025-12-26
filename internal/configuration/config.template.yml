@@ -546,7 +546,7 @@ identity_validation:
     ## - FreeIPA: (&(krbPrincipalName={input})(objectClass=krbPrincipalAux))
     ## - Microsoft Active Directory: (&(userPrincipalName={input})(objectClass=user))
     ##
-    # principals_filter: '(&(krbPrincipalName={input})(objectClass=krbPrincipalAux))'
+    # principals_filter: '(&({principal_attribute}={input})(objectClass=krbPrincipalAux))'
 
     ## The additional_groups_dn is prefixed to base_dn and delimited by a comma when searching for groups.
     ## i.e. with this set to OU=Groups and base_dn set to DC=a,DC=com; OU=Groups,DC=a,DC=com is searched for groups.
@@ -589,6 +589,10 @@ identity_validation:
       ## advise to use a filter to perform alternative lookups and the attributes mentioned above
       ## (sAMAccountName and uid) to follow https://datatracker.ietf.org/doc/html/rfc2307.
       # username: 'uid'
+
+      ## The attribute holding the principal name of the user. Only used if principals_filter is set.
+      ## For FreeIPA this is usually 'krbPrincipalName' and for Microsoft Active Directory it's usually 'userPrincipalName'.
+      # principal: 'krbPrincipalName'
 
       ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
       # display_name: 'displayName'
@@ -1674,7 +1678,7 @@ session:
               # ...
               # -----END CERTIFICATE-----
 
-# SPNEGO:
+# spnego:
   ## Disable SPNEGO authentication.
   # enabled: true
 
