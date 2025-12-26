@@ -1666,13 +1666,16 @@ session:
 
 # SPNEGO:
   ## Disable SPNEGO authentication.
-  # disable: true
+  # enabled: true
 
   ## The path to the keytab file.
   # keytab: '/path/to/keytab/file'
 
   ## The principal to use from the keytab.
   # principal: ''
+
+  ## The realm that should be used.
+  # realm: ''
 
 
 ...
