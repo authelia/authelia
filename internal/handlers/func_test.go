@@ -78,5 +78,5 @@ func getStepTOTP(ctx *middlewares.AutheliaCtx, period int) uint64 {
 		period = ctx.Configuration.TOTP.DefaultPeriod
 	}
 
-	return uint64(int(step) / period)
+	return uint64(int(step) / period) //nolint:gosec // This is a testing func.
 }

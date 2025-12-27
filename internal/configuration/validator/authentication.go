@@ -131,7 +131,7 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Authen
 		config.Argon2.Memory = schema.DefaultPasswordConfig.Argon2.Memory
 	case config.Argon2.Memory < argon2.MemoryMin:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "memory", config.Argon2.Memory, argon2.MemoryMin))
-	case uint64(config.Argon2.Memory) > uint64(argon2.MemoryMax):
+	case uint64(config.Argon2.Memory) > uint64(argon2.MemoryMax): //nolint:gosec // Validated at runtime.
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashArgon2, "memory", config.Argon2.Memory, argon2.MemoryMax))
 	case config.Argon2.Memory < (config.Argon2.Parallelism * argon2.MemoryMinParallelismMultiplier):
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2MemoryTooLow, config.Argon2.Memory, config.Argon2.Parallelism*argon2.MemoryMinParallelismMultiplier, config.Argon2.Parallelism, argon2.MemoryMinParallelismMultiplier))
