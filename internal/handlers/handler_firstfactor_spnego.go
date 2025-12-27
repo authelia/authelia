@@ -151,8 +151,10 @@ func FirstFactorSPNEGOPOST(ctx *middlewares.AutheliaCtx) {
 		kerberosUser = context.Value(ctxCredentials).(*credentials.Credentials)
 		username     = kerberosUser.UserName()
 	)
+	userProvider := ctx.Providers.UserProvider.(*authentication.LDAPUserProvider)
+	upn := fmt.Sprintf("%s@%s", username, kerberosUser.Realm())
 
-	if userDetails, err = ctx.Providers.UserProvider.GetDetails(username); err != nil || userDetails == nil {
+	if userDetails, err = userProvider.GetDetailsForPrincipal(upn); err != nil || userDetails == nil {
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypeKerberos, err)
 
 		ctx.Logger.WithError(err).Errorf("Error occurred getting details for user with username input '%s' which usually indicates they do not exist", username)

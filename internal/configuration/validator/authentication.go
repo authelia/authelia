@@ -437,6 +437,10 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 		config.UsersFilter = implementation.UsersFilter
 	}
 
+	if ldapImplementationShouldSetStr(config.PrincipalsFilter, implementation.PrincipalsFilter) {
+		config.PrincipalsFilter = implementation.PrincipalsFilter
+	}
+
 	if ldapImplementationShouldSetStr(config.AdditionalGroupsDN, implementation.AdditionalGroupsDN) {
 		config.AdditionalGroupsDN = implementation.AdditionalGroupsDN
 	}
@@ -471,6 +475,10 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 
 	if ldapImplementationShouldSetStr(config.Attributes.GroupName, implementation.Attributes.GroupName) {
 		config.Attributes.GroupName = implementation.Attributes.GroupName
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.Principal, implementation.Attributes.Principal) {
+		config.Attributes.Principal = implementation.Attributes.Principal
 	}
 }
 
@@ -524,6 +532,24 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, valida
 		// This test helps the user know that users_filter is broken after the breaking change induced by this commit.
 		if !strings.Contains(config.LDAP.UsersFilter, "{input}") {
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "users_filter", "input"))
+		}
+	}
+
+	if config.LDAP.PrincipalsFilter == "" {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "principals_filter"))
+	} else {
+
+		if !strings.HasPrefix(config.LDAP.PrincipalsFilter, "(") || !strings.HasSuffix(config.LDAP.PrincipalsFilter, ")") {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "principals_filter", config.LDAP.PrincipalsFilter, config.LDAP.PrincipalsFilter))
+		}
+
+		if !strings.Contains(config.LDAP.PrincipalsFilter, "{principal_attribute}") {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "principals_filter", "principal_attribute"))
+		}
+
+		// This test helps the user know that principals_filter is broken after the breaking change induced by this commit.
+		if !strings.Contains(config.LDAP.PrincipalsFilter, "{input}") {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "principals_filter", "input"))
 		}
 	}
 
