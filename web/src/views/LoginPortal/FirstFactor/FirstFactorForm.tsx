@@ -186,7 +186,7 @@ const FirstFactorForm = function (props: Props) {
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
-            createErrorNotification(translate("SPNEGO authentication failed"));
+            createErrorNotification(translate("Kerberos authentication failed"));
             setLoading(false);
             props.onAuthenticationStop();
         }
@@ -449,7 +449,7 @@ const FirstFactorForm = function (props: Props) {
                                 disabled={disabled}
                                 onClick={spnegoLogin}
                             >
-                                {translate("Login with SPNEGO")}
+                                {translate("Login with Kerberos")}
                             </Button>
                         </Grid>
                     ) : null}

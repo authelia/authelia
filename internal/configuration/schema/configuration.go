@@ -28,7 +28,7 @@ type Configuration struct {
 	PrivacyPolicy         PrivacyPolicy         `koanf:"privacy_policy" yaml:"privacy_policy,omitempty" toml:"privacy_policy,omitempty" json:"privacy_policy,omitempty" jsonschema:"title=Privacy Policy" jsonschema_description:"Privacy Policy Configuration."`
 	IdentityValidation    IdentityValidation    `koanf:"identity_validation" yaml:"identity_validation,omitempty" toml:"identity_validation,omitempty" json:"identity_validation,omitempty" jsonschema:"title=Identity Validation" jsonschema_description:"Identity Validation Configuration."`
 	Definitions           Definitions           `koanf:"definitions" yaml:"definitions,omitempty" toml:"definitions,omitempty" json:"definitions,omitempty" jsonschema:"title=Definitions" jsonschema_description:"Definitions for items reused elsewhere in the configuration."`
-	SPNEGO                SPNEGO                `koanf:"spnego" yaml:"spnego,omitempty" toml:"spnego,omitempty" json:"spnego" jsonschema:"title=SPNEGO Configuration" jsonschema_description:"Configuration for SPNEGO Krb5 based-authentication."`
+	SPNEGO                SPNEGO                `koanf:"spnego" yaml:"spnego,omitempty" toml:"spnego,omitempty" json:"spnego,omitempty" jsonschema:"title=SPNEGO Configuration" jsonschema_description:"Configuration for SPNEGO Krb5 based-authentication."`
 	// Deprecated: Use the session cookies option with the same name instead.
 	DefaultRedirectionURL *url.URL `koanf:"default_redirection_url" yaml:"default_redirection_url,omitempty" toml:"default_redirection_url,omitempty" json:"default_redirection_url,omitempty" jsonschema:"deprecated,format=uri,title=The default redirection URL"`
 }

@@ -1666,7 +1666,7 @@ session:
 
 # SPNEGO:
   ## Disable SPNEGO authentication.
-  # enabled: true
+  # enabled: false
 
   ## The path to the keytab file.
   # keytab: '/path/to/keytab/file'
