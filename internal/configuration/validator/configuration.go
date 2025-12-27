@@ -65,7 +65,7 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateStorage(config.Storage, validator)
 
-	ValidateNotifier(&config.Notifier, validator)
+	ValidateNotifier(&config.Notifier, validator, config.Definitions.Webhooks)
 
 	ValidateIdentityProviders(ctx, config, validator)
 

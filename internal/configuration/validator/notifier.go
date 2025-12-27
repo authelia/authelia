@@ -9,12 +9,29 @@ import (
 )
 
 // ValidateNotifier validates and update notifier configuration.
-func ValidateNotifier(config *schema.Notifier, validator *schema.StructValidator) {
-	if config.SMTP == nil && config.FileSystem == nil {
+func ValidateNotifier(config *schema.Notifier, validator *schema.StructValidator, definitions map[string]schema.Webhook) {
+	if config.SMTP == nil && config.FileSystem == nil && config.WebhookRef == "" {
 		validator.Push(errors.New(errFmtNotifierNotConfigured))
 
 		return
-	} else if config.SMTP != nil && config.FileSystem != nil {
+	}
+
+	// Count configured notifiers.
+	var count int
+
+	if config.SMTP != nil {
+		count++
+	}
+
+	if config.FileSystem != nil {
+		count++
+	}
+
+	if config.WebhookRef != "" {
+		count++
+	}
+
+	if count > 1 {
 		validator.Push(errors.New(errFmtNotifierMultipleConfigured))
 
 		return
@@ -24,11 +41,11 @@ func ValidateNotifier(config *schema.Notifier, validator *schema.StructValidator
 		if config.FileSystem.Filename == "" {
 			validator.Push(errors.New(errFmtNotifierFileSystemFileNameNotConfigured))
 		}
-
-		return
+	} else if config.WebhookRef != "" {
+		validateWebhookNotifierConfig(config, definitions, validator)
+	} else {
+		validateSMTPNotifier(config.SMTP, validator)
 	}
-
-	validateSMTPNotifier(config.SMTP, validator)
 
 	validateNotifierTemplates(config, validator)
 }
@@ -92,6 +109,14 @@ func validateSMTPNotifier(config *schema.NotifierSMTP, validator *schema.StructV
 		validator.PushWarning(errors.New(errFmtNotifierStartTlsDisabled))
 	}
 }
+
+func validateWebhookNotifierConfig(config *schema.Notifier, definitions map[string]schema.Webhook, validator *schema.StructValidator) {
+	// Validate that the referenced webhook exists.
+	if _, exists := definitions[config.WebhookRef]; !exists {
+		validator.Push(fmt.Errorf("notifier: webhook_ref '%s' does not exist in definitions.webhooks", config.WebhookRef))
+	}
+}
+
 
 func validateSMTPNotifierAddress(config *schema.NotifierSMTP, validator *schema.StructValidator) {
 	if config.Address == nil {

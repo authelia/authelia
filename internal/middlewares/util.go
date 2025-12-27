@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"crypto/x509"
+	"fmt"
 
 	"github.com/valyala/fasthttp"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/webauthn"
+	"github.com/authelia/authelia/v4/internal/webhooks"
 )
 
 // SetContentTypeApplicationJSON sets the Content-Type header to `application/json; charset=utf-8`.
@@ -55,11 +57,32 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 		errs = append(errs, err)
 	}
 
+	// Initialize webhook clients from definitions.
+	webhookClients := make(map[string]*webhooks.Client)
+	for name, webhookConfig := range config.Definitions.Webhooks {
+		cfg := webhooks.Config{
+			URL:     webhookConfig.URL,
+			Method:  webhookConfig.Method,
+			Headers: webhookConfig.Headers,
+			Timeout: webhookConfig.Timeout,
+			TLS:     webhookConfig.TLS,
+		}
+		webhookClients[name] = webhooks.NewClient(cfg, caCertPool)
+	}
+
 	switch {
 	case config.Notifier.SMTP != nil:
 		providers.Notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, caCertPool)
 	case config.Notifier.FileSystem != nil:
 		providers.Notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
+	case config.Notifier.WebhookRef != "":
+		client, exists := webhookClients[config.Notifier.WebhookRef]
+		if !exists || client == nil {
+			errs = append(errs, fmt.Errorf("notifier: webhook client for reference '%s' does not exist or failed to initialize", config.Notifier.WebhookRef))
+			break
+		}
+
+		providers.Notifier = notification.NewWebhookNotifier(client)
 	}
 
 	providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, providers.StorageProvider, providers.Templates)
