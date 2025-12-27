@@ -535,24 +535,6 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, valida
 		}
 	}
 
-	if config.LDAP.PrincipalsFilter == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "principals_filter"))
-	} else {
-
-		if !strings.HasPrefix(config.LDAP.PrincipalsFilter, "(") || !strings.HasSuffix(config.LDAP.PrincipalsFilter, ")") {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "principals_filter", config.LDAP.PrincipalsFilter, config.LDAP.PrincipalsFilter))
-		}
-
-		if !strings.Contains(config.LDAP.PrincipalsFilter, "{principal_attribute}") {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "principals_filter", "principal_attribute"))
-		}
-
-		// This test helps the user know that principals_filter is broken after the breaking change induced by this commit.
-		if !strings.Contains(config.LDAP.PrincipalsFilter, "{input}") {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "principals_filter", "input"))
-		}
-	}
-
 	if config.LDAP.GroupsFilter == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "groups_filter"))
 	} else if !strings.HasPrefix(config.LDAP.GroupsFilter, "(") || !strings.HasSuffix(config.LDAP.GroupsFilter, ")") {
