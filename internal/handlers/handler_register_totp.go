@@ -95,7 +95,7 @@ func TOTPRegisterPUT(ctx *middlewares.AutheliaCtx) {
 
 	var config *model.TOTPConfiguration
 
-	if config, err = ctx.Providers.TOTP.GenerateCustom(ctx, userSession.Username, bodyJSON.Algorithm, "", uint32(bodyJSON.Length), uint(bodyJSON.Period), 0); err != nil {
+	if config, err = ctx.Providers.TOTP.GenerateCustom(ctx, userSession.Username, bodyJSON.Algorithm, "", uint32(bodyJSON.Length), uint(bodyJSON.Period), 0); err != nil { //nolint:gosec // Validated at runtime.
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a TOTP registration session for user '%s': error generating TOTP configuration", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

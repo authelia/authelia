@@ -17,9 +17,9 @@ func NewTimeBasedProvider(config schema.TOTP) (provider *TimeBased) {
 		opts:      NewTOTPOptionsFromSchema(config),
 		issuer:    config.Issuer,
 		algorithm: config.DefaultAlgorithm,
-		digits:    uint32(config.DefaultDigits),
-		period:    uint(config.DefaultPeriod),
-		size:      uint(config.SecretSize),
+		digits:    uint32(config.DefaultDigits), //nolint:gosec // Validated at runtime.
+		period:    uint(config.DefaultPeriod),   //nolint:gosec // Validated at runtime.
+		size:      uint(config.SecretSize),      //nolint:gosec // Validated at runtime.
 	}
 
 	if config.Skew != nil && *config.Skew >= 0 {

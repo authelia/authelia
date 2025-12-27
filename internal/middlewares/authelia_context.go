@@ -698,6 +698,7 @@ func (ctx *AutheliaCtx) GetSPNEGOProvider() (*spnego.SPNEGO, error) {
 	}
 
 	host, err := types.GetHostAddress(ctx.RemoteAddr().String())
+
 	if err != nil {
 		return spnego.SPNEGOService(kt, service.KeytabPrincipal(ctx.Configuration.SPNEGO.Principal)), nil
 	}
