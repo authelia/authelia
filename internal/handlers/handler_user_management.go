@@ -28,9 +28,17 @@ type UserManagementFieldsResponse struct {
 }
 
 // ChangeUserPUT takes authentication.UserDetailsExtended and updates the object to match the provided struct.
-//
-
 func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
+	usernameRaw := ctx.UserValue("username")
+	if usernameRaw == nil {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageUsernameRequired)
+
+		return
+	}
+
+	username := usernameRaw.(string)
+
 	var (
 		err         error
 		requestBody *authentication.UserDetailsExtended
@@ -78,7 +86,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if requestBody.Username == "" {
+	if username == "" {
 		ctx.Logger.Debug("Username is required")
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError("Username is required")
@@ -94,8 +102,8 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userDetails, err = ctx.Providers.UserProvider.GetUser(requestBody.Username); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error retrieving details for user '%s'", requestBody.Username)
+	if userDetails, err = ctx.Providers.UserProvider.GetUser(username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error retrieving details for user '%s'", username)
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
 		ctx.SetJSONError("User not found")
 
@@ -105,15 +113,15 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 	requestBody.Password = ""
 
 	if err = ctx.Providers.UserProvider.ValidateUserData(requestBody); err != nil {
-		ctx.Logger.WithError(err).Errorf("Validation failed for user '%s'", requestBody.Username)
+		ctx.Logger.WithError(err).Errorf("Validation failed for user '%s'", username)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(fmt.Sprintf("User modification failed: %s", err.Error()))
 
 		return
 	}
 
-	if err = ctx.Providers.UserProvider.UpdateUser(requestBody.Username, requestBody); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred updating user '%s'", requestBody.Username)
+	if err = ctx.Providers.UserProvider.UpdateUser(username, requestBody); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred updating user '%s'", username)
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetJSONError("Failed to update user")
 
@@ -128,7 +136,6 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 	ctx.Response.SetStatusCode(fasthttp.StatusOK)
 }
 
-//nolint:gocyclo
 func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		err            error
@@ -198,10 +205,6 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		userDataBuilder = userDataBuilder.WithFamilyName(newUserRequest.FamilyName)
 	}
 
-	if len(newUserRequest.ObjectClasses) > 0 {
-		userDataBuilder = userDataBuilder.WithObjectClasses(newUserRequest.ObjectClasses)
-	}
-
 	userData := userDataBuilder.Build()
 
 	if err = ctx.Providers.UserProvider.ValidateUserData(userData); err != nil {
@@ -240,10 +243,19 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 }
 
 func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
+	usernameRaw := ctx.UserValue("username")
+	if usernameRaw == nil {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageUsernameRequired)
+
+		return
+	}
+
+	username := usernameRaw.(string)
+
 	var (
 		err         error
 		userSession session.UserSession
-		requestBody deleteUserRequestBody
 	)
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred deleting specified user: %s", errStrUserSessionData)
@@ -263,20 +275,13 @@ func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.ParseBody(&requestBody); err != nil {
-		ctx.Logger.WithError(err).Error(messageUnableToDeleteUser)
-		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
-
-		return
-	}
-
 	//TODO: Delete Opaque User Identifiers, User Preferences, 2FA Devices, Oauth Sessions related to Opaque Ids, Remove User from Backend.
 
-	if err = ctx.Providers.UserProvider.DeleteUser(requestBody.Username); err != nil {
+	if err = ctx.Providers.UserProvider.DeleteUser(username); err != nil {
 		ctx.Logger.Error(err, messageUnableToDeleteUser)
 	}
 
-	if err = ctx.Providers.StorageProvider.DeleteUserByUsername(ctx, requestBody.Username); err != nil {
+	if err = ctx.Providers.StorageProvider.DeleteUserByUsername(ctx, username); err != nil {
 		ctx.Logger.WithError(err).Error(messageUnableToDeleteUserMetadata)
 	}
 

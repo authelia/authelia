@@ -1,341 +1,201 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
-import { Autocomplete, Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextField } from "@mui/material";
+import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextField } from "@mui/material";
+import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import PasswordMeter from "@components/PasswordMeter.tsx";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy.ts";
-import { UserInfo, ValidateDisplayName, ValidateEmail, ValidateUsername } from "@models/UserInfo";
-import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
-import { postNewUser } from "@services/UserManagement";
-import { generateRandomPassword } from "@utils/GeneratePassword.ts";
-import VerifyExitDialog from "@views/Settings/Common/VerifyExitDialog";
+import { CreateUserRequest, getFieldMetadata, isFieldRequired, validateFieldValue } from "@models/UserManagement";
+import { UserFieldMetadataBody, postNewUser } from "@services/UserManagement";
+import { generateRandomPassword } from "@utils/GeneratePassword";
 
 interface Props {
     open: boolean;
     onClose: () => void;
-}
-interface NewUser extends UserInfo {
-    password: string;
+    metadata: UserFieldMetadataBody; // Pass metadata as prop
 }
 
-const NewUserDialog = (props: Props) => {
-    const emptyUser: NewUser = {
-        username: "",
-        display_name: "",
-        emails: [""],
-        password: "",
-        disabled: false,
-        groups: [],
-        method: 1,
-        has_duo: false,
-        has_totp: false,
-        has_webauthn: false,
-    };
-
-    const passwordLength = 20;
+const NewUserDialog = ({ open, onClose, metadata }: Props) => {
     const { t: translate } = useTranslation("settings");
     const { createSuccessNotification, createErrorNotification } = useNotifications();
 
-    const [newUser, setNewUser] = useState<NewUser>(emptyUser);
-    const [changesMade, setChangesMade] = useState(false);
-    const [verifyExitDialogOpen, setVerifyExitDialogOpen] = useState(false);
-    const [usernameError, setUsernameError] = useState(false);
-    const [displayNameError, setDisplayNameError] = useState(false);
-    const [emailError, setEmailError] = useState(false);
-    const [passwordError, setPasswordError] = useState(false);
-
-    const [pPolicy, setPPolicy] = useState<PasswordPolicyConfiguration>({
-        max_length: 0,
-        min_length: 8,
-        min_score: 0,
-        require_lowercase: false,
-        require_number: false,
-        require_special: false,
-        require_uppercase: false,
-        mode: PasswordPolicyMode.Disabled,
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isDirty },
+        reset,
+        setValue,
+    } = useForm<CreateUserRequest>({
+        defaultValues: {
+            username: "",
+            password: "",
+        },
     });
 
+    // Reset form when dialog closes
     useEffect(() => {
-        const fetchPasswordPolicy = async () => {
-            try {
-                const policy = await getPasswordPolicyConfiguration();
-                setPPolicy(policy);
-            } catch (err) {
-                console.error(err);
-                createErrorNotification(translate("There was an issue retrieving the password policy"));
-            }
-        };
-        fetchPasswordPolicy().then(() => {});
-    }, [setPPolicy, createErrorNotification, translate]);
+        if (!open) {
+            reset();
+        }
+    }, [open, reset]);
 
-    useEffect(() => {
-        setChangesMade(false);
-    }, [setChangesMade]);
-
-    const handleSafeClose = () => {
-        if (changesMade) {
-            setVerifyExitDialogOpen(true);
-        } else {
-            handleClose();
+    const onSubmit = async (data: CreateUserRequest) => {
+        try {
+            await postNewUser(data);
+            createSuccessNotification(translate("User created successfully."));
+            onClose();
+        } catch {
+            createErrorNotification(translate("Error creating user"));
         }
     };
 
     const handleClose = () => {
-        handleResetErrors();
-        handleResetState();
-        props.onClose();
-    };
-
-    const handleResetState = () => {
-        setNewUser(emptyUser);
-        handleResetErrors();
-    };
-
-    const handleResetErrors = () => {
-        setUsernameError(false);
-        setDisplayNameError(false);
-        setEmailError(false);
-        setPasswordError(false);
-    };
-
-    const userIsEmpty = (user: NewUser): boolean => {
-        return (
-            user.username.trim() !== "" ||
-            user.display_name.trim() !== "" ||
-            user.password.trim() !== "" ||
-            user.emails[0].trim() !== "" ||
-            user.groups.length > 0
-        );
-    };
-
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type, checked } = event.target;
-        setNewUser((prev) => {
-            if (!prev) {
-                prev = emptyUser;
-            }
-            let updatedUser: NewUser;
-            if (name === "username") {
-                updatedUser = {
-                    ...prev,
-                    username: value,
-                };
-                setChangesMade(true);
-                if (!ValidateUsername(newUser.username)) {
-                    setUsernameError(true);
-                } else {
-                    setUsernameError(false);
-                }
-            } else if (name === "emails") {
-                updatedUser = {
-                    ...prev,
-                    emails: [value],
-                };
-                setChangesMade(true);
-                if (!ValidateEmail(newUser.emails[0])) {
-                    setEmailError(true);
-                } else {
-                    setEmailError(false);
-                }
-            } else {
-                updatedUser = {
-                    ...prev,
-                    [name]: type === "checkbox" ? checked : value,
-                };
-            }
-            setChangesMade(userIsEmpty(updatedUser));
-            return updatedUser;
-        });
-    };
-
-    const handleGroupsChange = (_event: React.SyntheticEvent, value: string[]) => {
-        setNewUser((prev) => {
-            if (!prev) {
-                prev = emptyUser;
-            }
-
-            const updatedUser = {
-                ...prev,
-                groups: value,
-            };
-            setChangesMade(true);
-            return updatedUser;
-        });
-    };
-
-    const handleSave = async () => {
-        if (!changesMade) {
-            handleSafeClose();
+        if (isDirty) {
+            // Show confirmation dialog if needed
+            // For now, just close
         }
-        if (newUser === null) {
-            handleSafeClose();
-            return;
-        }
-        handleResetErrors();
-        let error = false;
-
-        if (!ValidateUsername(newUser.username)) {
-            error = true;
-            setUsernameError(true);
-        }
-
-        if (!ValidateDisplayName(newUser.display_name)) {
-            error = true;
-            setDisplayNameError(true);
-        }
-
-        if (!ValidateEmail(newUser.emails[0]) && newUser.emails[0] !== "") {
-            error = true;
-            setEmailError(true);
-        }
-
-        if (newUser.password === "") {
-            error = true;
-            setPasswordError(true);
-        }
-
-        if (error) {
-            return;
-        }
-
-        try {
-            await postNewUser(
-                newUser.username,
-                newUser.display_name,
-                newUser.password,
-                newUser.disabled ? newUser.disabled : false,
-                Array.isArray(newUser.emails) ? newUser.emails[0] : newUser.emails,
-                newUser.groups,
-            );
-            createSuccessNotification(translate("User created successfully."));
-            handleClose();
-        } catch {
-            handleResetErrors();
-            createErrorNotification(translate("Error: More informative errors WIP"));
-        }
+        onClose();
     };
 
-    const handleConfirmExit = () => {
-        setVerifyExitDialogOpen(false);
-        setNewUser(newUser);
-        setChangesMade(false);
-        handleSafeClose();
-    };
-
-    const handleCancelExit = () => {
-        setVerifyExitDialogOpen(false);
-    };
-
-    const handleGeneratePassword = () => {
-        setNewUser((prev) => {
-            if (!prev) {
-                return emptyUser;
-            }
-            return {
-                ...prev,
-                password: generateRandomPassword(passwordLength),
-            };
-        });
-        setChangesMade(true);
+    const generatePassword = () => {
+        const newPassword = generateRandomPassword(16);
+        setValue("password", newPassword, { shouldDirty: true });
     };
 
     return (
-        <div>
-            <Dialog open={props.open} onClose={handleSafeClose} maxWidth="xs" fullWidth>
-                <DialogTitle>{translate("New {{item}}", { item: translate("User") })}</DialogTitle>
-                <DialogContent>
-                    <FormControl variant={"standard"}>
-                        <Grid container spacing={1} alignItems={"center"}>
-                            <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                                <TextField
-                                    fullWidth
-                                    id="enter-username"
-                                    label={translate("Username")}
-                                    name="username"
-                                    error={usernameError}
-                                    value={newUser?.username ?? ""}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                                <TextField
-                                    fullWidth
-                                    id="enter-user-display-name"
-                                    label={translate("Display Name")}
-                                    name="display_name"
-                                    error={displayNameError}
-                                    value={newUser?.display_name ?? ""}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                                <TextField
-                                    fullWidth
-                                    id="enter-user-password"
-                                    label={translate("Password")}
-                                    name="password"
-                                    error={passwordError}
-                                    value={newUser?.password ?? ""}
-                                    onChange={handleChange}
-                                    required
-                                />
-                                {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
-                                    <PasswordMeter value={newUser?.password ?? ""} policy={pPolicy} />
-                                )}
-                                <Button onClick={handleGeneratePassword}>{translate("Generate Password")}</Button>
-                            </Grid>
-                            <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                                <TextField
-                                    id="enter-user-email"
-                                    fullWidth
-                                    label={translate("Email")}
-                                    name="emails"
-                                    error={emailError}
-                                    value={Array.isArray(newUser?.emails) ? newUser.emails[0] : (newUser?.emails ?? "")}
-                                    onChange={handleChange}
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                                <Autocomplete
-                                    multiple
-                                    id="select-user-groups"
-                                    options={[]}
-                                    value={newUser?.groups || []}
-                                    onChange={handleGroupsChange}
-                                    freeSolo
-                                    renderInput={(params) => (
-                                        <TextField {...params} label={translate("Groups")} placeholder="" />
-                                    )}
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
+        <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+            <DialogTitle>{translate("New {{item}}", { item: translate("User") })}</DialogTitle>
+
+            <DialogContent>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <FormControl variant="standard">
+                        <Grid container spacing={2}>
+                            {metadata.supported_fields
+                                .filter((fieldName): fieldName is keyof CreateUserRequest => {
+                                    // Fields that are excluded from CreateUserRequest
+                                    const excludedFields = [
+                                        "last_logged_in",
+                                        "last_password_change",
+                                        "user_created_at",
+                                        "method",
+                                        "has_totp",
+                                        "has_webauthn",
+                                        "has_duo",
+                                    ];
+
+                                    return !excludedFields.includes(fieldName);
+                                })
+                                .map((fieldName) => {
+                                    const fieldMeta = getFieldMetadata(fieldName, metadata);
+                                    const required = isFieldRequired(fieldName, metadata);
+                                    const { baseType } = getInputType(fieldMeta?.type);
+
+                                    if (["groups", "address"].includes(fieldName)) return null;
+
+                                    return (
+                                        <Grid key={fieldName} size={12} sx={{ pt: 1.5 }}>
+                                            <TextField
+                                                fullWidth
+                                                {...register(fieldName, {
+                                                    required: required
+                                                        ? `${fieldMeta?.display_name || fieldName} is required`
+                                                        : false,
+                                                    validate: fieldMeta
+                                                        ? (value) =>
+                                                              validateFieldValue(value, fieldMeta, fieldName) || true
+                                                        : undefined,
+                                                })}
+                                                label={fieldMeta?.display_name || fieldName}
+                                                type={
+                                                    baseType === "email"
+                                                        ? "email"
+                                                        : baseType === "password"
+                                                          ? "password"
+                                                          : baseType === "url"
+                                                            ? "url"
+                                                            : "text"
+                                                }
+                                                error={!!errors[fieldName]}
+                                                helperText={
+                                                    errors[fieldName]?.message?.toString() || fieldMeta?.description
+                                                }
+                                                required={required}
+                                                slotProps={{
+                                                    htmlInput: {
+                                                        maxLength: fieldMeta?.maxLength,
+                                                    },
+                                                }}
+                                            />
+
+                                            {fieldName === "password" && (
+                                                <Button onClick={generatePassword} size="small" sx={{ mt: 0.75 }}>
+                                                    {translate("Generate Password")}
+                                                </Button>
+                                            )}
+                                        </Grid>
+                                    );
+                                })}
+
+                            <Grid size={12} sx={{ pt: 3 }}>
                                 <Button
-                                    color={"success"}
-                                    onClick={handleSave}
-                                    disabled={
-                                        !changesMade ||
-                                        newUser.username.trim() === "" ||
-                                        newUser.display_name.trim() === "" ||
-                                        newUser.password.trim() === ""
-                                    }
+                                    type="submit"
+                                    variant="contained"
+                                    color="primary"
+                                    disabled={!isDirty}
+                                    sx={{ mr: 2 }}
                                 >
-                                    Save
+                                    {translate("Save")}
                                 </Button>
-                                <Button color={"error"} onClick={handleSafeClose}>
-                                    Exit
+                                <Button variant="outlined" color="secondary" onClick={handleClose}>
+                                    {translate("Cancel")}
                                 </Button>
                             </Grid>
                         </Grid>
                     </FormControl>
-                </DialogContent>
-            </Dialog>
-            <VerifyExitDialog open={verifyExitDialogOpen} onConfirm={handleConfirmExit} onCancel={handleCancelExit} />
-        </div>
+                </form>
+            </DialogContent>
+        </Dialog>
     );
+};
+
+// Helper function for input types
+const getInputType = (fieldType?: string, isArray?: boolean) => {
+    const parseFieldType = (typeString?: string) => {
+        if (!typeString) return { baseType: undefined, isArray: false };
+
+        if (typeString.endsWith("[]")) {
+            return {
+                baseType: typeString.slice(0, -2), // "email" from "email[]"
+                fieldIsArray: true,
+            };
+        }
+
+        if (typeString.includes("array")) {
+            return {
+                baseType: "string",
+                fieldIsArray: true,
+            };
+        }
+        return {
+            baseType: typeString,
+            fieldIsArray: false,
+        };
+    };
+
+    const { baseType, fieldIsArray } = parseFieldType(fieldType);
+
+    switch (baseType) {
+        case "email":
+            return { baseType, fieldIsArray };
+        case "password":
+            return { baseType, fieldIsArray };
+        case "url":
+            return { baseType, fieldIsArray };
+        case "string":
+            return { baseType, fieldIsArray };
+        default:
+            return { baseType: "string", fieldIsArray: false };
+    }
 };
 
 export default NewUserDialog;

@@ -286,7 +286,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.GET("/api/admin/config", RequireAdminUser1FA(handlers.AdminConfigGET))
 
 		if config.Administration.EnableUserManagement {
-			r.GET("/api/admin/users/fields", RequireAdminUser1FA(handlers.UserManagementFieldsGet))
+			r.GET("/api/admin/user-fields", RequireAdminUser1FA(handlers.UserManagementFieldsGet))
 
 			r.GET("/api/admin/users", RequireAdminUser1FA(handlers.AllUsersInfoGET))
 			r.POST("/api/admin/users", RequireAdminUser1FA(handlers.NewUserPOST))

@@ -68,6 +68,7 @@ type UserDetailsExtended struct {
 	GivenName      string              `json:"first_name,omitempty"`
 	FamilyName     string              `json:"last_name,omitempty"`
 	MiddleName     string              `json:"middle_name,omitempty"`
+	CommonName     string              `json:"full_name,omitempty"`
 	Nickname       string              `json:"nickname,omitempty"`
 	Profile        *url.URL            `json:"profile,omitempty"`
 	Picture        *url.URL            `json:"picture,omitempty"`
@@ -84,9 +85,7 @@ type UserDetailsExtended struct {
 
 	*UserDetails
 
-	Password      string   `json:"-"`
-	CommonName    string   `json:"cn,omitempty"`
-	ObjectClasses []string `json:"object_classes,omitempty"`
+	Password string `json:"-"`
 
 	LastLoggedIn       *time.Time `json:"last_logged_in,omitempty"`
 	LastPasswordChange *time.Time `json:"last_password_change,omitempty"`
@@ -243,7 +242,6 @@ func NewUser(username, password string) *UserDetailsExtendedBuilder {
 				Emails:   []string{},
 				Groups:   []string{},
 			},
-			ObjectClasses: []string{},
 		},
 	}
 }
@@ -290,11 +288,6 @@ func (b *UserDetailsExtendedBuilder) WithMiddleName(middle string) *UserDetailsE
 
 func (b *UserDetailsExtendedBuilder) WithNickname(nickname string) *UserDetailsExtendedBuilder {
 	b.data.Nickname = nickname
-	return b
-}
-
-func (b *UserDetailsExtendedBuilder) WithObjectClasses(classes []string) *UserDetailsExtendedBuilder {
-	b.data.ObjectClasses = classes
 	return b
 }
 
@@ -372,11 +365,6 @@ func (b *UserDetailsExtendedBuilder) WithExtra(key string, value any) *UserDetai
 
 	b.data.Extra[key] = value
 
-	return b
-}
-
-func (b *UserDetailsExtendedBuilder) WithDefaultLDAPObjectClasses() *UserDetailsExtendedBuilder {
-	b.data.ObjectClasses = []string{"top", "person", "organizationalPerson", "inetOrgPerson"}
 	return b
 }
 

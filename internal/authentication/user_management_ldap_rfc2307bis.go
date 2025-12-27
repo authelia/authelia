@@ -15,25 +15,24 @@ type RFC2307bisUserManagement struct {
 
 func (r *RFC2307bisUserManagement) GetRequiredFields() []string {
 	return []string{
-		"Username",
-		"Password",
-		"CommonName",
-		"FamilyName",
+		"username",
+		"password",
+		"full_name",
+		"last_name",
+		"emails",
 	}
 }
 
 func (r *RFC2307bisUserManagement) GetSupportedFields() []string {
 	return []string{
-		"Username",
-		"Password",
-		"CommonName",
-		"GivenName",
-		"FamilyName",
-		"Email",
-		"Emails",
-		"Groups",
-		"ObjectClass",
-		"Extra",
+		"username",
+		"password",
+		"full_name",
+		"first_name",
+		"last_name",
+		"emails",
+		"groups",
+		"extra",
 	}
 }
 
@@ -57,38 +56,38 @@ func (r *RFC2307bisUserManagement) GetDefaultGroupObjectClasses() []string {
 // GetFieldMetadata describes the fields that are required to create new users for the RFC2307bis Backend.
 func (r *RFC2307bisUserManagement) GetFieldMetadata() map[string]FieldMetadata {
 	return map[string]FieldMetadata{
-		"Username": {
+		"username": {
 			DisplayName: "Username",
 			Description: "Unique identifier for the user (maps to uid attribute)",
 			Type:        "string",
 			MaxLength:   100,
 		},
-		"Password": {
+		"password": {
 			DisplayName: "Password",
 			Description: "User's password",
 			Type:        "password",
 		},
-		"CommonName": {
+		"full_name": {
 			DisplayName: "Common Name",
 			Description: "Full name or display name (maps to cn attribute)",
 			Type:        "string",
 		},
-		"GivenName": {
+		"first_name": {
 			DisplayName: "First Name",
 			Description: "User's first/given name",
 			Type:        "string",
 		},
-		"FamilyName": {
+		"last_name": {
 			DisplayName: "Last Name",
 			Description: "User's last/family name (maps to sn attribute)",
 			Type:        "string",
 		},
-		"Email": {
+		"emails": {
 			DisplayName: "Email Address",
 			Description: "Primary email address",
-			Type:        "email",
+			Type:        "email[]",
 		},
-		"Groups": {
+		"groups": {
 			DisplayName: "Groups",
 			Description: "Groups the user should be added to",
 			Type:        "array",
@@ -199,7 +198,7 @@ func (r *RFC2307bisUserManagement) UpdateUser(username string, userData *UserDet
 	}
 
 	if userData.GetGroups() != nil {
-		err := r.UpdateGroups(username, userData.GetGroups())
+		err := r.UpdateUserGroups(username, userData.GetGroups())
 		if err != nil {
 			return err
 		}
@@ -405,7 +404,7 @@ func (r *RFC2307bisUserManagement) addAttributeIfPresent(req *ldap.AddRequest, l
 }
 
 //nolint:gocyclo
-func (r *RFC2307bisUserManagement) UpdateGroups(username string, groups []string) error {
+func (r *RFC2307bisUserManagement) UpdateUserGroups(username string, groups []string) error {
 	if username == "" {
 		return fmt.Errorf("username cannot be empty")
 	}

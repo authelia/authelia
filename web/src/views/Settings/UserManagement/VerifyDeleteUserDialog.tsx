@@ -13,7 +13,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext.ts";
-import { deleteDeleteUser } from "@services/UserManagement.ts";
+import { deleteUser } from "@services/UserManagement.ts";
 
 interface Props {
     open: boolean;
@@ -39,7 +39,7 @@ const VerifyDeleteUserDialog = (props: Props) => {
             return;
         }
         try {
-            await deleteDeleteUser(props.username);
+            await deleteUser(props.username);
             createSuccessNotification(translate("User deleted successfully."));
             handleClose();
         } catch (err) {

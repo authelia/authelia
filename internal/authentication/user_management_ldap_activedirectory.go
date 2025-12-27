@@ -22,25 +22,25 @@ func (a *ActiveDirectoryUserManagement) DeleteUser(username string) (err error) 
 
 func (a *ActiveDirectoryUserManagement) GetRequiredFields() []string {
 	return []string{
-		"Username",
-		"Password",
-		"CommonName",
-		"FamilyName",
+		"username",
+		"password",
+		"full_name",
+		"last_name",
 	}
 }
 
 func (a *ActiveDirectoryUserManagement) GetSupportedFields() []string {
 	return []string{
-		"Username",
-		"Password",
-		"CommonName",
-		"GivenName",
-		"FamilyName",
-		"Email",
-		"Emails",
-		"Groups",
-		"ObjectClass",
-		"Extra",
+		"username",
+		"password",
+		"full_name",
+		"first_name",
+		"last_name",
+		"email",
+		"emails",
+		"groups",
+		"object_class",
+		"extra",
 	}
 }
 
@@ -53,44 +53,59 @@ func (a *ActiveDirectoryUserManagement) GetDefaultObjectClasses() []string {
 	}
 }
 
-// GetFieldMetadata describes the fields that are required to create new users for the RFC2307bis Backend.
+// GetFieldMetadata describes the fields that are required to create new users for the Active Directory Backend.
 func (a *ActiveDirectoryUserManagement) GetFieldMetadata() map[string]FieldMetadata {
 	return map[string]FieldMetadata{
-		"Username": {
+		"username": {
 			DisplayName: "Username",
-			Description: "Unique identifier for the user (maps to uid attribute)",
+			Description: "Unique identifier for the user (maps to sAMAccountName attribute)",
 			Type:        "string",
-			MaxLength:   100,
+			MaxLength:   64, MaxLength: 64, // AD sAMAccountName limit.
 		},
-		"Password": {
+		"password": {
 			DisplayName: "Password",
 			Description: "User's password",
 			Type:        "password",
 		},
-		"CommonName": {
-			DisplayName: "Common Name",
+		"full_name": {
+			DisplayName: "Full Name",
 			Description: "Full name or display name (maps to cn attribute)",
 			Type:        "string",
 		},
-		"GivenName": {
+		"first_name": {
 			DisplayName: "First Name",
-			Description: "User's first/given name",
+			Description: "User's first/given name (maps to givenName attribute)",
 			Type:        "string",
 		},
-		"FamilyName": {
+		"last_name": {
 			DisplayName: "Last Name",
 			Description: "User's last/family name (maps to sn attribute)",
 			Type:        "string",
 		},
-		"Email": {
+		"email": {
 			DisplayName: "Email Address",
-			Description: "Primary email address",
+			Description: "Primary email address (maps to mail attribute)",
 			Type:        "email",
 		},
-		"Groups": {
+		"emails": {
+			DisplayName: "Additional Email Addresses",
+			Description: "Additional email addresses for the user",
+			Type:        "array",
+		},
+		"groups": {
 			DisplayName: "Groups",
 			Description: "Groups the user should be added to",
 			Type:        "array",
+		},
+		"object_class": {
+			DisplayName: "Object Classes",
+			Description: "LDAP object classes for the user",
+			Type:        "array",
+		},
+		"extra": {
+			DisplayName: "Additional Attributes",
+			Description: "Additional LDAP attributes as key-value pairs",
+			Type:        "object",
 		},
 	}
 }

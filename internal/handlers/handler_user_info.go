@@ -99,11 +99,11 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	userInfo.Username = userSession.Username
 	userInfo.DisplayName = userSession.DisplayName
 	userInfo.Groups = userSession.Groups
-	userInfo.Emails = userSession.Emails
 
-	// it should be noted that UserInfo only contains info from the database and NOT any info from the authn_backend (email/groups).
+	// it should be noted that UserInfo only contains info from the database and session and NOT any info from the authn_backend (email/groups).
 	for _, email := range userSession.Emails {
 		userInfo.Emails = append(userInfo.Emails, redactEmail(email))
 	}

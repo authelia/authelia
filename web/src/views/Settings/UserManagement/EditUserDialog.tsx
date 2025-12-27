@@ -14,8 +14,9 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
-import { UserInfo, ValidateDisplayName, ValidateEmail, ValidateGroup } from "@models/UserInfo";
-import { putChangeUser } from "@services/UserManagement";
+import { UserInfo } from "@models/UserInfo";
+import { ValidateDisplayName, ValidateEmail, ValidateGroup } from "@models/UserManagement.js";
+//import { putChangeUser } from "@services/UserManagement";
 import VerifyExitDialog from "@views/Settings/Common/VerifyExitDialog";
 
 interface UserChange extends UserInfo {
@@ -101,14 +102,14 @@ const EditUserDialog = function (props: Props) {
         }
 
         try {
-            await putChangeUser(
-                editedUser.username,
-                editedUser.display_name,
-                editedUser.password ? editedUser.password : "",
-                editedUser.disabled ? editedUser.disabled : false,
-                editedUser.emails[0],
-                editedUser.groups,
-            );
+            // await putChangeUser(
+            //     editedUser.username,
+            //     editedUser.display_name,
+            //     editedUser.password ? editedUser.password : "",
+            //     editedUser.disabled ? editedUser.disabled : false,
+            //     editedUser.emails[0],
+            //     editedUser.groups,
+            // );
             createSuccessNotification(translate("User modified successfully."));
         } catch (err) {
             handleResetErrors();

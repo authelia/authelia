@@ -1,12 +1,8 @@
 import { UserInfo } from "@models/UserInfo";
-import { AdminConfigPath, AdminManageUserPath, AdminUserInfoPath } from "@services/Api";
+import { CreateUserRequest, UserDetailsExtended } from "@models/UserManagement.js";
+import { AdminConfigPath, AdminUserFieldMetadataPath, AdminUserRestPath } from "@services/Api";
 import { DeleteWithOptionalResponse, Get, PostWithOptionalResponse, PutWithOptionalResponse } from "@services/Client";
 import { UserInfoPayload, toSecondFactorMethod } from "@services/UserInfo";
-
-export async function getAllUserInfo(): Promise<UserInfo[]> {
-    const res = await Get<UserInfoPayload[]>(AdminUserInfoPath);
-    return res.map((user) => ({ ...user, method: toSecondFactorMethod(user.method) }));
-}
 
 export interface AdminConfigBody {
     enabled: boolean;
@@ -14,56 +10,54 @@ export interface AdminConfigBody {
     allow_admins_to_add_admins: boolean;
 }
 
-interface DeleteUserBody {
-    username: string;
+export type FieldType = "string" | "email" | "password" | "array" | "url";
+
+export interface FieldMetadata {
+    display_name: string;
+    description: string;
+    type: FieldType;
+    maxLength?: number;
+    pattern?: string;
 }
 
-export async function putChangeUser(
-    username: string,
-    display_name: string,
-    password: string | "",
-    disabled: boolean | false,
-    email: string,
-    groups: string[],
-) {
-    const data = {
-        username,
-        display_name,
-        password,
-        disabled,
-        email,
-        groups,
-    };
-    return PutWithOptionalResponse(AdminManageUserPath, data);
-}
-
-export async function postNewUser(
-    username: string,
-    display_name: string,
-    password: string,
-    disabled: boolean,
-    email: string,
-    groups: string[],
-) {
-    const data = {
-        username,
-        display_name,
-        password,
-        disabled,
-        email,
-        groups,
-    };
-    return PostWithOptionalResponse(AdminManageUserPath, data);
-}
-
-export async function deleteDeleteUser(username: string) {
-    const data: DeleteUserBody = {
-        username,
-    };
-    console.log("delete:", JSON.stringify(data));
-    return DeleteWithOptionalResponse(AdminManageUserPath, data);
+export interface UserFieldMetadataBody {
+    required_fields: (keyof CreateUserRequest)[];
+    supported_fields: (keyof UserDetailsExtended)[];
+    field_metadata: Record<keyof UserDetailsExtended, FieldMetadata>;
 }
 
 export async function getAdminConfiguration(): Promise<AdminConfigBody> {
     return await Get<AdminConfigBody>(AdminConfigPath);
+}
+
+export async function getUserFieldMetadata(): Promise<UserFieldMetadataBody> {
+    return await Get<UserFieldMetadataBody>(AdminUserFieldMetadataPath);
+}
+
+export async function getAllUserInfo(): Promise<UserInfo[]> {
+    const res = await Get<UserInfoPayload[]>(AdminUserRestPath);
+    return res.map((user) => ({ ...user, method: toSecondFactorMethod(user.method) }));
+}
+
+export async function getUser(username: string): Promise<UserDetailsExtended> {
+    return await Get<UserDetailsExtended>(`${AdminUserRestPath}/${username}`);
+}
+
+export async function putChangeUser(username: string, userData: Partial<UserDetailsExtended>) {
+    const data = { ...userData };
+    if (!data.password) {
+        delete data.password;
+    }
+
+    return PutWithOptionalResponse(`${AdminUserRestPath}/${username}`, data);
+}
+
+// postNewUser uses the rest api to create a new user.
+export async function postNewUser(userData: UserDetailsExtended) {
+    return PostWithOptionalResponse(AdminUserRestPath, userData);
+}
+
+// deleteUser uses the rest api to delete an existing user.
+export async function deleteUser(username: string) {
+    return DeleteWithOptionalResponse(`${AdminUserRestPath}/${username}`);
 }
