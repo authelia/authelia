@@ -712,22 +712,27 @@ attributes:
 
 func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
 	filter = p.config.UsersFilter
+	p.log.Tracef("1. Raw user filter: %s", filter)
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
 		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+		p.log.Tracef("2. Users filter after input replacement: %s", filter)
 	}
 
 	if p.usersFilterReplacementDateTimeGeneralized {
 		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeGeneralized, p.clock.Now().UTC().Format(ldapGeneralizedTimeDateTimeFormat))
+		p.log.Tracef("3. Users filter after date time replacement: %s", filter)
 	}
 
 	if p.usersFilterReplacementDateTimeUnixEpoch {
 		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeUnixEpoch, strconv.Itoa(int(p.clock.Now().Unix())))
+		p.log.Tracef("4. Users filter after date time unix replacement: %s", filter)
 	}
 
 	if p.usersFilterReplacementDateTimeMicrosoftNTTimeEpoch {
 		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch, strconv.FormatUint(utils.UnixNanoTimeToMicrosoftNTEpoch(p.clock.Now().UnixNano()), 10))
+		p.log.Tracef("5. Users filter after microsft nt date time replacement: %s", filter)
 	}
 
 	p.log.Tracef("Detected user filter is %s", filter)
