@@ -66,7 +66,7 @@ func TestProvisionUsersFileWatcher(t *testing.T) {
 	assert.EqualError(t, err, "error occurred asserting user provider")
 	assert.Nil(t, watcher)
 
-	ctx.Providers.UserProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
+	ctx.Providers.UserProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File, nil)
 
 	config.AuthenticationBackend.File = &schema.AuthenticationBackendFile{
 		Watch: true,

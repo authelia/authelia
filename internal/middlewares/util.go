@@ -8,6 +8,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
+	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/metrics"
@@ -34,7 +35,7 @@ func SetContentTypeTextPlain(ctx *fasthttp.RequestCtx) {
 }
 
 // NewProviders provisions all providers based on the configuration provided.
-func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (providers Providers, warns, errs []error) {
+func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool, filters []configuration.BytesFilter) (providers Providers, warns, errs []error) {
 	providers.Random = &random.Cryptographical{}
 	providers.StorageProvider = storage.NewProvider(config, caCertPool)
 	providers.Authorizer = authorization.NewAuthorizer(config)
@@ -44,7 +45,7 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.SessionProvider = session.NewProvider(config.Session, caCertPool)
 	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
 	providers.UserAttributeResolver = expression.NewUserAttributes(config)
-	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
+	providers.UserProvider = NewAuthenticationProvider(config, caCertPool, filters)
 
 	var err error
 	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath}); err != nil {
@@ -72,10 +73,10 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 }
 
 // NewAuthenticationProvider returns a new authentication.UserProvider.
-func NewAuthenticationProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider authentication.UserProvider) {
+func NewAuthenticationProvider(config *schema.Configuration, caCertPool *x509.CertPool, filters []configuration.BytesFilter) (provider authentication.UserProvider) {
 	switch {
 	case config.AuthenticationBackend.File != nil:
-		return authentication.NewFileUserProvider(config.AuthenticationBackend.File)
+		return authentication.NewFileUserProvider(config.AuthenticationBackend.File, filters)
 	case config.AuthenticationBackend.LDAP != nil:
 		return authentication.NewLDAPUserProvider(config.AuthenticationBackend, caCertPool)
 	default:

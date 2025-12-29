@@ -145,7 +145,14 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 		return warns, errs
 	}
 
-	ctx.providers, warns, errs = middlewares.NewProviders(ctx.config, ctx.trusted)
+	filters, err := configuration.NewFileFilters(ctx.cconfig.filters)
+
+	if err != nil {
+		errs = append(errs, err)
+		return warns, errs
+	}
+
+	ctx.providers, warns, errs = middlewares.NewProviders(ctx.config, ctx.trusted, filters)
 
 	return warns, errs
 }
