@@ -43,7 +43,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:4b3aacc8743519a4052bfe150260c81c1c7e336e146168c5f04bddcd4f67e85e
+FROM authelia/base:latest@sha256:7c282aecc79fe8d168fe028da43bc90ef9d710dfd08876bf18f2a0ca4caebf2e
 
 WORKDIR /app
 
