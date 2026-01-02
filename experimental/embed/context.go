@@ -33,7 +33,7 @@ func New(paths []string, filterNames []string) (ctx Context, val *schema.StructV
 		return nil, val, fmt.Errorf("configuration validation errors")
 	}
 
-	providers, warns, errs := provider.New(config, nil)
+	providers, warns, errs := provider.New(config, nil, nil)
 
 	for _, warn := range warns {
 		val.PushWarning(warn)
