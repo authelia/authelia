@@ -82,6 +82,7 @@ const (
 	ldapPlaceholderDisplayNameAttribute              = "{display_name_attribute}"
 	ldapPlaceholderMailAttribute                     = "{mail_attribute}"
 	ldapPlaceholderMemberOfAttribute                 = "{member_of_attribute}"
+	ldapPlaceholderPrincipalAttribute                = "{principal_attribute}"
 )
 
 const (

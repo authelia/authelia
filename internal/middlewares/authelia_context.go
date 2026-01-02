@@ -12,6 +12,9 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jcmturner/gokrb5/v8/service"
+	"github.com/jcmturner/gokrb5/v8/spnego"
+	"github.com/jcmturner/gokrb5/v8/types"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -686,6 +689,21 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) 
 	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
 
 	return webauthn.New(config)
+}
+
+func (ctx *AutheliaCtx) GetSPNEGOProvider() (*spnego.SPNEGO, error) {
+	kt, err := ctx.Providers.SPNEGOProvider.GetKeytab()
+	if err != nil {
+		return nil, err
+	}
+
+	host, err := types.GetHostAddress(ctx.RemoteAddr().String())
+
+	if err != nil {
+		return spnego.SPNEGOService(kt, service.KeytabPrincipal(ctx.Configuration.SPNEGO.Principal)), nil
+	}
+
+	return spnego.SPNEGOService(kt, service.DecodePAC(false), service.ClientAddress(host), service.KeytabPrincipal(ctx.Configuration.SPNEGO.Principal)), nil
 }
 
 // Value is a shaded method of context.Context which returns the AutheliaCtx struct if the key is the internal key

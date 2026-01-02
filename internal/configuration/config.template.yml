@@ -538,6 +538,16 @@ identity_validation:
     ## (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     # users_filter: '(&({username_attribute}={input})(objectClass=person))'
 
+    # additional_principals_dn: 'ou=users'
+
+    ## The principal filter used in search queries to find the user profile based on input filled in login form.
+    ##
+    ## Recommended setting is as follows:
+    ## - FreeIPA: (&(krbPrincipalName={input})(objectClass=krbPrincipalAux))
+    ## - Microsoft Active Directory: (&(userPrincipalName={input})(objectClass=user))
+    ##
+    # principals_filter: '(&({principal_attribute}={input})(objectClass=krbPrincipalAux))'
+
     ## The additional_groups_dn is prefixed to base_dn and delimited by a comma when searching for groups.
     ## i.e. with this set to OU=Groups and base_dn set to DC=a,DC=com; OU=Groups,DC=a,DC=com is searched for groups.
     # additional_groups_dn: 'ou=groups'
@@ -579,6 +589,10 @@ identity_validation:
       ## advise to use a filter to perform alternative lookups and the attributes mentioned above
       ## (sAMAccountName and uid) to follow https://datatracker.ietf.org/doc/html/rfc2307.
       # username: 'uid'
+
+      ## The attribute holding the principal name of the user. Only used if principals_filter is set.
+      ## For FreeIPA this is usually 'krbPrincipalName' and for Microsoft Active Directory it's usually 'userPrincipalName'.
+      # principal: 'krbPrincipalName'
 
       ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
       # display_name: 'displayName'
@@ -1663,4 +1677,19 @@ session:
               # -----BEGIN CERTIFICATE-----
               # ...
               # -----END CERTIFICATE-----
+
+# spnego:
+  ## Disable SPNEGO authentication.
+  # enabled: false
+
+  ## The path to the keytab file.
+  # keytab: '/path/to/keytab/file'
+
+  ## The principal to use from the keytab.
+  # principal: ''
+
+  ## The realm that should be used.
+  # realm: ''
+
+
 ...

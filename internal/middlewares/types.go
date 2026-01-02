@@ -54,6 +54,7 @@ type Providers struct {
 	Random                random.Provider
 	UserAttributeResolver expression.UserAttributeResolver
 	MetaDataService       webauthn.MetaDataProvider
+	SPNEGOProvider        *authentication.SPNEGOKeytabProvider
 }
 
 type Context interface {

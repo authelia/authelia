@@ -44,6 +44,12 @@ func (s *UserSession) SetOneFactorPassword(now time.Time, details *authenticatio
 	s.AuthenticationMethodRefs.UsernameAndPassword = true
 }
 
+func (s *UserSession) SetOneFactorKerberos(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
+	s.setOneFactor(now, details, keepMeLoggedIn)
+
+	s.AuthenticationMethodRefs.Kerberos = true
+}
+
 // SetOneFactorPasskey sets the 1FA AMR's and expected property values for one factor passkey authentication.
 func (s *UserSession) SetOneFactorPasskey(now time.Time, details *authentication.UserDetails, keepMeLoggedIn, hardware, userPresence, userVerified bool) {
 	s.setOneFactor(now, details, keepMeLoggedIn)

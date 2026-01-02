@@ -21,6 +21,8 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 			amr.WebAuthnSoftware = true
 		case AMRUserPresence:
 			amr.WebAuthnUserVerified = true
+		case AMRWindowsIntegratedAuthentication:
+			amr.Kerberos = true
 		}
 	}
 
@@ -38,6 +40,7 @@ type AuthenticationMethodsReferences struct {
 	WebAuthnSoftware             bool
 	WebAuthnUserPresence         bool
 	WebAuthnUserVerified         bool
+	Kerberos                     bool
 }
 
 // FactorKnowledge returns true if a "something you know" factor of authentication was used.
@@ -47,7 +50,7 @@ func (r AuthenticationMethodsReferences) FactorKnowledge() bool {
 
 // FactorPossession returns true if a "something you have" factor of authentication was used.
 func (r AuthenticationMethodsReferences) FactorPossession() bool {
-	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.Kerberos
 }
 
 // MultiFactorAuthentication returns true if multiple factors were used.
@@ -57,7 +60,7 @@ func (r AuthenticationMethodsReferences) MultiFactorAuthentication() bool {
 
 // ChannelBrowser returns true if a browser was used to authenticate.
 func (r AuthenticationMethodsReferences) ChannelBrowser() bool {
-	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.Kerberos
 }
 
 // ChannelService returns true if a non-browser service was used to authenticate.
@@ -89,6 +92,10 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 
 	if r.Duo {
 		amr = append(amr, AMRShortMessageService)
+	}
+
+	if r.Kerberos {
+		amr = append(amr, AMRWindowsIntegratedAuthentication)
 	}
 
 	if r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware {
