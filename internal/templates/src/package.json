@@ -10,19 +10,19 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "1.0.2",
-		"@react-email/render": "2.0.0",
+		"@react-email/components": "1.0.3",
+		"@react-email/render": "2.0.1",
 		"esbuild": "0.27.2",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",
-		"react-email": "5.1.0",
+		"react-email": "5.1.1",
 		"tailwind-merge": "3.4.0",
 		"tailwindcss": "4.1.18",
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@react-email/preview-server": "5.1.0",
+		"@react-email/preview-server": "5.1.1",
 		"@types/node": "25.0.3",
 		"@types/react": "19.2.7",
 		"@types/react-dom": "19.2.3",
