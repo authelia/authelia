@@ -28,7 +28,8 @@
             "js-yaml": "4.1.1",
             "path-to-regexp": "8.3.0",
             "semver": "7.7.3",
-            "vite": "7.3.0"
+            "vite": "7.3.0",
+            "qs": "6.14.1"
         },
         "peerDependencyRules": {
             "allowedVersions": {
