@@ -2,12 +2,15 @@ package authentication
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/mail"
 	"net/url"
 	"time"
 
+	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/text/language"
 
 	"github.com/authelia/authelia/v4/internal/clock"

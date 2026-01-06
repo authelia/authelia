@@ -172,7 +172,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	}
 
 	if details.Disabled {
-		return ErrUserDisabled
+		return ErrUserNotFound
 	}
 
 	var digest algorithm.Digest
@@ -205,7 +205,7 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	}
 
 	if details.Disabled {
-		return ErrUserDisabled
+		return ErrUserNotFound
 	}
 
 	if strings.TrimSpace(newPassword) == "" {

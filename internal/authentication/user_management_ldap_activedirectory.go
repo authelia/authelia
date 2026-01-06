@@ -151,7 +151,7 @@ func (a *ActiveDirectoryUserManagement) AddUser(userData *UserDetailsExtended) (
 		return fmt.Errorf("password is required to create user '%s'", userData.Username)
 	}
 
-	var client ldap.Client
+	var client LDAPExtendedClient
 	if client, err = a.provider.factory.GetClient(); err != nil {
 		return fmt.Errorf("unable to create user '%s': %w", userData.Username, err)
 	}
@@ -186,9 +186,9 @@ func (a *ActiveDirectoryUserManagement) AddUser(userData *UserDetailsExtended) (
 	var controls []ldap.Control
 
 	switch {
-	case a.provider.features.ControlTypes.MsftPwdPolHints:
+	case client.Features().ControlTypes.MsftPwdPolHints:
 		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints})
-	case a.provider.features.ControlTypes.MsftPwdPolHintsDeprecated:
+	case client.Features().ControlTypes.MsftPwdPolHintsDeprecated:
 		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHintsDeprecated})
 	}
 

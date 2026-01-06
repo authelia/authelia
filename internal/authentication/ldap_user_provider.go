@@ -286,8 +286,8 @@ func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDet
 }
 
 func (p *LDAPUserProvider) ListUsers() (users []UserDetailsExtended, err error) {
-	var client ldap.Client
 
+	var client LDAPExtendedClient
 	if client, err = p.factory.GetClient(); err != nil {
 		return nil, fmt.Errorf("failed to connect to LDAP server: %w", err)
 	}
@@ -492,7 +492,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 // TODO: Use this method :)
 //
 //nolint:unused
-func (p *LDAPUserProvider) getGroupDN(client ldap.Client, groupName string) (string, error) {
+func (p *LDAPUserProvider) getGroupDN(client LDAPExtendedClient, groupName string) (string, error) {
 	searchRequest := ldap.NewSearchRequest(
 		p.groupsBaseDN,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
