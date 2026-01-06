@@ -9,3 +9,5 @@
 ^internal\/suites\/.*\/configuration\.yml$
 ^internal\/suites\/common\/pki\/.*\.pem$
 ^.*_test\.go$
+^dist\/authelia$
+^dist\/
