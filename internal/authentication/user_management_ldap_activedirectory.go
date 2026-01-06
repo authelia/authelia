@@ -60,7 +60,7 @@ func (a *ActiveDirectoryUserManagement) GetFieldMetadata() map[string]FieldMetad
 			DisplayName: "Username",
 			Description: "Unique identifier for the user (maps to sAMAccountName attribute)",
 			Type:        "string",
-			MaxLength:   64, MaxLength: 64, // AD sAMAccountName limit.
+			MaxLength:   64, // AD sAMAccountName limit.
 		},
 		"password": {
 			DisplayName: "Password",
