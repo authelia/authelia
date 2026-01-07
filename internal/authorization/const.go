@@ -166,4 +166,12 @@ const (
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRShortMessageService = "sms"
+
+	// AMRWindowsIntegratedAuthentication is an RFC8176 Authentication Method Reference Value that
+	// represents authentication via Windows Integrated Authentication (WIA) such as Kerberos or NTLM.
+	//
+	// Authelia utilizes this when a user has used Kerberos to authenticate. Factor: Have, Channel: Service.
+	//
+	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
+	AMRWindowsIntegratedAuthentication = "wia"
 )

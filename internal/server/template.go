@@ -259,6 +259,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		AssetPath:               config.Server.AssetPath,
 		DuoSelfEnrollment:       strFalse,
 		PasskeyLogin:            strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
+		SPNEGOLogin:             strconv.FormatBool(config.SPNEGO.Enabled),
 		RememberMe:              strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:           strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL:  config.AuthenticationBackend.PasswordReset.CustomURL.String(),
@@ -271,6 +272,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		EndpointsPasswordChange: !config.AuthenticationBackend.PasswordChange.Disable,
 		EndpointsWebAuthn:       !config.WebAuthn.Disable,
 		EndpointsPasskeys:       !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
+		EndpointsSPNEGO:         config.SPNEGO.Enabled,
 		EndpointsTOTP:           !config.TOTP.Disable,
 		EndpointsDuo:            !config.DuoAPI.Disable,
 		EndpointsOpenIDConnect:  config.IdentityProviders.OIDC != nil,
@@ -294,6 +296,7 @@ type TemplatedFileOptions struct {
 	AssetPath              string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
+	SPNEGOLogin            string
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
@@ -310,6 +313,7 @@ type TemplatedFileOptions struct {
 	EndpointsTOTP           bool
 	EndpointsDuo            bool
 	EndpointsOpenIDConnect  bool
+	EndpointsSPNEGO         bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }
@@ -330,6 +334,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
+		SPNEGO:                 options.SPNEGOLogin,
 		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
@@ -351,6 +356,7 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
+		SPNEGO:                 options.SPNEGOLogin,
 		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
@@ -373,6 +379,7 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce st
 		PasswordChange: options.EndpointsPasswordChange,
 		WebAuthn:       options.EndpointsWebAuthn,
 		Passkeys:       options.EndpointsPasskeys,
+		SPNEGO:         options.EndpointsSPNEGO,
 		TOTP:           options.EndpointsTOTP,
 		Duo:            options.EndpointsDuo,
 		OpenIDConnect:  options.EndpointsOpenIDConnect,
@@ -390,6 +397,7 @@ type TemplatedFileCommonData struct {
 	LogoOverride           string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
+	SPNEGO                 string
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
@@ -410,6 +418,7 @@ type TemplatedFileOpenAPIData struct {
 	PasswordChange bool
 	WebAuthn       bool
 	Passkeys       bool
+	SPNEGO         bool
 	TOTP           bool
 	Duo            bool
 	OpenIDConnect  bool

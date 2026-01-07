@@ -437,6 +437,10 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 		config.UsersFilter = implementation.UsersFilter
 	}
 
+	if ldapImplementationShouldSetStr(config.PrincipalsFilter, implementation.PrincipalsFilter) {
+		config.PrincipalsFilter = implementation.PrincipalsFilter
+	}
+
 	if ldapImplementationShouldSetStr(config.AdditionalGroupsDN, implementation.AdditionalGroupsDN) {
 		config.AdditionalGroupsDN = implementation.AdditionalGroupsDN
 	}
@@ -471,6 +475,10 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 
 	if ldapImplementationShouldSetStr(config.Attributes.GroupName, implementation.Attributes.GroupName) {
 		config.Attributes.GroupName = implementation.Attributes.GroupName
+	}
+
+	if ldapImplementationShouldSetStr(config.Attributes.Principal, implementation.Attributes.Principal) {
+		config.Attributes.Principal = implementation.Attributes.Principal
 	}
 }
 

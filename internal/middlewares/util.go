@@ -68,6 +68,12 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 		providers.Metrics = metrics.NewPrometheus()
 	}
 
+	if config.SPNEGO.Enabled {
+		if providers.SPNEGOProvider, err = authentication.NewSPNEGOKeytabProvider(&config.SPNEGO); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
 	return providers, warns, errs
 }
 

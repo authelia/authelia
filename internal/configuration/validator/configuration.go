@@ -74,6 +74,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	ValidatePasswordPolicy(&config.PasswordPolicy, validator)
 
 	ValidatePrivacyPolicy(&config.PrivacyPolicy, validator)
+
+	ValidateSpnego(config, validator)
 }
 
 func validateDefault2FAMethod(config *schema.Configuration, validator *schema.StructValidator) {

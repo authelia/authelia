@@ -28,6 +28,7 @@ import {
     getRememberMe,
     getResetPassword,
     getResetPasswordCustomURL,
+    getSpnegoLogin,
 } from "@utils/Configuration";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
@@ -76,6 +77,7 @@ function App() {
                                                 rememberMe={getRememberMe()}
                                                 resetPassword={getResetPassword()}
                                                 resetPasswordCustomURL={getResetPasswordCustomURL()}
+                                                spnegoLogin={getSpnegoLogin()}
                                             />
                                         }
                                     />
