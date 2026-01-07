@@ -12,6 +12,7 @@ type Notifier struct {
 	DisableStartupCheck bool                `koanf:"disable_startup_check" yaml:"disable_startup_check" toml:"disable_startup_check" json:"disable_startup_check" jsonschema:"default=false,title=Disable Startup Check" jsonschema_description:"Disables the notifier startup checks."`
 	FileSystem          *NotifierFileSystem `koanf:"filesystem" yaml:"filesystem,omitempty" toml:"filesystem,omitempty" json:"filesystem,omitempty" jsonschema:"title=File System" jsonschema_description:"The File System notifier."`
 	SMTP                *NotifierSMTP       `koanf:"smtp" yaml:"smtp,omitempty" toml:"smtp,omitempty" json:"smtp,omitempty" jsonschema:"title=SMTP" jsonschema_description:"The SMTP notifier."`
+	WebhookRef          string              `koanf:"webhook_ref" yaml:"webhook_ref,omitempty" toml:"webhook_ref,omitempty" json:"webhook_ref,omitempty" jsonschema:"title=Webhook Reference" jsonschema_description:"Reference to a webhook defined in definitions.webhooks."`
 	TemplatePath        string              `koanf:"template_path" yaml:"template_path,omitempty" toml:"template_path,omitempty" json:"template_path,omitempty" jsonschema:"title=Template Path" jsonschema_description:"The path for notifier template overrides."`
 }
 
@@ -52,4 +53,10 @@ var DefaultSMTPNotifierConfiguration = NotifierSMTP{
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
+}
+
+// DefaultWebhookConfiguration represents default configuration parameters for webhooks.
+var DefaultWebhookConfiguration = Webhook{
+	Method:  "POST",
+	Timeout: time.Second * 5,
 }
