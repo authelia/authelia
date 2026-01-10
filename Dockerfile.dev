@@ -10,7 +10,7 @@ COPY --link web ./
 # Install the dependencies and build
 RUN \
 	yarn global add pnpm && \
-	pnpm install --frozen-lockfile && \
+	pnpm install --frozen-lockfile --ignore-scripts && \
 	pnpm coverage
 
 # =======================================
