@@ -16,6 +16,7 @@ import (
 	goyaml "go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -130,7 +131,13 @@ func newDebugOIDCClaimsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 //nolint:gocyclo
 func (ctx *CmdCtx) DebugOIDCClaimsRunE(cmd *cobra.Command, args []string) (err error) {
-	provider := middlewares.NewAuthenticationProvider(ctx.config, ctx.trusted)
+	filters, err := configuration.NewFileFilters(ctx.cconfig.filters)
+
+	if err != nil {
+		return fmt.Errorf("error occurred initializing user authentication provider: filters could not be initialized")
+	}
+
+	provider := middlewares.NewAuthenticationProvider(ctx.config, ctx.trusted, filters)
 
 	if provider == nil {
 		return fmt.Errorf("error occurred initializing user authentication provider: a provider is not configured")
@@ -234,7 +241,8 @@ func (ctx *CmdCtx) DebugOIDCClaimsRunE(cmd *cobra.Command, args []string) (err e
 }
 
 func (ctx *CmdCtx) DebugExpressionRunE(cmd *cobra.Command, args []string) (err error) {
-	provider := middlewares.NewAuthenticationProvider(ctx.config, ctx.trusted)
+	filters, _ := configuration.NewFileFilters(ctx.cconfig.filters)
+	provider := middlewares.NewAuthenticationProvider(ctx.config, ctx.trusted, filters)
 
 	if provider == nil {
 		return fmt.Errorf("error occurred initializing user authentication provider: a provider is not configured")
