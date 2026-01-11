@@ -44,22 +44,15 @@ export interface UserDetailsAddress {
     country?: string;
 }
 
-export interface CreateUserRequest
-    extends Omit<
-        UserDetailsExtended,
-        | "last_logged_in"
-        | "last_password_change"
-        | "user_created_at"
-        | "method"
-        | "has_totp"
-        | "has_webauthn"
-        | "has_duo"
-    > {
+export interface CreateUserRequest extends Omit<
+    UserDetailsExtended,
+    "has_duo" | "has_totp" | "has_webauthn" | "last_logged_in" | "last_password_change" | "method" | "user_created_at"
+> {
     username: string;
     password: string;
 }
 
-export function validateFieldValue(value: any, metadata: FieldMetadata, fieldName: string): string | null {
+export function validateFieldValue(value: any, metadata: FieldMetadata, fieldName: string): null | string {
     if (metadata.type === "email" && typeof value === "string") {
         if (!ValidateEmail(value)) {
             return `Invalid ${metadata.display_name.toLowerCase()} format`;

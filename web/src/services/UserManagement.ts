@@ -10,7 +10,7 @@ export interface AdminConfigBody {
     allow_admins_to_add_admins: boolean;
 }
 
-export type FieldType = "string" | "email" | "password" | "array" | "url";
+export type FieldType = "array" | "email" | "password" | "string" | "url";
 
 export interface FieldMetadata {
     display_name: string;

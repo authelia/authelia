@@ -23,7 +23,7 @@ interface Props {
 
 const VerifyDeleteUserDialog = (props: Props) => {
     const { t: translate } = useTranslation("settings");
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [usernameInput, setUsernameInput] = useState<string>("");
     const [disableDelete, setDisableDelete] = useState(false);

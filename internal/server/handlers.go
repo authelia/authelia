@@ -292,8 +292,12 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 			r.POST("/api/admin/users", RequireAdminUser1FA(handlers.NewUserPOST))
 
 			r.GET("/api/admin/users/{username}", RequireAdminUser1FA(handlers.GetUserGET))
-			r.PUT("/api/admin/users/{username}", RequireAdminUser1FA(handlers.ChangeUserPUT))
+			r.PATCH("/api/admin/users/{username}", RequireAdminUser1FA(handlers.ChangeUserPATCH))
 			r.DELETE("/api/admin/users/{username}", RequireAdminUser1FA(handlers.DeleteUserDELETE))
+
+			r.GET("/api/admin/groups", RequireAdminUser1FA(handlers.GetGroupsGET))
+			r.POST("/api/admin/groups", RequireAdminUser1FA(handlers.NewGroupPOST))
+			r.DELETE("/api/admin/groups/{group}", RequireAdminUser1FA(handlers.DeleteGroupDELETE))
 		}
 	}
 

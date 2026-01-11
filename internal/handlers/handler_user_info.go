@@ -131,16 +131,26 @@ func GetUserGET(ctx *middlewares.AutheliaCtx) {
 		userDetails *authentication.UserDetailsExtended
 	)
 	if userDetails, err = ctx.Providers.UserProvider.GetDetailsExtended(username); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred retrieving users")
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving user '%s'", username)
+
+		if errors.Is(err, authentication.ErrUserNotFound) {
+			ctx.SetStatusCode(fasthttp.StatusNotFound)
+			return
+		}
+
 		return
 	}
 
 	userInfo, err = ctx.Providers.StorageProvider.LoadUserMetadataByUsername(ctx, username)
 	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			ctx.Error(fmt.Errorf("unable to load user attributes: %w", err), messageOperationFailed)
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.SetStatusCode(fasthttp.StatusNotFound)
 			return
 		}
+
+		ctx.Logger.Error(fmt.Errorf("unable to load user attributes: %w", err), messageOperationFailed)
+
+		return
 	}
 
 	userDetails = MergeUserDetailsWithInfo(userDetails, userInfo)

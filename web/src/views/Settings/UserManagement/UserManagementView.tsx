@@ -20,12 +20,12 @@ const UserManagementView = () => {
     const { createErrorNotification } = useNotifications();
 
     const [users, fetchUsers, , fetchUsersError] = useAllUserInfoGET();
-    const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
+    const [selectedUser, setSelectedUser] = useState<null | UserInfo>(null);
     const [userToDelete, setUserToDelete] = useState("");
     const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
     const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
     const [isVerifyDeleteUserDialogOpen, setIsVerifyDeleteUserDialogOpen] = useState(false);
-    const [fieldMetadata, setFieldMetadata] = useState<UserFieldMetadataBody | null>(null);
+    const [fieldMetadata, setFieldMetadata] = useState<null | UserFieldMetadataBody>(null);
 
     const handleRowClick = (params: GridRowParams) => {
         if (!users) {
@@ -120,43 +120,40 @@ const UserManagementView = () => {
 
         return users.map((user: UserInfo, index: number) => {
             return {
-                id: index,
-                username: user.username,
                 display_name: user.display_name,
                 emails: Array.isArray(user.emails) ? user.emails[0] : user.emails,
+                has_duo: user.has_duo ? "Yes" : "No",
+                has_totp: user.has_totp ? "Yes" : "No",
+                has_webauthn: user.has_webauthn ? "Yes" : "No",
+                id: index,
                 last_logged_in: user.last_logged_in ? new Date(user.last_logged_in).toLocaleString() : "-",
                 last_password_change: user.last_password_change
                     ? new Date(user.last_password_change).toLocaleString()
                     : "-",
-                user_created_at: user.user_created_at ? new Date(user.user_created_at).toLocaleString() : "-",
                 method:
                     user.method && (user.has_duo || user.has_totp || user.has_webauthn)
                         ? to2FAString(user.method)
                         : "-",
-                has_webauthn: user.has_webauthn ? "Yes" : "No",
-                has_totp: user.has_totp ? "Yes" : "No",
-                has_duo: user.has_duo ? "Yes" : "No",
+                user_created_at: user.user_created_at ? new Date(user.user_created_at).toLocaleString() : "-",
+                username: user.username,
             };
         });
     }, [users, createErrorNotification]);
 
     const columns: GridColDef[] = [
-        { field: "username", headerName: "Username", flex: 1 },
-        { field: "display_name", headerName: "Display Name", flex: 1 },
-        { field: "emails", headerName: "Email", flex: 1 },
-        { field: "last_logged_in", headerName: "Last Log In", flex: 1 },
-        { field: "last_password_change", headerName: "Last Password Change", flex: 1 },
-        { field: "user_created_at", headerName: "User Created At", flex: 1 },
-        { field: "method", headerName: "Default 2FA Method", flex: 1 },
-        { field: "has_webauthn", headerName: "WebAuthn?", flex: 1 },
-        { field: "has_totp", headerName: "Totp?", flex: 1 },
-        { field: "has_duo", headerName: "Duo?", flex: 1 },
+        { field: "username", flex: 1, headerName: "Username" },
+        { field: "display_name", flex: 1, headerName: "Display Name" },
+        { field: "emails", flex: 1, headerName: "Email" },
+        { field: "last_logged_in", flex: 1, headerName: "Last Log In" },
+        { field: "last_password_change", flex: 1, headerName: "Last Password Change" },
+        { field: "user_created_at", flex: 1, headerName: "User Created At" },
+        { field: "method", flex: 1, headerName: "Default 2FA Method" },
+        { field: "has_webauthn", flex: 1, headerName: "WebAuthn?" },
+        { field: "has_totp", flex: 1, headerName: "Totp?" },
+        { field: "has_duo", flex: 1, headerName: "Duo?" },
         {
-            field: "actions",
-            type: "actions",
-            headerName: "Actions",
-            width: 100,
             cellClassName: "actions",
+            field: "actions",
             getActions: (params: GridRowParams) => {
                 return [
                     <GridActionsCellItem
@@ -174,6 +171,9 @@ const UserManagementView = () => {
                     />,
                 ];
             },
+            headerName: "Actions",
+            type: "actions",
+            width: 100,
         },
     ];
 
@@ -203,11 +203,11 @@ const UserManagementView = () => {
                     initialState={{
                         columns: {
                             columnVisibilityModel: {
-                                password_change_required: false,
-                                logout_required: false,
+                                has_duo: false,
                                 has_totp: false,
                                 has_webauthn: false,
-                                has_duo: false,
+                                logout_required: false,
+                                password_change_required: false,
                             },
                         },
                         sorting: {

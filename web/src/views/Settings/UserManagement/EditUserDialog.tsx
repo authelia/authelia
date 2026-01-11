@@ -24,16 +24,16 @@ interface UserChange extends UserInfo {
 }
 
 interface Props {
-    user: UserInfo | null;
+    user: null | UserInfo;
     open: boolean;
     onClose: () => void;
 }
 
 const EditUserDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
-    const [editedUser, setEditedUser] = useState<UserChange | null>(null);
+    const [editedUser, setEditedUser] = useState<null | UserChange>(null);
     const [changesMade, setChangesMade] = useState(false);
     const [verifyExitDialogOpen, setVerifyExitDialogOpen] = useState(false);
     const [displayNameError, setDisplayNameError] = useState(false);

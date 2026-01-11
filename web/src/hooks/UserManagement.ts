@@ -10,29 +10,29 @@ import {
 } from "@services/UserManagement";
 
 export function useAllUserInfoGET() {
-    return useRemoteCall(getAllUserInfo, []);
+    return useRemoteCall(getAllUserInfo);
 }
 
 export function useAdminConfigurationGET() {
-    return useRemoteCall(getAdminConfiguration, []);
+    return useRemoteCall(getAdminConfiguration);
 }
 
 export function useUserManagementFieldMetadataGET() {
-    return useRemoteCall(getUserFieldMetadata, []);
+    return useRemoteCall(getUserFieldMetadata);
 }
 
 export function useUserGET(username: string) {
-    return useRemoteCall(() => getUser(username), [username]);
+    return useRemoteCall(() => getUser(username));
 }
 
 export function useUserPUT() {
-    return useRemoteCall(putChangeUser, []);
+    return useRemoteCall(putChangeUser);
 }
 
 export function useUserPOST() {
-    return useRemoteCall(postNewUser, []);
+    return useRemoteCall(postNewUser);
 }
 
 export function useUserDELETE() {
-    return useRemoteCall(deleteUser, []);
+    return useRemoteCall(deleteUser);
 }

@@ -3,6 +3,7 @@ package authentication
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/go-ldap/ldap/v3"
 
@@ -25,13 +26,29 @@ func (r *RFC2307bisUserManagement) GetRequiredFields() []string {
 
 func (r *RFC2307bisUserManagement) GetSupportedFields() []string {
 	return []string{
-		"username",
-		"password",
-		"full_name",
-		"first_name",
-		"last_name",
+		"display_name",
 		"emails",
 		"groups",
+		"first_name",
+		"last_name",
+		"middle_name",
+		"full_name",
+		"nickname",
+		"phone_number",
+		"phone_extension",
+		"profile",
+		"picture",
+		"website",
+		"gender",
+		"birthdate",
+		"locale",
+		"zone_info",
+		"address",
+		"address.street_address",
+		"address.locality",
+		"address.region",
+		"address.postal_code",
+		"address.country",
 		"extra",
 	}
 }
@@ -115,11 +132,11 @@ func (r *RFC2307bisUserManagement) ValidateUserData(userData *UserDetailsExtende
 	}
 
 	if userData.GetUsername() == "" {
-		return fmt.Errorf("username is required for RFC2307bis")
+		return ErrUsernameIsRequired
 	}
 
 	if userData.GetFamilyName() == "" {
-		return fmt.Errorf("last name is required for RFC2307bis")
+		return ErrLastNameIsRequired
 	}
 
 	if userData.CommonName == "" {
@@ -136,6 +153,171 @@ func (r *RFC2307bisUserManagement) ValidateUserData(userData *UserDetailsExtende
 				return fmt.Errorf("invalid email address: %s", email)
 			}
 		}
+	}
+
+	return nil
+}
+
+// ValidatePartialUpdate validates data for partial updates (PATCH with field mask).
+func (r *RFC2307bisUserManagement) ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error {
+	if userData == nil {
+		return fmt.Errorf("user data cannot be nil")
+	}
+
+	maskSet := make(map[string]bool)
+	for _, field := range updateMask {
+		maskSet[field] = true
+	}
+
+	if maskSet["emails"] && userData.UserDetails != nil && len(userData.GetEmails()) > 0 {
+		for _, email := range userData.GetEmails() {
+			if !utils.ValidateEmailString(email) {
+				return fmt.Errorf("invalid email address: %s", email)
+			}
+		}
+	}
+
+	if maskSet["profile"] && userData.Profile != nil {
+	}
+
+	if maskSet["picture"] && userData.Picture != nil {
+	}
+
+	if maskSet["website"] && userData.Website != nil {
+	}
+
+	return nil
+}
+
+//nolint:gocyclo
+func (r *RFC2307bisUserManagement) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) error {
+	if userData == nil || userData.UserDetails == nil {
+		return fmt.Errorf("userData and userData.UserDetails cannot be nil")
+	}
+
+	var (
+		client LDAPExtendedClient
+		err    error
+	)
+
+	if client, err = r.provider.factory.GetClient(); err != nil {
+		return fmt.Errorf("unable to update user '%s': %w", username, err)
+	}
+
+	defer func() {
+		if err := r.provider.factory.ReleaseClient(client); err != nil {
+			r.provider.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	profile, err := r.provider.getUserProfile(client, username)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve user profile for update of user '%s': %w", username, err)
+	}
+
+	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
+
+	for _, field := range updateMask {
+		switch {
+		case field == "first_name":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.GivenName, userData.GivenName)
+		case field == "last_name":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.FamilyName, userData.FamilyName)
+		case field == "middle_name":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.MiddleName, userData.MiddleName)
+		case field == "nickname":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Nickname, userData.Nickname)
+		case field == "gender":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Gender, userData.Gender)
+		case field == "birthdate":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Birthdate, userData.Birthdate)
+		case field == "zone_info":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.ZoneInfo, userData.ZoneInfo)
+		case field == "phone_number":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PhoneNumber, userData.PhoneNumber)
+		case field == "phone_extension":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PhoneExtension, userData.PhoneExtension)
+		case field == "locale":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Locale, userData.GetLocale())
+		case field == "profile":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Profile, userData.GetProfile())
+		case field == "picture":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Picture, userData.GetPicture())
+		case field == "website":
+			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Website, userData.GetWebsite())
+		case field == "display_name":
+			if userData.GetDisplayName() != "" {
+				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.DisplayName, userData.GetDisplayName())
+			}
+		case field == "emails":
+			//TODO: handle multiple emails, this will require authelia-internal "primary" email tracking. See https://github.com/authelia/authelia/discussions/6093
+			if len(userData.Emails) > 0 {
+				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Mail, userData.Emails[0])
+			}
+		case field == "groups":
+			if userData.GetGroups() != nil {
+				if err := r.UpdateUserGroups(username, userData.GetGroups()); err != nil {
+					return err
+				}
+			}
+		case field == "extra":
+			for jsonKey, value := range userData.Extra {
+				if value == nil {
+					continue
+				}
+
+				ldapAttr := r.getLDAPAttributeForExtraField(jsonKey)
+				if ldapAttr == "" {
+					r.provider.log.Warnf("No LDAP attribute mapping found for extra field '%s', skipping", jsonKey)
+					continue
+				}
+
+				r.replaceAttributeIfPresent(modifyRequest, ldapAttr, fmt.Sprintf("%v", value))
+			}
+		case field == "address":
+			if userData.Address != nil {
+				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.StreetAddress, userData.Address.StreetAddress)
+				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Locality, userData.Address.Locality)
+				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Region, userData.Address.Region)
+				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PostalCode, userData.Address.PostalCode)
+				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Country, userData.Address.Country)
+			}
+		case strings.HasPrefix(field, "address."):
+			if userData.Address != nil {
+				subField := strings.TrimPrefix(field, "address.")
+				switch subField {
+				case "street_address":
+					r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.StreetAddress, userData.Address.StreetAddress)
+				case "locality":
+					r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Locality, userData.Address.Locality)
+				case "region":
+					r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Region, userData.Address.Region)
+				case "postal_code":
+					r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PostalCode, userData.Address.PostalCode)
+				case "country":
+					r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Country, userData.Address.Country)
+				}
+			}
+		}
+	}
+
+	if len(modifyRequest.Changes) == 0 {
+		r.provider.log.Debugf("No changes detected for user '%s', skipping update", username)
+		return nil
+	}
+
+	if err = r.provider.modify(client, modifyRequest); err != nil {
+		if errorCode := getLDAPResultCode(err); errorCode != -1 {
+			switch errorCode {
+			case ldap.LDAPResultNoSuchAttribute,
+				ldap.LDAPResultNoSuchObject:
+				return nil
+			case ldap.LDAPResultInvalidAttributeSyntax:
+				return fmt.Errorf("invalid attribute syntax: %v", err)
+			}
+		}
+
+		return fmt.Errorf("unable to update user '%s': %w", username, err)
 	}
 
 	return nil
@@ -224,10 +406,6 @@ func (r *RFC2307bisUserManagement) UpdateUser(username string, userData *UserDet
 	}
 
 	r.provider.log.Debugf("Sending modify request for user '%s' with %d changes:", username, len(modifyRequest.Changes))
-
-	for i, change := range modifyRequest.Changes {
-		r.provider.log.Debugf("  Change %d: %d %s = %v", i+1, change.Operation, change.Modification.Type, change.Modification.Vals)
-	}
 
 	if err = r.provider.modify(client, modifyRequest); err != nil {
 		return fmt.Errorf("unable to update user '%s': %w", username, err)
@@ -320,8 +498,6 @@ func (r *RFC2307bisUserManagement) AddUser(userData *UserDetailsExtended) (err e
 		r.addAttributeIfPresent(addRequest, r.provider.config.Attributes.DisplayName, userData.GetDisplayName())
 	}
 
-	// Removed the microsoft server controls because this implementation doesn't use microsoft server.
-
 	if err = client.Add(addRequest); err != nil {
 		return fmt.Errorf("failed to add user '%s': %w", userData.Username, err)
 	}
@@ -395,16 +571,22 @@ func (r *RFC2307bisUserManagement) handleReferralDelete(referral string, deleteR
 
 func (r *RFC2307bisUserManagement) replaceAttributeIfPresent(req *ldap.ModifyRequest, ldapAttr, value string) {
 	if ldapAttr == "" {
-		r.provider.log.Debugf("Skipping attribute update - LDAP attribute name is empty")
 		return
 	}
 
-	req.Replace(ldapAttr, []string{value})
+	if value == "" {
+		req.Delete(ldapAttr, []string{})
+	} else {
+		req.Replace(ldapAttr, []string{value})
+	}
 }
 
 func (r *RFC2307bisUserManagement) addAttributeIfPresent(req *ldap.AddRequest, ldapAttr, value string) {
 	if ldapAttr == "" {
-		r.provider.log.Debugf("Skipping attribute addition - LDAP attribute name is empty")
+		return
+	}
+
+	if value == "" {
 		return
 	}
 
@@ -490,8 +672,34 @@ func (r *RFC2307bisUserManagement) UpdateUserGroups(username string, groups []st
 	return nil
 }
 
-// createGroup creates a new group in LDAP.
-func (r *RFC2307bisUserManagement) createGroup(client LDAPExtendedClient, groupName, groupDN string) error {
+func (r *RFC2307bisUserManagement) GetGroups(client LDAPExtendedClient) ([]*ldap.Entry, error) {
+	searchRequest := ldap.NewSearchRequest(
+		r.provider.groupsBaseDN,
+		ldap.ScopeSingleLevel,
+		ldap.NeverDerefAliases,
+		0,
+		0,
+		false,
+		"(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=posixGroup))",
+		[]string{"cn", "member", "uniqueMember", "gidNumber"},
+		nil,
+	)
+
+	searchResult, err := r.provider.search(client, searchRequest)
+	if err != nil {
+		var ldapErr *ldap.Error
+		if errors.As(err, &ldapErr) && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
+			return []*ldap.Entry{}, nil
+		}
+
+		return nil, fmt.Errorf("error occurred searching for all groups: %w", err)
+	}
+
+	return searchResult.Entries, nil
+}
+
+// CreateGroup creates a new group in LDAP.
+func (r *RFC2307bisUserManagement) CreateGroup(client LDAPExtendedClient, groupName, groupDN string) error {
 	addRequest := ldap.NewAddRequest(groupDN, nil)
 
 	// RFC2307bis group object classes.
@@ -511,10 +719,10 @@ func (r *RFC2307bisUserManagement) createGroup(client LDAPExtendedClient, groupN
 	return nil
 }
 
-// deleteGroup deletes a group in LDAP.
+// DeleteGroup deletes a group in LDAP.
 //
-//nolint:unused
-func (r *RFC2307bisUserManagement) deleteGroup(client LDAPExtendedClient, groupName, groupDN string) error {
+
+func (r *RFC2307bisUserManagement) DeleteGroup(client LDAPExtendedClient, groupName, groupDN string) error {
 	// Check if group exists first.
 	exists, err := r.groupExists(client, groupDN)
 	if err != nil {
@@ -542,8 +750,8 @@ func (r *RFC2307bisUserManagement) getGroupObject(client LDAPExtendedClient, gro
 		groupDN,
 		ldap.ScopeBaseObject, ldap.NeverDerefAliases,
 		1, 0, false,
-		"(objectClass=*)",
-		[]string{"*"},
+		"(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=posixGroup))",
+		[]string{"cn", "member", "uniqueMember", "gidNumber"},
 		nil,
 	)
 
@@ -561,7 +769,22 @@ func (r *RFC2307bisUserManagement) getGroupObject(client LDAPExtendedClient, gro
 		return nil, nil
 	}
 
+	//TODO: make sure the first element is the proper group; **somehow**.
 	return searchResult.Entries[0], nil
+}
+
+func (r *RFC2307bisUserManagement) getLDAPAttributeForExtraField(jsonKey string) string {
+	for ldapAttr, config := range r.provider.config.Attributes.Extra {
+		if config.Name != "" && config.Name == jsonKey {
+			return ldapAttr
+		}
+
+		if config.Name == "" && ldapAttr == jsonKey {
+			return ldapAttr
+		}
+	}
+
+	return ""
 }
 
 // groupExists checks if a group exists in LDAP.
@@ -571,7 +794,7 @@ func (r *RFC2307bisUserManagement) groupExists(client LDAPExtendedClient, groupD
 		ldap.ScopeBaseObject,
 		ldap.NeverDerefAliases,
 		1, 0, false,
-		"(objectClass=*)",
+		"(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=posixGroup))",
 		[]string{"dn"},
 		nil,
 	)
@@ -579,7 +802,8 @@ func (r *RFC2307bisUserManagement) groupExists(client LDAPExtendedClient, groupD
 	searchResult, err := client.Search(searchRequest)
 	if err != nil {
 		// Check if it's a "No Such Object" error.
-		if ldapErr, ok := err.(*ldap.Error); ok && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
+		var ldapErr *ldap.Error
+		if errors.As(err, &ldapErr) && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
 			return false, nil
 		}
 
@@ -651,6 +875,7 @@ func (r *RFC2307bisUserManagement) removeUserFromGroup(client LDAPExtendedClient
 }
 
 // addUserToGroup adds a user to a group, creating the group if it doesn't exist.
+// TODO: Remove this.
 func (r *RFC2307bisUserManagement) addUserToGroup(client LDAPExtendedClient, userDN, username, groupName string) error {
 	groupDN := fmt.Sprintf("%s=%s,%s",
 		r.provider.config.Attributes.GroupName,
@@ -662,9 +887,8 @@ func (r *RFC2307bisUserManagement) addUserToGroup(client LDAPExtendedClient, use
 		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
 	}
 
-	//TODO: allow conditional requirement for groups to be created prior to users being added -- `requireGroupsToExistPriorToUserMembership` -- or create group automatically.
 	if !exists {
-		if err := r.createGroup(client, groupName, groupDN); err != nil {
+		if err := r.CreateGroup(client, groupName, groupDN); err != nil {
 			return fmt.Errorf("failed to create group '%s': %w", groupName, err)
 		}
 

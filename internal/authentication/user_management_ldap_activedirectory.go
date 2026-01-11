@@ -15,6 +15,10 @@ func (a *ActiveDirectoryUserManagement) UpdateUser(username string, userData *Us
 	panic("implement me")
 }
 
+func (a *ActiveDirectoryUserManagement) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) (err error) {
+	panic("implement me")
+}
+
 func (a *ActiveDirectoryUserManagement) DeleteUser(username string) (err error) {
 	// TODO implement me.
 	panic("implement me")
@@ -132,6 +136,10 @@ func (a *ActiveDirectoryUserManagement) ValidateUserData(userData *UserDetailsEx
 	}
 
 	return nil
+}
+
+func (a *ActiveDirectoryUserManagement) ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error {
+	panic("implement me")
 }
 
 func (a *ActiveDirectoryUserManagement) ModifyUser(username string, userData *UserDetailsExtended) error {

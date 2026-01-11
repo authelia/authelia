@@ -192,6 +192,7 @@ func UserIsAdmin(ctx *middlewares.AutheliaCtx, userGroups []string) bool {
 }
 
 //nolint:gocyclo
+//nolint:gocyclo
 func GenerateUserChangeLog(original *authentication.UserDetailsExtended, changes *authentication.UserDetailsExtended) map[string]interface{} {
 	changeLog := make(map[string]interface{})
 
@@ -291,10 +292,245 @@ func GenerateUserChangeLog(original *authentication.UserDetailsExtended, changes
 	return changeLog
 }
 
-func SortedCopy(s []string) []string {
-	c := make([]string, len(s))
-	c = append(c, s...)
-	sort.Strings(c)
+// GenerateUserChangeLogWithMask creates a log of changes between old and new user details, but only for fields specified in the update mask.
+//
+//nolint:gocyclo
+func GenerateUserChangeLogWithMask(oldUser, newUser *authentication.UserDetailsExtended, updateMask []string) map[string]interface{} {
+	changes := make(map[string]interface{})
 
-	return c
+	if oldUser == nil || newUser == nil {
+		return changes
+	}
+
+	maskSet := make(map[string]bool)
+	for _, field := range updateMask {
+		maskSet[field] = true
+	}
+
+	inMask := func(field string) bool {
+		if maskSet[field] {
+			return true
+		}
+
+		if strings.Contains(field, ".") {
+			parent := field[:strings.LastIndex(field, ".")]
+			if maskSet[parent] {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	if inMask("display_name") && oldUser.GetDisplayName() != newUser.GetDisplayName() {
+		changes["display_name"] = map[string]interface{}{
+			"from": oldUser.GetDisplayName(),
+			"to":   newUser.GetDisplayName(),
+		}
+	}
+
+	if inMask("first_name") && oldUser.GivenName != newUser.GivenName {
+		changes["first_name"] = map[string]interface{}{
+			"from": oldUser.GivenName,
+			"to":   newUser.GivenName,
+		}
+	}
+
+	if inMask("last_name") && oldUser.FamilyName != newUser.FamilyName {
+		changes["last_name"] = map[string]interface{}{
+			"from": oldUser.FamilyName,
+			"to":   newUser.FamilyName,
+		}
+	}
+
+	if inMask("middle_name") && oldUser.MiddleName != newUser.MiddleName {
+		changes["middle_name"] = map[string]interface{}{
+			"from": oldUser.MiddleName,
+			"to":   newUser.MiddleName,
+		}
+	}
+
+	if inMask("full_name") && oldUser.CommonName != newUser.CommonName {
+		changes["full_name"] = map[string]interface{}{
+			"from": oldUser.CommonName,
+			"to":   newUser.CommonName,
+		}
+	}
+
+	if inMask("nickname") && oldUser.Nickname != newUser.Nickname {
+		changes["nickname"] = map[string]interface{}{
+			"from": oldUser.Nickname,
+			"to":   newUser.Nickname,
+		}
+	}
+
+	if inMask("gender") && oldUser.Gender != newUser.Gender {
+		changes["gender"] = map[string]interface{}{
+			"from": oldUser.Gender,
+			"to":   newUser.Gender,
+		}
+	}
+
+	if inMask("birthdate") && oldUser.Birthdate != newUser.Birthdate {
+		changes["birthdate"] = map[string]interface{}{
+			"from": oldUser.Birthdate,
+			"to":   newUser.Birthdate,
+		}
+	}
+
+	if inMask("zone_info") && oldUser.ZoneInfo != newUser.ZoneInfo {
+		changes["zone_info"] = map[string]interface{}{
+			"from": oldUser.ZoneInfo,
+			"to":   newUser.ZoneInfo,
+		}
+	}
+
+	if inMask("phone_number") && oldUser.PhoneNumber != newUser.PhoneNumber {
+		changes["phone_number"] = map[string]interface{}{
+			"from": oldUser.PhoneNumber,
+			"to":   newUser.PhoneNumber,
+		}
+	}
+
+	if inMask("phone_extension") && oldUser.PhoneExtension != newUser.PhoneExtension {
+		changes["phone_extension"] = map[string]interface{}{
+			"from": oldUser.PhoneExtension,
+			"to":   newUser.PhoneExtension,
+		}
+	}
+
+	if inMask("locale") && oldUser.GetLocale() != newUser.GetLocale() {
+		changes["locale"] = map[string]interface{}{
+			"from": oldUser.GetLocale(),
+			"to":   newUser.GetLocale(),
+		}
+	}
+
+	if inMask("profile") && oldUser.GetProfile() != newUser.GetProfile() {
+		changes["profile"] = map[string]interface{}{
+			"from": oldUser.GetProfile(),
+			"to":   newUser.GetProfile(),
+		}
+	}
+
+	if inMask("picture") && oldUser.GetPicture() != newUser.GetPicture() {
+		changes["picture"] = map[string]interface{}{
+			"from": oldUser.GetPicture(),
+			"to":   newUser.GetPicture(),
+		}
+	}
+
+	if inMask("website") && oldUser.GetWebsite() != newUser.GetWebsite() {
+		changes["website"] = map[string]interface{}{
+			"from": oldUser.GetWebsite(),
+			"to":   newUser.GetWebsite(),
+		}
+	}
+
+	if inMask("emails") && !reflect.DeepEqual(oldUser.GetEmails(), newUser.GetEmails()) {
+		changes["emails"] = map[string]interface{}{
+			"from": oldUser.GetEmails(),
+			"to":   newUser.GetEmails(),
+		}
+	}
+
+	if inMask("groups") && !reflect.DeepEqual(oldUser.GetGroups(), newUser.GetGroups()) {
+		changes["groups"] = map[string]interface{}{
+			"from": oldUser.GetGroups(),
+			"to":   newUser.GetGroups(),
+		}
+	}
+
+	if inMask("address") || inMask("address.street_address") || inMask("address.locality") ||
+		inMask("address.region") || inMask("address.postal_code") || inMask("address.country") {
+		addressChanges := make(map[string]map[string]interface{})
+
+		oldAddr := oldUser.Address
+		newAddr := newUser.Address
+
+		//nolint:gocritic
+		if oldAddr == nil && newAddr != nil {
+			changes["address"] = map[string]interface{}{
+				"from": nil,
+				"to":   newAddr,
+			}
+		} else if oldAddr != nil && newAddr == nil {
+			changes["address"] = map[string]interface{}{
+				"from": oldAddr,
+				"to":   nil,
+			}
+		} else if oldAddr != nil && newAddr != nil {
+			if (inMask("address") || inMask("address.street_address")) &&
+				oldAddr.StreetAddress != newAddr.StreetAddress {
+				addressChanges["street_address"] = map[string]interface{}{
+					"from": oldAddr.StreetAddress,
+					"to":   newAddr.StreetAddress,
+				}
+			}
+
+			if (inMask("address") || inMask("address.locality")) &&
+				oldAddr.Locality != newAddr.Locality {
+				addressChanges["locality"] = map[string]interface{}{
+					"from": oldAddr.Locality,
+					"to":   newAddr.Locality,
+				}
+			}
+
+			if (inMask("address") || inMask("address.region")) &&
+				oldAddr.Region != newAddr.Region {
+				addressChanges["region"] = map[string]interface{}{
+					"from": oldAddr.Region,
+					"to":   newAddr.Region,
+				}
+			}
+
+			if (inMask("address") || inMask("address.postal_code")) &&
+				oldAddr.PostalCode != newAddr.PostalCode {
+				addressChanges["postal_code"] = map[string]interface{}{
+					"from": oldAddr.PostalCode,
+					"to":   newAddr.PostalCode,
+				}
+			}
+
+			if (inMask("address") || inMask("address.country")) &&
+				oldAddr.Country != newAddr.Country {
+				addressChanges["country"] = map[string]interface{}{
+					"from": oldAddr.Country,
+					"to":   newAddr.Country,
+				}
+			}
+
+			if len(addressChanges) > 0 {
+				changes["address"] = addressChanges
+			}
+		}
+	}
+
+	if inMask("extra") {
+		extraChanges := make(map[string]interface{})
+
+		for key, newVal := range newUser.Extra {
+			if oldVal, exists := oldUser.Extra[key]; !exists || oldVal != newVal {
+				extraChanges[key] = map[string]interface{}{
+					"from": oldUser.Extra[key],
+					"to":   newVal,
+				}
+			}
+		}
+
+		for key := range oldUser.Extra {
+			if _, exists := newUser.Extra[key]; !exists {
+				extraChanges[key] = map[string]interface{}{
+					"from": oldUser.Extra[key],
+					"to":   nil,
+				}
+			}
+		}
+
+		if len(extraChanges) > 0 {
+			changes["extra"] = extraChanges
+		}
+	}
+
+	return changes
 }

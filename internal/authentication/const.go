@@ -131,6 +131,10 @@ var (
 
 	ErrLDAPHealthCheckFailedEntryCount = errors.New("incorrect number entries found when performing RootDSE search")
 )
+var (
+	ErrUsernameIsRequired = errors.New("username is required")
+	ErrLastNameIsRequired = errors.New("last name is required")
+)
 
 const fileAuthenticationMode = 0600
 

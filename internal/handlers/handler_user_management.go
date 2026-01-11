@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 
@@ -25,6 +28,278 @@ type UserManagementFieldsResponse struct {
 	RequiredFields  []string                                `json:"required_fields"`
 	SupportedFields []string                                `json:"supported_fields"`
 	FieldMetadata   map[string]authentication.FieldMetadata `json:"field_metadata"`
+}
+
+type FieldMask struct {
+	Paths []string `json:"paths"`
+}
+
+func GetGroupsGET(ctx *middlewares.AutheliaCtx) {
+
+}
+
+func NewGroupPOST(ctx *middlewares.AutheliaCtx) {
+
+}
+
+func DeleteGroupDELETE(ctx *middlewares.AutheliaCtx) {
+
+}
+
+// ChangeUserPATCH updates specific fields of a user based on the provided update_mask.
+//
+//nolint:gocyclo
+func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
+	usernameRaw := ctx.UserValue("username")
+	if usernameRaw == nil {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageUsernameRequired)
+
+		return
+	}
+
+	username := usernameRaw.(string)
+
+	var (
+		err         error
+		requestBody *authentication.UserDetailsExtended
+		userDetails *authentication.UserDetailsExtended
+		adminUser   session.UserSession
+	)
+	if adminUser, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred modifying user: %s", errStrUserSessionData)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if adminUser.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred modifying user")
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if !UserIsAdmin(ctx, adminUser.Groups) {
+		ctx.Logger.Errorf("Error occurred modifying user: %s", fmt.Sprintf(logFmtErrUserNotAdmin, adminUser.Username))
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	updateMaskStr := string(ctx.QueryArgs().Peek("update_mask"))
+	if updateMaskStr == "" {
+		ctx.Logger.Debug("update_mask is required")
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError("update_mask query parameter is required. Specify comma-separated field names to update (e.g., ?update_mask=display_name,emails,address.city)")
+
+		return
+	}
+
+	updateMask := strings.Split(updateMaskStr, ",")
+	for i := range updateMask {
+		updateMask[i] = strings.TrimSpace(updateMask[i])
+	}
+
+	requestBody = &authentication.UserDetailsExtended{}
+	if err = ctx.ParseBody(requestBody); err != nil {
+		ctx.Logger.WithError(err).Error(messageUnableToModifyUser)
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError("Invalid JSON format")
+
+		return
+	}
+
+	if requestBody == nil {
+		ctx.Logger.Debug("Invalid request body structure")
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError("Invalid request structure")
+
+		return
+	}
+
+	if username == "" {
+		ctx.Logger.Debug("Username is required")
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError("Username is required")
+
+		return
+	}
+
+	if slices.Contains(updateMask, "password") || requestBody.Password != "" {
+		ctx.Logger.Debug("Password modification not allowed via this endpoint")
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError("Password modification not supported. Use the password change endpoint.")
+
+		return
+	}
+
+	if userDetails, err = ctx.Providers.UserProvider.GetUser(username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error retrieving details for user '%s'", username)
+		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
+		ctx.SetJSONError("User not found")
+
+		return
+	}
+
+	if err := validateUpdateMask(updateMask, ctx.Providers.UserProvider.GetSupportedFields()); err != nil {
+		ctx.Logger.WithError(err).Error("Invalid update_mask")
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(err.Error())
+
+		return
+	}
+
+	partialUpdate := &authentication.UserDetailsExtended{
+		UserDetails: &authentication.UserDetails{
+			Username: username,
+		},
+	}
+
+	addressFields := filterAddressFields(updateMask)
+	if len(addressFields) > 0 {
+		partialUpdate.Address = &authentication.UserDetailsAddress{}
+	}
+
+	for _, field := range updateMask {
+		switch {
+		case field == "display_name":
+			partialUpdate.DisplayName = requestBody.GetDisplayName()
+		case field == "emails":
+			partialUpdate.Emails = requestBody.GetEmails()
+		case field == "groups":
+			partialUpdate.Groups = requestBody.GetGroups()
+		case field == "first_name":
+			partialUpdate.GivenName = requestBody.GivenName
+		case field == "last_name":
+			partialUpdate.FamilyName = requestBody.FamilyName
+		case field == "middle_name":
+			partialUpdate.MiddleName = requestBody.MiddleName
+		case field == "full_name":
+			partialUpdate.CommonName = requestBody.CommonName
+		case field == "nickname":
+			partialUpdate.Nickname = requestBody.Nickname
+		case field == "profile":
+			partialUpdate.Profile = requestBody.Profile
+		case field == "picture":
+			partialUpdate.Picture = requestBody.Picture
+		case field == "website":
+			partialUpdate.Website = requestBody.Website
+		case field == "gender":
+			partialUpdate.Gender = requestBody.Gender
+		case field == "birthdate":
+			partialUpdate.Birthdate = requestBody.Birthdate
+		case field == "zone_info":
+			partialUpdate.ZoneInfo = requestBody.ZoneInfo
+		case field == "locale":
+			partialUpdate.Locale = requestBody.Locale
+		case field == "phone_number":
+			partialUpdate.PhoneNumber = requestBody.PhoneNumber
+		case field == "phone_extension":
+			partialUpdate.PhoneExtension = requestBody.PhoneExtension
+		case field == "extra":
+			partialUpdate.Extra = requestBody.Extra
+		//nolint:goconst
+		case field == "address":
+			partialUpdate.Address = requestBody.Address
+		case strings.HasPrefix(field, "address."):
+			if requestBody.Address == nil {
+				ctx.Logger.Debugf("Address object not provided for field '%s'", field)
+				ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+				ctx.SetJSONError(fmt.Sprintf("Address object must be provided when updating '%s'", field))
+
+				return
+			}
+
+			subField := strings.TrimPrefix(field, "address.")
+			switch subField {
+			case "street_address":
+				partialUpdate.Address.StreetAddress = requestBody.Address.StreetAddress
+			case "locality":
+				partialUpdate.Address.Locality = requestBody.Address.Locality
+			case "region":
+				partialUpdate.Address.Region = requestBody.Address.Region
+			case "postal_code":
+				partialUpdate.Address.PostalCode = requestBody.Address.PostalCode
+			case "country":
+				partialUpdate.Address.Country = requestBody.Address.Country
+			default:
+				ctx.Logger.Errorf("Unknown address subfield: '%s'", subField)
+				ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+				ctx.SetJSONError(fmt.Sprintf("Unknown address field: '%s'", subField))
+
+				return
+			}
+		default:
+			ctx.Logger.Errorf("Unhandled field in update_mask: '%s'", field)
+			ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
+			ctx.SetJSONError("Internal error processing update_mask")
+
+			return
+		}
+	}
+
+	if err = ctx.Providers.UserProvider.ValidatePartialUpdate(partialUpdate, updateMask); err != nil {
+		ctx.Logger.WithError(err).Errorf("Validation failed for user '%s'", username)
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(fmt.Sprintf("User modification failed: %s", err.Error()))
+
+		return
+	}
+
+	if err = ctx.Providers.UserProvider.UpdateUserWithMask(username, partialUpdate, updateMask); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred updating user '%s'", username)
+		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
+		ctx.SetJSONError("Failed to update user")
+
+		return
+	}
+
+	if changes := GenerateUserChangeLogWithMask(userDetails, partialUpdate, updateMask); len(changes) > 0 {
+		ctx.Logger.WithFields(changes).Infof("User '%s' modified by administrator '%s' (fields: %s)",
+			username, adminUser.Username, strings.Join(updateMask, ", "))
+	}
+
+	ctx.Response.SetStatusCode(fasthttp.StatusOK)
+}
+
+func validateUpdateMask(updateMask []string, supportedFields []string) error {
+	for _, field := range updateMask {
+		if strings.HasPrefix(field, "address.") {
+			subField := strings.TrimPrefix(field, "address.")
+
+			validAddressFields := []string{"street_address", "locality", "region", "postal_code", "country"}
+			if !slices.Contains(validAddressFields, subField) {
+				return fmt.Errorf("field 'address.%s' is not a valid address field. Valid address fields: %s",
+					subField, strings.Join(validAddressFields, ", "))
+			}
+
+			continue
+		}
+
+		if !slices.Contains(supportedFields, field) {
+			return fmt.Errorf("field '%s' is not a valid or modifiable field. Supported fields: %s",
+				field, strings.Join(supportedFields, ", "))
+		}
+	}
+
+	return nil
+}
+
+// filterAddressFields returns only the address-related fields from the update mask.
+func filterAddressFields(updateMask []string) []string {
+	var addressFields []string
+
+	for _, field := range updateMask {
+		if field == "address" || strings.HasPrefix(field, "address.") {
+			addressFields = append(addressFields, field)
+		}
+	}
+
+	return addressFields
 }
 
 // ChangeUserPUT takes authentication.UserDetailsExtended and updates the object to match the provided struct.
@@ -136,6 +411,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 	ctx.Response.SetStatusCode(fasthttp.StatusOK)
 }
 
+//nolint:gocyclo
 func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		err            error
@@ -208,9 +484,25 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	userData := userDataBuilder.Build()
 
 	if err = ctx.Providers.UserProvider.ValidateUserData(userData); err != nil {
+		if errors.Is(err, authentication.ErrUsernameIsRequired) {
+			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+			ctx.SetJSONError("Username is required")
+
+			return
+		}
+
+		if errors.Is(err, authentication.ErrLastNameIsRequired) {
+			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+			ctx.SetJSONError("Last name is required")
+
+			return
+		}
+
 		ctx.Logger.WithError(err).Errorf("Validation failed for new user '%s'", newUserRequest.Username)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageOperationFailed)
+
+		return
 	}
 
 	if err = ctx.Providers.PasswordPolicy.Check(newUserRequest.Password); err != nil {
@@ -239,7 +531,8 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 
 	//TODO: Add user email to notify new user of their new account. Configurable.
 	ctx.Logger.Debugf("User '%s' was added.", newUserRequest.Username)
-	ctx.Response.SetStatusCode(fasthttp.StatusOK)
+	ctx.Response.SetStatusCode(fasthttp.StatusCreated)
+	ctx.ReplyOK()
 }
 
 func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
@@ -258,7 +551,7 @@ func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 	)
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred deleting specified user: %s", errStrUserSessionData)
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving user session: %s", errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)

@@ -98,6 +98,10 @@ func (p *LDAPUserProvider) UpdateUser(username string, userData *UserDetailsExte
 	return p.Management.UpdateUser(username, userData)
 }
 
+func (p *LDAPUserProvider) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) (err error) {
+	return p.Management.UpdateUserWithMask(username, userData, updateMask)
+}
+
 func (p *LDAPUserProvider) AddUser(userData *UserDetailsExtended) error {
 	return p.Management.AddUser(userData)
 }
@@ -119,6 +123,10 @@ func (p *LDAPUserProvider) GetFieldMetadata() map[string]FieldMetadata {
 
 func (p *LDAPUserProvider) ValidateUserData(userData *UserDetailsExtended) error {
 	return p.Management.ValidateUserData(userData)
+}
+
+func (p *LDAPUserProvider) ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error {
+	return p.Management.ValidatePartialUpdate(userData, updateMask)
 }
 
 // CheckUserPassword checks if provided password matches for the given user.
@@ -286,7 +294,6 @@ func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDet
 }
 
 func (p *LDAPUserProvider) ListUsers() (users []UserDetailsExtended, err error) {
-
 	var client LDAPExtendedClient
 	if client, err = p.factory.GetClient(); err != nil {
 		return nil, fmt.Errorf("failed to connect to LDAP server: %w", err)

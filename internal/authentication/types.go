@@ -104,7 +104,10 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 	type Alias UserDetailsExtended
 
 	aux := &struct {
-		Password string `json:"password"`
+		Password string `json:"password,omitempty"`
+		Picture  string `json:"picture,omitempty"`
+		Profile  string `json:"profile,omitempty"`
+		Website  string `json:"website,omitempty"`
 		*Alias
 	}{
 		Alias: (*Alias)(d),
@@ -116,7 +119,66 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 
 	d.Password = aux.Password
 
+	if aux.Profile != "" {
+		parsedURL, err := url.Parse(aux.Profile)
+		if err != nil {
+			return fmt.Errorf("invalid profile URL: %w", err)
+		}
+
+		d.Profile = parsedURL
+	}
+
+	if aux.Picture != "" {
+		parsedURL, err := url.Parse(aux.Picture)
+		if err != nil {
+			return fmt.Errorf("invalid picture URL: %w", err)
+		}
+
+		d.Picture = parsedURL
+	}
+
+	if aux.Website != "" {
+		parsedURL, err := url.Parse(aux.Website)
+		if err != nil {
+			return fmt.Errorf("invalid website URL: %w", err)
+		}
+
+		d.Website = parsedURL
+	}
+
 	return nil
+}
+
+// MarshalJSON converts URL and Locale fields to strings for JSON output.
+func (d *UserDetailsExtended) MarshalJSON() ([]byte, error) {
+	type Alias UserDetailsExtended
+
+	aux := &struct {
+		Picture string `json:"picture,omitempty"`
+		Profile string `json:"profile,omitempty"`
+		Website string `json:"website,omitempty"`
+		*Alias
+	}{
+		Alias: (*Alias)(d),
+	}
+
+	if d.Profile != nil {
+		aux.Profile = d.Profile.String()
+	}
+
+	if d.Picture != nil {
+		aux.Picture = d.Picture.String()
+	}
+
+	if d.Website != nil {
+		aux.Website = d.Website.String()
+	}
+
+	aux.Alias.Profile = nil
+	aux.Alias.Picture = nil
+	aux.Alias.Website = nil
+
+	return json.Marshal(aux)
 }
 
 func (d *UserDetailsExtended) GetGivenName() (given string) {

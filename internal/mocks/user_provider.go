@@ -255,6 +255,34 @@ func (mr *MockUserProviderMockRecorder) UpdateUser(username, userData any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserProvider)(nil).UpdateUser), username, userData)
 }
 
+// UpdateUserWithMask mocks base method.
+func (m *MockUserProvider) UpdateUserWithMask(username string, userData *authentication.UserDetailsExtended, updateMask []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserWithMask", username, userData, updateMask)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserWithMask indicates an expected call of UpdateUserWithMask.
+func (mr *MockUserProviderMockRecorder) UpdateUserWithMask(username, userData, updateMask any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserWithMask", reflect.TypeOf((*MockUserProvider)(nil).UpdateUserWithMask), username, userData, updateMask)
+}
+
+// ValidatePartialUpdate mocks base method.
+func (m *MockUserProvider) ValidatePartialUpdate(userData *authentication.UserDetailsExtended, updateMask []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidatePartialUpdate", userData, updateMask)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidatePartialUpdate indicates an expected call of ValidatePartialUpdate.
+func (mr *MockUserProviderMockRecorder) ValidatePartialUpdate(userData, updateMask any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidatePartialUpdate", reflect.TypeOf((*MockUserProvider)(nil).ValidatePartialUpdate), userData, updateMask)
+}
+
 // ValidateUserData mocks base method.
 func (m *MockUserProvider) ValidateUserData(userData *authentication.UserDetailsExtended) error {
 	m.ctrl.T.Helper()

@@ -44,6 +44,7 @@ dn: uid=john,ou=users,{{ LDAP_BASE_DN }}
 cn: John Doe (external)
 displayName: John Doe
 givenName: John
+objectClass: autheliaUser
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
 objectClass: person
@@ -57,6 +58,7 @@ dn: uid=harry,ou=users,{{ LDAP_BASE_DN }}
 cn: Harry Potter
 displayName: Harry Potter
 givenName: Harry
+objectClass: autheliaUser
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
 objectClass: person
@@ -70,6 +72,7 @@ dn: uid=bob,ou=users,{{ LDAP_BASE_DN }}
 cn: Bob Dylan
 displayName: Bob Dylan
 givenName: Bob
+objectClass: autheliaUser
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
 objectClass: person
@@ -83,6 +86,7 @@ dn: uid=james,ou=users,{{ LDAP_BASE_DN }}
 cn: James Dean
 displayName: James Dean
 givenName: James
+objectClass: autheliaUser
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
 objectClass: person

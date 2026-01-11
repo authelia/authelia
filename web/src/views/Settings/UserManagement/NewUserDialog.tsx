@@ -5,7 +5,13 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
-import { CreateUserRequest, getFieldMetadata, isFieldRequired, validateFieldValue } from "@models/UserManagement";
+import {
+    CreateUserRequest,
+    UserDetailsAddress,
+    getFieldMetadata,
+    isFieldRequired,
+    validateFieldValue,
+} from "@models/UserManagement";
 import { UserFieldMetadataBody, postNewUser } from "@services/UserManagement";
 import { generateRandomPassword } from "@utils/GeneratePassword";
 
@@ -15,20 +21,20 @@ interface Props {
     metadata: UserFieldMetadataBody; // Pass metadata as prop
 }
 
-const NewUserDialog = ({ open, onClose, metadata }: Props) => {
+const NewUserDialog = ({ metadata, onClose, open }: Props) => {
     const { t: translate } = useTranslation("settings");
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const {
-        register,
-        handleSubmit,
         formState: { errors, isDirty },
+        handleSubmit,
+        register,
         reset,
         setValue,
     } = useForm<CreateUserRequest>({
         defaultValues: {
-            username: "",
             password: "",
+            username: "",
         },
     });
 
@@ -90,7 +96,7 @@ const NewUserDialog = ({ open, onClose, metadata }: Props) => {
                                     const required = isFieldRequired(fieldName, metadata);
                                     const { baseType } = getInputType(fieldMeta?.type);
 
-                                    if (["groups", "address"].includes(fieldName)) return null;
+                                    if (["address", "groups"].includes(fieldName)) return null;
 
                                     return (
                                         <Grid key={fieldName} size={12} sx={{ pt: 1.5 }}>
@@ -101,8 +107,14 @@ const NewUserDialog = ({ open, onClose, metadata }: Props) => {
                                                         ? `${fieldMeta?.display_name || fieldName} is required`
                                                         : false,
                                                     validate: fieldMeta
-                                                        ? (value) =>
-                                                              validateFieldValue(value, fieldMeta, fieldName) || true
+                                                        ? (
+                                                              value:
+                                                                  | Record<string, any>
+                                                                  | string
+                                                                  | string[]
+                                                                  | undefined
+                                                                  | UserDetailsAddress,
+                                                          ) => validateFieldValue(value, fieldMeta, fieldName) || true
                                                         : undefined,
                                                 })}
                                                 label={fieldMeta?.display_name || fieldName}

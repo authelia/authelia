@@ -1,4 +1,5 @@
 import { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
+
 import { Close, Dashboard, Menu, People, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
 import {
     AppBar,
@@ -178,11 +179,11 @@ const navItems: NavItem[] = [
         text: "Two-Factor Authentication",
     },
     {
-        keyname: "users",
-        text: "User Management",
-        pathname: `${SettingsRoute}${SettingsUserManagementSubRoute}`,
         icon: <People color={"primary"} />,
+        keyname: "users",
+        pathname: `${SettingsRoute}${SettingsUserManagementSubRoute}`,
         requireAdmin: true,
+        text: "User Management",
     },
     { icon: <Close color={"error"} />, keyname: "close", pathname: IndexRoute, text: "Close" },
 ];

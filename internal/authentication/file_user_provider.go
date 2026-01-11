@@ -286,6 +286,10 @@ func (p *FileUserProvider) AddUser(userData *UserDetailsExtended) (err error) {
 	return p.database.Save()
 }
 
+func (p *FileUserProvider) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) (err error) {
+	panic("not implemented")
+}
+
 // UpdateUser modifies an existing user in the file database. Takes new values via opts.
 func (p *FileUserProvider) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
 	var existingDetails FileUserDatabaseUserDetails
@@ -431,6 +435,10 @@ func (p *FileUserProvider) ValidateUserData(userData *UserDetailsExtended) error
 	}
 
 	return nil
+}
+
+func (p *FileUserProvider) ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error {
+	panic("not implemented")
 }
 
 func (p *FileUserProvider) setTimeoutReload(now time.Time) {

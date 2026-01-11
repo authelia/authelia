@@ -90,6 +90,33 @@ authentication_backend:
       family_name: 'sn'
       given_name: 'givenName'
       group_member: 'member'
+      phone_number: 'telephoneNumber'
+      street_address: 'street'
+      locality: 'l'
+      region: 'st'
+      postal_code: 'postalCode'
+
+      birthdate: 'birthdate'
+      country: 'country'
+      gender: 'gender'
+      middle_name: 'middleName'
+      locale: 'locale'
+      nickname: 'nickname'
+      phone_extension: 'phoneExtension'
+      picture: 'picture'
+      profile: 'profile'
+      website: 'website'
+      zoneinfo: "zoneinfo"
+
+      extra:
+        employeeNumber:
+          name: 'employee_id'
+          multi_valued: false
+          value_type: 'string'
+        employeeType:
+          name: 'employee_type'
+          multi_valued: false
+          value_type: 'string'
 
 totp:
   issuer: 'example.com'
