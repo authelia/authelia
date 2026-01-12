@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -18,6 +19,8 @@ const adminPassword = "password"
 
 const nonAdminUsername = "bob"
 const nonAdminPassword = "password"
+
+const nonExistentUsername = "nonexistentuser"
 
 type UserManagementAPIScenario struct {
 	suite.Suite
@@ -47,6 +50,7 @@ func TestUserManagementScenario(t *testing.T) {
 	suite.Run(t, NewUserManagementAPIScenario())
 }
 
+//nolint:unparam
 func (s *UserManagementAPIScenario) login(username, password string) {
 	loginURL := fmt.Sprintf("%s/api/firstfactor", AutheliaBaseURL)
 
@@ -372,7 +376,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldFailWithInvalidEm
 func (s *UserManagementAPIScenario) Test_GetUserGET_ShouldReturnNotFoundForNonexistentUser() {
 	s.login(adminUsername, adminPassword)
 
-	username := "nonexistentuser"
+	username := nonExistentUsername
 	res, _ := s.apiRequest("GET", fmt.Sprintf("/api/admin/users/%s", username), nil)
 
 	s.Assert().Equal(http.StatusNotFound, res.StatusCode)
@@ -381,7 +385,7 @@ func (s *UserManagementAPIScenario) Test_GetUserGET_ShouldReturnNotFoundForNonex
 func (s *UserManagementAPIScenario) Test_DeleteUserDELETE_ShouldSucceedForNonNonexistentUser() {
 	s.login(adminUsername, adminPassword)
 
-	username := "nonexistentuser"
+	username := nonExistentUsername
 	res, _ := s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username), nil)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
@@ -547,7 +551,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateSingleAddre
 			"country":        "USA",
 		},
 	}
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address", username), setupData)
+	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address", username), setupData)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	// Now update only the region.
@@ -557,7 +561,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateSingleAddre
 		},
 	}
 
-	res, body = s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address.region", username), updateData)
+	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address.region", username), updateData)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode,
 		fmt.Sprintf("Failed to update user: %s", string(body)))
@@ -597,7 +601,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateMultipleAdd
 			"country":        "USA",
 		},
 	}
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address", username), setupData)
+	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address", username), setupData)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	// Update region and postal_code.
@@ -608,7 +612,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateMultipleAdd
 		},
 	}
 
-	res, body = s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address.region,address.postal_code", username), updateData)
+	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address.region,address.postal_code", username), updateData)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode,
 		fmt.Sprintf("Failed to update user: %s", string(body)))
@@ -740,12 +744,12 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldClearOptionalFiel
 		"birthdate":       "1990-01-01",
 		"phone_extension": "456",
 	}
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=middle_name,nickname,gender,birthdate,phone_extension", username), setupData)
+	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=middle_name,nickname,gender,birthdate,phone_extension", username), setupData)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	updateData := map[string]interface{}{}
 
-	res, body = s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=middle_name,nickname,gender,birthdate,phone_extension", username), updateData)
+	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=middle_name,nickname,gender,birthdate,phone_extension", username), updateData)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode,
 		fmt.Sprintf("Failed to update user: %s", string(body)))
@@ -824,7 +828,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldOnlyUpdateMaskedF
 		"last_name":    "Dylan",
 		"phone_number": "+1234567890",
 	}
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=display_name,first_name,last_name,phone_number", username), setupData)
+	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=display_name,first_name,last_name,phone_number", username), setupData)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	// Now update only display_name, but send other fields too.
@@ -835,7 +839,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldOnlyUpdateMaskedF
 		"phone_number": "+9999999999",
 	}
 
-	res, body = s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=display_name", username), updateData)
+	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=display_name", username), updateData)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode,
 		fmt.Sprintf("Failed to update user: %s", string(body)))
@@ -857,6 +861,47 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldOnlyUpdateMaskedF
 	s.Assert().Equal("Dylan", response.Data.FamilyName)
 	s.Assert().Equal("+1234567890", response.Data.PhoneNumber)
 }
+
+func (s *UserManagementAPIScenario) Test_NewGroupPOST_ShouldCreateGroup() {
+	s.login(adminUsername, adminPassword)
+
+	// Use a unique group name based on timestamp to avoid conflicts
+	newGroup := fmt.Sprintf("test-group-%d", time.Now().UnixNano())
+
+	groupPostBody := map[string]interface{}{
+		"name": newGroup,
+	}
+
+	res, body := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+
+	s.Assert().Equal(http.StatusOK, res.StatusCode, fmt.Sprintf("Failed to create group: %s", string(body)))
+
+	var postResponse struct {
+		Status string   `json:"status"`
+		Data   []string `json:"data"`
+	}
+
+	err := json.Unmarshal(body, &postResponse)
+	s.Assert().NoError(err)
+	s.Assert().Equal("OK", postResponse.Status)
+
+	res, body = s.apiRequest("GET", "/api/admin/groups", nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+	var getResponse struct {
+		Status string   `json:"status"`
+		Data   []string `json:"data"`
+	}
+
+	err = json.Unmarshal(body, &getResponse)
+	s.Assert().NoError(err)
+	s.Assert().Contains(getResponse.Data, newGroup)
+
+	// Clean up: delete the test group
+	_, _ = s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", newGroup), nil)
+}
+
+func (s *UserManagementAPIScenario) Test_GetGroupsGET_ShouldGetGroups() {}
 
 // func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldCreateUserWithMultipleGroups() {
 //	s.login(adminUsername, adminPassword)
@@ -891,4 +936,4 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldOnlyUpdateMaskedF
 //	s.Assert().Equal([]string{"dev", "dev2", "dev3"}, response.Data.Groups)
 //
 //	//s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username), nil)
-//}.
+// }.

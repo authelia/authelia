@@ -101,49 +101,103 @@ type UserDetailsExtended struct {
 
 // UnmarshalJSON allows the "password" field to be unmarshalled but not included when the struct is marshalled. Effectively making the password ingest-only.
 func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
-	type Alias UserDetailsExtended
-
-	aux := &struct {
-		Password string `json:"password,omitempty"`
-		Picture  string `json:"picture,omitempty"`
-		Profile  string `json:"profile,omitempty"`
-		Website  string `json:"website,omitempty"`
-		*Alias
-	}{
-		Alias: (*Alias)(d),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
+	// First unmarshal into a raw map to extract special fields
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 
-	d.Password = aux.Password
+	// Extract and parse special fields
+	var (
+		password string
+		profile  string
+		picture  string
+		website  string
+		locale   string
+	)
 
-	if aux.Profile != "" {
-		parsedURL, err := url.Parse(aux.Profile)
+	if passwordData, ok := raw["password"]; ok {
+		if err := json.Unmarshal(passwordData, &password); err != nil {
+			return fmt.Errorf("invalid password: %w", err)
+		}
+		delete(raw, "password")
+	}
+
+	if profileData, ok := raw["profile"]; ok {
+		if err := json.Unmarshal(profileData, &profile); err != nil {
+			return fmt.Errorf("invalid profile: %w", err)
+		}
+		delete(raw, "profile")
+	}
+
+	if pictureData, ok := raw["picture"]; ok {
+		if err := json.Unmarshal(pictureData, &picture); err != nil {
+			return fmt.Errorf("invalid picture: %w", err)
+		}
+		delete(raw, "picture")
+	}
+
+	if websiteData, ok := raw["website"]; ok {
+		if err := json.Unmarshal(websiteData, &website); err != nil {
+			return fmt.Errorf("invalid website: %w", err)
+		}
+		delete(raw, "website")
+	}
+
+	if localeData, ok := raw["locale"]; ok {
+		if err := json.Unmarshal(localeData, &locale); err != nil {
+			return fmt.Errorf("invalid locale: %w", err)
+		}
+		delete(raw, "locale")
+	}
+
+	// Marshal back to JSON without special fields
+	remaining, err := json.Marshal(raw)
+	if err != nil {
+		return err
+	}
+
+	// Unmarshal remaining fields into struct using type alias to avoid recursion
+	type Alias UserDetailsExtended
+	if err := json.Unmarshal(remaining, (*Alias)(d)); err != nil {
+		return err
+	}
+
+	// Set password
+	d.Password = password
+
+	// Parse and set URL fields
+	if profile != "" {
+		parsedURL, err := url.Parse(profile)
 		if err != nil {
 			return fmt.Errorf("invalid profile URL: %w", err)
 		}
-
 		d.Profile = parsedURL
 	}
 
-	if aux.Picture != "" {
-		parsedURL, err := url.Parse(aux.Picture)
+	if picture != "" {
+		parsedURL, err := url.Parse(picture)
 		if err != nil {
 			return fmt.Errorf("invalid picture URL: %w", err)
 		}
-
 		d.Picture = parsedURL
 	}
 
-	if aux.Website != "" {
-		parsedURL, err := url.Parse(aux.Website)
+	if website != "" {
+		parsedURL, err := url.Parse(website)
 		if err != nil {
 			return fmt.Errorf("invalid website URL: %w", err)
 		}
-
 		d.Website = parsedURL
+	}
+
+	// Parse and set locale
+	if locale != "" {
+		tag, err := language.Parse(locale)
+		if err != nil {
+			return fmt.Errorf("invalid locale: %w", err)
+		}
+		d.Locale = &tag
 	}
 
 	return nil
@@ -157,6 +211,7 @@ func (d *UserDetailsExtended) MarshalJSON() ([]byte, error) {
 		Picture string `json:"picture,omitempty"`
 		Profile string `json:"profile,omitempty"`
 		Website string `json:"website,omitempty"`
+		Locale  string `json:"locale,omitempty"`
 		*Alias
 	}{
 		Alias: (*Alias)(d),
@@ -174,9 +229,14 @@ func (d *UserDetailsExtended) MarshalJSON() ([]byte, error) {
 		aux.Website = d.Website.String()
 	}
 
+	if d.Locale != nil {
+		aux.Locale = d.Locale.String()
+	}
+
 	aux.Alias.Profile = nil
 	aux.Alias.Picture = nil
 	aux.Alias.Website = nil
+	aux.Alias.Locale = nil
 
 	return json.Marshal(aux)
 }

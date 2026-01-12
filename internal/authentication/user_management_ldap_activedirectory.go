@@ -19,6 +19,18 @@ func (a *ActiveDirectoryUserManagement) UpdateUserWithMask(username string, user
 	panic("implement me")
 }
 
+func (a *ActiveDirectoryUserManagement) AddGroup(newGroup string) (err error) {
+	panic("implement me")
+}
+
+func (a *ActiveDirectoryUserManagement) DeleteGroup(group string) (err error) {
+	panic("implement me")
+}
+
+func (a *ActiveDirectoryUserManagement) ListGroups() (groups []string, err error) {
+	panic("implement me")
+}
+
 func (a *ActiveDirectoryUserManagement) DeleteUser(username string) (err error) {
 	// TODO implement me.
 	panic("implement me")

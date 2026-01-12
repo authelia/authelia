@@ -13,10 +13,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-type deleteUserRequestBody struct {
-	Username string `json:"username"`
-}
-
 type AdminConfigRequestBody struct {
 	Enabled                bool   `json:"enabled"`
 	AdminGroup             string `json:"admin_group"`
@@ -35,15 +31,144 @@ type FieldMask struct {
 }
 
 func GetGroupsGET(ctx *middlewares.AutheliaCtx) {
+	var (
+		err    error
+		groups []string
+	)
 
+	if groups, err = ctx.Providers.UserProvider.ListGroups(); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving groups")
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if err = ctx.SetJSONBody(groups); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred encoding groups")
+	}
 }
 
 func NewGroupPOST(ctx *middlewares.AutheliaCtx) {
+	var (
+		err         error
+		userSession session.UserSession
+	)
 
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred adding new group: %s", errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred adding new group")
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if !UserIsAdmin(ctx, userSession.Groups) {
+		ctx.Logger.Errorf("Error occurred adding new group: %s", fmt.Sprintf(logFmtErrUserNotAdmin, userSession.Username))
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	var requestBody struct {
+		GroupName string `json:"name"`
+	}
+
+	if err = ctx.ParseBody(&requestBody); err != nil {
+		ctx.Logger.WithError(err).Error("Unable to parse request body")
+
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError("Invalid request body")
+
+		return
+	}
+
+	if requestBody.GroupName == "" {
+		ctx.Logger.Error("Group name is required")
+
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError("Group name is required")
+
+		return
+	}
+
+	if err = ctx.Providers.UserProvider.AddGroup(requestBody.GroupName); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred creating group '%s'", requestBody.GroupName)
+		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
+		ctx.SetJSONError(fmt.Sprintf("Failed to create group: %s", err.Error()))
+
+		return
+	}
+
+	ctx.Logger.Infof("Group '%s' created by administrator '%s'", requestBody.GroupName, userSession.Username)
+	ctx.Response.SetStatusCode(fasthttp.StatusOK)
+	ctx.ReplyOK()
 }
 
 func DeleteGroupDELETE(ctx *middlewares.AutheliaCtx) {
+	groupNameRaw := ctx.UserValue("groupname")
+	if groupNameRaw == nil {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError("Group name is required")
 
+		return
+	}
+
+	groupName := groupNameRaw.(string)
+
+	var (
+		err         error
+		userSession session.UserSession
+	)
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving user session: %s", errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred deleting group")
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if !UserIsAdmin(ctx, userSession.Groups) {
+		ctx.Logger.Errorf("Error occurred deleting group: %s", fmt.Sprintf(logFmtErrUserNotAdmin, userSession.Username))
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if err = ctx.Providers.UserProvider.DeleteGroup(groupName); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting group '%s'", groupName)
+		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	ctx.Logger.Infof("Group '%s' deleted by administrator '%s'", groupName, userSession.Username)
+	ctx.Response.SetStatusCode(fasthttp.StatusOK)
 }
 
 // ChangeUserPATCH updates specific fields of a user based on the provided update_mask.
@@ -62,7 +187,6 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 
 	var (
 		err         error
-		requestBody *authentication.UserDetailsExtended
 		userDetails *authentication.UserDetailsExtended
 		adminUser   session.UserSession
 	)
@@ -104,19 +228,11 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 		updateMask[i] = strings.TrimSpace(updateMask[i])
 	}
 
-	requestBody = &authentication.UserDetailsExtended{}
-	if err = ctx.ParseBody(requestBody); err != nil {
+	var requestBody authentication.UserDetailsExtended
+	if err = ctx.ParseBody(&requestBody); err != nil {
 		ctx.Logger.WithError(err).Error(messageUnableToModifyUser)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Invalid JSON format")
-
-		return
-	}
-
-	if requestBody == nil {
-		ctx.Logger.Debug("Invalid request body structure")
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Invalid request structure")
+		ctx.SetJSONError(fmt.Sprintf("Invalid JSON format: %s", err.Error()))
 
 		return
 	}
@@ -302,115 +418,6 @@ func filterAddressFields(updateMask []string) []string {
 	return addressFields
 }
 
-// ChangeUserPUT takes authentication.UserDetailsExtended and updates the object to match the provided struct.
-func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
-	usernameRaw := ctx.UserValue("username")
-	if usernameRaw == nil {
-		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError(messageUsernameRequired)
-
-		return
-	}
-
-	username := usernameRaw.(string)
-
-	var (
-		err         error
-		requestBody *authentication.UserDetailsExtended
-		userDetails *authentication.UserDetailsExtended
-		adminUser   session.UserSession
-	)
-	if adminUser, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred modifying user: %s", errStrUserSessionData)
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if adminUser.IsAnonymous() {
-		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred modifying user")
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if !UserIsAdmin(ctx, adminUser.Groups) {
-		ctx.Logger.Errorf("Error occurred modifying user: %s", fmt.Sprintf(logFmtErrUserNotAdmin, adminUser.Username))
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	requestBody = &authentication.UserDetailsExtended{}
-	if err = ctx.ParseBody(requestBody); err != nil {
-		ctx.Logger.Error(err, messageUnableToModifyUser)
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Invalid JSON format")
-
-		return
-	}
-
-	if requestBody == nil || requestBody.UserDetails == nil {
-		ctx.Logger.Debug("Invalid request body structure")
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Invalid request structure")
-
-		return
-	}
-
-	if username == "" {
-		ctx.Logger.Debug("Username is required")
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Username is required")
-
-		return
-	}
-
-	if requestBody.Password != "" {
-		ctx.Logger.Debug("Password modification not allowed via this endpoint")
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Password modification not supported. Use the password change endpoint.")
-
-		return
-	}
-
-	if userDetails, err = ctx.Providers.UserProvider.GetUser(username); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error retrieving details for user '%s'", username)
-		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
-		ctx.SetJSONError("User not found")
-
-		return
-	}
-
-	requestBody.Password = ""
-
-	if err = ctx.Providers.UserProvider.ValidateUserData(requestBody); err != nil {
-		ctx.Logger.WithError(err).Errorf("Validation failed for user '%s'", username)
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError(fmt.Sprintf("User modification failed: %s", err.Error()))
-
-		return
-	}
-
-	if err = ctx.Providers.UserProvider.UpdateUser(username, requestBody); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred updating user '%s'", username)
-		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
-		ctx.SetJSONError("Failed to update user")
-
-		return
-	}
-
-	if changes := GenerateUserChangeLog(userDetails, requestBody); len(changes) > 0 {
-		ctx.Logger.WithFields(changes).Infof("User '%s' modified by administrator '%s'",
-			requestBody.Username, adminUser.Username)
-	}
-
-	ctx.Response.SetStatusCode(fasthttp.StatusOK)
-}
-
 //nolint:gocyclo
 func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	var (
@@ -418,6 +425,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		userSession    session.UserSession
 		newUserRequest *authentication.UserDetailsExtended
 	)
+
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred adding new user: %s", errStrUserSessionData)
 

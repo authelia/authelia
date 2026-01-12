@@ -52,7 +52,7 @@ export interface CreateUserRequest extends Omit<
     password: string;
 }
 
-export function validateFieldValue(value: any, metadata: FieldMetadata, fieldName: string): null | string {
+export function validateFieldValue(value: any, metadata: FieldMetadata, _fieldName: string): null | string {
     if (metadata.type === "email" && typeof value === "string") {
         if (!ValidateEmail(value)) {
             return `Invalid ${metadata.display_name.toLowerCase()} format`;

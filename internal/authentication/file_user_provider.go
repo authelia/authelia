@@ -32,6 +32,19 @@ type FileUserProvider struct {
 	timeoutReload time.Time
 }
 
+func (p *FileUserProvider) ListGroups() ([]string, error) {
+	// TODO implement me.
+	panic("implement me")
+}
+
+func (p *FileUserProvider) DeleteGroup(group string) error {
+	return fmt.Errorf("group management is not supported for file-based authentication")
+}
+
+func (p *FileUserProvider) AddGroup(newGroup string) error {
+	return fmt.Errorf("group management is not supported for file-based authentication")
+}
+
 // NewFileUserProvider creates a new instance of FileUserProvider.
 func NewFileUserProvider(config *schema.AuthenticationBackendFile) (provider *FileUserProvider) {
 	return &FileUserProvider{

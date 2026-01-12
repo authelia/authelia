@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
     Autocomplete,
@@ -41,9 +41,11 @@ const EditUserDialog = function (props: Props) {
     const [groupsError, setGroupsError] = useState(false);
 
     useEffect(() => {
-        setEditedUser(props.user);
-        setChangesMade(false);
-    }, [props.user]);
+        if (props.open && props.user) {
+            setEditedUser(props.user);
+            setChangesMade(false);
+        }
+    }, [props.open, props.user]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;

@@ -23,6 +23,21 @@ type MockUserProvider struct {
 	isgomock struct{}
 }
 
+func (m *MockUserProvider) ListGroups()  ([]string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *MockUserProvider) DeleteGroup(group string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *MockUserProvider) AddGroup(newGroup string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 // MockUserProviderMockRecorder is the mock recorder for MockUserProvider.
 type MockUserProviderMockRecorder struct {
 	mock *MockUserProvider

@@ -168,6 +168,7 @@ func AllUsersInfoGET(ctx *middlewares.AutheliaCtx) {
 		userInfo     []model.UserInfo
 		usersDetails []authentication.UserDetailsExtended
 	)
+
 	if usersDetails, err = ctx.Providers.UserProvider.ListUsers(); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving users")
 		return

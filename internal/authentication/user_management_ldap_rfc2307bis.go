@@ -177,15 +177,6 @@ func (r *RFC2307bisUserManagement) ValidatePartialUpdate(userData *UserDetailsEx
 		}
 	}
 
-	if maskSet["profile"] && userData.Profile != nil {
-	}
-
-	if maskSet["picture"] && userData.Picture != nil {
-	}
-
-	if maskSet["website"] && userData.Website != nil {
-	}
-
 	return nil
 }
 
@@ -199,7 +190,6 @@ func (r *RFC2307bisUserManagement) UpdateUserWithMask(username string, userData 
 		client LDAPExtendedClient
 		err    error
 	)
-
 	if client, err = r.provider.factory.GetClient(); err != nil {
 		return fmt.Errorf("unable to update user '%s': %w", username, err)
 	}
@@ -672,7 +662,64 @@ func (r *RFC2307bisUserManagement) UpdateUserGroups(username string, groups []st
 	return nil
 }
 
-func (r *RFC2307bisUserManagement) GetGroups(client LDAPExtendedClient) ([]*ldap.Entry, error) {
+// ListGroups returns a list of all group names.
+func (r *RFC2307bisUserManagement) ListGroups() ([]string, error) {
+	var (
+		client LDAPExtendedClient
+		err    error
+	)
+	if client, err = r.provider.factory.GetClient(); err != nil {
+		return nil, fmt.Errorf("unable to get LDAP client for listing groups: %w", err)
+	}
+
+	defer func() {
+		if err := r.provider.factory.ReleaseClient(client); err != nil {
+			r.provider.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	searchRequest := ldap.NewSearchRequest(
+		r.provider.groupsBaseDN,
+		ldap.ScopeSingleLevel,
+		ldap.NeverDerefAliases,
+		0,
+		0,
+		false,
+		"(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=posixGroup))",
+		[]string{r.provider.config.Attributes.GroupName},
+		nil,
+	)
+
+	searchResult, err := r.provider.search(client, searchRequest)
+	if err != nil {
+		var ldapErr *ldap.Error
+		if errors.As(err, &ldapErr) && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
+			return []string{}, nil
+		}
+
+		return nil, fmt.Errorf("error occurred searching for all groups: %w", err)
+	}
+
+	groups := make([]string, 0, len(searchResult.Entries))
+	for _, entry := range searchResult.Entries {
+		groupName := entry.GetAttributeValue(r.provider.config.Attributes.GroupName)
+		if groupName != "" {
+			groups = append(groups, groupName)
+		}
+	}
+
+	return groups, nil
+}
+
+func (r *RFC2307bisUserManagement) GetGroups() ([]*ldap.Entry, error) {
+	var (
+		client LDAPExtendedClient
+		err    error
+	)
+	if client, err = r.provider.factory.GetClient(); err != nil {
+		return nil, fmt.Errorf("unable to get LDAP client for group update: %w", err)
+	}
+
 	searchRequest := ldap.NewSearchRequest(
 		r.provider.groupsBaseDN,
 		ldap.ScopeSingleLevel,
@@ -698,31 +745,79 @@ func (r *RFC2307bisUserManagement) GetGroups(client LDAPExtendedClient) ([]*ldap
 	return searchResult.Entries, nil
 }
 
-// CreateGroup creates a new group in LDAP.
-func (r *RFC2307bisUserManagement) CreateGroup(client LDAPExtendedClient, groupName, groupDN string) error {
+// AddGroup creates a new group in LDAP.
+func (r *RFC2307bisUserManagement) AddGroup(groupName string) error {
+	var (
+		client LDAPExtendedClient
+		err    error
+	)
+	if client, err = r.provider.factory.GetClient(); err != nil {
+		return fmt.Errorf("unable to get LDAP client for group creation: %w", err)
+	}
+
+	defer func() {
+		if err := r.provider.factory.ReleaseClient(client); err != nil {
+			r.provider.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	groupDN := fmt.Sprintf("%s=%s,%s", r.provider.config.Attributes.GroupName, ldap.EscapeFilter(groupName), r.provider.groupsBaseDN)
+
+	// Check if group already exists.
+	exists, err := r.groupExists(client, groupDN)
+	if err != nil {
+		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
+	}
+
+	if exists {
+		return fmt.Errorf("group '%s' already exists", groupName)
+	}
+
+	if err := r.createGroupInternal(client, groupName, groupDN); err != nil {
+		return err
+	}
+
+	r.provider.log.Infof("Successfully created group '%s'", groupName)
+
+	return nil
+}
+
+// createGroupInternal creates a group in LDAP using an existing client connection.
+func (r *RFC2307bisUserManagement) createGroupInternal(client LDAPExtendedClient, groupName, groupDN string) error {
 	addRequest := ldap.NewAddRequest(groupDN, nil)
 
-	// RFC2307bis group object classes.
-	addRequest.Attribute("objectClass", []string{
-		"top",
-		"groupOfNames",
-	})
-
+	addRequest.Attribute("objectClass", r.GetDefaultGroupObjectClasses())
 	addRequest.Attribute(r.provider.config.Attributes.GroupName, []string{groupName})
-	// placeholderDN := fmt.Sprintf("cn=placeholder,%s", r.provider.groupsBaseDN).
-	addRequest.Attribute(r.provider.config.Attributes.GroupMember, []string{groupDN})
+
+	// groupOfNames requires at least one member, so we add a placeholder.
+	placeholderDN := fmt.Sprintf("cn=placeholder,%s", r.provider.config.BaseDN)
+	addRequest.Attribute(r.provider.config.Attributes.GroupMember, []string{placeholderDN})
 
 	if err := client.Add(addRequest); err != nil {
-		return err
+		return fmt.Errorf("failed to create group '%s': %w", groupName, err)
 	}
 
 	return nil
 }
 
 // DeleteGroup deletes a group in LDAP.
-//
+func (r *RFC2307bisUserManagement) DeleteGroup(groupName string) error {
+	var (
+		client LDAPExtendedClient
+		err    error
+	)
+	if client, err = r.provider.factory.GetClient(); err != nil {
+		return fmt.Errorf("unable to get LDAP client for group deletion: %w", err)
+	}
 
-func (r *RFC2307bisUserManagement) DeleteGroup(client LDAPExtendedClient, groupName, groupDN string) error {
+	defer func() {
+		if err := r.provider.factory.ReleaseClient(client); err != nil {
+			r.provider.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	groupDN := fmt.Sprintf("%s=%s,%s", r.provider.config.Attributes.GroupName, ldap.EscapeFilter(groupName), r.provider.groupsBaseDN)
+
 	// Check if group exists first.
 	exists, err := r.groupExists(client, groupDN)
 	if err != nil {
@@ -731,7 +826,7 @@ func (r *RFC2307bisUserManagement) DeleteGroup(client LDAPExtendedClient, groupN
 
 	if !exists {
 		r.provider.log.Debugf("Group '%s' doesn't exist, nothing to delete", groupName)
-		return nil
+		return fmt.Errorf("group '%s' not found", groupName)
 	}
 
 	deleteRequest := ldap.NewDelRequest(groupDN, nil)
@@ -740,7 +835,7 @@ func (r *RFC2307bisUserManagement) DeleteGroup(client LDAPExtendedClient, groupN
 		return fmt.Errorf("failed to delete group '%s': %w", groupName, err)
 	}
 
-	r.provider.log.Debugf("Successfully deleted group '%s'", groupName)
+	r.provider.log.Infof("Successfully deleted group '%s'", groupName)
 
 	return nil
 }
@@ -888,7 +983,7 @@ func (r *RFC2307bisUserManagement) addUserToGroup(client LDAPExtendedClient, use
 	}
 
 	if !exists {
-		if err := r.CreateGroup(client, groupName, groupDN); err != nil {
+		if err := r.createGroupInternal(client, groupName, groupDN); err != nil {
 			return fmt.Errorf("failed to create group '%s': %w", groupName, err)
 		}
 

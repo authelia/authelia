@@ -31,6 +31,10 @@ type UserProvider interface {
 	UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) error
 	DeleteUser(username string) (err error)
 
+	AddGroup(newGroup string) (err error)
+	DeleteGroup(group string) (err error)
+	ListGroups() ([]string, error)
+
 	GetRequiredFields() []string
 	GetSupportedFields() []string
 	GetFieldMetadata() map[string]FieldMetadata
