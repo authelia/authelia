@@ -24,6 +24,8 @@ type LDAPUserProvider struct {
 	log     *logrus.Logger
 	factory LDAPClientFactory
 
+	Management UserManagementProvider
+
 	clock clock.Provider
 
 	disableResetPassword bool
@@ -45,6 +47,30 @@ type LDAPUserProvider struct {
 	groupsFilterReplacementDN           bool
 	groupsFilterReplacementsMemberOfDN  bool
 	groupsFilterReplacementsMemberOfRDN bool
+}
+
+func (p *LDAPUserProvider) ListGroups() ([]string, error) {
+	if p.Management == nil {
+		return nil, fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.ListGroups()
+}
+
+func (p *LDAPUserProvider) DeleteGroup(group string) error {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.DeleteGroup(group)
+}
+
+func (p *LDAPUserProvider) AddGroup(newGroup string) error {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.AddGroup(newGroup)
 }
 
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider with the StandardLDAPClientFactory.
@@ -77,7 +103,54 @@ func NewLDAPUserProviderWithFactory(config *schema.AuthenticationBackendLDAP, di
 	provider.parseDynamicUsersConfiguration()
 	provider.parseDynamicGroupsConfiguration()
 
+	switch config.Implementation {
+	case "activedirectory":
+		provider.Management = &ActiveDirectoryUserManagement{
+			provider: provider,
+		}
+	case "rfc2307bis":
+	default:
+		provider.Management = &RFC2307bisUserManagement{
+			provider: provider,
+		}
+	}
+
 	return provider
+}
+
+func (p *LDAPUserProvider) UpdateUser(username string, userData *UserDetailsExtended) error {
+	return p.Management.UpdateUser(username, userData)
+}
+
+func (p *LDAPUserProvider) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) (err error) {
+	return p.Management.UpdateUserWithMask(username, userData, updateMask)
+}
+
+func (p *LDAPUserProvider) AddUser(userData *UserDetailsExtended) error {
+	return p.Management.AddUser(userData)
+}
+
+func (p *LDAPUserProvider) DeleteUser(username string) error {
+	return p.Management.DeleteUser(username)
+}
+
+func (p *LDAPUserProvider) GetSupportedFields() []string {
+	return p.Management.GetSupportedFields()
+}
+
+func (p *LDAPUserProvider) GetRequiredFields() []string {
+	return p.Management.GetRequiredFields()
+}
+func (p *LDAPUserProvider) GetFieldMetadata() map[string]FieldMetadata {
+	return p.Management.GetFieldMetadata()
+}
+
+func (p *LDAPUserProvider) ValidateUserData(userData *UserDetailsExtended) error {
+	return p.Management.ValidateUserData(userData)
+}
+
+func (p *LDAPUserProvider) ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error {
+	return p.Management.ValidatePartialUpdate(userData, updateMask)
 }
 
 // CheckUserPassword checks if provided password matches for the given user.
@@ -114,7 +187,7 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 	return true, nil
 }
 
-// GetDetails retrieve the groups a user belongs to.
+// GetDetails retrieve the users basic information.
 func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, err error) {
 	var (
 		client  LDAPExtendedClient
@@ -149,6 +222,10 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 		Emails:      profile.Emails,
 		Groups:      groups,
 	}, nil
+}
+
+func (p *LDAPUserProvider) GetUser(username string) (details *UserDetailsExtended, err error) {
+	return p.GetDetailsExtended(username)
 }
 
 // GetDetailsExtended retrieves the UserDetailsExtended values.
@@ -240,6 +317,119 @@ func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDet
 	return details, nil
 }
 
+func (p *LDAPUserProvider) ListUsers() (users []UserDetailsExtended, err error) {
+	var client LDAPExtendedClient
+	if client, err = p.factory.GetClient(); err != nil {
+		return nil, fmt.Errorf("failed to connect to LDAP server: %w", err)
+	}
+
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	request := ldap.NewSearchRequest(
+		p.usersBaseDN,
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false,
+		"(objectClass=inetOrgPerson)",
+		p.usersAttributesExtended,
+		nil,
+	)
+
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attr", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		Trace("Performing search for all users (extended)")
+
+	var result *ldap.SearchResult
+
+	if result, err = p.search(client, request); err != nil {
+		return nil, fmt.Errorf("failed to search for users: %w", err)
+	}
+
+	users = make([]UserDetailsExtended, 0, len(result.Entries))
+
+	for _, entry := range result.Entries {
+		profile, err := p.getUserProfileResultToProfileExtended(entry.GetAttributeValue(p.config.Attributes.Username), entry)
+		if err != nil {
+			p.log.WithError(err).Warnf("Failed to process user entry: %s", entry.DN)
+			continue
+		}
+
+		groups, err := p.getUserGroups(client, profile.Username, profile.ldapUserProfile)
+		if err != nil {
+			p.log.WithError(err).Warnf("Failed to get groups for user: %s", profile.Username)
+		}
+
+		// Build UserDetailsExtended similar to GetDetailsExtended method.
+		userDetails := &UserDetailsExtended{
+			GivenName:      profile.GivenName,
+			FamilyName:     profile.FamilyName,
+			MiddleName:     profile.MiddleName,
+			Nickname:       profile.Nickname,
+			Gender:         profile.Gender,
+			Birthdate:      profile.Birthdate,
+			ZoneInfo:       profile.ZoneInfo,
+			PhoneNumber:    profile.PhoneNumber,
+			PhoneExtension: profile.PhoneExtension,
+			Address:        profile.Address,
+			UserDetails: &UserDetails{
+				Username:    profile.Username,
+				DisplayName: profile.DisplayName,
+				Emails:      profile.Emails,
+				Groups:      groups,
+			},
+			Extra: profile.Extra,
+		}
+
+		var (
+			uri    *url.URL
+			locale language.Tag
+		)
+
+		if profile.Profile != "" {
+			if uri, err = parseAttributeURI(profile.Username, "profile", p.config.Attributes.Profile, profile.Profile); err != nil {
+				p.log.WithError(err).Warnf("Failed to parse profile URL for user: %s", profile.Username)
+			} else {
+				userDetails.Profile = uri
+			}
+		}
+
+		if profile.Picture != "" {
+			if uri, err = parseAttributeURI(profile.Username, "picture", p.config.Attributes.Picture, profile.Picture); err != nil {
+				p.log.WithError(err).Warnf("Failed to parse picture URL for user: %s", profile.Username)
+			} else {
+				userDetails.Picture = uri
+			}
+		}
+
+		if profile.Website != "" {
+			if uri, err = parseAttributeURI(profile.Username, "website", p.config.Attributes.Website, profile.Website); err != nil {
+				p.log.WithError(err).Warnf("Failed to parse website URL for user: %s", profile.Username)
+			} else {
+				userDetails.Website = uri
+			}
+		}
+
+		if profile.Locale != "" {
+			if locale, err = language.Parse(profile.Locale); err != nil {
+				p.log.WithError(err).Warnf("Failed to parse locale for user '%s': %s", profile.Username, profile.Locale)
+			} else {
+				userDetails.Locale = &locale
+			}
+		}
+
+		users = append(users, *userDetails)
+	}
+
+	return users, nil
+}
+
 // UpdatePassword update the password of the given user.
 func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error) {
 	var (
@@ -327,6 +517,32 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	}
 
 	return nil
+}
+
+// getGroupDN is a helper function to get the DN of a group given its name.
+// TODO: Use this method :)
+//
+//nolint:unused
+func (p *LDAPUserProvider) getGroupDN(client LDAPExtendedClient, groupName string) (string, error) {
+	searchRequest := ldap.NewSearchRequest(
+		p.groupsBaseDN,
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false,
+		fmt.Sprintf("(&(objectClass=group)(%s=%s))", p.config.Attributes.GroupName, ldap.EscapeFilter(groupName)),
+		[]string{"dn"},
+		nil,
+	)
+
+	result, err := p.search(client, searchRequest)
+	if err != nil {
+		return "", fmt.Errorf("error searching for group '%s': %w", groupName, err)
+	}
+
+	if len(result.Entries) == 0 {
+		return "", fmt.Errorf("group '%s' not found", groupName)
+	}
+
+	return result.Entries[0].DN, nil
 }
 
 func (p *LDAPUserProvider) setPassword(client LDAPExtendedClient, profile *ldapUserProfile, username, oldPassword, newPassword string) (err error) {
@@ -710,12 +926,26 @@ attributes:
 	return ""
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
+type resolveUsersFilterOpts struct {
+	escape bool
+}
+
+func (p *LDAPUserProvider) resolveUsersFilter(input string, opts ...func(options *resolveUsersFilterOpts)) (filter string) {
+	options := &resolveUsersFilterOpts{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	filter = p.config.UsersFilter
 
 	if p.usersFilterReplacementInput {
-		// The {input} placeholder is replaced by the username input.
-		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+		if options.escape {
+			// The {input} placeholder is replaced by the username input.
+			filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+		} else {
+			filter = strings.ReplaceAll(filter, ldapPlaceholderInput, input)
+		}
 	}
 
 	if p.usersFilterReplacementDateTimeGeneralized {

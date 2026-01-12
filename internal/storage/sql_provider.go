@@ -73,6 +73,18 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectCachedData: fmt.Sprintf(queryFmtSelectCachedData, tableCachedData),
 		sqlDeleteCachedData: fmt.Sprintf(queryFmtDeleteCachedData, tableCachedData),
 
+		sqlInsertUserMetadata:                          fmt.Sprintf(queryFmtInsertUserMetadata, tableUserMetadata),
+		sqlInsertNewUserMetadata:                       fmt.Sprintf(queryFmtInsertNewUserMetadata, tableUserMetadata),
+		sqlInsertExistingUserAtLoginMetadata:           fmt.Sprintf(queryFmtInsertNewUserAtLoginMetadata, tableUserMetadata),
+		sqlInsertExistingUserAtPasswordChangeMetadata:  fmt.Sprintf(queryFmtInsertExistingUserAtPasswordChangeMetadata, tableUserMetadata),
+		sqlSelectUserMetadata:                          fmt.Sprintf(queryFmtSelectUserMetadata, tableUserMetadata),
+		sqlSelectMultipleUserMetadataByUsername:        fmt.Sprintf(queryFmtSelectMultipleUserMetadataByUsername, tableUserMetadata),
+		sqlSelectUserMetadataByUsername:                fmt.Sprintf(queryFmtSelectUserByUsername, tableUserMetadata),
+		sqlSelectAllUserInfoAndMetadata:                fmt.Sprintf(queryFmtSelectAllUserInfoAndMetadata, tableUserMetadata, tableUserPreferences, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices),
+		sqlUpdateUserRecordSignInByUsername:            fmt.Sprintf(queryFmtUpdateUserRecordSignInByUsername, tableUserMetadata),
+		sqlDeleteUserMetadataByUsername:                fmt.Sprintf(queryFmtDeleteUserMetadataByUsername, tableUserMetadata),
+		sqlUpdateUserRecordPasswordChangedAtByUsername: fmt.Sprintf(queryFmtUpdateUserRecordPasswordChangedAtByUsername, tableUserMetadata),
+
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
 		sqlRevokeIdentityVerification:  fmt.Sprintf(queryFmtRevokeIdentityVerification, tableIdentityVerification),
@@ -118,7 +130,8 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
-		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices, tableUserPreferences),
+		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfoByUsername, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices, tableUserPreferences),
+		sqlSelectAllUserInfo:        fmt.Sprintf(queryFmtSelectAllUserInfo, tableUserPreferences, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices),
 
 		sqlInsertUserOpaqueIdentifier:            fmt.Sprintf(queryFmtInsertUserOpaqueIdentifier, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifier:            fmt.Sprintf(queryFmtSelectUserOpaqueIdentifier, tableUserOpaqueIdentifier),
@@ -236,6 +249,20 @@ type SQLProvider struct {
 	sqlSelectCachedData string
 	sqlDeleteCachedData string
 
+	// Table: user_Metadata.
+	sqlInsertUserMetadata                               string
+	sqlInsertNewUserMetadata                            string
+	sqlInsertExistingUserAtLoginMetadata                string
+	sqlInsertExistingUserAtPasswordChangeMetadata       string
+	sqlSelectUserMetadata                               string
+	sqlSelectMultipleUserMetadataByUsername             string
+	sqlSelectUserMetadataByUsername                     string
+	sqlSelectAllUserInfoAndMetadata                     string
+	sqlUpdateUserRecordSignInByUsername                 string
+	sqlDeleteUserMetadataByUsername                     string
+	sqlUpdateUserRecordPasswordChangedAtByUsername      string
+	sqlUpdateUserRecordRequirePasswordChangedByUsername string
+
 	// Table: identity_verification.
 	sqlInsertIdentityVerification  string
 	sqlConsumeIdentityVerification string
@@ -292,6 +319,7 @@ type SQLProvider struct {
 	sqlUpsertPreferred2FAMethod string
 	sqlSelectPreferred2FAMethod string
 	sqlSelectUserInfo           string
+	sqlSelectAllUserInfo        string
 
 	// Table: user_opaque_identifier.
 	sqlInsertUserOpaqueIdentifier            string
@@ -478,10 +506,225 @@ func (p *SQLProvider) Close() (err error) {
 	return p.db.Close()
 }
 
+// CreateExistingUserMetadata add an existing user's metadata record to the storage provider without setting creation date.
+func (p *SQLProvider) CreateExistingUserMetadata(ctx context.Context, username string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertUserMetadata, username); err != nil {
+		return fmt.Errorf("error creating exiting user Metadata for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+// CreateNewUserMetadata adds a new user's metadata record to the storage provider along with the user's creation date.
+func (p *SQLProvider) CreateNewUserMetadata(ctx context.Context, username string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertNewUserMetadata, username, time.Now()); err != nil {
+		return fmt.Errorf("error creating new user Metadata for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+// CreateExistingUserMetadataAtLogin adds a new user's attribute record to the storage provider, and sets their last login time.
+func (p *SQLProvider) CreateExistingUserMetadataAtLogin(ctx context.Context, username string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertExistingUserAtLoginMetadata, username, time.Now()); err != nil {
+		return fmt.Errorf("error creating new user Metadata for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) CreateExistingUserMetadataAtPasswordChange(ctx context.Context, username string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertExistingUserAtPasswordChangeMetadata, username, time.Now()); err != nil {
+		return fmt.Errorf("error creating new user Metadata for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+// LoadAllUsersMetadata load all user Metadata from the database.
+func (p *SQLProvider) LoadAllUsersMetadata(ctx context.Context) (allUserMetadata []model.UserInfo, err error) {
+	rows, err := p.db.QueryContext(ctx, p.sqlSelectUserMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("error querying user Metadata: %w", err)
+	}
+	defer rows.Close()
+
+	var users []model.UserInfo
+
+	for rows.Next() {
+		var user model.UserInfo
+
+		var lastLoggedIn, lastPasswordChange, userCreatedAt sql.NullTime
+
+		err := rows.Scan(
+			&user.Username,
+			&lastLoggedIn,
+			&lastPasswordChange,
+			&userCreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning user Metadata: %w", err)
+		}
+
+		if lastLoggedIn.Valid {
+			user.LastLoggedIn = &lastLoggedIn.Time
+		}
+
+		if lastPasswordChange.Valid {
+			user.LastPasswordChange = &lastPasswordChange.Time
+		}
+
+		if userCreatedAt.Valid {
+			user.UserCreatedAt = &userCreatedAt.Time
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating user Metadata: %w", err)
+	}
+
+	return users, nil
+}
+
+// LoadAllUsersMetadata load all user Metadata from the database.
+func (p *SQLProvider) LoadMultipleUsersMetadataByUsername(ctx context.Context, usernames []string) (allUserMetadata []model.UserInfo, err error) {
+	rows, err := p.db.QueryContext(ctx, p.sqlSelectMultipleUserMetadataByUsername, usernames)
+	if err != nil {
+		return nil, fmt.Errorf("error querying user Metadata: %w", err)
+	}
+	defer rows.Close()
+
+	var users []model.UserInfo
+
+	for rows.Next() {
+		var user model.UserInfo
+
+		var lastLoggedIn, lastPasswordChange, userCreatedAt sql.NullTime
+
+		err := rows.Scan(
+			&user.Username,
+			&lastLoggedIn,
+			&lastPasswordChange,
+			&userCreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning user Metadata: %w", err)
+		}
+
+		if lastLoggedIn.Valid {
+			user.LastLoggedIn = &lastLoggedIn.Time
+		}
+
+		if lastPasswordChange.Valid {
+			user.LastPasswordChange = &lastPasswordChange.Time
+		}
+
+		if userCreatedAt.Valid {
+			user.UserCreatedAt = &userCreatedAt.Time
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating user Metadata: %w", err)
+	}
+
+	return users, nil
+}
+
+// LoadUserMetadataByUsername load the user Metadata for a specific user.
+func (p *SQLProvider) LoadUserMetadataByUsername(ctx context.Context, username string) (userMetadata model.UserInfo, err error) {
+	var lastLoggedIn, lastPasswordChange, userCreatedAt sql.NullTime
+
+	err = p.db.QueryRowContext(ctx, p.sqlSelectUserMetadataByUsername, username).Scan(
+		&userMetadata.Username,
+		&lastLoggedIn,
+		&lastPasswordChange,
+		&userCreatedAt,
+	)
+
+	switch {
+	case err == nil:
+		if lastLoggedIn.Valid {
+			userMetadata.LastLoggedIn = &lastLoggedIn.Time
+		}
+
+		if lastPasswordChange.Valid {
+			userMetadata.LastPasswordChange = &lastPasswordChange.Time
+		}
+
+		if userCreatedAt.Valid {
+			userMetadata.UserCreatedAt = &userCreatedAt.Time
+		}
+
+		return userMetadata, nil
+	case errors.Is(err, sql.ErrNoRows):
+		return model.UserInfo{}, sql.ErrNoRows
+	default:
+		return model.UserInfo{}, fmt.Errorf("error retrieving user Metadata for user '%s': %w", username, err)
+	}
+}
+
+// UpdateUserSignInDateByUsername save the current time as the last time a user logged in successfully.
+func (p *SQLProvider) UpdateUserSignInDateByUsername(ctx context.Context, username string) (err error) {
+	result, err := p.db.ExecContext(ctx, p.sqlUpdateUserRecordSignInByUsername, time.Now(), username)
+	if err != nil {
+		return fmt.Errorf("error updating latest sign in time for user '%s: %w", username, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected for user '%s': %w", username, err)
+	}
+
+	if rowsAffected == 0 {
+		if err := p.CreateExistingUserMetadataAtLogin(ctx, username); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteUserByUsername deletes a specific user from the storage provider.
+func (p *SQLProvider) DeleteUserByUsername(ctx context.Context, username string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteUserMetadataByUsername, username); err != nil {
+		return fmt.Errorf("error deleting user Metadata for user '%s: %w", username, err)
+	}
+
+	return nil
+}
+
+// UpdatePasswordChangedDateByUsername save the current time as the last time a user changed their password.
+func (p *SQLProvider) UpdatePasswordChangedDateByUsername(ctx context.Context, username string) (err error) {
+	result, err := p.db.ExecContext(ctx, p.sqlUpdateUserRecordPasswordChangedAtByUsername, time.Now(), username)
+	if err != nil {
+		return fmt.Errorf("error updating 'latest password change date' for user '%s: %w", username, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected for user '%s': %w", username, err)
+	}
+
+	if rowsAffected == 0 {
+		p.log.Infof(("CreateExistingUserMetadataAtPasswordChange"))
+
+		if err := p.CreateExistingUserMetadataAtPasswordChange(ctx, username); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // SavePreferred2FAMethod save the preferred method for 2FA for a username to the storage provider.
 func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, method); err != nil {
-		return fmt.Errorf("error upserting preferred two factor method for user '%s': %w", username, err)
+		return fmt.Errorf("error inserting preferred two factor method for user '%s': %w", username, err)
 	}
 
 	return nil
@@ -511,6 +754,79 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 	default:
 		return model.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
 	}
+}
+
+// LoadAllUserInfo loads the model.UserInfo from the storage provider for all users.
+func (p *SQLProvider) LoadAllUserInfo(ctx context.Context) (info []model.UserInfo, err error) {
+	rows, err := p.db.QueryContext(ctx, p.sqlSelectAllUserInfo)
+	if err != nil {
+		return nil, fmt.Errorf("error selecting user info for all users: %w", err)
+	}
+
+	defer rows.Close()
+
+	var users []model.UserInfo
+
+	for rows.Next() {
+		var user model.UserInfo
+
+		err := rows.Scan(
+			&user.Username,
+			&user.Method,
+			&user.HasTOTP,
+			&user.HasWebAuthn,
+			&user.HasDuo,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning all user info: %w", err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating user info: %w", err)
+	}
+
+	return users, nil
+}
+
+// LoadAllUserInfoAndMetadata loads the model.UserInfo from the storage provider for all users.
+func (p *SQLProvider) LoadAllUserInfoAndMetadata(ctx context.Context) (info []model.UserInfo, err error) {
+	rows, err := p.db.QueryContext(ctx, p.sqlSelectAllUserInfoAndMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("error selecting user info and Metadata for all users: %w", err)
+	}
+
+	defer rows.Close()
+
+	var users []model.UserInfo
+
+	for rows.Next() {
+		var user model.UserInfo
+
+		err := rows.Scan(
+			&user.Username,
+			&user.Method,
+			&user.LastLoggedIn,
+			&user.LastPasswordChange,
+			&user.UserCreatedAt,
+			&user.HasTOTP,
+			&user.HasWebAuthn,
+			&user.HasDuo,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning all user info and metadata : %w", err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating user info and metadata: %w", err)
+	}
+
+	return users, nil
 }
 
 // SaveUserOpaqueIdentifier saves a new opaque user identifier to the storage provider.

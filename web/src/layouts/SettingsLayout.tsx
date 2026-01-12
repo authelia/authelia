@@ -1,6 +1,6 @@
 import { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Close, Dashboard, Menu, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
+import { Close, Dashboard, Menu, People, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
 import {
     AppBar,
     Box,
@@ -23,8 +23,11 @@ import {
     SecuritySubRoute,
     SettingsRoute,
     SettingsTwoFactorAuthenticationSubRoute,
+    SettingsUserManagementSubRoute,
 } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
+import { useUserInfoGET } from "@hooks/UserInfo.ts";
+import { useAdminConfigurationGET } from "@hooks/UserManagement.ts";
 
 export interface Props {
     children?: ReactNode;
@@ -37,6 +40,20 @@ const SettingsLayout = function (props: Props) {
     const { t: translate } = useTranslation("settings");
     const [drawerOpen, setDrawerOpen] = useState(false);
 
+    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
+    const [adminConfig, fetchAdminConfig, , fetchAdminConfigError] = useAdminConfigurationGET();
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                await Promise.all([fetchUserInfo(), fetchAdminConfig()]);
+            } catch (error) {
+                console.error("Error loading settings data:", error);
+            }
+        };
+
+        loadData();
+    }, [fetchUserInfo, fetchAdminConfig]);
     useEffect(() => {
         document.title = translate("Settings - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
@@ -55,6 +72,18 @@ const SettingsLayout = function (props: Props) {
         setDrawerOpen((state) => !state);
     };
 
+    const isItemVisible = useCallback(
+        (item: NavItem) => {
+            if (!item.requireAdmin) return true;
+
+            if (fetchAdminConfigError || !adminConfig || fetchUserInfoError || !userInfo) {
+                return false;
+            }
+            return adminConfig?.enabled && userInfo?.groups?.includes(adminConfig?.admin_group);
+        },
+        [adminConfig, userInfo, fetchAdminConfigError, fetchUserInfoError],
+    );
+
     const container = typeof globalThis === "undefined" ? undefined : () => globalThis.document.body;
 
     const drawer = (
@@ -64,7 +93,7 @@ const SettingsLayout = function (props: Props) {
             </Typography>
             <Divider />
             <List>
-                {navItems.map((item) => (
+                {navItems.filter(isItemVisible).map((item) => (
                     <DrawerNavItem
                         key={item.keyname}
                         keyname={item.keyname}
@@ -131,6 +160,8 @@ interface NavItem {
     text: string;
     pathname: string;
     icon?: ReactNode;
+    requireAdmin?: boolean;
+    disabled?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -146,6 +177,13 @@ const navItems: NavItem[] = [
         keyname: "twofactor",
         pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
         text: "Two-Factor Authentication",
+    },
+    {
+        icon: <People color={"primary"} />,
+        keyname: "users",
+        pathname: `${SettingsRoute}${SettingsUserManagementSubRoute}`,
+        requireAdmin: true,
+        text: "User Management",
     },
     { icon: <Close color={"error"} />, keyname: "close", pathname: IndexRoute, text: "Close" },
 ];

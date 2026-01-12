@@ -188,6 +188,7 @@ type AuthenticationBackendLDAPAttributes struct {
 	Mail              string `koanf:"mail" yaml:"mail,omitempty" toml:"mail,omitempty" json:"mail,omitempty" jsonschema:"title=Attribute: User Mail" jsonschema_description:"The directory server attribute which contains the mail address for all users and groups."`
 	MemberOf          string `koanf:"member_of" yaml:"member_of,omitempty" toml:"member_of,omitempty" json:"member_of,omitempty" jsonschema:"title=Attribute: Member Of" jsonschema_description:"The directory server attribute which contains the objects that an object is a member of."`
 	GroupName         string `koanf:"group_name" yaml:"group_name,omitempty" toml:"group_name,omitempty" json:"group_name,omitempty" jsonschema:"title=Attribute: Group Name" jsonschema_description:"The directory server attribute which contains the group name for all groups."`
+	GroupMember       string `koanf:"group_member" yaml:"group_member,omitempty" toml:"group_member,omitempty" json:"group_member,omitempty" jsonschema:"title=Attribute: Group Member" jsonschema_description:"The directory server attribute which contains the members of a group."`
 
 	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
@@ -266,6 +267,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = Authenti
 		DisplayName: ldapAttrDisplayName,
 		Mail:        ldapAttrMail,
 		GroupName:   ldapAttrCommonName,
+		GroupMember: ldapAttrGroupMember,
 	},
 	Timeout: time.Second * 20,
 	Pooling: AuthenticationBackendLDAPPooling{
@@ -318,6 +320,8 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis = Auth
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
+		GivenName:   ldapAttrGivenName,
+		FamilyName:  ldapAttrSurname,
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{
@@ -336,6 +340,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = Authent
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
+		GroupMember: ldapAttrGroupMember,
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{
@@ -356,6 +361,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP = Authentic
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
+		GroupMember: ldapAttrGroupMember,
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{
@@ -374,6 +380,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth = Authenti
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
+		GroupMember: ldapAttrGroupMember,
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{

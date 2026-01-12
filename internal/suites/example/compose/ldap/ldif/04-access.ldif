@@ -1,5 +1,5 @@
 dn: olcDatabase={1}{{ LDAP_BACKEND }},cn=config
 changetype: modify
 replace: olcAccess
-olcAccess: {0}to attrs=userPassword,shadowLastChange by self write by dn="cn=admin,{{ LDAP_BASE_DN }}" write by dn="cn=pwmanager,{{ LDAP_BASE_DN }}" write by anonymous auth by * none
-olcAccess: {1}to * by self read by dn="cn=admin,{{ LDAP_BASE_DN }}" write by dn="cn=pwmanager,{{ LDAP_BASE_DN }}" read by * none
+olcAccess: {0}to attrs=userPassword,shadowLastChange by self write by dn="cn=admin,{{ LDAP_BASE_DN }}" write by dn="uid=pwmanager,{{ LDAP_BASE_DN }}" write by anonymous auth by * none
+olcAccess: {1}to * by self read by dn="cn=admin,{{ LDAP_BASE_DN }}" write by dn="uid=pwmanager,{{ LDAP_BASE_DN }}" write by * none

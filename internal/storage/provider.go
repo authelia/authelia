@@ -21,6 +21,31 @@ type Provider interface {
 	Close() (err error)
 
 	/*
+		Implementation for Basic User Metadata
+	*/
+
+	// CreateExistingUserMetadata add an existing user's attribute record to the storage provider without setting creation date.
+	CreateExistingUserMetadata(ctx context.Context, username string) (err error)
+
+	// CreateNewUserMetadata add a new user's attribute record to the storage provider along with the user's creation date.
+	CreateNewUserMetadata(ctx context.Context, username string) (err error)
+
+	// LoadAllUsersMetadata load all user metadata from the database.
+	LoadAllUsersMetadata(ctx context.Context) (allUserMetadata []model.UserInfo, err error)
+
+	// LoadUserMetadataByUsername load the user metadata for a specific user.
+	LoadUserMetadataByUsername(ctx context.Context, username string) (userMetadata model.UserInfo, err error)
+
+	// UpdateUserSignInDateByUsername save the current time as the last time a user logged in successfully.
+	UpdateUserSignInDateByUsername(ctx context.Context, username string) (err error)
+
+	// DeleteUserByUsername deletes a specific user from the storage provider.
+	DeleteUserByUsername(ctx context.Context, username string) (err error)
+
+	// UpdatePasswordChangedDateByUsername save the current time as the last time a user changed their password.
+	UpdatePasswordChangedDateByUsername(ctx context.Context, username string) (err error)
+
+	/*
 		Implementation for Basic User Information.
 	*/
 
@@ -30,8 +55,14 @@ type Provider interface {
 	// LoadPreferred2FAMethod load the preferred method for 2FA for a username from the storage provider.
 	LoadPreferred2FAMethod(ctx context.Context, username string) (method string, err error)
 
-	// LoadUserInfo loads the model.UserInfo from the storage provider.
+	// LoadUserInfo loads the model.UserInfo from the storage provider for a specific user.
 	LoadUserInfo(ctx context.Context, username string) (info model.UserInfo, err error)
+
+	// LoadAllUserInfo loads the model.UserInfo from the storage provider for all users.
+	LoadAllUserInfo(ctx context.Context) (info []model.UserInfo, err error)
+
+	// LoadAllUserInfoAndMetadata loads the model.UserInfo from the storage provider for all users.
+	LoadAllUserInfoAndMetadata(ctx context.Context) (info []model.UserInfo, err error)
 
 	/*
 		Implementation for User Opaque Identifiers.

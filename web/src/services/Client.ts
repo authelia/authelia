@@ -49,7 +49,7 @@ export async function PostWithOptionalResponseRateLimited<T = undefined>(
 }
 
 export async function DeleteWithOptionalResponse<T = undefined>(path: string, body?: any): Promise<T | undefined> {
-    const res = await axios.delete<ServiceResponse<T>>(path, body);
+    const res = await axios.delete<ServiceResponse<T>>(path, { data: body });
 
     if (res.status !== 200 || hasServiceError(res).errored) {
         throw new Error(`Failed DELETE to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);

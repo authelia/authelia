@@ -8,13 +8,14 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// UserInfoPOST handles setting up info for users if necessary when they login.
+// UserInfoPOST handles setting up info for users if necessary when they log in.
 func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
@@ -69,6 +70,7 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userInfo.DisplayName = userSession.DisplayName
+	userInfo.Emails = userSession.Emails
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {
@@ -97,14 +99,89 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	userInfo.Username = userSession.Username
 	userInfo.DisplayName = userSession.DisplayName
+	userInfo.Groups = userSession.Groups
 
-	// it should be noted that UserInfo only contains info from the database and NOT any info from the authn_backend (email/groups).
+	// it should be noted that UserInfo only contains info from the database and session and NOT any info from the authn_backend (email/groups).
 	for _, email := range userSession.Emails {
 		userInfo.Emails = append(userInfo.Emails, redactEmail(email))
 	}
 
 	err = ctx.SetJSONBody(userInfo)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to set user info response in body: %+v", err)
+	}
+}
+
+func GetUserGET(ctx *middlewares.AutheliaCtx) {
+	usernameRaw := ctx.UserValue("username")
+	if usernameRaw == nil {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageUsernameRequired)
+
+		return
+	}
+
+	username := usernameRaw.(string)
+
+	var (
+		err         error
+		userInfo    model.UserInfo
+		userDetails *authentication.UserDetailsExtended
+	)
+	if userDetails, err = ctx.Providers.UserProvider.GetDetailsExtended(username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving user '%s'", username)
+
+		if errors.Is(err, authentication.ErrUserNotFound) {
+			ctx.SetStatusCode(fasthttp.StatusNotFound)
+			return
+		}
+
+		return
+	}
+
+	userInfo, err = ctx.Providers.StorageProvider.LoadUserMetadataByUsername(ctx, username)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.SetStatusCode(fasthttp.StatusNotFound)
+			return
+		}
+
+		ctx.Logger.Error(fmt.Errorf("unable to load user attributes: %w", err), messageOperationFailed)
+
+		return
+	}
+
+	userDetails = MergeUserDetailsWithInfo(userDetails, userInfo)
+
+	err = ctx.SetJSONBody(userDetails)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to set user info response in body: %+v", err)
+	}
+}
+
+// AllUsersInfoGET gets the info related to all users.
+func AllUsersInfoGET(ctx *middlewares.AutheliaCtx) {
+	var (
+		err          error
+		userInfo     []model.UserInfo
+		usersDetails []authentication.UserDetailsExtended
+	)
+
+	if usersDetails, err = ctx.Providers.UserProvider.ListUsers(); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving users")
+		return
+	}
+
+	if userInfo, err = ctx.Providers.StorageProvider.LoadAllUserInfoAndMetadata(ctx); err != nil {
+		ctx.Error(fmt.Errorf("unable to load user attributes: %w", err), messageOperationFailed)
+		return
+	}
+
+	usersDetails = MergeUserDetailsWithInfoMany(usersDetails, userInfo)
+
+	err = ctx.SetJSONBody(usersDetails)
 	if err != nil {
 		ctx.Logger.Errorf("Unable to set user info response in body: %+v", err)
 	}

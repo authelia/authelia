@@ -1,0 +1,118 @@
+---
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+theme: auto
+
+server:
+  address: 'tcp://:9091'
+  tls:
+    certificate: /pki/public.backend.crt
+    key: /pki/private.backend.pem
+
+telemetry:
+  metrics:
+    enabled: true
+    address: tcp://0.0.0.0:9959
+
+log:
+  level: debug
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
+
+authentication_backend:
+  file:
+    path: /config/users.yml
+  password_change:
+    disable: false
+session:
+  expiration: 3600
+  inactivity: 300
+  remember_me: 1y
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+
+storage:
+  encryption_key: a_not_so_secure_encryption_key
+  local:
+    path: /tmp/db.sqlite3
+
+totp:
+  issuer: example.com
+  disable_reuse_security_policy: true
+  allowed_algorithms:
+    - SHA1
+    - SHA256
+    - SHA512
+  allowed_digits:
+    - 6
+    - 8
+  allowed_periods:
+    - 30
+    - 60
+    - 90
+    - 120
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: ["home.example.com", "public.example.com"]
+      policy: bypass
+    - domain: secure.example.com
+      policy: bypass
+      methods:
+        - OPTIONS
+    - domain: "deny.example.com"
+      policy: deny
+    - domain: "admin.example.com"
+      policy: two_factor
+    - domain: "secure.example.com"
+      policy: two_factor
+    - domain: "singlefactor.example.com"
+      policy: one_factor
+
+regulation:
+  # Set it to 0 to disable max_retries.
+  max_retries: 3
+  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
+  find_time: 300
+  # The length of time before a banned user can login again.
+  ban_time: 900
+
+notifier:
+  smtp:
+    address: 'smtp://smtp:1025'
+    sender: admin@example.com
+    disable_require_tls: true
+
+ntp:
+  ## NTP server address
+  address: "time.cloudflare.com:123"
+  ## ntp version
+  version: 4
+  ## "maximum desynchronization" is the allowed offset time between the host and the ntp server
+  max_desync: 3s
+  ## You can enable or disable the NTP synchronization check on startup
+  disable_startup_check: false
+
+password_policy:
+  standard:
+    # Enables standard password Policy
+    enabled: false
+    min_length: 8
+    max_length: 0
+    require_uppercase: true
+    require_lowercase: true
+    require_number: true
+    require_special: true
+  zxcvbn:
+    ##  zxcvbn: uses zxcvbn for password strength checking (see: https://github.com/dropbox/zxcvbn)
+    ##    Note that the zxcvbn option does not prohibit the user from using a weak password,
+    ##    it only offers feedback about the strength of the password they are entering.
+    ##    if you need to enforce password rules, you should use the standard password policy
+    enabled: false
+...
