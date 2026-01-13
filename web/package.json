@@ -64,7 +64,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-i18next": "16.5.1",
-    "react-router-dom": "7.11.0",
+    "react-router-dom": "7.12.0",
     "react-spinners": "0.17.0",
     "react18-input-otp": "1.1.4",
     "tss-react": "4.9.20",
