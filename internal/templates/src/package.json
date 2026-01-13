@@ -28,7 +28,7 @@
 		"@types/react-dom": "19.2.3",
 		"eslint": "9.39.2",
 		"tsx": "4.21.0",
-		"vitest": "4.0.16"
+		"vitest": "4.0.17"
 	},
 	"pnpm": {
 		"overrides": {
