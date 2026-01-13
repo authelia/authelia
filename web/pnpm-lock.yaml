@@ -201,8 +201,8 @@ importers:
         specifier: 4.5.0
         version: 4.5.0(rollup@4.55.1)(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.3)(jiti@2.4.1))
       vite-tsconfig-paths:
-        specifier: 6.0.3
-        version: 6.0.3(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.3)(jiti@2.4.1))
+        specifier: 6.0.4
+        version: 6.0.4(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.3)(jiti@2.4.1))
       vitest:
         specifier: 4.0.16
         version: 4.0.16(@types/node@25.0.3)(happy-dom@20.1.0)(jiti@2.4.1)(jsdom@27.0.0(postcss@8.5.6))
@@ -3947,8 +3947,8 @@ packages:
     peerDependencies:
       vite: 7.3.1
 
-  vite-tsconfig-paths@6.0.3:
-    resolution: {integrity: sha512-7bL7FPX/DSviaZGYUKowWF1AiDVWjMjxNbE8lyaVGDezkedWqfGhlnQ4BZXre0ZN5P4kAgIJfAlgFDVyjrCIyg==}
+  vite-tsconfig-paths@6.0.4:
+    resolution: {integrity: sha512-iIsEJ+ek5KqRTK17pmxtgIxXtqr3qDdE6OxrP9mVeGhVDNXRJTKN/l9oMbujTQNzMLe6XZ8qmpztfbkPu2TiFQ==}
     peerDependencies:
       vite: 7.3.1
     peerDependenciesMeta:
@@ -8332,7 +8332,7 @@ snapshots:
       - supports-color
       - typescript
 
-  vite-tsconfig-paths@6.0.3(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.3)(jiti@2.4.1)):
+  vite-tsconfig-paths@6.0.4(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.3)(jiti@2.4.1)):
     dependencies:
       debug: 4.4.3
       globrex: 0.1.2
