@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
@@ -171,7 +171,7 @@ const NewUserDialog = ({ metadata, onClose, open }: Props) => {
 };
 
 // Helper function for input types
-const getInputType = (fieldType?: string, isArray?: boolean) => {
+const getInputType = (fieldType?: string, _isArray?: boolean) => {
     const parseFieldType = (typeString?: string) => {
         if (!typeString) return { baseType: undefined, isArray: false };
 

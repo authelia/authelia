@@ -157,6 +157,7 @@ const UserManagementView = () => {
             getActions: (params: GridRowParams) => {
                 return [
                     <GridActionsCellItem
+                        key="edit"
                         icon={<EditIcon />}
                         label="Edit"
                         className="textPrimary"
@@ -164,6 +165,7 @@ const UserManagementView = () => {
                         color="inherit"
                     />,
                     <GridActionsCellItem
+                        key="delete"
                         icon={<DeleteIcon />}
                         label="Delete"
                         onClick={() => handleOpenVerifyDeleteUserDialog(params.row.username)}
@@ -179,7 +181,12 @@ const UserManagementView = () => {
 
     return (
         <>
-            <EditUserDialog user={selectedUser} open={isEditUserDialogOpen} onClose={handleCloseEditUserDialog} />
+            <EditUserDialog
+                key={selectedUser?.username || "new"}
+                user={selectedUser}
+                open={isEditUserDialogOpen}
+                onClose={handleCloseEditUserDialog}
+            />
             {fieldMetadata && (
                 <NewUserDialog open={isNewUserDialogOpen} onClose={handleCloseNewUserDialog} metadata={fieldMetadata} />
             )}

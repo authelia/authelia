@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
     Autocomplete,
@@ -33,19 +33,12 @@ const EditUserDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
     const { createErrorNotification, createSuccessNotification } = useNotifications();
 
-    const [editedUser, setEditedUser] = useState<null | UserChange>(null);
+    const [editedUser, setEditedUser] = useState<null | UserChange>(props.user);
     const [changesMade, setChangesMade] = useState(false);
     const [verifyExitDialogOpen, setVerifyExitDialogOpen] = useState(false);
     const [displayNameError, setDisplayNameError] = useState(false);
     const [emailError, setEmailError] = useState(false);
     const [groupsError, setGroupsError] = useState(false);
-
-    useEffect(() => {
-        if (props.open && props.user) {
-            setEditedUser(props.user);
-            setChangesMade(false);
-        }
-    }, [props.open, props.user]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;

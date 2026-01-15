@@ -896,7 +896,6 @@ func (r *RFC2307bisUserManagement) groupExists(client LDAPExtendedClient, groupD
 
 	searchResult, err := client.Search(searchRequest)
 	if err != nil {
-		// Check if it's a "No Such Object" error.
 		var ldapErr *ldap.Error
 		if errors.As(err, &ldapErr) && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
 			return false, nil
