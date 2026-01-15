@@ -109,6 +109,8 @@ var (
 	// ErrUserNotFound indicates the user wasn't found in the authentication backend.
 	ErrUserNotFound = errors.New("user not found")
 
+	ErrGroupNotFound = errors.New("group not found")
+
 	// ErrNoContent is returned when the file is empty.
 	ErrNoContent = errors.New("no file content")
 

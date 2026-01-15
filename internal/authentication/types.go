@@ -100,14 +100,16 @@ type UserDetailsExtended struct {
 }
 
 // UnmarshalJSON allows the "password" field to be unmarshalled but not included when the struct is marshalled. Effectively making the password ingest-only.
+//
+//nolint:gocyclo
 func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
-	// First unmarshal into a raw map to extract special fields
+	// First unmarshal into a raw map to extract special fields.
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 
-	// Extract and parse special fields
+	// Extract and parse special fields.
 	var (
 		password string
 		profile  string
@@ -120,6 +122,7 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(passwordData, &password); err != nil {
 			return fmt.Errorf("invalid password: %w", err)
 		}
+
 		delete(raw, "password")
 	}
 
@@ -127,6 +130,7 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(profileData, &profile); err != nil {
 			return fmt.Errorf("invalid profile: %w", err)
 		}
+
 		delete(raw, "profile")
 	}
 
@@ -134,6 +138,7 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(pictureData, &picture); err != nil {
 			return fmt.Errorf("invalid picture: %w", err)
 		}
+
 		delete(raw, "picture")
 	}
 
@@ -141,6 +146,7 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(websiteData, &website); err != nil {
 			return fmt.Errorf("invalid website: %w", err)
 		}
+
 		delete(raw, "website")
 	}
 
@@ -148,30 +154,32 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(localeData, &locale); err != nil {
 			return fmt.Errorf("invalid locale: %w", err)
 		}
+
 		delete(raw, "locale")
 	}
 
-	// Marshal back to JSON without special fields
+	// Marshal back to JSON without special fields.
 	remaining, err := json.Marshal(raw)
 	if err != nil {
 		return err
 	}
 
-	// Unmarshal remaining fields into struct using type alias to avoid recursion
+	// Unmarshal remaining fields into struct using type alias to avoid recursion.
 	type Alias UserDetailsExtended
 	if err := json.Unmarshal(remaining, (*Alias)(d)); err != nil {
 		return err
 	}
 
-	// Set password
+	// Set password.
 	d.Password = password
 
-	// Parse and set URL fields
+	// Parse and set URL fields.
 	if profile != "" {
 		parsedURL, err := url.Parse(profile)
 		if err != nil {
 			return fmt.Errorf("invalid profile URL: %w", err)
 		}
+
 		d.Profile = parsedURL
 	}
 
@@ -180,6 +188,7 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return fmt.Errorf("invalid picture URL: %w", err)
 		}
+
 		d.Picture = parsedURL
 	}
 
@@ -188,15 +197,17 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return fmt.Errorf("invalid website URL: %w", err)
 		}
+
 		d.Website = parsedURL
 	}
 
-	// Parse and set locale
+	// Parse and set locale.
 	if locale != "" {
 		tag, err := language.Parse(locale)
 		if err != nil {
 			return fmt.Errorf("invalid locale: %w", err)
 		}
+
 		d.Locale = &tag
 	}
 

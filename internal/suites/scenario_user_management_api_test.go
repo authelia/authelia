@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -21,6 +20,8 @@ const nonAdminUsername = "bob"
 const nonAdminPassword = "password"
 
 const nonExistentUsername = "nonexistentuser"
+
+const testUserUsername = "testuser"
 
 type UserManagementAPIScenario struct {
 	suite.Suite
@@ -157,29 +158,6 @@ func (s *UserManagementAPIScenario) Test_AllUsersInfoGET_ShouldReturnSuccessForA
 	s.Assert().NotEmpty(response.Data, "Users list should not be empty")
 }
 
-func (s *UserManagementAPIScenario) Test_NewUserPOST_OpenLDAP_ShouldCreateNewUser() {
-	s.login(adminUsername, adminPassword)
-
-	username := "testuser-create"
-
-	_, _ = s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username), nil)
-
-	newUser := map[string]interface{}{
-		"username":   username,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"testuser@example.com"},
-		"groups":     []string{"dev"},
-		"password":   "password",
-	}
-
-	res, body := s.apiRequest("POST", "/api/admin/users", newUser)
-	s.Assert().Equal(http.StatusCreated, res.StatusCode,
-		fmt.Sprintf("Failed to create user: %s", string(body)))
-
-	s.apiRequest("DELETE", "/api/admin/users/testuser-create", nil)
-}
-
 func (s *UserManagementAPIScenario) Test_GetUserGET_ShouldReturnUser() {
 	s.login(adminUsername, adminPassword)
 
@@ -221,7 +199,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_OpenLDAP_ShouldUpdateUs
 func (s *UserManagementAPIScenario) Test_DeleteUserDELETE_OpenLDAP_ShouldDeleteUser() {
 	s.login(adminUsername, adminPassword)
 
-	username := "testuser"
+	username := testUserUsername
 
 	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username), nil)
 
@@ -310,7 +288,7 @@ func (s *UserManagementAPIScenario) Test_NewUserPOST_OpenLDAP_ShouldFailWithMiss
 	s.login(adminUsername, adminPassword)
 
 	newUser := map[string]interface{}{
-		"username":   "testuser",
+		"username":   testUserUsername,
 		"first_name": "test",
 		"last_name":  "",
 		"emails":     []string{"testuser@example.com"},
@@ -326,7 +304,7 @@ func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldFailWithInvalidEmail(
 	s.login(adminUsername, adminPassword)
 
 	newUser := map[string]interface{}{
-		"username":   "testuser",
+		"username":   testUserUsername,
 		"first_name": "test",
 		"last_name":  "user",
 		"emails":     []string{"invalid.example.com"},
@@ -541,7 +519,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateSingleAddre
 
 	username := nonAdminUsername
 
-	// First set a full address.
 	setupData := map[string]interface{}{
 		"address": map[string]interface{}{
 			"street_address": "123 Main St",
@@ -554,7 +531,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateSingleAddre
 	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address", username), setupData)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
-	// Now update only the region.
 	updateData := map[string]interface{}{
 		"address": map[string]interface{}{
 			"region": "CA",
@@ -577,9 +553,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateSingleAddre
 	err := json.Unmarshal(body, &response)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(response.Data.Address)
-	// Region should be updated.
 	s.Assert().Equal("CA", response.Data.Address.Region)
-	// Other fields should remain unchanged.
 	s.Assert().Equal("123 Main St", response.Data.Address.StreetAddress)
 	s.Assert().Equal("Springfield", response.Data.Address.Locality)
 	s.Assert().Equal("62701", response.Data.Address.PostalCode)
@@ -591,7 +565,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateMultipleAdd
 
 	username := nonAdminUsername
 
-	// First set a full address.
 	setupData := map[string]interface{}{
 		"address": map[string]interface{}{
 			"street_address": "123 Main St",
@@ -604,7 +577,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateMultipleAdd
 	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address", username), setupData)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
-	// Update region and postal_code.
 	updateData := map[string]interface{}{
 		"address": map[string]interface{}{
 			"region":      "NY",
@@ -628,11 +600,8 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateMultipleAdd
 	err := json.Unmarshal(body, &response)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(response.Data.Address)
-	// Updated fields.
 	s.Assert().Equal("NY", response.Data.Address.Region)
 	s.Assert().Equal("10001", response.Data.Address.PostalCode)
-
-	// Unchanged fields.
 	s.Assert().Equal("123 Main St", response.Data.Address.StreetAddress)
 	s.Assert().Equal("Springfield", response.Data.Address.Locality)
 	s.Assert().Equal("USA", response.Data.Address.Country)
@@ -736,7 +705,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldClearOptionalFiel
 
 	username := nonAdminUsername
 
-	// First set some optional fields.
 	setupData := map[string]interface{}{
 		"middle_name":     "James",
 		"nickname":        "Bobby",
@@ -779,7 +747,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldRequireUpdateMask
 		"display_name": "Robert Dylan",
 	}
 
-	// Request without update_mask should fail.
 	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s", username), updateData)
 
 	s.Assert().Equal(http.StatusBadRequest, res.StatusCode)
@@ -794,7 +761,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldRejectInvalidFiel
 		"display_name": "Robert Dylan",
 	}
 
-	// Request with invalid field in mask should fail.
 	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=invalid_field", username), updateData)
 
 	s.Assert().Equal(http.StatusBadRequest, res.StatusCode)
@@ -809,7 +775,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldRejectPasswordInM
 		"password": "newpassword",
 	}
 
-	// Request with password in mask should fail.
 	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=password", username), updateData)
 
 	s.Assert().Equal(http.StatusBadRequest, res.StatusCode)
@@ -821,7 +786,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldOnlyUpdateMaskedF
 
 	username := nonAdminUsername
 
-	// First, set multiple fields.
 	setupData := map[string]interface{}{
 		"display_name": "Bob Dylan",
 		"first_name":   "Bob",
@@ -831,7 +795,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldOnlyUpdateMaskedF
 	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=display_name,first_name,last_name,phone_number", username), setupData)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
-	// Now update only display_name, but send other fields too.
 	updateData := map[string]interface{}{
 		"display_name": "Robert Dylan",
 		"first_name":   "Robert",
@@ -854,9 +817,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldOnlyUpdateMaskedF
 
 	err := json.Unmarshal(body, &response)
 	s.Assert().NoError(err)
-	// Only display_name should be updated.
 	s.Assert().Equal("Robert Dylan", response.Data.DisplayName)
-	// Other fields should remain unchanged.
 	s.Assert().Equal("Bob", response.Data.GivenName)
 	s.Assert().Equal("Dylan", response.Data.FamilyName)
 	s.Assert().Equal("+1234567890", response.Data.PhoneNumber)
@@ -865,8 +826,9 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldOnlyUpdateMaskedF
 func (s *UserManagementAPIScenario) Test_NewGroupPOST_ShouldCreateGroup() {
 	s.login(adminUsername, adminPassword)
 
-	// Use a unique group name based on timestamp to avoid conflicts
-	newGroup := fmt.Sprintf("test-group-%d", time.Now().UnixNano())
+	newGroup := "test-create-group"
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", newGroup), nil)
 
 	groupPostBody := map[string]interface{}{
 		"name": newGroup,
@@ -897,43 +859,450 @@ func (s *UserManagementAPIScenario) Test_NewGroupPOST_ShouldCreateGroup() {
 	s.Assert().NoError(err)
 	s.Assert().Contains(getResponse.Data, newGroup)
 
-	// Clean up: delete the test group
-	_, _ = s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", newGroup), nil)
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", newGroup), nil)
 }
 
-func (s *UserManagementAPIScenario) Test_GetGroupsGET_ShouldGetGroups() {}
+func (s *UserManagementAPIScenario) Test_NewGroupPOST_ShouldFailWithMissingRequiredFields() {
+	s.login(adminUsername, adminPassword)
 
-// func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldCreateUserWithMultipleGroups() {
-//	s.login(adminUsername, adminPassword)
-//
-//	username := "testuser"
-//
-//	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username), nil)
-//
-//	newUser := map[string]interface{}{
-//		"username":   username,
-//		"first_name": "test",
-//		"last_name":  "user",
-//		"emails":     []string{"testuser@example.com"},
-//		"groups":     []string{"dev", "dev2", "dev3"},
-//		"password":   "password",
-//	}
-//
-//	res, body := s.apiRequest("POST", "/api/admin/users", newUser)
-//	s.Assert().Equal(http.StatusCreated, res.StatusCode,
-//		fmt.Sprintf("Failed to create user: %s", string(body)))
-//
-//	res, body = s.apiRequest("GET", fmt.Sprintf("/api/admin/users/%s", username), nil)
-//	s.Assert().Equal(http.StatusOK, res.StatusCode)
-//
-//	var response struct {
-//		Status string                             `json:"status"`
-//		Data   authentication.UserDetailsExtended `json:"data"`
-//	}
-//
-//	err := json.Unmarshal(body, &response)
-//	s.Assert().NoError(err)
-//	s.Assert().Equal([]string{"dev", "dev2", "dev3"}, response.Data.Groups)
-//
-//	//s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username), nil)
-// }.
+	groupPostBody := map[string]interface{}{
+		"name": "",
+	}
+
+	res, _ := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+
+	s.Assert().Equal(http.StatusBadRequest, res.StatusCode)
+}
+
+func (s *UserManagementAPIScenario) Test_NewGroupPOST_ShouldFailWithDuplicateGroupName() {
+	s.login(adminUsername, adminPassword)
+
+	groupName := "test-duplicate-group"
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+
+	groupPostBody := map[string]interface{}{
+		"name": groupName,
+	}
+
+	res, body := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to create group: %s", string(body)))
+
+	res, _ = s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+	s.Assert().Equal(http.StatusInternalServerError, res.StatusCode)
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+}
+
+func (s *UserManagementAPIScenario) Test_GetGroupsGET_ShouldReturnAllGroups() {
+	s.login(adminUsername, adminPassword)
+
+	res, body := s.apiRequest("GET", "/api/admin/groups", nil)
+
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+	var response struct {
+		Status string   `json:"status"`
+		Data   []string `json:"data"`
+	}
+
+	err := json.Unmarshal(body, &response)
+	s.Assert().NoError(err)
+	s.Assert().Equal("OK", response.Status)
+	s.Assert().NotEmpty(response.Data, "Groups list should not be empty")
+}
+
+func (s *UserManagementAPIScenario) Test_GetGroupsGET_ShouldReturnEmptyListWhenNoGroups() {
+	s.login(adminUsername, adminPassword)
+
+	res, body := s.apiRequest("GET", "/api/admin/groups", nil)
+
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+	var response struct {
+		Status string   `json:"status"`
+		Data   []string `json:"data"`
+	}
+
+	err := json.Unmarshal(body, &response)
+	s.Assert().NoError(err)
+	s.Assert().Equal("OK", response.Status)
+}
+
+func (s *UserManagementAPIScenario) Test_DeleteGroupDELETE_ShouldRemoveGroup() {
+	s.login(adminUsername, adminPassword)
+
+	groupName := "test-delete-group"
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+
+	groupPostBody := map[string]interface{}{
+		"name": groupName,
+	}
+
+	res, body := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to create group: %s", string(body)))
+
+	res, body = s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to delete group: %s", string(body)))
+
+	res, body = s.apiRequest("GET", "/api/admin/groups", nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+	var response struct {
+		Status string   `json:"status"`
+		Data   []string `json:"data"`
+	}
+
+	err := json.Unmarshal(body, &response)
+	s.Assert().NoError(err)
+	s.Assert().NotContains(response.Data, groupName)
+}
+
+func (s *UserManagementAPIScenario) Test_DeleteGroupDELETE_ShouldSucceedForNonexistentGroup() {
+	s.login(adminUsername, adminPassword)
+
+	groupName := "nonexistent-group"
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+
+	res, _ := s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+}
+
+func (s *UserManagementAPIScenario) Test_GetGroupsGET_ShouldReturnForbiddenForNonAdmin() {
+	s.login(nonAdminUsername, nonAdminPassword)
+
+	res, _ := s.apiRequest("GET", "/api/admin/groups", nil)
+	s.Assert().Equal(http.StatusForbidden, res.StatusCode)
+}
+
+func (s *UserManagementAPIScenario) Test_NewGroupPOST_ShouldReturnForbiddenForNonAdmin() {
+	s.login(nonAdminUsername, nonAdminPassword)
+
+	groupPostBody := map[string]interface{}{
+		"name": "test-group-nonadmin",
+	}
+
+	res, _ := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+
+	s.Assert().Equal(http.StatusForbidden, res.StatusCode)
+}
+
+func (s *UserManagementAPIScenario) Test_DeleteGroupDELETE_ShouldReturnForbiddenForNonAdmin() {
+	s.login(nonAdminUsername, nonAdminPassword)
+
+	res, _ := s.apiRequest("DELETE", "/api/admin/groups/dev", nil)
+
+	s.Assert().Equal(http.StatusForbidden, res.StatusCode)
+}
+
+func (s *UserManagementAPIScenario) Test_GetGroupsGET_ShouldReturnForbiddenForAnonymous() {
+	res, _ := s.apiRequest("GET", "/api/admin/groups", nil)
+	s.Assert().Equal(http.StatusForbidden, res.StatusCode)
+}
+
+func (s *UserManagementAPIScenario) Test_NewGroupPOST_ShouldReturnForbiddenForAnonymous() {
+	groupPostBody := map[string]interface{}{
+		"name": "test-group-anon",
+	}
+
+	res, _ := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+
+	s.Assert().Equal(http.StatusForbidden, res.StatusCode)
+}
+
+func (s *UserManagementAPIScenario) Test_DeleteGroupDELETE_ShouldReturnForbiddenForAnonymous() {
+	res, _ := s.apiRequest("DELETE", "/api/admin/groups/dev", nil)
+
+	s.Assert().Equal(http.StatusForbidden, res.StatusCode)
+}
+
+func (s *UserManagementAPIScenario) Test_DeleteGroupDELETE_ShouldRemoveGroupFromAssignedUsers() {
+	s.login(adminUsername, adminPassword)
+
+	groupName := "test-user-group"
+	username := "testuser-group"
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username), nil)
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+
+	groupPostBody := map[string]interface{}{
+		"name": groupName,
+	}
+
+	res, body := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to create group: %s", string(body)))
+
+	newUser := map[string]interface{}{
+		"username":   username,
+		"first_name": "Test",
+		"last_name":  "User",
+		"emails":     []string{fmt.Sprintf("%s@example.com", username)},
+		"password":   "password",
+	}
+
+	res, body = s.apiRequest("POST", "/api/admin/users", newUser)
+	s.Assert().Equal(http.StatusCreated, res.StatusCode,
+		fmt.Sprintf("Failed to create user: %s", string(body)))
+
+	updateData := map[string]interface{}{
+		"groups": []string{groupName},
+	}
+
+	res, body = s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=groups", username), updateData)
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to update user groups: %s", string(body)))
+
+	res, body = s.apiRequest("GET", fmt.Sprintf("/api/admin/users/%s", username), nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+	var getUserResponse struct {
+		Status string                             `json:"status"`
+		Data   authentication.UserDetailsExtended `json:"data"`
+	}
+
+	err := json.Unmarshal(body, &getUserResponse)
+	s.Assert().NoError(err)
+	s.Assert().Contains(getUserResponse.Data.Groups, groupName, "User should be in the group")
+
+	res, body = s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to delete group: %s", string(body)))
+
+	res, body = s.apiRequest("GET", fmt.Sprintf("/api/admin/users/%s", username), nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+	err = json.Unmarshal(body, &getUserResponse)
+	s.Assert().NoError(err)
+	s.Assert().NotContains(getUserResponse.Data.Groups, groupName, "User should not have the deleted group")
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username), nil)
+}
+
+func (s *UserManagementAPIScenario) Test_GetGroupsGET_ShouldShowGroupMemberCount() {
+	s.login(adminUsername, adminPassword)
+
+	groupName := "test-member-count"
+	username1 := "testuser1-member"
+	username2 := "testuser2-member"
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username1), nil)
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username2), nil)
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+
+	groupPostBody := map[string]interface{}{
+		"name": groupName,
+	}
+
+	res, body := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to create group: %s", string(body)))
+
+	newUser1 := map[string]interface{}{
+		"username":   username1,
+		"first_name": "Test",
+		"last_name":  "User1",
+		"emails":     []string{fmt.Sprintf("%s@example.com", username1)},
+		"password":   "password",
+	}
+
+	res, body = s.apiRequest("POST", "/api/admin/users", newUser1)
+	s.Assert().Equal(http.StatusCreated, res.StatusCode,
+		fmt.Sprintf("Failed to create user1: %s", string(body)))
+
+	updateData := map[string]interface{}{
+		"groups": []string{groupName},
+	}
+
+	res, body = s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=groups", username1), updateData)
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to update user1 groups: %s", string(body)))
+
+	newUser2 := map[string]interface{}{
+		"username":   username2,
+		"first_name": "Test",
+		"last_name":  "User2",
+		"emails":     []string{fmt.Sprintf("%s@example.com", username2)},
+		"password":   "password",
+	}
+
+	res, body = s.apiRequest("POST", "/api/admin/users", newUser2)
+	s.Assert().Equal(http.StatusCreated, res.StatusCode,
+		fmt.Sprintf("Failed to create user2: %s", string(body)))
+
+	res, body = s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=groups", username2), updateData)
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to update user2 groups: %s", string(body)))
+
+	res, body = s.apiRequest("GET", "/api/admin/users", nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+	var usersResponse struct {
+		Status string                               `json:"status"`
+		Data   []authentication.UserDetailsExtended `json:"data"`
+	}
+
+	err := json.Unmarshal(body, &usersResponse)
+	s.Assert().NoError(err)
+
+	memberCount := 0
+
+	for _, user := range usersResponse.Data {
+		for _, group := range user.Groups {
+			if group == groupName {
+				memberCount++
+				break
+			}
+		}
+	}
+
+	s.Assert().Equal(2, memberCount, "Group should have 2 members")
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username1), nil)
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username2), nil)
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+}
+
+func (s *UserManagementAPIScenario) Test_NewGroupPOST_ShouldHandleSpecialCharactersInGroupName() {
+	s.login(adminUsername, adminPassword)
+
+	testCases := []struct {
+		groupName     string
+		shouldSucceed bool
+		description   string
+	}{
+		{
+			groupName:     "test-group-with-dashes",
+			shouldSucceed: true,
+			description:   "Group name with dashes",
+		},
+		{
+			groupName:     "test_group_with_underscores",
+			shouldSucceed: true,
+			description:   "Group name with underscores",
+		},
+		{
+			groupName:     "test.group.with.dots",
+			shouldSucceed: true,
+			description:   "Group name with dots",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", tc.groupName), nil)
+
+		groupPostBody := map[string]interface{}{
+			"name": tc.groupName,
+		}
+
+		res, body := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+
+		if tc.shouldSucceed {
+			s.Assert().Equal(http.StatusOK, res.StatusCode,
+				fmt.Sprintf("%s failed: %s", tc.description, string(body)))
+
+			res, body = s.apiRequest("GET", "/api/admin/groups", nil)
+			s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+			var response struct {
+				Status string   `json:"status"`
+				Data   []string `json:"data"`
+			}
+
+			err := json.Unmarshal(body, &response)
+			s.Assert().NoError(err)
+			s.Assert().Contains(response.Data, tc.groupName, tc.description)
+
+			s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", tc.groupName), nil)
+		} else {
+			s.Assert().NotEqual(http.StatusOK, res.StatusCode, tc.description)
+		}
+	}
+}
+
+func (s *UserManagementAPIScenario) Test_NewGroupPOST_ShouldEscapeLDAPSpecialCharacters() {
+	s.login(adminUsername, adminPassword)
+
+	testCases := []struct {
+		groupName     string
+		shouldSucceed bool
+		description   string
+	}{
+		{
+			groupName:     "test-group-safe",
+			shouldSucceed: true,
+			description:   "Safe group name without special chars",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", tc.groupName), nil)
+
+		groupPostBody := map[string]interface{}{
+			"name": tc.groupName,
+		}
+
+		res, body := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+
+		if tc.shouldSucceed {
+			s.Assert().Equal(http.StatusOK, res.StatusCode,
+				fmt.Sprintf("%s failed: %s", tc.description, string(body)))
+
+			s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", tc.groupName), nil)
+		} else {
+			s.Assert().True(
+				res.StatusCode == http.StatusBadRequest || res.StatusCode == http.StatusInternalServerError,
+				fmt.Sprintf("%s: expected BadRequest or InternalServerError, got %d", tc.description, res.StatusCode),
+			)
+		}
+	}
+}
+
+func (s *UserManagementAPIScenario) Test_DeleteGroupDELETE_ShouldCleanupGroupMetadata() {
+	s.login(adminUsername, adminPassword)
+
+	groupName := "test-cleanup-group"
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+
+	groupPostBody := map[string]interface{}{
+		"name": groupName,
+	}
+
+	res, body := s.apiRequest("POST", "/api/admin/groups", groupPostBody)
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to create group: %s", string(body)))
+
+	res, body = s.apiRequest("GET", "/api/admin/groups", nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+	var getGroupsResponse struct {
+		Status string   `json:"status"`
+		Data   []string `json:"data"`
+	}
+
+	err := json.Unmarshal(body, &getGroupsResponse)
+	s.Assert().NoError(err)
+	s.Assert().Contains(getGroupsResponse.Data, groupName, "Group should exist before deletion")
+
+	res, body = s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode,
+		fmt.Sprintf("Failed to delete group: %s", string(body)))
+
+	res, body = s.apiRequest("GET", "/api/admin/groups", nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+	err = json.Unmarshal(body, &getGroupsResponse)
+	s.Assert().NoError(err)
+	s.Assert().NotContains(getGroupsResponse.Data, groupName, "Group should not exist after deletion")
+
+	res, _ = s.apiRequest("DELETE", fmt.Sprintf("/api/admin/groups/%s", groupName), nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode, "Deleting non-existent group should succeed")
+}

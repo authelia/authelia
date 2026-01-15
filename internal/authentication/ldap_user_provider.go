@@ -62,7 +62,11 @@ func (p *LDAPUserProvider) DeleteGroup(group string) error {
 		return fmt.Errorf("user management is not configured for this provider")
 	}
 
-	return p.Management.DeleteGroup(group)
+	if err := p.Management.DeleteGroup(group); err != nil {
+		return fmt.Errorf("unable to delete group '%s': %w", group, err)
+	}
+
+	return nil
 }
 
 func (p *LDAPUserProvider) AddGroup(newGroup string) error {

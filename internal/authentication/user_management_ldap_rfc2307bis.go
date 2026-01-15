@@ -826,7 +826,7 @@ func (r *RFC2307bisUserManagement) DeleteGroup(groupName string) error {
 
 	if !exists {
 		r.provider.log.Debugf("Group '%s' doesn't exist, nothing to delete", groupName)
-		return fmt.Errorf("group '%s' not found", groupName)
+		return ErrGroupNotFound
 	}
 
 	deleteRequest := ldap.NewDelRequest(groupDN, nil)

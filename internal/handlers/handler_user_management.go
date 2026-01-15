@@ -35,7 +35,6 @@ func GetGroupsGET(ctx *middlewares.AutheliaCtx) {
 		err    error
 		groups []string
 	)
-
 	if groups, err = ctx.Providers.UserProvider.ListGroups(); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving groups")
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
@@ -54,7 +53,6 @@ func NewGroupPOST(ctx *middlewares.AutheliaCtx) {
 		err         error
 		userSession session.UserSession
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred adding new group: %s", errStrUserSessionData)
 
@@ -118,7 +116,7 @@ func NewGroupPOST(ctx *middlewares.AutheliaCtx) {
 }
 
 func DeleteGroupDELETE(ctx *middlewares.AutheliaCtx) {
-	groupNameRaw := ctx.UserValue("groupname")
+	groupNameRaw := ctx.UserValue("group")
 	if groupNameRaw == nil {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError("Group name is required")
@@ -160,6 +158,11 @@ func DeleteGroupDELETE(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.Providers.UserProvider.DeleteGroup(groupName); err != nil {
+		if errors.Is(err, authentication.ErrGroupNotFound) {
+			ctx.SetStatusCode(fasthttp.StatusOK)
+			return
+		}
+
 		ctx.Logger.WithError(err).Errorf("Error occurred deleting group '%s'", groupName)
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetJSONError(messageOperationFailed)
@@ -425,7 +428,6 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		userSession    session.UserSession
 		newUserRequest *authentication.UserDetailsExtended
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred adding new user: %s", errStrUserSessionData)
 
