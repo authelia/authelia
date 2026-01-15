@@ -108,7 +108,7 @@ oidc_providers:
     allow_existing_users: true
     user_mapping_provider:
       config:
-        subject_claim: 'sub'
+        subject_template: '{{ user.sub }}'
         localpart_template: '{{ user.preferred_username }}'
         display_name_template: '{{ user.name }}'
         email_template: '{{ user.email }}'
