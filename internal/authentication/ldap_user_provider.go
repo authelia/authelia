@@ -660,7 +660,9 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPExtendedClient, username st
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, p.resolveUsersFilter(username), p.usersAttributes, nil,
+		1, 0, false, p.resolveUsersFilter(username, func(options *resolveUsersFilterOpts) {
+			options.escape = true
+		}), p.usersAttributes, nil,
 	)
 
 	p.log.
@@ -733,7 +735,9 @@ func (p *LDAPUserProvider) getUserProfileExtended(client LDAPExtendedClient, use
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		1, 0, false, p.resolveUsersFilter(username), p.usersAttributesExtended, nil,
+		1, 0, false, p.resolveUsersFilter(username, func(options *resolveUsersFilterOpts) {
+			options.escape = true
+		}), p.usersAttributesExtended, nil,
 	)
 
 	p.log.
