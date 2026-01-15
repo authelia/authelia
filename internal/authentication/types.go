@@ -166,6 +166,7 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 
 	// Unmarshal remaining fields into struct using type alias to avoid recursion.
 	type Alias UserDetailsExtended
+
 	if err := json.Unmarshal(remaining, (*Alias)(d)); err != nil {
 		return err
 	}
