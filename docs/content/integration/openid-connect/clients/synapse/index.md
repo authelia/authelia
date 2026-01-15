@@ -128,9 +128,9 @@ oidc_providers:
 
 ## See Also
 
-- [Synapse OpenID Connect Authentication Documentation](https://matrix-org.github.io/synapse/latest/openid.html)
+- [Synapse OpenID Connect Authentication Documentation](https://element-hq.github.io/synapse/latest/openid.html)
 
 [Authelia]: https://www.authelia.com
-[Synapse]: https://github.com/matrix-org/synapse
+[Synapse]: https://github.com/element-hq/synapse
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
