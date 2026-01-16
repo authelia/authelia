@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
 - [Synapse]
-  - [v1.127.1](https://github.com/element-hq/synapse/releases/tag/v1.127.1)
+  - [v1.145.0](https://github.com/element-hq/synapse/releases/tag/v1.145.0)
 
 {{% oidc-common bugs="claims-hydration" %}}
 
