@@ -79,7 +79,7 @@ spec:
       - 'cookie'
       - 'location'
       - 'authorization'
-      - 'header-authorization'
+      - 'proxy-authorization'
       - 'x-forwarded-proto'
     failOpen: false
     http:
@@ -116,7 +116,7 @@ spec:
       - 'accept'
       - 'cookie'
       - 'authorization'
-      - 'header-authorization'
+      - 'proxy-authorization'
       - 'x-forwarded-proto'
     failOpen: false
     http:
