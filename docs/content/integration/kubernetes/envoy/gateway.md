@@ -77,6 +77,7 @@ spec:
     headersToExtAuth:
       - 'accept'
       - 'cookie'
+      - 'location'
       - 'authorization'
       - 'header-authorization'
       - 'x-forwarded-proto'
