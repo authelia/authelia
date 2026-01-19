@@ -58,8 +58,8 @@ const (
 
 // Notifier Error constants.
 const (
-	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp' or 'filesystem' notifier is configured"
-	errFmtNotifierNotConfigured      = "notifier: you must ensure either the 'smtp' or 'filesystem' notifier " +
+	errFmtNotifierMultipleConfigured = "notifier: please ensure only one of the 'smtp', 'filesystem', or 'webhook' notifier is configured"
+	errFmtNotifierNotConfigured      = "notifier: you must ensure either the 'smtp', 'filesystem', or 'webhook' notifier " +
 		"is configured"
 	errFmtNotifierTemplatePathNotExist            = "notifier: option 'template_path' refers to location '%s' which does not exist"
 	errFmtNotifierTemplatePathUnknownError        = "notifier: option 'template_path' refers to location '%s' which couldn't be opened: %w"
