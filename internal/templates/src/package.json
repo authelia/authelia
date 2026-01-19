@@ -10,8 +10,8 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "1.0.4",
-		"@react-email/render": "2.0.2",
+		"@react-email/components": "1.0.5",
+		"@react-email/render": "2.0.3",
 		"esbuild": "0.27.2",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",
