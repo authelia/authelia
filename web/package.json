@@ -104,7 +104,7 @@
     "@commitlint/config-conventional": "20.3.1",
     "@limegrass/eslint-plugin-import-alias": "1.6.0",
     "@testing-library/jest-dom": "6.9.1",
-    "@testing-library/react": "16.3.1",
+    "@testing-library/react": "16.3.2",
     "@types/node": "25.0.9",
     "@types/react": "19.2.8",
     "@types/react-dom": "19.2.3",
