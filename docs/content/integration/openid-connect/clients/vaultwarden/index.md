@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
 - [Vaultwarden]
-  - [oidcwarden development fork v2025.5.1-5](https://github.com/Timshel/OIDCWarden/releases/tag/v2025.5.1-5)
+  - [1.35.0](https://github.com/dani-garcia/vaultwarden/releases/tag/1.35.0)
 
 {{% oidc-common %}}
 
