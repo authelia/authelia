@@ -39,7 +39,7 @@ services:
       TZ: 'Australia/Melbourne'
 
   traefik:
-    image: 'traefik:v3.6.5'
+    image: 'traefik:v3.6.7'
     container_name: 'traefik'
     volumes:
       - './traefik:/etc/traefik'
