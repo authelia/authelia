@@ -234,10 +234,11 @@ static_resources:
                       transport_api_version: 'v3'
                       allowed_headers:
                         patterns:
-                          - exact: 'Authorization'
-                          - exact: 'Proxy-Authorization'
-                          - exact: 'Accept'
-                          - exact: 'Cookie'
+                          - exact: 'authorization'
+                          - exact: 'proxy-authorization'
+                          - exact: 'accept'
+                          - exact: 'cookie'
+                          - exact: 'location'
                       http_service:
                         path_prefix: '/api/authz/ext-authz/'
                         server_uri:
@@ -247,10 +248,11 @@ static_resources:
                         authorization_request:
                           allowed_headers:
                             patterns:
-                              - exact: 'Authorization'
-                              - exact: 'Proxy-Authorization'
-                              - exact: 'Accept'
-                              - exact: 'Cookie'
+                              - exact: 'authorization'
+                              - exact: 'proxy-authorization'
+                              - exact: 'accept'
+                              - exact: 'cookie'
+                              - exact: 'location'
                           headers_to_add:
                             - key: 'X-Forwarded-Proto'
                               value: '%REQ(:SCHEME)%'

@@ -10,38 +10,38 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "1.0.3",
-		"@react-email/render": "2.0.1",
+		"@react-email/components": "1.0.6",
+		"@react-email/render": "2.0.4",
 		"esbuild": "0.27.2",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",
-		"react-email": "5.1.1",
+		"react-email": "5.2.5",
 		"tailwind-merge": "3.4.0",
 		"tailwindcss": "4.1.18",
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@react-email/preview-server": "5.1.1",
-		"@types/node": "25.0.3",
-		"@types/react": "19.2.7",
+		"@react-email/preview-server": "5.2.5",
+		"@types/node": "25.0.9",
+		"@types/react": "19.2.9",
 		"@types/react-dom": "19.2.3",
 		"eslint": "9.39.2",
 		"tsx": "4.21.0",
-		"vitest": "4.0.16"
+		"vitest": "4.0.17"
 	},
 	"pnpm": {
 		"overrides": {
-			"@babel/traverse": "7.28.5",
-			"@babel/helpers": "7.28.4",
-			"@babel/runtime": "7.28.4",
+			"@babel/traverse": "7.28.6",
+			"@babel/helpers": "7.28.6",
+			"@babel/runtime": "7.28.6",
 			"brace-expansion": "4.0.1",
 			"esbuild": "0.27.2",
 			"glob": "13.0.0",
 			"js-yaml": "4.1.1",
 			"nanoid": "5.1.6",
 			"prismjs": "1.30.0",
-			"vite": "7.3.0"
+			"vite": "7.3.1"
 		},
 		"onlyBuiltDependencies": [
 			"esbuild",
