@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
 - [Pangolin]
-  - [v1.3.1](https://github.com/fosrl/pangolin/releases/tag/1.3.1)
+  - [v1.14.1](https://github.com/fosrl/pangolin/releases/tag/1.14.1)
 
 {{% oidc-common bugs="claims-hydration" %}}
 
@@ -67,6 +67,7 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
+          - 'groups'
         response_types:
           - 'code'
         grant_types:
