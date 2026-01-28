@@ -169,6 +169,10 @@ func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name st
 				KeyPrefix:       "authelia-session",
 			})
 		}
+	case config.File != nil:
+		name = "file"
+		serializer = NewEncryptingSerializer(config.Secret)
+		provider, err = NewFileProvider(*config.File)
 	default:
 		name = "memory"
 		provider, err = memory.New(memory.Config{})

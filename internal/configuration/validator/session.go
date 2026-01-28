@@ -17,12 +17,20 @@ func ValidateSession(config *schema.Configuration, validator *schema.StructValid
 		config.Session.Name = schema.DefaultSessionConfiguration.Name
 	}
 
+	if config.Session.Redis != nil && config.Session.File != nil {
+		validator.Push(errors.New(errFmtSessionFileAndRedisConfigured))
+	}
+
 	if config.Session.Redis != nil {
 		if config.Session.Redis.HighAvailability != nil {
 			validateRedisSentinel(&config.Session, validator)
 		} else {
 			validateRedis(&config.Session, validator)
 		}
+	}
+
+	if config.Session.File != nil {
+		validateSessionFile(&config.Session, validator)
 	}
 
 	validateSession(config, validator)
@@ -315,5 +323,21 @@ func validateRedisSentinel(config *schema.Session, validator *schema.StructValid
 
 	if hostMissing {
 		validator.Push(errors.New(errFmtSessionRedisSentinelNodeHostMissing))
+	}
+}
+
+func validateSessionFile(config *schema.Session, validator *schema.StructValidator) {
+	if config.Secret == "" {
+		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, "file"))
+	}
+
+	if config.File.Path == "" {
+		validator.Push(errors.New(errFmtSessionFilePathRequired))
+	} else if !path.IsAbs(config.File.Path) {
+		validator.Push(fmt.Errorf(errFmtSessionFilePathNotAbsolute, config.File.Path))
+	}
+
+	if config.File.CleanupInterval <= 0 {
+		config.File.CleanupInterval = schema.DefaultFileConfiguration.CleanupInterval
 	}
 }

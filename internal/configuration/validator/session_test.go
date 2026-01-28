@@ -1034,3 +1034,117 @@ func MustParseURL(uri string) *url.URL {
 
 	return u
 }
+
+func TestShouldHandleFileConfigSuccessfully(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Session.File = &schema.SessionFile{
+		Path: "/tmp/sessions",
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+
+	assert.Equal(t, schema.DefaultFileConfiguration.CleanupInterval, config.Session.File.CleanupInterval)
+}
+
+func TestShouldRaiseErrorWhenFilePathNotSet(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Session.File = &schema.SessionFile{}
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], errFmtSessionFilePathRequired)
+}
+
+func TestShouldRaiseErrorWhenFileIsUsedAndSecretNotSet(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Session.Secret = ""
+
+	config.Session.File = &schema.SessionFile{
+		Path: "/tmp/sessions",
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionSecretRequired, "file"))
+}
+
+func TestShouldRaiseErrorWhenBothRedisAndFileConfigured(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Session.Redis = &schema.SessionRedis{
+		Host: "redis.localhost",
+		Port: 6379,
+	}
+	config.Session.File = &schema.SessionFile{
+		Path: "/tmp/sessions",
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], errFmtSessionFileAndRedisConfigured)
+}
+
+func TestShouldSetDefaultFileCleanupInterval(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Session.File = &schema.SessionFile{
+		Path:            "/tmp/sessions",
+		CleanupInterval: 0,
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+
+	assert.Equal(t, schema.DefaultFileConfiguration.CleanupInterval, config.Session.File.CleanupInterval)
+}
+
+func TestShouldRaiseErrorWhenFilePathNotAbsolute(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Session.File = &schema.SessionFile{
+		Path: "relative/path/sessions",
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionFilePathNotAbsolute, "relative/path/sessions"))
+}
+
+func TestShouldAcceptValidFilePath(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+
+	config.Session.File = &schema.SessionFile{
+		Path: "/var/lib/authelia/sessions",
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+}

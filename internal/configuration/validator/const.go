@@ -388,6 +388,10 @@ const (
 	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
 	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
 
+	errFmtSessionFilePathRequired       = "session: file: option 'path' is required"
+	errFmtSessionFilePathNotAbsolute    = "session: file: option 'path' must be an absolute path but it's configured as '%s'"
+	errFmtSessionFileAndRedisConfigured = "session: only one of 'redis' or 'file' can be configured"
+
 	errFmtSessionDomainMustBeRoot                        = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '%s'"
 	errFmtSessionDomainSameSite                          = "session: domain config %s: option 'same_site' must be one of %s but it's configured as '%s'"
 	errFmtSessionDomainOptionRequired                    = "session: domain config %s: option '%s' is required"
