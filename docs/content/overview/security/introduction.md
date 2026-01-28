@@ -26,7 +26,7 @@ was previously known as responsible disclosure. We strongly urge anyone reportin
 other project to follow this model as it is considered as a best practice by many in the security industry.
 
 If you believe you have identified a security vulnerability or security related bug with __Authelia__ please make every
-effort to contact us privately using one of the [contact options](../../policies/security.md#contact-options) below.
+effort to contact us privately using one of the [contact options](../project/policies/security.md#contact-options) below.
 Please do not open an issue, do not notify us in public, and do not disclose this issue to third parties.
 
 Using this process helps ensure that users affected have an avenue to fixing the issue as close to the issue being
@@ -35,6 +35,6 @@ diligent administrators simply via the act of disclosing the security issue.
 
 ## Policy
 
-Please view our [security policy](../../policies/security.md) for more information.
+Please view our [security policy](../project/policies/security.md) for more information.
 
 [coordinated vulnerability disclosure]: https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure
