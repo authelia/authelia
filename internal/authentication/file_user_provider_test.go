@@ -49,7 +49,7 @@ func TestShouldErrorFailCreateDB(t *testing.T) {
 
 	f := filepath.Join(dir, "x", "users.yml")
 
-	provider := NewFileUserProvider(&schema.AuthenticationBackendFile{Path: f, Password: schema.DefaultPasswordConfig})
+	provider := NewFileUserProvider(&schema.AuthenticationBackendFile{Path: f, Password: schema.DefaultPasswordConfig}, nil)
 
 	require.NotNil(t, provider)
 
@@ -70,7 +70,7 @@ func TestShouldErrorBadPasswordConfig(t *testing.T) {
 
 	require.NoError(t, os.WriteFile(f, UserDatabaseContent, 0600))
 
-	provider := NewFileUserProvider(&schema.AuthenticationBackendFile{Path: f})
+	provider := NewFileUserProvider(&schema.AuthenticationBackendFile{Path: f}, nil)
 
 	require.NotNil(t, provider)
 
@@ -145,7 +145,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 
 				provider.config.Path = p
 
-				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive, nil)
+				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive, nil, nil)
 			},
 			false,
 			"",
@@ -164,7 +164,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 						ValueType: "string",
 					},
 				},
-			})
+			}, nil)
 
 			tc.setup(t, provider)
 
@@ -185,7 +185,7 @@ func TestShouldCheckUserArgon2idPasswordIsCorrect(t *testing.T) {
 	WithDatabase(t, UserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -201,7 +201,7 @@ func TestShouldCheckUserSHA512PasswordIsCorrect(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -217,7 +217,7 @@ func TestShouldCheckUserPasswordIsWrong(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -233,7 +233,7 @@ func TestShouldCheckUserPasswordIsWrongForEnumerationCompare(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -248,7 +248,7 @@ func TestShouldCheckUserPasswordOfUserThatDoesNotExist(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -264,7 +264,7 @@ func TestShouldRetrieveUserDetails(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -287,7 +287,7 @@ func TestShouldErrOnUserDetailsNoUser(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -310,7 +310,7 @@ func TestShouldUpdatePassword(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -318,7 +318,7 @@ func TestShouldUpdatePassword(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Reset the provider to force a read from disk.
-		provider = NewFileUserProvider(&config)
+		provider = NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -334,7 +334,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -347,7 +347,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToArgon2id(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Reset the provider to force a read from disk.
-		provider = NewFileUserProvider(&config)
+		provider = NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -365,7 +365,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 		config.Password.Algorithm = "sha2crypt"
 		config.Password.SHA2Crypt.Iterations = 50000
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -378,7 +378,7 @@ func TestShouldUpdatePasswordHashingAlgorithmToSHA512(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Reset the provider to force a read from disk.
-		provider = NewFileUserProvider(&config)
+		provider = NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -394,7 +394,7 @@ func TestShouldErrOnUpdatePasswordNoUser(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -408,7 +408,7 @@ func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: yaml: line 4: mapping values are not allowed in this context")
 	})
@@ -419,7 +419,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSchemaForFirstTime(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not validate the schema: users: non zero value required")
 	})
@@ -430,7 +430,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *tes
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: error occurred decoding the password hash for 'john': shacrypt decode error: parameter pair 'rounds00000' is not properly encoded: does not contain kv separator '='")
 	})
@@ -441,7 +441,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSettingsForTheFirstTim
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: error occurred decoding the password hash for 'john': argon2 decode error: parameter pair 'm65536' is not properly encoded: does not contain kv separator '='")
 	})
@@ -452,7 +452,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashKeyForTheFirstTime(t *
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: error occurred decoding the password hash for 'john': argon2 decode error: provided encoded hash has a key value that can't be decoded: illegal base64 data at input byte 0")
 	})
@@ -463,7 +463,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSaltForTheFirstTime(t 
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: error occurred decoding the password hash for 'john': argon2 decode error: provided encoded hash has a salt value that can't be decoded: illegal base64 data at input byte 0")
 	})
@@ -474,7 +474,7 @@ func TestShouldSupportHashPasswordWithoutCRYPT(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -490,7 +490,7 @@ func TestShouldNotAllowLoginOfDisabledUsers(t *testing.T) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -508,7 +508,7 @@ func TestShouldErrorOnInvalidCaseSensitiveFile(t *testing.T) {
 		config.Search.Email = false
 		config.Search.CaseInsensitive = true
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.EqualError(t, provider.StartupCheck(), "error loading authentication database: username 'JOHN' is not lowercase but this is required when case-insensitive search is enabled")
 	})
@@ -521,7 +521,7 @@ func TestShouldErrorOnDuplicateEmail(t *testing.T) {
 		config.Search.Email = true
 		config.Search.CaseInsensitive = false
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		err := provider.StartupCheck()
 		assert.Regexp(t, regexp.MustCompile(`^error loading authentication database: email 'john.doe@authelia.com' is configured for for more than one user \(users are '(harry|john)', '(harry|john)'\) which isn't allowed when email search is enabled$`), err.Error())
@@ -535,7 +535,7 @@ func TestShouldNotErrorOnEmailAsUsername(t *testing.T) {
 		config.Search.Email = true
 		config.Search.CaseInsensitive = false
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 	})
@@ -548,7 +548,7 @@ func TestShouldErrorOnEmailAsUsernameWithDuplicateEmail(t *testing.T) {
 		config.Search.Email = true
 		config.Search.CaseInsensitive = false
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.EqualError(t, provider.StartupCheck(), "error loading authentication database: email 'john.doe@authelia.com' is also a username which isn't allowed when email search is enabled")
 	})
@@ -561,7 +561,7 @@ func TestShouldErrorOnEmailAsUsernameWithDuplicateEmailCase(t *testing.T) {
 		config.Search.Email = false
 		config.Search.CaseInsensitive = true
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.EqualError(t, provider.StartupCheck(), "error loading authentication database: username 'john.doe@authelia.com' is configured as an email for user with username 'john' which isn't allowed when case-insensitive search is enabled")
 	})
@@ -573,7 +573,7 @@ func TestShouldAllowLookupByEmail(t *testing.T) {
 		config.Path = path
 		config.Search.Email = true
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -600,7 +600,7 @@ func TestShouldAllowLookupCI(t *testing.T) {
 		config.Path = path
 		config.Search.CaseInsensitive = true
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -703,7 +703,7 @@ func TestHashError(t *testing.T) {
 		config.Search.CaseInsensitive = true
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -721,14 +721,14 @@ func TestHashError(t *testing.T) {
 
 func TestDatabaseError(t *testing.T) {
 	WithDatabase(t, UserDatabaseContent, func(path string) {
-		db := NewFileUserDatabase(path, false, false, nil)
+		db := NewFileUserDatabase(path, false, false, nil, nil)
 		assert.NoError(t, db.Load())
 
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Search.CaseInsensitive = true
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
@@ -751,14 +751,14 @@ func TestDatabaseError(t *testing.T) {
 
 func TestDatabaseErrorExtended(t *testing.T) {
 	WithDatabase(t, UserDatabaseContent, func(path string) {
-		db := NewFileUserDatabase(path, false, false, nil)
+		db := NewFileUserDatabase(path, false, false, nil, nil)
 		assert.NoError(t, db.Load())
 
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Search.CaseInsensitive = true
 		config.Path = path
 
-		provider := NewFileUserProvider(&config)
+		provider := NewFileUserProvider(&config, nil)
 
 		assert.NoError(t, provider.StartupCheck())
 
