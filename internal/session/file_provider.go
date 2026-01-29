@@ -227,7 +227,11 @@ func (p *FileProvider) Regenerate(id, newID []byte, expiration time.Duration) er
 	}
 
 	if err != nil {
-		return err
+		// Remove corrupt session files so they don't cause permanent errors.
+		logging.Logger().WithError(err).WithField("path", oldPath).Warn("Removing corrupt session file during regeneration")
+		os.Remove(oldPath)
+
+		return nil
 	}
 
 	now := time.Now().UnixNano()
@@ -347,7 +351,11 @@ func (p *FileProvider) GC() error {
 
 		fileData, err := p.readSessionFile(path)
 		if err != nil {
-			log.WithError(err).WithField("file", name).Debug("Failed to read session file during GC")
+			log.WithError(err).WithField("file", name).Warn("Removing corrupt session file during GC")
+
+			if removeErr := os.Remove(path); removeErr != nil {
+				log.WithError(removeErr).WithField("file", name).Warn("Failed to remove corrupt session file during GC")
+			}
 
 			continue
 		}

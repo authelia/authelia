@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -333,7 +334,7 @@ func validateSessionFile(config *schema.Session, validator *schema.StructValidat
 
 	if config.File.Path == "" {
 		validator.Push(errors.New(errFmtSessionFilePathRequired))
-	} else if !path.IsAbs(config.File.Path) {
+	} else if !filepath.IsAbs(config.File.Path) {
 		validator.Push(fmt.Errorf(errFmtSessionFilePathNotAbsolute, config.File.Path))
 	}
 

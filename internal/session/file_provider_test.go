@@ -691,8 +691,74 @@ func TestFileProvider_GCKeepsRecentTempFiles(t *testing.T) {
 	// Temp file should still exist.
 	_, err = os.Stat(tempPath)
 	assert.NoError(t, err)
+}
 
-	// Clean up.
-	os.Remove(tempPath)
+func TestFileProvider_RegenerateRemovesCorruptSessionFile(t *testing.T) {
+	dir := t.TempDir()
+	config := schema.SessionFile{
+		Path:            dir,
+		CleanupInterval: time.Hour,
+	}
+
+	provider, err := NewFileProvider(config)
+	require.NoError(t, err)
+
+	defer provider.Close()
+
+	oldID := []byte("corrupt-session")
+	newID := []byte("new-session")
+
+	err = provider.Save(oldID, []byte("data"), time.Hour)
+	require.NoError(t, err)
+
+	// Overwrite with invalid JSON.
+	oldPath := provider.sessionFilePath(oldID)
+	err = os.WriteFile(oldPath, []byte("not valid json{{{"), 0600)
+	require.NoError(t, err)
+
+	// Regenerate should return nil (not an error) and remove the corrupt file.
+	err = provider.Regenerate(oldID, newID, time.Hour)
+	require.NoError(t, err)
+
+	// Old corrupt file should be removed.
+	_, err = os.Stat(oldPath)
+	assert.True(t, os.IsNotExist(err))
+
+	// New session should not exist.
+	retrieved, err := provider.Get(newID)
+	require.NoError(t, err)
+	assert.Nil(t, retrieved)
+}
+
+func TestFileProvider_GCRemovesCorruptSessionFiles(t *testing.T) {
+	dir := t.TempDir()
+	config := schema.SessionFile{
+		Path:            dir,
+		CleanupInterval: time.Hour,
+	}
+
+	provider, err := NewFileProvider(config)
+	require.NoError(t, err)
+
+	defer provider.Close()
+
+	// Create a session so we can get its file path.
+	id := []byte("corrupt-gc-session")
+
+	err = provider.Save(id, []byte("data"), time.Hour)
+	require.NoError(t, err)
+
+	// Overwrite with invalid JSON.
+	path := provider.sessionFilePath(id)
+	err = os.WriteFile(path, []byte("not valid json{{{"), 0600)
+	require.NoError(t, err)
+
+	// Run GC.
+	err = provider.GC()
+	require.NoError(t, err)
+
+	// Corrupt file should be removed.
+	_, err = os.Stat(path)
+	assert.True(t, os.IsNotExist(err))
 }
 

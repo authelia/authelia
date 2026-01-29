@@ -19,6 +19,9 @@ individual files on the local filesystem. This is suitable for single-instance d
 unnecessary overhead. Like the memory provider, the file provider is
 [stateful](../../overview/authorization/statelessness.md) and is not suitable for high availability scenarios.
 
+Because there is no cross-process locking and some network filesystems don't guarantee atomic renames, this provider
+should only be used on local filesystems for single-instance deployments.
+
 ## Configuration
 
 {{< config-alert-example >}}
