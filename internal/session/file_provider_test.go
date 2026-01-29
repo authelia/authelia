@@ -762,3 +762,75 @@ func TestFileProvider_GCRemovesCorruptSessionFiles(t *testing.T) {
 	assert.True(t, os.IsNotExist(err))
 }
 
+func TestFileProvider_GetRemovesCorruptBase64SessionFile(t *testing.T) {
+	dir := t.TempDir()
+	config := schema.SessionFile{
+		Path:            dir,
+		CleanupInterval: time.Hour,
+	}
+
+	provider, err := NewFileProvider(config)
+	require.NoError(t, err)
+
+	defer provider.Close()
+
+	id := []byte("bad-base64-session")
+
+	err = provider.Save(id, []byte("data"), time.Hour)
+	require.NoError(t, err)
+
+	// Overwrite with valid JSON but invalid base64 data.
+	path := provider.sessionFilePath(id)
+	corruptData := fmt.Sprintf(`{"created_at":1,"last_active_at":1,"expires_at":%d,"expiration_duration":3600000000000,"data":"!!!not-base64!!!"}`,
+		time.Now().Add(time.Hour).UnixNano())
+	err = os.WriteFile(path, []byte(corruptData), 0600)
+	require.NoError(t, err)
+
+	// Get should return nil (not an error) and remove the corrupt file.
+	retrieved, err := provider.Get(id)
+	require.NoError(t, err)
+	assert.Nil(t, retrieved)
+
+	// File should be removed.
+	_, err = os.Stat(path)
+	assert.True(t, os.IsNotExist(err))
+}
+
+func TestFileProvider_SaveRejectsNonPositiveExpiration(t *testing.T) {
+	dir := t.TempDir()
+	config := schema.SessionFile{
+		Path:            dir,
+		CleanupInterval: time.Hour,
+	}
+
+	provider, err := NewFileProvider(config)
+	require.NoError(t, err)
+
+	defer provider.Close()
+
+	err = provider.Save([]byte("test"), []byte("data"), 0)
+	assert.Error(t, err)
+
+	err = provider.Save([]byte("test"), []byte("data"), -time.Second)
+	assert.Error(t, err)
+}
+
+func TestFileProvider_RegenerateRejectsNonPositiveExpiration(t *testing.T) {
+	dir := t.TempDir()
+	config := schema.SessionFile{
+		Path:            dir,
+		CleanupInterval: time.Hour,
+	}
+
+	provider, err := NewFileProvider(config)
+	require.NoError(t, err)
+
+	defer provider.Close()
+
+	err = provider.Regenerate([]byte("old"), []byte("new"), 0)
+	assert.Error(t, err)
+
+	err = provider.Regenerate([]byte("old"), []byte("new"), -time.Second)
+	assert.Error(t, err)
+}
+

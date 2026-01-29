@@ -186,7 +186,11 @@ func (p *FileProvider) Get(id []byte) ([]byte, error) {
 
 	data, err := base64.StdEncoding.DecodeString(fileData.Data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode session data: %w", err)
+		// Remove corrupt session files so they don't cause permanent errors.
+		logging.Logger().WithError(err).WithField("path", path).Warn("Removing corrupt session file")
+		os.Remove(path)
+
+		return nil, nil
 	}
 
 	return data, nil
@@ -194,6 +198,10 @@ func (p *FileProvider) Get(id []byte) ([]byte, error) {
 
 // Save stores session data.
 func (p *FileProvider) Save(id, data []byte, expiration time.Duration) error {
+	if expiration <= 0 {
+		return fmt.Errorf("invalid session expiration: %s", expiration)
+	}
+
 	path := p.sessionFilePath(id)
 	now := time.Now().UnixNano()
 
@@ -217,6 +225,10 @@ func (p *FileProvider) Save(id, data []byte, expiration time.Duration) error {
 
 // Regenerate creates a new session ID, moving data from old to new.
 func (p *FileProvider) Regenerate(id, newID []byte, expiration time.Duration) error {
+	if expiration <= 0 {
+		return fmt.Errorf("invalid session expiration: %s", expiration)
+	}
+
 	oldPath := p.sessionFilePath(id)
 	newPath := p.sessionFilePath(newID)
 
