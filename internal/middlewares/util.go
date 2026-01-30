@@ -41,7 +41,7 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.NTP = ntp.NewProvider(&config.NTP)
 	providers.PasswordPolicy = NewPasswordPolicyProvider(config.PasswordPolicy)
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, clock.New())
-	providers.SessionProvider = session.NewProvider(config.Session, caCertPool)
+	providers.SessionProvider = session.NewProvider(config.Session, caCertPool, providers.StorageProvider)
 	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
 	providers.UserAttributeResolver = expression.NewUserAttributes(config)
 	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)

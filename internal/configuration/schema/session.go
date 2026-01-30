@@ -16,8 +16,6 @@ type Session struct {
 
 	Redis *SessionRedis `koanf:"redis" yaml:"redis,omitempty" toml:"redis,omitempty" json:"redis,omitempty" jsonschema:"title=Redis" jsonschema_description:"Redis Session Provider configuration."`
 
-	File *SessionFile `koanf:"file" yaml:"file,omitempty" toml:"file,omitempty" json:"file,omitempty" jsonschema:"title=File" jsonschema_description:"File Session Provider configuration."`
-
 	// Deprecated: Use the session cookies option with the same name instead.
 	Domain string `koanf:"domain" yaml:"domain,omitempty" toml:"domain,omitempty" json:"domain,omitempty" jsonschema:"deprecated,title=Domain"`
 }
@@ -76,12 +74,6 @@ type SessionRedisHighAvailabilityNode struct {
 	Port int    `koanf:"port" yaml:"port" toml:"port" json:"port" jsonschema:"default=26379,title=Port" jsonschema_description:"The redis sentinel node port."`
 }
 
-// SessionFile represents the configuration for file-based session storage.
-type SessionFile struct {
-	Path            string        `koanf:"path" yaml:"path,omitempty" toml:"path,omitempty" json:"path,omitempty" jsonschema:"title=Path" jsonschema_description:"The directory path for session files."`
-	CleanupInterval time.Duration `koanf:"cleanup_interval" yaml:"cleanup_interval,omitempty" toml:"cleanup_interval,omitempty" json:"cleanup_interval,omitempty" jsonschema:"default=5 minutes,title=Cleanup Interval" jsonschema_description:"The interval between expired session cleanup runs."`
-}
-
 // DefaultSessionConfiguration is the default session configuration.
 var DefaultSessionConfiguration = Session{
 	SessionCookieCommon: SessionCookieCommon{
@@ -113,9 +105,4 @@ var DefaultRedisHighAvailabilityConfiguration = SessionRedis{
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},
 	},
-}
-
-// DefaultFileConfiguration is the default file session configuration.
-var DefaultFileConfiguration = SessionFile{
-	CleanupInterval: time.Minute * 5,
 }

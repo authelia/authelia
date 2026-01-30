@@ -29,6 +29,9 @@ func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 	// Specific alterations to this provider.
 	provider.sqlFmtRenameTable = queryFmtMySQLRenameTable
 
+	// MySQL uses ON DUPLICATE KEY UPDATE instead of ON CONFLICT.
+	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionMySQL, tableSessions)
+
 	return provider
 }
 

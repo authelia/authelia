@@ -54,7 +54,7 @@ session:
 There are currently three providers for session storage (four if you count Redis Sentinel as a separate provider):
 
 * Memory (default, stateful, no additional configuration)
-* [File](file.md) (stateful, no external dependencies).
+* SQL (stateful, uses the configured [storage](../storage/introduction.md) backend).
 * [Redis](redis.md) (stateless).
 * [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
 
@@ -72,7 +72,7 @@ This section describes the individual configuration options.
 
 {{< confkey type="string" required="yes" secret="yes" >}}
 
-The secret key used to encrypt session data in the [Redis](redis.md) or [File](file.md) session providers.
+The secret key used to encrypt session data in the [Redis](redis.md) or SQL session providers.
 
 It's __strongly recommended__ this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more

@@ -15,6 +15,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -93,7 +94,7 @@ func NewProviderConfigAndSession(config schema.SessionCookie, providerName strin
 	return c, p, nil
 }
 
-func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name string, provider session.Provider, serializer Serializer, err error) {
+func NewSessionProvider(config schema.Session, certPool *x509.CertPool, storageProvider storage.SessionProvider) (name string, provider session.Provider, serializer Serializer, err error) {
 	// If redis configuration is provided, then use the redis provider.
 	switch {
 	case config.Redis != nil:
@@ -169,10 +170,10 @@ func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name st
 				KeyPrefix:       "authelia-session",
 			})
 		}
-	case config.File != nil:
-		name = "file"
+	case storageProvider != nil:
+		name = "sql"
 		serializer = NewEncryptingSerializer(config.Secret)
-		provider, err = NewFileProvider(*config.File)
+		provider = NewSQLSessionProvider(storageProvider)
 	default:
 		name = "memory"
 		provider, err = memory.New(memory.Config{})

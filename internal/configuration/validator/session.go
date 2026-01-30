@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -18,20 +17,17 @@ func ValidateSession(config *schema.Configuration, validator *schema.StructValid
 		config.Session.Name = schema.DefaultSessionConfiguration.Name
 	}
 
-	if config.Session.Redis != nil && config.Session.File != nil {
-		validator.Push(errors.New(errFmtSessionFileAndRedisConfigured))
-	}
-
 	if config.Session.Redis != nil {
 		if config.Session.Redis.HighAvailability != nil {
 			validateRedisSentinel(&config.Session, validator)
 		} else {
 			validateRedis(&config.Session, validator)
 		}
-	}
-
-	if config.Session.File != nil {
-		validateSessionFile(&config.Session, validator)
+	} else if config.Storage.Local != nil || config.Storage.MySQL != nil || config.Storage.PostgreSQL != nil {
+		// SQL storage is configured: require session secret for encryption.
+		if config.Session.Secret == "" {
+			validator.Push(fmt.Errorf(errFmtSessionSecretRequired, "sql"))
+		}
 	}
 
 	validateSession(config, validator)
@@ -324,21 +320,5 @@ func validateRedisSentinel(config *schema.Session, validator *schema.StructValid
 
 	if hostMissing {
 		validator.Push(errors.New(errFmtSessionRedisSentinelNodeHostMissing))
-	}
-}
-
-func validateSessionFile(config *schema.Session, validator *schema.StructValidator) {
-	if config.Secret == "" {
-		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, "file"))
-	}
-
-	if config.File.Path == "" {
-		validator.Push(errors.New(errFmtSessionFilePathRequired))
-	} else if !filepath.IsAbs(config.File.Path) {
-		validator.Push(fmt.Errorf(errFmtSessionFilePathNotAbsolute, config.File.Path))
-	}
-
-	if config.File.CleanupInterval <= 0 {
-		config.File.CleanupInterval = schema.DefaultFileConfiguration.CleanupInterval
 	}
 }
