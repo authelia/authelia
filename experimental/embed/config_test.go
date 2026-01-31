@@ -23,6 +23,7 @@ func TestNewConfiguration(t *testing.T) {
 			name:  "ShouldHandleWebAuthn",
 			paths: []string{"../../internal/configuration/test_resources/config.webauthn.yml"},
 			keys: []string{
+				"regulation.max_retries",
 				"server.endpoints.rate_limits.reset_password_finish.enable",
 				"server.endpoints.rate_limits.reset_password_start.enable",
 				"server.endpoints.rate_limits.second_factor_duo.enable",
