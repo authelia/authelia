@@ -86,7 +86,7 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "cookies"))
 	}
 
-	domains := make([]string, 0)
+	domains := make([]string, 0) //nolint:prealloc
 
 	for i, d := range config.Cookies {
 		validateSessionDomainName(i, config, validator)
