@@ -22,19 +22,19 @@ importers:
     dependencies:
       '@react-email/components':
         specifier: 1.0.6
-        version: 1.0.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 1.0.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@react-email/render':
         specifier: 2.0.4
-        version: 2.0.4(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 2.0.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       esbuild:
         specifier: 0.27.2
         version: 0.27.2
       react:
-        specifier: 19.2.3
-        version: 19.2.3
+        specifier: 19.2.4
+        version: 19.2.4
       react-dom:
-        specifier: 19.2.3
-        version: 19.2.3(react@19.2.3)
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
       react-email:
         specifier: 5.2.5
         version: 5.2.5
@@ -53,16 +53,16 @@ importers:
         version: 3.0.0
       '@react-email/preview-server':
         specifier: 5.2.5
-        version: 5.2.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 5.2.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@types/node':
-        specifier: 25.0.9
-        version: 25.0.9
+        specifier: 25.1.0
+        version: 25.1.0
       '@types/react':
-        specifier: 19.2.9
-        version: 19.2.9
+        specifier: 19.2.10
+        version: 19.2.10
       '@types/react-dom':
         specifier: 19.2.3
-        version: 19.2.3(@types/react@19.2.9)
+        version: 19.2.3(@types/react@19.2.10)
       eslint:
         specifier: 9.39.2
         version: 9.39.2(jiti@2.4.2)
@@ -70,8 +70,8 @@ importers:
         specifier: 4.21.0
         version: 4.21.0
       vitest:
-        specifier: 4.0.17
-        version: 4.0.17(@types/node@25.0.9)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0)
+        specifier: 4.0.18
+        version: 4.0.18(@types/node@25.1.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0)
 
 packages:
 
@@ -359,89 +359,105 @@ packages:
     resolution: {integrity: sha512-excjX8DfsIcJ10x1Kzr4RcWe1edC9PquDRRPx3YVCvQv+U5p7Yin2s32ftzikXojb1PIFc/9Mt28/y+iRklkrw==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linux-arm@1.2.4':
     resolution: {integrity: sha512-bFI7xcKFELdiNCVov8e44Ia4u2byA+l3XtsAj+Q8tfCwO6BQ8iDojYdvoPMqsKDkuoOo+X6HZA0s0q11ANMQ8A==}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linux-ppc64@1.2.4':
     resolution: {integrity: sha512-FMuvGijLDYG6lW+b/UvyilUWu5Ayu+3r2d1S8notiGCIyYU/76eig1UfMmkZ7vwgOrzKzlQbFSuQfgm7GYUPpA==}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linux-riscv64@1.2.4':
     resolution: {integrity: sha512-oVDbcR4zUC0ce82teubSm+x6ETixtKZBh/qbREIOcI3cULzDyb18Sr/Wcyx7NRQeQzOiHTNbZFF1UwPS2scyGA==}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linux-s390x@1.2.4':
     resolution: {integrity: sha512-qmp9VrzgPgMoGZyPvrQHqk02uyjA0/QrTO26Tqk6l4ZV0MPWIW6LTkqOIov+J1yEu7MbFQaDpwdwJKhbJvuRxQ==}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linux-x64@1.2.4':
     resolution: {integrity: sha512-tJxiiLsmHc9Ax1bz3oaOYBURTXGIRDODBqhveVHonrHJ9/+k89qbLl0bcJns+e4t4rvaNBxaEZsFtSfAdquPrw==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linuxmusl-arm64@1.2.4':
     resolution: {integrity: sha512-FVQHuwx1IIuNow9QAbYUzJ+En8KcVm9Lk5+uGUQJHaZmMECZmOlix9HnH7n1TRkXMS0pGxIJokIVB9SuqZGGXw==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@img/sharp-libvips-linuxmusl-x64@1.2.4':
     resolution: {integrity: sha512-+LpyBk7L44ZIXwz/VYfglaX/okxezESc6UxDSoyo2Ks6Jxc4Y7sGjpgU9s4PMgqgjj1gZCylTieNamqA1MF7Dg==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@img/sharp-linux-arm64@0.34.5':
     resolution: {integrity: sha512-bKQzaJRY/bkPOXyKx5EVup7qkaojECG6NLYswgktOZjaXecSAeCWiZwwiFf3/Y+O1HrauiE3FVsGxFg8c24rZg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linux-arm@0.34.5':
     resolution: {integrity: sha512-9dLqsvwtg1uuXBGZKsxem9595+ujv0sJ6Vi8wcTANSFpwV/GONat5eCkzQo/1O6zRIkh0m/8+5BjrRr7jDUSZw==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linux-ppc64@0.34.5':
     resolution: {integrity: sha512-7zznwNaqW6YtsfrGGDA6BRkISKAAE1Jo0QdpNYXNMHu2+0dTrPflTLNkpc8l7MUP5M16ZJcUvysVWWrMefZquA==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linux-riscv64@0.34.5':
     resolution: {integrity: sha512-51gJuLPTKa7piYPaVs8GmByo7/U7/7TZOq+cnXJIHZKavIRHAP77e3N2HEl3dgiqdD/w0yUfiJnII77PuDDFdw==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linux-s390x@0.34.5':
     resolution: {integrity: sha512-nQtCk0PdKfho3eC5MrbQoigJ2gd1CgddUMkabUj+rBevs8tZ2cULOx46E7oyX+04WGfABgIwmMC0VqieTiR4jg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linux-x64@0.34.5':
     resolution: {integrity: sha512-MEzd8HPKxVxVenwAa+JRPwEC7QFjoPWuS5NZnBt6B3pu7EG2Ge0id1oLHZpPJdn3OQK+BQDiw9zStiHBTJQQQQ==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linuxmusl-arm64@0.34.5':
     resolution: {integrity: sha512-fprJR6GtRsMt6Kyfq44IsChVZeGN97gTD331weR1ex1c1rypDEABN6Tm2xa1wE6lYb5DdEnk03NZPqA7Id21yg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@img/sharp-linuxmusl-x64@0.34.5':
     resolution: {integrity: sha512-Jg8wNT1MUzIvhBFxViqrEhWDGzqymo3sV7z7ZsaWbZNDLXRJZoRGrjulp60YYtV4wfY8VIKcWidjojlLcWrd8Q==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@img/sharp-wasm32@0.34.5':
     resolution: {integrity: sha512-OdWTEiVkY2PHwqkbBI8frFxQQFekHaSSkUIJkwzclWZe64O1X4UlUjqqqLaPbUpMOQk6FBu/HtlGXNblIs0huw==}
@@ -510,24 +526,28 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@next/swc-linux-arm64-musl@16.0.10':
     resolution: {integrity: sha512-llA+hiDTrYvyWI21Z0L1GiXwjQaanPVQQwru5peOgtooeJ8qx3tlqRV2P7uH2pKQaUfHxI/WVarvI5oYgGxaTw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@next/swc-linux-x64-gnu@16.0.10':
     resolution: {integrity: sha512-AK2q5H0+a9nsXbeZ3FZdMtbtu9jxW4R/NgzZ6+lrTm3d6Zb7jYrWcgjcpM1k8uuqlSy4xIyPR2YiuUr+wXsavA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@next/swc-linux-x64-musl@16.0.10':
     resolution: {integrity: sha512-1TDG9PDKivNw5550S111gsO4RGennLVl9cipPhtkXIFVwo31YZ73nEbLjNC8qG3SgTz/QZyYyaFYMeY4BKZR/g==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@next/swc-win32-arm64-msvc@16.0.10':
     resolution: {integrity: sha512-aEZIS4Hh32xdJQbHz121pyuVZniSNoqDVx1yIr2hy+ZwJGipeqnMZBJHyMxv2tiuAXGx6/xpTcQJ6btIiBjgmg==}
@@ -740,56 +760,67 @@ packages:
     resolution: {integrity: sha512-n0edDmSHlXFhrlmTK7XBuwKlG5MbS7yleS1cQ9nn4kIeW+dJH+ExqNgQ0RrFRew8Y+0V/x6C5IjsHrJmiHtkxQ==}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm-musleabihf@4.44.1':
     resolution: {integrity: sha512-8WVUPy3FtAsKSpyk21kV52HCxB+me6YkbkFHATzC2Yd3yuqHwy2lbFL4alJOLXKljoRw08Zk8/xEj89cLQ/4Nw==}
     cpu: [arm]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-arm64-gnu@4.44.1':
     resolution: {integrity: sha512-yuktAOaeOgorWDeFJggjuCkMGeITfqvPgkIXhDqsfKX8J3jGyxdDZgBV/2kj/2DyPaLiX6bPdjJDTu9RB8lUPQ==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.44.1':
     resolution: {integrity: sha512-W+GBM4ifET1Plw8pdVaecwUgxmiH23CfAUj32u8knq0JPFyK4weRy6H7ooxYFD19YxBulL0Ktsflg5XS7+7u9g==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-loongarch64-gnu@4.44.1':
     resolution: {integrity: sha512-1zqnUEMWp9WrGVuVak6jWTl4fEtrVKfZY7CvcBmUUpxAJ7WcSowPSAWIKa/0o5mBL/Ij50SIf9tuirGx63Ovew==}
     cpu: [loong64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-powerpc64le-gnu@4.44.1':
     resolution: {integrity: sha512-Rl3JKaRu0LHIx7ExBAAnf0JcOQetQffaw34T8vLlg9b1IhzcBgaIdnvEbbsZq9uZp3uAH+JkHd20Nwn0h9zPjA==}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-gnu@4.44.1':
     resolution: {integrity: sha512-j5akelU3snyL6K3N/iX7otLBIl347fGwmd95U5gS/7z6T4ftK288jKq3A5lcFKcx7wwzb5rgNvAg3ZbV4BqUSw==}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-musl@4.44.1':
     resolution: {integrity: sha512-ppn5llVGgrZw7yxbIm8TTvtj1EoPgYUAbfw0uDjIOzzoqlZlZrLJ/KuiE7uf5EpTpCTrNt1EdtzF0naMm0wGYg==}
     cpu: [riscv64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-s390x-gnu@4.44.1':
     resolution: {integrity: sha512-Hu6hEdix0oxtUma99jSP7xbvjkUM/ycke/AQQ4EC5g7jNRLLIwjcNwaUy95ZKBJJwg1ZowsclNnjYqzN4zwkAw==}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.44.1':
     resolution: {integrity: sha512-EtnsrmZGomz9WxK1bR5079zee3+7a+AdFlghyd6VbAjgRJDbTANJ9dcPIPAi76uG05micpEL+gPGmAKYTschQw==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.44.1':
     resolution: {integrity: sha512-iAS4p+J1az6Usn0f8xhgL4PaU878KEtutP4hqw52I4IO6AGoyOkHCxcc4bqufv1tQLdDWFx8lR9YlwxKuv3/3g==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-win32-arm64-msvc@4.44.1':
     resolution: {integrity: sha512-NtSJVKcXwcqozOl+FwI41OH3OApDyLk3kqTJgx8+gp6On9ZEt5mYhIsKNPGuaZr3p9T6NWPKGU/03Vw4CNU9qg==}
@@ -836,22 +867,22 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/node@25.0.9':
-    resolution: {integrity: sha512-/rpCXHlCWeqClNBwUhDcusJxXYDjZTyE8v5oTO7WbL8eij2nKhUeU89/6xgjU7N4/Vh3He0BtyhJdQbDyhiXAw==}
+  '@types/node@25.1.0':
+    resolution: {integrity: sha512-t7frlewr6+cbx+9Ohpl0NOTKXZNV9xHRmNOvql47BFJKcEG1CxtxlPEEe+gR9uhVWM4DwhnvTF110mIL4yP9RA==}
 
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
     peerDependencies:
       '@types/react': ^19.2.0
 
-  '@types/react@19.2.9':
-    resolution: {integrity: sha512-Lpo8kgb/igvMIPeNV2rsYKTgaORYdO1XGVZ4Qz3akwOj0ySGYMPlQWa8BaLn0G63D1aSaAQ5ldR06wCpChQCjA==}
+  '@types/react@19.2.10':
+    resolution: {integrity: sha512-WPigyYuGhgZ/cTPRXB2EwUw+XvsRA3GqHlsP4qteqrnnjDrApbS7MxcGr/hke5iUoeB7E/gQtrs9I37zAJ0Vjw==}
 
-  '@vitest/expect@4.0.17':
-    resolution: {integrity: sha512-mEoqP3RqhKlbmUmntNDDCJeTDavDR+fVYkSOw8qRwJFaW/0/5zA9zFeTrHqNtcmwh6j26yMmwx2PqUDPzt5ZAQ==}
+  '@vitest/expect@4.0.18':
+    resolution: {integrity: sha512-8sCWUyckXXYvx4opfzVY03EOiYVxyNrHS5QxX3DAIi5dpJAAkyJezHCP77VMX4HKA2LDT/Jpfo8i2r5BE3GnQQ==}
 
-  '@vitest/mocker@4.0.17':
-    resolution: {integrity: sha512-+ZtQhLA3lDh1tI2wxe3yMsGzbp7uuJSWBM1iTIKCbppWTSBN09PUC+L+fyNlQApQoR+Ps8twt2pbSSXg2fQVEQ==}
+  '@vitest/mocker@4.0.18':
+    resolution: {integrity: sha512-HhVd0MDnzzsgevnOWCBj5Otnzobjy5wLBe4EdeeFGv8luMsGcYqDuFRMcttKWZA5vVO8RFjexVovXvAM4JoJDQ==}
     peerDependencies:
       msw: ^2.4.9
       vite: 7.3.1
@@ -861,20 +892,20 @@ packages:
       vite:
         optional: true
 
-  '@vitest/pretty-format@4.0.17':
-    resolution: {integrity: sha512-Ah3VAYmjcEdHg6+MwFE17qyLqBHZ+ni2ScKCiW2XrlSBV4H3Z7vYfPfz7CWQ33gyu76oc0Ai36+kgLU3rfF4nw==}
+  '@vitest/pretty-format@4.0.18':
+    resolution: {integrity: sha512-P24GK3GulZWC5tz87ux0m8OADrQIUVDPIjjj65vBXYG17ZeU3qD7r+MNZ1RNv4l8CGU2vtTRqixrOi9fYk/yKw==}
 
-  '@vitest/runner@4.0.17':
-    resolution: {integrity: sha512-JmuQyf8aMWoo/LmNFppdpkfRVHJcsgzkbCA+/Bk7VfNH7RE6Ut2qxegeyx2j3ojtJtKIbIGy3h+KxGfYfk28YQ==}
+  '@vitest/runner@4.0.18':
+    resolution: {integrity: sha512-rpk9y12PGa22Jg6g5M3UVVnTS7+zycIGk9ZNGN+m6tZHKQb7jrP7/77WfZy13Y/EUDd52NDsLRQhYKtv7XfPQw==}
 
-  '@vitest/snapshot@4.0.17':
-    resolution: {integrity: sha512-npPelD7oyL+YQM2gbIYvlavlMVWUfNNGZPcu0aEUQXt7FXTuqhmgiYupPnAanhKvyP6Srs2pIbWo30K0RbDtRQ==}
+  '@vitest/snapshot@4.0.18':
+    resolution: {integrity: sha512-PCiV0rcl7jKQjbgYqjtakly6T1uwv/5BQ9SwBLekVg/EaYeQFPiXcgrC2Y7vDMA8dM1SUEAEV82kgSQIlXNMvA==}
 
-  '@vitest/spy@4.0.17':
-    resolution: {integrity: sha512-I1bQo8QaP6tZlTomQNWKJE6ym4SHf3oLS7ceNjozxxgzavRAgZDc06T7kD8gb9bXKEgcLNt00Z+kZO6KaJ62Ew==}
+  '@vitest/spy@4.0.18':
+    resolution: {integrity: sha512-cbQt3PTSD7P2OARdVW3qWER5EGq7PHlvE+QfzSC0lbwO+xnt7+XH06ZzFjFRgzUX//JmpxrCu92VdwvEPlWSNw==}
 
-  '@vitest/utils@4.0.17':
-    resolution: {integrity: sha512-RG6iy+IzQpa9SB8HAFHJ9Y+pTzI+h8553MrciN9eC6TFBErqrQaTas4vG+MVj8S4uKk8uTT2p0vgZPnTdxd96w==}
+  '@vitest/utils@4.0.18':
+    resolution: {integrity: sha512-msMRKLMVLWygpK3u2Hybgi4MNjcYJvwTb0Ru09+fOyCXIgT5raYP041DRRdiJiI3k/2U6SEbAETB3YtBrUkCFA==}
 
   accepts@1.3.8:
     resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}
@@ -1500,18 +1531,18 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  react-dom@19.2.3:
-    resolution: {integrity: sha512-yELu4WmLPw5Mr/lmeEpox5rw3RETacE++JgHqQzd2dg+YbJuat3jH4ingc+WPZhxaoFzdv9y33G+F7Nl5O0GBg==}
+  react-dom@19.2.4:
+    resolution: {integrity: sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==}
     peerDependencies:
-      react: ^19.2.3
+      react: ^19.2.4
 
   react-email@5.2.5:
     resolution: {integrity: sha512-YaCp5n/0czviN4lFndsYongiI0IJOMFtFoRVIPJc9+WPJejJEvzJO94r31p3Cz9swDuV0RhEhH1W0lJFAXntHA==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
-  react@19.2.3:
-    resolution: {integrity: sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA==}
+  react@19.2.4:
+    resolution: {integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==}
     engines: {node: '>=0.10.0'}
 
   readdirp@4.0.2:
@@ -1751,18 +1782,18 @@ packages:
       yaml:
         optional: true
 
-  vitest@4.0.17:
-    resolution: {integrity: sha512-FQMeF0DJdWY0iOnbv466n/0BudNdKj1l5jYgl5JVTwjSsZSlqyXFt/9+1sEyhR6CLowbZpV7O1sCHrzBhucKKg==}
+  vitest@4.0.18:
+    resolution: {integrity: sha512-hOQuK7h0FGKgBAas7v0mSAsnvrIgAvWmRFjmzpJ7SwFHH3g1k2u37JtYwOwmEKhK6ZO3v9ggDBBm0La1LCK4uQ==}
     engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
     hasBin: true
     peerDependencies:
       '@edge-runtime/vm': '*'
       '@opentelemetry/api': ^1.9.0
       '@types/node': ^20.0.0 || ^22.0.0 || >=24.0.0
-      '@vitest/browser-playwright': 4.0.17
-      '@vitest/browser-preview': 4.0.17
-      '@vitest/browser-webdriverio': 4.0.17
-      '@vitest/ui': 4.0.17
+      '@vitest/browser-playwright': 4.0.18
+      '@vitest/browser-preview': 4.0.18
+      '@vitest/browser-webdriverio': 4.0.18
+      '@vitest/ui': 4.0.18
       happy-dom: '*'
       jsdom: '*'
     peerDependenciesMeta:
@@ -2164,93 +2195,93 @@ snapshots:
 
   '@radix-ui/colors@3.0.0': {}
 
-  '@react-email/body@0.2.1(react@19.2.3)':
+  '@react-email/body@0.2.1(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/button@0.2.1(react@19.2.3)':
+  '@react-email/button@0.2.1(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/code-block@0.2.1(react@19.2.3)':
+  '@react-email/code-block@0.2.1(react@19.2.4)':
     dependencies:
       prismjs: 1.30.0
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/code-inline@0.0.6(react@19.2.3)':
+  '@react-email/code-inline@0.0.6(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/column@0.0.14(react@19.2.3)':
+  '@react-email/column@0.0.14(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/components@1.0.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@react-email/components@1.0.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@react-email/body': 0.2.1(react@19.2.3)
-      '@react-email/button': 0.2.1(react@19.2.3)
-      '@react-email/code-block': 0.2.1(react@19.2.3)
-      '@react-email/code-inline': 0.0.6(react@19.2.3)
-      '@react-email/column': 0.0.14(react@19.2.3)
-      '@react-email/container': 0.0.16(react@19.2.3)
-      '@react-email/font': 0.0.10(react@19.2.3)
-      '@react-email/head': 0.0.13(react@19.2.3)
-      '@react-email/heading': 0.0.16(react@19.2.3)
-      '@react-email/hr': 0.0.12(react@19.2.3)
-      '@react-email/html': 0.0.12(react@19.2.3)
-      '@react-email/img': 0.0.12(react@19.2.3)
-      '@react-email/link': 0.0.13(react@19.2.3)
-      '@react-email/markdown': 0.0.18(react@19.2.3)
-      '@react-email/preview': 0.0.14(react@19.2.3)
-      '@react-email/render': 2.0.4(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@react-email/row': 0.0.13(react@19.2.3)
-      '@react-email/section': 0.0.17(react@19.2.3)
-      '@react-email/tailwind': 2.0.3(@react-email/body@0.2.1(react@19.2.3))(@react-email/button@0.2.1(react@19.2.3))(@react-email/code-block@0.2.1(react@19.2.3))(@react-email/code-inline@0.0.6(react@19.2.3))(@react-email/container@0.0.16(react@19.2.3))(@react-email/heading@0.0.16(react@19.2.3))(@react-email/hr@0.0.12(react@19.2.3))(@react-email/img@0.0.12(react@19.2.3))(@react-email/link@0.0.13(react@19.2.3))(@react-email/preview@0.0.14(react@19.2.3))(@react-email/text@0.1.6(react@19.2.3))(react@19.2.3)
-      '@react-email/text': 0.1.6(react@19.2.3)
-      react: 19.2.3
+      '@react-email/body': 0.2.1(react@19.2.4)
+      '@react-email/button': 0.2.1(react@19.2.4)
+      '@react-email/code-block': 0.2.1(react@19.2.4)
+      '@react-email/code-inline': 0.0.6(react@19.2.4)
+      '@react-email/column': 0.0.14(react@19.2.4)
+      '@react-email/container': 0.0.16(react@19.2.4)
+      '@react-email/font': 0.0.10(react@19.2.4)
+      '@react-email/head': 0.0.13(react@19.2.4)
+      '@react-email/heading': 0.0.16(react@19.2.4)
+      '@react-email/hr': 0.0.12(react@19.2.4)
+      '@react-email/html': 0.0.12(react@19.2.4)
+      '@react-email/img': 0.0.12(react@19.2.4)
+      '@react-email/link': 0.0.13(react@19.2.4)
+      '@react-email/markdown': 0.0.18(react@19.2.4)
+      '@react-email/preview': 0.0.14(react@19.2.4)
+      '@react-email/render': 2.0.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@react-email/row': 0.0.13(react@19.2.4)
+      '@react-email/section': 0.0.17(react@19.2.4)
+      '@react-email/tailwind': 2.0.3(@react-email/body@0.2.1(react@19.2.4))(@react-email/button@0.2.1(react@19.2.4))(@react-email/code-block@0.2.1(react@19.2.4))(@react-email/code-inline@0.0.6(react@19.2.4))(@react-email/container@0.0.16(react@19.2.4))(@react-email/heading@0.0.16(react@19.2.4))(@react-email/hr@0.0.12(react@19.2.4))(@react-email/img@0.0.12(react@19.2.4))(@react-email/link@0.0.13(react@19.2.4))(@react-email/preview@0.0.14(react@19.2.4))(@react-email/text@0.1.6(react@19.2.4))(react@19.2.4)
+      '@react-email/text': 0.1.6(react@19.2.4)
+      react: 19.2.4
     transitivePeerDependencies:
       - react-dom
 
-  '@react-email/container@0.0.16(react@19.2.3)':
+  '@react-email/container@0.0.16(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/font@0.0.10(react@19.2.3)':
+  '@react-email/font@0.0.10(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/head@0.0.13(react@19.2.3)':
+  '@react-email/head@0.0.13(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/heading@0.0.16(react@19.2.3)':
+  '@react-email/heading@0.0.16(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/hr@0.0.12(react@19.2.3)':
+  '@react-email/hr@0.0.12(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/html@0.0.12(react@19.2.3)':
+  '@react-email/html@0.0.12(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/img@0.0.12(react@19.2.3)':
+  '@react-email/img@0.0.12(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/link@0.0.13(react@19.2.3)':
+  '@react-email/link@0.0.13(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/markdown@0.0.18(react@19.2.3)':
+  '@react-email/markdown@0.0.18(react@19.2.4)':
     dependencies:
       marked: 15.0.12
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/preview-server@5.2.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@react-email/preview-server@5.2.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      next: 16.0.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      next: 16.0.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
     transitivePeerDependencies:
       - '@babel/core'
       - '@opentelemetry/api'
@@ -2261,45 +2292,45 @@ snapshots:
       - react-dom
       - sass
 
-  '@react-email/preview@0.0.14(react@19.2.3)':
+  '@react-email/preview@0.0.14(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/render@2.0.4(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@react-email/render@2.0.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       html-to-text: 9.0.5
       prettier: 3.5.3
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
 
-  '@react-email/row@0.0.13(react@19.2.3)':
+  '@react-email/row@0.0.13(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/section@0.0.17(react@19.2.3)':
+  '@react-email/section@0.0.17(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
-  '@react-email/tailwind@2.0.3(@react-email/body@0.2.1(react@19.2.3))(@react-email/button@0.2.1(react@19.2.3))(@react-email/code-block@0.2.1(react@19.2.3))(@react-email/code-inline@0.0.6(react@19.2.3))(@react-email/container@0.0.16(react@19.2.3))(@react-email/heading@0.0.16(react@19.2.3))(@react-email/hr@0.0.12(react@19.2.3))(@react-email/img@0.0.12(react@19.2.3))(@react-email/link@0.0.13(react@19.2.3))(@react-email/preview@0.0.14(react@19.2.3))(@react-email/text@0.1.6(react@19.2.3))(react@19.2.3)':
+  '@react-email/tailwind@2.0.3(@react-email/body@0.2.1(react@19.2.4))(@react-email/button@0.2.1(react@19.2.4))(@react-email/code-block@0.2.1(react@19.2.4))(@react-email/code-inline@0.0.6(react@19.2.4))(@react-email/container@0.0.16(react@19.2.4))(@react-email/heading@0.0.16(react@19.2.4))(@react-email/hr@0.0.12(react@19.2.4))(@react-email/img@0.0.12(react@19.2.4))(@react-email/link@0.0.13(react@19.2.4))(@react-email/preview@0.0.14(react@19.2.4))(@react-email/text@0.1.6(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@react-email/text': 0.1.6(react@19.2.3)
-      react: 19.2.3
+      '@react-email/text': 0.1.6(react@19.2.4)
+      react: 19.2.4
       tailwindcss: 4.1.18
     optionalDependencies:
-      '@react-email/body': 0.2.1(react@19.2.3)
-      '@react-email/button': 0.2.1(react@19.2.3)
-      '@react-email/code-block': 0.2.1(react@19.2.3)
-      '@react-email/code-inline': 0.0.6(react@19.2.3)
-      '@react-email/container': 0.0.16(react@19.2.3)
-      '@react-email/heading': 0.0.16(react@19.2.3)
-      '@react-email/hr': 0.0.12(react@19.2.3)
-      '@react-email/img': 0.0.12(react@19.2.3)
-      '@react-email/link': 0.0.13(react@19.2.3)
-      '@react-email/preview': 0.0.14(react@19.2.3)
+      '@react-email/body': 0.2.1(react@19.2.4)
+      '@react-email/button': 0.2.1(react@19.2.4)
+      '@react-email/code-block': 0.2.1(react@19.2.4)
+      '@react-email/code-inline': 0.0.6(react@19.2.4)
+      '@react-email/container': 0.0.16(react@19.2.4)
+      '@react-email/heading': 0.0.16(react@19.2.4)
+      '@react-email/hr': 0.0.12(react@19.2.4)
+      '@react-email/img': 0.0.12(react@19.2.4)
+      '@react-email/link': 0.0.13(react@19.2.4)
+      '@react-email/preview': 0.0.14(react@19.2.4)
 
-  '@react-email/text@0.1.6(react@19.2.3)':
+  '@react-email/text@0.1.6(react@19.2.4)':
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
   '@rollup/rollup-android-arm-eabi@4.44.1':
     optional: true
@@ -2382,7 +2413,7 @@ snapshots:
 
   '@types/cors@2.8.17':
     dependencies:
-      '@types/node': 25.0.9
+      '@types/node': 25.1.0
 
   '@types/deep-eql@4.0.2': {}
 
@@ -2390,55 +2421,55 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/node@25.0.9':
+  '@types/node@25.1.0':
     dependencies:
       undici-types: 7.16.0
 
-  '@types/react-dom@19.2.3(@types/react@19.2.9)':
+  '@types/react-dom@19.2.3(@types/react@19.2.10)':
     dependencies:
-      '@types/react': 19.2.9
+      '@types/react': 19.2.10
 
-  '@types/react@19.2.9':
+  '@types/react@19.2.10':
     dependencies:
       csstype: 3.2.3
 
-  '@vitest/expect@4.0.17':
+  '@vitest/expect@4.0.18':
     dependencies:
       '@standard-schema/spec': 1.0.0
       '@types/chai': 5.2.2
-      '@vitest/spy': 4.0.17
-      '@vitest/utils': 4.0.17
+      '@vitest/spy': 4.0.18
+      '@vitest/utils': 4.0.18
       chai: 6.2.1
       tinyrainbow: 3.0.3
 
-  '@vitest/mocker@4.0.17(vite@7.3.1(@types/node@25.0.9)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0))':
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@25.1.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0))':
     dependencies:
-      '@vitest/spy': 4.0.17
+      '@vitest/spy': 4.0.18
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.3.1(@types/node@25.0.9)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0)
+      vite: 7.3.1(@types/node@25.1.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0)
 
-  '@vitest/pretty-format@4.0.17':
+  '@vitest/pretty-format@4.0.18':
     dependencies:
       tinyrainbow: 3.0.3
 
-  '@vitest/runner@4.0.17':
+  '@vitest/runner@4.0.18':
     dependencies:
-      '@vitest/utils': 4.0.17
+      '@vitest/utils': 4.0.18
       pathe: 2.0.3
 
-  '@vitest/snapshot@4.0.17':
+  '@vitest/snapshot@4.0.18':
     dependencies:
-      '@vitest/pretty-format': 4.0.17
+      '@vitest/pretty-format': 4.0.18
       magic-string: 0.30.21
       pathe: 2.0.3
 
-  '@vitest/spy@4.0.17': {}
+  '@vitest/spy@4.0.18': {}
 
-  '@vitest/utils@4.0.17':
+  '@vitest/utils@4.0.18':
     dependencies:
-      '@vitest/pretty-format': 4.0.17
+      '@vitest/pretty-format': 4.0.18
       tinyrainbow: 3.0.3
 
   accepts@1.3.8:
@@ -2616,7 +2647,7 @@ snapshots:
     dependencies:
       '@types/cookie': 0.4.1
       '@types/cors': 2.8.17
-      '@types/node': 25.0.9
+      '@types/node': 25.1.0
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.7.2
@@ -2924,15 +2955,15 @@ snapshots:
 
   negotiator@0.6.3: {}
 
-  next@16.0.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  next@16.0.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       '@next/env': 16.0.10
       '@swc/helpers': 0.5.15
       caniuse-lite: 1.0.30001759
       postcss: 8.4.31
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
-      styled-jsx: 5.1.6(react@19.2.3)
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      styled-jsx: 5.1.6(react@19.2.4)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.0.10
       '@next/swc-darwin-x64': 16.0.10
@@ -3051,9 +3082,9 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  react-dom@19.2.3(react@19.2.3):
+  react-dom@19.2.4(react@19.2.4):
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
       scheduler: 0.27.0
 
   react-email@5.2.5:
@@ -3080,7 +3111,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  react@19.2.3: {}
+  react@19.2.4: {}
 
   readdirp@4.0.2: {}
 
@@ -3240,10 +3271,10 @@ snapshots:
 
   stubborn-utils@1.0.2: {}
 
-  styled-jsx@5.1.6(react@19.2.3):
+  styled-jsx@5.1.6(react@19.2.4):
     dependencies:
       client-only: 0.0.1
-      react: 19.2.3
+      react: 19.2.4
 
   supports-color@7.2.0:
     dependencies:
@@ -3309,7 +3340,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite@7.3.1(@types/node@25.0.9)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0):
+  vite@7.3.1(@types/node@25.1.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0):
     dependencies:
       esbuild: 0.27.2
       fdir: 6.5.0(picomatch@4.0.3)
@@ -3318,21 +3349,21 @@ snapshots:
       rollup: 4.44.1
       tinyglobby: 0.2.15
     optionalDependencies:
-      '@types/node': 25.0.9
+      '@types/node': 25.1.0
       fsevents: 2.3.3
       jiti: 2.4.2
       terser: 5.31.5
       tsx: 4.21.0
 
-  vitest@4.0.17(@types/node@25.0.9)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0):
+  vitest@4.0.18(@types/node@25.1.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0):
     dependencies:
-      '@vitest/expect': 4.0.17
-      '@vitest/mocker': 4.0.17(vite@7.3.1(@types/node@25.0.9)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0))
-      '@vitest/pretty-format': 4.0.17
-      '@vitest/runner': 4.0.17
-      '@vitest/snapshot': 4.0.17
-      '@vitest/spy': 4.0.17
-      '@vitest/utils': 4.0.17
+      '@vitest/expect': 4.0.18
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.1.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0))
+      '@vitest/pretty-format': 4.0.18
+      '@vitest/runner': 4.0.18
+      '@vitest/snapshot': 4.0.18
+      '@vitest/spy': 4.0.18
+      '@vitest/utils': 4.0.18
       es-module-lexer: 1.7.0
       expect-type: 1.2.2
       magic-string: 0.30.21
@@ -3344,10 +3375,10 @@ snapshots:
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vite: 7.3.1(@types/node@25.0.9)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0)
+      vite: 7.3.1(@types/node@25.1.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.21.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 25.0.9
+      '@types/node': 25.1.0
     transitivePeerDependencies:
       - jiti
       - less

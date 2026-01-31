@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:25-alpine@sha256:d1cdf008963e1627f47c4426c33481e538190300ad2514e9f8d5c75755888521 AS builder-frontend
+FROM node:25-alpine@sha256:f741690269ee7abb07675cb744f0b66ec117b482d89d9565a36f2360d5e2a3ef AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -42,7 +42,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:72f488c04f7e85e5680f7525e4ee23d9f4520679d32d5f3610cd3e0fab382a31
+FROM authelia/base:latest@sha256:0f300f7754ac41efcfcb9c7c68e4fa1a9d862a84509414a5cf2ac851764d7524
 
 WORKDIR /app
 
