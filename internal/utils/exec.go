@@ -24,9 +24,29 @@ func Command(name string, args ...string) *exec.Cmd {
 	}
 
 	// By default set the working directory to the project root directory.
+	// Walk up the directory tree until we find go.mod with the correct module.
 	wd, _ := os.Getwd()
-	for !strings.HasSuffix(wd, "authelia") {
-		wd = filepath.Dir(wd)
+	found := false
+
+	for {
+		goModPath := filepath.Join(wd, "go.mod")
+		if data, err := os.ReadFile(goModPath); err == nil {
+			if strings.Contains(string(data), "module github.com/authelia/authelia/v4") {
+				found = true
+				break
+			}
+		}
+
+		parent := filepath.Dir(wd)
+		if parent == wd {
+			break
+		}
+
+		wd = parent
+	}
+
+	if !found {
+		log.Fatalf("Failed to find Authelia project root (go.mod with module github.com/authelia/authelia/v4) from directory: %s", wd)
 	}
 
 	cmd.Dir = wd
