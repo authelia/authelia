@@ -325,6 +325,25 @@ type Provider interface {
 
 	RegulatorProvider
 	CachedDataProvider
+	SessionProvider
+}
+
+// SessionProvider is an interface providing storage capabilities for HTTP session data.
+type SessionProvider interface {
+	// SaveSession saves or updates a session in the database.
+	SaveSession(ctx context.Context, sessionID string, data []byte, lastActiveAt, expiresAt time.Time) (err error)
+
+	// LoadSession loads session data from the database.
+	LoadSession(ctx context.Context, sessionID string) (data []byte, err error)
+
+	// DeleteSession deletes a session from the database.
+	DeleteSession(ctx context.Context, sessionID string) (err error)
+
+	// DeleteExpiredSessions removes all expired sessions from the database.
+	DeleteExpiredSessions(ctx context.Context) (err error)
+
+	// CountSessions returns the count of non-expired sessions.
+	CountSessions(ctx context.Context) (count int, err error)
 }
 
 type CachedDataProvider interface {

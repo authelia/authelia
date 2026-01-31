@@ -130,6 +130,21 @@ func (mr *MockStorageMockRecorder) ConsumeOneTimeCode(ctx, code any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeOneTimeCode", reflect.TypeOf((*MockStorage)(nil).ConsumeOneTimeCode), ctx, code)
 }
 
+// CountSessions mocks base method.
+func (m *MockStorage) CountSessions(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountSessions", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountSessions indicates an expected call of CountSessions.
+func (mr *MockStorageMockRecorder) CountSessions(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountSessions", reflect.TypeOf((*MockStorage)(nil).CountSessions), ctx)
+}
+
 // DeactivateOAuth2DeviceCodeSession mocks base method.
 func (m *MockStorage) DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) error {
 	m.ctrl.T.Helper()
@@ -186,6 +201,20 @@ func (mr *MockStorageMockRecorder) DeleteCachedData(ctx, name any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCachedData", reflect.TypeOf((*MockStorage)(nil).DeleteCachedData), ctx, name)
 }
 
+// DeleteExpiredSessions mocks base method.
+func (m *MockStorage) DeleteExpiredSessions(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExpiredSessions", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExpiredSessions indicates an expected call of DeleteExpiredSessions.
+func (mr *MockStorageMockRecorder) DeleteExpiredSessions(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredSessions", reflect.TypeOf((*MockStorage)(nil).DeleteExpiredSessions), ctx)
+}
+
 // DeletePreferredDuoDevice mocks base method.
 func (m *MockStorage) DeletePreferredDuoDevice(ctx context.Context, username string) error {
 	m.ctrl.T.Helper()
@@ -198,6 +227,20 @@ func (m *MockStorage) DeletePreferredDuoDevice(ctx context.Context, username str
 func (mr *MockStorageMockRecorder) DeletePreferredDuoDevice(ctx, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePreferredDuoDevice", reflect.TypeOf((*MockStorage)(nil).DeletePreferredDuoDevice), ctx, username)
+}
+
+// DeleteSession mocks base method.
+func (m *MockStorage) DeleteSession(ctx context.Context, sessionID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSession", ctx, sessionID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteSession indicates an expected call of DeleteSession.
+func (mr *MockStorageMockRecorder) DeleteSession(ctx, sessionID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSession", reflect.TypeOf((*MockStorage)(nil).DeleteSession), ctx, sessionID)
 }
 
 // DeleteTOTPConfiguration mocks base method.
@@ -615,6 +658,21 @@ func (m *MockStorage) LoadRegulationRecordsByUser(ctx context.Context, username 
 func (mr *MockStorageMockRecorder) LoadRegulationRecordsByUser(ctx, username, since, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadRegulationRecordsByUser", reflect.TypeOf((*MockStorage)(nil).LoadRegulationRecordsByUser), ctx, username, since, limit)
+}
+
+// LoadSession mocks base method.
+func (m *MockStorage) LoadSession(ctx context.Context, sessionID string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadSession", ctx, sessionID)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadSession indicates an expected call of LoadSession.
+func (mr *MockStorageMockRecorder) LoadSession(ctx, sessionID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadSession", reflect.TypeOf((*MockStorage)(nil).LoadSession), ctx, sessionID)
 }
 
 // LoadTOTPConfiguration mocks base method.
@@ -1119,6 +1177,20 @@ func (m *MockStorage) SavePreferredDuoDevice(ctx context.Context, device model.D
 func (mr *MockStorageMockRecorder) SavePreferredDuoDevice(ctx, device any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePreferredDuoDevice", reflect.TypeOf((*MockStorage)(nil).SavePreferredDuoDevice), ctx, device)
+}
+
+// SaveSession mocks base method.
+func (m *MockStorage) SaveSession(ctx context.Context, sessionID string, data []byte, lastActiveAt, expiresAt time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveSession", ctx, sessionID, data, lastActiveAt, expiresAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveSession indicates an expected call of SaveSession.
+func (mr *MockStorageMockRecorder) SaveSession(ctx, sessionID, data, lastActiveAt, expiresAt any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveSession", reflect.TypeOf((*MockStorage)(nil).SaveSession), ctx, sessionID, data, lastActiveAt, expiresAt)
 }
 
 // SaveTOTPConfiguration mocks base method.
