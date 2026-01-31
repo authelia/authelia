@@ -19,7 +19,6 @@ seo:
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---
-LinkAce is a self-hosted web application for managing a bookmark archive.
 
 ## Tested Versions
 
