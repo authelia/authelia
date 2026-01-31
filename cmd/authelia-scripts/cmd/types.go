@@ -28,7 +28,7 @@ type DockerImage struct {
 
 // Match returns true if this image matches the platform.
 func (d DockerImage) Match(platform string) bool {
-	parts := []string{d.OS, d.Architecture}
+	parts := []string{d.OS, d.Architecture} //nolint:prealloc
 
 	if strings.Join(parts, "/") == platform {
 		return true
