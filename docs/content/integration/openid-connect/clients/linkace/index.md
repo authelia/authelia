@@ -7,8 +7,7 @@ draft: false
 images: []
 weight: 620
 toc: true
-aliases:
-  - '/integration/openid-connect/linkace/'
+aliases: []
 support:
   level: community
   versions: true
