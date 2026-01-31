@@ -89,7 +89,7 @@ func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
-	previousUp := make([]int, len(migrations))
+	previousUp := make([]int, 0, len(migrations))
 
 	for i, migration := range migrations {
 		assert.True(t, migration.Up)
@@ -107,7 +107,7 @@ func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
-	previousDown := make([]int, len(migrations))
+	previousDown := make([]int, 0, len(migrations))
 
 	for i, migration := range migrations {
 		assert.False(t, migration.Up)
@@ -127,7 +127,7 @@ func TestMigrationsShouldNotBeDuplicatedMySQL(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
-	previousUp := make([]int, len(migrations))
+	previousUp := make([]int, 0, len(migrations))
 
 	for i, migration := range migrations {
 		assert.True(t, migration.Up)
@@ -145,7 +145,7 @@ func TestMigrationsShouldNotBeDuplicatedMySQL(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
-	previousDown := make([]int, len(migrations))
+	previousDown := make([]int, 0, len(migrations))
 
 	for i, migration := range migrations {
 		assert.False(t, migration.Up)
@@ -165,7 +165,7 @@ func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
-	previousUp := make([]int, len(migrations))
+	previousUp := make([]int, 0, len(migrations))
 
 	for i, migration := range migrations {
 		assert.True(t, migration.Up)
@@ -183,7 +183,7 @@ func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
-	previousDown := make([]int, len(migrations))
+	previousDown := make([]int, 0, len(migrations))
 
 	for i, migration := range migrations {
 		assert.False(t, migration.Up)

@@ -182,7 +182,7 @@ func login(docker *Docker, registry string) {
 }
 
 func deployManifest(docker *Docker, tag ...string) {
-	tags = make([]string, 0)
+	tags = make([]string, 0, 2*len(tag))
 
 	log.Infof("The following Docker manifest(s) will be deployed on %s and %s", dockerhub, ghcr)
 

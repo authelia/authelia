@@ -83,7 +83,7 @@ func (d *Docker) Manifest(tags []string) error {
 		return err
 	}
 
-	finalArgs := make([]string, len(args))
+	finalArgs := make([]string, len(args)) //nolint:prealloc
 
 	copy(finalArgs, args)
 
