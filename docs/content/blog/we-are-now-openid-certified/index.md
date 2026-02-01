@@ -142,7 +142,7 @@ including a similar chart.
 # Join the Discussion and Show Your Support
 
 Feel free to discuss this awesome news in our [Discussion Forum](https://github.com/authelia/authelia/discussions/9525),
-or in one of our many [Chat Methods](../../information/contact.md#chat).
+or in one of our many [Chat Methods](../../overview/project/contact.md#chat).
 
 You can show your support for the Authelia project by giving us a star on [GitHub](https://www.github.com/authelia/authelia).
 
