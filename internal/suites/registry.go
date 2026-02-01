@@ -65,7 +65,7 @@ func (sr *Registry) Get(name string) Suite {
 
 // Suites list available suites.
 func (sr *Registry) Suites() []string {
-	suites := make([]string, 0)
+	suites := make([]string, 0, len(sr.registry))
 	for k := range sr.registry {
 		suites = append(suites, k)
 	}
