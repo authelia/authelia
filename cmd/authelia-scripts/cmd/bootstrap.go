@@ -207,7 +207,7 @@ func pnpmInstall() {
 }
 
 func bootstrapPrintln(args ...any) {
-	a := make([]any, 0)
+	a := make([]any, 0, 1+len(args))
 	a = append(a, "[BOOTSTRAP]")
 	a = append(a, args...)
 	fmt.Println(a...)
