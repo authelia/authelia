@@ -16,8 +16,6 @@ seo:
 
 ## Claims
 
-x
-
 The [OAuth 2.0] and [OpenID Connect 1.0] effectively names the individual content of a token as a [Claim]. Each [Claim]
 can either be granted individually via:
 
