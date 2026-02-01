@@ -15,7 +15,7 @@ require (
 	github.com/fasthttp/session/v2 v2.5.9
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667
-	github.com/go-crypt/crypt v0.4.7
+	github.com/go-crypt/crypt v0.4.8
 	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-ldap/ldap/v3 v3.4.12
 	github.com/go-rod/rod v0.116.2
@@ -72,7 +72,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
-	github.com/go-crypt/x v0.4.9 // indirect
+	github.com/go-crypt/x v0.4.11 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/x v0.1.26 // indirect
 	github.com/google/go-tpm v0.9.6 // indirect
