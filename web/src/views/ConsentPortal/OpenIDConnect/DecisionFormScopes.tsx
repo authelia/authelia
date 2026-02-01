@@ -10,6 +10,7 @@ import { formatScope } from "@services/ConsentOpenIDConnect";
 
 export interface Props {
     scopes: string[];
+    scopeDescriptions: null | Record<string, string>;
 }
 
 const DecisionFormScopes: FC<Props> = (props: Props) => {
@@ -17,12 +18,19 @@ const DecisionFormScopes: FC<Props> = (props: Props) => {
 
     const { classes } = useStyles();
 
+    const getDescription = (scope: string): string => {
+        if (props.scopeDescriptions?.[scope]) {
+            return props.scopeDescriptions[scope];
+        }
+        return translate("Scope", { name: scope });
+    };
+
     return (
         <Grid size={{ xs: 12 }}>
             <Box className={classes.scopesListContainer}>
                 <List className={classes.scopesList}>
                     {props.scopes.map((scope: string) => (
-                        <Tooltip key={scope} title={translate("Scope", { name: scope })}>
+                        <Tooltip key={scope} title={getDescription(scope)}>
                             <ListItem id={"scope-" + scope} key={scope} dense>
                                 <ListItemIcon>{ScopeAvatar(scope)}</ListItemIcon>
                                 <ListItemText primary={formatScope(translate(`scopes.${scope}`), scope)} />

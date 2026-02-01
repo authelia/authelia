@@ -104,6 +104,15 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		registered.ResponseModes = append(registered.ResponseModes, oauthelia2.ResponseModeType(mode))
 	}
 
+	if c != nil && c.Scopes != nil {
+		registered.ScopeDescriptions = make(map[string]string)
+		for scopeName, scope := range c.Scopes {
+			if scope.Description != "" {
+				registered.ScopeDescriptions[scopeName] = scope.Description
+			}
+		}
+	}
+
 	return registered
 }
 
@@ -540,6 +549,7 @@ func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, 
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Name,
+		ScopeDescriptions: c.ScopeDescriptions,
 		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured && !disablePreConf,
 	}
 

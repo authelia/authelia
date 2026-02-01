@@ -770,6 +770,97 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				PreConfiguration:  false,
 			},
 		},
+		{
+			"ShouldIncludeScopeDescriptions",
+			&oidc.RegisteredClient{
+				ID:   myclient,
+				Name: myclientname,
+				ScopeDescriptions: map[string]string{
+					"custom_scope": "Access to custom scope data",
+				},
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, "custom_scope"},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, "custom_scope")},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, "custom_scope"},
+				ScopeDescriptions: map[string]string{
+					"custom_scope": "Access to custom scope data",
+				},
+				Audience:         []string{"https://example.com"},
+				PreConfiguration: false,
+			},
+		},
+		{
+			"ShouldHandleEmptyScopeDescriptions",
+			&oidc.RegisteredClient{
+				ID:                myclient,
+				Name:              myclientname,
+				ScopeDescriptions: map[string]string{},
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				ScopeDescriptions: map[string]string{},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  false,
+			},
+		},
+		{
+			"ShouldIncludeMultipleScopeDescriptions",
+			&oidc.RegisteredClient{
+				ID:   myclient,
+				Name: myclientname,
+				ScopeDescriptions: map[string]string{
+					"admin":    "Admin access",
+					"is_admin": "Check admin status",
+				},
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, "admin", "is_admin"},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s admin is_admin", oidc.ScopeOpenID)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, "admin", "is_admin"},
+				ScopeDescriptions: map[string]string{
+					"admin":    "Admin access",
+					"is_admin": "Check admin status",
+				},
+				Audience:         []string{"https://example.com"},
+				PreConfiguration: false,
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -786,6 +877,74 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 			actual := client.GetConsentResponseBody(tc.session, tc.form, tc.authTime, tc.disablePreConf)
 
 			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestNewClientScopeDescriptions(t *testing.T) {
+	testCases := []struct {
+		name         string
+		oidcConfig   *schema.IdentityProvidersOpenIDConnect
+		expectedDesc map[string]string
+	}{
+		{
+			"ShouldHaveEmptyScopeDescriptionsWhenNoScopesConfigured",
+			&schema.IdentityProvidersOpenIDConnect{
+				Scopes: map[string]schema.IdentityProvidersOpenIDConnectScope{},
+			},
+			map[string]string{},
+		},
+		{
+			"ShouldPopulateScopeDescriptionsFromConfiguration",
+			&schema.IdentityProvidersOpenIDConnect{
+				Scopes: map[string]schema.IdentityProvidersOpenIDConnectScope{
+					"custom_scope": {
+						Description: "This is a custom scope",
+						Claims:      []string{"custom_claim"},
+					},
+					"is_admin": {
+						Description: "Check if user is admin",
+						Claims:      []string{"is_admin"},
+					},
+				},
+			},
+			map[string]string{
+				"custom_scope": "This is a custom scope",
+				"is_admin":     "Check if user is admin",
+			},
+		},
+		{
+			"ShouldIgnoreScopesWithoutDescription",
+			&schema.IdentityProvidersOpenIDConnect{
+				Scopes: map[string]schema.IdentityProvidersOpenIDConnectScope{
+					"scope_with_desc": {
+						Description: "Has description",
+						Claims:      []string{"claim1"},
+					},
+					"scope_without_desc": {
+						Description: "",
+						Claims:      []string{"claim2"},
+					},
+				},
+			},
+			map[string]string{
+				"scope_with_desc": "Has description",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			clientConfig := schema.IdentityProvidersOpenIDConnectClient{
+				ID: myclient,
+			}
+
+			client := oidc.NewClient(clientConfig, tc.oidcConfig, nil)
+
+			registeredClient, ok := client.(*oidc.RegisteredClient)
+			require.True(t, ok)
+
+			assert.Equal(t, tc.expectedDesc, registeredClient.ScopeDescriptions)
 		})
 	}
 }

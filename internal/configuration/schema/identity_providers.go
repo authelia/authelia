@@ -72,7 +72,8 @@ type IdentityProvidersOpenIDConnectCustomClaim struct {
 }
 
 type IdentityProvidersOpenIDConnectScope struct {
-	Claims []string `koanf:"claims" yaml:"claims,omitempty" toml:"claims,omitempty" json:"claims,omitempty" jsonschema:"title=Claims" jsonschema_description:"The list of claims that this scope includes. When this scope is used by a client the clients claim policy must satisfy every claim."`
+	Claims      []string `koanf:"claims" yaml:"claims,omitempty" toml:"claims,omitempty" json:"claims,omitempty" jsonschema:"title=Claims" jsonschema_description:"The list of claims that this scope includes. When this scope is used by a client the clients claim policy must satisfy every claim."`
+	Description string   `koanf:"description" yaml:"description,omitempty" toml:"description,omitempty" json:"description,omitempty" jsonschema:"title=Description" jsonschema_description:"The user-friendly description of this scope, displayed on the consent screen."`
 }
 
 // IdentityProvidersOpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies.

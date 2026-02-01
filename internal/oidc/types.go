@@ -138,6 +138,8 @@ type RegisteredClient struct {
 	RequestURIs    []string
 	JSONWebKeys    *jose.JSONWebKeySet
 	JSONWebKeysURI *url.URL
+
+	ScopeDescriptions map[string]string
 }
 
 // Client represents the internal client definitions.
@@ -299,14 +301,15 @@ type UserDetailer interface {
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
 type ConsentGetResponseBody struct {
-	ClientID          string   `json:"client_id"`
-	ClientDescription string   `json:"client_description"`
-	Scopes            []string `json:"scopes"`
-	Audience          []string `json:"audience"`
-	PreConfiguration  bool     `json:"pre_configuration"`
-	Claims            []string `json:"claims"`
-	EssentialClaims   []string `json:"essential_claims"`
-	RequireLogin      bool     `json:"require_login"`
+	ClientID          string            `json:"client_id"`
+	ClientDescription string            `json:"client_description"`
+	Scopes            []string          `json:"scopes"`
+	ScopeDescriptions map[string]string `json:"scope_descriptions"`
+	Audience          []string          `json:"audience"`
+	PreConfiguration  bool              `json:"pre_configuration"`
+	Claims            []string          `json:"claims"`
+	EssentialClaims   []string          `json:"essential_claims"`
+	RequireLogin      bool              `json:"require_login"`
 }
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.

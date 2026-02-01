@@ -24,6 +24,7 @@ export interface ConsentGetResponseBody {
     client_id: string;
     client_description: string;
     scopes: string[];
+    scope_descriptions: null | Record<string, string>;
     audience: string[];
     pre_configuration: boolean;
     claims: null | string[];

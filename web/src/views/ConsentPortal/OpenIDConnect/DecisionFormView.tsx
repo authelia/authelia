@@ -333,7 +333,7 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                         {translate("The above application is requesting the following permissions")}:
                                     </Box>
                                 </Grid>
-                                <DecisionFormScopes scopes={response.scopes} />
+                                <DecisionFormScopes scopes={response.scopes} scopeDescriptions={response.scope_descriptions} />
                                 <DecisionFormClaims
                                     claims={claims}
                                     essential_claims={response.essential_claims}
