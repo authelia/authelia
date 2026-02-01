@@ -127,7 +127,6 @@ func newDocsDataKeysCmd() *cobra.Command {
 }
 
 func docsKeysRunE(cmd *cobra.Command, args []string) (err error) {
-	//nolint:prealloc
 	var (
 		data []ConfigurationKey
 	)
