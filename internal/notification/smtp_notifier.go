@@ -29,7 +29,7 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		configTLS = utils.NewTLSConfig(config.TLS, certPool)
 	}
 
-	var opts []gomail.Option
+	var opts []gomail.Option //nolint:prealloc
 
 	switch {
 	case config.Address.IsExplicitlySecure():
