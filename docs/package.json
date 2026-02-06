@@ -27,21 +27,21 @@
   "dependencies": {
     "@docsearch/css": "3.9.0",
     "@docsearch/js": "3.9.0",
-    "@tabler/icons": "3.31.0",
-    "@thulite/doks-core": "1.8.1",
-    "@thulite/images": "3.3.1",
-    "@thulite/inline-svg": "1.2.0",
-    "@thulite/seo": "2.4.1",
-    "bootstrap-icons": "1.11.3",
+    "@tabler/icons": "3.36.1",
+    "@thulite/doks-core": "1.8.4",
+    "@thulite/images": "3.3.4",
+    "@thulite/inline-svg": "1.2.2",
+    "@thulite/seo": "2.4.3",
+    "bootstrap-icons": "1.13.1",
     "exec-bin": "1.0.0",
     "hugo-installer": "4.0.1",
-    "thulite": "2.5.0"
+    "thulite": "2.6.4"
   },
   "devDependencies": {
     "shx": "0.4.0"
   },
   "otherDependencies": {
-    "hugo": "0.145.0"
+    "hugo": "0.155.1"
   },
   "overrides": {
     "semver": "7.5.4"
