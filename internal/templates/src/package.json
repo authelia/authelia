@@ -15,14 +15,14 @@
 		"esbuild": "0.27.2",
 		"react": "19.2.4",
 		"react-dom": "19.2.4",
-		"react-email": "5.2.6",
+		"react-email": "5.2.7",
 		"tailwind-merge": "3.4.0",
 		"tailwindcss": "4.1.18",
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@react-email/preview-server": "5.2.6",
+		"@react-email/preview-server": "5.2.7",
 		"@types/node": "25.2.1",
 		"@types/react": "19.2.10",
 		"@types/react-dom": "19.2.3",

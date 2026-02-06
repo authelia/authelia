@@ -36,8 +36,8 @@ importers:
         specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
       react-email:
-        specifier: 5.2.6
-        version: 5.2.6
+        specifier: 5.2.7
+        version: 5.2.7
       tailwind-merge:
         specifier: 3.4.0
         version: 3.4.0
@@ -52,8 +52,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0
       '@react-email/preview-server':
-        specifier: 5.2.6
-        version: 5.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 5.2.7
+        version: 5.2.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@types/node':
         specifier: 25.2.1
         version: 25.2.1
@@ -654,8 +654,8 @@ packages:
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
 
-  '@react-email/preview-server@5.2.6':
-    resolution: {integrity: sha512-aymUlIpBW0cjJr+QZa6sAD57FEA9ujGqtUTHTXjpz5eGhn6nKJQlqHClNS7H22RriH1aCE7hqMsPzljvzH0Y6g==}
+  '@react-email/preview-server@5.2.7':
+    resolution: {integrity: sha512-3ueOHitbbrbtclkieghHJupwoFFNMGQABBLCTIHFmyY6Gcg2CK7drwFzTFyPd7M756SvmD0E0lTDtoRkSTqrJg==}
 
   '@react-email/preview@0.0.14':
     resolution: {integrity: sha512-aYK8q0IPkBXyMsbpMXgxazwHxYJxTrXrV95GFuu2HbEiIToMwSyUgb8HDFYwPqqfV03/jbwqlsXmFxsOd+VNaw==}
@@ -1536,8 +1536,8 @@ packages:
     peerDependencies:
       react: ^19.2.4
 
-  react-email@5.2.6:
-    resolution: {integrity: sha512-r3fVZJDu8OKEZIAIvSIV88dQvlxYJBs+VBgzYdinD6Fm3qAQiRAnBzuJKHOlQ/GZreSN2/f6m8Jc5PYOBfrB9g==}
+  react-email@5.2.7:
+    resolution: {integrity: sha512-qTRqN+Ftvc6k8COSDM3IROmimbBWMykWFWxk4FKDKjoLw9bMfwavXJSeACmkwoiv+7jws/Pm1xNf9eoR7blt8g==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
@@ -2279,7 +2279,7 @@ snapshots:
       marked: 15.0.12
       react: 19.2.4
 
-  '@react-email/preview-server@5.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@react-email/preview-server@5.2.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       next: 16.0.11(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
     transitivePeerDependencies:
@@ -3087,7 +3087,7 @@ snapshots:
       react: 19.2.4
       scheduler: 0.27.0
 
-  react-email@5.2.6:
+  react-email@5.2.7:
     dependencies:
       '@babel/parser': 7.29.0
       '@babel/traverse': 7.29.0
