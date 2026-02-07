@@ -58,7 +58,7 @@ func (e *UserAttributesExpressions) StartupCheck() (err error) {
 
 //nolint:gocyclo
 func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
-	opts := []cel.EnvOption{
+	opts := withBaseCELEnvOpts(
 		newAttributeUserUsername(),
 		newAttributeUserGroups(),
 		newAttributeUserDisplayName(),
@@ -67,7 +67,7 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 		newAttributeUserEmails(),
 		newAttributeUserEmailsExtra(),
 		newAttributeUpdatedAt(),
-	}
+	)
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.GivenName != "" {
 		opts = append(opts, newAttributeUserGivenName())
