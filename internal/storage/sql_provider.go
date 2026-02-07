@@ -69,6 +69,12 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectBannedIPLastTime: fmt.Sprintf(queryFmtSelectBannedIPLastExpires, tableBannedIP),
 		sqlRevokeBannedIP:         fmt.Sprintf(queryFmtRevokeBannedEntry, tableBannedIP),
 
+		sqlUpsertSession:         fmt.Sprintf(queryFmtUpsertSession, tableSessions),
+		sqlSelectSession:         fmt.Sprintf(queryFmtSelectSession, tableSessions),
+		sqlDeleteSession:         fmt.Sprintf(queryFmtDeleteSession, tableSessions),
+		sqlDeleteExpiredSessions: fmt.Sprintf(queryFmtDeleteExpiredSessions, tableSessions),
+		sqlCountSessions:         fmt.Sprintf(queryFmtCountSessions, tableSessions),
+
 		sqlUpsertCachedData: fmt.Sprintf(queryFmtUpsertCachedData, tableCachedData),
 		sqlSelectCachedData: fmt.Sprintf(queryFmtSelectCachedData, tableCachedData),
 		sqlDeleteCachedData: fmt.Sprintf(queryFmtDeleteCachedData, tableCachedData),
@@ -230,6 +236,13 @@ type SQLProvider struct {
 	sqlSelectBannedIPs        string
 	sqlSelectBannedIPLastTime string
 	sqlRevokeBannedIP         string
+
+	// Table: sessions.
+	sqlUpsertSession         string
+	sqlSelectSession         string
+	sqlDeleteSession         string
+	sqlDeleteExpiredSessions string
+	sqlCountSessions         string
 
 	// Table: cached_data.
 	sqlUpsertCachedData string
@@ -1704,6 +1717,50 @@ func (p *SQLProvider) RevokeBannedIP(ctx context.Context, id int, expired time.T
 	}
 
 	return nil
+}
+
+func (p *SQLProvider) SaveSession(ctx context.Context, sessionID string, data []byte, lastActiveAt, expiresAt time.Time) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertSession, sessionID, data, lastActiveAt, expiresAt); err != nil {
+		return fmt.Errorf("error upserting session with id '%s': %w", sessionID, err)
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) LoadSession(ctx context.Context, sessionID string) (data []byte, err error) {
+	if err = p.db.QueryRowContext(ctx, p.sqlSelectSession, sessionID, time.Now()).Scan(&data); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("error selecting session with id '%s': %w", sessionID, err)
+	}
+
+	return data, nil
+}
+
+func (p *SQLProvider) DeleteSession(ctx context.Context, sessionID string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteSession, sessionID); err != nil {
+		return fmt.Errorf("error deleting session with id '%s': %w", sessionID, err)
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) DeleteExpiredSessions(ctx context.Context) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteExpiredSessions, time.Now()); err != nil {
+		return fmt.Errorf("error deleting expired sessions: %w", err)
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) CountSessions(ctx context.Context) (count int, err error) {
+	if err = p.db.QueryRowContext(ctx, p.sqlCountSessions, time.Now()).Scan(&count); err != nil {
+		return 0, fmt.Errorf("error counting sessions: %w", err)
+	}
+
+	return count, nil
 }
 
 func (p *SQLProvider) SaveCachedData(ctx context.Context, data model.CachedData) (err error) {

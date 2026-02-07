@@ -59,7 +59,7 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 		},
 	}
 
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil, nil)
 
 	opts := NewTemplatedFileOptions(&mock.Ctx.Configuration)
 

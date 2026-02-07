@@ -1034,3 +1034,39 @@ func MustParseURL(uri string) *url.URL {
 
 	return u
 }
+
+func TestShouldRaiseErrorWhenSQLStorageAndSecretNotSet(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Session.Secret = ""
+	config.Storage.Local = &schema.StorageLocal{Path: "/tmp/db.sqlite3"}
+
+	ValidateSession(&config, validator)
+
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, validator.Errors(), 1)
+
+	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionSecretRequired, "sql"))
+}
+
+func TestShouldAcceptSQLStorageWithSecret(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Storage.Local = &schema.StorageLocal{Path: "/tmp/db.sqlite3"}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+}
+
+func TestShouldNotRequireSecretWhenNoStorageConfigured(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Session.Secret = ""
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+}

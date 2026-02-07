@@ -57,7 +57,7 @@ func (s *AuthzSuite) ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock 
 		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
 	}
 
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil, nil)
 }
 
 func (s *AuthzSuite) Builder() (builder *AuthzBuilder) {
