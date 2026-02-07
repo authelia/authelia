@@ -115,6 +115,7 @@ groups_attribute_path = groups
 name_attribute_path = name
 use_pkce = true
 role_attribute_path =
+auth_style = InHeader
 ```
 
 #### Environment Variables
@@ -140,6 +141,7 @@ GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH=groups
 GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH=name
 GF_AUTH_GENERIC_OAUTH_USE_PKCE=true
 GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=
+GF_AUTH_GENERIC_OAUTH_AUTH_STYLE=InHeader
 ```
 
 ##### Docker Compose
@@ -164,6 +166,7 @@ services:
       GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH: 'name'
       GF_AUTH_GENERIC_OAUTH_USE_PKCE: 'true'
       GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: ''
+      GF_AUTH_GENERIC_OAUTH_AUTH_STYLE: 'InHeader'
 ```
 
 ### Role Attribute Path
