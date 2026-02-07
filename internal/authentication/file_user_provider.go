@@ -16,6 +16,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/go-crypt/crypt/algorithm/shacrypt"
 
+	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -24,6 +25,7 @@ import (
 // FileUserProvider is a provider reading details from a file.
 type FileUserProvider struct {
 	config        *schema.AuthenticationBackendFile
+	filters       []configuration.BytesFilter
 	hash          algorithm.Hash
 	database      FileUserProviderDatabase
 	mutex         sync.Mutex
@@ -31,11 +33,12 @@ type FileUserProvider struct {
 }
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
-func NewFileUserProvider(config *schema.AuthenticationBackendFile) (provider *FileUserProvider) {
+func NewFileUserProvider(config *schema.AuthenticationBackendFile, filters []configuration.BytesFilter) (provider *FileUserProvider) {
 	return &FileUserProvider{
 		config:        config,
+		filters:       filters,
 		timeoutReload: time.Now().Add(-1 * time.Second),
-		database:      NewFileUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive, getExtra(config)),
+		database:      NewFileUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive, getExtra(config), filters),
 	}
 }
 
@@ -224,7 +227,7 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 	}
 
 	if p.database == nil {
-		p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive, getExtra(p.config))
+		p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive, getExtra(p.config), p.filters)
 	}
 
 	if err = p.database.Load(); err != nil {

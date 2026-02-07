@@ -5,6 +5,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
+	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/metrics"
@@ -23,8 +24,8 @@ import (
 // New returns a completely new set of providers using the internal API. It is expected you'll check the errs return
 // value for any errors, and handle any warnings in a graceful way. If errors are returned the providers should not be
 // utilized to run anything.
-func New(config *schema.Configuration, caCertPool *x509.CertPool) (providers middlewares.Providers, warns []error, errs []error) {
-	return middlewares.NewProviders(config, caCertPool)
+func New(config *schema.Configuration, caCertPool *x509.CertPool, filters []configuration.BytesFilter) (providers middlewares.Providers, warns []error, errs []error) {
+	return middlewares.NewProviders(config, caCertPool, filters)
 }
 
 // NewClock creates a new clock provider.

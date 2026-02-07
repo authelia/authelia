@@ -25,13 +25,13 @@ func TestDatabaseModel_Read(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.EqualError(t, model.Read(filepath.Join(dir, "users_database.yml")), "no file content")
+	assert.EqualError(t, model.Read(filepath.Join(dir, "users_database.yml"), nil), "no file content")
 
 	assert.NoError(t, os.Mkdir(filepath.Join(dir, "x"), 0000))
 
 	f := filepath.Join(dir, "x", "users_database.yml")
 
-	assert.EqualError(t, model.Read(f), fmt.Sprintf("failed to read the '%s' file: open %s: permission denied", f, f))
+	assert.EqualError(t, model.Read(f, nil), fmt.Sprintf("failed to read the '%s' file: open %s: permission denied", f, f))
 
 	f = filepath.Join(dir, "schema.yml")
 
@@ -42,7 +42,7 @@ func TestDatabaseModel_Read(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.EqualError(t, model.Read(f), "could not parse the YAML database: yaml: line 2: found character that cannot start any token")
+	assert.EqualError(t, model.Read(f, nil), "could not parse the YAML database: yaml: line 2: found character that cannot start any token")
 }
 
 func TestDatabaseModelExtended(t *testing.T) {

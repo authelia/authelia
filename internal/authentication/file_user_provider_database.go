@@ -13,6 +13,7 @@ import (
 	"go.yaml.in/yaml/v4"
 	"golang.org/x/text/language"
 
+	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 )
@@ -25,7 +26,7 @@ type FileUserProviderDatabase interface {
 }
 
 // NewFileUserDatabase creates a new FileUserDatabase.
-func NewFileUserDatabase(filePath string, searchEmail, searchCI bool, extra map[string]expression.ExtraAttribute) (database *FileUserDatabase) {
+func NewFileUserDatabase(filePath string, searchEmail, searchCI bool, extra map[string]expression.ExtraAttribute, filters []configuration.BytesFilter) (database *FileUserDatabase) {
 	return &FileUserDatabase{
 		RWMutex:     &sync.RWMutex{},
 		Path:        filePath,
@@ -35,6 +36,7 @@ func NewFileUserDatabase(filePath string, searchEmail, searchCI bool, extra map[
 		SearchEmail: searchEmail,
 		SearchCI:    searchCI,
 		Extra:       extra,
+		Filters:     filters,
 	}
 }
 
@@ -51,7 +53,8 @@ type FileUserDatabase struct {
 	SearchEmail bool `json:"-"`
 	SearchCI    bool `json:"-"`
 
-	Extra map[string]expression.ExtraAttribute
+	Extra   map[string]expression.ExtraAttribute
+	Filters []configuration.BytesFilter `json:"-"`
 }
 
 // Save the database to disk.
@@ -71,7 +74,7 @@ func (m *FileUserDatabase) Save() (err error) {
 func (m *FileUserDatabase) Load() (err error) {
 	yml := &FileDatabaseModel{Users: map[string]FileDatabaseUserDetailsModel{}}
 
-	if err = yml.Read(m.Path); err != nil {
+	if err = yml.Read(m.Path, m.Filters); err != nil {
 		return fmt.Errorf("error reading the authentication database: %w", err)
 	}
 
@@ -369,7 +372,7 @@ func (m *FileDatabaseModel) ReadToFileUserDatabase(db *FileUserDatabase, extra m
 }
 
 // Read a FileDatabaseModel from disk.
-func (m *FileDatabaseModel) Read(filePath string) (err error) {
+func (m *FileDatabaseModel) Read(filePath string, filters []configuration.BytesFilter) (err error) {
 	var (
 		content []byte
 		ok      bool
@@ -377,6 +380,13 @@ func (m *FileDatabaseModel) Read(filePath string) (err error) {
 
 	if content, err = os.ReadFile(filePath); err != nil {
 		return fmt.Errorf("failed to read the '%s' file: %w", filePath, err)
+	}
+
+	// Apply filters before YAML parsing (supports env vars and templating).
+	for _, filter := range filters {
+		if content, err = filter.Filter(content); err != nil {
+			return fmt.Errorf("failed to filter the '%s' file: %w", filePath, err)
+		}
 	}
 
 	if len(content) == 0 {
