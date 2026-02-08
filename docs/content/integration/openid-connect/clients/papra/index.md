@@ -24,7 +24,7 @@ seo:
 - [Authelia]
   - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
 - [Papra]
-  - [v0.7.0](https://github.com/papra-hq/papra/releases/tag/%40papra%2Fapp-server%400.7.0)
+  - [v26.1.0](https://github.com/papra-hq/papra/pkgs/container/papra/656320542?tag=26.1.0-rootless)
 
 {{% oidc-common %}}
 
@@ -59,10 +59,10 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
-        require_pkce: true
-        pkce_challenge_method: 'S256'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
-          - 'https://papra.{{< sitevar name="domain" nojs="example.com" >}}/api/v2/users/oidc/callback'
+          - 'https://papra.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/oauth2/callback/authelia'
         scopes:
           - 'openid'
           - 'profile'

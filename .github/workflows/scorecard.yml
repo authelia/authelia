@@ -21,7 +21,7 @@ jobs:
       id-token: 'write'
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9  # v2.14.1
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e  # v2.14.2
         with:
           egress-policy: audit
       - name: 'Checkout'
@@ -51,7 +51,7 @@ jobs:
           path: 'results.sarif'
           retention-days: 5
       - name: 'Upload Results to Dashboard'
-        uses: github/codeql-action/upload-sarif@b20883b0cd1f46c72ae0ba6d1090936928f9fa30  # v4.32.0
+        uses: github/codeql-action/upload-sarif@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2  # v4.32.2
         with:
           sarif_file: 'results.sarif'
 ...

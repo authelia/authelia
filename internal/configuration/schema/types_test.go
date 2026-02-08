@@ -97,13 +97,13 @@ func TestPasswordDigest_UnmarshalYAML(t *testing.T) {
 			"ShouldErrUnmarshalValue",
 			"password: $p-sha256$310000$C./EitMdCemqoluAK4Kapw$TTb4uTnL09mJsfbVnypCzJjGvICiiqO56i8VlU5zx6Q\n",
 			Example{},
-			"yaml: unmarshal errors:\n  line 1: provided encoded hash has an invalid identifier: the identifier 'p-sha256' is unknown to the decoder",
+			"yaml: construct errors:\n  line 1: provided encoded hash has an invalid identifier: the identifier 'p-sha256' is unknown to the decoder",
 		},
 		{
 			"ShouldErrUnmarshalValueType",
 			"password: 1\n",
 			Example{},
-			"yaml: unmarshal errors:\n  line 1: provided encoded hash has an invalid format: the digest doesn't begin with the delimiter '$' and is not one of the other understood formats",
+			"yaml: construct errors:\n  line 1: provided encoded hash has an invalid format: the digest doesn't begin with the delimiter '$' and is not one of the other understood formats",
 		},
 	}
 
