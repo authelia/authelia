@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -15,7 +15,7 @@ interface Props {
 
 const WebAuthnCredentialEditDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [credentialDescription, setCredentialDescription] = useState("");
     const descriptionRef = useRef<HTMLInputElement>(null);
@@ -27,7 +27,7 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
     };
 
     const handleUpdate = () => {
-        if (!credentialDescription.length) {
+        if (credentialDescription.length === 0) {
             setErrorDescription(true);
         } else {
             handleEdit(credentialDescription).catch(console.error);
@@ -99,7 +99,6 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                     {translate("Enter a new description for this WebAuthn Credential")}
                 </DialogContentText>
                 <TextField
-                    autoFocus
                     inputRef={descriptionRef}
                     id="webauthn-credential-description"
                     label={translate("Description")}

@@ -2,7 +2,7 @@
 title: "NGINX Ingress"
 description: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
 summary: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 555
@@ -18,8 +18,8 @@ There are two nginx ingress controllers for Kubernetes. The Kubernetes official 
 official one [nginx-ingress-controller]. We only have integration documentation for [ingress-nginx] and there are no
 plans to support the F5 [nginx-ingress-controller].
 
-The [nginx documentation](../proxies/nginx.md) may also be useful for crafting advanced snippets to use with annotations
-even though it's not specific to Kubernetes.
+The [nginx Proxy documentation](../proxies/nginx.md) may also be useful with this ingress even though it's not
+specific to Kubernetes.
 
 ## Get started
 

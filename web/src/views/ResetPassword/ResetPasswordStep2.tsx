@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Button, FormControl, IconButton, InputAdornment, Theme } from "@mui/material";
@@ -27,7 +27,7 @@ const ResetPasswordStep2 = function () {
     const [password2, setPassword2] = useState("");
     const [errorPassword1, setErrorPassword1] = useState(false);
     const [errorPassword2, setErrorPassword2] = useState(false);
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -35,11 +35,11 @@ const ResetPasswordStep2 = function () {
         max_length: 0,
         min_length: 8,
         min_score: 0,
+        mode: PasswordPolicyMode.Disabled,
         require_lowercase: false,
         require_number: false,
         require_special: false,
         require_uppercase: false,
-        mode: PasswordPolicyMode.Disabled,
     });
 
     // Get the token from the query param to give it back to the API when requesting
@@ -47,45 +47,42 @@ const ResetPasswordStep2 = function () {
     const processToken = useQueryParam(IdentityToken);
 
     const handleRateLimited = useCallback(
-        (retryAfter: number) => {
-            createErrorNotification(translate("You have made too many requests"));
+        (_retryAfter: number) => {
+            createErrorNotification(translate("You have made too many requests")); // TODO: Do we want to add the amount of seconds a user should retry in the message?
         },
         [createErrorNotification, translate],
     );
 
-    const handleSubmitReset = useCallback(async () => {
-        if (!processToken) {
-            setFormDisabled(true);
-            createErrorNotification(translate("No verification token provided"));
-            return;
-        }
-
-        try {
-            setFormDisabled(true);
-
-            const response = await completeResetPasswordProcess(processToken);
-
-            if (response && response.limited) {
-                handleRateLimited(response.retryAfter);
-
+    useEffect(() => {
+        const submitReset = async () => {
+            if (!processToken) {
+                setFormDisabled(true);
+                createErrorNotification(translate("No verification token provided"));
                 return;
             }
 
-            const policy = await getPasswordPolicyConfiguration();
-            setPPolicy(policy);
-            setFormDisabled(false);
-        } catch (err) {
-            console.error(err);
-            createErrorNotification(
-                translate("There was an issue completing the process the verification token might have expired"),
-            );
-            setFormDisabled(true);
-        }
-    }, [processToken, createErrorNotification, translate, handleRateLimited]);
+            try {
+                const response = await completeResetPasswordProcess(processToken);
 
-    useEffect(() => {
-        handleSubmitReset();
-    }, [handleSubmitReset]);
+                if (response?.limited) {
+                    handleRateLimited(response.retryAfter);
+                    return;
+                }
+
+                const policy = await getPasswordPolicyConfiguration();
+                setPPolicy(policy);
+                setFormDisabled(false);
+            } catch (err) {
+                console.error(err);
+                createErrorNotification(
+                    translate("There was an issue completing the process the verification token might have expired"),
+                );
+                setFormDisabled(true);
+            }
+        };
+
+        submitReset().catch(console.error);
+    }, [processToken, createErrorNotification, translate, handleRateLimited]);
 
     const doResetPassword = async () => {
         setPassword1("");
@@ -117,11 +114,7 @@ const ResetPasswordStep2 = function () {
             setTimeout(() => navigate(IndexRoute), 1500);
         } catch (err) {
             console.error(err);
-            if ((err as Error).message.includes("0000052D.")) {
-                createErrorNotification(
-                    translate("Your supplied password does not meet the password policy requirements"),
-                );
-            } else if ((err as Error).message.includes("policy")) {
+            if ((err as Error).message.includes("0000052D.") || (err as Error).message.includes("policy")) {
                 createErrorNotification(
                     translate("Your supplied password does not meet the password policy requirements"),
                 );
@@ -131,7 +124,9 @@ const ResetPasswordStep2 = function () {
         }
     };
 
-    const handleResetClick = () => doResetPassword();
+    const handleResetClick = () => {
+        doResetPassword().catch(console.error);
+    };
 
     const handleCancelClick = () => navigate(IndexRoute);
 
@@ -201,7 +196,7 @@ const ResetPasswordStep2 = function () {
                             error={errorPassword2}
                             onKeyDown={(ev) => {
                                 if (ev.key === "Enter") {
-                                    doResetPassword();
+                                    doResetPassword().catch(console.error);
                                     ev.preventDefault();
                                 }
                             }}
@@ -241,12 +236,12 @@ const ResetPasswordStep2 = function () {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
     fullWidth: {
         width: "100%",
+    },
+    root: {
+        marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
     },
 }));
 

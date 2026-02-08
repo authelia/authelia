@@ -1,11 +1,17 @@
 package authentication
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/mail"
 	"net/url"
 
+	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/text/language"
+
+	"github.com/authelia/authelia/v4/internal/clock"
 )
 
 // UserDetails represent the details retrieved for a given user.
@@ -236,12 +242,17 @@ type LDAPSupportedFeatures struct {
 
 // LDAPSupportedExtensions represents extensions which a server may support which are implemented in code.
 type LDAPSupportedExtensions struct {
-	TLS           bool
-	PwdModifyExOp bool
+	OIDs []string
+
+	TLS       bool
+	PwdModify bool
+	WhoAmI    bool
 }
 
 // LDAPSupportedControlTypes represents control types which a server may support which are implemented in code.
 type LDAPSupportedControlTypes struct {
+	OIDs []string
+
 	MsftPwdPolHints           bool
 	MsftPwdPolHintsDeprecated bool
 }
@@ -272,4 +283,68 @@ func (l Level) String() string {
 	default:
 		return "invalid"
 	}
+}
+
+type Context interface {
+	context.Context
+
+	GetUserProvider() UserProvider
+	GetLogger() *logrus.Entry
+	GetClock() clock.Provider
+}
+
+func NewPoolCtxErr(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		return &PoolErr{
+			err:             err,
+			isDeadlineError: true,
+		}
+	}
+
+	return &PoolErr{err: err}
+}
+
+type PoolErr struct {
+	err             error
+	isDeadlineError bool
+}
+
+func (e *PoolErr) Error() string {
+	return e.err.Error()
+}
+
+func (e *PoolErr) Is(target error) bool {
+	return errors.Is(e.err, target)
+}
+
+func (e *PoolErr) Unwrap() error {
+	return e.err
+}
+
+func (e *PoolErr) IsDeadlineError() bool {
+	return e.isDeadlineError
+}
+
+type LDAPBaseClient interface {
+	ldap.Client
+
+	GSSAPIBind(client ldap.GSSAPIClient, servicePrincipal, authzid string) (err error)
+	GSSAPIBindRequest(client ldap.GSSAPIClient, req *ldap.GSSAPIBindRequest) (err error)
+	GSSAPIBindRequestWithAPOptions(client ldap.GSSAPIClient, req *ldap.GSSAPIBindRequest, APOptions []int) (err error)
+	MD5Bind(host, username, password string) error
+	DigestMD5Bind(digestMD5BindRequest *ldap.DigestMD5BindRequest) (*ldap.DigestMD5BindResult, error)
+	NTLMChallengeBind(challenge *ldap.NTLMBindRequest) (result *ldap.NTLMBindResult, err error)
+	NTLMBindWithHash(domain, username, hash string) (err error)
+	NTLMBind(domain, username, password string) (err error)
+	WhoAmI(controls []ldap.Control) (result *ldap.WhoAmIResult, err error)
+}
+
+type LDAPExtendedClient interface {
+	LDAPBaseClient
+
+	Features() (features LDAPSupportedFeatures)
 }

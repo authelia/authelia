@@ -2,7 +2,7 @@
 title: "authelia-gen docs manage adr"
 description: "Reference for the authelia-gen docs manage adr command."
 lead: ""
-date: 2022-09-16T14:21:05+10:00
+date: 2025-08-01T16:23:47+10:00
 draft: false
 images: []
 weight: 915
@@ -42,7 +42,7 @@ Generate an Architecture Decision Record
       --dir.web string                                             The repository web directory in relation to the root directory (default "web")
   -X, --exclude strings                                            Sets the names of excluded generators
       --file.bug-report string                                     Sets the path of the bug report issue template file (default ".github/ISSUE_TEMPLATE/bug-report.yml")
-      --file.commit-lint-config string                             The commit lint javascript configuration file in relation to the root (default ".commitlintrc.cjs")
+      --file.commit-lint-config string                             The commit lint javascript configuration file in relation to the root (default "commitlint.config.mjs")
       --file.configuration-keys string                             Sets the path of the keys file (default "internal/configuration/schema/keys.go")
       --file.docs-commit-msg-guidelines string                     The commit message guidelines documentation file in relation to the root (default "docs/content/contributing/guidelines/commit-message.md")
       --file.docs.data.keys string                                 Sets the path of the docs keys file (default "configkeys.json")

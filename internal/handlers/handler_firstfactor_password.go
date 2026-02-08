@@ -30,14 +30,16 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 			err     error
 		)
 		if err = ctx.ParseBody(&bodyJSON); err != nil {
-			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthType1FA)
-
 			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthType1FA)
 
 			return
 		}
 
 		if details, err = ctx.Providers.UserProvider.GetDetails(bodyJSON.Username); err != nil || details == nil {
+			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthType1FA, err)
+
 			ctx.Logger.WithError(err).Errorf("Error occurred getting details for user with username input '%s' which usually indicates they do not exist", bodyJSON.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -63,7 +65,11 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 
 		userPasswordOk, err := ctx.Providers.UserProvider.CheckUserPassword(details.Username, bodyJSON.Password)
 		if err != nil {
-			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, err)
+			if isRegulatorSkippedErr(err) {
+				ctx.Logger.WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, details.Username)
+			} else {
+				doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, err)
+			}
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 

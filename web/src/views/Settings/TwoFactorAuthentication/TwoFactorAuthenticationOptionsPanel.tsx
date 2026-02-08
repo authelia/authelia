@@ -1,4 +1,4 @@
-import React, { ChangeEvent, Fragment, useEffect, useState } from "react";
+import { ChangeEvent, Fragment, useEffect, useMemo, useReducer } from "react";
 
 import { Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -18,51 +18,54 @@ interface Props {
     info: UserInfo;
 }
 
+type ComponentState = {
+    method: SecondFactorMethod | undefined;
+};
+
+type Action = { type: "setMethod"; method: SecondFactorMethod };
+
+const initialState: ComponentState = {
+    method: undefined,
+};
+
+function reducer(state: ComponentState, action: Action): ComponentState {
+    if (action.type === "setMethod") {
+        return { ...state, method: action.method };
+    }
+    return state;
+}
+
 const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
     const { createErrorNotification } = useNotifications();
-    const { localStorageMethod, setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { localStorageMethod, localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
 
-    const [method, setMethod] = useState<SecondFactorMethod>();
-    const [methods, setMethods] = useState<SecondFactorMethod[]>([]);
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const { method } = state;
 
     const hasMethods = props.info.has_totp || props.info.has_webauthn || props.info.has_duo;
 
     useEffect(() => {
         if (props.info === undefined) return;
 
-        setMethod(props.info.method);
+        dispatch({ method: props.info.method, type: "setMethod" });
     }, [props.info]);
 
-    useEffect(() => {
-        if (!hasMethods) return;
-        let valuesFinal: SecondFactorMethod[] = [];
+    const methods = useMemo(() => {
+        if (!hasMethods) return [];
 
-        const values = Array.from(props.config.available_methods);
-
-        values.forEach((value) => {
-            if (!valuesFinal.includes(value)) {
-                switch (value) {
-                    case SecondFactorMethod.WebAuthn:
-                        if (props.info.has_webauthn) {
-                            valuesFinal.push(value);
-                        }
-                        break;
-                    case SecondFactorMethod.TOTP:
-                        if (props.info.has_totp) {
-                            valuesFinal.push(value);
-                        }
-                        break;
-                    case SecondFactorMethod.MobilePush:
-                        if (props.info.has_duo) {
-                            valuesFinal.push(value);
-                        }
-                        break;
-                }
+        return Array.from(props.config.available_methods).filter((method) => {
+            switch (method) {
+                case SecondFactorMethod.WebAuthn:
+                    return props.info.has_webauthn;
+                case SecondFactorMethod.TOTP:
+                    return props.info.has_totp;
+                case SecondFactorMethod.MobilePush:
+                    return props.info.has_duo;
+                default:
+                    return false;
             }
         });
-
-        setMethods(valuesFinal);
     }, [props.config, hasMethods, props.info.has_webauthn, props.info.has_totp, props.info.has_duo]);
 
     const handleMethodAccountChanged = (event: ChangeEvent<HTMLInputElement>) => {
@@ -70,12 +73,12 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
             const value = toSecondFactorMethod(event.target.value as Method2FA);
 
             setPreferred2FAMethod(value)
+                .then(() => {
+                    dispatch({ method: value, type: "setMethod" });
+                })
                 .catch((err) => {
                     console.error(err);
                     createErrorNotification(translate("There was an issue updating preferred second factor method"));
-                })
-                .then(() => {
-                    setMethod(value);
                 })
                 .finally(() => {
                     props.refresh();
@@ -100,7 +103,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                         <Grid size={{ xs: 12 }}>
                             <Grid container spacing={2} padding={2}>
                                 {method === undefined ? null : (
-                                    <Grid size={{ xs: 12, md: 4 }}>
+                                    <Grid size={{ md: 4, xs: 12 }}>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"account"}
                                             name={"Default Method"}
@@ -111,7 +114,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                                     </Grid>
                                 )}
                                 {!localStorageMethodAvailable || localStorageMethod === undefined ? null : (
-                                    <Grid size={{ xs: 12, md: 4 }}>
+                                    <Grid size={{ md: 4, xs: 12 }}>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"local"}
                                             name={"Default Method (Browser)"}

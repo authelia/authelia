@@ -2,7 +2,7 @@
 title: "Docker"
 description: "A guide on installing Authelia in Docker."
 summary: "This is one of the primary ways we deliver Authelia to users and the recommended path."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 230
@@ -250,8 +250,8 @@ docker compose -f compose.yml -f compose.debug.yml up -d
 The following command sequence will allow you to run Authelia interactively within the container:
 
 ```bash
-$ docker exec -it authelia sh
-$ authelia
+docker exec -it authelia sh
+authelia
 ```
 
 The following is the supporting `compose.debug.yml`:

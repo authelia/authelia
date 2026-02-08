@@ -1,4 +1,4 @@
-import React, { lazy, useEffect, useState } from "react";
+import { lazy, useState } from "react";
 
 import { Box, Button, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -42,7 +42,7 @@ export interface Props {
     duoSelfEnrollment: boolean;
 
     onMethodChanged: () => void;
-    onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const SecondFactorForm = function (props: Props) {
@@ -51,15 +51,11 @@ const SecondFactorForm = function (props: Props) {
 
     const navigate = useRouterNavigate();
     const flowPresent = useFlowPresent();
-    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
     const { createErrorNotification } = useNotifications();
 
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
-    const [stateWebAuthnSupported, setStateWebAuthnSupported] = useState(false);
-
-    useEffect(() => {
-        setStateWebAuthnSupported(browserSupportsWebAuthn());
-    }, [setStateWebAuthnSupported]);
+    const stateWebAuthnSupported = browserSupportsWebAuthn();
 
     const handleMethodSelectionClick = () => {
         setMethodSelectionOpen(true);
@@ -122,7 +118,6 @@ const SecondFactorForm = function (props: Props) {
                                 <PasswordMethod
                                     id="password-method"
                                     authenticationLevel={props.authenticationLevel}
-                                    userInfo={props.userInfo}
                                     onAuthenticationSuccess={props.onAuthenticationSuccess}
                                 />
                             }
@@ -184,10 +179,10 @@ const useStyles = makeStyles()((theme: Theme) => ({
     methodContainer: {
         border: "1px solid #d6d6d6",
         borderRadius: "10px",
-        padding: theme.spacing(4),
-        marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
         minWidth: "300px",
+        padding: theme.spacing(4),
     },
 }));
 

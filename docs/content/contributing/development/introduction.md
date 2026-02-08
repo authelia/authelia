@@ -2,7 +2,7 @@
 title: "Development"
 description: "An introduction into contributing to the Authelia project via development."
 summary: "An introduction into contributing to the Authelia project via development."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 210

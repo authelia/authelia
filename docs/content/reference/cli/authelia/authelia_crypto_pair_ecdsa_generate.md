@@ -2,7 +2,7 @@
 title: "authelia crypto pair ecdsa generate"
 description: "Reference for the authelia crypto pair ecdsa generate command."
 lead: ""
-date: 2022-06-27T18:27:57+10:00
+date: 2025-08-01T16:23:47+10:00
 draft: false
 images: []
 weight: 905

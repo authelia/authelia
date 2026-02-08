@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -19,23 +19,24 @@ export interface Props {
     registered: boolean;
 
     onRegisterClick: () => void;
-    onSignInError: (err: Error) => void;
-    onSignInSuccess: (redirectURL: string | undefined) => void;
+    onSignInError: (_err: Error) => void;
+    onSignInSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const WebAuthnMethod = function (props: Props) {
     const { t: translate } = useTranslation();
 
     const redirectionURL = useQueryParam(RedirectionURL);
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
     const mounted = useIsMountedRef();
 
-    const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
+    const stateReducer = (_state: WebAuthnTouchState, action: { type: WebAuthnTouchState }) => action.type;
 
-    const { onSignInSuccess, onSignInError } = props;
-    const onSignInErrorCallback = useRef(onSignInError).current;
-    const onSignInSuccessCallback = useRef(onSignInSuccess).current;
+    const [state, dispatch] = useReducer(stateReducer, WebAuthnTouchState.WaitTouch);
+
+    const { onSignInError, onSignInSuccess } = props;
+    const signInInitiatedRef = useRef(false);
 
     const doInitiateSignIn = useCallback(async () => {
         // If user is already authenticated, we don't initiate sign in process.
@@ -44,12 +45,12 @@ const WebAuthnMethod = function (props: Props) {
         }
 
         try {
-            setState(WebAuthnTouchState.WaitTouch);
+            dispatch({ type: WebAuthnTouchState.WaitTouch });
             const optionsStatus = await getWebAuthnOptions();
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
-                setState(WebAuthnTouchState.Failure);
-                onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
+                dispatch({ type: WebAuthnTouchState.Failure });
+                onSignInError(new Error(translate("Failed to initiate security key sign in process")));
 
                 return;
             }
@@ -59,25 +60,23 @@ const WebAuthnMethod = function (props: Props) {
             if (result.result !== AssertionResult.Success) {
                 if (!mounted.current) return;
 
-                setState(WebAuthnTouchState.Failure);
+                dispatch({ type: WebAuthnTouchState.Failure });
 
-                onSignInErrorCallback(new Error(translate(AssertionResultFailureString(result.result))));
+                onSignInError(new Error(translate(AssertionResultFailureString(result.result))));
 
                 return;
             }
 
             if (result.response == null) {
-                onSignInErrorCallback(
-                    new Error(translate("The browser did not respond with the expected attestation data")),
-                );
-                setState(WebAuthnTouchState.Failure);
+                onSignInError(new Error(translate("The browser did not respond with the expected attestation data")));
+                dispatch({ type: WebAuthnTouchState.Failure });
 
                 return;
             }
 
             if (!mounted.current) return;
 
-            setState(WebAuthnTouchState.InProgress);
+            dispatch({ type: WebAuthnTouchState.InProgress });
 
             const response = await postWebAuthnResponse(
                 result.response,
@@ -89,21 +88,21 @@ const WebAuthnMethod = function (props: Props) {
             );
 
             if (response.data.status === "OK" && response.status === 200) {
-                onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
+                onSignInSuccess(response.data.data ? response.data.data.redirect : undefined);
                 return;
             }
 
             if (!mounted.current) return;
 
-            onSignInErrorCallback(new Error(translate("The server rejected the security key")));
-            setState(WebAuthnTouchState.Failure);
+            onSignInError(new Error(translate("The server rejected the security key")));
+            dispatch({ type: WebAuthnTouchState.Failure });
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             console.error(err);
-            onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
-            setState(WebAuthnTouchState.Failure);
+            onSignInError(new Error(translate("Failed to initiate security key sign in process")));
+            dispatch({ type: WebAuthnTouchState.Failure });
         }
     }, [
         props.registered,
@@ -114,13 +113,16 @@ const WebAuthnMethod = function (props: Props) {
         flow,
         subflow,
         userCode,
-        onSignInErrorCallback,
+        onSignInError,
         translate,
-        onSignInSuccessCallback,
+        onSignInSuccess,
     ]);
 
     useEffect(() => {
-        doInitiateSignIn().catch(console.error);
+        if (!signInInitiatedRef.current) {
+            signInInitiatedRef.current = true;
+            doInitiateSignIn().catch(console.error);
+        }
     }, [doInitiateSignIn]);
 
     let methodState = MethodContainerState.METHOD;

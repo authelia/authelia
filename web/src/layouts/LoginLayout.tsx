@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 
 import { Box, Breakpoint, Container, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -20,12 +20,12 @@ import { getLogoOverride } from "@utils/Configuration";
 export interface Props {
     id?: string;
     children?: ReactNode;
-    title?: string | null;
-    titleTooltip?: string | null;
-    subtitle?: string | null;
-    subtitleTooltip?: string | null;
+    title?: null | string;
+    titleTooltip?: null | string;
+    subtitle?: null | string;
+    subtitleTooltip?: null | string;
     userInfo?: UserInfo;
-    maxWidth?: false | Breakpoint;
+    maxWidth?: Breakpoint | false;
 }
 
 const LoginLayout = function (props: Props) {
@@ -42,7 +42,6 @@ const LoginLayout = function (props: Props) {
         <UserSvg className={classes.icon} />
     );
 
-    // handle the language selection
     const handleChangeLanguage = (locale: string) => {
         setLocale(locale);
     };
@@ -59,11 +58,14 @@ const LoginLayout = function (props: Props) {
     }, []);
 
     useEffect(() => {
-        fetchLocaleInformation().then();
+        const fetchData = async () => {
+            await fetchLocaleInformation();
+        };
+        void fetchData();
     }, [fetchLocaleInformation]);
 
     useEffect(() => {
-        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
+        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
 
     return (
@@ -82,10 +84,7 @@ const LoginLayout = function (props: Props) {
                 alignItems="center"
                 justifyContent="center"
             >
-                <Container
-                    maxWidth={props.maxWidth === undefined ? "xs" : props.maxWidth}
-                    className={classes.rootContainer}
-                >
+                <Container maxWidth={props.maxWidth ?? "xs"} className={classes.rootContainer}>
                     <Grid container>
                         <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
@@ -93,7 +92,7 @@ const LoginLayout = function (props: Props) {
                                 <TypographyWithTooltip
                                     variant={"h5"}
                                     value={props.title}
-                                    tooltip={props.titleTooltip !== null ? props.titleTooltip : undefined}
+                                    tooltip={props.titleTooltip ?? undefined}
                                 />
                             </Grid>
                         ) : null}
@@ -102,7 +101,7 @@ const LoginLayout = function (props: Props) {
                                 <TypographyWithTooltip
                                     variant={"h6"}
                                     value={props.subtitle}
-                                    tooltip={props.subtitleTooltip !== null ? props.subtitleTooltip : undefined}
+                                    tooltip={props.subtitleTooltip ?? undefined}
                                 />
                             </Grid>
                         ) : null}
@@ -119,6 +118,16 @@ const LoginLayout = function (props: Props) {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
+    body: {
+        marginTop: theme.spacing(),
+        paddingBottom: theme.spacing(),
+        paddingTop: theme.spacing(),
+    },
+    icon: {
+        fill: theme.custom.icon,
+        margin: theme.spacing(),
+        width: "64px",
+    },
     root: {
         minHeight: "90vh",
         textAlign: "center",
@@ -127,18 +136,8 @@ const useStyles = makeStyles()((theme: Theme) => ({
         paddingLeft: 32,
         paddingRight: 32,
     },
-    title: {},
     subtitle: {},
-    icon: {
-        margin: theme.spacing(),
-        width: "64px",
-        fill: theme.custom.icon,
-    },
-    body: {
-        marginTop: theme.spacing(),
-        paddingTop: theme.spacing(),
-        paddingBottom: theme.spacing(),
-    },
+    title: {},
 }));
 
 export default LoginLayout;

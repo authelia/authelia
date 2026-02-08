@@ -1,6 +1,7 @@
 package oidc_test
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -87,7 +88,7 @@ func TestClaimValidate(t *testing.T) {
 
 	extra := map[string]any{}
 
-	err := strategy.PopulateIDTokenClaims(ctx, oauthelia2.ExactScopeStrategy, client, nil, []string{oidc.ClaimPreferredUsername, oidc.ClaimFullName}, requests.IDToken, detailer, time.Now(), time.Now(), nil, extra, false)
+	err := strategy.HydrateIDTokenClaims(ctx, oauthelia2.ExactScopeStrategy, client, nil, []string{oidc.ClaimPreferredUsername, oidc.ClaimFullName}, requests.IDToken, detailer, time.Now(), time.Now(), nil, extra, false)
 	assert.NoError(t, oauthelia2.ErrorToDebugRFC6749Error(err))
 
 	assert.Equal(t, map[string]any{oidc.ClaimAudience: []string{config.Clients[0].ID}, oidc.ClaimFullName: "John Smith", oidc.ClaimPreferredUsername: "john"}, extra)
@@ -364,13 +365,13 @@ func TestNewClaimRequestsMatcher(t *testing.T) {
 								},
 							}
 
-							assert.NoError(t, oauthelia2.ErrorToDebugRFC6749Error(client.ClaimsStrategy.PopulateIDTokenClaims(ctx, strategy, client, scopes, tc.claims, requests.IDToken, detailer, requested, start, map[string]any{}, extra, false)))
+							assert.NoError(t, oauthelia2.ErrorToDebugRFC6749Error(client.ClaimsStrategy.HydrateIDTokenClaims(ctx, strategy, client, scopes, tc.claims, requests.IDToken, detailer, requested, start, map[string]any{}, extra, false)))
 
 							assert.Equal(t, dst, extra[claim])
 
 							extra = make(map[string]any)
 
-							assert.NoError(t, client.ClaimsStrategy.PopulateUserInfoClaims(ctx, strategy, client, scopes, tc.claims, requests.UserInfo, detailer, requested, start, map[string]any{}, extra))
+							assert.NoError(t, client.ClaimsStrategy.HydrateUserInfoClaims(ctx, strategy, client, scopes, tc.claims, requests.UserInfo, detailer, requested, start, map[string]any{}, extra))
 
 							assert.Equal(t, dst, extra[claim])
 
@@ -387,13 +388,13 @@ func TestNewClaimRequestsMatcher(t *testing.T) {
 								},
 							}
 
-							assert.NoError(t, client.ClaimsStrategy.PopulateIDTokenClaims(ctx, strategy, client, scopes, tc.claims, requests.IDToken, detailer, requested, start, map[string]any{}, extra, false))
+							assert.NoError(t, client.ClaimsStrategy.HydrateIDTokenClaims(ctx, strategy, client, scopes, tc.claims, requests.IDToken, detailer, requested, start, map[string]any{}, extra, false))
 
 							assert.Equal(t, dst, extra[claim])
 
 							extra = make(map[string]any)
 
-							assert.NoError(t, client.ClaimsStrategy.PopulateUserInfoClaims(ctx, strategy, client, scopes, tc.claims, requests.UserInfo, detailer, requested, start, map[string]any{}, extra))
+							assert.NoError(t, client.ClaimsStrategy.HydrateUserInfoClaims(ctx, strategy, client, scopes, tc.claims, requests.UserInfo, detailer, requested, start, map[string]any{}, extra))
 
 							assert.Equal(t, dst, extra[claim])
 						})
@@ -428,7 +429,7 @@ func TestNewClaimRequestsMatcher(t *testing.T) {
 				},
 			}
 
-			err := client.ClaimsStrategy.PopulateIDTokenClaims(ctx, strategy, client, scopes, tc.claims, requests.IDToken, detailer, requested, start, map[string]any{}, extra, false)
+			err := client.ClaimsStrategy.HydrateIDTokenClaims(ctx, strategy, client, scopes, tc.claims, requests.IDToken, detailer, requested, start, map[string]any{}, extra, false)
 
 			if tc.err == "" {
 				require.NoError(t, oauthelia2.ErrorToDebugRFC6749Error(err))
@@ -439,7 +440,7 @@ func TestNewClaimRequestsMatcher(t *testing.T) {
 
 			extra = make(map[string]any)
 
-			err = client.ClaimsStrategy.PopulateUserInfoClaims(ctx, strategy, client, scopes, tc.claims, requests.UserInfo, detailer, requested, start, map[string]any{}, extra)
+			err = client.ClaimsStrategy.HydrateUserInfoClaims(ctx, strategy, client, scopes, tc.claims, requests.UserInfo, detailer, requested, start, map[string]any{}, extra)
 
 			if tc.err == "" {
 				require.NoError(t, err)
@@ -1518,7 +1519,7 @@ func TestNewCustomClaimsStrategy(t *testing.T) {
 
 			extra = make(map[string]any)
 
-			err := client.ClaimsStrategy.PopulateIDTokenClaims(ctx, strategy, client, tc.scopes, tc.claims, requests, tc.detailer, requested, start, tc.original, extra, tc.implicit)
+			err := client.ClaimsStrategy.HydrateIDTokenClaims(ctx, strategy, client, tc.scopes, tc.claims, requests, tc.detailer, requested, start, tc.original, extra, tc.implicit)
 
 			if tc.errIDToken == "" {
 				assert.NoError(t, oauthelia2.ErrorToDebugRFC6749Error(err))
@@ -1536,7 +1537,7 @@ func TestNewCustomClaimsStrategy(t *testing.T) {
 
 			extra = make(map[string]any)
 
-			err = client.ClaimsStrategy.PopulateUserInfoClaims(ctx, strategy, client, tc.scopes, tc.claims, requests, tc.detailer, requested, start, tc.original, extra)
+			err = client.ClaimsStrategy.HydrateUserInfoClaims(ctx, strategy, client, tc.scopes, tc.claims, requests, tc.detailer, requested, start, tc.original, extra)
 
 			if tc.errUserInfo == "" {
 				assert.NoError(t, oauthelia2.ErrorToDebugRFC6749Error(err))
@@ -1685,6 +1686,114 @@ func TestGetAudienceFromClaims(t *testing.T) {
 
 			assert.Equal(t, tc.expected, actual)
 			assert.Equal(t, tc.ok, ok)
+		})
+	}
+}
+
+func TestOrderedClaimsRequestsSerialized(t *testing.T) {
+	hash := func(s string) string {
+		sum := sha256.Sum256([]byte(s))
+		return fmt.Sprintf("%x", sum[:])
+	}
+
+	testCases := []struct {
+		name             string
+		ocr              *oidc.OrderedClaimsRequests
+		ocr2             *oidc.OrderedClaimsRequests
+		expectSerialized string
+		expectError      bool
+	}{
+		{
+			name:             "ShouldSerializeEmpty",
+			ocr:              &oidc.OrderedClaimsRequests{},
+			expectSerialized: "{}",
+		},
+		{
+			name: "ShouldSerializeDeterministicallyForIDToken",
+			ocr: &oidc.OrderedClaimsRequests{
+				IDToken: oidc.OrderedClaimRequests{
+					{Claim: "z", Request: &oidc.ClaimRequest{Essential: true}},
+					{Claim: "a", Request: &oidc.ClaimRequest{Essential: false}},
+					{Claim: "m", Request: &oidc.ClaimRequest{Essential: true}},
+				},
+			},
+			ocr2: &oidc.OrderedClaimsRequests{
+				IDToken: oidc.OrderedClaimRequests{
+					{Claim: "m", Request: &oidc.ClaimRequest{Essential: true}},
+					{Claim: "z", Request: &oidc.ClaimRequest{Essential: true}},
+					{Claim: "a", Request: &oidc.ClaimRequest{Essential: false}},
+				},
+			},
+		},
+		{
+			name: "ShouldSerializeDeterministicallyForUserInfo",
+			ocr: &oidc.OrderedClaimsRequests{
+				UserInfo: oidc.OrderedClaimRequests{
+					{Claim: "email", Request: &oidc.ClaimRequest{Essential: true}},
+					{Claim: "name", Request: &oidc.ClaimRequest{Essential: false}},
+				},
+			},
+			ocr2: &oidc.OrderedClaimsRequests{
+				UserInfo: oidc.OrderedClaimRequests{
+					{Claim: "name", Request: &oidc.ClaimRequest{Essential: false}},
+					{Claim: "email", Request: &oidc.ClaimRequest{Essential: true}},
+				},
+			},
+		},
+		{
+			name: "ShouldSerializeIDTokenAndUserInfoSorted",
+			ocr: &oidc.OrderedClaimsRequests{
+				IDToken: oidc.OrderedClaimRequests{
+					{Claim: "b", Request: &oidc.ClaimRequest{Essential: true}},
+					{Claim: "a", Request: &oidc.ClaimRequest{Essential: false}},
+				},
+				UserInfo: oidc.OrderedClaimRequests{
+					{Claim: "c", Request: &oidc.ClaimRequest{Essential: false}},
+					{Claim: "a", Request: &oidc.ClaimRequest{Essential: true}},
+				},
+			},
+			expectSerialized: `{"id_token":{"a":{"essential":false},"b":{"essential":true}},"userinfo":{"a":{"essential":true},"c":{"essential":false}}}`,
+		},
+		{
+			name: "ShouldReturnErrorOnUnsupportedValue",
+			ocr: &oidc.OrderedClaimsRequests{
+				IDToken: oidc.OrderedClaimRequests{
+					{Claim: "a", Request: &oidc.ClaimRequest{Value: make(chan int)}},
+				},
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			serialized, signature, err := tc.ocr.Serialized()
+
+			if tc.expectError {
+				require.Error(t, err)
+				assert.Empty(t, serialized)
+				assert.Empty(t, signature)
+
+				return
+			}
+
+			require.NoError(t, err)
+			assert.NotEmpty(t, serialized)
+			assert.NotEmpty(t, signature)
+
+			if tc.expectSerialized != "" {
+				assert.Equal(t, tc.expectSerialized, serialized)
+			}
+
+			assert.Equal(t, hash(serialized), signature)
+
+			if tc.ocr2 != nil {
+				serialized2, signature2, err2 := tc.ocr2.Serialized()
+				require.NoError(t, err2)
+				assert.Equal(t, serialized, serialized2)
+				assert.Equal(t, signature, signature2)
+				assert.Equal(t, hash(serialized2), signature2)
+			}
 		})
 	}
 }

@@ -7,7 +7,8 @@ package mocks
 //go:generate mockgen -package mocks -destination notifier.go -mock_names Notifier=MockNotifier github.com/authelia/authelia/v4/internal/notification Notifier
 //go:generate mockgen -package mocks -destination totp.go -mock_names Provider=MockTOTP github.com/authelia/authelia/v4/internal/totp Provider
 //go:generate mockgen -package mocks -destination storage.go -mock_names Provider=MockStorage github.com/authelia/authelia/v4/internal/storage Provider
-//go:generate mockgen -package mocks -destination duo_api.go -mock_names API=MockAPI github.com/authelia/authelia/v4/internal/duo API
+//go:generate mockgen -package mocks -destination duo_api.go -mock_names Provider=MockDuoProvider github.com/authelia/authelia/v4/internal/duo Provider
+//go:generate mockgen -package mocks -destination duo_base_api.go -mock_names BaseProvider=MockDuoBaseProvider github.com/authelia/authelia/v4/internal/duo BaseProvider
 //go:generate mockgen -package mocks -destination random.go -mock_names Provider=MockRandom github.com/authelia/authelia/v4/internal/random Provider
 
 // External Mocks.

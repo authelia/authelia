@@ -1,37 +1,46 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { LocalStorageSecondFactorMethod } from "@constants/LocalStorage";
 import { SecondFactorMethod } from "@models/Methods";
 import { localStorageAvailable } from "@services/LocalStorage";
 import { Method2FA, isMethod2FA, toMethod2FA, toSecondFactorMethod } from "@services/UserInfo";
 
-export const LocalStorageMethodContext = createContext<ValueProps | null>(null);
+export const LocalStorageMethodContext = createContext<null | ValueProps>(null);
 
 export interface Props {
-    children: React.ReactNode;
+    readonly children: ReactNode;
 }
 
 export interface ValueProps {
     localStorageMethod: SecondFactorMethod | undefined;
-    setLocalStorageMethod: (value: SecondFactorMethod | undefined) => void;
+    setLocalStorageMethod: (_value: SecondFactorMethod | undefined) => void;
     localStorageMethodAvailable: boolean;
 }
 
 export default function LocalStorageMethodContextProvider(props: Props) {
-    const [localStorageMethod, setLocalStorageMethod] = useState<SecondFactorMethod>();
     const localStorageMethodAvailable = localStorageAvailable();
+
+    const [localStorageMethod, setLocalStorageMethod] = useState<SecondFactorMethod | undefined>(() => {
+        if (!localStorageMethodAvailable) return undefined;
+
+        const value = globalThis.localStorage.getItem(LocalStorageSecondFactorMethod);
+        if (value && isMethod2FA(value)) {
+            return toSecondFactorMethod(value as Method2FA);
+        }
+        return undefined;
+    });
 
     const callback = useCallback((value: SecondFactorMethod | undefined) => {
         setLocalStorageMethod(value);
 
-        if (!value) {
-            window.localStorage.removeItem(LocalStorageSecondFactorMethod);
+        if (value) {
+            globalThis.localStorage.setItem(LocalStorageSecondFactorMethod, toMethod2FA(value));
         } else {
-            window.localStorage.setItem(LocalStorageSecondFactorMethod, toMethod2FA(value));
+            globalThis.localStorage.removeItem(LocalStorageSecondFactorMethod);
         }
     }, []);
 
-    const listener = (ev: globalThis.StorageEvent): any => {
+    const listener = useCallback((ev: globalThis.StorageEvent): any => {
         if (ev.key !== LocalStorageSecondFactorMethod) {
             return;
         }
@@ -43,43 +52,28 @@ export default function LocalStorageMethodContextProvider(props: Props) {
         } else {
             setLocalStorageMethod(undefined);
         }
-    };
-
-    const refresh = useCallback(() => {
-        const value = window.localStorage.getItem(LocalStorageSecondFactorMethod);
-
-        if (value && isMethod2FA(value)) {
-            if (isMethod2FA(value)) {
-                return setLocalStorageMethod(toSecondFactorMethod(value as Method2FA));
-            }
-
-            return false;
-        }
     }, []);
 
     useEffect(() => {
         if (!localStorageMethodAvailable) return;
 
-        refresh();
-
-        window.addEventListener("storage", listener);
+        globalThis.addEventListener("storage", listener);
 
         return () => {
-            window.removeEventListener("storage", listener);
+            globalThis.removeEventListener("storage", listener);
         };
-    }, [localStorageMethodAvailable, refresh]);
+    }, [localStorageMethodAvailable, listener]);
 
-    return (
-        <LocalStorageMethodContext.Provider
-            value={{
-                localStorageMethod: localStorageMethod,
-                setLocalStorageMethod: callback,
-                localStorageMethodAvailable: localStorageMethodAvailable,
-            }}
-        >
-            {props.children}
-        </LocalStorageMethodContext.Provider>
+    const value = useMemo(
+        () => ({
+            localStorageMethod: localStorageMethod,
+            localStorageMethodAvailable: localStorageMethodAvailable,
+            setLocalStorageMethod: callback,
+        }),
+        [localStorageMethod, callback, localStorageMethodAvailable],
     );
+
+    return <LocalStorageMethodContext.Provider value={value}>{props.children}</LocalStorageMethodContext.Provider>;
 }
 
 export function useLocalStorageMethodContext() {

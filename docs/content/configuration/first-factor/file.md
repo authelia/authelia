@@ -2,13 +2,14 @@
 title: "File"
 description: "File"
 summary: "Authelia supports a file based first factor user provider. This section describes configuring this."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 102300
 toc: true
 aliases:
-  - /docs/configuration/authentication/file.html
+  - '/docs/configuration/authentication/file.html'
+  - '/docs/configuration/authentication/file.html%E2%80%8B'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

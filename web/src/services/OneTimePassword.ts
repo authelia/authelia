@@ -24,11 +24,11 @@ export function completeTOTPSignIn(
     userCode?: string,
 ) {
     const body: CompleteTOTPSignInBody = {
-        token: `${passcode}`,
-        targetURL,
-        flowID,
         flow,
+        flowID,
         subflow,
+        targetURL,
+        token: `${passcode}`,
         userCode,
     };
 

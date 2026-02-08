@@ -20,7 +20,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/valyala/fasthttp"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 var cdecoder algorithm.DecoderRegister
@@ -225,7 +225,7 @@ func (TLSVersion) JSONSchema() *jsonschema.Schema {
 
 // MaxVersion returns the value of this as a MaxVersion value.
 func (v *TLSVersion) MaxVersion() uint16 {
-	if v.Value == 0 {
+	if v == nil || v.Value == 0 {
 		return tls.VersionTLS13
 	}
 
@@ -234,7 +234,7 @@ func (v *TLSVersion) MaxVersion() uint16 {
 
 // MinVersion returns the value of this as a MinVersion value.
 func (v *TLSVersion) MinVersion() uint16 {
-	if v.Value == 0 {
+	if v == nil || v.Value == 0 {
 		return tls.VersionTLS12
 	}
 

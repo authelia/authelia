@@ -2,7 +2,7 @@
 title: "authelia config template"
 description: "Reference for the authelia config template command."
 lead: ""
-date: 2023-09-20T06:21:40+10:00
+date: 2025-08-01T16:23:47+10:00
 draft: false
 images: []
 weight: 905

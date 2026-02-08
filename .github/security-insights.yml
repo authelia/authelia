@@ -1,0 +1,264 @@
+# yamllint disable rule:line-length
+---
+header:
+  schema-version: 2.0.0
+  last-updated: '2025-09-27'
+  last-reviewed: '2025-09-27'
+  url: https://www.authelia.com
+  comment: |
+    This file contains the necessary security insights for the Authelia repositories.
+project:
+  name: Authelia
+  homepage: https://www.authelia.com
+  funding: https://www.authelia.com/contributing/prologue/financial/
+  roadmap: https://www.authelia.com/roadmap/prologue/introduction/
+  administrators:
+    - name: James Elliott
+      affiliation: Authelia
+      email: james.elliott@authelia.com
+      primary: true
+  documentation:
+    quickstart-guide: https://www.authelia.com/integration/prologue/get-started/
+    detailed-guide: https://www.authelia.com/integration/prologue/introduction/
+    code-of-conduct: https://www.authelia.com/policies/code-of-conduct/
+    release-process: ~
+    support-policy: https://www.authelia.com/policies/versioning/
+    signature-verification: https://www.authelia.com/overview/security/artifact-signing-and-provenance/
+  repositories:
+    - name: Authelia
+      url: https://github.com/authelia/authelia/
+      comment: |
+        The primary Authelia monorepo used for developing the web application/server and related documentation.
+    - name: Base Container
+      url: https://github.com/authelia/baseimage/
+      comment: |
+        The container repository for the Authelia base image.
+    - name: Buildkite Agent
+      url: https://github.com/authelia/buildkite/
+      comment: |
+        The container repository for the Authelia CI agent.
+    - name: Chart Repository
+      url: https://github.com/authelia/chartrepo/
+      comment: |
+        The Authelia chart repository used for deploying helm charts, tracking helm chart issues and feature requests.
+    - name: APT Repository
+      url: https://github.com/authelia/apt/
+      comment: |
+        The Authelia apt repository used for distributing Debian Archives.
+    - name: OAuth 2.0 Provider
+      url: https://github.com/authelia/oauth2-provider/
+      comment: |
+        The Authelia OAuth 2.0 and OpenID Connect 1.0 Framework Library (provider role).
+    - name: OpenID Connect 1.0 Dev Testing App
+      url: https://github.com/authelia/oidc-tester-app/
+      comment: |
+        A basic development testing app for OpenID Connect 1.0.
+    - name: OTP
+      url: https://github.com/authelia/otp/
+      comment: |
+        The Authelia One-Time Password (HOTP/TOTP) Library.
+    - name: JSON Schema
+      url: https://github.com/authelia/jsonschema/
+      comment: |
+        The Authelia JSON Schema Library for generating JSON Schema documentation.
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+    contact:
+      name: The security team at Authelia provides security support for this project.
+      email: security@authelia.com
+      primary: true
+    security-policy: https://www.authelia.com/policies/security/
+    pgp-key: |
+      -----BEGIN PGP PUBLIC KEY BLOCK-----
+      Version: Keybase OpenPGP v2.1.13
+      Comment: https://keybase.io/authelia
+
+      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
+      RDxabCRy2LzbW/gV+NsX+iYmsJSrUCF2wuSk
+      =8Nm2
+      -----END PGP PUBLIC KEY BLOCK-----
+repository:
+  url: https://github.com/authelia/authelia/
+  status: active
+  bug-fixes-only: false
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  core-team:
+    - name: James Elliott
+      affiliation: Authelia
+      email: james.elliott@authelia.com
+      social: ~
+      primary: true
+    - name: Clément Michaud
+      affiliation: Authelia
+      email: ~
+      social: ~
+      primary: false
+    - name: Amir Zarrinkafsh
+      affiliation: Authelia
+      email: ~
+      social: ~
+      primary: false
+  documentation:
+    contributing-guide: https://www.authelia.com/contributing/prologue/introduction/
+    review-policy: ~
+    security-policy: https://www.authelia.com/policies/security/
+    governance: https://www.authelia.com/information/about/
+    dependency-management-policy: ~
+  release:
+    changelog: https://github.com/authelia/authelia/releases/tag/{version}
+    automated-pipeline: true
+    attestations:
+      - name: Release SLSA
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia.intoto.jsonl
+      - name: Release CycloneDX SBOM (amd64)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-amd64.tar.gz.cdx.json
+      - name: Release CycloneDX SBOM (amd64, musl)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-amd64-musl.tar.gz.cdx.json
+      - name: Release CycloneDX SBOM (arm)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-arm.tar.gz.cdx.json
+      - name: Release CycloneDX SBOM (arm, musl)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-arm-musl.tar.gz.cdx.json
+      - name: Release CycloneDX SBOM (arm64)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-arm64.tar.gz.cdx.json
+      - name: Release CycloneDX SBOM (arm64, musl)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-arm64-musl.tar.gz.cdx.json
+      - name: Release CDX SBOM (web)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-public_html.tar.gz.cdx.json
+      - name: Release SPDX SBOM (amd64)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-amd64.tar.gz.spdx.json
+      - name: Release SPDX SBOM (amd64, musl)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-amd64-musl.tar.gz.spdx.json
+      - name: Release SPDX SBOM (arm)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-arm.tar.gz.spdx.json
+      - name: Release SPDX SBOM (arm, musl)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-arm-musl.tar.gz.spdx.json
+      - name: Release SPDX SBOM (arm64)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-arm64.tar.gz.spdx.json
+      - name: Release SPDX SBOM (arm64, musl)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-linux-arm64-musl.tar.gz.spdx.json
+      - name: Release SPDX SBOM (web)
+        predicate-uri: https://github.com/authelia/authelia/releases/download/{version}/authelia-public_html.tar.gz.spdx.json
+    distribution-points:
+      - uri: https://github.com/authelia/authelia/releases
+        comment: GitHub Releases Page
+      - uri: https://apt.authelia.com
+        comment: APT Repository
+      - uri: https://aur.archlinux.org/packages/authelia
+        comment: AUR Repository
+      - uri: oci://docker.io/authelia/authelia
+        comment: Container Image (docker.io)
+      - uri: oci://ghcr.io/authelia/authelia
+        comment: Container Image (ghcr.io)
+      - uri: https://charts.authelia.com
+        comment: Helm Chart Repository
+  license:
+    url: https://github.com/authelia/authelia?tab=Apache-2.0-1-ov-file#readme
+    expression: Apache-2.0
+  security:
+    assessments:
+      self:
+        evidence: https://www.authelia.com/overview/security/measures/
+        date: '2025-09-09'
+        comment: |
+          Self assessment has been completed but we intend to continue to intentionally perform and set aside time for
+          self assessments over time.
+    champions:
+      - name: James Elliott
+        affiliation: Authelia
+        email: james.elliott@authelia.com
+        social: ~
+        primary: true
+      - name: Clément Michaud
+        affiliation: Authelia
+        email: ~
+        social: ~
+        primary: false
+      - name: Amir Zarrinkafsh
+        affiliation: Authelia
+        email: ~
+        social: ~
+        primary: false
+...

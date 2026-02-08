@@ -11,26 +11,19 @@ insert_final_newline = true
 indent_style = space
 indent_size = 2
 
-[{.github/pre-commit,.github/required-apps,.github/commit-msg}]
+[*.{js,sql,ts.tmpl}]
 indent_style = space
-indent_size = 2
 
 [.buildkite/hooks/**]
 indent_style = space
-indent_size = 2
-
-[*.sql]
-indent_style = space
-
-[web/**]
-indent_style = space
-
-[{web/package.json,web/pnpm-lock.yaml}]
 indent_size = 2
 
 [internal/suites/example/compose/nginx/*/*.conf]
 charset                     = UTF-8
 indent_style                = space
 
-[*.ts.tmpl]
-indent_style                = space
+[web/**]
+indent_style = space
+
+[web/{package.json,pnpm-lock.yaml}]
+indent_size = 2

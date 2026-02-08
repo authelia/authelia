@@ -30,15 +30,18 @@ flags:
     paths:
       - "cmd/authelia/"
       - "internal/"
+      - "!internal/mocks/"
       - "!internal/suites/"
+      - "!internal/**/*_mock_test.go"
   frontend:
     paths:
       - "web/"
       - "!web/coverage/"
+      - "!web/src/serviceWorker.ts"
 
 ignore:
-  - "web/src/serviceWorker.ts"
   - "**/coverage.txt"
+
 
 parsers:
   gcov:

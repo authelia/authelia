@@ -122,7 +122,7 @@ func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
 	case ciBranch == masterTag && ciPullRequest == stringFalse:
 		login(docker, dockerhub)
 		login(docker, ghcr)
-		deployManifest(docker, "master")
+		deployManifest(docker, masterTag)
 		publishDockerReadme(docker)
 	default:
 		log.Info("Docker manifest will not be published")
@@ -182,7 +182,7 @@ func login(docker *Docker, registry string) {
 }
 
 func deployManifest(docker *Docker, tag ...string) {
-	tags = make([]string, 0)
+	tags = make([]string, 0, 2*len(tag))
 
 	log.Infof("The following Docker manifest(s) will be deployed on %s and %s", dockerhub, ghcr)
 

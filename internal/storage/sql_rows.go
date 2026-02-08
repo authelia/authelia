@@ -8,7 +8,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
-// ConsentPreConfigRows holds and assists with retrieving multiple model.OAuth2ConsentSession rows.
+// ConsentPreConfigRows holds and helps with retrieving multiple model.OAuth2ConsentSession rows.
 type ConsentPreConfigRows struct {
 	rows *sqlx.Rows
 }

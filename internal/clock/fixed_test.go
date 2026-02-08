@@ -8,9 +8,7 @@ import (
 )
 
 func TestTestingClock(t *testing.T) {
-	c := &Fixed{
-		now: time.Unix(0, 0),
-	}
+	c := NewFixed(time.Unix(0, 0))
 
 	assert.Equal(t, int64(0), c.Now().Unix())
 	c.now = time.Unix(20, 0)
@@ -27,4 +25,28 @@ func TestTestingClock(t *testing.T) {
 	<-c.After(time.Millisecond * 100)
 
 	assert.Equal(t, before, c.Now())
+
+	done := make(chan struct{})
+
+	value := false
+
+	c.AfterFunc(time.Millisecond*20, func() {
+		value = true
+
+		close(done)
+	})
+
+	select {
+	case <-done:
+		t.Fatal("AfterFunc executed synchronously")
+	default:
+		assert.Equal(t, false, value)
+	}
+
+	select {
+	case <-done:
+		assert.Equal(t, true, value)
+	case <-time.After(200 * time.Millisecond):
+		t.Fatal("AfterFunc didn't execute within expected time")
+	}
 }

@@ -2,7 +2,7 @@
 title: "About"
 description: "About Authelia and the Authelia Team"
 summary: ""
-date: 2023-03-19T16:29:12+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 toc: true
@@ -47,7 +47,9 @@ page for more information on how to become a sponsor.
 
 ### Balto
 
-Our [apt repository](https://apt.authelia.com) is hosted thanks to [Balto](https://www.getbalto.com/?from=Authelia).
+Our [apt repository](https://apt.authelia.com) was previously hosted thanks to Balto. We now host it ourselves on
+[Netlify](#netlify) due to the unfortunate fact that Balto has shut down. We graciously want to thank Balto for their
+support of and generosity towards the Authelia project.
 
 {{< inline-svg src="svgs/logos/balto.svg" alt="Balto" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
 

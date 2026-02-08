@@ -1,7 +1,7 @@
 ---
 services:
   nginx-backend:
-    image: 'nginx:1.29.0-alpine'
+    image: 'nginx:1.29.5-alpine'
     labels:
       traefik.enable: 'true'
       traefik.http.routers.protectedapps.rule: 'Host(`admin.example.com`) || Host(`deny.example.com`) || Host(`home.example.com`) || Host(`public.example.com`) || Host(`secure.example.com`) || Host(`singlefactor.example.com`)'  # yamllint disable-line rule:line-length

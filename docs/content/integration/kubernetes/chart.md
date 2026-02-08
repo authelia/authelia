@@ -2,7 +2,7 @@
 title: "Chart"
 description: "A guide to using the Authelia helm chart to integrate Authelia with Kubernetes"
 summary: "A guide to using the Authelia helm chart to integrate Authelia with Kubernetes."
-date: 2022-06-22T22:58:23+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 520
@@ -32,6 +32,12 @@ the following [Helm] commands:
 helm repo add authelia https://charts.authelia.com
 helm repo update
 ```
+
+## Authenticity Signature
+
+The chart is signed as described by the
+[Artifact Signing and Provenance Overview](../../overview/security/artifact-signing-and-provenance.md) where the
+verification keys can also be found.
 
 ## Website
 

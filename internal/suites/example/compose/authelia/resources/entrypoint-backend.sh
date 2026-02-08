@@ -2,13 +2,12 @@
 
 set -x
 
-# We move out of the workspace to not include the modules as dependencies of the project.
-cd /
+cd /resources
 
-echo "Use hot reloaded version of Authelia backend"
-go install github.com/cespare/reflex@latest
-go install github.com/go-delve/delve/cmd/dlv@latest
+echo "Installing pinned CLI tools from go.mod"
+go run .
 
 cd /app
 
+echo "Use hot reloaded version of Authelia backend"
 reflex -c /resources/reflex.conf

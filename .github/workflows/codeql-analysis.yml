@@ -10,52 +10,30 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 #
-name: "CodeQL"
+name: 'CodeQL'
 
-# yamllint disable-line rule:truthy
 on:
   push:
     branches:
-      - master
-      - gh-pages
-    paths:
-      - 'go.mod'
-      - 'go.sum'
-      - '**/*.go'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.js'
-      - '**/*.jsx'
+      - 'master'
   pull_request:
     # The branches below must be a subset of the branches above
     branches:
-      - master
-    paths:
-      - 'go.mod'
-      - 'go.sum'
-      - '**/*.go'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.js'
-      - '**/*.jsx'
+      - 'master'
   schedule:
     - cron: '25 13 * * 3'
 
 permissions:
-  contents: read
+  contents: 'read'
 
 jobs:
   analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
+    name: 'Analyze'
+    runs-on: 'ubuntu-latest'
     permissions:
-      actions: read
-      contents: read
-      security-events: write
+      actions: 'read'
+      contents: 'read'
+      security-events: 'write'
 
     strategy:
       fail-fast: false
@@ -66,17 +44,17 @@ jobs:
           - 'javascript'
 
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@6c439dc8bdf85cadbbce9ed30d1c7b959517bc49  # v2.12.2
+      - name: 'Harden Runner'
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e  # v2.14.2
         with:
           egress-policy: audit
 
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - name: 'Checkout repository'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
       # Initializes the CodeQL tools for scanning.
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@181d5eefc20863364f96762470ba6f862bdef56b  # v3.29.2
+      - name: 'Initialize CodeQL'
+        uses: github/codeql-action/init@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2  # v4.32.2
         with:
           # If you wish to specify custom queries, you can do so here or in a config file.
           # By default, queries listed here will override any specified in a config file.
@@ -86,8 +64,8 @@ jobs:
 
       # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
       # If this step fails, then you should remove it and run the build manually (see below)
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@181d5eefc20863364f96762470ba6f862bdef56b  # v3.29.2
+      - name: 'Autobuild'
+        uses: github/codeql-action/autobuild@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2  # v4.32.2
 
       # ℹ️ Command-line programs to run using the OS shell.
       # 📚 https://git.io/JvXDl
@@ -100,6 +78,6 @@ jobs:
       #   make bootstrap
       #   make release
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@181d5eefc20863364f96762470ba6f862bdef56b  # v3.29.2
+      - name: 'Perform CodeQL Analysis'
+        uses: github/codeql-action/analyze@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2  # v4.32.2
 ...

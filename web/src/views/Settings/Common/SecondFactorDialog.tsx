@@ -1,4 +1,4 @@
-import React, { Fragment, lazy, useCallback, useEffect, useState } from "react";
+import { Fragment, lazy, useCallback, useLayoutEffect, useReducer } from "react";
 
 import {
     Box,
@@ -37,32 +37,71 @@ type Props = {
     elevation?: UserSessionElevation;
     info?: UserInfo;
     opening: boolean;
-    handleClosed: (ok: boolean, changed: boolean) => void;
+    handleClosed: (_ok: boolean, _changed: boolean) => void;
     handleOpened: () => void;
 };
 
+type State = {
+    open: boolean;
+    loading: boolean;
+    closing: boolean;
+    activeStep: number;
+    method: SecondFactorMethod | undefined;
+};
+
+type Action =
+    | { type: "reset" }
+    | { type: "setActiveStep"; payload: number }
+    | { type: "setClosing"; payload: boolean }
+    | { type: "setLoading"; payload: boolean }
+    | { type: "setMethod"; payload: SecondFactorMethod | undefined }
+    | { type: "setOpen"; payload: boolean };
+
+const initialState: State = {
+    activeStep: 0,
+    closing: false,
+    loading: false,
+    method: undefined,
+    open: false,
+};
+
+function reducer(state: State, action: Action): State {
+    switch (action.type) {
+        case "reset":
+            return { ...initialState };
+        case "setOpen":
+            return { ...state, open: action.payload };
+        case "setLoading":
+            return { ...state, loading: action.payload };
+        case "setClosing":
+            return { ...state, closing: action.payload };
+        case "setActiveStep":
+            return { ...state, activeStep: action.payload };
+        case "setMethod":
+            return { ...state, method: action.payload };
+        default:
+            return state;
+    }
+}
+
 const SecondFactorDialog = function (props: Props) {
+    const { elevation, handleClosed, handleOpened, info, opening } = props;
     const { t: translate } = useTranslation(["settings", "portal"]);
     const { classes } = useStyles();
 
-    const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [closing, setClosing] = useState(false);
-    const [activeStep, setActiveStep] = useState(0);
-    const [method, setMethod] = useState<SecondFactorMethod>();
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const { activeStep, closing, loading, method, open } = state;
+
+    const resetState = useCallback(() => {
+        dispatch({ type: "reset" });
+    }, []);
 
     const handleClose = useCallback(
         (ok: boolean, changed: boolean) => {
-            setOpen(false);
-
-            setActiveStep(0);
-
-            setLoading(false);
-            setClosing(false);
-            setMethod(undefined);
-            props.handleClosed(ok, changed);
+            resetState();
+            handleClosed(ok, changed);
         },
-        [props],
+        [resetState, handleClosed],
     );
 
     const handleCancelled = () => {
@@ -72,28 +111,6 @@ const SecondFactorDialog = function (props: Props) {
     const handleOneTimeCode = () => {
         handleClose(true, false);
     };
-
-    const handleLoad = useCallback(async () => {
-        if (closing || !props.elevation) return;
-
-        if (
-            (props.elevation.skip_second_factor || !props.elevation.require_second_factor) &&
-            !props.elevation.can_skip_second_factor
-        ) {
-            handleClose(true, false);
-
-            return;
-        }
-
-        if (!open) {
-            props.handleOpened();
-            setOpen(true);
-        }
-
-        if (!props.elevation.factor_knowledge) {
-            setActiveStep(1);
-        }
-    }, [closing, handleClose, open, props]);
 
     const handleClickOneTimePassword = () => {
         handleClick(SecondFactorMethod.TOTP);
@@ -110,26 +127,121 @@ const SecondFactorDialog = function (props: Props) {
     const handleClick = (method: SecondFactorMethod) => {
         if (closing) return;
 
-        setMethod(method);
-
-        setActiveStep(1);
+        dispatch({ payload: method, type: "setMethod" });
+        dispatch({ payload: 1, type: "setActiveStep" });
     };
 
-    const handleSuccess = () => {
-        setClosing(true);
-
-        setActiveStep(2);
+    const handleSuccess = useCallback(() => {
+        dispatch({ payload: true, type: "setClosing" });
+        dispatch({ payload: 2, type: "setActiveStep" });
 
         setTimeout(() => {
             handleClose(true, true);
         }, 1500);
+    }, [handleClose]);
+
+    useLayoutEffect(() => {
+        if (closing || !opening || !elevation) return;
+
+        const shouldSkip =
+            (elevation.skip_second_factor || !elevation.require_second_factor) && !elevation.can_skip_second_factor;
+        if (shouldSkip) {
+            resetState();
+            handleClosed(true, false);
+            return;
+        }
+
+        if (!open) {
+            handleOpened();
+            dispatch({ payload: true, type: "setOpen" });
+        }
+
+        if (!elevation.factor_knowledge) {
+            dispatch({ payload: 1, type: "setActiveStep" });
+        }
+    }, [closing, resetState, handleClosed, open, elevation, opening, handleOpened]);
+
+    const getAuthComponent = useCallback(() => {
+        if (!elevation?.factor_knowledge) {
+            return <PasswordForm onAuthenticationSuccess={handleSuccess} />;
+        }
+
+        switch (method) {
+            case SecondFactorMethod.WebAuthn:
+                return <SecondFactorMethodWebAuthn onSecondFactorSuccess={handleSuccess} />;
+            case SecondFactorMethod.TOTP:
+                return <SecondFactorMethodOneTimePassword onSecondFactorSuccess={handleSuccess} />;
+            case SecondFactorMethod.MobilePush:
+                return <SecondFactorMethodMobilePush onSecondFactorSuccess={handleSuccess} />;
+            default:
+                return null;
+        }
+    }, [elevation, method, handleSuccess]);
+
+    const renderContent = () => {
+        if (activeStep === 2) {
+            return (
+                <Box
+                    className={classes.success}
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        m: "auto",
+                        padding: "5.0rem",
+                        width: "fit-content",
+                    }}
+                >
+                    <SuccessIcon />
+                </Box>
+            );
+        }
+
+        if (!elevation || !info) {
+            return <LoadingPage />;
+        }
+
+        if (activeStep === 0) {
+            return (
+                <Stack alignContent={"center"} justifyContent={"center"} alignItems={"center"} spacing={2} my={8}>
+                    {elevation.can_skip_second_factor ? (
+                        <Fragment>
+                            <Button variant={"outlined"} onClick={handleOneTimeCode}>
+                                {translate("Email One-Time Code")}
+                            </Button>
+                            <Divider />
+                            <Typography variant={"h5"}>{translate("or", { ns: "portal" })}</Typography>
+                            <Divider />
+                        </Fragment>
+                    ) : null}
+                    {info.has_totp ? (
+                        <Button variant={"outlined"} onClick={handleClickOneTimePassword}>
+                            {translate("One-Time Password")}
+                        </Button>
+                    ) : null}
+                    {info.has_webauthn && browserSupportsWebAuthn() ? (
+                        <Button variant={"outlined"} onClick={handleClickWebAuthn}>
+                            {translate("WebAuthn")}
+                        </Button>
+                    ) : null}
+                    {info.has_duo ? (
+                        <Button variant={"outlined"} onClick={handleClickMobilePush}>
+                            {translate("Mobile Push")}
+                        </Button>
+                    ) : null}
+                </Stack>
+            );
+        }
+
+        if (activeStep === 1) {
+            return (
+                <Stack alignContent={"center"} justifyContent={"center"} alignItems={"center"} my={8}>
+                    {getAuthComponent()}
+                </Stack>
+            );
+        }
+
+        return <LoadingPage />;
     };
-
-    useEffect(() => {
-        if (closing || !props.opening || !props.elevation) return;
-
-        handleLoad().catch(console.error);
-    }, [closing, handleLoad, props, props.opening]);
 
     return (
         <Dialog id={"dialog-verify-second-factor"} open={open} onClose={handleCancelled}>
@@ -151,80 +263,7 @@ const SecondFactorDialog = function (props: Props) {
                         <StepLabel>{translate("Completed")}</StepLabel>
                     </Step>
                 </Stepper>
-                {!props.elevation || !props.info ? (
-                    activeStep === 2 ? (
-                        <Box
-                            className={classes.success}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                m: "auto",
-                                width: "fit-content",
-                                padding: "5.0rem",
-                            }}
-                        >
-                            <SuccessIcon />
-                        </Box>
-                    ) : (
-                        <LoadingPage />
-                    )
-                ) : activeStep === 0 ? (
-                    <Stack alignContent={"center"} justifyContent={"center"} alignItems={"center"} spacing={2} my={8}>
-                        {props.elevation.can_skip_second_factor ? (
-                            <Fragment>
-                                <Button variant={"outlined"} onClick={handleOneTimeCode}>
-                                    {translate("Email One-Time Code")}
-                                </Button>
-                                <Divider />
-                                <Typography variant={"h5"}>{translate("or", { ns: "portal" })}</Typography>
-                                <Divider />
-                            </Fragment>
-                        ) : null}
-                        {props.info.has_totp ? (
-                            <Button variant={"outlined"} onClick={handleClickOneTimePassword}>
-                                {translate("One-Time Password")}
-                            </Button>
-                        ) : null}
-                        {props.info.has_webauthn && browserSupportsWebAuthn() ? (
-                            <Button variant={"outlined"} onClick={handleClickWebAuthn}>
-                                {translate("WebAuthn")}
-                            </Button>
-                        ) : null}
-                        {props.info.has_duo ? (
-                            <Button variant={"outlined"} onClick={handleClickMobilePush}>
-                                {translate("Mobile Push")}
-                            </Button>
-                        ) : null}
-                    </Stack>
-                ) : activeStep === 1 ? (
-                    <Stack alignContent={"center"} justifyContent={"center"} alignItems={"center"} my={8}>
-                        {!props.elevation.factor_knowledge ? (
-                            <PasswordForm onAuthenticationSuccess={handleSuccess} />
-                        ) : method === SecondFactorMethod.WebAuthn ? (
-                            <SecondFactorMethodWebAuthn onSecondFactorSuccess={handleSuccess} closing={closing} />
-                        ) : method === SecondFactorMethod.TOTP ? (
-                            <SecondFactorMethodOneTimePassword
-                                onSecondFactorSuccess={handleSuccess}
-                                closing={closing}
-                            />
-                        ) : method === SecondFactorMethod.MobilePush ? (
-                            <SecondFactorMethodMobilePush onSecondFactorSuccess={handleSuccess} closing={closing} />
-                        ) : null}
-                    </Stack>
-                ) : (
-                    <Box
-                        className={classes.success}
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            m: "auto",
-                            width: "fit-content",
-                            padding: "5.0rem",
-                        }}
-                    >
-                        <SuccessIcon />
-                    </Box>
-                )}
+                {renderContent()}
             </DialogContent>
             <DialogActions>
                 <Button variant={"outlined"} color={"error"} disabled={loading} onClick={handleCancelled}>
@@ -237,13 +276,13 @@ const SecondFactorDialog = function (props: Props) {
 
 const useStyles = makeStyles()((theme: Theme) => ({
     success: {
-        marginBottom: theme.spacing(2),
-        flex: "0 0 100%",
         display: "flex",
+        flex: "0 0 100%",
         flexDirection: "column",
         m: "auto",
-        width: "fit-content",
+        marginBottom: theme.spacing(2),
         marginY: "2.5rem",
+        width: "fit-content",
     },
 }));
 

@@ -11,16 +11,18 @@ import (
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // LDAPClientFactory an interface describing factories that produce LDAPConnection implementations.
 type LDAPClientFactory interface {
 	Initialize() (err error)
-	GetClient(opts ...LDAPClientFactoryOption) (client ldap.Client, err error)
-	ReleaseClient(client ldap.Client) (err error)
+	GetClient(opts ...LDAPClientFactoryOption) (client LDAPExtendedClient, err error)
+	ReleaseClient(client LDAPExtendedClient) (err error)
 	Close() (err error)
 }
 
@@ -38,6 +40,7 @@ func NewStandardLDAPClientFactory(config *schema.AuthenticationBackendLDAP, cert
 	}
 
 	return &StandardLDAPClientFactory{
+		log:    logging.Logger().WithFields(map[string]any{"provider": "standard ldap factory"}),
 		config: config,
 		tls:    tlsc,
 		opts:   opts,
@@ -47,6 +50,7 @@ func NewStandardLDAPClientFactory(config *schema.AuthenticationBackendLDAP, cert
 
 // StandardLDAPClientFactory the production implementation of an ldap connection factory.
 type StandardLDAPClientFactory struct {
+	log    *logrus.Entry
 	config *schema.AuthenticationBackendLDAP
 	tls    *tls.Config
 	opts   []ldap.DialOpt
@@ -57,11 +61,11 @@ func (f *StandardLDAPClientFactory) Initialize() (err error) {
 	return nil
 }
 
-func (f *StandardLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
-	return getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
+func (f *StandardLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (client LDAPExtendedClient, err error) {
+	return ldapDialBind(f.log, f.config, f.dialer, f.tls, f.opts, opts...)
 }
 
-func (f *StandardLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) {
+func (f *StandardLDAPClientFactory) ReleaseClient(client LDAPExtendedClient) (err error) {
 	if err = client.Close(); err != nil {
 		return fmt.Errorf("error occurred closing LDAP client: %w", err)
 	}
@@ -101,6 +105,7 @@ func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs 
 	sleep := config.Pooling.Timeout / time.Duration(config.Pooling.Retries)
 
 	return &PooledLDAPClientFactory{
+		log:    logging.Logger().WithFields(map[string]any{"provider": "pooled ldap factory"}),
 		config: config,
 		tls:    tlsc,
 		opts:   opts,
@@ -110,40 +115,41 @@ func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs 
 }
 
 // PooledLDAPClientFactory is a LDAPClientFactory that takes another LDAPClientFactory and pools the
-// factory generated connections using a channel for thread safety.
+// factory generated connections using a buffered channel for thread safety.
 type PooledLDAPClientFactory struct {
+	log *logrus.Entry
+
 	config *schema.AuthenticationBackendLDAP
 	tls    *tls.Config
 	opts   []ldap.DialOpt
 	dialer LDAPClientDialer
 
-	pool chan *LDAPClientPooled
-	mu   sync.Mutex
+	pool chan *PooledLDAPClient
 
 	sleep time.Duration
 
+	mu      sync.Mutex
+	next    int
 	closing bool
 }
 
 func (f *PooledLDAPClientFactory) Initialize() (err error) {
-	f.mu.Lock()
-
-	defer f.mu.Unlock()
-
 	if f.pool != nil {
 		return nil
 	}
 
-	f.pool = make(chan *LDAPClientPooled, f.config.Pooling.Count)
+	f.pool = make(chan *PooledLDAPClient, f.config.Pooling.Count)
 
 	var (
 		errs   []error
-		client *LDAPClientPooled
+		client *PooledLDAPClient
 	)
 
 	for i := 0; i < f.config.Pooling.Count; i++ {
-		if client, err = f.new(); err != nil {
+		if client, err = f.dial(); err != nil {
 			errs = append(errs, err)
+
+			f.log.WithError(err).Debug("Error occurred dialing a pooled client")
 
 			continue
 		}
@@ -159,94 +165,108 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 }
 
 // GetClient opens new client using the pool.
-func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (conn ldap.Client, err error) {
+func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (conn LDAPExtendedClient, err error) {
 	if len(opts) != 0 {
-		return getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
+		f.log.Trace("Dialing new unpooled client")
+
+		return ldapDialBind(f.log, f.config, f.dialer, f.tls, f.opts, opts...)
 	}
 
 	return f.acquire(context.Background())
 }
 
-// The new function creates a pool based client. This function is not thread safe.
-func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
-	var client ldap.Client
+// The dial function dials a new LDAPClient and wraps it as a PooledLDAPClient client.
+func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
+	var client LDAPExtendedClient
 
-	if client, err = getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts); err != nil {
+	f.log.Trace("Dialing new pooled client")
+
+	if client, err = ldapDialBind(f.log, f.config, f.dialer, f.tls, f.opts); err != nil {
 		return nil, fmt.Errorf("error occurred establishing new client for the pool: %w", err)
 	}
 
-	return &LDAPClientPooled{Client: client}, nil
+	f.mu.Lock()
+
+	pooled = &PooledLDAPClient{LDAPExtendedClient: client, log: f.log.WithField("client", f.next), permitFeatureDetectionFailure: f.config.PermitFeatureDetectionFailure}
+
+	f.next++
+
+	f.mu.Unlock()
+
+	pooled.log.Trace("New pooled client created")
+
+	return pooled, nil
 }
 
 // ReleaseClient returns a client using the pool or closes it.
-func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) {
-	f.mu.Lock()
+func (f *PooledLDAPClientFactory) ReleaseClient(client LDAPExtendedClient) (err error) {
+	f.log.Trace("Releasing Client")
 
-	defer f.mu.Unlock()
+	if f.isClosing() {
+		f.log.Trace("Pooled/Unpooled Client is summarily being closed as the pool is closing or closed")
 
-	if f.closing {
 		return client.Close()
 	}
 
-	if pool, ok := client.(*LDAPClientPooled); !ok || cap(f.pool) == len(f.pool) {
-		// Prevent extra or non-pool connections from being returned into the pool.
-		return client.Close()
-	} else {
-		f.pool <- pool
-	}
+	switch c := client.(type) {
+	case *PooledLDAPClient:
+		return f.release(c)
+	default:
+		f.log.Trace("Unpooled client is being closed")
 
-	return nil
+		return client.Close()
+	}
 }
 
-func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClientPooled, err error) {
-	f.mu.Lock()
+func (f *PooledLDAPClientFactory) release(client *PooledLDAPClient) (err error) {
+	client.log.Trace("Releasing pooled client")
 
-	defer f.mu.Unlock()
+	select {
+	case f.pool <- client:
+		return nil
+	default:
+		f.log.Trace("Pooled extra client is being closed")
 
-	if f.closing {
-		return nil, fmt.Errorf("error acquiring client: the pool is closed")
+		return client.Close()
 	}
+}
 
-	if cap(f.pool) != f.config.Pooling.Count {
-		if err = f.Initialize(); err != nil {
-			return nil, err
-		}
+func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *PooledLDAPClient, err error) {
+	f.log.Trace("Acquiring Client")
+
+	if f.isClosing() {
+		return nil, NewPoolCtxErr(fmt.Errorf("error acquiring client: the pool is closed"))
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, f.config.Pooling.Timeout)
 	defer cancel()
 
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case client = <-f.pool:
-		if client.IsClosing() || client.Client == nil {
-			for {
-				select {
-				case <-ctx.Done():
-					return nil, ctx.Err()
-				default:
-					if client, err = f.new(); err != nil {
-						time.Sleep(f.sleep)
-
-						continue
-					}
-
-					return client, nil
-				}
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, NewPoolCtxErr(fmt.Errorf("error acquiring client: %w", ctx.Err()))
+		case client = <-f.pool:
+			if client.healthy() {
+				return client, nil
 			}
-		}
 
-		return client, nil
+			client.log.Trace("Client is closing or invalid")
+
+			if client, err = f.dial(); err == nil {
+				client.log.Trace("New client acquired")
+
+				return client, nil
+			}
+
+			f.log.WithError(err).Trace("Error acquiring new client")
+
+			time.Sleep(f.sleep)
+		}
 	}
 }
 
 func (f *PooledLDAPClientFactory) Close() (err error) {
-	f.mu.Lock()
-
-	defer f.mu.Unlock()
-
-	f.closing = true
+	f.setClosing()
 
 	close(f.pool)
 
@@ -269,30 +289,80 @@ func (f *PooledLDAPClientFactory) Close() (err error) {
 	return nil
 }
 
-// LDAPClientPooled is a decorator for the ldap.Client which handles the pooling functionality. i.e. prevents the client
-// from being closed and instead relinquishes the connection back to the pool.
-type LDAPClientPooled struct {
-	ldap.Client
+func (f *PooledLDAPClientFactory) isClosing() bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	return f.closing
 }
 
-func getLDAPClient(address, username, password string, timeout time.Duration, dialer LDAPClientDialer, tls *tls.Config, startTLS bool, dialerOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
-	config := &LDAPClientFactoryOptions{
-		Address:  address,
-		Username: username,
-		Password: password,
+func (f *PooledLDAPClientFactory) setClosing() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	f.closing = true
+}
+
+// PooledLDAPClient is a decorator for the LDAPClient which handles the pooling functionality. i.e. prevents the client
+// from being closed and instead relinquishes the connection back to the pool.
+type PooledLDAPClient struct {
+	LDAPExtendedClient
+
+	log *logrus.Entry
+
+	permitFeatureDetectionFailure bool
+}
+
+func (c *PooledLDAPClient) healthy() bool {
+	if c == nil || c.LDAPExtendedClient == nil || c.IsClosing() {
+		return false
+	}
+
+	var (
+		err error
+	)
+	if _, err = ldapGetFeatureSupportFromClient(c); err != nil && !c.permitFeatureDetectionFailure {
+		return false
+	}
+
+	return true
+}
+
+func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, dialer LDAPClientDialer, tls *tls.Config, dialOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client LDAPExtendedClient, err error) {
+	options := &LDAPClientFactoryOptions{
+		Address:  config.Address.String(),
+		Username: config.User,
+		Password: config.Password,
 	}
 
 	for _, opt := range opts {
-		opt(config)
+		opt(options)
 	}
 
-	if client, err = dialer.DialURL(config.Address, dialerOpts...); err != nil {
+	var base LDAPBaseClient
+	if base, err = dialer.DialURL(options.Address, dialOpts...); err != nil {
 		return nil, fmt.Errorf("error occurred dialing address: %w", err)
 	}
 
-	client.SetTimeout(timeout)
+	base.SetTimeout(config.Timeout)
 
-	if tls != nil && startTLS {
+	var features LDAPSupportedFeatures
+	if features, err = ldapGetFeatureSupportFromClient(base); err != nil {
+		if config.PermitFeatureDetectionFailure {
+			log.WithError(err).Warn("Error occurred getting features from server. This error is being ignored due to configuration. This may result in reduced functionality or other failures.")
+		} else {
+			_ = base.Close()
+
+			return nil, fmt.Errorf("error occurred getting features from server: %w", err)
+		}
+	}
+
+	client = &LDAPClient{
+		LDAPBaseClient: base,
+		features:       features,
+	}
+
+	if tls != nil && !config.Address.IsExplicitlySecure() && config.StartTLS {
 		if err = client.StartTLS(tls); err != nil {
 			_ = client.Close()
 
@@ -300,10 +370,13 @@ func getLDAPClient(address, username, password string, timeout time.Duration, di
 		}
 	}
 
-	if config.Password == "" {
-		err = client.UnauthenticatedBind(config.Username)
-	} else {
-		err = client.Bind(config.Username, config.Password)
+	// TODO: Add additional bind logic here, such as MD5Bind, NTLMBind, NTLMUnauthenticatedBind, etc.
+	//nolint:staticcheck
+	switch {
+	case options.Password == "":
+		err = client.UnauthenticatedBind(options.Username)
+	default:
+		err = client.Bind(options.Username, options.Password)
 	}
 
 	if err != nil {

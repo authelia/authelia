@@ -92,13 +92,13 @@ the following conditions:
 ##### Users Filter
 
 ```text
-(&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))
+(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))
 ```
 
 ##### Groups Filter
 
 ```text
-(&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912)))
+(&(member={dn})(|(sAMAccountType=268435456)(sAMAccountType=536870912)))
 ```
 
 ##### Microsoft Active Directory sAMAccountType

@@ -3,6 +3,7 @@ package model_test
 import (
 	"crypto/rand"
 	"database/sql"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -118,6 +119,8 @@ func TestWebAuthnMisc(t *testing.T) {
 			assert.Equal(t, tc.expectedDisplayName, tc.have.WebAuthnDisplayName())
 			assert.Equal(t, tc.expectedCredentials, tc.have.WebAuthnCredentials())
 			assert.Equal(t, tc.expectedCredentialDescriptors, tc.have.WebAuthnCredentialDescriptors())
+
+			assert.Equal(t, "", tc.have.WebAuthnIcon())
 		})
 	}
 }
@@ -176,6 +179,8 @@ func TestWebAuthnCredential(t *testing.T) {
 		{
 			name: "ShouldUpdate",
 			have: &model.WebAuthnCredential{
+				KID:        model.NewBase64([]byte{}),
+				PublicKey:  []byte{},
 				SignCount:  1,
 				RPID:       "",
 				LastUsedAt: sql.NullTime{Time: time.Unix(0, 0), Valid: true},
@@ -184,6 +189,8 @@ func TestWebAuthnCredential(t *testing.T) {
 			now:           time.Unix(10, 0),
 			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false},
 			expected: &model.WebAuthnCredential{
+				KID:        model.NewBase64([]byte{}),
+				PublicKey:  []byte{},
 				SignCount:  2,
 				RPID:       "https://example.com",
 				LastUsedAt: sql.NullTime{Time: time.Unix(10, 0), Valid: true},
@@ -192,6 +199,8 @@ func TestWebAuthnCredential(t *testing.T) {
 		{
 			name: "ShouldUpdateFIDOU2F",
 			have: &model.WebAuthnCredential{
+				KID:             model.NewBase64([]byte{}),
+				PublicKey:       []byte{},
 				SignCount:       1,
 				RPID:            "",
 				LastUsedAt:      sql.NullTime{Time: time.Unix(0, 0), Valid: true},
@@ -201,6 +210,8 @@ func TestWebAuthnCredential(t *testing.T) {
 			now:           time.Unix(10, 0),
 			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false},
 			expected: &model.WebAuthnCredential{
+				KID:             model.NewBase64([]byte{}),
+				PublicKey:       []byte{},
 				SignCount:       2,
 				RPID:            "org.example.com",
 				LastUsedAt:      sql.NullTime{Time: time.Unix(10, 0), Valid: true},
@@ -210,6 +221,8 @@ func TestWebAuthnCredential(t *testing.T) {
 		{
 			name: "ShouldNotUpdateExistingRPID",
 			have: &model.WebAuthnCredential{
+				KID:             model.NewBase64([]byte{}),
+				PublicKey:       []byte{},
 				SignCount:       1,
 				LastUsedAt:      sql.NullTime{Time: time.Unix(0, 0), Valid: true},
 				AttestationType: "fido-u2f",
@@ -219,6 +232,8 @@ func TestWebAuthnCredential(t *testing.T) {
 			now:           time.Unix(10, 0),
 			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false},
 			expected: &model.WebAuthnCredential{
+				KID:             model.NewBase64([]byte{}),
+				PublicKey:       []byte{},
 				SignCount:       2,
 				RPID:            "another.example.com",
 				LastUsedAt:      sql.NullTime{Time: time.Unix(10, 0), Valid: true},
@@ -228,6 +243,8 @@ func TestWebAuthnCredential(t *testing.T) {
 		{
 			name: "ShouldUpdateCloneWarning",
 			have: &model.WebAuthnCredential{
+				KID:             model.NewBase64([]byte{}),
+				PublicKey:       []byte{},
 				SignCount:       1,
 				LastUsedAt:      sql.NullTime{Time: time.Unix(0, 0), Valid: true},
 				AttestationType: "fido-u2f",
@@ -237,6 +254,8 @@ func TestWebAuthnCredential(t *testing.T) {
 			now:           time.Unix(10, 0),
 			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: true},
 			expected: &model.WebAuthnCredential{
+				KID:             model.NewBase64([]byte{}),
+				PublicKey:       []byte{},
 				SignCount:       2,
 				RPID:            "another.example.com",
 				LastUsedAt:      sql.NullTime{Time: time.Unix(10, 0), Valid: true},
@@ -251,6 +270,19 @@ func TestWebAuthnCredential(t *testing.T) {
 			tc.have.UpdateSignInInfo(tc.config, tc.now, tc.authenticator)
 
 			assert.Equal(t, tc.expected, tc.have)
+
+			data, err := json.Marshal(tc.have)
+			require.NoError(t, err)
+			require.NotNil(t, data)
+
+			data, err = yaml.Marshal(tc.have)
+			require.NoError(t, err)
+			require.NotNil(t, data)
+
+			actual := &model.WebAuthnCredential{}
+
+			assert.NoError(t, yaml.Unmarshal(data, actual))
+			assert.Equal(t, tc.expected, actual)
 		})
 	}
 }
@@ -324,6 +356,23 @@ func TestWebAuthnCredential_ToData(t *testing.T) {
 			assert.Equal(t, tc.have, *actual2)
 		})
 	}
+}
+
+func TestNewWebAuthnCredentialEmptyTransports(t *testing.T) {
+	credential := &model.WebAuthnCredential{
+		KID:             model.NewBase64([]byte("abc")),
+		SignCount:       2,
+		RPID:            "org.example.com",
+		LastUsedAt:      sql.NullTime{Time: time.Unix(10, 0), Valid: true},
+		AttestationType: "fido-u2f",
+		Transport:       "nfc,usb,",
+		PublicKey:       []byte("abc"),
+		AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("b4e159da-a52b-4690-81dd-08972950db5f")), Valid: true},
+	}
+
+	actual, err := credential.ToCredential()
+	require.NoError(t, err)
+	assert.Equal(t, []protocol.AuthenticatorTransport{"nfc", "usb"}, actual.Transport)
 }
 
 func TestWebAuthnCredentialData_ToCredential(t *testing.T) {

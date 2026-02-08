@@ -1,17 +1,18 @@
-import React from "react";
+import { CSSProperties } from "react";
 
+/* eslint-disable no-unused-vars */
 declare module "@mui/material/styles" {
     interface Theme {
         custom: {
-            icon: React.CSSProperties["color"];
-            loadingBar: React.CSSProperties["color"];
+            icon: CSSProperties["color"];
+            loadingBar: CSSProperties["color"];
         };
     }
 
     interface ThemeOptions {
         custom?: {
-            icon?: React.CSSProperties["color"];
-            loadingBar?: React.CSSProperties["color"];
+            icon?: CSSProperties["color"];
+            loadingBar?: CSSProperties["color"];
         };
     }
 }

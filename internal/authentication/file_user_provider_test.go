@@ -410,7 +410,7 @@ func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: yaml: line 4: mapping values are not allowed in this context")
+		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: yaml: line 4, column 6: mapping values are not allowed in this context")
 	})
 }
 
@@ -1015,6 +1015,8 @@ users:
 `)
 
 func WithDatabase(t *testing.T, content []byte, f func(path string)) {
+	t.Helper()
+
 	dir := t.TempDir()
 
 	db, err := os.CreateTemp(dir, "users_database.*.yml")

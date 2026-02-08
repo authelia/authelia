@@ -90,7 +90,12 @@ func TestSortCmds(t *testing.T) {
 		{
 			"ShouldSortDocsCmd",
 			newDocsCmd(),
-			[]string{"cli", "data", pathJSONSchema, cmdUseManage, "date"},
+			[]string{"cli", "data", pathJSONSchema, cmdUseManage, "seo", "date"},
+		},
+		{
+			"ShouldSortDocsSEOCmd",
+			newDocsSEOCmd(),
+			[]string{"openid-connect"},
 		},
 		{
 			"ShouldSortGitHubCmd",

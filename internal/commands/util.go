@@ -12,8 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.yaml.in/yaml/v4"
 	"golang.org/x/term"
-	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -122,11 +122,7 @@ func flagParseFileMode(name string, flags *pflag.FlagSet) (mode os.FileMode, err
 	return os.FileMode(octal), nil
 }
 
-func termReadConfirmation(flags *pflag.FlagSet, name, prompt, confirmation string) (confirmed bool, err error) {
-	if confirmed, _ = flags.GetBool(name); confirmed {
-		return confirmed, nil
-	}
-
+func termReadConfirmation(prompt, confirmation string) (confirmed bool, err error) {
 	terminal, fd, state, err := getTerminal(prompt)
 	if err != nil {
 		return false, err
@@ -349,25 +345,13 @@ func newHelpTopic(topic, short, body string) (cmd *cobra.Command) {
 func cmdHelpTopic(cmd *cobra.Command, body, topic string) {
 	_ = cmd.Parent().Help()
 
-	fmt.Println()
-	fmt.Printf("Help Topic: %s\n\n", topic)
-	fmt.Print(body)
-	fmt.Print("\n\n")
+	_, _ = fmt.Fprintln(cmd.OutOrStdout())
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Help Topic: %s\n\n", topic)
+	_, _ = fmt.Fprint(cmd.OutOrStdout(), body)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\n")
 }
 
-func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {
-	var f *os.File
-
-	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
-		return err
-	}
-
-	defer func() {
-		if err := f.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
+func exportYAMLWithJSONSchema(w io.Writer, name string, v any) (err error) {
 	var (
 		semver *model.SemanticVersion
 	)
@@ -378,15 +362,15 @@ func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {
 		version = fmt.Sprintf("v%d.%d", semver.Major, semver.Minor+1)
 	}
 
-	if _, err = fmt.Fprintf(f, model.FormatJSONSchemaYAMLLanguageServer, version, name); err != nil {
+	if _, err = fmt.Fprintf(w, model.FormatJSONSchemaYAMLLanguageServer, version, name); err != nil {
 		return err
 	}
 
-	if _, err = f.WriteString("\n\n"); err != nil {
+	if _, err = fmt.Fprintf(w, "\n\n"); err != nil {
 		return err
 	}
 
-	encoder := yaml.NewEncoder(f)
+	encoder := yaml.NewEncoder(w)
 
 	if err = encoder.Encode(v); err != nil {
 		return fmt.Errorf("error occurred marshalling data to YAML: %w", err)

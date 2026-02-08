@@ -2,7 +2,7 @@
 title: "Integration Suites"
 description: "Integration Suites."
 summary: "This section covers the build process and how to perform tests in development."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 240
@@ -67,16 +67,16 @@ contains the `dockerEnvironment` var for a given suite is located in the
 - OpenID Connect 1.0 Testing Apps:
   - [https://oidc.example.com:8080](https://oidc.example.com:8080)
   - [https://oidc-public.example.com:8080](https://oidc-public.example.com:8080)
-- Duo: [https://duo.exmaple.com:8080](https://duo.exmaple.com:8080)
-- Kubernetes Dashboard: [https://kubernetes.exmaple.com:8080](https://kubernetes.exmaple.com:8080)
-- Traefik Dashboard: [https://traefik.exmaple.com:8080](https://traefik.exmaple.com:8080)
-- HAProxy: [https://haproxy.exmaple.com:8080](https://haproxy.exmaple.com:8080)
+- Duo: [https://duo.example.com:8080](https://duo.example.com:8080)
+- Kubernetes Dashboard: [https://kubernetes.example.com:8080](https://kubernetes.example.com:8080)
+- Traefik Dashboard: [https://traefik.example.com:8080](https://traefik.example.com:8080)
+- HAProxy: [https://haproxy.example.com:8080](https://haproxy.example.com:8080)
 - Simple Test Applications:
-  - [https://public.exmaple.com:8080](https://public.exmaple.com:8080)
-  - [https://singlefactor.exmaple.com:8080](https://singlefactor.exmaple.com:8080)
-  - [https://secure.exmaple.com:8080](https://secure.exmaple.com:8080)
-  - [https://admin.exmaple.com:8080](https://admin.exmaple.com:8080)
-  - [https://deny.exmaple.com:8080](https://deny.exmaple.com:8080)
+  - [https://public.example.com:8080](https://public.example.com:8080)
+  - [https://singlefactor.example.com:8080](https://singlefactor.example.com:8080)
+  - [https://secure.example.com:8080](https://secure.example.com:8080)
+  - [https://admin.example.com:8080](https://admin.example.com:8080)
+  - [https://deny.example.com:8080](https://deny.example.com:8080)
 
 ## Remote Debugging
 

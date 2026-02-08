@@ -7,6 +7,8 @@ import (
 	"hash"
 	"sync"
 	"time"
+
+	"golang.org/x/sync/singleflight"
 )
 
 // NewCredentialCacheHMAC creates a new CredentialCacheHMAC with a given hash.Hash func and lifespan.
@@ -26,77 +28,113 @@ func NewCredentialCacheHMAC(h func() hash.Hash, lifespan time.Duration) *Credent
 
 // CredentialCacheHMAC implements in-memory credential caching using a HMAC function and effective lifespan.
 type CredentialCacheHMAC struct {
-	mu   sync.Mutex
-	hash hash.Hash
+	mu    sync.Mutex
+	hash  hash.Hash
+	group singleflight.Group
 
 	lifespan time.Duration
 
 	values map[string]CachedCredential
 }
 
-// Valid checks the cache for results for a given username and password in the cache and returns two booleans. The valid
-// return value is indicative if the credential cache had an exact match, and the ok return value returns true if a
-// current cached value exists within the cache.
-func (c *CredentialCacheHMAC) Valid(username, password string) (valid, ok bool) {
+func (c *CredentialCacheHMAC) Check(ctx Context, username, password string) (valid, cached bool, err error) {
+	var (
+		key string
+		sum []byte
+	)
+
+	if key, sum, err = c.sum(username, password); err != nil {
+		return false, false, err
+	}
+
+	var raw any
+
+	raw, err, _ = c.group.Do(key, c.check(ctx, username, password, sum))
+
+	result := raw.(*FlightResult)
+
+	return result.Valid, result.Cached, err
+}
+
+func (c *CredentialCacheHMAC) sum(username, password string) (hex string, sum []byte, err error) {
 	c.mu.Lock()
 
 	defer c.mu.Unlock()
 
+	defer c.hash.Reset()
+
+	if _, err = c.hash.Write([]byte(password)); err != nil {
+		return "", nil, fmt.Errorf("error occurred calculating cache hmac: %w", err)
+	}
+
+	if _, err = c.hash.Write([]byte(username)); err != nil {
+		return "", nil, fmt.Errorf("error occurred calculating cache hmac: %w", err)
+	}
+
+	sum = c.hash.Sum(nil)
+
+	return fmt.Sprintf("%x", sum), sum, nil
+}
+
+func (c *CredentialCacheHMAC) check(ctx Context, username, password string, sum []byte) func() (value any, err error) {
+	return func() (value any, err error) {
+		var match, valid bool
+
+		if match, _ = c.valid(ctx, username, sum); match {
+			return &FlightResult{Cached: true, Valid: true}, nil
+		}
+
+		if valid, err = ctx.GetUserProvider().CheckUserPassword(username, password); err != nil {
+			return &FlightResult{Cached: false, Valid: valid}, err
+		}
+
+		if valid {
+			if err = c.put(ctx, username, sum); err != nil {
+				ctx.GetLogger().WithError(err).Errorf("Error occurred saving basic authorization credentials to cache for user '%s'", username)
+			}
+
+			return &FlightResult{Cached: false, Valid: valid}, nil
+		}
+
+		return &FlightResult{Cached: false, Valid: valid}, nil
+	}
+}
+
+func (c *CredentialCacheHMAC) valid(ctx Context, username string, value []byte) (valid, ok bool) {
 	var (
 		entry CachedCredential
-		err   error
 	)
 
+	c.mu.Lock()
+
+	defer c.mu.Unlock()
+
 	if entry, ok = c.values[username]; ok {
-		if entry.expires.Before(time.Now()) {
+		if entry.expires.Before(ctx.GetClock().Now()) {
 			delete(c.values, username)
 
 			return false, false
 		}
 	}
 
-	var value []byte
-
-	if value, err = c.sum(username, password); err != nil {
-		return false, false
-	}
-
 	valid = hmac.Equal(value, entry.value)
-
-	c.hash.Reset()
 
 	return valid, true
 }
 
-func (c *CredentialCacheHMAC) sum(username, password string) (sum []byte, err error) {
-	defer c.hash.Reset()
-
-	if _, err = c.hash.Write([]byte(password)); err != nil {
-		return nil, fmt.Errorf("error occurred calculating cache hmac: %w", err)
-	}
-
-	if _, err = c.hash.Write([]byte(username)); err != nil {
-		return nil, fmt.Errorf("error occurred calculating cache hmac: %w", err)
-	}
-
-	return c.hash.Sum(nil), nil
-}
-
-// Put a new credential combination into the cache.
-func (c *CredentialCacheHMAC) Put(username, password string) (err error) {
+func (c *CredentialCacheHMAC) put(ctx Context, username string, value []byte) (err error) {
 	c.mu.Lock()
 
 	defer c.mu.Unlock()
 
-	var value []byte
-
-	if value, err = c.sum(username, password); err != nil {
-		return err
-	}
-
-	c.values[username] = CachedCredential{expires: time.Now().Add(c.lifespan), value: value}
+	c.values[username] = CachedCredential{expires: ctx.GetClock().Now().Add(c.lifespan), value: value}
 
 	return nil
+}
+
+type FlightResult struct {
+	Valid  bool
+	Cached bool
 }
 
 // CachedCredential is a cached credential which has an expiration and checksum value.

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import { Box, Button, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -52,7 +52,7 @@ const WebAuthnTryIcon = function (props: Props) {
     );
 
     return (
-        <Box sx={{ minHeight: 101, display: "inline-block" }}>
+        <Box sx={{ display: "inline-block", minHeight: 101 }}>
             {touch}
             {failure}
         </Box>

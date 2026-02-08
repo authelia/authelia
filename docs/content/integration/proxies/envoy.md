@@ -2,7 +2,7 @@
 title: "Envoy"
 description: "An integration guide for Authelia and the Envoy reverse proxy"
 summary: "A guide on integrating Authelia with the Envoy reverse proxy."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 330
@@ -210,7 +210,7 @@ static_resources:
                   name: 'local_route'
                   virtual_hosts:
                     - name: 'whoami_service'
-                      domains: ["nextcloud.{{< sitevar name="domain" nojs="example.com" >}}']
+                      domains: ['nextcloud.{{< sitevar name="domain" nojs="example.com" >}}']
                       routes:
                         - match:
                             prefix: '/'
@@ -234,10 +234,11 @@ static_resources:
                       transport_api_version: 'v3'
                       allowed_headers:
                         patterns:
-                          - exact: 'Authorization'
-                          - exact: 'Proxy-Authorization'
-                          - exact: 'Accept'
-                          - exact: 'Cookie'
+                          - exact: 'authorization'
+                          - exact: 'proxy-authorization'
+                          - exact: 'accept'
+                          - exact: 'cookie'
+                          - exact: 'location'
                       http_service:
                         path_prefix: '/api/authz/ext-authz/'
                         server_uri:
@@ -247,10 +248,11 @@ static_resources:
                         authorization_request:
                           allowed_headers:
                             patterns:
-                              - exact: 'Authorization'
-                              - exact: 'Proxy-Authorization'
-                              - exact: 'Accept'
-                              - exact: 'Cookie'
+                              - exact: 'authorization'
+                              - exact: 'proxy-authorization'
+                              - exact: 'accept'
+                              - exact: 'cookie'
+                              - exact: 'location'
                           headers_to_add:
                             - key: 'X-Forwarded-Proto'
                               value: '%REQ(:SCHEME)%'

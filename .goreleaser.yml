@@ -1,0 +1,227 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+---
+version: 2
+
+project_name: authelia
+dist: goreleaser
+
+before:
+  hooks:
+    - |
+        bash -c 'cat > postinstall.sh <<EOF
+        #!/bin/sh
+
+        sed -i -e "s/u!/u /" /usr/lib/sysusers.d/authelia.conf
+        systemd-sysusers
+        systemd-tmpfiles --create
+
+        EOF
+        chmod +x postinstall.sh'
+
+builds:
+  - id: glibc
+    main: ./cmd/authelia
+    env:
+      - GOEXPERIMENT=nosynchashtriemap
+      - CGO_CFLAGS=-O2 -pipe -fno-plt -fstack-protector-strong
+      - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=3
+      - CGO_CXXFLAGS=-O2 -pipe -fno-plt
+      - CGO_LDFLAGS=-Wl,-O1,-sort-common,-as-needed,-z,relro,-z,now
+      - CGO_ENABLED=1
+    flags: -trimpath
+    buildmode: pie
+    goos:
+      - linux
+      - freebsd
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    binary: '{{ .ProjectName }}'
+    ldflags:
+      - '-linkmode=external -s -w {{ .Env.XFLAGS }}'
+    ignore:
+      - goos: freebsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
+    overrides:
+      - goos: linux
+        goarch: arm
+        env:
+          - CC=arm-linux-gnueabihf-gcc
+      - goos: linux
+        goarch: arm64
+        env:
+          - CC=aarch64-linux-gnu-gcc
+      - goos: freebsd
+        goarch: amd64
+        env:
+          - CC=x86_64-pc-freebsd14-gcc
+
+  - id: musl
+    main: ./cmd/authelia
+    env:
+      - GOEXPERIMENT=nosynchashtriemap
+      - CGO_CFLAGS=-O2 -pipe -fno-plt -fstack-protector-strong
+      - CGO_CPPFLAGS=-I/usr/local/include/fortify -D_FORTIFY_SOURCE=3
+      - CGO_CXXFLAGS=-O2 -pipe -fno-plt
+      - CGO_LDFLAGS=-Wl,-O1,-sort-common,-as-needed,-z,relro,-z,now
+      - CGO_ENABLED=1
+    flags: -trimpath
+    buildmode: pie
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    binary: '{{ .ProjectName }}'
+    ldflags:
+      - '-linkmode=external -s -w {{ .Env.XFLAGS }}'
+    overrides:
+      - goos: linux
+        goarch: amd64
+        env:
+          - CC=x86_64-linux-musl-cc
+      - goos: linux
+        goarch: arm
+        env:
+          - CC=arm-linux-musleabihf-cc
+      - goos: linux
+        goarch: arm64
+        env:
+          - CC=aarch64-linux-musl-cc
+
+archives:
+  - id: linux-glibc
+    ids: [glibc]
+    formats: tar.gz
+    name_template: '{{ .ProjectName }}{{ if .Env.BUILDKITE_TAG }}-{{ .Env.BUILDKITE_TAG }}{{ end }}-{{ .Os }}-{{ .Arch }}'  # yamllint disable-line rule:line-length
+    files:
+      - authelia.service
+      - authelia@.service
+      - authelia.sysusers.conf
+      - authelia.tmpfiles.conf
+      - authelia.tmpfiles.config.conf
+      - config.template.yml
+    format_overrides:
+      - goos: freebsd
+        formats: none
+
+  - id: linux-musl
+    ids: [musl]
+    formats: tar.gz
+    name_template: '{{ .ProjectName }}{{ if .Env.BUILDKITE_TAG }}-{{ .Env.BUILDKITE_TAG }}{{ end }}-{{ .Os }}-{{ .Arch }}-musl'  # yamllint disable-line rule:line-length
+    files:
+      - authelia.service
+      - authelia@.service
+      - authelia.sysusers.conf
+      - authelia.tmpfiles.conf
+      - authelia.tmpfiles.config.conf
+      - config.template.yml
+
+  - id: freebsd
+    ids: [glibc]
+    formats: tar.gz
+    name_template: '{{ .ProjectName }}{{ if .Env.BUILDKITE_TAG }}-{{ .Env.BUILDKITE_TAG }}{{ end }}-{{ .Os }}-{{ .Arch }}'  # yamllint disable-line rule:line-length
+    files:
+      - authelia-fb-rc.d
+      - config.template.yml
+    format_overrides:
+      - goos: linux
+        formats: none
+
+  - id: public_html
+    meta: true
+    formats: tar.gz
+    name_template: '{{ .ProjectName }}{{ if .Env.BUILDKITE_TAG }}-{{ .Env.BUILDKITE_TAG }}{{ end }}-public_html'
+    files:
+      - src: internal/server/public_html/**
+        dst: public_html
+
+nfpms:
+  - id: debian
+    ids: [glibc]
+    formats: [deb]
+    file_name_template: '{{ .PackageName }}{{ if .Env.BUILDKITE_TAG }}_{{ trimprefix .Env.BUILDKITE_TAG "v" }}-1{{ end }}_{{ if eq .Arch "arm" }}armhf{{ else }}{{ .Arch }}{{ end }}.deb'  # yamllint disable-line rule:line-length
+    vendor: Authelia
+    homepage: https://www.authelia.com
+    maintainer: Authelia Team <team@authelia.com>
+    description: |
+      Authelia is an open-source authentication and authorization server and portal fulfilling the identity and access
+      management (IAM) role of information security in providing multi-factor authentication and single sign-on (SSO)
+      for your applications via a web portal. Authelia is an OpenID Connect 1.0 Provider which is OpenID Certified™
+      allowing comprehensive integrations and acts as a companion for common reverse proxies.
+    license: Apache-2.0
+    provides:
+      - authelia
+    release: 1
+    section: default
+    priority: extra
+    contents:
+      - src: config.template.yml
+        dst: /etc/authelia/configuration.yml
+        type: config|noreplace
+        file_info:
+          mode: 0440  # yamllint disable-line rule:octal-values
+      - src: authelia.service
+        dst: /usr/lib/systemd/system/authelia.service
+      - src: authelia@.service
+        dst: /usr/lib/systemd/system/authelia@.service
+      - src: authelia.sysusers.conf
+        dst: /usr/lib/sysusers.d/authelia.conf
+      - src: authelia.tmpfiles.conf
+        dst: /usr/lib/tmpfiles.d/authelia.conf
+      - src: authelia.tmpfiles.config.conf
+        dst: /usr/lib/tmpfiles.d/authelia-config.conf
+    scripts:
+      postinstall: postinstall.sh
+    deb:
+      signature:
+        key_file: '{{ .Env.GPG_KEY_PATH }}'
+
+sboms:
+  - id: cdx-backend
+    ids: [linux-glibc, linux-musl, freebsd]
+    documents:
+      - "${artifact}.cdx.json"
+    args: ["$artifact", "-o", "cyclonedx-json=$document"]
+    disable: false
+
+  - id: spdx-backend
+    ids: [linux-glibc, linux-musl, freebsd]
+    documents:
+      - "${artifact}.spdx.json"
+    args: ["$artifact", "-o", "spdx-json=$document"]
+    disable: false
+
+  - id: cdx-frontend
+    ids: [public_html]
+    documents:
+      - "${artifact}.cdx.json"
+    args: ["../web", "--source-name", "$artifact", "-o", "cyclonedx-json=$document"]
+    disable: false
+
+  - id: spdx-frontend
+    ids: [public_html]
+    documents:
+      - "${artifact}.spdx.json"
+    args: ["../web", "--source-name", "$artifact", "-o", "spdx-json=$document"]
+    disable: false
+
+signs:
+  - id: gpg
+    signature: '${artifact}.sig'
+    args: [
+      "--batch", "--pinentry-mode", "loopback",
+      "-u", "security@authelia.com",
+      "--passphrase", "{{ .Env.GPG_PASSWORD }}",
+      "--output", "${signature}",
+      "--detach-sign", "${artifact}",
+    ]
+    artifacts: checksum
+
+checksum:
+  name_template: 'checksums.sha256'
+...

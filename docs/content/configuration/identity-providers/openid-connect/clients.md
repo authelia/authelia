@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0 Clients"
 description: "OpenID Connect 1.0 Registered Clients Configuration"
 summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure the registered clients."
-date: 2023-05-15T10:32:10+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 110220
@@ -72,7 +72,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: 'S256'
         authorization_signed_response_key_id: ''
-        authorization_signed_response_alg: 'none'
+        authorization_signed_response_alg: 'RS256'
         authorization_encrypted_response_key_id: ''
         authorization_encrypted_response_alg: 'none'
         authorization_encrypted_response_enc: 'A128CBC-HS256'
@@ -395,7 +395,8 @@ misused in certain conditions specifically with the public client type or when t
 secret) has been exposed to an attacker. For these reasons this mode is discouraged.
 {{< /callout >}}
 
-Configures the consent mode. The following table describes the different modes:
+Configures the fallback consent mode. If explicit consent or a condition that requires explicit consent is present this
+setting has no effect. The following table describes the different modes:
 
 |     Value      |                                                                  Description                                                                   |
 |:--------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -406,24 +407,8 @@ Configures the consent mode. The following table describes the different modes:
 
 [pre_configured_consent_duration]: #pre_configured_consent_duration
 
-#### implicit
-
-The `implicit` consent mode is largely unsupported and in various cases either revert to `explicit`, silently not
-perform certain expected actions, or outright fail. This mode is intended for development and testing, and should
-not be used in production.
-
-The following specific and intentional limitations exist:
-
-1. The Authorization Code Flow will not mint and grant a Refresh Token unless the user either provides explicit consent
-   or has previously provided explicit consent and requested their consent is remembered.
-2. If the client requests the user is prompted to provide consent the mode will automatically be `explicit` regardless
-   of client configuration.
-3. If the client requests the user is prompted to login again then either the mode will either automatically be
-   `explicit` or the flow may also result in a failure that returns an error to the client.
-4. If the client requests the `offline_access` or `offline` scope the mode will automatically be `explicit` regardless
-   of client configuration.
-5. If the current flow is not compatible with implicit consent for any reason; for example:
-   1. Device Authorization Flow
+See the [Frequently Asked Questions](../../../integration/openid-connect/frequently-asked-questions.md#why-does-authelia-ask-for-consent-when-ive-asked-for-my-consent-to-be-remembered-or-used-the-implicit-consent-policy)
+for more information on specific behaviour around why consent may be required despite this configuration option.
 
 ### pre_configured_consent_duration
 
@@ -494,7 +479,7 @@ To be considered valid:
 
 ### authorization_signed_response_alg
 
-{{< confkey type="string" default="none" required="no" >}}
+{{< confkey type="string" default="RS256" required="no" >}}
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 A majority of clients will not support this option with any value other than `none` as it implements the

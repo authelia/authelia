@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 
 import { Box, Container, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -16,7 +16,7 @@ import { getLogoOverride } from "@utils/Configuration";
 export interface Props {
     id?: string;
     children?: ReactNode;
-    title?: string | null;
+    title?: null | string;
     userInfo?: UserInfo;
 }
 
@@ -32,7 +32,7 @@ const MinimalLayout = function (props: Props) {
     );
 
     useEffect(() => {
-        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
+        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
 
     return (
@@ -66,6 +66,16 @@ const MinimalLayout = function (props: Props) {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
+    body: {
+        marginTop: theme.spacing(),
+        paddingBottom: theme.spacing(),
+        paddingTop: theme.spacing(),
+    },
+    icon: {
+        fill: theme.custom.icon,
+        margin: theme.spacing(),
+        width: "64px",
+    },
     root: {
         minHeight: "90vh",
         textAlign: "center",
@@ -73,16 +83,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
     rootContainer: {
         paddingLeft: 32,
         paddingRight: 32,
-    },
-    icon: {
-        margin: theme.spacing(),
-        width: "64px",
-        fill: theme.custom.icon,
-    },
-    body: {
-        marginTop: theme.spacing(),
-        paddingTop: theme.spacing(),
-        paddingBottom: theme.spacing(),
     },
 }));
 

@@ -1,4 +1,4 @@
-import React from "react";
+import { FC } from "react";
 
 import { Box, List, ListItem, ListItemIcon, ListItemText, Theme, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -12,7 +12,7 @@ export interface Props {
     scopes: string[];
 }
 
-const DecisionFormScopes: React.FC<Props> = (props: Props) => {
+const DecisionFormScopes: FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent"]);
 
     const { classes } = useStyles();
@@ -36,14 +36,14 @@ const DecisionFormScopes: React.FC<Props> = (props: Props) => {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
+    scopesList: {
+        backgroundColor: theme.palette.background.paper,
+        display: "inline-block",
+        marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
+    },
     scopesListContainer: {
         textAlign: "center",
-    },
-    scopesList: {
-        display: "inline-block",
-        backgroundColor: theme.palette.background.paper,
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
     },
 }));
 

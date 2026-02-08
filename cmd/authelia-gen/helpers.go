@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"encoding/json"
@@ -18,7 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -345,4 +347,83 @@ func removeDuplicate[T comparable](sliceList []T) []T {
 	}
 
 	return list
+}
+
+func replaceFrontMatter(path, current, replacement, prefix string) {
+	f, err := os.Open(path)
+	if err != nil {
+		return
+	}
+
+	buf := bytes.Buffer{}
+
+	scanner := bufio.NewScanner(f)
+
+	found := 0
+
+	frontmatter := 0
+
+	for scanner.Scan() {
+		if found < 2 && frontmatter < 2 {
+			switch {
+			case scanner.Text() == delimiterLineFrontMatter:
+				buf.Write(scanner.Bytes())
+
+				frontmatter++
+			case frontmatter != 0 && len(prefix) == 0 && scanner.Text() == current:
+				fallthrough
+			case frontmatter != 0 && len(prefix) != 0 && strings.HasPrefix(scanner.Text(), prefix):
+				buf.WriteString(replacement)
+
+				found++
+			default:
+				buf.Write(scanner.Bytes())
+			}
+		} else {
+			buf.Write(scanner.Bytes())
+		}
+
+		buf.Write(newline)
+	}
+
+	f.Close()
+
+	newF, err := os.Create(path)
+	if err != nil {
+		return
+	}
+
+	_, _ = buf.WriteTo(newF)
+
+	newF.Close()
+}
+
+func getFrontmatter(path string) []byte {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil
+	}
+
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+
+	var start bool
+
+	buf := bytes.Buffer{}
+
+	for scanner.Scan() {
+		if start {
+			if scanner.Text() == delimiterLineFrontMatter {
+				break
+			}
+
+			buf.Write(scanner.Bytes())
+			buf.Write(newline)
+		} else if scanner.Text() == delimiterLineFrontMatter {
+			start = true
+		}
+	}
+
+	return buf.Bytes()
 }

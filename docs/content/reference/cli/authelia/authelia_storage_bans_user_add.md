@@ -2,7 +2,7 @@
 title: "authelia storage bans user add"
 description: "Reference for the authelia storage bans user add command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-08-01T16:23:47+10:00
 draft: false
 images: []
 weight: 905

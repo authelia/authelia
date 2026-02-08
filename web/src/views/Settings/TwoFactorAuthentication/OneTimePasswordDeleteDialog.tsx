@@ -1,5 +1,3 @@
-import React from "react";
-
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -13,11 +11,7 @@ interface Props {
 
 const OneTimePasswordDeleteDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
-
-    const handleCancel = () => {
-        props.handleClose();
-    };
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const handleRemove = async () => {
         const response = await deleteUserTOTPConfiguration();
@@ -59,18 +53,11 @@ const OneTimePasswordDeleteDialog = function (props: Props) {
         props.handleClose();
     };
 
-    const handleClose = (ok: boolean) => {
-        if (ok) {
-            handleRemove().catch(console.error);
-        } else {
-            handleCancel();
-        }
-    };
-
     return (
         <DeleteDialog
             open={props.open}
-            handleClose={handleClose}
+            onConfirm={handleRemove}
+            onCancel={props.handleClose}
             title={translate("Remove {{item}}", { item: translate("One-Time Password") })}
             text={translate("Are you sure you want to remove the One-Time Password from your account")}
         />

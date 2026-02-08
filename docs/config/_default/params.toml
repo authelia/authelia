@@ -1,6 +1,6 @@
 # Hugo
 title = "Authelia"
-description = "The Single Sign-On Multi-Factor portal for web apps"
+description = "Free Open-Source Software Modern IAM Solution"
 images = ["cover.png"]
 footer = 'Powered by <a class="text-muted" href="https://www.netlify.com/">Netlify</a>, <a class="text-muted" href="https://gohugo.io/">Hugo</a>, and <a class="text-muted" href="https://thulite.io/">Thulite</a>'
 copyRight = 'Copyright © 2016-%s <a class="text-muted" href="https://github.com/authelia">Authelia</a>'
@@ -13,6 +13,10 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
 
 [social]
   # twitter = "getdoks"
+
+# Add-ons
+[add_ons]
+  docSearch = true # false (default) or true
 
 # Doks (@thulite/doks-core)
 [doks]
@@ -30,7 +34,7 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
   navBarButtonText = "Get started"
 
   # FlexSearch
-  flexSearch = true # true (default) or false
+  flexSearch = false # true (default) or false
   searchExclKinds = [] # list of page kinds to exclude from search indexing (e.g. ["home", "taxonomy", "term"] )
   searchExclTypes = [] # list of content types to exclude from search indexing (e.g. ["blog", "docs", "legal", "contributors", "categories"])
   showSearch = [] # [] (all pages, default) or homepage (optionally) and list of sections (e.g. ["homepage", "blog", "guides"])

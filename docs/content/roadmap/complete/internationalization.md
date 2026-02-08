@@ -2,7 +2,7 @@
 title: "Internationalization"
 description: "Authelia Internationalization Implementation"
 summary: "Implementation of internationalization will make Authelia more accessible to more people."
-date: 2022-06-15T17:51:47+10:00
+date: 2025-07-05T10:53:06+10:00
 draft: false
 images: []
 weight: 330

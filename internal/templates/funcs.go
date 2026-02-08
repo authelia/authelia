@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 // FuncMap returns the template FuncMap commonly used in several templates.
@@ -193,7 +193,7 @@ func FuncHashSum(new func() hash.Hash) func(data string) string {
 
 // FuncKeys is a helper function that provides similar functionality to the helm keys func.
 func FuncKeys(maps ...map[string]any) []string {
-	var keys []string
+	var keys []string //nolint:prealloc
 
 	for _, m := range maps {
 		for k := range m {

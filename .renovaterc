@@ -6,9 +6,8 @@
     ":separatePatchReleases",
     "workarounds:doNotUpgradeFromAlpineStableToEdge"
   ],
-  "ignoreDeps": [
-    "vite-plugin-checker"
-  ],
+  "branchPrefix": "renovate-",
+  "rebaseWhen": "conflicted",
   "ignorePaths": [
     "docs/**"
   ],
@@ -20,29 +19,20 @@
   "enabledManagers": [
     "docker-compose",
     "dockerfile",
+    "github-actions",
     "gomod",
     "kubernetes",
     "npm"
   ],
   "kubernetes": {
-    "fileMatch": [
-      "kube/.+\\.yml$"
+    "managerFilePatterns": [
+      "/kube/.+\\.yml$/"
     ]
   },
   "labels": [
     "dependencies"
   ],
   "packageRules": [
-    {
-      "matchUpdateTypes": [
-        "digest",
-        "minor",
-        "patch"
-      ],
-      "automerge": true,
-      "automergeType": "pr",
-      "platformAutomerge": true
-    },
     {
       "matchDatasources": [
         "docker"
@@ -59,6 +49,14 @@
       ],
       "addLabels": [
         "docker"
+      ]
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "addLabels": [
+        "github_actions"
       ]
     },
     {
