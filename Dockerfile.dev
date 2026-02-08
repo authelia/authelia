@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:25-alpine@sha256:d1cdf008963e1627f47c4426c33481e538190300ad2514e9f8d5c75755888521 AS builder-frontend
+FROM node:25-alpine@sha256:c8d96e95e88f08f814af06415db9cfd5ab4ebcdf40721327ff2172ff25cfb997 AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -16,7 +16,7 @@ RUN \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.25.6-bookworm@sha256:2f768d462dbffbb0f0b3a5171009f162945b086f326e0b2a8fd5d29c3219ff14 AS builder-backend
+FROM golang:1.25.7-bookworm@sha256:38342f3e7a504bf1efad858c18e771f84b66dc0b363add7a57c9a0bbb6cf7b12 AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -42,7 +42,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:72f488c04f7e85e5680f7525e4ee23d9f4520679d32d5f3610cd3e0fab382a31
+FROM authelia/base:latest@sha256:f7de2df429f1d9f423d7afff0bfb4daa10f8047bd7ced24fcc5d6975e6ad690c
 
 WORKDIR /app
 
