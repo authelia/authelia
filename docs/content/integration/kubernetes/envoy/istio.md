@@ -66,6 +66,7 @@ spec:
           includeRequestHeadersInCheck:
             - 'accept'
             - 'cookie'
+            - 'location'
             - 'authorization'
             - 'proxy-authorization'
           headersToUpstreamOnAllow:

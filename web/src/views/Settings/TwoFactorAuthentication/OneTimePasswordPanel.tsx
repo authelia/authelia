@@ -16,7 +16,7 @@ import OneTimePasswordRegisterDialog from "@views/Settings/TwoFactorAuthenticati
 
 interface Props {
     info?: UserInfo;
-    config: UserInfoTOTPConfiguration | undefined | null;
+    config: null | undefined | UserInfoTOTPConfiguration;
     handleRefreshState: () => void;
 }
 
@@ -251,11 +251,10 @@ const OneTimePasswordPanel = function (props: Props) {
                             </Typography>
                         </Grid>
                     ) : (
-                        <Grid size={{ xs: 12, md: 6, xl: 3 }}>
+                        <Grid size={{ md: 6, xl: 3, xs: 12 }}>
                             <OneTimePasswordConfiguration
                                 config={props.config}
                                 handleInformation={handleInformation}
-                                handleRefresh={props.handleRefreshState}
                                 handleDelete={handleDelete}
                             />
                         </Grid>

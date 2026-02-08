@@ -23,9 +23,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.14](https://github.com/authelia/authelia/releases/tag/v4.39.14)
+  - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
 - [Grafana]
-  - [v12.0.2](https://github.com/grafana/grafana/releases/tag/v12.0.2)
+  - [v12.3.2](https://github.com/grafana/grafana/releases/tag/v12.3.2)
 
 {{% oidc-common bugs="claims-hydration" %}}
 
@@ -115,6 +115,7 @@ groups_attribute_path = groups
 name_attribute_path = name
 use_pkce = true
 role_attribute_path =
+auth_style = InHeader
 ```
 
 #### Environment Variables
@@ -140,6 +141,7 @@ GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH=groups
 GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH=name
 GF_AUTH_GENERIC_OAUTH_USE_PKCE=true
 GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=
+GF_AUTH_GENERIC_OAUTH_AUTH_STYLE=InHeader
 ```
 
 ##### Docker Compose
@@ -164,6 +166,7 @@ services:
       GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH: 'name'
       GF_AUTH_GENERIC_OAUTH_USE_PKCE: 'true'
       GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: ''
+      GF_AUTH_GENERIC_OAUTH_AUTH_STYLE: 'InHeader'
 ```
 
 ### Role Attribute Path

@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import { Fragment, MouseEvent, useState } from "react";
 
 import { Logout, Settings } from "@mui/icons-material";
 import { Avatar, Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
@@ -17,7 +17,7 @@ export interface Props {
 const AppBarItemAccountSettings = function (props: Props) {
     const { t: translate } = useTranslation();
 
-    const [elementAccountSettings, setElementAccountSettings] = useState<null | HTMLElement>(null);
+    const [elementAccountSettings, setElementAccountSettings] = useState<HTMLElement | null>(null);
 
     const navigate = useRouterNavigate();
     const doSignOut = useSignOut();
@@ -43,7 +43,7 @@ const AppBarItemAccountSettings = function (props: Props) {
 
     const open = Boolean(elementAccountSettings);
 
-    const handleAccountSettingsClick = (event: React.MouseEvent<HTMLElement>) => {
+    const handleAccountSettingsClick = (event: MouseEvent<HTMLElement>) => {
         setElementAccountSettings(event.currentTarget);
     };
 
@@ -53,7 +53,7 @@ const AppBarItemAccountSettings = function (props: Props) {
 
     return props.userInfo ? (
         <Fragment>
-            <Box sx={{ display: "flex", alignItems: "center", textAlign: "center" }}>
+            <Box sx={{ alignItems: "center", display: "flex", textAlign: "center" }}>
                 <Tooltip title={translate("Account Settings")}>
                     <IconButton
                         id={"account-menu"}
@@ -64,7 +64,7 @@ const AppBarItemAccountSettings = function (props: Props) {
                         aria-haspopup={"true"}
                         aria-expanded={open ? "true" : undefined}
                     >
-                        <Avatar sx={{ width: 32, height: 32 }}>
+                        <Avatar sx={{ height: 32, width: 32 }}>
                             {props.userInfo.display_name.charAt(0).toUpperCase()}
                         </Avatar>
                     </IconButton>
@@ -80,27 +80,27 @@ const AppBarItemAccountSettings = function (props: Props) {
                     paper: {
                         elevation: 0,
                         sx: {
-                            overflow: "visible",
-                            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-                            mt: 1.5,
+                            "&:before": {
+                                bgcolor: "background.paper",
+                                content: '""',
+                                display: "block",
+                                height: 10,
+                                position: "absolute",
+                                right: 14,
+                                top: 0,
+                                transform: "translateY(-50%) rotate(45deg)",
+                                width: 10,
+                                zIndex: 0,
+                            },
                             "& .MuiAvatar-root": {
-                                width: 32,
                                 height: 32,
                                 ml: -0.5,
                                 mr: 1,
+                                width: 32,
                             },
-                            "&:before": {
-                                content: '""',
-                                display: "block",
-                                position: "absolute",
-                                top: 0,
-                                right: 14,
-                                width: 10,
-                                height: 10,
-                                bgcolor: "background.paper",
-                                transform: "translateY(-50%) rotate(45deg)",
-                                zIndex: 0,
-                            },
+                            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                            mt: 1.5,
+                            overflow: "visible",
                         },
                     },
                 }}

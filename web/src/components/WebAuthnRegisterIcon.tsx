@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
-import { Box, Theme, useTheme } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -31,7 +31,7 @@ const WebAuthnRegisterIcon = function (props: Props) {
     );
 };
 
-const useStyles = makeStyles()((theme: Theme) => ({
+const useStyles = makeStyles()(() => ({
     icon: {
         display: "inline-block",
     },

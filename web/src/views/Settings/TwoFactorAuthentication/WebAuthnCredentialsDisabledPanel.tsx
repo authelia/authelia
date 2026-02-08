@@ -1,12 +1,8 @@
-import React from "react";
-
 import { Box, Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
-interface Props {}
-
-const WebAuthnCredentialsDisabledPanel = function (props: Props) {
+const WebAuthnCredentialsDisabledPanel = function () {
     const { t: translate } = useTranslation("settings");
 
     return (

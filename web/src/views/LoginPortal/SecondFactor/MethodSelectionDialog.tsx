@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 
 import { Box, Button, Dialog, DialogActions, DialogContent, Theme, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -16,7 +16,7 @@ export interface Props {
     webauthn: boolean;
 
     onClose: () => void;
-    onClick: (method: SecondFactorMethod) => void;
+    onClick: (_method: SecondFactorMethod) => void;
 }
 
 const MethodSelectionDialog = function (props: Props) {
@@ -68,11 +68,11 @@ const MethodSelectionDialog = function (props: Props) {
 };
 
 interface MethodItemProps {
-    id: string;
-    method: string;
-    icon: ReactNode;
+    readonly id: string;
+    readonly method: string;
+    readonly icon: ReactNode;
 
-    onClick: () => void;
+    readonly onClick: () => void;
 }
 
 function MethodItem(props: MethodItemProps) {
@@ -97,20 +97,20 @@ function MethodItem(props: MethodItemProps) {
 }
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
-        textAlign: "center",
-    },
-    item: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-        width: "100%",
+    buttonRoot: {
+        display: "block",
     },
     icon: {
         display: "inline-block",
         fill: "white",
     },
-    buttonRoot: {
-        display: "block",
+    item: {
+        paddingBottom: theme.spacing(4),
+        paddingTop: theme.spacing(4),
+        width: "100%",
+    },
+    root: {
+        textAlign: "center",
     },
 }));
 

@@ -93,9 +93,9 @@ To configure [Vikunja] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 auth:
   openid:
     enabled: true
-    redirecturl: 'https://vikunja.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid/'
     providers:
-      - name: 'Authelia'
+      authelia:
+        name: 'Authelia'
         authurl: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
         clientid: 'vikunja'
         clientsecret: 'insecure_secret'

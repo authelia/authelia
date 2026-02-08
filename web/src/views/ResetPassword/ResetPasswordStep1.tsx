@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, CircularProgress, FormControl, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -21,7 +21,7 @@ const ResetPasswordStep1 = function () {
     const [rateLimited, setRateLimited] = useState(false);
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
-    const { createInfoNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createInfoNotification } = useNotifications();
     const navigate = useNavigate();
     const { t: translate } = useTranslation();
 
@@ -62,10 +62,10 @@ const ResetPasswordStep1 = function () {
 
         try {
             const response = await initiateResetPasswordProcess(username);
-            if (response && !response.limited) {
+            if (response?.limited === false) {
                 createInfoNotification(translate("An email has been sent to your address to complete the process"));
                 navigate(IndexRoute);
-            } else if (response && response.limited) {
+            } else if (response?.limited) {
                 handleRateLimited(response.retryAfter);
             } else {
                 createErrorNotification(translate("There was an issue initiating the password reset process"));

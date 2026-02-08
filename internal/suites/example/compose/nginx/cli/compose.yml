@@ -1,7 +1,7 @@
 ---
 services:
   nginx-cli:
-    image: nginx:1.29.3-alpine
+    image: nginx:1.29.5-alpine
     volumes:
       - ./example/compose/nginx/cli/nginx.conf:/etc/nginx/nginx.conf
       - ./common/pki:/pki

@@ -1,5 +1,3 @@
-import React from "react";
-
 import TextField, { TextFieldProps } from "@mui/material/TextField";
 
 const OneTimeCodeTextField = function (props: TextFieldProps) {
@@ -9,9 +7,9 @@ const OneTimeCodeTextField = function (props: TextFieldProps) {
             slotProps={{
                 htmlInput: {
                     style: {
-                        textTransform: "uppercase",
-                        textAlign: "center",
                         letterSpacing: ".5rem",
+                        textAlign: "center",
+                        textTransform: "uppercase",
                     },
                 },
             }}

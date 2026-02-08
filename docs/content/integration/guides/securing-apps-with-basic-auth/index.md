@@ -127,9 +127,9 @@ access_control:
   rules:
     - domain:
         - myapp.example.com
-    policy: one_factor
-    subject:
-      - ['group:myapp', 'group:service']
+      policy: one_factor
+      subject:
+        - ['group:myapp', 'group:service']
 
     - domain:
         - myapp.example.com

@@ -1,4 +1,4 @@
-import React, { ChangeEvent, Fragment } from "react";
+import { ChangeEvent } from "react";
 
 import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -11,7 +11,7 @@ interface Props {
     methods: SecondFactorMethod[];
     method: SecondFactorMethod;
     name: string;
-    handleMethodChanged: (event: ChangeEvent<HTMLInputElement>) => void;
+    handleMethodChanged: (_event: ChangeEvent<HTMLInputElement>) => void;
 }
 
 const TwoFactorAuthenticationOptionsMethodsRadioGroup = function (props: Props) {
@@ -21,7 +21,7 @@ const TwoFactorAuthenticationOptionsMethodsRadioGroup = function (props: Props) 
         <FormControl>
             <FormLabel>{translate(props.name)}</FormLabel>
             <RadioGroup value={toMethod2FA(props.method)} onChange={props.handleMethodChanged} row>
-                {props.methods.map((value, index) => {
+                {props.methods.map((value, _index) => {
                     const v = toMethod2FA(value);
 
                     switch (value) {
@@ -31,7 +31,7 @@ const TwoFactorAuthenticationOptionsMethodsRadioGroup = function (props: Props) 
                                     id={`method-${props.id}-default-webauthn`}
                                     control={<Radio />}
                                     label={translate("WebAuthn")}
-                                    key={index}
+                                    key={v}
                                     value={v}
                                 />
                             );
@@ -41,7 +41,7 @@ const TwoFactorAuthenticationOptionsMethodsRadioGroup = function (props: Props) 
                                     id={`method-${props.id}-default-one-time-password`}
                                     control={<Radio />}
                                     label={translate("One-Time Password")}
-                                    key={index}
+                                    key={v}
                                     value={v}
                                 />
                             );
@@ -51,12 +51,12 @@ const TwoFactorAuthenticationOptionsMethodsRadioGroup = function (props: Props) 
                                     id={`method-${props.id}-default-duo`}
                                     control={<Radio />}
                                     label={translate("Mobile Push")}
-                                    key={index}
+                                    key={v}
                                     value={v}
                                 />
                             );
                         default:
-                            return <Fragment />;
+                            return null;
                     }
                 })}
             </RadioGroup>

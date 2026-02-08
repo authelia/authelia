@@ -27,7 +27,7 @@ const TwoFactorAuthenticationView = function () {
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [userTOTPConfig, fetchUserTOTPConfig, , fetchUserTOTPConfigError] = useUserInfoTOTPConfigurationOptional();
-    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
     const [userWebAuthnCredentials, fetchUserWebAuthnCredentials, , fetchUserWebAuthnCredentialsError] =
         useUserWebAuthnCredentials();
 

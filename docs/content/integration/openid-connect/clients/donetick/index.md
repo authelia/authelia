@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.14](https://github.com/authelia/authelia/releases/tag/v4.39.14)
+  - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
 - [Donetick]
   - [v0.1.53](https://github.com/donetick/donetick/releases/tag/v0.1.53)
 
@@ -65,7 +65,7 @@ identity_providers:
           - 'https://donetick.{{< sitevar name="domain" nojs="example.com" >}}/auth/oauth2'
         scopes:
           - 'openid'
-          - 'profile'A
+          - 'profile'
           - 'email'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
@@ -98,15 +98,15 @@ DT_OAUTH2_REDIRECT_URL=https://donetick.{{< sitevar name="domain" nojs="example.
 
 ```yaml {title="compose.yml"}
 services:
-  minio:
+  donetick:
     environment:
       DT_OAUTH2_NAME: 'Authelia'
       DT_OAUTH2_CLIENT_ID: 'donetick'
       DT_OAUTH2_CLIENT_SECRET: 'insecure_secret'
-      DT_OAUTH2_SCOPE: 'openid profile email'
+      DT_OAUTH2_SCOPES: 'openid profile email'
       DT_OAUTH2_AUTH_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
       DT_OAUTH2_TOKEN_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
-      DT_OAUTH2_INFO_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
+      DT_OAUTH2_USER_INFO_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
       DT_OAUTH2_REDIRECT_URL: 'https://donetick.{{< sitevar name="domain" nojs="example.com" >}}/auth/oauth2'
 ```
 
@@ -119,7 +119,7 @@ oauth2:
   name: 'Authelia'
   client_id: 'donetick'
   client_secret: 'insecure_secret'
-  scope:
+  scopes:
     - 'openid'
     - 'profile'
     - 'email'
@@ -139,7 +139,7 @@ Please note that the Donetick app in version [0.1.34](https://github.com/donetic
 
 - [Donetick Configuration Documentation](https://docs.donetick.com/getting-started/configration)
 
-[Donetick]: https://miniflux.app/index.html
+[Donetick]: https://docs.donetick.com/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

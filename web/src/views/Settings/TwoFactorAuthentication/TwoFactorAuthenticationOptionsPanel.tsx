@@ -38,7 +38,7 @@ function reducer(state: ComponentState, action: Action): ComponentState {
 const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
     const { createErrorNotification } = useNotifications();
-    const { localStorageMethod, setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { localStorageMethod, localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
 
     const [state, dispatch] = useReducer(reducer, initialState);
     const { method } = state;
@@ -48,7 +48,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     useEffect(() => {
         if (props.info === undefined) return;
 
-        dispatch({ type: "setMethod", method: props.info.method });
+        dispatch({ method: props.info.method, type: "setMethod" });
     }, [props.info]);
 
     const methods = useMemo(() => {
@@ -74,7 +74,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
 
             setPreferred2FAMethod(value)
                 .then(() => {
-                    dispatch({ type: "setMethod", method: value });
+                    dispatch({ method: value, type: "setMethod" });
                 })
                 .catch((err) => {
                     console.error(err);
@@ -103,7 +103,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                         <Grid size={{ xs: 12 }}>
                             <Grid container spacing={2} padding={2}>
                                 {method === undefined ? null : (
-                                    <Grid size={{ xs: 12, md: 4 }}>
+                                    <Grid size={{ md: 4, xs: 12 }}>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"account"}
                                             name={"Default Method"}
@@ -114,7 +114,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                                     </Grid>
                                 )}
                                 {!localStorageMethodAvailable || localStorageMethod === undefined ? null : (
-                                    <Grid size={{ xs: 12, md: 4 }}>
+                                    <Grid size={{ md: 4, xs: 12 }}>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"local"}
                                             name={"Default Method (Browser)"}

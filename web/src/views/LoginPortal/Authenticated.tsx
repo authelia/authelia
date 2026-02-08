@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Box, Theme, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";
@@ -23,8 +21,8 @@ const Authenticated = function () {
 
 const useStyles = makeStyles()((theme: Theme) => ({
     iconContainer: {
-        marginBottom: theme.spacing(2),
         flex: "0 0 100%",
+        marginBottom: theme.spacing(2),
     },
 }));
 

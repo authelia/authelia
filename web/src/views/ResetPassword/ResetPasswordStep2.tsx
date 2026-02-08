@@ -27,7 +27,7 @@ const ResetPasswordStep2 = function () {
     const [password2, setPassword2] = useState("");
     const [errorPassword1, setErrorPassword1] = useState(false);
     const [errorPassword2, setErrorPassword2] = useState(false);
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -35,11 +35,11 @@ const ResetPasswordStep2 = function () {
         max_length: 0,
         min_length: 8,
         min_score: 0,
+        mode: PasswordPolicyMode.Disabled,
         require_lowercase: false,
         require_number: false,
         require_special: false,
         require_uppercase: false,
-        mode: PasswordPolicyMode.Disabled,
     });
 
     // Get the token from the query param to give it back to the API when requesting
@@ -47,7 +47,7 @@ const ResetPasswordStep2 = function () {
     const processToken = useQueryParam(IdentityToken);
 
     const handleRateLimited = useCallback(
-        (retryAfter: number) => {
+        (_retryAfter: number) => {
             createErrorNotification(translate("You have made too many requests")); // TODO: Do we want to add the amount of seconds a user should retry in the message?
         },
         [createErrorNotification, translate],
@@ -236,12 +236,12 @@ const ResetPasswordStep2 = function () {
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
     fullWidth: {
         width: "100%",
+    },
+    root: {
+        marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2),
     },
 }));
 

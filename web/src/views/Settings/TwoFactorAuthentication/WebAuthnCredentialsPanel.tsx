@@ -17,7 +17,7 @@ import WebAuthnCredentialsGrid from "@views/Settings/TwoFactorAuthentication/Web
 
 interface Props {
     info?: UserInfo;
-    credentials: WebAuthnCredential[] | undefined;
+    credentials: undefined | WebAuthnCredential[];
     handleRefreshState: () => void;
 }
 
@@ -268,7 +268,7 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                     <Grid size={{ xs: 12 }}>
                         <Typography variant="h5">{translate("WebAuthn Credentials")}</Typography>
                     </Grid>
-                    <Grid size={{ xs: 4, md: 2 }}>
+                    <Grid size={{ md: 2, xs: 4 }}>
                         <Tooltip
                             title={translate("Click to add a {{item}} to your account", {
                                 item: translate("WebAuthn Credential"),
@@ -296,7 +296,6 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                         ) : (
                             <WebAuthnCredentialsGrid
                                 credentials={props.credentials}
-                                handleRefreshState={props.handleRefreshState}
                                 handleInformation={handleInformation}
                                 handleEdit={handleEdit}
                                 handleDelete={handleDelete}

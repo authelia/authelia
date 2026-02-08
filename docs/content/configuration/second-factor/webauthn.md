@@ -38,6 +38,7 @@ webauthn:
     user_verification: 'preferred'
   metadata:
     enabled: false
+    cache_policy: strict
     validate_trust_anchor: true
     validate_entry: true
     validate_entry_permit_zero_aaguid: false

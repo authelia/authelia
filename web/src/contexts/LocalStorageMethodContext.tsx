@@ -1,19 +1,19 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { LocalStorageSecondFactorMethod } from "@constants/LocalStorage";
 import { SecondFactorMethod } from "@models/Methods";
 import { localStorageAvailable } from "@services/LocalStorage";
 import { Method2FA, isMethod2FA, toMethod2FA, toSecondFactorMethod } from "@services/UserInfo";
 
-export const LocalStorageMethodContext = createContext<ValueProps | null>(null);
+export const LocalStorageMethodContext = createContext<null | ValueProps>(null);
 
 export interface Props {
-    readonly children: React.ReactNode;
+    readonly children: ReactNode;
 }
 
 export interface ValueProps {
     localStorageMethod: SecondFactorMethod | undefined;
-    setLocalStorageMethod: (value: SecondFactorMethod | undefined) => void;
+    setLocalStorageMethod: (_value: SecondFactorMethod | undefined) => void;
     localStorageMethodAvailable: boolean;
 }
 
@@ -67,8 +67,8 @@ export default function LocalStorageMethodContextProvider(props: Props) {
     const value = useMemo(
         () => ({
             localStorageMethod: localStorageMethod,
-            setLocalStorageMethod: callback,
             localStorageMethodAvailable: localStorageMethodAvailable,
+            setLocalStorageMethod: callback,
         }),
         [localStorageMethod, callback, localStorageMethodAvailable],
     );

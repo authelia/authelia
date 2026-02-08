@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import { Fragment } from "react";
 
 import {
     Button,
@@ -17,7 +17,7 @@ import { FormatDateHumanReadable } from "@i18n/formats";
 import { UserInfoTOTPConfiguration, toAlgorithmString } from "@models/TOTPConfiguration";
 
 interface Props {
-    config: UserInfoTOTPConfiguration | undefined | null;
+    config: null | undefined | UserInfoTOTPConfiguration;
     open: boolean;
     handleClose: () => void;
 }
@@ -31,19 +31,13 @@ const OneTimePasswordInformationDialog = function (props: Props) {
                 {translate("One-Time Password Information")}
             </DialogTitle>
             <DialogContent>
-                {!props.config ? (
-                    <DialogContentText sx={{ mb: 3 }}>
-                        {translate("The One-Time Password information is not loaded")}
-                    </DialogContentText>
-                ) : (
+                {props.config ? (
                     <Fragment>
                         <DialogContentText sx={{ mb: 3 }}>
                             {translate("Extended information for One-Time Password")}
                         </DialogContentText>
                         <Grid container spacing={2}>
-                            <Grid size={{ md: 3 }} sx={{ display: { xs: "none", md: "block" } }}>
-                                <Fragment />
-                            </Grid>
+                            <Grid size={{ md: 3 }} sx={{ display: { md: "block", xs: "none" } }} />
                             <Grid size={{ xs: 12 }}>
                                 <Divider />
                             </Grid>
@@ -69,8 +63,8 @@ const OneTimePasswordInformationDialog = function (props: Props) {
                             <PropertyText
                                 name={translate("Added")}
                                 value={translate("{{when, datetime}}", {
-                                    when: new Date(props.config.created_at),
                                     formatParams: { when: FormatDateHumanReadable },
+                                    when: new Date(props.config.created_at),
                                 })}
                             />
                             <PropertyText
@@ -78,14 +72,18 @@ const OneTimePasswordInformationDialog = function (props: Props) {
                                 value={
                                     props.config.last_used_at
                                         ? translate("{{when, datetime}}", {
-                                              when: new Date(props.config.last_used_at),
                                               formatParams: { when: FormatDateHumanReadable },
+                                              when: new Date(props.config.last_used_at),
                                           })
                                         : translate("Never")
                                 }
                             />
                         </Grid>
                     </Fragment>
+                ) : (
+                    <DialogContentText sx={{ mb: 3 }}>
+                        {translate("The One-Time Password information is not loaded")}
+                    </DialogContentText>
                 )}
             </DialogContent>
             <DialogActions>
@@ -98,14 +96,14 @@ const OneTimePasswordInformationDialog = function (props: Props) {
 };
 
 interface PropertyTextProps {
-    name: string;
-    value: string;
-    xs?: number;
+    readonly name: string;
+    readonly value: string;
+    readonly xs?: number;
 }
 
 function PropertyText(props: PropertyTextProps) {
     return (
-        <Grid size={{ xs: props.xs !== undefined ? props.xs : 12 }}>
+        <Grid size={{ xs: props.xs ?? 12 }}>
             <Typography display="inline" sx={{ fontWeight: "bold" }}>
                 {`${props.name}: `}
             </Typography>

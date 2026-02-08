@@ -25,15 +25,34 @@ func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
 	return false
 }
 
-func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (controlTypeOIDs, extensionOIDs []string, features LDAPSupportedFeatures) {
+func ldapGetFeatureSupportFromClient(client LDAPBaseClient) (features LDAPSupportedFeatures, err error) {
+	var (
+		request *ldap.SearchRequest
+		result  *ldap.SearchResult
+	)
+
+	request = ldapNewSearchRequestRootDSE()
+
+	if result, err = client.Search(request); err != nil {
+		return features, fmt.Errorf("error occurred during RootDSE search: %w", err)
+	}
+
+	if len(result.Entries) != 1 {
+		return features, fmt.Errorf("error occurred during RootDSE search: %w", ErrLDAPHealthCheckFailedEntryCount)
+	}
+
+	return ldapGetFeatureSupportFromEntry(result.Entries[0]), nil
+}
+
+func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (features LDAPSupportedFeatures) {
 	if entry == nil {
-		return controlTypeOIDs, extensionOIDs, features
+		return
 	}
 
 	for _, attr := range entry.Attributes {
 		switch attr.Name {
 		case ldapSupportedControlAttribute:
-			controlTypeOIDs = attr.Values
+			features.ControlTypes.OIDs = attr.Values
 
 			for _, oid := range attr.Values {
 				switch oid {
@@ -44,20 +63,22 @@ func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (controlTypeOIDs, extensi
 				}
 			}
 		case ldapSupportedExtensionAttribute:
-			extensionOIDs = attr.Values
+			features.Extensions.OIDs = attr.Values
 
 			for _, oid := range attr.Values {
 				switch oid {
-				case ldapOIDExtensionPwdModifyExOp:
-					features.Extensions.PwdModifyExOp = true
+				case ldapOIDExtensionPwdModify:
+					features.Extensions.PwdModify = true
 				case ldapOIDExtensionTLS:
 					features.Extensions.TLS = true
+				case ldapOIDExtensionWhoAmI:
+					features.Extensions.WhoAmI = true
 				}
 			}
 		}
 	}
 
-	return controlTypeOIDs, extensionOIDs, features
+	return features
 }
 
 func ldapEscape(inputUsername string) string {
@@ -162,4 +183,9 @@ func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties
 	}
 
 	return values, nil
+}
+
+func ldapNewSearchRequestRootDSE() *ldap.SearchRequest {
+	return ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
+		1, 0, false, ldapBaseObjectFilter, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
 }

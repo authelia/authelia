@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 
 import { Button, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";

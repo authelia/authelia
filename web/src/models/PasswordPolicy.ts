@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export enum PasswordPolicyMode {
     Disabled = 0,
     Standard = 1,

@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import { Fragment } from "react";
 
 import { Box, Theme } from "@mui/material";
 import OtpInput from "react18-input-otp";
@@ -15,9 +15,10 @@ export interface Props {
     digits: number;
     period: number;
 
-    onChange: (passcode: string) => void;
+    onChange: (_passcode: string) => void;
 }
 
+/* eslint-disable no-unused-vars */
 export enum State {
     Idle = 1,
     InProgress = 2,
@@ -53,42 +54,43 @@ const OTPDial = function (props: Props) {
 };
 
 interface IconProps {
-    state: State;
-    period: number;
+    readonly state: State;
+    readonly period: number;
 }
 
 function Icon(props: IconProps) {
     return (
         <Fragment>
-            {props.state !== State.Success ? (
+            {props.state === State.Success ? (
+                <SuccessIcon />
+            ) : (
                 <TimerIcon backgroundColor="#000" color="#FFFFFF" width={64} height={64} period={props.period} />
-            ) : null}
-            {props.state === State.Success ? <SuccessIcon /> : null}
+            )}
         </Fragment>
     );
 }
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    timeProgress: {},
-    register: {
-        marginTop: theme.spacing(),
+    inputError: {
+        border: "1px solid rgba(255, 2, 2, 0.95)",
+    },
+    otpDigitInput: {
+        border: "1px solid rgba(0,0,0,0.3)",
+        borderRadius: "5px",
+        boxSizing: "content-box",
+        fontSize: "1rem",
+        marginLeft: theme.spacing(0.5),
+        marginRight: theme.spacing(0.5),
+        padding: theme.spacing() + " !important",
     },
     otpInput: {
         display: "inline-block",
         marginTop: theme.spacing(2),
     },
-    otpDigitInput: {
-        boxSizing: "content-box",
-        padding: theme.spacing() + " !important",
-        marginLeft: theme.spacing(0.5),
-        marginRight: theme.spacing(0.5),
-        fontSize: "1rem",
-        borderRadius: "5px",
-        border: "1px solid rgba(0,0,0,0.3)",
+    register: {
+        marginTop: theme.spacing(),
     },
-    inputError: {
-        border: "1px solid rgba(255, 2, 2, 0.95)",
-    },
+    timeProgress: {},
 }));
 
 export default OTPDial;

@@ -16,6 +16,7 @@ export interface TOTPOptions {
     periods: number[];
 }
 
+/* eslint-disable no-unused-vars */
 export enum TOTPAlgorithm {
     SHA1 = 0,
     SHA256,

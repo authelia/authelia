@@ -26,8 +26,8 @@ export interface ConsentGetResponseBody {
     scopes: string[];
     audience: string[];
     pre_configuration: boolean;
-    claims: string[] | null;
-    essential_claims: string[] | null;
+    claims: null | string[];
+    essential_claims: null | string[];
     require_login: boolean;
 }
 
@@ -54,11 +54,11 @@ export function postConsentResponseAccept(
     userCode?: string,
 ) {
     const body: ConsentPostRequestBody = {
-        flow_id: flowID,
+        claims: claims,
         client_id: clientID,
         consent: true,
+        flow_id: flowID,
         pre_configure: preConfigure,
-        claims: claims,
         subflow: subflow,
         user_code: userCode,
     };
@@ -77,9 +77,9 @@ export function putDeviceCodeFlowUserCode(flowID: string, userCode: string) {
 
 export function postConsentResponseReject(clientID: string, flowID?: string, subflow?: string, userCode?: string) {
     const body: ConsentPostRequestBody = {
-        flow_id: flowID,
         client_id: clientID,
         consent: false,
+        flow_id: flowID,
         pre_configure: false,
         subflow: subflow,
         user_code: userCode,
@@ -128,12 +128,14 @@ export function getClaimDescription(claim: string): string {
 function setClaimCase(claim: string): string {
     claim = (claim.charAt(0).toUpperCase() + claim.slice(1)).replace("_verified", " (Verified)").replace("_", " ");
 
+    let result = "";
     for (let i = 0; i < claim.length; i++) {
-        const j = i + 1;
-
-        if (claim[i] === " " && j < claim.length) {
-            claim.charAt(j).toUpperCase();
+        if (i === 0 || claim[i - 1] === " ") {
+            result += claim[i].toUpperCase();
+        } else {
+            result += claim[i];
         }
     }
-    return claim;
+
+    return result;
 }
