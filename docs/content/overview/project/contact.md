@@ -6,11 +6,11 @@ date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 toc: true
-type: legal
 aliases:
   - '/contact'
   - '/contact.html'
   - '/docs/community/'
+  - '/information/contact'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -21,7 +21,7 @@ seo:
 ## Security
 
 If you believe you have identified a security vulnerability or security related bug with __Authelia__ please view our
-[security policy](../policies/security.md).
+[security policy](../project/policies/security.md).
 
 ## Individual Team Members
 
