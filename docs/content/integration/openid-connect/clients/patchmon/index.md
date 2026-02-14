@@ -95,17 +95,6 @@ To configure [PatchMon] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 | `OIDC_REDIRECT_URI` | `https://patchmon.{{< sitevar name="domain" nojs="example.com" >}}/api/v1/auth/oidc/callback` |
 | `OIDC_POST_LOGOUT_URI` | `https://patchmon.{{< sitevar name="domain" nojs="example.com" >}}` |
 
-The following environment variables are optional but recommended:
-
-| Environment Variable | Value |
-| --- | --- |
-| `OIDC_BUTTON_TEXT` | `Login with Authelia` |
-| `OIDC_ADMIN_GROUP` | `PatchMon Admins` |
-| `OIDC_USER_GROUP` | `PatchMon Users` |
-| `OIDC_SUPERADMIN_GROUP` | `PatchMon SuperAdmins` |
-| `OIDC_HOST_MANAGER_GROUP` | `PatchMon Host Managers` |
-| `OIDC_READONLY_GROUP` | `PatchMon Readonly` |
-
 ## See Also
 
 - [PatchMon OIDC Documentation](https://docs.patchmon.net/books/patchmon-application-documentation/page/setting-up-oidc-sso-single-sign-on-integration)
