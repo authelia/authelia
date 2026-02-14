@@ -27,7 +27,7 @@
       "import-meta-resolve": "4.2.0",
       "js-yaml": "4.1.1",
       "path-to-regexp": "8.3.0",
-      "qs": "6.14.1",
+      "qs": "6.14.2",
       "semver": "7.7.4",
       "vite": "7.3.1"
     },
