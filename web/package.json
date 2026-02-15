@@ -27,7 +27,7 @@
       "import-meta-resolve": "4.2.0",
       "js-yaml": "4.1.1",
       "path-to-regexp": "8.3.0",
-      "qs": "6.14.1",
+      "qs": "6.14.2",
       "semver": "7.7.4",
       "vite": "7.3.1"
     },
@@ -124,7 +124,7 @@
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.0.1",
     "happy-dom": "20.5.1",
-    "lefthook": "2.1.0",
+    "lefthook": "2.1.1",
     "prettier": "3.8.1",
     "rollup": "4.57.1",
     "typescript": "5.9.3",
