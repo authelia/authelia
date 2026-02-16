@@ -84,11 +84,11 @@ Wanderer uses PocketBase for authentication configuration. To configure [Wandere
 [OpenID Connect 1.0] Provider:
 
 1. Sign in to the PocketBase admin UI using your superuser.
-1. Navigate to the `users` collection.
-1. Click the gear icon to open the collection settings.
-1. Navigate to `Options`.
-1. In the `OAuth2` tab, add a new provider with type `OpenID Connect (oidc)`.
-1. Configure the provider with these options:
+2. Navigate to the `users` collection.
+3. Click the gear icon to open the collection settings.
+4. Navigate to `Options`.
+5. In the `OAuth2` tab, add a new provider with type `OpenID Connect (oidc)`.
+6. Configure the provider with these options:
 
     - Client ID: `wanderer`
     - Client secret: `insecure_secret`
