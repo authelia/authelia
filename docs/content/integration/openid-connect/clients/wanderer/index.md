@@ -97,7 +97,7 @@ Wanderer uses PocketBase for authentication configuration. To configure [Wandere
     - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
     - Fetch user info from: `User info URL`
     - User info URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-    - Support PKCE: optional
+    - Support PKCE: enabled
 
 1. Save your changes.
 
