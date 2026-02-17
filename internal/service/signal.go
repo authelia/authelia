@@ -20,8 +20,22 @@ func ProvisionLoggingSignal(ctx Context) (service Provider, err error) {
 	return &Signal{
 		name:    "log-reload",
 		signals: []os.Signal{syscall.SIGHUP},
-		action:  logging.Reopen,
-		log:     ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "log-reload"}),
+		action: func() (bubble bool, err error) {
+			return false, logging.Reopen()
+		},
+		log: ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "log-reload"}),
+	}, nil
+}
+
+// ProvisionApplicationReloadSignal creates a Signal service that performs an effective application reload.
+func ProvisionApplicationReloadSignal(ctx Context) (service Provider, err error) {
+	return &Signal{
+		name:    "application-reload",
+		signals: []os.Signal{syscall.SIGUSR1},
+		action: func() (bubble bool, err error) {
+			return true, ErrApplicationReload
+		},
+		log: ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "application-reload"}),
 	}, nil
 }
 
@@ -29,7 +43,7 @@ func ProvisionLoggingSignal(ctx Context) (service Provider, err error) {
 type Signal struct {
 	name    string
 	signals []os.Signal
-	action  func() (err error)
+	action  func() (bubble bool, err error)
 	log     *logrus.Entry
 
 	notify chan os.Signal
@@ -57,10 +71,14 @@ func (service *Signal) Run() (err error) {
 	for {
 		select {
 		case s := <-service.notify:
-			if err = service.action(); err != nil {
-				service.log.WithError(err).Error("Error occurred executing service action.")
+			if bubble, err := service.action(); err != nil {
+				if bubble {
+					return err
+				}
+
+				service.log.WithError(err).Error("Error occurred executing service action")
 			} else {
-				service.log.WithFields(map[string]any{"signal-received": s.String()}).Debug("Successfully executed service action.")
+				service.log.WithFields(map[string]any{"signal-received": s.String()}).Debug("Successfully executed service action")
 			}
 		case <-service.quit:
 			return
