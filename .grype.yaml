@@ -25,4 +25,16 @@ ignore:
       name: stdlib
       version: go1.25.4
       type: go-module
+  - vulnerability: CVE-2025-68121
+    package:
+      name: stdlib
+      version: go1.25.6
+      type: go-module
+    reason: Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in authelia-public_html.tar.gz that's not actually shipped.
+  - vulnerability: CVE-2025-61732
+    package:
+      name: stdlib
+      version: go1.25.6
+      type: go-module
+    reason: Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in authelia-public_html.tar.gz that's not actually shipped.
 ...
