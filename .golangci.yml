@@ -10,7 +10,6 @@ linters:
     - godot
     - gosec
     - misspell
-    - nolintlint
     - prealloc
     - revive
     - unconvert
