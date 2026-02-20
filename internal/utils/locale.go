@@ -58,6 +58,7 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 		if errWalk != nil {
 			return errWalk
 		}
+
 		if info.IsDir() {
 			return nil
 		}
@@ -87,6 +88,7 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 					}
 
 					languages.Languages[i].Namespaces = append(languages.Languages[i].Namespaces, ns)
+
 					break
 				}
 			}

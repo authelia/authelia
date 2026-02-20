@@ -57,7 +57,7 @@ require (
 
 require (
 	cel.dev/expr v0.25.1 // indirect
-	filippo.io/edwards25519 v1.1.0 // indirect
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
@@ -118,5 +118,7 @@ require (
 	google.golang.org/protobuf v1.36.10 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace filippo.io/edwards25519 v1.1.0 => filippo.io/edwards25519 v1.2.0
 
 exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
