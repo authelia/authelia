@@ -5,7 +5,7 @@
 [build.environment]
   NODE_VERSION = "22.14.0"
   NPM_VERSION = "10.9.2"
-  HUGO_VERSION = "0.145.0"
+  HUGO_VERSION = "0.155.1"
 
 [context.production]
   command = "pnpm build"
