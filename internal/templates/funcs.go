@@ -193,7 +193,7 @@ func FuncHashSum(new func() hash.Hash) func(data string) string {
 
 // FuncKeys is a helper function that provides similar functionality to the helm keys func.
 func FuncKeys(maps ...map[string]any) []string {
-	var keys []string //nolint:prealloc
+	var keys []string
 
 	for _, m := range maps {
 		for k := range m {
