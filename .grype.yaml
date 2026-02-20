@@ -44,7 +44,7 @@ ignore:
   - vulnerability: GHSA-2g4f-4pwh-qvx6
     package:
       name: ajv
-      version: v6.12.6
+      version: 6.12.6
       type: npm
     reason: |
       Authelia's usage of ajv avoids the vulnerable code.
