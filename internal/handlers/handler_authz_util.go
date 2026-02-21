@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -45,7 +44,7 @@ func isAuthzResult(level authentication.Level, required authorization.Level, rul
 
 // generateVerifySessionHasUpToDateProfileTraceLogs is used to generate trace logs only when trace logging is enabled.
 // The information calculated in this function is completely useless other than trace for now.
-func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
+func generateVerifySessionHasUpToDateProfileTraceLogs(ctx AuthzContext, userSession *session.UserSession,
 	details *authentication.UserDetails) {
 	groupsAdded, groupsRemoved := utils.StringSlicesDelta(userSession.Groups, details.Groups)
 	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)
@@ -66,7 +65,7 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 		msg = "User session groups were updated"
 	}
 
-	ctx.Logger.WithFields(fields).Trace(msg)
+	ctx.GetLogger().WithFields(fields).Trace(msg)
 
 	if len(emailsAdded) != 0 || len(emailsRemoved) != 0 {
 		if len(emailsAdded) != 0 {
@@ -89,10 +88,10 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 		delete(fields, "removed")
 	}
 
-	ctx.Logger.WithFields(fields).Trace(msg)
+	ctx.GetLogger().WithFields(fields).Trace(msg)
 
 	if nameDelta {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{
 				"username": userSession.Username,
 				"before":   userSession.DisplayName,
@@ -100,6 +99,6 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 			}).
 			Trace("User session display name updated")
 	} else {
-		ctx.Logger.Trace("User session display name is current")
+		ctx.GetLogger().Trace("User session display name is current")
 	}
 }
