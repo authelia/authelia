@@ -7,10 +7,9 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func handleAuthzGetObjectLegacy(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
+func handleAuthzGetObjectLegacy(ctx AuthzContext) (object authorization.Object, err error) {
 	var (
 		targetURL *url.URL
 		method    []byte
@@ -31,7 +30,7 @@ func handleAuthzGetObjectLegacy(ctx *middlewares.AutheliaCtx) (object authorizat
 	return authorization.NewObjectRaw(targetURL, method), nil
 }
 
-func handleAuthzUnauthorizedLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {
+func handleAuthzUnauthorizedLegacy(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
 	var (
 		statusCode int
 	)
@@ -55,7 +54,7 @@ func handleAuthzUnauthorizedLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, r
 	}
 
 	if redirectionURL != nil {
-		ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.URL.String(), authn.Method, authn.Username, statusCode, redirectionURL)
+		ctx.GetLogger().Infof(logFmtAuthzRedirect, authn.Object.URL.String(), authn.Method, authn.Username, statusCode, redirectionURL)
 
 		switch authn.Object.Method {
 		case fasthttp.MethodHead:
@@ -64,7 +63,7 @@ func handleAuthzUnauthorizedLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, r
 			ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 		}
 	} else {
-		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, statusCode)
+		ctx.GetLogger().Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, statusCode)
 		ctx.ReplyUnauthorized()
 	}
 }
