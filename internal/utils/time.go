@@ -149,7 +149,7 @@ func matchParseTimeStringWithLayouts(input string, layouts []string) (index int,
 // UnixNanoTimeToMicrosoftNTEpoch converts a unix timestamp in nanosecond format to win32 epoch format.
 func UnixNanoTimeToMicrosoftNTEpoch(nano int64) (t uint64) {
 	if nano >= 0 {
-		return uint64(nano/100) + timeUnixEpochAsMicrosoftNTEpoch //nolint:gosec // This is a gated condition and is checked,
+		return uint64(nano/100) + timeUnixEpochAsMicrosoftNTEpoch
 	}
 
 	return timeUnixEpochAsMicrosoftNTEpoch

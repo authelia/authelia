@@ -10,6 +10,7 @@ linters:
     - godot
     - gosec
     - misspell
+    - nolintlint
     - prealloc
     - revive
     - unconvert
@@ -35,12 +36,17 @@ linters:
     gosec:
       excludes:
         - G703
+        - G704
         - G705
     revive:
       confidence: 0.8
   exclusions:
     generated: lax
     rules:
+      - linters:
+          - gosec
+        path: (.+)_test\.go$
+        text: (G101)
       - linters:
           - forbidigo
         path: internal/commands/

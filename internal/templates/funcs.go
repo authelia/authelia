@@ -409,7 +409,7 @@ func FuncDict(pairs ...any) map[string]any {
 			continue
 		}
 
-		m[key] = pairs[i+1]
+		m[key] = pairs[i+1] //nolint:gosec // This can only panic on invalid inputs which all occur in templating.
 	}
 
 	return m
