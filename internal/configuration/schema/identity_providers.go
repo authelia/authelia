@@ -47,7 +47,7 @@ type IdentityProvidersOpenIDConnect struct {
 
 type IdentityProvidersOpenIDConnectClaimsPolicy struct {
 	IDToken     []string `koanf:"id_token" yaml:"id_token,omitempty" toml:"id_token,omitempty" json:"id_token,omitempty" jsonschema:"title=ID Token" jsonschema_description:"The list of claims to automatically apply to an ID Token in addition to the specified ID Token Claims."`
-	AccessToken []string `koanf:"access_token" yaml:"access_token,omitempty" toml:"access_token,omitempty" json:"access_token,omitempty" jsonschema:"title=Access Token" jsonschema_description:"The list of claims to automatically apply to an Access Token in addition to the specified Access Token Claims."`
+	AccessToken []string `koanf:"access_token" yaml:"access_token,omitempty" toml:"access_token,omitempty" json:"access_token,omitempty" jsonschema:"title=Access Token" jsonschema_description:"The list of claims to automatically apply to an Access Token in addition to the specified Access Token Claims."` //nolint:gosec
 
 	IDTokenAudienceMode string `koanf:"id_token_audience_mode" yaml:"id_token_audience_mode,omitempty" toml:"id_token_audience_mode,omitempty" json:"id_token_audience_mode,omitempty" jsonschema:"default=specification,title=ID Token Audience Mode,enum=specification,enum=experimental-merged" jsonschema_description:"Sets the mode for ID Token audience derivation for clients that use this policy."`
 

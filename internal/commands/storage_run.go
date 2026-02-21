@@ -62,6 +62,7 @@ func (ctx *CmdCtx) LoadProvidersStorageRunE(cmd *cobra.Command, args []string) (
 
 // ConfigStorageCommandLineConfigRunE configures the storage command mapping.
 func (ctx *CmdCtx) ConfigStorageCommandLineConfigRunE(cmd *cobra.Command, _ []string) (err error) {
+	//nolint:gosec // This maps flags to field names.
 	flagsMap := map[string]string{
 		cmdFlagNameEncryptionKey: "storage.encryption_key",
 

@@ -70,7 +70,7 @@ func (r *Mathematical) BytesCustomErr(n int, charset []byte) (data []byte, err e
 	t := len(charset)
 
 	for i := 0; i < n; i++ {
-		data[i] = charset[data[i]%byte(t)]
+		data[i] = charset[data[i]%byte(t)] //nolint:gosec // This is safe.
 	}
 
 	return data, nil
