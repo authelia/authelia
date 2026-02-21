@@ -8,6 +8,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 // Provider contains a list of domain sessions.
@@ -16,10 +17,10 @@ type Provider struct {
 }
 
 // NewProvider instantiate a session provider given a configuration.
-func NewProvider(config schema.Session, certPool *x509.CertPool) *Provider {
+func NewProvider(config schema.Session, certPool *x509.CertPool, storageProvider storage.SessionProvider) *Provider {
 	log := logging.Logger()
 
-	name, p, s, err := NewSessionProvider(config, certPool)
+	name, p, s, err := NewSessionProvider(config, certPool, storageProvider)
 	if err != nil {
 		log.Fatal(err)
 	}

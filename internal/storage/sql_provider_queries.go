@@ -368,6 +368,43 @@ const (
 )
 
 const (
+	queryFmtUpsertSession = `
+		INSERT INTO %s (session_id, data, last_active_at, expires_at)
+		VALUES (?, ?, ?, ?)
+			ON CONFLICT (session_id)
+			DO UPDATE SET data = excluded.data, last_active_at = excluded.last_active_at, expires_at = excluded.expires_at;`
+
+	queryFmtUpsertSessionMySQL = `
+		INSERT INTO %s (session_id, data, last_active_at, expires_at)
+		VALUES (?, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE data = VALUES(data), last_active_at = VALUES(last_active_at), expires_at = VALUES(expires_at);`
+
+	queryFmtUpsertSessionPostgreSQL = `
+		INSERT INTO %s (session_id, data, last_active_at, expires_at)
+		VALUES ($1, $2, $3, $4)
+			ON CONFLICT (session_id)
+			DO UPDATE SET data = $2, last_active_at = $3, expires_at = $4;`
+
+	queryFmtSelectSession = `
+		SELECT data
+		FROM %s
+		WHERE session_id = ? AND expires_at >= ?;`
+
+	queryFmtDeleteSession = `
+		DELETE FROM %s
+		WHERE session_id = ?;`
+
+	queryFmtDeleteExpiredSessions = `
+		DELETE FROM %s
+		WHERE expires_at < ?;`
+
+	queryFmtCountSessions = `
+		SELECT COUNT(*)
+		FROM %s
+		WHERE expires_at >= ?;`
+)
+
+const (
 	queryFmtUpsertCachedData = `
 		REPLACE INTO %s (name, updated_at, encrypted, value)
 		VALUES (?, ?, ?, ?);`

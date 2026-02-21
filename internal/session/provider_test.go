@@ -24,7 +24,7 @@ func newTestSession() (*Session, error) {
 		},
 	}
 
-	provider := NewProvider(config, nil)
+	provider := NewProvider(config, nil, nil)
 
 	return provider.Get(testDomain)
 }
