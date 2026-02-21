@@ -132,7 +132,6 @@ type label interface {
 
 type labelPriority int
 
-//nolint:deadcode,varcheck // Kept for future use.
 const (
 	labelPriorityCritical labelPriority = iota
 	labelPriorityHigh
@@ -181,7 +180,6 @@ func (l labelStatus) LabelDescription() string {
 
 type labelType int
 
-//nolint:deadcode,varcheck // Kept for future use.
 const (
 	labelTypeFeature labelType = iota
 	labelTypeBugUnconfirmed
@@ -272,7 +270,7 @@ type OpenIDConnectConformanceSuitePlanServer struct {
 
 type OpenIDConnectConformanceSuitePlanClient struct {
 	ID                   string `json:"client_id,omitempty"`
-	Secret               string `json:"client_secret,omitempty"`
+	Secret               string `json:"client_secret,omitempty"` //nolint:gosec
 	Name                 string `json:"client_name,omitempty"`
 	Scope                string `json:"scope,omitempty"`
 	SecretJWTAlgorithm   string `json:"client_secret_jwt_alg,omitempty"`
