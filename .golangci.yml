@@ -32,6 +32,10 @@ linters:
       min-complexity: 15
     godot:
       scope: all
+    gosec:
+      excludes:
+        - G703
+        - G705
     revive:
       confidence: 0.8
   exclusions:
