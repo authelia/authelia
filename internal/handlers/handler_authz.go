@@ -6,6 +6,9 @@ import (
 	"net"
 	"net/url"
 
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/sirupsen/logrus"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -15,8 +18,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/sirupsen/logrus"
 )
 
 type AuthzContext interface {
