@@ -18,7 +18,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -87,7 +86,7 @@ type CookieSessionAuthnStrategy struct {
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider *session.Session, _ *authorization.Object) (authn *Authn, err error) {
+func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, _ *authorization.Object) (authn *Authn, err error) {
 	var userSession session.UserSession
 
 	authn = &Authn{
@@ -96,40 +95,40 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 		Username: anonymous,
 	}
 
-	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
+	if userSession, err = ctx.GetSession(); err != nil {
 		return authn, fmt.Errorf("failed to retrieve user session: %w", err)
 	}
 
-	if userSession.CookieDomain != provider.Config.Domain {
-		ctx.Logger.Warnf("Destroying session cookie as the cookie domain '%s' does not match the requests detected cookie domain '%s' which may be a sign a user tried to move this cookie from one domain to another", userSession.CookieDomain, provider.Config.Domain)
+	if userSession.CookieDomain != ctx.GetSessionConfig().Domain {
+		ctx.GetLogger().Warnf("Destroying session cookie as the cookie domain '%s' does not match the requests detected cookie domain '%s' which may be a sign a user tried to move this cookie from one domain to another", userSession.CookieDomain, ctx.GetSessionConfig().Domain)
 
-		if err = provider.DestroySession(ctx.RequestCtx); err != nil {
-			ctx.Logger.WithError(err).Error("Error occurred trying to destroy the session cookie")
+		if err = ctx.DestroySession(); err != nil {
+			ctx.GetLogger().WithError(err).Error("Error occurred trying to destroy the session cookie")
 		}
 
-		userSession = provider.NewDefaultUserSession()
+		userSession = ctx.NewSession()
 
-		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
-			ctx.Logger.WithError(err).Error("Error occurred trying to save the new session cookie")
+		if err = ctx.SaveSession(userSession); err != nil {
+			ctx.GetLogger().WithError(err).Error("Error occurred trying to save the new session cookie")
 		}
 	}
 
-	if modified, invalid := handleAuthnCookieValidate(ctx, provider, &userSession, s.refresh); invalid {
+	if modified, invalid := handleAuthnCookieValidate(ctx, &userSession, s.refresh); invalid {
 		if err = ctx.DestroySession(); err != nil {
-			ctx.Logger.WithError(err).Errorf("Unable to destroy user session")
+			ctx.GetLogger().WithError(err).Errorf("Unable to destroy user session")
 		}
 
-		userSession = provider.NewDefaultUserSession()
-		userSession.LastActivity = ctx.Clock.Now().Unix()
+		userSession = ctx.NewSession()
+		userSession.LastActivity = ctx.GetClock().Now().Unix()
 
-		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
-			ctx.Logger.WithError(err).Error("Unable to save updated user session")
+		if err = ctx.SaveSession(userSession); err != nil {
+			ctx.GetLogger().WithError(err).Error("Unable to save updated user session")
 		}
 
 		return authn, nil
 	} else if modified {
-		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
-			ctx.Logger.WithError(err).Error("Unable to save updated user session")
+		if err = ctx.SaveSession(userSession); err != nil {
+			ctx.GetLogger().WithError(err).Error("Unable to save updated user session")
 		}
 	}
 
@@ -141,7 +140,7 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 			Emails:      userSession.Emails,
 			Groups:      userSession.Groups,
 		},
-		Level: userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA),
+		Level: userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA),
 		Type:  AuthnTypeCookie,
 	}, nil
 }
@@ -157,7 +156,7 @@ func (s *CookieSessionAuthnStrategy) HeaderStrategy() (header bool) {
 }
 
 // HandleUnauthorized is the Unauthorized handler for the cookie AuthnStrategy.
-func (s *CookieSessionAuthnStrategy) HandleUnauthorized(_ *middlewares.AutheliaCtx, _ *Authn, _ *url.URL) {
+func (s *CookieSessionAuthnStrategy) HandleUnauthorized(_ AuthzContext, _ *Authn, _ *url.URL) {
 }
 
 // HeaderAuthnStrategy is a header AuthnStrategy.
@@ -173,7 +172,7 @@ type HeaderAuthnStrategy struct {
 }
 
 // BasicAuthHandler is a function signature that handles basic authentication. This is used to implement caching.
-type BasicAuthHandler func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error)
+type BasicAuthHandler func(ctx AuthzContext, authorization *model.Authorization) (valid, cached bool, err error)
 
 // NewBasicAuthHandler creates a new BasicAuthHandler depending on the lifespan.
 func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
@@ -185,8 +184,8 @@ func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 }
 
 // DefaultBasicAuthHandler is a BasicAuthHandler that just checks the username and password directly.
-func DefaultBasicAuthHandler(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
-	valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic())
+func DefaultBasicAuthHandler(ctx AuthzContext, authorization *model.Authorization) (valid, cached bool, err error) {
+	valid, err = ctx.GetProviders().UserProvider.CheckUserPassword(authorization.Basic())
 
 	return valid, false, err
 }
@@ -196,7 +195,7 @@ func DefaultBasicAuthHandler(ctx *middlewares.AutheliaCtx, authorization *model.
 func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	cache := authentication.NewCredentialCacheHMAC(sha256.New, lifespan)
 
-	return func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
+	return func(ctx AuthzContext, authorization *model.Authorization) (valid, cached bool, err error) {
 		username, password := authorization.Basic()
 
 		return cache.Check(ctx, username, password)
@@ -204,7 +203,7 @@ func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Session, object *authorization.Object) (authn *Authn, err error) {
+func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, object *authorization.Object) (authn *Authn, err error) {
 	var value []byte
 
 	authn = &Authn{
@@ -213,7 +212,7 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 		Username: anonymous,
 	}
 
-	if value = ctx.Request.Header.PeekBytes(s.headerAuthorize); len(value) == 0 {
+	if value = ctx.GetRequestHeaderValue(s.headerAuthorize); len(value) == 0 {
 		return authn, nil
 	}
 
@@ -235,7 +234,7 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	scheme := authn.Header.Authorization.Scheme()
 
 	if !s.schemes.Has(scheme) {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
 			Debug("Skipping header authorization as the scheme and header combination is unknown to this endpoint configuration")
 
@@ -248,7 +247,7 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	case model.AuthorizationSchemeBearer:
 		username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object)
 	default:
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
 			Debug("Skipping header authorization as the scheme is unknown to this endpoint configuration")
 
@@ -275,9 +274,9 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	default:
 		var details *authentication.UserDetails
 
-		if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
+		if details, err = ctx.GetProviders().UserProvider.GetDetails(username); err != nil {
 			if errors.Is(err, authentication.ErrUserNotFound) {
-				ctx.Logger.WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+				ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
 				return authn, err
 			}
@@ -294,7 +293,7 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	return authn, nil
 }
 
-func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn *Authn, object *authorization.Object) (username string, level authentication.Level, err error) {
+func (s *HeaderAuthnStrategy) handleGetBasic(ctx AuthzContext, authn *Authn, object *authorization.Object) (username string, level authentication.Level, err error) {
 	var (
 		ban     regulation.BanType
 		value   string
@@ -303,14 +302,14 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 
 	username = authn.Header.Authorization.BasicUsername()
 
-	if ban, value, expires, err = ctx.Providers.Regulator.BanCheck(ctx, username); err != nil {
+	if ban, value, expires, err = ctx.GetProviders().Regulator.BanCheck(ctx, username); err != nil {
 		if errors.Is(err, regulation.ErrUserIsBanned) {
 			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, object.String(), object.Method, nil)
 
 			return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
 		}
 
-		ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, username)
+		ctx.GetLogger().WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, username)
 
 		return "", authentication.NotAuthenticated, fmt.Errorf("failed to check the regulation status of user '%s' during an attempt to authenticate using the %s header: %w", username, s.headerAuthorize, err)
 	}
@@ -319,7 +318,7 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 
 	if valid, cached, err = s.basic(ctx, authn.Header.Authorization); err != nil {
 		if isRegulatorSkippedErr(err) {
-			ctx.Logger.WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, authn.Header.Authorization.BasicUsername())
+			ctx.GetLogger().WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, authn.Header.Authorization.BasicUsername())
 		} else {
 			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
 		}
@@ -351,15 +350,15 @@ func (s *HeaderAuthnStrategy) HeaderStrategy() (header bool) {
 }
 
 // HandleUnauthorized is the Unauthorized handler for the header AuthnStrategy.
-func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, _ *url.URL) {
-	ctx.Logger.Debugf("Responding %d %s", s.statusAuthenticate, s.headerAuthenticate)
+func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *Authn, _ *url.URL) {
+	ctx.GetLogger().Debugf("Responding %d %s", s.statusAuthenticate, s.headerAuthenticate)
 
 	ctx.ReplyStatusCode(s.statusAuthenticate)
 
 	if authn.Header.Authorization != nil && authn.Header.Authorization.Scheme() == model.AuthorizationSchemeBearer && authn.Header.Error != nil {
-		ctx.Response.Header.SetBytesK(s.headerAuthenticate, fmt.Sprintf(`Bearer %s`, oidc.RFC6750Header(authn.Header.Realm, authn.Header.Scope, authn.Header.Error)))
+		ctx.SetResponseHeaderValue(s.headerAuthenticate, fmt.Sprintf(`Bearer %s`, oidc.RFC6750Header(authn.Header.Realm, authn.Header.Scope, authn.Header.Error)))
 	} else if s.headerAuthenticate != nil {
-		ctx.Response.Header.SetBytesKV(s.headerAuthenticate, headerValueAuthenticateBasic)
+		ctx.SetResponseHeaderValueBytes(s.headerAuthenticate, headerValueAuthenticateBasic)
 	}
 }
 
@@ -367,7 +366,7 @@ func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx *middlewares.AutheliaCtx, a
 type HeaderLegacyAuthnStrategy struct{}
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Session, _ *authorization.Object) (authn *Authn, err error) {
+func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ *authorization.Object) (authn *Authn, err error) {
 	var (
 		username, password string
 		value, header      []byte
@@ -378,7 +377,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 		Username: anonymous,
 	}
 
-	if qryValueAuth := ctx.QueryArgs().PeekBytes(qryArgAuth); bytes.Equal(qryValueAuth, qryValueBasic) {
+	if qryValueAuth := ctx.GetRequestQueryArgValue(qryArgAuth); bytes.Equal(qryValueAuth, qryValueBasic) {
 		authn.Type = AuthnTypeAuthorization
 		header = headerAuthorization
 	} else {
@@ -386,7 +385,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 		header = headerProxyAuthorization
 	}
 
-	value = ctx.Request.Header.PeekBytes(header)
+	value = ctx.GetRequestHeaderValue(header)
 
 	switch {
 	case value == nil && authn.Type == AuthnTypeAuthorization:
@@ -408,7 +407,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 		details *authentication.UserDetails
 	)
 
-	if valid, err = ctx.Providers.UserProvider.CheckUserPassword(username, password); err != nil {
+	if valid, err = ctx.GetProviders().UserProvider.CheckUserPassword(username, password); err != nil {
 		return authn, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", header, username, err)
 	}
 
@@ -416,9 +415,9 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 		return authn, fmt.Errorf("validated parsed credentials of %s header but they are not valid for user '%s': %w", header, username, err)
 	}
 
-	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
+	if details, err = ctx.GetProviders().UserProvider.GetDetails(username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
-			ctx.Logger.WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+			ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
 			return authn, err
 		}
@@ -444,22 +443,22 @@ func (s *HeaderLegacyAuthnStrategy) HeaderStrategy() (header bool) {
 }
 
 // HandleUnauthorized is the Unauthorized handler for the Legacy header AuthnStrategy.
-func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, _ *url.URL) {
+func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *Authn, _ *url.URL) {
 	handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 }
 
-func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
+func handleAuthnCookieValidate(ctx AuthzContext, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
 	// TODO: Remove this check as it's no longer possible i.e. ineffectual.
 	isAnonymous := userSession.Username == ""
 
-	if isAnonymous && userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) != authentication.NotAuthenticated {
-		ctx.Logger.WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
+	if isAnonymous && userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA) != authentication.NotAuthenticated {
+		ctx.GetLogger().WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA).String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
 
 		return modified, true
 	}
 
-	if invalid = handleAuthnCookieValidateInactivity(ctx, provider, userSession, isAnonymous); invalid {
-		ctx.Logger.WithField("username", userSession.Username).Info("Session for user not marked as remembered has exceeded configured session inactivity")
+	if invalid = handleAuthnCookieValidateInactivity(ctx, userSession, isAnonymous); invalid {
+		ctx.GetLogger().WithField("username", userSession.Username).Info("Session for user not marked as remembered has exceeded configured session inactivity")
 
 		return modified, true
 	}
@@ -468,8 +467,8 @@ func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.S
 		return modified, true
 	}
 
-	if username := ctx.Request.Header.PeekBytes(headerSessionUsername); username != nil && !strings.EqualFold(string(username), userSession.Username) {
-		ctx.Logger.WithField("username", userSession.Username).Warnf("Session for user does not match the Session-Username header with value '%s' which could be a sign of a cookie hijack", username)
+	if username := ctx.GetRequestHeaderValue(headerSessionUsername); username != nil && !strings.EqualFold(string(username), userSession.Username) {
+		ctx.GetLogger().WithField("username", userSession.Username).Warnf("Session for user does not match the Session-Username header with value '%s' which could be a sign of a cookie hijack", username)
 
 		return modified, true
 	}
@@ -477,47 +476,49 @@ func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.S
 	if !userSession.KeepMeLoggedIn {
 		modified = true
 
-		userSession.LastActivity = ctx.Clock.Now().Unix()
+		userSession.LastActivity = ctx.GetClock().Now().Unix()
 	}
 
 	return modified, false
 }
 
-func handleAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
-	if isAnonymous || userSession.KeepMeLoggedIn || int64(provider.Config.Inactivity.Seconds()) == 0 {
+func handleAuthnCookieValidateInactivity(ctx AuthzContext, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
+	config := ctx.GetSessionConfig()
+
+	if isAnonymous || userSession.KeepMeLoggedIn || int64(config.Inactivity.Seconds()) == 0 {
 		return false
 	}
 
-	ctx.Logger.WithField("username", userSession.Username).Tracef("Inactivity report for user. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", ctx.Clock.Now().Unix(), userSession.LastActivity, int(provider.Config.Inactivity.Seconds()))
+	ctx.GetLogger().WithField("username", userSession.Username).Tracef("Inactivity report for user. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", ctx.GetClock().Now().Unix(), userSession.LastActivity, int(config.Inactivity.Seconds()))
 
-	return time.Unix(userSession.LastActivity, 0).Add(provider.Config.Inactivity).Before(ctx.Clock.Now())
+	return time.Unix(userSession.LastActivity, 0).Add(config.Inactivity).Before(ctx.GetClock().Now())
 }
 
-func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
+func handleSessionValidateRefresh(ctx AuthzContext, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
 	if refresh.Never() || userSession.IsAnonymous() {
 		return false, false
 	}
 
-	ctx.Logger.WithField("username", userSession.Username).Trace("Checking if we need check the authentication backend for an updated profile for user")
+	ctx.GetLogger().WithField("username", userSession.Username).Trace("Checking if we need check the authentication backend for an updated profile for user")
 
-	if !refresh.Always() && userSession.RefreshTTL.After(ctx.Clock.Now()) {
+	if !refresh.Always() && userSession.RefreshTTL.After(ctx.GetClock().Now()) {
 		return false, false
 	}
 
-	ctx.Logger.WithField("username", userSession.Username).Debug("Checking the authentication backend for an updated profile for user")
+	ctx.GetLogger().WithField("username", userSession.Username).Debug("Checking the authentication backend for an updated profile for user")
 
 	var (
 		details *authentication.UserDetails
 		err     error
 	)
-	if details, err = ctx.Providers.UserProvider.GetDetails(userSession.Username); err != nil {
+	if details, err = ctx.GetProviders().UserProvider.GetDetails(userSession.Username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
-			ctx.Logger.WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+			ctx.GetLogger().WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
 			return false, true
 		}
 
-		ctx.Logger.WithError(err).WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user")
+		ctx.GetLogger().WithError(err).WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user")
 
 		return false, false
 	}
@@ -532,18 +533,18 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 	if !refresh.Always() {
 		modified = true
 
-		userSession.RefreshTTL = ctx.Clock.Now().Add(refresh.Value())
+		userSession.RefreshTTL = ctx.GetClock().Now().Add(refresh.Value())
 	}
 
 	if !diffEmails && !diffGroups && !diffDisplayName {
-		ctx.Logger.WithField("username", userSession.Username).Trace("Updated profile not detected for user")
+		ctx.GetLogger().WithField("username", userSession.Username).Trace("Updated profile not detected for user")
 
 		return modified, false
 	}
 
-	ctx.Logger.WithField("username", userSession.Username).Debug("Updated profile detected for user")
+	ctx.GetLogger().WithField("username", userSession.Username).Debug("Updated profile detected for user")
 
-	if ctx.Logger.Level >= logrus.TraceLevel {
+	if ctx.GetLogger().Level >= logrus.TraceLevel {
 		generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
 	}
 
@@ -552,20 +553,20 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 	return true, false
 }
 
-func handleVerifyGETAuthorizationBearer(ctx *middlewares.AutheliaCtx, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
+func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
 	var at bool
 
 	if at, err = oidc.IsAccessToken(ctx, authn.Header.Authorization.Value()); !at {
 		if err != nil {
-			ctx.Logger.WithError(err).Debug("The bearer token does not appear to be a relevant access token")
+			ctx.GetLogger().WithError(err).Debug("The bearer token does not appear to be a relevant access token")
 		} else {
-			ctx.Logger.Debug("The bearer token does not appear to be a relevant access token")
+			ctx.GetLogger().Debug("The bearer token does not appear to be a relevant access token")
 		}
 
 		return "", "", false, authentication.NotAuthenticated, errTokenIntent
 	}
 
-	return handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.Providers.OpenIDConnect, authn, object)
+	return handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.GetProviders().OpenIDConnect, authn, object)
 }
 
 func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {

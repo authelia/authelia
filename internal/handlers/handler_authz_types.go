@@ -10,10 +10,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
-	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // Authz is a type which is a effectively is a middlewares.RequestHandler for authorization requests. This should NOT be
@@ -34,22 +32,22 @@ type Authz struct {
 }
 
 // HandlerAuthzUnauthorized is a Authz handler func that handles unauthorized responses.
-type HandlerAuthzUnauthorized func(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL)
+type HandlerAuthzUnauthorized func(ctx AuthzContext, authn *Authn, redirectionURL *url.URL)
 
 // HandlerAuthzAuthorized is a Authz handler func that handles authorized responses.
-type HandlerAuthzAuthorized func(ctx *middlewares.AutheliaCtx, authn *Authn)
+type HandlerAuthzAuthorized func(ctx AuthzContext, authn *Authn)
 
 // HandlerAuthzGetAutheliaURL is a Authz handler func that handles retrieval of the Portal URL.
-type HandlerAuthzGetAutheliaURL func(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error)
+type HandlerAuthzGetAutheliaURL func(ctx AuthzContext) (portalURL *url.URL, err error)
 
 // HandlerAuthzGetRedirectionURL is a Authz handler func that handles retrieval of the Redirection URL.
-type HandlerAuthzGetRedirectionURL func(ctx *middlewares.AutheliaCtx, object *authorization.Object) (redirectionURL *url.URL, err error)
+type HandlerAuthzGetRedirectionURL func(ctx AuthzContext, object *authorization.Object) (redirectionURL *url.URL, err error)
 
 // HandlerAuthzGetObject is a Authz handler func that handles retrieval of the authorization.Object to authorize.
-type HandlerAuthzGetObject func(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error)
+type HandlerAuthzGetObject func(ctx AuthzContext) (object authorization.Object, err error)
 
 // HandlerAuthzVerifyObject is a Authz handler func that handles authorization of the authorization.Object.
-type HandlerAuthzVerifyObject func(ctx *middlewares.AutheliaCtx, object authorization.Object) (err error)
+type HandlerAuthzVerifyObject func(ctx AuthzContext, object authorization.Object) (err error)
 
 // AuthnType is an auth type.
 type AuthnType int
@@ -107,10 +105,10 @@ type AuthzBuilder struct {
 
 // AuthnStrategy is a strategy used for Authz authentication.
 type AuthnStrategy interface {
-	Get(ctx *middlewares.AutheliaCtx, provider *session.Session, object *authorization.Object) (authn *Authn, err error)
+	Get(ctx AuthzContext, object *authorization.Object) (authn *Authn, err error)
 	CanHandleUnauthorized() (handle bool)
 	HeaderStrategy() (is bool)
-	HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL)
+	HandleUnauthorized(ctx AuthzContext, authn *Authn, redirectionURL *url.URL)
 }
 
 // AuthzResult is a result for Authz response handling determination.
