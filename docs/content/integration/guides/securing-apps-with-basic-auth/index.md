@@ -27,7 +27,7 @@ This guide makes the following assumptions:
 There are some concepts that are central to this guide which we will explain here.
 
 ### ForwardAuth
-{{< figure src="authforward.webp" caption="Traefik Forward Auth" alt="Flow chart illustrating how AuthForward handles HTTP request authentication" process="resize 650x" >}}
+{{< figure src="authforward.webp" caption="Traefik Forward Auth" alt="Flow chart illustrating how AuthForward handles HTTP request authentication" sizes="650px" >}}
 
 [ForwardAuth](https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/forwardauth/) is a way to allow a proxy ([Traefik]) to delegate authorization to an external service. When a client requests a resource protected by a forward auth middleware, Traefik forwards headers and connection information about the initial request to the auth server.
 

@@ -71,12 +71,12 @@ A number of exiting features have been added to our WebAuthn implementation.
 
 This release adds support for Passkeys including the ability to perform Passwordless Authentication with them.
 
-{{< figure src="passkeys.png" caption="Passkeys Portal View" alt="Passkeys Portal View" process="resize 300x" >}}
+{{< figure src="passkeys.png" caption="Passkeys Portal View" alt="Passkeys Portal View" sizes="300ox" >}}
 
 The feature has been implemented to count as non-MFA at the present time, and by default users will have to enter their
 password to perform full MFA.
 
-{{< figure src="password_2fa.png" caption="Passkey Login MFA Password Prompt" alt="Passkey Login MFA Password Prompt" process="resize 300x" >}}
+{{< figure src="password_2fa.png" caption="Passkey Login MFA Password Prompt" alt="Passkey Login MFA Password Prompt" sizes="50dvh" >}}
 
 A configuration option exists to change this behaviour. It should be noted we have future plans
 to make this experience more customizable which will remove this configuration option in favor of one that uses
@@ -147,7 +147,7 @@ the client.
 See the [Custom Claims](../../integration/openid-connect/openid-connect-1.0-claims.md#custom-claims) for a fairly
 comprehensive example.
 
-{{< figure src="consent_custom_claims.png" caption="An example of the OpenID Connect 1.0 Consent View with Custom Claims" alt="OpenID Connect 1.0 Consent View" process="resize 300x" >}}
+{{< figure src="consent_custom_claims.png" caption="An example of the OpenID Connect 1.0 Consent View with Custom Claims" alt="OpenID Connect 1.0 Consent View" sizes="50dvh" >}}
 
 ### JSON Web Encryption
 
@@ -303,7 +303,7 @@ for more information.
 
 In this release users will notice a brand-new language preference setting from the frontend.
 
-{{< figure src="language_picker_small.png" caption="An example of the Language Picker" alt="Language Picker" process="resize 300x" >}}
+{{< figure src="language_picker_small.png" caption="An example of the Language Picker" alt="Language Picker" sizes="50dvh" >}}
 
 ### Log File Reopening
 
@@ -376,6 +376,6 @@ configuration by looking at the [Systemd Reference Guide](../../reference/guides
 
 ### OLED Theme
 
-{{< figure src="oled.png" caption="Login Portal OLED Theme" alt="OLED Theme" process="resize 400x" >}}
+{{< figure src="oled.png" caption="Login Portal OLED Theme" alt="OLED Theme" sizes="50dvh" >}}
 
 A new theme has been added optimized for OLED displays.

@@ -9,6 +9,11 @@ img[data-sizes="auto"] {
   width: unset !important;
 }
 
+img.oidc-certification {
+  height: 10dvh;
+  width: auto;
+}
+
 .text-orange {
   --bs-text-opacity: 1;
 

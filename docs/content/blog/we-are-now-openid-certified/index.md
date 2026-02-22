@@ -34,7 +34,7 @@ certification process; and for promptly fixing an issue with the conformance sui
 completely floored seeing the time between the issue being reported, a pull request being drafted, the fix being
 released, and the new release being published; was no more than 24 hours.
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 300x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" sizes="50dvh" >}}
 
 We fully intend to pursue conformance for the remaining outstanding profiles; 3rd Party-Init OP, Dynamic OP,
 Session OP, Front-Channel OP, Back-Channel OP, and RP-Initiated OP; as soon as we implement the necessary underlying

@@ -33,7 +33,7 @@ This page is intended as an integration reference point for any implementers who
 Authelia is [OpenID Certified™] to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP profiles of the
 [OpenID Connect™ protocol].
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 300x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" sizes="50dvh" >}}
 
 For more information on certified implementations please see the [OpenID Foundations](https://openid.net/foundation/)
 publicized [Certified OpenID Providers & Profiles] and [Certified OpenID Providers for Logout Profiles] tables. We will
