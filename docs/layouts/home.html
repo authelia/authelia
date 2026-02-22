@@ -7,7 +7,7 @@
     <div class="col-lg-9 col-xl-8 text-center">
       <p class="lead">{{ (.Site.Params.lead | default .Params.lead) | safeHTML }}</p>
       <a class="btn btn-primary btn-cta rounded-pill btn-lg my-3" href="/integration/{{ if site.Params.doks.docsVersioning }}{{ site.Params.doks.docsVersion }}/{{ end }}prologue/get-started/" role="button">{{ i18n "get_started" }}</a>
-      <p class="meta">{{ (printf .Site.Params.licenseLead $.Site.Data.misc.latest) | safeHTML }}</p>
+      <p class="meta">{{ (printf .Site.Params.licenseLead hugo.Data.misc.latest) | safeHTML }}</p>
       {{ .Content }}
     </div>
   </div>
@@ -15,14 +15,14 @@
 {{ end }}
 
 {{ define "sidebar-prefooter" }}
-  {{ if site.Params.doks.backgroundDots -}}
-  <div class="d-flex justify-content-start">
-    <div class="bg-dots"></div>
-  </div>
-  {{ end -}}
-  {{ if eq $.Site.Language.LanguageName "English" }}
-  {{ partial "prefooter/features/en.html" . -}}
-  {{ end }}
+{{ if site.Params.doks.backgroundDots -}}
+<div class="d-flex justify-content-start">
+  <div class="bg-dots"></div>
+</div>
+{{ end -}}
+{{ if eq $.Site.Language.LanguageName "English" }}
+{{ partial "prefooter/features/en.html" . -}}
+{{ end }}
 {{ end }}
 
 {{ define "sidebar-footer" }}

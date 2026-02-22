@@ -1,5 +1,5 @@
 | Language | Locale | Namespaces | Fallbacks |
 |:--------:|:------:|:----------:|:---------:|
-{{- range $.Site.Data.languages.languages }}
+{{- range hugo.Data.languages.languages }}
 |{{ .display }}|{{ .locale }}|{{ range $i, $v := .namespaces }}{{ if eq $i 0 }}{{ $v }}{{ else }}, {{ $v }}{{ end }}{{ end }}|{{ range $i, $v := .fallbacks }}{{ if eq $i 0 }}{{ $v }}{{ else }}, {{ $v }}{{ end }}{{ end }}|
 {{- end }}

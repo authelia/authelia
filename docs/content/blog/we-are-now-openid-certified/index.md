@@ -57,28 +57,7 @@ may make some people feel. This project is one of the things I feel most passion
 [OpenID Certified™] status is so intensely exciting as it's a goal that's been in my mind with each change we've made
 to the
 
-<figure>
-  <map name="GraffleExport">
-    <area coords="127,240,258,299" shape="rect" href="https://openid.net/specs/openid-connect-session-1_0.html" target="_blank">
-    <area coords="385,480,465,519" shape="rect" href="https://tools.ietf.org/html/rfc7518" target="_blank">
-    <area coords="250,411,346,463" shape="rect" href="https://tools.ietf.org/html/rfc7521" target="_blank">
-    <area coords="465,411,570,463" shape="rect" href="https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html" target="_blank">
-    <area coords="358,411,453,463" shape="rect" href="https://tools.ietf.org/html/rfc7523" target="_blank">
-    <area coords="149,411,238,463" shape="rect" href="https://tools.ietf.org/html/rfc6750" target="_blank">
-    <area coords="42,480,121,519" shape="rect" href="https://tools.ietf.org/html/rfc7519" target="_blank">
-    <area coords="129,480,202,519" shape="rect" href="https://tools.ietf.org/html/rfc7515" target="_blank">
-    <area coords="298,480,377,519" shape="rect" href="https://tools.ietf.org/html/rfc7517" target="_blank">
-    <area coords="211,480,290,519" shape="rect" href="https://tools.ietf.org/html/rfc7516" target="_blank">
-    <area coords="473,480,569,519" shape="rect" href="https://tools.ietf.org/html/rfc7033" target="_blank">
-    <area coords="42,411,137,463" shape="rect" href="https://tools.ietf.org/html/rfc6749" target="_blank">
-    <area coords="93,110,224,168" shape="rect" href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">
-    <area coords="363,240,493,299" shape="rect" href="https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html" target="_blank">
-    <area coords="293,110,403,168" shape="rect" href="https://openid.net/specs/openid-connect-discovery-1_0.html" target="_blank">
-    <area coords="436,110,557,168" shape="rect" href="https://openid.net/specs/openid-connect-registration-1_0.html" target="_blank">
-  </map>
-  <img decoding="async" src="/images/oid-map.png" alt="OpenID Connect Spec Map" usemap="#GraffleExport" border="0" fetchpriority="auto" loading="lazy" class="blur-up center lazyautosizes lazyloaded">
-  <figcaption class="center"><a href="https://openid.net/developers/how-connect-works/" target="_blank">The OpenID Connect 1.0 Protocol Suite, image is a trademark of the OpenID Foundation, click here for the source of this image, click the individual specifications to view them.</a></figcaption>
-</figure>
+
 
 The elements we support are Core, Discovery, and the Form Post Response Mode, and every element that is listed in the
 protocol underpinnings with the exception of WebFinger. The two major remaining elements

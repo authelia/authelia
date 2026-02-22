@@ -1,6 +1,6 @@
 {{- $key := .Get "product" -}}
 {{- $format := .Get "format" -}}
-{{- with index $.Site.Data.misc.support $key -}}
+{{- with index hugo.Data.misc.support $key -}}
   {{- range . }}
 {{ replace $format "$version" . -}}
   {{- end -}}

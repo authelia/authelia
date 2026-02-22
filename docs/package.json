@@ -1,28 +1,15 @@
 {
   "name": "authelia",
-  "version": "1.7.0",
+  "version": "1.9.0",
   "description": "Doks theme",
   "author": "Thulite",
   "license": "MIT",
   "scripts": {
-    "dev": "exec-bin node_modules/.bin/hugo/hugo server --bind=0.0.0.0 --disableFastRender --baseURL=http://localhost --noHTTPCache",
-    "dev:drafts": "exec-bin node_modules/.bin/hugo/hugo server --bind=0.0.0.0 --disableFastRender --baseURL=http://localhost --noHTTPCache --buildDrafts",
-    "create": "exec-bin node_modules/.bin/hugo/hugo new",
-    "lint": "npm run lint:scripts && npm run lint:styles && npm run lint:markdown",
-    "lint:scripts": "eslint --cache assets/js",
-    "lint:styles": "stylelint --cache \"assets/scss/**/*.{css,sass,scss}\"",
-    "lint:markdown": "markdownlint-cli2 \"*.md\" \"content/**/*.md\"",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "exec-bin node_modules/.bin/hugo/hugo --cleanDestinationDir",
-    "preview": "http-server --gzip --brotli --ext=html --cors",
-    "clean": "npm run clean:build && npm run clean:lint && npm run clean:install",
-    "clean:build": "shx rm -rf public resources .hugo_build.lock",
-    "clean:install": "shx rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml",
-    "clean:lint": "shx rm -rf .eslintcache .stylelintcache",
-    "preinfo": "npm version",
-    "info": "npm list",
-    "postinfo": "exec-bin node_modules/.bin/hugo/hugo version",
-    "postinstall": "hugo-installer --version otherDependencies.hugo --extended --destination node_modules/.bin/hugo"
+    "create": "hugo new",
+    "dev": "hugo server --disableFastRender --noHTTPCache",
+    "format": "prettier **/** -w -c",
+    "build": "hugo --minify --gc",
+    "preview": "vite preview --outDir public"
   },
   "dependencies": {
     "@docsearch/css": "3.9.0",
@@ -38,35 +25,21 @@
     "thulite": "2.6.4"
   },
   "devDependencies": {
-    "shx": "0.4.0"
-  },
-  "otherDependencies": {
-    "hugo": "0.152.2"
-  },
-  "overrides": {
-    "semver": "7.5.4"
+    "vite": "7.3.1"
   },
   "engines": {
     "node": ">=22.14.0",
     "pnpm": "10"
   },
   "packageManager": "pnpm@10.6.4",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "pnpm": {
     "overrides": {
-      "@babel/traverse": "7.26.10",
-      "@babel/helpers": "7.26.10",
-      "@babel/runtime": "7.26.10",
-      "@isaacs/brace-expansion": "5.0.1",
-      "brace-expansion": "2.0.2",
-      "glob": "13.0.0",
-      "lodash": "4.17.23",
-      "minimatch": "10.2.4",
-      "nanoid": "3.3.8",
-      "preact": "10.28.3",
-      "semver": "7.6.3"
+      "minimatch": "10.2.4"
     },
-    "patchedDependencies": {
-      "purgecss-whitelister": "patches/purgecss-whitelister.patch"
-    }
+    "patchedDependencies": {}
   }
 }

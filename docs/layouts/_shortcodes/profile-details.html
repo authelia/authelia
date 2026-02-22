@@ -1,9 +1,9 @@
 {{- $key := .Get "name" }}
-{{- $profile := index $.Site.Data.profiles.people $key }}
+{{- $profile := index hugo.Data.profiles.people $key }}
 {{- if $profile }}
 {{- $team := "" }}
 {{- if $profile.team }}
-{{- $team = index $.Site.Data.profiles.teams $profile.team }}
+{{- $team = index hugo.Data.profiles.teams $profile.team }}
 {{- end }}
 {{- $email := false }}
 {{- if $profile.email }}{{ $email = true }}{{ end }}
