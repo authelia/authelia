@@ -8,15 +8,32 @@
   NPM_VERSION = "11.8.0"
   HUGO_VERSION = "0.156.0"
 
+[context.production]
+  command = "pnpm build"
+
+[context.staging]
+  command = "pnpm build -b $DEPLOY_PRIME_URL"
+
+[context.deploy-preview]
+  command = "pnpm build -b $DEPLOY_PRIME_URL"
+
+[context.branch-deploy]
+  command = "pnpm build -b $DEPLOY_PRIME_URL"
+
+[context.next]
+  command = "pnpm build"
+
+[context.next.environment]
+  HUGO_ENV = "next"
+
 [dev]
   framework = "#custom"
-  command = "npm run dev"
+  command = "pnpm dev"
   targetPort = 1313
   port = 8888
   publish = "public"
   autoLaunch = false
 
-# Redirects and rewrites — https://docs.netlify.com/routing/redirects/#syntax-for-the-netlify-configuration-file
 [[redirects]]
 	from = "/*"
 	to = "/404/"
@@ -67,7 +84,6 @@
   to = "/configuration/security/access-control/#rule-matching-concept-2-subject-criteria-requires-authentication"
   status = 301
 
-# Custom headers — https://docs.netlify.com/routing/headers/#syntax-for-the-netlify-configuration-file
 [[headers]]
   for = "/*"
   [headers.values]
