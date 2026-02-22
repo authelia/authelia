@@ -34,7 +34,7 @@ type TOTPConfiguration struct {
 	Algorithm  string       `db:"algorithm"`
 	Digits     uint32       `db:"digits"`
 	Period     uint         `db:"period"`
-	Secret     []byte       `db:"secret"`
+	Secret     []byte       `db:"secret"` //nolint:gosec
 }
 
 // TOTPConfigurationJSON is the JSON representation for a TOTPConfiguration.
@@ -169,7 +169,7 @@ type TOTPConfigurationData struct {
 	Algorithm  string     `yaml:"algorithm" json:"algorithm" jsonschema:"title=Algorithm" jsonschema_description:"The algorithm this configuration uses."`
 	Digits     uint32     `yaml:"digits" json:"digits" jsonschema:"title=Digits" jsonschema_description:"The number of digits this configuration uses."`
 	Period     uint       `yaml:"period" json:"period" jsonschema:"title=Period" jsonschema_description:"The period of time this configuration uses."`
-	Secret     string     `yaml:"secret" json:"secret" jsonschema:"title=Secret" jsonschema_description:"The secret shared key for this configuration."`
+	Secret     string     `yaml:"secret" json:"secret" jsonschema:"title=Secret" jsonschema_description:"The secret shared key for this configuration."` //nolint:gosec
 }
 
 // TOTPConfigurationDataExport represents a TOTPConfiguration export file.
