@@ -1,39 +1,27 @@
 [build]
   publish = "public"
   functions = "functions"
+  command = "pnpm build"
 
 [build.environment]
-  NODE_VERSION = "22.17.0"
-  NPM_VERSION = "10.9.2"
-  HUGO_VERSION = "0.152.2"
-
-[context.production]
-  command = "pnpm build"
-
-[context.staging]
-  command = "pnpm build -b $DEPLOY_PRIME_URL"
-
-[context.deploy-preview]
-  command = "pnpm build -b $DEPLOY_PRIME_URL"
-
-[context.branch-deploy]
-  command = "pnpm build -b $DEPLOY_PRIME_URL"
-
-[context.next]
-  command = "pnpm build"
-
-[context.next.environment]
-  HUGO_ENV = "next"
+  NODE_VERSION = "24.13.1"
+  NPM_VERSION = "11.8.0"
+  HUGO_VERSION = "0.156.0"
 
 [dev]
   framework = "#custom"
-  command = "pnpm dev"
+  command = "npm run dev"
   targetPort = 1313
   port = 8888
   publish = "public"
   autoLaunch = false
 
 # Redirects and rewrites — https://docs.netlify.com/routing/redirects/#syntax-for-the-netlify-configuration-file
+[[redirects]]
+	from = "/*"
+	to = "/404/"
+	status = 404
+
 [[redirects]]
   from = "/l/apt"
   to = "/integration/deployment/bare-metal/#add-the-apt-repository"

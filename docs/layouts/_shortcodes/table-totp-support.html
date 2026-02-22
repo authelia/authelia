@@ -14,7 +14,7 @@
   </tr>
   </thead>
   <tbody>
-  {{- range $.Site.Data.support.totp }}
+  {{- range hugo.Data.support.totp }}
   <tr>
     <td class="text-center"><a href="{{ .url }}" target="_blank">{{ .name }}</a></td>
     <td class="text-center"><i class="{{ cond .algorithms.SHA1 "icon-support-full" "icon-support-none" }}" data-toggle="tooltip" data-placement="top" title="{{ cond .algorithms.SHA1 "" "Not " }}Supported"></i></td>
