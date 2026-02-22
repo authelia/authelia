@@ -18,8 +18,8 @@ github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3d
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/authelia/jsonschema v0.1.7 h1:RbtTeTG7GiWIrx2A+3O+b33jr/mLlSmqGYyk1w5gLNA=
 github.com/authelia/jsonschema v0.1.7/go.mod h1:9l5WAhb73MyveI+xnNGK2Q367ynzLRAYHrN/PPcxptM=
-github.com/authelia/otp v1.0.3 h1:WbRv7vKcVgQ0hvy2sIZPt3xw0XH38HyuLINfoYfdutw=
-github.com/authelia/otp v1.0.3/go.mod h1:MRomMiixkuy5j6xQGX4Ghn2Jc72NoHsyKDLQqy8h67M=
+github.com/authelia/otp v1.0.4 h1:wVCsa9Tm/Vnx53WtaQbqgkNB9eUXQNnuaG0QzuRuHWI=
+github.com/authelia/otp v1.0.4/go.mod h1:2WLyl2ViklCj7UpFVfuqVFYnBi421+dMNavGV0mAndU=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/boombuler/barcode v1.1.0 h1:ChaYjBR63fr4LFyGn8E8nt7dBSt3MiU3zMOZqFvVkHo=
