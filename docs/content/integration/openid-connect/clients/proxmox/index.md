@@ -104,7 +104,7 @@ To configure [Proxmox Virtual Environment] to utilize Authelia as an [OpenID Con
    - Autocreate Groups: Enable if you want groups to automatically be created in [Proxmox].
    - Groups Claim: Set to `groups` to add users to existing proxmox groups.
 
-{{< figure src="proxmox.png" alt="Proxmox" process="resize 600x" >}}
+{{< figure src="proxmox.png" alt="Proxmox" sizes="600px" >}}
 
 ## See Also
 
