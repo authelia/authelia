@@ -18,6 +18,8 @@ ls $BIN_DIR
 
 sass --version
 
+export PATH=$BIN_DIR:$PATH
+
 echo "Building..."
 
 pnpm build "$@"
