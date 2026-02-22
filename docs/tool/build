@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+BIN_DIR=/opt/build/repo/node_modules/.bin
+
+mkdir -p $BIN_DIR
+
+echo Installing Dart SASS from https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz
+
+curl -LJO https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz
+tar -xzf dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz
+mv dart-sass/sass $BIN_DIR
+mv dart-sass/src  $BIN_DIR/src
+
+rm -rf dart-sass
+
+echo "Binaries installed to $BIN_DIR"
+ls $BIN_DIR
+
+sass --version
+
+echo "Building..."
+
+pnpm build "$@"
