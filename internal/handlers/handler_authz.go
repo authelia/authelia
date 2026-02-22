@@ -46,11 +46,7 @@ type AuthzContext interface {
 	RootURL() (issuerURL *url.URL)
 	IssuerURL() (issuerURL *url.URL, err error)
 
-	NewSession() (userSession session.UserSession)
-	GetSession() (session session.UserSession, err error)
-	SaveSession(session session.UserSession) (err error)
-	DestroySession() (err error)
-	GetSessionConfig() (config schema.SessionCookie)
+	GetSessionManagerByTargetURI(targetURL *url.URL) (manager session.Manager, err error)
 
 	GetRequestQueryArgValue(key []byte) (value []byte)
 	GetRequestHeaderValue(key []byte) (value []byte)
@@ -77,8 +73,10 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 	var (
 		object      authorization.Object
 		autheliaURL *url.URL
+		manager     session.Manager
 		err         error
 	)
+
 	if object, err = authz.handleGetObject(ctx); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error getting Target URL and Request Method")
 
@@ -95,8 +93,7 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 		return
 	}
 
-	// TODO: Ensure the session handling is done purely from the target domain.
-	if config := ctx.GetSessionConfig(); config.Domain == "" {
+	if manager, err = ctx.GetSessionManagerByTargetURI(object.URL); err != nil || manager.GetSessionConfig().Domain == "" {
 		ctx.GetLogger().WithError(err).WithField("target_url", object.URL.String()).Error("Target URL does not appear to have a relevant session cookies configuration")
 
 		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
@@ -104,7 +101,7 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 		return
 	}
 
-	if autheliaURL, err = authz.getAutheliaURL(ctx); err != nil {
+	if autheliaURL, err = authz.getAutheliaURL(ctx, manager); err != nil {
 		ctx.GetLogger().WithError(err).WithField("target_url", object.URL.String()).Error("Error occurred trying to determine the external Authelia URL for Target URL")
 
 		ctx.ReplyStatusCode(authz.config.StatusCodeBadRequest)
@@ -117,7 +114,7 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 		strategy AuthnStrategy
 	)
 
-	authn, strategy, err = authz.authn(ctx, &object)
+	authn, strategy, err = authz.authn(ctx, manager, &object)
 
 	authn.Object = object
 	authn.Method = friendlyMethod(authn.Object.Method)
@@ -170,12 +167,12 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 	}
 }
 
-func (authz *Authz) getAutheliaURL(ctx AuthzContext) (autheliaURL *url.URL, err error) {
+func (authz *Authz) getAutheliaURL(ctx AuthzContext, manager session.Manager) (autheliaURL *url.URL, err error) {
 	if autheliaURL, err = authz.handleGetAutheliaURL(ctx); err != nil {
 		return nil, err
 	}
 
-	config := ctx.GetSessionConfig()
+	config := manager.GetSessionConfig()
 
 	switch {
 	case authz.implementation == AuthzImplLegacy:
@@ -220,9 +217,9 @@ func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL 
 	return redirectionURL
 }
 
-func (authz *Authz) authn(ctx AuthzContext, object *authorization.Object) (authn *Authn, strategy AuthnStrategy, err error) {
+func (authz *Authz) authn(ctx AuthzContext, manager session.Manager, object *authorization.Object) (authn *Authn, strategy AuthnStrategy, err error) {
 	for _, strategy = range authz.strategies {
-		if authn, err = strategy.Get(ctx, object); err != nil {
+		if authn, err = strategy.Get(ctx, manager, object); err != nil {
 			// Ensure an error returned can never result in an authenticated user.
 			authn.Level = authentication.NotAuthenticated
 			authn.Username = anonymous
