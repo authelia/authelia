@@ -1,27 +1,28 @@
 [build]
   publish = "public"
   functions = "functions"
-  command = "pnpm build"
+  command = "./tool/build"
 
 [build.environment]
   NODE_VERSION = "24.13.1"
   NPM_VERSION = "11.8.0"
   HUGO_VERSION = "0.156.0"
+  DART_SASS_VERSION = "1.97.3"
 
 [context.production]
   command = "pnpm build"
 
 [context.staging]
-  command = "pnpm build -b $DEPLOY_PRIME_URL"
+  command = "./tool/build -b $DEPLOY_PRIME_URL"
 
 [context.deploy-preview]
-  command = "pnpm build -b $DEPLOY_PRIME_URL"
+  command = "./tool/build -b $DEPLOY_PRIME_URL"
 
 [context.branch-deploy]
-  command = "pnpm build -b $DEPLOY_PRIME_URL"
+  command = "./tool/build -b $DEPLOY_PRIME_URL"
 
 [context.next]
-  command = "pnpm build"
+  command = "./tool/build"
 
 [context.next.environment]
   HUGO_ENV = "next"
