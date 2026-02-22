@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-BIN_DIR=/opt/build/repo/node_modules/.bin
+BIN_DIR=/opt/build/repo/dart-sass
 
 mkdir -p $BIN_DIR
 
@@ -12,6 +12,7 @@ mv dart-sass/sass $BIN_DIR
 mv dart-sass/src  $BIN_DIR/src
 
 rm -rf dart-sass
+rm dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz
 
 echo "Binaries installed to $BIN_DIR"
 ls $BIN_DIR
