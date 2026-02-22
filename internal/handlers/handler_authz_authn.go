@@ -86,7 +86,7 @@ type CookieSessionAuthnStrategy struct {
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, _ *authorization.Object) (authn *Authn, err error) {
+func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manager, _ *authorization.Object) (authn *Authn, err error) {
 	var userSession session.UserSession
 
 	authn = &Authn{
@@ -95,39 +95,39 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, _ *authorization.Obje
 		Username: anonymous,
 	}
 
-	if userSession, err = ctx.GetSession(); err != nil {
+	if userSession, err = manager.GetSession(); err != nil {
 		return authn, fmt.Errorf("failed to retrieve user session: %w", err)
 	}
 
-	if userSession.CookieDomain != ctx.GetSessionConfig().Domain {
-		ctx.GetLogger().Warnf("Destroying session cookie as the cookie domain '%s' does not match the requests detected cookie domain '%s' which may be a sign a user tried to move this cookie from one domain to another", userSession.CookieDomain, ctx.GetSessionConfig().Domain)
+	if userSession.CookieDomain != manager.GetSessionConfig().Domain {
+		ctx.GetLogger().Warnf("Destroying session cookie as the cookie domain '%s' does not match the requests detected cookie domain '%s' which may be a sign a user tried to move this cookie from one domain to another", userSession.CookieDomain, manager.GetSessionConfig().Domain)
 
-		if err = ctx.DestroySession(); err != nil {
+		if err = manager.DestroySession(); err != nil {
 			ctx.GetLogger().WithError(err).Error("Error occurred trying to destroy the session cookie")
 		}
 
-		userSession = ctx.NewSession()
+		userSession = manager.NewDefaultUserSession()
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = manager.SaveSession(userSession); err != nil {
 			ctx.GetLogger().WithError(err).Error("Error occurred trying to save the new session cookie")
 		}
 	}
 
-	if modified, invalid := handleAuthnCookieValidate(ctx, &userSession, s.refresh); invalid {
-		if err = ctx.DestroySession(); err != nil {
+	if modified, invalid := handleAuthnCookieValidate(ctx, manager, &userSession, s.refresh); invalid {
+		if err = manager.DestroySession(); err != nil {
 			ctx.GetLogger().WithError(err).Errorf("Unable to destroy user session")
 		}
 
-		userSession = ctx.NewSession()
+		userSession = manager.NewDefaultUserSession()
 		userSession.LastActivity = ctx.GetClock().Now().Unix()
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = manager.SaveSession(userSession); err != nil {
 			ctx.GetLogger().WithError(err).Error("Unable to save updated user session")
 		}
 
 		return authn, nil
 	} else if modified {
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = manager.SaveSession(userSession); err != nil {
 			ctx.GetLogger().WithError(err).Error("Unable to save updated user session")
 		}
 	}
@@ -203,7 +203,7 @@ func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 }
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, object *authorization.Object) (authn *Authn, err error) {
+func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *authorization.Object) (authn *Authn, err error) {
 	var value []byte
 
 	authn = &Authn{
@@ -366,7 +366,7 @@ func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *Authn,
 type HeaderLegacyAuthnStrategy struct{}
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ *authorization.Object) (authn *Authn, err error) {
+func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, _ *authorization.Object) (authn *Authn, err error) {
 	var (
 		username, password string
 		value, header      []byte
@@ -447,7 +447,7 @@ func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *
 	handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 }
 
-func handleAuthnCookieValidate(ctx AuthzContext, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
+func handleAuthnCookieValidate(ctx AuthzContext, manager session.Manager, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
 	// TODO: Remove this check as it's no longer possible i.e. ineffectual.
 	isAnonymous := userSession.Username == ""
 
@@ -457,7 +457,7 @@ func handleAuthnCookieValidate(ctx AuthzContext, userSession *session.UserSessio
 		return modified, true
 	}
 
-	if invalid = handleAuthnCookieValidateInactivity(ctx, userSession, isAnonymous); invalid {
+	if invalid = handleAuthnCookieValidateInactivity(ctx, manager, userSession, isAnonymous); invalid {
 		ctx.GetLogger().WithField("username", userSession.Username).Info("Session for user not marked as remembered has exceeded configured session inactivity")
 
 		return modified, true
@@ -482,8 +482,8 @@ func handleAuthnCookieValidate(ctx AuthzContext, userSession *session.UserSessio
 	return modified, false
 }
 
-func handleAuthnCookieValidateInactivity(ctx AuthzContext, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
-	config := ctx.GetSessionConfig()
+func handleAuthnCookieValidateInactivity(ctx AuthzContext, manager session.Manager, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
+	config := manager.GetSessionConfig()
 
 	if isAnonymous || userSession.KeepMeLoggedIn || int64(config.Inactivity.Seconds()) == 0 {
 		return false

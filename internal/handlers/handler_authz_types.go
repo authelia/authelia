@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"github.com/authelia/authelia/v4/internal/session"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -105,7 +106,7 @@ type AuthzBuilder struct {
 
 // AuthnStrategy is a strategy used for Authz authentication.
 type AuthnStrategy interface {
-	Get(ctx AuthzContext, object *authorization.Object) (authn *Authn, err error)
+	Get(ctx AuthzContext, manager session.Manager, object *authorization.Object) (authn *Authn, err error)
 	CanHandleUnauthorized() (handle bool)
 	HeaderStrategy() (is bool)
 	HandleUnauthorized(ctx AuthzContext, authn *Authn, redirectionURL *url.URL)
@@ -115,7 +116,7 @@ type AuthnStrategy interface {
 type AuthzResult int
 
 const (
-	// AuthzResultForbidden means the user is forbidden the access to a resource.
+	// AuthzResultForbidden means the user is forbidden access to a resource.
 	AuthzResultForbidden AuthzResult = iota
 
 	// AuthzResultUnauthorized means the user can access the resource with more permissions.
