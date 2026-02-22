@@ -17,9 +17,14 @@ rm dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz
 echo "Binaries installed to $BIN_DIR"
 ls $BIN_DIR
 
-sass --version
-
 export PATH=$BIN_DIR:$PATH
+
+echo PATH=$PATH
+sass --version
+hugo version
+hugo env
+
+which sass
 
 echo "Building..."
 
