@@ -308,6 +308,15 @@ func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provi
 	return ctx.Providers.SessionProvider.Get(domain)
 }
 
+func (ctx *AutheliaCtx) GetSessionManagerByTargetURI(targetURL *url.URL) (provider session.Manager, err error) {
+	base, err := ctx.GetSessionProviderByTargetURI(targetURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return session.NewEncapsulatedSession(base, ctx.RequestCtx), nil
+}
+
 // GetSessionProvider returns the session provider for the Request's domain.
 func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err error) {
 	if ctx.session == nil {
