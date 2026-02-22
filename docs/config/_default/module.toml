@@ -96,5 +96,9 @@
   target = "static"
 
 [[mounts]]
+  source = "node_modules/bootstrap-icons/font/fonts"
+  target = "static/fonts"
+
+[[mounts]]
   source = "static"
   target = "static"
