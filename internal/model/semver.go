@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -74,21 +75,21 @@ func (v SemanticVersion) IsAbsolute() bool {
 
 // String is a function to provide a nice representation of a SemanticVersion.
 func (v SemanticVersion) String() (value string) {
-	builder := strings.Builder{}
+	buf := bytes.NewBuffer(nil)
 
-	builder.WriteString(fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch))
+	_, _ = fmt.Fprintf(buf, "%d.%d.%d", v.Major, v.Minor, v.Patch)
 
 	if len(v.PreRelease) != 0 {
-		builder.WriteString("-")
-		builder.WriteString(strings.Join(v.PreRelease, "."))
+		buf.WriteString("-")
+		buf.WriteString(strings.Join(v.PreRelease, "."))
 	}
 
 	if len(v.Metadata) != 0 {
-		builder.WriteString("+")
-		builder.WriteString(strings.Join(v.Metadata, "."))
+		buf.WriteString("+")
+		buf.WriteString(strings.Join(v.Metadata, "."))
 	}
 
-	return builder.String()
+	return buf.String()
 }
 
 // Equal returns true if this SemanticVersion is equal to the provided SemanticVersion.

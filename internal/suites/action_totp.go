@@ -16,7 +16,7 @@ import (
 )
 
 type OptionsTOTP struct {
-	Secret            string
+	Secret            string //nolint:gosec
 	ValidationOptions totp.ValidateOpts
 }
 
