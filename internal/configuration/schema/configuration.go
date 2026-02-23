@@ -29,6 +29,8 @@ type Configuration struct {
 	IdentityValidation    IdentityValidation    `koanf:"identity_validation" yaml:"identity_validation,omitempty" toml:"identity_validation,omitempty" json:"identity_validation,omitempty" jsonschema:"title=Identity Validation" jsonschema_description:"Identity Validation Configuration."`
 	Definitions           Definitions           `koanf:"definitions" yaml:"definitions,omitempty" toml:"definitions,omitempty" json:"definitions,omitempty" jsonschema:"title=Definitions" jsonschema_description:"Definitions for items reused elsewhere in the configuration."`
 
+	Listener Listener `koanf:"listener" yaml:"listener,omitempty" toml:"listener,omitempty" json:"listener,omitempty" jsonschema:"title=Listener" jsonschema_description:"Listener Configuration."`
+
 	// Deprecated: Use the session cookies option with the same name instead.
 	DefaultRedirectionURL *url.URL `koanf:"default_redirection_url" yaml:"default_redirection_url,omitempty" toml:"default_redirection_url,omitempty" json:"default_redirection_url,omitempty" jsonschema:"deprecated,format=uri,title=The default redirection URL"`
 }
