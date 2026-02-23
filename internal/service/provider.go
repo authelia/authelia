@@ -39,6 +39,7 @@ func GetProvisioners() []Provisioner {
 		ProvisionServer,
 		ProvisionServerMetrics,
 		ProvisionUsersFileWatcher,
+		ProvisionConfigWatcher,
 		ProvisionLoggingSignal,
 	}
 }
