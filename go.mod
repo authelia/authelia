@@ -21,6 +21,7 @@ require (
 	github.com/go-crypt/crypt v0.14.15
 	github.com/go-ldap/ldap/v3 v3.4.15
 	github.com/go-rod/rod v0.116.2
+	github.com/go-spop/spop v0.1.0
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/go-webauthn/webauthn v0.18.2
