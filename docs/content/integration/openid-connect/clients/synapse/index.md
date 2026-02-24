@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
 - [Synapse]
-  - [v1.127.1](https://github.com/element-hq/synapse/releases/tag/v1.127.1)
+  - [v1.145.0](https://github.com/element-hq/synapse/releases/tag/v1.145.0)
 
 {{% oidc-common bugs="claims-hydration" %}}
 
@@ -108,7 +108,7 @@ oidc_providers:
     allow_existing_users: true
     user_mapping_provider:
       config:
-        subject_claim: 'sub'
+        subject_template: '{{ user.sub }}'
         localpart_template: '{{ user.preferred_username }}'
         display_name_template: '{{ user.name }}'
         email_template: '{{ user.email }}'
@@ -128,9 +128,9 @@ oidc_providers:
 
 ## See Also
 
-- [Synapse OpenID Connect Authentication Documentation](https://matrix-org.github.io/synapse/latest/openid.html)
+- [Synapse OpenID Connect Authentication Documentation](https://element-hq.github.io/synapse/latest/openid.html)
 
 [Authelia]: https://www.authelia.com
-[Synapse]: https://github.com/matrix-org/synapse
+[Synapse]: https://github.com/element-hq/synapse
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

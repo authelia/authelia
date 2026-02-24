@@ -33,7 +33,6 @@ func GetEmbeddedLanguages(fs embed.FS) (languages *Languages, err error) {
 
 //nolint:gocyclo
 func getLanguages(dir fs.FS) (languages *Languages, err error) {
-	//nolint:prealloc
 	var locales []string
 
 	languages = &Languages{
@@ -59,6 +58,7 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 		if errWalk != nil {
 			return errWalk
 		}
+
 		if info.IsDir() {
 			return nil
 		}
@@ -88,6 +88,7 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 					}
 
 					languages.Languages[i].Namespaces = append(languages.Languages[i].Namespaces, ns)
+
 					break
 				}
 			}
@@ -120,9 +121,8 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 		return nil, err
 	}
 
-	var langs []Language //nolint:prealloc
+	var langs []Language
 
-	// adding locale fallbacks.
 	for i, lang := range languages.Languages {
 		p := lang.Tag.Parent()
 		parentString := p.String()

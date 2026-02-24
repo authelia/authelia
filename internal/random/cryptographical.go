@@ -47,7 +47,7 @@ func (r *Cryptographical) BytesCustomErr(n int, charset []byte) (data []byte, er
 
 	if t > 0 {
 		for i := 0; i < n; i++ {
-			data[i] = charset[data[i]%byte(t)]
+			data[i] = charset[data[i]%byte(t)] //nolint:gosec // This is safe.
 		}
 	}
 

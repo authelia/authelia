@@ -134,7 +134,7 @@ identity_providers:
 
 The following integrations leverage all or part of the custom claims functionality:
 
-- [SFTPGo](sftpgo/index.md)
+- [SFTPGo](clients/sftpgo/index.md)
 
 ### Restore Functionality Prior to Claims Parameter
 

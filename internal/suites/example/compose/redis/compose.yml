@@ -1,7 +1,7 @@
 ---
 services:
   redis:
-    image: 'redis:8.4-alpine'
+    image: 'redis:8.6-alpine'
     command: '/entrypoint.sh master'
     volumes:
       - './example/compose/redis/templates:/templates'

@@ -155,7 +155,7 @@ type AuthenticationBackendLDAP struct {
 	PermitFeatureDetectionFailure bool `koanf:"permit_feature_detection_failure" yaml:"permit_feature_detection_failure" toml:"permit_feature_detection_failure" json:"permit_feature_detection_failure" jsonschema:"default=false,title=Permit Feature Detection Failure" jsonschema_description:"Enables failures when detecting directory server features using the Root DSE lookup."`
 
 	User     string `koanf:"user" yaml:"user,omitempty" toml:"user,omitempty" json:"user,omitempty" jsonschema:"title=User" jsonschema_description:"The user distinguished name for LDAP binding."`
-	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."`
+	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."` //nolint:gosec
 }
 
 type AuthenticationBackendLDAPPooling struct {
