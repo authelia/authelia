@@ -57,7 +57,7 @@
     "@mui/icons-material": "7.3.8",
     "@mui/material": "7.3.8",
     "@simplewebauthn/browser": "13.2.2",
-    "axios": "1.13.5",
+    "axios": "1.13.6",
     "broadcast-channel": "7.3.0",
     "i18next": "25.8.13",
     "i18next-browser-languagedetector": "8.2.1",
