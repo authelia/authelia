@@ -8,7 +8,7 @@ overrides:
   '@babel/traverse': 7.29.0
   '@babel/helpers': 7.28.6
   '@babel/runtime': 7.28.6
-  brace-expansion: 4.0.1
+  brace-expansion: 5.0.4
   esbuild: 0.27.3
   glob: 13.0.6
   js-yaml: 4.1.1
@@ -941,9 +941,9 @@ packages:
   atomically@2.1.0:
     resolution: {integrity: sha512-+gDffFXRW6sl/HCwbta7zK4uNqbPjv4YJEAdz7Vu+FLQHe77eZ4bvbJGi4hE0QPeJlMYMA3piXEr1UL3dAwx7Q==}
 
-  balanced-match@3.0.1:
-    resolution: {integrity: sha512-vjtV3hiLqYDNRoiAv0zC4QaGAMPomEoq83PRmYIofPswwZurCeWR5LByXm7SyoL0Zh5+2z0+HC7jG8gSZJUh0w==}
-    engines: {node: '>= 16'}
+  balanced-match@4.0.4:
+    resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
+    engines: {node: 18 || 20 || >=22}
 
   base64id@2.0.0:
     resolution: {integrity: sha512-lGe34o6EHj9y3Kts9R4ZYs/Gr+6N7MCaMlIFA3F1R2O5/m7K06AxfSeO5530PEERE6/WyEg3lsuyw4GHlPZHog==}
@@ -953,9 +953,9 @@ packages:
     resolution: {integrity: sha512-ipDqC8FrAl/76p2SSWKSI+H9tFwm7vYqXQrItCuiVPt26Km0jS+NzSsBWAaBusvSbQcfJG+JitdMm+wZAgTYqg==}
     hasBin: true
 
-  brace-expansion@4.0.1:
-    resolution: {integrity: sha512-YClrbvTCXGe70pU2JiEiPLYXO9gQkyxYeKpJIQHVS/gOs6EWMQP2RYBwjFLNT322Ji8TOC3IMPfsYCedNpzKfA==}
-    engines: {node: '>= 18'}
+  brace-expansion@5.0.4:
+    resolution: {integrity: sha512-h+DEnpVvxmfVefa4jFbCf5HdH5YMDXRsmKflpf1pILZWRFlTbJpxeU55nJl4Smt5HQaGzg1o6RHFPJaOqnmBDg==}
+    engines: {node: 18 || 20 || >=22}
 
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
@@ -2505,15 +2505,15 @@ snapshots:
       stubborn-fs: 2.0.0
       when-exit: 2.1.5
 
-  balanced-match@3.0.1: {}
+  balanced-match@4.0.4: {}
 
   base64id@2.0.0: {}
 
   baseline-browser-mapping@2.9.19: {}
 
-  brace-expansion@4.0.1:
+  brace-expansion@5.0.4:
     dependencies:
-      balanced-match: 3.0.1
+      balanced-match: 4.0.4
 
   buffer-from@1.1.2:
     optional: true
@@ -2930,11 +2930,11 @@ snapshots:
 
   minimatch@10.2.2:
     dependencies:
-      brace-expansion: 4.0.1
+      brace-expansion: 5.0.4
 
   minimatch@3.1.2:
     dependencies:
-      brace-expansion: 4.0.1
+      brace-expansion: 5.0.4
 
   minimist@1.2.8: {}
 

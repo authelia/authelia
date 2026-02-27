@@ -15,7 +15,7 @@ overrides:
   ajv@8.12.0: 8.18.0
   babel: 7.26.10
   body-parser: 2.2.2
-  brace-expansion: 4.0.1
+  brace-expansion: 5.0.4
   esbuild: 0.27.3
   eslint-plugin-jest: 29.15.0
   eslint-plugin-testing-library: 7.16.0
@@ -1706,9 +1706,9 @@ packages:
     resolution: {integrity: sha512-Cg7TFGpIr01vOQNODXOOaGz2NpCU5gl8x1qJFbb6hbZxR7XrcE2vtbAsTAbJ7/xwJtUuJEw8K8Zr/AE0LHlesg==}
     engines: {node: '>=10', npm: '>=6'}
 
-  balanced-match@3.0.1:
-    resolution: {integrity: sha512-vjtV3hiLqYDNRoiAv0zC4QaGAMPomEoq83PRmYIofPswwZurCeWR5LByXm7SyoL0Zh5+2z0+HC7jG8gSZJUh0w==}
-    engines: {node: '>= 16'}
+  balanced-match@4.0.4:
+    resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
+    engines: {node: 18 || 20 || >=22}
 
   bidi-js@1.0.3:
     resolution: {integrity: sha512-RKshQI1R3YQ+n9YJz2QQ147P66ELpa1FQEg20Dk8oW9t2KgLbpDLLp9aGZ7y8WHSshDknG0bknqGw5/tyCs5tw==}
@@ -1717,9 +1717,9 @@ packages:
     resolution: {integrity: sha512-oP5VkATKlNwcgvxi0vM0p/D3n2C3EReYVX+DNYs5TjZFn/oQt2j+4sVJtSMr18pdRr8wjTcBl6LoV+FUwzPmNA==}
     engines: {node: '>=18'}
 
-  brace-expansion@4.0.1:
-    resolution: {integrity: sha512-YClrbvTCXGe70pU2JiEiPLYXO9gQkyxYeKpJIQHVS/gOs6EWMQP2RYBwjFLNT322Ji8TOC3IMPfsYCedNpzKfA==}
-    engines: {node: '>= 18'}
+  brace-expansion@5.0.4:
+    resolution: {integrity: sha512-h+DEnpVvxmfVefa4jFbCf5HdH5YMDXRsmKflpf1pILZWRFlTbJpxeU55nJl4Smt5HQaGzg1o6RHFPJaOqnmBDg==}
+    engines: {node: 18 || 20 || >=22}
 
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
@@ -5750,7 +5750,7 @@ snapshots:
       cosmiconfig: 7.1.0
       resolve: 1.22.8
 
-  balanced-match@3.0.1: {}
+  balanced-match@4.0.4: {}
 
   bidi-js@1.0.3:
     dependencies:
@@ -5770,9 +5770,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  brace-expansion@4.0.1:
+  brace-expansion@5.0.4:
     dependencies:
-      balanced-match: 3.0.1
+      balanced-match: 4.0.4
 
   braces@3.0.3:
     dependencies:
@@ -7397,7 +7397,7 @@ snapshots:
 
   minimatch@10.2.4:
     dependencies:
-      brace-expansion: 4.0.1
+      brace-expansion: 5.0.4
 
   minimist@1.2.8: {}
 
