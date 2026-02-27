@@ -1,6 +1,6 @@
 module github.com/authelia/authelia/v4
 
-go 1.24.0
+go 1.25.0
 
 toolchain go1.26.0
 
@@ -48,7 +48,7 @@ require (
 	github.com/wneessen/go-mail v0.7.2
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
-	golang.org/x/net v0.50.0
+	golang.org/x/net v0.51.0
 	golang.org/x/sync v0.19.0
 	golang.org/x/term v0.40.0
 	golang.org/x/text v0.34.0
