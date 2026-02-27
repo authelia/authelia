@@ -3,7 +3,7 @@ module resources
 go 1.25.1
 
 require (
-	github.com/cespare/reflex v0.3.1
+	github.com/cespare/reflex v0.3.2
 	github.com/go-delve/delve v1.26.0
 )
 
@@ -30,7 +30,7 @@ require (
 	golang.org/x/arch v0.21.0 // indirect
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/telemetry v0.0.0-20251001141935-4eae98a72453 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
