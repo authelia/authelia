@@ -35,7 +35,7 @@
 			"@babel/traverse": "7.29.0",
 			"@babel/helpers": "7.28.6",
 			"@babel/runtime": "7.28.6",
-			"brace-expansion": "4.0.1",
+			"brace-expansion": "5.0.4",
 			"esbuild": "0.27.3",
 			"glob": "13.0.6",
 			"js-yaml": "4.1.1",
