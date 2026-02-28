@@ -389,11 +389,6 @@ or other audits related to improving the security of Authelia.
 Any company can become a sponsor by donating or providing any benefit to the project or the team helping improve
 Authelia.
 
-#### Balto
-
-Thank you to [<img src="https://www.authelia.com/svgs/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/)
-for hosting our apt repository.
-
 #### JetBrains
 
 Thank you to [<img src="https://www.authelia.com/svgs/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
