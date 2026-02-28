@@ -130,6 +130,30 @@ func (r EncryptionValidationTableResult) ResultDescriptor() string {
 	return "SUCCESS"
 }
 
+// AuthLogStats contains information about the authentication_logs table.
+type AuthLogStats struct {
+	Total        int64  `db:"total"`
+	SuccessCount int64  `db:"success_count"`
+	FailureCount int64  `db:"failure_count"`
+	BannedCount  int64  `db:"banned_count"`
+	Oldest       string `db:"oldest"`
+	Newest       string `db:"newest"`
+}
+
+type DeleteAuthLogStats struct {
+	TotalCount int64         `db:"total"`
+	MinID      sql.NullInt64 `db:"min"`
+	MaxID      sql.NullInt64 `db:"max"`
+}
+
+type DeleteAuthLogResults struct {
+	TotalBatches     int
+	TotalDeleted     int64
+	TotalTime        time.Duration
+	AverageTime      time.Duration
+	RecordsPerSecond int
+}
+
 // OAuth2SessionType represents the potential OAuth 2.0 session types.
 type OAuth2SessionType int
 

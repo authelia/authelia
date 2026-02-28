@@ -48,6 +48,7 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageEncryptionCmd(ctx),
 		newStorageUserCmd(ctx),
 		newStorageBansCmd(ctx),
+		newStorageLogsCmd(ctx),
 	)
 
 	return cmd
@@ -796,6 +797,77 @@ func newStorageMigrateDownCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 	cmd.Flags().IntP(cmdFlagNameTarget, "t", 0, "sets the version to migrate to")
 	cmd.Flags().Bool(cmdFlagNameDestroyData, false, "confirms you want to destroy data with this migration")
+
+	return cmd
+}
+
+func newStorageLogsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               storageLogs,
+		Short:             cmdAutheliaStorageLogsShort,
+		Long:              cmdAutheliaStorageLogsLong,
+		Args:              cobra.NoArgs,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageLogsAuthCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageLogsAuthCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               storageLogsAuth,
+		Short:             cmdAutheliaStorageLogsAuthShort,
+		Long:              cmdAutheliaStorageLogsAuthLong,
+		Args:              cobra.NoArgs,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageLogsAuthPruneCmd(ctx),
+		newStorageLogsAuthStatsCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageLogsAuthPruneCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               storageLogsAuthPrune,
+		Short:             cmdAutheliaStorageLogsAuthPruneShort,
+		Long:              cmdAutheliaStorageLogsAuthPruneLong,
+		Example:           cmdAutheliaStorageLogsAuthPruneExample,
+		RunE:              ctx.StorageLogsAuthPruneRunE,
+		Args:              cobra.NoArgs,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String(cmdFlagLogsOlderThan, "", "Delete logs older than this duration (e.g., 90d, 6m, 1y)")
+	cmd.Flags().Int(cmdFlagLogsBatchSize, 20000, "Number of records to delete per batch (prevents long-running commands)")
+	cmd.Flags().Bool(cmdFlagLogsDryRun, false, "Show what would be deleted without actually deleting")
+
+	err := cmd.MarkFlagRequired(cmdFlagLogsOlderThan)
+	if err != nil {
+		fmt.Printf("Error marking flag as required: %v\n", err)
+		return nil
+	}
+
+	return cmd
+}
+
+func newStorageLogsAuthStatsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               storageLogsAuthStats,
+		Short:             cmdAutheliaStorageLogsAuthStatsShort,
+		Long:              cmdAutheliaStorageLogsAuthStatsLong,
+		Example:           cmdAutheliaStorageLogsAuthStatsExample,
+		RunE:              ctx.StorageLogsAuthStatsRunE,
+		Args:              cobra.NoArgs,
+		DisableAutoGenTag: true,
+	}
 
 	return cmd
 }

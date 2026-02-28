@@ -290,6 +290,19 @@ type Provider interface {
 	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
 
 	/*
+		Implementation for authentication logs cleanup.
+	*/
+
+	// GetAuthenticationLogsStats retrieves overall statistics for the authentication logs table.
+	GetAuthenticationLogsStats(ctx context.Context) (stats *AuthLogStats, err error)
+
+	// GetAuthenticationLogsPrunePreview shows what records would be deleted without actually deleting them.
+	GetAuthenticationLogsPrunePreview(ctx context.Context, cutoffDuration time.Duration) (stats *DeleteAuthLogStats, err error)
+
+	// PruneAuthenticationLogs deletes authentication log records older than the specified duration in batches.
+	PruneAuthenticationLogs(ctx context.Context, cutoffDuration time.Duration, batchSize int) (results *DeleteAuthLogResults, err error)
+
+	/*
 		Implementation for Schema controls.
 	*/
 
