@@ -29,3 +29,6 @@ authelia-image-dev.tar
 __debug_bin
 
 internal/suites/common/pki/ca/*.private.pem
+
+# Override global gitignore for SQL migration files (required for go:embed)
+!internal/storage/migrations/**/*.sql

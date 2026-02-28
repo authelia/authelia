@@ -978,7 +978,7 @@ func TestAutheliaCtx_GetCookieDomainSessionProvider(t *testing.T) {
 			providers := middlewares.Providers{}
 
 			if tc.config != nil {
-				providers.SessionProvider = session.NewProvider(*tc.config, nil)
+				providers.SessionProvider = session.NewProvider(*tc.config, nil, nil)
 			}
 
 			middleware := middlewares.NewAutheliaCtx(ctx, config, providers)
@@ -1002,7 +1002,7 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 	configuration := schema.Configuration{}
 	userProvider := mocks.NewMockUserProvider(ctrl)
-	sessionProvider := session.NewProvider(configuration.Session, nil)
+	sessionProvider := session.NewProvider(configuration.Session, nil, nil)
 	providers := middlewares.Providers{
 		UserProvider:    userProvider,
 		SessionProvider: sessionProvider,

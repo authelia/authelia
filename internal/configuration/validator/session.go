@@ -23,6 +23,11 @@ func ValidateSession(config *schema.Configuration, validator *schema.StructValid
 		} else {
 			validateRedis(&config.Session, validator)
 		}
+	} else if config.Storage.Local != nil || config.Storage.MySQL != nil || config.Storage.PostgreSQL != nil {
+		// SQL storage is configured: require session secret for encryption.
+		if config.Session.Secret == "" {
+			validator.Push(fmt.Errorf(errFmtSessionSecretRequired, "sql"))
+		}
 	}
 
 	validateSession(config, validator)
