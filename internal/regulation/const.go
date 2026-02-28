@@ -23,6 +23,9 @@ const (
 
 	// AuthTypePassword is the string representing an auth log for second-factor authentication via a Password.
 	AuthTypePassword = "Password"
+
+	// AuthTypeKerberos is the string representing an auth log for Kerberos authentication.
+	AuthTypeKerberos = "Kerberos"
 )
 
 const (

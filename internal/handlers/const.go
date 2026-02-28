@@ -138,6 +138,11 @@ const (
 	logFmtErrPasskeyAuthenticationChallengeValidateUser = "Error occurred validating a WebAuthn passkey authentication challenge for user '%s': %s"
 )
 
+const (
+	logFmtErrKerberosAuthenticationChallengeGenerate     = "Error occurred generating a Kerberos authentication challenge: %s"
+	logFmtErrKerberosAuthenticationChallengeValidateUser = "Error occurred validating a Kerberos authentication challenge for user '%s': %s"
+)
+
 // Duo constants.
 const (
 	allow  = "allow"
@@ -162,6 +167,7 @@ const (
 	errStrRespBody            = "error occurred writing the response body"
 	errStrUserSessionData     = "error occurred retrieving the user session data"
 	errStrUserSessionDataSave = "error occurred saving the user session data"
+	errStrReqHeaderParse      = "error parsing the request headers"
 )
 
 var (
