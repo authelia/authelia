@@ -25,7 +25,7 @@ Contributions to __Authelia__ have four main forms:
 
 We encourage our community to be part of __Authelia__ by contributing in these ways. We encourage anyone who wishes to
 contribute via development to utilize GitHub [Issues] or [Discussions] or one of the
-[other contact methods](../../information/contact.md) to discuss their contribution in advance and come up with a design
+[other contact methods](../../overview/project/contact.md) to discuss their contribution in advance and come up with a design
 plan.
 
 [Issues]: https://github.com/authelia/authelia/issues

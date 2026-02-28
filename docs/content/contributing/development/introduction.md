@@ -15,7 +15,7 @@ seo:
 ---
 
 We encourage anyone who wishes to contribute via development to utilize GitHub [Issues] or [Discussions] or one of the
-[other contact methods](../../information/contact.md) to discuss their contribution in advance and come up with a design
+[other contact methods](../../overview/project/contact.md) to discuss their contribution in advance and come up with a design
 plan.
 
 It's also important that you read guidelines and try to follow them. The development section is arranged in the order

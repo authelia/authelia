@@ -6,10 +6,10 @@ date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 toc: false
-type: legal
 aliases:
-  - /versioning-policy
-  - /versioning
+  - '/versioning-policy'
+  - '/versioning'
+  - '/policies/versioning'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -107,7 +107,7 @@ This exception applies to all features which are described as:
 
 Notable examples:
 
-- [OpenID Connect 1.0](../configuration/identity-providers/openid-connect/provider.md)
-- [File Filters](../configuration/methods/files.md#file-filters)
+- [OpenID Connect 1.0](../../../configuration/identity-providers/openid-connect/provider.md)
+- [File Filters](../../../configuration/methods/files.md#file-filters)
 
 

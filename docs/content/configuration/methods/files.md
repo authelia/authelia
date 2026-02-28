@@ -190,7 +190,7 @@ information.
 
 File filters exist which allow modification of all configuration files after reading them from the
 filesystem but before parsing their content. Unless explicitly specified these filters are _**NOT**_ covered by our
-[Standard Versioning Policy](../../policies/versioning.md) and
+[Standard Versioning Policy](../../overview/project/policies/versioning.md) and
 
 There __*WILL*__ be a point where:
 
@@ -263,7 +263,7 @@ See the [Templating Reference Guide](../../reference/guides/templating.md) for m
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 The Expand Environment Variable filter (i.e. `expand-env`) is officially deprecated. It will be removed in v4.40.0 and
 will result in a startup error. This removal is done based on the experimental introduction of this feature and our
-[Versioning Policy](../../policies/versioning.md). The removal decision was made due to the fact the
+[Versioning Policy](../../overview/project/policies/versioning.md). The removal decision was made due to the fact the
 [Go Template Filter](#go-template-filter) can effectively do everything this filter can do without the
 [Known Limitations](#known-limitations) which should be read carefully before usage of this filter.
 {{< /callout >}}

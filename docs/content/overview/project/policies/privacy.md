@@ -6,12 +6,12 @@ date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 toc: false
-type: legal
 aliases:
-  - /privacy-policy
-  - /privacy-policy.html
-  - /privacy
-  - /privacy.html
+  - '/privacy-policy'
+  - '/privacy-policy.html'
+  - '/privacy'
+  - '/privacy.html'
+  - '/policies/privacy'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -63,6 +63,6 @@ information is only stored in the local SQL database and is NOT sent to any exte
 
 ## Contact us
 
-[Contact us](../information/contact.md) if you have any questions.
+[Contact us](../contact.md) if you have any questions.
 
 __Effective Date:__ *16th May 2022*
