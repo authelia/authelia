@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -32,6 +33,9 @@ type ReloadableProvider interface {
 	Reload() (reloaded bool, err error)
 }
 
+// FileWatcherAction represents an action to perform when this watcher is triggered.
+type FileWatcherAction func(log *logrus.Entry, event fsnotify.Event) (bubble bool, err error)
+
 type Provisioner func(ctx Context) (provider Provider, err error)
 
 func GetProvisioners() []Provisioner {
@@ -39,14 +43,17 @@ func GetProvisioners() []Provisioner {
 		ProvisionServer,
 		ProvisionServerMetrics,
 		ProvisionUsersFileWatcher,
+		ProvisionConfigFileWatcher,
 		ProvisionLoggingSignal,
+		ProvisionApplicationReloadSignal,
 	}
 }
 
 type Context interface {
-	GetLogger() *logrus.Entry
-	GetProviders() middlewares.Providers
-	GetConfiguration() *schema.Configuration
+	GetLogger() (logger *logrus.Entry)
+	GetProviders() (providers middlewares.Providers)
+	GetConfiguration() (config *schema.Configuration)
+	GetConfigurationPaths() (paths []string)
 
 	context.Context
 }

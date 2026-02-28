@@ -88,6 +88,10 @@ func (ctx *CmdCtx) GetConfiguration() *schema.Configuration {
 	return ctx.config
 }
 
+func (ctx *CmdCtx) GetConfigurationPaths() (paths []string) {
+	return ctx.cconfig.files
+}
+
 func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	if ctx.providers.StorageProvider == nil {
 		return fmt.Errorf("storage not loaded")

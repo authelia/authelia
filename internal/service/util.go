@@ -5,18 +5,22 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strconv"
 	"sync"
 	"syscall"
 
 	"golang.org/x/sync/errgroup"
 )
 
+// RunAll the provided Context with all Provisioner's.
 func RunAll(ctx Context) (err error) {
 	provisioners := GetProvisioners()
 
 	return Run(ctx, provisioners...)
 }
 
+// Run the provided Context and Provisioner's.
 func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	cctx, cancel := context.WithCancel(ctx)
 
@@ -98,6 +102,16 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	return nil
 }
 
+// IsConfigFileWatcherEnabled determines if a configuration change will cause the Authelia application to
+// reload.
+func IsConfigFileWatcherEnabled() (enabled bool) {
+	if value, err := strconv.ParseBool(os.Getenv("X_AUTHELIA_CONFIG_RELOAD")); err != nil && value {
+		return true
+	}
+
+	return false
+}
+
 func connectionType(isTLS bool) string {
 	if isTLS {
 		return "TLS"
@@ -117,4 +131,46 @@ func recoverErr(i any) error {
 	default:
 		return fmt.Errorf("recovered panic with unknown type: %v", v)
 	}
+}
+
+func newFileWatcherPaths(in []string) (paths FileWatcherPaths, err error) {
+	paths = make(FileWatcherPaths, len(in))
+
+	for i, path := range in {
+		if path == "" {
+			return nil, fmt.Errorf("path must not be empty")
+		}
+
+		if path, err = filepath.Abs(path); err != nil {
+			return nil, fmt.Errorf("could not determine the absolute path of file '%s': %w", path, err)
+		}
+
+		var info os.FileInfo
+
+		if info, err = os.Stat(path); err != nil {
+			switch {
+			case os.IsNotExist(err):
+				return nil, fmt.Errorf("error stating file '%s': file does not exist", path)
+			case os.IsPermission(err):
+				return nil, fmt.Errorf("error stating file '%s': permission denied trying to read the file", path)
+			default:
+				return nil, fmt.Errorf("error stating file '%s': %w", path, err)
+			}
+		}
+
+		if info.IsDir() {
+			paths[i] = FileWatcherPath{
+				Directory: path,
+				Info:      info,
+			}
+		} else {
+			paths[i] = FileWatcherPath{
+				File:      filepath.Base(path),
+				Directory: filepath.Dir(path),
+				Info:      info,
+			}
+		}
+	}
+
+	return paths, nil
 }
