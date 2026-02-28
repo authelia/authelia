@@ -1,0 +1,78 @@
+---
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+theme: dark
+jwt_secret: very_important_secret
+
+server:
+  address: 'tcp://:9091'
+  # tls:
+  #   certificate: /pki/public.backend.crt
+  #   key: /pki/private.backend.pem
+
+log:
+  level: debug
+
+authentication_backend:
+  ldap:
+    address: 'ldaps://openldap'
+    tls:
+      skip_verify: true
+    base_dn: dc=example,dc=com
+    additional_users_dn: ou=users
+    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(objectClass=inetOrgPerson))  # yamllint disable-line rule:line-length
+    additional_groups_dn: ou=groups
+    groups_filter: (&(member={dn})(objectClass=groupOfNames))
+    user: cn=pwmanager,dc=example,dc=com
+    password: password
+    attributes:
+      distinguished_name: ''
+      username: 'uid'
+      display_name: 'displayName'
+      mail: 'mail'
+      member_of: 'memberOf'
+      group_name: 'cn'
+
+session:
+  secret: unsecure_session_secret
+  expiration: 3600  # 1 hour
+  inactivity: 300  # 5 minutes
+  remember_me: 1y
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      default_redirection_url: https://home.example.com:8080/
+
+storage:
+  encryption_key: a_not_so_secure_encryption_key
+  local:
+    path: /config/db.sqlite3
+
+totp:
+  issuer: example.com
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: ["home.example.com", "public.example.com"]
+      policy: bypass
+    - domain: "deny.example.com"
+      policy: deny
+    - domain: "admin.example.com"
+      policy: two_factor
+    - domain: "secure.example.com"
+      policy: two_factor
+    - domain: "singlefactor.example.com"
+      policy: one_factor
+
+regulation:
+  max_retries: 3
+  find_time: 300
+  ban_time: 900
+
+notifier:
+  filesystem:
+    filename: /config/notification.txt
+
