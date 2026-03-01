@@ -232,6 +232,10 @@ func (s *FirstFactorSuite) TestShouldNotFailIfAuthenticationMarkFail() {
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 			Return(fmt.Errorf("failed")),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 	)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -271,6 +275,11 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -320,6 +329,11 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -373,6 +387,11 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("Test")).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -458,6 +477,11 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 		EXPECT().
 		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -488,6 +512,11 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 		EXPECT().
 		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -517,6 +546,11 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 	s.mock.StorageMock.
 		EXPECT().
 		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+		Return(nil)
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControl{
@@ -566,6 +600,12 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 				},
 			},
 		}})
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -602,13 +642,20 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyWhenBadTargetURL() {
 		"targetURL": "#https://23kjnm412jk3"
 	}`)
 
-	s.mock.StorageMock.
-		EXPECT().
-		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+	gomock.InOrder(
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
 
-	s.mock.StorageMock.
-		EXPECT().
-		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil)
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
+	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
@@ -647,6 +694,11 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyTwoFactorOK() {
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -686,6 +738,11 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyTwoTwoFactorUnsafe() {
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -725,6 +782,11 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyTwoTwoFactorSafe() {
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -765,6 +827,10 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantParseUUID(
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -805,6 +871,10 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetConsent
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(nil, fmt.Errorf("failed to obtain")),
@@ -848,6 +918,10 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectConsentSession
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{RespondedAt: sql.NullTime{Valid: true, Time: time.Now().Add(-time.Minute)}}, nil),
@@ -894,6 +968,10 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient(
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc"}, nil),
@@ -956,6 +1034,10 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: form.Encode()}, nil),
@@ -1013,6 +1095,10 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: "1238y12978y189gb128g1287g12807g128702g38172%1"}, nil),
@@ -1072,6 +1158,10 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds2FA() {
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: ""}, nil),
@@ -1131,6 +1221,10 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds1FA() {
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+			Return(nil),
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: "grant_type=authorization_code"}, nil),

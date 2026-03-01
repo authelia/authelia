@@ -32,7 +32,7 @@ log:
 storage:
   encryption_key: 'a_not_so_secure_encryption_key'
   local:
-    path: '/config/db.sqlite3'
+    path: '/tmp/db.sqlite3'
 
 notifier:
   smtp:
@@ -58,6 +58,11 @@ session:
       inactivity: '5 minutes'
       remember_me: '1 year'
 
+administration:
+  enabled: true
+  admin_group: "authelia-admin"
+  enable_user_management: true
+
 authentication_backend:
   ldap:
     address: 'ldaps://openldap'
@@ -73,7 +78,7 @@ authentication_backend:
     users_filter: '(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(objectClass=inetOrgPerson))'  # yamllint disable-line rule:line-length
     additional_groups_dn: 'ou=groups'
     groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
-    user: 'cn=pwmanager,dc=example,dc=com'
+    user: 'uid=pwmanager,dc=example,dc=com'
     password: 'password'
     attributes:
       distinguished_name: ''
@@ -82,6 +87,36 @@ authentication_backend:
       mail: 'mail'
       member_of: 'memberOf'
       group_name: 'cn'
+      family_name: 'sn'
+      given_name: 'givenName'
+      group_member: 'member'
+      phone_number: 'telephoneNumber'
+      street_address: 'street'
+      locality: 'l'
+      region: 'st'
+      postal_code: 'postalCode'
+
+      birthdate: 'birthdate'
+      country: 'country'
+      gender: 'gender'
+      middle_name: 'middleName'
+      locale: 'locale'
+      nickname: 'nickname'
+      phone_extension: 'phoneExtension'
+      picture: 'picture'
+      profile: 'profile'
+      website: 'website'
+      zoneinfo: "zoneinfo"
+
+      extra:
+        employeeNumber:
+          name: 'employee_id'
+          multi_valued: false
+          value_type: 'string'
+        employeeType:
+          name: 'employee_type'
+          multi_valued: false
+          value_type: 'string'
 
 totp:
   issuer: 'example.com'
