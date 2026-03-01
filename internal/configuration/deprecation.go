@@ -330,6 +330,11 @@ var deprecations = map[string]Deprecation{
 		MapFunc: nil,
 		ErrFunc: nil,
 	},
+	"authentication_backend.ldap.permit_feature_detection_failure": {
+		Version: model.SemanticVersion{Major: 4, Minor: 39, Patch: 16},
+		Key:     "authentication_backend.ldap.permit_feature_detection_failure",
+		AutoMap: false,
+	},
 }
 
 // MultiKeyMappedDeprecation represents a deprecated configuration key.

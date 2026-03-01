@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -29,34 +30,54 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 		}
 	}()
 
-	features := client.Features()
+	p.logStartupCheckDiscovery(client.Discovery())
 
-	controlTypes, extensions := none, none
+	return nil
+}
 
-	if len(features.ControlTypes.OIDs) != 0 {
-		controlTypes = strings.Join(features.ControlTypes.OIDs, ", ")
+func (p *LDAPUserProvider) logStartupCheckDiscovery(discovery LDAPDiscovery) {
+	version := none
+
+	if discovery.LDAPVersion != nil {
+		values := make([]string, 0, len(discovery.LDAPVersion))
+
+		for _, v := range discovery.LDAPVersion {
+			values = append(values, strconv.Itoa(v))
+		}
+
+		version = strings.Join(values, ", ")
 	}
 
-	if len(features.Extensions.OIDs) != 0 {
-		extensions = strings.Join(features.Extensions.OIDs, ", ")
+	controls, extensions, features, saslMechanisms := discovery.Strings()
+
+	if discovery.Vendor.Name == ldapVendorNameMicrosoftCorporation {
+		p.log.Debugf("LDAP Discovery. LDAP Version: %s; Controls: %s; Extensions: %s; Features: %s; SASL Mechanisms: %s; Vendor Name: %s; Domain Functionality Level: %d, Forest Functionality Level: %d", version, controls, extensions, features, saslMechanisms, discovery.Vendor.Name, discovery.Vendor.DomainFunctionalLevel, discovery.Vendor.ForestFunctionalLevel)
+	} else {
+		p.log.Debugf("LDAP Discovery. LDAP Version: %s; Controls: %s; Extensions: %s; Features: %s; SASL Mechanisms: %s; Vendor Name: %s; Vendor Version; %s", version, controls, extensions, features, saslMechanisms, discovery.Vendor.Name, discovery.Vendor.Version)
 	}
 
-	p.log.Debugf("LDAP Supported OIDs. Control Types: %s. Extensions: %s", controlTypes, extensions)
+	if discovery.Successful {
+		if discovery.LDAPVersion == nil {
+			p.log.Warn("The configured LDAP server does not advertise the version of LDAP it supports or does not advertise the version it supports correctly. This server is unsupported.")
+		} else if utils.IsIntegerInSlice(3, discovery.LDAPVersion) {
+			p.log.Warnf("The configured LDAP server advertises it supports LDAPv%d but only LDAPv3 is supported. This server is not supported.", discovery.LDAPVersion)
+		}
+	} else {
+		p.log.Warn("The configured LDAP server does not support discovery via searching the RootDSE.")
+	}
 
-	if !features.Extensions.PwdModify && !p.disableResetPassword &&
+	if !discovery.Extensions.PwdModify && !p.disableResetPassword &&
 		p.config.Implementation != schema.LDAPImplementationActiveDirectory {
 		p.log.Warn("Your LDAP server implementation may not support a method for password hashing " +
 			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
 			"attribute when users reset their password via Authelia.")
 	}
 
-	if features.Extensions.TLS && !p.config.StartTLS && !p.config.Address.IsExplicitlySecure() {
+	if discovery.Extensions.TLS && !p.config.StartTLS && !p.config.Address.IsExplicitlySecure() {
 		p.log.Error("Your LDAP Server supports TLS but you don't appear to be utilizing it. We strongly " +
 			"recommend using the scheme 'ldaps://' or enabling the StartTLS option to secure connections with your " +
 			"LDAP Server.")
 	}
-
-	return nil
 }
 
 //nolint:gocyclo

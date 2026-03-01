@@ -7,6 +7,24 @@ import (
 )
 
 const (
+	ldapSupportedLDAPVersionAttribute    = "supportedLDAPVersion"
+	ldapSupportedFeaturesAttribute       = "supportedFeatures"
+	ldapSupportedSASLMechanismsAttribute = "supportedSASLMechanisms"
+)
+
+const (
+	ldapVendorNameAttribute          = "vendorName"
+	ldapVendorVersionAttribute       = "vendorVersion"
+	ldapDomainFunctionalityAttribute = "domainFunctionality"
+	ldapForestFunctionalityAttribute = "forestFunctionality"
+	ldapObjectClassAttribute         = "objectClass"
+
+	ldapVendorNameMicrosoftCorporation = "Microsoft Corporation"
+	ldapVendorNameOpenLDAP             = "OpenLDAP"
+	ldapVendorOpenLDAPObjectClass      = "OpenLDAProotDSE"
+)
+
+const (
 	ldapSupportedExtensionAttribute = "supportedExtension"
 
 	// LDAP Extension OID: Password Modify Extended Operation.

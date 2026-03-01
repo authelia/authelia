@@ -803,12 +803,6 @@
           "description": "Enables omission of the password to perform an unauthenticated bind.",
           "default": false
         },
-        "permit_feature_detection_failure": {
-          "type": "boolean",
-          "title": "Permit Feature Detection Failure",
-          "description": "Enables failures when detecting directory server features using the Root DSE lookup.",
-          "default": false
-        },
         "user": {
           "type": "string",
           "title": "User",

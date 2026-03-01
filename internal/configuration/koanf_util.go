@@ -72,9 +72,14 @@ func koanfRemapKeysStandard(keys map[string]any, val *schema.StructValidator, ds
 			if !d.AutoMap {
 				keysFinal[key] = value
 
-				if d.ErrFunc != nil {
+				switch {
+				case d.ErrFunc != nil:
 					d.ErrFunc(d, keysFinal, value, val)
-				} else {
+				case !d.AutoMap && d.NewKey == "":
+					delete(keysFinal, key)
+
+					val.PushWarning(fmt.Errorf(errFmtNoAutoMapKeyNoNewKey, d.Key, d.Version.String(), d.Version.NextMajor().String()))
+				default:
 					val.Push(fmt.Errorf("invalid configuration key '%s' was replaced by '%s'", d.Key, d.NewKey))
 				}
 

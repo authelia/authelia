@@ -333,9 +333,9 @@ func (p *LDAPUserProvider) setPassword(client LDAPExtendedClient, profile *ldapU
 	var controls []ldap.Control
 
 	switch {
-	case client.Features().ControlTypes.MsftPwdPolHints:
+	case client.Discovery().Controls.MsftPwdPolHints:
 		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints})
-	case client.Features().ControlTypes.MsftPwdPolHintsDeprecated:
+	case client.Discovery().Controls.MsftPwdPolHintsDeprecated:
 		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHintsDeprecated})
 	}
 
@@ -352,7 +352,7 @@ func (p *LDAPUserProvider) setPassword(client LDAPExtendedClient, profile *ldapU
 		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{value})
 
 		return p.modify(client, modifyRequest)
-	case client.Features().Extensions.PwdModify:
+	case client.Discovery().Extensions.PwdModify:
 		pwdModifyRequest := ldap.NewPasswordModifyRequest(
 			profile.DN,
 			oldPassword,

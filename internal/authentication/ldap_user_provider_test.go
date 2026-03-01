@@ -90,11 +90,15 @@ func TestShouldHandleRootDSESearchError(t *testing.T) {
 
 	search := mockClient.EXPECT().Search(ldapNewSearchRequestRootDSE()).Return(nil, fmt.Errorf("failed to search"))
 
-	gomock.InOrder(dialURL, setTimeout, search, mockClient.EXPECT().Close())
+	bind := mockClient.EXPECT().Bind(gomock.Any(), gomock.Any()).Return(nil)
 
-	_, err := provider.factory.GetClient()
+	gomock.InOrder(dialURL, setTimeout, search, bind, mockClient.EXPECT().Close())
 
-	assert.EqualError(t, err, "error occurred getting features from server: error occurred during RootDSE search: failed to search")
+	client, err := provider.factory.GetClient()
+
+	require.NoError(t, err)
+
+	require.NoError(t, client.Close())
 }
 
 func TestShouldHandleBindError(t *testing.T) {
@@ -426,8 +430,12 @@ func TestShouldReturnCheckServerSearchErrorPooled(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(nil, errors.New("could not perform the search"))
+
+	clientBindSecond := mockClientSecond.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
 
 	gomock.InOrder(
 		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil),
@@ -439,12 +447,12 @@ func TestShouldReturnCheckServerSearchErrorPooled(t *testing.T) {
 		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClientSecond, nil),
 		mockClientSecond.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
 		mockClientSecond.EXPECT().Search(gomock.Any()).Return(&ldap.SearchResult{}, nil),
+		clientBindSecond,
+		mockClientSecond.EXPECT().IsClosing().Return(false),
 		mockClientSecond.EXPECT().Close().Return(nil),
 	)
 
-	err := provider.StartupCheck()
-	assert.EqualError(t, err, "error acquiring client: context deadline exceeded")
-
+	assert.NoError(t, provider.StartupCheck())
 	assert.NoError(t, provider.Close())
 }
 
@@ -453,10 +461,9 @@ func TestShouldPermitRootDSEFailure(t *testing.T) {
 	defer ctrl.Finish()
 
 	config := &schema.AuthenticationBackendLDAP{
-		PermitFeatureDetectionFailure: true,
-		Address:                       testLDAPAddress,
-		User:                          "cn=admin,dc=example,dc=com",
-		UsersFilter:                   "(|({username_attribute}={input})({mail_attribute}={input}))",
+		Address:     testLDAPAddress,
+		User:        "cn=admin,dc=example,dc=com",
+		UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
 		Attributes: schema.AuthenticationBackendLDAPAttributes{
 			Username:    "uid",
 			Mail:        "mail",
@@ -496,10 +503,9 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 	defer ctrl.Finish()
 
 	config := &schema.AuthenticationBackendLDAP{
-		PermitFeatureDetectionFailure: true,
-		Address:                       testLDAPAddress,
-		User:                          "cn=admin,dc=example,dc=com",
-		UsersFilter:                   "(|({username_attribute}={input})({mail_attribute}={input}))",
+		Address:     testLDAPAddress,
+		User:        "cn=admin,dc=example,dc=com",
+		UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
 		Attributes: schema.AuthenticationBackendLDAPAttributes{
 			Username:    "uid",
 			Mail:        "mail",
@@ -523,6 +529,21 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
+	search := NewExtendedSearchRequestMatcher("(objectClass=*)", "",
+		ldap.ScopeBaseObject, ldap.NeverDerefAliases, false,
+		[]string{
+			ldapObjectClassAttribute,
+			ldapSupportedLDAPVersionAttribute,
+			ldapSupportedExtensionAttribute,
+			ldapSupportedControlAttribute,
+			ldapSupportedFeaturesAttribute,
+			ldapSupportedSASLMechanismsAttribute,
+			ldapVendorNameAttribute,
+			ldapVendorVersionAttribute,
+			ldapDomainFunctionalityAttribute,
+			ldapForestFunctionalityAttribute,
+		})
+
 	gomock.InOrder(
 		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil),
 		mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
@@ -530,8 +551,8 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 		clientBind,
 		mockClient.EXPECT().IsClosing().Return(false),
 		mockClient.EXPECT().
-			Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
-			Return(nil, errors.New("could not perform the search")),
+			Search(search).
+			Return(&ldap.SearchResult{Entries: []*ldap.Entry{{}}}, nil),
 		mockClient.EXPECT().IsClosing().Return(false),
 		mockClient.EXPECT().Close().Return(nil),
 	)
@@ -3312,7 +3333,7 @@ func TestShouldNotUpdateUserPasswordConnect(t *testing.T) {
 	setTimeout := mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second * 0))
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3377,7 +3398,7 @@ func TestShouldNotUpdateUserPasswordGetDetails(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3397,7 +3418,7 @@ func TestShouldNotUpdateUserPasswordGetDetails(t *testing.T) {
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3480,7 +3501,7 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3500,7 +3521,7 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3611,7 +3632,7 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3631,7 +3652,7 @@ func TestShouldUpdateUserPasswordMSAD(t *testing.T) {
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3744,7 +3765,7 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3764,7 +3785,7 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3784,7 +3805,7 @@ func TestShouldUpdateUserPasswordMSADWithReferrals(t *testing.T) {
 		}, nil)
 
 	dseSearchReferral := mockClientReferral.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3914,7 +3935,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsButIncorrectErrorType(t *testi
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -3934,7 +3955,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsButIncorrectErrorType(t *testi
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4043,7 +4064,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsButIncorrectResultCode(t *test
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4063,7 +4084,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsButIncorrectResultCode(t *test
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4177,7 +4198,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4197,7 +4218,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralConnectErr(t *test
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4319,7 +4340,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4339,7 +4360,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4359,7 +4380,7 @@ func TestShouldUpdateUserPasswordMSADWithReferralsWithReferralModifyErr(t *testi
 		}, nil)
 
 	dseSearchReferral := mockClientReferral.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4496,7 +4517,7 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4516,7 +4537,7 @@ func TestShouldUpdateUserPasswordMSADWithoutReferrals(t *testing.T) {
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4628,7 +4649,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4648,7 +4669,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtension(t *testing.T) {
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4758,7 +4779,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4778,7 +4799,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4798,7 +4819,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferrals(t *testing.T
 		}, nil)
 
 	dseSearchReferral := mockClientReferral.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4927,7 +4948,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsButBadResultC
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -4947,7 +4968,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsButBadResultC
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5061,7 +5082,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsButBadErrorTy
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5081,7 +5102,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsButBadErrorTy
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5191,7 +5212,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithoutReferrals(t *testin
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5211,7 +5232,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithoutReferrals(t *testin
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5326,7 +5347,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralConne
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5346,7 +5367,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralConne
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5464,7 +5485,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralPassw
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5484,7 +5505,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralPassw
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5504,7 +5525,7 @@ func TestShouldUpdateUserPasswordPasswdModifyExtensionWithReferralsReferralPassw
 		}, nil)
 
 	dseSearchReferral := mockClientReferral.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5642,7 +5663,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5662,7 +5683,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHints(t *testing
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5776,7 +5797,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5796,7 +5817,7 @@ func TestShouldUpdateUserPasswordActiveDirectoryWithServerPolicyHintsDeprecated(
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5923,7 +5944,7 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 		Return(nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -5943,7 +5964,7 @@ func TestShouldUpdateUserPasswordActiveDirectory(t *testing.T) {
 		}, nil)
 
 	dseSearch := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{
@@ -6104,7 +6125,7 @@ func TestShouldUpdateUserPasswordBasic(t *testing.T) {
 	dseOIDSearch := NewRootDSESearchRequest(mockClient, nil)
 
 	searchOIDs := mockClient.EXPECT().
-		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute})).
+		Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
 		Return(&ldap.SearchResult{
 			Entries: []*ldap.Entry{
 				{

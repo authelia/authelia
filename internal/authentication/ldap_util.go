@@ -8,6 +8,7 @@ import (
 	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
@@ -24,7 +25,7 @@ func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
 	return false
 }
 
-func ldapGetFeatureSupportFromClient(client LDAPBaseClient) (features LDAPSupportedFeatures, err error) {
+func ldapGetFeatureSupportFromClient(client LDAPBaseClient) (discovery LDAPDiscovery, err error) {
 	var (
 		request *ldap.SearchRequest
 		result  *ldap.SearchResult
@@ -33,51 +34,118 @@ func ldapGetFeatureSupportFromClient(client LDAPBaseClient) (features LDAPSuppor
 	request = ldapNewSearchRequestRootDSE()
 
 	if result, err = client.Search(request); err != nil {
-		return features, fmt.Errorf("error occurred during RootDSE search: %w", err)
+		return discovery, fmt.Errorf("error occurred during RootDSE search: %w", err)
 	}
 
-	if len(result.Entries) != 1 {
-		return features, fmt.Errorf("error occurred during RootDSE search: %w", ErrLDAPHealthCheckFailedEntryCount)
+	if result == nil || len(result.Entries) != 1 {
+		return discovery, fmt.Errorf("error occurred during RootDSE search: %w", ErrLDAPHealthCheckFailedEntryCount)
 	}
 
-	return ldapGetFeatureSupportFromEntry(result.Entries[0]), nil
+	return ldapGetDiscoveryFromLDAPEntry(result.Entries[0]), nil
 }
 
-func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (features LDAPSupportedFeatures) {
+func ldapGetDiscoveryFromLDAPEntry(entry *ldap.Entry) (discovery LDAPDiscovery) {
 	if entry == nil {
 		return
 	}
 
+	discovery.Successful = true
+
+	var fallbackVendorName string
+
 	for _, attr := range entry.Attributes {
 		switch attr.Name {
+		case ldapObjectClassAttribute:
+			if utils.IsStringInSliceFold(ldapVendorOpenLDAPObjectClass, attr.Values) {
+				fallbackVendorName = ldapVendorNameOpenLDAP
+			}
+		case ldapSupportedLDAPVersionAttribute:
+			discovery.LDAPVersion = ldapGetLDAPVersionDiscoveryFromLDAPEntry(attr)
 		case ldapSupportedControlAttribute:
-			features.ControlTypes.OIDs = attr.Values
-
-			for _, oid := range attr.Values {
-				switch oid {
-				case ldapOIDControlMsftServerPolicyHints:
-					features.ControlTypes.MsftPwdPolHints = true
-				case ldapOIDControlMsftServerPolicyHintsDeprecated:
-					features.ControlTypes.MsftPwdPolHintsDeprecated = true
-				}
-			}
+			ldapGetControlsDiscoveryFromLDAPEntry(attr, &discovery.Controls)
 		case ldapSupportedExtensionAttribute:
-			features.Extensions.OIDs = attr.Values
-
-			for _, oid := range attr.Values {
-				switch oid {
-				case ldapOIDExtensionPwdModify:
-					features.Extensions.PwdModify = true
-				case ldapOIDExtensionTLS:
-					features.Extensions.TLS = true
-				case ldapOIDExtensionWhoAmI:
-					features.Extensions.WhoAmI = true
-				}
-			}
+			ldapGetExtensionDiscoveryFromLDAPEntry(attr, &discovery.Extensions)
+		case ldapSupportedSASLMechanismsAttribute:
+			discovery.SASLMechanisms = attr.Values
+		case ldapSupportedFeaturesAttribute:
+			discovery.Features.OIDs = attr.Values
+		case ldapVendorNameAttribute:
+			discovery.Vendor.Name = strings.Join(attr.Values, " ")
+		case ldapVendorVersionAttribute:
+			discovery.Vendor.Version = strings.Join(attr.Values, " ")
+		case ldapDomainFunctionalityAttribute:
+			ldapGetFunctionalityDiscoveryFromLDAPEntry(attr, &fallbackVendorName, &discovery.Vendor.DomainFunctionalLevel)
+		case ldapForestFunctionalityAttribute:
+			ldapGetFunctionalityDiscoveryFromLDAPEntry(attr, &fallbackVendorName, &discovery.Vendor.ForestFunctionalLevel)
 		}
 	}
 
-	return features
+	if discovery.Vendor.Name == "" {
+		discovery.Vendor.Name = fallbackVendorName
+	}
+
+	return discovery
+}
+
+func ldapGetFunctionalityDiscoveryFromLDAPEntry(attr *ldap.EntryAttribute, fallback *string, out *int) {
+	if len(attr.Values) != 1 {
+		return
+	}
+
+	value, err := strconv.Atoi(attr.Values[0])
+	if err != nil {
+		return
+	}
+
+	*fallback = ldapVendorNameMicrosoftCorporation
+	*out = value
+}
+
+func ldapGetLDAPVersionDiscoveryFromLDAPEntry(attr *ldap.EntryAttribute) (versions []int) {
+	versions = make([]int, 0, len(attr.Values))
+
+	for _, v := range attr.Values {
+		version, err := strconv.Atoi(v)
+		if err != nil {
+			break
+		}
+
+		versions = append(versions, version)
+	}
+
+	if len(versions) != len(attr.Values) {
+		return nil
+	}
+
+	return versions
+}
+
+func ldapGetControlsDiscoveryFromLDAPEntry(attr *ldap.EntryAttribute, controls *LDAPDiscoveryControls) {
+	controls.OIDs = attr.Values
+
+	for _, oid := range attr.Values {
+		switch oid {
+		case ldapOIDControlMsftServerPolicyHints:
+			controls.MsftPwdPolHints = true
+		case ldapOIDControlMsftServerPolicyHintsDeprecated:
+			controls.MsftPwdPolHintsDeprecated = true
+		}
+	}
+}
+
+func ldapGetExtensionDiscoveryFromLDAPEntry(attr *ldap.EntryAttribute, extensions *LDAPDiscoveryExtensions) {
+	extensions.OIDs = attr.Values
+
+	for _, oid := range attr.Values {
+		switch oid {
+		case ldapOIDExtensionPwdModify:
+			extensions.PwdModify = true
+		case ldapOIDExtensionTLS:
+			extensions.TLS = true
+		case ldapOIDExtensionWhoAmI:
+			extensions.WhoAmI = true
+		}
+	}
 }
 
 func getLDAPResultCode(err error) int {
@@ -177,5 +245,5 @@ func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties
 
 func ldapNewSearchRequestRootDSE() *ldap.SearchRequest {
 	return ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, ldapBaseObjectFilter, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
+		1, 0, false, ldapBaseObjectFilter, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute}, nil)
 }

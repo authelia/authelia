@@ -147,9 +147,8 @@ type AuthenticationBackendLDAP struct {
 
 	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" yaml:"attributes,omitempty" toml:"attributes,omitempty" json:"attributes,omitempty"`
 
-	PermitReferrals               bool `koanf:"permit_referrals" yaml:"permit_referrals" toml:"permit_referrals" json:"permit_referrals" jsonschema:"default=false,title=Permit Referrals" jsonschema_description:"Enables chasing LDAP referrals."`
-	PermitUnauthenticatedBind     bool `koanf:"permit_unauthenticated_bind" yaml:"permit_unauthenticated_bind" toml:"permit_unauthenticated_bind" json:"permit_unauthenticated_bind" jsonschema:"default=false,title=Permit Unauthenticated Bind" jsonschema_description:"Enables omission of the password to perform an unauthenticated bind."`
-	PermitFeatureDetectionFailure bool `koanf:"permit_feature_detection_failure" yaml:"permit_feature_detection_failure" toml:"permit_feature_detection_failure" json:"permit_feature_detection_failure" jsonschema:"default=false,title=Permit Feature Detection Failure" jsonschema_description:"Enables failures when detecting directory server features using the Root DSE lookup."`
+	PermitReferrals           bool `koanf:"permit_referrals" yaml:"permit_referrals" toml:"permit_referrals" json:"permit_referrals" jsonschema:"default=false,title=Permit Referrals" jsonschema_description:"Enables chasing LDAP referrals."`
+	PermitUnauthenticatedBind bool `koanf:"permit_unauthenticated_bind" yaml:"permit_unauthenticated_bind" toml:"permit_unauthenticated_bind" json:"permit_unauthenticated_bind" jsonschema:"default=false,title=Permit Unauthenticated Bind" jsonschema_description:"Enables omission of the password to perform an unauthenticated bind."`
 
 	User     string `koanf:"user" yaml:"user,omitempty" toml:"user,omitempty" json:"user,omitempty" jsonschema:"title=User" jsonschema_description:"The user distinguished name for LDAP binding."`
 	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."` //nolint:gosec
