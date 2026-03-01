@@ -1,11 +1,11 @@
 module github.com/authelia/authelia/v4
 
-go 1.24.0
+go 1.25.0
 
 toolchain go1.26.0
 
 require (
-	authelia.com/provider/oauth2 v0.2.19
+	authelia.com/provider/oauth2 v0.2.20
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
@@ -48,7 +48,7 @@ require (
 	github.com/wneessen/go-mail v0.7.2
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
-	golang.org/x/net v0.50.0
+	golang.org/x/net v0.51.0
 	golang.org/x/sync v0.19.0
 	golang.org/x/term v0.40.0
 	golang.org/x/text v0.34.0
