@@ -3,6 +3,7 @@ package middlewares
 import (
 	"context"
 
+	"github.com/go-spop/spop/request"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -67,6 +68,8 @@ type Context interface {
 // RequestHandler represents an Authelia request handler.
 type RequestHandler = func(*AutheliaCtx)
 
+type RequestSPOPHandler = func(*AutheliaSPOPCtx)
+
 // AutheliaMiddleware represent an Authelia middleware.
 type AutheliaMiddleware = func(next RequestHandler) RequestHandler
 
@@ -77,12 +80,20 @@ type Middleware = func(next fasthttp.RequestHandler) (handler fasthttp.RequestHa
 // bridge between the two handlers.
 type Bridge = func(RequestHandler) fasthttp.RequestHandler
 
+type BridgeSPOP = func(RequestSPOPHandler) func(request *request.Request)
+
 // BridgeBuilder is used to build a Bridge.
 type BridgeBuilder struct {
 	config          schema.Configuration
 	providers       Providers
 	preMiddlewares  []Middleware
 	postMiddlewares []AutheliaMiddleware
+}
+
+// BridgeSPOPBuilder is used to build a Bridge.
+type BridgeSPOPBuilder struct {
+	config    schema.Configuration
+	providers Providers
 }
 
 // Basic represents a middleware applied to a fasthttp.RequestHandler.
