@@ -188,17 +188,17 @@ func (mr *MockLDAPClientMockRecorder) ExternalBind() *gomock.Call {
 }
 
 // Features mocks base method.
-func (m *MockLDAPClient) Features() LDAPSupportedFeatures {
+func (m *MockLDAPClient) Discovery() LDAPDiscovery {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Features")
-	ret0, _ := ret[0].(LDAPSupportedFeatures)
+	ret := m.ctrl.Call(m, "Discovery")
+	ret0, _ := ret[0].(LDAPDiscovery)
 	return ret0
 }
 
 // Features indicates an expected call of Features.
 func (mr *MockLDAPClientMockRecorder) Features() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Features", reflect.TypeOf((*MockLDAPClient)(nil).Features))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Discovery", reflect.TypeOf((*MockLDAPClient)(nil).Discovery))
 }
 
 // GSSAPIBind mocks base method.

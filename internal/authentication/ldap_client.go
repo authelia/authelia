@@ -1,11 +1,13 @@
 package authentication
 
+// LDAPClient is a wrapped LDAPBaseClient which also has discovery information.
 type LDAPClient struct {
 	LDAPBaseClient
 
-	features LDAPSupportedFeatures
+	discovery LDAPDiscovery
 }
 
-func (c *LDAPClient) Features() (features LDAPSupportedFeatures) {
-	return c.features
+// Discovery implements LDAPExtendedClient and returns the discovery information for this client.
+func (c *LDAPClient) Discovery() (discovery LDAPDiscovery) {
+	return c.discovery
 }

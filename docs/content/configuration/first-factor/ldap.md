@@ -276,8 +276,16 @@ configuration option must be blank and the [password_reset disable](introduction
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-Authelia searches for the RootDSE to discover supported controls and extensions. This option is a compatibility option
-which *__should not__* be enabled unless the LDAP server returns an error when searching for the RootDSE.
+Authelia searches for the RootDSE to discover supported LDAP version, controls, extensions, features, and SASL
+mechanisms. This search is critical in order to automatically use more secure LDAP mechanisms when possible, and this
+must be performed prior to performing an authenticated bind to the server, as both the extensions and SASL mechanisms
+can be leveraged to ensure maximum security in any authenticated bind.
+
+Any failure to perform this search will result in an error being logged both at startup and every time a new connection
+is attempted. This option allows you to disable the logged error. It should be noted that servers that do not support
+feature detection will still be able to perform authenticated binds, but the bind may occur in a less secure manner.
+
+As such we only fully support LDAP servers which allow this search to occur before an authenticated bind.
 
 ### user
 

@@ -7,6 +7,12 @@ import (
 )
 
 const (
+	ldapSupportedLDAPVersionAttribute    = "supportedLDAPVersion"
+	ldapSupportedFeaturesAttribute       = "supportedFeatures"
+	ldapSupportedSASLMechanismsAttribute = "supportedSASLMechanisms"
+)
+
+const (
 	ldapSupportedExtensionAttribute = "supportedExtension"
 
 	// LDAP Extension OID: Password Modify Extended Operation.

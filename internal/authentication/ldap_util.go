@@ -25,7 +25,7 @@ func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
 	return false
 }
 
-func ldapGetFeatureSupportFromClient(client LDAPBaseClient) (features LDAPSupportedFeatures, err error) {
+func ldapGetFeatureSupportFromClient(client LDAPBaseClient) (discovery LDAPDiscovery, err error) {
 	var (
 		request *ldap.SearchRequest
 		result  *ldap.SearchResult
@@ -34,51 +34,69 @@ func ldapGetFeatureSupportFromClient(client LDAPBaseClient) (features LDAPSuppor
 	request = ldapNewSearchRequestRootDSE()
 
 	if result, err = client.Search(request); err != nil {
-		return features, fmt.Errorf("error occurred during RootDSE search: %w", err)
+		return discovery, fmt.Errorf("error occurred during RootDSE search: %w", err)
 	}
 
 	if len(result.Entries) != 1 {
-		return features, fmt.Errorf("error occurred during RootDSE search: %w", ErrLDAPHealthCheckFailedEntryCount)
+		return discovery, fmt.Errorf("error occurred during RootDSE search: %w", ErrLDAPHealthCheckFailedEntryCount)
 	}
 
 	return ldapGetFeatureSupportFromEntry(result.Entries[0]), nil
 }
 
-func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (features LDAPSupportedFeatures) {
+func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (discovery LDAPDiscovery) {
 	if entry == nil {
 		return
 	}
 
 	for _, attr := range entry.Attributes {
 		switch attr.Name {
+		case ldapSupportedLDAPVersionAttribute:
+			if len(attr.Values) != 1 {
+				continue
+			}
+
+			discovery.LDAPVersion, _ = strconv.Atoi(attr.Values[0])
 		case ldapSupportedControlAttribute:
-			features.ControlTypes.OIDs = attr.Values
-
-			for _, oid := range attr.Values {
-				switch oid {
-				case ldapOIDControlMsftServerPolicyHints:
-					features.ControlTypes.MsftPwdPolHints = true
-				case ldapOIDControlMsftServerPolicyHintsDeprecated:
-					features.ControlTypes.MsftPwdPolHintsDeprecated = true
-				}
-			}
+			ldapGetFeatureSupportFromEntryControls(attr, &discovery.Controls)
 		case ldapSupportedExtensionAttribute:
-			features.Extensions.OIDs = attr.Values
-
-			for _, oid := range attr.Values {
-				switch oid {
-				case ldapOIDExtensionPwdModify:
-					features.Extensions.PwdModify = true
-				case ldapOIDExtensionTLS:
-					features.Extensions.TLS = true
-				case ldapOIDExtensionWhoAmI:
-					features.Extensions.WhoAmI = true
-				}
-			}
+			ldapGetFeatureSupportFromEntryExtensions(attr, &discovery.Extensions)
+		case ldapSupportedSASLMechanismsAttribute:
+			discovery.SASLMechanisms = attr.Values
+		case ldapSupportedFeaturesAttribute:
+			discovery.Features.OIDs = attr.Values
 		}
 	}
 
-	return features
+	return discovery
+}
+
+func ldapGetFeatureSupportFromEntryControls(attr *ldap.EntryAttribute, controls *LDAPSupportedControls) {
+	controls.OIDs = attr.Values
+
+	for _, oid := range attr.Values {
+		switch oid {
+		case ldapOIDControlMsftServerPolicyHints:
+			controls.MsftPwdPolHints = true
+		case ldapOIDControlMsftServerPolicyHintsDeprecated:
+			controls.MsftPwdPolHintsDeprecated = true
+		}
+	}
+}
+
+func ldapGetFeatureSupportFromEntryExtensions(attr *ldap.EntryAttribute, extensions *LDAPSupportedExtensions) {
+	extensions.OIDs = attr.Values
+
+	for _, oid := range attr.Values {
+		switch oid {
+		case ldapOIDExtensionPwdModify:
+			extensions.PwdModify = true
+		case ldapOIDExtensionTLS:
+			extensions.TLS = true
+		case ldapOIDExtensionWhoAmI:
+			extensions.WhoAmI = true
+		}
+	}
 }
 
 func ldapEscape(inputUsername string) string {
@@ -187,5 +205,5 @@ func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties
 
 func ldapNewSearchRequestRootDSE() *ldap.SearchRequest {
 	return ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, ldapBaseObjectFilter, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
+		1, 0, false, ldapBaseObjectFilter, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapSupportedLDAPVersionAttribute}, nil)
 }

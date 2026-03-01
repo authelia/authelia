@@ -29,12 +29,12 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 		}
 	}()
 
-	features := client.Features()
+	features := client.Discovery()
 
 	controlTypes, extensions := none, none
 
-	if len(features.ControlTypes.OIDs) != 0 {
-		controlTypes = strings.Join(features.ControlTypes.OIDs, ", ")
+	if len(features.Controls.OIDs) != 0 {
+		controlTypes = strings.Join(features.Controls.OIDs, ", ")
 	}
 
 	if len(features.Extensions.OIDs) != 0 {

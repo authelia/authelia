@@ -11,59 +11,59 @@ import (
 func TestLDAPGetFeatureSupportFromNilEntry(t *testing.T) {
 	features := ldapGetFeatureSupportFromEntry(nil)
 	assert.Len(t, features.Extensions.OIDs, 0)
-	assert.Len(t, features.ControlTypes.OIDs, 0)
-	assert.Equal(t, LDAPSupportedFeatures{}, features)
+	assert.Len(t, features.Controls.OIDs, 0)
+	assert.Equal(t, LDAPDiscovery{}, features)
 }
 
 func TestLDAPGetFeatureSupportFromEntry(t *testing.T) {
 	testCases := []struct {
 		description                        string
 		haveControlOIDs, haveExtensionOIDs []string
-		expected                           LDAPSupportedFeatures
+		expected                           LDAPDiscovery
 	}{
 		{
 			description:       "ShouldReturnExtensionPwdModifyExOp",
 			haveControlOIDs:   []string{},
 			haveExtensionOIDs: []string{ldapOIDExtensionPwdModify},
-			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{PwdModify: true, OIDs: []string{ldapOIDExtensionPwdModify}}, ControlTypes: LDAPSupportedControlTypes{OIDs: []string{}}},
+			expected:          LDAPDiscovery{Extensions: LDAPSupportedExtensions{PwdModify: true, OIDs: []string{ldapOIDExtensionPwdModify}}, Controls: LDAPSupportedControls{OIDs: []string{}}},
 		},
 		{
 			description:       "ShouldReturnExtensionTLS",
 			haveControlOIDs:   []string{},
 			haveExtensionOIDs: []string{ldapOIDExtensionTLS},
-			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{TLS: true, OIDs: []string{ldapOIDExtensionTLS}}, ControlTypes: LDAPSupportedControlTypes{OIDs: []string{}}},
+			expected:          LDAPDiscovery{Extensions: LDAPSupportedExtensions{TLS: true, OIDs: []string{ldapOIDExtensionTLS}}, Controls: LDAPSupportedControls{OIDs: []string{}}},
 		},
 		{
 			description:       "ShouldReturnExtensionAll",
 			haveControlOIDs:   []string{},
 			haveExtensionOIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify},
-			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{TLS: true, PwdModify: true, OIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify}}, ControlTypes: LDAPSupportedControlTypes{OIDs: []string{}}},
+			expected:          LDAPDiscovery{Extensions: LDAPSupportedExtensions{TLS: true, PwdModify: true, OIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify}}, Controls: LDAPSupportedControls{OIDs: []string{}}},
 		},
 		{
 			description:       "ShouldReturnControlMsftPPolHints",
 			haveControlOIDs:   []string{ldapOIDControlMsftServerPolicyHints},
 			haveExtensionOIDs: []string{},
-			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{OIDs: []string{}}, ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHints: true, OIDs: []string{ldapOIDControlMsftServerPolicyHints}}},
+			expected:          LDAPDiscovery{Extensions: LDAPSupportedExtensions{OIDs: []string{}}, Controls: LDAPSupportedControls{MsftPwdPolHints: true, OIDs: []string{ldapOIDControlMsftServerPolicyHints}}},
 		},
 		{
 			description:       "ShouldReturnControlMsftPPolHintsDeprecated",
 			haveControlOIDs:   []string{ldapOIDControlMsftServerPolicyHintsDeprecated},
 			haveExtensionOIDs: []string{},
-			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{OIDs: []string{}}, ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHintsDeprecated: true, OIDs: []string{ldapOIDControlMsftServerPolicyHintsDeprecated}}},
+			expected:          LDAPDiscovery{Extensions: LDAPSupportedExtensions{OIDs: []string{}}, Controls: LDAPSupportedControls{MsftPwdPolHintsDeprecated: true, OIDs: []string{ldapOIDControlMsftServerPolicyHintsDeprecated}}},
 		},
 		{
 			description:       "ShouldReturnControlAll",
 			haveControlOIDs:   []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
 			haveExtensionOIDs: []string{},
-			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{OIDs: []string{}}, ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true, OIDs: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated}}},
+			expected:          LDAPDiscovery{Extensions: LDAPSupportedExtensions{OIDs: []string{}}, Controls: LDAPSupportedControls{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true, OIDs: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated}}},
 		},
 		{
 			description:       "ShouldReturnExtensionAndControlAll",
 			haveControlOIDs:   []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
 			haveExtensionOIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify},
-			expected: LDAPSupportedFeatures{
-				ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true, OIDs: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated}},
-				Extensions:   LDAPSupportedExtensions{TLS: true, PwdModify: true, OIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify}},
+			expected: LDAPDiscovery{
+				Controls:   LDAPSupportedControls{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true, OIDs: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated}},
+				Extensions: LDAPSupportedExtensions{TLS: true, PwdModify: true, OIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify}},
 			},
 		},
 	}
@@ -81,7 +81,7 @@ func TestLDAPGetFeatureSupportFromEntry(t *testing.T) {
 			actual := ldapGetFeatureSupportFromEntry(entry)
 
 			assert.Equal(t, tc.haveExtensionOIDs, actual.Extensions.OIDs)
-			assert.Equal(t, tc.haveControlOIDs, actual.ControlTypes.OIDs)
+			assert.Equal(t, tc.haveControlOIDs, actual.Controls.OIDs)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}

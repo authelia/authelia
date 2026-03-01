@@ -346,20 +346,16 @@ func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, d
 
 	base.SetTimeout(config.Timeout)
 
-	var features LDAPSupportedFeatures
-	if features, err = ldapGetFeatureSupportFromClient(base); err != nil {
-		if config.PermitFeatureDetectionFailure {
-			log.WithError(err).Warn("Error occurred getting features from server. This error is being ignored due to configuration. This may result in reduced functionality or other failures.")
-		} else {
-			_ = base.Close()
-
-			return nil, fmt.Errorf("error occurred getting features from server: %w", err)
+	var discovery LDAPDiscovery
+	if discovery, err = ldapGetFeatureSupportFromClient(base); err != nil {
+		if !config.PermitFeatureDetectionFailure {
+			log.WithError(err).Error("Error occurred discovering critical information about server. This may result in reduced functionality or other failures, and is fundamentally not supported.")
 		}
 	}
 
 	client = &LDAPClient{
 		LDAPBaseClient: base,
-		features:       features,
+		discovery:      discovery,
 	}
 
 	if tls != nil && !config.Address.IsExplicitlySecure() && config.StartTLS {

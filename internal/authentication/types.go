@@ -198,6 +198,7 @@ func stringURL(uri *url.URL) string {
 	return uri.String()
 }
 
+// UserDetailsAddress is a structure with a users address information.
 type UserDetailsAddress struct {
 	StreetAddress string
 	Locality      string
@@ -234,13 +235,18 @@ type ldapUserProfileExtended struct {
 	*ldapUserProfile
 }
 
-// LDAPSupportedFeatures represents features which a server may support which are implemented in code.
-type LDAPSupportedFeatures struct {
-	Extensions   LDAPSupportedExtensions
-	ControlTypes LDAPSupportedControlTypes
+// LDAPDiscovery represents carious information about a server, such as LDAP Version, Features, Extensions, Controls.
+// and SASL Mechanisms.
+type LDAPDiscovery struct {
+	LDAPVersion    int
+	SASLMechanisms []string
+
+	Extensions LDAPSupportedExtensions
+	Controls   LDAPSupportedControls
+	Features   LDAPSupportedFeatures
 }
 
-// LDAPSupportedExtensions represents extensions which a server may support which are implemented in code.
+// LDAPSupportedExtensions represents extensions which a server may support.
 type LDAPSupportedExtensions struct {
 	OIDs []string
 
@@ -249,12 +255,16 @@ type LDAPSupportedExtensions struct {
 	WhoAmI    bool
 }
 
-// LDAPSupportedControlTypes represents control types which a server may support which are implemented in code.
-type LDAPSupportedControlTypes struct {
+// LDAPSupportedControls represents the request and response controls which a server may support.
+type LDAPSupportedControls struct {
 	OIDs []string
 
 	MsftPwdPolHints           bool
 	MsftPwdPolHintsDeprecated bool
+}
+
+type LDAPSupportedFeatures struct {
+	OIDs []string
 }
 
 // Level is the type representing a level of authentication.
@@ -329,6 +339,7 @@ func (e *PoolErr) IsDeadlineError() bool {
 	return e.isDeadlineError
 }
 
+// LDAPBaseClient is an extended version of the ldap.Client with some additional functions.
 type LDAPBaseClient interface {
 	ldap.Client
 
@@ -346,5 +357,5 @@ type LDAPBaseClient interface {
 type LDAPExtendedClient interface {
 	LDAPBaseClient
 
-	Features() (features LDAPSupportedFeatures)
+	Discovery() (features LDAPDiscovery)
 }
