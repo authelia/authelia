@@ -113,7 +113,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	var detailer oidc.UserDetailer
 
-	if detailer, err = oidcDetailerFromClaims(ctx, original); err != nil {
+	if detailer, err = oidc.UserDetailerFromClaims(ctx, original); err != nil {
 		if err = client.GetClaimsStrategy().HydrateClientCredentialsUserInfoClaims(ctx, client, original, claims); err != nil {
 			ctx.Logger.WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' failed due to an error populating claims for the client credentials flow", requestID, client.GetID())
 
