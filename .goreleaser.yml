@@ -22,7 +22,6 @@ builds:
   - id: glibc
     main: ./cmd/authelia
     env:
-      - GOEXPERIMENT=nosynchashtriemap
       - CGO_CFLAGS=-O2 -pipe -fno-plt -fstack-protector-strong
       - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=3
       - CGO_CXXFLAGS=-O2 -pipe -fno-plt
@@ -62,7 +61,6 @@ builds:
   - id: musl
     main: ./cmd/authelia
     env:
-      - GOEXPERIMENT=nosynchashtriemap
       - CGO_CFLAGS=-O2 -pipe -fno-plt -fstack-protector-strong
       - CGO_CPPFLAGS=-I/usr/local/include/fortify -D_FORTIFY_SOURCE=3
       - CGO_CXXFLAGS=-O2 -pipe -fno-plt
