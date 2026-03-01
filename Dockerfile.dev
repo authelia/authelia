@@ -36,7 +36,7 @@ ARG LDFLAGS_EXTRA
 RUN \
 	mv api internal/server/public_html/api && \
 	echo ">> Starting go build..." && \
-	GOEXPERIMENT="nosynchashtriemap" CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build \
+	CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build \
 	-tags dev -ldflags "-linkmode=external -s -w ${LDFLAGS_EXTRA}" -trimpath -buildmode=pie -o authelia ./cmd/authelia
 
 # ===================================
