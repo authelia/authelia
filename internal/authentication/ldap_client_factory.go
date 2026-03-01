@@ -187,7 +187,7 @@ func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
 
 	f.mu.Lock()
 
-	pooled = &PooledLDAPClient{LDAPExtendedClient: client, log: f.log.WithField("client", f.next), permitFeatureDetectionFailure: f.config.PermitFeatureDetectionFailure}
+	pooled = &PooledLDAPClient{LDAPExtendedClient: client, log: f.log.WithField("client", f.next)}
 
 	f.next++
 
@@ -309,8 +309,6 @@ type PooledLDAPClient struct {
 	LDAPExtendedClient
 
 	log *logrus.Entry
-
-	permitFeatureDetectionFailure bool
 }
 
 func (c *PooledLDAPClient) healthy() bool {
@@ -321,7 +319,7 @@ func (c *PooledLDAPClient) healthy() bool {
 	var (
 		err error
 	)
-	if _, err = ldapGetFeatureSupportFromClient(c); err != nil && !c.permitFeatureDetectionFailure {
+	if _, err = ldapGetFeatureSupportFromClient(c); err != nil {
 		return false
 	}
 
@@ -348,9 +346,7 @@ func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, d
 
 	var discovery LDAPDiscovery
 	if discovery, err = ldapGetFeatureSupportFromClient(base); err != nil {
-		if !config.PermitFeatureDetectionFailure {
-			log.WithError(err).Error("Error occurred discovering critical information about server. This may result in reduced functionality or other failures, and is fundamentally not supported.")
-		}
+		log.WithError(err).Trace("Error occurred discovering critical information about server. This may result in reduced functionality or other failures, and is fundamentally not supported.")
 	}
 
 	client = &LDAPClient{

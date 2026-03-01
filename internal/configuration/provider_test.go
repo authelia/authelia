@@ -93,6 +93,25 @@ func TestShouldHaveNotifier(t *testing.T) {
 	assert.NotNil(t, config.Notifier)
 }
 
+func TestShouldHandleNoAutoMapEmptyNewKey(t *testing.T) {
+	testSetEnv(t, "SESSION_SECRET", "abc")
+	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_no_automap.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 0)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'authentication_backend.ldap.permit_feature_detection_failure' is deprecated in 4.39.16 and has been removed': you are not required to make any configuration changes right now but you may be required to in 5.0.0")
+	assert.NotNil(t, config.Notifier)
+
+	assert.NotContains(t, keys, "authentication_backend.ldap.permit_feature_detection_failure")
+}
+
 func TestShouldHaveEndpointSubPath(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")

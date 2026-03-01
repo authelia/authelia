@@ -461,10 +461,9 @@ func TestShouldPermitRootDSEFailure(t *testing.T) {
 	defer ctrl.Finish()
 
 	config := &schema.AuthenticationBackendLDAP{
-		PermitFeatureDetectionFailure: true,
-		Address:                       testLDAPAddress,
-		User:                          "cn=admin,dc=example,dc=com",
-		UsersFilter:                   "(|({username_attribute}={input})({mail_attribute}={input}))",
+		Address:     testLDAPAddress,
+		User:        "cn=admin,dc=example,dc=com",
+		UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
 		Attributes: schema.AuthenticationBackendLDAPAttributes{
 			Username:    "uid",
 			Mail:        "mail",
@@ -504,10 +503,9 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 	defer ctrl.Finish()
 
 	config := &schema.AuthenticationBackendLDAP{
-		PermitFeatureDetectionFailure: true,
-		Address:                       testLDAPAddress,
-		User:                          "cn=admin,dc=example,dc=com",
-		UsersFilter:                   "(|({username_attribute}={input})({mail_attribute}={input}))",
+		Address:     testLDAPAddress,
+		User:        "cn=admin,dc=example,dc=com",
+		UsersFilter: "(|({username_attribute}={input})({mail_attribute}={input}))",
 		Attributes: schema.AuthenticationBackendLDAPAttributes{
 			Username:    "uid",
 			Mail:        "mail",

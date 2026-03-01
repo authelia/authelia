@@ -272,21 +272,6 @@ server and utilizing a service account.*
 Permits binding to the server without a password. For this option to be enabled both the [password](#password)
 configuration option must be blank and the [password_reset disable](introduction.md#disable) option must be `true`.
 
-### permit_feature_detection_failure
-
-{{< confkey type="boolean" default="false" required="no" >}}
-
-Authelia searches for the RootDSE to discover supported LDAP version, controls, extensions, features, and SASL
-mechanisms. This search is critical in order to automatically use more secure LDAP mechanisms when possible, and this
-must be performed prior to performing an authenticated bind to the server, as both the extensions and SASL mechanisms
-can be leveraged to ensure maximum security in any authenticated bind.
-
-Any failure to perform this search will result in an error being logged both at startup and every time a new connection
-is attempted. This option allows you to disable the logged error. It should be noted that servers that do not support
-feature detection will still be able to perform authenticated binds, but the bind may occur in a less secure manner.
-
-As such we only fully support LDAP servers which allow this search to occur before an authenticated bind.
-
 ### user
 
 {{< confkey type="string" required="yes" >}}
