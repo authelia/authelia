@@ -42,8 +42,8 @@ func NewAuthorizer(config *schema.Configuration) *authorization.Authorizer {
 // NewSession creates a new *session.Provider given a valid configuration.
 //
 // Warning: This method may panic if the provided configuration isn't validated.
-func NewSession(config *schema.Configuration, caCertPool *x509.CertPool) *session.Provider {
-	return session.NewProvider(config.Session, caCertPool)
+func NewSession(config *schema.Configuration, caCertPool *x509.CertPool, storageProvider storage.Provider) *session.Provider {
+	return session.NewProvider(config.Session, caCertPool, storageProvider)
 }
 
 // NewRegulator creates a new *regulation.Regulator given a valid configuration.
