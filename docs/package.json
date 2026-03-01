@@ -1,9 +1,9 @@
 {
-  "name": "authelia",
+  "name": "authelia-website",
   "version": "1.9.0",
-  "description": "Doks theme",
-  "author": "Thulite",
-  "license": "MIT",
+  "description": "The Authelia Website",
+  "author": "Authelia Contributors",
+  "license": "Apache-2.0",
   "scripts": {
     "create": "hugo new",
     "dev": "hugo server --disableFastRender --noHTTPCache",
@@ -38,6 +38,8 @@
   },
   "pnpm": {
     "overrides": {
+      "semver@>=7.0.0 <7.5.2": "7.6.3",
+      "rollup@>=4.0.0 <4.59.0": "4.59.0",
       "minimatch": "10.2.4"
     },
     "patchedDependencies": {}
