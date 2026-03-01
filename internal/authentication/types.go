@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/mail"
 	"net/url"
+	"strings"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
@@ -238,16 +239,37 @@ type ldapUserProfileExtended struct {
 // LDAPDiscovery represents carious information about a server, such as LDAP Version, Features, Extensions, Controls.
 // and SASL Mechanisms.
 type LDAPDiscovery struct {
-	LDAPVersion    int
+	Successful bool
+
+	LDAPVersion    []int
 	SASLMechanisms []string
 
-	Extensions LDAPSupportedExtensions
-	Controls   LDAPSupportedControls
-	Features   LDAPSupportedFeatures
+	Extensions LDAPDiscoveryExtensions
+	Controls   LDAPDiscoveryControls
+	Features   LDAPDiscoveryFeatures
+	Vendor     LDAPDiscoveryVendor
 }
 
-// LDAPSupportedExtensions represents extensions which a server may support.
-type LDAPSupportedExtensions struct {
+func (d LDAPDiscovery) Strings() (extensions, controls, features, saslMechanisms string) {
+	if !d.Successful {
+		return none, none, none, none
+	}
+
+	extensions = d.Extensions.String()
+	controls = d.Controls.String()
+	features = d.Features.String()
+
+	if len(d.SASLMechanisms) == 0 {
+		return extensions, controls, features, none
+	}
+
+	saslMechanisms = strings.Join(d.SASLMechanisms, ", ")
+
+	return extensions, controls, features, saslMechanisms
+}
+
+// LDAPDiscoveryExtensions represents the extended operations a server supports.
+type LDAPDiscoveryExtensions struct {
 	OIDs []string
 
 	TLS       bool
@@ -255,16 +277,48 @@ type LDAPSupportedExtensions struct {
 	WhoAmI    bool
 }
 
-// LDAPSupportedControls represents the request and response controls which a server may support.
-type LDAPSupportedControls struct {
+func (s LDAPDiscoveryExtensions) String() string {
+	if len(s.OIDs) == 0 {
+		return none
+	}
+
+	return strings.Join(s.OIDs, ", ")
+}
+
+// LDAPDiscoveryControls represents the request and response controls which a server may support.
+type LDAPDiscoveryControls struct {
 	OIDs []string
 
 	MsftPwdPolHints           bool
 	MsftPwdPolHintsDeprecated bool
 }
 
-type LDAPSupportedFeatures struct {
+func (s LDAPDiscoveryControls) String() string {
+	if len(s.OIDs) == 0 {
+		return none
+	}
+
+	return strings.Join(s.OIDs, ", ")
+}
+
+// LDAPDiscoveryFeatures represents the features a server supports.
+type LDAPDiscoveryFeatures struct {
 	OIDs []string
+}
+
+func (s LDAPDiscoveryFeatures) String() string {
+	if len(s.OIDs) == 0 {
+		return none
+	}
+
+	return strings.Join(s.OIDs, ", ")
+}
+
+type LDAPDiscoveryVendor struct {
+	Name                  string
+	Version               string
+	ForestFunctionalLevel int
+	DomainFunctionalLevel int
 }
 
 // Level is the type representing a level of authentication.
