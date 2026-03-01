@@ -112,13 +112,13 @@ To configure [YouTrack] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 7. Click the `Enable module` button
 8. Click the `Test login` button
 
-{{< figure src="youtrack_overview.png" process="resize 800x" >}}
+{{< figure src="youtrack_overview.png" sizes="800px" >}}
 
-{{< figure src="youtrack_authz_endpoints.png" process="resize 800x" >}}
+{{< figure src="youtrack_authz_endpoints.png" sizes="800px" >}}
 
-{{< figure src="youtrack_field_mapping.png" process="resize 800x" >}}
+{{< figure src="youtrack_field_mapping.png" sizes="800px" >}}
 
-{{< figure src="youtrack_additional_settings.png" process="resize 800x" >}}
+{{< figure src="youtrack_additional_settings.png" sizes="800px" >}}
 
 ## See Also
 

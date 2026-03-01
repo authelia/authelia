@@ -1,5 +1,5 @@
 {{- $key := .Get "name" }}
-{{- $team := index $.Site.Data.profiles.teams $key }}
+{{- $team := index hugo.Data.profiles.teams $key }}
 {{- if $team }}
 {{- $header := .Get "header" }}
 {{- if not $header }}{{ $header = "####" }}{{ end }}

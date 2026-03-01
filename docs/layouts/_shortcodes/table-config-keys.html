@@ -1,7 +1,7 @@
 {{ $secrets := .Get "secrets" }}
 | Configuration Key | Environment Variable |
 |:-----------------:|:--------------------:|
-{{- range $.Site.Data.configkeys }}
+{{- range hugo.Data.configkeys }}
 {{- if eq "true" $secrets }}
 {{- if .secret }}
 |    [{{ .path }}]    |      {{ .env }}      |

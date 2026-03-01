@@ -1,6 +1,5 @@
 title = "Authelia"
-baseurl = "/"
-canonifyURLs = false
+baseurl = "http://localhost/"
 disableAliases = false
 disableHugoGeneratorInject = true
 # disableKinds = ["taxonomy", "term"]
@@ -22,8 +21,11 @@ copyRight = "Copyright (c) 2016-%s Authelia"
   enable = true
 
 [outputs]
-  home = ["HTML", "RSS", "searchIndex"]
-  section = ["HTML", "RSS", "SITEMAP"]
+  home     = ["html", "rss", "sitemap", "searchIndex", "llms"]
+  page     = ["html", "markdown"]
+  section  = ["html", "rss", "sitemap"]
+  taxonomy = ["html", "rss", "sitemap"]
+  term     = ["html", "rss", "sitemap"]
 
 [outputFormats.searchIndex]
   mediaType = "application/json"
@@ -31,8 +33,19 @@ copyRight = "Copyright (c) 2016-%s Authelia"
   isPlainText = true
   notAlternative = true
 
-# Add output format for section sitemap.xml
-[outputFormats.SITEMAP]
+[outputFormats.markdown]
+  baseName = "index"
+  isHTML = false
+  isPlainText = true
+  mediaType = "text/markdown"
+
+[outputFormats.llms]
+  baseName = "llms"
+  isHTML = false
+  isPlainText = true
+  mediaType = "text/plain"
+
+[outputFormats.sitemap]
   mediaType = "application/xml"
   baseName = "sitemap"
   isHTML = false
@@ -40,16 +53,13 @@ copyRight = "Copyright (c) 2016-%s Authelia"
   noUgly = true
   rel  = "sitemap"
 
-[pagination]
-  pagerSize = 10
-
 [sitemap]
   changefreq = "monthly"
   filename = "sitemap.xml"
   priority = 0.5
 
 [caches]
-  [caches.getjson]
+  [caches.getresource]
     dir = ":cacheDir/:project"
     maxAge = -1 # "30m"
 
@@ -64,7 +74,11 @@ copyRight = "Copyright (c) 2016-%s Authelia"
 # docs = "/docs/1.0/:sections[1:]/:slug/"
 
 [minify.tdewolff.html]
+  keepComments = true # If set to false, build signatures are removed
   keepWhitespace = false
+
+[pagination]
+  pagerSize = 10
 
 [related]
   threshold = 80

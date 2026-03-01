@@ -21,9 +21,9 @@ a notification directly to an application on your mobile phone where you can ins
 
 Authelia leverages [Duo] third party to provide this feature.
 
-{{< figure src="duo-push-1.jpg" caption="The Duo Mobile Push authorization notification" alt="The Duo Mobile Push authorization notification" process="resize 400x" >}}
+{{< figure src="duo-push-1.jpg" caption="The Duo Mobile Push authorization notification" alt="The Duo Mobile Push authorization notification" sizes="50dvh" >}}
 
-{{< figure src="duo-push-2.png" caption="The Duo Mobile Push authorization consent view" alt="The Duo Mobile Push authorization consent view" process="resize 400x" >}}
+{{< figure src="duo-push-2.png" caption="The Duo Mobile Push authorization consent view" alt="The Duo Mobile Push authorization consent view" sizes="50dvh" >}}
 
 First, sign up on their website, log in, create a user account and attach it a mobile device. Beware that the name of
 the user must match the name of the user in Authelia, or must have an alias that matches the user in Authelia.
@@ -36,7 +36,7 @@ See the [configuration documentation](../../../configuration/second-factor/duo.m
 
 Now that Authelia is configured, pass the first factor and select the Push notification option.
 
-{{< figure src="2FA-PUSH.png" caption="The Mobile Push 2FA view" alt="The Mobile Push 2FA view" process="resize 400x" >}}
+{{< figure src="2FA-PUSH.png" caption="The Mobile Push 2FA view" alt="The Mobile Push 2FA view" sizes="50dvh" >}}
 
 You should now receive a notification on your mobile phone with all the details about the authentication request. In
 case you have multiple devices available, you will be asked to select your preferred device.

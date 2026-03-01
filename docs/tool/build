@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+BIN_DIR=/opt/build/repo/dart-sass
+
+mkdir -p $BIN_DIR
+
+echo Installing Dart SASS from https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz
+
+curl -LJO https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz
+tar -xzf dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz
+mv dart-sass/sass $BIN_DIR
+mv dart-sass/src  $BIN_DIR/src
+
+rm -rf dart-sass
+rm dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz
+
+echo "Binaries installed to $BIN_DIR"
+ls $BIN_DIR
+
+export PATH=$BIN_DIR:$PATH
+
+echo PATH=$PATH
+sass --version
+hugo version
+hugo env
+
+which sass
+
+echo "Building..."
+
+pnpm build "$@"

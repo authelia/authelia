@@ -34,7 +34,7 @@ certification process; and for promptly fixing an issue with the conformance sui
 completely floored seeing the time between the issue being reported, a pull request being drafted, the fix being
 released, and the new release being published; was no more than 24 hours.
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 300x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" sizes="50dvh" >}}
 
 We fully intend to pursue conformance for the remaining outstanding profiles; 3rd Party-Init OP, Dynamic OP,
 Session OP, Front-Channel OP, Back-Channel OP, and RP-Initiated OP; as soon as we implement the necessary underlying
@@ -51,11 +51,6 @@ blog post originally had a comedy and satire introduction which while intended i
 to some people. I feel that is partially because of how common other projects are moving to a non-FOSS licensing model
 and either hiding it behind a source-available license or via a license where "only some" of the software is licensed
 differently, and partially because of the extended nature of the introduction.
-
-I apologize for the excitement getting the better of me; which I believe is the cause for me overlooking the way this
-may make some people feel. This project is one of the things I feel most passionately about, and obtaining the
-[OpenID Certified™] status is so intensely exciting as it's a goal that's been in my mind with each change we've made
-to the
 
 <figure>
   <map name="GraffleExport">

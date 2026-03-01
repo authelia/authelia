@@ -1,0 +1,21 @@
+---
+# Default config
+tabWidth: 4
+endOfLine: crlf
+singleQuote: true
+printWidth: 100000
+trailingComma: none
+bracketSameLine: true
+quoteProps: consistent
+experimentalTernaries: true
+
+# Overrided config
+overrides:
+  - files: ["*.md", "*.json", "*.yaml"]
+    options:
+      tabWidth: 2
+      singleQuote: false
+  - files: ["*.scss"]
+    options:
+      singleQuote: false
+...

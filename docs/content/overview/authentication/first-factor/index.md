@@ -16,7 +16,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-{{< picture src="1FA.png" caption="An example of the first factor sign in portal" alt="First Factor Authentication View" process="resize 400x" >}}
+{{< figure src="1FA.png" caption="An example of the first factor sign in portal" alt="First Factor Authentication View" sizes="10vh" class="center" >}}
 
 *__IMPORTANT:__ This is currently the only method available for first factor authentication.*
 

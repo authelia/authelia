@@ -34,7 +34,7 @@ issues.
 
 Authelia is [OpenID Certified™] to conform to the [OpenID Connect™ protocol].
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" sizes="100px" >}}
 
 For more information read the
 [Integration Documentation](../../integration/openid-connect/introduction.md#openid-certified).

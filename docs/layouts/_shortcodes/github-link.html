@@ -1,5 +1,5 @@
 {{- $repo := "authelia/authelia" }}{{ with .Get "repo" }}{{ $repo = . }}{{ end }}
-{{- $branch := printf "v%s" .Site.Data.misc.latest }}{{ with .Get "branch" }}{{ $branch = . }}{{ end }}
+{{- $branch := printf "v%s" hugo.Data.misc.latest }}{{ with .Get "branch" }}{{ $branch = . }}{{ end }}
 {{- $path := "" }}{{ with .Get "path" }}{{ $path = . }}{{ end }}
 {{- $link := printf "https://github.com/%s/blob/%s/%s" $repo $branch (urlquery $path) }}
 {{- $name := "" }}

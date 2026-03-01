@@ -1,5 +1,5 @@
 |     Variant      |      FIPS 140      |          Iterations              |
 |:----------------:|:------------------:|:--------------------------------:|
-{{- range $variant, $values := .Site.Data.misc.hashing_algorithms.pbkdf2.variants }}
+{{- range $variant, $values := hugo.Data.misc.hashing_algorithms.pbkdf2.variants }}
 | `{{ $variant }}` | {{ $values.fips }} | {{ $values.default_iterations }} |
 {{- end }}

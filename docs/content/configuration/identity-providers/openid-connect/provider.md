@@ -37,7 +37,7 @@ More information about the beta can be found in the [roadmap](../../../roadmap/a
 
 Authelia is [OpenID Certified™] to conform to the [OpenID Connect™ protocol].
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" sizes="40dvh" >}}
 
 For more information please see the
 [OpenID Connect 1.0 Integration Documentation](../../../integration/openid-connect/introduction.md#openid-certified).
