@@ -38,7 +38,7 @@ func ldapGetFeatureSupportFromClient(client LDAPBaseClient) (discovery LDAPDisco
 		return discovery, fmt.Errorf("error occurred during RootDSE search: %w", err)
 	}
 
-	if len(result.Entries) != 1 {
+	if result == nil || len(result.Entries) != 1 {
 		return discovery, fmt.Errorf("error occurred during RootDSE search: %w", ErrLDAPHealthCheckFailedEntryCount)
 	}
 

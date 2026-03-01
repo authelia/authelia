@@ -529,6 +529,21 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
+	search := NewExtendedSearchRequestMatcher("(objectClass=*)", "",
+		ldap.ScopeBaseObject, ldap.NeverDerefAliases, false,
+		[]string{
+			ldapObjectClassAttribute,
+			ldapSupportedLDAPVersionAttribute,
+			ldapSupportedExtensionAttribute,
+			ldapSupportedControlAttribute,
+			ldapSupportedFeaturesAttribute,
+			ldapSupportedSASLMechanismsAttribute,
+			ldapVendorNameAttribute,
+			ldapVendorVersionAttribute,
+			ldapDomainFunctionalityAttribute,
+			ldapForestFunctionalityAttribute,
+		})
+
 	gomock.InOrder(
 		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil),
 		mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
@@ -536,8 +551,8 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 		clientBind,
 		mockClient.EXPECT().IsClosing().Return(false),
 		mockClient.EXPECT().
-			Search(NewExtendedSearchRequestMatcher("(objectClass=*)", "", ldap.ScopeBaseObject, ldap.NeverDerefAliases, false, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute})).
-			Return(nil, errors.New("could not perform the search")),
+			Search(search).
+			Return(&ldap.SearchResult{Entries: []*ldap.Entry{{}}}, nil),
 		mockClient.EXPECT().IsClosing().Return(false),
 		mockClient.EXPECT().Close().Return(nil),
 	)
