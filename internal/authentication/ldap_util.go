@@ -42,10 +42,10 @@ func ldapGetFeatureSupportFromClient(client LDAPBaseClient) (discovery LDAPDisco
 		return discovery, fmt.Errorf("error occurred during RootDSE search: %w", ErrLDAPHealthCheckFailedEntryCount)
 	}
 
-	return ldapGetFeatureSupportFromEntry(result.Entries[0]), nil
+	return ldapGetDiscoveryFromLDAPEntry(result.Entries[0]), nil
 }
 
-func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (discovery LDAPDiscovery) {
+func ldapGetDiscoveryFromLDAPEntry(entry *ldap.Entry) (discovery LDAPDiscovery) {
 	if entry == nil {
 		return
 	}
@@ -61,11 +61,11 @@ func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (discovery LDAPDiscovery)
 				fallbackVendorName = ldapVendorNameOpenLDAP
 			}
 		case ldapSupportedLDAPVersionAttribute:
-			discovery.LDAPVersion = ldapGetFeatureSupportFromEntryLDAPVersions(attr)
+			discovery.LDAPVersion = ldapGetLDAPVersionDiscoveryFromLDAPEntry(attr)
 		case ldapSupportedControlAttribute:
-			ldapGetFeatureSupportFromEntryControls(attr, &discovery.Controls)
+			ldapGetControlsDiscoveryFromLDAPEntry(attr, &discovery.Controls)
 		case ldapSupportedExtensionAttribute:
-			ldapGetFeatureSupportFromEntryExtensions(attr, &discovery.Extensions)
+			ldapGetExtensionDiscoveryFromLDAPEntry(attr, &discovery.Extensions)
 		case ldapSupportedSASLMechanismsAttribute:
 			discovery.SASLMechanisms = attr.Values
 		case ldapSupportedFeaturesAttribute:
@@ -98,7 +98,7 @@ func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (discovery LDAPDiscovery)
 	return discovery
 }
 
-func ldapGetFeatureSupportFromEntryLDAPVersions(attr *ldap.EntryAttribute) (versions []int) {
+func ldapGetLDAPVersionDiscoveryFromLDAPEntry(attr *ldap.EntryAttribute) (versions []int) {
 	versions = make([]int, 0, len(attr.Values))
 
 	for _, v := range attr.Values {
@@ -117,7 +117,7 @@ func ldapGetFeatureSupportFromEntryLDAPVersions(attr *ldap.EntryAttribute) (vers
 	return versions
 }
 
-func ldapGetFeatureSupportFromEntryControls(attr *ldap.EntryAttribute, controls *LDAPDiscoveryControls) {
+func ldapGetControlsDiscoveryFromLDAPEntry(attr *ldap.EntryAttribute, controls *LDAPDiscoveryControls) {
 	controls.OIDs = attr.Values
 
 	for _, oid := range attr.Values {
@@ -130,7 +130,7 @@ func ldapGetFeatureSupportFromEntryControls(attr *ldap.EntryAttribute, controls 
 	}
 }
 
-func ldapGetFeatureSupportFromEntryExtensions(attr *ldap.EntryAttribute, extensions *LDAPDiscoveryExtensions) {
+func ldapGetExtensionDiscoveryFromLDAPEntry(attr *ldap.EntryAttribute, extensions *LDAPDiscoveryExtensions) {
 	extensions.OIDs = attr.Values
 
 	for _, oid := range attr.Values {

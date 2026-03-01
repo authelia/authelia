@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLDAPGetFeatureSupportFromNilEntry(t *testing.T) {
-	features := ldapGetFeatureSupportFromEntry(nil)
-	assert.Len(t, features.Extensions.OIDs, 0)
-	assert.Len(t, features.Controls.OIDs, 0)
-	assert.Equal(t, LDAPDiscovery{}, features)
+func TestLDAPGetDiscoveryFromLDAPEntryNil(t *testing.T) {
+	discovery := ldapGetDiscoveryFromLDAPEntry(nil)
+	assert.Len(t, discovery.Extensions.OIDs, 0)
+	assert.Len(t, discovery.Controls.OIDs, 0)
+	assert.Equal(t, LDAPDiscovery{}, discovery)
 }
 
 func TestLDAPGetFeatureSupportFromEntry(t *testing.T) {
@@ -178,7 +178,7 @@ func TestLDAPGetFeatureSupportFromEntry(t *testing.T) {
 				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapForestFunctionalityAttribute, Values: tc.haveForestFunctionalLevel})
 			}
 
-			actual := ldapGetFeatureSupportFromEntry(entry)
+			actual := ldapGetDiscoveryFromLDAPEntry(entry)
 
 			assert.Equal(t, tc.haveExtensionOIDs, actual.Extensions.OIDs)
 			assert.Equal(t, tc.haveControlOIDs, actual.Controls.OIDs)
