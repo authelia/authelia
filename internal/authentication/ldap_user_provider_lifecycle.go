@@ -30,12 +30,16 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 		}
 	}()
 
-	discovery := client.Discovery()
+	p.logStartupCheckDiscovery(client.Discovery())
 
+	return nil
+}
+
+func (p *LDAPUserProvider) logStartupCheckDiscovery(discovery LDAPDiscovery) {
 	version := none
 
 	if discovery.LDAPVersion != nil {
-		var values []string
+		values := make([]string, 0, len(discovery.LDAPVersion))
 
 		for _, v := range discovery.LDAPVersion {
 			values = append(values, strconv.Itoa(v))
@@ -74,8 +78,6 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 			"recommend using the scheme 'ldaps://' or enabling the StartTLS option to secure connections with your " +
 			"LDAP Server.")
 	}
-
-	return nil
 }
 
 //nolint:gocyclo

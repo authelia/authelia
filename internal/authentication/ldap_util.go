@@ -75,19 +75,9 @@ func ldapGetDiscoveryFromLDAPEntry(entry *ldap.Entry) (discovery LDAPDiscovery) 
 		case ldapVendorVersionAttribute:
 			discovery.Vendor.Version = strings.Join(attr.Values, " ")
 		case ldapDomainFunctionalityAttribute:
-			if len(attr.Values) != 1 {
-				continue
-			}
-
-			fallbackVendorName = ldapVendorNameMicrosoftCorporation
-			discovery.Vendor.DomainFunctionalLevel, _ = strconv.Atoi(attr.Values[0])
+			ldapGetFunctionalityDiscoveryFromLDAPEntry(attr, &fallbackVendorName, &discovery.Vendor.DomainFunctionalLevel)
 		case ldapForestFunctionalityAttribute:
-			if len(attr.Values) != 1 {
-				continue
-			}
-
-			fallbackVendorName = ldapVendorNameMicrosoftCorporation
-			discovery.Vendor.ForestFunctionalLevel, _ = strconv.Atoi(attr.Values[0])
+			ldapGetFunctionalityDiscoveryFromLDAPEntry(attr, &fallbackVendorName, &discovery.Vendor.ForestFunctionalLevel)
 		}
 	}
 
@@ -96,6 +86,20 @@ func ldapGetDiscoveryFromLDAPEntry(entry *ldap.Entry) (discovery LDAPDiscovery) 
 	}
 
 	return discovery
+}
+
+func ldapGetFunctionalityDiscoveryFromLDAPEntry(attr *ldap.EntryAttribute, fallback *string, out *int) {
+	if len(attr.Values) != 1 {
+		return
+	}
+
+	value, err := strconv.Atoi(attr.Values[0])
+	if err != nil {
+		return
+	}
+
+	*fallback = ldapVendorNameMicrosoftCorporation
+	*out = value
 }
 
 func ldapGetLDAPVersionDiscoveryFromLDAPEntry(attr *ldap.EntryAttribute) (versions []int) {
