@@ -6,7 +6,9 @@ ARG GROUP_ID
 RUN yarn global add pnpm && \
     deluser node && \
     addgroup --gid ${GROUP_ID} dev && \
-    adduser --uid ${USER_ID} -G dev -D dev
+    adduser --uid ${USER_ID} -G dev -D dev && \
+    mkdir -p /app/node_modules && \
+    chown -R ${USER_ID}:${GROUP_ID} /app
 
 USER dev
 

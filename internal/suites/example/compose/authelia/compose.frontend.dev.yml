@@ -14,6 +14,7 @@ services:
       - './example/compose/authelia/resources/:/resources'
       - '../../web:/app'
       - '~/.local/share/pnpm/store:/app/.pnpm-store'
+      - '/app/node_modules'
     labels:
       traefik.enable: 'true'
       traefik.http.routers.authelia_frontend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/`)'  # yamllint disable-line rule:line-length
