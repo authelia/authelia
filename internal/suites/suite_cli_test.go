@@ -60,7 +60,7 @@ func (s *CLISuite) TestShouldPrintBuildInformation() {
 	s.Contains(output, "Build Date: ")
 	s.Contains(output, "Development: ")
 
-	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Compiler: gc\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nDevelopment: (true|false)\nExtra: \n\nGo:\n\s+Version: go\d+\.\d+\.\d+ X:nosynchashtriemap\n\s+Module Path: github.com/authelia/authelia/v4\n\s+Executable Path: github.com/authelia/authelia/v4/cmd/authelia`)
+	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Compiler: gc\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nDevelopment: (true|false)\nExtra: \n\nGo:\n\s+Version: go\d+\.\d+\.\d+( X:nosynchashtriemap)?\n\s+Module Path: github.com/authelia/authelia/v4\n\s+Executable Path: github.com/authelia/authelia/v4/cmd/authelia`)
 	s.Regexp(r, output)
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "build-info", "-v"})
