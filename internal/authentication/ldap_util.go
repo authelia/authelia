@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/go-ldap/ldap/v3"
 
@@ -147,15 +146,6 @@ func ldapGetExtensionDiscoveryFromLDAPEntry(attr *ldap.EntryAttribute, extension
 			extensions.WhoAmI = true
 		}
 	}
-}
-
-func ldapEscape(inputUsername string) string {
-	inputUsername = ldap.EscapeFilter(inputUsername)
-	for _, c := range specialLDAPRunes {
-		inputUsername = strings.ReplaceAll(inputUsername, string(c), fmt.Sprintf("\\%c", c))
-	}
-
-	return inputUsername
 }
 
 func getLDAPResultCode(err error) int {
