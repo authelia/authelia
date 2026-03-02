@@ -14,7 +14,7 @@ support:
   integration: true
 seo:
   title: "Wanderer | OpenID Connect 1.0 | Integration"
-  description: "Step-by-step guide to configuring Wanderer with OpenID Connect 1.0 for secure SSO."
+  description: "Step-by-step guide to configuring Wanderer with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---

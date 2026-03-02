@@ -32,8 +32,11 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		var err error
 
 		lang := "en"
+
 		if c := ctx.Request.Header.Cookie("language"); c != nil {
-			lang = string(c)
+			if reValidLanguageCodes.MatchString(string(c)) {
+				lang = string(c)
+			}
 		}
 
 		logoOverride := strFalse
@@ -83,8 +86,8 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		data := &bytes.Buffer{}
 
 		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, rememberMe)); err != nil {
-			ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+			ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
 			return
 		}
@@ -96,8 +99,8 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
 		default:
 			if _, err = data.WriteTo(ctx.Response.BodyWriter()); err != nil {
-				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-				ctx.Logger.WithError(err).Errorf("Error occcurred writing body")
+				ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+				ctx.Logger.WithError(err).Errorf("Error occurred writing body")
 
 				return
 			}
@@ -139,8 +142,8 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 
 		data := &bytes.Buffer{}
 		if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), baseURL, domain, nonce)); err != nil {
-			ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+			ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
 			return
 		}
@@ -152,8 +155,8 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
 		default:
 			if _, err = data.WriteTo(ctx.Response.BodyWriter()); err != nil {
-				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-				ctx.Logger.WithError(err).Errorf("Error occcurred writing body")
+				ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+				ctx.Logger.WithError(err).Errorf("Error occurred writing body")
 
 				return
 			}
