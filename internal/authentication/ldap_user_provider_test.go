@@ -168,21 +168,21 @@ func TestShouldCreateTLSConnectionWhenSchemeIsLDAPS(t *testing.T) {
 
 func TestEscapeSpecialCharsFromUserInput(t *testing.T) {
 	// No escape.
-	assert.Equal(t, "xyz", ldapEscape("xyz"))
+	assert.Equal(t, "xyz", ldap.EscapeFilter("xyz"))
 
 	// Escape.
-	assert.Equal(t, "test\\,abc", ldapEscape("test,abc"))
-	assert.Equal(t, "test\\5cabc", ldapEscape("test\\abc"))
-	assert.Equal(t, "test\\2aabc", ldapEscape("test*abc"))
-	assert.Equal(t, "test \\28abc\\29", ldapEscape("test (abc)"))
-	assert.Equal(t, "test\\#abc", ldapEscape("test#abc"))
-	assert.Equal(t, "test\\+abc", ldapEscape("test+abc"))
-	assert.Equal(t, "test\\<abc", ldapEscape("test<abc"))
-	assert.Equal(t, "test\\>abc", ldapEscape("test>abc"))
-	assert.Equal(t, "test\\;abc", ldapEscape("test;abc"))
-	assert.Equal(t, "test\\\"abc", ldapEscape("test\"abc"))
-	assert.Equal(t, "test\\=abc", ldapEscape("test=abc"))
-	assert.Equal(t, "test\\,\\5c\\28abc\\29", ldapEscape("test,\\(abc)"))
+	assert.Equal(t, "test,abc", ldap.EscapeFilter("test,abc"))
+	assert.Equal(t, "test\\5cabc", ldap.EscapeFilter("test\\abc"))
+	assert.Equal(t, "test\\2aabc", ldap.EscapeFilter("test*abc"))
+	assert.Equal(t, "test \\28abc\\29", ldap.EscapeFilter("test (abc)"))
+	assert.Equal(t, "test#abc", ldap.EscapeFilter("test#abc"))
+	assert.Equal(t, "test+abc", ldap.EscapeFilter("test+abc"))
+	assert.Equal(t, "test<abc", ldap.EscapeFilter("test<abc"))
+	assert.Equal(t, "test>abc", ldap.EscapeFilter("test>abc"))
+	assert.Equal(t, "test;abc", ldap.EscapeFilter("test;abc"))
+	assert.Equal(t, "test\"abc", ldap.EscapeFilter("test\"abc"))
+	assert.Equal(t, "test=abc", ldap.EscapeFilter("test=abc"))
+	assert.Equal(t, "test,\\5c\\28abc\\29", ldap.EscapeFilter("test,\\(abc)"))
 }
 
 func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
@@ -211,7 +211,7 @@ func TestEscapeSpecialCharsInGroupsFilter(t *testing.T) {
 	assert.Equal(t, "(|(member=cn=john \\28external\\29,dc=example,dc=com)(uid=john)(uid=john))", filter)
 
 	filter = provider.resolveGroupsFilter("john#=(abc,def)", &profile)
-	assert.Equal(t, "(|(member=cn=john \\28external\\29,dc=example,dc=com)(uid=john)(uid=john\\#\\=\\28abc\\,def\\29))", filter)
+	assert.Equal(t, "(|(member=cn=john \\28external\\29,dc=example,dc=com)(uid=john)(uid=john#=\\28abc,def\\29))", filter)
 }
 
 func TestResolveGroupsFilter(t *testing.T) {
@@ -585,7 +585,7 @@ func TestShouldEscapeUserInput(t *testing.T) {
 
 	mockClient.EXPECT().
 		// Here we ensure that the input has been correctly escaped.
-		Search(NewSearchRequestMatcher("(|(uid=john\\=abc)(mail=john\\=abc))")).
+		Search(NewSearchRequestMatcher("(|(uid=john=abc)(mail=john=abc))")).
 		Return(&ldap.SearchResult{}, nil)
 
 	_, err := provider.getUserProfile(mockClient, "john=abc")

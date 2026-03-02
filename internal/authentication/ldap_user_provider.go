@@ -715,7 +715,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
-		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldap.EscapeFilter(input))
 	}
 
 	if p.usersFilterReplacementDateTimeGeneralized {
@@ -740,7 +740,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(input string, profile *ldapUserPr
 
 	if p.groupsFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
-		filter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderInput, ldapEscape(input))
+		filter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderInput, ldap.EscapeFilter(input))
 	}
 
 	if profile != nil {

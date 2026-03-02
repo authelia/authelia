@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/go-ldap/ldap/v3"
 
@@ -79,15 +78,6 @@ func ldapGetFeatureSupportFromEntry(entry *ldap.Entry) (features LDAPSupportedFe
 	}
 
 	return features
-}
-
-func ldapEscape(inputUsername string) string {
-	inputUsername = ldap.EscapeFilter(inputUsername)
-	for _, c := range specialLDAPRunes {
-		inputUsername = strings.ReplaceAll(inputUsername, string(c), fmt.Sprintf("\\%c", c))
-	}
-
-	return inputUsername
 }
 
 func getLDAPResultCode(err error) int {
