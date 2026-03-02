@@ -37,6 +37,14 @@ type LDAPUserProvider struct {
 	usersFilterReplacementDateTimeUnixEpoch            bool
 	usersFilterReplacementDateTimeMicrosoftNTTimeEpoch bool
 
+	principalsBaseDN                                        string
+	principalsAttributes                                    []string
+	principalsAttributesExtended                            []string
+	principalsFilterReplacementInput                        bool
+	principalsFilterReplacementDateTimeGeneralized          bool
+	principalsFilterReplacementDateTimeUnixEpoch            bool
+	principalsFilterReplacementDateTimeMicrosoftNTTimeEpoch bool
+
 	// Dynamically generated groups values.
 	groupsBaseDN                        string
 	groupsAttributes                    []string
@@ -76,6 +84,7 @@ func NewLDAPUserProviderWithFactory(config *schema.AuthenticationBackendLDAP, di
 
 	provider.parseDynamicUsersConfiguration()
 	provider.parseDynamicGroupsConfiguration()
+	provider.parseDynamicPrincipalsConfiguration()
 
 	return provider
 }
@@ -140,6 +149,45 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 	)
 
 	if groups, err = p.getUserGroups(client, username, profile); err != nil {
+		return nil, err
+	}
+
+	return &UserDetails{
+		Username:    profile.Username,
+		DisplayName: profile.DisplayName,
+		Emails:      profile.Emails,
+		Groups:      groups,
+	}, nil
+}
+
+func (p *LDAPUserProvider) GetDetailsForPrincipal(
+	principal string,
+) (details *UserDetails, err error) {
+	var (
+		client  LDAPExtendedClient
+		profile *ldapUserProfile
+	)
+
+	if client, err = p.factory.GetClient(); err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
+	if profile, err = p.getUserProfileByPrincipal(client, principal); err != nil {
+		return nil, err
+	}
+
+	var (
+		groups []string
+	)
+
+	// Using the principal as input here as the 'username' is using used for logging purposes.
+	if groups, err = p.getUserGroups(client, principal, profile); err != nil {
 		return nil, err
 	}
 
@@ -436,6 +484,39 @@ func (p *LDAPUserProvider) searchReferrals(request *ldap.SearchRequest, result *
 	return nil
 }
 
+func (p *LDAPUserProvider) getUserProfileByPrincipal(
+	client LDAPExtendedClient, principal string) (profile *ldapUserProfile, err error) {
+	// Search for the given principal.
+	request := ldap.NewSearchRequest(
+		p.principalsBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		1, 0, false, p.resolvePrincipalsFilter(principal), p.principalsAttributes, nil,
+	)
+
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attr", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		Trace("Performing user search by principal")
+
+	var result *ldap.SearchResult
+
+	if result, err = p.search(client, request); err != nil {
+		return nil, fmt.Errorf("cannot find user DN of principal '%s'. Cause: %w", principal, err)
+	}
+
+	if len(result.Entries) == 0 {
+		return nil, ErrUserNotFound
+	}
+
+	if len(result.Entries) > 1 {
+		return nil, fmt.Errorf("there were %d users found when searching for principal '%s' but there should only be 1", len(result.Entries), principal)
+	}
+
+	return p.getUserProfileResultToProfile(principal, result.Entries[0])
+}
+
 func (p *LDAPUserProvider) getUserProfile(client LDAPExtendedClient, username string) (profile *ldapUserProfile, err error) {
 	// Search for the given username.
 	request := ldap.NewSearchRequest(
@@ -710,8 +791,33 @@ attributes:
 	return ""
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
-	filter = p.config.UsersFilter
+func (p *LDAPUserProvider) resolvePrincipalsFilter(input string) string {
+	filter := p.config.PrincipalsFilter
+
+	if p.principalsFilterReplacementInput {
+		// The {input} placeholder is replaced by the username input.
+		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+	}
+
+	if p.principalsFilterReplacementDateTimeGeneralized {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeGeneralized, p.clock.Now().UTC().Format(ldapGeneralizedTimeDateTimeFormat))
+	}
+
+	if p.principalsFilterReplacementDateTimeUnixEpoch {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeUnixEpoch, strconv.Itoa(int(p.clock.Now().Unix())))
+	}
+
+	if p.principalsFilterReplacementDateTimeMicrosoftNTTimeEpoch {
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch, strconv.FormatUint(utils.UnixNanoTimeToMicrosoftNTEpoch(p.clock.Now().UnixNano()), 10))
+	}
+
+	p.log.Tracef("Detected principal filter is %s", filter)
+
+	return filter
+}
+
+func (p *LDAPUserProvider) resolveUsersFilter(input string) string {
+	filter := p.config.UsersFilter
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.

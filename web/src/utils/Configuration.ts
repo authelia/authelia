@@ -27,6 +27,10 @@ export function getPasskeyLogin() {
     return getEmbeddedVariable("passkeylogin") === "true";
 }
 
+export function getSpnegoLogin() {
+    return getEmbeddedVariable("spnegologin") === "true";
+}
+
 export function getResetPasswordCustomURL() {
     return getEmbeddedVariable("resetpasswordcustomurl");
 }
