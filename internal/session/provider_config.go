@@ -8,13 +8,13 @@ import (
 	"strings"
 
 	"github.com/fasthttp/session/v2"
-	"github.com/fasthttp/session/v2/providers/memory"
 	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/session/memory"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -133,7 +133,7 @@ func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name st
 				RouteRandomly:    config.Redis.HighAvailability.RouteRandomly,
 				Username:         config.Redis.Username,
 				Password:         config.Redis.Password,
-				DB:               config.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
+				DB:               config.Redis.DatabaseIndex,
 				PoolSize:         config.Redis.MaximumActiveConnections,
 				MinIdleConns:     config.Redis.MinimumIdleConnections,
 				ConnMaxIdleTime:  300,
@@ -161,7 +161,7 @@ func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name st
 				MaxRetries:      config.Redis.MaxRetries,
 				Username:        config.Redis.Username,
 				Password:        config.Redis.Password,
-				DB:              config.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
+				DB:              config.Redis.DatabaseIndex,
 				PoolSize:        config.Redis.MaximumActiveConnections,
 				MinIdleConns:    config.Redis.MinimumIdleConnections,
 				ConnMaxIdleTime: 300,
