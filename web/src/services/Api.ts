@@ -43,6 +43,10 @@ export const UserSessionElevationPath = basePath + "/api/user/session/elevation"
 export const ConfigurationPath = basePath + "/api/configuration";
 export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/password-policy";
 
+export const AdminConfigPath = basePath + "/api/admin/config";
+export const AdminUserRestPath = basePath + "/api/admin/users";
+export const AdminUserFieldMetadataPath = basePath + "/api/admin/user-fields";
+
 export const LocaleInformationPath = basePath + "/locales";
 
 export interface AuthenticationErrorResponse extends ErrorResponse {

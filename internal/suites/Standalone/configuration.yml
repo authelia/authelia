@@ -36,7 +36,12 @@ telemetry:
     address: 'tcp://0.0.0.0:9959'
 
 log:
-  level: 'debug'
+  level: debug
+
+administration:
+  enabled: true
+  admin_group: "authelia-admin"
+  enable_user_management: true
 
 storage:
   encryption_key: 'a_not_so_secure_encryption_key'
