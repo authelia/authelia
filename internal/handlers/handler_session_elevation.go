@@ -196,6 +196,11 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred sending the user the notification", userSession.Username)
 
+		// Revoke the one-time code since the notification was not sent.
+		if errRevoke := ctx.Providers.StorageProvider.RevokeOneTimeCode(ctx, otp.PublicID, model.NewIP(ctx.RemoteIP())); errRevoke != nil {
+			ctx.Logger.WithError(errRevoke).Errorf("Error occurred revoking user session elevation One-Time Code challenge for user '%s': error occurred revoking the challenge from the storage backend", userSession.Username)
+		}
+
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
 

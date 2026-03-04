@@ -420,6 +420,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 						OneTimeCode:        "ABC123ABC1",
 					}).
 						Return(fmt.Errorf("rejected")),
+						mock.StorageMock.EXPECT().RevokeOneTimeCode(mock.Ctx, uuid.Must(uuid.Parse("01020304-0506-4722-8910-111213141500")), model.NewIP(net.ParseIP("0.0.0.0"))).Return(nil),
 				)
 			},
 			`{"status":"KO","message":"Operation failed."}`,

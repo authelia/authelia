@@ -143,6 +143,8 @@ const IdentityVerificationDialog = function (props: Props) {
             })
             .catch((error) => {
                 console.error(error);
+                createErrorNotification(translate("Failed to generate the One-Time Code. Please try again later."));
+                handleClose(false);
             });
     }, [closing, opening, elevation, ready, handleOpened]);
 
