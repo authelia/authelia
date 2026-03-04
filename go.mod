@@ -33,11 +33,12 @@ require (
 	github.com/knadh/koanf/providers/env/v2 v2.0.0
 	github.com/knadh/koanf/providers/posflag v1.0.1
 	github.com/knadh/koanf/providers/rawbytes v1.0.0
-	github.com/knadh/koanf/v2 v2.3.2
+	github.com/knadh/koanf/v2 v2.3.3
 	github.com/mattn/go-sqlite3 v1.14.34
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.1
 	github.com/prometheus/client_golang v1.23.2
+	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
@@ -97,7 +98,6 @@ require (
 	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/redis/go-redis/v9 v9.8.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287 // indirect
 	github.com/test-go/testify v1.1.4 // indirect
 	github.com/tinylib/msgp v1.2.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
