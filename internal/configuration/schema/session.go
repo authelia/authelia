@@ -10,7 +10,7 @@ import (
 type Session struct {
 	SessionCookieCommon `koanf:",squash"`
 
-	Secret string `koanf:"secret" yaml:"secret,omitempty" toml:"secret,omitempty" json:"secret,omitempty" jsonschema:"title=Secret" jsonschema_description:"Secret used to encrypt the session data."`
+	Secret string `koanf:"secret" yaml:"secret,omitempty" toml:"secret,omitempty" json:"secret,omitempty" jsonschema:"title=Secret" jsonschema_description:"Secret used to encrypt the session data."` //nolint:gosec
 
 	Cookies []SessionCookie `koanf:"cookies" yaml:"cookies,omitempty" toml:"cookies,omitempty" json:"cookies,omitempty" jsonschema:"title=Cookies" jsonschema_description:"List of cookie domain configurations."`
 
@@ -48,7 +48,7 @@ type SessionRedis struct {
 	Timeout                  time.Duration `koanf:"timeout" yaml:"timeout,omitempty" toml:"timeout,omitempty" json:"timeout,omitempty" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The Redis server connection timeout."`
 	MaxRetries               int           `koanf:"max_retries" yaml:"max_retries" toml:"max_retries" json:"max_retries" jsonschema:"default=3,title=Maximum Retries" jsonschema_description:"The maximum number of retries on a failed command."`
 	Username                 string        `koanf:"username" yaml:"username,omitempty" toml:"username,omitempty" json:"username,omitempty" jsonschema:"title=Username" jsonschema_description:"The redis username."`
-	Password                 string        `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The redis password."`
+	Password                 string        `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The redis password."` //nolint:gosec
 	DatabaseIndex            int           `koanf:"database_index" yaml:"database_index" toml:"database_index" json:"database_index" jsonschema:"default=0,title=Database Index" jsonschema_description:"The redis database index."`
 	MaximumActiveConnections int           `koanf:"maximum_active_connections" yaml:"maximum_active_connections" toml:"maximum_active_connections" json:"maximum_active_connections" jsonschema:"default=8,title=Maximum Active Connections" jsonschema_description:"The maximum connections that can be made to redis at one time."`
 	MinimumIdleConnections   int           `koanf:"minimum_idle_connections" yaml:"minimum_idle_connections" toml:"minimum_idle_connections" json:"minimum_idle_connections" jsonschema:"title=Minimum Idle Connections" jsonschema_description:"The minimum idle connections that should be open to redis."`

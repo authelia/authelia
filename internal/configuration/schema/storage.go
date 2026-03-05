@@ -25,7 +25,7 @@ type StorageSQL struct {
 	Address  *AddressTCP   `koanf:"address" yaml:"address,omitempty" toml:"address,omitempty" json:"address,omitempty" jsonschema:"title=Address" jsonschema_description:"The address of the SQL Server."`
 	Database string        `koanf:"database" yaml:"database,omitempty" toml:"database,omitempty" json:"database,omitempty" jsonschema:"title=Database" jsonschema_description:"The database name to use upon a successful connection."`
 	Username string        `koanf:"username" yaml:"username,omitempty" toml:"username,omitempty" json:"username,omitempty" jsonschema:"title=Username" jsonschema_description:"The username to use to authenticate."`
-	Password string        `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password to use to authenticate."`
+	Password string        `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password to use to authenticate."` //nolint:gosec
 	Timeout  time.Duration `koanf:"timeout" yaml:"timeout,omitempty" toml:"timeout,omitempty" json:"timeout,omitempty" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The timeout for the database connection."`
 	TLS      *TLS          `koanf:"tls" yaml:"tls,omitempty" toml:"tls,omitempty" json:"tls,omitempty"`
 }

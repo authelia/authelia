@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/valyala/fasthttp"
@@ -61,7 +62,7 @@ func (s *RedirectAuthorizeErrorFieldResponseStrategy) WriteErrorFieldResponse(ct
 	}
 
 	if rfc.CodeField != 0 {
-		query.Set("error_status_code", string(rune(rfc.CodeField)))
+		query.Set("error_status_code", strconv.Itoa(rfc.CodeField))
 	}
 
 	if len(rfc.HintField) != 0 {

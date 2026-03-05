@@ -413,7 +413,7 @@ func (m *FileDatabaseModel) Write(fileName string) (err error) {
 
 // FileDatabaseUserDetailsModel is the model of user details in the file database.
 type FileDatabaseUserDetailsModel struct {
-	Password       string   `yaml:"password" valid:"required"`
+	Password       string   `yaml:"password" valid:"required"` //nolint:gosec // This is a hash, not a raw password.
 	DisplayName    string   `yaml:"displayname" valid:"required"`
 	Email          string   `yaml:"email"`
 	Groups         []string `yaml:"groups"`

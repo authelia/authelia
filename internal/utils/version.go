@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 )
@@ -40,7 +41,7 @@ func Version() (versionString string) {
 
 // VersionAdv takes inputs to generate the version.
 func VersionAdv(tag, state, commit, branch, extra string) (version string) {
-	b := strings.Builder{}
+	buf := bytes.NewBuffer(nil)
 
 	states := strings.Split(state, " ")
 
@@ -48,45 +49,45 @@ func VersionAdv(tag, state, commit, branch, extra string) (version string) {
 	isTagged := IsStringInSlice(tagged, states)
 
 	if isClean && isTagged {
-		b.WriteString(tag)
+		buf.WriteString(tag)
 
 		if extra != "" {
-			b.WriteRune('-')
-			b.WriteString(extra)
+			buf.WriteRune('-')
+			buf.WriteString(extra)
 		}
 
-		return b.String()
+		return buf.String()
 	}
 
 	if isTagged && !isClean {
-		b.WriteString(tag)
-		b.WriteString("-dirty")
+		buf.WriteString(tag)
+		buf.WriteString("-dirty")
 
-		return b.String()
+		return buf.String()
 	}
 
 	if !isTagged {
-		b.WriteString("untagged-")
+		buf.WriteString("untagged-")
 	}
 
-	b.WriteString(tag)
+	buf.WriteString(tag)
 
 	if !isClean {
-		b.WriteString("-dirty")
+		buf.WriteString("-dirty")
 	}
 
 	if extra != "" {
-		b.WriteRune('-')
-		b.WriteString(extra)
+		buf.WriteRune('-')
+		buf.WriteString(extra)
 	}
 
 	if Dev {
-		b.WriteString("-dev")
+		buf.WriteString("-dev")
 	}
 
-	b.WriteString(fmt.Sprintf(" (%s, %s)", branch, commitShort(commit)))
+	_, _ = fmt.Fprint(buf, " (", branch, ", ", commitShort(commit), ")")
 
-	return b.String()
+	return buf.String()
 }
 
 func commitShort(commitLong string) (commit string) {

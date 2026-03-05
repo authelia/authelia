@@ -121,10 +121,6 @@ var (
 
 const fileAuthenticationMode = 0600
 
-// OWASP recommends to escape some special characters.
-// https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.md
-const specialLDAPRunes = ",#+<>;\"="
-
 var (
 	encodingUTF16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
 )

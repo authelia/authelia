@@ -47,7 +47,7 @@ type encCachedData struct {
 
 type encTOTPConfiguration struct {
 	ID     int    `db:"id"`
-	Secret []byte `db:"secret"`
+	Secret []byte `db:"secret"` //nolint:gosec
 }
 
 type encOneTimeCode struct {

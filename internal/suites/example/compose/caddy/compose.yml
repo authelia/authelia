@@ -2,7 +2,7 @@
 services:
   caddy:
     # build: ./example/compose/caddy/ # used for debugging
-    image: caddy:2.10.2-alpine
+    image: caddy:2.11.1-alpine
     volumes:
       - './example/compose/caddy/Caddyfile:/etc/caddy/Caddyfile'
       - './common/pki:/pki'

@@ -115,7 +115,7 @@ type bodyPreferred2FAMethod struct {
 // bodyFirstFactorRequest represents the JSON body received by the endpoint.
 type bodyFirstFactorRequest struct {
 	Username       string `json:"username" valid:"required"`
-	Password       string `json:"password" valid:"required"`
+	Password       string `json:"password" valid:"required"` //nolint:gosec
 	TargetURL      string `json:"targetURL"`
 	RequestMethod  string `json:"requestMethod"`
 	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn"`
@@ -127,7 +127,7 @@ type bodyFirstFactorRequest struct {
 
 // bodyFirstFactorRequest represents the JSON body received by the endpoint.
 type bodySecondFactorPasswordRequest struct {
-	Password  string `json:"password" valid:"required"`
+	Password  string `json:"password" valid:"required"` //nolint:gosec
 	TargetURL string `json:"targetURL"`
 	FlowID    string `json:"flowID"`
 	Flow      string `json:"flow"`
@@ -137,7 +137,7 @@ type bodySecondFactorPasswordRequest struct {
 
 // bodyFirstFactorRequest represents the JSON body received by the endpoint.
 type bodyFirstFactorReauthenticateRequest struct {
-	Password      string `json:"password" valid:"required"`
+	Password      string `json:"password" valid:"required"` //nolint:gosec
 	TargetURL     string `json:"targetURL"`
 	RequestMethod string `json:"requestMethod"`
 	FlowID        string `json:"flowID"`
@@ -213,7 +213,7 @@ type resetPasswordStep1RequestBody struct {
 
 // resetPasswordStep2RequestBody model of the reset password (step2) request body.
 type resetPasswordStep2RequestBody struct {
-	Password string `json:"password"`
+	Password string `json:"password"` //nolint:gosec
 }
 
 type bodyRequestPasswordResetDELETE struct {

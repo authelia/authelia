@@ -153,7 +153,7 @@ type RodSuiteCredentialsProvider interface {
 
 type RodSuiteCredentialOneTimePassword struct {
 	valid             bool
-	Secret            string
+	Secret            string //nolint:gosec
 	ValidationOptions totp.ValidateOpts
 }
 
