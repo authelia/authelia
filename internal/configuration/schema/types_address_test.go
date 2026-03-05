@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -713,7 +714,10 @@ func TestAddress_Dial(t *testing.T) {
 func TestAddress_UnixDomainSocket(t *testing.T) {
 	dir := t.TempDir()
 
-	four := uint64(4)
+	f, err := os.CreateTemp(dir, "fd-test")
+	require.NoError(t, err)
+
+	fd := uint64(f.Fd())
 
 	testCases := []struct {
 		name     string
@@ -777,15 +781,15 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 		},
 		{
 			"ShouldParseFileDescriptorWithUmaskAndPath",
-			"fd://4?umask=0022&path=abc",
+			fmt.Sprintf("fd://%d?umask=0022&path=abc", fd),
 			false,
-			&four,
+			&fd,
 			"",
 			"/abc",
 			"0022",
 			18,
 			"",
-			"file file+net 4: getsockopt: socket operation on non-socket",
+			fmt.Sprintf("file file+net %d: getsockopt: socket operation on non-socket", fd),
 		},
 		{
 			"ShouldParseSocketWithBadUmask",
