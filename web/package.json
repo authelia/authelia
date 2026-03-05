@@ -43,7 +43,10 @@
       "esbuild",
       "lefthook",
       "unrs-resolver"
-    ]
+    ],
+    "patchedDependencies": {
+      "vite-plugin-checker@0.12.0": "patches/vite-plugin-checker@0.12.0.patch"
+    }
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
@@ -53,18 +56,18 @@
     "@fortawesome/free-regular-svg-icons": "7.2.0",
     "@fortawesome/free-solid-svg-icons": "7.2.0",
     "@fortawesome/react-fontawesome": "3.2.0",
-    "@mui/icons-material": "7.3.8",
-    "@mui/material": "7.3.8",
+    "@mui/icons-material": "7.3.9",
+    "@mui/material": "7.3.9",
     "@simplewebauthn/browser": "13.2.2",
     "axios": "1.13.6",
     "broadcast-channel": "7.3.0",
-    "i18next": "25.8.13",
+    "i18next": "25.8.14",
     "i18next-browser-languagedetector": "8.2.1",
     "i18next-http-backend": "3.0.2",
     "qrcode.react": "4.2.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-i18next": "16.5.4",
+    "react-i18next": "16.5.5",
     "react-router-dom": "7.13.1",
     "react-spinners": "0.17.0",
     "react18-input-otp": "1.1.4",
@@ -101,8 +104,9 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "20.4.2",
-    "@commitlint/config-conventional": "20.4.2",
+    "@commitlint/cli": "20.4.3",
+    "@commitlint/config-conventional": "20.4.3",
+    "@eslint/compat": "2.0.2",
     "@limegrass/eslint-plugin-import-alias": "1.6.0",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
@@ -114,7 +118,7 @@
     "@typescript-eslint/parser": "8.56.1",
     "@vitejs/plugin-react": "5.1.4",
     "@vitest/coverage-istanbul": "4.0.18",
-    "eslint": "9.39.3",
+    "eslint": "10.0.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-formatter-visualstudio": "9.0.1",
@@ -124,8 +128,8 @@
     "eslint-plugin-prettier": "5.5.5",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.0.1",
-    "happy-dom": "20.7.0",
-    "lefthook": "2.1.1",
+    "happy-dom": "20.8.3",
+    "lefthook": "2.1.2",
     "prettier": "3.8.1",
     "rollup": "4.59.0",
     "typescript": "5.9.3",
