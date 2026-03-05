@@ -28,6 +28,11 @@ overrides:
   semver: 7.7.4
   vite: 7.3.1
 
+patchedDependencies:
+  vite-plugin-checker@0.12.0:
+    hash: f23b6f6f4bf8a070c5385fc8570ed9281150ecc287dd4ac5e3c4d2a57c90ee05
+    path: patches/vite-plugin-checker@0.12.0.patch
+
 importers:
 
   .:
@@ -197,7 +202,7 @@ importers:
         version: 7.3.1(@types/node@25.3.3)(jiti@2.4.1)
       vite-plugin-checker:
         specifier: 0.12.0
-        version: 0.12.0(eslint@10.0.2(jiti@2.4.1))(meow@13.2.0)(typescript@5.9.3)(vite@7.3.1(@types/node@25.3.3)(jiti@2.4.1))
+        version: 0.12.0(patch_hash=f23b6f6f4bf8a070c5385fc8570ed9281150ecc287dd4ac5e3c4d2a57c90ee05)(eslint@10.0.2(jiti@2.4.1))(meow@13.2.0)(typescript@5.9.3)(vite@7.3.1(@types/node@25.3.3)(jiti@2.4.1))
       vite-plugin-istanbul:
         specifier: 7.2.1
         version: 7.2.1(vite@7.3.1(@types/node@25.3.3)(jiti@2.4.1))
@@ -8304,7 +8309,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite-plugin-checker@0.12.0(eslint@10.0.2(jiti@2.4.1))(meow@13.2.0)(typescript@5.9.3)(vite@7.3.1(@types/node@25.3.3)(jiti@2.4.1)):
+  vite-plugin-checker@0.12.0(patch_hash=f23b6f6f4bf8a070c5385fc8570ed9281150ecc287dd4ac5e3c4d2a57c90ee05)(eslint@10.0.2(jiti@2.4.1))(meow@13.2.0)(typescript@5.9.3)(vite@7.3.1(@types/node@25.3.3)(jiti@2.4.1)):
     dependencies:
       '@babel/code-frame': 7.27.1
       chokidar: 4.0.3

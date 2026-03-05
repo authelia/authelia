@@ -43,7 +43,10 @@
       "esbuild",
       "lefthook",
       "unrs-resolver"
-    ]
+    ],
+    "patchedDependencies": {
+      "vite-plugin-checker@0.12.0": "patches/vite-plugin-checker@0.12.0.patch"
+    }
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
