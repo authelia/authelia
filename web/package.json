@@ -114,7 +114,7 @@
     "@typescript-eslint/parser": "8.56.1",
     "@vitejs/plugin-react": "5.1.4",
     "@vitest/coverage-istanbul": "4.0.18",
-    "eslint": "9.39.3",
+    "eslint": "10.0.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-formatter-visualstudio": "9.0.1",
