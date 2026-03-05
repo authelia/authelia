@@ -43,7 +43,10 @@
       "esbuild",
       "lefthook",
       "unrs-resolver"
-    ]
+    ],
+    "patchedDependencies": {
+      "vite-plugin-checker@0.12.0": "patches/vite-plugin-checker@0.12.0.patch"
+    }
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
@@ -103,6 +106,7 @@
   "devDependencies": {
     "@commitlint/cli": "20.4.3",
     "@commitlint/config-conventional": "20.4.3",
+    "@eslint/compat": "2.0.2",
     "@limegrass/eslint-plugin-import-alias": "1.6.0",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
@@ -114,7 +118,7 @@
     "@typescript-eslint/parser": "8.56.1",
     "@vitejs/plugin-react": "5.1.4",
     "@vitest/coverage-istanbul": "4.0.18",
-    "eslint": "9.39.3",
+    "eslint": "10.0.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-formatter-visualstudio": "9.0.1",

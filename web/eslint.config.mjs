@@ -1,3 +1,4 @@
+import { fixupPluginRules } from "@eslint/compat";
 import limegrassImportAlias from "@limegrass/eslint-plugin-import-alias";
 import tsParser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
@@ -26,7 +27,7 @@ export default [
 
     {
         plugins: {
-            react: reactPlugin,
+            react: fixupPluginRules(reactPlugin),
             "react-hooks": reactHooksPlugin,
         },
         rules: {
