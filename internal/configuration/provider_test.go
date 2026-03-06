@@ -106,7 +106,7 @@ func TestShouldHandleNoAutoMapEmptyNewKey(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 	require.Len(t, val.Warnings(), 1)
 
-	assert.EqualError(t, val.Warnings()[0], "configuration key 'authentication_backend.ldap.permit_feature_detection_failure' is deprecated in 4.39.16 and has been removed': you are not required to make any configuration changes right now but you may be required to in 5.0.0")
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'authentication_backend.ldap.permit_feature_detection_failure' is deprecated in 4.39.16 and has been removed: you are not required to make any configuration changes right now but you may be required to in 5.0.0")
 	assert.NotNil(t, config.Notifier)
 
 	assert.NotContains(t, keys, "authentication_backend.ldap.permit_feature_detection_failure")

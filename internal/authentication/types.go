@@ -236,7 +236,7 @@ type ldapUserProfileExtended struct {
 	*ldapUserProfile
 }
 
-// LDAPDiscovery represents carious information about a server, such as LDAP Version, Features, Extensions, Controls.
+// LDAPDiscovery represents various information about a server, such as LDAP Version, Features, Extensions, Controls.
 // and SASL Mechanisms.
 type LDAPDiscovery struct {
 	Successful bool

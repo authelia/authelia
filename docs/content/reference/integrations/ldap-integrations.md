@@ -28,7 +28,7 @@ mechanisms which both assist in preventing the password from being intercepted b
 The LDAP server can either be setup to allow all users to anonymously perform the RootDSE search, or as per our current
 recommendation if the LDAP server supports it they can just allow the Authelia IP to anonymously perform the RootDSE
 search. This recommendation is purely precautionary based on certain LDAP servers discouraging all anonymous searches
-for unqualified security reasons as it pertains to the RootDSE which is specifically intened for the reason Authelia
+for unqualified security reasons as it pertains to the RootDSE, which is specifically intended for the reason Authelia
 uses it; discovery of how to interact with an LDAP server.
 
 It's speculation however it's likely that this recommendation is normally made without consideration for this specific
