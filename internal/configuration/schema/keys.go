@@ -95,7 +95,6 @@ var Keys = []string{
 	"authentication_backend.ldap.groups_filter",
 	"authentication_backend.ldap.implementation",
 	"authentication_backend.ldap.password",
-	"authentication_backend.ldap.permit_feature_detection_failure",
 	"authentication_backend.ldap.permit_referrals",
 	"authentication_backend.ldap.permit_unauthenticated_bind",
 	"authentication_backend.ldap.pooling.count",

@@ -290,11 +290,6 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE"
     },
     {
-        "path": "authentication_backend.ldap.permit_feature_detection_failure",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PERMIT_FEATURE_DETECTION_FAILURE"
-    },
-    {
         "path": "authentication_backend.ldap.permit_referrals",
         "secret": false,
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PERMIT_REFERRALS"
