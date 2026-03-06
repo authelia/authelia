@@ -22,7 +22,7 @@ LDAP servers must permit the query of the RootDSE object by Authelia prior to au
 that Authelia has every opportunity to automatically step-up the security of the authenticated bind. In addition it's
 important to ensure that the LDAP server supports LDAPv3.
 
-The two most critical elements for pre-bind discovery is the ability to perform StarTLS and the supported SASL
+The two most critical elements for pre-bind discovery is the ability to perform StartTLS and the supported SASL
 mechanisms which both assist in preventing the password from being intercepted by a malicious actor.
 
 The LDAP server can either be setup to allow all users to anonymously perform the RootDSE search, or as per our current
