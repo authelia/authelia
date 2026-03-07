@@ -126,6 +126,6 @@ external-url: https://opengist.{{< sitevar name="domain" nojs="example.com" >}}
 - [Opengist 'Use OAuth providers' documentation](https://opengist.io/docs/configuration/oauth-providers.html#openid-connect)
 
 [Authelia]: https://www.authelia.com
-[Opengist]: [https://https://opengist.io//](https://opengist.io/)
+[Opengist]: [https://opengist.io//](https://opengist.io/)
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
