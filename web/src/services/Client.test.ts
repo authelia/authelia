@@ -188,3 +188,12 @@ it("throws on get with optional data error", async () => {
 
     await expect(Client.GetWithOptionalData("/path")).rejects.toThrow("Failed GET from /path. Code: 400.");
 });
+
+it("throws on get with optional data returning undefined", async () => {
+    const mockRes = { data: { status: "OK" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (hasServiceError as any).mockReturnValue({ errored: false });
+    (toData as any).mockReturnValue(undefined);
+
+    await expect(Client.GetWithOptionalData("/path")).rejects.toThrow("unexpected type of response");
+});

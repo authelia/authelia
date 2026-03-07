@@ -57,11 +57,46 @@ it("handles successful webauthn result", async () => {
     expect(result.response).toBe("response");
 });
 
-it("handles webauthn result with dom exception", async () => {
+it("handles webauthn result with AbortError dom exception", async () => {
     (startAuthentication as any).mockRejectedValue(new DOMException("test", "AbortError"));
 
     const result = await getWebAuthnResult({} as any);
     expect(result.result).toBe(AssertionResult.FailureUserConsent);
+});
+
+it("handles webauthn result with UnknownError dom exception", async () => {
+    (startAuthentication as any).mockRejectedValue(new DOMException("test", "UnknownError"));
+
+    const result = await getWebAuthnResult({} as any);
+    expect(result.result).toBe(AssertionResult.FailureSyntax);
+});
+
+it("handles webauthn result with InvalidStateError dom exception", async () => {
+    (startAuthentication as any).mockRejectedValue(new DOMException("test", "InvalidStateError"));
+
+    const result = await getWebAuthnResult({} as any);
+    expect(result.result).toBe(AssertionResult.FailureUnrecognized);
+});
+
+it("handles webauthn result with SecurityError and appid extension", async () => {
+    (startAuthentication as any).mockRejectedValue(new DOMException("test", "SecurityError"));
+
+    const result = await getWebAuthnResult({ extensions: { appid: "test" } } as any);
+    expect(result.result).toBe(AssertionResult.FailureU2FFacetID);
+});
+
+it("handles webauthn result with SecurityError without appid extension", async () => {
+    (startAuthentication as any).mockRejectedValue(new DOMException("test", "SecurityError"));
+
+    const result = await getWebAuthnResult({} as any);
+    expect(result.result).toBe(AssertionResult.FailureUnknownSecurity);
+});
+
+it("handles webauthn result with unhandled dom exception", async () => {
+    (startAuthentication as any).mockRejectedValue(new DOMException("test", "DataError"));
+
+    const result = await getWebAuthnResult({} as any);
+    expect(result.result).toBe(AssertionResult.FailureUnknown);
 });
 
 it("handles webauthn result with null response", async () => {
@@ -92,6 +127,14 @@ it("handles successful webauthn passkey options", async () => {
 
     const result = await getWebAuthnPasskeyOptions();
     expect(result).toEqual({ options: "options", status: 200 });
+});
+
+it("handles webauthn passkey options with no data", async () => {
+    const mockRes = { data: { status: "KO" }, status: 400 };
+    (axios.get as any).mockResolvedValue(mockRes);
+
+    const result = await getWebAuthnPasskeyOptions();
+    expect(result).toEqual({ status: 400 });
 });
 
 it("handles webauthn passkey response posting", async () => {
@@ -131,6 +174,14 @@ it("handles successful webauthn registration options", async () => {
     expect(result).toEqual({ options: "options", status: 200 });
 });
 
+it("handles webauthn registration options with no data", async () => {
+    const mockRes = { data: { status: "KO" }, status: 400 };
+    (axios.put as any).mockResolvedValue(mockRes);
+
+    const result = await getWebAuthnRegistrationOptions("desc");
+    expect(result).toEqual({ status: 400 });
+});
+
 it("handles successful webauthn registration start", async () => {
     (startRegistration as any).mockResolvedValue("response");
 
@@ -139,11 +190,46 @@ it("handles successful webauthn registration start", async () => {
     expect(result.response).toBe("response");
 });
 
-it("handles webauthn registration start with dom exception", async () => {
+it("handles webauthn registration start with AbortError dom exception", async () => {
     (startRegistration as any).mockRejectedValue(new DOMException("test", "AbortError"));
 
     const result = await startWebAuthnRegistration({} as any);
     expect(result.result).toBe(AttestationResult.FailureUserConsent);
+});
+
+it("handles webauthn registration start with UnknownError dom exception", async () => {
+    (startRegistration as any).mockRejectedValue(new DOMException("test", "UnknownError"));
+
+    const result = await startWebAuthnRegistration({} as any);
+    expect(result.result).toBe(AttestationResult.FailureSyntax);
+});
+
+it("handles webauthn registration start with NotSupportedError dom exception", async () => {
+    (startRegistration as any).mockRejectedValue(new DOMException("test", "NotSupportedError"));
+
+    const result = await startWebAuthnRegistration({} as any);
+    expect(result.result).toBe(AttestationResult.FailureSupport);
+});
+
+it("handles webauthn registration start with InvalidStateError dom exception", async () => {
+    (startRegistration as any).mockRejectedValue(new DOMException("test", "InvalidStateError"));
+
+    const result = await startWebAuthnRegistration({} as any);
+    expect(result.result).toBe(AttestationResult.FailureExcluded);
+});
+
+it("handles webauthn registration start with ConstraintError dom exception", async () => {
+    (startRegistration as any).mockRejectedValue(new DOMException("test", "ConstraintError"));
+
+    const result = await startWebAuthnRegistration({} as any);
+    expect(result.result).toBe(AttestationResult.FailureUserVerificationOrResidentKey);
+});
+
+it("handles webauthn registration start with unhandled dom exception", async () => {
+    (startRegistration as any).mockRejectedValue(new DOMException("test", "DataError"));
+
+    const result = await startWebAuthnRegistration({} as any);
+    expect(result.result).toBe(AttestationResult.FailureUnknown);
 });
 
 it("handles successful webauthn registration finish", async () => {
@@ -160,6 +246,16 @@ it("handles webauthn registration finish with error", async () => {
 
     const result = await finishWebAuthnRegistration({} as any);
     expect(result).toEqual({ message: "Device registration failed.", status: AttestationResult.Failure });
+});
+
+it("handles webauthn registration finish with axios error message", async () => {
+    const { AxiosError } = await import("axios");
+    const axiosError = new AxiosError("fail");
+    (axiosError as any).response = { data: { message: "Conflict" } };
+    (axios.post as any).mockRejectedValue(axiosError);
+
+    const result = await finishWebAuthnRegistration({} as any);
+    expect(result).toEqual({ message: "Conflict", status: AttestationResult.Failure });
 });
 
 it("handles webauthn credential deletion", async () => {

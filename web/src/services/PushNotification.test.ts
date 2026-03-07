@@ -45,3 +45,11 @@ it("completes duo device selection process", async () => {
     });
     expect(result).toBe("response");
 });
+
+it("gets preferred duo device", async () => {
+    const { getPreferredDuoDevice } = await import("@services/PushNotification");
+    (Get as any).mockResolvedValue("response");
+    const result = await getPreferredDuoDevice();
+    expect(Get).toHaveBeenCalledWith("/duo/signin");
+    expect(result).toBe("response");
+});
