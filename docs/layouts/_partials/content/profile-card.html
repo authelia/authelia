@@ -1,8 +1,8 @@
-{{- $profile := index $.Site.Data.profiles.people .Profile }}
+{{- $profile := index hugo.Data.profiles.people .Profile }}
 {{- if $profile }}
 {{- $team := "" }}
 {{- if $profile.team }}
-{{- $team = index $.Site.Data.profiles.teams $profile.team }}
+{{- $team = index hugo.Data.profiles.teams $profile.team }}
 {{- end }}
 <div class="card" style="border-radius: 15px;">
   <div class="card-body text-center">

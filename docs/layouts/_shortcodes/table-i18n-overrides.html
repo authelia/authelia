@@ -1,5 +1,5 @@
 |    Language    |    Locale     |        Override Path         |
 |:--------------:|:-------------:|:----------------------------:|
-{{- range $.Site.Data.languages.languages }}
+{{- range hugo.Data.languages.languages }}
 | {{ .display }} | {{ .locale }} | locales/{{ .locale }}/*.json |
 {{- end }}
