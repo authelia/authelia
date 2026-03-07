@@ -8,14 +8,14 @@ vi.mock("@hooks/RemoteCall", () => ({
     useRemoteCall: vi.fn(),
 }));
 
-it("user info post call", () => {
+it("calls useRemoteCall with postUserInfo", () => {
     (useRemoteCall as any).mockReturnValue("postResult");
     const { result } = renderHook(() => useUserInfoPOST());
     expect(useRemoteCall).toHaveBeenCalledWith(postUserInfo);
     expect(result.current).toBe("postResult");
 });
 
-it("user info get call", () => {
+it("calls useRemoteCall with getUserInfo", () => {
     (useRemoteCall as any).mockReturnValue("getResult");
     const { result } = renderHook(() => useUserInfoGET());
     expect(useRemoteCall).toHaveBeenCalledWith(getUserInfo);

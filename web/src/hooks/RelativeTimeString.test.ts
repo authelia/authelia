@@ -1,4 +1,6 @@
-import { getRelativeTimeString } from "@hooks/RelativeTimeString";
+import { act, renderHook } from "@testing-library/react";
+
+import { getRelativeTimeString, useRelativeTime } from "@hooks/RelativeTimeString";
 
 vi.mock("i18next", () => ({
     default: {
@@ -67,4 +69,38 @@ it("returns 0 seconds ago for current date", () => {
     const date = new Date(Date.now());
     const result = getRelativeTimeString(date);
     expect(result).toBe("0 seconds ago");
+});
+
+it("returns never for exactly one year", () => {
+    const date = new Date(Date.now() - 31536000 * 1000);
+    const result = getRelativeTimeString(date);
+    expect(result).toBe("never");
+});
+
+it("updates relative time on interval", () => {
+    vi.useFakeTimers();
+    const date = new Date(Date.now() - 30 * 1000);
+    const { result } = renderHook(() => useRelativeTime(date));
+    expect(result.current).toBe("0 seconds ago");
+
+    mockFormat.mockClear();
+
+    act(() => {
+        vi.advanceTimersByTime(60000);
+    });
+
+    expect(mockFormat).toHaveBeenCalled();
+    vi.useRealTimers();
+});
+
+it("cleans up interval on unmount", () => {
+    vi.useFakeTimers();
+    const date = new Date(Date.now() - 30 * 1000);
+    const { unmount } = renderHook(() => useRelativeTime(date));
+
+    unmount();
+    mockFormat.mockClear();
+    vi.advanceTimersByTime(120000);
+    expect(mockFormat).not.toHaveBeenCalled();
+    vi.useRealTimers();
 });
