@@ -155,5 +155,9 @@ it("does not display warning when password meets policy", () => {
         />,
     );
 
-    expect(screen.queryByText("The password does not meet the password policy")).toBeNull();
+    expect(screen.queryByText("The password does not meet the password policy")).not.toBeInTheDocument();
+});
+
+it("renders without policy", () => {
+    render(<PasswordMeter value={""} />);
 });

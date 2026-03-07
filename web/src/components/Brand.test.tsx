@@ -32,5 +32,5 @@ it("renders privacy policy when enabled", () => {
 it("does not render privacy policy when disabled", () => {
     document.body.setAttribute("data-privacypolicyurl", "");
     render(<Brand />);
-    expect(screen.queryByText("Privacy Policy")).toBeNull();
+    expect(screen.queryByText("Privacy Policy")).not.toBeInTheDocument();
 });

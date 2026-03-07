@@ -53,7 +53,7 @@ it("copies to clipboard on click", async () => {
     expect(mockWriteText).toHaveBeenCalledWith("test");
 });
 
-it("shows copied text after copying", async () => {
+it("displays copied text after copying", async () => {
     render(
         <CopyButton tooltip="copy" value="test" childrenCopied="Copied">
             Copy
@@ -84,6 +84,20 @@ it("does not copy if value is empty", () => {
         </CopyButton>,
     );
     const button = screen.getByRole("button");
+    fireEvent.click(button);
+    expect(mockWriteText).not.toHaveBeenCalled();
+});
+
+it("does not copy again while already copied", async () => {
+    render(
+        <CopyButton tooltip="copy" value="test" childrenCopied="Copied" msTimeoutCopying={50} msTimeoutCopied={200}>
+            Copy
+        </CopyButton>,
+    );
+    const button = screen.getByRole("button");
+    fireEvent.click(button);
+    await waitFor(() => expect(screen.getByText("Copied")).toBeInTheDocument(), { timeout: 200 });
+    mockWriteText.mockClear();
     fireEvent.click(button);
     expect(mockWriteText).not.toHaveBeenCalled();
 });

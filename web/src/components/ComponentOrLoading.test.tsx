@@ -26,7 +26,7 @@ it("renders loading component and does not render children when not ready", () =
     const box = container.querySelector(".MuiBox-root");
     expect(box).not.toHaveClass("hidden");
 
-    expect(screen.queryByText("Child")).toBeNull();
+    expect(screen.queryByText("Child")).not.toBeInTheDocument();
 });
 
 it("renders children and hides loading component when ready", () => {

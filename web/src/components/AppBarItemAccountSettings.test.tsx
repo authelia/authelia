@@ -66,7 +66,7 @@ it("does not render switch user menu item when flow not present", () => {
     render(<AppBarItemAccountSettings userInfo={mockUserInfo} />);
     const button = screen.getByRole("button");
     fireEvent.click(button);
-    expect(screen.queryByText("Switch User")).toBeNull();
+    expect(screen.queryByText("Switch User")).not.toBeInTheDocument();
 });
 
 it("navigates to settings on settings click", () => {

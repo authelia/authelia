@@ -40,7 +40,7 @@ it("renders without crashing", () => {
     render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.WaitTouch} />);
 });
 
-it("shows touch icon when waiting", () => {
+it("displays touch icon when waiting", () => {
     render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.WaitTouch} />);
     const touchDiv = screen.getByTestId("finger-touch");
     expect(touchDiv.parentElement).not.toHaveClass("hidden");
@@ -48,7 +48,7 @@ it("shows touch icon when waiting", () => {
     expect(failureDiv.parentElement).toHaveClass("hidden");
 });
 
-it("shows failure icon when failed", () => {
+it("displays failure icon when failed", () => {
     render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.Failure} />);
     const touchDiv = screen.getByTestId("finger-touch");
     expect(touchDiv.parentElement).toHaveClass("hidden");

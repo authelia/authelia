@@ -12,6 +12,7 @@ const mockOf = vi.fn((locale: string) => {
     if (locale === "fr") return "French";
     if (locale === "fr-CA") return "French (Canada)";
     if (locale === "fr-FR") return "French (France)";
+    if (locale === "unknown") return "";
     return locale;
 });
 
@@ -39,6 +40,8 @@ const mockLanguages: Language[] = [
     { display: "French", fallbacks: [], locale: "fr", namespaces: [] },
     { display: "French (Canada)", fallbacks: [], locale: "fr-CA", namespaces: [], parent: "fr" },
     { display: "French (France)", fallbacks: [], locale: "fr-FR", namespaces: [], parent: "fr" },
+    { display: "Deutsch", fallbacks: [], locale: "de", namespaces: [] },
+    { display: "Deutsch (Schweiz)", fallbacks: [], locale: "de-CH", namespaces: [], parent: "de" },
     { display: "", fallbacks: [], locale: "sc", namespaces: [] },
     { display: "", fallbacks: [], locale: "unknown", namespaces: [] },
 ];
@@ -101,4 +104,34 @@ it("uses fallback for unknown locale", () => {
     const button = screen.getByRole("button");
     fireEvent.click(button);
     expect(screen.getByText("Basa Sunda (sc)")).toBeInTheDocument();
+});
+
+it("resolves current locale from child locales", () => {
+    render(<AppBarItemLanguage localeCurrent="fr-CA" localeList={mockLanguages} onChange={mockOnChange} />);
+    expect(screen.getByText("French (Canada)")).toBeInTheDocument();
+});
+
+it("handles single child locale by promoting child locale", () => {
+    render(<AppBarItemLanguage localeCurrent="de-CH" localeList={mockLanguages} onChange={mockOnChange} />);
+    const button = screen.getByRole("button");
+    fireEvent.click(button);
+    expect(screen.getByText("Deutsch (de-CH)")).toBeInTheDocument();
+});
+
+it("returns null when current locale is not in list", () => {
+    render(<AppBarItemLanguage localeCurrent="ja" localeList={mockLanguages} onChange={mockOnChange} />);
+});
+
+it("collapses and expands via icon click", () => {
+    render(<AppBarItemLanguage localeCurrent="en" localeList={mockLanguages} onChange={mockOnChange} />);
+    const button = screen.getByRole("button");
+    fireEvent.click(button);
+    const frenchItem = screen.getByText("French (fr)");
+    fireEvent.click(frenchItem);
+    const expandLess = screen.getByTestId("ExpandLessIcon");
+    fireEvent.click(expandLess);
+    expect(screen.getByTestId("ExpandMoreIcon")).toBeInTheDocument();
+    const expandMore = screen.getByTestId("ExpandMoreIcon");
+    fireEvent.click(expandMore);
+    expect(screen.getByTestId("ExpandLessIcon")).toBeInTheDocument();
 });
