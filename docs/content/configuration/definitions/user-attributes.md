@@ -15,9 +15,20 @@ seo:
 ---
 
 The user attributes section allows you to define custom attributes for your users using Common Expression Language (CEL).
+
 These attributes can be used at the current time to:
 
 - Enhance [OpenID Connect 1.0 claims](../../integration/openid-connect/openid-connect-1.0-claims.md) with dynamic values
+
+The following extensions are enabled by default:
+
+- `strings`
+- `lists`
+- `sets`
+- `math`
+- `encoders`
+- `bindings`
+- `regex`
 
 ## Configuration
 
