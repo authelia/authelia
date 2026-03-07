@@ -1,9 +1,14 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import ThemeContextProvider, { useThemeContext } from "@contexts/ThemeContext";
 
 vi.mock("@constants/LocalStorage", () => ({
     LocalStorageThemeName: "theme",
+}));
+
+vi.mock("@services/LocalStorage", () => ({
+    localStorageAvailable: vi.fn(() => true),
+    setLocalStorage: vi.fn(),
 }));
 
 const mockLocalStorage = {
@@ -19,6 +24,16 @@ const mockMatchMedia = {
 };
 
 vi.stubGlobal("localStorage", mockLocalStorage);
+
+beforeEach(() => {
+    mockLocalStorage.getItem.mockReset();
+    mockLocalStorage.setItem.mockReset();
+    mockLocalStorage.removeItem.mockReset();
+    mockMatchMedia.addEventListener.mockReset();
+    mockMatchMedia.removeEventListener.mockReset();
+    mockMatchMedia.matches = false;
+});
+
 vi.stubGlobal(
     "matchMedia",
     vi.fn(() => mockMatchMedia),
@@ -60,9 +75,8 @@ it("sets theme name and stores in storage", async () => {
             <TestComponent />
         </ThemeContextProvider>,
     );
-    const button = screen.getByText("Set Dark");
     await act(async () => {
-        button.click();
+        fireEvent.click(screen.getByText("Set Dark"));
     });
     expect(await screen.findByText("dark")).toBeInTheDocument();
 });
@@ -73,9 +87,8 @@ it("sets theme name to auto", async () => {
             <TestComponent />
         </ThemeContextProvider>,
     );
-    const button = screen.getByText("Set Auto");
     await act(async () => {
-        button.click();
+        fireEvent.click(screen.getByText("Set Auto"));
     });
     expect(await screen.findByText("auto")).toBeInTheDocument();
 });
@@ -86,9 +99,8 @@ it("sets theme name to oled", async () => {
             <TestComponent />
         </ThemeContextProvider>,
     );
-    const button = screen.getByText("Set Oled");
     await act(async () => {
-        button.click();
+        fireEvent.click(screen.getByText("Set Oled"));
     });
     expect(await screen.findByText("oled")).toBeInTheDocument();
 });
@@ -107,6 +119,91 @@ it("handles storage event for theme change", async () => {
         window.dispatchEvent(event);
     });
     expect(await screen.findByText("grey")).toBeInTheDocument();
+});
+
+it("handles storage event with empty newValue", async () => {
+    render(
+        <ThemeContextProvider>
+            <TestComponent />
+        </ThemeContextProvider>,
+    );
+    const event = new StorageEvent("storage", {
+        key: "theme",
+        newValue: "",
+    });
+    await act(async () => {
+        window.dispatchEvent(event);
+    });
+    expect(screen.getByText("light")).toBeInTheDocument();
+});
+
+it("handles storage event with empty newValue falling back to stored theme", async () => {
+    render(
+        <ThemeContextProvider>
+            <TestComponent />
+        </ThemeContextProvider>,
+    );
+    mockLocalStorage.getItem.mockReturnValue("dark");
+    const event = new StorageEvent("storage", {
+        key: "theme",
+        newValue: "",
+    });
+    await act(async () => {
+        window.dispatchEvent(event);
+    });
+    expect(await screen.findByText("dark")).toBeInTheDocument();
+});
+
+it("ignores storage event for different key", async () => {
+    render(
+        <ThemeContextProvider>
+            <TestComponent />
+        </ThemeContextProvider>,
+    );
+    await act(async () => {
+        fireEvent.click(screen.getByText("Set Dark"));
+    });
+    expect(await screen.findByText("dark")).toBeInTheDocument();
+    const event = new StorageEvent("storage", {
+        key: "other",
+        newValue: "grey",
+    });
+    await act(async () => {
+        window.dispatchEvent(event);
+    });
+    expect(screen.getByText("dark")).toBeInTheDocument();
+});
+
+it("initializes with auto theme from storage", () => {
+    mockLocalStorage.getItem.mockReturnValue("auto");
+    render(
+        <ThemeContextProvider>
+            <TestComponent />
+        </ThemeContextProvider>,
+    );
+    expect(screen.getByText("auto")).toBeInTheDocument();
+});
+
+it("responds to media query change when auto theme is set", async () => {
+    let mediaQueryCallback: ((_ev: MediaQueryListEvent) => void) | undefined;
+    mockMatchMedia.addEventListener.mockImplementation((_event: string, cb: (_ev: MediaQueryListEvent) => void) => {
+        mediaQueryCallback = cb;
+    });
+
+    render(
+        <ThemeContextProvider>
+            <TestComponent />
+        </ThemeContextProvider>,
+    );
+    await act(async () => {
+        fireEvent.click(screen.getByText("Set Auto"));
+    });
+    expect(await screen.findByText("auto")).toBeInTheDocument();
+    expect(mockMatchMedia.addEventListener).toHaveBeenCalledWith("change", expect.any(Function));
+
+    await act(async () => {
+        mediaQueryCallback!({ matches: true } as MediaQueryListEvent);
+    });
 });
 
 it("throws error if used outside provider", () => {

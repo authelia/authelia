@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import LocalStorageMethodContextProvider, { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { SecondFactorMethod } from "@models/Methods";
@@ -25,6 +25,12 @@ const mockLocalStorage = {
 };
 
 vi.stubGlobal("localStorage", mockLocalStorage);
+
+beforeEach(() => {
+    mockLocalStorage.getItem.mockReset();
+    mockLocalStorage.setItem.mockReset();
+    mockLocalStorage.removeItem.mockReset();
+});
 
 const TestComponent = () => {
     const { localStorageMethod, localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
@@ -62,8 +68,7 @@ it("sets method in storage", () => {
             <TestComponent />
         </LocalStorageMethodContextProvider>,
     );
-    const button = screen.getByText("Set TOTP");
-    button.click();
+    fireEvent.click(screen.getByText("Set TOTP"));
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith("method", "totp");
 });
 
@@ -73,9 +78,8 @@ it("removes method from storage when set to undefined", async () => {
             <TestComponent />
         </LocalStorageMethodContextProvider>,
     );
-    const button = screen.getByText("Clear");
     await act(async () => {
-        button.click();
+        fireEvent.click(screen.getByText("Clear"));
     });
     expect(mockLocalStorage.removeItem).toHaveBeenCalledWith("method");
 });
@@ -110,6 +114,37 @@ it("handles storage event with empty newValue", async () => {
         window.dispatchEvent(event);
     });
     expect(await screen.findByText("none")).toBeInTheDocument();
+});
+
+it("ignores storage event for different key", async () => {
+    render(
+        <LocalStorageMethodContextProvider>
+            <TestComponent />
+        </LocalStorageMethodContextProvider>,
+    );
+    const event = new StorageEvent("storage", {
+        key: "other",
+        newValue: "totp",
+    });
+    await act(async () => {
+        window.dispatchEvent(event);
+    });
+    expect(screen.getByText("none")).toBeInTheDocument();
+});
+
+it("handles localStorage being unavailable", async () => {
+    const { localStorageAvailable } = await import("@services/LocalStorage");
+    vi.mocked(localStorageAvailable).mockReturnValue(false);
+
+    render(
+        <LocalStorageMethodContextProvider>
+            <TestComponent />
+        </LocalStorageMethodContextProvider>,
+    );
+    expect(screen.getByText("none")).toBeInTheDocument();
+    expect(screen.getByText("not available")).toBeInTheDocument();
+
+    vi.mocked(localStorageAvailable).mockReturnValue(true);
 });
 
 it("throws error if used outside provider", () => {

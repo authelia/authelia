@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import LanguageContextProvider, { useLanguageContext } from "@contexts/LanguageContext";
 
@@ -44,9 +44,8 @@ it("updates locale", async () => {
             <TestComponent />
         </LanguageContextProvider>,
     );
-    const button = screen.getByRole("button");
     await act(async () => {
-        button.click();
+        fireEvent.click(screen.getByRole("button"));
     });
     expect(mockI18n.changeLanguage).toHaveBeenCalledWith("fr");
 });
