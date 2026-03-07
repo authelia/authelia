@@ -72,7 +72,7 @@ identity_providers:
 
 ### Application
 
-To configure [OpenGist] there are two methods, using the [Environment Variables](#environment-variables) , or using the [Configuration File](#configuration-file).
+To configure [OpenGist] there are two methods, using the [Environment Variables](#environment-variables), or using the [Configuration File](#configuration-file).
 
 See https://opengist.io/docs/configuration/oauth-providers.html#openid-connect.
 
