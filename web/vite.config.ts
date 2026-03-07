@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
               exclude: ["node_modules"],
               extension: [".js", ".jsx", ".ts", ".tsx"],
               forceBuildInstrument: true,
-              include: "src/*",
+              include: "src",
               requireEnv: true,
           })
         : undefined;
@@ -109,10 +109,12 @@ export default defineConfig(({ mode }) => {
         },
         test: {
             coverage: {
+                include: ["src"],
                 provider: "istanbul",
             },
             environment: "happy-dom",
             globals: true,
+            reporters: ["default", "html"],
             setupFiles: ["src/setupTests.ts"],
         },
     };
