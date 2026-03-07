@@ -1,6 +1,6 @@
 ---
 title: "Opengist"
-description: "Integrating OpenGist with the Authelia OpenID Connect 1.0 Provider."
+description: "Integrating Opengist with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
 date: 2026-03-07T23:00:00+11:00
 draft: false
@@ -55,7 +55,7 @@ identity_providers:
     ## See: https://www.authelia.com/c/oidc
     clients:
       - client_id: 'opengist'
-        client_name: 'OpenGist'
+        client_name: 'Opengist'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         authorization_policy: 'two_factor'
         redirect_uris:
@@ -72,7 +72,7 @@ identity_providers:
 
 ### Application
 
-To configure [OpenGist] there are two methods, using the [Environment Variables](#environment-variables), or using the [Configuration File](#configuration-file).
+To configure [Opengist] there are two methods, using the [Environment Variables](#environment-variables), or using the [Configuration File](#configuration-file).
 
 See https://opengist.io/docs/configuration/oauth-providers.html#openid-connect.
 
