@@ -166,7 +166,7 @@ func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 }
 
 // XForwardedURI returns the content of the X-Forwarded-URI header.
-func (ctx *AutheliaCtx) XForwardedURI() (host []byte) {
+func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	return ctx.Request.Header.PeekBytes(headerXForwardedURI)
 }
 
@@ -182,12 +182,12 @@ func (ctx *AutheliaCtx) GetXForwardedURI() (uri []byte) {
 }
 
 // XOriginalMethod returns the content of the X-Original-Method header.
-func (ctx *AutheliaCtx) XOriginalMethod() []byte {
+func (ctx *AutheliaCtx) XOriginalMethod() (method []byte) {
 	return ctx.Request.Header.PeekBytes(headerXOriginalMethod)
 }
 
 // XOriginalURL returns the content of the X-Original-URL header.
-func (ctx *AutheliaCtx) XOriginalURL() []byte {
+func (ctx *AutheliaCtx) XOriginalURL() (uri []byte) {
 	return ctx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
@@ -308,6 +308,15 @@ func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provi
 	return ctx.Providers.SessionProvider.Get(domain)
 }
 
+func (ctx *AutheliaCtx) GetSessionManagerByTargetURI(targetURL *url.URL) (provider session.Manager, err error) {
+	base, err := ctx.GetSessionProviderByTargetURI(targetURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return session.NewEncapsulatedSession(base, ctx.RequestCtx), nil
+}
+
 // GetSessionProvider returns the session provider for the Request's domain.
 func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err error) {
 	if ctx.session == nil {
@@ -323,6 +332,22 @@ func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err err
 	}
 
 	return ctx.session, nil
+}
+
+func (ctx *AutheliaCtx) NewSession() (userSession session.UserSession) {
+	if provider, err := ctx.GetSessionProvider(); err != nil {
+		return session.NewDefaultUserSession()
+	} else {
+		return provider.NewDefaultUserSession()
+	}
+}
+
+func (ctx *AutheliaCtx) GetSessionConfig() (config schema.SessionCookie) {
+	if provider, err := ctx.GetSessionProvider(); err != nil {
+		return config
+	} else {
+		return provider.Config
+	}
 }
 
 // GetCookieDomainSessionProvider returns the session provider for the provided domain.
@@ -380,7 +405,7 @@ func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 }
 
 // RegenerateSession regenerates a user session.
-func (ctx *AutheliaCtx) RegenerateSession() error {
+func (ctx *AutheliaCtx) RegenerateSession() (err error) {
 	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to regenerate user session: %s", err)
@@ -390,7 +415,7 @@ func (ctx *AutheliaCtx) RegenerateSession() error {
 }
 
 // DestroySession destroys a user session.
-func (ctx *AutheliaCtx) DestroySession() error {
+func (ctx *AutheliaCtx) DestroySession() (err error) {
 	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to destroy user session: %s", err)
@@ -450,6 +475,22 @@ func (ctx *AutheliaCtx) SetContentTypeApplicationYAML() {
 // SetJSONBody Set json body.
 func (ctx *AutheliaCtx) SetJSONBody(value any) error {
 	return ctx.ReplyJSON(OKResponse{Status: "OK", Data: value}, 0)
+}
+
+func (ctx *AutheliaCtx) GetRequestQueryArgValue(key []byte) (value []byte) {
+	return ctx.QueryArgs().PeekBytes(key)
+}
+
+func (ctx *AutheliaCtx) GetRequestHeaderValue(key []byte) (value []byte) {
+	return ctx.Request.Header.PeekBytes(key)
+}
+
+func (ctx *AutheliaCtx) SetResponseHeaderValue(key []byte, value string) {
+	ctx.Response.Header.SetBytesK(key, value)
+}
+
+func (ctx *AutheliaCtx) SetResponseHeaderValueBytes(key, value []byte) {
+	ctx.Response.Header.SetBytesKV(key, value)
 }
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.

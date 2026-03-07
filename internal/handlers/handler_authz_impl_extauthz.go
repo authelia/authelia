@@ -7,10 +7,9 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func handleAuthzGetObjectExtAuthz(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
+func handleAuthzGetObjectExtAuthz(ctx AuthzContext) (object authorization.Object, err error) {
 	protocol, host, uri := ctx.XForwardedProto(), ctx.Host(), ctx.AuthzPath()
 
 	var (
@@ -33,7 +32,7 @@ func handleAuthzGetObjectExtAuthz(ctx *middlewares.AutheliaCtx) (object authoriz
 	return authorization.NewObjectRaw(targetURL, method), nil
 }
 
-func handleAuthzUnauthorizedExtAuthz(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {
+func handleAuthzUnauthorizedExtAuthz(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
 	var (
 		statusCode int
 	)
@@ -50,7 +49,7 @@ func handleAuthzUnauthorizedExtAuthz(ctx *middlewares.AutheliaCtx, authn *Authn,
 		}
 	}
 
-	ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
+	ctx.GetLogger().Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
 
 	switch authn.Object.Method {
 	case fasthttp.MethodHead:
