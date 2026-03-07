@@ -21,6 +21,10 @@ vi.mock("@services/Client", () => ({
     Get: vi.fn(),
 }));
 
+beforeEach(() => {
+    vi.clearAllMocks();
+});
+
 it("gets user info TOTP configuration", async () => {
     (Get as any).mockResolvedValue({
         algorithm: "SHA1",
@@ -34,8 +38,8 @@ it("gets user info TOTP configuration", async () => {
     const result = await getUserInfoTOTPConfiguration();
     expect(Get).toHaveBeenCalledWith("/totp/config");
     expect(result.algorithm).toBe(TOTPAlgorithm.SHA1);
-    expect(result.created_at).toBeInstanceOf(Date);
-    expect(result.last_used_at).toBeInstanceOf(Date);
+    expect(result.created_at).toEqual(new Date("2024-01-01T00:00:00Z"));
+    expect(result.last_used_at).toEqual(new Date("2024-06-01T00:00:00Z"));
     expect(result.digits).toBe(6);
     expect(result.period).toBe(30);
 });
@@ -51,6 +55,7 @@ it("gets user info TOTP configuration without last_used_at", async () => {
 
     const result = await getUserInfoTOTPConfiguration();
     expect(result.algorithm).toBe(TOTPAlgorithm.SHA256);
+    expect(result.created_at).toEqual(new Date("2024-01-01T00:00:00Z"));
     expect(result.last_used_at).toBeUndefined();
 });
 

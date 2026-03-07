@@ -118,10 +118,13 @@ it("renders children", async () => {
 });
 
 it("sets the document title", async () => {
+    document.title = "Sentinel Title";
+
     await act(async () => {
         render(<LoginLayout />);
     });
 
+    expect(document.title).not.toBe("Sentinel Title");
     expect(document.title).toContain("Login");
 });
 
