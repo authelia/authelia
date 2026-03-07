@@ -6,11 +6,11 @@ date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 toc: false
-type: legal
 aliases:
-  - /security-policy
-  - /security
-  - /security.html
+  - '/security-policy'
+  - '/security'
+  - '/security.html'
+  - '/policies/security'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -56,14 +56,14 @@ vulnerabilities and issues within the __Authelia__ code base.
 ### Chat
 
 If you wish to chat directly instead of sending an email please use one of the
-[chat options](../information/contact.md#chat) to direct / private message one of the [core team] members.
+[chat options](../contact.md#chat) to direct / private message one of the [core team] members.
 
 Please avoid this method unless absolutely necessary. We generally prefer that users use either the
 [GitHub Security](#github-security) or [Email](#email) option rather than this option as it both allows multiple team
 members to deal with the report and prevents mistakes when contacting a [core team] member.
 
-The [core team] members are identified in [Matrix](../information/contact.md#matrix) as room admins, and in
-[Discord](../information/contact.md#discord) with the `Core Team` role.
+The [core team] members are identified in [Matrix](../contact.md#matrix) as room admins, and in
+[Discord](../contact.md#discord) with the `Core Team` role.
 
 ## Process
 
@@ -108,5 +108,5 @@ willing to make a financial contribution towards this then please feel free to c
 [coordinated vulnerability disclosure]: https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure
 [security advisory]: https://github.com/authelia/authelia/security/advisories
 [report a vulnerability]: https://github.com/authelia/authelia/security/advisories/new
-[core team]: ../information/about.md#core-team
+[core team]: ../about.md#core-team
 [all contributors]: https://github.com/authelia/authelia/blob/master/README.md#contribute
