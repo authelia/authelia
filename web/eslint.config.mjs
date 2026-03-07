@@ -94,6 +94,6 @@ export default [
     prettierPluginRecommended,
 
     {
-        ignores: [".pnpm-store", "build", "coverage", "!**/.*.js"],
+        ignores: [".pnpm-store", "build", "coverage", "html", "!**/.*.js"],
     },
 ];

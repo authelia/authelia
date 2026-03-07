@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 
 import TypographyWithTooltip, { Props } from "@components/TypographyWithTooltip";
 
@@ -11,7 +11,7 @@ it("renders without crashing", () => {
     render(<TypographyWithTooltip {...defaultProps} />);
 });
 
-it("renders with tooltip without crashing", () => {
+it("renders with tooltip", () => {
     const props: Props = {
         ...defaultProps,
         tooltip: "A tooltip",
@@ -24,9 +24,8 @@ it("renders the text correctly", () => {
         ...defaultProps,
         value: "Test text",
     };
-    const { getByText } = render(<TypographyWithTooltip {...props} />);
-    const element = getByText(props.value!);
-    expect(element).toBeInTheDocument();
+    render(<TypographyWithTooltip {...props} />);
+    expect(screen.getByText(props.value!)).toBeInTheDocument();
 });
 
 it("renders the tooltip correctly", () => {
@@ -34,7 +33,6 @@ it("renders the tooltip correctly", () => {
         ...defaultProps,
         tooltip: "Test tooltip",
     };
-    const { getByText } = render(<TypographyWithTooltip {...props} />);
-    const element = getByText(props.value!);
-    expect(element).toHaveAttribute("aria-label", props.tooltip);
+    render(<TypographyWithTooltip {...props} />);
+    expect(screen.getByText(props.value!)).toHaveAttribute("aria-label", props.tooltip);
 });

@@ -1,5 +1,4 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach } from "vitest";
 
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 
@@ -21,18 +20,18 @@ it("renders privacy policy and accepts when Accept button is clicked", () => {
 
 it("does not render when privacy policy is disabled", () => {
     render(<PrivacyPolicyDrawer />);
-    expect(screen.queryByText("Privacy Policy")).toBeNull();
-    expect(screen.queryByText("You must view and accept the Privacy Policy before using")).toBeNull();
-    expect(screen.queryByText("Accept")).toBeNull();
+    expect(screen.queryByText("Privacy Policy")).not.toBeInTheDocument();
+    expect(screen.queryByText("You must view and accept the Privacy Policy before using")).not.toBeInTheDocument();
+    expect(screen.queryByText("Accept")).not.toBeInTheDocument();
 });
 
 it("does not render when acceptance is not required", () => {
     document.body.setAttribute("data-privacypolicyurl", "http://example.com/privacy-policy");
 
     render(<PrivacyPolicyDrawer />);
-    expect(screen.queryByText("Privacy Policy")).toBeNull();
-    expect(screen.queryByText("You must view and accept the Privacy Policy before using")).toBeNull();
-    expect(screen.queryByText("Accept")).toBeNull();
+    expect(screen.queryByText("Privacy Policy")).not.toBeInTheDocument();
+    expect(screen.queryByText("You must view and accept the Privacy Policy before using")).not.toBeInTheDocument();
+    expect(screen.queryByText("Accept")).not.toBeInTheDocument();
 });
 
 it("does not render when already accepted", () => {
