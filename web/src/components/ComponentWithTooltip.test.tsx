@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import ComponentWithTooltip from "@components/ComponentWithTooltip";
 
@@ -36,11 +36,14 @@ it("renders children with tooltip when render is true", () => {
     expect(child.parentElement?.tagName).toBe("SPAN");
 });
 
-it("passes tooltip props correctly", () => {
+it("shows tooltip text on hover", async () => {
     render(
         <ComponentWithTooltip render={true} title="test title" placement="top">
             <span>child</span>
         </ComponentWithTooltip>,
     );
-    expect(screen.getByText("child")).toBeInTheDocument();
+    fireEvent.mouseOver(screen.getByText("child"));
+    await waitFor(() => {
+        expect(screen.getByRole("tooltip")).toHaveTextContent("test title");
+    });
 });

@@ -1,11 +1,13 @@
 import { getBasePath } from "@utils/BasePath";
 
 beforeEach(() => {
-    document.body.getAttributeNames().forEach((attr) => document.body.removeAttribute(attr));
+    document.body.getAttributeNames().forEach((attr) => {
+        document.body.removeAttribute(attr);
+    });
 });
 
 it("returns the base path from the embedded variable", () => {
-    document.body.setAttribute("data-basepath", "/auth");
+    document.body.dataset.basepath = "/auth";
     expect(getBasePath()).toBe("/auth");
 });
 

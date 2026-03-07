@@ -45,6 +45,10 @@ vi.mock("@components/PasswordMeter", () => ({
     default: () => <div data-testid="password-meter" />,
 }));
 
+afterEach(() => {
+    vi.restoreAllMocks();
+});
+
 it("renders the reset password form", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     render(

@@ -31,8 +31,10 @@ vi.mock("@hooks/OpenIDConnect", () => ({
     useUserCode: () => null,
 }));
 
+const mockPostSecondFactor = vi.fn();
+
 vi.mock("@services/Password", () => ({
-    postSecondFactor: vi.fn(),
+    postSecondFactor: (...args: any[]) => mockPostSecondFactor(...args),
 }));
 
 vi.mock("@services/CapsLock", () => ({
@@ -45,10 +47,17 @@ it("renders the password form", () => {
     expect(screen.getByText("Authenticate")).toBeInTheDocument();
 });
 
+beforeEach(() => {
+    mockPostSecondFactor.mockReset();
+});
+
 it("shows error when submitting empty password", async () => {
     render(<PasswordForm onAuthenticationSuccess={vi.fn()} />);
 
     await act(async () => {
         fireEvent.click(screen.getByText("Authenticate"));
     });
+
+    expect(mockPostSecondFactor).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Password *")).toHaveAttribute("aria-invalid", "true");
 });

@@ -58,6 +58,10 @@ beforeEach(() => {
     mockSetLocale.mockReset();
 });
 
+afterEach(() => {
+    vi.restoreAllMocks();
+});
+
 it("renders with default SVG logo", async () => {
     await act(async () => {
         render(<LoginLayout />);

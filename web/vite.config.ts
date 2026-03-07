@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
               exclude: ["node_modules"],
               extension: [".js", ".jsx", ".ts", ".tsx"],
               forceBuildInstrument: true,
-              include: "src",
+              include: "src/*",
               requireEnv: true,
           })
         : undefined;

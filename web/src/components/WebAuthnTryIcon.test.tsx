@@ -11,6 +11,12 @@ vi.mock("@hooks/Timer", () => ({
     useTimer: vi.fn(() => [50, mockTrigger, mockClear]),
 }));
 
+beforeEach(() => {
+    mockTrigger.mockClear();
+    mockClear.mockClear();
+    mockOnRetryClick.mockClear();
+});
+
 vi.mock("@components/FailureIcon", () => ({
     default: () => <div data-testid="failure-icon" />,
 }));
@@ -60,7 +66,7 @@ it("retries on retry button click", () => {
     render(<WebAuthnTryIcon onRetryClick={mockOnRetryClick} webauthnTouchState={WebAuthnTouchState.Failure} />);
     const button = screen.getByRole("button");
     fireEvent.click(button);
-    expect(mockOnRetryClick).toHaveBeenCalled();
-    expect(mockClear).toHaveBeenCalled();
-    expect(mockTrigger).toHaveBeenCalled();
+    expect(mockOnRetryClick).toHaveBeenCalledTimes(1);
+    expect(mockClear).toHaveBeenCalledTimes(1);
+    expect(mockTrigger).toHaveBeenCalledTimes(2);
 });

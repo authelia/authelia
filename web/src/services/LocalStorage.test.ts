@@ -6,12 +6,15 @@ const mockLocalStorage = {
     setItem: vi.fn(),
 };
 
-vi.stubGlobal("localStorage", mockLocalStorage);
-
 beforeEach(() => {
     mockLocalStorage.getItem.mockReset();
     mockLocalStorage.setItem.mockReset();
     mockLocalStorage.removeItem.mockReset();
+    vi.stubGlobal("localStorage", mockLocalStorage);
+});
+
+afterEach(() => {
+    vi.unstubAllGlobals();
 });
 
 it("reports localStorage as available", () => {

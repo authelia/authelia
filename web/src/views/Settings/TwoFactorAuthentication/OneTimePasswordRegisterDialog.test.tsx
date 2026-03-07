@@ -62,6 +62,10 @@ vi.mock("qrcode.react", () => ({
     QRCodeSVG: () => <div data-testid="qr-code" />,
 }));
 
+afterEach(() => {
+    vi.restoreAllMocks();
+});
+
 it("renders dialog with title when open", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     render(<OneTimePasswordRegisterDialog open={true} setClosed={vi.fn()} />);

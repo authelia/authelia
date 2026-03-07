@@ -63,6 +63,10 @@ vi.mock("@views/LoginPortal/SecondFactor/DeviceSelectionContainer", () => ({
     default: () => <div data-testid="device-selection" />,
 }));
 
+afterEach(() => {
+    vi.restoreAllMocks();
+});
+
 it("renders method container with push notification title", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "debug").mockImplementation(() => {});

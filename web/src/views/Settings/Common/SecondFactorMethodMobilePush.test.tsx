@@ -37,14 +37,20 @@ vi.mock("@views/LoginPortal/SecondFactor/DeviceSelectionContainer", () => ({
     default: () => <div data-testid="device-selection" />,
 }));
 
-it("renders push notification icon", () => {
+beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
+});
+
+afterEach(() => {
+    vi.restoreAllMocks();
+});
+
+it("renders push notification icon", () => {
     render(<SecondFactorMethodMobilePush onSecondFactorSuccess={vi.fn()} />);
     expect(screen.getByTestId("push-notification-icon")).toBeInTheDocument();
 });
 
 it("renders select a device link", () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
     render(<SecondFactorMethodMobilePush onSecondFactorSuccess={vi.fn()} />);
-    expect(screen.getByText("Select a Device")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Select a Device" })).toBeInTheDocument();
 });

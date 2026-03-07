@@ -130,7 +130,7 @@ it("throws on put error", async () => {
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 
     await expect(Client.PutWithOptionalResponse("/path", {})).rejects.toThrow(
-        "Failed POST to /path. Code: 400. Message: error",
+        "Failed PUT to /path. Code: 400. Message: error",
     );
 });
 

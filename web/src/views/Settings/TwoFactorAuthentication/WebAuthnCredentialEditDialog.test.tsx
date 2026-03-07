@@ -26,6 +26,10 @@ beforeEach(() => {
     mockCreateSuccess.mockReset();
 });
 
+afterEach(() => {
+    vi.restoreAllMocks();
+});
+
 const credential = { description: "My Key", id: "abc123" } as any;
 
 it("renders the edit dialog when open", () => {
@@ -33,15 +37,17 @@ it("renders the edit dialog when open", () => {
     expect(screen.getByText("Edit WebAuthn Credential")).toBeInTheDocument();
 });
 
-it("shows error when updating with empty description", async () => {
-    render(<WebAuthnCredentialEditDialog open={true} credential={credential} handleClose={vi.fn()} />);
+it("does not call update when description is empty", async () => {
+    const { updateUserWebAuthnCredential } = await import("@services/WebAuthn");
+    vi.mocked(updateUserWebAuthnCredential).mockReset();
 
-    await act(async () => {
-        fireEvent.click(screen.getByText("Update"));
-    });
+    const handleClose = vi.fn();
+    render(<WebAuthnCredentialEditDialog open={true} credential={credential} handleClose={handleClose} />);
 
-    // Error state is set on the TextField (errorDescription = true)
-    expect(screen.getByLabelText("Description *")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Update"));
+
+    expect(updateUserWebAuthnCredential).not.toHaveBeenCalled();
+    expect(handleClose).not.toHaveBeenCalled();
 });
 
 it("calls handleClose on successful update", async () => {

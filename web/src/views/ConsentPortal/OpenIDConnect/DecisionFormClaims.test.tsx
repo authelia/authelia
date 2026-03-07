@@ -45,9 +45,10 @@ it("calls onChangeChecked when unchecking a claim", () => {
     expect(onChange).toHaveBeenCalledWith(["picture"]);
 });
 
-it("calls onChangeChecked when checking a claim", () => {
-    const onChange = vi.fn();
-    render(<DecisionFormClaims claims={[]} essential_claims={null} onChangeChecked={onChange} />);
-    // No checkboxes rendered for empty claims array, but the claims container still shows
-    // since essential_claims is null and claims is an empty array (truthy)
+it("renders both essential and optional claims together", () => {
+    render(<DecisionFormClaims claims={["name"]} essential_claims={["sub"]} onChangeChecked={vi.fn()} />);
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes).toHaveLength(2);
+    expect(checkboxes[0]).toBeDisabled();
+    expect(checkboxes[1]).toBeEnabled();
 });

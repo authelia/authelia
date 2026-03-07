@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import MethodContainer, { State } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
@@ -70,7 +70,8 @@ it("renders method state with children and explanation", () => {
     expect(screen.getByText("Enter your code")).toBeInTheDocument();
 });
 
-it("renders register link when onRegisterClick is provided", () => {
+it("renders register link and calls onRegisterClick when clicked", () => {
+    const onRegisterClick = vi.fn();
     render(
         <MethodContainer
             id="test"
@@ -79,15 +80,19 @@ it("renders register link when onRegisterClick is provided", () => {
             registered={false}
             explanation=""
             state={State.METHOD}
-            onRegisterClick={vi.fn()}
+            onRegisterClick={onRegisterClick}
         >
             <div />
         </MethodContainer>,
     );
-    expect(screen.getByText("Register device")).toBeInTheDocument();
+    const link = screen.getByText("Register device");
+    expect(link).toBeInTheDocument();
+    fireEvent.click(link);
+    expect(onRegisterClick).toHaveBeenCalledTimes(1);
 });
 
-it("renders manage devices link when registered and onRegisterClick is provided", () => {
+it("renders manage devices link and calls onRegisterClick when clicked", () => {
+    const onRegisterClick = vi.fn();
     render(
         <MethodContainer
             id="test"
@@ -96,12 +101,15 @@ it("renders manage devices link when registered and onRegisterClick is provided"
             registered={true}
             explanation=""
             state={State.METHOD}
-            onRegisterClick={vi.fn()}
+            onRegisterClick={onRegisterClick}
         >
             <div />
         </MethodContainer>,
     );
-    expect(screen.getByText("Manage devices")).toBeInTheDocument();
+    const link = screen.getByText("Manage devices");
+    expect(link).toBeInTheDocument();
+    fireEvent.click(link);
+    expect(onRegisterClick).toHaveBeenCalledTimes(1);
 });
 
 it("renders push notification not registered state without self enrollment", () => {

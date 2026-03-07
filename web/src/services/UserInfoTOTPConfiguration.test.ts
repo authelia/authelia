@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import { TOTPAlgorithm } from "@models/TOTPConfiguration";
+import { validateStatusAuthentication } from "@services/Api";
 import { Get } from "@services/Client";
 import {
     deleteUserTOTPConfiguration,
@@ -71,6 +72,11 @@ it("gets optional TOTP configuration when present", async () => {
     const result = await getUserInfoTOTPConfigurationOptional();
     expect(result).not.toBeNull();
     expect(result!.algorithm).toBe(TOTPAlgorithm.SHA512);
+
+    const validateStatus = (axios.get as any).mock.calls[0][1].validateStatus;
+    expect(validateStatus(200)).toBe(true);
+    expect(validateStatus(404)).toBe(true);
+    expect(validateStatus(500)).toBe(false);
 });
 
 it("returns null for optional TOTP configuration when 404", async () => {
@@ -81,6 +87,9 @@ it("returns null for optional TOTP configuration when 404", async () => {
 
     const result = await getUserInfoTOTPConfigurationOptional();
     expect(result).toBeNull();
+
+    const validateStatus = (axios.get as any).mock.calls[0][1].validateStatus;
+    expect(validateStatus(404)).toBe(true);
 });
 
 it("returns null for optional TOTP configuration when KO", async () => {
@@ -117,6 +126,6 @@ it("deletes user TOTP configuration", async () => {
     expect(axios).toHaveBeenCalledWith({
         method: "DELETE",
         url: "/totp/signin",
-        validateStatus: expect.any(Function),
+        validateStatus: validateStatusAuthentication,
     });
 });

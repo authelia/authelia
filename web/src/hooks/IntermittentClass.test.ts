@@ -20,7 +20,7 @@ it("sets class after start millisecond", () => {
 it("sets class immediately when start millisecond is 0", () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useIntermittentClass("active", 1000, 500, 0));
-    act(() => vi.runAllTimers());
+    act(() => vi.advanceTimersByTime(0));
     expect(result.current).toBe("active");
     vi.useRealTimers();
 });
@@ -28,7 +28,7 @@ it("sets class immediately when start millisecond is 0", () => {
 it("sets class immediately when start millisecond is undefined", () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useIntermittentClass("active", 1000, 500));
-    act(() => vi.runAllTimers());
+    act(() => vi.advanceTimersByTime(0));
     expect(result.current).toBe("active");
     vi.useRealTimers();
 });
@@ -36,7 +36,7 @@ it("sets class immediately when start millisecond is undefined", () => {
 it("removes class after active milliseconds", () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useIntermittentClass("active", 1000, 500, 0));
-    act(() => vi.runAllTimers());
+    act(() => vi.advanceTimersByTime(0));
     expect(result.current).toBe("active");
     act(() => vi.advanceTimersByTime(1000));
     expect(result.current).toBe("");
@@ -46,7 +46,7 @@ it("removes class after active milliseconds", () => {
 it("sets class again after inactive milliseconds", () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useIntermittentClass("active", 1000, 500, 0));
-    act(() => vi.runAllTimers());
+    act(() => vi.advanceTimersByTime(0));
     expect(result.current).toBe("active");
     act(() => vi.advanceTimersByTime(1000));
     expect(result.current).toBe("");

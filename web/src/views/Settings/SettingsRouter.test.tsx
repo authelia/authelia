@@ -28,6 +28,10 @@ beforeEach(() => {
     mockNavigate.mockReset();
 });
 
+afterEach(() => {
+    vi.restoreAllMocks();
+});
+
 it("renders without crashing", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     await act(async () => {
