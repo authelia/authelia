@@ -1,7 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
-
-import { getRelativeTimeString, useRelativeTime } from "@hooks/RelativeTimeString";
+import { getRelativeTimeString } from "@hooks/RelativeTimeString";
 
 vi.mock("i18next", () => ({
     default: {
@@ -9,56 +6,65 @@ vi.mock("i18next", () => ({
     },
 }));
 
-const mockRelativeTimeFormat = vi.fn((value: number, unit: Intl.RelativeTimeFormatUnit) => {
-    const u = Math.abs(value) === 1 ? unit : `${unit}`;
-    return `${Math.abs(value)} ${u} ago`;
+const mockFormat = vi.fn((value: number, unit: Intl.RelativeTimeFormatUnit) => {
+    return `${Math.abs(value)} ${unit} ago`;
 });
 
-vi.spyOn(Intl, "RelativeTimeFormat").mockImplementation(
-    () =>
-        ({
-            format: mockRelativeTimeFormat,
-        }) as any,
-);
+const OriginalRelativeTimeFormat = Intl.RelativeTimeFormat;
+
+beforeAll(() => {
+    (Intl as any).RelativeTimeFormat = class MockRelativeTimeFormat {
+        format = mockFormat;
+        constructor() {}
+    };
+});
+
+afterAll(() => {
+    (Intl as any).RelativeTimeFormat = OriginalRelativeTimeFormat;
+});
+
+beforeEach(() => {
+    mockFormat.mockClear();
+});
 
 it("returns seconds ago for less than a minute", () => {
-    const date = new Date(Date.now() - 30 * 1000); // 30 seconds ago
-    const result = getRelativeTimeString(date);
-    expect(mockRelativeTimeFormat).toHaveBeenCalledWith(0, "seconds");
+    const date = new Date(Date.now() - 30 * 1000);
+    getRelativeTimeString(date);
+    expect(mockFormat).toHaveBeenCalledWith(0, "seconds");
 });
 
 it("returns minutes ago for less than an hour", () => {
-    const date = new Date(Date.now() - 5 * 60 * 1000); // 5 minutes ago
-    const result = getRelativeTimeString(date);
-    expect(mockRelativeTimeFormat).toHaveBeenCalledWith(-5, "minutes");
+    const date = new Date(Date.now() - 5 * 60 * 1000);
+    getRelativeTimeString(date);
+    expect(mockFormat).toHaveBeenCalledWith(-5, "minutes");
 });
 
 it("returns hours ago for less than a day", () => {
-    const date = new Date(Date.now() - 2 * 60 * 60 * 1000); // 2 hours ago
-    const result = getRelativeTimeString(date);
-    expect(mockRelativeTimeFormat).toHaveBeenCalledWith(-2, "hours");
+    const date = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    getRelativeTimeString(date);
+    expect(mockFormat).toHaveBeenCalledWith(-2, "hours");
 });
 
 it("returns days ago for less than a month", () => {
-    const date = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000); // 3 days ago
-    const result = getRelativeTimeString(date);
-    expect(mockRelativeTimeFormat).toHaveBeenCalledWith(-3, "days");
+    const date = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    getRelativeTimeString(date);
+    expect(mockFormat).toHaveBeenCalledWith(-3, "days");
 });
 
 it("returns months ago for less than a year", () => {
-    const date = new Date(Date.now() - 2 * 30 * 24 * 60 * 60 * 1000); // 2 months ago
-    const result = getRelativeTimeString(date);
-    expect(mockRelativeTimeFormat).toHaveBeenCalledWith(-2, "months");
+    const date = new Date(Date.now() - 2 * 30 * 24 * 60 * 60 * 1000);
+    getRelativeTimeString(date);
+    expect(mockFormat).toHaveBeenCalledWith(-2, "months");
 });
 
 it("returns years ago for more than a year", () => {
-    const date = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000); // 2 years ago
-    const result = getRelativeTimeString(date);
-    expect(mockRelativeTimeFormat).toHaveBeenCalledWith(-2, "years");
+    const date = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000);
+    getRelativeTimeString(date);
+    expect(mockFormat).toHaveBeenCalledWith(-2, "years");
 });
 
 it("returns 0 seconds ago for current date", () => {
-    const date = new Date(Date.now()); // now
+    const date = new Date(Date.now());
     const result = getRelativeTimeString(date);
     expect(result).toBe("0 seconds ago");
 });

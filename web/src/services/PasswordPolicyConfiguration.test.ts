@@ -1,5 +1,3 @@
-import { vi } from "vitest";
-
 import { PasswordPolicyMode } from "@models/PasswordPolicy";
 import { Get } from "@services/Client";
 import { getPasswordPolicyConfiguration, toEnum } from "@services/PasswordPolicyConfiguration";
@@ -25,14 +23,14 @@ it("converts zxcvbn to enum", () => {
 
 it("gets password policy configuration", async () => {
     const mockConfig = {
-        mode: "standard" as const,
-        min_length: 8,
         max_length: 128,
+        min_length: 8,
         min_score: 3,
-        require_uppercase: true,
+        mode: "standard" as const,
         require_lowercase: true,
         require_number: true,
         require_special: false,
+        require_uppercase: true,
     };
     (Get as any).mockResolvedValue(mockConfig);
     const result = await getPasswordPolicyConfiguration();

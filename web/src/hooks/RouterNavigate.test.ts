@@ -1,6 +1,5 @@
 import { renderHook } from "@testing-library/react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { vi } from "vitest";
 
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
@@ -105,7 +104,7 @@ it("returns stable callback", () => {
     (useNavigate as any).mockReturnValue(mockNavigate);
     (useSearchParams as any).mockReturnValue([mockSearchParams]);
 
-    const { result, rerender } = renderHook(() => useRouterNavigate());
+    const { rerender, result } = renderHook(() => useRouterNavigate());
     const callback1 = result.current;
     rerender();
     const callback2 = result.current;

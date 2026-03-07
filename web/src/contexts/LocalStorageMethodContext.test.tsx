@@ -1,7 +1,4 @@
-import React from "react";
-
-import { render, screen } from "@testing-library/react";
-import { vi } from "vitest";
+import { act, render, screen } from "@testing-library/react";
 
 import LocalStorageMethodContextProvider, { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { SecondFactorMethod } from "@models/Methods";
@@ -16,21 +13,21 @@ vi.mock("@constants/LocalStorage", () => ({
 
 vi.mock("@services/UserInfo", () => ({
     isMethod2FA: vi.fn((value) => value === "totp" || value === "webauthn"),
+    Method2FA: {},
     toMethod2FA: vi.fn((value) => value),
     toSecondFactorMethod: vi.fn((value) => value),
-    Method2FA: {},
 }));
 
 const mockLocalStorage = {
     getItem: vi.fn(),
-    setItem: vi.fn(),
     removeItem: vi.fn(),
+    setItem: vi.fn(),
 };
 
 vi.stubGlobal("localStorage", mockLocalStorage);
 
 const TestComponent = () => {
-    const { localStorageMethod, setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { localStorageMethod, localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
     return (
         <div>
             <span>{localStorageMethod || "none"}</span>
@@ -70,14 +67,16 @@ it("sets method in storage", () => {
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith("method", "totp");
 });
 
-it("removes method from storage when set to undefined", () => {
+it("removes method from storage when set to undefined", async () => {
     render(
         <LocalStorageMethodContextProvider>
             <TestComponent />
         </LocalStorageMethodContextProvider>,
     );
     const button = screen.getByText("Clear");
-    button.click();
+    await act(async () => {
+        button.click();
+    });
     expect(mockLocalStorage.removeItem).toHaveBeenCalledWith("method");
 });
 
@@ -91,7 +90,9 @@ it("handles storage event for method change", async () => {
         key: "method",
         newValue: "webauthn",
     });
-    window.dispatchEvent(event);
+    await act(async () => {
+        window.dispatchEvent(event);
+    });
     expect(await screen.findByText("webauthn")).toBeInTheDocument();
 });
 
@@ -105,7 +106,9 @@ it("handles storage event with empty newValue", async () => {
         key: "method",
         newValue: "",
     });
-    window.dispatchEvent(event);
+    await act(async () => {
+        window.dispatchEvent(event);
+    });
     expect(await screen.findByText("none")).toBeInTheDocument();
 });
 

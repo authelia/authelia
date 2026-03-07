@@ -1,5 +1,4 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { vi } from "vitest";
 
 import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
 import { WebAuthnTouchState } from "@models/WebAuthn";

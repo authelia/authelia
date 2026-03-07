@@ -146,6 +146,7 @@ it("does not display warning when password meets policy", () => {
                 max_length: 0,
                 min_length: 8,
                 min_score: 0,
+                mode: PasswordPolicyMode.Standard,
                 require_lowercase: true,
                 require_number: true,
                 require_special: true,

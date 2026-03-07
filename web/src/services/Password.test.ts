@@ -1,5 +1,3 @@
-import { vi } from "vitest";
-
 import { PostWithOptionalResponse } from "@services/Client";
 import { postFirstFactor, postFirstFactorReauthenticate, postSecondFactor } from "@services/Password";
 
@@ -17,15 +15,15 @@ it("posts first factor with response", async () => {
     (PostWithOptionalResponse as any).mockResolvedValue(mockResponse);
     const result = await postFirstFactor("user", "pass", true, "url", "POST", "flow", "flowtype", "sub", "code");
     expect(PostWithOptionalResponse).toHaveBeenCalledWith("/firstfactor", {
-        username: "user",
-        password: "pass",
-        keepMeLoggedIn: true,
-        targetURL: "url",
-        requestMethod: "POST",
-        flowID: "flow",
         flow: "flowtype",
+        flowID: "flow",
+        keepMeLoggedIn: true,
+        password: "pass",
+        requestMethod: "POST",
         subflow: "sub",
+        targetURL: "url",
         userCode: "code",
+        username: "user",
     });
     expect(result).toEqual(mockResponse);
 });
@@ -41,12 +39,12 @@ it("posts first factor reauthenticate with response", async () => {
     (PostWithOptionalResponse as any).mockResolvedValue(mockResponse);
     const result = await postFirstFactorReauthenticate("pass", "url", "POST", "flow", "flowtype", "sub", "code");
     expect(PostWithOptionalResponse).toHaveBeenCalledWith("/firstfactor/reauth", {
-        password: "pass",
-        targetURL: "url",
-        requestMethod: "POST",
-        flowID: "flow",
         flow: "flowtype",
+        flowID: "flow",
+        password: "pass",
+        requestMethod: "POST",
         subflow: "sub",
+        targetURL: "url",
         userCode: "code",
     });
     expect(result).toEqual(mockResponse);
@@ -63,11 +61,11 @@ it("posts second factor with response", async () => {
     (PostWithOptionalResponse as any).mockResolvedValue(mockResponse);
     const result = await postSecondFactor("pass", "url", "flow", "flowtype", "sub");
     expect(PostWithOptionalResponse).toHaveBeenCalledWith("/password/signin", {
-        password: "pass",
-        targetURL: "url",
-        flowID: "flow",
         flow: "flowtype",
+        flowID: "flow",
+        password: "pass",
         subflow: "sub",
+        targetURL: "url",
     });
     expect(result).toEqual(mockResponse);
 });

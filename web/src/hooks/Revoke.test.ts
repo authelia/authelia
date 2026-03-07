@@ -1,6 +1,5 @@
 import { renderHook } from "@testing-library/react";
 import { useSearchParams } from "react-router-dom";
-import { vi } from "vitest";
 
 import { useID, useToken } from "@hooks/Revoke";
 

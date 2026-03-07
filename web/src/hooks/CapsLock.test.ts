@@ -1,7 +1,4 @@
-import React from "react";
-
 import { renderHook } from "@testing-library/react";
-import { vi } from "vitest";
 
 import { useCheckCapsLock } from "@hooks/CapsLock";
 
@@ -25,7 +22,7 @@ it("notifies when caps lock is off", () => {
     const checkCapsLock = result.current;
 
     const mockEvent = {
-        getModifierState: vi.fn((modifier) => false),
+        getModifierState: vi.fn(() => false),
     } as any;
 
     checkCapsLock(mockEvent);
@@ -35,7 +32,7 @@ it("notifies when caps lock is off", () => {
 
 it("returns stable callback", () => {
     const mockSetCapsLockNotify = vi.fn();
-    const { result, rerender } = renderHook(() => useCheckCapsLock(mockSetCapsLockNotify));
+    const { rerender, result } = renderHook(() => useCheckCapsLock(mockSetCapsLockNotify));
 
     const callback1 = result.current;
     rerender();

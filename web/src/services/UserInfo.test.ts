@@ -1,5 +1,3 @@
-import { vi } from "vitest";
-
 import { SecondFactorMethod } from "@models/Methods";
 import { Get, Post, PostWithOptionalResponse } from "@services/Client";
 import {
@@ -13,9 +11,9 @@ import {
 
 vi.mock("@models/Methods", () => ({
     SecondFactorMethod: {
+        MobilePush: "mobile_push",
         TOTP: "totp",
         WebAuthn: "webauthn",
-        MobilePush: "mobile_push",
     },
 }));
 vi.mock("@services/Api", () => ({

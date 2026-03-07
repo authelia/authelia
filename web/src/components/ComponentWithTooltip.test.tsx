@@ -2,6 +2,10 @@ import { render, screen } from "@testing-library/react";
 
 import ComponentWithTooltip from "@components/ComponentWithTooltip";
 
+beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+});
+
 it("renders without crashing", () => {
     render(
         <ComponentWithTooltip render={false} title="test">

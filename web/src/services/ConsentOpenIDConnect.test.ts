@@ -1,5 +1,4 @@
 import axios from "axios";
-import { vi } from "vitest";
 
 import { ScopeDescription } from "@components/OpenIDConnect";
 import { Get, Post } from "@services/Client";
@@ -54,11 +53,11 @@ it("posts consent response accept", async () => {
     (Post as any).mockResolvedValue("response");
     const result = await Consent.postConsentResponseAccept(true, "client", ["claim1"], "flow", "sub", "code");
     expect(Post).toHaveBeenCalledWith("/consent", {
-        flow_id: "flow",
+        claims: ["claim1"],
         client_id: "client",
         consent: true,
+        flow_id: "flow",
         pre_configure: true,
-        claims: ["claim1"],
         subflow: "sub",
         user_code: "code",
     });
@@ -76,9 +75,9 @@ it("posts consent response reject", async () => {
     (Post as any).mockResolvedValue("response");
     const result = await Consent.postConsentResponseReject("client", "flow", "sub", "code");
     expect(Post).toHaveBeenCalledWith("/consent", {
-        flow_id: "flow",
         client_id: "client",
         consent: false,
+        flow_id: "flow",
         pre_configure: false,
         subflow: "sub",
         user_code: "code",
@@ -141,5 +140,5 @@ it("gets claim description for picture", () => {
 });
 
 it("gets claim description for other", () => {
-    expect(Consent.getClaimDescription("other_claim")).toBe("Other claim");
+    expect(Consent.getClaimDescription("other_claim")).toBe("Other Claim");
 });

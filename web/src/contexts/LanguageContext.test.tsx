@@ -1,14 +1,11 @@
-import React from "react";
-
-import { render, screen } from "@testing-library/react";
-import { vi } from "vitest";
+import { act, render, screen } from "@testing-library/react";
 
 import LanguageContextProvider, { useLanguageContext } from "@contexts/LanguageContext";
 
 const mockI18n: any = {
-    resolvedLanguage: "en",
-    language: "en",
     changeLanguage: vi.fn(() => Promise.resolve()),
+    language: "en",
+    resolvedLanguage: "en",
 };
 
 vi.mock("@services/LocalStorage", () => ({
@@ -41,18 +38,20 @@ it("renders without crashing", () => {
     );
 });
 
-it("updates locale", () => {
+it("updates locale", async () => {
     render(
         <LanguageContextProvider i18n={mockI18n}>
             <TestComponent />
         </LanguageContextProvider>,
     );
     const button = screen.getByRole("button");
-    button.click();
+    await act(async () => {
+        button.click();
+    });
     expect(mockI18n.changeLanguage).toHaveBeenCalledWith("fr");
 });
 
-it("handles storage event for language change", () => {
+it("handles storage event for language change", async () => {
     render(
         <LanguageContextProvider i18n={mockI18n}>
             <TestComponent />
@@ -62,7 +61,9 @@ it("handles storage event for language change", () => {
         key: "language",
         newValue: "fr",
     });
-    window.dispatchEvent(event);
+    await act(async () => {
+        window.dispatchEvent(event);
+    });
     expect(mockI18n.changeLanguage).toHaveBeenCalledWith("fr");
 });
 

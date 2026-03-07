@@ -1,5 +1,4 @@
 import { renderHook } from "@testing-library/react";
-import { vi } from "vitest";
 
 import { useRedirector } from "@hooks/Redirector";
 
@@ -13,7 +12,7 @@ it("redirects to the provided url", () => {
 });
 
 it("returns stable callback", () => {
-    const { result, rerender } = renderHook(() => useRedirector());
+    const { rerender, result } = renderHook(() => useRedirector());
     const callback1 = result.current;
     rerender();
     const callback2 = result.current;

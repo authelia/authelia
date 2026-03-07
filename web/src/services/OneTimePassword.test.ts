@@ -1,5 +1,3 @@
-import { vi } from "vitest";
-
 import {
     DeleteWithOptionalResponse,
     PostWithOptionalResponse,
@@ -21,11 +19,11 @@ it("completes totp sign in", async () => {
     (PostWithOptionalResponseRateLimited as any).mockResolvedValue("response");
     const result = await completeTOTPSignIn("123456", "url", "flow", "flowtype", "sub", "code");
     expect(PostWithOptionalResponseRateLimited).toHaveBeenCalledWith("/totp/signin", {
-        token: "123456",
-        targetURL: "url",
-        flowID: "flow",
         flow: "flowtype",
+        flowID: "flow",
         subflow: "sub",
+        targetURL: "url",
+        token: "123456",
         userCode: "code",
     });
     expect(result).toBe("response");

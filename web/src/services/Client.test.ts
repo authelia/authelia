@@ -1,5 +1,4 @@
 import axios from "axios";
-import { vi } from "vitest";
 
 import { hasServiceError, toData, toDataRateLimited } from "@services/Api";
 import * as Client from "@services/Client";
@@ -8,7 +7,7 @@ vi.mock("axios");
 vi.mock("@services/Api");
 
 it("handles successful post", async () => {
-    const mockRes = { status: 200, data: { status: "OK", data: "test" } };
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
     (axios.post as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("test");
@@ -18,7 +17,7 @@ it("handles successful post", async () => {
 });
 
 it("handles successful post with optional response", async () => {
-    const mockRes = { status: 200, data: { status: "OK", data: "test" } };
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
     (axios.post as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("test");
@@ -28,17 +27,17 @@ it("handles successful post with optional response", async () => {
 });
 
 it("handles successful rate limited post", async () => {
-    const mockRes = { status: 200, data: { status: "OK", data: "test" } };
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
     (axios.post as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
-    (toDataRateLimited as any).mockReturnValue({ limited: false, retryAfter: 0, data: "test" });
+    (toDataRateLimited as any).mockReturnValue({ data: "test", limited: false, retryAfter: 0 });
 
     const result = await Client.PostWithOptionalResponseRateLimited("/path", {});
-    expect(result).toEqual({ limited: false, retryAfter: 0, data: "test" });
+    expect(result).toEqual({ data: "test", limited: false, retryAfter: 0 });
 });
 
 it("handles rate limited post", async () => {
-    const mockRes = { status: 429, data: { status: "KO" }, headers: { "retry-after": "30" } };
+    const mockRes = { data: { status: "KO" }, headers: { "retry-after": "30" }, status: 429 };
     (axios.post as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: true });
     (toDataRateLimited as any).mockReturnValue({ limited: true, retryAfter: 30 });
@@ -48,7 +47,7 @@ it("handles rate limited post", async () => {
 });
 
 it("throws on post error", async () => {
-    const mockRes = { status: 400, data: { status: "KO", message: "error" } };
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
     (axios.post as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 
@@ -58,7 +57,7 @@ it("throws on post error", async () => {
 });
 
 it("throws on rate limited post error", async () => {
-    const mockRes = { status: 400, data: { status: "KO", message: "error" } };
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
     (axios.post as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 
@@ -68,7 +67,7 @@ it("throws on rate limited post error", async () => {
 });
 
 it("throws on post with no data", async () => {
-    const mockRes = { status: 200, data: { status: "OK" } };
+    const mockRes = { data: { status: "OK" }, status: 200 };
     (axios.post as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue(undefined);
@@ -77,7 +76,7 @@ it("throws on post with no data", async () => {
 });
 
 it("handles successful get", async () => {
-    const mockRes = { status: 200, data: { status: "OK", data: "test" } };
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
     (axios.get as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("test");
@@ -87,7 +86,7 @@ it("handles successful get", async () => {
 });
 
 it("handles get with optional data returning data", async () => {
-    const mockRes = { status: 200, data: { status: "OK", data: "test" } };
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
     (axios.get as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("test");
@@ -97,7 +96,7 @@ it("handles get with optional data returning data", async () => {
 });
 
 it("handles get with optional data returning null", async () => {
-    const mockRes = { status: 200, data: { status: "OK" } };
+    const mockRes = { data: { status: "OK" }, status: 200 };
     (axios.get as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue(null);
@@ -107,7 +106,7 @@ it("handles get with optional data returning null", async () => {
 });
 
 it("throws on get with no data", async () => {
-    const mockRes = { status: 200, data: { status: "OK" } };
+    const mockRes = { data: { status: "OK" }, status: 200 };
     (axios.get as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue(undefined);
@@ -116,7 +115,7 @@ it("throws on get with no data", async () => {
 });
 
 it("handles successful put with optional response", async () => {
-    const mockRes = { status: 200, data: { status: "OK", data: "test" } };
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
     (axios.put as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("test");
@@ -126,7 +125,7 @@ it("handles successful put with optional response", async () => {
 });
 
 it("throws on put error", async () => {
-    const mockRes = { status: 400, data: { status: "KO", message: "error" } };
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
     (axios.put as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 
@@ -136,7 +135,7 @@ it("throws on put error", async () => {
 });
 
 it("handles successful delete with optional response", async () => {
-    const mockRes = { status: 200, data: { status: "OK", data: "test" } };
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
     (axios.delete as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("test");
@@ -146,7 +145,7 @@ it("handles successful delete with optional response", async () => {
 });
 
 it("throws on delete error", async () => {
-    const mockRes = { status: 400, data: { status: "KO", message: "error" } };
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
     (axios.delete as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 
@@ -156,7 +155,7 @@ it("throws on delete error", async () => {
 });
 
 it("handles successful put", async () => {
-    const mockRes = { status: 200, data: { status: "OK", data: "test" } };
+    const mockRes = { data: { data: "test", status: "OK" }, status: 200 };
     (axios.put as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("test");
@@ -166,7 +165,7 @@ it("handles successful put", async () => {
 });
 
 it("throws on put with no data", async () => {
-    const mockRes = { status: 200, data: { status: "OK" } };
+    const mockRes = { data: { status: "OK" }, status: 200 };
     (axios.put as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue(undefined);
@@ -175,7 +174,7 @@ it("throws on put with no data", async () => {
 });
 
 it("throws on get error", async () => {
-    const mockRes = { status: 400, data: { status: "KO", message: "error" } };
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
     (axios.get as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 
@@ -183,7 +182,7 @@ it("throws on get error", async () => {
 });
 
 it("throws on get with optional data error", async () => {
-    const mockRes = { status: 400, data: { status: "KO", message: "error" } };
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
     (axios.get as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 

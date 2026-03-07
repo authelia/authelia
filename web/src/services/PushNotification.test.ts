@@ -1,5 +1,3 @@
-import { vi } from "vitest";
-
 import { Get, PostWithOptionalResponse, PostWithOptionalResponseRateLimited } from "@services/Client";
 import {
     completeDuoDeviceSelectionProcess,
@@ -22,10 +20,10 @@ it("completes push notification sign in", async () => {
     (PostWithOptionalResponseRateLimited as any).mockResolvedValue("response");
     const result = await completePushNotificationSignIn("url", "flow", "flowtype", "sub", "code");
     expect(PostWithOptionalResponseRateLimited).toHaveBeenCalledWith("/duo/signin", {
-        targetURL: "url",
-        flowID: "flow",
         flow: "flowtype",
+        flowID: "flow",
         subflow: "sub",
+        targetURL: "url",
         userCode: "code",
     });
     expect(result).toBe("response");

@@ -1,5 +1,4 @@
 import { act, renderHook } from "@testing-library/react";
-import { vi } from "vitest";
 
 import { useTimer } from "@hooks/Timer";
 
@@ -81,7 +80,7 @@ it("clear resets percent to 0 and stops timer", () => {
 });
 
 it("returns stable functions", () => {
-    const { result, rerender } = renderHook(() => useTimer(1000));
+    const { rerender, result } = renderHook(() => useTimer(1000));
     const [, trigger1, clear1] = result.current;
     rerender();
     const [, trigger2, clear2] = result.current;

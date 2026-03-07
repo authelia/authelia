@@ -1,5 +1,3 @@
-import { vi } from "vitest";
-
 import { postPasswordChange } from "@services/ChangePassword";
 import { PostWithOptionalResponse } from "@services/Client";
 
@@ -17,9 +15,9 @@ it("calls PostWithOptionalResponse with correct data", async () => {
     const result = await postPasswordChange("user", "old", "new");
 
     expect(PostWithOptionalResponse).toHaveBeenCalledWith("/change-password", {
-        username: "user",
-        old_password: "old",
         new_password: "new",
+        old_password: "old",
+        username: "user",
     });
     expect(result).toBe("success");
 });

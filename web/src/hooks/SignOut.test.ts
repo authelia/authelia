@@ -1,6 +1,5 @@
 import { renderHook } from "@testing-library/react";
 import { useSearchParams } from "react-router-dom";
-import { vi } from "vitest";
 
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useSignOut } from "@hooks/SignOut";
@@ -67,7 +66,7 @@ it("returns stable callback", () => {
     (useRouterNavigate as any).mockReturnValue(mockNavigate);
     (useSearchParams as any).mockReturnValue([mockSearchParams]);
 
-    const { result, rerender } = renderHook(() => useSignOut());
+    const { rerender, result } = renderHook(() => useSignOut());
     const callback1 = result.current;
     rerender();
     const callback2 = result.current;

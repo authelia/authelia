@@ -1,5 +1,4 @@
 import axios from "axios";
-import { vi } from "vitest";
 
 import { PostWithOptionalResponse, PostWithOptionalResponseRateLimited } from "@services/Client";
 import {
@@ -43,20 +42,20 @@ it("resets password", async () => {
 });
 
 it("deletes reset password token with ok", async () => {
-    const mockRes = { status: 200, data: { status: "OK" } };
+    const mockRes = { data: { status: "OK" }, status: 200 };
     (axios as any).mockResolvedValue(mockRes);
     const result = await deleteResetPasswordToken("token123");
     expect(axios).toHaveBeenCalledWith({
+        data: { token: "token123" },
         method: "DELETE",
         url: "/reset-password",
-        data: { token: "token123" },
         validateStatus: expect.any(Function),
     });
     expect(result).toEqual({ ok: true, status: 200 });
 });
 
 it("deletes reset password token with error", async () => {
-    const mockRes = { status: 400, data: { status: "KO" } };
+    const mockRes = { data: { status: "KO" }, status: 400 };
     (axios as any).mockResolvedValue(mockRes);
     const result = await deleteResetPasswordToken("token123");
     expect(result).toEqual({ ok: false, status: 400 });

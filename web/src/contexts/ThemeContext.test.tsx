@@ -1,7 +1,4 @@
-import React from "react";
-
-import { render, screen } from "@testing-library/react";
-import { vi } from "vitest";
+import { act, render, screen } from "@testing-library/react";
 
 import ThemeContextProvider, { useThemeContext } from "@contexts/ThemeContext";
 
@@ -11,13 +8,13 @@ vi.mock("@constants/LocalStorage", () => ({
 
 const mockLocalStorage = {
     getItem: vi.fn(),
-    setItem: vi.fn(),
     removeItem: vi.fn(),
+    setItem: vi.fn(),
 };
 
 const mockMatchMedia = {
-    matches: false,
     addEventListener: vi.fn(),
+    matches: false,
     removeEventListener: vi.fn(),
 };
 
@@ -28,7 +25,7 @@ vi.stubGlobal(
 );
 
 const TestComponent = () => {
-    const { themeName, setThemeName } = useThemeContext();
+    const { setThemeName, themeName } = useThemeContext();
     return (
         <div>
             <span>{themeName}</span>
@@ -64,7 +61,9 @@ it("sets theme name and stores in storage", async () => {
         </ThemeContextProvider>,
     );
     const button = screen.getByText("Set Dark");
-    button.click();
+    await act(async () => {
+        button.click();
+    });
     expect(await screen.findByText("dark")).toBeInTheDocument();
 });
 
@@ -75,7 +74,9 @@ it("sets theme name to auto", async () => {
         </ThemeContextProvider>,
     );
     const button = screen.getByText("Set Auto");
-    button.click();
+    await act(async () => {
+        button.click();
+    });
     expect(await screen.findByText("auto")).toBeInTheDocument();
 });
 
@@ -86,7 +87,9 @@ it("sets theme name to oled", async () => {
         </ThemeContextProvider>,
     );
     const button = screen.getByText("Set Oled");
-    button.click();
+    await act(async () => {
+        button.click();
+    });
     expect(await screen.findByText("oled")).toBeInTheDocument();
 });
 
@@ -100,7 +103,9 @@ it("handles storage event for theme change", async () => {
         key: "theme",
         newValue: "grey",
     });
-    window.dispatchEvent(event);
+    await act(async () => {
+        window.dispatchEvent(event);
+    });
     expect(await screen.findByText("grey")).toBeInTheDocument();
 });
 

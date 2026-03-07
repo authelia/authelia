@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { vi } from "vitest";
 
 import AppBarItemLanguage from "@components/AppBarItemLanguage";
+import "@i18n/index";
 import { Language } from "@models/LocaleInformation";
 
 const mockOnChange = vi.fn();
@@ -14,21 +14,23 @@ const mockOf = vi.fn((locale: string) => {
     if (locale === "fr-FR") return "French (France)";
     return locale;
 });
-const originalIntl = global.Intl;
+
+const OriginalDisplayNames = Intl.DisplayNames;
 
 beforeAll(() => {
-    vi.stubGlobal("Intl", {
-        DisplayNames: vi.fn(() => ({ of: mockOf })),
-    });
+    (Intl as any).DisplayNames = class MockDisplayNames {
+        of = mockOf;
+        constructor() {}
+    };
 });
 
 afterAll(() => {
-    vi.unstubAllGlobals();
-    global.Intl = originalIntl;
+    (Intl as any).DisplayNames = OriginalDisplayNames;
 });
 
 beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 const mockLanguages: Language[] = [

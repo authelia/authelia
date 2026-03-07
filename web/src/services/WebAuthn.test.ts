@@ -1,6 +1,5 @@
 import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
 import axios from "axios";
-import { vi } from "vitest";
 
 import { AssertionResult, AttestationResult } from "@models/WebAuthn";
 import {
@@ -21,17 +20,21 @@ vi.mock("@simplewebauthn/browser", () => ({
     startAuthentication: vi.fn(),
     startRegistration: vi.fn(),
 }));
+beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+});
+
 vi.mock("@services/Api", () => ({
-    WebAuthnAssertionPath: "/webauthn/assertion",
     FirstFactorPasskeyPath: "/firstfactor/passkey",
-    WebAuthnRegistrationPath: "/webauthn/registration",
-    WebAuthnCredentialPath: "/webauthn/credential",
     validateStatusAuthentication: vi.fn(),
     validateStatusWebAuthnCreation: vi.fn(),
+    WebAuthnAssertionPath: "/webauthn/assertion",
+    WebAuthnCredentialPath: "/webauthn/credential",
+    WebAuthnRegistrationPath: "/webauthn/registration",
 }));
 
 it("handles successful webauthn options", async () => {
-    const mockRes = { data: { status: "OK", data: { publicKey: "options" } }, status: 200 };
+    const mockRes = { data: { data: { publicKey: "options" }, status: "OK" }, status: 200 };
     (axios.get as any).mockResolvedValue(mockRes);
 
     const result = await getWebAuthnOptions();
@@ -73,18 +76,18 @@ it("handles webauthn response posting", async () => {
 
     const result = await postWebAuthnResponse("authResponse" as any, "url", "flow", "flowtype", "sub", "code");
     expect(axios.post).toHaveBeenCalledWith("/webauthn/assertion", {
-        response: "authResponse",
-        targetURL: "url",
-        flowID: "flow",
         flow: "flowtype",
+        flowID: "flow",
+        response: "authResponse",
         subflow: "sub",
+        targetURL: "url",
         userCode: "code",
     });
     expect(result).toBe("response");
 });
 
 it("handles successful webauthn passkey options", async () => {
-    const mockRes = { data: { status: "OK", data: { publicKey: "options" } }, status: 200 };
+    const mockRes = { data: { data: { publicKey: "options" }, status: "OK" }, status: 200 };
     (axios.get as any).mockResolvedValue(mockRes);
 
     const result = await getWebAuthnPasskeyOptions();
@@ -104,19 +107,19 @@ it("handles webauthn passkey response posting", async () => {
         "sub",
     );
     expect(axios.post).toHaveBeenCalledWith("/firstfactor/passkey", {
-        response: "authResponse",
-        keepMeLoggedIn: true,
-        targetURL: "url",
-        requestMethod: "POST",
-        flowID: "flow",
         flow: "flowtype",
+        flowID: "flow",
+        keepMeLoggedIn: true,
+        requestMethod: "POST",
+        response: "authResponse",
         subflow: "sub",
+        targetURL: "url",
     });
     expect(result).toBe("response");
 });
 
 it("handles successful webauthn registration options", async () => {
-    const mockRes = { data: { status: "OK", data: { publicKey: "options" } }, status: 200 };
+    const mockRes = { data: { data: { publicKey: "options" }, status: "OK" }, status: 200 };
     (axios.put as any).mockResolvedValue(mockRes);
 
     const result = await getWebAuthnRegistrationOptions("desc");
@@ -148,7 +151,7 @@ it("handles successful webauthn registration finish", async () => {
     (axios.post as any).mockResolvedValue(mockRes);
 
     const result = await finishWebAuthnRegistration({} as any);
-    expect(result).toEqual({ status: AttestationResult.Success, message: "" });
+    expect(result).toEqual({ message: "", status: AttestationResult.Success });
 });
 
 it("handles webauthn registration finish with error", async () => {
@@ -156,7 +159,7 @@ it("handles webauthn registration finish with error", async () => {
     (axios.post as any).mockRejectedValue(mockError);
 
     const result = await finishWebAuthnRegistration({} as any);
-    expect(result).toEqual({ status: AttestationResult.Failure, message: "Device registration failed." });
+    expect(result).toEqual({ message: "Device registration failed.", status: AttestationResult.Failure });
 });
 
 it("handles webauthn credential deletion", async () => {
@@ -176,9 +179,9 @@ it("handles webauthn credential update", async () => {
 
     const result = await updateUserWebAuthnCredential("cred123", "desc");
     expect(axios).toHaveBeenCalledWith({
+        data: { description: "desc" },
         method: "PUT",
         url: "/webauthn/credential/cred123",
-        data: { description: "desc" },
         validateStatus: expect.any(Function),
     });
     expect(result).toBe("response");

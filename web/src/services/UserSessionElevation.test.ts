@@ -1,5 +1,4 @@
 import axios from "axios";
-import { vi } from "vitest";
 
 import { hasServiceError, toData, validateStatusOneTimeCode } from "@services/Api";
 import {
@@ -11,14 +10,14 @@ import {
 
 vi.mock("axios");
 vi.mock("@services/Api", () => ({
-    UserSessionElevationPath: "/user/elevation",
     hasServiceError: vi.fn(),
     toData: vi.fn(),
+    UserSessionElevationPath: "/user/elevation",
     validateStatusOneTimeCode: vi.fn(),
 }));
 
 it("gets user session elevation successfully", async () => {
-    const mockRes = { status: 200, data: { status: "OK", data: "elevation" } };
+    const mockRes = { data: { data: "elevation", status: "OK" }, status: 200 };
     (axios as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("elevation");
@@ -32,7 +31,7 @@ it("gets user session elevation successfully", async () => {
 });
 
 it("gets user session elevation with error", async () => {
-    const mockRes = { status: 400, data: { status: "KO", message: "error" } };
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
     (axios as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 
@@ -42,7 +41,7 @@ it("gets user session elevation with error", async () => {
 });
 
 it("generates user session elevation successfully", async () => {
-    const mockRes = { status: 200, data: { status: "OK", data: "generate" } };
+    const mockRes = { data: { data: "generate", status: "OK" }, status: 200 };
     (axios as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: false });
     (toData as any).mockReturnValue("generate");
@@ -56,7 +55,7 @@ it("generates user session elevation successfully", async () => {
 });
 
 it("generates user session elevation with error", async () => {
-    const mockRes = { status: 400, data: { status: "KO", message: "error" } };
+    const mockRes = { data: { message: "error", status: "KO" }, status: 400 };
     (axios as any).mockResolvedValue(mockRes);
     (hasServiceError as any).mockReturnValue({ errored: true, message: "error" });
 
@@ -66,21 +65,21 @@ it("generates user session elevation with error", async () => {
 });
 
 it("verifies user session elevation successfully", async () => {
-    const mockRes = { status: 200, data: { status: "OK" } };
+    const mockRes = { data: { status: "OK" }, status: 200 };
     (axios as any).mockResolvedValue(mockRes);
 
     const result = await verifyUserSessionElevation("otc123");
     expect(axios).toHaveBeenCalledWith({
+        data: { otc: "otc123" },
         method: "PUT",
         url: "/user/elevation",
-        data: { otc: "otc123" },
         validateStatus: validateStatusOneTimeCode,
     });
     expect(result).toBe(true);
 });
 
 it("verifies user session elevation with error", async () => {
-    const mockRes = { status: 400, data: { status: "KO" } };
+    const mockRes = { data: { status: "KO" }, status: 400 };
     (axios as any).mockResolvedValue(mockRes);
 
     const result = await verifyUserSessionElevation("otc123");
@@ -88,7 +87,7 @@ it("verifies user session elevation with error", async () => {
 });
 
 it("deletes user session elevation successfully", async () => {
-    const mockRes = { status: 200, data: { status: "OK" } };
+    const mockRes = { data: { status: "OK" }, status: 200 };
     (axios as any).mockResolvedValue(mockRes);
 
     const result = await deleteUserSessionElevation("delete123");
@@ -100,7 +99,7 @@ it("deletes user session elevation successfully", async () => {
 });
 
 it("deletes user session elevation with error", async () => {
-    const mockRes = { status: 400, data: { status: "KO" } };
+    const mockRes = { data: { status: "KO" }, status: 400 };
     (axios as any).mockResolvedValue(mockRes);
 
     const result = await deleteUserSessionElevation("delete123");
