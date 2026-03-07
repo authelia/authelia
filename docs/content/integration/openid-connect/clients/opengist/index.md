@@ -108,7 +108,7 @@ services:
 
 #### Configuration file
 
-```shell {title="configuration.yml"}
+```yaml {title="configuration.yml"}
 oidc.provider-name: authelia
 oidc.client-key: opengist
 oidc.secret: insecure_secret
