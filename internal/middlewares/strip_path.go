@@ -19,7 +19,7 @@ func StripPath(path string) (middleware Middleware) {
 			path = "/" + path
 		}
 
-		pattern := regexp.MustCompile(fmt.Sprintf("^%s(/.*?)?$", path))
+		pattern := regexp.MustCompile(fmt.Sprintf("^%s([/?].*?)?$", path))
 
 		return func(ctx *fasthttp.RequestCtx) {
 			uri := string(ctx.RequestURI())

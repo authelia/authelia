@@ -33,6 +33,30 @@ func TestStripPath(t *testing.T) {
 			"",
 		},
 		{
+			"ShouldHandleAuthPathNoPath",
+			"/auth",
+			"/",
+			"",
+			"",
+			"/",
+		},
+		{
+			"ShouldHandleAuthPathNoPathQuery",
+			"/auth",
+			"/?rd=abc",
+			"",
+			"",
+			"/?rd=abc",
+		},
+		{
+			"ShouldHandleAuthPathNoPathQueryNoSlash",
+			"/auth",
+			"?rd=abc",
+			"",
+			"",
+			"?rd=abc",
+		},
+		{
 			"ShouldHandleAuthPath",
 			"/auth",
 			"/auth",
@@ -47,6 +71,22 @@ func TestStripPath(t *testing.T) {
 			"/auth",
 			"/auth/example",
 			"/example",
+		},
+		{
+			"ShouldHandleAuthSubPathQuery",
+			"/auth",
+			"/auth?rd=123",
+			"/auth",
+			"/auth?rd=123",
+			"?rd=123",
+		},
+		{
+			"ShouldHandleAuthSubPathQueryWithTrailingSlash",
+			"/auth",
+			"/auth/?rd=123",
+			"/auth",
+			"/auth/?rd=123",
+			"/?rd=123",
 		},
 		{
 			"ShouldHandleAuthPathNoLeadingSlash",
@@ -101,8 +141,18 @@ func TestStripPath(t *testing.T) {
 			baseURL := ctx.UserValue(UserValueKeyBaseURL)
 			rawURI := ctx.UserValue(UserValueKeyRawURI)
 
-			assert.Equal(t, tc.expected, baseURL)
-			assert.Equal(t, tc.expectedRaw, rawURI)
+			if tc.expected == "" {
+				assert.Nil(t, baseURL)
+			} else {
+				assert.Equal(t, tc.expected, baseURL)
+			}
+
+			if tc.expectedRaw == "" {
+				assert.Nil(t, rawURI)
+			} else {
+				assert.Equal(t, tc.expectedRaw, rawURI)
+			}
+
 			assert.Equal(t, tc.expectedURI, string(ctx.RequestURI()))
 		})
 	}
