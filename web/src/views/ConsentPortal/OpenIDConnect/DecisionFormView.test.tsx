@@ -1,5 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 
+import { useRouterNavigate } from "@hooks/RouterNavigate";
+import { getConsentResponse } from "@services/ConsentOpenIDConnect";
 import { AuthenticationLevel } from "@services/State";
 import DecisionFormView from "@views/ConsentPortal/OpenIDConnect/DecisionFormView";
 
@@ -53,7 +55,7 @@ vi.mock("@hooks/Redirector", () => ({
 }));
 
 vi.mock("@hooks/RouterNavigate", () => ({
-    useRouterNavigate: () => vi.fn(),
+    useRouterNavigate: vi.fn(),
 }));
 
 vi.mock("@services/CapsLock", () => ({
@@ -99,8 +101,55 @@ vi.mock("@views/LoadingPage/LoadingPage", () => ({
     default: () => <div data-testid="loading-page" />,
 }));
 
+beforeEach(() => {
+    vi.mocked(useRouterNavigate).mockReturnValue(vi.fn());
+    vi.mocked(getConsentResponse).mockResolvedValue(undefined as any);
+});
+
 it("renders loading page when consent response is not loaded", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     render(<DecisionFormView state={{ authentication_level: AuthenticationLevel.TwoFactor } as any} />);
     expect(screen.getByTestId("loading-page")).toBeInTheDocument();
+});
+
+it("navigates to index route when unauthenticated", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const mockNavigate = vi.fn();
+
+    vi.mocked(useRouterNavigate).mockReturnValue(mockNavigate);
+
+    render(<DecisionFormView state={{ authentication_level: AuthenticationLevel.Unauthenticated } as any} />);
+
+    expect(mockNavigate).toHaveBeenCalledWith("/");
+});
+
+it("renders consent form with scopes, claims, and pre-configuration when consent response resolves", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    vi.mocked(getConsentResponse).mockResolvedValue({
+        audience: [],
+        claims: ["email"],
+        client_description: "Test Client",
+        client_id: "test-client",
+        essential_claims: [],
+        pre_configuration: true,
+        require_login: false,
+        scopes: ["openid", "profile"],
+    });
+
+    render(
+        <DecisionFormView
+            state={{ authentication_level: AuthenticationLevel.TwoFactor } as any}
+            userInfo={{ display_name: "Test User", emails: ["test@example.com"], groups: [] } as any}
+        />,
+    );
+
+    await waitFor(() => {
+        expect(screen.getByTestId("login-layout")).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId("scopes-form")).toBeInTheDocument();
+    expect(screen.getByTestId("claims-form")).toBeInTheDocument();
+    expect(screen.getByTestId("pre-config-form")).toBeInTheDocument();
 });

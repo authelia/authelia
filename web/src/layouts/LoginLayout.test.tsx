@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import LoginLayout from "@layouts/LoginLayout";
 
@@ -146,9 +146,9 @@ it("logs error when locale fetch fails", async () => {
     const { getLocaleInformation } = await import("@services/LocaleInformation");
     vi.mocked(getLocaleInformation).mockRejectedValueOnce(new Error("fetch failed"));
 
-    await act(async () => {
-        render(<LoginLayout />);
-    });
+    render(<LoginLayout />);
 
-    expect(console.error).toHaveBeenCalledWith("could not get locale list:", expect.any(Error));
+    await waitFor(() => {
+        expect(console.error).toHaveBeenCalledWith("could not get locale list:", expect.any(Error));
+    });
 });
