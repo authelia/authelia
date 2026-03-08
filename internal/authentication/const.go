@@ -161,6 +161,11 @@ func (e *errReload) Error() string {
 	return e.err.Error()
 }
 
+func (e *errReload) Unwrap() error {
+	return e.err
+}
+
 func (e *errReload) WatcherReloadErrorCritical() bool {
 	return e.critical
+}
 }
