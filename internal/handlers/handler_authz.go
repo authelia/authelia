@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -24,12 +25,13 @@ type AuthzContext interface {
 	context.Context
 
 	GetLogger() *logrus.Entry
-	GetConfiguration() schema.Configuration
+	GetConfiguration() *schema.Configuration
 	GetClock() clock.Provider
 	GetProviders() middlewares.Providers
 	GetUserProvider() authentication.UserProvider
 	GetRandom() (random random.Provider)
 	GetProviderUserAttributeResolver() expression.UserAttributeResolver
+	GetProviderStorage() storage.Provider
 	GetJWTWithTimeFuncOption() (option jwt.ParserOption)
 
 	Method() (method []byte)
