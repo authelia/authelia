@@ -125,7 +125,7 @@ var (
 	// ErrWatcherNoContent is returned when the file is empty.
 	ErrWatcherNoContent = errors.New("no file content")
 
-	// ErrWatcherCooldown is return when the file watcher is on cooldown.
+	// ErrWatcherCooldown is returned when the file watcher is on cooldown.
 	ErrWatcherCooldown = errors.New("watcher on cooldown")
 
 	ErrOperationFailed = errors.New("operation failed")
