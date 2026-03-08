@@ -142,7 +142,12 @@ func (service *FileWatcher) Run() (err error) {
 
 				switch reloaded, err = service.reload.Reload(); {
 				case err != nil:
-					log.WithError(err).Error("Error occurred during reload")
+					var e errWatcher
+					if errors.As(err, &e) && !e.WatcherReloadErrorCritical() {
+						log.WithError(err).Debug("Reload was triggered but it was skipped")
+					} else {
+						log.WithError(err).Error("Error occurred during reload")
+					}
 				case reloaded:
 					log.Info("Reloaded successfully")
 				default:

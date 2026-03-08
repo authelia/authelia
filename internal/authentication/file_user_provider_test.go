@@ -124,7 +124,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 				provider.timeoutReload = time.Now().Add(time.Minute)
 			},
 			false,
-			"",
+			"watcher on cooldown",
 		},
 		{
 			"ShouldReloadWithoutError",
@@ -148,7 +148,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive, nil)
 			},
 			false,
-			"",
+			"error reading the authentication database: no file content",
 		},
 	}
 

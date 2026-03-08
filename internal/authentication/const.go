@@ -122,8 +122,11 @@ var (
 	// ErrUserNotFound indicates the user wasn't found in the authentication backend.
 	ErrUserNotFound = errors.New("user not found")
 
-	// ErrNoContent is returned when the file is empty.
-	ErrNoContent = errors.New("no file content")
+	// ErrWatcherNoContent is returned when the file is empty.
+	ErrWatcherNoContent = errors.New("no file content")
+
+	// ErrWatcherCooldown is return when the file watcher is on cooldown.
+	ErrWatcherCooldown = errors.New("watcher on cooldown")
 
 	ErrOperationFailed = errors.New("operation failed")
 
@@ -148,3 +151,16 @@ const (
 	ValueTypeInteger = "integer"
 	ValueTypeBoolean = "boolean"
 )
+
+type errReload struct {
+	err      error
+	critical bool
+}
+
+func (e *errReload) Error() string {
+	return e.err.Error()
+}
+
+func (e *errReload) WatcherReloadErrorCritical() bool {
+	return e.critical
+}

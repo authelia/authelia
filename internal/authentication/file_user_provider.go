@@ -60,16 +60,16 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 	defer p.mutex.Unlock()
 
 	if now.Before(p.timeoutReload) {
-		return false, nil
+		return false, &errReload{err: ErrWatcherCooldown}
 	}
 
 	switch err = p.database.Load(); {
 	case err == nil:
 		p.setTimeoutReload(now)
-	case errors.Is(err, ErrNoContent):
-		return false, nil
+	case errors.Is(err, ErrWatcherNoContent):
+		return false, &errReload{err: err}
 	default:
-		return false, fmt.Errorf("failed to reload: %w", err)
+		return false, &errReload{err: fmt.Errorf("failed to reload: %w", err), critical: true}
 	}
 
 	p.setTimeoutReload(now)

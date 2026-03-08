@@ -380,7 +380,7 @@ func (m *FileDatabaseModel) Read(filePath string) (err error) {
 	}
 
 	if len(content) == 0 {
-		return ErrNoContent
+		return ErrWatcherNoContent
 	}
 
 	if err = yaml.Unmarshal(content, m); err != nil {
