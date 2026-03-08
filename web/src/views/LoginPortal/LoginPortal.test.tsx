@@ -135,8 +135,9 @@ it("unauthenticated state navigates to IndexRoute", async () => {
     );
 
     await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith("/");
+        expect(mockNavigate).toHaveBeenCalled();
     });
+    expect(mockNavigate).toHaveBeenCalledWith("/");
 });
 
 it("OneFactor with no 2FA methods navigates to /authenticated", async () => {
@@ -159,15 +160,16 @@ it("OneFactor with no 2FA methods navigates to /authenticated", async () => {
         undefined,
     ]);
 
-    await waitFor(() => {
-        render(
-            <MemoryRouter>
-                <LoginPortal {...defaultProps} />
-            </MemoryRouter>,
-        );
-    });
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
 
-    expect(mockNavigate).toHaveBeenCalledWith("/authenticated", false);
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/authenticated", false);
 });
 
 it("OneFactor with TOTP preferred navigates to /2fa/totp", async () => {
@@ -190,15 +192,16 @@ it("OneFactor with TOTP preferred navigates to /2fa/totp", async () => {
         undefined,
     ]);
 
-    await waitFor(() => {
-        render(
-            <MemoryRouter>
-                <LoginPortal {...defaultProps} />
-            </MemoryRouter>,
-        );
-    });
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
 
-    expect(mockNavigate).toHaveBeenCalledWith("/2fa/totp");
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/totp");
 });
 
 it("OneFactor with WebAuthn preferred navigates to /2fa/webauthn", async () => {
@@ -221,15 +224,16 @@ it("OneFactor with WebAuthn preferred navigates to /2fa/webauthn", async () => {
         undefined,
     ]);
 
-    await waitFor(() => {
-        render(
-            <MemoryRouter>
-                <LoginPortal {...defaultProps} />
-            </MemoryRouter>,
-        );
-    });
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
 
-    expect(mockNavigate).toHaveBeenCalledWith("/2fa/webauthn");
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/webauthn");
 });
 
 it("OneFactor with MobilePush preferred navigates to /2fa/push", async () => {
@@ -252,15 +256,16 @@ it("OneFactor with MobilePush preferred navigates to /2fa/push", async () => {
         undefined,
     ]);
 
-    await waitFor(() => {
-        render(
-            <MemoryRouter>
-                <LoginPortal {...defaultProps} />
-            </MemoryRouter>,
-        );
-    });
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
 
-    expect(mockNavigate).toHaveBeenCalledWith("/2fa/push");
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/push");
 });
 
 it("OneFactor with factor_knowledge false navigates to /2fa/password", async () => {
@@ -283,15 +288,16 @@ it("OneFactor with factor_knowledge false navigates to /2fa/password", async () 
         undefined,
     ]);
 
-    await waitFor(() => {
-        render(
-            <MemoryRouter>
-                <LoginPortal {...defaultProps} />
-            </MemoryRouter>,
-        );
-    });
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
 
-    expect(mockNavigate).toHaveBeenCalledWith("/2fa/password");
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/password");
 });
 
 it("localStorageMethod overrides userInfo.method", async () => {
@@ -319,29 +325,30 @@ it("localStorageMethod overrides userInfo.method", async () => {
         setLocalStorageMethod: vi.fn(),
     });
 
-    await waitFor(() => {
-        render(
-            <MemoryRouter>
-                <LoginPortal {...defaultProps} />
-            </MemoryRouter>,
-        );
-    });
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
 
-    expect(mockNavigate).toHaveBeenCalledWith("/2fa/webauthn");
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/webauthn");
 });
 
 it("fetchStateError triggers createErrorNotification", async () => {
     vi.mocked(useAutheliaState).mockReturnValue([undefined, vi.fn(), false, new Error("state error")]);
 
-    await waitFor(() => {
-        render(
-            <MemoryRouter>
-                <LoginPortal {...defaultProps} />
-            </MemoryRouter>,
-        );
-    });
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
 
-    expect(mockCreateErrorNotification).toHaveBeenCalled();
+    await waitFor(() => {
+        expect(mockCreateErrorNotification).toHaveBeenCalledTimes(1);
+    });
 });
 
 it("fetchConfigurationError triggers createErrorNotification", async () => {
@@ -353,15 +360,15 @@ it("fetchConfigurationError triggers createErrorNotification", async () => {
     ]);
     vi.mocked(useConfiguration).mockReturnValue([undefined, vi.fn(), false, new Error("config error")]);
 
-    await waitFor(() => {
-        render(
-            <MemoryRouter>
-                <LoginPortal {...defaultProps} />
-            </MemoryRouter>,
-        );
-    });
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
 
-    expect(mockCreateErrorNotification).toHaveBeenCalled();
+    await waitFor(() => {
+        expect(mockCreateErrorNotification).toHaveBeenCalledTimes(1);
+    });
 });
 
 it("fetchUserInfoError triggers createErrorNotification", async () => {
@@ -373,13 +380,13 @@ it("fetchUserInfoError triggers createErrorNotification", async () => {
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([undefined, vi.fn(), false, new Error("userinfo error")]);
 
-    await waitFor(() => {
-        render(
-            <MemoryRouter>
-                <LoginPortal {...defaultProps} />
-            </MemoryRouter>,
-        );
-    });
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
 
-    expect(mockCreateErrorNotification).toHaveBeenCalled();
+    await waitFor(() => {
+        expect(mockCreateErrorNotification).toHaveBeenCalledTimes(1);
+    });
 });

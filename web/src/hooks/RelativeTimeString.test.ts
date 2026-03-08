@@ -17,7 +17,6 @@ const OriginalRelativeTimeFormat = Intl.RelativeTimeFormat;
 beforeAll(() => {
     (Intl as any).RelativeTimeFormat = class MockRelativeTimeFormat {
         format = mockFormat;
-        constructor() {}
     };
 });
 

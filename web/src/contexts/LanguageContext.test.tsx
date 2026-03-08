@@ -61,7 +61,7 @@ it("handles storage event for language change", async () => {
         newValue: "fr",
     });
     await act(async () => {
-        window.dispatchEvent(event);
+        globalThis.dispatchEvent(event);
     });
     expect(mockI18n.changeLanguage).toHaveBeenCalledWith("fr");
 });
@@ -76,7 +76,7 @@ it("ignores storage event for different key", () => {
         key: "other",
         newValue: "fr",
     });
-    window.dispatchEvent(event);
+    globalThis.dispatchEvent(event);
     expect(mockI18n.changeLanguage).not.toHaveBeenCalledWith("fr");
 });
 
@@ -90,7 +90,7 @@ it("ignores storage event with empty value", () => {
         key: "language",
         newValue: "",
     });
-    window.dispatchEvent(event);
+    globalThis.dispatchEvent(event);
     expect(mockI18n.changeLanguage).not.toHaveBeenCalledWith("");
 });
 

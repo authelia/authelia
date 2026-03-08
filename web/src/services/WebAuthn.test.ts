@@ -250,12 +250,12 @@ it("handles webauthn registration finish with error", async () => {
 
 it("handles webauthn registration finish with axios error message", async () => {
     const { AxiosError } = await import("axios");
-    const axiosError = new AxiosError("fail");
-    (axiosError as any).response = { data: { message: "Conflict" } };
+    const message = "Device registration failed.";
+    const axiosError = new AxiosError("fail", undefined, undefined, undefined, { data: { message } } as any);
     (axios.post as any).mockRejectedValue(axiosError);
 
     const result = await finishWebAuthnRegistration({} as any);
-    expect(result).toEqual({ message: "Conflict", status: AttestationResult.Failure });
+    expect(result).toEqual({ message, status: AttestationResult.Failure });
 });
 
 it("handles webauthn credential deletion", async () => {

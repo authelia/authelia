@@ -24,13 +24,13 @@ it("renders link with correct text", () => {
 });
 
 it("renders privacy policy when enabled", () => {
-    document.body.setAttribute("data-privacypolicyurl", "https://example.com");
+    document.body.dataset.privacypolicyurl = "https://example.com";
     render(<Brand />);
     expect(screen.getByText("Privacy Policy")).toBeInTheDocument();
 });
 
 it("does not render privacy policy when disabled", () => {
-    document.body.setAttribute("data-privacypolicyurl", "");
+    document.body.dataset.privacypolicyurl = "";
     render(<Brand />);
     expect(screen.queryByText("Privacy Policy")).not.toBeInTheDocument();
 });

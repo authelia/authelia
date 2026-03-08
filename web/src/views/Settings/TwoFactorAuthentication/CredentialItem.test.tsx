@@ -42,21 +42,21 @@ it("renders last used when provided", () => {
 
 it("calls handleDelete when delete button is clicked", () => {
     render(<CredentialItem {...baseProps} />);
-    fireEvent.click(screen.getByTestId("DeleteIcon").closest("button")!);
+    fireEvent.click(screen.getByRole("button", { name: "Delete this" }));
     expect(baseProps.handleDelete).toHaveBeenCalledOnce();
 });
 
 it("renders information button when handleInformation is provided", () => {
     const handleInfo = vi.fn();
     render(<CredentialItem {...baseProps} handleInformation={handleInfo} tooltipInformation="View info" />);
-    fireEvent.click(screen.getByTestId("InfoOutlinedIcon").closest("button")!);
+    fireEvent.click(screen.getByRole("button", { name: "View info" }));
     expect(handleInfo).toHaveBeenCalledOnce();
 });
 
 it("renders edit button when handleEdit is provided", () => {
     const handleEdit = vi.fn();
     render(<CredentialItem {...baseProps} handleEdit={handleEdit} tooltipEdit="Edit this" />);
-    fireEvent.click(screen.getByTestId("EditIcon").closest("button")!);
+    fireEvent.click(screen.getByRole("button", { name: "Edit this" }));
     expect(handleEdit).toHaveBeenCalledOnce();
 });
 

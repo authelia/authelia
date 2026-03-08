@@ -116,7 +116,7 @@ it("handles storage event for theme change", async () => {
         newValue: "grey",
     });
     await act(async () => {
-        window.dispatchEvent(event);
+        globalThis.dispatchEvent(event);
     });
     expect(await screen.findByText("grey")).toBeInTheDocument();
 });
@@ -132,7 +132,7 @@ it("handles storage event with empty newValue", async () => {
         newValue: "",
     });
     await act(async () => {
-        window.dispatchEvent(event);
+        globalThis.dispatchEvent(event);
     });
     expect(screen.getByText("light")).toBeInTheDocument();
 });
@@ -149,7 +149,7 @@ it("handles storage event with empty newValue falling back to stored theme", asy
         newValue: "",
     });
     await act(async () => {
-        window.dispatchEvent(event);
+        globalThis.dispatchEvent(event);
     });
     expect(await screen.findByText("dark")).toBeInTheDocument();
 });
@@ -169,7 +169,7 @@ it("ignores storage event for different key", async () => {
         newValue: "grey",
     });
     await act(async () => {
-        window.dispatchEvent(event);
+        globalThis.dispatchEvent(event);
     });
     expect(screen.getByText("dark")).toBeInTheDocument();
 });

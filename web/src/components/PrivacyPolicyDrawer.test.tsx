@@ -3,15 +3,15 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 
 beforeEach(() => {
-    document.body.setAttribute("data-privacypolicyurl", "");
-    document.body.setAttribute("data-privacypolicyaccept", "false");
+    document.body.dataset.privacypolicyurl = "";
+    document.body.dataset.privacypolicyaccept = "false";
 
-    global.localStorage.clear();
+    globalThis.localStorage.clear();
 });
 
 it("renders privacy policy and accepts when Accept button is clicked", () => {
-    document.body.setAttribute("data-privacypolicyurl", "http://example.com/privacy-policy");
-    document.body.setAttribute("data-privacypolicyaccept", "true");
+    document.body.dataset.privacypolicyurl = "http://example.com/privacy-policy";
+    document.body.dataset.privacypolicyaccept = "true";
 
     const { container } = render(<PrivacyPolicyDrawer />);
     fireEvent.click(screen.getByText("Accept"));
@@ -26,7 +26,7 @@ it("does not render when privacy policy is disabled", () => {
 });
 
 it("does not render when acceptance is not required", () => {
-    document.body.setAttribute("data-privacypolicyurl", "http://example.com/privacy-policy");
+    document.body.dataset.privacypolicyurl = "http://example.com/privacy-policy";
 
     render(<PrivacyPolicyDrawer />);
     expect(screen.queryByText("Privacy Policy")).not.toBeInTheDocument();
@@ -35,7 +35,7 @@ it("does not render when acceptance is not required", () => {
 });
 
 it("does not render when already accepted", () => {
-    global.localStorage.setItem("privacy-policy-accepted", "true");
+    globalThis.localStorage.setItem("privacy-policy-accepted", "true");
 
     const { container } = render(<PrivacyPolicyDrawer />);
     expect(container).toBeEmptyDOMElement();

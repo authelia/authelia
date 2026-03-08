@@ -7,7 +7,7 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("@services/UserInfo", () => ({
-    toMethod2FA: (method: number) => String(method),
+    toMethod2FA: String,
 }));
 
 it("renders radio options for all provided methods", () => {

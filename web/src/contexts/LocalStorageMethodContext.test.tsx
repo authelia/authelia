@@ -95,7 +95,7 @@ it("handles storage event for method change", async () => {
         newValue: "webauthn",
     });
     await act(async () => {
-        window.dispatchEvent(event);
+        globalThis.dispatchEvent(event);
     });
     expect(await screen.findByText("webauthn")).toBeInTheDocument();
 });
@@ -111,7 +111,7 @@ it("handles storage event with empty newValue", async () => {
         newValue: "",
     });
     await act(async () => {
-        window.dispatchEvent(event);
+        globalThis.dispatchEvent(event);
     });
     expect(await screen.findByText("none")).toBeInTheDocument();
 });
@@ -127,7 +127,7 @@ it("ignores storage event for different key", async () => {
         newValue: "totp",
     });
     await act(async () => {
-        window.dispatchEvent(event);
+        globalThis.dispatchEvent(event);
     });
     expect(screen.getByText("none")).toBeInTheDocument();
 });
