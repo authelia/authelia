@@ -6,13 +6,13 @@ import (
 	"net/url"
 
 	oauthelia2 "authelia.com/provider/oauth2"
-	"github.com/authelia/authelia/v4/internal/session"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // Authz is a type which is a effectively is a middlewares.RequestHandler for authorization requests. This should NOT be
