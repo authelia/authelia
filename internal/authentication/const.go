@@ -7,6 +7,24 @@ import (
 )
 
 const (
+	ldapSupportedLDAPVersionAttribute    = "supportedLDAPVersion"
+	ldapSupportedFeaturesAttribute       = "supportedFeatures"
+	ldapSupportedSASLMechanismsAttribute = "supportedSASLMechanisms"
+)
+
+const (
+	ldapVendorNameAttribute          = "vendorName"
+	ldapVendorVersionAttribute       = "vendorVersion"
+	ldapDomainFunctionalityAttribute = "domainFunctionality"
+	ldapForestFunctionalityAttribute = "forestFunctionality"
+	ldapObjectClassAttribute         = "objectClass"
+
+	ldapVendorNameMicrosoftCorporation = "Microsoft Corporation"
+	ldapVendorNameOpenLDAP             = "OpenLDAP"
+	ldapVendorOpenLDAPObjectClass      = "OpenLDAProotDSE"
+)
+
+const (
 	ldapSupportedExtensionAttribute = "supportedExtension"
 
 	// LDAP Extension OID: Password Modify Extended Operation.
@@ -120,10 +138,6 @@ var (
 )
 
 const fileAuthenticationMode = 0600
-
-// OWASP recommends to escape some special characters.
-// https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.md
-const specialLDAPRunes = ",#+<>;\"="
 
 var (
 	encodingUTF16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)

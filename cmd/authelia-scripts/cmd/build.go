@@ -112,7 +112,7 @@ func buildAutheliaBinaryGO(xflags []string) {
 	cmd := utils.CommandWithStdout("go", "build", "-buildmode=pie", "-trimpath", "-o", OutputDir+pathAuthelia, "-ldflags", "-linkmode=external -s -w "+strings.Join(xflags, " "), "./cmd/authelia/")
 
 	cmd.Env = append(os.Environ(),
-		"GOEXPERIMENT=nosynchashtriemap", "CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
+		"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
 
 	err := cmd.Run()
 	if err != nil {

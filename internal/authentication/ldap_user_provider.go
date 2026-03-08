@@ -333,9 +333,9 @@ func (p *LDAPUserProvider) setPassword(client LDAPExtendedClient, profile *ldapU
 	var controls []ldap.Control
 
 	switch {
-	case client.Features().ControlTypes.MsftPwdPolHints:
+	case client.Discovery().Controls.MsftPwdPolHints:
 		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints})
-	case client.Features().ControlTypes.MsftPwdPolHintsDeprecated:
+	case client.Discovery().Controls.MsftPwdPolHintsDeprecated:
 		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHintsDeprecated})
 	}
 
@@ -352,7 +352,7 @@ func (p *LDAPUserProvider) setPassword(client LDAPExtendedClient, profile *ldapU
 		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{value})
 
 		return p.modify(client, modifyRequest)
-	case client.Features().Extensions.PwdModify:
+	case client.Discovery().Extensions.PwdModify:
 		pwdModifyRequest := ldap.NewPasswordModifyRequest(
 			profile.DN,
 			oldPassword,
@@ -715,7 +715,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
 
 	if p.usersFilterReplacementInput {
 		// The {input} placeholder is replaced by the username input.
-		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldap.EscapeFilter(input))
 	}
 
 	if p.usersFilterReplacementDateTimeGeneralized {
@@ -740,7 +740,7 @@ func (p *LDAPUserProvider) resolveGroupsFilter(input string, profile *ldapUserPr
 
 	if p.groupsFilterReplacementInput {
 		// The {input} placeholder is replaced by the users username input.
-		filter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderInput, ldapEscape(input))
+		filter = strings.ReplaceAll(p.config.GroupsFilter, ldapPlaceholderInput, ldap.EscapeFilter(input))
 	}
 
 	if profile != nil {

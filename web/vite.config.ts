@@ -109,10 +109,12 @@ export default defineConfig(({ mode }) => {
         },
         test: {
             coverage: {
+                include: ["src"],
                 provider: "istanbul",
             },
             environment: "happy-dom",
             globals: true,
+            reporters: ["default", "html"],
             setupFiles: ["src/setupTests.ts"],
         },
     };
