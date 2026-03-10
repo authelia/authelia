@@ -631,9 +631,7 @@ func (s *CustomClaimsStrategy) HydrateAccessTokenClaims(ctx ClaimsStrategyContex
 		return oauthelia2.ErrServerError.WithDebug("The claims strategy had an error populating the Access Token Claims. Error occurred obtaining the attribute resolver.")
 	}
 
-	resolve := func(claim string) (value any, ok bool) {
-		return resolver.Resolve(claim, detailer, updated)
-	}
+	resolve := newResolveFunc(resolver, detailer, updated)
 
 	s.hydrateClaimsOriginal(original, extra)
 	s.hydrateClaimsScoped(ctx, strategy, client, scopes, resolve, s.claimsAccessToken, extra)
