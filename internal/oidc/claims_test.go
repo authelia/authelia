@@ -464,6 +464,8 @@ func TestNewClaimRequests(t *testing.T) {
 		badIssuers        []*url.URL
 		claims, essential []string
 		idToken, userinfo map[string]*oidc.ClaimRequest
+		signature         string
+		json              string
 	}{
 		{
 			"ShouldParse",
@@ -482,6 +484,8 @@ func TestNewClaimRequests(t *testing.T) {
 				},
 			},
 			nil,
+			`9b3e23db057cb77f7f96606f8e5c4fdde81276605825481318ae13482e919f74`,
+			`{"id_token":{"sub":{"essential":false,"value":"aaaa"}}}`,
 		},
 		{
 			"ShouldParseUserInfo",
@@ -500,6 +504,8 @@ func TestNewClaimRequests(t *testing.T) {
 					Value: "aaaa",
 				},
 			},
+			`463aafa3275c828ab9a08d6ece9f47c0ca6eb34c6c3a875980f922515b23314a`,
+			`{"userinfo":{"sub":{"essential":false,"value":"aaaa"}}}`,
 		},
 		{
 			"ShouldParseBoth",
@@ -522,6 +528,8 @@ func TestNewClaimRequests(t *testing.T) {
 					Value: "aaaa",
 				},
 			},
+			`1950b8079c1da250784f980c8830070af449c65608b6c68c754712a9595d2807`,
+			`{"id_token":{"sub":{"essential":false,"value":"aaaa"}},"userinfo":{"sub":{"essential":false,"value":"aaaa"}}}`,
 		},
 		{
 			"ShouldParseBothIDTokenEssential",
@@ -545,6 +553,8 @@ func TestNewClaimRequests(t *testing.T) {
 					Value: "aaaa",
 				},
 			},
+			`6200bc234a6f022d45a7d44ff816d8bc957996ce69dc8f94d6556fb0baf74641`,
+			`{"id_token":{"sub":{"essential":true,"value":"aaaa"}},"userinfo":{"sub":{"essential":false,"value":"aaaa"}}}`,
 		},
 		{
 			"ShouldParseBothUserInfoEssential",
@@ -568,6 +578,8 @@ func TestNewClaimRequests(t *testing.T) {
 					Essential: true,
 				},
 			},
+			`be31f182292ff568825f31342b65cff7ffddd89c4bee4556c6e0baf83b46d0af`,
+			`{"id_token":{"sub":{"essential":false,"value":"aaaa"}},"userinfo":{"sub":{"essential":true,"value":"aaaa"}}}`,
 		},
 		{
 			"ShouldParseUserInfoEssential",
@@ -587,6 +599,8 @@ func TestNewClaimRequests(t *testing.T) {
 					Essential: true,
 				},
 			},
+			`60d0dda34d8928029b8df925ef10c9777595c8fa4ca7d870e83ba28f8dd4f8d0`,
+			`{"userinfo":{"sub":{"essential":true,"value":"aaaa"}}}`,
 		},
 		{
 			"ShouldParseBothEssential",
@@ -611,6 +625,8 @@ func TestNewClaimRequests(t *testing.T) {
 					Essential: true,
 				},
 			},
+			`ba3ab5034a1d84fd37d1e2ecbcd90afb55ab870d95fc29c3fb8bc3e4d7fcefc9`,
+			`{"id_token":{"sub":{"essential":true,"value":"aaaa"}},"userinfo":{"sub":{"essential":true,"value":"aaaa"}}}`,
 		},
 		{
 			"ShouldNotMatchInteger",
@@ -629,6 +645,8 @@ func TestNewClaimRequests(t *testing.T) {
 					Value: float64(1),
 				},
 			},
+			`1af35d6025879af23391b886387e6a5f46bf93266a92aea788b88fb7e7d60efd`,
+			`{"userinfo":{"sub":{"essential":false,"value":1}}}`,
 		},
 		{
 			"ShouldNotMatchIntegerIDToken",
@@ -647,6 +665,8 @@ func TestNewClaimRequests(t *testing.T) {
 				},
 			},
 			nil,
+			`8812fe921c02f9b1b827c84bdb46304258ae5ee12cafecc403db08a4f69b83a7`,
+			`{"id_token":{"sub":{"essential":false,"value":1}}}`,
 		},
 		{
 			"ShouldParseRequestOnly",
@@ -663,6 +683,8 @@ func TestNewClaimRequests(t *testing.T) {
 			map[string]*oidc.ClaimRequest{
 				"sub": nil,
 			},
+			`d7e1f3916461d8c02760657a0a84febcc4bdd9992259d7ba0d33a4030d6055ed`,
+			`{"userinfo":{"sub":null}}`,
 		},
 		{
 			"ShouldNotParse",
@@ -677,6 +699,8 @@ func TestNewClaimRequests(t *testing.T) {
 			nil,
 			nil,
 			nil,
+			"",
+			"",
 		},
 	}
 
@@ -759,6 +783,17 @@ func TestNewClaimRequests(t *testing.T) {
 
 			assert.Equal(t, tc.idToken, requests.GetIDTokenRequests())
 			assert.Equal(t, tc.userinfo, requests.GetUserInfoRequests())
+
+			sig, err := requests.Signature()
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.signature, sig)
+
+			serialized, sig, err := requests.Serialized()
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.json, serialized)
+			assert.Equal(t, tc.signature, sig)
 		})
 	}
 
