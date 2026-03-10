@@ -140,7 +140,7 @@ const (
 )
 
 const (
-	codeCSPProductionDefaultSrc  = "'self'"
+	codeCSPSelf                  = "'self'"
 	codeCSPDevelopmentDefaultSrc = "'self' 'unsafe-eval'"
 	codeCSPNonce                 = "${NONCE}"
 )
@@ -155,15 +155,20 @@ const (
 
 var (
 	codeCSPValuesCommon = []CSPValue{
-		{Name: "default-src", Value: ""},
+		{Name: "default-src", Value: codeCSPSelf},
 		{Name: "frame-src", Value: "'none'"},
 		{Name: "object-src", Value: "'none'"},
 		{Name: "style-src", Value: "'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"},
 		{Name: "frame-ancestors", Value: "'none'"},
-		{Name: "base-uri", Value: "'self'"},
+		{Name: "base-uri", Value: codeCSPSelf},
 	}
 
-	codeCSPValuesProduction = []CSPValue{}
+	codeCSPValuesProduction = []CSPValue{
+		{Name: "connect-src", Value: codeCSPSelf},
+		{Name: "script-src", Value: codeCSPSelf},
+	}
 
-	codeCSPValuesDevelopment = []CSPValue{}
+	codeCSPValuesDevelopment = []CSPValue{
+		{Name: "default-src", Value: codeCSPDevelopmentDefaultSrc},
+	}
 )

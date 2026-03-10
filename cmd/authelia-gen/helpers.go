@@ -50,18 +50,37 @@ func getPFlagPath(flags *pflag.FlagSet, flagNames ...string) (fullPath string, e
 }
 
 func buildCSP(defaultSrc string, ruleSets ...[]CSPValue) string {
-	var rules []string
+	final := map[string]string{}
 
 	for _, ruleSet := range ruleSets {
 		for _, rule := range ruleSet {
-			switch rule.Name {
-			case "default-src":
-				rules = append(rules, fmt.Sprintf("%s %s", rule.Name, defaultSrc))
-			default:
-				rules = append(rules, fmt.Sprintf("%s %s", rule.Name, rule.Value))
+			if rule.Value == "" && rule.Name == "default-src" {
+				final[rule.Name] = defaultSrc
+
+				continue
 			}
+
+			final[rule.Name] = rule.Value
 		}
 	}
+
+	rules := make([]string, 0, len(final))
+
+	for name, rule := range final {
+		rules = append(rules, fmt.Sprintf("%s %s", name, rule))
+	}
+
+	sort.Slice(rules, func(i, j int) bool {
+		if strings.HasPrefix(rules[i], "default-src") {
+			return true
+		}
+
+		if strings.HasPrefix(rules[j], "default-src") {
+			return false
+		}
+
+		return rules[i] < rules[j]
+	})
 
 	return strings.Join(rules, "; ")
 }
