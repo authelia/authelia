@@ -84,7 +84,7 @@ func (c *CredentialCacheHMAC) check(ctx Context, username, password string, sum 
 			return &FlightResult{Cached: true, Valid: true}, nil
 		}
 
-		if valid, err = ctx.GetProviderUser().CheckUserPassword(username, password); err != nil {
+		if valid, err = ctx.GetProviderAuthentication().CheckUserPassword(username, password); err != nil {
 			return &FlightResult{Cached: false, Valid: valid}, err
 		}
 

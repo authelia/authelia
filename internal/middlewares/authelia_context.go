@@ -628,7 +628,7 @@ func (ctx *AutheliaCtx) GetProviders() (providers Providers) {
 	return ctx.Providers
 }
 
-func (ctx *AutheliaCtx) GetProviderUser() authentication.UserProvider {
+func (ctx *AutheliaCtx) GetProviderAuthentication() authentication.UserProvider {
 	return ctx.Providers.UserProvider
 }
 

@@ -41,7 +41,7 @@ func UserDetailerFromSubject(ctx Context, subject uuid.UUID) (detailer UserDetai
 		return nil, err
 	}
 
-	if details, err = ctx.GetProviderUser().GetDetailsExtended(identifier.Username); err != nil {
+	if details, err = ctx.GetProviderAuthentication().GetDetailsExtended(identifier.Username); err != nil {
 		return nil, err
 	}
 
