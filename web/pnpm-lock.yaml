@@ -65,8 +65,8 @@ importers:
         specifier: 7.3.9
         version: 7.3.9(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@simplewebauthn/browser':
-        specifier: 13.2.2
-        version: 13.2.2
+        specifier: 13.3.0
+        version: 13.3.0
       axios:
         specifier: 1.13.6
         version: 1.13.6
@@ -1211,8 +1211,8 @@ packages:
     resolution: {integrity: sha512-KxXvfapcixpz6rVEB6HPjOUZT22yN6v0vI0urQSk1L8MlEWPDFCZkhw2xmkyoTGYeFw7tWTZd7e3lVzRZRN/EA==}
     engines: {node: '>=18'}
 
-  '@simplewebauthn/browser@13.2.2':
-    resolution: {integrity: sha512-FNW1oLQpTJyqG5kkDg5ZsotvWgmBaC6jCHR7Ej0qUNep36Wl9tj2eZu7J5rP+uhXgHaLk+QQ3lqcw2vS5MX1IA==}
+  '@simplewebauthn/browser@13.3.0':
+    resolution: {integrity: sha512-BE/UWv6FOToAdVk0EokzkqQQDOWtNydYlY6+OrmiZ5SCNmb41VehttboTetUM3T/fr6EAFYVXjz4My2wg230rQ==}
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
@@ -5176,7 +5176,7 @@ snapshots:
 
   '@simple-libs/stream-utils@1.2.0': {}
 
-  '@simplewebauthn/browser@13.2.2': {}
+  '@simplewebauthn/browser@13.3.0': {}
 
   '@standard-schema/spec@1.0.0': {}
 
