@@ -69,6 +69,7 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfigurationBothKeyTypesSpecified
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: option 'clients' must have one or more clients configured")
 }
 
+//nolint:gosec // Test Credentials.
 func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
@@ -94,6 +95,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 }
 
+//nolint:gosec // Test Credentials.
 func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
@@ -121,6 +123,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', or 'userinfo'")
 }
 
+//nolint:gosec // Test Credentials.
 func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 	validator := schema.NewStructValidator()
 
@@ -142,6 +145,7 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: option 'clients' must have one or more clients configured")
 }
 
+//nolint:gosec // Test Credentials.
 func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 
@@ -180,6 +184,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[4].String())
 }
 
+//nolint:gosec // Test Credentials.
 func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
@@ -198,6 +203,7 @@ func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: option 'clients' must have one or more clients configured")
 }
 
+//nolint:gosec // Test Credentials.
 func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	mux := http.NewServeMux()
 
@@ -648,6 +654,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	}
 }
 
+//nolint:gosec // Test Credentials.
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
@@ -676,6 +683,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', or 'urn:ietf:params:oauth:grant-type:device_code' but the values 'bad_grant_type' are present")
 }
 
+//nolint:gosec // Test Credentials.
 func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
@@ -704,6 +712,7 @@ func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 	assert.Len(t, validator.Errors(), 0)
 }
 
+//nolint:gosec // Test Credentials.
 func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{

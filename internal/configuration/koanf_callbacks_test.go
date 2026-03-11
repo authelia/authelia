@@ -44,6 +44,7 @@ func TestKoanfEnvironmentCallback(t *testing.T) {
 	assert.Nil(t, value)
 }
 
+//nolint:gosec // Test Credentials.
 func TestKoanfSecretCallbackWithValidSecrets(t *testing.T) {
 	var (
 		key   string
