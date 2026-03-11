@@ -53,7 +53,7 @@ type TOTP struct {
 	Algorithm string
 	Digits    uint32
 	Period    uint
-	Secret    string //nolint:gosec
+	Secret    string
 	Expires   time.Time
 }
 

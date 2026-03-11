@@ -43,7 +43,7 @@ func StringToKeys(value string) []input.Key {
 func ValidateBrowserPath(path string) (browserPath string, err error) {
 	var info os.FileInfo
 
-	if info, err = os.Stat(path); err != nil {
+	if info, err = os.Stat(path); err != nil { //nolint:gosec // TODO: Run this line through taint analysis.
 		return "", err
 	} else if info.IsDir() {
 		return "", fmt.Errorf("browser cannot be a directory")
@@ -199,7 +199,7 @@ func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
 		job := os.Getenv("BUILDKITE_JOB_ID")
 		path := filepath.Join(base, build, suite, job)
 
-		if err := os.MkdirAll(path, 0755); err != nil {
+		if err = os.MkdirAll(path, 0755); err != nil { //nolint:gosec // TODO: Run this line through taint analysis.
 			log.Fatal(err)
 		}
 
@@ -257,17 +257,17 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 	}
 
 	if coverage {
-		read, err := os.ReadFile(path)
-		if err != nil {
+		var data []byte
+
+		if data, err = os.ReadFile(path); err != nil { //nolint:gosec
 			return err
 		}
 
 		wd, _ := os.Getwd()
 		ciPath := strings.TrimSuffix(wd, "internal/suites")
-		content := strings.ReplaceAll(string(read), "/node/src/app/", ciPath+"web/")
+		content := strings.ReplaceAll(string(data), "/node/src/app/", ciPath+"web/")
 
-		err = os.WriteFile(path, []byte(content), 0)
-		if err != nil {
+		if err = os.WriteFile(path, []byte(content), 0); err != nil { //nolint:gosec
 			return err
 		}
 	}

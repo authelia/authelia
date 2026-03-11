@@ -177,11 +177,10 @@ func createPNPMDirectory() {
 	if _, ok := os.LookupEnv("PNPM_HOME"); !ok {
 		home := os.Getenv("HOME")
 		if home != "" {
-			if _, err := os.Stat(home + pathPNPMStore); os.IsNotExist(err) {
+			if _, err := os.Stat(home + pathPNPMStore); os.IsNotExist(err) { //nolint:gosec // TODO: Run this line through taint analysis.
 				bootstrapPrintln("Creating ", home+pathPNPMStore)
 
-				err = os.MkdirAll(home+pathPNPMStore, 0755)
-				if err != nil {
+				if err = os.MkdirAll(home+pathPNPMStore, 0755); err != nil { //nolint:gosec // TODO: Run this line through taint analysis.
 					panic(err)
 				}
 			}
