@@ -168,4 +168,3 @@ func (e *errReload) Unwrap() error {
 func (e *errReload) WatcherReloadErrorCritical() bool {
 	return e.critical
 }
-}
