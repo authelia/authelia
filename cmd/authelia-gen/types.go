@@ -270,7 +270,7 @@ type OpenIDConnectConformanceSuitePlanServer struct {
 
 type OpenIDConnectConformanceSuitePlanClient struct {
 	ID                   string `json:"client_id,omitempty"`
-	Secret               string `json:"client_secret,omitempty"` //nolint:gosec
+	Secret               string `json:"client_secret,omitempty"`
 	Name                 string `json:"client_name,omitempty"`
 	Scope                string `json:"scope,omitempty"`
 	SecretJWTAlgorithm   string `json:"client_secret_jwt_alg,omitempty"`

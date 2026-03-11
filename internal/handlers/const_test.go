@@ -28,6 +28,7 @@ const (
 	testWithXHRHeader   = "WithXHRHeader"
 )
 
+//nolint:gosec // Test Credentials.
 const (
 	testBASE32TOTPSecret = "JVHFEUBXJ5CUWN2GGZGDMTKSJNMEQN2YGRJUQM2OKRHECR2QKJGFGRSQJVEVUT2HII2FQSJTKNIVQSCPIJIQ===="
 )
