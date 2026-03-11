@@ -2176,6 +2176,7 @@ type TestConfigDefinitions struct {
 	Definitions schema.Definitions `koanf:"definitions"`
 }
 
+//nolint:gosec // Test Credentials.
 var (
 	x509PrivateKeyRSABad = `
 -----BEGIN RSA PRIVATE KEY-----
