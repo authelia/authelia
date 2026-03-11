@@ -15,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 )
 
+//nolint:gosec // These are arbitrary test credentials.
 func TestTOTPGenerateCustom(t *testing.T) {
 	testCases := []struct {
 		name                        string

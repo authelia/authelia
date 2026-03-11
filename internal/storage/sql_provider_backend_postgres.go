@@ -291,7 +291,8 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 
 		switch {
 		case config.SSL.Mode == "require" && config.SSL.RootCertificate != "" || config.SSL.Mode == "verify-ca":
-			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyCAFunc(tlsConfig)
+			tlsConfig.VerifyConnection = newPostgreSQLVerifyConnectionFunc(tlsConfig)
+			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyPeerCertificateFunc(tlsConfig)
 		case config.SSL.Mode == "verify-full":
 			tlsConfig.InsecureSkipVerify = false
 			tlsConfig.ServerName = config.Address.Hostname()
@@ -349,7 +350,28 @@ func loadPostgreSQLLegacyTLSConfigFiles(config *schema.StoragePostgreSQL) (ca *x
 	return ca, certs
 }
 
-func newPostgreSQLVerifyCAFunc(config *tls.Config) func(certificates [][]byte, _ [][]*x509.Certificate) (err error) {
+func newPostgreSQLVerifyConnectionFunc(config *tls.Config) func(cs tls.ConnectionState) error {
+	return func(state tls.ConnectionState) error {
+		if len(state.PeerCertificates) == 0 {
+			return errors.New("failed to parse certificate from server: no peer certificates")
+		}
+
+		opts := x509.VerifyOptions{
+			Roots:         config.RootCAs,
+			Intermediates: x509.NewCertPool(),
+		}
+
+		for _, cert := range state.PeerCertificates[1:] {
+			opts.Intermediates.AddCert(cert)
+		}
+
+		_, err := state.PeerCertificates[0].Verify(opts)
+
+		return err
+	}
+}
+
+func newPostgreSQLVerifyPeerCertificateFunc(config *tls.Config) func(certificates [][]byte, _ [][]*x509.Certificate) (err error) {
 	return func(certificates [][]byte, _ [][]*x509.Certificate) (err error) {
 		certs := make([]*x509.Certificate, len(certificates))
 
@@ -357,20 +379,17 @@ func newPostgreSQLVerifyCAFunc(config *tls.Config) func(certificates [][]byte, _
 
 		for i, asn1Data := range certificates {
 			if cert, err = x509.ParseCertificate(asn1Data); err != nil {
-				return errors.New("failed to parse certificate from server: " + err.Error())
+				return fmt.Errorf("failed to parse certificate from server: %w", err)
 			}
 
 			certs[i] = cert
 		}
 
-		// Leave DNSName empty to skip hostname verification.
 		opts := x509.VerifyOptions{
 			Roots:         config.RootCAs,
 			Intermediates: x509.NewCertPool(),
 		}
 
-		// Skip the first cert because it's the leaf. All others
-		// are intermediates.
 		for _, cert = range certs[1:] {
 			opts.Intermediates.AddCert(cert)
 		}
