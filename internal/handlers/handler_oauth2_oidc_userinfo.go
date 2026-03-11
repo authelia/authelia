@@ -173,7 +173,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 		rw.Header().Set(fasthttp.HeaderContentType, middlewares.ContentTypeApplicationJWT)
 
-		_, _ = rw.Write([]byte(token))
+		_, _ = rw.Write([]byte(token)) //nolint:gosec // TODO: Run this line through taint analysis.
 	}
 
 	rw.Header().Set(fasthttp.HeaderCacheControl, middlewares.HeaderCacheControlNotStore)

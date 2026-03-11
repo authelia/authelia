@@ -151,7 +151,7 @@ type AuthenticationBackendLDAP struct {
 	PermitUnauthenticatedBind bool `koanf:"permit_unauthenticated_bind" yaml:"permit_unauthenticated_bind" toml:"permit_unauthenticated_bind" json:"permit_unauthenticated_bind" jsonschema:"default=false,title=Permit Unauthenticated Bind" jsonschema_description:"Enables omission of the password to perform an unauthenticated bind."`
 
 	User     string `koanf:"user" yaml:"user,omitempty" toml:"user,omitempty" json:"user,omitempty" jsonschema:"title=User" jsonschema_description:"The user distinguished name for LDAP binding."`
-	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."` //nolint:gosec
+	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."`
 }
 
 type AuthenticationBackendLDAPPooling struct {

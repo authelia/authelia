@@ -1,5 +1,6 @@
 package configuration
 
+//nolint:gosec // Test Credentials.
 const (
 	KEY_EXAMPLE                 = "KEY_EXAMPLE"
 	KEY_EXAMPLE_UNDERSCORE      = "KEY_EXAMPLE_UNDERSCORE"

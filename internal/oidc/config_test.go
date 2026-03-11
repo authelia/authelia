@@ -262,6 +262,7 @@ func TestNewConfig(t *testing.T) {
 	assert.Len(t, config.Handlers.TokenIntrospection, 2)
 }
 
+//nolint:gosec // Test Credentials.
 func TestConfig_GetIssuerFuncs(t *testing.T) {
 	testCases := []struct {
 		name                                                                        string
