@@ -3,7 +3,7 @@ package authentication
 type LDAPClientFactoryOptions struct {
 	Address  string
 	Username string
-	Password string //nolint:gosec // This is required for the factory.
+	Password string
 }
 
 type LDAPClientFactoryOption func(*LDAPClientFactoryOptions)

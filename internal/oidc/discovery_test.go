@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
+//nolint:gosec // Test Credentials.
 func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
 	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{
 		IdentityProviders: schema.IdentityProviders{
@@ -56,6 +57,7 @@ func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
 	assert.Equal(t, y, z)
 }
 
+//nolint:gosec // Test Credentials.
 func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
 	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{
 		IdentityProviders: schema.IdentityProviders{

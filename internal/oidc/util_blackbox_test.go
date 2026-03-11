@@ -485,6 +485,7 @@ func TestIsPushedAuthorizedRequest(t *testing.T) {
 	}
 }
 
+//nolint:gosec // These credentials are sanitized.
 func TestAccessResponderToClearMap(t *testing.T) {
 	testCases := []struct {
 		name     string
