@@ -180,7 +180,7 @@ type PARConfig struct {
 // IssuersConfig holds specific oauthelia2.Configurator information for the issuer.
 type IssuersConfig struct {
 	IDToken       string
-	AccessToken   string //nolint:gosec
+	AccessToken   string
 	Introspection string
 
 	AuthorizationServerIssuerIdentification string

@@ -69,7 +69,7 @@ func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURL() {
 
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
-	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{
+	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{ //nolint:gosec
 		Password: "123456",
 	})
 
@@ -104,7 +104,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleOpenIDConnect() {
 
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
-	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{
+	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{ //nolint:gosec
 		Password: "123456",
 		Flow:     flowNameOpenIDConnect,
 		FlowID:   "abc",
@@ -139,7 +139,7 @@ func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURLDelayFunc()
 
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
-	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{
+	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{ //nolint:gosec
 		Password: "123456",
 	})
 	s.Require().NoError(err)
@@ -175,7 +175,7 @@ func (s *HandlerSignPasswordSuite) TestShouldErrorMarkAttempt() {
 
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
-	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{
+	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{ //nolint:gosec
 		Password: "123456",
 	})
 	s.Require().NoError(err)
@@ -208,7 +208,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleBadPassword() {
 
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
-	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{
+	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{ //nolint:gosec
 		Password: "123456",
 	})
 	s.Require().NoError(err)
@@ -241,7 +241,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleBadPasswordMarkAttemptError()
 
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
-	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{
+	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{ //nolint:gosec
 		Password: "123456",
 	})
 	s.Require().NoError(err)
@@ -274,7 +274,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleBadPasswordWithError() {
 
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
-	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{
+	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{ //nolint:gosec
 		Password: "123456",
 	})
 	s.Require().NoError(err)
