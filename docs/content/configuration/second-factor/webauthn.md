@@ -28,6 +28,11 @@ webauthn:
   display_name: 'Authelia'
   attestation_conveyance_preference: 'indirect'
   timeout: '60 seconds'
+  related_origins:
+    example.com:
+      origins:
+        - 'https://example.com'
+        - 'https://example2.com'
   filtering:
     permitted_aaguids: []
     prohibited_aaguids: []
@@ -133,6 +138,28 @@ Available Options:
 {{< confkey type="string,integer" syntax="duration" default="60 seconds" required="no" >}}
 
 This adjusts the requested timeout for a WebAuthn interaction.
+
+### related_origins
+
+{{< confkey type="dictionary(object)" required="no" >}}
+
+The related origins config allows configuration of cross-domain WebAuthn Credentials within Authelia which have the same
+Authelia database. The key of the dictionary is the relying party id.
+
+It's a list of objects which currently contains list of `origins`. The relying party id (dictionary key) must be the
+hostname portion of one of the origins, and all relying party id's must be lowercase strings. This groups all of these
+origins into a single logical instance.
+
+If you configure this then any origin that is not listed in one of the related origin configurations will not have
+the ability to use WebAuthn or Passkeys.
+
+#### origins
+
+{{< confkey type="list(string)" syntax="url" required="yes" >}}
+
+A list of trusted origins for this related origin. Each of these values must be the origin portion of one of the
+`authelia_url` values in the session cookies section of the config, and must not be duplicated across any of the other
+related origins.
 
 ### filtering
 

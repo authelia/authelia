@@ -2,6 +2,7 @@ package webauthn_test
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -176,6 +177,182 @@ func TestValidateCredentialAllowed(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetRelatedOriginConfigByRPID(t *testing.T) {
+	testCases := []struct {
+		name     string
+		config   schema.WebAuthn
+		rpid     string
+		expected bool
+	}{
+		{
+			"ShouldReturnNilWhenNoRelatedOrigins",
+			schema.WebAuthn{},
+			"example.com",
+			false,
+		},
+		{
+			"ShouldReturnNilWhenNotFound",
+			schema.WebAuthn{
+				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+					"other.com": {Origins: []*url.URL{MustParseURL("https://other.com")}},
+				},
+			},
+			"example.com",
+			false,
+		},
+		{
+			"ShouldReturnMatchWhenFound",
+			schema.WebAuthn{
+				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			"example.com",
+			true,
+		},
+		{
+			"ShouldReturnMatchCaseInsensitive",
+			schema.WebAuthn{
+				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			"EXAMPLE.COM",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := webauthn.GetRelatedOriginConfigByRPID(tc.config, tc.rpid)
+
+			if tc.expected {
+				assert.NotNil(t, result)
+			} else {
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestGetRelatedOriginConfigByOrigin(t *testing.T) {
+	testCases := []struct {
+		name         string
+		config       schema.WebAuthn
+		origin       *url.URL
+		expectedRPID string
+		expectedNil  bool
+	}{
+		{
+			"ShouldReturnNilForNilOrigin",
+			schema.WebAuthn{
+				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			nil,
+			"",
+			true,
+		},
+		{
+			"ShouldReturnNilWhenNoRelatedOrigins",
+			schema.WebAuthn{},
+			MustParseURL("https://example.com"),
+			"",
+			true,
+		},
+		{
+			"ShouldReturnNilWhenOriginNotFound",
+			schema.WebAuthn{
+				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+					"other.com": {Origins: []*url.URL{MustParseURL("https://other.com")}},
+				},
+			},
+			MustParseURL("https://example.com"),
+			"",
+			true,
+		},
+		{
+			"ShouldMatchOrigin",
+			schema.WebAuthn{
+				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com"), MustParseURL("https://auth.example.com")}},
+				},
+			},
+			MustParseURL("https://auth.example.com"),
+			"example.com",
+			false,
+		},
+		{
+			"ShouldMatchOriginCaseInsensitive",
+			schema.WebAuthn{
+				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			MustParseURL("HTTPS://EXAMPLE.COM"),
+			"example.com",
+			false,
+		},
+		{
+			"ShouldNotMatchWhenSchemeDiffers",
+			schema.WebAuthn{
+				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			MustParseURL("http://example.com"),
+			"",
+			true,
+		},
+		{
+			"ShouldNotMatchWhenOriginHasPath",
+			schema.WebAuthn{
+				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
+				},
+			},
+			MustParseURL("https://example.com/some/path"),
+			"",
+			true,
+		},
+		{
+			"ShouldNotMatchWhenConfigOriginHasPath",
+			schema.WebAuthn{
+				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com/path")}},
+				},
+			},
+			MustParseURL("https://example.com"),
+			"",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rpid, result := webauthn.GetRelatedOriginConfigByOrigin(tc.config, tc.origin)
+
+			if tc.expectedNil {
+				assert.Empty(t, rpid)
+				assert.Nil(t, result)
+			} else {
+				assert.Equal(t, tc.expectedRPID, rpid)
+				assert.NotNil(t, result)
+			}
+		})
+	}
+}
+
+func MustParseURL(rawURL string) *url.URL {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		panic(err)
+	}
+
+	return u
 }
 
 func TestFormatError(t *testing.T) {
