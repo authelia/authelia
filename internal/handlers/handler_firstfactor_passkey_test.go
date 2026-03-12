@@ -115,7 +115,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				assert.Nil(t, us.WebAuthn)
 				assert.NoError(t, err)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"____://____/\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "error occurred determining the origin for the request: failed to parse X-Forwarded Headers: parse \"____://____/\": invalid URI for request")
 			},
 		},
 	}
@@ -320,7 +320,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				assert.Nil(t, us.WebAuthn)
 				assert.NoError(t, err)
 
-				AssertLogEntryMessageAndError(t, mock.LogEntryN(1), "Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"123://login.example.com:8080/\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.LogEntryN(1), "Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "error occurred determining the origin for the request: failed to parse X-Forwarded Headers: parse \"123://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{
@@ -1582,7 +1582,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.LogEntryN(1), "Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"123://login.example.com:8080/\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.LogEntryN(1), "Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "error occurred determining the origin for the request: failed to parse X-Forwarded Headers: parse \"123://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{
