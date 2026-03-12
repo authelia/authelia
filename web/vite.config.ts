@@ -106,6 +106,9 @@ export default defineConfig(({ mode }) => {
             allowedHosts: ["login.example.com", ...allowedHosts],
             open: false,
             port: 3000,
+            watch: {
+                ignored: ["**/node_modules/**", "**/dist/**", "**/.*/**"],
+            },
         },
         test: {
             coverage: {
