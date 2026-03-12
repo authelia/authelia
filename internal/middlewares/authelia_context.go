@@ -10,7 +10,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
+	gowebauthn "github.com/go-webauthn/webauthn/webauthn"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -25,6 +25,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // NewRequestLogger create a new request logger for the given request.
@@ -62,7 +63,7 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 		methods = append(methods, model.SecondFactorMethodTOTP)
 	}
 
-	if !ctx.Configuration.WebAuthn.Disable {
+	if _, err := ctx.GetWebAuthnProvider(); err == nil {
 		methods = append(methods, model.SecondFactorMethodWebAuthn)
 	}
 
@@ -640,19 +641,37 @@ func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttrib
 	return ctx.Providers.UserAttributeResolver
 }
 
-func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) {
+func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *gowebauthn.WebAuthn, err error) {
+	if ctx.Configuration.WebAuthn.Disable {
+		return nil, fmt.Errorf("webauthn is disabled")
+	}
+
 	var (
 		origin *url.URL
 	)
 
 	if origin, err = ctx.GetOrigin(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred determining the origin for the request: %w", err)
 	}
 
-	config := &webauthn.Config{
-		RPID:                  origin.Hostname(),
+	rpid := origin.Hostname()
+	origins := []string{origin.String()}
+
+	if len(ctx.Configuration.WebAuthn.RelatedOrigins) != 0 {
+		relyingPartyID, relatedOrigins := webauthn.GetRelatedOriginConfigByOrigin(ctx.Configuration.WebAuthn, origin)
+
+		if relatedOrigins == nil {
+			return nil, fmt.Errorf("error occurred finding the relying party: no related origin found for origin '%s'", origin.String())
+		}
+
+		rpid = relyingPartyID
+		origins = relatedOrigins.StringOrigins()
+	}
+
+	config := &gowebauthn.Config{
+		RPID:                  rpid,
 		RPDisplayName:         ctx.Configuration.WebAuthn.DisplayName,
-		RPOrigins:             []string{origin.String()},
+		RPOrigins:             origins,
 		AttestationPreference: ctx.Configuration.WebAuthn.ConveyancePreference,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
 			AuthenticatorAttachment: ctx.Configuration.WebAuthn.SelectionCriteria.Attachment,
@@ -661,13 +680,13 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) 
 		},
 		Debug:                false,
 		EncodeUserIDAsString: false,
-		Timeouts: webauthn.TimeoutsConfig{
-			Login: webauthn.TimeoutConfig{
+		Timeouts: gowebauthn.TimeoutsConfig{
+			Login: gowebauthn.TimeoutConfig{
 				Enforce:    true,
 				Timeout:    ctx.Configuration.WebAuthn.Timeout,
 				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
 			},
-			Registration: webauthn.TimeoutConfig{
+			Registration: gowebauthn.TimeoutConfig{
 				Enforce:    true,
 				Timeout:    ctx.Configuration.WebAuthn.Timeout,
 				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
@@ -690,7 +709,7 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) 
 
 	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
 
-	return webauthn.New(config)
+	return gowebauthn.New(config)
 }
 
 // Value is a shaded method of context.Context which returns the AutheliaCtx struct if the key is the internal key
