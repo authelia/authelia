@@ -3,6 +3,8 @@ package webauthn
 import (
 	"errors"
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/sirupsen/logrus"
@@ -80,4 +82,42 @@ func FormatError(err error) error {
 	}
 
 	return err
+}
+
+// GetRelatedOriginConfigByRPID returns a *schema.WebAuthnRelyingParty provided it can match it to a rpid.
+func GetRelatedOriginConfigByRPID(config schema.WebAuthn, rpid string) (ro *schema.WebAuthnRelyingParty) {
+	if value, ok := config.RelyingParties[strings.ToLower(rpid)]; ok {
+		return &value
+	}
+
+	return nil
+}
+
+// GetRelatedOriginConfigByOrigin returns a *schema.WebAuthnRelyingParty provided it can match it to an origin string.
+func GetRelatedOriginConfigByOrigin(config schema.WebAuthn, origin *url.URL) (relyingPartyID string, ro *schema.WebAuthnRelyingParty) {
+	if origin == nil {
+		return "", nil
+	}
+
+	for rpid, r := range config.RelyingParties {
+		ro = &r
+
+		for _, o := range ro.Origins {
+			if !strings.EqualFold(o.Scheme, origin.Scheme) {
+				continue
+			}
+
+			if !strings.EqualFold(o.Hostname(), origin.Hostname()) {
+				continue
+			}
+
+			if o.Path != "" || origin.Path != "" {
+				continue
+			}
+
+			return rpid, ro
+		}
+	}
+
+	return "", nil
 }
