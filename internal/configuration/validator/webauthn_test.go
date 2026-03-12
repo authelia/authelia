@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"net/url"
 	"testing"
 	"time"
 
@@ -322,4 +323,278 @@ func TestValidateWebAuthn(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
+	testCases := []struct {
+		name   string
+		have   *schema.Configuration
+		errors []string
+	}{
+		{
+			"ShouldPassWithNoRelatedOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{},
+			},
+			nil,
+		},
+		{
+			"ShouldPassValidConfig",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com"), mustParseURL("https://auth.example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldErrorOnEmptyRelyingPartyID",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+						"": {
+							Origins: []*url.URL{mustParseURL("https://example.com")},
+						},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: : option 'relying_party_id' is empty but it must have a value",
+			},
+		},
+		{
+			"ShouldErrorOnUpperCaseRelyingPartyID",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+						"Example.com": {
+							Origins: []*url.URL{mustParseURL("https://Example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://Example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: Example.com: relying party id is not lower case",
+			},
+		},
+		{
+			"ShouldErrorOnNilOrigin",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+						"example.com": {
+							Origins: []*url.URL{nil},
+						},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' item #1 is empty",
+				"error rpid example.com does not match any origin",
+			},
+		},
+		{
+			"ShouldErrorOnOriginWithPath",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com/path")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' item #1 with value 'https://example.com/path' is invalid as it doesn't have an empty path",
+			},
+		},
+		{
+			"ShouldErrorOnOriginNotMatchingSessionCookie",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://other.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' item #1 has value 'https://example.com' but this value is not a valid origin for any 'authelia_url' configured in the session cookies",
+			},
+		},
+		{
+			"ShouldErrorOnOriginNotMatchingSessionCookieNilAutheliaURL",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: nil},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' item #1 has value 'https://example.com' but this value is not a valid origin for any 'authelia_url' configured in the session cookies",
+			},
+		},
+		{
+			"ShouldErrorOnDuplicateOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com"), mustParseURL("https://example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: option 'origins' has value 'https://example.com' can only be defined in one relying party but it's defined in ''https://example.com' and 'https://example.com''",
+			},
+		},
+		{
+			"ShouldErrorWhenRPIDDoesNotMatchAnyOrigin",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://other.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://other.com")},
+					},
+				},
+			},
+			[]string{
+				"error rpid example.com does not match any origin",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			validateWebAuthnRelatedOrigins(tc.have, validator)
+
+			errors := validator.Errors()
+
+			require.Len(t, errors, len(tc.errors))
+
+			for i, err := range errors {
+				assert.EqualError(t, err, tc.errors[i])
+			}
+		})
+	}
+}
+
+func TestOriginMatchesCookieAutheliaURL(t *testing.T) {
+	testCases := []struct {
+		name     string
+		config   *schema.Configuration
+		origin   *url.URL
+		expected bool
+	}{
+		{
+			"ShouldMatchWhenHostnameMatches",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+					},
+				},
+			},
+			mustParseURL("https://auth.example.com"),
+			true,
+		},
+		{
+			"ShouldNotMatchWhenHostnameDiffers",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+					},
+				},
+			},
+			mustParseURL("https://other.example.com"),
+			false,
+		},
+		{
+			"ShouldSkipNilAutheliaURL",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: nil},
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+					},
+				},
+			},
+			mustParseURL("https://auth.example.com"),
+			true,
+		},
+		{
+			"ShouldReturnFalseWhenNoCookies",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{},
+				},
+			},
+			mustParseURL("https://auth.example.com"),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, originMatchesCookieAutheliaURL(tc.config, tc.origin))
+		})
+	}
+}
+
+func mustParseURL(rawURL string) *url.URL {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		panic(err)
+	}
+
+	return u
 }

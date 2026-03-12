@@ -3,6 +3,8 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
 
@@ -72,4 +74,90 @@ func ValidateWebAuthn(config *schema.Configuration, validator *schema.StructVali
 	if len(config.WebAuthn.Filtering.PermittedAAGUIDs) != 0 && len(config.WebAuthn.Filtering.ProhibitedAAGUIDs) != 0 {
 		validator.Push(errors.New(errFmtWebAuthnFiltering))
 	}
+
+	validateWebAuthnRelatedOrigins(config, validator)
+}
+
+func validateWebAuthnRelatedOrigins(config *schema.Configuration, validator *schema.StructValidator) {
+	n := len(config.WebAuthn.RelatedOrigins)
+
+	if n == 0 {
+		return
+	}
+
+	origins := map[string][]string{}
+
+	for relyingPartyID, relatedOrigin := range config.WebAuthn.RelatedOrigins {
+		if relyingPartyID == "" {
+			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOptionEmpty, relyingPartyID, "relying_party_id"))
+
+			continue
+		}
+
+		if relyingPartyID != strings.ToLower(relyingPartyID) {
+			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsRelyingPartyNotLowerCase, relyingPartyID))
+		}
+
+		found := false
+
+		for i, origin := range relatedOrigin.Origins {
+			if origin == nil {
+				validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginEmpty, relyingPartyID, i+1))
+				continue
+			}
+
+			var (
+				values []string
+				ok     bool
+			)
+
+			strOrigin := origin.String()
+
+			if values, ok = origins[strOrigin]; !ok {
+				values = []string{strOrigin}
+			} else {
+				values = append(values, strOrigin)
+			}
+
+			origins[strOrigin] = values
+
+			if origin.Path != "" {
+				validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotValidPath, relyingPartyID, i+1, origin.String()))
+			}
+
+			if !found && strings.EqualFold(origin.Hostname(), relyingPartyID) {
+				found = true
+			}
+
+			if !originMatchesCookieAutheliaURL(config, origin) {
+				validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginNotSessionCookie, relyingPartyID, i+1, origin.String()))
+			}
+		}
+
+		for origin, values := range origins {
+			if len(values) == 1 {
+				continue
+			}
+
+			validator.Push(fmt.Errorf(errFmtWebAuthnRelatedOriginsOriginDuplicate, origin, utils.StringJoinAnd(values)))
+		}
+
+		if !found {
+			validator.Push(fmt.Errorf("error rpid %s does not match any origin", relyingPartyID))
+		}
+	}
+}
+
+func originMatchesCookieAutheliaURL(config *schema.Configuration, origin *url.URL) (match bool) {
+	for _, domain := range config.Session.Cookies {
+		if domain.AutheliaURL == nil {
+			continue
+		}
+
+		if domain.AutheliaURL.Hostname() == origin.Hostname() {
+			return true
+		}
+	}
+
+	return false
 }
