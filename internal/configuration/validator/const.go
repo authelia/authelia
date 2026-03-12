@@ -417,7 +417,7 @@ const (
 
 	errFmtServerAddress = "server: option 'address' with value '%s' is invalid: %w"
 
-	errFmtServerPathNotEndForwardSlash = "server: option 'address' must not have a path with a forward slash but it's configured as '%s'"
+	errFmtServerPathNotEndForwardSlash = "server: option 'address' must be a single subpath (i.e. '%s'), but '%s' contains multiple segments"
 	errFmtServerPathAlphaNumeric       = "server: option 'address' must have a path with only alphanumeric characters but it's configured as '%s'"
 
 	errFmtServerEndpointsAuthzImplementation            = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"

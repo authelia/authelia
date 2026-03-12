@@ -112,6 +112,89 @@ func TestShouldHandleNoAutoMapEmptyNewKey(t *testing.T) {
 	assert.NotContains(t, keys, "authentication_backend.ldap.permit_feature_detection_failure")
 }
 
+func TestShouldHandleSubPathVariations(t *testing.T) {
+	testCases := []struct {
+		name         string
+		value        string
+		expectedPath string
+		errs         []string
+	}{
+		{
+			"ShouldReturnEmptyStringUnconfigured",
+			"",
+			"/",
+			nil,
+		},
+		{
+			"ShouldReturnEmptyStringConfiguredEmptyPath",
+			"tcp://127.0.0.1:9091",
+			"/",
+			nil,
+		},
+		{
+			"ShouldReturnSlashConfiguredSlashPath",
+			"tcp://127.0.0.1:9091/",
+			"/",
+			nil,
+		},
+		{
+			"ShouldReturnSubPathConfiguredSubPath",
+			"tcp://127.0.0.1:9091/auth",
+			"/auth",
+			nil,
+		},
+		{
+			"ShouldReturnTrailingSlashStripped",
+			"tcp://127.0.0.1:9091/auth/",
+			"/auth/",
+			[]string{
+				"server: option 'address' must be a single subpath (i.e. '/auth'), but '/auth/' contains multiple segments",
+			},
+		},
+		{
+			"ShouldErrorTrailingSlashSubPath",
+			"tcp://127.0.0.1:9091/auth/abc",
+			"/auth/abc",
+			[]string{
+				"server: option 'address' must be a single subpath (i.e. '/auth'), but '/auth/abc' contains multiple segments",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testSetEnv(t, "SESSION_SECRET", "abc")
+			testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
+			testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
+			testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
+			testSetEnv(t, "SERVER_ADDRESS", tc.value)
+			testSetEnv(t, "STORAGE_ENCRYPTION_KEY", "kjwngjkwnekjfnakjdnakjdnfa")
+			testSetEnv(t, "DUO_API_SECRET_KEY", "kjwngjkwnekjfnakjdnakjdnfa")
+
+			val := schema.NewStructValidator()
+			_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+			require.NoError(t, err)
+			require.Len(t, val.Errors(), 0)
+			require.Len(t, val.Warnings(), 0)
+
+			validator.ValidateConfiguration(config, val)
+
+			require.Len(t, val.Errors(), len(tc.errs))
+
+			if len(tc.errs) != 0 {
+				for i, err := range tc.errs {
+					assert.EqualError(t, val.Errors()[i], err)
+				}
+			}
+
+			require.Len(t, val.Warnings(), 0)
+
+			assert.Equal(t, tc.expectedPath, config.Server.Address.RouterPath())
+		})
+	}
+}
+
 func TestShouldHaveEndpointSubPath(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")

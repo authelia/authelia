@@ -185,7 +185,7 @@ func TestValidateSeverAddress(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 	assert.Len(t, validator.Warnings(), 0)
 
-	assert.EqualError(t, validator.Errors()[0], "server: option 'address' must not have a path with a forward slash but it's configured as '/path/'")
+	assert.EqualError(t, validator.Errors()[0], "server: option 'address' must be a single subpath (i.e. '/path'), but '/path/' contains multiple segments")
 }
 
 func TestValidateServerShouldCorrectlyIdentifyValidAddressSchemes(t *testing.T) {

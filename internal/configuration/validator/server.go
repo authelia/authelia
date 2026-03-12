@@ -103,7 +103,10 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 		config.Server.Address.SetPath("/")
 	case subpath != "/":
 		if p := strings.TrimPrefix(subpath, "/"); strings.Contains(p, "/") {
-			validator.Push(fmt.Errorf(errFmtServerPathNotEndForwardSlash, subpath))
+			parts := strings.SplitN(subpath, "/", 3)
+			example := "/" + parts[1]
+
+			validator.Push(fmt.Errorf(errFmtServerPathNotEndForwardSlash, example, subpath))
 		} else if !utils.IsStringAlphaNumeric(p) {
 			validator.Push(fmt.Errorf(errFmtServerPathAlphaNumeric, subpath))
 		}
