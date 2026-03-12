@@ -7,6 +7,8 @@ package webauthn
 import (
 	"errors"
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/sirupsen/logrus"
@@ -39,8 +41,9 @@ func IsCredentialCreationDiscoverable(logger *logrus.Entry, response *protocol.P
 	return discoverable
 }
 
-// ValidateCredentialAllowed returns an error if the given credential is prohibited by the configured filters.
-func ValidateCredentialAllowed(config *schema.WebAuthn, credential *model.WebAuthnCredential) (err error) {
+// ValidateCredentialAllowed returns an error if the given credential is prohibited by the filters configured for the
+// relying party the ceremony was performed against.
+func ValidateCredentialAllowed(config *schema.WebAuthnBase, credential *model.WebAuthnCredential) (err error) {
 	if config.Filtering.ProhibitBackupEligibility && credential.BackupEligible {
 		return fmt.Errorf("error checking webauthn credential: filters have been configured which prohibit credentials that are backup eligible")
 	}
@@ -84,4 +87,42 @@ func FormatError(err error) error {
 	}
 
 	return err
+}
+
+// GetRelatedOriginConfigByRPID returns a *schema.WebAuthnRelyingParty provided it can match it to a rpid.
+func GetRelatedOriginConfigByRPID(config schema.WebAuthn, rpid string) (ro *schema.WebAuthnRelyingParty) {
+	if value, ok := config.RelyingParties[strings.ToLower(rpid)]; ok {
+		return &value
+	}
+
+	return nil
+}
+
+// GetRelatedOriginConfigByOrigin returns a *schema.WebAuthnRelyingParty provided it can match it to an origin string.
+func GetRelatedOriginConfigByOrigin(config schema.WebAuthn, origin *url.URL) (relyingPartyID string, ro *schema.WebAuthnRelyingParty) {
+	if origin == nil {
+		return "", nil
+	}
+
+	for rpid, r := range config.RelyingParties {
+		ro = &r
+
+		for _, o := range ro.Origins {
+			if !strings.EqualFold(o.Scheme, origin.Scheme) {
+				continue
+			}
+
+			if !strings.EqualFold(o.Hostname(), origin.Hostname()) {
+				continue
+			}
+
+			if o.Path != "" || origin.Path != "" {
+				continue
+			}
+
+			return rpid, ro
+		}
+	}
+
+	return "", nil
 }
