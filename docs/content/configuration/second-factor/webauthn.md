@@ -32,6 +32,16 @@ webauthn:
   display_name: 'Authelia'
   attestation_conveyance_preference: 'indirect'
   timeout: '60 seconds'
+  relying_parties:
+    example.com:
+      display_name: 'Authelia'
+      attestation_conveyance_preference: 'indirect'
+      timeout: '60 seconds'
+      origins:
+        - 'https://example.com'
+        - 'https://example2.com'
+      opaque_origins:
+        - 'android:apk-key-hash:-IfWtPXXRFX9gAijCaxCw-f8tty8Azji56EQwBGYuj4'
   filtering:
     permitted_aaguids: []
     prohibited_aaguids: []
@@ -139,6 +149,95 @@ Available Options:
 {{< confkey type="string,integer" syntax="duration" default="60 seconds" required="no" >}}
 
 This adjusts the requested timeout for a WebAuthn interaction.
+
+### relying_parties
+
+{{< confkey type="dictionary(object)" required="no" >}}
+
+The relying parties config allows configuration of cross-domain WebAuthn Credentials within Authelia which have the same
+Authelia database. The key of the dictionary is the relying party identifier. This allows credentials to be shared
+between domains, and allows each relying party to be customized in a few ways.
+
+It's a list of objects which primarily contains a list of `origins`. The relying party identifier (dictionary key) must
+be the hostname portion of one of the origins, and all relying party identifiers's must be lowercase strings. This
+groups all of these origins into a single logical relying party.
+
+If you configure this then any origin that is not listed in one of the related origin configurations will not have
+the ability to use WebAuthn including Passkeys.
+
+In addition to [origins](#origins) and [opaque_origins](#opaque_origins), each relying party accepts the
+[display_name](#display_name), [attestation_conveyance_preference](#attestation_conveyance_preference),
+[timeout](#timeout), [filtering](#filtering), and [selection_criteria](#selection_criteria) options. Any of these
+options which is not configured for a relying party defaults to the value configured at the `webauthn` level.
+
+When this is configured Authelia serves the [Related Origin Requests] well known document at
+`/.well-known/webauthn` on every origin of every relying party, which is how clients discover that the other origins of
+a relying party are permitted to perform ceremonies against it. See [well known document](#well-known-document) for
+more information.
+
+#### origins
+
+{{< confkey type="list(string)" syntax="url" required="yes" >}}
+
+A list of trusted origins for this relying party. Each of these values must be the origin portion of one of the
+`authelia_url` values in the session cookies section of the config, and must not be duplicated across any of the other
+relying parties. Every value must be an absolute URL with the `http` or `https` scheme, a host, and no path.
+
+Clients only process the first five distinct registrable domain labels in the
+[well known document](#well-known-document), so the origins of a single relying party must not have more than five
+distinct labels between them. Origins which share a label, for example the same brand across several country code top
+level domains, only cost one label between them.
+
+#### opaque_origins
+
+{{< confkey type="list(string)" required="no" >}}
+
+A list of opaque origins which are also permitted to perform ceremonies against this relying party. An opaque origin is
+one which is not a `http` or `https` URL, which is the origin a client conveys for a native application, a browser
+extension, or a document loaded from the local file system.
+
+These origins are not part of the [well known document](#well-known-document), as a client never resolves one through
+it. They are matched by an exact byte for byte string comparison rather than by origin equality, so each value must be
+written exactly as the client conveys it, and each value must begin with one of the following prefixes:
+
+|             Prefix             |                    Client                    |
+| :----------------------------: | :------------------------------------------: |
+|    `android:apk-key-hash:`     |  Android native app (SHA-1 of signing cert)  |
+| `android:apk-key-hash-sha256:` | Android native app (SHA-256 of signing cert) |
+|     `android:apk-key-id:`      |     Android native app (signing key id)      |
+|        `ios:bundle-id:`        |          iOS native app (bundle id)          |
+|       `ios:bundle-key:`        |         iOS native app (signing key)         |
+|     `chrome-extension://`      |          Chromium browser extension          |
+|       `moz-extension://`       |          Firefox browser extension           |
+|           `file://`            |          Local file system document          |
+|          `ms-appx://`          |         Windows application package          |
+
+For example the value for an Android application is the base64url encoding, without padding, of the digest of the
+signing certificate of the APK:
+
+```yaml {title="configuration.yml"}
+webauthn:
+  relying_parties:
+    example.com:
+      origins:
+        - 'https://example.com'
+      opaque_origins:
+        - 'android:apk-key-hash:-IfWtPXXRFX9gAijCaxCw-f8tty8Azji56EQwBGYuj4'
+        - 'ios:bundle-id:com.example.app'
+```
+
+#### well known document
+
+When [relying_parties](#relying_parties) is configured Authelia serves the [Related Origin Requests] document at
+`/.well-known/webauthn`. A client which begins a ceremony on an origin that does not match the relying party id
+directly fetches `https://<relying party id>/.well-known/webauthn` and accepts the ceremony if the ceremony origin is
+declared there.
+
+The document is served on every origin of a configured relying party and declares the [origins](#origins) of the
+relying party that origin belongs to. An origin which does not belong to a configured relying party responds with a 404. [opaque_origins](#opaque_origins) never appear in the document.
+
+This means the relying party id must itself be reachable over HTTPS and proxied to Authelia, as that is where the
+client fetches the document from.
 
 ### filtering
 
@@ -289,3 +388,5 @@ The default configuration for this option is as per the [Configuration](#configu
 ## Frequently Asked Questions
 
 See the [Security Key FAQ](../../overview/authentication/security-key/index.md#frequently-asked-questions) for the FAQ.
+
+[Related Origin Requests]: https://www.w3.org/TR/webauthn-3/#sctn-related-origins

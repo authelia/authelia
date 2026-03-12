@@ -5,6 +5,7 @@
 package validator
 
 import (
+	"net/url"
 	"testing"
 	"time"
 
@@ -149,7 +150,9 @@ func TestWebAuthnShouldSetDefaultTimeoutWhenNegative(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
 		WebAuthn: schema.WebAuthn{
-			Timeout: -1,
+			WebAuthnBase: schema.WebAuthnBase{
+				Timeout: -1,
+			},
 		},
 	}
 
@@ -163,11 +166,13 @@ func TestWebAuthnShouldNotSetDefaultValuesWhenConfigured(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
 		WebAuthn: schema.WebAuthn{
-			DisplayName:          "Test",
-			Timeout:              time.Second * 50,
-			ConveyancePreference: protocol.PreferNoAttestation,
-			SelectionCriteria: schema.WebAuthnSelectionCriteria{
-				UserVerification: protocol.VerificationDiscouraged,
+			WebAuthnBase: schema.WebAuthnBase{
+				DisplayName:          "Test",
+				Timeout:              time.Second * 50,
+				ConveyancePreference: protocol.PreferNoAttestation,
+				SelectionCriteria: schema.WebAuthnSelectionCriteria{
+					UserVerification: protocol.VerificationDiscouraged,
+				},
 			},
 		},
 	}
@@ -203,11 +208,13 @@ func TestWebAuthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
 		WebAuthn: schema.WebAuthn{
-			DisplayName:          "Test",
-			Timeout:              time.Second * 50,
-			ConveyancePreference: "no",
-			SelectionCriteria: schema.WebAuthnSelectionCriteria{
-				UserVerification: "yes",
+			WebAuthnBase: schema.WebAuthnBase{
+				DisplayName:          "Test",
+				Timeout:              time.Second * 50,
+				ConveyancePreference: "no",
+				SelectionCriteria: schema.WebAuthnSelectionCriteria{
+					UserVerification: "yes",
+				},
 			},
 		},
 	}
@@ -231,13 +238,15 @@ func TestValidateWebAuthn(t *testing.T) {
 			"ShouldHandleIncorrectValues",
 			&schema.Configuration{
 				WebAuthn: schema.WebAuthn{
-					SelectionCriteria: schema.WebAuthnSelectionCriteria{
-						Attachment:      "bad-attachment",
-						Discoverability: "bad-discoverability",
-					},
-					Filtering: schema.WebAuthnFiltering{
-						PermittedAAGUIDs:  []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
-						ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
+					WebAuthnBase: schema.WebAuthnBase{
+						SelectionCriteria: schema.WebAuthnSelectionCriteria{
+							Attachment:      "bad-attachment",
+							Discoverability: "bad-discoverability",
+						},
+						Filtering: schema.WebAuthnFiltering{
+							PermittedAAGUIDs:  []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
+							ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
+						},
 					},
 				},
 			},
@@ -253,8 +262,10 @@ func TestValidateWebAuthn(t *testing.T) {
 			&schema.Configuration{
 				WebAuthn: schema.WebAuthn{
 					EnablePasskeyLogin: true,
-					SelectionCriteria: schema.WebAuthnSelectionCriteria{
-						Discoverability: "discouraged",
+					WebAuthnBase: schema.WebAuthnBase{
+						SelectionCriteria: schema.WebAuthnSelectionCriteria{
+							Discoverability: "discouraged",
+						},
 					},
 				},
 			},
@@ -326,4 +337,713 @@ func TestValidateWebAuthn(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestValidateWebAuthnRelyingParties(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *schema.Configuration
+		expected map[string]schema.WebAuthnBase
+		warnings []string
+		errors   []string
+	}{
+		{
+			"ShouldInheritGlobalValues",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					WebAuthnBase: schema.WebAuthnBase{
+						DisplayName:          "Global",
+						Timeout:              time.Second * 30,
+						ConveyancePreference: protocol.PreferDirectAttestation,
+						SelectionCriteria: schema.WebAuthnSelectionCriteria{
+							Attachment:       protocol.CrossPlatform,
+							Discoverability:  protocol.ResidentKeyRequirementRequired,
+							UserVerification: protocol.VerificationRequired,
+						},
+						Filtering: schema.WebAuthnFiltering{
+							ProhibitBackupEligibility: true,
+							ProhibitedAAGUIDs:         []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
+						},
+					},
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {},
+					},
+				},
+			},
+			map[string]schema.WebAuthnBase{
+				"example.com": {
+					DisplayName:          "Global",
+					Timeout:              time.Second * 30,
+					ConveyancePreference: protocol.PreferDirectAttestation,
+					SelectionCriteria: schema.WebAuthnSelectionCriteria{
+						Attachment:       protocol.CrossPlatform,
+						Discoverability:  protocol.ResidentKeyRequirementRequired,
+						UserVerification: protocol.VerificationRequired,
+					},
+					Filtering: schema.WebAuthnFiltering{
+						ProhibitBackupEligibility: true,
+						ProhibitedAAGUIDs:         []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
+					},
+				},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldNotOverrideConfiguredValues",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					WebAuthnBase: schema.WebAuthnBase{
+						DisplayName:          "Global",
+						Timeout:              time.Second * 30,
+						ConveyancePreference: protocol.PreferDirectAttestation,
+					},
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							WebAuthnBase: schema.WebAuthnBase{
+								DisplayName:          "Example",
+								Timeout:              time.Second * 45,
+								ConveyancePreference: protocol.PreferNoAttestation,
+							},
+						},
+					},
+				},
+			},
+			map[string]schema.WebAuthnBase{
+				"example.com": {
+					DisplayName:          "Example",
+					Timeout:              time.Second * 45,
+					ConveyancePreference: protocol.PreferNoAttestation,
+				},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldHandleIncorrectValues",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							WebAuthnBase: schema.WebAuthnBase{
+								ConveyancePreference: "bad-conveyance",
+								SelectionCriteria: schema.WebAuthnSelectionCriteria{
+									Attachment: "bad-attachment",
+								},
+								Filtering: schema.WebAuthnFiltering{
+									PermittedAAGUIDs:  []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
+									ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))},
+								},
+							},
+						},
+					},
+				},
+			},
+			nil,
+			nil,
+			[]string{
+				"webauthn: relying_parties: example.com: option 'attestation_conveyance_preference' must be one of 'none', 'indirect', or 'direct' but it's configured as 'bad-conveyance'",
+				"webauthn: relying_parties: example.com: selection_criteria: option 'attachment' must be one of 'platform' or 'cross-platform' but it's configured as 'bad-attachment'",
+				"webauthn: relying_parties: example.com: filtering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values",
+			},
+		},
+		{
+			"ShouldHandlePasskeyWarning",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					EnablePasskeyLogin: true,
+					WebAuthnBase: schema.WebAuthnBase{
+						SelectionCriteria: schema.WebAuthnSelectionCriteria{
+							Discoverability: protocol.ResidentKeyRequirementRequired,
+						},
+					},
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							WebAuthnBase: schema.WebAuthnBase{
+								SelectionCriteria: schema.WebAuthnSelectionCriteria{
+									Discoverability: protocol.ResidentKeyRequirementDiscouraged,
+								},
+							},
+						},
+					},
+				},
+			},
+			nil,
+			[]string{
+				"webauthn: relying_parties: example.com: selection_criteria: option 'discoverability' should generally be configured as 'preferred' or 'required' when passkey logins are enabled",
+			},
+			nil,
+		},
+		{
+			"ShouldAcceptValidOpaqueOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							OpaqueOrigins: []string{
+								"android:apk-key-hash:-IfWtPXXRFX9gAijCaxCw-f8tty8Azji56EQwBGYuj4",
+								"ios:bundle-id:com.example.app",
+							},
+						},
+					},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldErrorOnOpaqueOriginsWithWebSchemes",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							OpaqueOrigins: []string{
+								"http://example.com",
+								"https://example.com",
+							},
+						},
+					},
+				},
+			},
+			nil,
+			nil,
+			[]string{
+				"webauthn: relying_parties: example.com: option 'opaque_origins' item #1 has value 'http://example.com' but it must be an opaque origin and this value belongs in the 'origins' option",
+				"webauthn: relying_parties: example.com: option 'opaque_origins' item #2 has value 'https://example.com' but it must be an opaque origin and this value belongs in the 'origins' option",
+			},
+		},
+		{
+			"ShouldErrorOnOpaqueOriginsWithMixedCaseWebSchemes",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							OpaqueOrigins: []string{
+								"HTTP://example.com",
+								"HtTpS://example.com",
+							},
+						},
+					},
+				},
+			},
+			nil,
+			nil,
+			[]string{
+				"webauthn: relying_parties: example.com: option 'opaque_origins' item #1 has value 'HTTP://example.com' but it must be an opaque origin and this value belongs in the 'origins' option",
+				"webauthn: relying_parties: example.com: option 'opaque_origins' item #2 has value 'HtTpS://example.com' but it must be an opaque origin and this value belongs in the 'origins' option",
+			},
+		},
+		{
+			"ShouldNotErrorOnOpaqueOriginsWithNoItems",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"a.example.com": {
+							OpaqueOrigins: []string{},
+						},
+						"b.example.com": {},
+					},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldErrorOnEmptyOpaqueOrigin",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							OpaqueOrigins: []string{
+								"android:apk-key-hash:-IfWtPXXRFX9gAijCaxCw-f8tty8Azji56EQwBGYuj4",
+								"",
+							},
+						},
+					},
+				},
+			},
+			nil,
+			nil,
+			[]string{
+				"webauthn: relying_parties: example.com: option 'opaque_origins' item #2 is empty but it must have a value",
+			},
+		},
+		{
+			"ShouldNotErrorOnOpaqueOriginsWithSchemePrefixInLaterPosition",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							OpaqueOrigins: []string{
+								"android:apk-key-hash:https://example.com",
+							},
+						},
+					},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldReportErrorsInRelyingPartyIDOrder",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"b.example.com": {
+							WebAuthnBase: schema.WebAuthnBase{
+								ConveyancePreference: "bad-b",
+							},
+						},
+						"a.example.com": {
+							WebAuthnBase: schema.WebAuthnBase{
+								ConveyancePreference: "bad-a",
+							},
+						},
+					},
+				},
+			},
+			nil,
+			nil,
+			[]string{
+				"webauthn: relying_parties: a.example.com: option 'attestation_conveyance_preference' must be one of 'none', 'indirect', or 'direct' but it's configured as 'bad-a'",
+				"webauthn: relying_parties: b.example.com: option 'attestation_conveyance_preference' must be one of 'none', 'indirect', or 'direct' but it's configured as 'bad-b'",
+			},
+		},
+		{
+			"ShouldPassKnownOpaqueOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							OpaqueOrigins: []string{
+								"android:apk-key-hash:-IfWtPXXRFX9gAijCaxCw-f8tty8Azji56EQwBGYuj4",
+								"android:apk-key-hash-sha256:-IfWtPXXRFX9gAijCaxCw-f8tty8Azji56EQwBGYuj4",
+								"ios:bundle-id:com.example.app",
+								"chrome-extension://abcdefghijklmnopabcdefghijklmnop",
+								"file://",
+							},
+						},
+					},
+				},
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"ShouldErrorOnUnknownOpaqueOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							OpaqueOrigins: []string{
+								"android:apk-key-hash",
+								"example:not-a-client-origin",
+								"android:apk-key-hash:",
+							},
+						},
+					},
+				},
+			},
+			nil,
+			nil,
+			[]string{
+				"webauthn: relying_parties: example.com: option 'opaque_origins' item #1 has value 'android:apk-key-hash' but it must be an opaque origin a client conveys i.e. one prefixed with 'android:apk-key-hash:', 'android:apk-key-hash-sha256:', 'android:apk-key-id:', 'ios:bundle-id:', 'ios:bundle-key:', 'chrome-extension://', 'moz-extension://', 'file://', or 'ms-appx://'",
+				"webauthn: relying_parties: example.com: option 'opaque_origins' item #2 has value 'example:not-a-client-origin' but it must be an opaque origin a client conveys i.e. one prefixed with 'android:apk-key-hash:', 'android:apk-key-hash-sha256:', 'android:apk-key-id:', 'ios:bundle-id:', 'ios:bundle-key:', 'chrome-extension://', 'moz-extension://', 'file://', or 'ms-appx://'",
+				"webauthn: relying_parties: example.com: option 'opaque_origins' item #3 has value 'android:apk-key-hash:' but it must be an opaque origin a client conveys i.e. one prefixed with 'android:apk-key-hash:', 'android:apk-key-hash-sha256:', 'android:apk-key-id:', 'ios:bundle-id:', 'ios:bundle-key:', 'chrome-extension://', 'moz-extension://', 'file://', or 'ms-appx://'",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			validateWebAuthnRelyingParties(tc.have, validator)
+
+			warnings, errors := validator.Warnings(), validator.Errors()
+
+			require.Len(t, warnings, len(tc.warnings))
+			require.Len(t, errors, len(tc.errors))
+
+			for i, warning := range warnings {
+				assert.EqualError(t, warning, tc.warnings[i])
+			}
+
+			for i, err := range errors {
+				assert.EqualError(t, err, tc.errors[i])
+			}
+
+			for relyingPartyID, expected := range tc.expected {
+				assert.Equal(t, expected, tc.have.WebAuthn.RelyingParties[relyingPartyID].WebAuthnBase)
+			}
+		})
+	}
+}
+
+func TestValidateWebAuthnRelatedOrigins(t *testing.T) {
+	testCases := []struct {
+		name   string
+		have   *schema.Configuration
+		errors []string
+	}{
+		{
+			"ShouldPassWithNoRelatedOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{},
+			},
+			nil,
+		},
+		{
+			"ShouldPassValidConfig",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com"), mustParseURL("https://auth.example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldErrorOnEmptyRelyingPartyID",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"": {
+							Origins: []*url.URL{mustParseURL("https://example.com")},
+						},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: : option 'relying_party_id' is empty but it must have a value",
+			},
+		},
+		{
+			"ShouldErrorOnUpperCaseRelyingPartyID",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"Example.com": {
+							Origins: []*url.URL{mustParseURL("https://Example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://Example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: Example.com: relying party id is not lower case",
+			},
+		},
+		{
+			"ShouldErrorOnNilOrigin",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{nil},
+						},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' item #1 is empty",
+				"webauthn: related_origins: example.com: option 'origins' must have an origin with the relying party id as its hostname",
+			},
+		},
+		{
+			"ShouldErrorOnOriginWithPath",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com/path")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' item #1 with value 'https://example.com/path' is invalid as it doesn't have an empty path",
+			},
+		},
+		{
+			"ShouldErrorOnOriginNotMatchingSessionCookie",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://other.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' item #1 has value 'https://example.com' but this value is not a valid origin for any 'authelia_url' configured in the session cookies",
+			},
+		},
+		{
+			"ShouldErrorOnOriginNotMatchingSessionCookieNilAutheliaURL",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: nil},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' item #1 has value 'https://example.com' but this value is not a valid origin for any 'authelia_url' configured in the session cookies",
+			},
+		},
+		{
+			"ShouldErrorOnDuplicateOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com"), mustParseURL("https://example.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' has value 'https://example.com' defined more than once",
+			},
+		},
+		{
+			"ShouldErrorWhenRPIDDoesNotMatchAnyOrigin",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://other.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://other.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' must have an origin with the relying party id as its hostname",
+			},
+		},
+		{
+			"ShouldErrorOnEmptyOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' is empty but it must have at least one value",
+			},
+		},
+		{
+			"ShouldErrorOnOpaqueOrigin",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com"), mustParseURL("ftp://other.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' item #2 with value 'ftp://other.com' is invalid as it must be an absolute URL with the 'http' or 'https' scheme and a host",
+			},
+		},
+		{
+			"ShouldErrorOnOriginsExceedingTheClientLabelLimit",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{
+								mustParseURL("https://example.com"),
+								mustParseURL("https://example2.com"),
+								mustParseURL("https://example3.com"),
+								mustParseURL("https://example4.com"),
+								mustParseURL("https://example5.com"),
+								mustParseURL("https://example6.com"),
+							},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+						{AutheliaURL: mustParseURL("https://example2.com")},
+						{AutheliaURL: mustParseURL("https://example3.com")},
+						{AutheliaURL: mustParseURL("https://example4.com")},
+						{AutheliaURL: mustParseURL("https://example5.com")},
+						{AutheliaURL: mustParseURL("https://example6.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: example.com: option 'origins' is invalid: error validating related origins: the origins have 6 distinct registrable domain labels but clients only process 5 of them, so origins beyond that limit are ignored",
+			},
+		},
+		{
+			"ShouldErrorOnOriginDuplicatedAcrossRelyingParties",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					RelyingParties: map[string]schema.WebAuthnRelyingParty{
+						"example.com": {
+							Origins: []*url.URL{mustParseURL("https://example.com"), mustParseURL("https://shared.com")},
+						},
+						"other.com": {
+							Origins: []*url.URL{mustParseURL("https://other.com"), mustParseURL("https://shared.com")},
+						},
+					},
+				},
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://example.com")},
+						{AutheliaURL: mustParseURL("https://other.com")},
+						{AutheliaURL: mustParseURL("https://shared.com")},
+					},
+				},
+			},
+			[]string{
+				"webauthn: related_origins: option 'origins' has value 'https://shared.com' which can only be defined in one relying party but it's defined in 'example.com' and 'other.com'",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			validateWebAuthnRelatedOrigins(tc.have, validator)
+
+			errors := validator.Errors()
+
+			require.Len(t, errors, len(tc.errors))
+
+			for i, err := range errors {
+				assert.EqualError(t, err, tc.errors[i])
+			}
+		})
+	}
+}
+
+func TestOriginMatchesCookieAutheliaURL(t *testing.T) {
+	testCases := []struct {
+		name     string
+		config   *schema.Configuration
+		origin   *url.URL
+		expected bool
+	}{
+		{
+			"ShouldMatchWhenHostnameMatches",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+					},
+				},
+			},
+			mustParseURL("https://auth.example.com"),
+			true,
+		},
+		{
+			"ShouldNotMatchWhenHostnameDiffers",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+					},
+				},
+			},
+			mustParseURL("https://other.example.com"),
+			false,
+		},
+		{
+			"ShouldSkipNilAutheliaURL",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{
+						{AutheliaURL: nil},
+						{AutheliaURL: mustParseURL("https://auth.example.com")},
+					},
+				},
+			},
+			mustParseURL("https://auth.example.com"),
+			true,
+		},
+		{
+			"ShouldReturnFalseWhenNoCookies",
+			&schema.Configuration{
+				Session: schema.Session{
+					Cookies: []schema.SessionCookie{},
+				},
+			},
+			mustParseURL("https://auth.example.com"),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, originMatchesCookieAutheliaURL(tc.config, tc.origin))
+		})
+	}
+}
+
+func mustParseURL(rawURL string) *url.URL {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		panic(err)
+	}
+
+	return u
 }
