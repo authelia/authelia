@@ -7,7 +7,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"strconv"
 
 	"github.com/valyala/fasthttp"
@@ -16,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 func getWebAuthnCredentialIDFromContext(ctx *middlewares.AutheliaCtx) (int, error) {
@@ -40,9 +40,10 @@ func getWebAuthnCredentialIDFromContext(ctx *middlewares.AutheliaCtx) (int, erro
 func WebAuthnCredentialsGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
-		origin      *url.URL
+		provider    *webauthn.Provider
 		err         error
 	)
+
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred loading WebAuthn credentials: %s", errStrUserSessionData)
 
@@ -60,8 +61,8 @@ func WebAuthnCredentialsGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if origin, err = ctx.GetOrigin(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred loading WebAuthn credentials for user '%s': error occurred attempting to retrieve origin", userSession.Username)
+	if provider, err = ctx.GetWebAuthnProvider(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred loading WebAuthn credentials for user '%s': error occurred attempting to retrieve the WebAuthn RP provider", userSession.Username)
 
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -70,7 +71,7 @@ func WebAuthnCredentialsGET(ctx *middlewares.AutheliaCtx) {
 
 	var credentials []model.WebAuthnCredential
 
-	if credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, origin.Hostname(), userSession.Username); err != nil && err != storage.ErrNoWebAuthnCredential {
+	if credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, provider.WebAuthn.Config.RPID, userSession.Username); err != nil && err != storage.ErrNoWebAuthnCredential {
 		ctx.Logger.WithError(err).Errorf("Error occurred loading WebAuthn credentials for user '%s': error occurred loading credentials from the storage backend", userSession.Username)
 
 		ctx.SetJSONError(messageOperationFailed)
@@ -91,8 +92,8 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 		id          int
 		credential  *model.WebAuthnCredential
 		userSession session.UserSession
+		provider    *webauthn.Provider
 
-		origin      *url.URL
 		credentials []model.WebAuthnCredential
 
 		err error
@@ -160,8 +161,8 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if origin, err = ctx.GetOrigin(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred determining the origin for the request", userSession.Username)
+	if provider, err = ctx.GetWebAuthnProvider(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred attempting to retrieve the WebAuthn RP provider", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
@@ -169,7 +170,7 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, origin.Hostname(), userSession.Username); err != nil {
+	if credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, provider.WebAuthn.Config.RPID, userSession.Username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential for user '%s': error occurred looking up existing credentials", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
