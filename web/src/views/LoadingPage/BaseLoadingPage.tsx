@@ -1,6 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import ScaleLoader from "react-spinners/ScaleLoader";
+import { ScaleLoader } from "react-spinners";
 import { makeStyles } from "tss-react/mui";
 
 export interface Props {

@@ -35,12 +35,12 @@
     "peerDependencyRules": {
       "allowedVersions": {
         "@types/react": "19",
+        "eslint": "10",
         "react": "19",
         "react-dom": "19"
       }
     },
     "onlyBuiltDependencies": [
-      "esbuild",
       "lefthook",
       "unrs-resolver"
     ],
@@ -132,7 +132,6 @@
     "happy-dom": "20.8.4",
     "lefthook": "2.1.4",
     "prettier": "3.8.1",
-    "rollup": "4.59.0",
     "typescript": "5.9.3",
     "vite": "8.0.0",
     "vite-plugin-checker": "0.12.0",
