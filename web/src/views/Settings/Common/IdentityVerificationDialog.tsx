@@ -146,7 +146,7 @@ const IdentityVerificationDialog = function (props: Props) {
                 createErrorNotification(translate("Failed to generate the One-Time Code. Please try again later."));
                 handleClose(false);
             });
-    }, [closing, opening, elevation, ready, handleOpened]);
+    }, [closing, opening, elevation, ready, translate, handleClose, handleOpened, createErrorNotification]);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setCodeInput(e.target.value.replaceAll(/\s/g, ""));

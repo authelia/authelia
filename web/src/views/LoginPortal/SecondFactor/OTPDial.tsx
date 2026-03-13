@@ -1,7 +1,9 @@
 import { Fragment } from "react";
 
 import { Box, Theme } from "@mui/material";
-import OtpInput from "react18-input-otp";
+import _OtpInputModule from "react18-input-otp";
+
+const OtpInput = (_OtpInputModule as { default?: typeof _OtpInputModule }).default ?? _OtpInputModule;
 import { makeStyles } from "tss-react/mui";
 
 import SuccessIcon from "@components/SuccessIcon";
