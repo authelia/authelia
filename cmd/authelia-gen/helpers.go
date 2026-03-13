@@ -54,7 +54,7 @@ func buildCSP(defaultSrc string, ruleSets ...[]CSPValue) string {
 
 	for _, ruleSet := range ruleSets {
 		for _, rule := range ruleSet {
-			if rule.Value == "" && rule.Name == "default-src" {
+			if rule.Value == "" && rule.Name == codeCSPDirectiveDefaultSrc {
 				final[rule.Name] = defaultSrc
 
 				continue
@@ -71,11 +71,11 @@ func buildCSP(defaultSrc string, ruleSets ...[]CSPValue) string {
 	}
 
 	sort.Slice(rules, func(i, j int) bool {
-		if strings.HasPrefix(rules[i], "default-src") {
+		if strings.HasPrefix(rules[i], codeCSPDirectiveDefaultSrc) {
 			return true
 		}
 
-		if strings.HasPrefix(rules[j], "default-src") {
+		if strings.HasPrefix(rules[j], codeCSPDirectiveDefaultSrc) {
 			return false
 		}
 
