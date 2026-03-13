@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	oauthelia2 "authelia.com/provider/oauth2"
-	"authelia.com/provider/oauth2/token/jwt"
-
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
@@ -60,15 +58,6 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 	if handled := handleOAuth2TokenHydration(ctx, rw, requester, client, requester.GetSession().(*oidc.Session)); handled {
 		return
 	}
-
-	result := requester.GetSession().(*oidc.Session).GetJWTClaims().(*jwt.JWTClaims)
-
-	ctx.GetLogger().WithFields(map[string]any{
-		"access_request_id": requester.GetID(),
-		"client_id":         client.GetID(),
-		"subject":           session.Subject,
-		"extra":             result.Extra,
-	}).Debug("Access Request Claims Result")
 
 	ctx.GetLogger().Tracef("Access Request with id '%s' on client with id '%s' response is being generated for session with type '%T'", requester.GetID(), client.GetID(), requester.GetSession())
 
