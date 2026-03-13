@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
+  - [v4.39.16](https://github.com/authelia/authelia/releases/tag/v4.39.16)
 - [Vaultwarden]
   - [1.35.0](https://github.com/dani-garcia/vaultwarden/releases/tag/1.35.0)
 
