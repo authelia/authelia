@@ -9,8 +9,8 @@ vi.mock("tss-react/mui", () => ({
     }),
 }));
 
-vi.mock("react-spinners/ScaleLoader", () => ({
-    default: () => <div data-testid="scale-loader" />,
+vi.mock("react-spinners", () => ({
+    ScaleLoader: () => <div data-testid="scale-loader" />,
 }));
 
 vi.mock("@mui/material", async () => {
