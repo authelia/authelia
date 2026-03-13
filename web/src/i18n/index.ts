@@ -33,6 +33,7 @@ i18n.use(Backend)
         defaultNS: "portal",
         detection: {
             caches: ["cookie"],
+            cookieMinutes: 365 * 24 * 60,
             cookieOptions: { path: "/", sameSite: "strict", secure: true },
             lookupCookie: "language",
             lookupLocalStorage: LocalStorageLanguageCurrent,

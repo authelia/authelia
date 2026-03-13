@@ -412,7 +412,7 @@ func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 	case "schema.CSPTemplate":
 		return &jsonschema.Schema{
 			Type:    jsonschema.TypeString,
-			Default: buildCSP(codeCSPProductionDefaultSrc, codeCSPValuesCommon, codeCSPValuesProduction),
+			Default: buildCSP(codeCSPSelf, codeCSPValuesCommon, codeCSPValuesProduction),
 		}
 	}
 

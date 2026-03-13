@@ -140,8 +140,10 @@ const (
 )
 
 const (
-	codeCSPProductionDefaultSrc  = "'self'"
+	codeCSPDirectiveDefaultSrc   = "default-src"
+	codeCSPSelf                  = "'self'"
 	codeCSPDevelopmentDefaultSrc = "'self' 'unsafe-eval'"
+	codeCSPNone                  = "'none'"
 	codeCSPNonce                 = "${NONCE}"
 )
 
@@ -155,15 +157,20 @@ const (
 
 var (
 	codeCSPValuesCommon = []CSPValue{
-		{Name: "default-src", Value: ""},
-		{Name: "frame-src", Value: "'none'"},
-		{Name: "object-src", Value: "'none'"},
+		{Name: codeCSPDirectiveDefaultSrc, Value: codeCSPSelf},
+		{Name: "frame-src", Value: codeCSPNone},
+		{Name: "object-src", Value: codeCSPNone},
 		{Name: "style-src", Value: "'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"},
-		{Name: "frame-ancestors", Value: "'none'"},
-		{Name: "base-uri", Value: "'self'"},
+		{Name: "frame-ancestors", Value: codeCSPNone},
+		{Name: "base-uri", Value: codeCSPSelf},
 	}
 
-	codeCSPValuesProduction = []CSPValue{}
+	codeCSPValuesProduction = []CSPValue{
+		{Name: "connect-src", Value: codeCSPSelf},
+		{Name: "script-src", Value: codeCSPSelf},
+	}
 
-	codeCSPValuesDevelopment = []CSPValue{}
+	codeCSPValuesDevelopment = []CSPValue{
+		{Name: codeCSPDirectiveDefaultSrc, Value: codeCSPDevelopmentDefaultSrc},
+	}
 )
