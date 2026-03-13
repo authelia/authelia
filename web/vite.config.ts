@@ -4,7 +4,6 @@ import { defineConfig, loadEnv } from "vite";
 import checkerPlugin from "vite-plugin-checker";
 import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd());
@@ -100,8 +99,10 @@ export default defineConfig(({ mode }) => {
             istanbulPlugin,
             react(),
             svgr(),
-            tsconfigPaths(),
         ],
+        resolve: {
+            tsconfigPaths: true,
+        },
         server: {
             allowedHosts: ["login.example.com", ...allowedHosts],
             open: false,
