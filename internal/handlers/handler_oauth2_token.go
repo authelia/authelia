@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
