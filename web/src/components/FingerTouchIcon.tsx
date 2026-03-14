@@ -1,4 +1,4 @@
-import { makeStyles } from "tss-react/mui";
+import clsx from "clsx";
 
 import style from "@components/FingerTouchIcon.module.css";
 
@@ -10,8 +10,6 @@ export interface Props {
 }
 
 const FingerTouchIcon = function (props: Props) {
-    const { cx } = useStyles();
-
     const shakingClass = props.animated ? style.shaking : undefined;
     const strong = props.strong ? style.strong : undefined;
 
@@ -22,7 +20,7 @@ const FingerTouchIcon = function (props: Props) {
             viewBox="0 0 500 500"
             width={props.size}
             height={props.size}
-            className={cx(style.hand, strong)}
+            className={clsx(style.hand, strong)}
         >
             <path
                 className={shakingClass}
@@ -53,7 +51,5 @@ const FingerTouchIcon = function (props: Props) {
         </svg>
     );
 };
-
-const useStyles = makeStyles()(() => ({}));
 
 export default FingerTouchIcon;

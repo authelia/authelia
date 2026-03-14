@@ -6,13 +6,6 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { body: "body", icon: "icon", root: "root", rootContainer: "rootContainer" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("@assets/images/user.svg?react", () => ({
     default: (props: any) => <svg data-testid="user-svg" {...props} />,
 }));

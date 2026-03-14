@@ -22,14 +22,13 @@ import {
     Stepper,
     Switch,
     TextField,
-    Theme,
     Typography,
+    styled,
 } from "@mui/material";
 import { red } from "@mui/material/colors";
 import Grid from "@mui/material/Grid";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import AppStoreBadges from "@components/AppStoreBadges";
 import CopyButton from "@components/CopyButton";
@@ -41,6 +40,22 @@ import { completeTOTPRegister, stopTOTPRegister } from "@services/OneTimePasswor
 import { getTOTPSecret } from "@services/RegisterDevice";
 import { getTOTPOptions } from "@services/UserInfoTOTPConfiguration";
 import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
+
+const StyledQRCode = styled(QRCodeSVG)(({ theme }) => ({
+    backgroundColor: "white",
+    display: "inline-block",
+    marginBottom: theme.spacing(2),
+    marginTop: theme.spacing(2),
+    padding: theme.spacing(),
+}));
+
+const StyledErrorIcon = styled(FontAwesomeIcon)(() => ({
+    color: red[400],
+    fontSize: "8rem",
+    left: "calc(128px - 64px)",
+    position: "absolute",
+    top: "calc(128px - 64px)",
+}));
 
 const steps = ["Start", "Register", "Confirm"];
 
@@ -64,7 +79,6 @@ interface AvailableOptions {
 const OneTimePasswordRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
-    const { classes, cx } = useStyles();
     const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [selected, setSelected] = useState<Options>({ algorithm: "", length: 6, period: 30 });
@@ -291,7 +305,6 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
     const hideAlgorithms = advanced && available.algorithms.length <= 1;
     const hideLengths = advanced && available.lengths.length <= 1;
     const hidePeriods = advanced && available.periods.length <= 1;
-    const qrcodeFuzzyStyle = isLoading || hasErrored ? classes.fuzzy : undefined;
 
     function renderStep(step: number) {
         switch (step) {
@@ -434,16 +447,28 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                             />
                         </Grid>
                         <Grid size={{ xs: 12 }} hidden={!showQRCode}>
-                            <Box className={cx(qrcodeFuzzyStyle, classes.qrcodeContainer)}>
+                            <Box
+                                sx={() => ({
+                                    display: "inline-block",
+                                    position: "relative",
+                                    ...(isLoading || hasErrored ? { filter: "blur(10px)" } : {}),
+                                })}
+                            >
                                 {secretURL ? (
                                     <Link href={secretURL} underline="hover">
-                                        <QRCodeSVG value={secretURL} className={classes.qrcode} size={200} />
+                                        <StyledQRCode value={secretURL} size={200} />
                                         {isLoading && !hasErrored ? (
-                                            <CircularProgress className={classes.loader} size={128} />
+                                            <CircularProgress
+                                                sx={{
+                                                    color: "rgba(255, 255, 255, 0.5)",
+                                                    left: "calc(128px - 64px)",
+                                                    position: "absolute",
+                                                    top: "calc(128px - 64px)",
+                                                }}
+                                                size={128}
+                                            />
                                         ) : null}
-                                        {hasErrored ? (
-                                            <FontAwesomeIcon className={classes.failureIcon} icon={faTimesCircle} />
-                                        ) : null}
+                                        {hasErrored ? <StyledErrorIcon icon={faTimesCircle} /> : null}
                                     </Link>
                                 ) : null}
                             </Box>
@@ -474,7 +499,11 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                     <TextField
                                         id={"secret-url"}
                                         label={translate("Secret")}
-                                        className={classes.secret}
+                                        sx={(theme) => ({
+                                            marginBottom: theme.spacing(1),
+                                            marginTop: theme.spacing(1),
+                                            width: "256px",
+                                        })}
                                         value={secretURL ?? ""}
                                         multiline={true}
                                         slotProps={{
@@ -488,13 +517,16 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                         </Grid>
                         <Grid size={{ xs: 12 }} sx={{ display: { md: "block", xs: "none" } }}>
                             <Box>
-                                <Typography className={classes.googleAuthenticatorText}>
+                                <Typography
+                                    sx={(theme) => ({
+                                        fontSize: theme.typography.fontSize * 0.8,
+                                    })}
+                                >
                                     {translate("Need Google Authenticator?")}
                                 </Typography>
                                 <AppStoreBadges
                                     iconSize={110}
                                     targetBlank
-                                    className={classes.googleAuthenticatorBadges}
                                     googlePlayLink={GoogleAuthenticator.googlePlay}
                                     appleStoreLink={GoogleAuthenticator.appleStore}
                                 />
@@ -506,7 +538,12 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 return (
                     <Grid size={{ xs: 12 }} paddingY={4}>
                         {success ? (
-                            <Box className={classes.success}>
+                            <Box
+                                sx={(theme) => ({
+                                    flex: "0 0 100%",
+                                    marginBottom: theme.spacing(2),
+                                })}
+                            >
                                 <SuccessIcon />
                             </Box>
                         ) : (
@@ -579,47 +616,5 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
         </Dialog>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    failureIcon: {
-        color: red[400],
-        fontSize: "8rem",
-        left: "calc(128px - 64px)",
-        position: "absolute",
-        top: "calc(128px - 64px)",
-    },
-    fuzzy: {
-        filter: "blur(10px)",
-    },
-    googleAuthenticatorBadges: {},
-    googleAuthenticatorText: {
-        fontSize: theme.typography.fontSize * 0.8,
-    },
-    loader: {
-        color: "rgba(255, 255, 255, 0.5)",
-        left: "calc(128px - 64px)",
-        position: "absolute",
-        top: "calc(128px - 64px)",
-    },
-    qrcode: {
-        backgroundColor: "white",
-        marginBottom: theme.spacing(2),
-        marginTop: theme.spacing(2),
-        padding: theme.spacing(),
-    },
-    qrcodeContainer: {
-        display: "inline-block",
-        position: "relative",
-    },
-    secret: {
-        marginBottom: theme.spacing(1),
-        marginTop: theme.spacing(1),
-        width: "256px",
-    },
-    success: {
-        flex: "0 0 100%",
-        marginBottom: theme.spacing(2),
-    },
-}));
 
 export default OneTimePasswordRegisterDialog;

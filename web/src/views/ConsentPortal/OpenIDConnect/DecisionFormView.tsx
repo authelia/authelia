@@ -10,7 +10,6 @@ import {
     FormControl,
     IconButton,
     InputAdornment,
-    Theme,
     Tooltip,
     Typography,
     useTheme,
@@ -19,7 +18,6 @@ import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
 import SwitchUserButton from "@components/SwitchUserButton";
@@ -55,8 +53,6 @@ export interface Props {
 const DecisionFormView: FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent", "portal"]);
     const theme = useTheme();
-
-    const { classes } = useStyles();
 
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useRouterNavigate();
@@ -320,7 +316,7 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                 "Client ID: " + response?.client_id
                                             }
                                         >
-                                            <Typography className={classes.clientDescription}>
+                                            <Typography sx={{ fontWeight: 600 }}>
                                                 {response.client_description === ""
                                                     ? response?.client_id
                                                     : response.client_description}
@@ -455,7 +451,11 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                 <span>
                                                     <Button
                                                         id={"openid-consent-accept"}
-                                                        className={classes.button}
+                                                        sx={{
+                                                            marginLeft: (theme) => theme.spacing(),
+                                                            marginRight: (theme) => theme.spacing(),
+                                                            width: "100%",
+                                                        }}
                                                         disabled={!response || passwordMissing || loading}
                                                         onClick={handleAcceptConsent}
                                                         color={"primary"}
@@ -472,7 +472,11 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                 <span>
                                                     <Button
                                                         id={"openid-consent-deny"}
-                                                        className={classes.button}
+                                                        sx={{
+                                                            marginLeft: (theme) => theme.spacing(),
+                                                            marginRight: (theme) => theme.spacing(),
+                                                            width: "100%",
+                                                        }}
                                                         disabled={!response || loading}
                                                         onClick={handleRejectConsent}
                                                         color={"secondary"}
@@ -498,16 +502,5 @@ const DecisionFormView: FC<Props> = (props: Props) => {
         </Fragment>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    button: {
-        marginLeft: theme.spacing(),
-        marginRight: theme.spacing(),
-        width: "100%",
-    },
-    clientDescription: {
-        fontWeight: 600,
-    },
-}));
 
 export default DecisionFormView;

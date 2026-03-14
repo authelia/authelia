@@ -71,7 +71,6 @@
     "react-router-dom": "7.13.1",
     "react-spinners": "0.17.0",
     "react18-input-otp": "1.1.4",
-    "tss-react": "4.9.20",
     "zxcvbn": "4.4.2"
   },
   "scripts": {
@@ -119,6 +118,7 @@
     "@vitejs/plugin-react": "6.0.1",
     "@vitest/coverage-istanbul": "4.1.0",
     "@vitest/ui": "4.1.0",
+    "clsx": "^2.1.1",
     "eslint": "10.0.3",
     "eslint-config-prettier": "10.1.8",
     "eslint-formatter-rdjson": "1.0.6",

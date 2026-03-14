@@ -9,10 +9,8 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    Theme,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import OneTimeCodeTextField from "@components/OneTimeCodeTextField";
 import SuccessIcon from "@components/SuccessIcon";
@@ -34,8 +32,6 @@ type Props = {
 const IdentityVerificationDialog = function (props: Props) {
     const { elevation, handleClosed, handleOpened, opening } = props;
     const { t: translate } = useTranslation("settings");
-    const { classes } = useStyles();
-
     const { createErrorNotification } = useNotifications();
 
     const [closing, setClosing] = useState(false);
@@ -159,11 +155,12 @@ const IdentityVerificationDialog = function (props: Props) {
             {success ? (
                 <DialogContent>
                     <Box
-                        className={classes.success}
                         sx={{
                             display: "flex",
+                            flex: "0 0 100%",
                             flexDirection: "column",
                             m: "auto",
+                            marginBottom: (theme) => theme.spacing(2),
                             padding: "5.0rem",
                             width: "fit-content",
                         }}
@@ -229,17 +226,5 @@ const IdentityVerificationDialog = function (props: Props) {
         </Dialog>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    success: {
-        display: "flex",
-        flex: "0 0 100%",
-        flexDirection: "column",
-        m: "auto",
-        marginBottom: theme.spacing(2),
-        marginY: "2.5rem",
-        width: "fit-content",
-    },
-}));
 
 export default IdentityVerificationDialog;

@@ -6,13 +6,6 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { container: "", containerFlex: "", containerMethod: "", info: "", infoTypography: "" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("@components/InformationIcon", () => ({
     default: () => <div data-testid="info-icon" />,
 }));

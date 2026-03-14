@@ -5,7 +5,6 @@ import Grid from "@mui/material/Grid";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
-import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
 import SwitchUserButton from "@components/SwitchUserButton";
@@ -47,7 +46,6 @@ export interface Props {
 
 const SecondFactorForm = function (props: Props) {
     const { t: translate } = useTranslation();
-    const { classes } = useStyles();
 
     const navigate = useRouterNavigate();
     const flowPresent = useFlowPresent();
@@ -110,7 +108,16 @@ const SecondFactorForm = function (props: Props) {
                         </Button>
                     ) : null}
                 </Grid>
-                <Box className={classes.methodContainer}>
+                <Box
+                    sx={(theme: Theme) => ({
+                        border: "1px solid #d6d6d6",
+                        borderRadius: "10px",
+                        marginBottom: theme.spacing(2),
+                        marginTop: theme.spacing(2),
+                        minWidth: "300px",
+                        padding: theme.spacing(4),
+                    })}
+                >
                     <Routes>
                         <Route
                             path={SecondFactorPasswordSubRoute}
@@ -174,16 +181,5 @@ const SecondFactorForm = function (props: Props) {
         </LoginLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    methodContainer: {
-        border: "1px solid #d6d6d6",
-        borderRadius: "10px",
-        marginBottom: theme.spacing(2),
-        marginTop: theme.spacing(2),
-        minWidth: "300px",
-        padding: theme.spacing(4),
-    },
-}));
 
 export default SecondFactorForm;

@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, FormControl, IconButton, InputAdornment, Theme } from "@mui/material";
+import { Button, FormControl, IconButton, InputAdornment } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { makeStyles } from "tss-react/mui";
 
 import PasswordMeter from "@components/PasswordMeter";
 import { IndexRoute } from "@constants/Routes";
@@ -20,7 +19,6 @@ import { completeResetPasswordProcess, resetPassword } from "@services/ResetPass
 
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
-    const { classes, cx } = useStyles();
 
     const [formDisabled, setFormDisabled] = useState(true);
     const [password1, setPassword1] = useState("");
@@ -133,7 +131,11 @@ const ResetPasswordStep2 = function () {
     return (
         <MinimalLayout title={translate("Enter new password")} id="reset-password-step2-stage">
             <FormControl id={"form-reset-password"}>
-                <Grid container className={classes.root} spacing={2}>
+                <Grid
+                    container
+                    spacing={2}
+                    sx={{ marginBottom: (theme) => theme.spacing(2), marginTop: (theme) => theme.spacing(2) }}
+                >
                     <Grid size={{ xs: 12 }}>
                         <TextField
                             id="password1-textfield"
@@ -144,7 +146,7 @@ const ResetPasswordStep2 = function () {
                             disabled={formDisabled}
                             onChange={(e) => setPassword1(e.target.value)}
                             error={errorPassword1}
-                            className={cx(classes.fullWidth)}
+                            sx={{ width: "100%" }}
                             autoComplete="new-password"
                             slotProps={{
                                 input: {
@@ -200,7 +202,7 @@ const ResetPasswordStep2 = function () {
                                     ev.preventDefault();
                                 }
                             }}
-                            className={cx(classes.fullWidth)}
+                            sx={{ width: "100%" }}
                             autoComplete="new-password"
                         />
                     </Grid>
@@ -212,7 +214,7 @@ const ResetPasswordStep2 = function () {
                             name="password1"
                             disabled={formDisabled}
                             onClick={handleResetClick}
-                            className={classes.fullWidth}
+                            sx={{ width: "100%" }}
                         >
                             {translate("Reset")}
                         </Button>
@@ -224,7 +226,7 @@ const ResetPasswordStep2 = function () {
                             color="primary"
                             name="password2"
                             onClick={handleCancelClick}
-                            className={classes.fullWidth}
+                            sx={{ width: "100%" }}
                         >
                             {translate("Cancel")}
                         </Button>
@@ -234,15 +236,5 @@ const ResetPasswordStep2 = function () {
         </MinimalLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    fullWidth: {
-        width: "100%",
-    },
-    root: {
-        marginBottom: theme.spacing(2),
-        marginTop: theme.spacing(2),
-    },
-}));
 
 export default ResetPasswordStep2;

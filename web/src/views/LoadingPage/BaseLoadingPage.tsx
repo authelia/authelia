@@ -1,7 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { ScaleLoader } from "react-spinners";
-import { makeStyles } from "tss-react/mui";
 
 export interface Props {
     message: string;
@@ -9,11 +8,10 @@ export interface Props {
 
 const BaseLoadingPage = function (props: Props) {
     const theme = useTheme();
-    const { classes } = useStyles();
 
     return (
-        <Grid container className={classes.gridOuter}>
-            <Grid className={classes.gridInner}>
+        <Grid container sx={{ alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+            <Grid sx={{ display: "inline-block", textAlign: "center" }}>
                 <Box padding={theme.spacing(2)}>
                     <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />
                 </Box>
@@ -24,17 +22,5 @@ const BaseLoadingPage = function (props: Props) {
         </Grid>
     );
 };
-
-const useStyles = makeStyles()(() => ({
-    gridInner: {
-        display: "inline-block",
-        textAlign: "center",
-    },
-    gridOuter: {
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-    },
-}));
 
 export default BaseLoadingPage;

@@ -2,7 +2,6 @@ import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { Box, Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -49,7 +48,6 @@ export interface Props {
 
 const PushNotificationMethod = function (props: Props) {
     const { t: translate } = useTranslation();
-    const { classes } = useStyles();
 
     const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
@@ -319,7 +317,7 @@ const PushNotificationMethod = function (props: Props) {
             onSelectClick={handleFetchDuoDevices}
             onRegisterClick={() => window.open(enrollUrl, "_blank", "noopener,noreferrer")}
         >
-            <Box className={classes.icon}>{icon}</Box>
+            <Box sx={{ display: "inline-block", height: "64px", width: "64px" }}>{icon}</Box>
             <Box className={state === State.Failure ? "" : "hidden"}>
                 <Button color="secondary" onClick={handleSignIn}>
                     {translate("Retry")}
@@ -328,13 +326,5 @@ const PushNotificationMethod = function (props: Props) {
         </MethodContainer>
     );
 };
-
-const useStyles = makeStyles()(() => ({
-    icon: {
-        display: "inline-block",
-        height: "64px",
-        width: "64px",
-    },
-}));
 
 export default PushNotificationMethod;
