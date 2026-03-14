@@ -1104,7 +1104,17 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "louisonsarlinmagnus",
+      "name": "Louison SARLIN--MAGNUS",
+      "avatar_url": "https://avatars.githubusercontent.com/u/70757160?v=4",
+      "profile": "https://louisonsarlinmagnus.github.io/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
