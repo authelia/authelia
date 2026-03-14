@@ -12,13 +12,11 @@ import {
     StepLabel,
     Stepper,
     TextField,
-    Theme,
     Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import InformationIcon from "@components/InformationIcon";
 import WebAuthnRegisterIcon from "@components/WebAuthnRegisterIcon";
@@ -39,8 +37,6 @@ interface Props {
 
 const WebAuthnCredentialRegisterDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-    const { classes } = useStyles();
-
     const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
@@ -200,10 +196,12 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
             case 0:
                 return (
                     <Box>
-                        <Box className={classes.icon}>
+                        <Box
+                            sx={{ paddingBottom: (theme) => theme.spacing(4), paddingTop: (theme) => theme.spacing(4) }}
+                        >
                             <InformationIcon />
                         </Box>
-                        <Typography className={classes.instruction}>
+                        <Typography sx={{ paddingBottom: (theme) => theme.spacing(4) }}>
                             {translate("Enter a description for this WebAuthn Credential")}
                         </Typography>
                         <Grid container spacing={1}>
@@ -236,10 +234,12 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
             case 1:
                 return (
                     <Fragment>
-                        <Box className={classes.icon}>
+                        <Box
+                            sx={{ paddingBottom: (theme) => theme.spacing(4), paddingTop: (theme) => theme.spacing(4) }}
+                        >
                             {timeout ? <WebAuthnRegisterIcon timeout={timeout} /> : null}
                         </Box>
-                        <Typography className={classes.instruction}>
+                        <Typography sx={{ paddingBottom: (theme) => theme.spacing(4) }}>
                             {translate("Touch the token on your security key")}
                         </Typography>
                     </Fragment>
@@ -308,15 +308,5 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         </Dialog>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    icon: {
-        paddingBottom: theme.spacing(4),
-        paddingTop: theme.spacing(4),
-    },
-    instruction: {
-        paddingBottom: theme.spacing(4),
-    },
-}));
 
 export default WebAuthnCredentialRegisterDialog;

@@ -1,16 +1,15 @@
+import { ReactNode } from "react";
+
+import { ThemeProvider } from "@mui/material";
 import { act, render, screen } from "@testing-library/react";
 
 import MinimalLayout from "@layouts/MinimalLayout";
+import Light from "@themes/Light";
+
+const renderWithTheme = (ui: ReactNode) => render(<ThemeProvider theme={Light}>{ui}</ThemeProvider>);
 
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
-}));
-
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { body: "body", icon: "icon", root: "root", rootContainer: "rootContainer" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
 }));
 
 vi.mock("@assets/images/user.svg?react", () => ({
@@ -39,7 +38,7 @@ vi.mock("@utils/Configuration", () => ({
 
 it("renders with default SVG logo", async () => {
     await act(async () => {
-        render(<MinimalLayout />);
+        renderWithTheme(<MinimalLayout />);
     });
 
     expect(screen.getByTestId("user-svg")).toBeInTheDocument();
@@ -52,7 +51,7 @@ it("renders with image logo when override is enabled", async () => {
     vi.mocked(getLogoOverride).mockReturnValue(true);
 
     await act(async () => {
-        render(<MinimalLayout />);
+        renderWithTheme(<MinimalLayout />);
     });
 
     expect(screen.getByAltText("Logo")).toBeInTheDocument();
@@ -63,7 +62,7 @@ it("renders with image logo when override is enabled", async () => {
 
 it("renders title when provided", async () => {
     await act(async () => {
-        render(<MinimalLayout title="Test Title" />);
+        renderWithTheme(<MinimalLayout title="Test Title" />);
     });
 
     expect(screen.getByTestId("typography-h5")).toHaveTextContent("Test Title");
@@ -71,7 +70,7 @@ it("renders title when provided", async () => {
 
 it("does not render title when not provided", async () => {
     await act(async () => {
-        render(<MinimalLayout />);
+        renderWithTheme(<MinimalLayout />);
     });
 
     expect(screen.queryByTestId("typography-h5")).not.toBeInTheDocument();
@@ -79,7 +78,7 @@ it("does not render title when not provided", async () => {
 
 it("renders children", async () => {
     await act(async () => {
-        render(
+        renderWithTheme(
             <MinimalLayout>
                 <div data-testid="child">Content</div>
             </MinimalLayout>,
@@ -91,7 +90,7 @@ it("renders children", async () => {
 
 it("sets the document title", async () => {
     await act(async () => {
-        render(<MinimalLayout />);
+        renderWithTheme(<MinimalLayout />);
     });
 
     expect(document.title).toContain("Login");

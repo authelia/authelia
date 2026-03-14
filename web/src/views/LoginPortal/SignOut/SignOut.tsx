@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { Theme, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-import { makeStyles } from "tss-react/mui";
 
 import { IndexRoute } from "@constants/Routes";
 import { RedirectionRestoreURL, RedirectionURL } from "@constants/SearchParams";
@@ -17,7 +16,6 @@ import { signOut } from "@services/SignOut";
 
 const SignOut = function () {
     const { t: translate } = useTranslation();
-    const { classes } = useStyles();
 
     const mounted = useIsMountedRef();
     const { createErrorNotification } = useNotifications();
@@ -86,15 +84,11 @@ const SignOut = function () {
 
     return (
         <MinimalLayout title={translate("Sign out")}>
-            <Typography className={classes.typo}>{translate("You're being signed out and redirected")}...</Typography>
+            <Typography sx={{ padding: (theme) => theme.spacing() }}>
+                {translate("You're being signed out and redirected")}...
+            </Typography>
         </MinimalLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    typo: {
-        padding: theme.spacing(),
-    },
-}));
 
 export default SignOut;

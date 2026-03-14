@@ -2,19 +2,6 @@ import { render, screen } from "@testing-library/react";
 
 import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: {
-            inputError: "inputError",
-            otpDigitInput: "otpDigitInput",
-            otpInput: "otpInput",
-            register: "",
-            timeProgress: "",
-        },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("react18-input-otp", () => ({
     default: (props: any) => (
         <div data-testid="otp-input" data-disabled={props.isDisabled} data-num-inputs={props.numInputs} />

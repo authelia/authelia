@@ -13,14 +13,12 @@ import {
     IconButton,
     InputAdornment,
     Link,
-    Theme,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { makeStyles } from "tss-react/mui";
 
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
@@ -48,7 +46,6 @@ export interface Props {
 
 const FirstFactorForm = function (props: Props) {
     const { t: translate } = useTranslation();
-    const { classes, cx } = useStyles();
 
     const navigate = useNavigate();
     const redirectionURL = useQueryParam(RedirectionURL);
@@ -325,7 +322,15 @@ const FirstFactorForm = function (props: Props) {
                         </Grid>
                     ) : null}
                     {props.rememberMe ? (
-                        <Grid size={{ xs: 12 }} className={cx(classes.actionRow)}>
+                        <Grid
+                            size={{ xs: 12 }}
+                            sx={{
+                                display: "flex",
+                                flexDirection: "row",
+                                marginBottom: (theme) => theme.spacing(-1),
+                                marginTop: (theme) => theme.spacing(-1),
+                            }}
+                        >
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -338,7 +343,7 @@ const FirstFactorForm = function (props: Props) {
                                         color="primary"
                                     />
                                 }
-                                className={classes.rememberMe}
+                                sx={{ flexGrow: 1 }}
                                 label={translate("Remember me")}
                             />
                         </Grid>
@@ -371,12 +376,21 @@ const FirstFactorForm = function (props: Props) {
                         />
                     ) : null}
                     {props.resetPassword ? (
-                        <Grid size={{ xs: 12 }} className={cx(classes.actionRow, classes.flexEnd)}>
+                        <Grid
+                            size={{ xs: 12 }}
+                            sx={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "flex-end",
+                                marginBottom: (theme) => theme.spacing(-1),
+                                marginTop: (theme) => theme.spacing(-1),
+                            }}
+                        >
                             <Link
                                 id="reset-password-button"
                                 component="button"
                                 onClick={handleResetPasswordClick}
-                                className={classes.resetLink}
+                                sx={{ cursor: "pointer", paddingBottom: "13.5px", paddingTop: "13.5px" }}
                                 underline="hover"
                             >
                                 {translate("Reset password?")}
@@ -388,25 +402,5 @@ const FirstFactorForm = function (props: Props) {
         </LoginLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    actionRow: {
-        display: "flex",
-        flexDirection: "row",
-        marginBottom: theme.spacing(-1),
-        marginTop: theme.spacing(-1),
-    },
-    flexEnd: {
-        justifyContent: "flex-end",
-    },
-    rememberMe: {
-        flexGrow: 1,
-    },
-    resetLink: {
-        cursor: "pointer",
-        paddingBottom: 13.5,
-        paddingTop: 13.5,
-    },
-}));
 
 export default FirstFactorForm;

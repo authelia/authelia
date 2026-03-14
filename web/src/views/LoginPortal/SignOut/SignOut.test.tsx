@@ -10,13 +10,6 @@ vi.mock("react-router-dom", () => ({
     useSearchParams: () => [new URLSearchParams(), vi.fn()],
 }));
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { typo: "typo" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("@constants/Routes", () => ({
     IndexRoute: "/",
 }));

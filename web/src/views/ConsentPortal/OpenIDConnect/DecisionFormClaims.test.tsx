@@ -6,13 +6,6 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { container: "container", list: "list" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("@services/ConsentOpenIDConnect", () => ({
     formatClaim: (translated: string, claim: string) => translated || claim,
 }));

@@ -9,13 +9,6 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { appLogo: "", buttonRow: "", form: "", formField: "" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("@mui/material", async () => {
     const actual = await vi.importActual("@mui/material");
     return {

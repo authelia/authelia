@@ -6,13 +6,6 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { success: "" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("@hooks/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: vi.fn(),

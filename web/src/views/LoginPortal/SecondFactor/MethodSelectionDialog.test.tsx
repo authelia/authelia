@@ -7,13 +7,6 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { buttonRoot: "", icon: "", item: "", root: "" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("@components/FingerTouchIcon", () => ({
     default: () => <div data-testid="finger-touch-icon" />,
 }));

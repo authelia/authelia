@@ -2,13 +2,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 import DeviceSelectionContainer from "@views/LoginPortal/SecondFactor/DeviceSelectionContainer";
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { buttonRoot: "", icon: "", item: "" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("@components/PushNotificationIcon", () => ({
     default: () => <div data-testid="push-icon" />,
 }));

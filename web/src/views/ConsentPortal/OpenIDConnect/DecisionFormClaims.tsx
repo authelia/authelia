@@ -1,9 +1,8 @@
 import { ChangeEvent, FC, Fragment, useCallback, useMemo } from "react";
 
-import { Box, Checkbox, FormControlLabel, List, Theme, Tooltip } from "@mui/material";
+import { Box, Checkbox, FormControlLabel, List, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import { formatClaim } from "@services/ConsentOpenIDConnect";
 
@@ -15,8 +14,6 @@ export interface Props {
 
 const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeChecked }: Props) => {
     const { t: translate } = useTranslation(["consent"]);
-
-    const { classes } = useStyles();
 
     const checked = useMemo(() => claims || [], [claims]);
 
@@ -43,8 +40,15 @@ const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeCheck
         <Fragment>
             {hasClaims ? (
                 <Grid size={{ xs: 12 }}>
-                    <Box className={classes.container}>
-                        <List className={classes.list}>
+                    <Box sx={{ textAlign: "center" }}>
+                        <List
+                            sx={{
+                                backgroundColor: (theme) => theme.palette.background.paper,
+                                display: "inline-block",
+                                marginBottom: (theme) => theme.spacing(2),
+                                marginTop: (theme) => theme.spacing(2),
+                            }}
+                        >
                             {essential_claims?.map((claim: string) => (
                                 <Tooltip key={`${claim}-essential`} title={translate("Claim", { name: claim })}>
                                     <FormControlLabel
@@ -75,17 +79,5 @@ const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeCheck
         </Fragment>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    container: {
-        textAlign: "center",
-    },
-    list: {
-        backgroundColor: theme.palette.background.paper,
-        display: "inline-block",
-        marginBottom: theme.spacing(2),
-        marginTop: theme.spacing(2),
-    },
-}));
 
 export default DecisionFormClaims;
