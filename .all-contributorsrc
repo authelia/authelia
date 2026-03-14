@@ -9,7 +9,7 @@
   ],
   "imageSize": 100,
   "commit": false,
-  "commitConvention": "none",
+  "commitConvention": "angular",
   "contributors": [
     {
       "login": "clems4ever",
@@ -1096,8 +1096,24 @@
         "bug",
         "code"
       ]
+    },
+      "login": "erusc",
+      "name": "erusc",
+      "avatar_url": "https://avatars.githubusercontent.com/u/208130995?v=4",
+      "profile": "https://github.com/erusc",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "kevincox",
+      "name": "Kevin Cox",
+      "avatar_url": "https://avatars.githubusercontent.com/u/494012?v=4",
+      "profile": "https://kevincox.ca",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
-  "contributorsPerLine": 7,
-  "commitType": "docs"
+  "contributorsPerLine": 7
 }

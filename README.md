@@ -371,6 +371,10 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pedorich-n"><img src="https://avatars.githubusercontent.com/u/15573098?v=4?s=100" width="100px;" alt="Nikita Pedorich"/><br /><sub><b>Nikita Pedorich</b></sub></a><br /><a href="#userTesting-pedorich-n" title="User Testing">📓</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/atoerien"><img src="https://avatars.githubusercontent.com/u/49614525?v=4?s=100" width="100px;" alt="Andre Toerien"/><br /><sub><b>Andre Toerien</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Aatoerien" title="Bug reports">🐛</a> <a href="https://github.com/authelia/authelia/commits?author=atoerien" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/erusc"><img src="https://avatars.githubusercontent.com/u/208130995?v=4?s=100" width="100px;" alt="erusc"/><br /><sub><b>erusc</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Aerusc" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://kevincox.ca"><img src="https://avatars.githubusercontent.com/u/494012?v=4?s=100" width="100px;" alt="Kevin Cox"/><br /><sub><b>Kevin Cox</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Akevincox" title="Bug reports">🐛</a></td>
+    </tr>
   </tbody>
 </table>
 
