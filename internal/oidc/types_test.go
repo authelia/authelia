@@ -210,6 +210,6 @@ func (m *TestContext) GetProviderStorage() storage.Provider {
 	return nil
 }
 
-func (m *TestContext) GetProviderAuthentication() authentication.UserProvider {
+func (m *TestContext) GetUserProvider() authentication.UserProvider {
 	return nil
 }

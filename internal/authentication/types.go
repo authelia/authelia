@@ -352,7 +352,7 @@ func (l Level) String() string {
 type Context interface {
 	context.Context
 
-	GetProviderAuthentication() UserProvider
+	GetUserProvider() UserProvider
 	GetLogger() *logrus.Entry
 	GetClock() clock.Provider
 }
