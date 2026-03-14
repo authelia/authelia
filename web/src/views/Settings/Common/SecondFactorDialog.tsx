@@ -13,7 +13,6 @@ import {
     Step,
     StepLabel,
     Stepper,
-    Theme,
     Typography,
 } from "@mui/material";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
@@ -185,8 +184,6 @@ const SecondFactorDialog = function (props: Props) {
                         flex: "0 0 100%",
                         flexDirection: "column",
                         m: "auto",
-                        marginBottom: (theme: Theme) => theme.spacing(2),
-                        marginY: "2.5rem",
                         padding: "5.0rem",
                         width: "fit-content",
                     }}

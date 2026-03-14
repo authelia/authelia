@@ -73,6 +73,9 @@ importers:
       broadcast-channel:
         specifier: 7.3.0
         version: 7.3.0
+      clsx:
+        specifier: 2.1.1
+        version: 2.1.1
       i18next:
         specifier: 25.8.18
         version: 25.8.18(typescript@5.9.3)
@@ -152,9 +155,6 @@ importers:
       '@vitest/ui':
         specifier: 4.1.0
         version: 4.1.0(vitest@4.1.0)
-      clsx:
-        specifier: 2.1.1
-        version: 2.1.1
       eslint:
         specifier: 10.0.3
         version: 10.0.3(jiti@2.4.1)

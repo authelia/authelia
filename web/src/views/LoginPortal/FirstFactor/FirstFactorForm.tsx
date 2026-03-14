@@ -390,7 +390,7 @@ const FirstFactorForm = function (props: Props) {
                                 id="reset-password-button"
                                 component="button"
                                 onClick={handleResetPasswordClick}
-                                sx={{ cursor: "pointer", paddingBottom: 13.5, paddingTop: 13.5 }}
+                                sx={{ cursor: "pointer", paddingBottom: "13.5px", paddingTop: "13.5px" }}
                                 underline="hover"
                             >
                                 {translate("Reset password?")}

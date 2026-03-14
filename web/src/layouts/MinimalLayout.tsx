@@ -51,7 +51,7 @@ const MinimalLayout = function (props: Props) {
                 justifyContent="center"
                 sx={{ minHeight: "90vh", textAlign: "center" }}
             >
-                <Container maxWidth="xs" sx={{ paddingLeft: 32, paddingRight: 32 }}>
+                <Container maxWidth="xs" sx={{ paddingLeft: "32px", paddingRight: "32px" }}>
                     <Grid container>
                         <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
