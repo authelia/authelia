@@ -14,18 +14,18 @@
   "dependencies": {
     "@docsearch/css": "3.9.0",
     "@docsearch/js": "3.9.0",
-    "@tabler/icons": "3.37.1",
-    "@thulite/doks-core": "1.9.0",
+    "@tabler/icons": "3.40.0",
+    "@thulite/doks-core": "1.9.3",
     "@thulite/images": "3.3.4",
     "@thulite/inline-svg": "1.2.2",
     "@thulite/seo": "2.4.3",
     "bootstrap-icons": "1.13.1",
     "exec-bin": "1.0.0",
     "hugo-installer": "4.0.1",
-    "thulite": "2.6.4"
+    "thulite": "2.6.5"
   },
   "devDependencies": {
-    "vite": "7.3.1"
+    "vite": "8.0.0"
   },
   "engines": {
     "node": ">=22.14.0",
@@ -38,9 +38,8 @@
   },
   "pnpm": {
     "overrides": {
-      "semver@>=7.0.0 <7.5.2": "7.6.3",
-      "rollup@>=4.0.0 <4.59.0": "4.59.0",
-      "minimatch": "10.2.4"
+      "yauzl@<3.2.1": "3.2.1",
+      "semver@>=7.0.0 <7.5.2": "7.5.2"
     },
     "patchedDependencies": {}
   }
