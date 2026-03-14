@@ -369,6 +369,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/peter-"><img src="https://avatars.githubusercontent.com/u/4047365?v=4?s=100" width="100px;" alt="peter"/><br /><sub><b>peter</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Apeter-" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://ocnr.org"><img src="https://avatars.githubusercontent.com/u/1495157?v=4?s=100" width="100px;" alt="Nick O'Connor"/><br /><sub><b>Nick O'Connor</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Anick-oconnor" title="Bug reports">🐛</a> <a href="#userTesting-nick-oconnor" title="User Testing">📓</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pedorich-n"><img src="https://avatars.githubusercontent.com/u/15573098?v=4?s=100" width="100px;" alt="Nikita Pedorich"/><br /><sub><b>Nikita Pedorich</b></sub></a><br /><a href="#userTesting-pedorich-n" title="User Testing">📓</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/erusc"><img src="https://avatars.githubusercontent.com/u/208130995?v=4?s=100" width="100px;" alt="erusc"/><br /><sub><b>erusc</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Aerusc" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>
