@@ -373,6 +373,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://kevincox.ca"><img src="https://avatars.githubusercontent.com/u/494012?v=4?s=100" width="100px;" alt="Kevin Cox"/><br /><sub><b>Kevin Cox</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Akevincox" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tkf144"><img src="https://avatars.githubusercontent.com/u/17581159?v=4?s=100" width="100px;" alt="Tom"/><br /><sub><b>Tom</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=tkf144" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
