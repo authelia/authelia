@@ -1104,7 +1104,17 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "xaabi6",
+      "name": "Xabi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22637294?v=4",
+      "profile": "https://github.com/xaabi6",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
