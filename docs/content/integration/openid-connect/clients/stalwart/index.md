@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
+  - [v4.39.16](https://github.com/authelia/authelia/releases/tag/v4.39.16)
 - [Stalwart]
   - [v0.11.7](https://github.com/stalwartlabs/mail-server/releases/tag/v0.11.7)
 

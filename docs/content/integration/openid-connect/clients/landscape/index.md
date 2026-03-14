@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
+  - [v4.39.16](https://github.com/authelia/authelia/releases/tag/v4.39.16)
 - [Landscape]
   - [24.04 LTS](https://documentation.ubuntu.com/landscape/reference/release-notes/24-04-lts-release-notes/)
 

@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.15](https://github.com/authelia/authelia/releases/tag/v4.39.15)
+  - [v4.39.16](https://github.com/authelia/authelia/releases/tag/v4.39.16)
 - [Papra]
   - [v26.1.0](https://github.com/papra-hq/papra/pkgs/container/papra/656320542?tag=26.1.0-rootless)
 
