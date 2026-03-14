@@ -59,7 +59,7 @@ func (p *LDAPUserProvider) logStartupCheckDiscovery(discovery LDAPDiscovery) {
 	if discovery.Successful {
 		if discovery.LDAPVersion == nil {
 			p.log.Warn("The configured LDAP server does not advertise the version of LDAP it supports or does not advertise the version it supports correctly. This server is not supported.")
-		} else if utils.IsIntegerInSlice(3, discovery.LDAPVersion) {
+		} else if !utils.IsIntegerInSlice(3, discovery.LDAPVersion) {
 			p.log.Warnf("The configured LDAP server advertises it supports LDAPv%d but only LDAPv3 is supported. This server is not supported.", discovery.LDAPVersion)
 		}
 	} else {
