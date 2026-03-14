@@ -10,7 +10,6 @@
   "imageSize": 100,
   "commit": false,
   "commitConvention": "angular",
-  "commitType": "docs",
   "contributors": [
     {
       "login": "clems4ever",
