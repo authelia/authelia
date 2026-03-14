@@ -611,12 +611,15 @@ func validateLDAPAuthenticationBackendUserManagementRequiredAttributes(config *s
 // toSnakeCase converts a PascalCase string to snake_case.
 func toSnakeCase(s string) string {
 	var result strings.Builder
+
 	for i, r := range s {
 		if i > 0 && r >= 'A' && r <= 'Z' {
 			result.WriteRune('_')
 		}
+
 		result.WriteRune(r)
 	}
+
 	return strings.ToLower(result.String())
 }
 
@@ -766,48 +769,63 @@ func getSupportedLDAPRDNTemplateFields(config *schema.AuthenticationBackendLDAP)
 	if config.Attributes.Username != "" {
 		attributes = append(attributes, "username")
 	}
+
 	if config.Attributes.DisplayName != "" {
 		attributes = append(attributes, "display_name")
 	}
+
 	if config.Attributes.Mail != "" {
 		attributes = append(attributes, "emails")
 	}
+
 	if config.Attributes.GivenName != "" {
 		attributes = append(attributes, "given_name")
 	}
+
 	if config.Attributes.FamilyName != "" {
 		attributes = append(attributes, "family_name")
 	}
+
 	if config.Attributes.MiddleName != "" {
 		attributes = append(attributes, "middle_name")
 	}
+
 	if config.Attributes.Nickname != "" {
 		attributes = append(attributes, "nickname")
 	}
+
 	if config.Attributes.Profile != "" {
 		attributes = append(attributes, "profile")
 	}
+
 	if config.Attributes.Picture != "" {
 		attributes = append(attributes, "picture")
 	}
+
 	if config.Attributes.Website != "" {
 		attributes = append(attributes, "website")
 	}
+
 	if config.Attributes.Gender != "" {
 		attributes = append(attributes, "gender")
 	}
+
 	if config.Attributes.Birthdate != "" {
 		attributes = append(attributes, "birthdate")
 	}
+
 	if config.Attributes.ZoneInfo != "" {
 		attributes = append(attributes, "zone_info")
 	}
+
 	if config.Attributes.Locale != "" {
 		attributes = append(attributes, "locale")
 	}
+
 	if config.Attributes.PhoneNumber != "" {
 		attributes = append(attributes, "phone_number")
 	}
+
 	if config.Attributes.PhoneExtension != "" {
 		attributes = append(attributes, "phone_extension")
 	}
@@ -820,21 +838,25 @@ func getSupportedLDAPRDNTemplateFields(config *schema.AuthenticationBackendLDAP)
 			attributes = append(attributes, "address", "address."+addrField)
 		}
 	}
+
 	if config.Attributes.Locality != "" {
 		if addrField, exists := addressFieldMap["Locality"]; exists {
 			attributes = append(attributes, "address", "address."+addrField)
 		}
 	}
+
 	if config.Attributes.Region != "" {
 		if addrField, exists := addressFieldMap["Region"]; exists {
 			attributes = append(attributes, "address", "address."+addrField)
 		}
 	}
+
 	if config.Attributes.PostalCode != "" {
 		if addrField, exists := addressFieldMap["PostalCode"]; exists {
 			attributes = append(attributes, "address", "address."+addrField)
 		}
 	}
+
 	if config.Attributes.Country != "" {
 		if addrField, exists := addressFieldMap["Country"]; exists {
 			attributes = append(attributes, "address", "address."+addrField)
@@ -874,6 +896,7 @@ func validateLDAPAuthenticationBackendUserManagementRDNTemplate(config *schema.A
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserManagementRDNTemplateInvalid, err))
 		return
 	}
+
 	supportedFields := getSupportedLDAPRDNTemplateFields(config.LDAP)
 	fields := extractTemplateFields(config.LDAP.UserManagement.CreatedUsersRDNFormat)
 

@@ -1327,7 +1327,7 @@ func TestLDAPUserManagementRequiredAttributesValidation(t *testing.T) {
 						Mail: "mail",
 					},
 					UserManagement: schema.AuthenticationBackendLDAPUserManagement{
-						RequiredAttributes: []string{"emails", "phone_number"}, // phone_number not mapped
+						RequiredAttributes: []string{"emails", "phone_number"},
 					},
 				},
 			},
@@ -1396,6 +1396,7 @@ func TestLDAPUserManagementRequiredAttributesValidation(t *testing.T) {
 				}
 			} else {
 				var userMgmtErrors []string
+
 				for _, err := range validator.Errors() {
 					if errStr := err.Error(); len(errStr) > 0 && len(tc.expectedErrors) > 0 {
 						for _, expectedErr := range tc.expectedErrors {
@@ -1405,6 +1406,7 @@ func TestLDAPUserManagementRequiredAttributesValidation(t *testing.T) {
 						}
 					}
 				}
+
 				assert.Equal(t, tc.expectedErrors, userMgmtErrors)
 			}
 		})
@@ -1416,6 +1418,7 @@ func mustParseAddress(uri string) *schema.AddressLDAP {
 	if err != nil {
 		panic(err)
 	}
+
 	return &schema.AddressLDAP{Address: *addr}
 }
 
@@ -1519,6 +1522,7 @@ func TestLDAPUserManagementRDNTemplateValidation(t *testing.T) {
 				}
 			} else {
 				var rdnErrors []string
+
 				for _, err := range validator.Errors() {
 					errStr := err.Error()
 					for _, expectedErr := range tc.expectedErrors {
@@ -1528,6 +1532,7 @@ func TestLDAPUserManagementRDNTemplateValidation(t *testing.T) {
 						}
 					}
 				}
+
 				assert.Len(t, rdnErrors, len(tc.expectedErrors), "Expected %d RDN template errors but got %d: %v", len(tc.expectedErrors), len(rdnErrors), rdnErrors)
 			}
 		})

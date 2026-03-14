@@ -5,9 +5,10 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/templates"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -190,21 +191,25 @@ func TestRDNTemplateFormats(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Use [[ ]] delimiters and the RDN template functions (same as validator)
 			tmpl, err := template.New("rdn").Delims("[[", "]]").Funcs(templates.FuncMap()).Parse(tc.format)
+
 			if tc.shouldFail {
 				if err != nil {
 					return
 				}
+
 				var output strings.Builder
+
 				err = tmpl.Execute(&output, tc.templateData)
 				assert.Error(t, err, "Expected template execution to fail")
+
 				return
 			}
 
 			require.NoError(t, err, "Template parsing should succeed")
 
 			var rdnValue strings.Builder
+
 			err = tmpl.Execute(&rdnValue, tc.templateData)
 			require.NoError(t, err, "Template execution should succeed")
 
@@ -299,14 +304,17 @@ func TestRDNTemplateValidation(t *testing.T) {
 
 			if tc.shouldHaveErrors {
 				assert.NotEmpty(t, validator.Errors(), "Expected validation errors")
+
 				if tc.expectedErrorText != "" {
 					found := false
+
 					for _, err := range validator.Errors() {
 						if strings.Contains(err.Error(), tc.expectedErrorText) {
 							found = true
 							break
 						}
 					}
+
 					assert.True(t, found, "Expected error message to contain '%s'", tc.expectedErrorText)
 				}
 			} else {
