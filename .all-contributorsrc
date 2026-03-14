@@ -1104,7 +1104,17 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "tomaszduda23",
+      "name": "tomaszduda23",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35012788?v=4",
+      "profile": "https://github.com/tomaszduda23",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
