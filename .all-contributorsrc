@@ -1104,7 +1104,17 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "tkf144",
+      "name": "Tom",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17581159?v=4",
+      "profile": "https://github.com/tkf144",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
