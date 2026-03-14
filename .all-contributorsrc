@@ -1095,6 +1095,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "kevincox",
+      "name": "Kevin Cox",
+      "avatar_url": "https://avatars.githubusercontent.com/u/494012?v=4",
+      "profile": "https://kevincox.ca",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
