@@ -1104,7 +1104,17 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "FlorianObermayer",
+      "name": "FO",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4497761?v=4",
+      "profile": "https://github.com/FlorianObermayer",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
