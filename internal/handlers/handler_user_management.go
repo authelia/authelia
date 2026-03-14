@@ -21,9 +21,8 @@ type AdminConfigRequestBody struct {
 
 // UserManagementFieldsResponse represents the response structure for user management field metadata.
 type UserManagementFieldsResponse struct {
-	RequiredFields  []string                                `json:"required_fields"`
-	SupportedFields []string                                `json:"supported_fields"`
-	FieldMetadata   map[string]authentication.FieldMetadata `json:"field_metadata"`
+	RequiredFields  []string `json:"required_fields"`
+	SupportedFields []string `json:"supported_fields"`
 }
 
 type FieldMask struct {
@@ -272,7 +271,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err := validateUpdateMask(updateMask, ctx.Providers.UserProvider.GetSupportedFields()); err != nil {
+	if err := validateUpdateMask(updateMask, ctx.Providers.UserProvider.GetSupportedAttributes()); err != nil {
 		ctx.Logger.WithError(err).Error("Invalid update_mask")
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(err.Error())
@@ -535,7 +534,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 			return
 		}
 
-		if errors.Is(err, authentication.ErrLastNameIsRequired) {
+		if errors.Is(err, authentication.ErrFamilyNameIsRequired) {
 			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 			ctx.SetJSONError("Last name is required")
 
@@ -692,9 +691,8 @@ func UserManagementFieldsGet(ctx *middlewares.AutheliaCtx) {
 	}
 
 	response := UserManagementFieldsResponse{
-		RequiredFields:  ctx.Providers.UserProvider.GetRequiredFields(),
-		SupportedFields: ctx.Providers.UserProvider.GetSupportedFields(),
-		FieldMetadata:   ctx.Providers.UserProvider.GetFieldMetadata(),
+		RequiredFields:  ctx.Providers.UserProvider.GetRequiredAttributes(),
+		SupportedFields: ctx.Providers.UserProvider.GetSupportedAttributes(),
 	}
 
 	if err = ctx.SetJSONBody(response); err != nil {

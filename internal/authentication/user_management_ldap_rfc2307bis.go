@@ -14,102 +14,41 @@ type RFC2307bisUserManagement struct {
 	provider *LDAPUserProvider
 }
 
-func (r *RFC2307bisUserManagement) GetRequiredFields() []string {
-	return []string{
+func (r *RFC2307bisUserManagement) GetRequiredAttributes() []string {
+	requiredFields := []string{
 		"username",
 		"password",
-		"full_name",
-		"last_name",
+		"family_name",
 		"emails",
 	}
+
+	return append(requiredFields, r.provider.config.UserManagement.RequiredAttributes...)
 }
 
-func (r *RFC2307bisUserManagement) GetSupportedFields() []string {
-	return []string{
-		"display_name",
-		"emails",
-		"groups",
-		"first_name",
-		"last_name",
-		"middle_name",
-		"full_name",
-		"nickname",
-		"phone_number",
-		"phone_extension",
-		"profile",
-		"picture",
-		"website",
-		"gender",
-		"birthdate",
-		"locale",
-		"zone_info",
-		"address",
-		"address.street_address",
-		"address.locality",
-		"address.region",
-		"address.postal_code",
-		"address.country",
-		"extra",
-	}
+func (r *RFC2307bisUserManagement) GetSupportedAttributes() []string {
+	attrs := r.provider.config.Attributes
+	return getFieldNames(attrs)
 }
 
-func (r *RFC2307bisUserManagement) GetDefaultObjectClasses() []string {
-	return []string{
+func (r *RFC2307bisUserManagement) GetDefaultUserObjectClasses() []string {
+	requiredObjectClasses := []string{
 		"top",
 		"person",
 		"organizationalPerson",
 		"inetOrgPerson",
 	}
+
+	return append(requiredObjectClasses, r.provider.config.UserManagement.AdditionalUserObjectClasses...)
 }
 
 // GetDefaultGroupObjectClasses returns the default object classes for groups.
 func (r *RFC2307bisUserManagement) GetDefaultGroupObjectClasses() []string {
-	return []string{
+	requiredObjectClasses := []string{
 		"top",
 		"groupOfNames",
 	}
-}
 
-// GetFieldMetadata describes the fields that are required to create new users for the RFC2307bis Backend.
-func (r *RFC2307bisUserManagement) GetFieldMetadata() map[string]FieldMetadata {
-	return map[string]FieldMetadata{
-		"username": {
-			DisplayName: "Username",
-			Description: "Unique identifier for the user (maps to uid attribute)",
-			Type:        "string",
-			MaxLength:   100,
-		},
-		"password": {
-			DisplayName: "Password",
-			Description: "User's password",
-			Type:        "password",
-		},
-		"full_name": {
-			DisplayName: "Common Name",
-			Description: "Full name or display name (maps to cn attribute)",
-			Type:        "string",
-		},
-		"first_name": {
-			DisplayName: "First Name",
-			Description: "User's first/given name",
-			Type:        "string",
-		},
-		"last_name": {
-			DisplayName: "Last Name",
-			Description: "User's last/family name (maps to sn attribute)",
-			Type:        "string",
-		},
-		"emails": {
-			DisplayName: "Email Address",
-			Description: "Primary email address",
-			Type:        "email[]",
-		},
-		"groups": {
-			DisplayName: "Groups",
-			Description: "Groups the user should be added to",
-			Type:        "array",
-		},
-	}
+	return append(requiredObjectClasses, r.provider.config.UserManagement.AdditionalGroupObjectClasses...)
 }
 
 // ValidateUserData validates the userDetails struct contains all the required fields for new users exist.
@@ -124,7 +63,7 @@ func (r *RFC2307bisUserManagement) GetFieldMetadata() map[string]FieldMetadata {
 	  - organizationalPerson
 	  - inetOrgPerson
 
-	cn is built from required last name and optional first name
+	cn is built from the configured rdn format, falling back to "given_name family_name"
 */
 func (r *RFC2307bisUserManagement) ValidateUserData(userData *UserDetailsExtended) error {
 	if userData == nil {
@@ -136,7 +75,7 @@ func (r *RFC2307bisUserManagement) ValidateUserData(userData *UserDetailsExtende
 	}
 
 	if userData.GetFamilyName() == "" {
-		return ErrLastNameIsRequired
+		return ErrFamilyNameIsRequired
 	}
 
 	if userData.CommonName == "" {
@@ -436,7 +375,7 @@ func (r *RFC2307bisUserManagement) AddUser(userData *UserDetailsExtended) (err e
 	addRequest := ldap.NewAddRequest(userDN, nil)
 
 	// Required Attributes.
-	addRequest.Attribute(ldapAttrObjectClass, r.GetDefaultObjectClasses())
+	addRequest.Attribute(ldapAttrObjectClass, r.GetDefaultUserObjectClasses())
 	r.addAttributeIfPresent(addRequest, r.provider.config.Attributes.Username, userData.GetUsername())
 	r.addAttributeIfPresent(addRequest, ldapAttrCommonName, userData.CommonName)
 	r.addAttributeIfPresent(addRequest, r.provider.config.Attributes.FamilyName, userData.FamilyName)

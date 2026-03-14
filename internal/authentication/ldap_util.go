@@ -3,6 +3,7 @@ package authentication
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
@@ -227,4 +228,21 @@ func ldapGetReferral(err error) (referral string, ok bool) {
 	default:
 		return "", false
 	}
+}
+
+func getFieldNames(s interface{}) []string {
+	t := reflect.TypeOf(s)
+
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	var fields []string
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i).Tag.Get("koanf")
+		fields = append(fields, field)
+	}
+
+	return fields
 }

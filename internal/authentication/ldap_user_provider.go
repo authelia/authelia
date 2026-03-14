@@ -138,15 +138,12 @@ func (p *LDAPUserProvider) DeleteUser(username string) error {
 	return p.Management.DeleteUser(username)
 }
 
-func (p *LDAPUserProvider) GetSupportedFields() []string {
-	return p.Management.GetSupportedFields()
+func (p *LDAPUserProvider) GetSupportedAttributes() []string {
+	return p.Management.GetSupportedAttributes()
 }
 
-func (p *LDAPUserProvider) GetRequiredFields() []string {
-	return p.Management.GetRequiredFields()
-}
-func (p *LDAPUserProvider) GetFieldMetadata() map[string]FieldMetadata {
-	return p.Management.GetFieldMetadata()
+func (p *LDAPUserProvider) GetRequiredAttributes() []string {
+	return p.Management.GetRequiredAttributes()
 }
 
 func (p *LDAPUserProvider) ValidateUserData(userData *UserDetailsExtended) error {

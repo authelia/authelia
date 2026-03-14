@@ -36,7 +36,7 @@ func (a *ActiveDirectoryUserManagement) DeleteUser(username string) (err error) 
 	panic("implement me")
 }
 
-func (a *ActiveDirectoryUserManagement) GetRequiredFields() []string {
+func (a *ActiveDirectoryUserManagement) GetRequiredAttributes() []string {
 	return []string{
 		"username",
 		"password",
@@ -45,7 +45,7 @@ func (a *ActiveDirectoryUserManagement) GetRequiredFields() []string {
 	}
 }
 
-func (a *ActiveDirectoryUserManagement) GetSupportedFields() []string {
+func (a *ActiveDirectoryUserManagement) GetSupportedAttributes() []string {
 	return []string{
 		"username",
 		"password",

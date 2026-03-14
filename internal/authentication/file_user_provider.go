@@ -352,7 +352,7 @@ func (p *FileUserProvider) UpdateUser(username string, userData *UserDetailsExte
 	return p.database.Save()
 }
 
-func (p *FileUserProvider) GetRequiredFields() []string {
+func (p *FileUserProvider) GetRequiredAttributes() []string {
 	return []string{
 		"Username",
 		"Password",
@@ -360,7 +360,7 @@ func (p *FileUserProvider) GetRequiredFields() []string {
 	}
 }
 
-func (p *FileUserProvider) GetSupportedFields() []string {
+func (p *FileUserProvider) GetSupportedAttributes() []string {
 	return []string{
 		"Username",
 		"Password",

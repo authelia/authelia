@@ -10,9 +10,8 @@ type UserManagementProvider interface {
 	DeleteGroup(group string) (err error)
 	ListGroups() ([]string, error)
 
-	GetRequiredFields() []string
-	GetSupportedFields() []string
-	GetFieldMetadata() map[string]FieldMetadata
+	GetRequiredAttributes() []string
+	GetSupportedAttributes() []string
 	ValidateUserData(userData *UserDetailsExtended) error
 	ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error
 }

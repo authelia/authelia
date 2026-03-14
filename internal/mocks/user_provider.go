@@ -171,9 +171,9 @@ func (mr *MockUserProviderMockRecorder) GetFieldMetadata() *gomock.Call {
 }
 
 // GetRequiredFields mocks base method.
-func (m *MockUserProvider) GetRequiredFields() []string {
+func (m *MockUserProvider) GetRequiredAttributes() []string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRequiredFields")
+	ret := m.ctrl.Call(m, "GetRequiredAttributes")
 	ret0, _ := ret[0].([]string)
 	return ret0
 }
@@ -181,13 +181,13 @@ func (m *MockUserProvider) GetRequiredFields() []string {
 // GetRequiredFields indicates an expected call of GetRequiredFields.
 func (mr *MockUserProviderMockRecorder) GetRequiredFields() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRequiredFields", reflect.TypeOf((*MockUserProvider)(nil).GetRequiredFields))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRequiredAttributes", reflect.TypeOf((*MockUserProvider)(nil).GetRequiredAttributes))
 }
 
 // GetSupportedFields mocks base method.
-func (m *MockUserProvider) GetSupportedFields() []string {
+func (m *MockUserProvider) GetSupportedAttributes() []string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSupportedFields")
+	ret := m.ctrl.Call(m, "GetSupportedAttributes")
 	ret0, _ := ret[0].([]string)
 	return ret0
 }
@@ -195,7 +195,7 @@ func (m *MockUserProvider) GetSupportedFields() []string {
 // GetSupportedFields indicates an expected call of GetSupportedFields.
 func (mr *MockUserProviderMockRecorder) GetSupportedFields() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSupportedFields", reflect.TypeOf((*MockUserProvider)(nil).GetSupportedFields))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSupportedAttributes", reflect.TypeOf((*MockUserProvider)(nil).GetSupportedAttributes))
 }
 
 // GetUser mocks base method.

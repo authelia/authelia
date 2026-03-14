@@ -80,6 +80,11 @@ authentication_backend:
     groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
     user: 'uid=pwmanager,dc=example,dc=com'
     password: 'password'
+
+    user_management:
+      created_users_dn: "cn"
+      created_users_rdn_format: "[[ .given_name ]] [[ .family_name ]]"
+
     attributes:
       distinguished_name: ''
       username: 'uid'
