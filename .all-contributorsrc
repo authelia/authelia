@@ -1104,7 +1104,17 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "Br1an67",
+      "name": "Br1an",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29810238?v=4",
+      "profile": "http://shiziblog.cn",
+      "contributions": [
+        "code"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
