@@ -1104,7 +1104,17 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "x0k",
+      "name": "Roman Krasilnikov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23502797?v=4",
+      "profile": "https://github.com/x0k",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
