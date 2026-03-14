@@ -3,6 +3,7 @@ package validator
 import (
 	"crypto/tls"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -1283,5 +1284,252 @@ func (suite *LDAPImplementationSuite) NotEqualImplementationDefaults(expected sc
 
 	if expected.Attributes.MemberOf != "" {
 		suite.NotEqual(expected.Attributes.MemberOf, suite.config.LDAP.Attributes.MemberOf)
+	}
+}
+
+func TestLDAPUserManagementRequiredAttributesValidation(t *testing.T) {
+	testCases := []struct {
+		name           string
+		config         *schema.AuthenticationBackend
+		expectedErrors []string
+	}{
+		{
+			name: "ShouldPassWithValidRequiredAttributes",
+			config: &schema.AuthenticationBackend{
+				LDAP: &schema.AuthenticationBackendLDAP{
+					Address:      mustParseAddress("ldap://127.0.0.1"),
+					User:         "cn=admin,dc=example,dc=com",
+					Password:     "password",
+					UsersFilter:  "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+					GroupsFilter: "(member={dn})",
+					Attributes: schema.AuthenticationBackendLDAPAttributes{
+						Mail:       "mail",
+						GivenName:  "givenName",
+						FamilyName: "sn",
+					},
+					UserManagement: schema.AuthenticationBackendLDAPUserManagement{
+						RequiredAttributes: []string{"emails", "first_name", "last_name"},
+					},
+				},
+			},
+			expectedErrors: nil,
+		},
+		{
+			name: "ShouldFailWithUnsupportedRequiredAttribute",
+			config: &schema.AuthenticationBackend{
+				LDAP: &schema.AuthenticationBackendLDAP{
+					Address:      mustParseAddress("ldap://127.0.0.1"),
+					User:         "cn=admin,dc=example,dc=com",
+					Password:     "password",
+					UsersFilter:  "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+					GroupsFilter: "(member={dn})",
+					Attributes: schema.AuthenticationBackendLDAPAttributes{
+						Mail: "mail",
+					},
+					UserManagement: schema.AuthenticationBackendLDAPUserManagement{
+						RequiredAttributes: []string{"emails", "phone_number"}, // phone_number not mapped
+					},
+				},
+			},
+			expectedErrors: []string{
+				"authentication_backend: ldap: user_management: option 'required_attributes' contains the attribute 'phone_number' which is not a supported attribute: supported attributes are determined by the LDAP attribute mappings and extra attributes configured",
+			},
+		},
+		{
+			name: "ShouldPassWithExtraAttributes",
+			config: &schema.AuthenticationBackend{
+				LDAP: &schema.AuthenticationBackendLDAP{
+					Address:      mustParseAddress("ldap://127.0.0.1"),
+					User:         "cn=admin,dc=example,dc=com",
+					Password:     "password",
+					UsersFilter:  "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+					GroupsFilter: "(member={dn})",
+					Attributes: schema.AuthenticationBackendLDAPAttributes{
+						Mail: "mail",
+						Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+							"employee_id": {
+								Name: "employeeNumber",
+								AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+									ValueType: "string",
+								},
+							},
+						},
+					},
+					UserManagement: schema.AuthenticationBackendLDAPUserManagement{
+						RequiredAttributes: []string{"emails", "employee_id"},
+					},
+				},
+			},
+			expectedErrors: nil,
+		},
+		{
+			name: "ShouldPassWithAddressAttributes",
+			config: &schema.AuthenticationBackend{
+				LDAP: &schema.AuthenticationBackendLDAP{
+					Address:      mustParseAddress("ldap://127.0.0.1"),
+					User:         "cn=admin,dc=example,dc=com",
+					Password:     "password",
+					UsersFilter:  "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+					GroupsFilter: "(member={dn})",
+					Attributes: schema.AuthenticationBackendLDAPAttributes{
+						Mail:          "mail",
+						StreetAddress: "streetAddress",
+						Locality:      "l",
+					},
+					UserManagement: schema.AuthenticationBackendLDAPUserManagement{
+						RequiredAttributes: []string{"address", "address.street_address", "address.locality"},
+					},
+				},
+			},
+			expectedErrors: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			ValidateAuthenticationBackend(tc.config, validator)
+
+			if tc.expectedErrors == nil {
+				for _, err := range validator.Errors() {
+					assert.NotContains(t, err.Error(), "user_management")
+				}
+			} else {
+				var userMgmtErrors []string
+				for _, err := range validator.Errors() {
+					if errStr := err.Error(); len(errStr) > 0 && len(tc.expectedErrors) > 0 {
+						for _, expectedErr := range tc.expectedErrors {
+							if errStr == expectedErr {
+								userMgmtErrors = append(userMgmtErrors, errStr)
+							}
+						}
+					}
+				}
+				assert.Equal(t, tc.expectedErrors, userMgmtErrors)
+			}
+		})
+	}
+}
+
+func mustParseAddress(uri string) *schema.AddressLDAP {
+	addr, err := schema.NewAddress(uri)
+	if err != nil {
+		panic(err)
+	}
+	return &schema.AddressLDAP{Address: *addr}
+}
+
+func TestLDAPUserManagementRDNTemplateValidation(t *testing.T) {
+	testCases := []struct {
+		name           string
+		config         *schema.AuthenticationBackend
+		expectedErrors []string
+	}{
+		{
+			name: "ShouldPassWithValidRDNTemplate",
+			config: &schema.AuthenticationBackend{
+				LDAP: &schema.AuthenticationBackendLDAP{
+					Address:      mustParseAddress("ldap://127.0.0.1"),
+					User:         "cn=admin,dc=example,dc=com",
+					Password:     "password",
+					UsersFilter:  "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+					GroupsFilter: "(member={dn})",
+					Attributes: schema.AuthenticationBackendLDAPAttributes{
+						GivenName:  "givenName",
+						FamilyName: "sn",
+					},
+					UserManagement: schema.AuthenticationBackendLDAPUserManagement{
+						CreatedUsersRDNFormat: "[[ .given_name ]] [[ .family_name ]]",
+					},
+				},
+			},
+			expectedErrors: nil,
+		},
+		{
+			name: "ShouldFailWithInvalidTemplSyntax",
+			config: &schema.AuthenticationBackend{
+				LDAP: &schema.AuthenticationBackendLDAP{
+					Address:      mustParseAddress("ldap://127.0.0.1"),
+					User:         "cn=admin,dc=example,dc=com",
+					Password:     "password",
+					UsersFilter:  "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+					GroupsFilter: "(member={dn})",
+					Attributes: schema.AuthenticationBackendLDAPAttributes{
+						GivenName: "givenName",
+					},
+					UserManagement: schema.AuthenticationBackendLDAPUserManagement{
+						CreatedUsersRDNFormat: "[[ .given_name ",
+					},
+				},
+			},
+			expectedErrors: []string{
+				"authentication_backend: ldap: user_management: option 'created_users_rdn_format' is invalid:",
+			},
+		},
+		{
+			name: "ShouldFailWithUnsupportedField",
+			config: &schema.AuthenticationBackend{
+				LDAP: &schema.AuthenticationBackendLDAP{
+					Address:      mustParseAddress("ldap://127.0.0.1"),
+					User:         "cn=admin,dc=example,dc=com",
+					Password:     "password",
+					UsersFilter:  "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+					GroupsFilter: "(member={dn})",
+					Attributes: schema.AuthenticationBackendLDAPAttributes{
+						GivenName: "givenName",
+					},
+					UserManagement: schema.AuthenticationBackendLDAPUserManagement{
+						CreatedUsersRDNFormat: "[[ .given_name ]] [[ .phone_number ]]",
+					},
+				},
+			},
+			expectedErrors: []string{
+				"authentication_backend: ldap: user_management: option 'created_users_rdn_format' references field 'phone_number' which is not a supported attribute: ensure the attribute is mapped in the LDAP configuration",
+			},
+		},
+		{
+			name: "ShouldPassWithEmptyTemplate",
+			config: &schema.AuthenticationBackend{
+				LDAP: &schema.AuthenticationBackendLDAP{
+					Address:      mustParseAddress("ldap://127.0.0.1"),
+					User:         "cn=admin,dc=example,dc=com",
+					Password:     "password",
+					UsersFilter:  "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))",
+					GroupsFilter: "(member={dn})",
+					Attributes: schema.AuthenticationBackendLDAPAttributes{
+						GivenName: "givenName",
+					},
+					UserManagement: schema.AuthenticationBackendLDAPUserManagement{
+						CreatedUsersRDNFormat: "",
+					},
+				},
+			},
+			expectedErrors: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			ValidateAuthenticationBackend(tc.config, validator)
+
+			if tc.expectedErrors == nil {
+				for _, err := range validator.Errors() {
+					assert.NotContains(t, err.Error(), "created_users_rdn_format")
+				}
+			} else {
+				var rdnErrors []string
+				for _, err := range validator.Errors() {
+					errStr := err.Error()
+					for _, expectedErr := range tc.expectedErrors {
+						if strings.Contains(errStr, expectedErr) || strings.HasPrefix(errStr, expectedErr) {
+							rdnErrors = append(rdnErrors, errStr)
+							break
+						}
+					}
+				}
+				assert.Len(t, rdnErrors, len(tc.expectedErrors), "Expected %d RDN template errors but got %d: %v", len(tc.expectedErrors), len(rdnErrors), rdnErrors)
+			}
+		})
 	}
 }

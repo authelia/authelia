@@ -147,12 +147,28 @@ type AuthenticationBackendLDAP struct {
 
 	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" yaml:"attributes,omitempty" toml:"attributes,omitempty" json:"attributes,omitempty"`
 
+	UserManagement AuthenticationBackendLDAPUserManagement `koanf:"user_management" yaml:"user_management,omitempty" toml:"user_management,omitempty" json:"user_management,omitempty" jsonschema:"title=User Management" jsonschema_description:"The LDAP User Management properties."`
+
 	PermitReferrals               bool `koanf:"permit_referrals" yaml:"permit_referrals" toml:"permit_referrals" json:"permit_referrals" jsonschema:"default=false,title=Permit Referrals" jsonschema_description:"Enables chasing LDAP referrals."`
 	PermitUnauthenticatedBind     bool `koanf:"permit_unauthenticated_bind" yaml:"permit_unauthenticated_bind" toml:"permit_unauthenticated_bind" json:"permit_unauthenticated_bind" jsonschema:"default=false,title=Permit Unauthenticated Bind" jsonschema_description:"Enables omission of the password to perform an unauthenticated bind."`
 	PermitFeatureDetectionFailure bool `koanf:"permit_feature_detection_failure" yaml:"permit_feature_detection_failure" toml:"permit_feature_detection_failure" json:"permit_feature_detection_failure" jsonschema:"default=false,title=Permit Feature Detection Failure" jsonschema_description:"Enables failures when detecting directory server features using the Root DSE lookup."`
 
 	User     string `koanf:"user" yaml:"user,omitempty" toml:"user,omitempty" json:"user,omitempty" jsonschema:"title=User" jsonschema_description:"The user distinguished name for LDAP binding."`
 	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."` //nolint:gosec
+}
+
+type AuthenticationBackendLDAPUserManagement struct {
+	CreatedUsersDN        string `koanf:"created_users_dn" yaml:"created_users_dn,omitempty" toml:"created_users_dn,omitempty" json:"created_users_dn,omitempty" jsonschema:"default='',title=Created Users Distinguished Name" jsonschema_description:"The additional distinguished name for created users."`
+	CreatedUsersRDNFormat string `koanf:"created_users_rdn_format" yaml:"created_users_rdn_format,omitempty" toml:"created_users_rdn_format,omitempty" json:"created_users_rdn_format,omitempty" jsonschema:"default='',title=Created Users Relative Distinguished Name Format" jsonschema_description:"The template string used to generate created user's rdn format."`
+
+	CreatedGroupsDN string `koanf:"created_groups_dn" yaml:"created_groups_dn,omitempty" toml:"created_groups_dn,omitempty" json:"created_groups_dn,omitempty" jsonschema:"default='',title=Created Groups Distinguished Name" jsonschema_description:"The additional distinguished name for created groups."`
+
+	RequiredAttributes []string `koanf:"required_attributes" yaml:"required_attributes,omitempty" toml:"required_attributes,omitempty" json:"required_attributes,omitempty" jsonschema:"title=Required Attributes" jsonschema_description:"The attributes required for new users."`
+
+	AdditionalUserObjectClasses  []string `koanf:"additional_user_object_classes" yaml:"additional_user_object_classes,omitempty" toml:"additional_user_object_classes,omitempty" json:"additional_user_object_classes,omitempty" jsonschema:"title=Additional Object Classes for Users" jsonschema_description:"Additional object classes for new users."`
+	AdditionalGroupObjectClasses []string `koanf:"additional_group_object_classes" yaml:"additional_group_object_classes,omitempty" toml:"additional_group_object_classes,omitempty" json:"additional_group_object_classes,omitempty" jsonschema:"title=Additional Object Classes for Groups" jsonschema_description:"Additional object classes for new group."`
+
+	DefaultUserGroups []string `koanf:"default_user_groups" yaml:"default_user_groups,omitempty" toml:"default_user_groups,omitempty" json:"default_user_groups,omitempty" jsonschema:"title=Default Groups for Users" jsonschema_description:"Groups to add to new users."`
 }
 
 type AuthenticationBackendLDAPPooling struct {
