@@ -38,7 +38,7 @@
       "ajv": "8.18.0",
       "brace-expansion": "5.0.4",
       "esbuild": "0.27.4",
-      "flatted": "3.4.0",
+      "flatted": "3.4.1",
       "glob": "13.0.6",
       "js-yaml": "4.1.1",
       "rollup": "4.59.0",
