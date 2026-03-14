@@ -1086,6 +1086,16 @@
       "contributions": [
         "userTesting"
       ]
+    },
+    {
+      "login": "atoerien",
+      "name": "Andre Toerien",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49614525?v=4",
+      "profile": "https://github.com/atoerien",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
