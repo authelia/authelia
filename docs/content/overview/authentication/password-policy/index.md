@@ -33,11 +33,11 @@ The available options are:
 * Require Numbers
 * Require Special characters
 
-{{< figure src="password-policy-classic-1.png" caption="Classic Password Policy" alt="Classic Password Policy" process="resize 400x" >}}
+{{< figure src="password-policy-classic-1.png" caption="Classic Password Policy" alt="Classic Password Policy" sizes="50dvh" >}}
 
 ## zxcvbn
 
 This mode uses [zxcvbn](https://github.com/dropbox/zxcvbn) for password strength checking. In this mode of operation,
 the user is not forced to follow any rules. The user is notified if their passwords is weak or strong.
 
-{{< figure src="password-policy-zxcvbn-1.png" caption="zxcvbn Password Policy" alt="zxcvbn Password Policy" process="resize 400x" >}}
+{{< figure src="password-policy-zxcvbn-1.png" caption="zxcvbn Password Policy" alt="zxcvbn Password Policy" sizes="50dvh" >}}

@@ -1,41 +1,11 @@
-# mounts
-## archetypes
-[[mounts]]
-  source = "node_modules/@thulite/doks-core/archetypes"
-  target = "archetypes"
-
-[[mounts]]
-  source = "archetypes"
-  target = "archetypes"
-
-## assets
-[[mounts]]
-  source = "node_modules/@thulite/core/assets"
-  target = "assets"
-
-[[mounts]]
-  source = "node_modules/@thulite/images/assets"
-  target = "assets"
-
-[[mounts]]
-  source = "node_modules/@thulite/doks-core/assets"
-  target = "assets"
-
-[[mounts]]
-  source = "node_modules/@tabler/icons/icons"
-  target = "assets/svgs/tabler-icons"
-
-[[mounts]]
-  source = "node_modules/bootstrap-icons/font/fonts"
-  target = "static/fonts"
-
-[[mounts]]
-  source = "assets"
-  target = "assets"
-
-[[mounts]]
-  source = 'static'
-  target = 'assets'
+# Module Configuration File
+#
+# This file configures Hugo module settings, particularly module mounts which
+# define how content is organized within the project.
+#
+# Mounts specify file paths in your project that Hugo should use when building
+# the site. They allow for custom directory structures and integrating content
+# from different locations.
 
 ## content
 [[mounts]]
@@ -51,16 +21,16 @@
   source = "data"
   target = "data"
 
-## i18n
-[[mounts]]
-  source = "node_modules/@thulite/doks-core/i18n"
-  target = "i18n"
-
-[[mounts]]
-  source = "i18n"
-  target = "i18n"
-
 ## layouts
+[[mounts]]
+  source = "layouts"
+  target = "layouts"
+
+[[mounts]]
+  files = ["! home.html", "! single.html"]
+  source = "node_modules/@thulite/doks-core/layouts"
+  target = "layouts"
+
 [[mounts]]
   source = "node_modules/@thulite/core/layouts"
   target = "layouts"
@@ -74,21 +44,60 @@
   target = "layouts"
 
 [[mounts]]
-  source = "node_modules/@thulite/doks-core/layouts"
-  target = "layouts"
-
-[[mounts]]
   source = "node_modules/@thulite/inline-svg/layouts"
   target = "layouts"
 
+## i18n
 [[mounts]]
-  source = "layouts"
-  target = "layouts"
+  source = "node_modules/@thulite/doks-core/i18n"
+  target = "i18n"
+
+[[mounts]]
+  source = "i18n"
+  target = "i18n"
+
+## archetypes
+[[mounts]]
+  source = "node_modules/@thulite/doks-core/archetypes"
+  target = "archetypes"
+
+[[mounts]]
+  source = "archetypes"
+  target = "archetypes"
+
+## assets
+[[mounts]]
+  source = "node_modules/@thulite/core/assets"
+  target = "assets"
+
+[[mounts]]
+  source = "node_modules/@thulite/doks-core/assets"
+  target = "assets"
+
+[[mounts]]
+  source = "node_modules/@tabler/icons/icons"
+  target = "assets/svgs/tabler-icons"
+
+[[mounts]]
+  source = "node_modules/@thulite/images/assets"
+  target = "assets"
+
+[[mounts]]
+  source = "assets"
+  target = "assets"
+
+[[mounts]]
+  source = "static"
+  target = "assets"
 
 ## static
 [[mounts]]
   source = "node_modules/@thulite/doks-core/static"
   target = "static"
+
+[[mounts]]
+  source = "node_modules/bootstrap-icons/font/fonts"
+  target = "static/fonts"
 
 [[mounts]]
   source = "static"
