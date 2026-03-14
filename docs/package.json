@@ -63,7 +63,8 @@
       "minimatch": "10.2.4",
       "nanoid": "3.3.8",
       "preact": "10.28.3",
-      "semver": "7.6.3"
+      "semver": "7.6.3",
+      "yauzl": "3.2.1"
     },
     "patchedDependencies": {
       "purgecss-whitelister": "patches/purgecss-whitelister.patch"
