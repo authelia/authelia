@@ -6,13 +6,6 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { preConfigure: "preConfigure" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 it("renders checkbox when pre_configuration is true", () => {
     render(<DecisionFormPreConfiguration pre_configuration={true} onChangePreConfiguration={vi.fn()} />);
     expect(screen.getByText("Remember Consent")).toBeInTheDocument();

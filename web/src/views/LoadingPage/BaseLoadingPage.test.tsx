@@ -2,13 +2,6 @@ import { render, screen } from "@testing-library/react";
 
 import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { gridInner: "gridInner", gridOuter: "gridOuter" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("react-spinners", () => ({
     ScaleLoader: () => <div data-testid="scale-loader" />,
 }));

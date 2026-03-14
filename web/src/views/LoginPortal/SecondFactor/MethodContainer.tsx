@@ -1,8 +1,7 @@
 import { Fragment, ReactNode } from "react";
 
-import { Box, Link, Theme, Typography } from "@mui/material";
+import { Box, Link, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import InformationIcon from "@components/InformationIcon";
 import Authenticated from "@views/LoginPortal/Authenticated";
@@ -29,8 +28,6 @@ export interface Props {
 
 const DefaultMethodContainer = function (props: Props) {
     const { t: translate } = useTranslation();
-
-    const { classes, cx } = useStyles();
 
     let registerMessage;
     if (props.registered) {
@@ -59,8 +56,20 @@ const DefaultMethodContainer = function (props: Props) {
     return (
         <Box id={props.id}>
             <Typography variant={"h6"}>{props.title}</Typography>
-            <Box id={"2fa-container"} className={cx(classes.container, stateClass)}>
-                <Box className={classes.containerFlex}>{container}</Box>
+            <Box id={"2fa-container"} className={stateClass} sx={{ height: "200px" }}>
+                <Box
+                    sx={{
+                        alignContent: "center",
+                        alignItems: "center",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        height: "100%",
+                        justifyContent: "center",
+                        width: "100%",
+                    }}
+                >
+                    {container}
+                </Box>
             </Box>
             {props.onSelectClick && props.registered ? (
                 <Link id={"selection-link"} component={"button"} onClick={props.onSelectClick} underline={"hover"}>
@@ -84,8 +93,6 @@ interface NotRegisteredContainerProps {
 
 function NotRegisteredContainer(props: NotRegisteredContainerProps) {
     const { t: translate } = useTranslation();
-    const { classes } = useStyles();
-
     let infoText;
     if (props.title === translate("Push Notification")) {
         infoText = props.duoSelfEnrollment
@@ -97,13 +104,13 @@ function NotRegisteredContainer(props: NotRegisteredContainerProps) {
 
     return (
         <Fragment>
-            <Box className={classes.info}>
+            <Box sx={{ flex: "0 0 100%", marginBottom: (theme) => theme.spacing(2) }}>
                 <InformationIcon />
             </Box>
-            <Typography className={classes.infoTypography}>
+            <Typography sx={{ color: "#5858ff" }}>
                 {translate("The resource you're attempting to access requires two-factor authentication")}
             </Typography>
-            <Typography className={classes.infoTypography}>{infoText}</Typography>
+            <Typography sx={{ color: "#5858ff" }}>{infoText}</Typography>
         </Fragment>
     );
 }
@@ -114,39 +121,12 @@ interface MethodContainerProps {
 }
 
 function MethodContainer(props: MethodContainerProps) {
-    const { classes } = useStyles();
-
     return (
         <Fragment>
-            <Box className={classes.containerMethod}>{props.children}</Box>
+            <Box sx={{ marginBottom: (theme) => theme.spacing(2) }}>{props.children}</Box>
             <Typography>{props.explanation}</Typography>
         </Fragment>
     );
 }
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    container: {
-        height: "200px",
-    },
-    containerFlex: {
-        alignContent: "center",
-        alignItems: "center",
-        display: "flex",
-        flexWrap: "wrap",
-        height: "100%",
-        justifyContent: "center",
-        width: "100%",
-    },
-    containerMethod: {
-        marginBottom: theme.spacing(2),
-    },
-    info: {
-        flex: "0 0 100%",
-        marginBottom: theme.spacing(2),
-    },
-    infoTypography: {
-        color: "#5858ff",
-    },
-}));
 
 export default DefaultMethodContainer;

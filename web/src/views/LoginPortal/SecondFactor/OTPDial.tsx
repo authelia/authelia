@@ -1,10 +1,9 @@
 import { Fragment } from "react";
 
-import { Box, Theme } from "@mui/material";
+import { styled } from "@mui/material";
 import _OtpInputModule from "react18-input-otp";
 
 const OtpInput = (_OtpInputModule as { default?: typeof _OtpInputModule }).default ?? _OtpInputModule;
-import { makeStyles } from "tss-react/mui";
 
 import SuccessIcon from "@components/SuccessIcon";
 import TimerIcon from "@components/TimerIcon";
@@ -29,12 +28,31 @@ export enum State {
     RateLimited = 5,
 }
 
-const OTPDial = function (props: Props) {
-    const { classes, cx } = useStyles();
+const StyledOtpInputContainer = styled("span")(({ theme }) => ({
+    "& input": {
+        border: "1px solid rgba(0,0,0,0.3)",
+        borderRadius: "5px",
+        boxSizing: "content-box",
+        fontSize: "1rem",
+        marginLeft: theme.spacing(0.5),
+        marginRight: theme.spacing(0.5),
+        padding: `${theme.spacing()} !important`,
+    },
+    display: "inline-block",
+    marginTop: theme.spacing(2),
+}));
 
+const OTPDial = function (props: Props) {
     return (
         <IconWithContext icon={<Icon state={props.state} period={props.period} />}>
-            <Box component={"span"} className={classes.otpInput} id="otp-input">
+            <StyledOtpInputContainer
+                id="otp-input"
+                sx={
+                    props.state === State.Failure
+                        ? { "& input": { border: "1px solid rgba(255, 2, 2, 0.95)" } }
+                        : undefined
+                }
+            >
                 <OtpInput
                     shouldAutoFocus
                     onChange={props.onChange}
@@ -48,9 +66,8 @@ const OTPDial = function (props: Props) {
                     isInputNum
                     hasErrored={props.state === State.Failure}
                     autoComplete="one-time-code"
-                    inputStyle={cx(classes.otpDigitInput, props.state === State.Failure ? classes.inputError : "")}
                 />
-            </Box>
+            </StyledOtpInputContainer>
         </IconWithContext>
     );
 };
@@ -71,28 +88,5 @@ function Icon(props: IconProps) {
         </Fragment>
     );
 }
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    inputError: {
-        border: "1px solid rgba(255, 2, 2, 0.95)",
-    },
-    otpDigitInput: {
-        border: "1px solid rgba(0,0,0,0.3)",
-        borderRadius: "5px",
-        boxSizing: "content-box",
-        fontSize: "1rem",
-        marginLeft: theme.spacing(0.5),
-        marginRight: theme.spacing(0.5),
-        padding: theme.spacing() + " !important",
-    },
-    otpInput: {
-        display: "inline-block",
-        marginTop: theme.spacing(2),
-    },
-    register: {
-        marginTop: theme.spacing(),
-    },
-    timeProgress: {},
-}));
 
 export default OTPDial;

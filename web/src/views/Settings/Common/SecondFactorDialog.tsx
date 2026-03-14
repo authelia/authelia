@@ -13,12 +13,10 @@ import {
     Step,
     StepLabel,
     Stepper,
-    Theme,
     Typography,
 } from "@mui/material";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import SuccessIcon from "@components/SuccessIcon";
 import { SecondFactorMethod } from "@models/Methods";
@@ -87,7 +85,6 @@ function reducer(state: State, action: Action): State {
 const SecondFactorDialog = function (props: Props) {
     const { elevation, handleClosed, handleOpened, info, opening } = props;
     const { t: translate } = useTranslation(["settings", "portal"]);
-    const { classes } = useStyles();
 
     const [state, dispatch] = useReducer(reducer, initialState);
     const { activeStep, closing, loading, method, open } = state;
@@ -182,9 +179,9 @@ const SecondFactorDialog = function (props: Props) {
         if (activeStep === 2) {
             return (
                 <Box
-                    className={classes.success}
                     sx={{
                         display: "flex",
+                        flex: "0 0 100%",
                         flexDirection: "column",
                         m: "auto",
                         padding: "5.0rem",
@@ -273,17 +270,5 @@ const SecondFactorDialog = function (props: Props) {
         </Dialog>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    success: {
-        display: "flex",
-        flex: "0 0 100%",
-        flexDirection: "column",
-        m: "auto",
-        marginBottom: theme.spacing(2),
-        marginY: "2.5rem",
-        width: "fit-content",
-    },
-}));
 
 export default SecondFactorDialog;

@@ -2,7 +2,6 @@ import { Fragment, ReactNode, useCallback, useEffect, useReducer, useRef } from 
 
 import { Box, Button, Link } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -64,7 +63,6 @@ export interface Props {
 
 const SecondFactorMethodMobilePush = function (props: Props) {
     const { t: translate } = useTranslation("portal");
-    const { classes } = useStyles();
 
     const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -228,8 +226,8 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     return (
         <Fragment>
-            <Box className={classes.container}>
-                <Box className={classes.icon}>{icon}</Box>
+            <Box sx={{ height: "120px" }}>
+                <Box sx={{ display: "inline-block", height: "64px", width: "64px" }}>{icon}</Box>
                 <Box className={state.status === "failure" ? "" : "hidden"}>
                     <Button color="secondary" onClick={() => dispatch({ type: "startPush" })}>
                         Retry
@@ -246,16 +244,5 @@ const SecondFactorMethodMobilePush = function (props: Props) {
         </Fragment>
     );
 };
-
-const useStyles = makeStyles()(() => ({
-    container: {
-        height: "120px",
-    },
-    icon: {
-        display: "inline-block",
-        height: "64px",
-        width: "64px",
-    },
-}));
 
 export default SecondFactorMethodMobilePush;

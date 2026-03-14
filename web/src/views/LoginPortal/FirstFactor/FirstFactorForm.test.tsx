@@ -11,13 +11,6 @@ vi.mock("react-router-dom", async () => {
     return { ...actual, useNavigate: () => vi.fn() };
 });
 
-vi.mock("tss-react/mui", () => ({
-    makeStyles: () => () => () => ({
-        classes: { actionRow: "", flexEnd: "", rememberMe: "", resetLink: "" },
-        cx: (...args: any[]) => args.filter(Boolean).join(" "),
-    }),
-}));
-
 vi.mock("broadcast-channel", () => {
     class MockBroadcastChannel {
         addEventListener = vi.fn();
