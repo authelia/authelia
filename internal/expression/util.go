@@ -209,8 +209,8 @@ func toNativeValueRefValMap(in map[ref.Val]ref.Val) (out map[string]any) {
 	return out
 }
 
-func getStandardCELEnvOpts() []cel.EnvOption {
-	return []cel.EnvOption{
+func withBaseCELEnvOpts(extra ...cel.EnvOption) (opts []cel.EnvOption) {
+	opts = []cel.EnvOption{
 		cel.OptionalTypes(),
 		ext.Lists(),
 		ext.Sets(),
@@ -219,6 +219,15 @@ func getStandardCELEnvOpts() []cel.EnvOption {
 		ext.Math(),
 		ext.Encoders(),
 		ext.Regex(),
+	}
+
+	opts = append(opts, extra...)
+
+	return opts
+}
+
+func getStandardCELEnvOpts() []cel.EnvOption {
+	return withBaseCELEnvOpts(
 		newAttributeUserUsername(),
 		newAttributeUserGroups(),
 		newAttributeUserDisplayName(),
@@ -250,5 +259,5 @@ func getStandardCELEnvOpts() []cel.EnvOption {
 		newAttributeUpdatedAt(),
 		newAttributeOAuth2AuthorizationRequestClaimValue(),
 		newAttributeOAuth2AuthorizationRequestClaimValues(),
-	}
+	)
 }

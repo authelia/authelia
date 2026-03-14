@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types/ref"
-	"github.com/google/cel-go/ext"
 	"github.com/google/cel-go/interpreter"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -59,15 +58,7 @@ func (e *UserAttributesExpressions) StartupCheck() (err error) {
 
 //nolint:gocyclo
 func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
-	opts := []cel.EnvOption{
-		cel.OptionalTypes(),
-		ext.Lists(),
-		ext.Sets(),
-		ext.Strings(),
-		ext.Bindings(),
-		ext.Math(),
-		ext.Encoders(),
-		ext.Regex(),
+	opts := withBaseCELEnvOpts(
 		newAttributeUserUsername(),
 		newAttributeUserGroups(),
 		newAttributeUserDisplayName(),
@@ -76,7 +67,7 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 		newAttributeUserEmails(),
 		newAttributeUserEmailsExtra(),
 		newAttributeUpdatedAt(),
-	}
+	)
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.GivenName != "" {
 		opts = append(opts, newAttributeUserGivenName())
