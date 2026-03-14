@@ -9,7 +9,7 @@
   ],
   "imageSize": 100,
   "commit": false,
-  "commitConvention": "none",
+  "commitConvention": "angular",
   "contributors": [
     {
       "login": "clems4ever",
@@ -1106,6 +1106,5 @@
       ]
     }
   ],
-  "contributorsPerLine": 7,
-  "commitType": "docs"
+  "contributorsPerLine": 7
 }
