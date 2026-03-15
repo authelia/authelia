@@ -27,7 +27,7 @@
   target = "layouts"
 
 [[mounts]]
-  files = ["! home.html", "! single.html"]
+  files = ['! home.html']
   source = "node_modules/@thulite/doks-core/layouts"
   target = "layouts"
 
@@ -83,11 +83,11 @@
   target = "assets"
 
 [[mounts]]
-  source = "assets"
-  target = "assets"
+  source = "hugo_stats.json"
+  target = "assets/watching/hugo_stats.json"
 
 [[mounts]]
-  source = "static"
+  source = "assets"
   target = "assets"
 
 ## static

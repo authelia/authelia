@@ -8,6 +8,9 @@ alertText = '<a class="alert-link stretched-link fw-normal" href="/contributing/
 lead = 'Authelia is an open-source <a href="./overview/authentication/introduction/">authentication</a> and <a href="./overview/authorization/access-control/">authorization</a> server and portal fulfilling the identity and access management (IAM) role of information security in providing <a href="./overview/authentication/introduction/">multi-factor authentication</a> and single sign-on (SSO) for your applications via a web portal. Authelia is an OpenID Connect 1.0 Provider which is <a href="./integration/openid-connect/introduction/#openid-certified">OpenID Certified™</a> allowing comprehensive integrations, and acts as a companion for <a href="./overview/prologue/supported-proxies/">common reverse proxies</a>.'
 licenseLead = 'Open-source Apache 2.0 Licensed. <a href="https://github.com/authelia/authelia">GitHub v%s</a>'
 
+math = false
+mathEngine = "KaTeX"
+
 # mainSections
 mainSections = ["overview", "configuration", "integration", "contributing", "roadmap", "reference"]
 
@@ -26,7 +29,7 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
 
   # Navbar
   navbarSticky = true # true (default) or false
-  containerBreakpoint = "xl" # "", "sm", "md", "lg" (default), "xl", "xxl", or "fluid"
+  containerBreakpoint = "fluid" # "", "sm", "md", "lg" (default), "xl", "xxl", or "fluid"
 
   ## Button
   navBarButton = true # false (default) or true
@@ -54,6 +57,7 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
 
   # Nav
   # sectionNav = ["docs"] # ["docs"] (default) or list of sections (e.g. ["docs", "guides"])
+  sectionSwitcher = false
   sectionNav = ["overview", "configuration", "integration", "contributing", "roadmap", "reference"]
   toTopButton = true # false (default) or true
   breadcrumbTrail = true # false (default) or true
@@ -71,6 +75,7 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
   # UX
   headerBar = true # true (default) or false
   backgroundDots = true # true (default) or false
+  aiButtons = true
 
   # Homepage
   sectionFooter = true # false (default) or true
@@ -124,12 +129,15 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
 # Inline SVG (@thulite/inline-svg)
 [inline_svg]
   iconSetDir = "tabler-icons" # "tabler-icons" (default)
+  iconSetVariant = "outline"
 
 # SEO (@thulite/seo)
 [seo]
   [seo.title]
     separator = " | "
     suffix = ""
+  [seo.description]
+    summaryFallback = ""
   [seo.favicons]
     sizes = []
     icon = "favicon.png" # favicon.png (default)

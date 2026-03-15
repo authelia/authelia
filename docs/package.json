@@ -20,15 +20,20 @@
     "@thulite/inline-svg": "1.2.2",
     "@thulite/seo": "2.4.3",
     "bootstrap-icons": "1.13.1",
-    "exec-bin": "1.0.0",
-    "hugo-installer": "4.0.1",
-    "thulite": "2.6.5"
+    "thulite": "^2.6.5"
   },
   "devDependencies": {
-    "vite": "8.0.0"
+    "@changesets/changelog-github": "0.5.2",
+    "@changesets/cli": "2.29.8",
+    "prettier": "3.8.1",
+    "vite": "7.3.1"
+  },
+  "overrides": {
+    "minimatch": "10.2.2",
+    "glob": "13.0.6"
   },
   "engines": {
-    "node": ">=22.14.0",
+    "node": ">=24.13.0",
     "pnpm": "10"
   },
   "packageManager": "pnpm@10.6.4",

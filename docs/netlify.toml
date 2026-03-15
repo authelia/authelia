@@ -1,28 +1,18 @@
 [build]
   publish = "public"
   functions = "functions"
-  command = "./tool/build"
+  command = """\
+  git config core.quotepath false && \
+  npm install && \
+  hugo build --gc --minify --baseURL "${URL}"
+  """
 
 [build.environment]
   NODE_VERSION = "24.13.1"
   NPM_VERSION = "11.8.0"
   HUGO_VERSION = "0.156.0"
+  GO_VERSION = "1.26.1"
   DART_SASS_VERSION = "1.97.3"
-
-[context.production]
-  command = "pnpm build"
-
-[context.staging]
-  command = "./tool/build -b $DEPLOY_PRIME_URL"
-
-[context.deploy-preview]
-  command = "./tool/build -b $DEPLOY_PRIME_URL"
-
-[context.branch-deploy]
-  command = "./tool/build -b $DEPLOY_PRIME_URL"
-
-[context.next]
-  command = "./tool/build"
 
 [context.next.environment]
   HUGO_ENV = "next"
