@@ -391,8 +391,10 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 }
 
 func validateLDAPAuthenticationBackendUserManagement(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	validateLDAPAuthenticationBackendUserManagementObjectClasses(config, validator)
 	validateLDAPAuthenticationBackendUserManagementRequiredAttributes(config, validator)
 	validateLDAPAuthenticationBackendUserManagementRDNTemplate(config, validator)
+	validateLDAPAuthenticationBackendUserManagementRDNAttribute(config, validator)
 }
 
 func validateLDAPAuthenticationBackendImplementation(config *schema.AuthenticationBackend, validator *schema.StructValidator) *schema.TLS {
@@ -594,6 +596,22 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 	}
 }
 
+func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	if len(config.LDAP.UserManagement.UserObjectClasses) == 0 {
+		switch config.LDAP.Implementation {
+		case schema.LDAPImplementationRFC2307bis:
+			config.LDAP.UserManagement.UserObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.UserObjectClasses
+		}
+	}
+
+	if len(config.LDAP.UserManagement.GroupObjectClasses) == 0 {
+		switch config.LDAP.Implementation {
+		case schema.LDAPImplementationRFC2307bis:
+			config.LDAP.UserManagement.GroupObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.GroupObjectClasses
+		}
+	}
+}
+
 func validateLDAPAuthenticationBackendUserManagementRequiredAttributes(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
 	if len(config.LDAP.UserManagement.RequiredAttributes) == 0 {
 		return
@@ -623,8 +641,7 @@ func toSnakeCase(s string) string {
 	return strings.ToLower(result.String())
 }
 
-// getFieldNamesFromStruct extracts field names from a struct using reflection.
-// It returns a map of struct field name to snake_case field name.
+// getFieldNamesFromStruct extracts field names in snake_case from a struct using reflection.
 func getFieldNamesFromStruct(t reflect.Type) map[string]string {
 	fieldMap := make(map[string]string)
 
@@ -641,9 +658,7 @@ func getFieldNamesFromStruct(t reflect.Type) map[string]string {
 	return fieldMap
 }
 
-// getSupportedLDAPUserProfileAttributes returns a list of all attributes that are supported
-// based on the LDAP configuration's attribute mappings and extra attributes.
-// This uses the API naming convention (first_name, last_name, emails) from UserDetailsExtended.
+// getSupportedLDAPUserProfileAttributes returns a list of all attributes that are supported based on the LDAP configuration's attribute mappings and extra attributes.
 //
 //nolint:gocyclo
 func getSupportedLDAPUserProfileAttributes(config *schema.AuthenticationBackendLDAP) []string {
@@ -658,15 +673,15 @@ func getSupportedLDAPUserProfileAttributes(config *schema.AuthenticationBackendL
 	}
 
 	if config.Attributes.Mail != "" {
-		attributes = append(attributes, "emails")
+		attributes = append(attributes, "mail")
 	}
 
 	if config.Attributes.GivenName != "" {
-		attributes = append(attributes, "first_name")
+		attributes = append(attributes, "given_name")
 	}
 
 	if config.Attributes.FamilyName != "" {
-		attributes = append(attributes, "last_name")
+		attributes = append(attributes, "family_name")
 	}
 
 	if config.Attributes.MiddleName != "" {
@@ -900,13 +915,34 @@ func validateLDAPAuthenticationBackendUserManagementRDNTemplate(config *schema.A
 	supportedFields := getSupportedLDAPRDNTemplateFields(config.LDAP)
 	fields := extractTemplateFields(config.LDAP.UserManagement.CreatedUsersRDNFormat)
 
+	// Get the base required attributes for the implementation.
+	baseRequiredAttributes := authentication.GetBaseRequiredAttributesForImplementation(config.LDAP.Implementation)
+	allRequiredAttributes := append(baseRequiredAttributes, config.LDAP.UserManagement.RequiredAttributes...)
+
 	for _, field := range fields {
 		if !utils.IsStringInSlice(field, supportedFields) {
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserManagementRDNTemplateFieldUnsupported, field))
 		}
+
+		if !utils.IsStringInSlice(field, allRequiredAttributes) {
+			validator.Push(fmt.Errorf("authentication: ldap: user_management: created_users_rdn_format: field '%s' must be in required_attributes when used in RDN template", field))
+		}
 	}
 
 	_ = tmpl
+}
+
+func validateLDAPAuthenticationBackendUserManagementRDNAttribute(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	if config.LDAP.UserManagement.CreatedUsersRDNFormat == "" {
+		config.LDAP.UserManagement.CreatedUsersRDNAttribute = ""
+
+		return
+	}
+
+	if config.LDAP.UserManagement.CreatedUsersRDNAttribute == "" {
+		validator.Push(fmt.Errorf("authentication_backend: ldap: user_management: rdn_attribute must be set when using created_users_rdn_format"))
+		return
+	}
 }
 
 // extractTemplateFields extracts field names from a Go template string.

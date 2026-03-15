@@ -11,7 +11,7 @@ type UserManagementProvider interface {
 	ListGroups() ([]string, error)
 
 	GetRequiredAttributes() []string
-	GetSupportedAttributes() []string
+	GetSupportedAttributes() map[string]UserManagementAttributeMetadata
 	ValidateUserData(userData *UserDetailsExtended) error
 	ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error
 }

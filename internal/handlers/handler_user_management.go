@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/go-ldap/ldap/v3"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -19,10 +20,10 @@ type AdminConfigRequestBody struct {
 	AllowAdminsToAddAdmins bool   `json:"allow_admins_to_add_admins"`
 }
 
-// UserManagementFieldsResponse represents the response structure for user management field metadata.
-type UserManagementFieldsResponse struct {
-	RequiredFields  []string `json:"required_fields"`
-	SupportedFields []string `json:"supported_fields"`
+// UserManagementAttributesResponse represents the response structure for user management field metadata.
+type UserManagementAttributesResponse struct {
+	RequiredFields  []string                                                  `json:"required_attributes"`
+	SupportedFields map[string]authentication.UserManagementAttributeMetadata `json:"supported_attributes"`
 }
 
 type FieldMask struct {
@@ -298,13 +299,13 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 			partialUpdate.Emails = requestBody.GetEmails()
 		case field == "groups":
 			partialUpdate.Groups = requestBody.GetGroups()
-		case field == "first_name":
+		case field == "first_name", field == "given_name":
 			partialUpdate.GivenName = requestBody.GivenName
-		case field == "last_name":
+		case field == "last_name", field == "family_name":
 			partialUpdate.FamilyName = requestBody.FamilyName
 		case field == "middle_name":
 			partialUpdate.MiddleName = requestBody.MiddleName
-		case field == "full_name":
+		case field == "full_name", field == "common_name":
 			partialUpdate.CommonName = requestBody.CommonName
 		case field == "nickname":
 			partialUpdate.Nickname = requestBody.Nickname
@@ -318,7 +319,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 			partialUpdate.Gender = requestBody.Gender
 		case field == "birthdate":
 			partialUpdate.Birthdate = requestBody.Birthdate
-		case field == "zone_info":
+		case field == "zone_info", field == "zoneinfo":
 			partialUpdate.ZoneInfo = requestBody.ZoneInfo
 		case field == "locale":
 			partialUpdate.Locale = requestBody.Locale
@@ -400,7 +401,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 	ctx.Response.SetStatusCode(fasthttp.StatusOK)
 }
 
-func validateUpdateMask(updateMask []string, supportedFields []string) error {
+func validateUpdateMask(updateMask []string, supportedFields map[string]authentication.UserManagementAttributeMetadata) error {
 	for _, field := range updateMask {
 		if strings.HasPrefix(field, "address.") {
 			subField := strings.TrimPrefix(field, "address.")
@@ -414,9 +415,14 @@ func validateUpdateMask(updateMask []string, supportedFields []string) error {
 			continue
 		}
 
-		if !slices.Contains(supportedFields, field) {
+		if _, exists := supportedFields[field]; !exists {
+			validFields := make([]string, 0, len(supportedFields))
+			for fieldName := range supportedFields {
+				validFields = append(validFields, fieldName)
+			}
+
 			return fmt.Errorf("field '%s' is not a valid or modifiable field. Supported fields: %s",
-				field, strings.Join(supportedFields, ", "))
+				field, strings.Join(validFields, ", "))
 		}
 	}
 
@@ -524,6 +530,60 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		userDataBuilder = userDataBuilder.WithFamilyName(newUserRequest.FamilyName)
 	}
 
+	if newUserRequest.MiddleName != "" {
+		userDataBuilder = userDataBuilder.WithMiddleName(newUserRequest.MiddleName)
+	}
+
+	if newUserRequest.Nickname != "" {
+		userDataBuilder = userDataBuilder.WithNickname(newUserRequest.Nickname)
+	}
+
+	if newUserRequest.Gender != "" {
+		userDataBuilder = userDataBuilder.WithGender(newUserRequest.Gender)
+	}
+
+	if newUserRequest.Birthdate != "" {
+		userDataBuilder = userDataBuilder.WithBirthdate(newUserRequest.Birthdate)
+	}
+
+	if newUserRequest.PhoneNumber != "" {
+		userDataBuilder = userDataBuilder.WithPhoneNumber(newUserRequest.PhoneNumber)
+	}
+
+	if newUserRequest.PhoneExtension != "" {
+		userDataBuilder = userDataBuilder.WithPhoneExtension(newUserRequest.PhoneExtension)
+	}
+
+	if newUserRequest.ZoneInfo != "" {
+		userDataBuilder = userDataBuilder.WithZoneInfo(newUserRequest.ZoneInfo)
+	}
+
+	if newUserRequest.Profile != nil {
+		userDataBuilder = userDataBuilder.WithProfile(newUserRequest.Profile.String())
+	}
+
+	if newUserRequest.Picture != nil {
+		userDataBuilder = userDataBuilder.WithPicture(newUserRequest.Picture.String())
+	}
+
+	if newUserRequest.Website != nil {
+		userDataBuilder = userDataBuilder.WithWebsite(newUserRequest.Website.String())
+	}
+
+	if newUserRequest.Locale != nil {
+		userDataBuilder = userDataBuilder.WithLocale(newUserRequest.Locale.String())
+	}
+
+	if newUserRequest.Address != nil {
+		userDataBuilder = userDataBuilder.WithAddress(
+			newUserRequest.Address.StreetAddress,
+			newUserRequest.Address.Locality,
+			newUserRequest.Address.Region,
+			newUserRequest.Address.PostalCode,
+			newUserRequest.Address.Country,
+		)
+	}
+
 	userData := userDataBuilder.Build()
 
 	if err = ctx.Providers.UserProvider.ValidateUserData(userData); err != nil {
@@ -558,18 +618,29 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 
 	if err = ctx.Providers.UserProvider.AddUser(userData); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred creating user '%s'", newUserRequest.Username)
+
+		if ldap.IsErrorAnyOf(err, ldap.LDAPResultEntryAlreadyExists, ldap.LDAPResultConstraintViolation) {
+			ctx.Response.SetStatusCode(fasthttp.StatusConflict)
+			ctx.SetJSONError("User already exists")
+			return
+		}
+
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if err = ctx.Providers.StorageProvider.CreateNewUserMetadata(ctx, newUserRequest.Username); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred creating metadata for user '%s'", newUserRequest.Username)
-		ctx.Response.SetStatusCode(fasthttp.StatusMultiStatus)
-		ctx.SetJSONError(messageIncompleteUserCreation)
+	if _, err = ctx.Providers.StorageProvider.LoadUserMetadataByUsername(ctx, newUserRequest.Username); err != nil {
+		if err = ctx.Providers.StorageProvider.CreateNewUserMetadata(ctx, newUserRequest.Username); err != nil {
+			ctx.Logger.WithError(err).Errorf("Error occurred creating metadata for user '%s'", newUserRequest.Username)
+			ctx.Response.SetStatusCode(fasthttp.StatusMultiStatus)
+			ctx.SetJSONError(messageIncompleteUserCreation)
 
-		return
+			return
+		}
+	} else {
+		ctx.Logger.Debugf("User metadata for '%s' already exists, skipping creation", newUserRequest.Username)
 	}
 
 	//TODO: Add user email to notify new user of their new account. Configurable.
@@ -660,8 +731,8 @@ func AdminConfigGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// UserManagementFieldsGet returns the field metadata for user management operations.
-func UserManagementFieldsGet(ctx *middlewares.AutheliaCtx) {
+// UserManagementAttributesGet returns the field metadata for user management operations.
+func UserManagementAttributesGet(ctx *middlewares.AutheliaCtx) {
 	var (
 		err         error
 		userSession session.UserSession
@@ -690,7 +761,7 @@ func UserManagementFieldsGet(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	response := UserManagementFieldsResponse{
+	response := UserManagementAttributesResponse{
 		RequiredFields:  ctx.Providers.UserProvider.GetRequiredAttributes(),
 		SupportedFields: ctx.Providers.UserProvider.GetSupportedAttributes(),
 	}

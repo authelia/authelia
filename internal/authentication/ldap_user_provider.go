@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"text/template"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
@@ -122,6 +123,150 @@ func NewLDAPUserProviderWithFactory(config *schema.AuthenticationBackendLDAP, di
 	return provider
 }
 
+// BuildUserDN constructs the full distinguished name for a user based on the configured CreatedUsersDN and CreatedUsersRDNFormat.
+func (p *LDAPUserProvider) BuildUserDN(userData *UserDetailsExtended) (string, error) {
+	baseDN := p.usersBaseDN
+	if p.config.UserManagement.CreatedUsersDN != "" {
+		baseDN = p.config.UserManagement.CreatedUsersDN + "," + p.config.BaseDN
+	}
+
+	var (
+		rdn string
+		err error
+	)
+
+	if p.config.UserManagement.CreatedUsersRDNFormat != "" {
+		rdn, err = p.BuildRDNFromTemplate(userData)
+		if err != nil {
+			return "", fmt.Errorf("failed to build RDN from template for user '%s': %w", userData.GetUsername(), err)
+		}
+	} else {
+		rdn = fmt.Sprintf("%s=%s", p.config.Attributes.Username, ldap.EscapeFilter(userData.GetUsername()))
+	}
+
+	return fmt.Sprintf("%s,%s", rdn, baseDN), nil
+}
+
+// BuildRDNFromTemplate executes the configured RDN template using the user's data.
+//
+//nolint:gocyclo
+func (p *LDAPUserProvider) BuildRDNFromTemplate(userData *UserDetailsExtended) (string, error) {
+	if p.config.UserManagement.CreatedUsersRDNFormat == "" {
+		return "", fmt.Errorf("no RDN format template configured")
+	}
+
+	tmpl, err := template.New("rdn").Delims("[[", "]]").Parse(p.config.UserManagement.CreatedUsersRDNFormat)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse RDN template: %w", err)
+	}
+
+	data := make(map[string]interface{})
+
+	if userData.GetUsername() != "" {
+		data["username"] = userData.GetUsername()
+	}
+
+	if userData.GetDisplayName() != "" {
+		data["display_name"] = userData.GetDisplayName()
+	}
+
+	if userData.GetGivenName() != "" {
+		data["given_name"] = userData.GetGivenName()
+	}
+
+	if userData.GetFamilyName() != "" {
+		data["family_name"] = userData.GetFamilyName()
+	}
+
+	if userData.MiddleName != "" {
+		data["middle_name"] = userData.MiddleName
+	}
+
+	if userData.Nickname != "" {
+		data["nickname"] = userData.Nickname
+	}
+
+	if userData.CommonName != "" {
+		data["common_name"] = userData.CommonName
+	}
+
+	if userData.GetProfile() != "" {
+		data["profile"] = userData.GetProfile()
+	}
+
+	if userData.GetPicture() != "" {
+		data["picture"] = userData.GetPicture()
+	}
+
+	if userData.GetWebsite() != "" {
+		data["website"] = userData.GetWebsite()
+	}
+
+	if userData.Gender != "" {
+		data["gender"] = userData.Gender
+	}
+
+	if userData.Birthdate != "" {
+		data["birthdate"] = userData.Birthdate
+	}
+
+	if userData.GetLocale() != "" {
+		data["locale"] = userData.GetLocale()
+	}
+
+	if userData.ZoneInfo != "" {
+		data["zone_info"] = userData.ZoneInfo
+	}
+
+	if userData.PhoneNumber != "" {
+		data["phone_number"] = userData.PhoneNumber
+	}
+
+	if userData.PhoneExtension != "" {
+		data["phone_extension"] = userData.PhoneExtension
+	}
+
+	if len(userData.GetEmails()) > 0 {
+		data["emails"] = userData.GetEmails()[0]
+	}
+
+	if userData.Address != nil {
+		if userData.Address.StreetAddress != "" {
+			data["street_address"] = userData.Address.StreetAddress
+		}
+
+		if userData.Address.Locality != "" {
+			data["locality"] = userData.Address.Locality
+		}
+
+		if userData.Address.Region != "" {
+			data["region"] = userData.Address.Region
+		}
+
+		if userData.Address.PostalCode != "" {
+			data["postal_code"] = userData.Address.PostalCode
+		}
+
+		if userData.Address.Country != "" {
+			data["country"] = userData.Address.Country
+		}
+	}
+
+	var buf strings.Builder
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("failed to execute RDN template: %w", err)
+	}
+
+	rdnValue := strings.TrimSpace(buf.String())
+	if rdnValue == "" {
+		return "", fmt.Errorf("RDN template produced empty result")
+	}
+
+	rdnAttr := p.config.UserManagement.CreatedUsersRDNAttribute
+
+	return fmt.Sprintf("%s=%s", rdnAttr, ldap.EscapeFilter(rdnValue)), nil
+}
+
 func (p *LDAPUserProvider) UpdateUser(username string, userData *UserDetailsExtended) error {
 	return p.Management.UpdateUser(username, userData)
 }
@@ -138,7 +283,7 @@ func (p *LDAPUserProvider) DeleteUser(username string) error {
 	return p.Management.DeleteUser(username)
 }
 
-func (p *LDAPUserProvider) GetSupportedAttributes() []string {
+func (p *LDAPUserProvider) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {
 	return p.Management.GetSupportedAttributes()
 }
 

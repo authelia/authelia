@@ -1,29 +1,38 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextField } from "@mui/material";
-import { useForm } from "react-hook-form";
+import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextField, useTheme } from "@mui/material";
+import { Path, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
 import {
     CreateUserRequest,
-    UserDetailsAddress,
-    getFieldMetadata,
-    isFieldRequired,
-    validateFieldValue,
+    getAttributeMetadata,
+    isAttributeRequired,
+    validateAttributeValue,
 } from "@models/UserManagement";
-import { UserFieldMetadataBody, postNewUser } from "@services/UserManagement";
+import { UserAttributeMetadataBody, postNewUser } from "@services/UserManagement";
 import { generateRandomPassword } from "@utils/GeneratePassword";
+import { useUserManagementAttributeMetadataGET } from "@hooks/UserManagement.ts";
+import ScaleLoader from "react-spinners/ScaleLoader";
+import UserFormField from "@components/UserInputField.tsx";
 
 interface Props {
     open: boolean;
     onClose: () => void;
-    metadata: UserFieldMetadataBody; // Pass metadata as prop
 }
 
-const NewUserDialog = ({ metadata, onClose, open }: Props) => {
+const NewUserDialog = ({ onClose, open }: Props) => {
     const { t: translate } = useTranslation("settings");
+    const theme = useTheme();
     const { createErrorNotification, createSuccessNotification } = useNotifications();
+    const [metadata, refetch, loading, error] = useUserManagementAttributeMetadataGET();
+
+    useEffect(() => {
+        if (open) {
+            refetch();
+        }
+    }, [open, refetch]);
 
     const {
         formState: { errors, isDirty },
@@ -31,6 +40,7 @@ const NewUserDialog = ({ metadata, onClose, open }: Props) => {
         register,
         reset,
         setValue,
+        control,
     } = useForm<CreateUserRequest>({
         defaultValues: {
             password: "",
@@ -47,10 +57,13 @@ const NewUserDialog = ({ metadata, onClose, open }: Props) => {
 
     const onSubmit = async (data: CreateUserRequest) => {
         try {
-            await postNewUser(data);
+            const response = await postNewUser(data);
+            console.log("Response:", response);
             createSuccessNotification(translate("User created successfully."));
+            reset();
             onClose();
-        } catch {
+        } catch (e) {
+            console.log(e);
             createErrorNotification(translate("Error creating user"));
         }
     };
@@ -68,146 +81,163 @@ const NewUserDialog = ({ metadata, onClose, open }: Props) => {
         setValue("password", newPassword, { shouldDirty: true });
     };
 
+    const fieldConfig = {
+        basic: [
+            "username",
+            "display_name",
+            "given_name",
+            "family_name",
+            "password",
+            "mail",
+        ],
+        additional: [
+            "middle_name",
+            "nickname",
+            "phone_number",
+            "phone_extension",
+            "birthdate",
+            "gender",
+            "website",
+            "profile",
+            "picture",
+            "zoneinfo",
+            "locale",
+            "street_address",
+            "locality",
+            "region",
+            "postal_code",
+            "country",
+        ],
+    };
+
+    // Fields that are excluded from CreateUserRequest
+    const excludedFields = [
+        "last_logged_in",
+        "last_password_change",
+        "user_created_at",
+        "method",
+        "has_totp",
+        "has_webauthn",
+        "has_duo",
+    ];
+
+    const getOrderedFields = (fieldNames: string[]) => {
+        if (!metadata) return [];
+
+        return fieldNames
+            .filter(fieldName =>
+                metadata.supported_attributes[fieldName] &&
+                !excludedFields.includes(fieldName)
+            )
+            .map(fieldName => ({
+                name: fieldName as Path<CreateUserRequest>,
+                meta: metadata.supported_attributes[fieldName],
+                label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
+                description: translate(`user_management.attributes.${fieldName}.description`, { defaultValue: "" }),
+                required: metadata.required_attributes.includes(fieldName),
+            }));
+    };
+
+    const basicFields = getOrderedFields(fieldConfig.basic);
+    const additionalFields = getOrderedFields(fieldConfig.additional);
+
+    const [showAdditional, setShowAdditional] = useState(false);
+
+
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
             <DialogTitle>{translate("New {{item}}", { item: translate("User") })}</DialogTitle>
 
             <DialogContent>
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <FormControl variant="standard">
-                        <Grid container spacing={2}>
-                            {metadata.supported_fields
-                                .filter((fieldName): fieldName is keyof CreateUserRequest => {
-                                    // Fields that are excluded from CreateUserRequest
-                                    const excludedFields = [
-                                        "last_logged_in",
-                                        "last_password_change",
-                                        "user_created_at",
-                                        "method",
-                                        "has_totp",
-                                        "has_webauthn",
-                                        "has_duo",
-                                    ];
+                {loading && <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />}
 
-                                    return !excludedFields.includes(fieldName);
-                                })
-                                .map((fieldName) => {
-                                    const fieldMeta = getFieldMetadata(fieldName, metadata);
-                                    const required = isFieldRequired(fieldName, metadata);
-                                    const { baseType } = getInputType(fieldMeta?.type);
+                {error && <div>Error loading content: {error.message}</div>}
 
-                                    if (["address", "groups"].includes(fieldName)) return null;
+                {!loading && !error && metadata && (
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        <FormControl variant="standard">
+                            <Grid container spacing={2}>
+                                {basicFields.map((field) => (
+                                    <Grid key={field.name} size={12} sx={{ pt: 1.5 }}>
+                                        <UserFormField
+                                            field={field}
+                                            register={register}
+                                            control={control}
+                                            errors={errors}
+                                            setValue={setValue}
+                                            onGeneratePassword={field.name === "password" ? generatePassword : undefined}
+                                        />
+                                    </Grid>
+                                ))}
 
-                                    return (
-                                        <Grid key={fieldName} size={12} sx={{ pt: 1.5 }}>
-                                            <TextField
-                                                fullWidth
-                                                {...register(fieldName, {
-                                                    required: required
-                                                        ? `${fieldMeta?.display_name || fieldName} is required`
-                                                        : false,
-                                                    validate: fieldMeta
-                                                        ? (
-                                                              value:
-                                                                  | Record<string, any>
-                                                                  | string
-                                                                  | string[]
-                                                                  | undefined
-                                                                  | UserDetailsAddress,
-                                                          ) => validateFieldValue(value, fieldMeta, fieldName) || true
-                                                        : undefined,
-                                                })}
-                                                label={fieldMeta?.display_name || fieldName}
-                                                type={
-                                                    baseType === "email"
-                                                        ? "email"
-                                                        : baseType === "password"
-                                                          ? "password"
-                                                          : baseType === "url"
-                                                            ? "url"
-                                                            : "text"
-                                                }
-                                                error={!!errors[fieldName]}
-                                                helperText={
-                                                    errors[fieldName]?.message?.toString() || fieldMeta?.description
-                                                }
-                                                required={required}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        maxLength: fieldMeta?.maxLength,
-                                                    },
-                                                }}
-                                            />
+                                {additionalFields.length > 0 && (
+                                    <Grid size={12} sx={{ pt: 2 }}>
+                                        <Button
+                                            onClick={() => setShowAdditional(!showAdditional)}
+                                            size="small"
+                                            variant="text"
+                                            color="info"
+                                        >
+                                            {showAdditional
+                                                ? translate("Hide Additional Fields")
+                                                : translate("Show Additional Fields")
+                                            }
+                                        </Button>
+                                    </Grid>
+                                )}
 
-                                            {fieldName === "password" && (
-                                                <Button onClick={generatePassword} size="small" sx={{ mt: 0.75 }}>
-                                                    {translate("Generate Password")}
-                                                </Button>
-                                            )}
-                                        </Grid>
-                                    );
-                                })}
+                                {showAdditional && additionalFields.map((field) => (
+                                    <Grid key={field.name} size={12} sx={{ pt: 1.5 }}>
+                                        <UserFormField
+                                            field={field}
+                                            register={register}
+                                            control={control}
+                                            errors={errors}
+                                            setValue={setValue}
+                                            onGeneratePassword={field.name === "password" ? generatePassword : undefined}
+                                        />
+                                    </Grid>
+                                ))}
 
-                            <Grid size={12} sx={{ pt: 3 }}>
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    color="primary"
-                                    disabled={!isDirty}
-                                    sx={{ mr: 2 }}
-                                >
-                                    {translate("Save")}
-                                </Button>
-                                <Button variant="outlined" color="secondary" onClick={handleClose}>
-                                    {translate("Cancel")}
-                                </Button>
+
+                                <Grid size={12} sx={{ pt: 3 }}>
+                                    <Button
+                                        type="submit"
+                                        variant="contained"
+                                        color="info"
+                                        disabled={!isDirty}
+                                        sx={{ mr: 2 }}
+                                    >
+                                        {translate("Save")}
+                                    </Button>
+                                    <Button variant="contained" color="secondary" onClick={handleClose}>
+                                        {translate("Cancel")}
+                                    </Button>
+                                </Grid>
                             </Grid>
-                        </Grid>
-                    </FormControl>
-                </form>
+                        </FormControl>
+                    </form>
+                )}
             </DialogContent>
         </Dialog>
     );
 };
 
-// Helper function for input types
-const getInputType = (fieldType?: string, _isArray?: boolean) => {
-    const parseFieldType = (typeString?: string) => {
-        if (!typeString) return { baseType: undefined, isArray: false };
-
-        if (typeString.endsWith("[]")) {
-            return {
-                baseType: typeString.slice(0, -2), // "email" from "email[]"
-                fieldIsArray: true,
-            };
-        }
-
-        if (typeString.includes("array")) {
-            return {
-                baseType: "string",
-                fieldIsArray: true,
-            };
-        }
-        return {
-            baseType: typeString,
-            fieldIsArray: false,
-        };
-    };
-
-    const { baseType, fieldIsArray } = parseFieldType(fieldType);
-
-    switch (baseType) {
+// Helper function for input types - simplified
+const getInputType = (fieldType: string): string => {
+    switch (fieldType) {
         case "email":
-            return { baseType, fieldIsArray };
+            return "email";
         case "password":
-            return { baseType, fieldIsArray };
+            return "password";
         case "url":
-            return { baseType, fieldIsArray };
-        case "string":
-            return { baseType, fieldIsArray };
+            return "url";
+        case "tel":
+            return "tel";
+        case "date":
+            return "date";
         default:
-            return { baseType: "string", fieldIsArray: false };
+            return "text";
     }
 };
-
 export default NewUserDialog;

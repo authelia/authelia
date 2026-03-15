@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/mail"
+	netmail "net/mail"
 	"net/url"
 	"time"
 
@@ -14,34 +14,42 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/authelia/authelia/v4/internal/clock"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
+
+// GetBaseRequiredAttributesForImplementation returns the base required attributes for a given LDAP implementation.
+func GetBaseRequiredAttributesForImplementation(implementation string) []string {
+	switch implementation {
+	case schema.LDAPImplementationRFC2307bis:
+		return []string{"username", "password", "family_name", "mail"}
+	default:
+		return []string{"username", "password", "family_name", "mail"}
+	}
+}
 
 // UserDetails represent the details retrieved for a given user.
 type UserDetails struct {
 	Username    string   `json:"username"`
 	DisplayName string   `json:"display_name"`
-	Emails      []string `json:"emails"`
+	Emails      []string `json:"mail"`
 	Groups      []string `json:"groups"`
 }
 
-type FieldMetadata struct {
-	DisplayName string `json:"display_name"`
-	Description string `json:"description"`
-	Type        string `json:"type"`
-	MaxLength   int    `json:"maxLength,omitempty"`
-	Pattern     string `json:"pattern,omitempty"`
+type UserManagementAttributeMetadata struct {
+	Type     string `json:"type"`
+	Multiple bool   `json:"multiple,omitempty"`
 }
 
 // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
-func (d *UserDetails) Addresses() (addresses []mail.Address) {
+func (d *UserDetails) Addresses() (addresses []netmail.Address) {
 	if len(d.Emails) == 0 {
 		return nil
 	}
 
-	addresses = make([]mail.Address, len(d.Emails))
+	addresses = make([]netmail.Address, len(d.Emails))
 
 	for i, email := range d.Emails {
-		addresses[i] = mail.Address{
+		addresses[i] = netmail.Address{
 			Name:    d.DisplayName,
 			Address: email,
 		}
@@ -68,10 +76,10 @@ func (d *UserDetails) GetEmails() (emails []string) {
 
 // UserDetailsExtended represents the extended details retrieved for a given user.
 type UserDetailsExtended struct {
-	GivenName      string              `json:"first_name,omitempty"`
-	FamilyName     string              `json:"last_name,omitempty"`
+	GivenName      string              `json:"given_name,omitempty"`
+	FamilyName     string              `json:"family_name,omitempty"`
 	MiddleName     string              `json:"middle_name,omitempty"`
-	CommonName     string              `json:"full_name,omitempty"`
+	CommonName     string              `json:"common_name,omitempty"`
 	Nickname       string              `json:"nickname,omitempty"`
 	Profile        *url.URL            `json:"profile,omitempty"`
 	Picture        *url.URL            `json:"picture,omitempty"`
@@ -103,19 +111,18 @@ type UserDetailsExtended struct {
 //
 //nolint:gocyclo
 func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
-	// First unmarshal into a raw map to extract special fields.
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 
-	// Extract and parse special fields.
 	var (
 		password string
 		profile  string
 		picture  string
 		website  string
 		locale   string
+		mail     json.RawMessage
 	)
 
 	if passwordData, ok := raw["password"]; ok {
@@ -124,6 +131,12 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 		}
 
 		delete(raw, "password")
+	}
+
+	if mailData, ok := raw["mail"]; ok {
+		mail = mailData
+
+		delete(raw, "mail")
 	}
 
 	if profileData, ok := raw["profile"]; ok {
@@ -164,17 +177,39 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Unmarshal remaining fields into struct using type alias to avoid recursion.
 	type Alias UserDetailsExtended
 
 	if err := json.Unmarshal(remaining, (*Alias)(d)); err != nil {
 		return err
 	}
 
-	// Set password.
 	d.Password = password
 
-	// Parse and set URL fields.
+	// Handle 'mail' field.
+	if len(mail) > 0 {
+		var mailStr string
+		if err := json.Unmarshal(mail, &mailStr); err == nil {
+			if mailStr != "" {
+				if d.UserDetails == nil {
+					d.UserDetails = &UserDetails{}
+				}
+
+				d.Emails = []string{mailStr}
+			}
+		} else {
+			var mailArr []string
+			if err := json.Unmarshal(mail, &mailArr); err != nil {
+				return fmt.Errorf("mail must be a string or array of strings: %w", err)
+			}
+
+			if d.UserDetails == nil {
+				d.UserDetails = &UserDetails{}
+			}
+
+			d.Emails = mailArr
+		}
+	}
+
 	if profile != "" {
 		parsedURL, err := url.Parse(profile)
 		if err != nil {
@@ -202,7 +237,6 @@ func (d *UserDetailsExtended) UnmarshalJSON(data []byte) error {
 		d.Website = parsedURL
 	}
 
-	// Parse and set locale.
 	if locale != "" {
 		tag, err := language.Parse(locale)
 		if err != nil {
@@ -440,6 +474,16 @@ func (b *UserDetailsExtendedBuilder) WithBirthdate(birthdate string) *UserDetail
 
 func (b *UserDetailsExtendedBuilder) WithPhoneNumber(phone string) *UserDetailsExtendedBuilder {
 	b.data.PhoneNumber = phone
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithPhoneExtension(extension string) *UserDetailsExtendedBuilder {
+	b.data.PhoneExtension = extension
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithZoneInfo(zoneInfo string) *UserDetailsExtendedBuilder {
+	b.data.ZoneInfo = zoneInfo
 	return b
 }
 

@@ -162,5 +162,117 @@
 	"Your browser does not appear to support the configuration": "Your browser does not appear to support the configuration",
 	"Your browser does not support the WebAuthn protocol": "Your browser does not support the WebAuthn protocol",
 	"Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements",
-	"Your device does not support user verification or resident keys but this was required": "Your device does not support user verification or resident keys but this was required"
+	"Your device does not support user verification or resident keys but this was required": "Your device does not support user verification or resident keys but this was required",
+	"User Management": "User Management",
+	"Generate Password": "Generate Password",
+	"Show Additional Fields": "Show Additional Fields",
+	"Hide Additional Fields": "Hide Additional Fields",
+	"New {{item}}": "New {{item}}",
+	"User created successfully.": "User created successfully.",
+	"Error creating user": "Error creating user",
+	"Edit {{item}}:": "Edit {{item}}:",
+	"User modified successfully.": "User modified successfully.",
+	"Error modifying user": "Error modifying user",
+	"No changes to save": "No changes to save",
+	"Exit": "Exit",
+	"user_management": {
+		"attributes": {
+			"username": {
+				"label": "Username",
+				"description": "Unique identifier for user account, used for logging in."
+			},
+			"password": {
+				"label": "Password",
+				"description": "The User's password."
+			},
+			"display_name": {
+				"label": "Display Name",
+				"description": "Name shown in the user interface"
+			},
+			"mail": {
+				"label": "Email",
+				"description": "Primary email address for the user"
+			},
+			"given_name": {
+				"label": "First Name",
+				"description": "User's first name"
+			},
+			"family_name": {
+				"label": "Last Name",
+				"description": "User's last name"
+			},
+			"middle_name": {
+				"label": "Middle Name",
+				"description": "User's middle name"
+			},
+			"full_name": {
+				"label": "Full Name",
+				"description": "User's complete name"
+			},
+			"nickname": {
+				"label": "Nickname",
+				"description": "Casual or informal name"
+			},
+			"profile": {
+				"label": "Profile URL",
+				"description": "URL to user's profile page"
+			},
+			"picture": {
+				"label": "Picture URL",
+				"description": "URL to user's profile picture"
+			},
+			"website": {
+				"label": "Website",
+				"description": "URL to user's personal or professional website"
+			},
+			"gender": {
+				"label": "Gender",
+				"description": "User's gender identity"
+			},
+			"birthdate": {
+				"label": "Birthdate",
+				"description": "User's date of birth"
+			},
+			"zone_info": {
+				"label": "Time Zone",
+				"description": "User's time zone (e.g., America/New_York)"
+			},
+			"locale": {
+				"label": "Locale",
+				"description": "User's language and regional preferences (e.g., en-US)"
+			},
+			"phone_number": {
+				"label": "Phone Number",
+				"description": "User's primary phone number"
+			},
+			"phone_extension": {
+				"label": "Phone Extension",
+				"description": "Extension for the phone number"
+			},
+			"street_address": {
+				"label": "Street Address",
+				"description": "Street address including apartment/unit number"
+			},
+			"locality": {
+				"label": "City",
+				"description": "City or locality"
+			},
+			"region": {
+				"label": "State/Region",
+				"description": "State, province, or region"
+			},
+			"postal_code": {
+				"label": "Postal Code",
+				"description": "ZIP or postal code"
+			},
+			"country": {
+				"label": "Country",
+				"description": "Country name or code"
+			},
+			"groups": {
+				"label": "Groups",
+				"description": "Groups the user belongs to"
+			}
+		}
+	}
 }

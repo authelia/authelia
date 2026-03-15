@@ -4,9 +4,9 @@ import {
     getAdminConfiguration,
     getAllUserInfo,
     getUser,
-    getUserFieldMetadata,
+    getUserAttributeMetadata,
     postNewUser,
-    putChangeUser,
+    patchChangeUser,
 } from "@services/UserManagement";
 
 export function useAllUserInfoGET() {
@@ -17,16 +17,16 @@ export function useAdminConfigurationGET() {
     return useRemoteCall(getAdminConfiguration);
 }
 
-export function useUserManagementFieldMetadataGET() {
-    return useRemoteCall(getUserFieldMetadata);
+export function useUserManagementAttributeMetadataGET() {
+    return useRemoteCall(getUserAttributeMetadata);
 }
 
 export function useUserGET(username: string) {
     return useRemoteCall(() => getUser(username));
 }
 
-export function useUserPUT() {
-    return useRemoteCall(putChangeUser);
+export function useUserPATCH() {
+    return useRemoteCall(patchChangeUser);
 }
 
 export function useUserPOST() {

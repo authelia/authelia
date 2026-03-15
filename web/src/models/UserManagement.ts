@@ -1,32 +1,41 @@
 import { REGEX } from "@constants/Regex.js";
-import { FieldMetadata, UserFieldMetadataBody } from "@services/UserManagement.js";
+import { AttributeMetadata, UserAttributeMetadataBody } from "@services/UserManagement.js";
 
 export interface UserDetailsExtended {
     username: string;
     password?: string; // Only used for new users.
 
     display_name?: string; // Optional, takes precedence over full_name for display
-    emails?: string[]; //All Emails
+    mail?: string[]; // Changed from emails to match backend
     groups?: string[];
 
-    first_name?: string; //GivenName
-    last_name?: string; //FamilyName
-    full_name?: string; //CommonName
-    middle_name?: string; //MiddleName
+    given_name?: string; // Changed from first_name
+    family_name?: string; // Changed from last_name
+    // Note: full_name is likely computed from given_name + family_name, might not be a field
+    middle_name?: string;
     nickname?: string;
-    profile?: string; //URL
-    picture?: string; //URL
-    website?: string; //URL
+    profile?: string; // URL
+    picture?: string; // URL
+    website?: string; // URL
     gender?: string;
     birthdate?: string;
-    zone_info?: string;
+    zoneinfo?: string;
     locale?: string;
     phone_number?: string;
     phone_extension?: string;
-    address?: UserDetailsAddress;
+    street_address?: string;
+    locality?: string;
+    region?: string;
+    postal_code?: string;
+    country?: string;
+
+    member_of?: string[];
+    group_name?: string;
+    group_member?: string[];
 
     extra?: Record<string, any>;
 
+    // Read-only fields
     last_logged_in?: string;
     last_password_change?: string;
     user_created_at?: string;
@@ -36,13 +45,6 @@ export interface UserDetailsExtended {
     has_duo?: boolean;
 }
 
-export interface UserDetailsAddress {
-    street_address?: string;
-    locality?: string;
-    region?: string;
-    postal_code?: string;
-    country?: string;
-}
 
 export interface CreateUserRequest extends Omit<
     UserDetailsExtended,
@@ -52,38 +54,54 @@ export interface CreateUserRequest extends Omit<
     password: string;
 }
 
-export function validateFieldValue(value: any, metadata: FieldMetadata, _fieldName: string): null | string {
-    if (metadata.type === "email" && typeof value === "string") {
-        if (!ValidateEmail(value)) {
-            return `Invalid ${metadata.display_name.toLowerCase()} format`;
+export function validateAttributeValue(value: any, metadata: AttributeMetadata, fieldName: string): null | string {
+    if (!value) return null;
+
+    if (metadata.type === "email") {
+        if (metadata.multiple && Array.isArray(value)) {
+            for (const email of value) {
+                if (typeof email === "string" && !ValidateEmail(email)) {
+                    return `Invalid email format`;
+                }
+            }
+        } else if (typeof value === "string" && !ValidateEmail(value)) {
+            return `Invalid email format`;
         }
     }
 
-    if (metadata.type === "string" && typeof value === "string") {
-        if (metadata.maxLength && value.length > metadata.maxLength) {
-            return `${metadata.display_name} must be ${metadata.maxLength} characters or less`;
+    if (metadata.type === "url" && typeof value === "string") {
+        try {
+            new URL(value);
+        } catch {
+            return `Invalid URL format`;
         }
+    }
 
-        if (metadata.pattern) {
-            const regex = new RegExp(metadata.pattern);
-            if (!regex.test(value)) {
-                return `Invalid ${metadata.display_name.toLowerCase()} format`;
-            }
+    if (metadata.type === "tel" && typeof value === "string") {
+        //TODO: validate this regex is correct for international phone numbers, including those with country codes.
+        if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/im.test(value)) {
+            return `Invalid phone number format`;
+        }
+    }
+
+    if (metadata.type === "date" && typeof value === "string") {
+        if (isNaN(Date.parse(value))) {
+            return `Invalid date format`;
         }
     }
 
     return null;
 }
 
-export function isFieldRequired(fieldName: keyof CreateUserRequest, metadata: UserFieldMetadataBody): boolean {
-    return metadata.required_fields.includes(fieldName);
+export function isAttributeRequired(fieldName: string, metadata: UserAttributeMetadataBody): boolean {
+    return metadata.required_attributes.includes(fieldName);
 }
 
-export function getFieldMetadata(
-    fieldName: keyof UserDetailsExtended,
-    metadata: UserFieldMetadataBody,
-): FieldMetadata | undefined {
-    return metadata.field_metadata[fieldName];
+export function getAttributeMetadata(
+    fieldName: string,
+    metadata: UserAttributeMetadataBody,
+): AttributeMetadata | undefined {
+    return metadata.supported_attributes[fieldName];
 }
 
 export function ValidateUsername(username: string) {

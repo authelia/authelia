@@ -82,8 +82,20 @@ authentication_backend:
     password: 'password'
 
     user_management:
-      created_users_dn: "cn"
+      created_users_dn: ""
+      created_users_rdn_attribute: "cn"
       created_users_rdn_format: "[[ .given_name ]] [[ .family_name ]]"
+      user_object_classes:
+        - "top"
+        - "person"
+        - "organizationalPerson"
+        - "inetOrgPerson"
+        - "autheliaUser"
+      group_object_classes:
+        - "top"
+        - "groupOfNames"
+      required_attributes:
+        - 'given_name'
 
     attributes:
       distinguished_name: ''

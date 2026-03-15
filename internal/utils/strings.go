@@ -303,3 +303,30 @@ func StringJoinBuild(sep, sepFinal, quote string, items []string) string {
 
 	return b.String()
 }
+
+func SnakeToPascal(s string) string {
+	parts := strings.Split(s, "_")
+	for i := range parts {
+		if len(parts[i]) > 0 {
+			parts[i] = strings.ToUpper(parts[i][:1]) + parts[i][1:]
+		}
+	}
+
+	return strings.Join(parts, "")
+}
+
+// IsEmptyValue checks if a value is considered empty (nil, empty string, empty slice, etc.).
+func IsEmptyValue(value interface{}) bool {
+	if value == nil {
+		return true
+	}
+
+	switch v := value.(type) {
+	case string:
+		return v == ""
+	case []string:
+		return len(v) == 0
+	default:
+		return false
+	}
+}

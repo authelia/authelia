@@ -1,7 +1,7 @@
 import { UserInfo } from "@models/UserInfo";
 import { CreateUserRequest, UserDetailsExtended } from "@models/UserManagement.js";
-import { AdminConfigPath, AdminUserFieldMetadataPath, AdminUserRestPath } from "@services/Api";
-import { DeleteWithOptionalResponse, Get, PostWithOptionalResponse, PutWithOptionalResponse } from "@services/Client";
+import { AdminConfigPath, AdminUserAttributeMetadataPath, AdminUserRestPath } from "@services/Api";
+import { DeleteWithOptionalResponse, Get, PostWithOptionalResponse, PatchWithOptionalResponse } from "@services/Client";
 import { UserInfoPayload, toSecondFactorMethod } from "@services/UserInfo";
 
 export interface AdminConfigBody {
@@ -10,28 +10,24 @@ export interface AdminConfigBody {
     allow_admins_to_add_admins: boolean;
 }
 
-export type FieldType = "array" | "email" | "password" | "string" | "url";
+export type AttributeType = "text" | "email" | "password" | "tel" | "url" | "date";
 
-export interface FieldMetadata {
-    display_name: string;
-    description: string;
-    type: FieldType;
-    maxLength?: number;
-    pattern?: string;
+export interface AttributeMetadata {
+    type: AttributeType;
+    multiple?: boolean;
 }
 
-export interface UserFieldMetadataBody {
-    required_fields: (keyof CreateUserRequest)[];
-    supported_fields: (keyof UserDetailsExtended)[];
-    field_metadata: Record<keyof UserDetailsExtended, FieldMetadata>;
+export interface UserAttributeMetadataBody {
+    required_attributes: string[];
+    supported_attributes: Record<string, AttributeMetadata>;
 }
 
 export async function getAdminConfiguration(): Promise<AdminConfigBody> {
     return await Get<AdminConfigBody>(AdminConfigPath);
 }
 
-export async function getUserFieldMetadata(): Promise<UserFieldMetadataBody> {
-    return await Get<UserFieldMetadataBody>(AdminUserFieldMetadataPath);
+export async function getUserAttributeMetadata(): Promise<UserAttributeMetadataBody> {
+    return await Get<UserAttributeMetadataBody>(AdminUserAttributeMetadataPath);
 }
 
 export async function getAllUserInfo(): Promise<UserInfo[]> {
@@ -43,13 +39,16 @@ export async function getUser(username: string): Promise<UserDetailsExtended> {
     return await Get<UserDetailsExtended>(`${AdminUserRestPath}/${username}`);
 }
 
-export async function putChangeUser(username: string, userData: Partial<UserDetailsExtended>) {
+export async function patchChangeUser(username: string, userData: Partial<UserDetailsExtended>, updateMask: string[]) {
     const data = { ...userData };
     if (!data.password) {
         delete data.password;
     }
 
-    return PutWithOptionalResponse(`${AdminUserRestPath}/${username}`, data);
+    // Build the update_mask query parameter
+    const updateMaskParam = updateMask.join(',');
+
+    return PatchWithOptionalResponse(`${AdminUserRestPath}/${username}?update_mask=${updateMaskParam}`, data);
 }
 
 // postNewUser uses the rest api to create a new user.

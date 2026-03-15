@@ -7,6 +7,8 @@ import (
 
 	"github.com/go-ldap/ldap/v3"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -14,68 +16,91 @@ type RFC2307bisUserManagement struct {
 	provider *LDAPUserProvider
 }
 
+var attributeMetadataMap = map[string]UserManagementAttributeMetadata{
+	"distinguished_name": {Type: "text", Multiple: false},
+	"username":           {Type: "text", Multiple: false},
+	"password":           {Type: "password", Multiple: false},
+	"display_name":       {Type: "text", Multiple: false},
+	"family_name":        {Type: "text", Multiple: false},
+	"given_name":         {Type: "text", Multiple: false},
+	"middle_name":        {Type: "text", Multiple: false},
+	"nickname":           {Type: "text", Multiple: false},
+	"gender":             {Type: "text", Multiple: false},
+	"birthdate":          {Type: "date", Multiple: false},
+	"website":            {Type: "url", Multiple: false},
+	"profile":            {Type: "url", Multiple: false},
+	"picture":            {Type: "url", Multiple: false},
+	"zoneinfo":           {Type: "text", Multiple: false},
+	"locale":             {Type: "text", Multiple: false},
+	"phone_number":       {Type: "tel", Multiple: false},
+	"phone_extension":    {Type: "text", Multiple: false},
+	"street_address":     {Type: "text", Multiple: false},
+	"locality":           {Type: "text", Multiple: false},
+	"region":             {Type: "text", Multiple: false},
+	"postal_code":        {Type: "text", Multiple: false},
+	"country":            {Type: "text", Multiple: false},
+	"mail":               {Type: "email", Multiple: false},
+	"member_of":          {Type: "text", Multiple: true},
+	"group_name":         {Type: "text", Multiple: false},
+	"group_member":       {Type: "text", Multiple: true},
+}
+
 func (r *RFC2307bisUserManagement) GetRequiredAttributes() []string {
-	requiredFields := []string{
-		"username",
-		"password",
-		"family_name",
-		"emails",
+	requiredFieldNames := GetBaseRequiredAttributesForImplementation(schema.LDAPImplementationRFC2307bis)
+
+	return append(requiredFieldNames, r.provider.config.UserManagement.RequiredAttributes...)
+}
+
+func (r *RFC2307bisUserManagement) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {
+	fieldNames := getFieldNames(r.provider.config.Attributes)
+
+	metadata := make(map[string]UserManagementAttributeMetadata, len(fieldNames))
+
+	for _, fieldName := range fieldNames {
+		if meta, exists := attributeMetadataMap[fieldName]; exists {
+			metadata[fieldName] = meta
+		}
 	}
 
-	return append(requiredFields, r.provider.config.UserManagement.RequiredAttributes...)
+	if meta, exists := attributeMetadataMap["password"]; exists {
+		metadata["password"] = meta
+	}
+
+	return metadata
 }
 
-func (r *RFC2307bisUserManagement) GetSupportedAttributes() []string {
-	attrs := r.provider.config.Attributes
-	return getFieldNames(attrs)
-}
-
+// GetDefaultUserObjectClasses returns the default object classes for users.
 func (r *RFC2307bisUserManagement) GetDefaultUserObjectClasses() []string {
-	requiredObjectClasses := []string{
-		"top",
-		"person",
-		"organizationalPerson",
-		"inetOrgPerson",
-	}
-
-	return append(requiredObjectClasses, r.provider.config.UserManagement.AdditionalUserObjectClasses...)
+	return r.provider.config.UserManagement.UserObjectClasses
 }
 
 // GetDefaultGroupObjectClasses returns the default object classes for groups.
 func (r *RFC2307bisUserManagement) GetDefaultGroupObjectClasses() []string {
-	requiredObjectClasses := []string{
-		"top",
-		"groupOfNames",
-	}
-
-	return append(requiredObjectClasses, r.provider.config.UserManagement.AdditionalGroupObjectClasses...)
+	return r.provider.config.UserManagement.GroupObjectClasses
 }
 
-// ValidateUserData validates the userDetails struct contains all the required fields for new users exist.
-/*
-	New Users in RFC2307bis are required to have the following attributes
-	- sn (surname/lastname)
-	- uid (username)
-	- cn (common name, full name)
-	- objectClasses:
-	  - top
-	  - person
-	  - organizationalPerson
-	  - inetOrgPerson
-
-	cn is built from the configured rdn format, falling back to "given_name family_name"
-*/
+// ValidateUserData validates the userDetails struct contains all the required fields for new users.
 func (r *RFC2307bisUserManagement) ValidateUserData(userData *UserDetailsExtended) error {
+	//TODO: implement more verbose errors to enable frontend to show helpful errors.
 	if userData == nil {
 		return fmt.Errorf("user data cannot be nil")
 	}
 
-	if userData.GetUsername() == "" {
-		return ErrUsernameIsRequired
+	requiredAttributes := r.GetRequiredAttributes()
+
+	attributeValues := r.buildAttributeValueMap(userData)
+
+	var missingAttributes []string
+
+	for _, attr := range requiredAttributes {
+		value, exists := attributeValues[attr]
+		if !exists || utils.IsEmptyValue(value) {
+			missingAttributes = append(missingAttributes, attr)
+		}
 	}
 
-	if userData.GetFamilyName() == "" {
-		return ErrFamilyNameIsRequired
+	if len(missingAttributes) > 0 {
+		return fmt.Errorf("missing required attributes: %s", strings.Join(missingAttributes, ", "))
 	}
 
 	if userData.CommonName == "" {
@@ -87,6 +112,10 @@ func (r *RFC2307bisUserManagement) ValidateUserData(userData *UserDetailsExtende
 	}
 
 	if userData.UserDetails != nil && len(userData.GetEmails()) > 0 {
+		if len(userData.GetEmails()) > 1 {
+			return fmt.Errorf("multiple emails not supported, only one email address is allowed")
+		}
+
 		for _, email := range userData.GetEmails() {
 			if !utils.ValidateEmailString(email) {
 				return fmt.Errorf("invalid email address: %s", email)
@@ -95,6 +124,60 @@ func (r *RFC2307bisUserManagement) ValidateUserData(userData *UserDetailsExtende
 	}
 
 	return nil
+}
+
+// buildAttributeValueMap creates a map of attribute names to their values from UserDetailsExtended.
+func (r *RFC2307bisUserManagement) buildAttributeValueMap(userData *UserDetailsExtended) map[string]interface{} {
+	values := make(map[string]interface{})
+
+	values["username"] = userData.GetUsername()
+	values["password"] = userData.Password
+	values["display_name"] = userData.GetDisplayName()
+	values["given_name"] = userData.GetGivenName()
+	values["family_name"] = userData.GetFamilyName()
+	values["middle_name"] = userData.MiddleName
+	values["nickname"] = userData.Nickname
+	values["common_name"] = userData.CommonName
+
+	values["profile"] = userData.GetProfile()
+	values["picture"] = userData.GetPicture()
+	values["website"] = userData.GetWebsite()
+	values["gender"] = userData.Gender
+	values["birthdate"] = userData.Birthdate
+	values["locale"] = userData.GetLocale()
+	values["zone_info"] = userData.ZoneInfo
+
+	values["phone_number"] = userData.PhoneNumber
+	values["phone_extension"] = userData.PhoneExtension
+
+	if len(userData.GetEmails()) > 0 {
+		values["mail"] = userData.GetEmails()[0]
+		values["emails"] = userData.GetEmails()
+	}
+
+	if userData.Address != nil {
+		values["street_address"] = userData.Address.StreetAddress
+		values["locality"] = userData.Address.Locality
+		values["region"] = userData.Address.Region
+		values["postal_code"] = userData.Address.PostalCode
+		values["country"] = userData.Address.Country
+	}
+
+	// Add extra attributes.
+	if userData.Extra != nil {
+		for ldapAttr, attrConfig := range r.provider.config.Attributes.Extra {
+			attrName := attrConfig.Name
+			if attrName == "" {
+				attrName = ldapAttr
+			}
+
+			if value, exists := userData.Extra[attrName]; exists {
+				values[attrName] = value
+			}
+		}
+	}
+
+	return values
 }
 
 // ValidatePartialUpdate validates data for partial updates (PATCH with field mask).
@@ -370,18 +453,25 @@ func (r *RFC2307bisUserManagement) AddUser(userData *UserDetailsExtended) (err e
 		}
 	}()
 
-	userDN := fmt.Sprintf("%s=%s,%s", r.provider.config.Attributes.Username, ldap.EscapeFilter(userData.Username), r.provider.usersBaseDN)
+	// userDN := fmt.Sprintf("%s=%s,%s", r.provider.config.Attributes.Username, ldap.EscapeFilter(userData.Username), r.provider.usersBaseDN).
+	userDN, err := r.provider.BuildUserDN(userData)
+	if err != nil {
+		return fmt.Errorf("unable to build DN for user '%s': %w", userData.Username, err)
+	}
 
 	addRequest := ldap.NewAddRequest(userDN, nil)
 
-	// Required Attributes.
 	addRequest.Attribute(ldapAttrObjectClass, r.GetDefaultUserObjectClasses())
-	r.addAttributeIfPresent(addRequest, r.provider.config.Attributes.Username, userData.GetUsername())
+
+	if r.provider.config.UserManagement.CreatedUsersRDNFormat != "" &&
+		r.provider.config.UserManagement.CreatedUsersRDNAttribute != r.provider.config.Attributes.Username {
+		r.addAttributeIfPresent(addRequest, r.provider.config.Attributes.Username, userData.GetUsername())
+	}
+
 	r.addAttributeIfPresent(addRequest, ldapAttrCommonName, userData.CommonName)
 	r.addAttributeIfPresent(addRequest, r.provider.config.Attributes.FamilyName, userData.FamilyName)
 	r.addAttributeIfPresent(addRequest, ldapAttributeUserPassword, userData.Password)
 
-	// Optional attributes.
 	r.addAttributeIfPresent(addRequest, r.provider.config.Attributes.Nickname, userData.Nickname)
 	r.addAttributeIfPresent(addRequest, r.provider.config.Attributes.MiddleName, userData.MiddleName)
 	r.addAttributeIfPresent(addRequest, r.provider.config.Attributes.Gender, userData.Gender)

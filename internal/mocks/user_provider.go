@@ -23,21 +23,6 @@ type MockUserProvider struct {
 	isgomock struct{}
 }
 
-func (m *MockUserProvider) ListGroups()  ([]string, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (m *MockUserProvider) DeleteGroup(group string) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (m *MockUserProvider) AddGroup(newGroup string) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 // MockUserProviderMockRecorder is the mock recorder for MockUserProvider.
 type MockUserProviderMockRecorder struct {
 	mock *MockUserProvider
@@ -53,6 +38,20 @@ func NewMockUserProvider(ctrl *gomock.Controller) *MockUserProvider {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockUserProvider) EXPECT() *MockUserProviderMockRecorder {
 	return m.recorder
+}
+
+// AddGroup mocks base method.
+func (m *MockUserProvider) AddGroup(newGroup string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddGroup", newGroup)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddGroup indicates an expected call of AddGroup.
+func (mr *MockUserProviderMockRecorder) AddGroup(newGroup any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddGroup", reflect.TypeOf((*MockUserProvider)(nil).AddGroup), newGroup)
 }
 
 // AddUser mocks base method.
@@ -112,6 +111,20 @@ func (mr *MockUserProviderMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockUserProvider)(nil).Close))
 }
 
+// DeleteGroup mocks base method.
+func (m *MockUserProvider) DeleteGroup(group string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGroup", group)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteGroup indicates an expected call of DeleteGroup.
+func (mr *MockUserProviderMockRecorder) DeleteGroup(group any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockUserProvider)(nil).DeleteGroup), group)
+}
+
 // DeleteUser mocks base method.
 func (m *MockUserProvider) DeleteUser(username string) error {
 	m.ctrl.T.Helper()
@@ -156,21 +169,7 @@ func (mr *MockUserProviderMockRecorder) GetDetailsExtended(username any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetailsExtended", reflect.TypeOf((*MockUserProvider)(nil).GetDetailsExtended), username)
 }
 
-// GetFieldMetadata mocks base method.
-func (m *MockUserProvider) GetFieldMetadata() map[string]authentication.FieldMetadata {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFieldMetadata")
-	ret0, _ := ret[0].(map[string]authentication.FieldMetadata)
-	return ret0
-}
-
-// GetFieldMetadata indicates an expected call of GetFieldMetadata.
-func (mr *MockUserProviderMockRecorder) GetFieldMetadata() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFieldMetadata", reflect.TypeOf((*MockUserProvider)(nil).GetFieldMetadata))
-}
-
-// GetRequiredFields mocks base method.
+// GetRequiredAttributes mocks base method.
 func (m *MockUserProvider) GetRequiredAttributes() []string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRequiredAttributes")
@@ -178,22 +177,22 @@ func (m *MockUserProvider) GetRequiredAttributes() []string {
 	return ret0
 }
 
-// GetRequiredFields indicates an expected call of GetRequiredFields.
-func (mr *MockUserProviderMockRecorder) GetRequiredFields() *gomock.Call {
+// GetRequiredAttributes indicates an expected call of GetRequiredAttributes.
+func (mr *MockUserProviderMockRecorder) GetRequiredAttributes() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRequiredAttributes", reflect.TypeOf((*MockUserProvider)(nil).GetRequiredAttributes))
 }
 
-// GetSupportedFields mocks base method.
-func (m *MockUserProvider) GetSupportedAttributes() []string {
+// GetSupportedAttributes mocks base method.
+func (m *MockUserProvider) GetSupportedAttributes() map[string]authentication.UserManagementAttributeMetadata {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSupportedAttributes")
-	ret0, _ := ret[0].([]string)
+	ret0, _ := ret[0].(map[string]authentication.UserManagementAttributeMetadata)
 	return ret0
 }
 
-// GetSupportedFields indicates an expected call of GetSupportedFields.
-func (mr *MockUserProviderMockRecorder) GetSupportedFields() *gomock.Call {
+// GetSupportedAttributes indicates an expected call of GetSupportedAttributes.
+func (mr *MockUserProviderMockRecorder) GetSupportedAttributes() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSupportedAttributes", reflect.TypeOf((*MockUserProvider)(nil).GetSupportedAttributes))
 }
@@ -211,6 +210,21 @@ func (m *MockUserProvider) GetUser(username string) (*authentication.UserDetails
 func (mr *MockUserProviderMockRecorder) GetUser(username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserProvider)(nil).GetUser), username)
+}
+
+// ListGroups mocks base method.
+func (m *MockUserProvider) ListGroups() ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListGroups")
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListGroups indicates an expected call of ListGroups.
+func (mr *MockUserProviderMockRecorder) ListGroups() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroups", reflect.TypeOf((*MockUserProvider)(nil).ListGroups))
 }
 
 // ListUsers mocks base method.

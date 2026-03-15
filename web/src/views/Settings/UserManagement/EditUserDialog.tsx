@@ -1,149 +1,106 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import {
-    Autocomplete,
-    Box,
-    Button,
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    Grid,
-    TextField,
-} from "@mui/material";
+import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextField, useTheme } from "@mui/material";
+import { Path, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
-import { UserInfo } from "@models/UserInfo";
-import { ValidateDisplayName, ValidateEmail, ValidateGroup } from "@models/UserManagement.js";
-//import { putChangeUser } from "@services/UserManagement";
+import {
+    getAttributeMetadata,
+    isAttributeRequired,
+    validateAttributeValue,
+    UserDetailsExtended,
+} from "@models/UserManagement";
+import { patchChangeUser } from "@services/UserManagement";
+import { useUserManagementAttributeMetadataGET } from "@hooks/UserManagement.ts";
+import ScaleLoader from "react-spinners/ScaleLoader";
+import UserFormField from "@components/UserInputField.tsx";
 import VerifyExitDialog from "@views/Settings/Common/VerifyExitDialog";
 
-interface UserChange extends UserInfo {
-    password?: string; //this is only used when an admin is changing a user's password.
-}
-
 interface Props {
-    user: null | UserInfo;
+    user: UserDetailsExtended | null;
     open: boolean;
     onClose: () => void;
 }
 
-const EditUserDialog = function (props: Props) {
+const EditUserDialog = ({ user, onClose, open }: Props) => {
     const { t: translate } = useTranslation("settings");
+    const theme = useTheme();
     const { createErrorNotification, createSuccessNotification } = useNotifications();
-
-    const [editedUser, setEditedUser] = useState<null | UserChange>(props.user);
-    const [changesMade, setChangesMade] = useState(false);
+    const [metadata, refetch, loading, error] = useUserManagementAttributeMetadataGET();
     const [verifyExitDialogOpen, setVerifyExitDialogOpen] = useState(false);
-    const [displayNameError, setDisplayNameError] = useState(false);
-    const [emailError, setEmailError] = useState(false);
-    const [groupsError, setGroupsError] = useState(false);
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = event.target;
-        setEditedUser((prev) => {
-            if (!prev) return null;
-            const editedUser = {
-                ...prev,
-                [name]: name === "emails" ? [value] : value,
-            };
-            setChangesMade(JSON.stringify(editedUser) !== JSON.stringify(props.user));
-            return editedUser;
-        });
-    };
-
-    const handleGroupsChange = (_event: React.SyntheticEvent, value: string[]) => {
-        setEditedUser((prev) => {
-            if (!prev) return null;
-            const updatedUser = { ...prev, groups: value };
-            setChangesMade(JSON.stringify(updatedUser) !== JSON.stringify(props.user));
-            return updatedUser;
-        });
-    };
-
-    const handleSave = async () => {
-        if (!changesMade) {
-            handleClose();
-            return;
+    useEffect(() => {
+        if (open) {
+            refetch();
         }
-        if (!editedUser) {
-            handleClose();
-            return;
-        }
+    }, [open, refetch]);
 
-        let error = false;
-        if (!ValidateDisplayName(editedUser.display_name)) {
-            error = true;
-            setDisplayNameError(true);
-        }
+    const {
+        formState: { errors, isDirty, dirtyFields },
+        handleSubmit,
+        register,
+        reset,
+        control,
+        setValue,
+    } = useForm<UserDetailsExtended>({
+        defaultValues: user || {},
+    });
 
-        if (!editedUser.emails?.length || !ValidateEmail(editedUser.emails[0])) {
-            error = true;
-            setEmailError(true);
+    // Update form when user prop changes
+    useEffect(() => {
+        if (user) {
+            reset(user);
         }
+    }, [user, reset]);
 
-        if (editedUser.groups.length > 0) {
-            editedUser.groups.forEach((group) => {
-                if (!ValidateGroup(group)) {
-                    error = true;
-                    setGroupsError(true);
-                }
-            });
+    // Reset form when dialog closes
+    useEffect(() => {
+        if (!open && user) {
+            reset(user);
         }
+    }, [open, user, reset]);
 
-        if (error) {
-            return;
-        }
+    const onSubmit = async (data: UserDetailsExtended) => {
+        if (!user) return;
 
         try {
-            // await putChangeUser(
-            //     editedUser.username,
-            //     editedUser.display_name,
-            //     editedUser.password ? editedUser.password : "",
-            //     editedUser.disabled ? editedUser.disabled : false,
-            //     editedUser.emails[0],
-            //     editedUser.groups,
-            // );
+            const updateMask: string[] = [];
+            const changedData: Partial<UserDetailsExtended> = {};
+            const addressFields = ['street_address', 'locality', 'region', 'postal_code', 'country'];
+
+            // Only process fields that are actually dirty (changed by user)
+            Object.keys(dirtyFields).forEach((key) => {
+                const fieldKey = key as keyof UserDetailsExtended;
+
+                // Map address fields to use dot notation for update_mask
+                if (addressFields.includes(key)) {
+                    updateMask.push(`address.${key}`);
+                } else {
+                    updateMask.push(fieldKey);
+                }
+
+                changedData[fieldKey] = data[fieldKey] as any;
+            });
+
+            if (updateMask.length === 0) {
+                createSuccessNotification(translate("No changes to save"));
+                handleClose();
+                return;
+            }
+
+            await patchChangeUser(user.username, changedData, updateMask);
             createSuccessNotification(translate("User modified successfully."));
-        } catch (err) {
-            handleResetErrors();
-            console.log(err);
-            if ((err as Error).message.includes("Display name")) {
-                setDisplayNameError(true);
-                createErrorNotification(
-                    translate("The supplied {{item}} is not formatted correctly.", { item: "display name" }),
-                );
-                return;
-            }
-
-            if ((err as Error).message.includes("email")) {
-                setEmailError(true);
-                createErrorNotification(
-                    translate("The supplied {{item}} is not formatted correctly.", { item: "email" }),
-                );
-                return;
-            }
-
-            if ((err as Error).message.includes("email")) {
-                setGroupsError(true);
-                createErrorNotification(
-                    translate("The supplied {{item}} is not formatted correctly.", { item: "group" }),
-                );
-                return;
-            }
+            reset(data);
+            onClose();
+        } catch (e) {
+            console.log(e);
+            createErrorNotification(translate("Error modifying user"));
         }
-        handleClose();
-    };
-
-    const handleResetErrors = () => {
-        setDisplayNameError(false);
-        setEmailError(false);
-        setGroupsError(false);
     };
 
     const handleSafeClose = () => {
-        if (changesMade) {
+        if (isDirty) {
             setVerifyExitDialogOpen(true);
         } else {
             handleClose();
@@ -151,18 +108,14 @@ const EditUserDialog = function (props: Props) {
     };
 
     const handleClose = () => {
-        handleResetErrors();
-        handleResetState();
-        props.onClose();
-    };
-
-    const handleResetState = () => {
-        setEditedUser(props.user);
-        setChangesMade(false);
+        setVerifyExitDialogOpen(false);
+        onClose();
     };
 
     const handleConfirmExit = () => {
-        setVerifyExitDialogOpen(false);
+        if (user) {
+            reset(user);
+        }
         handleClose();
     };
 
@@ -170,83 +123,159 @@ const EditUserDialog = function (props: Props) {
         setVerifyExitDialogOpen(false);
     };
 
+    const fieldConfig = {
+        basic: [
+            "username",
+            "display_name",
+            "given_name",
+            "family_name",
+            "mail",
+        ],
+        additional: [
+            "middle_name",
+            "nickname",
+            "phone_number",
+            "phone_extension",
+            "birthdate",
+            "gender",
+            "website",
+            "profile",
+            "picture",
+            "zoneinfo",
+            "locale",
+            "street_address",
+            "locality",
+            "region",
+            "postal_code",
+            "country",
+        ],
+    };
+
+    // Fields that are excluded from editing
+    const excludedFields = [
+        "password",
+        "last_logged_in",
+        "last_password_change",
+        "user_created_at",
+        "method",
+        "has_totp",
+        "has_webauthn",
+        "has_duo",
+    ];
+
+    const getOrderedFields = (fieldNames: string[]) => {
+        if (!metadata) return [];
+
+        return fieldNames
+            .filter(fieldName =>
+                metadata.supported_attributes[fieldName] &&
+                !excludedFields.includes(fieldName)
+            )
+            .map(fieldName => ({
+                name: fieldName as Path<UserDetailsExtended>,
+                meta: metadata.supported_attributes[fieldName],
+                label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
+                description: translate(`user_management.attributes.${fieldName}.description`, { defaultValue: "" }),
+                required: metadata.required_attributes.includes(fieldName),
+                disabled: fieldName === "username", // Username cannot be changed
+            }));
+    };
+
+    const basicFields = getOrderedFields(fieldConfig.basic);
+    const additionalFields = getOrderedFields(fieldConfig.additional);
+
+    const [showAdditional, setShowAdditional] = useState(false);
+
     return (
-        <div>
-            <Dialog open={props.open} onClose={handleSafeClose} maxWidth="sm" fullWidth>
+        <>
+            <Dialog open={open} onClose={handleSafeClose} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    {translate("Edit {{item}}:", { item: translate("User") })} {props.user?.username}
+                    {translate("Edit {{item}}:", { item: translate("User") })} {user?.username}
                 </DialogTitle>
+
                 <DialogContent>
-                    <FormControl>
-                        <Box sx={{ display: "flex", gap: 3 }}>
-                            <Grid container spacing={1} alignItems={"center"}>
-                                <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                                    <TextField
-                                        fullWidth
-                                        label="Display Name"
-                                        name="display_name"
-                                        error={displayNameError}
-                                        value={editedUser?.display_name ?? ""}
-                                        helperText={
-                                            displayNameError ? "Only Letters, Numbers, Symbols, and Spaces" : ""
-                                        }
-                                        onChange={handleChange}
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                                    <TextField
-                                        fullWidth
-                                        label="Email"
-                                        name="emails"
-                                        error={emailError}
-                                        onChange={handleChange}
-                                        helperText={emailError ? "Standard Email Format (john@example.com)" : ""}
-                                        value={
-                                            Array.isArray(editedUser?.emails)
-                                                ? editedUser.emails[0]
-                                                : (editedUser?.emails ?? "")
-                                        }
-                                    />
-                                </Grid>
-                                <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                                    <Autocomplete
-                                        multiple
-                                        id="select-user-groups"
-                                        options={[]}
-                                        value={editedUser?.groups || []}
-                                        onChange={handleGroupsChange}
-                                        freeSolo
-                                        renderInput={(params) => (
-                                            <TextField
-                                                {...params}
-                                                error={groupsError}
-                                                label="Groups"
-                                                placeholder=""
-                                                helperText={
-                                                    groupsError
-                                                        ? "Letters, numbers, and symbols (+-_.,). Up to 100 characters."
-                                                        : ""
+                    {loading && <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />}
+
+                    {error && <div>Error loading content: {error.message}</div>}
+
+                    {!loading && !error && metadata && (
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                            <FormControl variant="standard">
+                                <Grid container spacing={2}>
+                                    {basicFields.map((field) => (
+                                        <Grid key={field.name} size={12} sx={{ pt: 1.5 }}>
+                                            {field.disabled ? (
+                                                <TextField
+                                                    fullWidth
+                                                    disabled
+                                                    type="text"
+                                                    color="info"
+                                                    label={field.label}
+                                                    helperText={field.description}
+                                                    value={user?.[field.name as keyof UserDetailsExtended] || ""}
+                                                />
+                                            ) : (
+                                                <UserFormField
+                                                    field={field}
+                                                    register={register}
+                                                    control={control}
+                                                    errors={errors}
+                                                    setValue={setValue}
+                                                />
+                                            )}
+                                        </Grid>
+                                    ))}
+
+                                    {additionalFields.length > 0 && (
+                                        <Grid size={12} sx={{ pt: 2 }}>
+                                            <Button
+                                                onClick={() => setShowAdditional(!showAdditional)}
+                                                size="small"
+                                                variant="text"
+                                                color="info"
+                                            >
+                                                {showAdditional
+                                                    ? translate("Hide Additional Fields")
+                                                    : translate("Show Additional Fields")
                                                 }
+                                            </Button>
+                                        </Grid>
+                                    )}
+
+                                    {showAdditional && additionalFields.map((field) => (
+                                        <Grid key={field.name} size={12} sx={{ pt: 1.5 }}>
+                                            <UserFormField
+                                                field={field}
+                                                register={register}
+                                                control={control}
+                                                errors={errors}
+                                                setValue={setValue}
                                             />
-                                        )}
-                                    />
+                                        </Grid>
+                                    ))}
+
+                                    <Grid size={12} sx={{ pt: 3 }}>
+                                        <Button
+                                            type="submit"
+                                            variant="contained"
+                                            color="info"
+                                            disabled={!isDirty}
+                                            sx={{ mr: 2 }}
+                                        >
+                                            {translate("Save")}
+                                        </Button>
+                                        <Button variant="contained" color="secondary" onClick={handleSafeClose}>
+                                            {translate("Cancel")}
+                                        </Button>
+                                    </Grid>
                                 </Grid>
-                                <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                                    <Button color={"success"} onClick={handleSave} disabled={!changesMade}>
-                                        {translate("Save")}
-                                    </Button>
-                                    <Button color={"error"} onClick={handleSafeClose}>
-                                        {translate("Exit")}
-                                    </Button>
-                                </Grid>
-                            </Grid>
-                            {/*</Box>*/}
-                        </Box>
-                    </FormControl>
+                            </FormControl>
+                        </form>
+                    )}
                 </DialogContent>
             </Dialog>
             <VerifyExitDialog open={verifyExitDialogOpen} onConfirm={handleConfirmExit} onCancel={handleCancelExit} />
-        </div>
+        </>
     );
 };
 

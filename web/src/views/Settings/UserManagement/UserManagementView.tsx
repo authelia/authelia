@@ -10,7 +10,6 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useAllUserInfoGET } from "@hooks/UserManagement";
 import { UserInfo } from "@models/UserInfo";
 import { to2FAString } from "@services/UserInfo";
-import { UserFieldMetadataBody, getUserFieldMetadata } from "@services/UserManagement.js";
 import EditUserDialog from "@views/Settings/UserManagement/EditUserDialog";
 import NewUserDialog from "@views/Settings/UserManagement/NewUserDialog.tsx";
 import VerifyDeleteUserDialog from "@views/Settings/UserManagement/VerifyDeleteUserDialog.tsx";
@@ -25,7 +24,6 @@ const UserManagementView = () => {
     const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
     const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
     const [isVerifyDeleteUserDialogOpen, setIsVerifyDeleteUserDialogOpen] = useState(false);
-    const [fieldMetadata, setFieldMetadata] = useState<null | UserFieldMetadataBody>(null);
 
     const handleRowClick = (params: GridRowParams) => {
         if (!users) {
@@ -87,20 +85,6 @@ const UserManagementView = () => {
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
-
-    useEffect(() => {
-        const fetchFieldMetadata = async () => {
-            try {
-                const data = await getUserFieldMetadata();
-                setFieldMetadata(data);
-                console.log(data);
-            } catch {
-                createErrorNotification(translate("Unable to retrieve field metadata"));
-            }
-        };
-
-        fetchFieldMetadata();
-    }, [createErrorNotification, translate]);
 
     useEffect(() => {
         if (fetchUsersError) {
@@ -187,9 +171,7 @@ const UserManagementView = () => {
                 open={isEditUserDialogOpen}
                 onClose={handleCloseEditUserDialog}
             />
-            {fieldMetadata && (
-                <NewUserDialog open={isNewUserDialogOpen} onClose={handleCloseNewUserDialog} metadata={fieldMetadata} />
-            )}
+            <NewUserDialog open={isNewUserDialogOpen} onClose={handleCloseNewUserDialog} />
             <VerifyDeleteUserDialog
                 username={userToDelete || ""}
                 open={isVerifyDeleteUserDialogOpen}

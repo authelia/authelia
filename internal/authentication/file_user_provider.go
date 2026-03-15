@@ -360,22 +360,8 @@ func (p *FileUserProvider) GetRequiredAttributes() []string {
 	}
 }
 
-func (p *FileUserProvider) GetSupportedAttributes() []string {
-	return []string{
-		"Username",
-		"Password",
-		"DisplayName",
-		"Password",
-		"Email",
-		"Groups",
-		"GivenName",
-		"FamilyName",
-	}
-}
-
-func (p *FileUserProvider) GetFieldMetadata() map[string]FieldMetadata {
-	//TODO: implement me!!
-	return nil
+func (p *FileUserProvider) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {
+	return map[string]UserManagementAttributeMetadata{}
 }
 
 // DeleteUser deletes a user from the file database.

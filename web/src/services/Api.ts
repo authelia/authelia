@@ -45,7 +45,7 @@ export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/pa
 
 export const AdminConfigPath = basePath + "/api/admin/config";
 export const AdminUserRestPath = basePath + "/api/admin/users";
-export const AdminUserFieldMetadataPath = basePath + "/api/admin/user-fields";
+export const AdminUserAttributeMetadataPath = basePath + "/api/admin/user-fields";
 
 export const LocaleInformationPath = basePath + "/locales";
 

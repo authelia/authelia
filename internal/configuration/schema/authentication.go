@@ -154,19 +154,20 @@ type AuthenticationBackendLDAP struct {
 	PermitFeatureDetectionFailure bool `koanf:"permit_feature_detection_failure" yaml:"permit_feature_detection_failure" toml:"permit_feature_detection_failure" json:"permit_feature_detection_failure" jsonschema:"default=false,title=Permit Feature Detection Failure" jsonschema_description:"Enables failures when detecting directory server features using the Root DSE lookup."`
 
 	User     string `koanf:"user" yaml:"user,omitempty" toml:"user,omitempty" json:"user,omitempty" jsonschema:"title=User" jsonschema_description:"The user distinguished name for LDAP binding."`
-	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."` //nolint:gosec
+	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."`
 }
 
 type AuthenticationBackendLDAPUserManagement struct {
-	CreatedUsersDN        string `koanf:"created_users_dn" yaml:"created_users_dn,omitempty" toml:"created_users_dn,omitempty" json:"created_users_dn,omitempty" jsonschema:"default='',title=Created Users Distinguished Name" jsonschema_description:"The additional distinguished name for created users."`
-	CreatedUsersRDNFormat string `koanf:"created_users_rdn_format" yaml:"created_users_rdn_format,omitempty" toml:"created_users_rdn_format,omitempty" json:"created_users_rdn_format,omitempty" jsonschema:"default='',title=Created Users Relative Distinguished Name Format" jsonschema_description:"The template string used to generate created user's rdn format."`
-
+	CreatedUsersDN  string `koanf:"created_users_dn" yaml:"created_users_dn,omitempty" toml:"created_users_dn,omitempty" json:"created_users_dn,omitempty" jsonschema:"default='',title=Created Users Distinguished Name" jsonschema_description:"The additional distinguished name for created users."`
 	CreatedGroupsDN string `koanf:"created_groups_dn" yaml:"created_groups_dn,omitempty" toml:"created_groups_dn,omitempty" json:"created_groups_dn,omitempty" jsonschema:"default='',title=Created Groups Distinguished Name" jsonschema_description:"The additional distinguished name for created groups."`
+
+	CreatedUsersRDNAttribute string `koanf:"created_users_rdn_attribute" yaml:"created_users_rdn_attribute,omitempty" toml:"created_users_rdn_attribute,omitempty" json:"created_users_rdn_attribute,omitempty" jsonschema:"default='',title=Created Users Relative Distinguished Name Attribute" jsonschema_description:"The value to use for the user's relative distinguished name attribute."`
+	CreatedUsersRDNFormat    string `koanf:"created_users_rdn_format" yaml:"created_users_rdn_format,omitempty" toml:"created_users_rdn_format,omitempty" json:"created_users_rdn_format,omitempty" jsonschema:"default='',title=Created Users Relative Distinguished Name Format" jsonschema_description:"The template string used to generate created user's rdn format."`
 
 	RequiredAttributes []string `koanf:"required_attributes" yaml:"required_attributes,omitempty" toml:"required_attributes,omitempty" json:"required_attributes,omitempty" jsonschema:"title=Required Attributes" jsonschema_description:"The attributes required for new users."`
 
-	AdditionalUserObjectClasses  []string `koanf:"additional_user_object_classes" yaml:"additional_user_object_classes,omitempty" toml:"additional_user_object_classes,omitempty" json:"additional_user_object_classes,omitempty" jsonschema:"title=Additional Object Classes for Users" jsonschema_description:"Additional object classes for new users."`
-	AdditionalGroupObjectClasses []string `koanf:"additional_group_object_classes" yaml:"additional_group_object_classes,omitempty" toml:"additional_group_object_classes,omitempty" json:"additional_group_object_classes,omitempty" jsonschema:"title=Additional Object Classes for Groups" jsonschema_description:"Additional object classes for new group."`
+	UserObjectClasses  []string `koanf:"user_object_classes" yaml:"user_object_classes,omitempty" toml:"user_object_classes,omitempty" json:"user_object_classes,omitempty" jsonschema:"title=Additional Object Classes for Users" jsonschema_description:"Additional object classes for new users."`
+	GroupObjectClasses []string `koanf:"group_object_classes" yaml:"group_object_classes,omitempty" toml:"group_object_classes,omitempty" json:"group_object_classes,omitempty" jsonschema:"title=Additional Object Classes for Groups" jsonschema_description:"Additional object classes for new group."`
 
 	DefaultUserGroups []string `koanf:"default_user_groups" yaml:"default_user_groups,omitempty" toml:"default_user_groups,omitempty" json:"default_user_groups,omitempty" jsonschema:"title=Default Groups for Users" jsonschema_description:"Groups to add to new users."`
 }
@@ -342,6 +343,19 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis = Auth
 	Timeout: time.Second * 5,
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+	UserManagement: AuthenticationBackendLDAPUserManagement{
+		CreatedUsersRDNAttribute: ldapAttrCommonName,
+		UserObjectClasses: []string{
+			"top",
+			"person",
+			"organizationalPerson",
+			"inetOrgPerson",
+		},
+		GroupObjectClasses: []string{
+			"top",
+			"groupOfNames",
+		},
 	},
 }
 
