@@ -10,6 +10,7 @@
   "imageSize": 100,
   "commit": false,
   "commitConvention": "angular",
+  "commitType": "docs",
   "contributors": [
     {
       "login": "clems4ever",
@@ -1113,6 +1114,15 @@
       "profile": "https://kevincox.ca",
       "contributions": [
         "bug"
+      ]
+    },
+    {
+      "login": "tkf144",
+      "name": "Tom",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17581159?v=4",
+      "profile": "https://github.com/tkf144",
+      "contributions": [
+        "doc"
       ]
     }
   ],
