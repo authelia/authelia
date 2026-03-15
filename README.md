@@ -377,6 +377,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tkf144"><img src="https://avatars.githubusercontent.com/u/17581159?v=4?s=100" width="100px;" alt="Tom"/><br /><sub><b>Tom</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=tkf144" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://shiziblog.cn"><img src="https://avatars.githubusercontent.com/u/29810238?v=4?s=100" width="100px;" alt="Br1an"/><br /><sub><b>Br1an</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Br1an67" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/andreasbrett"><img src="https://avatars.githubusercontent.com/u/6610451?v=4?s=100" width="100px;" alt="Andreas Brett"/><br /><sub><b>Andreas Brett</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=andreasbrett" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/FlorianObermayer"><img src="https://avatars.githubusercontent.com/u/4497761?v=4?s=100" width="100px;" alt="FO"/><br /><sub><b>FO</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=FlorianObermayer" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
