@@ -46,6 +46,12 @@ const mockLanguages: Language[] = [
     { display: "", fallbacks: [], locale: "unknown", namespaces: [] },
 ];
 
+const openDropdown = (button: HTMLElement) => {
+    fireEvent.pointerDown(button, { button: 0, pointerType: "mouse" });
+    fireEvent.pointerUp(button, { button: 0, pointerType: "mouse" });
+    fireEvent.click(button, { button: 0 });
+};
+
 it("renders without crashing", () => {
     render(<AppBarItemLanguage localeCurrent="en" localeList={mockLanguages} onChange={mockOnChange} />);
 });
@@ -63,7 +69,7 @@ it("renders button with current language", () => {
 it("opens menu on button click", () => {
     render(<AppBarItemLanguage localeCurrent="en" localeList={mockLanguages} onChange={mockOnChange} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     expect(screen.getByText("English (en)")).toBeInTheDocument();
     expect(screen.getByText("Spanish (es)")).toBeInTheDocument();
 });
@@ -71,7 +77,7 @@ it("opens menu on button click", () => {
 it("changes language on selection", () => {
     render(<AppBarItemLanguage localeCurrent="en" localeList={mockLanguages} onChange={mockOnChange} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     const spanishItem = screen.getByText("Spanish (es)");
     fireEvent.click(spanishItem);
     expect(mockOnChange).toHaveBeenCalledWith("es");
@@ -80,18 +86,24 @@ it("changes language on selection", () => {
 it("expands and collapses parent with children on click", () => {
     render(<AppBarItemLanguage localeCurrent="en" localeList={mockLanguages} onChange={mockOnChange} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     const frenchItem = screen.getByText("French (fr)");
     fireEvent.click(frenchItem);
-    expect(screen.getByTestId("ExpandLessIcon")).toBeInTheDocument();
+
+    const frenchMenuItem = frenchItem.closest("[data-slot='dropdown-menu-item']");
+    expect(frenchMenuItem).not.toBeNull();
+    const chevronUp = frenchMenuItem!.querySelector("svg.lucide-chevron-up");
+    expect(chevronUp).toBeInTheDocument();
+
     fireEvent.click(frenchItem);
-    expect(screen.getByTestId("ExpandMoreIcon")).toBeInTheDocument();
+    const chevronDown = frenchMenuItem!.querySelector("svg.lucide-chevron-down");
+    expect(chevronDown).toBeInTheDocument();
 });
 
 it("changes language on child selection", () => {
     render(<AppBarItemLanguage localeCurrent="en" localeList={mockLanguages} onChange={mockOnChange} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     const frenchItem = screen.getByText("French (fr)");
     fireEvent.click(frenchItem);
     const childItem = screen.getByText("French (Canada) (fr-CA)");
@@ -102,7 +114,7 @@ it("changes language on child selection", () => {
 it("uses fallback for unknown locale", () => {
     render(<AppBarItemLanguage localeCurrent="en" localeList={mockLanguages} onChange={mockOnChange} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     expect(screen.getByText("Basa Sunda (sc)")).toBeInTheDocument();
 });
 
@@ -114,7 +126,7 @@ it("resolves current locale from child locales", () => {
 it("handles single child locale by promoting child locale", () => {
     render(<AppBarItemLanguage localeCurrent="de-CH" localeList={mockLanguages} onChange={mockOnChange} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     expect(screen.getByText("Deutsch (de-CH)")).toBeInTheDocument();
 });
 
@@ -122,16 +134,19 @@ it("returns null when current locale is not in list", () => {
     render(<AppBarItemLanguage localeCurrent="ja" localeList={mockLanguages} onChange={mockOnChange} />);
 });
 
-it("collapses and expands via icon click", () => {
+it("collapses and expands via parent item click", () => {
     render(<AppBarItemLanguage localeCurrent="en" localeList={mockLanguages} onChange={mockOnChange} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     const frenchItem = screen.getByText("French (fr)");
+
     fireEvent.click(frenchItem);
-    const expandLess = screen.getByTestId("ExpandLessIcon");
-    fireEvent.click(expandLess);
-    expect(screen.getByTestId("ExpandMoreIcon")).toBeInTheDocument();
-    const expandMore = screen.getByTestId("ExpandMoreIcon");
-    fireEvent.click(expandMore);
-    expect(screen.getByTestId("ExpandLessIcon")).toBeInTheDocument();
+    const frenchMenuItem = frenchItem.closest("[data-slot='dropdown-menu-item']");
+    expect(frenchMenuItem!.querySelector("svg.lucide-chevron-up")).toBeInTheDocument();
+
+    fireEvent.click(frenchItem);
+    expect(frenchMenuItem!.querySelector("svg.lucide-chevron-down")).toBeInTheDocument();
+
+    fireEvent.click(frenchItem);
+    expect(frenchMenuItem!.querySelector("svg.lucide-chevron-up")).toBeInTheDocument();
 });

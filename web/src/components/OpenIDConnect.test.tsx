@@ -1,50 +1,54 @@
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 
 import { ScopeAvatar, ScopeDescription } from "@components/OpenIDConnect";
 
+function expectLucideIcon(container: HTMLElement, iconClass: string) {
+    expect(container.querySelector(`svg.lucide-${iconClass}`)).toBeInTheDocument();
+}
+
 it("returns correct avatar for openid", () => {
-    render(ScopeAvatar("openid"));
-    expect(screen.getByTestId("AccountBoxIcon")).toBeInTheDocument();
+    const { container } = render(ScopeAvatar("openid"));
+    expectLucideIcon(container, "circle-user-round");
 });
 
 it("returns correct avatar for offline_access", () => {
-    render(ScopeAvatar("offline_access"));
-    expect(screen.getByTestId("AutorenewIcon")).toBeInTheDocument();
+    const { container } = render(ScopeAvatar("offline_access"));
+    expectLucideIcon(container, "refresh-cw");
 });
 
 it("returns correct avatar for profile", () => {
-    render(ScopeAvatar("profile"));
-    expect(screen.getByTestId("ContactsIcon")).toBeInTheDocument();
+    const { container } = render(ScopeAvatar("profile"));
+    expectLucideIcon(container, "user-round");
 });
 
 it("returns correct avatar for groups", () => {
-    render(ScopeAvatar("groups"));
-    expect(screen.getByTestId("GroupIcon")).toBeInTheDocument();
+    const { container } = render(ScopeAvatar("groups"));
+    expectLucideIcon(container, "users");
 });
 
 it("returns correct avatar for email", () => {
-    render(ScopeAvatar("email"));
-    expect(screen.getByTestId("DraftsIcon")).toBeInTheDocument();
+    const { container } = render(ScopeAvatar("email"));
+    expectLucideIcon(container, "mail");
 });
 
 it("returns correct avatar for phone", () => {
-    render(ScopeAvatar("phone"));
-    expect(screen.getByTestId("PhoneAndroidIcon")).toBeInTheDocument();
+    const { container } = render(ScopeAvatar("phone"));
+    expectLucideIcon(container, "phone");
 });
 
 it("returns correct avatar for address", () => {
-    render(ScopeAvatar("address"));
-    expect(screen.getByTestId("HomeIcon")).toBeInTheDocument();
+    const { container } = render(ScopeAvatar("address"));
+    expectLucideIcon(container, "house");
 });
 
 it("returns correct avatar for authelia.bearer.authz", () => {
-    render(ScopeAvatar("authelia.bearer.authz"));
-    expect(screen.getByTestId("LockOpenIcon")).toBeInTheDocument();
+    const { container } = render(ScopeAvatar("authelia.bearer.authz"));
+    expectLucideIcon(container, "lock");
 });
 
 it("returns policy avatar for unknown scope", () => {
-    render(ScopeAvatar("unknown"));
-    expect(screen.getByTestId("PolicyIcon")).toBeInTheDocument();
+    const { container } = render(ScopeAvatar("unknown"));
+    expectLucideIcon(container, "shield");
 });
 
 it("returns correct description for openid", () => {

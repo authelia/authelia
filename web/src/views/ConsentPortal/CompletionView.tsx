@@ -1,10 +1,11 @@
 import { FC } from "react";
 
-import { Divider, Paper, Stack, Typography, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 
 import HomeButton from "@components/HomeButton";
+import { Card } from "@components/UI/Card";
+import { Separator } from "@components/UI/Separator";
 import {
     Decision,
     ErrorDebug,
@@ -16,7 +17,6 @@ import {
 import LoginLayout from "@layouts/LoginLayout";
 const CompletionView = () => {
     const { t: translate } = useTranslation(["consent"]);
-    const theme = useTheme();
 
     const [query] = useSearchParams();
 
@@ -38,7 +38,7 @@ const CompletionView = () => {
 
     return (
         <LoginLayout id={"openid-completion-stage"} title={translate(title)} maxWidth={"sm"}>
-            <Stack justifyContent={"center"} alignItems={"center"} spacing={theme.spacing(2)}>
+            <div className="flex flex-col items-center justify-center gap-4">
                 <HomeButton />
                 {error ? (
                     <CompletionErrorView
@@ -50,10 +50,10 @@ const CompletionView = () => {
                     />
                 ) : null}
 
-                <Typography variant={"subtitle2"} margin={theme.spacing(2)}>
+                <p className="m-4 text-sm text-muted-foreground">
                     {translate("You may close this tab or return home by clicking the home button")}.
-                </Typography>
-            </Stack>
+                </p>
+            </div>
         </LoginLayout>
     );
 };
@@ -69,38 +69,37 @@ interface ErrorProps {
 }
 const CompletionErrorView: FC<ErrorProps> = (props: ErrorProps) => {
     const { t: translate } = useTranslation(["consent"]);
-    const theme = useTheme();
 
     return (
-        <Paper sx={{ padding: theme.spacing(2) }} elevation={24}>
-            <Stack spacing={theme.spacing(2)}>
-                <Typography variant={"h6"}>
+        <Card className="p-4 shadow-xl">
+            <div className="flex flex-col gap-4">
+                <h6 className="text-lg font-semibold">
                     <strong>{translate("Error")}:</strong> {translate(props.error)}
-                </Typography>
+                </h6>
                 {props.error_description || props.error_hint || props.error_debug || props.error_uri ? (
-                    <Divider />
+                    <Separator />
                 ) : null}
                 {props.error_description ? (
-                    <Typography>
+                    <p>
                         <strong>{translate("Description")}:</strong> {translate(props.error_description)}
-                    </Typography>
+                    </p>
                 ) : null}
                 {props.error_hint ? (
-                    <Typography>
+                    <p>
                         <strong>{translate("Hint")}:</strong> {translate(props.error_hint)}
-                    </Typography>
+                    </p>
                 ) : null}
                 {props.error_debug ? (
-                    <Typography>
+                    <p>
                         <strong>{translate("Debug Information")}:</strong> {translate(props.error_debug)}
-                    </Typography>
+                    </p>
                 ) : null}
                 {props.error_uri ? (
-                    <Typography>
+                    <p>
                         <strong>{translate("Documentation")}:</strong> {translate(props.error_uri)}
-                    </Typography>
+                    </p>
                 ) : null}
-            </Stack>
-        </Paper>
+            </div>
+        </Card>
     );
 };

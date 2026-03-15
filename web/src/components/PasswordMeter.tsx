@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 
-import { Alert, AlertTitle, Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import zxcvbn from "zxcvbn";
 
+import { Alert, AlertTitle } from "@components/UI/Alert";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 
 export interface Props {
@@ -140,27 +140,26 @@ const PasswordMeter = function (props: Props) {
         : ["#D32F2F", "#FF5722", "#FFEB3B", "#62D32F"];
 
     return (
-        <Box sx={{ width: "100%" }}>
-            <Box
-                sx={{
+        <div className="w-full">
+            <div
+                className="mt-0.5 transition-[width] duration-500 linear"
+                style={{
                     backgroundColor: progressColor[passwordScore],
                     height: "5px",
-                    marginTop: "2px",
-                    transition: "width .5s linear",
                     width: `${passwordScore * (100 / maxScore)}%`,
                 }}
             />
             {(feedbackTitle !== "" || feedback !== "") && (
-                <Alert severity="warning">
+                <Alert variant="default">
                     {feedbackTitle !== "" && (
-                        <AlertTitle sx={{ fontSize: "0.85rem", textAlign: "left", whiteSpace: "break-spaces" }}>
+                        <AlertTitle className="text-[0.85rem] text-left whitespace-break-spaces">
                             <p>{feedbackTitle}</p>
                         </AlertTitle>
                     )}
-                    <Box sx={{ fontSize: "0.7rem", textAlign: "left", whiteSpace: "break-spaces" }}>{feedback}</Box>
+                    <div className="text-[0.7rem] text-left whitespace-break-spaces">{feedback}</div>
                 </Alert>
             )}
-        </Box>
+        </div>
     );
 };
 

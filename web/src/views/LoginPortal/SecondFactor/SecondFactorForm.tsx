@@ -1,13 +1,12 @@
 import { lazy, useState } from "react";
 
-import { Box, Button, Theme } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
 
 import LogoutButton from "@components/LogoutButton";
 import SwitchUserButton from "@components/SwitchUserButton";
+import { Button } from "@components/UI/Button";
 import {
     SecondFactorPasswordSubRoute,
     SecondFactorPushSubRoute,
@@ -96,28 +95,24 @@ const SecondFactorForm = function (props: Props) {
                     onClick={handleMethodSelected}
                 />
             ) : null}
-            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
-                <Grid size={{ xs: 12 }}>
+            <div className="flex flex-col items-center justify-center">
+                <div className="w-full">
                     <LogoutButton />
                     {flowPresent ? " | " : null}
                     {flowPresent ? <SwitchUserButton /> : null}
                     {showMethods ? " | " : null}
                     {showMethods ? (
-                        <Button id={"methods-button"} color="secondary" onClick={handleMethodSelectionClick}>
+                        <Button
+                            id={"methods-button"}
+                            variant="ghost"
+                            className="text-sm tracking-wide text-secondary hover:text-secondary"
+                            onClick={handleMethodSelectionClick}
+                        >
                             {translate("Methods")}
                         </Button>
                     ) : null}
-                </Grid>
-                <Box
-                    sx={(theme: Theme) => ({
-                        border: "1px solid #d6d6d6",
-                        borderRadius: "10px",
-                        marginBottom: theme.spacing(2),
-                        marginTop: theme.spacing(2),
-                        minWidth: "300px",
-                        padding: theme.spacing(4),
-                    })}
-                >
+                </div>
+                <div className="my-4 min-w-[300px] rounded-[10px] border border-[#d6d6d6] p-8">
                     <Routes>
                         <Route
                             path={SecondFactorPasswordSubRoute}
@@ -176,8 +171,8 @@ const SecondFactorForm = function (props: Props) {
                             }
                         />
                     </Routes>
-                </Box>
-            </Grid>
+                </div>
+            </div>
         </LoginLayout>
     );
 };

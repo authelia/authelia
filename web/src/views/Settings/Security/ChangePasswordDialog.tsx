@@ -1,25 +1,20 @@
 import { Dispatch, KeyboardEvent, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 
-import {
-    Button,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    TextField,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import PasswordMeter from "@components/PasswordMeter";
+import { Button } from "@components/UI/Button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@components/UI/Dialog";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+import { Spinner } from "@components/UI/Spinner";
 import useCheckCapsLock from "@hooks/CapsLock";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { postPasswordChange } from "@services/ChangePassword";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
+import { cn } from "@utils/Styles";
 
 interface Props {
     username: string;
@@ -203,100 +198,129 @@ const ChangePasswordDialog = (props: Props) => {
     const disabled = props.disabled || false;
 
     return (
-        <Dialog open={props.open} maxWidth="xs">
-            <DialogTitle>{translate("Change Password")}</DialogTitle>
-            <DialogContent>
-                <FormControl id={"change-password-form"} disabled={loading}>
-                    <Grid container spacing={1} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                        <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
-                            <TextField
-                                inputRef={oldPasswordRef}
-                                id="old-password"
-                                label={translate("Old Password")}
-                                variant="outlined"
-                                required
-                                value={oldPassword}
-                                error={oldPasswordError}
-                                disabled={disabled}
-                                fullWidth
-                                onChange={(v) => setOldPassword(v.target.value)}
-                                onFocus={() => setOldPasswordError(false)}
-                                type="password"
-                                autoCapitalize="off"
-                                autoComplete="off"
-                                onKeyDown={handleOldPWKeyDown}
-                                onKeyUp={useCheckCapsLock(setIsCapsLockOnOldPW)}
-                                helperText={isCapsLockOnOldPW ? translate("Caps Lock is on") : " "}
-                                color={isCapsLockOnOldPW ? "error" : "primary"}
-                                onBlur={() => setIsCapsLockOnOldPW(false)}
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 12 }} sx={{ mt: 3 }}>
-                            <TextField
-                                inputRef={newPasswordRef}
-                                id="new-password"
-                                label={translate("New Password")}
-                                variant="outlined"
-                                required
-                                fullWidth
-                                disabled={disabled}
-                                value={newPassword}
-                                error={newPasswordError}
-                                onChange={(v) => setNewPassword(v.target.value)}
-                                onFocus={() => setNewPasswordError(false)}
-                                type="password"
-                                autoCapitalize="off"
-                                autoComplete="off"
-                                onKeyDown={handleNewPWKeyDown}
-                                onKeyUp={useCheckCapsLock(setIsCapsLockOnNewPW)}
-                                helperText={isCapsLockOnNewPW ? translate("Caps Lock is on") : " "}
-                                color={isCapsLockOnNewPW ? "error" : "primary"}
-                                onBlur={() => setIsCapsLockOnNewPW(false)}
-                            />
-                            {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
-                                <PasswordMeter value={newPassword} policy={pPolicy} />
+        <Dialog
+            open={props.open}
+            onOpenChange={(open) => {
+                if (!open) handleClose();
+            }}
+        >
+            <DialogContent className="sm:max-w-xs" showCloseButton={false}>
+                <DialogHeader>
+                    <DialogTitle>{translate("Change Password")}</DialogTitle>
+                </DialogHeader>
+                <fieldset id={"change-password-form"} disabled={loading} className="space-y-1 text-center">
+                    <div className="w-full pt-6">
+                        <Label htmlFor="old-password" className="sr-only">
+                            {translate("Old Password")}
+                        </Label>
+                        <Input
+                            ref={oldPasswordRef}
+                            id="old-password"
+                            placeholder={translate("Old Password") + " *"}
+                            required
+                            value={oldPassword}
+                            aria-invalid={oldPasswordError || undefined}
+                            disabled={disabled}
+                            className={cn("w-full", oldPasswordError && "border-destructive")}
+                            onChange={(v) => setOldPassword(v.target.value)}
+                            onFocus={() => setOldPasswordError(false)}
+                            type="password"
+                            autoCapitalize="off"
+                            autoComplete="off"
+                            onKeyDown={handleOldPWKeyDown}
+                            onKeyUp={useCheckCapsLock(setIsCapsLockOnOldPW)}
+                            onBlur={() => setIsCapsLockOnOldPW(false)}
+                        />
+                        <p
+                            className={cn(
+                                "text-xs mt-1 h-4",
+                                isCapsLockOnOldPW ? "text-destructive" : "text-transparent",
                             )}
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
-                            <TextField
-                                inputRef={repeatNewPasswordRef}
-                                id="repeat-new-password"
-                                label={translate("Repeat New Password")}
-                                variant="outlined"
-                                required
-                                fullWidth
-                                disabled={disabled}
-                                value={repeatNewPassword}
-                                error={repeatNewPasswordError}
-                                onChange={(v) => setRepeatNewPassword(v.target.value)}
-                                onFocus={() => setRepeatNewPasswordError(false)}
-                                type="password"
-                                autoCapitalize="off"
-                                autoComplete="off"
-                                onKeyDown={handleRepeatNewPWKeyDown}
-                                onKeyUp={useCheckCapsLock(setIsCapsLockOnRepeatNewPW)}
-                                helperText={isCapsLockOnRepeatNewPW ? translate("Caps Lock is on") : " "}
-                                color={isCapsLockOnRepeatNewPW ? "error" : "primary"}
-                                onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
-                            />
-                        </Grid>
-                    </Grid>
-                </FormControl>
+                        >
+                            {isCapsLockOnOldPW ? translate("Caps Lock is on") : "\u00A0"}
+                        </p>
+                    </div>
+                    <div className="w-full mt-6">
+                        <Label htmlFor="new-password" className="sr-only">
+                            {translate("New Password")}
+                        </Label>
+                        <Input
+                            ref={newPasswordRef}
+                            id="new-password"
+                            placeholder={translate("New Password") + " *"}
+                            required
+                            className={cn("w-full", newPasswordError && "border-destructive")}
+                            disabled={disabled}
+                            value={newPassword}
+                            aria-invalid={newPasswordError || undefined}
+                            onChange={(v) => setNewPassword(v.target.value)}
+                            onFocus={() => setNewPasswordError(false)}
+                            type="password"
+                            autoCapitalize="off"
+                            autoComplete="off"
+                            onKeyDown={handleNewPWKeyDown}
+                            onKeyUp={useCheckCapsLock(setIsCapsLockOnNewPW)}
+                            onBlur={() => setIsCapsLockOnNewPW(false)}
+                        />
+                        <p
+                            className={cn(
+                                "text-xs mt-1 h-4",
+                                isCapsLockOnNewPW ? "text-destructive" : "text-transparent",
+                            )}
+                        >
+                            {isCapsLockOnNewPW ? translate("Caps Lock is on") : "\u00A0"}
+                        </p>
+                        {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
+                            <PasswordMeter value={newPassword} policy={pPolicy} />
+                        )}
+                    </div>
+                    <div className="w-full">
+                        <Label htmlFor="repeat-new-password" className="sr-only">
+                            {translate("Repeat New Password")}
+                        </Label>
+                        <Input
+                            ref={repeatNewPasswordRef}
+                            id="repeat-new-password"
+                            placeholder={translate("Repeat New Password") + " *"}
+                            required
+                            className={cn("w-full", repeatNewPasswordError && "border-destructive")}
+                            disabled={disabled}
+                            value={repeatNewPassword}
+                            aria-invalid={repeatNewPasswordError || undefined}
+                            onChange={(v) => setRepeatNewPassword(v.target.value)}
+                            onFocus={() => setRepeatNewPasswordError(false)}
+                            type="password"
+                            autoCapitalize="off"
+                            autoComplete="off"
+                            onKeyDown={handleRepeatNewPWKeyDown}
+                            onKeyUp={useCheckCapsLock(setIsCapsLockOnRepeatNewPW)}
+                            onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
+                        />
+                        <p
+                            className={cn(
+                                "text-xs mt-1 h-4",
+                                isCapsLockOnRepeatNewPW ? "text-destructive" : "text-transparent",
+                            )}
+                        >
+                            {isCapsLockOnRepeatNewPW ? translate("Caps Lock is on") : "\u00A0"}
+                        </p>
+                    </div>
+                </fieldset>
+                <DialogFooter>
+                    <Button id={"password-change-dialog-cancel"} variant={"destructive"} onClick={handleClose}>
+                        {translate("Cancel")}
+                    </Button>
+                    <Button
+                        id={"password-change-dialog-submit"}
+                        variant={"default"}
+                        onClick={handlePasswordChange}
+                        disabled={!(oldPassword.length && newPassword.length && repeatNewPassword.length) || loading}
+                    >
+                        {loading ? <Spinner size={20} /> : null}
+                        {translate("Submit")}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions>
-                <Button id={"password-change-dialog-cancel"} color={"error"} onClick={handleClose}>
-                    {translate("Cancel")}
-                </Button>
-                <Button
-                    id={"password-change-dialog-submit"}
-                    color={"primary"}
-                    onClick={handlePasswordChange}
-                    disabled={!(oldPassword.length && newPassword.length && repeatNewPassword.length) || loading}
-                    startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
-                >
-                    {translate("Submit")}
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 };

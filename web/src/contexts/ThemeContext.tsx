@@ -1,10 +1,8 @@
 import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { Theme, ThemeProvider } from "@mui/material";
-
 import { LocalStorageThemeName } from "@constants/LocalStorage";
 import { localStorageAvailable, setLocalStorage } from "@services/LocalStorage";
-import * as themes from "@themes/index";
+import { ThemeNameAuto, ThemeNameDark, ThemeNameGrey, ThemeNameLight, ThemeNameOled } from "@themes/index";
 import { getTheme } from "@utils/Configuration";
 
 const MediaQueryDarkMode = "(prefers-color-scheme: dark)";
@@ -16,53 +14,51 @@ export interface Props {
 }
 
 export interface ValueProps {
-    theme: Theme;
     themeName: string;
     setThemeName: (_value: string) => void;
 }
 
 export default function ThemeContextProvider(props: Props) {
-    const [theme, setTheme] = useState(GetCurrentTheme());
     const [themeName, setThemeName] = useState(GetCurrentThemeName());
 
     useEffect(() => {
-        if (themeName === themes.ThemeNameAuto) {
+        document.documentElement.setAttribute("data-theme", ResolveThemeName(themeName));
+
+        if (themeName === ThemeNameAuto) {
             const query = globalThis.matchMedia?.(MediaQueryDarkMode);
             if (query?.addEventListener) {
-                query.addEventListener("change", mediaQueryListener);
+                const listener = (ev: MediaQueryListEvent) => {
+                    document.documentElement.setAttribute("data-theme", ev.matches ? "dark" : "light");
+                };
+
+                query.addEventListener("change", listener);
 
                 return () => {
-                    query.removeEventListener("change", mediaQueryListener);
+                    query.removeEventListener("change", listener);
                 };
             }
         }
-
-        setTheme(ThemeFromName(themeName));
     }, [themeName]);
 
     useEffect(() => {
+        const storageListener = (ev: StorageEvent) => {
+            if (ev.key !== LocalStorageThemeName) {
+                return;
+            }
+
+            if (ev.newValue && ev.newValue !== "") {
+                setThemeName(ev.newValue);
+            } else {
+                setThemeName(getUserThemeName());
+            }
+        };
+
         globalThis.addEventListener?.("storage", storageListener);
 
         return () => {
             globalThis.removeEventListener?.("storage", storageListener);
         };
     }, []);
-
-    const storageListener = (ev: StorageEvent): any => {
-        if (ev.key !== LocalStorageThemeName) {
-            return;
-        }
-
-        if (ev.newValue && ev.newValue !== "") {
-            setThemeName(ev.newValue);
-        } else {
-            setThemeName(getUserThemeName());
-        }
-    };
-
-    const mediaQueryListener = (ev: MediaQueryListEvent) => {
-        setTheme(ev.matches ? themes.Dark : themes.Light);
-    };
 
     const callback = useCallback((name: string) => {
         setThemeName(name);
@@ -73,17 +69,12 @@ export default function ThemeContextProvider(props: Props) {
     const value = useMemo(
         () => ({
             setThemeName: callback,
-            theme,
             themeName,
         }),
-        [callback, theme, themeName],
+        [callback, themeName],
     );
 
-    return (
-        <ThemeContext.Provider value={value}>
-            <ThemeWrapper>{props.children}</ThemeWrapper>
-        </ThemeContext.Provider>
-    );
+    return <ThemeContext.Provider value={value}>{props.children}</ThemeContext.Provider>;
 }
 
 export function useThemeContext() {
@@ -95,10 +86,21 @@ export function useThemeContext() {
     return context;
 }
 
-function ThemeWrapper(props: Props) {
-    const { theme } = useThemeContext();
-
-    return <ThemeProvider theme={theme}>{props.children}</ThemeProvider>;
+function ResolveThemeName(name: string): string {
+    switch (name) {
+        case ThemeNameLight:
+            return "light";
+        case ThemeNameDark:
+            return "dark";
+        case ThemeNameGrey:
+            return "grey";
+        case ThemeNameOled:
+            return "oled";
+        case ThemeNameAuto:
+            return globalThis.matchMedia?.(MediaQueryDarkMode).matches ? "dark" : "light";
+        default:
+            return globalThis.matchMedia?.(MediaQueryDarkMode).matches ? "dark" : "light";
+    }
 }
 
 function GetCurrentThemeName() {
@@ -111,27 +113,6 @@ function GetCurrentThemeName() {
     }
 
     return getTheme();
-}
-
-function GetCurrentTheme() {
-    return ThemeFromName(GetCurrentThemeName());
-}
-
-function ThemeFromName(name: string) {
-    switch (name) {
-        case themes.ThemeNameLight:
-            return themes.Light;
-        case themes.ThemeNameDark:
-            return themes.Dark;
-        case themes.ThemeNameGrey:
-            return themes.Grey;
-        case themes.ThemeNameOled:
-            return themes.Oled;
-        case themes.ThemeNameAuto:
-            return globalThis.matchMedia?.(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
-        default:
-            return globalThis.matchMedia?.(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
-    }
 }
 
 const getUserThemeName = () => {

@@ -1,9 +1,7 @@
 import { ReactNode, useState } from "react";
 
-import { Box, Button, Container, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
-
 import PushNotificationIcon from "@components/PushNotificationIcon";
+import { Button } from "@components/UI/Button";
 
 /* eslint-disable no-unused-vars */
 export enum State {
@@ -49,7 +47,7 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
     switch (state) {
         case State.DEVICE:
             container = (
-                <Grid container justifyContent="center" spacing={1} id="device-selection">
+                <div className="grid grid-cols-1 justify-center gap-2" id="device-selection">
                     {props.devices.map((value, index) => {
                         return (
                             <DeviceItem
@@ -60,12 +58,12 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
                             />
                         );
                     })}
-                </Grid>
+                </div>
             );
             break;
         case State.METHOD:
             container = (
-                <Grid container justifyContent="center" spacing={1} id="method-selection">
+                <div className="grid grid-cols-1 justify-center gap-2" id="method-selection">
                     {device.methods.map((value, index) => {
                         return (
                             <MethodItem
@@ -76,18 +74,18 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
                             />
                         );
                     })}
-                </Grid>
+                </div>
             );
             break;
     }
 
     return (
-        <Container>
+        <div className="mx-auto max-w-lg">
             {container}
-            <Button color="primary" onClick={props.onBack} id="device-selection-back">
+            <Button variant="default" onClick={props.onBack} id="device-selection-back">
                 back
             </Button>
-        </Container>
+        </div>
     );
 };
 
@@ -103,26 +101,16 @@ const DeviceItem = function (props: DeviceItemProps) {
     const idName = "device-" + props.device.id;
 
     return (
-        <Grid size={{ xs: 12 }} className={className} id={idName}>
-            <Button
-                sx={{
-                    display: "block",
-                    paddingBottom: (theme) => theme.spacing(4),
-                    paddingTop: (theme) => theme.spacing(4),
-                    width: "100%",
-                }}
-                color="primary"
-                variant="contained"
-                onClick={props.onSelect}
-            >
-                <Box sx={{ display: "inline-block", fill: "white" }}>
+        <div className={`${className} w-full`} id={idName}>
+            <Button className="block w-full py-8" variant="default" onClick={props.onSelect}>
+                <div className="inline-block fill-white">
                     <PushNotificationIcon width={32} height={32} />
-                </Box>
-                <Box>
-                    <Typography>{props.device.name}</Typography>
-                </Box>
+                </div>
+                <div>
+                    <p>{props.device.name}</p>
+                </div>
             </Button>
-        </Grid>
+        </div>
     );
 };
 
@@ -138,26 +126,16 @@ const MethodItem = function (props: MethodItemProps) {
     const idName = "method-" + props.method;
 
     return (
-        <Grid size={{ xs: 12 }} className={className} id={idName}>
-            <Button
-                sx={{
-                    display: "block",
-                    paddingBottom: (theme) => theme.spacing(4),
-                    paddingTop: (theme) => theme.spacing(4),
-                    width: "100%",
-                }}
-                color="primary"
-                variant="contained"
-                onClick={props.onSelect}
-            >
-                <Box sx={{ display: "inline-block", fill: "white" }}>
+        <div className={`${className} w-full`} id={idName}>
+            <Button className="block w-full py-8" variant="default" onClick={props.onSelect}>
+                <div className="inline-block fill-white">
                     <PushNotificationIcon width={32} height={32} />
-                </Box>
-                <Box>
-                    <Typography>{props.method}</Typography>
-                </Box>
+                </div>
+                <div>
+                    <p>{props.method}</p>
+                </div>
             </Button>
-        </Grid>
+        </div>
     );
 };
 

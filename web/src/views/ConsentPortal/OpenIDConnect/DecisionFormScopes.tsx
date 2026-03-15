@@ -1,10 +1,9 @@
 import { FC } from "react";
 
-import { Box, List, ListItem, ListItemIcon, ListItemText, Tooltip } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
 import { ScopeAvatar } from "@components/OpenIDConnect";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 import { formatScope } from "@services/ConsentOpenIDConnect";
 
 export interface Props {
@@ -15,27 +14,25 @@ const DecisionFormScopes: FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent"]);
 
     return (
-        <Grid size={{ xs: 12 }}>
-            <Box sx={{ textAlign: "center" }}>
-                <List
-                    sx={{
-                        backgroundColor: (theme) => theme.palette.background.paper,
-                        display: "inline-block",
-                        marginBottom: (theme) => theme.spacing(2),
-                        marginTop: (theme) => theme.spacing(2),
-                    }}
-                >
+        <div className="w-full">
+            <div className="text-center">
+                <ul className="my-4 inline-block list-none bg-card">
                     {props.scopes.map((scope: string) => (
-                        <Tooltip key={scope} title={translate("Scope", { name: scope })}>
-                            <ListItem id={"scope-" + scope} key={scope} dense>
-                                <ListItemIcon>{ScopeAvatar(scope)}</ListItemIcon>
-                                <ListItemText primary={formatScope(translate(`scopes.${scope}`), scope)} />
-                            </ListItem>
-                        </Tooltip>
+                        <TooltipProvider key={scope}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <li id={"scope-" + scope} className="flex items-center gap-3 px-2 py-1">
+                                        <span className="flex-shrink-0">{ScopeAvatar(scope)}</span>
+                                        <span>{formatScope(translate(`scopes.${scope}`), scope)}</span>
+                                    </li>
+                                </TooltipTrigger>
+                                <TooltipContent>{translate("Scope", { name: scope })}</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     ))}
-                </List>
-            </Box>
-        </Grid>
+                </ul>
+            </div>
+        </div>
     );
 };
 
