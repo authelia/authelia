@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, FormControl, IconButton, InputAdornment } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
+import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import PasswordMeter from "@components/PasswordMeter";
+import { Button } from "@components/UI/Button";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
 import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
@@ -16,6 +16,7 @@ import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
+import { cn } from "@utils/Styles";
 
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
@@ -130,109 +131,95 @@ const ResetPasswordStep2 = function () {
 
     return (
         <MinimalLayout title={translate("Enter new password")} id="reset-password-step2-stage">
-            <FormControl id={"form-reset-password"}>
-                <Grid
-                    container
-                    spacing={2}
-                    sx={{ marginBottom: (theme) => theme.spacing(2), marginTop: (theme) => theme.spacing(2) }}
-                >
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
-                            id="password1-textfield"
-                            label={translate("New password")}
-                            variant="outlined"
-                            type={showPassword ? "text" : "password"}
-                            value={password1}
-                            disabled={formDisabled}
-                            onChange={(e) => setPassword1(e.target.value)}
-                            error={errorPassword1}
-                            sx={{ width: "100%" }}
-                            autoComplete="new-password"
-                            slotProps={{
-                                input: {
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                aria-label="toggle password visibility"
-                                                edge="end"
-                                                size="large"
-                                                onMouseDown={() => setShowPassword(true)}
-                                                onMouseUp={() => setShowPassword(false)}
-                                                onMouseLeave={() => setShowPassword(false)}
-                                                onTouchStart={() => setShowPassword(true)}
-                                                onTouchEnd={() => setShowPassword(false)}
-                                                onTouchCancel={() => setShowPassword(false)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(true);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                onKeyUp={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(false);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                            >
-                                                {showPassword ? <Visibility /> : <VisibilityOff />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                },
-                            }}
-                        />
+            <div id={"form-reset-password"}>
+                <div className="my-4 grid grid-cols-1 gap-4">
+                    <div className="w-full">
+                        <Label htmlFor="password1-textfield">{translate("New password")}</Label>
+                        <div className="relative">
+                            <Input
+                                id="password1-textfield"
+                                type={showPassword ? "text" : "password"}
+                                value={password1}
+                                disabled={formDisabled}
+                                onChange={(e) => setPassword1(e.target.value)}
+                                className={cn("pr-10", errorPassword1 && "border-destructive")}
+                                autoComplete="new-password"
+                            />
+                            <button
+                                type="button"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                                aria-label="toggle password visibility"
+                                onMouseDown={() => setShowPassword(true)}
+                                onMouseUp={() => setShowPassword(false)}
+                                onMouseLeave={() => setShowPassword(false)}
+                                onTouchStart={() => setShowPassword(true)}
+                                onTouchEnd={() => setShowPassword(false)}
+                                onTouchCancel={() => setShowPassword(false)}
+                                onKeyDown={(e) => {
+                                    if (e.key === " ") {
+                                        setShowPassword(true);
+                                        e.preventDefault();
+                                    }
+                                }}
+                                onKeyUp={(e) => {
+                                    if (e.key === " ") {
+                                        setShowPassword(false);
+                                        e.preventDefault();
+                                    }
+                                }}
+                            >
+                                {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                            </button>
+                        </div>
                         {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
                             <PasswordMeter value={password1} policy={pPolicy} />
                         )}
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
+                    </div>
+                    <div className="w-full">
+                        <Label htmlFor="password2-textfield">{translate("Repeat new password")}</Label>
+                        <Input
                             id="password2-textfield"
-                            label={translate("Repeat new password")}
-                            variant="outlined"
                             type={showPassword ? "text" : "password"}
                             disabled={formDisabled}
                             value={password2}
                             onChange={(e) => setPassword2(e.target.value)}
-                            error={errorPassword2}
+                            className={cn(errorPassword2 && "border-destructive")}
                             onKeyDown={(ev) => {
                                 if (ev.key === "Enter") {
                                     doResetPassword().catch(console.error);
                                     ev.preventDefault();
                                 }
                             }}
-                            sx={{ width: "100%" }}
                             autoComplete="new-password"
                         />
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <Button
-                            id="reset-button"
-                            variant="contained"
-                            color="primary"
-                            name="password1"
-                            disabled={formDisabled}
-                            onClick={handleResetClick}
-                            sx={{ width: "100%" }}
-                        >
-                            {translate("Reset")}
-                        </Button>
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <Button
-                            id="cancel-button"
-                            variant="contained"
-                            color="primary"
-                            name="password2"
-                            onClick={handleCancelClick}
-                            sx={{ width: "100%" }}
-                        >
-                            {translate("Cancel")}
-                        </Button>
-                    </Grid>
-                </Grid>
-            </FormControl>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="w-full">
+                            <Button
+                                id="reset-button"
+                                variant="default"
+                                name="password1"
+                                disabled={formDisabled}
+                                onClick={handleResetClick}
+                                className="w-full"
+                            >
+                                {translate("Reset")}
+                            </Button>
+                        </div>
+                        <div className="w-full">
+                            <Button
+                                id="cancel-button"
+                                variant="default"
+                                name="password2"
+                                onClick={handleCancelClick}
+                                className="w-full"
+                            >
+                                {translate("Cancel")}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </MinimalLayout>
     );
 };

@@ -67,8 +67,8 @@ const defaultProps = {
 
 it("renders login form with username, password, and sign in button", () => {
     render(<FirstFactorForm {...defaultProps} />);
-    expect(screen.getByText("Username")).toBeInTheDocument();
-    expect(screen.getByText("Password")).toBeInTheDocument();
+    expect(screen.getByText(/Username/)).toBeInTheDocument();
+    expect(screen.getByText(/Password/)).toBeInTheDocument();
     expect(screen.getByText("Sign in")).toBeInTheDocument();
 });
 

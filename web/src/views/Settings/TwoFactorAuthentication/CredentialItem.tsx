@@ -1,11 +1,11 @@
-import { MouseEvent, ReactElement, ReactNode } from "react";
+import { MouseEvent, ReactNode } from "react";
 
-import { Delete, Edit, InfoOutlined, ReportProblem } from "@mui/icons-material";
-import { Box, Paper, Stack, Tooltip, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import IconButton from "@mui/material/IconButton";
+import { AlertTriangle, Info, Pencil, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
+import { Card } from "@components/UI/Card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 import { useRelativeTime } from "@hooks/RelativeTimeString";
 
 interface Props {
@@ -31,103 +31,87 @@ const CredentialItem = function (props: Props) {
     const timeSinceLastUsed = useRelativeTime(props.last_used_at || new Date(0));
 
     return (
-        <Paper variant={"outlined"} id={props.id}>
-            <Box sx={{ p: 3 }}>
-                <Grid container size={{ xs: 12 }} alignItems={"center"} height={"100%"}>
-                    <Grid container size={{ sm: 1, xs: 2 }} marginRight={{ md: 2, xl: 3, xs: 1 }}>
-                        {props.icon}
-                    </Grid>
-                    <Grid size={{ sm: 6, xs: 3 }}>
-                        <Stack direction={"column"}>
-                            <Stack direction={"row"}>
-                                <Typography
-                                    id={`${props.id}-description`}
-                                    display={"inline"}
-                                    sx={{ fontWeight: "bold" }}
-                                >
+        <Card id={props.id} className="p-0">
+            <div className="p-6">
+                <div className="flex items-center h-full w-full">
+                    <div className="shrink-0 mr-2 md:mr-4 xl:mr-6">{props.icon}</div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex flex-col">
+                            <div className="flex flex-row items-center">
+                                <span id={`${props.id}-description`} className="font-bold inline">
                                     {props.description}
-                                </Typography>
-                                <Typography display={{ sm: "inline", xs: "none" }} variant={"body2"} px={2}>
-                                    {props.qualifier}
-                                </Typography>
-                            </Stack>
-                            <Typography variant={"caption"} display={{ sm: "block", xs: "none" }}>
+                                </span>
+                                <span className="hidden sm:inline text-sm px-4">{props.qualifier}</span>
+                            </div>
+                            <span className="hidden sm:block text-xs text-muted-foreground">
                                 {`${translate("Added")} ${timeSinceAdded}`}
-                            </Typography>
-                            <Typography variant={"caption"} display={{ sm: "block", xs: "none" }}>
+                            </span>
+                            <span className="hidden sm:block text-xs text-muted-foreground">
                                 {props.last_used_at === undefined
                                     ? translate("Never used")
                                     : `${translate("Last Used")} ${timeSinceLastUsed}`}
-                            </Typography>
-                        </Stack>
-                    </Grid>
-                    <Grid size={{ sm: 4, xs: 6 }}>
-                        <Grid
-                            container
-                            size={{ xs: 12 }}
-                            justifyContent={"flex-end"}
-                            alignItems={"center"}
-                            height={"100%"}
-                        >
-                            {props.handleInformation ? (
-                                <Grid size={{ lg: 4, xs: 3 }}>
-                                    <TooltipElement
-                                        tooltip={
-                                            props.problem ? props.tooltipInformationProblem : props.tooltipInformation
-                                        }
-                                    >
-                                        <IconButton
-                                            color={"primary"}
-                                            onClick={props.handleInformation}
-                                            id={`${props.id}-information`}
-                                        >
-                                            {props.problem ? <ReportProblem color={"warning"} /> : <InfoOutlined />}
-                                        </IconButton>
-                                    </TooltipElement>
-                                </Grid>
-                            ) : null}
-                            {props.handleEdit ? (
-                                <Grid size={{ lg: 4, xs: 3 }}>
-                                    <TooltipElement tooltip={props.tooltipEdit}>
-                                        <IconButton
-                                            color={"primary"}
-                                            onClick={props.handleEdit}
-                                            id={`${props.id}-edit`}
-                                        >
-                                            <Edit />
-                                        </IconButton>
-                                    </TooltipElement>
-                                </Grid>
-                            ) : null}
-                            <Grid size={{ lg: 4, xs: 3 }}>
-                                <Tooltip title={props.tooltipDelete}>
-                                    <IconButton
-                                        color={"primary"}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-1">
+                        {props.handleInformation ? (
+                            <TooltipElement
+                                tooltip={props.problem ? props.tooltipInformationProblem : props.tooltipInformation}
+                            >
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={props.handleInformation}
+                                    id={`${props.id}-information`}
+                                >
+                                    {props.problem ? <AlertTriangle className="text-amber-500" /> : <Info />}
+                                </Button>
+                            </TooltipElement>
+                        ) : null}
+                        {props.handleEdit ? (
+                            <TooltipElement tooltip={props.tooltipEdit}>
+                                <Button variant="ghost" size="icon" onClick={props.handleEdit} id={`${props.id}-edit`}>
+                                    <Pencil />
+                                </Button>
+                            </TooltipElement>
+                        ) : null}
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
                                         onClick={props.handleDelete}
                                         id={`${props.id}-delete`}
                                     >
-                                        <Delete />
-                                    </IconButton>
-                                </Tooltip>
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                </Grid>
-            </Box>
-        </Paper>
+                                        <Trash2 />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>{props.tooltipDelete}</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                </div>
+            </div>
+        </Card>
     );
 };
 
 interface TooltipElementProps {
     tooltip?: string;
-    children: ReactElement<any, any>;
+    children: ReactNode;
 }
 
 const TooltipElement = function (props: TooltipElementProps) {
     return props.tooltip !== undefined && props.tooltip !== "" ? (
-        <Tooltip title={props.tooltip}>{props.children}</Tooltip>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>{props.children}</TooltipTrigger>
+                <TooltipContent>{props.tooltip}</TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     ) : (
-        props.children
+        <>{props.children}</>
     );
 };
 

@@ -1,4 +1,4 @@
-import { Fingerprint } from "@mui/icons-material";
+import { Fingerprint } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { WebAuthnCredential } from "@models/WebAuthn";
@@ -30,7 +30,7 @@ const WebAuthnCredentialItem = function (props: Props) {
     return (
         <CredentialItem
             id={`webauthn-credential-${props.index}`}
-            icon={<Fingerprint fontSize="large" color={"warning"} />}
+            icon={<Fingerprint className="size-7 text-amber-500" />}
             description={props.credential.description}
             qualifier={` (${props.credential.attestation_type.toUpperCase()})`}
             created_at={new Date(props.credential.created_at)}
