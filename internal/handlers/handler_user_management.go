@@ -622,6 +622,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		if ldap.IsErrorAnyOf(err, ldap.LDAPResultEntryAlreadyExists, ldap.LDAPResultConstraintViolation) {
 			ctx.Response.SetStatusCode(fasthttp.StatusConflict)
 			ctx.SetJSONError("User already exists")
+
 			return
 		}
 

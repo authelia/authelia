@@ -8,18 +8,18 @@ import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useAllUserInfoGET } from "@hooks/UserManagement";
-import { UserInfo } from "@models/UserInfo";
-import { to2FAString } from "@services/UserInfo";
+import { Method2FA, to2FAString, toSecondFactorMethod } from "@services/UserInfo";
 import EditUserDialog from "@views/Settings/UserManagement/EditUserDialog";
 import NewUserDialog from "@views/Settings/UserManagement/NewUserDialog.tsx";
 import VerifyDeleteUserDialog from "@views/Settings/UserManagement/VerifyDeleteUserDialog.tsx";
+import { UserDetailsExtended } from "@models/UserManagement.ts";
 
 const UserManagementView = () => {
     const { t: translate } = useTranslation("settings");
     const { createErrorNotification } = useNotifications();
 
     const [users, fetchUsers, , fetchUsersError] = useAllUserInfoGET();
-    const [selectedUser, setSelectedUser] = useState<null | UserInfo>(null);
+    const [selectedUser, setSelectedUser] = useState<null | UserDetailsExtended>(null);
     const [userToDelete, setUserToDelete] = useState("");
     const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
     const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
@@ -102,10 +102,12 @@ const UserManagementView = () => {
             return [];
         }
 
-        return users.map((user: UserInfo, index: number) => {
+        return users.map((user: UserDetailsExtended, index: number) => {
+            const methodEnum = user.method ? toSecondFactorMethod(user.method as Method2FA) : undefined;
+
             return {
                 display_name: user.display_name,
-                emails: Array.isArray(user.emails) ? user.emails[0] : user.emails,
+                emails: user.mail,
                 has_duo: user.has_duo ? "Yes" : "No",
                 has_totp: user.has_totp ? "Yes" : "No",
                 has_webauthn: user.has_webauthn ? "Yes" : "No",
@@ -115,8 +117,8 @@ const UserManagementView = () => {
                     ? new Date(user.last_password_change).toLocaleString()
                     : "-",
                 method:
-                    user.method && (user.has_duo || user.has_totp || user.has_webauthn)
-                        ? to2FAString(user.method)
+                    methodEnum && (user.has_duo || user.has_totp || user.has_webauthn)
+                        ? to2FAString(methodEnum)
                         : "-",
                 user_created_at: user.user_created_at ? new Date(user.user_created_at).toLocaleString() : "-",
                 username: user.username,

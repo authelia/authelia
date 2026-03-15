@@ -41,6 +41,23 @@ export function toSecondFactorMethod(method: Method2FA): SecondFactorMethod {
     }
 }
 
+export function toSecondFactorMethodOptional(method: Method2FA | string | undefined): SecondFactorMethod | undefined {
+    if (!method) {
+        return undefined;
+    }
+
+    switch (method) {
+        case "totp":
+            return SecondFactorMethod.TOTP;
+        case "webauthn":
+            return SecondFactorMethod.WebAuthn;
+        case "mobile_push":
+            return SecondFactorMethod.MobilePush;
+        default:
+            return undefined;
+    }
+}
+
 export function toMethod2FA(method: SecondFactorMethod): Method2FA {
     switch (method) {
         case SecondFactorMethod.TOTP:

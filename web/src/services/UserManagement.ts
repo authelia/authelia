@@ -1,8 +1,6 @@
-import { UserInfo } from "@models/UserInfo";
-import { CreateUserRequest, UserDetailsExtended } from "@models/UserManagement.js";
+import { UserDetailsExtended } from "@models/UserManagement.js";
 import { AdminConfigPath, AdminUserAttributeMetadataPath, AdminUserRestPath } from "@services/Api";
-import { DeleteWithOptionalResponse, Get, PostWithOptionalResponse, PatchWithOptionalResponse } from "@services/Client";
-import { UserInfoPayload, toSecondFactorMethod } from "@services/UserInfo";
+import { DeleteWithOptionalResponse, Get, PatchWithOptionalResponse, PostWithOptionalResponse } from "@services/Client";
 
 export interface AdminConfigBody {
     enabled: boolean;
@@ -30,9 +28,8 @@ export async function getUserAttributeMetadata(): Promise<UserAttributeMetadataB
     return await Get<UserAttributeMetadataBody>(AdminUserAttributeMetadataPath);
 }
 
-export async function getAllUserInfo(): Promise<UserInfo[]> {
-    const res = await Get<UserInfoPayload[]>(AdminUserRestPath);
-    return res.map((user) => ({ ...user, method: toSecondFactorMethod(user.method) }));
+export async function getAllUserInfo(): Promise<UserDetailsExtended[]> {
+    return await Get<UserDetailsExtended[]>(AdminUserRestPath);
 }
 
 export async function getUser(username: string): Promise<UserDetailsExtended> {
