@@ -1,15 +1,4 @@
-import {
-    AccountBox,
-    Autorenew,
-    Contacts,
-    Drafts,
-    Group,
-    Home,
-    LockOpen,
-    PhoneAndroid,
-    Policy,
-    Terminal,
-} from "@mui/icons-material";
+import { CircleUserRound, Home, Lock, Mail, Phone, RefreshCw, Shield, Terminal, UserRound, Users } from "lucide-react";
 
 import {
     ScopeAddress,
@@ -26,25 +15,25 @@ import {
 export function ScopeAvatar(scope: string) {
     switch (scope) {
         case ScopeOpenID:
-            return <AccountBox />;
+            return <CircleUserRound className="size-5" />;
         case ScopeOfflineAccess:
-            return <Autorenew />;
+            return <RefreshCw className="size-5" />;
         case ScopeProfile:
-            return <Contacts />;
+            return <UserRound className="size-5" />;
         case ScopeGroups:
-            return <Group />;
+            return <Users className="size-5" />;
         case ScopeEmail:
-            return <Drafts />;
+            return <Mail className="size-5" />;
         case ScopePhone:
-            return <PhoneAndroid />;
+            return <Phone className="size-5" />;
         case ScopeAddress:
-            return <Home />;
+            return <Home className="size-5" />;
         case ScopeAutheliaBearerAuthz:
-            return <LockOpen />;
+            return <Lock className="size-5" />;
         case ScopeAutheliaPAM:
-            return <Terminal />;
+            return <Terminal className="size-5" />;
         default:
-            return <Policy />;
+            return <Shield className="size-5" />;
     }
 }
 

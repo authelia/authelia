@@ -1,7 +1,5 @@
 import { ReactNode, useEffect } from "react";
 
-import { Box, Container } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
 import UserSvg from "@assets/images/user.svg?react";
@@ -23,17 +21,14 @@ const MinimalLayout = function (props: Props) {
     const { t: translate } = useTranslation();
 
     const logo = getLogoOverride() ? (
-        <Box
-            component={"img"}
+        <img
             src="./static/media/logo.png"
             alt="Logo"
-            sx={{ fill: (theme) => theme.custom.icon, margin: (theme) => theme.spacing(), width: "64px" }}
+            className="mx-auto my-2 w-16"
+            style={{ fill: "var(--custom-icon)" }}
         />
     ) : (
-        <Box
-            component={UserSvg}
-            sx={{ fill: (theme) => theme.custom.icon, margin: (theme) => theme.spacing(), width: "64px" }}
-        />
+        <UserSvg className="mx-auto my-2 w-16" style={{ fill: "var(--custom-icon)" }} />
     );
 
     useEffect(() => {
@@ -41,39 +36,23 @@ const MinimalLayout = function (props: Props) {
     }, [translate]);
 
     return (
-        <Box>
+        <div>
             <AppBarLoginPortal userInfo={props.userInfo} />
-            <Grid
-                id={props.id}
-                container
-                spacing={0}
-                alignItems="center"
-                justifyContent="center"
-                sx={{ minHeight: "90vh", textAlign: "center" }}
-            >
-                <Container maxWidth="xs" sx={{ paddingLeft: "32px", paddingRight: "32px" }}>
-                    <Grid container>
-                        <Grid size={{ xs: 12 }}>{logo}</Grid>
+            <div id={props.id} className="flex min-h-[90vh] items-center justify-center text-center">
+                <div className="mx-auto w-full max-w-[444px] px-8">
+                    <div className="flex flex-col items-stretch">
+                        <div className="w-full">{logo}</div>
                         {props.title ? (
-                            <Grid size={{ xs: 12 }}>
+                            <div className="w-full">
                                 <TypographyWithTooltip variant="h5" value={props.title} />
-                            </Grid>
+                            </div>
                         ) : null}
-                        <Grid
-                            size={{ xs: 12 }}
-                            sx={{
-                                marginTop: (theme) => theme.spacing(),
-                                paddingBottom: (theme) => theme.spacing(),
-                                paddingTop: (theme) => theme.spacing(),
-                            }}
-                        >
-                            {props.children}
-                        </Grid>
-                    </Grid>
-                </Container>
+                        <div className="mt-2 py-2">{props.children}</div>
+                    </div>
+                </div>
                 <PrivacyPolicyDrawer />
-            </Grid>
-        </Box>
+            </div>
+        </div>
     );
 };
 

@@ -1,9 +1,10 @@
-import { ChangeEvent, FC, Fragment, useCallback, useMemo } from "react";
+import { FC, Fragment, useCallback, useMemo } from "react";
 
-import { Box, Checkbox, FormControlLabel, List, Tooltip } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
+import { Checkbox } from "@components/UI/Checkbox";
+import { Label } from "@components/UI/Label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 import { formatClaim } from "@services/ConsentOpenIDConnect";
 
 export interface Props {
@@ -17,13 +18,13 @@ const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeCheck
 
     const checked = useMemo(() => claims || [], [claims]);
 
-    const handleClaimCheckboxOnChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const checking = !checked.includes(event.target.value);
+    const handleClaimCheckboxOnChange = (claim: string) => {
+        const checking = !checked.includes(claim);
 
         if (checking) {
-            onChangeChecked([...checked, event.target.value]);
+            onChangeChecked([...checked, claim]);
         } else {
-            onChangeChecked(checked.filter((value) => value !== event.target.value));
+            onChangeChecked(checked.filter((value) => value !== claim));
         }
     };
 
@@ -39,42 +40,46 @@ const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeCheck
     return (
         <Fragment>
             {hasClaims ? (
-                <Grid size={{ xs: 12 }}>
-                    <Box sx={{ textAlign: "center" }}>
-                        <List
-                            sx={{
-                                backgroundColor: (theme) => theme.palette.background.paper,
-                                display: "inline-block",
-                                marginBottom: (theme) => theme.spacing(2),
-                                marginTop: (theme) => theme.spacing(2),
-                            }}
-                        >
+                <div className="w-full">
+                    <div className="text-center">
+                        <ul className="my-4 inline-block list-none bg-card">
                             {essential_claims?.map((claim: string) => (
-                                <Tooltip key={`${claim}-essential`} title={translate("Claim", { name: claim })}>
-                                    <FormControlLabel
-                                        control={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
-                                        label={formatClaim(translate(`claims.${claim}`), claim)}
-                                    />
-                                </Tooltip>
+                                <TooltipProvider key={`${claim}-essential`}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <li className="flex items-center gap-2 px-2 py-1">
+                                                <Checkbox id={`claim-${claim}-essential`} disabled checked />
+                                                <Label htmlFor={`claim-${claim}-essential`}>
+                                                    {formatClaim(translate(`claims.${claim}`), claim)}
+                                                </Label>
+                                            </li>
+                                        </TooltipTrigger>
+                                        <TooltipContent>{translate("Claim", { name: claim })}</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             ))}
                             {claims?.map((claim: string) => (
-                                <Tooltip key={claim} title={translate("Claim", { name: claim })}>
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                id={"claim-" + claim}
-                                                value={claim}
-                                                checked={claimChecked(claim)}
-                                                onChange={handleClaimCheckboxOnChange}
-                                            />
-                                        }
-                                        label={formatClaim(translate(`claims.${claim}`), claim)}
-                                    />
-                                </Tooltip>
+                                <TooltipProvider key={claim}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <li className="flex items-center gap-2 px-2 py-1">
+                                                <Checkbox
+                                                    id={"claim-" + claim}
+                                                    checked={claimChecked(claim)}
+                                                    onCheckedChange={() => handleClaimCheckboxOnChange(claim)}
+                                                />
+                                                <Label htmlFor={"claim-" + claim}>
+                                                    {formatClaim(translate(`claims.${claim}`), claim)}
+                                                </Label>
+                                            </li>
+                                        </TooltipTrigger>
+                                        <TooltipContent>{translate("Claim", { name: claim })}</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             ))}
-                        </List>
-                    </Box>
-                </Grid>
+                        </ul>
+                    </div>
+                </div>
             ) : null}
         </Fragment>
     );

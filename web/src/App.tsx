@@ -1,10 +1,10 @@
 import { Suspense, lazy } from "react";
 
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
-import { CssBaseline } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
+import { TooltipProvider } from "@components/UI/Tooltip";
 import {
     ConsentRoute,
     IndexRoute,
@@ -49,34 +49,38 @@ function App() {
         <LanguageContextProvider i18n={i18n}>
             <ThemeContextProvider>
                 <Suspense fallback={<LoadingPage />}>
-                    <CssBaseline />
-                    <NotificationsContextProvider>
-                        <LocalStorageMethodContextProvider>
-                            <Router basename={getBasePath()}>
-                                <Routes>
-                                    <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
-                                    <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                                    <Route path={LogoutRoute} element={<SignOut />} />
-                                    <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
-                                    <Route path={RevokeResetPasswordRoute} element={<RevokeResetPasswordTokenView />} />
-                                    <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
-                                    <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
-                                    <Route
-                                        path={`${IndexRoute}*`}
-                                        element={
-                                            <LoginPortal
-                                                duoSelfEnrollment={getDuoSelfEnrollment()}
-                                                passkeyLogin={getPasskeyLogin()}
-                                                rememberMe={getRememberMe()}
-                                                resetPassword={getResetPassword()}
-                                                resetPasswordCustomURL={getResetPasswordCustomURL()}
-                                            />
-                                        }
-                                    />
-                                </Routes>
-                            </Router>
-                        </LocalStorageMethodContextProvider>
-                    </NotificationsContextProvider>
+                    <TooltipProvider>
+                        <NotificationsContextProvider>
+                            <LocalStorageMethodContextProvider>
+                                <Router basename={getBasePath()}>
+                                    <Routes>
+                                        <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
+                                        <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
+                                        <Route path={LogoutRoute} element={<SignOut />} />
+                                        <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
+                                        <Route
+                                            path={RevokeResetPasswordRoute}
+                                            element={<RevokeResetPasswordTokenView />}
+                                        />
+                                        <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
+                                        <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
+                                        <Route
+                                            path={`${IndexRoute}*`}
+                                            element={
+                                                <LoginPortal
+                                                    duoSelfEnrollment={getDuoSelfEnrollment()}
+                                                    passkeyLogin={getPasskeyLogin()}
+                                                    rememberMe={getRememberMe()}
+                                                    resetPassword={getResetPassword()}
+                                                    resetPasswordCustomURL={getResetPasswordCustomURL()}
+                                                />
+                                            }
+                                        />
+                                    </Routes>
+                                </Router>
+                            </LocalStorageMethodContextProvider>
+                        </NotificationsContextProvider>
+                    </TooltipProvider>
                 </Suspense>
             </ThemeContextProvider>
         </LanguageContextProvider>

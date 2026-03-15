@@ -1,8 +1,10 @@
 import { FC, Fragment, useEffect, useState } from "react";
 
-import { Checkbox, FormControlLabel, Tooltip } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
+
+import { Checkbox } from "@components/UI/Checkbox";
+import { Label } from "@components/UI/Label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 
 export interface Props {
     pre_configuration: boolean;
@@ -25,22 +27,25 @@ const DecisionFormPreConfiguration: FC<Props> = (props: Props) => {
     return (
         <Fragment>
             {props.pre_configuration ? (
-                <Grid size={{ xs: 12 }}>
-                    <Tooltip title={translate("This saves this consent as a pre-configured consent for future use")}>
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    id="pre-configure"
-                                    checked={preConfigure}
-                                    onChange={handlePreConfigureChanged}
-                                    value="preConfigure"
-                                    color="primary"
-                                />
-                            }
-                            label={translate("Remember Consent")}
-                        />
-                    </Tooltip>
-                </Grid>
+                <div className="w-full">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2">
+                                    <Checkbox
+                                        id="pre-configure"
+                                        checked={preConfigure}
+                                        onCheckedChange={handlePreConfigureChanged}
+                                    />
+                                    <Label htmlFor="pre-configure">{translate("Remember Consent")}</Label>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {translate("This saves this consent as a pre-configured consent for future use")}
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             ) : null}
         </Fragment>
     );

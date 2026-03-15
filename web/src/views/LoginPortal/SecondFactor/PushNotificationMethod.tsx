@@ -1,12 +1,12 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-import { Box, Button } from "@mui/material";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
 import SuccessIcon from "@components/SuccessIcon";
+import { Button } from "@components/UI/Button";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
@@ -323,12 +323,12 @@ const PushNotificationMethod = function (props: Props) {
             onSelectClick={handleFetchDuoDevices}
             onRegisterClick={() => window.open(enrollUrl, "_blank", "noopener,noreferrer")}
         >
-            <Box sx={{ display: "inline-block", height: "64px", width: "64px" }}>{icon}</Box>
-            <Box className={state === State.Failure ? "" : "hidden"}>
-                <Button color="secondary" onClick={handleSignIn}>
+            <div className="flex w-full justify-center">{icon}</div>
+            <div className={state === State.Failure ? "" : "hidden"}>
+                <Button variant="secondary" onClick={handleSignIn}>
                     {translate("Retry")}
                 </Button>
-            </Box>
+            </div>
         </MethodContainer>
     );
 };

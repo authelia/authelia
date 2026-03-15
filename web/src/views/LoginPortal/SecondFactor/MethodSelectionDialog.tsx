@@ -1,12 +1,12 @@
 import { ReactNode } from "react";
 
-import { Box, Button, Dialog, DialogActions, DialogContent, Typography, useTheme } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
 import FingerTouchIcon from "@components/FingerTouchIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
 import TimerIcon from "@components/TimerIcon";
+import { Button } from "@components/UI/Button";
+import { Dialog, DialogContent, DialogFooter } from "@components/UI/Dialog";
 import { SecondFactorMethod } from "@models/Methods";
 
 export interface Props {
@@ -20,15 +20,19 @@ export interface Props {
 
 const MethodSelectionDialog = function (props: Props) {
     const { t: translate } = useTranslation();
-    const theme = useTheme();
     const pieChartIcon = (
-        <TimerIcon width={24} height={24} period={15} color={theme.palette.primary.main} backgroundColor={"white"} />
+        <TimerIcon width={32} height={32} period={15} color="hsl(var(--primary))" backgroundColor={"white"} />
     );
 
     return (
-        <Dialog open={props.open} sx={{ textAlign: "center" }} onClose={props.onClose}>
-            <DialogContent>
-                <Grid container justifyContent="center" spacing={1} id="methods-dialog">
+        <Dialog
+            open={props.open}
+            onOpenChange={(open) => {
+                if (!open) props.onClose();
+            }}
+        >
+            <DialogContent className="sm:max-w-xl text-center" showCloseButton={false}>
+                <div className="grid grid-cols-1 justify-center gap-3" id="methods-dialog">
                     {props.methods.has(SecondFactorMethod.TOTP) ? (
                         <MethodItem
                             id="one-time-password-option"
@@ -53,13 +57,13 @@ const MethodSelectionDialog = function (props: Props) {
                             onClick={() => props.onClick(SecondFactorMethod.MobilePush)}
                         />
                     ) : null}
-                </Grid>
+                </div>
+                <DialogFooter>
+                    <Button variant="default" onClick={props.onClose}>
+                        {translate("Close")}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions>
-                <Button color="primary" onClick={props.onClose}>
-                    {translate("Close")}
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 };
@@ -74,24 +78,14 @@ interface MethodItemProps {
 
 function MethodItem(props: MethodItemProps) {
     return (
-        <Grid size={{ xs: 12 }} className="method-option" id={props.id}>
-            <Button
-                sx={{
-                    display: "block",
-                    paddingBottom: (theme) => theme.spacing(4),
-                    paddingTop: (theme) => theme.spacing(4),
-                    width: "100%",
-                }}
-                color="primary"
-                variant="contained"
-                onClick={props.onClick}
-            >
-                <Box sx={{ display: "inline-block", fill: "white" }}>{props.icon}</Box>
-                <Box>
-                    <Typography>{props.method}</Typography>
-                </Box>
+        <div className="method-option w-full" id={props.id}>
+            <Button className="block h-auto w-full py-8 [&_svg]:!size-auto" variant="default" onClick={props.onClick}>
+                <div className="mb-2 flex justify-center fill-white">{props.icon}</div>
+                <div>
+                    <p className="text-sm">{props.method}</p>
+                </div>
             </Button>
-        </Grid>
+        </div>
     );
 }
 

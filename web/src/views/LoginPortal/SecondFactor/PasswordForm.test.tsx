@@ -36,7 +36,7 @@ vi.mock("@services/CapsLock", () => ({
 
 it("renders the password form", () => {
     render(<PasswordForm onAuthenticationSuccess={vi.fn()} />);
-    expect(screen.getByText("Password")).toBeInTheDocument();
+    expect(screen.getByText(/Password/)).toBeInTheDocument();
     expect(screen.getByText("Authenticate")).toBeInTheDocument();
 });
 
@@ -52,5 +52,5 @@ it("shows error when submitting empty password", async () => {
     });
 
     expect(mockPostSecondFactor).not.toHaveBeenCalled();
-    expect(screen.getByLabelText("Password *")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText(/Password/)).toHaveClass("border-destructive");
 });

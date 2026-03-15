@@ -1,6 +1,5 @@
 import { Fragment, ReactNode } from "react";
 
-import { Box, Link, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import InformationIcon from "@components/InformationIcon";
@@ -53,35 +52,33 @@ const DefaultMethodContainer = function (props: Props) {
     }
 
     return (
-        <Box id={props.id}>
-            <Typography variant={"h6"}>{props.title}</Typography>
-            <Box id={"2fa-container"} className={stateClass} sx={{ height: "200px" }}>
-                <Box
-                    sx={{
-                        alignContent: "center",
-                        alignItems: "center",
-                        display: "flex",
-                        flexWrap: "wrap",
-                        height: "100%",
-                        justifyContent: "center",
-                        width: "100%",
-                    }}
-                >
+        <div id={props.id}>
+            <h6 className="text-xl font-medium">{props.title}</h6>
+            <div id={"2fa-container"} className={`${stateClass} h-[200px]`}>
+                <div className="flex h-full w-full flex-wrap content-center items-center justify-center">
                     {container}
-                </Box>
-            </Box>
+                </div>
+            </div>
             {props.onSelectClick && props.registered ? (
-                <Link id={"selection-link"} component={"button"} onClick={props.onSelectClick} underline={"hover"}>
+                <button
+                    id={"selection-link"}
+                    className="text-base text-primary underline-offset-4 hover:underline"
+                    onClick={props.onSelectClick}
+                >
                     {translate("Select a Device")}
-                </Link>
+                </button>
             ) : null}
             {(props.onRegisterClick && props.title !== "Push Notification") ||
             (props.onRegisterClick && props.title === "Push Notification" && props.duoSelfEnrollment) ? (
-                <Link id={"register-link"} component={"button"} onClick={props.onRegisterClick} underline={"hover"}>
+                <button
+                    id={"register-link"}
+                    className="text-base text-primary underline-offset-4 hover:underline"
+                    onClick={props.onRegisterClick}
+                >
                     {registerMessage}
-                </Link>
+                </button>
             ) : null}
-        </Box>
+        </div>
     );
 };
 
@@ -103,13 +100,13 @@ function NotRegisteredContainer(props: NotRegisteredContainerProps) {
 
     return (
         <Fragment>
-            <Box sx={{ flex: "0 0 100%", marginBottom: (theme) => theme.spacing(2) }}>
+            <div className="mb-4 flex-[0_0_100%]">
                 <InformationIcon />
-            </Box>
-            <Typography sx={{ color: "#5858ff" }}>
+            </div>
+            <p className="text-[#5858ff]">
                 {translate("The resource you're attempting to access requires two-factor authentication")}
-            </Typography>
-            <Typography sx={{ color: "#5858ff" }}>{infoText}</Typography>
+            </p>
+            <p className="text-[#5858ff]">{infoText}</p>
         </Fragment>
     );
 }
@@ -122,8 +119,8 @@ interface MethodContainerProps {
 function MethodContainer(props: MethodContainerProps) {
     return (
         <Fragment>
-            <Box sx={{ marginBottom: (theme) => theme.spacing(2) }}>{props.children}</Box>
-            <Typography>{props.explanation}</Typography>
+            <div className="mb-4">{props.children}</div>
+            <p>{props.explanation}</p>
         </Fragment>
     );
 }

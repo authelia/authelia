@@ -1,7 +1,5 @@
 import { ReactNode } from "react";
 
-import { Box } from "@mui/material";
-
 interface IconWithContextProps {
     icon: ReactNode;
     children: ReactNode;
@@ -11,12 +9,12 @@ interface IconWithContextProps {
 
 const IconWithContext = function (props: IconWithContextProps) {
     return (
-        <Box className={props.className}>
-            <Box sx={{ alignItems: "center", display: "flex", flexDirection: "column" }}>
-                <Box sx={{ height: 64, width: 64 }}>{props.icon}</Box>
-            </Box>
-            <Box sx={{ display: "block" }}>{props.children}</Box>
-        </Box>
+        <div className={props.className}>
+            <div className="flex flex-col items-center">
+                <div className="flex h-16 w-16 items-center justify-center">{props.icon}</div>
+            </div>
+            <div className="block">{props.children}</div>
+        </div>
     );
 };
 

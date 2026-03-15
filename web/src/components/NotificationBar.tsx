@@ -1,47 +1,36 @@
-import { useCallback, useState } from "react";
+import { useEffect, useRef } from "react";
 
-import { Alert, Slide, SlideProps, Snackbar } from "@mui/material";
+import { toast } from "sonner";
 
+import { Toaster } from "@components/UI/Sonner";
 import { useNotifications } from "@contexts/NotificationsContext";
-import { Notification } from "@models/Notifications";
-
-type NotificationBarTransitionProps = Omit<SlideProps, "direction">;
-
-function NotificationBarTransition(props: Readonly<NotificationBarTransitionProps>) {
-    return <Slide {...props} direction={"left"} />;
-}
 
 const NotificationBar = function () {
     const { notification, resetNotification } = useNotifications();
-    const [lastNotification, setLastNotification] = useState<Notification | null>(null);
+    const prevNotificationRef = useRef(notification);
 
-    if (notification !== null && notification !== lastNotification) {
-        setLastNotification(notification);
-    }
+    useEffect(() => {
+        if (notification && notification !== prevNotificationRef.current) {
+            const toastFn =
+                notification.level === "success"
+                    ? toast.success
+                    : notification.level === "error"
+                      ? toast.error
+                      : notification.level === "warning"
+                        ? toast.warning
+                        : toast.info;
 
-    const handleExited = useCallback(() => {
-        setLastNotification(null);
-    }, []);
+            toastFn(notification.message, {
+                duration: notification.timeout * 1000,
+                onAutoClose: () => resetNotification(),
+                onDismiss: () => resetNotification(),
+            });
+        }
 
-    const open = notification !== null;
-    const displayed = notification ?? lastNotification;
+        prevNotificationRef.current = notification;
+    }, [notification, resetNotification]);
 
-    return (
-        <Snackbar
-            open={open}
-            anchorOrigin={{ horizontal: "right", vertical: "top" }}
-            autoHideDuration={displayed ? displayed.timeout * 1000 : 10000}
-            onClose={resetNotification}
-            slots={{ transition: NotificationBarTransition }}
-            slotProps={{ transition: { onExited: handleExited } }}
-        >
-            {displayed ? (
-                <Alert severity={displayed.level} variant={"filled"} elevation={6} className={"notification"}>
-                    {displayed.message}
-                </Alert>
-            ) : undefined}
-        </Snackbar>
-    );
+    return <Toaster position="top-right" richColors />;
 };
 
 export default NotificationBar;

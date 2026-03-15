@@ -1,9 +1,11 @@
 import { Fragment, useCallback, useState } from "react";
 
-import { Box, Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
+import { Card, CardContent } from "@components/UI/Card";
+import { Spinner } from "@components/UI/Spinner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
 import { UserInfo } from "@models/UserInfo";
 import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
@@ -211,56 +213,56 @@ const OneTimePasswordPanel = function (props: Props) {
                     props.handleRefreshState();
                 }}
             />
-            <Paper variant={"outlined"}>
-                <Grid container spacing={2} padding={2}>
-                    <Grid size={{ xs: 12 }}>
-                        <Typography variant={"h5"}>{translate("One-Time Password")}</Typography>
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <Tooltip
-                            title={
-                                registered
-                                    ? translate("You can only register a single One-Time Password")
-                                    : translate("Click to add a {{item}} to your account", {
-                                          item: translate("One-Time Password"),
-                                      })
-                            }
-                        >
-                            <Box component={"span"}>
-                                <Button
-                                    id={"one-time-password-add"}
-                                    variant="outlined"
-                                    color="primary"
-                                    onClick={handleRegister}
-                                    disabled={registered || dialogRegisterOpening || dialogRegisterOpen}
-                                    endIcon={
-                                        dialogRegisterOpening ? <CircularProgress color="inherit" size={20} /> : null
-                                    }
-                                >
-                                    {translate("Add")}
-                                </Button>
-                            </Box>
-                        </Tooltip>
-                    </Grid>
+            <Card>
+                <CardContent className="grid grid-cols-12 gap-4 p-4">
+                    <div className="col-span-12">
+                        <h5 className="text-xl font-semibold">{translate("One-Time Password")}</h5>
+                    </div>
+                    <div className="col-span-12">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span>
+                                        <Button
+                                            id={"one-time-password-add"}
+                                            variant="outline"
+                                            onClick={handleRegister}
+                                            disabled={registered || dialogRegisterOpening || dialogRegisterOpen}
+                                        >
+                                            {dialogRegisterOpening ? <Spinner size={20} /> : null}
+                                            {translate("Add")}
+                                        </Button>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {registered
+                                        ? translate("You can only register a single One-Time Password")
+                                        : translate("Click to add a {{item}} to your account", {
+                                              item: translate("One-Time Password"),
+                                          })}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                     {props.config === null || props.config === undefined ? (
-                        <Grid size={{ xs: 12 }}>
-                            <Typography variant={"subtitle2"}>
+                        <div className="col-span-12">
+                            <p className="text-sm text-muted-foreground">
                                 {translate(
                                     "The One-Time Password has not been registered if you'd like to register it click add",
                                 )}
-                            </Typography>
-                        </Grid>
+                            </p>
+                        </div>
                     ) : (
-                        <Grid size={{ md: 6, xl: 3, xs: 12 }}>
+                        <div className="col-span-12 md:col-span-6 xl:col-span-3">
                             <OneTimePasswordConfiguration
                                 config={props.config}
                                 handleInformation={handleInformation}
                                 handleDelete={handleDelete}
                             />
-                        </Grid>
+                        </div>
                     )}
-                </Grid>
-            </Paper>
+                </CardContent>
+            </Card>
         </Fragment>
     );
 };

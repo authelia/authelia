@@ -1,9 +1,11 @@
 import { Fragment, useCallback, useState } from "react";
 
-import { Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
+import { Card, CardContent } from "@components/UI/Card";
+import { Spinner } from "@components/UI/Spinner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 import { UserInfo } from "@models/UserInfo";
 import { WebAuthnCredential } from "@models/WebAuthn";
 import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
@@ -263,36 +265,40 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                     props.handleRefreshState();
                 }}
             />
-            <Paper variant={"outlined"}>
-                <Grid container spacing={2} padding={2}>
-                    <Grid size={{ xs: 12 }}>
-                        <Typography variant="h5">{translate("WebAuthn Credentials")}</Typography>
-                    </Grid>
-                    <Grid size={{ md: 2, xs: 4 }}>
-                        <Tooltip
-                            title={translate("Click to add a {{item}} to your account", {
-                                item: translate("WebAuthn Credential"),
-                            })}
-                        >
-                            <Button
-                                id={"webauthn-credential-add"}
-                                variant="outlined"
-                                color="primary"
-                                onClick={handleRegister}
-                                disabled={dialogRegisterOpening || dialogRegisterOpen}
-                                endIcon={dialogRegisterOpening ? <CircularProgress color="inherit" size={20} /> : null}
-                            >
-                                {translate("Add")}
-                            </Button>
-                        </Tooltip>
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
+            <Card>
+                <CardContent className="grid grid-cols-12 gap-4 p-4">
+                    <div className="col-span-12">
+                        <h5 className="text-xl font-semibold">{translate("WebAuthn Credentials")}</h5>
+                    </div>
+                    <div className="col-span-12 md:col-span-2 xs:col-span-4">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        id={"webauthn-credential-add"}
+                                        variant="outline"
+                                        onClick={handleRegister}
+                                        disabled={dialogRegisterOpening || dialogRegisterOpen}
+                                    >
+                                        {dialogRegisterOpening ? <Spinner size={20} /> : null}
+                                        {translate("Add")}
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {translate("Click to add a {{item}} to your account", {
+                                        item: translate("WebAuthn Credential"),
+                                    })}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                    <div className="col-span-12">
                         {props.credentials === undefined || props.credentials.length === 0 ? (
-                            <Typography variant={"subtitle2"}>
+                            <p className="text-sm text-muted-foreground">
                                 {translate(
                                     "No WebAuthn Credentials have been registered if you'd like to register one click add",
                                 )}
-                            </Typography>
+                            </p>
                         ) : (
                             <WebAuthnCredentialsGrid
                                 credentials={props.credentials}
@@ -301,9 +307,9 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                                 handleDelete={handleDelete}
                             />
                         )}
-                    </Grid>
-                </Grid>
-            </Paper>
+                    </div>
+                </CardContent>
+            </Card>
         </Fragment>
     );
 };
