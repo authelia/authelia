@@ -307,12 +307,18 @@ const ChangePasswordDialog = (props: Props) => {
                     </div>
                 </fieldset>
                 <DialogFooter>
-                    <Button id={"password-change-dialog-cancel"} variant={"destructive"} onClick={handleClose}>
+                    <Button
+                        id={"password-change-dialog-cancel"}
+                        variant={"ghost"}
+                        color={"destructive"}
+                        onClick={handleClose}
+                    >
                         {translate("Cancel")}
                     </Button>
                     <Button
                         id={"password-change-dialog-submit"}
-                        variant={"default"}
+                        variant={"ghost"}
+                        color={"primary"}
                         onClick={handlePasswordChange}
                         disabled={!(oldPassword.length && newPassword.length && repeatNewPassword.length) || loading}
                     >

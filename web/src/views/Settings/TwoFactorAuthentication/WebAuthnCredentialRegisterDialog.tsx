@@ -279,7 +279,8 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 <DialogFooter>
                     <Button
                         id={"dialog-cancel"}
-                        variant={activeStep === 1 && state !== WebAuthnTouchState.Failure ? "outline" : "destructive"}
+                        variant={"ghost"}
+                        color={activeStep === 1 && state !== WebAuthnTouchState.Failure ? "primary" : "destructive"}
                         disabled={activeStep === 1 && state !== WebAuthnTouchState.Failure}
                         onClick={handleClose}
                     >
@@ -288,8 +289,8 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                     {activeStep === 0 ? (
                         <Button
                             id={"dialog-next"}
-                            variant={description.length > 0 ? "default" : "outline"}
-                            className={description.length > 0 ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+                            variant={"ghost"}
+                            color={description.length > 0 ? "success" : "primary"}
                             disabled={activeStep !== 0}
                             onClick={async () => {
                                 handleNext();

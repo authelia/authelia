@@ -24,28 +24,63 @@ const buttonVariants = cva(
                 xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
             },
             variant: {
-                default: "bg-primary text-primary-foreground hover:bg-primary/90",
-                destructive:
-                    "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
-                ghost: "hover:bg-secondary/10 hover:text-secondary dark:hover:bg-secondary/10",
-                link: "text-primary underline-offset-4 hover:underline",
-                outline:
-                    "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-                secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+                default: "",
+                ghost: "",
+                outline: "border",
             },
         },
     },
 );
 
+type ButtonColor = "default" | "destructive" | "primary" | "secondary" | "success";
+
+const colorClasses: Record<ButtonColor, { default: string; ghost: string; outline: string }> = {
+    default: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        ghost: "hover:bg-accent/10",
+        outline:
+            "border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+    },
+    destructive: {
+        default: "bg-destructive text-white hover:bg-destructive/90",
+        ghost: "text-destructive hover:bg-destructive/10",
+        outline: "border-destructive text-destructive hover:bg-destructive/10",
+    },
+    primary: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        ghost: "text-primary hover:bg-primary/10",
+        outline: "border-primary text-primary hover:bg-primary/10",
+    },
+    secondary: {
+        default: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "text-secondary hover:bg-secondary/10",
+        outline: "border-secondary text-secondary hover:bg-secondary/10",
+    },
+    success: {
+        default: "bg-green-600 text-white hover:bg-green-700",
+        ghost: "text-green-600 hover:bg-green-600/10 dark:text-green-500 dark:hover:bg-green-500/10",
+        outline:
+            "border-green-600 text-green-600 hover:bg-green-600/10 dark:border-green-500 dark:text-green-500 dark:hover:bg-green-500/10",
+    },
+};
+
+function getColorClasses(variant: string = "default", color: ButtonColor = "default"): string {
+    const entry = colorClasses[color] ?? colorClasses.default;
+
+    return entry[variant as keyof typeof entry] ?? entry.default;
+}
+
 function Button({
     asChild = false,
     className,
+    color,
     size = "default",
     variant = "default",
     ...props
 }: ComponentProps<"button"> &
     VariantProps<typeof buttonVariants> & {
         asChild?: boolean;
+        color?: ButtonColor;
     }) {
     const Comp = asChild ? Slot.Root : "button";
 
@@ -54,10 +89,11 @@ function Button({
             data-slot="button"
             data-variant={variant}
             data-size={size}
-            className={cn(buttonVariants({ className, size, variant }))}
+            className={cn(buttonVariants({ size, variant }), getColorClasses(variant ?? undefined, color), className)}
             {...props}
         />
     );
 }
 
 export { Button, buttonVariants };
+export type { ButtonColor };
