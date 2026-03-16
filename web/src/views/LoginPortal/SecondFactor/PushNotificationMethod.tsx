@@ -319,7 +319,7 @@ const PushNotificationMethod = function (props: Props) {
         >
             <div className="flex w-full justify-center">{icon}</div>
             <div className={state === State.Failure ? "" : "hidden"}>
-                <Button variant="secondary" onClick={handleSignIn}>
+                <Button variant={"ghost"} color={"secondary"} onClick={handleSignIn}>
                     {translate("Retry")}
                 </Button>
             </div>

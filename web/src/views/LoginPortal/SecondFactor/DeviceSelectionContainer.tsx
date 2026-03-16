@@ -80,9 +80,9 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
     }
 
     return (
-        <div className="mx-auto max-w-lg">
+        <div className="mx-auto flex max-w-lg flex-col items-center gap-2">
             {container}
-            <Button variant="default" onClick={props.onBack} id="device-selection-back">
+            <Button variant={"ghost"} color={"primary"} onClick={props.onBack} id="device-selection-back">
                 back
             </Button>
         </div>
@@ -102,13 +102,11 @@ const DeviceItem = function (props: DeviceItemProps) {
 
     return (
         <div className={`${className} w-full`} id={idName}>
-            <Button className="block w-full py-8" variant="default" onClick={props.onSelect}>
-                <div className="inline-block fill-white">
+            <Button className="flex w-full flex-col items-center py-6" variant="default" onClick={props.onSelect}>
+                <span className="fill-white">
                     <PushNotificationIcon width={32} height={32} />
-                </div>
-                <div>
-                    <p>{props.device.name}</p>
-                </div>
+                </span>
+                <span className="text-xs">{props.device.name}</span>
             </Button>
         </div>
     );
@@ -127,13 +125,11 @@ const MethodItem = function (props: MethodItemProps) {
 
     return (
         <div className={`${className} w-full`} id={idName}>
-            <Button className="block w-full py-8" variant="default" onClick={props.onSelect}>
-                <div className="inline-block fill-white">
+            <Button className="flex w-full flex-col items-center py-6" variant="default" onClick={props.onSelect}>
+                <span className="fill-white">
                     <PushNotificationIcon width={32} height={32} />
-                </div>
-                <div>
-                    <p>{props.method}</p>
-                </div>
+                </span>
+                <span className="text-xs">{props.method}</span>
             </Button>
         </div>
     );

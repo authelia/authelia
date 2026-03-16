@@ -43,10 +43,10 @@ const DeleteDialog = function (props: Props) {
                     <DialogDescription className="my-4">{props.text}</DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button id={"dialog-cancel"} variant={"outline"} onClick={handleCancel}>
+                    <Button id={"dialog-cancel"} variant={"ghost"} color={"primary"} onClick={handleCancel}>
                         {translate("Cancel")}
                     </Button>
-                    <Button id={"dialog-delete"} variant={"destructive"} onClick={handleDelete}>
+                    <Button id={"dialog-delete"} variant={"ghost"} color={"destructive"} onClick={handleDelete}>
                         <Trash2 className="size-4" />
                         {translate("Remove")}
                     </Button>

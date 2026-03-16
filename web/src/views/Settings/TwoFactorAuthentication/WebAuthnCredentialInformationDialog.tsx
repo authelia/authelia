@@ -154,7 +154,7 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                             </CopyButton>
                         </Fragment>
                     ) : undefined}
-                    <Button id={"dialog-close"} variant={"outline"} onClick={props.handleClose}>
+                    <Button id={"dialog-close"} variant={"ghost"} color={"primary"} onClick={props.handleClose}>
                         {translate("Close")}
                     </Button>
                 </DialogFooter>

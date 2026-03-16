@@ -276,7 +276,8 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                                 <TooltipTrigger asChild>
                                     <Button
                                         id={"webauthn-credential-add"}
-                                        variant="outline"
+                                        variant={"outline"}
+                                        color={"primary"}
                                         onClick={handleRegister}
                                         disabled={dialogRegisterOpening || dialogRegisterOpen}
                                     >
