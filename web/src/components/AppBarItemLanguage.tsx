@@ -153,10 +153,10 @@ const AppBarItemLanguage = function (props: Props) {
                                     id={`language-${language.locale}`}
                                     className={props.localeCurrent === language.locale ? "bg-accent" : ""}
                                     onSelect={(e) => {
-                                        e.preventDefault();
                                         if (language.children.length <= 1) {
                                             handleChange(language);
                                         } else {
+                                            e.preventDefault();
                                             handleCollapse(language.locale);
                                         }
                                     }}

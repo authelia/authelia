@@ -13,9 +13,9 @@ function Stepper({ activeStep, children, className, ...props }: StepperProps) {
     const steps = Array.isArray(children) ? children : [children];
 
     return (
-        <div data-slot="stepper" className={cn("flex w-full items-center", className)} {...props}>
+        <div data-slot="stepper" className={cn("flex w-full items-center justify-center", className)} {...props}>
             {steps.map((child, index) => (
-                <div key={index} className="flex flex-1 items-center">
+                <div key={index} className={cn("flex items-center", index < steps.length - 1 && "flex-1")}>
                     <div className="flex flex-col items-center gap-1">
                         <div
                             className={cn(
