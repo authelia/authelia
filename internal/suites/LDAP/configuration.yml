@@ -98,7 +98,6 @@ authentication_backend:
         - 'given_name'
 
     attributes:
-      distinguished_name: ''
       username: 'uid'
       display_name: 'displayName'
       mail: 'mail'
@@ -134,6 +133,10 @@ authentication_backend:
           name: 'employee_type'
           multi_valued: false
           value_type: 'string'
+        testFlag:
+          name: "test_flag"
+          multi_valued: false
+          value_type: 'boolean'
 
 totp:
   issuer: 'example.com'

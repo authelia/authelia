@@ -360,6 +360,11 @@ func (p *FileUserProvider) GetRequiredAttributes() []string {
 	}
 }
 
+func (p *FileUserProvider) IsExtraAttribute(fieldName string) bool {
+	_, exists := p.config.ExtraAttributes[fieldName]
+	return exists
+}
+
 func (p *FileUserProvider) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {
 	return map[string]UserManagementAttributeMetadata{}
 }

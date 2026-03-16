@@ -267,10 +267,6 @@ func (p *LDAPUserProvider) BuildRDNFromTemplate(userData *UserDetailsExtended) (
 	return fmt.Sprintf("%s=%s", rdnAttr, ldap.EscapeFilter(rdnValue)), nil
 }
 
-func (p *LDAPUserProvider) UpdateUser(username string, userData *UserDetailsExtended) error {
-	return p.Management.UpdateUser(username, userData)
-}
-
 func (p *LDAPUserProvider) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) (err error) {
 	return p.Management.UpdateUserWithMask(username, userData, updateMask)
 }
@@ -281,6 +277,21 @@ func (p *LDAPUserProvider) AddUser(userData *UserDetailsExtended) error {
 
 func (p *LDAPUserProvider) DeleteUser(username string) error {
 	return p.Management.DeleteUser(username)
+}
+
+func (p *LDAPUserProvider) IsExtraAttribute(fieldName string) bool {
+	for key, extraAttr := range p.config.Attributes.Extra {
+		attrName := extraAttr.Name
+		if attrName == "" {
+			attrName = key
+		}
+
+		if attrName == fieldName {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (p *LDAPUserProvider) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {

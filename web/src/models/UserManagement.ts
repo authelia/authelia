@@ -3,20 +3,19 @@ import { AttributeMetadata, UserAttributeMetadataBody } from "@services/UserMana
 
 export interface UserDetailsExtended {
     username: string;
-    password?: string; // Only used for new users.
+    password?: string;
 
-    display_name?: string; // Optional, takes precedence over full_name for display
-    mail?: string[]; // Changed from emails to match backend
+    display_name?: string;
+    mail?: string[];
     groups?: string[];
 
-    given_name?: string; // Changed from first_name
-    family_name?: string; // Changed from last_name
-    // Note: full_name is likely computed from given_name + family_name, might not be a field
+    given_name?: string;
+    family_name?: string;
     middle_name?: string;
     nickname?: string;
-    profile?: string; // URL
-    picture?: string; // URL
-    website?: string; // URL
+    profile?: string;
+    picture?: string;
+    website?: string;
     gender?: string;
     birthdate?: string;
     zoneinfo?: string;
@@ -88,6 +87,10 @@ export function validateAttributeValue(value: any, metadata: AttributeMetadata, 
         if (isNaN(Date.parse(value))) {
             return `Invalid date format`;
         }
+    }
+
+    if (metadata.type === "checkbox" && typeof value !== "boolean") {
+        return `Invalid boolean value`;
     }
 
     return null;

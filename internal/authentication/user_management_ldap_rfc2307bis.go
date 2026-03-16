@@ -17,32 +17,28 @@ type RFC2307bisUserManagement struct {
 }
 
 var attributeMetadataMap = map[string]UserManagementAttributeMetadata{
-	"distinguished_name": {Type: "text", Multiple: false},
-	"username":           {Type: "text", Multiple: false},
-	"password":           {Type: "password", Multiple: false},
-	"display_name":       {Type: "text", Multiple: false},
-	"family_name":        {Type: "text", Multiple: false},
-	"given_name":         {Type: "text", Multiple: false},
-	"middle_name":        {Type: "text", Multiple: false},
-	"nickname":           {Type: "text", Multiple: false},
-	"gender":             {Type: "text", Multiple: false},
-	"birthdate":          {Type: "date", Multiple: false},
-	"website":            {Type: "url", Multiple: false},
-	"profile":            {Type: "url", Multiple: false},
-	"picture":            {Type: "url", Multiple: false},
-	"zoneinfo":           {Type: "text", Multiple: false},
-	"locale":             {Type: "text", Multiple: false},
-	"phone_number":       {Type: "tel", Multiple: false},
-	"phone_extension":    {Type: "text", Multiple: false},
-	"street_address":     {Type: "text", Multiple: false},
-	"locality":           {Type: "text", Multiple: false},
-	"region":             {Type: "text", Multiple: false},
-	"postal_code":        {Type: "text", Multiple: false},
-	"country":            {Type: "text", Multiple: false},
-	"mail":               {Type: "email", Multiple: false},
-	"member_of":          {Type: "text", Multiple: true},
-	"group_name":         {Type: "text", Multiple: false},
-	"group_member":       {Type: "text", Multiple: true},
+	"username":        {Type: "text", Multiple: false},
+	"password":        {Type: "password", Multiple: false},
+	"display_name":    {Type: "text", Multiple: false},
+	"family_name":     {Type: "text", Multiple: false},
+	"given_name":      {Type: "text", Multiple: false},
+	"middle_name":     {Type: "text", Multiple: false},
+	"nickname":        {Type: "text", Multiple: false},
+	"gender":          {Type: "text", Multiple: false},
+	"birthdate":       {Type: "date", Multiple: false},
+	"website":         {Type: "url", Multiple: false},
+	"profile":         {Type: "url", Multiple: false},
+	"picture":         {Type: "url", Multiple: false},
+	"zoneinfo":        {Type: "text", Multiple: false},
+	"locale":          {Type: "text", Multiple: false},
+	"phone_number":    {Type: "tel", Multiple: false},
+	"phone_extension": {Type: "text", Multiple: false},
+	"street_address":  {Type: "text", Multiple: false},
+	"locality":        {Type: "text", Multiple: false},
+	"region":          {Type: "text", Multiple: false},
+	"postal_code":     {Type: "text", Multiple: false},
+	"country":         {Type: "text", Multiple: false},
+	"mail":            {Type: "email", Multiple: false},
 }
 
 func (r *RFC2307bisUserManagement) GetRequiredAttributes() []string {
@@ -52,11 +48,22 @@ func (r *RFC2307bisUserManagement) GetRequiredAttributes() []string {
 }
 
 func (r *RFC2307bisUserManagement) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {
+	blocklist := map[string]bool{
+		"group_member":       true,
+		"group_name":         true,
+		"member_of":          true,
+		"distinguished_name": true,
+	}
+
 	fieldNames := getFieldNames(r.provider.config.Attributes)
 
 	metadata := make(map[string]UserManagementAttributeMetadata, len(fieldNames))
 
 	for _, fieldName := range fieldNames {
+		if blocklist[fieldName] {
+			continue
+		}
+
 		if meta, exists := attributeMetadataMap[fieldName]; exists {
 			metadata[fieldName] = meta
 		}
@@ -64,6 +71,29 @@ func (r *RFC2307bisUserManagement) GetSupportedAttributes() map[string]UserManag
 
 	if meta, exists := attributeMetadataMap["password"]; exists {
 		metadata["password"] = meta
+	}
+
+	for key, extraAttr := range r.provider.config.Attributes.Extra {
+		attrName := extraAttr.Name
+		if attrName == "" {
+			attrName = key
+		}
+
+		var inputType string
+
+		switch extraAttr.ValueType {
+		case "boolean":
+			inputType = "checkbox"
+		case "integer", "string", "":
+			inputType = "text"
+		default:
+			inputType = "text"
+		}
+
+		metadata["extra."+attrName] = UserManagementAttributeMetadata{
+			Type:     inputType,
+			Multiple: extraAttr.MultiValued,
+		}
 	}
 
 	return metadata
@@ -272,19 +302,19 @@ func (r *RFC2307bisUserManagement) UpdateUserWithMask(username string, userData 
 					return err
 				}
 			}
-		case field == "extra":
-			for jsonKey, value := range userData.Extra {
-				if value == nil {
-					continue
-				}
+		case strings.HasPrefix(field, "extra."):
+			extraField := strings.TrimPrefix(field, "extra.")
 
-				ldapAttr := r.getLDAPAttributeForExtraField(jsonKey)
-				if ldapAttr == "" {
-					r.provider.log.Warnf("No LDAP attribute mapping found for extra field '%s', skipping", jsonKey)
-					continue
-				}
+			if userData.Extra != nil {
+				if value, exists := userData.Extra[extraField]; exists && value != nil {
+					ldapAttr := r.getLDAPAttributeForExtraField(extraField)
+					if ldapAttr == "" {
+						r.provider.log.Warnf("No LDAP attribute mapping found for extra field '%s', skipping", extraField)
+						continue
+					}
 
-				r.replaceAttributeIfPresent(modifyRequest, ldapAttr, fmt.Sprintf("%v", value))
+					r.replaceAttributeIfPresent(modifyRequest, ldapAttr, r.normalizeExtraAttributes(value))
+				}
 			}
 		case field == "address":
 			if userData.Address != nil {
@@ -336,99 +366,6 @@ func (r *RFC2307bisUserManagement) UpdateUserWithMask(username string, userData 
 }
 
 //nolint:gocyclo
-func (r *RFC2307bisUserManagement) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
-	if userData == nil || userData.UserDetails == nil {
-		return fmt.Errorf("userData and userData.UserDetails cannot be nil")
-	}
-
-	if userData.Password != "" {
-		return fmt.Errorf("cannot modify user passwords via update user, please use the password reset or password change endpoints")
-	}
-
-	if err := r.ValidateUserData(userData); err != nil {
-		return fmt.Errorf("validation failed for user '%s': %w", username, err)
-	}
-
-	var client LDAPExtendedClient
-	if client, err = r.provider.factory.GetClient(); err != nil {
-		return fmt.Errorf("unable to update user '%s': %w", username, err)
-	}
-
-	defer func() {
-		if err := r.provider.factory.ReleaseClient(client); err != nil {
-			r.provider.log.WithError(err).Warn("Error occurred releasing the LDAP client")
-		}
-	}()
-
-	profile, err := r.provider.getUserProfile(client, username)
-	if err != nil {
-		return fmt.Errorf("unable to retrieve user profile for update of user '%s': %w", username, err)
-	}
-
-	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
-
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.GivenName, userData.GivenName)
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.FamilyName, userData.FamilyName)
-
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.MiddleName, userData.MiddleName)
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Nickname, userData.Nickname)
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Gender, userData.Gender)
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Birthdate, userData.Birthdate)
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.ZoneInfo, userData.ZoneInfo)
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PhoneNumber, userData.PhoneNumber)
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PhoneExtension, userData.PhoneExtension)
-
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Locale, userData.GetLocale())
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Profile, userData.GetProfile())
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Picture, userData.GetPicture())
-	r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Website, userData.GetWebsite())
-
-	if userData.Address != nil {
-		r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.StreetAddress, userData.Address.StreetAddress)
-		r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Locality, userData.Address.Locality)
-		r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Region, userData.Address.Region)
-		r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PostalCode, userData.Address.PostalCode)
-		r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Country, userData.Address.Country)
-	}
-
-	if userData.GetGroups() != nil {
-		err := r.UpdateUserGroups(username, userData.GetGroups())
-		if err != nil {
-			return err
-		}
-	}
-
-	if userData.GetDisplayName() != "" {
-		r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.DisplayName, userData.GetDisplayName())
-	}
-
-	if len(userData.Emails) > 0 {
-		r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Mail, userData.Emails[0])
-	}
-
-	for ldapAttr, value := range userData.Extra {
-		if value != nil {
-			r.replaceAttributeIfPresent(modifyRequest, ldapAttr, fmt.Sprintf("%v", value))
-		}
-	}
-
-	if len(modifyRequest.Changes) == 0 {
-		r.provider.log.Debugf("No changes detected for user '%s', skipping update", username)
-		return nil
-	}
-
-	r.provider.log.Debugf("Sending modify request for user '%s' with %d changes:", username, len(modifyRequest.Changes))
-
-	if err = r.provider.modify(client, modifyRequest); err != nil {
-		return fmt.Errorf("unable to update user '%s': %w", username, err)
-	}
-
-	r.provider.log.Infof("Successfully updated user '%s'", username)
-
-	return nil
-}
-
-//nolint:gocyclo
 func (r *RFC2307bisUserManagement) AddUser(userData *UserDetailsExtended) (err error) {
 	if userData == nil || userData.UserDetails == nil {
 		return fmt.Errorf("userData and userData.UserDetails cannot be nil")
@@ -453,7 +390,6 @@ func (r *RFC2307bisUserManagement) AddUser(userData *UserDetailsExtended) (err e
 		}
 	}()
 
-	// userDN := fmt.Sprintf("%s=%s,%s", r.provider.config.Attributes.Username, ldap.EscapeFilter(userData.Username), r.provider.usersBaseDN).
 	userDN, err := r.provider.BuildUserDN(userData)
 	if err != nil {
 		return fmt.Errorf("unable to build DN for user '%s': %w", userData.Username, err)
@@ -499,6 +435,22 @@ func (r *RFC2307bisUserManagement) AddUser(userData *UserDetailsExtended) (err e
 
 	if userData.GivenName != "" {
 		addRequest.Attribute(r.provider.config.Attributes.GivenName, []string{userData.GivenName})
+	}
+
+	if userData.Extra != nil {
+		for jsonKey, value := range userData.Extra {
+			if value == nil {
+				continue
+			}
+
+			ldapAttr := r.getLDAPAttributeForExtraField(jsonKey)
+			if ldapAttr == "" {
+				r.provider.log.Warnf("No LDAP attribute mapping found for extra field '%s', skipping", jsonKey)
+				continue
+			}
+
+			r.addAttributeIfPresent(addRequest, ldapAttr, r.normalizeExtraAttributes(value))
+		}
 	}
 
 	// Attempt to build displayName from other attributes.
@@ -1069,4 +1021,21 @@ func (r *RFC2307bisUserManagement) getCurrentUserGroups(client LDAPExtendedClien
 	}
 
 	return groups, nil
+}
+
+func (r *RFC2307bisUserManagement) normalizeExtraAttributes(value any) string {
+	var ldapValue string
+
+	switch v := value.(type) {
+	case bool:
+		if v {
+			ldapValue = "TRUE"
+		} else {
+			ldapValue = "FALSE"
+		}
+	default:
+		ldapValue = fmt.Sprintf("%v", value)
+	}
+
+	return ldapValue
 }

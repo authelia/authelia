@@ -57,7 +57,22 @@ const NewUserDialog = ({ onClose, open }: Props) => {
 
     const onSubmit = async (data: CreateUserRequest) => {
         try {
-            const response = await postNewUser(data);
+            const { extra: extraFieldNames } = categorizeFields();
+            const requestData: any = { ...data };
+
+            const extraData: Record<string, any> = {};
+            (Object.keys(data) as Array<keyof CreateUserRequest>).forEach((key) => {
+                if (extraFieldNames.includes(key as string)) {
+                    extraData[key as string] = data[key];
+                    delete requestData[key];
+                }
+            });
+
+            if (Object.keys(extraData).length > 0) {
+                requestData.extra = extraData;
+            }
+
+            const response = await postNewUser(requestData);
             console.log("Response:", response);
             createSuccessNotification(translate("User created successfully."));
             reset();
@@ -81,34 +96,33 @@ const NewUserDialog = ({ onClose, open }: Props) => {
         setValue("password", newPassword, { shouldDirty: true });
     };
 
-    const fieldConfig = {
-        basic: [
-            "username",
-            "display_name",
-            "given_name",
-            "family_name",
-            "password",
-            "mail",
-        ],
-        additional: [
-            "middle_name",
-            "nickname",
-            "phone_number",
-            "phone_extension",
-            "birthdate",
-            "gender",
-            "website",
-            "profile",
-            "picture",
-            "zoneinfo",
-            "locale",
-            "street_address",
-            "locality",
-            "region",
-            "postal_code",
-            "country",
-        ],
-    };
+    const basicFields = [
+        "username",
+        "mail",
+        "password",
+    ];
+
+    const standardOptionalFields = [
+        "display_name",
+        "given_name",
+        "middle_name",
+        "family_name",
+        "nickname",
+        "phone_number",
+        "phone_extension",
+        "birthdate",
+        "gender",
+        "website",
+        "profile",
+        "picture",
+        "zoneinfo",
+        "locale",
+        "street_address",
+        "locality",
+        "region",
+        "postal_code",
+        "country",
+    ];
 
     // Fields that are excluded from CreateUserRequest
     const excludedFields = [
@@ -121,28 +135,70 @@ const NewUserDialog = ({ onClose, open }: Props) => {
         "has_duo",
     ];
 
-    const getOrderedFields = (fieldNames: string[]) => {
-        if (!metadata) return [];
+    const categorizeFields = () => {
+        if (!metadata) return { basic: [], required: [], optional: [], extra: [] };
 
-        return fieldNames
-            .filter(fieldName =>
-                metadata.supported_attributes[fieldName] &&
-                !excludedFields.includes(fieldName)
-            )
-            .map(fieldName => ({
-                name: fieldName as Path<CreateUserRequest>,
-                meta: metadata.supported_attributes[fieldName],
-                label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
-                description: translate(`user_management.attributes.${fieldName}.description`, { defaultValue: "" }),
-                required: metadata.required_attributes.includes(fieldName),
-            }));
+        const allSupportedFields = Object.keys(metadata.supported_attributes);
+
+        const basic: string[] = [];
+        const required: string[] = [];
+        const optional: string[] = [];
+        const extra: string[] = [];
+
+        allSupportedFields.forEach(fieldName => {
+            if (excludedFields.includes(fieldName)) return;
+
+            const isRequiredField = metadata.required_attributes.includes(fieldName);
+            const isBasicField = basicFields.includes(fieldName);
+            const isStandardOptionalField = standardOptionalFields.includes(fieldName);
+
+            const isExtra = !isBasicField && !isStandardOptionalField;
+
+            if (isBasicField) {
+                basic.push(fieldName);
+            } else if (isRequiredField && !isExtra) {
+                required.push(fieldName);
+            } else if (isExtra) {
+                extra.push(fieldName);
+            } else {
+                optional.push(fieldName);
+            }
+        });
+
+        basic.sort((a, b) => basicFields.indexOf(a) - basicFields.indexOf(b));
+
+        required.sort((a, b) => standardOptionalFields.indexOf(a) - standardOptionalFields.indexOf(b));
+
+        optional.sort((a, b) => standardOptionalFields.indexOf(a) - standardOptionalFields.indexOf(b));
+
+        return { basic, required, optional, extra };
     };
 
-    const basicFields = getOrderedFields(fieldConfig.basic);
-    const additionalFields = getOrderedFields(fieldConfig.additional);
+    const buildFieldConfig = (fieldName: string) => {
+        if (!metadata) return null;
+
+        return {
+            name: fieldName as Path<CreateUserRequest>,
+            meta: metadata.supported_attributes[fieldName],
+            label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
+            description: translate(`user_management.attributes.${fieldName}.description`, { defaultValue: "" }),
+            required: metadata.required_attributes.includes(fieldName),
+        };
+    };
+
+    const { basic = [], required = [], optional = [], extra = [] } = categorizeFields();
+
+    const shownByDefaultFields = [
+        ...basic.map(buildFieldConfig),
+        ...required.map(buildFieldConfig),
+    ].filter(Boolean);
+
+    const additionalFields = [
+        ...optional.map(buildFieldConfig),
+        ...extra.map(buildFieldConfig),
+    ].filter(Boolean);
 
     const [showAdditional, setShowAdditional] = useState(false);
-
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -157,15 +213,15 @@ const NewUserDialog = ({ onClose, open }: Props) => {
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <FormControl variant="standard">
                             <Grid container spacing={2}>
-                                {basicFields.map((field) => (
-                                    <Grid key={field.name} size={12} sx={{ pt: 1.5 }}>
+                                {shownByDefaultFields.map((field) => (
+                                    <Grid key={field!.name} size={12} sx={{ pt: 1.5 }}>
                                         <UserFormField
-                                            field={field}
+                                            field={field!}
                                             register={register}
                                             control={control}
                                             errors={errors}
                                             setValue={setValue}
-                                            onGeneratePassword={field.name === "password" ? generatePassword : undefined}
+                                            onGeneratePassword={field!.name === "password" ? generatePassword : undefined}
                                         />
                                     </Grid>
                                 ))}
@@ -187,18 +243,17 @@ const NewUserDialog = ({ onClose, open }: Props) => {
                                 )}
 
                                 {showAdditional && additionalFields.map((field) => (
-                                    <Grid key={field.name} size={12} sx={{ pt: 1.5 }}>
+                                    <Grid key={field!.name} size={12} sx={{ pt: 1.5 }}>
                                         <UserFormField
-                                            field={field}
+                                            field={field!}
                                             register={register}
                                             control={control}
                                             errors={errors}
                                             setValue={setValue}
-                                            onGeneratePassword={field.name === "password" ? generatePassword : undefined}
+                                            onGeneratePassword={field!.name === "password" ? generatePassword : undefined}
                                         />
                                     </Grid>
                                 ))}
-
 
                                 <Grid size={12} sx={{ pt: 3 }}>
                                     <Button
@@ -223,21 +278,4 @@ const NewUserDialog = ({ onClose, open }: Props) => {
     );
 };
 
-// Helper function for input types - simplified
-const getInputType = (fieldType: string): string => {
-    switch (fieldType) {
-        case "email":
-            return "email";
-        case "password":
-            return "password";
-        case "url":
-            return "url";
-        case "tel":
-            return "tel";
-        case "date":
-            return "date";
-        default:
-            return "text";
-    }
-};
 export default NewUserDialog;

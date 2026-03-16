@@ -231,17 +231,25 @@ func ldapGetReferral(err error) (referral string, ok bool) {
 }
 
 func getFieldNames(s interface{}) []string {
+	v := reflect.ValueOf(s)
 	t := reflect.TypeOf(s)
 
 	if t.Kind() == reflect.Ptr {
+		v = v.Elem()
 		t = t.Elem()
 	}
 
 	var fields []string
 
 	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i).Tag.Get("koanf")
-		fields = append(fields, field)
+		fieldTag := t.Field(i).Tag.Get("koanf")
+		fieldValue := v.Field(i)
+
+		if fieldValue.Kind() == reflect.String && fieldValue.String() == "" {
+			continue
+		}
+
+		fields = append(fields, fieldTag)
 	}
 
 	return fields

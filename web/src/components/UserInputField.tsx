@@ -1,4 +1,11 @@
-import { Button, TextField as MuiTextField } from "@mui/material";
+import {
+    Box,
+    Button,
+    Checkbox,
+    FormControl,
+    FormHelperText,
+    TextField as MuiTextField,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { AttributeMetadata } from "@services/UserManagement";
 import { Control, Controller, FieldErrors, Path, UseFormRegister, UseFormSetValue } from "react-hook-form";
@@ -98,6 +105,9 @@ const renderByType = <T extends CreateUserRequest | UserDetailsExtended = Create
         case "date":
             return <DateField field={field} register={register} control={control} error={error} />;
 
+        case "checkbox":
+            return <CheckboxField field={field} register={register} control={control} error={error} />
+
         case "text":
         case "password":
         default:
@@ -130,6 +140,38 @@ const TextField = <T extends CreateUserRequest | UserDetailsExtended = CreateUse
             required: field.required ? `${field.label} is required` : false,
         })}
     />
+);
+
+const CheckboxField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+                                                                                                  field,
+                                                                                                  control,
+                                                                                                  error
+                                                                                              }: FieldComponentProps<T>) => (
+    <FormControl error={!!error} required={field.required}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Controller
+                name={field.name}
+                control={control}
+                rules={{
+                    required: field.required ? `${field.label} is required` : false,
+                }}
+                render={({ field: { onChange, value, ...rest } }) => (
+                    <Checkbox
+                        color="info"
+                        checked={!!value}
+                        onChange={(e) => onChange(e.target.checked)}
+                        {...rest}
+                    />
+                )}
+            />
+            <Box component="label" sx={{ cursor: 'pointer' }}>
+                {field.label}
+            </Box>
+        </Box>
+        {(error || field.description) && (
+            <FormHelperText>{error?.message?.toString() || field.description}</FormHelperText>
+        )}
+    </FormControl>
 );
 
 const EmailField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
@@ -212,8 +254,6 @@ const DateField = <T extends CreateUserRequest | UserDetailsExtended = CreateUse
     control,
     error
 }: FieldComponentProps<T>) => {
-    // If you're using MUI DatePicker, use Controller
-    // For now, using a simple date input:
     return (
         <MuiTextField
             fullWidth

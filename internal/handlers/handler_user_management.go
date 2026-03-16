@@ -291,6 +291,8 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 		partialUpdate.Address = &authentication.UserDetailsAddress{}
 	}
 
+	supportedFields := ctx.Providers.UserProvider.GetSupportedAttributes()
+
 	for _, field := range updateMask {
 		switch {
 		case field == "display_name":
@@ -360,10 +362,42 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 
 				return
 			}
+		case strings.HasPrefix(field, "extra."):
+			extraField := strings.TrimPrefix(field, "extra.")
+
+			if _, isExtraField := supportedFields[field]; isExtraField && ctx.Providers.UserProvider.IsExtraAttribute(extraField) {
+				if partialUpdate.Extra == nil {
+					partialUpdate.Extra = make(map[string]interface{})
+				}
+
+				if requestBody.Extra != nil {
+					if value, exists := requestBody.Extra[extraField]; exists {
+						partialUpdate.Extra[extraField] = value
+					} else {
+						ctx.Logger.Debugf("Extra field '%s' not provided in extra object", extraField)
+						ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+						ctx.SetJSONError(fmt.Sprintf("Field '%s' must be provided in the 'extra' object in the request body", extraField))
+
+						return
+					}
+				} else {
+					ctx.Logger.Debugf("Extra object not provided for extra field '%s'", extraField)
+					ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+					ctx.SetJSONError(fmt.Sprintf("'extra' object must be provided in the request body when updating '%s'", field))
+
+					return
+				}
+			} else {
+				ctx.Logger.Errorf("Unknown extra field: '%s'", extraField)
+				ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+				ctx.SetJSONError(fmt.Sprintf("Unknown extra field: '%s'", extraField))
+
+				return
+			}
 		default:
 			ctx.Logger.Errorf("Unhandled field in update_mask: '%s'", field)
-			ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
-			ctx.SetJSONError("Internal error processing update_mask")
+			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+			ctx.SetJSONError(fmt.Sprintf("Unhandled field in update_mask: '%s'. Extra fields must use 'extra.' prefix (e.g., 'extra.%s')", field, field))
 
 			return
 		}
@@ -582,6 +616,12 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 			newUserRequest.Address.PostalCode,
 			newUserRequest.Address.Country,
 		)
+	}
+
+	if newUserRequest.Extra != nil {
+		for key, value := range newUserRequest.Extra {
+			userDataBuilder.WithExtra(key, value)
+		}
 	}
 
 	userData := userDataBuilder.Build()

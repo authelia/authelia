@@ -47,14 +47,12 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
         defaultValues: user || {},
     });
 
-    // Update form when user prop changes
     useEffect(() => {
         if (user) {
             reset(user);
         }
     }, [user, reset]);
 
-    // Reset form when dialog closes
     useEffect(() => {
         if (!open && user) {
             reset(user);
@@ -69,18 +67,28 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
             const changedData: Partial<UserDetailsExtended> = {};
             const addressFields = ['street_address', 'locality', 'region', 'postal_code', 'country'];
 
-            // Only process fields that are actually dirty (changed by user)
-            Object.keys(dirtyFields).forEach((key) => {
-                const fieldKey = key as keyof UserDetailsExtended;
+            const { extra: extraFieldNames } = categorizeFields();
 
-                // Map address fields to use dot notation for update_mask
+            (Object.keys(dirtyFields) as Array<keyof UserDetailsExtended>).forEach((key) => {
                 if (addressFields.includes(key)) {
                     updateMask.push(`address.${key}`);
+                    changedData[key] = data[key] as any;
+                } else if (extraFieldNames.includes(key)) {
+                    updateMask.push(`extra.${key}`);
+                    if (!changedData.extra) {
+                        changedData.extra = {};
+                    }
+                    changedData.extra[key] = data[key] as any;
+                } else if (key === 'extra' && dirtyFields.extra) {
+                    Object.keys(dirtyFields.extra || {}).forEach((extraKey) => {
+                        updateMask.push(`extra.${extraKey}`);
+                    });
+                    changedData[key] = data[key] as any;
                 } else {
-                    updateMask.push(fieldKey);
+                    updateMask.push(key);
+                    changedData[key] = data[key] as any;
                 }
 
-                changedData[fieldKey] = data[fieldKey] as any;
             });
 
             if (updateMask.length === 0) {
@@ -123,33 +131,32 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
         setVerifyExitDialogOpen(false);
     };
 
-    const fieldConfig = {
-        basic: [
-            "username",
-            "display_name",
-            "given_name",
-            "family_name",
-            "mail",
-        ],
-        additional: [
-            "middle_name",
-            "nickname",
-            "phone_number",
-            "phone_extension",
-            "birthdate",
-            "gender",
-            "website",
-            "profile",
-            "picture",
-            "zoneinfo",
-            "locale",
-            "street_address",
-            "locality",
-            "region",
-            "postal_code",
-            "country",
-        ],
-    };
+    const basicFields = [
+        "username",
+        "mail",
+    ];
+
+    const standardOptionalFields = [
+        "display_name",
+        "given_name",
+        "middle_name",
+        "family_name",
+        "nickname",
+        "phone_number",
+        "phone_extension",
+        "birthdate",
+        "gender",
+        "website",
+        "profile",
+        "picture",
+        "zoneinfo",
+        "locale",
+        "street_address",
+        "locality",
+        "region",
+        "postal_code",
+        "country",
+    ];
 
     // Fields that are excluded from editing
     const excludedFields = [
@@ -163,26 +170,69 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
         "has_duo",
     ];
 
-    const getOrderedFields = (fieldNames: string[]) => {
-        if (!metadata) return [];
+    const categorizeFields = () => {
+        if (!metadata) return { basic: [], required: [], optional: [], extra: [] };
 
-        return fieldNames
-            .filter(fieldName =>
-                metadata.supported_attributes[fieldName] &&
-                !excludedFields.includes(fieldName)
-            )
-            .map(fieldName => ({
-                name: fieldName as Path<UserDetailsExtended>,
-                meta: metadata.supported_attributes[fieldName],
-                label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
-                description: translate(`user_management.attributes.${fieldName}.description`, { defaultValue: "" }),
-                required: metadata.required_attributes.includes(fieldName),
-                disabled: fieldName === "username", // Username cannot be changed
-            }));
+        const allSupportedFields = Object.keys(metadata.supported_attributes);
+
+        const basic: string[] = [];
+        const required: string[] = [];
+        const optional: string[] = [];
+        const extra: string[] = [];
+
+        allSupportedFields.forEach(fieldName => {
+            if (excludedFields.includes(fieldName)) return;
+
+            const isRequiredField = metadata.required_attributes.includes(fieldName);
+            const isBasicField = basicFields.includes(fieldName);
+            const isStandardOptionalField = standardOptionalFields.includes(fieldName);
+
+            const isExtra = !isBasicField && !isStandardOptionalField;
+
+            if (isBasicField) {
+                basic.push(fieldName);
+            } else if (isRequiredField && !isExtra) {
+                required.push(fieldName);
+            } else if (isExtra) {
+                extra.push(fieldName);
+            } else {
+                optional.push(fieldName);
+            }
+        });
+
+        basic.sort((a, b) => basicFields.indexOf(a) - basicFields.indexOf(b));
+
+        required.sort((a, b) => standardOptionalFields.indexOf(a) - standardOptionalFields.indexOf(b));
+
+        optional.sort((a, b) => standardOptionalFields.indexOf(a) - standardOptionalFields.indexOf(b));
+
+        return { basic, required, optional, extra };
     };
 
-    const basicFields = getOrderedFields(fieldConfig.basic);
-    const additionalFields = getOrderedFields(fieldConfig.additional);
+    const buildFieldConfig = (fieldName: string) => {
+        if (!metadata) return null;
+
+        return {
+            name: fieldName as Path<UserDetailsExtended>,
+            meta: metadata.supported_attributes[fieldName],
+            label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
+            description: translate(`user_management.attributes.${fieldName}.description`, { defaultValue: "" }),
+            required: metadata.required_attributes.includes(fieldName),
+            disabled: fieldName === "username",
+        };
+    };
+
+    const { basic, required, optional, extra } = categorizeFields();
+
+    const shownByDefaultFields = [
+        ...basic.map(buildFieldConfig),
+        ...required.map(buildFieldConfig),
+    ].filter(Boolean);
+
+    const additionalFields = [
+        ...optional.map(buildFieldConfig),
+        ...extra.map(buildFieldConfig),
+    ].filter(Boolean);
 
     const [showAdditional, setShowAdditional] = useState(false);
 
@@ -202,21 +252,21 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <FormControl variant="standard">
                                 <Grid container spacing={2}>
-                                    {basicFields.map((field) => (
-                                        <Grid key={field.name} size={12} sx={{ pt: 1.5 }}>
-                                            {field.disabled ? (
+                                    {shownByDefaultFields.map((field) => (
+                                        <Grid key={field!.name} size={12} sx={{ pt: 1.5 }}>
+                                            {field!.disabled ? (
                                                 <TextField
                                                     fullWidth
                                                     disabled
                                                     type="text"
                                                     color="info"
-                                                    label={field.label}
-                                                    helperText={field.description}
-                                                    value={user?.[field.name as keyof UserDetailsExtended] || ""}
+                                                    label={field!.label}
+                                                    helperText={field!.description}
+                                                    value={user?.[field!.name as keyof UserDetailsExtended] || ""}
                                                 />
                                             ) : (
                                                 <UserFormField
-                                                    field={field}
+                                                    field={field!}
                                                     register={register}
                                                     control={control}
                                                     errors={errors}
@@ -243,9 +293,9 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
                                     )}
 
                                     {showAdditional && additionalFields.map((field) => (
-                                        <Grid key={field.name} size={12} sx={{ pt: 1.5 }}>
+                                        <Grid key={field!.name} size={12} sx={{ pt: 1.5 }}>
                                             <UserFormField
-                                                field={field}
+                                                field={field!}
                                                 register={register}
                                                 control={control}
                                                 errors={errors}

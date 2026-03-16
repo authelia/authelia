@@ -27,7 +27,6 @@ type UserProvider interface {
 	ListUsers() (userList []UserDetailsExtended, err error)
 
 	AddUser(userData *UserDetailsExtended) (err error)
-	UpdateUser(username string, userData *UserDetailsExtended) (err error)
 	UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) error
 	DeleteUser(username string) (err error)
 
@@ -35,6 +34,7 @@ type UserProvider interface {
 	DeleteGroup(group string) (err error)
 	ListGroups() ([]string, error)
 
+	IsExtraAttribute(fieldName string) bool
 	GetRequiredAttributes() []string
 	GetSupportedAttributes() map[string]UserManagementAttributeMetadata
 	ValidateUserData(userData *UserDetailsExtended) error
