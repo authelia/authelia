@@ -12,7 +12,6 @@ import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { initiateResetPasswordProcess } from "@services/ResetPassword";
-import { cn } from "@utils/Styles";
 
 const ResetPasswordStep1 = function () {
     const [username, setUsername] = useState("");
@@ -94,7 +93,7 @@ const ResetPasswordStep1 = function () {
                         <Input
                             id="username-textfield"
                             disabled={loading}
-                            className={cn(error && "border-destructive")}
+                            error={error}
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             onKeyDown={(ev) => {

@@ -25,6 +25,7 @@ const NotificationBar = function (props: Props) {
                         : toast.info;
 
             toastFn(notification.message, {
+                className: "notification",
                 duration: notification.timeout * 1000,
                 onAutoClose: () => props.onClose(),
                 onDismiss: () => props.onClose(),

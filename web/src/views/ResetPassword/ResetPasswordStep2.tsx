@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -16,7 +16,6 @@ import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
-import { cn } from "@utils/Styles";
 
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
@@ -44,6 +43,7 @@ const ResetPasswordStep2 = function () {
     // Get the token from the query param to give it back to the API when requesting
     // the secret for OTP.
     const processToken = useQueryParam(IdentityToken);
+    const tokenSubmittedRef = useRef(false);
 
     const handleRateLimited = useCallback(
         (_retryAfter: number) => {
@@ -53,12 +53,16 @@ const ResetPasswordStep2 = function () {
     );
 
     useEffect(() => {
+        if (tokenSubmittedRef.current) return;
+
         const submitReset = async () => {
             if (!processToken) {
                 setFormDisabled(true);
                 createErrorNotification(translate("No verification token provided"));
                 return;
             }
+
+            tokenSubmittedRef.current = true;
 
             try {
                 const response = await completeResetPasswordProcess(processToken);
@@ -142,7 +146,8 @@ const ResetPasswordStep2 = function () {
                                 value={password1}
                                 disabled={formDisabled}
                                 onChange={(e) => setPassword1(e.target.value)}
-                                className={cn("pr-10", errorPassword1 && "border-destructive")}
+                                error={errorPassword1}
+                                className="pr-10"
                                 autoComplete="new-password"
                             />
                             <button
@@ -183,7 +188,7 @@ const ResetPasswordStep2 = function () {
                             disabled={formDisabled}
                             value={password2}
                             onChange={(e) => setPassword2(e.target.value)}
-                            className={cn(errorPassword2 && "border-destructive")}
+                            error={errorPassword2}
                             onKeyDown={(ev) => {
                                 if (ev.key === "Enter") {
                                     doResetPassword().catch(console.error);

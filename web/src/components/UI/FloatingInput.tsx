@@ -20,6 +20,7 @@ const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
                 <input
                     ref={ref}
                     id={inputId}
+                    aria-invalid={error}
                     data-slot="floating-input"
                     className={cn(
                         "peer h-14 w-full rounded border border-input bg-transparent px-3 pt-5 pb-1.5 text-base outline-none transition-colors",

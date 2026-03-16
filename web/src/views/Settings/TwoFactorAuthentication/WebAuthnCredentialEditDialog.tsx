@@ -122,8 +122,7 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                         id="webauthn-credential-description"
                         required
                         value={credentialDescription}
-                        aria-invalid={errorDescription}
-                        className={errorDescription ? "border-destructive" : ""}
+                        error={errorDescription}
                         maxLength={30}
                         onChange={(v) => {
                             setCredentialDescription(v.target.value.substring(0, 30));
