@@ -1,22 +1,11 @@
 import { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Close, Dashboard, Menu, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
-import {
-    AppBar,
-    Box,
-    Divider,
-    List,
-    ListItem,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    SwipeableDrawer,
-    Toolbar,
-    Typography,
-} from "@mui/material";
-import IconButton from "@mui/material/IconButton";
+import { LayoutDashboard, Menu, Shield, ShieldCheck, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
+import { Separator } from "@components/UI/Separator";
+import { Sheet, SheetContent } from "@components/UI/Sheet";
 import { EncodedName } from "@constants/constants";
 import {
     IndexRoute,
@@ -25,6 +14,7 @@ import {
     SettingsTwoFactorAuthenticationSubRoute,
 } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
+import { cn } from "@utils/Styles";
 
 export interface Props {
     children?: ReactNode;
@@ -55,74 +45,44 @@ const SettingsLayout = function (props: Props) {
         setDrawerOpen((state) => !state);
     };
 
-    const container = typeof globalThis === "undefined" ? undefined : () => globalThis.document.body;
-
-    const drawer = (
-        <Box onClick={handleToggleDrawer} sx={{ textAlign: "center" }}>
-            <Typography variant="h6" sx={{ my: 2 }}>
-                {translate("Settings")}
-            </Typography>
-            <Divider />
-            <List>
-                {navItems.map((item) => (
-                    <DrawerNavItem
-                        key={item.keyname}
-                        keyname={item.keyname}
-                        text={translate(item.text)}
-                        pathname={item.pathname}
-                        icon={item.icon}
-                    />
-                ))}
-            </List>
-        </Box>
-    );
-
     return (
-        <Box sx={{ display: "flex" }}>
-            <AppBar component={"nav"}>
-                <Toolbar>
-                    <IconButton
-                        id={"settings-menu"}
-                        edge={"start"}
-                        color={"inherit"}
-                        aria-label={"open drawer"}
+        <div className="flex">
+            <nav className="fixed top-0 z-50 w-full bg-primary text-primary-foreground">
+                <div className="flex items-center px-4 py-3">
+                    <Button
+                        id="settings-menu"
+                        variant="ghost"
+                        size="icon"
+                        aria-label="open drawer"
                         onClick={handleToggleDrawer}
-                        sx={{ mr: 2 }}
+                        className="mr-4 text-primary-foreground hover:bg-primary-foreground/10"
                     >
-                        <Menu />
-                    </IconButton>
-                    <Typography
-                        variant={"h6"}
-                        component={"div"}
-                        sx={{ display: { xs: drawerOpen ? "none" : "block" }, flexGrow: 1 }}
-                    >
-                        {translate("Settings")}
-                    </Typography>
-                </Toolbar>
-            </AppBar>
-            <Box component={"nav"}>
-                <SwipeableDrawer
-                    container={container}
-                    anchor={"left"}
-                    open={drawerOpen}
-                    onOpen={handleToggleDrawer}
-                    onClose={handleToggleDrawer}
-                    ModalProps={{
-                        keepMounted: true,
-                    }}
-                    sx={{
-                        "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
-                        display: { xs: "block" },
-                    }}
-                >
-                    {drawer}
-                </SwipeableDrawer>
-            </Box>
-            <Box component="main" sx={{ flexGrow: 1, p: { sm: 3, xs: 0 } }}>
-                <Toolbar />
-                {props.children}
-            </Box>
-        </Box>
+                        <Menu className="size-6" />
+                    </Button>
+                    <h6 className={cn("grow text-lg font-medium", drawerOpen && "hidden")}>{translate("Settings")}</h6>
+                </div>
+            </nav>
+            <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+                <SheetContent side="left" className="p-0" style={{ width: drawerWidth }}>
+                    <div className="text-center" onClick={handleToggleDrawer}>
+                        <h6 className="my-4 text-lg font-medium">{translate("Settings")}</h6>
+                        <Separator />
+                        <ul className="list-none p-0">
+                            {navItems.map((item) => (
+                                <DrawerNavItem
+                                    key={item.keyname}
+                                    keyname={item.keyname}
+                                    text={translate(item.text)}
+                                    pathname={item.pathname}
+                                    icon={item.icon}
+                                />
+                            ))}
+                        </ul>
+                    </div>
+                </SheetContent>
+            </Sheet>
+            <main className="grow p-0 pt-14 sm:p-6 sm:pt-20">{props.children}</main>
+        </div>
     );
 };
 
@@ -134,20 +94,25 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-    { icon: <Dashboard color={"primary"} />, keyname: "overview", pathname: SettingsRoute, text: "Overview" },
     {
-        icon: <Security color={"primary"} />,
+        icon: <LayoutDashboard className="size-5 text-primary" />,
+        keyname: "overview",
+        pathname: SettingsRoute,
+        text: "Overview",
+    },
+    {
+        icon: <Shield className="size-5 text-primary" />,
         keyname: "security",
         pathname: `${SettingsRoute}${SecuritySubRoute}`,
         text: "Security",
     },
     {
-        icon: <SystemSecurityUpdateGood color={"primary"} />,
+        icon: <ShieldCheck className="size-5 text-primary" />,
         keyname: "twofactor",
         pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
         text: "Two-Factor Authentication",
     },
-    { icon: <Close color={"error"} />, keyname: "close", pathname: IndexRoute, text: "Close" },
+    { icon: <X className="size-5 text-destructive" />, keyname: "close", pathname: IndexRoute, text: "Close" },
 ];
 
 const DrawerNavItem = function (props: NavItem) {
@@ -164,12 +129,19 @@ const DrawerNavItem = function (props: NavItem) {
     }, [navigate, props, selected]);
 
     return (
-        <ListItem disablePadding onClick={handleOnClick}>
-            <ListItemButton selected={selected} id={`settings-menu-${props.keyname}`}>
-                {props.icon ? <ListItemIcon>{props.icon}</ListItemIcon> : null}
-                <ListItemText primary={props.text} />
-            </ListItemButton>
-        </ListItem>
+        <li>
+            <button
+                id={`settings-menu-${props.keyname}`}
+                onClick={handleOnClick}
+                className={cn(
+                    "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent",
+                    selected && "bg-accent font-medium",
+                )}
+            >
+                {props.icon ? <span className="shrink-0">{props.icon}</span> : null}
+                <span>{props.text}</span>
+            </button>
+        </li>
     );
 };
 

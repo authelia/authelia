@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, CircularProgress, FormControl, useTheme } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import ComponentWithTooltip from "@components/ComponentWithTooltip";
+import { Button } from "@components/UI/Button";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+import { Spinner } from "@components/UI/Spinner";
 import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { initiateResetPasswordProcess } from "@services/ResetPassword";
 
 const ResetPasswordStep1 = function () {
-    const theme = useTheme();
     const [username, setUsername] = useState("");
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -86,15 +86,13 @@ const ResetPasswordStep1 = function () {
 
     return (
         <MinimalLayout title={translate("Reset password")} id="reset-password-step1-stage">
-            <FormControl id={"form-reset-password-username"}>
-                <Grid container sx={{ marginY: theme.spacing(2) }} spacing={2}>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
+            <div id={"form-reset-password-username"}>
+                <div className="my-4 grid grid-cols-1 gap-4">
+                    <div className="w-full">
+                        <Label htmlFor="username-textfield">{translate("Username")}</Label>
+                        <Input
                             id="username-textfield"
-                            label={translate("Username")}
                             disabled={loading}
-                            variant="outlined"
-                            fullWidth
                             error={error}
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
@@ -105,36 +103,39 @@ const ResetPasswordStep1 = function () {
                                 }
                             }}
                         />
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <ComponentWithTooltip render={rateLimited} title={translate("You have made too many requests")}>
-                            <Button
-                                id="reset-button"
-                                variant="contained"
-                                disabled={loading || rateLimited}
-                                color="primary"
-                                fullWidth
-                                onClick={handleResetClick}
-                                startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="w-full">
+                            <ComponentWithTooltip
+                                render={rateLimited}
+                                title={translate("You have made too many requests")}
                             >
-                                {translate("Reset")}
+                                <Button
+                                    id="reset-button"
+                                    variant="default"
+                                    disabled={loading || rateLimited}
+                                    className="w-full"
+                                    onClick={handleResetClick}
+                                >
+                                    {loading ? <Spinner className="mr-2 h-5 w-5" /> : null}
+                                    {translate("Reset")}
+                                </Button>
+                            </ComponentWithTooltip>
+                        </div>
+                        <div className="w-full">
+                            <Button
+                                id="cancel-button"
+                                variant="default"
+                                disabled={loading}
+                                className="w-full"
+                                onClick={handleCancelClick}
+                            >
+                                {translate("Cancel")}
                             </Button>
-                        </ComponentWithTooltip>
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <Button
-                            id="cancel-button"
-                            variant="contained"
-                            disabled={loading}
-                            color="primary"
-                            fullWidth
-                            onClick={handleCancelClick}
-                        >
-                            {translate("Cancel")}
-                        </Button>
-                    </Grid>
-                </Grid>
-            </FormControl>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </MinimalLayout>
     );
 };

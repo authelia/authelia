@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext } from "react";
 
-import { Notification } from "@models/Notifications";
+import { Notification, NotificationLevel } from "@models/Notifications";
 
 const defaultOptions = {
     timeout: 5,
@@ -17,7 +17,7 @@ export function useNotifications() {
     const { notification, setNotification } = useContext(NotificationsContext);
 
     const createNotification = useCallback(
-        (level: "error" | "info" | "success" | "warning", message: string, timeout?: number) => {
+        (level: NotificationLevel, message: string, timeout?: number) => {
             setNotification({
                 level,
                 message,

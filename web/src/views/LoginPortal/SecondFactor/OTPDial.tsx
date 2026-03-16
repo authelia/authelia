@@ -1,12 +1,12 @@
 import { Fragment } from "react";
 
-import { styled } from "@mui/material";
 import _OtpInputModule from "react18-input-otp";
 
 const OtpInput = (_OtpInputModule as { default?: typeof _OtpInputModule }).default ?? _OtpInputModule;
 
 import SuccessIcon from "@components/SuccessIcon";
 import TimerIcon from "@components/TimerIcon";
+import { cn } from "@utils/Styles";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
 
 export interface Props {
@@ -28,30 +28,15 @@ export enum State {
     RateLimited = 5,
 }
 
-const StyledOtpInputContainer = styled("span")(({ theme }) => ({
-    "& input": {
-        border: "1px solid rgba(0,0,0,0.3)",
-        borderRadius: "5px",
-        boxSizing: "content-box",
-        fontSize: "1rem",
-        marginLeft: theme.spacing(0.5),
-        marginRight: theme.spacing(0.5),
-        padding: `${theme.spacing()} !important`,
-    },
-    display: "inline-block",
-    marginTop: theme.spacing(2),
-}));
-
 const OTPDial = function (props: Props) {
     return (
         <IconWithContext icon={<Icon state={props.state} period={props.period} />}>
-            <StyledOtpInputContainer
+            <span
                 id="otp-input"
-                sx={
-                    props.state === State.Failure
-                        ? { "& input": { border: "1px solid rgba(255, 2, 2, 0.95)" } }
-                        : undefined
-                }
+                className={cn(
+                    "mt-4 inline-block [&_input]:mx-1 [&_input]:box-border [&_input]:rounded-[5px] [&_input]:border [&_input]:border-black/30 [&_input]:size-12 [&_input]:text-xl",
+                    props.state === State.Failure && "[&_input]:border-[rgba(255,2,2,0.95)]",
+                )}
             >
                 <OtpInput
                     shouldAutoFocus
@@ -66,8 +51,9 @@ const OTPDial = function (props: Props) {
                     isInputNum
                     hasErrored={props.state === State.Failure}
                     autoComplete="one-time-code"
+                    inputStyle={{ fontSize: "1.125rem", height: "2.5rem", width: "2.5rem" }}
                 />
-            </StyledOtpInputContainer>
+            </span>
         </IconWithContext>
     );
 };

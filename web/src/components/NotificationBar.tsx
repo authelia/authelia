@@ -1,37 +1,41 @@
-import { Alert, Slide, SlideProps, Snackbar } from "@mui/material";
+import { useEffect, useRef } from "react";
 
+import { toast } from "sonner";
+
+import { Toaster } from "@components/UI/Sonner";
 import { useNotifications } from "@hooks/NotificationsContext";
 
 export interface Props {
     onClose: () => void;
 }
 
-type NotificationBarTransitionProps = Omit<SlideProps, "direction">;
-
-function NotificationBarTransition(props: Readonly<NotificationBarTransitionProps>) {
-    return <Slide {...props} direction={"left"} />;
-}
-
 const NotificationBar = function (props: Props) {
     const { notification } = useNotifications();
+    const prevNotificationRef = useRef(notification);
 
-    const shouldSnackbarBeOpen = notification !== undefined && notification !== null;
+    useEffect(() => {
+        if (notification && notification !== prevNotificationRef.current) {
+            const toastLevelMap = {
+                error: toast.error,
+                info: toast.info,
+                success: toast.success,
+                warning: toast.warning,
+            };
 
-    return (
-        <Snackbar
-            open={shouldSnackbarBeOpen}
-            anchorOrigin={{ horizontal: "right", vertical: "top" }}
-            autoHideDuration={notification ? notification.timeout * 1000 : 10000}
-            onClose={props.onClose}
-            slots={{ transition: NotificationBarTransition }}
-        >
-            {notification ? (
-                <Alert severity={notification.level} variant={"filled"} elevation={6} className={"notification"}>
-                    {notification.message}
-                </Alert>
-            ) : undefined}
-        </Snackbar>
-    );
+            const toastFn = toastLevelMap[notification.level] ?? toast.info;
+
+            toastFn(notification.message, {
+                className: "notification",
+                duration: notification.timeout * 1000,
+                onAutoClose: () => props.onClose(),
+                onDismiss: () => props.onClose(),
+            });
+        }
+
+        prevNotificationRef.current = notification;
+    }, [notification, props]);
+
+    return <Toaster position="top-right" richColors />;
 };
 
 export default NotificationBar;

@@ -1,23 +1,26 @@
-import { Fragment, JSX } from "react";
+import { Fragment, JSX, ReactNode } from "react";
 
-import { Box, Tooltip } from "@mui/material";
-import { TooltipProps } from "@mui/material/Tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 
-export interface Props extends TooltipProps {
+export interface Props {
     render: boolean;
+    title: ReactNode;
+    children: ReactNode;
+    placement?: "bottom" | "left" | "right" | "top";
 }
 
-interface ComponentProps extends Omit<Props, "render"> {}
-
 const ComponentWithTooltip = function (props: Props): JSX.Element {
-    const tooltipProps = props as ComponentProps;
-
     return (
         <Fragment>
             {props.render ? (
-                <Tooltip {...tooltipProps}>
-                    <Box component={"span"}>{props.children}</Box>
-                </Tooltip>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span>{props.children}</span>
+                        </TooltipTrigger>
+                        <TooltipContent side={props.placement}>{props.title}</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             ) : (
                 props.children
             )}

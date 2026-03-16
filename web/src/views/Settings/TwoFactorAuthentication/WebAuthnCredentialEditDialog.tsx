@@ -1,8 +1,18 @@
 import { useRef, useState } from "react";
 
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@components/UI/Dialog";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { WebAuthnCredential } from "@models/WebAuthn";
 import { updateUserWebAuthnCredential } from "@services/WebAuthn";
@@ -92,49 +102,57 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
     };
 
     return (
-        <Dialog open={props.open} onClose={handleCancel}>
-            <DialogTitle>{translate("Edit WebAuthn Credential")}</DialogTitle>
-            <DialogContent>
-                <DialogContentText>
-                    {translate("Enter a new description for this WebAuthn Credential")}
-                </DialogContentText>
-                <TextField
-                    inputRef={descriptionRef}
-                    id="webauthn-credential-description"
-                    label={translate("Description")}
-                    variant="standard"
-                    required
-                    value={credentialDescription}
-                    error={errorDescription}
-                    fullWidth
-                    disabled={false}
-                    slotProps={{
-                        htmlInput: {
-                            maxLength: 30,
-                        },
-                    }}
-                    onChange={(v) => {
-                        setCredentialDescription(v.target.value.substring(0, 30));
-                        setErrorDescription(false);
-                    }}
-                    autoCapitalize="none"
-                    autoComplete="webauthn-name"
-                    onKeyDown={(ev) => {
-                        if (ev.key === "Enter") {
-                            handleUpdate();
-                            ev.preventDefault();
-                        }
-                    }}
-                />
+        <Dialog
+            open={props.open}
+            onOpenChange={(open) => {
+                if (!open) handleCancel();
+            }}
+        >
+            <DialogContent showCloseButton={false}>
+                <DialogHeader>
+                    <DialogTitle>{translate("Edit WebAuthn Credential")}</DialogTitle>
+                    <DialogDescription>
+                        {translate("Enter a new description for this WebAuthn Credential")}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-2">
+                    <Label htmlFor="webauthn-credential-description">{translate("Description")}</Label>
+                    <Input
+                        ref={descriptionRef}
+                        id="webauthn-credential-description"
+                        required
+                        value={credentialDescription}
+                        error={errorDescription}
+                        maxLength={30}
+                        onChange={(v) => {
+                            setCredentialDescription(v.target.value.substring(0, 30));
+                            setErrorDescription(false);
+                        }}
+                        autoCapitalize="none"
+                        autoComplete="webauthn-name"
+                        onKeyDown={(ev) => {
+                            if (ev.key === "Enter") {
+                                handleUpdate();
+                                ev.preventDefault();
+                            }
+                        }}
+                    />
+                </div>
+                <DialogFooter>
+                    <Button id={"dialog-cancel"} variant={"ghost"} color={"primary"} onClick={handleCancel}>
+                        {translate("Cancel")}
+                    </Button>
+                    <Button
+                        id={"dialog-update"}
+                        variant={"ghost"}
+                        color={"primary"}
+                        disabled={credentialDescription.length === 0}
+                        onClick={handleUpdate}
+                    >
+                        {translate("Update")}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions>
-                <Button id={"dialog-cancel"} onClick={handleCancel}>
-                    {translate("Cancel")}
-                </Button>
-                <Button id={"dialog-update"} onClick={handleUpdate}>
-                    {translate("Update")}
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 };

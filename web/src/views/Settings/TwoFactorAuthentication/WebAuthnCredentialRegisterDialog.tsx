@@ -1,24 +1,21 @@
 import { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-import {
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Step,
-    StepLabel,
-    Stepper,
-    TextField,
-    Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 
 import InformationIcon from "@components/InformationIcon";
+import { Button } from "@components/UI/Button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@components/UI/Dialog";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+import { Step, StepLabel, Stepper } from "@components/UI/Stepper";
 import WebAuthnRegisterIcon from "@components/WebAuthnRegisterIcon";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { AttestationResult, AttestationResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
@@ -195,26 +192,20 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         switch (step) {
             case 0:
                 return (
-                    <Box>
-                        <Box
-                            sx={{ paddingBottom: (theme) => theme.spacing(4), paddingTop: (theme) => theme.spacing(4) }}
-                        >
+                    <div>
+                        <div className="py-8">
                             <InformationIcon />
-                        </Box>
-                        <Typography sx={{ paddingBottom: (theme) => theme.spacing(4) }}>
-                            {translate("Enter a description for this WebAuthn Credential")}
-                        </Typography>
-                        <Grid container spacing={1}>
-                            <Grid size={{ xs: 12 }}>
-                                <TextField
-                                    inputRef={nameRef}
+                        </div>
+                        <p className="pb-8">{translate("Enter a description for this WebAuthn Credential")}</p>
+                        <div className="grid grid-cols-12 gap-2">
+                            <div className="col-span-12">
+                                <Label htmlFor="webauthn-credential-description">{translate("Description")}</Label>
+                                <Input
+                                    ref={nameRef}
                                     id="webauthn-credential-description"
-                                    label={translate("Description")}
-                                    variant="outlined"
                                     required
                                     value={description}
                                     error={errorDescription}
-                                    disabled={false}
                                     onChange={(v) => handleCredentialDescription(v.target.value)}
                                     autoCapitalize="none"
                                     onKeyDown={(ev) => {
@@ -227,21 +218,15 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                                         }
                                     }}
                                 />
-                            </Grid>
-                        </Grid>
-                    </Box>
+                            </div>
+                        </div>
+                    </div>
                 );
             case 1:
                 return (
                     <Fragment>
-                        <Box
-                            sx={{ paddingBottom: (theme) => theme.spacing(4), paddingTop: (theme) => theme.spacing(4) }}
-                        >
-                            {timeout ? <WebAuthnRegisterIcon timeout={timeout} /> : null}
-                        </Box>
-                        <Typography sx={{ paddingBottom: (theme) => theme.spacing(4) }}>
-                            {translate("Touch the token on your security key")}
-                        </Typography>
+                        <div className="py-8">{timeout ? <WebAuthnRegisterIcon timeout={timeout} /> : null}</div>
+                        <p className="pb-8">{translate("Touch the token on your security key")}</p>
                     </Fragment>
                 );
         }
@@ -256,16 +241,25 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
     };
 
     return (
-        <Dialog open={props.open} onClose={handleOnClose} maxWidth={"xs"} fullWidth={true}>
-            <DialogTitle>{translate("Register {{item}}", { item: translate("WebAuthn Credential") })}</DialogTitle>
-            <DialogContent>
-                <DialogContentText sx={{ mb: 3 }}>
-                    {translate("This dialog handles registration of a {{item}}", {
-                        item: translate("WebAuthn Credential"),
-                    })}
-                </DialogContentText>
-                <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                    <Grid size={{ xs: 12 }}>
+        <Dialog
+            open={props.open}
+            onOpenChange={(open) => {
+                if (!open) handleOnClose();
+            }}
+        >
+            <DialogContent showCloseButton={false} className="sm:max-w-xs w-full">
+                <DialogHeader>
+                    <DialogTitle>
+                        {translate("Register {{item}}", { item: translate("WebAuthn Credential") })}
+                    </DialogTitle>
+                    <DialogDescription className="mb-6">
+                        {translate("This dialog handles registration of a {{item}}", {
+                            item: translate("WebAuthn Credential"),
+                        })}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-full">
                         <Stepper activeStep={activeStep}>
                             {steps.map((label) => {
                                 const stepProps: { completed?: boolean } = {};
@@ -279,32 +273,34 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                                 );
                             })}
                         </Stepper>
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>{renderStep(activeStep)}</Grid>
-                </Grid>
-            </DialogContent>
-            <DialogActions>
-                <Button
-                    id={"dialog-cancel"}
-                    color={activeStep === 1 && state !== WebAuthnTouchState.Failure ? "primary" : "error"}
-                    disabled={activeStep === 1 && state !== WebAuthnTouchState.Failure}
-                    onClick={handleClose}
-                >
-                    {translate("Cancel")}
-                </Button>
-                {activeStep === 0 ? (
+                    </div>
+                    <div className="w-full">{renderStep(activeStep)}</div>
+                </div>
+                <DialogFooter>
                     <Button
-                        id={"dialog-next"}
-                        color={description.length > 0 ? "success" : "primary"}
-                        disabled={activeStep !== 0}
-                        onClick={async () => {
-                            handleNext();
-                        }}
+                        id={"dialog-cancel"}
+                        variant={"ghost"}
+                        color={activeStep === 1 && state !== WebAuthnTouchState.Failure ? "primary" : "destructive"}
+                        disabled={activeStep === 1 && state !== WebAuthnTouchState.Failure}
+                        onClick={handleClose}
                     >
-                        {translate("Next")}
+                        {translate("Cancel")}
                     </Button>
-                ) : null}
-            </DialogActions>
+                    {activeStep === 0 ? (
+                        <Button
+                            id={"dialog-next"}
+                            variant={"ghost"}
+                            color={description.length > 0 ? "success" : "primary"}
+                            disabled={activeStep !== 0}
+                            onClick={async () => {
+                                handleNext();
+                            }}
+                        >
+                            {translate("Next")}
+                        </Button>
+                    ) : null}
+                </DialogFooter>
+            </DialogContent>
         </Dialog>
     );
 };

@@ -1,10 +1,11 @@
 import { Fragment, useCallback, useRef, useState } from "react";
 
-import { Button, CircularProgress, Divider, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
 import PasskeyIcon from "@components/PasskeyIcon";
+import { Button } from "@components/UI/Button";
+import { Separator } from "@components/UI/Separator";
+import { Spinner } from "@components/UI/Spinner";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
 import { useIsMountedRef } from "@hooks/Mounted";
@@ -130,25 +131,26 @@ const PasskeyForm = function (props: Props) {
 
     return (
         <Fragment>
-            <Grid size={{ xs: 12 }}>
-                <Divider component="div">
-                    <Typography sx={{ textTransform: "uppercase" }}>{translate("or")}</Typography>
-                </Divider>
-            </Grid>
-            <Grid size={{ xs: 12 }}>
+            <div className="w-full">
+                <div className="relative flex items-center py-2">
+                    <Separator className="flex-1" />
+                    <span className="px-3 text-sm uppercase text-muted-foreground">{translate("or")}</span>
+                    <Separator className="flex-1" />
+                </div>
+            </div>
+            <div className="w-full">
                 <Button
                     id="passkey-sign-in-button"
-                    variant="contained"
-                    color="primary"
-                    fullWidth
+                    variant="default"
+                    className="w-full"
                     onClick={handleSignIn}
-                    startIcon={<PasskeyIcon />}
                     disabled={props.disabled}
-                    endIcon={loading ? <CircularProgress size={20} /> : null}
                 >
+                    <PasskeyIcon />
                     {translate("Sign in with a passkey")}
+                    {loading ? <Spinner className="ml-2 h-5 w-5" /> : null}
                 </Button>
-            </Grid>
+            </div>
         </Fragment>
     );
 };

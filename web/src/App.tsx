@@ -1,11 +1,11 @@
 import { Suspense, lazy, useMemo, useState } from "react";
 
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
-import { CssBaseline } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
 import NotificationBar from "@components/NotificationBar";
+import { TooltipProvider } from "@components/UI/Tooltip";
 import {
     ConsentRoute,
     IndexRoute,
@@ -54,35 +54,39 @@ function App() {
         <LanguageContextProvider i18n={i18n}>
             <ThemeContextProvider>
                 <Suspense fallback={<LoadingPage />}>
-                    <CssBaseline />
-                    <NotificationsContext.Provider value={notificationsContextValue}>
-                        <LocalStorageMethodContextProvider>
-                            <Router basename={getBasePath()}>
-                                <NotificationBar onClose={() => setNotification(null)} />
-                                <Routes>
-                                    <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
-                                    <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                                    <Route path={LogoutRoute} element={<SignOut />} />
-                                    <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
-                                    <Route path={RevokeResetPasswordRoute} element={<RevokeResetPasswordTokenView />} />
-                                    <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
-                                    <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
-                                    <Route
-                                        path={`${IndexRoute}*`}
-                                        element={
-                                            <LoginPortal
-                                                duoSelfEnrollment={getDuoSelfEnrollment()}
-                                                passkeyLogin={getPasskeyLogin()}
-                                                rememberMe={getRememberMe()}
-                                                resetPassword={getResetPassword()}
-                                                resetPasswordCustomURL={getResetPasswordCustomURL()}
-                                            />
-                                        }
-                                    />
-                                </Routes>
-                            </Router>
-                        </LocalStorageMethodContextProvider>
-                    </NotificationsContext.Provider>
+                    <TooltipProvider>
+                        <NotificationsContext.Provider value={notificationsContextValue}>
+                            <LocalStorageMethodContextProvider>
+                                <Router basename={getBasePath()}>
+                                    <NotificationBar onClose={() => setNotification(null)} />
+                                    <Routes>
+                                        <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
+                                        <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
+                                        <Route path={LogoutRoute} element={<SignOut />} />
+                                        <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
+                                        <Route
+                                            path={RevokeResetPasswordRoute}
+                                            element={<RevokeResetPasswordTokenView />}
+                                        />
+                                        <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
+                                        <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
+                                        <Route
+                                            path={`${IndexRoute}*`}
+                                            element={
+                                                <LoginPortal
+                                                    duoSelfEnrollment={getDuoSelfEnrollment()}
+                                                    passkeyLogin={getPasskeyLogin()}
+                                                    rememberMe={getRememberMe()}
+                                                    resetPassword={getResetPassword()}
+                                                    resetPasswordCustomURL={getResetPasswordCustomURL()}
+                                                />
+                                            }
+                                        />
+                                    </Routes>
+                                </Router>
+                            </LocalStorageMethodContextProvider>
+                        </NotificationsContext.Provider>
+                    </TooltipProvider>
                 </Suspense>
             </ThemeContextProvider>
         </LanguageContextProvider>

@@ -1,8 +1,9 @@
 import { useCallback } from "react";
 
-import { Button, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/UI/Tooltip";
 import { useSignOut } from "@hooks/SignOut";
 
 export interface Props {
@@ -22,13 +23,28 @@ const SignOutButton = function (props: Props) {
     }, [doSignOut, props.preserve]);
 
     return props.tooltip ? (
-        <Tooltip title={props.tooltip}>
-            <Button id={props.id} color={"secondary"} onClick={handleSignOutClick}>
-                {translate(props.text)}
-            </Button>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                    id={props.id}
+                    variant={"ghost"}
+                    className="text-sm tracking-wide"
+                    color={"secondary"}
+                    onClick={handleSignOutClick}
+                >
+                    {translate(props.text)}
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>{props.tooltip}</TooltipContent>
         </Tooltip>
     ) : (
-        <Button id={props.id} color={"secondary"} onClick={handleSignOutClick}>
+        <Button
+            id={props.id}
+            variant={"ghost"}
+            className="text-sm tracking-wide"
+            color={"secondary"}
+            onClick={handleSignOutClick}
+        >
             {translate(props.text)}
         </Button>
     );

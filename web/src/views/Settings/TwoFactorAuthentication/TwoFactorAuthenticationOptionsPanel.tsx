@@ -1,9 +1,8 @@
 import { ChangeEvent, Fragment, useEffect, useMemo, useReducer } from "react";
 
-import { Paper, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
+import { Card, CardContent } from "@components/UI/Card";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { Configuration } from "@models/Configuration";
@@ -95,15 +94,15 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
     return (
         <Fragment>
             {!props.config || !hasMethods ? undefined : (
-                <Paper variant={"outlined"}>
-                    <Grid container spacing={2} padding={2}>
-                        <Grid size={{ xs: 12 }}>
-                            <Typography variant={"h5"}>{translate("Options")}</Typography>
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
-                            <Grid container spacing={2} padding={2}>
+                <Card>
+                    <CardContent className="p-4 space-y-4">
+                        <div className="w-full">
+                            <h5 className="text-xl font-semibold">{translate("Options")}</h5>
+                        </div>
+                        <div className="w-full">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
                                 {method === undefined ? null : (
-                                    <Grid size={{ md: 4, xs: 12 }}>
+                                    <div>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"account"}
                                             name={"Default Method"}
@@ -111,10 +110,10 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                                             methods={methods}
                                             handleMethodChanged={handleMethodAccountChanged}
                                         />
-                                    </Grid>
+                                    </div>
                                 )}
                                 {!localStorageMethodAvailable || localStorageMethod === undefined ? null : (
-                                    <Grid size={{ md: 4, xs: 12 }}>
+                                    <div>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"local"}
                                             name={"Default Method (Browser)"}
@@ -122,12 +121,12 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                                             methods={methods}
                                             handleMethodChanged={handleMethodBrowserChanged}
                                         />
-                                    </Grid>
+                                    </div>
                                 )}
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                </Paper>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
         </Fragment>
     );

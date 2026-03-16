@@ -1,8 +1,10 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
 
-import { Box, Button, Container, List, ListItem, Paper, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
+import { Card } from "@components/UI/Card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoGET } from "@hooks/UserInfo";
@@ -22,8 +24,8 @@ const PasswordChangeButton = ({ configuration, handleChangePassword, translate }
     const buttonContent = (
         <Button
             id="change-password-button"
-            variant="contained"
-            sx={{ p: 1, width: "100%" }}
+            variant="default"
+            className="p-2 w-full"
             onClick={handleChangePassword}
             disabled={!configuration || configuration.password_change_disabled}
         >
@@ -32,9 +34,14 @@ const PasswordChangeButton = ({ configuration, handleChangePassword, translate }
     );
 
     return !configuration || configuration.password_change_disabled ? (
-        <Tooltip title={translate("This is disabled by your administrator")}>
-            <Box component={"span"}>{buttonContent}</Box>
-        </Tooltip>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <span>{buttonContent}</span>
+                </TooltipTrigger>
+                <TooltipContent>{translate("This is disabled by your administrator")}</TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     ) : (
         buttonContent
     );
@@ -42,7 +49,6 @@ const PasswordChangeButton = ({ configuration, handleChangePassword, translate }
 
 const SettingsView = function () {
     const { t: translate } = useTranslation(["settings", "portal"]);
-    const theme = useTheme();
     const { createErrorNotification } = useNotifications();
 
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
@@ -196,77 +202,43 @@ const SettingsView = function () {
                 }}
             />
 
-            <Container
-                sx={{
-                    alignItems: "flex-start",
-                    display: "flex",
-                    height: "100vh",
-                    justifyContent: "center",
-                    pt: 8,
-                }}
-            >
-                <Paper
-                    variant="outlined"
-                    sx={{
-                        alignItems: "center",
-                        display: "flex",
-                        height: "auto",
-                        justifyContent: "center",
-                    }}
-                >
-                    <Stack spacing={2} sx={{ m: 2, width: "100%" }}>
-                        <Box sx={{ p: { md: 3, xs: 1 } }}>
-                            <Box
-                                sx={{
-                                    border: `1px solid ${theme.palette.grey[600]}`,
-                                    borderRadius: 1,
-                                    mb: 1,
-                                    p: 1.25,
-                                    width: "100%",
-                                }}
-                            >
-                                <Typography>
+            <div className="flex items-start justify-center h-screen pt-16">
+                <Card className="flex items-center justify-center h-auto">
+                    <div className="flex flex-col gap-4 m-4 w-full">
+                        <div className="p-2 md:p-6">
+                            <div className="border border-muted-foreground/50 rounded mb-2 p-2.5 w-full">
+                                <p>
                                     {translate("Name")}: {userInfo?.display_name || ""}
-                                </Typography>
-                            </Box>
-                            <Box
-                                sx={{
-                                    border: `1px solid ${theme.palette.grey[600]}`,
-                                    borderRadius: 1,
-                                    mb: 1,
-                                    p: 1.25,
-                                    width: "100%",
-                                }}
-                            >
-                                <Box display="flex" alignItems="center">
-                                    <Typography sx={{ mr: 1 }}>{translate("Email")}:</Typography>
-                                    <Typography>{userInfo?.emails?.[0] || ""}</Typography>
-                                </Box>
+                                </p>
+                            </div>
+                            <div className="border border-muted-foreground/50 rounded mb-2 p-2.5 w-full">
+                                <div className="flex items-center">
+                                    <p className="mr-2">{translate("Email")}:</p>
+                                    <p>{userInfo?.emails?.[0] || ""}</p>
+                                </div>
                                 {userInfo?.emails && userInfo.emails.length > 1 && (
-                                    <List sx={{ padding: 0, pl: 4, width: "100%" }}>
+                                    <ul className="p-0 pl-8 w-full">
                                         {" "}
                                         {userInfo.emails.slice(1).map((email: string) => (
-                                            <ListItem key={email} sx={{ paddingBottom: 0, paddingTop: 0 }}>
-                                                <Typography>{email}</Typography>
-                                            </ListItem>
+                                            <li key={email} className="py-0">
+                                                <p>{email}</p>
+                                            </li>
                                         ))}
-                                    </List>
+                                    </ul>
                                 )}
-                            </Box>
-                            <Box
-                                sx={{ border: `1px solid ${theme.palette.grey[600]}`, borderRadius: 1, mb: 1, p: 1.25 }}
-                            >
-                                <Typography>{translate("Password")}: ●●●●●●●●</Typography>
-                            </Box>
+                            </div>
+                            <div className="border border-muted-foreground/50 rounded mb-2 p-2.5">
+                                <p>{translate("Password")}: ●●●●●●●●</p>
+                            </div>
                             <PasswordChangeButton
                                 configuration={configuration}
                                 translate={translate}
                                 handleChangePassword={handleChangePassword}
                             />
-                        </Box>
-                    </Stack>
-                </Paper>
-            </Container>
+                        </div>
+                    </div>
+                </Card>
+            </div>
         </Fragment>
     );
 };
