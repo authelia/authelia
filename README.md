@@ -383,6 +383,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tomaszduda23"><img src="https://avatars.githubusercontent.com/u/35012788?v=4?s=100" width="100px;" alt="tomaszduda23"/><br /><sub><b>tomaszduda23</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=tomaszduda23" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://louisonsarlinmagnus.github.io/"><img src="https://avatars.githubusercontent.com/u/70757160?v=4?s=100" width="100px;" alt="Louison SARLIN--MAGNUS"/><br /><sub><b>Louison SARLIN--MAGNUS</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=louisonsarlinmagnus" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/AlexViridi"><img src="https://avatars.githubusercontent.com/u/80551059?v=4?s=100" width="100px;" alt="AlexViridi"/><br /><sub><b>AlexViridi</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=AlexViridi" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
