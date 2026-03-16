@@ -438,7 +438,7 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                                 className="mx-2 w-full"
                                                                 disabled={!response || passwordMissing || loading}
                                                                 onClick={handleAcceptConsent}
-                                                                variant={"ghost"}
+                                                                variant={"default"}
                                                                 color={"primary"}
                                                             >
                                                                 {translate("Accept", { ns: "portal" })}
@@ -468,7 +468,7 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                                 className="mx-2 w-full"
                                                                 disabled={!response || loading}
                                                                 onClick={handleRejectConsent}
-                                                                variant={"ghost"}
+                                                                variant={"default"}
                                                                 color={"secondary"}
                                                             >
                                                                 {translate("Deny", { ns: "portal" })}
