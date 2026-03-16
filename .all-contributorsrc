@@ -10,6 +10,7 @@
   "imageSize": 100,
   "commit": false,
   "commitConvention": "angular",
+  "commitType": "docs",
   "contributors": [
     {
       "login": "clems4ever",
@@ -1088,6 +1089,16 @@
       ]
     },
     {
+      "login": "atoerien",
+      "name": "Andre Toerien",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49614525?v=4",
+      "profile": "https://github.com/atoerien",
+      "contributions": [
+        "bug",
+        "code"
+      ]
+    },
+    {
       "login": "erusc",
       "name": "erusc",
       "avatar_url": "https://avatars.githubusercontent.com/u/208130995?v=4",
@@ -1106,6 +1117,69 @@
       ]
     },
     {
+      "login": "tkf144",
+      "name": "Tom",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17581159?v=4",
+      "profile": "https://github.com/tkf144",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Br1an67",
+      "name": "Br1an",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29810238?v=4",
+      "profile": "http://shiziblog.cn",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "andreasbrett",
+      "name": "Andreas Brett",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6610451?v=4",
+      "profile": "https://github.com/andreasbrett",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "FlorianObermayer",
+      "name": "FO",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4497761?v=4",
+      "profile": "https://github.com/FlorianObermayer",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "x0k",
+      "name": "Roman Krasilnikov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23502797?v=4",
+      "profile": "https://github.com/x0k",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "tomaszduda23",
+      "name": "tomaszduda23",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35012788?v=4",
+      "profile": "https://github.com/tomaszduda23",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "louisonsarlinmagnus",
+      "name": "Louison SARLIN--MAGNUS",
+      "avatar_url": "https://avatars.githubusercontent.com/u/70757160?v=4",
+      "profile": "https://louisonsarlinmagnus.github.io/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
       "login": "AlexViridi",
       "name": "AlexViridi",
       "avatar_url": "https://avatars.githubusercontent.com/u/80551059?v=4",
@@ -1115,6 +1189,5 @@
       ]
     }
   ],
-  "contributorsPerLine": 7,
-  "commitType": "docs"
+  "contributorsPerLine": 7
 }
