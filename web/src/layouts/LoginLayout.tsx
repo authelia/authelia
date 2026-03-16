@@ -90,7 +90,7 @@ const LoginLayout = function (props: Props) {
             <div id={props.id} className="flex min-h-[90vh] items-center justify-center text-center">
                 <div className={cn("mx-auto w-full px-8", containerMaxWidth)}>
                     <div className="flex flex-col items-stretch">
-                        <div className="w-full">{logo}</div>
+                        <div className="w-full p-2">{logo}</div>
                         {props.title ? (
                             <div className="w-full">
                                 <TypographyWithTooltip
