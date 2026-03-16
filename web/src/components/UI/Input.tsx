@@ -2,10 +2,11 @@ import { type ComponentProps } from "react";
 
 import { cn } from "@utils/Styles";
 
-function Input({ className, type, ...props }: ComponentProps<"input">) {
+function Input({ className, error, type, ...props }: ComponentProps<"input"> & { error?: boolean }) {
     return (
         <input
             type={type}
+            aria-invalid={error || undefined}
             data-slot="input"
             className={cn(
                 "h-14 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-4 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30",

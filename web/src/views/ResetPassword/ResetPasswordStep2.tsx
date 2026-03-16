@@ -16,7 +16,6 @@ import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
-import { cn } from "@utils/Styles";
 
 const uninitiated = Symbol("uninitiated");
 
@@ -152,7 +151,8 @@ const ResetPasswordStep2 = function () {
                                 value={password1}
                                 disabled={formDisabled}
                                 onChange={(e) => setPassword1(e.target.value)}
-                                className={cn("pr-10", errorPassword1 && "border-destructive")}
+                                error={errorPassword1}
+                                className="pr-10"
                                 autoComplete="new-password"
                             />
                             <button
@@ -193,7 +193,7 @@ const ResetPasswordStep2 = function () {
                             disabled={formDisabled}
                             value={password2}
                             onChange={(e) => setPassword2(e.target.value)}
-                            className={cn(errorPassword2 && "border-destructive")}
+                            error={errorPassword2}
                             onKeyDown={(ev) => {
                                 if (ev.key === "Enter") {
                                     doResetPassword().catch(console.error);

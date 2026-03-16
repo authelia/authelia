@@ -226,9 +226,9 @@ const ChangePasswordDialog = (props: Props) => {
                             placeholder={translate("Old Password") + " *"}
                             required
                             value={oldPassword}
-                            aria-invalid={oldPasswordError || undefined}
+                            error={oldPasswordError}
                             disabled={disabled}
-                            className={cn("w-full", oldPasswordError && "border-destructive")}
+                            className="w-full"
                             onChange={(v) => setOldPassword(v.target.value)}
                             onFocus={() => setOldPasswordError(false)}
                             type="password"
@@ -256,10 +256,10 @@ const ChangePasswordDialog = (props: Props) => {
                             id="new-password"
                             placeholder={translate("New Password") + " *"}
                             required
-                            className={cn("w-full", newPasswordError && "border-destructive")}
+                            error={newPasswordError}
+                            className="w-full"
                             disabled={disabled}
                             value={newPassword}
-                            aria-invalid={newPasswordError || undefined}
                             onChange={(v) => setNewPassword(v.target.value)}
                             onFocus={() => setNewPasswordError(false)}
                             type="password"
@@ -290,10 +290,10 @@ const ChangePasswordDialog = (props: Props) => {
                             id="repeat-new-password"
                             placeholder={translate("Repeat New Password") + " *"}
                             required
-                            className={cn("w-full", repeatNewPasswordError && "border-destructive")}
+                            error={repeatNewPasswordError}
+                            className="w-full"
                             disabled={disabled}
                             value={repeatNewPassword}
-                            aria-invalid={repeatNewPasswordError || undefined}
                             onChange={(v) => setRepeatNewPassword(v.target.value)}
                             onFocus={() => setRepeatNewPasswordError(false)}
                             type="password"

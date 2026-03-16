@@ -197,8 +197,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                                     id="webauthn-credential-description"
                                     required
                                     value={description}
-                                    aria-invalid={errorDescription}
-                                    className={errorDescription ? "border-destructive" : ""}
+                                    error={errorDescription}
                                     onChange={(v) => handleCredentialDescription(v.target.value)}
                                     autoCapitalize="none"
                                     onKeyDown={(ev) => {
