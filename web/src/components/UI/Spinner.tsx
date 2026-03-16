@@ -9,7 +9,7 @@ interface SpinnerProps extends ComponentProps<"div"> {
     color?: string;
 }
 
-function Spinner({ className, color, size = 24, ...props }: SpinnerProps) {
+function Spinner({ className, color, size = 24, ...props }: Readonly<SpinnerProps>) {
     return (
         <div data-slot="spinner" className={cn("inline-flex items-center justify-center", className)} {...props}>
             <Loader2 className="animate-spin" style={{ color, height: size, width: size }} />

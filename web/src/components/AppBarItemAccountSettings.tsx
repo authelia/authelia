@@ -1,5 +1,3 @@
-import { Fragment } from "react";
-
 import { LogOut, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -42,48 +40,46 @@ const AppBarItemAccountSettings = function (props: Props) {
     };
 
     return props.userInfo ? (
-        <Fragment>
-            <div className="flex items-center text-center">
-                <DropdownMenu>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <DropdownMenuTrigger asChild>
-                                    <button
-                                        id="account-menu"
-                                        className="ml-4 rounded-full focus:outline-none focus:ring-2 focus:ring-ring"
-                                    >
-                                        <Avatar className="size-8">
-                                            <AvatarFallback>
-                                                {props.userInfo.display_name.charAt(0).toUpperCase()}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </button>
-                                </DropdownMenuTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent>{translate("Account Settings")}</TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <DropdownMenuContent align="end" sideOffset={8}>
-                        <DropdownMenuItem id="account-menu-settings" onClick={handleSettingsClick}>
-                            <Settings className="size-4" />
-                            {translate("Settings")}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {flowPresent ? (
-                            <DropdownMenuItem id="account-menu-switch-user" onClick={handleSwitchUserClick}>
-                                <LogOut className="size-4" />
-                                {translate("Switch User")}
-                            </DropdownMenuItem>
-                        ) : null}
-                        <DropdownMenuItem id="account-menu-logout" onClick={handleLogoutClick}>
+        <div className="flex items-center text-center">
+            <DropdownMenu>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    id="account-menu"
+                                    className="ml-4 rounded-full focus:outline-none focus:ring-2 focus:ring-ring"
+                                >
+                                    <Avatar className="size-8">
+                                        <AvatarFallback>
+                                            {props.userInfo.display_name.charAt(0).toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </button>
+                            </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>{translate("Account Settings")}</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                <DropdownMenuContent align="end" sideOffset={8}>
+                    <DropdownMenuItem id="account-menu-settings" onClick={handleSettingsClick}>
+                        <Settings className="size-4" />
+                        {translate("Settings")}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {flowPresent ? (
+                        <DropdownMenuItem id="account-menu-switch-user" onClick={handleSwitchUserClick}>
                             <LogOut className="size-4" />
-                            {translate("Logout")}
+                            {translate("Switch User")}
                         </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-        </Fragment>
+                    ) : null}
+                    <DropdownMenuItem id="account-menu-logout" onClick={handleLogoutClick}>
+                        <LogOut className="size-4" />
+                        {translate("Logout")}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
     ) : null;
 };
 

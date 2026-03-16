@@ -11,14 +11,14 @@ const NotificationBar = function () {
 
     useEffect(() => {
         if (notification && notification !== prevNotificationRef.current) {
-            const toastFn =
-                notification.level === "success"
-                    ? toast.success
-                    : notification.level === "error"
-                      ? toast.error
-                      : notification.level === "warning"
-                        ? toast.warning
-                        : toast.info;
+            const toastLevelMap = {
+                error: toast.error,
+                info: toast.info,
+                success: toast.success,
+                warning: toast.warning,
+            };
+
+            const toastFn = toastLevelMap[notification.level] ?? toast.info;
 
             toastFn(notification.message, {
                 className: "notification",
