@@ -21,7 +21,7 @@ export interface Props {
 const MethodSelectionDialog = function (props: Props) {
     const { t: translate } = useTranslation();
     const pieChartIcon = (
-        <TimerIcon width={32} height={32} period={15} color="hsl(var(--primary))" backgroundColor={"white"} />
+        <TimerIcon width={32} height={32} period={15} color="var(--primary)" backgroundColor={"white"} />
     );
 
     return (
