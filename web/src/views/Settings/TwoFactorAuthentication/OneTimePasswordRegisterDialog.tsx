@@ -303,14 +303,14 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                         (disableAdvanced || !showAdvanced) && "hidden",
                                     )}
                                 >
-                                    <div className="w-full space-y-4">
+                                    <div className="mt-4 w-full space-y-4">
                                         {hideAlgorithms ? null : (
-                                            <Fragment>
+                                            <div className="space-y-2">
                                                 <Label id={"lbl-adv-algorithms"}>{translate("Algorithm")}</Label>
                                                 <RadioGroup
                                                     aria-labelledby={"lbl-adv-algorithms"}
                                                     value={selected.algorithm}
-                                                    className="flex flex-row justify-center gap-4"
+                                                    className="flex flex-row gap-4"
                                                     onValueChange={handleChangeAlgorithm}
                                                 >
                                                     {available.algorithms.map((algorithm) => (
@@ -325,15 +325,15 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                                         </div>
                                                     ))}
                                                 </RadioGroup>
-                                            </Fragment>
+                                            </div>
                                         )}
                                         {hideLengths ? null : (
-                                            <Fragment>
+                                            <div className="space-y-2">
                                                 <Label id={"lbl-adv-lengths"}>{translate("Length")}</Label>
                                                 <RadioGroup
                                                     aria-labelledby={"lbl-adv-lengths"}
                                                     value={selected.length.toString()}
-                                                    className="flex flex-row justify-center gap-4"
+                                                    className="flex flex-row gap-4"
                                                     onValueChange={handleChangeLength}
                                                 >
                                                     {available.lengths.map((length) => (
@@ -353,15 +353,15 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                                         </div>
                                                     ))}
                                                 </RadioGroup>
-                                            </Fragment>
+                                            </div>
                                         )}
                                         {hidePeriods ? null : (
-                                            <Fragment>
+                                            <div className="space-y-2">
                                                 <Label id={"lbl-adv-periods"}>{translate("Seconds")}</Label>
                                                 <RadioGroup
                                                     aria-labelledby={"lbl-adv-periods"}
                                                     value={selected.period.toString()}
-                                                    className="flex flex-row justify-center gap-4"
+                                                    className="flex flex-row gap-4"
                                                     onValueChange={handleChangePeriod}
                                                 >
                                                     {available.periods.map((period) => (
@@ -381,7 +381,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                                         </div>
                                                     ))}
                                                 </RadioGroup>
-                                            </Fragment>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -442,8 +442,8 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                             </div>
                         </div>
                         <div className={cn("col-span-12", showQRCode && "hidden")}>
-                            <div className="grid grid-cols-12 gap-4 justify-center">
-                                <div className="col-span-4">
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="grid w-64 grid-cols-2 gap-4">
                                     <CopyButton
                                         tooltip={translate("Click to Copy")}
                                         value={secretURL}
@@ -452,8 +452,6 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                     >
                                         {translate("URI")}
                                     </CopyButton>
-                                </div>
-                                <div className="col-span-4">
                                     <CopyButton
                                         tooltip={translate("Click to Copy")}
                                         value={secretValue}
@@ -463,19 +461,20 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                         {translate("Secret")}
                                     </CopyButton>
                                 </div>
-                                <div className="col-span-12">
+                                <div className="flex flex-col items-start">
                                     <Label htmlFor="secret-url">{translate("Secret")}</Label>
                                     <textarea
                                         id={"secret-url"}
-                                        className="my-2 w-64 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none"
+                                        className="my-2 w-64 resize-none overflow-hidden rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none"
                                         value={secretURL ?? ""}
                                         readOnly
+                                        rows={secretURL ? Math.ceil(secretURL.length / 30) : 1}
                                     />
                                 </div>
                             </div>
                         </div>
                         <div className="col-span-12 hidden md:block">
-                            <div>
+                            <div className="text-center">
                                 <p className="text-xs">{translate("Need Google Authenticator?")}</p>
                                 <AppStoreBadges
                                     iconSize={110}
@@ -526,8 +525,8 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                         })}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid grid-cols-12 items-center justify-center text-center">
-                    <div className="col-span-12">
+                <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-full px-6">
                         <Stepper activeStep={activeStep}>
                             {steps.map((label) => {
                                 const stepProps: { completed?: boolean } = {};
@@ -542,8 +541,8 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                             })}
                         </Stepper>
                     </div>
-                    <div className="col-span-12">
-                        <div className="grid grid-cols-12 gap-2 justify-center">{renderStep(activeStep)}</div>
+                    <div className="w-full">
+                        <div className="flex flex-col items-center justify-center gap-2">{renderStep(activeStep)}</div>
                     </div>
                 </div>
                 <DialogFooter>

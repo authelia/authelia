@@ -84,6 +84,8 @@ func (rs *RodSession) doRegisterTOTPFinish(t *testing.T, page *rod.Page, usernam
 	rs.doEnterOTP(t, page, passcode)
 	rs.verifyNotificationDisplayed(t, page, "Successfully added the One-Time Password")
 
+	rs.WaitElementLocatedByID(t, page, "one-time-password-delete")
+
 	rs.SetOneTimePassword(username, credential)
 }
 
