@@ -1196,6 +1196,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "caiocdcs",
+      "name": "Caio Silva",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8338516?v=4",
+      "profile": "https://caiocdcs.github.io",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7
