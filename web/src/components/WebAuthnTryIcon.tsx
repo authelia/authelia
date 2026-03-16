@@ -44,11 +44,7 @@ const WebAuthnTryIcon = function (props: Props) {
             icon={<FailureIcon />}
             className={props.webauthnTouchState === WebAuthnTouchState.Failure ? undefined : "hidden"}
         >
-            <Button
-                variant="ghost"
-                className="tracking-wide text-secondary hover:text-secondary"
-                onClick={handleRetryClick}
-            >
+            <Button variant={"ghost"} className="tracking-wide" color={"secondary"} onClick={handleRetryClick}>
                 {translate("Retry")}
             </Button>
         </IconWithContext>

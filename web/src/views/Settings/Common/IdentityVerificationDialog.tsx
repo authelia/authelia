@@ -192,13 +192,20 @@ const IdentityVerificationDialog = function (props: Props) {
                     <DialogFooter>
                         <Button
                             id={"dialog-cancel"}
-                            variant={"destructive"}
+                            variant={"ghost"}
+                            color={"destructive"}
                             disabled={loading}
                             onClick={handleCancelled}
                         >
                             {translate("Cancel")}
                         </Button>
-                        <Button id={"dialog-verify"} variant={"default"} disabled={loading} onClick={handleSubmit}>
+                        <Button
+                            id={"dialog-verify"}
+                            variant={"ghost"}
+                            color={"primary"}
+                            disabled={loading}
+                            onClick={handleSubmit}
+                        >
                             {loading ? <Spinner size={20} /> : null}
                             {translate("Verify")}
                         </Button>

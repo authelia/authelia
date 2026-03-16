@@ -252,12 +252,7 @@ const SecondFactorDialog = function (props: Props) {
                 </Stepper>
                 {renderContent()}
                 <DialogFooter>
-                    <Button
-                        variant={"outline"}
-                        className="border-destructive text-destructive hover:bg-destructive/10"
-                        disabled={loading}
-                        onClick={handleCancelled}
-                    >
+                    <Button variant={"outline"} color={"destructive"} disabled={loading} onClick={handleCancelled}>
                         {translate("Cancel")}
                     </Button>
                 </DialogFooter>

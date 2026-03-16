@@ -445,6 +445,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                             <div className="flex flex-col items-center gap-4">
                                 <div className="grid w-64 grid-cols-2 gap-4">
                                     <CopyButton
+                                        variant={"default"}
                                         tooltip={translate("Click to Copy")}
                                         value={secretURL}
                                         childrenCopied={translate("Copied")}
@@ -453,6 +454,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                         {translate("URI")}
                                     </CopyButton>
                                     <CopyButton
+                                        variant={"default"}
                                         tooltip={translate("Click to Copy")}
                                         value={secretValue}
                                         childrenCopied={translate("Copied")}
@@ -475,7 +477,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                         </div>
                         <div className="col-span-12 hidden md:block">
                             <div className="text-center">
-                                <p className="text-xs">{translate("Need Google Authenticator?")}</p>
+                                <p className="text-xs mb-1">{translate("Need Google Authenticator?")}</p>
                                 <AppStoreBadges
                                     iconSize={110}
                                     targetBlank
@@ -548,18 +550,20 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 <DialogFooter>
                     <Button
                         id={"dialog-previous"}
-                        variant={"outline"}
+                        variant={"ghost"}
+                        color={"primary"}
                         onClick={handleSetStepPrevious}
                         disabled={activeStep === 0}
                     >
                         {translate("Previous")}
                     </Button>
-                    <Button id={"dialog-cancel"} variant={"destructive"} onClick={handleClose}>
+                    <Button id={"dialog-cancel"} variant={"ghost"} color={"destructive"} onClick={handleClose}>
                         {translate("Cancel")}
                     </Button>
                     <Button
                         id={"dialog-next"}
-                        variant={"outline"}
+                        variant={"ghost"}
+                        color={"primary"}
                         onClick={handleSetStepNext}
                         disabled={activeStep === steps.length - 1}
                     >

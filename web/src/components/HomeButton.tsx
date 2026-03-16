@@ -16,7 +16,7 @@ const HomeButton = function () {
     };
 
     return (
-        <Button id={"home-button"} variant={"secondary"} onClick={handleHomeClick}>
+        <Button id={"home-button"} variant={"ghost"} color={"secondary"} onClick={handleHomeClick}>
             {translate("Home")}
         </Button>
     );

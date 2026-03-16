@@ -28,7 +28,8 @@ const SignOutButton = function (props: Props) {
                 <Button
                     id={props.id}
                     variant={"ghost"}
-                    className="text-sm tracking-wide text-secondary hover:text-secondary"
+                    className="text-sm tracking-wide"
+                    color={"secondary"}
                     onClick={handleSignOutClick}
                 >
                     {translate(props.text)}
@@ -40,7 +41,8 @@ const SignOutButton = function (props: Props) {
         <Button
             id={props.id}
             variant={"ghost"}
-            className="text-sm tracking-wide text-secondary hover:text-secondary"
+            className="text-sm tracking-wide"
+            color={"secondary"}
             onClick={handleSignOutClick}
         >
             {translate(props.text)}

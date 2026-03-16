@@ -225,7 +225,8 @@ const OneTimePasswordPanel = function (props: Props) {
                                     <span>
                                         <Button
                                             id={"one-time-password-add"}
-                                            variant="outline"
+                                            variant={"outline"}
+                                            color={"primary"}
                                             onClick={handleRegister}
                                             disabled={registered || dialogRegisterOpening || dialogRegisterOpen}
                                         >

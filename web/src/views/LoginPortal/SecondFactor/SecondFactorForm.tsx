@@ -104,8 +104,9 @@ const SecondFactorForm = function (props: Props) {
                     {showMethods ? (
                         <Button
                             id={"methods-button"}
-                            variant="ghost"
-                            className="text-sm tracking-wide text-secondary hover:text-secondary"
+                            variant={"ghost"}
+                            className="text-sm tracking-wide"
+                            color={"secondary"}
                             onClick={handleMethodSelectionClick}
                         >
                             {translate("Methods")}
