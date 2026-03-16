@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { ChevronDown, ChevronUp, Languages } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -118,93 +118,90 @@ const AppBarItemLanguage = function (props: Props) {
     }, [items, props.localeCurrent]);
 
     return render ? (
-        <Fragment>
-            <div className="flex items-center text-center">
-                <DropdownMenu>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <DropdownMenuTrigger asChild>
-                                    <button
-                                        id="language-button"
-                                        className="ml-4 inline-flex items-center rounded-full p-2 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
-                                        aria-haspopup="true"
-                                    >
-                                        <Languages className="size-5" />
-                                        <span className="pl-2">{current?.display}</span>
-                                    </button>
-                                </DropdownMenuTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent>{translate("Language")}</TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <DropdownMenuContent
-                        align="end"
-                        className="max-h-[80vh] overflow-y-auto sm:max-h-[70vh] md:max-h-[50vh] lg:max-h-[40vh]"
-                        aria-labelledby="language-button"
-                    >
-                        {items.flatMap((language) => {
-                            const hasChildren = language.children.length > 1;
-                            const isExpanded = expanded === language.locale;
-
-                            const menuItems = [
-                                <DropdownMenuItem
-                                    key={language.locale}
-                                    id={`language-${language.locale}`}
-                                    className={props.localeCurrent === language.locale ? "bg-accent" : ""}
-                                    onSelect={(e) => {
-                                        if (language.children.length <= 1) {
-                                            handleChange(language);
-                                        } else {
-                                            e.preventDefault();
-                                            handleCollapse(language.locale);
-                                        }
-                                    }}
+        <div className="flex items-center text-center">
+            <DropdownMenu>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    id="language-button"
+                                    className="ml-4 inline-flex items-center rounded-full p-2 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
+                                    aria-haspopup="true"
                                 >
-                                    <span className="flex-1">
-                                        {language.display} ({language.locale})
-                                    </span>
-                                    {hasChildren ? (
-                                        isExpanded ? (
-                                            <ChevronUp className="size-4" />
-                                        ) : (
-                                            <ChevronDown className="size-4" />
-                                        )
-                                    ) : null}
-                                </DropdownMenuItem>,
-                            ];
+                                    <Languages className="size-5" />
+                                    <span className="pl-2">{current?.display}</span>
+                                </button>
+                            </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>{translate("Language")}</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                <DropdownMenuContent
+                    align="end"
+                    className="max-h-[80vh] overflow-y-auto sm:max-h-[70vh] md:max-h-[50vh] lg:max-h-[40vh]"
+                    aria-labelledby="language-button"
+                >
+                    {items.flatMap((language) => {
+                        const hasChildren = language.children.length > 1;
+                        const isExpanded = expanded === language.locale;
+                        let ChevronIcon = null;
 
-                            if (language.children.length > 1) {
-                                menuItems.push(
-                                    <Collapsible
-                                        key={`${language.locale}-collapse`}
-                                        open={isExpanded}
-                                        onOpenChange={() => handleCollapse(language.locale)}
-                                    >
-                                        <CollapsibleContent>
-                                            {language.children.map((child) => (
-                                                <DropdownMenuItem
-                                                    id={`language-${language.locale}-child-${child.locale}`}
-                                                    key={`${language.locale}-child-${child.locale}`}
-                                                    className={
-                                                        props.localeCurrent === child.locale ? "bg-accent pl-6" : "pl-6"
-                                                    }
-                                                    onSelect={() => handleChange(child)}
-                                                >
-                                                    {child.display} ({child.locale})
-                                                </DropdownMenuItem>
-                                            ))}
-                                        </CollapsibleContent>
-                                    </Collapsible>,
-                                );
-                            }
+                        if (hasChildren) {
+                            ChevronIcon = isExpanded ? ChevronUp : ChevronDown;
+                        }
 
-                            return menuItems;
-                        })}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-        </Fragment>
+                        const menuItems = [
+                            <DropdownMenuItem
+                                key={language.locale}
+                                id={`language-${language.locale}`}
+                                className={props.localeCurrent === language.locale ? "bg-accent" : ""}
+                                onSelect={(e) => {
+                                    if (language.children.length <= 1) {
+                                        handleChange(language);
+                                    } else {
+                                        e.preventDefault();
+                                        handleCollapse(language.locale);
+                                    }
+                                }}
+                            >
+                                <span className="flex-1">
+                                    {language.display} ({language.locale})
+                                </span>
+                                {ChevronIcon ? <ChevronIcon className="size-4" /> : null}
+                            </DropdownMenuItem>,
+                        ];
+
+                        if (language.children.length > 1) {
+                            menuItems.push(
+                                <Collapsible
+                                    key={`${language.locale}-collapse`}
+                                    open={isExpanded}
+                                    onOpenChange={() => handleCollapse(language.locale)}
+                                >
+                                    <CollapsibleContent>
+                                        {language.children.map((child) => (
+                                            <DropdownMenuItem
+                                                id={`language-${language.locale}-child-${child.locale}`}
+                                                key={`${language.locale}-child-${child.locale}`}
+                                                className={
+                                                    props.localeCurrent === child.locale ? "bg-accent pl-6" : "pl-6"
+                                                }
+                                                onSelect={() => handleChange(child)}
+                                            >
+                                                {child.display} ({child.locale})
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </CollapsibleContent>
+                                </Collapsible>,
+                            );
+                        }
+
+                        return menuItems;
+                    })}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
     ) : null;
 };
 

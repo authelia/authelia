@@ -1,4 +1,4 @@
-import { type ComponentProps } from "react";
+import { Children, type ComponentProps, isValidElement } from "react";
 
 import { Check } from "lucide-react";
 
@@ -9,13 +9,16 @@ interface StepperProps extends ComponentProps<"div"> {
     children: React.ReactNode;
 }
 
-function Stepper({ activeStep, children, className, ...props }: StepperProps) {
-    const steps = Array.isArray(children) ? children : [children];
+function Stepper({ activeStep, children, className, ...props }: Readonly<StepperProps>) {
+    const steps = Children.toArray(children);
 
     return (
         <div data-slot="stepper" className={cn("flex w-full items-center justify-center", className)} {...props}>
             {steps.map((child, index) => (
-                <div key={index} className={cn("flex items-center", index < steps.length - 1 && "flex-1")}>
+                <div
+                    key={isValidElement(child) ? child.key : index}
+                    className={cn("flex items-center", index < steps.length - 1 && "flex-1")}
+                >
                     <div className="flex flex-col items-center gap-1">
                         <div
                             className={cn(
@@ -48,7 +51,7 @@ interface StepProps extends ComponentProps<"div"> {
     completed?: boolean;
 }
 
-function Step({ children, className, ...props }: StepProps) {
+function Step({ children, className, ...props }: Readonly<StepProps>) {
     return (
         <div data-slot="step" className={cn(className)} {...props}>
             {children}
@@ -56,7 +59,7 @@ function Step({ children, className, ...props }: StepProps) {
     );
 }
 
-function StepLabel({ children, className, ...props }: ComponentProps<"span">) {
+function StepLabel({ children, className, ...props }: Readonly<ComponentProps<"span">>) {
     return (
         <span data-slot="step-label" className={cn("mt-1 text-xs text-muted-foreground", className)} {...props}>
             {children}

@@ -166,7 +166,6 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
 interface PropertyTextProps {
     readonly name: string;
     readonly value: string;
-    readonly xs?: number;
 }
 
 function PropertyText(props: PropertyTextProps) {

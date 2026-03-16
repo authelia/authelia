@@ -22,13 +22,13 @@ export default function ThemeContextProvider(props: Props) {
     const [themeName, setThemeName] = useState(GetCurrentThemeName());
 
     useEffect(() => {
-        document.documentElement.setAttribute("data-theme", ResolveThemeName(themeName));
+        document.documentElement.dataset.theme = ResolveThemeName(themeName);
 
         if (themeName === ThemeNameAuto) {
             const query = globalThis.matchMedia?.(MediaQueryDarkMode);
             if (query?.addEventListener) {
                 const listener = (ev: MediaQueryListEvent) => {
-                    document.documentElement.setAttribute("data-theme", ev.matches ? "dark" : "light");
+                    document.documentElement.dataset.theme = ev.matches ? "dark" : "light";
                 };
 
                 query.addEventListener("change", listener);
@@ -49,7 +49,7 @@ export default function ThemeContextProvider(props: Props) {
             if (ev.newValue && ev.newValue !== "") {
                 setThemeName(ev.newValue);
             } else {
-                setThemeName(getUserThemeName());
+                setThemeName(GetCurrentThemeName());
             }
         };
 
@@ -114,15 +114,3 @@ function GetCurrentThemeName() {
 
     return getTheme();
 }
-
-const getUserThemeName = () => {
-    if (localStorageAvailable()) {
-        const value = globalThis.localStorage?.getItem(LocalStorageThemeName);
-
-        if (value) {
-            return value;
-        }
-    }
-
-    return getTheme();
-};
