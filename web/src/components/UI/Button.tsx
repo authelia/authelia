@@ -36,23 +36,23 @@ type ButtonColor = "default" | "destructive" | "primary" | "secondary" | "succes
 
 const colorClasses: Record<ButtonColor, { default: string; ghost: string; outline: string }> = {
     default: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/70",
         ghost: "hover:bg-accent/10",
         outline:
             "border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
     },
     destructive: {
-        default: "bg-destructive text-white hover:bg-destructive/90",
+        default: "bg-destructive text-white hover:bg-destructive/70",
         ghost: "text-destructive hover:bg-destructive/10",
         outline: "border-destructive text-destructive hover:bg-destructive/10",
     },
     primary: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/70",
         ghost: "text-primary hover:bg-primary/10",
         outline: "border-primary text-primary hover:bg-primary/10",
     },
     secondary: {
-        default: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        default: "bg-secondary text-secondary-foreground hover:bg-secondary/70",
         ghost: "text-secondary hover:bg-secondary/10",
         outline: "border-secondary text-secondary hover:bg-secondary/10",
     },
