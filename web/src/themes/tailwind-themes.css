@@ -2,50 +2,47 @@
  * Authelia theme definitions as CSS custom properties.
  * These map the MUI theme palette values to CSS variables consumed by
  * Tailwind CSS and shadcn/ui components.
- *
- * Color format: raw HSL channels (e.g. "210 40% 98%") so Tailwind can
- * apply opacity modifiers like bg-primary/50.
  */
 
 /* ---------- Light (also :root default) ---------- */
 :root,
 [data-theme="light"] {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 13%;
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(0 0% 13%);
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 13%;
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(0 0% 13%);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 13%;
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(0 0% 13%);
 
-    --primary: 213 68% 46%;
-    --primary-foreground: 0 0% 100%;
+    --primary: hsl(213 68% 46%);
+    --primary-foreground: hsl(0 0% 100%);
 
-    --secondary: 340 100% 48%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: hsl(340 100% 48%);
+    --secondary-foreground: hsl(0 0% 100%);
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 33%;
+    --muted: hsl(0 0% 96%);
+    --muted-foreground: hsl(0 0% 33%);
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 13%;
+    --accent: hsl(0 0% 96%);
+    --accent-foreground: hsl(0 0% 13%);
 
-    --destructive: 4 90% 58%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: hsl(4 90% 58%);
+    --destructive-foreground: hsl(0 0% 100%);
 
-    --success: 122 39% 49%;
-    --success-foreground: 0 0% 13%;
+    --success: hsl(122 39% 49%);
+    --success-foreground: hsl(0 0% 13%);
 
-    --warning: 36 100% 50%;
-    --warning-foreground: 0 0% 13%;
+    --warning: hsl(36 100% 50%);
+    --warning-foreground: hsl(0 0% 13%);
 
-    --info: 207 90% 54%;
-    --info-foreground: 0 0% 100%;
+    --info: hsl(207 90% 54%);
+    --info-foreground: hsl(0 0% 100%);
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 213 68% 46%;
+    --border: hsl(0 0% 88%);
+    --input: hsl(0 0% 88%);
+    --ring: hsl(213 68% 46%);
 
     --radius: 0.5rem;
 
@@ -59,42 +56,42 @@
 
 /* ---------- Dark ---------- */
 [data-theme="dark"] {
-    --background: 0 0% 19%;
-    --foreground: 0 0% 100%;
+    --background: hsl(0 0% 19%);
+    --foreground: hsl(0 0% 100%);
 
-    --card: 0 0% 26%;
-    --card-foreground: 0 0% 100%;
+    --card: hsl(0 0% 26%);
+    --card-foreground: hsl(0 0% 100%);
 
-    --popover: 0 0% 26%;
-    --popover-foreground: 0 0% 100%;
+    --popover: hsl(0 0% 26%);
+    --popover-foreground: hsl(0 0% 100%);
 
-    --primary: 213 68% 46%;
-    --primary-foreground: 0 0% 100%;
+    --primary: hsl(213 68% 46%);
+    --primary-foreground: hsl(0 0% 100%);
 
-    --secondary: 340 100% 48%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: hsl(340 100% 48%);
+    --secondary-foreground: hsl(0 0% 100%);
 
-    --muted: 0 0% 26%;
-    --muted-foreground: 0 0% 100% / 0.7;
+    --muted: hsl(0 0% 26%);
+    --muted-foreground: hsl(0 0% 100% / 0.7);
 
-    --accent: 0 0% 26%;
-    --accent-foreground: 0 0% 100%;
+    --accent: hsl(0 0% 26%);
+    --accent-foreground: hsl(0 0% 100%);
 
-    --destructive: 4 90% 58%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: hsl(4 90% 58%);
+    --destructive-foreground: hsl(0 0% 100%);
 
-    --success: 122 39% 49%;
-    --success-foreground: 0 0% 13%;
+    --success: hsl(122 39% 49%);
+    --success-foreground: hsl(0 0% 13%);
 
-    --warning: 36 100% 50%;
-    --warning-foreground: 0 0% 13%;
+    --warning: hsl(36 100% 50%);
+    --warning-foreground: hsl(0 0% 13%);
 
-    --info: 207 90% 54%;
-    --info-foreground: 0 0% 100%;
+    --info: hsl(207 90% 54%);
+    --info-foreground: hsl(0 0% 100%);
 
-    --border: 0 0% 100% / 0.12;
-    --input: 0 0% 100% / 0.12;
-    --ring: 213 68% 46%;
+    --border: hsl(0 0% 100% / 0.12);
+    --input: hsl(0 0% 100% / 0.12);
+    --ring: hsl(213 68% 46%);
 
     --radius: 0.5rem;
 
@@ -108,42 +105,42 @@
 
 /* ---------- Grey ---------- */
 [data-theme="grey"] {
-    --background: 220 13% 21%;
-    --foreground: 220 6% 61%;
+    --background: hsl(220 13% 21%);
+    --foreground: hsl(220 6% 61%);
 
-    --card: 220 13% 21%;
-    --card-foreground: 220 6% 61%;
+    --card: hsl(220 13% 21%);
+    --card-foreground: hsl(220 6% 61%);
 
-    --popover: 220 13% 21%;
-    --popover-foreground: 220 6% 61%;
+    --popover: hsl(220 13% 21%);
+    --popover-foreground: hsl(220 6% 61%);
 
-    --primary: 220 6% 61%;
-    --primary-foreground: 0 0% 100%;
+    --primary: hsl(220 6% 61%);
+    --primary-foreground: hsl(0 0% 100%);
 
-    --secondary: 340 100% 48%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: hsl(340 100% 48%);
+    --secondary-foreground: hsl(0 0% 100%);
 
-    --muted: 220 13% 26%;
-    --muted-foreground: 220 6% 61%;
+    --muted: hsl(220 13% 26%);
+    --muted-foreground: hsl(220 6% 61%);
 
-    --accent: 220 13% 26%;
-    --accent-foreground: 220 6% 61%;
+    --accent: hsl(220 13% 26%);
+    --accent-foreground: hsl(220 6% 61%);
 
-    --destructive: 4 90% 58%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: hsl(4 90% 58%);
+    --destructive-foreground: hsl(0 0% 100%);
 
-    --success: 122 39% 49%;
-    --success-foreground: 0 0% 13%;
+    --success: hsl(122 39% 49%);
+    --success-foreground: hsl(0 0% 13%);
 
-    --warning: 36 100% 50%;
-    --warning-foreground: 0 0% 13%;
+    --warning: hsl(36 100% 50%);
+    --warning-foreground: hsl(0 0% 13%);
 
-    --info: 207 90% 54%;
-    --info-foreground: 0 0% 100%;
+    --info: hsl(207 90% 54%);
+    --info-foreground: hsl(0 0% 100%);
 
-    --border: 220 6% 61%;
-    --input: 220 6% 61%;
-    --ring: 220 6% 61%;
+    --border: hsl(220 6% 61%);
+    --input: hsl(220 6% 61%);
+    --ring: hsl(220 6% 61%);
 
     --radius: 0.5rem;
 
@@ -157,42 +154,42 @@
 
 /* ---------- OLED ---------- */
 [data-theme="oled"] {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
+    --background: hsl(0 0% 0%);
+    --foreground: hsl(0 0% 100%);
 
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
+    --card: hsl(0 0% 0%);
+    --card-foreground: hsl(0 0% 100%);
 
-    --popover: 0 0% 0%;
-    --popover-foreground: 0 0% 100%;
+    --popover: hsl(0 0% 0%);
+    --popover-foreground: hsl(0 0% 100%);
 
-    --primary: 213 68% 46%;
-    --primary-foreground: 0 0% 100%;
+    --primary: hsl(213 68% 46%);
+    --primary-foreground: hsl(0 0% 100%);
 
-    --secondary: 340 100% 48%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: hsl(340 100% 48%);
+    --secondary-foreground: hsl(0 0% 100%);
 
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 100% / 0.7;
+    --muted: hsl(0 0% 10%);
+    --muted-foreground: hsl(0 0% 100% / 0.7);
 
-    --accent: 0 0% 10%;
-    --accent-foreground: 0 0% 100%;
+    --accent: hsl(0 0% 10%);
+    --accent-foreground: hsl(0 0% 100%);
 
-    --destructive: 4 90% 58%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: hsl(4 90% 58%);
+    --destructive-foreground: hsl(0 0% 100%);
 
-    --success: 122 39% 49%;
-    --success-foreground: 0 0% 100% / 0.87;
+    --success: hsl(122 39% 49%);
+    --success-foreground: hsl(0 0% 100% / 0.87);
 
-    --warning: 36 100% 50%;
-    --warning-foreground: 0 0% 100% / 0.87;
+    --warning: hsl(36 100% 50%);
+    --warning-foreground: hsl(0 0% 100% / 0.87);
 
-    --info: 207 90% 54%;
-    --info-foreground: 0 0% 100%;
+    --info: hsl(207 90% 54%);
+    --info-foreground: hsl(0 0% 100%);
 
-    --border: 0 0% 100% / 0.12;
-    --input: 0 0% 100% / 0.12;
-    --ring: 213 68% 46%;
+    --border: hsl(0 0% 100% / 0.12);
+    --input: hsl(0 0% 100% / 0.12);
+    --ring: hsl(213 68% 46%);
 
     --radius: 0.5rem;
 
