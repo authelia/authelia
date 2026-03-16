@@ -23,7 +23,7 @@ export default function ThemeContextProvider(props: Props) {
     const prefersDark = useSyncExternalStore(subscribePrefersDark, getPrefersDarkSnapshot, getPrefersDarkSnapshot);
 
     useEffect(() => {
-        document.documentElement.setAttribute("data-theme", ResolveThemeName(themeName, prefersDark));
+        document.documentElement.dataset.theme = ResolveThemeName(themeName, prefersDark);
     }, [themeName, prefersDark]);
 
     useEffect(() => {
