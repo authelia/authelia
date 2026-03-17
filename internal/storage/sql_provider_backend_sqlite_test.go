@@ -7,8 +7,10 @@ package storage
 import (
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -40,6 +42,35 @@ func TestNewSQLiteProvider(t *testing.T) {
 			assert.NotNil(t, provider)
 		})
 	}
+}
+
+func TestSQLiteProviderUpsertSession(t *testing.T) {
+	_, provider := newTestSessionProvider(t)
+
+	assert.NotContains(t, provider.sqlUpsertSession, "REPLACE INTO")
+	assert.Contains(t, provider.sqlUpsertSession, "ON CONFLICT (issuer, signature)")
+
+	expiration := time.Now().Add(time.Hour)
+
+	_, err := provider.db.Exec(provider.sqlUpsertSession, "issuer", "signature", "public", "john", expiration, []byte("first"))
+	require.NoError(t, err)
+
+	var id int
+
+	require.NoError(t, provider.db.QueryRowx(`SELECT id FROM session WHERE signature = ?;`, "signature").Scan(&id))
+
+	_, err = provider.db.Exec(provider.sqlUpsertSession, "issuer", "signature", "public", "john", expiration, []byte("second"))
+	require.NoError(t, err)
+
+	var (
+		updated int
+		data    []byte
+	)
+
+	require.NoError(t, provider.db.QueryRowx(`SELECT id, data FROM session WHERE signature = ?;`, "signature").Scan(&updated, &data))
+
+	assert.Equal(t, id, updated)
+	assert.Equal(t, []byte("second"), data)
 }
 
 func TestSQLiteRegisteredFuncs(t *testing.T) {
