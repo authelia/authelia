@@ -10,48 +10,19 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 export default [
     {
+        files: ["**/*.{js,mjs,cjs,jsx,ts,tsx}"],
         languageOptions: {
-            parser: tsParser,
-            parserOptions: {
-                project: "./tsconfig.json",
-            },
+            ecmaVersion: "latest",
+            sourceType: "module",
         },
-        settings: {
-            "import/resolver": {
-                typescript: {},
-            },
-            react: {
-                version: "detect",
-            },
-        },
-    },
-
-    {
-        plugins: {
-            react: fixupPluginRules(reactPlugin),
-            "react-hooks": reactHooksPlugin,
-        },
-        rules: {
-            ...reactPlugin.configs.recommended.rules,
-            ...reactHooksPlugin.configs.recommended.rules,
-
-            "import/no-webpack-loader-syntax": "error",
-            "no-restricted-globals": ["error", "event", "fdescribe"],
-            "react/jsx-pascal-case": ["warn", { allowAllCaps: true }],
-            "react/prop-types": "off",
-            "react/react-in-jsx-scope": "off",
-        },
-    },
-
-    {
         plugins: {
             "@limegrass/import-alias": limegrassImportAlias,
-            "@typescript-eslint": tsEslintPlugin,
             import: importPlugin,
             perfectionist,
         },
         rules: {
-            "@typescript-eslint/no-unused-vars": ["error", { args: "all", argsIgnorePattern: "^_" }],
+            "import/no-webpack-loader-syntax": "error",
+            "no-restricted-globals": ["error", "event", "fdescribe"],
             "no-restricted-imports": [
                 "error",
                 {
@@ -65,7 +36,6 @@ export default [
                     ],
                 },
             ],
-            "no-unused-vars": "off",
             "perfectionist/sort-array-includes": ["error"],
             "perfectionist/sort-imports": [
                 "error",
@@ -89,8 +59,48 @@ export default [
                     type: "custom",
                 },
             ],
-            "perfectionist/sort-objects": ["error"],
-            "perfectionist/sort-union-types": ["error"],
+            "perfectionist/sort-objects": "error",
+            "perfectionist/sort-union-types": "error",
+        },
+        settings: {
+            "import/resolver": {
+                typescript: {},
+            },
+            react: {
+                version: "detect",
+            },
+        },
+    },
+
+    {
+        files: ["**/*.{jsx,tsx}"],
+        plugins: {
+            react: fixupPluginRules(reactPlugin),
+            "react-hooks": reactHooksPlugin,
+        },
+        rules: {
+            ...reactPlugin.configs.recommended.rules,
+            ...reactHooksPlugin.configs.recommended.rules,
+            "react/jsx-pascal-case": ["warn", { allowAllCaps: true }],
+            "react/prop-types": "off",
+            "react/react-in-jsx-scope": "off",
+        },
+    },
+
+    {
+        files: ["**/*.{ts,tsx}"],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                project: "./tsconfig.json",
+            },
+        },
+        plugins: {
+            "@typescript-eslint": tsEslintPlugin,
+        },
+        rules: {
+            "@typescript-eslint/no-unused-vars": ["error", { args: "all", argsIgnorePattern: "^_" }],
+            "no-unused-vars": "off",
         },
     },
 
