@@ -360,8 +360,6 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	assert.Equal(s.T(), testValue, userSession.Username)
 	assert.Equal(s.T(), true, userSession.KeepMeLoggedIn)
 	assert.Equal(s.T(), authentication.OneFactor, userSession.AuthenticationLevel(s.mock.Ctx.Configuration.WebAuthn.EnablePasskey2FA))
-	assert.Equal(s.T(), []string{"test@example.com"}, userSession.Emails)
-	assert.Equal(s.T(), []string{"dev", "admins"}, userSession.Groups)
 }
 
 func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
@@ -409,8 +407,6 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	assert.Equal(s.T(), testValue, userSession.Username)
 	assert.Equal(s.T(), false, userSession.KeepMeLoggedIn)
 	assert.Equal(s.T(), authentication.OneFactor, userSession.AuthenticationLevel(s.mock.Ctx.Configuration.WebAuthn.EnablePasskey2FA))
-	assert.Equal(s.T(), []string{"test@example.com"}, userSession.Emails)
-	assert.Equal(s.T(), []string{"dev", "admins"}, userSession.Groups)
 }
 
 func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSession() {
@@ -462,8 +458,6 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 	assert.Equal(s.T(), "Test", userSession.Username)
 	assert.Equal(s.T(), true, userSession.KeepMeLoggedIn)
 	assert.Equal(s.T(), authentication.OneFactor, userSession.AuthenticationLevel(s.mock.Ctx.Configuration.WebAuthn.EnablePasskey2FA))
-	assert.Equal(s.T(), []string{"test@example.com"}, userSession.Emails)
-	assert.Equal(s.T(), []string{"dev", "admins"}, userSession.Groups)
 }
 
 type FirstFactorRedirectionSuite struct {
@@ -1207,9 +1201,9 @@ func (s *FirstFactorReauthenticateSuite) SetupTest() {
 
 	s.Require().NoError(err)
 
-	session.SetOneFactorPasskey(s.mock.Ctx.Providers.Clock.Now(), &authentication.UserDetails{Username: testValue}, false, false, false, false)
+	session.SetOneFactorPasskey(s.mock.Ctx.GetClock().Now(), testValue, false, false, false, false)
 
-	s.Require().NoError(s.mock.Ctx.SaveSession(session))
+	s.Require().NoError(s.mock.Ctx.SaveSession(&session))
 }
 
 func (s *FirstFactorReauthenticateSuite) TearDownTest() {
@@ -1446,8 +1440,6 @@ func (s *FirstFactorReauthenticateSuite) TestShouldSaveUsernameFromAuthenticatio
 	assert.Equal(s.T(), "test", userSession.Username)
 	assert.Equal(s.T(), false, userSession.KeepMeLoggedIn)
 	assert.Equal(s.T(), authentication.OneFactor, userSession.AuthenticationLevel(s.mock.Ctx.Configuration.WebAuthn.EnablePasskey2FA))
-	assert.Equal(s.T(), []string{"test@example.com"}, userSession.Emails)
-	assert.Equal(s.T(), []string{"dev", "admins"}, userSession.Groups)
 }
 
 type FirstFactorReauthenticateRedirectionSuite struct {
@@ -1463,9 +1455,9 @@ func (s *FirstFactorReauthenticateRedirectionSuite) SetupTest() {
 
 	s.Require().NoError(err)
 
-	session.SetOneFactorPasskey(s.mock.Ctx.Providers.Clock.Now(), &authentication.UserDetails{Username: testValue}, false, false, false, false)
+	session.SetOneFactorPasskey(s.mock.Ctx.GetClock().Now(), testValue, false, false, false, false)
 
-	s.Require().NoError(s.mock.Ctx.SaveSession(session))
+	s.Require().NoError(s.mock.Ctx.SaveSession(&session))
 
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = &url.URL{Scheme: "https", Host: "default.local"}
 	s.mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass

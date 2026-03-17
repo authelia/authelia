@@ -16,6 +16,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -238,7 +239,7 @@ func TestHandleOAuth2AuthorizationConsentGenerate(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOAuth2AuthorizationConsentGenerate(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
+			consent, handled := handleOAuth2AuthorizationConsentGenerate(mock.Ctx, tc.issuer, tc.client, tc.userSession, &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}, tc.subject, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
 
 			assert.Equal(t, tc.handled, handled)
 
@@ -400,7 +401,7 @@ func TestHandleOIDCAuthorizationConsentNotAuthenticated(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOAuth2AuthorizationConsentNotAuthenticated(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
+			consent, handled := handleOAuth2AuthorizationConsentNotAuthenticated(mock.Ctx, tc.issuer, tc.client, tc.userSession, &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}, tc.subject, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
 
 			assert.Equal(t, tc.handled, handled)
 
@@ -1379,7 +1380,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOAuth2AuthorizationConsentModeExplicitWithID(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, tc.challenge, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
+			consent, handled := handleOAuth2AuthorizationConsentModeExplicitWithID(mock.Ctx, tc.issuer, tc.client, tc.userSession, &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}, tc.subject, tc.challenge, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
 
 			assert.Equal(t, tc.handled, handled)
 

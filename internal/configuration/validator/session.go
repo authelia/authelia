@@ -29,6 +29,12 @@ func ValidateSession(config *schema.Configuration, validator *schema.StructValid
 }
 
 func validateSession(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Session.Storage == "" {
+		config.Session.Storage = schema.DefaultSessionConfiguration.Storage
+	} else if !utils.IsStringInSlice(config.Session.Storage, validSessionStorageValues) {
+		validator.Push(fmt.Errorf(errFmtSessionStorage, utils.StringJoinOr(validSessionStorageValues), config.Session.Storage))
+	}
+
 	if config.Session.Expiration <= 0 {
 		config.Session.Expiration = schema.DefaultSessionConfiguration.Expiration // 1 hour.
 	}

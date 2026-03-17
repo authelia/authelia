@@ -122,8 +122,8 @@ const (
 
 	ProviderNameNTP              = "ntp"
 	ProviderNameStorage          = "storage"
+	ProviderNameCache            = "cache"
 	ProviderNameUser             = "user"
-	ProviderNameSession          = "session"
 	ProviderNameNotification     = "notification"
 	ProviderNameExpressions      = "expressions"
 	ProviderNameWebAuthnMetaData = "webauthn-metadata"

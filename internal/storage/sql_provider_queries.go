@@ -369,6 +369,56 @@ const (
 )
 
 const (
+	queryFmtUpsertSession = `
+		REPLACE INTO %s (issuer, signature, public_id, username, expiration, data)
+		VALUES (?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpsertSessionPostgreSQL = `
+		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)
+		VALUES ($1, $2, $3, $4, $5, $6)
+			ON CONFLICT (issuer, signature)
+			DO UPDATE SET public_id = $3, username = $4, expiration = $5, data = $6;`
+
+	queryFmtSelectSession = `
+		SELECT data
+		FROM %s
+		WHERE issuer = ? AND signature = ? AND expiration > ?;`
+
+	queryFmtSelectSessionByPublicID = `
+		SELECT data
+		FROM %s
+		WHERE issuer = ? AND public_id = ? AND expiration > ?;`
+
+	queryFmtSelectSessionSignaturesByUsername = `
+		SELECT signature
+		FROM %s
+		WHERE issuer = ? AND username = ? AND expiration > ?;`
+
+	queryFmtUpdateSessionData = `
+		UPDATE %s
+		SET expiration = ?, data = ?
+		WHERE issuer = ? AND signature = ?;`
+
+	queryFmtUpdateSessionUsername = `
+		UPDATE %s
+		SET username = ?
+		WHERE issuer = ? AND signature = ?;`
+
+	queryFmtUpdateSessionSignature = `
+		UPDATE %s
+		SET signature = ?, expiration = ?
+		WHERE issuer = ? AND signature = ?;`
+
+	queryFmtDeleteSession = `
+		DELETE FROM %s
+		WHERE issuer = ? AND signature = ?;`
+
+	queryFmtDeleteSessionExpired = `
+		DELETE FROM %s
+		WHERE expiration <= ?;`
+)
+
+const (
 	queryFmtUpsertCachedData = `
 		REPLACE INTO %s (name, updated_at, encrypted, value)
 		VALUES (?, ?, ?, ?);`

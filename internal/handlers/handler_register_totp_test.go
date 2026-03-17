@@ -39,7 +39,7 @@ func TestShouldReturnTOTPRegisterOptions(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.TOTPMock.EXPECT().Options().Return(*totp.NewTOTPOptionsFromSchema(mock.Ctx.Configuration.TOTP))
 			},
@@ -58,7 +58,7 @@ func TestShouldReturnTOTPRegisterOptions(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.TOTPMock.EXPECT().Options().Return(*totp.NewTOTPOptionsFromSchema(mock.Ctx.Configuration.TOTP))
 			},
@@ -136,7 +136,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.
@@ -165,7 +165,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.EXPECT().Options().Return(*totp.NewTOTPOptionsFromSchema(mock.Ctx.Configuration.TOTP)),
@@ -213,7 +213,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"KO","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusBadRequest,
@@ -242,7 +242,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.
@@ -313,7 +313,7 @@ func TestTOTPRegisterDELETE(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
@@ -332,7 +332,7 @@ func TestTOTPRegisterDELETE(t *testing.T) {
 					Issuer: "abc",
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
@@ -393,7 +393,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"KO","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
@@ -421,7 +421,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"KO","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusBadRequest,
@@ -449,7 +449,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(-time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"KO","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusForbidden,
@@ -501,7 +501,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.
@@ -536,7 +536,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.
@@ -571,7 +571,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.
@@ -631,7 +631,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.
@@ -676,7 +676,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.
@@ -727,7 +727,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.
@@ -774,7 +774,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.
@@ -821,7 +821,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.
@@ -901,7 +901,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 					Issuer: "abc",
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().LoadTOTPConfiguration(mock.Ctx, testUsername).Return(&model.TOTPConfiguration{}, nil),
@@ -927,7 +927,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 					Issuer: "abc",
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().LoadTOTPConfiguration(mock.Ctx, testUsername).Return(&model.TOTPConfiguration{}, nil),
@@ -955,7 +955,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 					Issuer: "abc",
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().LoadTOTPConfiguration(mock.Ctx, testUsername).Return(&model.TOTPConfiguration{}, nil),
@@ -982,7 +982,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 					Issuer: "abc",
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().LoadTOTPConfiguration(mock.Ctx, testUsername).Return(&model.TOTPConfiguration{}, nil),
@@ -1008,7 +1008,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 					Issuer: "abc",
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.StorageMock.

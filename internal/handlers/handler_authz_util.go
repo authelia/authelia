@@ -8,9 +8,13 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/session"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+// newAnonymousUserDetails returns an empty extended user details value. The embedded *UserDetails is initialized as
+// consumers dereference the promoted fields without a nil check.
+func newAnonymousUserDetails() authentication.UserDetailsExtended {
+	return authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}
+}
 
 func friendlyMethod(m string) (fm string) {
 	switch m {

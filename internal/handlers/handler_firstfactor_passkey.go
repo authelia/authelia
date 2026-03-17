@@ -69,7 +69,7 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 
 	userSession.WebAuthn = &data
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionDataSave)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -93,7 +93,7 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 //nolint:gocyclo
 func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	var (
-		provider    *session.Session
+		provider    session.Strategy
 		userSession session.UserSession
 
 		err error
@@ -115,7 +115,9 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
+	var current *session.UserSession
+
+	if current, err = provider.Get(ctx); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -123,6 +125,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
+
+	userSession = *current
 
 	if !userSession.IsAnonymous() {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -138,7 +142,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	defer func() {
 		userSession.WebAuthn = nil
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = ctx.SaveSession(&userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
 		}
 	}()
@@ -270,7 +274,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if details, err = ctx.Providers.UserProvider.GetDetails(user.Username); err != nil {
+	if details, err = ctx.GetUserProvider().GetDetails(user.Username); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -311,18 +315,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		userSession.RefreshTTL = ctx.GetClock().Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 	}
 
-	keepMeLoggedIn := !provider.Config.DisableRememberMe && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
-
-	if keepMeLoggedIn {
-		if err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe); err != nil {
-			ctx.SetStatusCode(fasthttp.StatusForbidden)
-			ctx.SetJSONError(messageMFAValidationFailed)
-
-			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthTypePasskey, logFmtActionAuthentication, details.Username)
-
-			return
-		}
-	}
+	// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data.
+	keepMeLoggedIn := !provider.GetConfig().DisableRememberMe && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
 
 	ctx.Logger.WithFields(map[string]any{
 		"hardware": response.ParsedPublicKeyCredential.AuthenticatorAttachment == protocol.CrossPlatform,
@@ -331,7 +325,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	}).Debug("Passkey Login")
 
 	userSession.SetOneFactorPasskey(
-		ctx.GetClock().Now(), details,
+		ctx.GetClock().Now(), details.Username,
 		keepMeLoggedIn,
 		response.AuthenticatorAttachment == protocol.CrossPlatform,
 		response.Response.AuthenticatorData.Flags.HasUserPresent(),
@@ -343,8 +337,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if len(bodyJSON.Flow) > 0 {
-		handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
+		handleFlowResponse(ctx, &userSession, details, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 	} else {
-		HandlePasskeyResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups, userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) == authentication.TwoFactor)
+		HandlePasskeyResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, details.Groups, userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) == authentication.TwoFactor)
 	}
 }

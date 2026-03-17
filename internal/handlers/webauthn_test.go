@@ -422,7 +422,7 @@ func TestWebAuthnGetUserWithErr(t *testing.T) {
 		LoadWebAuthnCredentialsByUsername(ctx.Ctx, exampleDotCom, testUsername).
 		Return(nil, errors.New("not found"))
 
-	user, err := handleGetWebAuthnUserByRPID(ctx.Ctx, userSession.Username, userSession.DisplayName, exampleDotCom)
+	user, err := handleGetWebAuthnUserByRPID(ctx.Ctx, userSession.Username, "", exampleDotCom)
 
 	assert.EqualError(t, err, "not found")
 	assert.Nil(t, user)

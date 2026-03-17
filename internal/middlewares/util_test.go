@@ -106,7 +106,7 @@ func TestNewProvidersBasic(t *testing.T) {
 	assert.Nil(t, providers.StorageProvider)
 	assert.Nil(t, providers.Authorizer)
 	assert.Nil(t, providers.UserProvider)
-	assert.Nil(t, providers.SessionProvider)
+	assert.Nil(t, providers.Session)
 	assert.Nil(t, providers.Notifier)
 	assert.Nil(t, providers.OpenIDConnect)
 	assert.Nil(t, providers.Metrics)

@@ -151,6 +151,12 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 	}, nil
 }
 
+// GetDetailsCached is used to get a user's information from the cache if available. The LDAP provider has no cache so
+// this is identical to GetDetails.
+func (p *LDAPUserProvider) GetDetailsCached(username string) (details *UserDetails, err error) {
+	return p.GetDetails(username)
+}
+
 // GetDetailsExtended retrieves the UserDetailsExtended values.
 func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
 	var (
@@ -238,6 +244,12 @@ func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDet
 	}
 
 	return details, nil
+}
+
+// GetDetailsExtendedCached is used to get a user's extended information from the cache if available. The LDAP provider
+// has no cache so this is identical to GetDetailsExtended.
+func (p *LDAPUserProvider) GetDetailsExtendedCached(username string) (details *UserDetailsExtended, err error) {
+	return p.GetDetailsExtended(username)
 }
 
 // UpdatePassword update the password of the given user.

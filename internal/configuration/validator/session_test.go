@@ -62,6 +62,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			},
 			schema.Configuration{
 				Session: schema.Session{
+					Storage: schema.DefaultSessionConfiguration.Storage,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 					},
@@ -104,6 +105,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			},
 			schema.Configuration{
 				Session: schema.Session{
+					Storage: schema.DefaultSessionConfiguration.Storage,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "authelia_session", SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 					},
@@ -122,6 +124,49 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			nil,
 			[]string{
 				"session: option 'same_site' must be one of 'none', 'lax', or 'strict' but it's configured as 'BAD VALUE'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnUnknownStorage",
+			schema.Configuration{
+				Session: schema.Session{
+					Storage: "redis",
+					SessionCookieCommon: schema.SessionCookieCommon{
+						SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+					},
+					Cookies: []schema.SessionCookie{
+						{
+							SessionCookieCommon: schema.SessionCookieCommon{
+								Name:       "authelia_session",
+								Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+							},
+							Domain:      exampleDotCom,
+							AutheliaURL: &url.URL{Scheme: schemeHTTPS, Host: authdot + exampleDotCom},
+						},
+					},
+				},
+			},
+			schema.Configuration{
+				Session: schema.Session{
+					Storage: "redis",
+					SessionCookieCommon: schema.SessionCookieCommon{
+						Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+					},
+					Cookies: []schema.SessionCookie{
+						{
+							SessionCookieCommon: schema.SessionCookieCommon{
+								Name: "authelia_session", SameSite: "lax",
+								Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
+							},
+							Domain:      exampleDotCom,
+							AutheliaURL: &url.URL{Scheme: schemeHTTPS, Host: authdot + exampleDotCom},
+						},
+					},
+				},
+			},
+			nil,
+			[]string{
+				"session: option 'storage' must be one of 'cache' or 'internal' but it's configured as 'redis'",
 			},
 		},
 		{
@@ -149,6 +194,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			},
 			schema.Configuration{
 				Session: schema.Session{
+					Storage: schema.DefaultSessionConfiguration.Storage,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "default_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute,
 						RememberMe: schema.RememberMeDisabled, DisableRememberMe: true,
@@ -189,6 +235,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			},
 			schema.Configuration{
 				Session: schema.Session{
+					Storage: schema.DefaultSessionConfiguration.Storage,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute * 5, RememberMe: time.Hour * 24 * 30,
 					},

@@ -12,6 +12,8 @@ type Session struct {
 
 	Secret string `koanf:"secret" yaml:"secret,omitempty" toml:"secret,omitempty" json:"secret,omitempty" jsonschema:"title=Secret" jsonschema_description:"Secret used to encrypt the session data."`
 
+	Storage string `koanf:"storage" yaml:"storage,omitempty" toml:"storage,omitempty" json:"storage,omitempty" jsonschema:"title=Storage,enum=internal,enum=cache" jsonschema_description:"The storage provider to use for session storage."`
+
 	Cookies []SessionCookie `koanf:"cookies" yaml:"cookies,omitempty" toml:"cookies,omitempty" json:"cookies,omitempty" jsonschema:"title=Cookies" jsonschema_description:"List of cookie domain configurations."`
 
 	Redis *SessionRedis `koanf:"redis" yaml:"redis,omitempty" toml:"redis,omitempty" json:"redis,omitempty" jsonschema:"title=Redis" jsonschema_description:"Redis Session Provider configuration."`
@@ -77,6 +79,7 @@ type SessionRedisHighAvailabilityNode struct {
 
 // DefaultSessionConfiguration is the default session configuration.
 var DefaultSessionConfiguration = Session{
+	Storage: "internal",
 	SessionCookieCommon: SessionCookieCommon{
 		Name:       "authelia_session",
 		Expiration: time.Hour,

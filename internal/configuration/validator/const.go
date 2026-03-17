@@ -381,6 +381,7 @@ const (
 	errFmtSessionOptionRequired           = "session: option '%s' is required"
 	errFmtSessionLegacyAndWarning         = "session: option 'domain' and option 'cookies' can't be specified at the same time"
 	errFmtSessionSameSite                 = "session: option 'same_site' must be one of %s but it's configured as '%s'"
+	errFmtSessionStorage                  = "session: option 'storage' must be one of %s but it's configured as '%s'"
 	errFmtSessionSecretRequired           = "session: option 'secret' is required when using the '%s' provider"
 	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but it's configured as '%d'"
 	errFmtSessionRedisHostRequired        = "session: redis: option 'host' is required"
@@ -529,6 +530,7 @@ var (
 	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
 	validThemeNames                          = []string{"light", "dark", "grey", "oled", auto}
 	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
+	validSessionStorageValues                = []string{"cache", "internal"}
 	validLogLevels                           = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
 	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}
 	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}

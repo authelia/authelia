@@ -3,6 +3,7 @@ package handlers
 import (
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -32,7 +33,7 @@ func SecondFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHa
 		}
 
 		var (
-			provider    *session.Session
+			provider    session.Strategy
 			userSession session.UserSession
 		)
 
@@ -44,13 +45,17 @@ func SecondFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHa
 			return
 		}
 
-		if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
+		var current *session.UserSession
+
+		if current, err = provider.Get(ctx); err != nil {
 			ctx.Logger.Errorf("%s", err)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
 			return
 		}
+
+		userSession = *current
 
 		var (
 			userPasswordOk bool
@@ -72,6 +77,15 @@ func SecondFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHa
 			return
 		}
 
+		var details *authentication.UserDetails
+		if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypePassword, nil)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			return
+		}
+
 		doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypePassword, nil)
 
 		userSession.SetTwoFactorPassword(ctx.GetClock().Now())
@@ -84,7 +98,7 @@ func SecondFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHa
 			return
 		}
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = ctx.SaveSession(&userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthTypePassword, logFmtActionAuthentication, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -95,7 +109,7 @@ func SecondFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHa
 		successful = true
 
 		if len(bodyJSON.Flow) > 0 {
-			handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
+			handleFlowResponse(ctx, &userSession, details, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 		} else {
 			Handle2FAResponse(ctx, bodyJSON.TargetURL)
 		}

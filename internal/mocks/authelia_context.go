@@ -17,6 +17,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -25,6 +26,29 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
+
+// testSessionHMACKey is a fixed HMAC key used to sign session identifiers in tests.
+var testSessionHMACKey = []byte("cd21a70d4d24b23e0d1ae0a5cf6c4e1d3e2b8a5f7c9d0e1f2a3b4c5d6e7f8a9b")
+
+func newMockSessionProvider(config *schema.Configuration, clock clock.Provider, random random.Provider) (provider session.Provider, err error) {
+	return session.NewProvider(config, testSessionHMACKey, clock, random, cache.NewSessionRepository(cache.NewMemory()))
+}
+
+// NewSessionProvider returns a session.Provider backed by an in-memory repository for use in tests.
+func NewSessionProvider(config *schema.Configuration, clock clock.Provider, random random.Provider) (provider session.Provider, err error) {
+	return newMockSessionProvider(config, clock, random)
+}
+
+// ResetSessionProvider rebuilds the session provider from the current configuration. Tests which mutate the session
+// configuration after the mock is created must call this for the change to take effect.
+func (m *MockAutheliaCtx) ResetSessionProvider() {
+	provider, err := newMockSessionProvider(&m.Ctx.Configuration, m.Ctx.Providers.Clock, m.Ctx.Providers.Random)
+	if err != nil {
+		panic(err)
+	}
+
+	m.Ctx.Providers.Session = provider
+}
 
 // MockAutheliaCtx a mock of AutheliaCtx.
 type MockAutheliaCtx struct {
@@ -203,8 +227,6 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.Authorizer = authorization.NewAuthorizer(
 		&config)
 
-	providers.SessionProvider = session.NewProvider(config.Session, nil)
-
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
 
 	mockAuthelia.TOTPMock = NewMockTOTP(mockAuthelia.Ctrl)
@@ -218,6 +240,10 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	var err error
 	if providers.Templates, err = templates.New(templates.Config{}); err != nil {
+		panic(err)
+	}
+
+	if providers.Session, err = newMockSessionProvider(&config, providers.Clock, providers.Random); err != nil {
 		panic(err)
 	}
 
@@ -242,7 +268,7 @@ func NewMockAutheliaCtxWithUserSession(t *testing.T, userSession session.UserSes
 	t.Helper()
 
 	mock := NewMockAutheliaCtx(t)
-	err := mock.Ctx.SaveSession(userSession)
+	err := mock.Ctx.SaveSession(&userSession)
 	require.NoError(t, err)
 
 	return mock

@@ -291,6 +291,47 @@ type Provider interface {
 	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
 
 	/*
+		Implementation for User Sessions.
+	*/
+
+	// SessionGet returns the session data matching the signature and issuer, returning no data and no error when the
+	// session is unknown or expired.
+	SessionGet(ctx context.Context, issuer, id string) (data []byte, err error)
+
+	// SessionGetByPublicID returns the session data matching the public id and issuer.
+	SessionGetByPublicID(ctx context.Context, issuer, pid string) (data []byte, err error)
+
+	// SessionGetIDsByUsername returns the signatures of every unexpired session for a username and issuer.
+	SessionGetIDsByUsername(ctx context.Context, issuer, username string) (ids []string, err error)
+
+	// SessionSave persists a session, replacing any session with the same signature and issuer.
+	SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
+
+	// SessionSaveData updates the data and expiration of an existing session.
+	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
+
+	// SessionSetUsername links an existing session to a specific user.
+	SessionSetUsername(ctx context.Context, issuer, id, username string) (err error)
+
+	// SessionDelete removes a session.
+	SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error)
+
+	// SessionChangeID changes the signature of an existing session.
+	SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration) (err error)
+
+	// SessionGarbageCollection removes every expired session.
+	SessionGarbageCollection(ctx context.Context) (err error)
+
+	// SessionGarbageCollectionFrequency returns the frequency expired sessions should be removed at.
+	SessionGarbageCollectionFrequency(ctx context.Context) (frequency time.Duration)
+
+	/*
+		Special.
+	*/
+
+	LoadHMACKey(ctx context.Context, name string, size int) (key []byte, err error)
+
+	/*
 		Implementation for Schema controls.
 	*/
 

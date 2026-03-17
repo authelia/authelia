@@ -11,6 +11,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -19,7 +20,7 @@ import (
 )
 
 func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client, policy oidc.ClientAuthorizationPolicy,
-	provider *session.Session, userSession session.UserSession,
+	provider session.Strategy, userSession session.UserSession, details *authentication.UserDetailsExtended,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		subject uuid.UUID
@@ -32,7 +33,7 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 		return nil, handled
 	}
 
-	level := policy.GetRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
+	level := policy.GetRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()})
 
 	switch {
 	case userSession.IsAnonymous():
@@ -75,24 +76,24 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 
 		return nil, true
 	default:
-		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, uuid.Nil, rw, r, requester)
+		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, details, uuid.Nil, rw, r, requester)
 	}
 
-	return handler(ctx, issuer, client, userSession, subject, rw, r, requester)
+	return handler(ctx, issuer, client, userSession, details, subject, rw, r, requester)
 }
 
-func handleOAuth2AuthorizationConsentSessionUpdates(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, client oidc.Client, policy oidc.ClientAuthorizationPolicy, rw http.ResponseWriter, requester oauthelia2.Requester) (handled bool) {
+func handleOAuth2AuthorizationConsentSessionUpdates(ctx *middlewares.AutheliaCtx, provider session.Strategy, userSession *session.UserSession, client oidc.Client, policy oidc.ClientAuthorizationPolicy, rw http.ResponseWriter, requester oauthelia2.Requester) (handled bool) {
 	var err error
 
-	if modified, invalid := handleSessionValidateRefresh(ctx, userSession, ctx.Configuration.AuthenticationBackend.RefreshInterval); invalid {
+	if modified, invalid := handleAuthnCookieValidate(ctx, session.NewEncapsulatedSession(provider, ctx), userSession); invalid {
 		if err = ctx.DestroySession(); err != nil {
 			ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while destroying session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
 		}
 
-		*userSession = provider.NewDefaultUserSession()
+		*userSession = provider.NewDefault()
 		userSession.LastActivity = ctx.GetClock().Now().Unix()
 
-		if err = provider.SaveSession(ctx.RequestCtx, *userSession); err != nil {
+		if err = provider.Save(ctx, userSession); err != nil {
 			ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while saving updated session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
 
 			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
@@ -100,7 +101,7 @@ func handleOAuth2AuthorizationConsentSessionUpdates(ctx *middlewares.AutheliaCtx
 			return true
 		}
 	} else if modified {
-		if err = provider.SaveSession(ctx.RequestCtx, *userSession); err != nil {
+		if err = provider.Save(ctx, userSession); err != nil {
 			ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while saving updated session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
 
 			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
@@ -113,7 +114,7 @@ func handleOAuth2AuthorizationConsentSessionUpdates(ctx *middlewares.AutheliaCtx
 }
 
 func handleOAuth2AuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	_ session.UserSession, _ uuid.UUID,
+	_ session.UserSession, _ *authentication.UserDetailsExtended, _ uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var err error
 	if consent, err = handleOAuth2NewConsentSession(ctx, uuid.UUID{}, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
@@ -142,7 +143,7 @@ func handleOAuth2AuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaC
 }
 
 func handleOAuth2AuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+	userSession session.UserSession, details *authentication.UserDetailsExtended, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
@@ -182,16 +183,16 @@ func handleOAuth2AuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issu
 		ctx.GetLogger().WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
-	handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
+	handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, details, rw, r, requester)
 
 	return consent, true
 }
 
 func handleOAuth2AuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issuer *url.URL, consent *model.OAuth2ConsentSession, client oidc.Client,
-	userSession session.UserSession, rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) {
+	userSession session.UserSession, details *authentication.UserDetailsExtended, rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) {
 	var location *url.URL
 
-	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}) {
 		location = &url.URL{
 			Scheme: issuer.Scheme,
 			Host:   issuer.Host,
@@ -205,11 +206,11 @@ func handleOAuth2AuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issu
 		location.RawQuery = query.Encode()
 		location = location.JoinPath(oidc.FrontendEndpointPathConsentDecision)
 
-		ctx.GetLogger().Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String(), "sufficient", client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}))
+		ctx.GetLogger().Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String(), "sufficient", client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}))
 	} else {
 		location = handleOIDCAuthorizationConsentGetRedirectionURL(ctx, issuer, consent)
 
-		ctx.GetLogger().Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String(), "insufficient", client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}))
+		ctx.GetLogger().Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String(), "insufficient", client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}))
 	}
 
 	handleOAuth2PushedAuthorizeConsent(ctx, requester, r.Form)

@@ -17,7 +17,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
-	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestAuthzImplementation(t *testing.T) {
@@ -117,7 +116,7 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 		CCS           bool
 		Level         authentication.Level
 		Setup         func(mock *mocks.MockAutheliaCtx)
-		ExpectDetails *authentication.UserDetails
+		ExpectDetails *authentication.UserDetailsExtended
 		ExpectError   string
 	}{
 		{
@@ -127,7 +126,7 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 			CCS:      true,
 			Level:    authentication.OneFactor,
 			Setup: func(mock *mocks.MockAutheliaCtx) {
-				mock.UserProviderMock.EXPECT().GetDetails(gomock.Any()).Times(0)
+				mock.UserProviderMock.EXPECT().GetDetailsExtendedCached(gomock.Any()).Times(0)
 			},
 			ExpectDetails: nil,
 		},
@@ -139,10 +138,14 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 			Level:    authentication.OneFactor,
 			Setup: func(mock *mocks.MockAutheliaCtx) {
 				mock.UserProviderMock.EXPECT().
-					GetDetails(gomock.Eq("john")).
-					Return(&authentication.UserDetails{Username: "john"}, nil)
+					GetDetailsExtendedCached(gomock.Eq("john")).
+					Return(&authentication.UserDetailsExtended{
+						UserDetails: &authentication.UserDetails{Username: "john"},
+					}, nil)
 			},
-			ExpectDetails: &authentication.UserDetails{Username: "john"},
+			ExpectDetails: &authentication.UserDetailsExtended{
+				UserDetails: &authentication.UserDetails{Username: "john"},
+			},
 		},
 		{
 			Name:     "ShouldReturnErrorWhenGetDetailsFails",
@@ -152,7 +155,7 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 			Level:    authentication.OneFactor,
 			Setup: func(mock *mocks.MockAutheliaCtx) {
 				mock.UserProviderMock.EXPECT().
-					GetDetails(gomock.Eq("ghost")).
+					GetDetailsExtendedCached(gomock.Eq("ghost")).
 					Return(nil, fmt.Errorf("boom"))
 			},
 			ExpectError: "failed to retrieve user details for user ghost: boom",
@@ -165,7 +168,7 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 			Level:    authentication.OneFactor,
 			Setup: func(mock *mocks.MockAutheliaCtx) {
 				mock.UserProviderMock.EXPECT().
-					GetDetails(gomock.Eq("missing")).
+					GetDetailsExtendedCached(gomock.Eq("missing")).
 					Return(nil, authentication.ErrUserNotFound)
 			},
 			ExpectError: "failed to retrieve user details for user missing: user not found",
@@ -200,13 +203,4 @@ func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {
 			assert.Equal(t, tc.Level, level)
 		})
 	}
-}
-
-func TestGenerateVerifySessionHasUpToDateProfileTraceLogs(t *testing.T) {
-	mock := mocks.NewMockAutheliaCtx(t)
-
-	generateVerifySessionHasUpToDateProfileTraceLogs(mock.Ctx, &session.UserSession{Username: "john", DisplayName: "example", Groups: []string{"abc"}, Emails: []string{"user@example.com", "test@example.com"}}, &authentication.UserDetails{Username: "john", Groups: []string{"123"}, DisplayName: "notexample", Emails: []string{"notuser@example.com"}})
-	generateVerifySessionHasUpToDateProfileTraceLogs(mock.Ctx, &session.UserSession{Username: "john", DisplayName: "example"}, &authentication.UserDetails{Username: "john", DisplayName: "example"})
-	generateVerifySessionHasUpToDateProfileTraceLogs(mock.Ctx, &session.UserSession{Username: "john", DisplayName: "example", Emails: []string{"abc@example.com"}}, &authentication.UserDetails{Username: "john", DisplayName: "example"})
-	generateVerifySessionHasUpToDateProfileTraceLogs(mock.Ctx, &session.UserSession{Username: "john", DisplayName: "example"}, &authentication.UserDetails{Username: "john", DisplayName: "example", Emails: []string{"abc@example.com"}})
 }

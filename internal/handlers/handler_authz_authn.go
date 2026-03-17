@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -23,7 +22,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewCookieSessionAuthnStrategy creates a new CookieSessionAuthnStrategy.
@@ -99,6 +97,7 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manag
 		Type:     AuthnTypeCookie,
 		Level:    authentication.NotAuthenticated,
 		Username: anonymous,
+		Details:  newAnonymousUserDetails(),
 	}
 
 	if userSession, err = manager.GetSession(); err != nil {
@@ -114,12 +113,31 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manag
 
 		userSession = manager.NewDefaultUserSession()
 
-		if err = manager.SaveSession(userSession); err != nil {
+		if err = manager.SaveSession(&userSession); err != nil {
 			ctx.GetLogger().WithError(err).Error("Error occurred trying to save the new session cookie")
 		}
 	}
 
-	if modified, invalid := handleAuthnCookieValidate(ctx, manager, &userSession, s.refresh); invalid {
+	modified, invalid := handleAuthnCookieValidate(ctx, manager, &userSession)
+
+	var details authentication.UserDetailsExtended
+
+	if !invalid {
+		if details, err = authentication.MustGetUserDetailsExtendedCachedSafe(userSession.Username, ctx.GetUserProvider()); err != nil {
+			// Failing closed here is intentional as a defense-in-depth measure.
+			if !errors.Is(err, authentication.ErrUserNotFound) {
+				return authn, fmt.Errorf("failed to retrieve user details: %w", err)
+			}
+
+			ctx.GetLogger().WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+
+			invalid = true
+		} else if handleAuthnCookieRefreshTTL(ctx, &userSession, s.refresh) {
+			modified = true
+		}
+	}
+
+	if invalid {
 		if err = manager.DestroySession(); err != nil {
 			ctx.GetLogger().WithError(err).Errorf("Unable to destroy user session")
 		}
@@ -127,27 +145,24 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Manag
 		userSession = manager.NewDefaultUserSession()
 		userSession.LastActivity = ctx.GetClock().Now().Unix()
 
-		if err = manager.SaveSession(userSession); err != nil {
+		if err = manager.SaveSession(&userSession); err != nil {
 			ctx.GetLogger().WithError(err).Error("Unable to save updated user session")
 		}
 
 		return authn, nil
-	} else if modified {
-		if err = manager.SaveSession(userSession); err != nil {
+	}
+
+	if modified {
+		if err = manager.SaveSession(&userSession); err != nil {
 			ctx.GetLogger().WithError(err).Error("Unable to save updated user session")
 		}
 	}
 
 	return &Authn{
 		Username: friendlyUsername(userSession.Username),
-		Details: authentication.UserDetails{
-			Username:    userSession.Username,
-			DisplayName: userSession.DisplayName,
-			Emails:      userSession.Emails,
-			Groups:      userSession.Groups,
-		},
-		Level: userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA),
-		Type:  AuthnTypeCookie,
+		Details:  details,
+		Level:    userSession.AuthenticationLevel(ctx.GetConfiguration().WebAuthn.EnablePasskey2FA),
+		Type:     AuthnTypeCookie,
 	}, nil
 }
 
@@ -217,6 +232,7 @@ func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *a
 		Type:     s.authn,
 		Level:    authentication.NotAuthenticated,
 		Username: anonymous,
+		Details:  newAnonymousUserDetails(),
 	}
 
 	if value = ctx.GetRequestHeaderValue(s.headerAuthorize); len(value) == 0 {
@@ -248,7 +264,7 @@ func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *a
 		return authn, nil
 	}
 
-	var details *authentication.UserDetails
+	var details *authentication.UserDetailsExtended
 
 	switch scheme {
 	case model.AuthorizationSchemeBasic:
@@ -329,6 +345,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, obj
 	authn = &Authn{
 		Level:    authentication.NotAuthenticated,
 		Username: anonymous,
+		Details:  newAnonymousUserDetails(),
 	}
 
 	if qryValueAuth := ctx.GetRequestQueryArgValue(qryArgAuth); bytes.Equal(qryValueAuth, qryValueBasic) {
@@ -369,7 +386,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, obj
 	}
 
 	var (
-		details *authentication.UserDetails
+		details *authentication.UserDetailsExtended
 		level   authentication.Level
 	)
 
@@ -399,7 +416,7 @@ func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *
 	handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 }
 
-func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn, object *authorization.Object, header []byte, validate BasicAuthHandler) (details *authentication.UserDetails, level authentication.Level, err error) {
+func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn, object *authorization.Object, header []byte, validate BasicAuthHandler) (details *authentication.UserDetailsExtended, level authentication.Level, err error) {
 	var (
 		ban           regulation.BanType
 		value         string
@@ -417,7 +434,7 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header: the username or password was empty", header)
 	}
 
-	if details, err = ctx.GetUserProvider().GetDetails(username); err != nil {
+	if details, err = ctx.GetUserProvider().GetDetailsExtendedCached(username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
 			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, object.String(), object.Method, err)
 
@@ -468,7 +485,23 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 	return details, authentication.OneFactor, nil
 }
 
-func handleAuthnCookieValidate(ctx AuthzContext, manager session.Manager, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
+// handleAuthnCookieRefreshTTL records when the authentication backend should next be consulted for this user. The user
+// details themselves are cached by the user provider, so this only maintains the bookkeeping on the session.
+func handleAuthnCookieRefreshTTL(ctx AuthzContext, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified bool) {
+	if refresh.Never() || refresh.Always() || userSession.IsAnonymous() {
+		return false
+	}
+
+	if userSession.RefreshTTL.After(ctx.GetClock().Now()) {
+		return false
+	}
+
+	userSession.RefreshTTL = ctx.GetClock().Now().Add(refresh.Value())
+
+	return true
+}
+
+func handleAuthnCookieValidate(ctx AuthzContext, manager session.Manager, userSession *session.UserSession) (modified, invalid bool) {
 	// TODO: Remove this check as it's no longer possible i.e. ineffectual.
 	isAnonymous := userSession.Username == ""
 
@@ -481,10 +514,6 @@ func handleAuthnCookieValidate(ctx AuthzContext, manager session.Manager, userSe
 	if invalid = handleAuthnCookieValidateInactivity(ctx, manager, userSession, isAnonymous); invalid {
 		ctx.GetLogger().WithField("username", userSession.Username).Info("Session for user not marked as remembered has exceeded configured session inactivity")
 
-		return modified, true
-	}
-
-	if modified, invalid = handleSessionValidateRefresh(ctx, userSession, refresh); invalid {
 		return modified, true
 	}
 
@@ -515,66 +544,7 @@ func handleAuthnCookieValidateInactivity(ctx AuthzContext, manager session.Manag
 	return time.Unix(userSession.LastActivity, 0).Add(config.Inactivity).Before(ctx.GetClock().Now())
 }
 
-func handleSessionValidateRefresh(ctx AuthzContext, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
-	if refresh.Never() || userSession.IsAnonymous() {
-		return false, false
-	}
-
-	ctx.GetLogger().WithField("username", userSession.Username).Trace("Checking if we need check the authentication backend for an updated profile for user")
-
-	if !refresh.Always() && userSession.RefreshTTL.After(ctx.GetClock().Now()) {
-		return false, false
-	}
-
-	ctx.GetLogger().WithField("username", userSession.Username).Debug("Checking the authentication backend for an updated profile for user")
-
-	var (
-		details *authentication.UserDetails
-		err     error
-	)
-	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
-		if errors.Is(err, authentication.ErrUserNotFound) {
-			ctx.GetLogger().WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
-
-			return false, true
-		}
-
-		ctx.GetLogger().WithError(err).WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user")
-
-		return false, false
-	}
-
-	var (
-		diffEmails, diffGroups, diffDisplayName bool
-	)
-
-	diffEmails, diffGroups = utils.IsStringSlicesDifferent(userSession.Emails, details.Emails), utils.IsStringSlicesDifferent(userSession.Groups, details.Groups)
-	diffDisplayName = userSession.DisplayName != details.DisplayName
-
-	if !refresh.Always() {
-		modified = true
-
-		userSession.RefreshTTL = ctx.GetClock().Now().Add(refresh.Value())
-	}
-
-	if !diffEmails && !diffGroups && !diffDisplayName {
-		ctx.GetLogger().WithField("username", userSession.Username).Trace("Updated profile not detected for user")
-
-		return modified, false
-	}
-
-	ctx.GetLogger().WithField("username", userSession.Username).Debug("Updated profile detected for user")
-
-	if ctx.GetLogger().Level >= logrus.TraceLevel {
-		generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)
-	}
-
-	userSession.Emails, userSession.Groups, userSession.DisplayName = details.Emails, details.Groups, details.DisplayName
-
-	return true, false
-}
-
-func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *authorization.Object) (details *authentication.UserDetails, clientID string, ccs bool, level authentication.Level, err error) {
+func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *authorization.Object) (details *authentication.UserDetailsExtended, clientID string, ccs bool, level authentication.Level, err error) {
 	var at bool
 
 	if at, err = oidc.IsAccessToken(ctx, authn.Header.Authorization.Value()); !at {
@@ -596,12 +566,15 @@ func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *
 	return handleVerifyGETAuthorizationBearerResolveUser(ctx, username, clientID, ccs, level)
 }
 
-func handleVerifyGETAuthorizationBearerResolveUser(ctx AuthzContext, username, clientID string, ccs bool, level authentication.Level) (details *authentication.UserDetails, clientIDOut string, ccsOut bool, levelOut authentication.Level, err error) {
+// handleVerifyGETAuthorizationBearerResolveUser turns the result of bearer-token introspection into the final return
+// values for handleVerifyGETAuthorizationBearer. For client-credentials grants (ccs=true) there is no associated user
+// so GetDetails is skipped and the clientID is propagated; for user-bound tokens GetDetails canonicalises the username.
+func handleVerifyGETAuthorizationBearerResolveUser(ctx AuthzContext, username, clientID string, ccs bool, level authentication.Level) (details *authentication.UserDetailsExtended, clientIDOut string, ccsOut bool, levelOut authentication.Level, err error) {
 	if ccs {
 		return nil, clientID, ccs, level, nil
 	}
 
-	if details, err = ctx.GetUserProvider().GetDetails(username); err != nil {
+	if details, err = ctx.GetUserProvider().GetDetailsExtendedCached(username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
 			ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 		}

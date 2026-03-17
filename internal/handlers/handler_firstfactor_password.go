@@ -86,7 +86,7 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 
 		doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, nil)
 
-		var provider *session.Session
+		var provider session.Strategy
 
 		if provider, err = ctx.GetSessionProvider(); err != nil {
 			ctx.Logger.WithError(err).Error("Failed to get session provider during 1FA attempt")
@@ -96,15 +96,15 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 			return
 		}
 
-		if err = provider.DestroySession(ctx.RequestCtx); err != nil {
+		if err = provider.Destroy(ctx); err != nil {
 			// This failure is not likely to be critical as we ensure to regenerate the session below.
 			ctx.Logger.WithError(err).Trace("Failed to destroy session during 1FA attempt")
 		}
 
-		userSession := provider.NewDefaultUserSession()
+		userSession := provider.NewDefault()
 
 		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
-		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+		if err = provider.Save(ctx, &userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionReset, regulation.AuthType1FA, details.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -112,7 +112,7 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 			return
 		}
 
-		if err = provider.RegenerateSession(ctx.RequestCtx); err != nil {
+		if err = provider.Regenerate(ctx); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, details.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -120,28 +120,18 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 			return
 		}
 
-		keepMeLoggedIn := !provider.Config.DisableRememberMe && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
-
-		if keepMeLoggedIn {
-			err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe)
-			if err != nil {
-				ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, logFmtActionAuthentication, details.Username)
-
-				respondUnauthorized(ctx, messageAuthenticationFailed)
-
-				return
-			}
-		}
+		// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data.
+		keepMeLoggedIn := !provider.GetConfig().DisableRememberMe && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
 
 		ctx.Logger.Tracef(logFmtTraceProfileDetails, details.Username, details.Groups, details.Emails)
 
-		userSession.SetOneFactorPassword(ctx.GetClock().Now(), details, keepMeLoggedIn)
+		userSession.SetOneFactorPassword(ctx.GetClock().Now(), details.Username, keepMeLoggedIn)
 
 		if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
 			userSession.RefreshTTL = ctx.GetClock().Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 		}
 
-		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+		if err = provider.Save(ctx, &userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, logFmtActionAuthentication, details.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -152,9 +142,9 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 		successful = true
 
 		if len(bodyJSON.Flow) > 0 {
-			handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
+			handleFlowResponse(ctx, &userSession, details, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 		} else {
-			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
+			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, details.Groups)
 		}
 	}
 }
@@ -183,7 +173,7 @@ func FirstFactorReauthenticatePOST(delayer middlewares.Delayer) middlewares.Requ
 		}
 
 		var (
-			provider    *session.Session
+			provider    session.Strategy
 			userSession session.UserSession
 		)
 
@@ -195,13 +185,17 @@ func FirstFactorReauthenticatePOST(delayer middlewares.Delayer) middlewares.Requ
 			return
 		}
 
-		if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
+		var current *session.UserSession
+
+		if current, err = provider.Get(ctx); err != nil {
 			ctx.Logger.WithError(err).Errorf("Error occurred attempting to load session.")
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
 			return
 		}
+
+		userSession = *current
 
 		var (
 			ban     regulation.BanType
@@ -253,10 +247,10 @@ func FirstFactorReauthenticatePOST(delayer middlewares.Delayer) middlewares.Requ
 		}
 
 		var (
-			userDetails *authentication.UserDetails
+			details *authentication.UserDetails
 		)
 
-		if userDetails, err = ctx.Providers.UserProvider.GetDetails(userSession.Username); err != nil {
+		if details, err = ctx.Providers.UserProvider.GetDetails(userSession.Username); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrObtainProfileDetails, regulation.AuthType1FA, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -264,15 +258,15 @@ func FirstFactorReauthenticatePOST(delayer middlewares.Delayer) middlewares.Requ
 			return
 		}
 
-		ctx.Logger.Tracef(logFmtTraceProfileDetails, userSession.Username, userDetails.Groups, userDetails.Emails)
+		ctx.Logger.Tracef(logFmtTraceProfileDetails, userSession.Username, details.Groups, details.Emails)
 
-		userSession.SetOneFactorReauthenticate(ctx.GetClock().Now(), userDetails)
+		userSession.SetOneFactorReauthenticate(ctx.GetClock().Now())
 
 		if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
 			userSession.RefreshTTL = ctx.GetClock().Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 		}
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = ctx.SaveSession(&userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, logFmtActionAuthentication, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -283,9 +277,9 @@ func FirstFactorReauthenticatePOST(delayer middlewares.Delayer) middlewares.Requ
 		successful = true
 
 		if len(bodyJSON.Flow) > 0 {
-			handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
+			handleFlowResponse(ctx, &userSession, details, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 		} else {
-			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
+			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, details.Groups)
 		}
 	}
 }

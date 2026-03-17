@@ -181,7 +181,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession.PasswordResetUsername = nil
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.Error(fmt.Errorf("unable to update password reset state: %w", err), messageOperationFailed)
 		return
 	}
@@ -278,7 +278,7 @@ func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, usern
 
 	userSession.PasswordResetUsername = &username
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Unable to clear password reset flag in session for user '%s'", userSession.Username)
 	}
 }

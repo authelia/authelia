@@ -14,7 +14,7 @@ import (
 func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
-		provider    *session.Session
+		provider    session.Strategy
 		err         error
 	)
 	if provider, err = ctx.GetSessionProvider(); err != nil {
@@ -26,7 +26,9 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
+	var current *session.UserSession
+
+	if current, err = provider.Get(ctx); err != nil {
 		ctx.GetLogger().WithError(err).
 			Error("Unable to change password for user: error occurred retrieving session for user")
 		ctx.SetJSONError(messageUnableToChangePassword)
@@ -34,6 +36,8 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
+
+	userSession = *current
 
 	username := userSession.Username
 
@@ -94,7 +98,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		WithFields(map[string]any{"username": username}).
 		Debug("User has changed their password")
 
-	if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+	if err = provider.Save(ctx, &userSession); err != nil {
 		ctx.GetLogger().WithError(err).
 			WithFields(map[string]any{"username": username}).
 			Error("Unable to update password change state")

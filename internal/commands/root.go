@@ -62,30 +62,30 @@ func NewRootCmd() (cmd *cobra.Command) {
 
 // RootRunE is the RunE for the authelia root command.
 func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
-	ctx.log.Infof("Authelia %s is starting", utils.Version())
+	ctx.GetLogger().Infof("Authelia %s is starting", utils.Version())
 
 	if utils.Dev {
-		ctx.log.Info("===> Authelia is running in development mode. <===")
+		ctx.GetLogger().Info("===> Authelia is running in development mode. <===")
 	}
 
 	if err = logging.ConfigureLogger(ctx.config.Log, true); err != nil {
-		ctx.log.Fatalf("Cannot configure logger: %v", err)
+		ctx.GetLogger().Fatalf("Cannot configure logger: %v", err)
 	}
 
 	warns, errs := ctx.LoadProviders()
 
 	if len(warns) != 0 {
 		for _, err = range warns {
-			ctx.log.Warn(err)
+			ctx.GetLogger().Warn(err)
 		}
 	}
 
 	if len(errs) != 0 {
 		for _, err = range errs {
-			ctx.log.Error(err)
+			ctx.GetLogger().Error(err)
 		}
 
-		ctx.log.Fatal("Errors occurred provisioning providers")
+		ctx.GetLogger().Fatal("Errors occurred provisioning providers")
 	}
 
 	if err = ctx.providers.StartupChecks(ctx, true); err != nil {
@@ -93,13 +93,17 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 		if errors.As(err, &scerr) {
 			ctx.GetLogger().WithField("providers", scerr.Failed()).Fatalf("One or more providers had fatal failures performing startup checks, for more details check the error level logs")
 		} else {
-			ctx.log.Fatal("Errors occurred performing startup checks")
+			ctx.GetLogger().Fatal("Errors occurred performing startup checks")
 		}
+	}
+
+	if err = ctx.providers.Finalize(ctx); err != nil {
+		ctx.GetLogger().WithError(err).Fatal("Error finalizing providers")
 	}
 
 	ctx.cconfig = nil
 
-	ctx.log.Trace("Starting Services")
+	ctx.GetLogger().Trace("Starting Services")
 
 	return service.RunAll(ctx)
 }

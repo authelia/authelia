@@ -139,7 +139,7 @@ type AuthzContext interface {
 	RemoteIP() net.IP
 
 	// GetSessionProviderByTargetURI should return the session provider for the target URL.
-	GetSessionProviderByTargetURI(targetURL *url.URL) (provider *session.Session, err error)
+	GetSessionProviderByTargetURI(targetURL *url.URL) (provider session.Strategy, err error)
 }
 
 // Handler is the middlewares.RequestHandler for Authz.
@@ -293,7 +293,7 @@ func (authz *Authz) authn(ctx AuthzContext, manager session.Manager, object *aut
 			authn.Level = authentication.NotAuthenticated
 			authn.Username = anonymous
 			authn.ClientID = ""
-			authn.Details = authentication.UserDetails{}
+			authn.Details = authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}
 
 			if strategy.CanHandleUnauthorized() {
 				return authn, strategy, err
