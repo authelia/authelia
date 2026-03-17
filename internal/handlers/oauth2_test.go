@@ -487,9 +487,6 @@ func newTestOIDCUserSession(level int) session.UserSession {
 	us := session.UserSession{
 		CookieDomain:             exampleDotCom,
 		Username:                 testUsername,
-		DisplayName:              testDisplayName,
-		Emails:                   []string{testEmail},
-		Groups:                   []string{"dev"},
 		AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true},
 		LastActivity:             now,
 	}
@@ -506,15 +503,19 @@ func newTestOIDCUserSession(level int) session.UserSession {
 	return us
 }
 
-func setupTestOIDCUserDetails(t *testing.T, mock *mocks.MockAutheliaCtx) {
-	t.Helper()
-
-	details := &authentication.UserDetails{
+func newTestOIDCUserDetails() *authentication.UserDetails {
+	return &authentication.UserDetails{
 		Username:    testUsername,
 		DisplayName: testDisplayName,
 		Emails:      []string{testEmail},
 		Groups:      []string{"dev"},
 	}
+}
+
+func setupTestOIDCUserDetails(t *testing.T, mock *mocks.MockAutheliaCtx) {
+	t.Helper()
+
+	details := newTestOIDCUserDetails()
 
 	mock.UserProviderMock.EXPECT().
 		GetDetails(testUsername).

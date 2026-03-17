@@ -61,6 +61,26 @@ func TestResetPasswordDELETE(t *testing.T) {
 			},
 		},
 		{
+			"ShouldHandleRegenerateSessionError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				repository := setupTestFailingSessionRepository(t, mock)
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				repository.errChangeID = errTestSessionBackend
+
+				mock.Ctx.Request.SetBodyString(`{"token":"abc"}`)
+			},
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred regenerating user session", "error occurred changing session ID: backend unavailable")
+			},
+		},
+		{
 			"ShouldHandleMalformedToken",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.SetBodyString(`{"token":"abc"}`)
@@ -288,6 +308,21 @@ func TestResetPasswordPOST(t *testing.T) {
 		expectedStatus int
 		expectedf      func(t *testing.T, mock *mocks.MockAutheliaCtx)
 	}{
+		{
+			"ShouldHandleRegenerateSessionError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				repository := setupTestFailingSessionRepository(t, mock)
+
+				setTestPasswordResetUsername(t, mock)
+
+				repository.errChangeID = errTestSessionBackend
+			},
+			`{"status":"KO","message":"Unable to reset your password."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred regenerating user session", "error occurred changing session ID: backend unavailable")
+			},
+		},
 		{
 			"ShouldHandleNoIdentityVerification",
 			nil,
@@ -665,5 +700,5 @@ func setTestPasswordResetUsername(t *testing.T, mock *mocks.MockAutheliaCtx) {
 
 	us.PasswordResetUsername = &username
 
-	require.NoError(t, mock.Ctx.SaveSession(us))
+	require.NoError(t, mock.Ctx.SaveSession(&us))
 }

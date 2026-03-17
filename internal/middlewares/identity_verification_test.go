@@ -24,25 +24,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-const testJWTSecret = "abc"
-
-func newArgs(retriever func(ctx *middlewares.AutheliaCtx) (*session.Identity, error)) middlewares.IdentityVerificationStartArgs {
-	return middlewares.IdentityVerificationStartArgs{
-		ActionClaim:           "Claim",
-		MailButtonContent:     "Register",
-		MailTitle:             "Title",
-		TargetEndpoint:        "/target",
-		IdentityRetrieverFunc: retriever,
-	}
-}
-
-func defaultRetriever(ctx *middlewares.AutheliaCtx) (*session.Identity, error) {
-	return &session.Identity{
-		Username: "john",
-		Email:    "john@example.com",
-	}, nil
-}
-
 func TestIdentityVerificationStart_ShouldPanic(t *testing.T) {
 	assert.PanicsWithError(t, "identity verification requires an identity retriever", func() {
 		middlewares.IdentityVerificationStart(newArgs(nil), nil)
@@ -153,7 +134,13 @@ func TestShouldSucceedIdentityVerificationStartProcessHS256(t *testing.T) {
 	defer mock.Close()
 }
 
-// Test Finish process.
+func TestRunIdentityVerificationFinish(t *testing.T) {
+	s := new(IdentityVerificationFinishProcess)
+	suite.Run(t, s)
+}
+
+const testJWTSecret = "abc"
+
 type IdentityVerificationFinishProcess struct {
 	suite.Suite
 
@@ -168,33 +155,6 @@ func (s *IdentityVerificationFinishProcess) SetupTest() {
 
 func (s *IdentityVerificationFinishProcess) TearDownTest() {
 	s.mock.Close()
-}
-
-func createToken(t *testing.T, ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification model.IdentityVerification) {
-	t.Helper()
-
-	verification = model.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP(), time.Minute*5)
-
-	verification.ExpiresAt = expiresAt
-
-	issuerURL, err := ctx.Ctx.IssuerURL()
-	require.NoError(t, err)
-
-	claims := verification.ToIdentityVerificationClaim(issuerURL)
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, _ := token.SignedString([]byte(ctx.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret))
-
-	return ss, verification
-}
-
-func next(ctx *middlewares.AutheliaCtx, username string) {}
-
-func newFinishArgs() middlewares.IdentityVerificationFinishArgs {
-	return middlewares.IdentityVerificationFinishArgs{
-		ActionClaim:          "EXP_ACTION",
-		IsTokenUserValidFunc: func(ctx *middlewares.AutheliaCtx, username string) bool { return true },
-	}
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfJSONBodyIsMalformed() {
@@ -360,7 +320,9 @@ func (s *IdentityVerificationFinishProcess) TestShouldNotRegenerateSessionBefore
 
 			defer s.TearDownTest()
 
-			require.NoError(t, s.mock.Ctx.SaveSession(session.NewDefaultUserSession()))
+			userSession := session.NewDefaultUserSession()
+
+			require.NoError(t, s.mock.Ctx.SaveSession(&userSession))
 
 			before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
 
@@ -388,7 +350,9 @@ func (s *IdentityVerificationFinishProcess) TestShouldRegenerateSessionBeforeCon
 		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(model.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(fmt.Errorf("cannot consume"))
 
-	require.NoError(s.T(), s.mock.Ctx.SaveSession(session.NewDefaultUserSession()))
+	userSession := session.NewDefaultUserSession()
+
+	require.NoError(s.T(), s.mock.Ctx.SaveSession(&userSession))
 
 	before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
 
@@ -413,7 +377,9 @@ func (s *IdentityVerificationFinishProcess) TestShouldRegenerateSessionForPreven
 		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(model.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(nil)
 
-	require.NoError(s.T(), s.mock.Ctx.SaveSession(session.NewDefaultUserSession()))
+	userSession := session.NewDefaultUserSession()
+
+	require.NoError(s.T(), s.mock.Ctx.SaveSession(&userSession))
 
 	before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
 
@@ -516,9 +482,48 @@ func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete(
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
 
-func TestRunIdentityVerificationFinish(t *testing.T) {
-	s := new(IdentityVerificationFinishProcess)
-	suite.Run(t, s)
+func newArgs(retriever func(ctx *middlewares.AutheliaCtx) (*session.Identity, error)) middlewares.IdentityVerificationStartArgs {
+	return middlewares.IdentityVerificationStartArgs{
+		ActionClaim:           "Claim",
+		MailButtonContent:     "Register",
+		MailTitle:             "Title",
+		TargetEndpoint:        "/target",
+		IdentityRetrieverFunc: retriever,
+	}
+}
+
+func defaultRetriever(ctx *middlewares.AutheliaCtx) (*session.Identity, error) {
+	return &session.Identity{
+		Username: "john",
+		Email:    "john@example.com",
+	}, nil
+}
+
+func createToken(t *testing.T, ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification model.IdentityVerification) {
+	t.Helper()
+
+	verification = model.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP(), time.Minute*5)
+
+	verification.ExpiresAt = expiresAt
+
+	issuerURL, err := ctx.Ctx.IssuerURL()
+	require.NoError(t, err)
+
+	claims := verification.ToIdentityVerificationClaim(issuerURL)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	ss, _ := token.SignedString([]byte(ctx.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret))
+
+	return ss, verification
+}
+
+func next(ctx *middlewares.AutheliaCtx, username string) {}
+
+func newFinishArgs() middlewares.IdentityVerificationFinishArgs {
+	return middlewares.IdentityVerificationFinishArgs{
+		ActionClaim:          "EXP_ACTION",
+		IsTokenUserValidFunc: func(ctx *middlewares.AutheliaCtx, username string) bool { return true },
+	}
 }
 
 func createClaims(t *testing.T, ctx *mocks.MockAutheliaCtx, jti uuid.UUID, expiresAt time.Time) (claims *model.IdentityVerificationClaim) {
