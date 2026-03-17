@@ -29,7 +29,7 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
 
   # Navbar
   navbarSticky = true # true (default) or false
-  containerBreakpoint = "fluid" # "", "sm", "md", "lg" (default), "xl", "xxl", or "fluid"
+  containerBreakpoint = "xl" # "", "sm", "md", "lg" (default), "xl", "xxl", or "fluid"
 
   ## Button
   navBarButton = true # false (default) or true
