@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
@@ -62,8 +63,6 @@ func TestHandleAllow(t *testing.T) {
 		return &session.UserSession{
 			CookieDomain: exampleDotCom,
 			Username:     testUsername,
-			DisplayName:  testDisplayName,
-			Emails:       []string{testEmail},
 		}
 	}
 
@@ -74,6 +73,10 @@ func TestHandleAllow(t *testing.T) {
 		mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 			AccessControl: schema.AccessControl{DefaultPolicy: "two_factor"},
 		})
+
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil)
 
 		userSession := newSession()
 
@@ -89,6 +92,10 @@ func TestHandleAllow(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil)
+
 		userSession := newSession()
 
 		HandleAllow(mock.Ctx, userSession, &bodySignDuoRequest{Flow: "not-a-flow"})
@@ -100,7 +107,7 @@ func TestHandleAllow(t *testing.T) {
 }
 
 func TestSetValues(t *testing.T) {
-	userSession := session.UserSession{Username: testUsername, DisplayName: testDisplayName}
+	details := &authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName}
 
 	testCases := []struct {
 		name      string
@@ -147,7 +154,7 @@ func TestSetValues(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			values, err := SetValues(userSession, "ABC", tc.method, "127.0.0.1", tc.targetURL, tc.passcode)
+			values, err := SetValues(details, "ABC", tc.method, "127.0.0.1", tc.targetURL, tc.passcode)
 
 			if tc.err != "" {
 				assert.EqualError(t, err, tc.err)
@@ -220,6 +227,10 @@ func TestPerformDuoAuthenticationMisc(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil)
+
 		userSession := &session.UserSession{Username: testUsername}
 
 		err := PerformDuoAuthentication(mock.Ctx, userSession, nil, "ABC", duo.OTP, "127.0.0.1", &bodySignDuoRequest{})
@@ -240,6 +251,10 @@ func TestHandleDuoPreAuthResult(t *testing.T) {
 		mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 			AccessControl: schema.AccessControl{DefaultPolicy: "two_factor"},
 		})
+
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil)
 
 		userSession := newSession()
 
@@ -403,6 +418,10 @@ func TestHandleAllowMisc(t *testing.T) {
 		defer mock.Close()
 
 		mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil)
 
 		HandleAllow(mock.Ctx, &session.UserSession{Username: testUsername}, &bodySignDuoRequest{})
 

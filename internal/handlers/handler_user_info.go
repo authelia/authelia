@@ -11,6 +11,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -52,6 +53,15 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var details *authentication.UserDetails
+	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred returning user information for user '%s': error occurred loading user details", userSession.Username)
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	var (
 		changed bool
 	)
@@ -77,7 +87,7 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		userInfo.HasDuo = false
 	}
 
-	userInfo.DisplayName = userSession.DisplayName
+	userInfo.DisplayName = details.DisplayName
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {
@@ -108,10 +118,18 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userInfo.DisplayName = userSession.DisplayName
+	var details *authentication.UserDetails
+	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred returning user information for user '%s': error occurred loading user details", userSession.Username)
 
-	// it should be noted that UserInfo only contains info from the database and NOT any info from the authn_backend (email/groups).
-	for _, email := range userSession.Emails {
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	userInfo.DisplayName = details.DisplayName
+
+	for _, email := range details.Emails {
 		userInfo.Emails = append(userInfo.Emails, redactEmail(email))
 	}
 

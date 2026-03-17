@@ -37,6 +37,7 @@ Some of the values within this page can automatically be replaced with documenta
 ```yaml {title="configuration.yml"}
 session:
   secret: 'insecure_session_secret'
+  storage: 'internal'
   name: 'authelia_session'
   same_site: 'lax'
   inactivity: '5m'
@@ -55,17 +56,19 @@ session:
 
 ## Providers
 
-There are currently two providers for session storage (three if you count Redis Sentinel as a separate provider):
+Session data is persisted to one of two backends, selected with the [storage](#storage) option:
 
-- Memory (default, stateful, no additional configuration)
-- [Redis](redis.md) (stateless).
-- [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
+- `internal` (default): the configured [storage](../storage/introduction.md) provider. This is stateless when using the
+  [PostgreSQL](../storage/postgres.md) or [MySQL](../storage/mysql.md) providers, and stateful when using the
+  [SQLite](../storage/sqlite.md) provider.
+- `cache`: the configured [cache](../cache/introduction.md) provider, which is one of [Redis](../cache/redis.md),
+  [Redis Sentinel](../cache/redis-sentinel.md), or [Redis Cluster](../cache/redis-cluster.md) (stateless).
 
 ### Kubernetes or High Availability
 
-It's important to note when picking a provider, the stateful providers are not recommended in High Availability
-scenarios like Kubernetes. Each provider has a note beside it indicating it is _stateful_ or _stateless_ the stateless
-providers are recommended.
+It's important to note when picking a backend, the stateful backends are not recommended in High Availability
+scenarios like Kubernetes. Each backend has a note beside it indicating it is _stateful_ or _stateless_ the stateless
+backends are recommended. See [statelessness](../../overview/authorization/statelessness.md) for more information.
 
 ## Options
 
@@ -73,13 +76,26 @@ This section describes the individual configuration options.
 
 ### secret
 
-{{< confkey type="string" required="yes" secret="yes" >}}
+{{< confkey type="string" required="situational" secret="yes" >}}
 
-The secret key used to encrypt session data in Redis.
+The secret used to derive the key which encrypts session data before it's persisted to the [storage](#storage) backend.
+
+This option is required when [storage](#storage) is `cache`. When [storage](#storage) is `internal` and this option is
+not configured, the storage [encryption_key](../storage/introduction.md#encryption_key) is used to derive the session
+encryption key instead and a warning is logged. It's strongly recommended this option is explicitly configured
+regardless, as changing the storage [encryption_key](../storage/introduction.md#encryption_key) would otherwise
+invalidate every session.
 
 It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters.
+
+### storage
+
+{{< confkey type="string" default="internal" required="no" >}}
+
+The backend session data is persisted to. Must be one of `internal` or `cache`. See [Providers](#providers) for more
+information about each backend.
 
 ### name
 

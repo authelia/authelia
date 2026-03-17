@@ -109,3 +109,28 @@ func IsSerializationFailure(err error) (failure bool) {
 		return false
 	}
 }
+
+// IsUniqueViolation returns true when the error indicates a statement was rejected because it would have violated a
+// unique or primary key constraint.
+func IsUniqueViolation(err error) (violation bool) {
+	if err == nil {
+		return false
+	}
+
+	var (
+		errSQLite   sqlite3.Error
+		errMySQL    *mysql.MySQLError
+		errPostgres *pgconn.PgError
+	)
+
+	switch {
+	case errors.As(err, &errSQLite):
+		return errSQLite.ExtendedCode == sqlite3.ErrConstraintUnique || errSQLite.ExtendedCode == sqlite3.ErrConstraintPrimaryKey
+	case errors.As(err, &errMySQL):
+		return errMySQL.Number == codeMySQLDuplicateEntry
+	case errors.As(err, &errPostgres):
+		return errPostgres.Code == codePostgresUniqueViolation
+	default:
+		return false
+	}
+}
