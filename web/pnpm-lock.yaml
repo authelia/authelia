@@ -121,8 +121,8 @@ importers:
         specifier: 2.0.3
         version: 2.0.3(eslint@10.0.3(jiti@2.4.1))
       '@limegrass/eslint-plugin-import-alias':
-        specifier: 1.6.0
-        version: 1.6.0(eslint@10.0.3(jiti@2.4.1))
+        specifier: 1.6.1
+        version: 1.6.1(eslint@10.0.3(jiti@2.4.1))
       '@testing-library/jest-dom':
         specifier: 6.9.1
         version: 6.9.1
@@ -936,10 +936,10 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@limegrass/eslint-plugin-import-alias@1.6.0':
-    resolution: {integrity: sha512-wGhyo/HeZYhtJqKMPHDKNF4BKyC45G/WVX7HZ5xfoyWqFSzev/uPSKzuaLsQbtUcwwLqLdMAiCmlv+4XIl6WrA==}
+  '@limegrass/eslint-plugin-import-alias@1.6.1':
+    resolution: {integrity: sha512-bPvxB0C1UnkacEoTo60xdm6W5GZlK0PgYuUrPZHihxacLQjP8VmFvMZ7K0LBjYlaFCig91cwRe+n+SID7uPMNw==}
     peerDependencies:
-      eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8.40.0 || ^9
+      eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8.40.0 || ^9 || ^10
 
   '@mui/core-downloads-tracker@7.3.9':
     resolution: {integrity: sha512-MOkOCTfbMJwLshlBCKJ59V2F/uaLYfmKnN76kksj6jlGUVdI25A9Hzs08m+zjBRdLv+sK7Rqdsefe8X7h/6PCw==}
@@ -5123,7 +5123,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@limegrass/eslint-plugin-import-alias@1.6.0(eslint@10.0.3(jiti@2.4.1))':
+  '@limegrass/eslint-plugin-import-alias@1.6.1(eslint@10.0.3(jiti@2.4.1))':
     dependencies:
       eslint: 10.0.3(jiti@2.4.1)
       fs-extra: 10.1.0
