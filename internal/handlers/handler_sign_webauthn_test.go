@@ -20,6 +20,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -46,7 +47,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -71,6 +72,10 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -106,9 +111,13 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -164,7 +173,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "!@NJK#N!@#IKJ!@NJK")
 			},
@@ -297,7 +306,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -322,6 +331,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -370,7 +383,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -395,6 +408,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -441,7 +458,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -466,6 +483,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -512,7 +533,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -537,6 +558,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -583,7 +608,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -608,6 +633,10 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				}
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -650,7 +679,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Clock.Set(mock.Clock.Now().Add(2 * time.Minute))
 			},
@@ -681,7 +710,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Clock.Set(mock.Clock.Now().Add(2 * time.Minute))
 			},
@@ -711,7 +740,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Clock.Set(mock.Clock.Now().Add(2 * time.Minute))
 
@@ -736,7 +765,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			dataReqGood,
 			"",
@@ -788,9 +817,13 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -827,9 +860,13 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).

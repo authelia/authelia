@@ -16,6 +16,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -34,7 +35,7 @@ func (s *FetchSuite) SetupTest() {
 
 	userSession.Username = testUsername
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 }
 
 func (s *FetchSuite) TearDownTest() {
@@ -111,12 +112,19 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 
 		userSession.Username = testUsername
 		userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-		assert.NoError(t, mock.Ctx.SaveSession(userSession))
+		assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 		mock.StorageMock.
 			EXPECT().
 			LoadUserInfo(mock.Ctx, gomock.Eq("john")).
 			Return(*resp.db, resp.err)
+
+		if resp.err == nil {
+			mock.UserProviderMock.
+				EXPECT().
+				GetDetails(gomock.Eq("john")).
+				Return(&authentication.UserDetails{Username: "john", DisplayName: "John Smith", Emails: []string{"john@example.com"}}, nil)
+		}
 
 		UserInfoGET(mock.Ctx)
 
@@ -261,7 +269,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 
 			userSession.Username = testUsername
 			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-			assert.NoError(t, mock.Ctx.SaveSession(userSession))
+			assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 			if resp.db.Method == "" {
 				gomock.InOrder(
@@ -296,6 +304,11 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 						Return(resp.saveErr),
 				)
 			}
+
+			mock.UserProviderMock.
+				EXPECT().
+				GetDetails(gomock.Eq("john")).
+				Return(&authentication.UserDetails{Username: "john", DisplayName: "John Smith", Emails: []string{"john@example.com"}}, nil)
 
 			UserInfoPOST(mock.Ctx)
 
@@ -402,7 +415,7 @@ func (s *SaveSuite) SetupTest() {
 
 	userSession.Username = testUsername
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 }
 
 func (s *SaveSuite) TearDownTest() {

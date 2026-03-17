@@ -37,7 +37,7 @@ func (s *StateGetSuite) TestShouldReturnUsernameFromSession() {
 	s.Assert().NoError(err)
 
 	userSession.Username = "username"
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 
 	StateGET(s.mock.Ctx)
 
@@ -69,7 +69,7 @@ func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
 
 	userSession.Username = "john"
 	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 	require.NoError(s.T(), err)
 
 	StateGET(s.mock.Ctx)

@@ -13,6 +13,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
@@ -37,13 +38,15 @@ type AutheliaCtx struct {
 	Providers     Providers
 	Configuration schema.Configuration
 
-	session *session.Session
+	session session.Strategy
 }
 
 // Providers contain all provider provided to Authelia.
 type Providers struct {
 	Authorizer            *authorization.Authorizer
-	SessionProvider       *session.Provider
+	Cache                 cache.Provider
+	Session               session.Provider
+	SessionRepository     session.Repository
 	Regulator             *regulation.Regulator
 	OpenIDConnect         *oidc.OpenIDConnectProvider
 	Metrics               metrics.Provider
