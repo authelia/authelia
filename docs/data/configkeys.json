@@ -390,6 +390,536 @@
     "env": "AUTHELIA_AUTHENTICATION_BACKEND_REFRESH_INTERVAL"
   },
   {
+    "path": "cache.redis.address",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_ADDRESS"
+  },
+  {
+    "path": "cache.redis.connection_lifetime_jitter",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CONNECTION_LIFETIME_JITTER"
+  },
+  {
+    "path": "cache.redis.connection_lifetime",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CONNECTION_LIFETIME"
+  },
+  {
+    "path": "cache.redis.context_timeout_enabled",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CONTEXT_TIMEOUT_ENABLED"
+  },
+  {
+    "path": "cache.redis.database",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_DATABASE"
+  },
+  {
+    "path": "cache.redis.dial_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_DIAL_TIMEOUT"
+  },
+  {
+    "path": "cache.redis.dialer_retries",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_DIALER_RETRIES"
+  },
+  {
+    "path": "cache.redis.dialer_retry_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_DIALER_RETRY_TIMEOUT"
+  },
+  {
+    "path": "cache.redis.failing_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_FAILING_TIMEOUT"
+  },
+  {
+    "path": "cache.redis.idle_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_IDLE_TIMEOUT"
+  },
+  {
+    "path": "cache.redis.maximum_concurrent_dials",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_MAXIMUM_CONCURRENT_DIALS"
+  },
+  {
+    "path": "cache.redis.maximum_retries",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_MAXIMUM_RETRIES"
+  },
+  {
+    "path": "cache.redis.maximum_retry_backoff",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_MAXIMUM_RETRY_BACKOFF"
+  },
+  {
+    "path": "cache.redis.minimum_retry_backoff",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_MINIMUM_RETRY_BACKOFF"
+  },
+  {
+    "path": "cache.redis.password",
+    "secret": true,
+    "env": "AUTHELIA_CACHE_REDIS_PASSWORD_FILE"
+  },
+  {
+    "path": "cache.redis.pool_fifo",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_POOL_FIFO"
+  },
+  {
+    "path": "cache.redis.pool_maximum_connections",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_POOL_MAXIMUM_CONNECTIONS"
+  },
+  {
+    "path": "cache.redis.pool_maximum_idle_connections",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_POOL_MAXIMUM_IDLE_CONNECTIONS"
+  },
+  {
+    "path": "cache.redis.pool_minimum_idle_connections",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_POOL_MINIMUM_IDLE_CONNECTIONS"
+  },
+  {
+    "path": "cache.redis.pool_size",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_POOL_SIZE"
+  },
+  {
+    "path": "cache.redis.pool_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_POOL_TIMEOUT"
+  },
+  {
+    "path": "cache.redis.read_buffer_size",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_READ_BUFFER_SIZE"
+  },
+  {
+    "path": "cache.redis.read_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_READ_TIMEOUT"
+  },
+  {
+    "path": "cache.redis.tls.certificate_chain",
+    "secret": true,
+    "env": "AUTHELIA_CACHE_REDIS_TLS_CERTIFICATE_CHAIN_FILE"
+  },
+  {
+    "path": "cache.redis.tls.maximum_version",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_TLS_MAXIMUM_VERSION"
+  },
+  {
+    "path": "cache.redis.tls.minimum_version",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_TLS_MINIMUM_VERSION"
+  },
+  {
+    "path": "cache.redis.tls.private_key",
+    "secret": true,
+    "env": "AUTHELIA_CACHE_REDIS_TLS_PRIVATE_KEY_FILE"
+  },
+  {
+    "path": "cache.redis.tls.server_name",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_TLS_SERVER_NAME"
+  },
+  {
+    "path": "cache.redis.tls.skip_verify",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_TLS_SKIP_VERIFY"
+  },
+  {
+    "path": "cache.redis.username",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_USERNAME"
+  },
+  {
+    "path": "cache.redis.write_buffer_size",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_WRITE_BUFFER_SIZE"
+  },
+  {
+    "path": "cache.redis.write_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_WRITE_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_cluster.cluster_state_reload_interval",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_CLUSTER_STATE_RELOAD_INTERVAL"
+  },
+  {
+    "path": "cache.redis_cluster.connection_lifetime_jitter",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_CONNECTION_LIFETIME_JITTER"
+  },
+  {
+    "path": "cache.redis_cluster.connection_lifetime",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_CONNECTION_LIFETIME"
+  },
+  {
+    "path": "cache.redis_cluster.context_timeout_enabled",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_CONTEXT_TIMEOUT_ENABLED"
+  },
+  {
+    "path": "cache.redis_cluster.dial_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_DIAL_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_cluster.dialer_retries",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_DIALER_RETRIES"
+  },
+  {
+    "path": "cache.redis_cluster.dialer_retry_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_DIALER_RETRY_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_cluster.failing_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_FAILING_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_cluster.idle_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_IDLE_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_cluster.maximum_concurrent_dials",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_MAXIMUM_CONCURRENT_DIALS"
+  },
+  {
+    "path": "cache.redis_cluster.maximum_redirects",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_MAXIMUM_REDIRECTS"
+  },
+  {
+    "path": "cache.redis_cluster.maximum_retries",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_MAXIMUM_RETRIES"
+  },
+  {
+    "path": "cache.redis_cluster.maximum_retry_backoff",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_MAXIMUM_RETRY_BACKOFF"
+  },
+  {
+    "path": "cache.redis_cluster.minimum_retry_backoff",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_MINIMUM_RETRY_BACKOFF"
+  },
+  {
+    "path": "cache.redis_cluster.password",
+    "secret": true,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_PASSWORD_FILE"
+  },
+  {
+    "path": "cache.redis_cluster.pool_fifo",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_POOL_FIFO"
+  },
+  {
+    "path": "cache.redis_cluster.pool_maximum_connections",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_POOL_MAXIMUM_CONNECTIONS"
+  },
+  {
+    "path": "cache.redis_cluster.pool_maximum_idle_connections",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_POOL_MAXIMUM_IDLE_CONNECTIONS"
+  },
+  {
+    "path": "cache.redis_cluster.pool_minimum_idle_connections",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_POOL_MINIMUM_IDLE_CONNECTIONS"
+  },
+  {
+    "path": "cache.redis_cluster.pool_size",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_POOL_SIZE"
+  },
+  {
+    "path": "cache.redis_cluster.pool_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_POOL_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_cluster.read_buffer_size",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_READ_BUFFER_SIZE"
+  },
+  {
+    "path": "cache.redis_cluster.read_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_READ_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_cluster.route_by_latency",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_ROUTE_BY_LATENCY"
+  },
+  {
+    "path": "cache.redis_cluster.route_by_replica",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_ROUTE_BY_REPLICA"
+  },
+  {
+    "path": "cache.redis_cluster.route_randomly",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_ROUTE_RANDOMLY"
+  },
+  {
+    "path": "cache.redis_cluster.tls.certificate_chain",
+    "secret": true,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_TLS_CERTIFICATE_CHAIN_FILE"
+  },
+  {
+    "path": "cache.redis_cluster.tls.maximum_version",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_TLS_MAXIMUM_VERSION"
+  },
+  {
+    "path": "cache.redis_cluster.tls.minimum_version",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_TLS_MINIMUM_VERSION"
+  },
+  {
+    "path": "cache.redis_cluster.tls.private_key",
+    "secret": true,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_TLS_PRIVATE_KEY_FILE"
+  },
+  {
+    "path": "cache.redis_cluster.tls.server_name",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_TLS_SERVER_NAME"
+  },
+  {
+    "path": "cache.redis_cluster.tls.skip_verify",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_TLS_SKIP_VERIFY"
+  },
+  {
+    "path": "cache.redis_cluster.username",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_USERNAME"
+  },
+  {
+    "path": "cache.redis_cluster.write_buffer_size",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_WRITE_BUFFER_SIZE"
+  },
+  {
+    "path": "cache.redis_cluster.write_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_CLUSTER_WRITE_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_sentinel.connection_lifetime_jitter",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_CONNECTION_LIFETIME_JITTER"
+  },
+  {
+    "path": "cache.redis_sentinel.connection_lifetime",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_CONNECTION_LIFETIME"
+  },
+  {
+    "path": "cache.redis_sentinel.context_timeout_enabled",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_CONTEXT_TIMEOUT_ENABLED"
+  },
+  {
+    "path": "cache.redis_sentinel.database",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_DATABASE"
+  },
+  {
+    "path": "cache.redis_sentinel.dial_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_DIAL_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_sentinel.dialer_retries",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_DIALER_RETRIES"
+  },
+  {
+    "path": "cache.redis_sentinel.dialer_retry_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_DIALER_RETRY_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_sentinel.failing_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_FAILING_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_sentinel.idle_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_IDLE_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_sentinel.master_name",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_MASTER_NAME"
+  },
+  {
+    "path": "cache.redis_sentinel.maximum_concurrent_dials",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_MAXIMUM_CONCURRENT_DIALS"
+  },
+  {
+    "path": "cache.redis_sentinel.maximum_retries",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_MAXIMUM_RETRIES"
+  },
+  {
+    "path": "cache.redis_sentinel.maximum_retry_backoff",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_MAXIMUM_RETRY_BACKOFF"
+  },
+  {
+    "path": "cache.redis_sentinel.minimum_retry_backoff",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_MINIMUM_RETRY_BACKOFF"
+  },
+  {
+    "path": "cache.redis_sentinel.password",
+    "secret": true,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_PASSWORD_FILE"
+  },
+  {
+    "path": "cache.redis_sentinel.pool_fifo",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_POOL_FIFO"
+  },
+  {
+    "path": "cache.redis_sentinel.pool_maximum_connections",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_POOL_MAXIMUM_CONNECTIONS"
+  },
+  {
+    "path": "cache.redis_sentinel.pool_maximum_idle_connections",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_POOL_MAXIMUM_IDLE_CONNECTIONS"
+  },
+  {
+    "path": "cache.redis_sentinel.pool_minimum_idle_connections",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_POOL_MINIMUM_IDLE_CONNECTIONS"
+  },
+  {
+    "path": "cache.redis_sentinel.pool_size",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_POOL_SIZE"
+  },
+  {
+    "path": "cache.redis_sentinel.pool_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_POOL_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_sentinel.read_buffer_size",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_READ_BUFFER_SIZE"
+  },
+  {
+    "path": "cache.redis_sentinel.read_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_READ_TIMEOUT"
+  },
+  {
+    "path": "cache.redis_sentinel.replica_only",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_REPLICA_ONLY"
+  },
+  {
+    "path": "cache.redis_sentinel.route_by_latency",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_ROUTE_BY_LATENCY"
+  },
+  {
+    "path": "cache.redis_sentinel.route_randomly",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_ROUTE_RANDOMLY"
+  },
+  {
+    "path": "cache.redis_sentinel.sentinel_mode",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_SENTINEL_MODE"
+  },
+  {
+    "path": "cache.redis_sentinel.sentinel_password",
+    "secret": true,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_SENTINEL_PASSWORD_FILE"
+  },
+  {
+    "path": "cache.redis_sentinel.sentinel_username",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_SENTINEL_USERNAME"
+  },
+  {
+    "path": "cache.redis_sentinel.tls.certificate_chain",
+    "secret": true,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_TLS_CERTIFICATE_CHAIN_FILE"
+  },
+  {
+    "path": "cache.redis_sentinel.tls.maximum_version",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_TLS_MAXIMUM_VERSION"
+  },
+  {
+    "path": "cache.redis_sentinel.tls.minimum_version",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_TLS_MINIMUM_VERSION"
+  },
+  {
+    "path": "cache.redis_sentinel.tls.private_key",
+    "secret": true,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_TLS_PRIVATE_KEY_FILE"
+  },
+  {
+    "path": "cache.redis_sentinel.tls.server_name",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_TLS_SERVER_NAME"
+  },
+  {
+    "path": "cache.redis_sentinel.tls.skip_verify",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_TLS_SKIP_VERIFY"
+  },
+  {
+    "path": "cache.redis_sentinel.use_disconnected_replicas",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_USE_DISCONNECTED_REPLICAS"
+  },
+  {
+    "path": "cache.redis_sentinel.username",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_USERNAME"
+  },
+  {
+    "path": "cache.redis_sentinel.write_buffer_size",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_WRITE_BUFFER_SIZE"
+  },
+  {
+    "path": "cache.redis_sentinel.write_timeout",
+    "secret": false,
+    "env": "AUTHELIA_CACHE_REDIS_SENTINEL_WRITE_TIMEOUT"
+  },
+  {
     "path": "certificates_directory",
     "secret": false,
     "env": "AUTHELIA_CERTIFICATES_DIRECTORY"
@@ -930,106 +1460,6 @@
     "env": "AUTHELIA_SESSION_NAME"
   },
   {
-    "path": "session.redis.database_index",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_DATABASE_INDEX"
-  },
-  {
-    "path": "session.redis.high_availability.route_by_latency",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_ROUTE_BY_LATENCY"
-  },
-  {
-    "path": "session.redis.high_availability.route_randomly",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_ROUTE_RANDOMLY"
-  },
-  {
-    "path": "session.redis.high_availability.sentinel_name",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_NAME"
-  },
-  {
-    "path": "session.redis.high_availability.sentinel_password",
-    "secret": true,
-    "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE"
-  },
-  {
-    "path": "session.redis.high_availability.sentinel_username",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_USERNAME"
-  },
-  {
-    "path": "session.redis.host",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_HOST"
-  },
-  {
-    "path": "session.redis.max_retries",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_MAX_RETRIES"
-  },
-  {
-    "path": "session.redis.maximum_active_connections",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_MAXIMUM_ACTIVE_CONNECTIONS"
-  },
-  {
-    "path": "session.redis.minimum_idle_connections",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_MINIMUM_IDLE_CONNECTIONS"
-  },
-  {
-    "path": "session.redis.password",
-    "secret": true,
-    "env": "AUTHELIA_SESSION_REDIS_PASSWORD_FILE"
-  },
-  {
-    "path": "session.redis.port",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_PORT"
-  },
-  {
-    "path": "session.redis.timeout",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_TIMEOUT"
-  },
-  {
-    "path": "session.redis.tls.certificate_chain",
-    "secret": true,
-    "env": "AUTHELIA_SESSION_REDIS_TLS_CERTIFICATE_CHAIN_FILE"
-  },
-  {
-    "path": "session.redis.tls.maximum_version",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_TLS_MAXIMUM_VERSION"
-  },
-  {
-    "path": "session.redis.tls.minimum_version",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_TLS_MINIMUM_VERSION"
-  },
-  {
-    "path": "session.redis.tls.private_key",
-    "secret": true,
-    "env": "AUTHELIA_SESSION_REDIS_TLS_PRIVATE_KEY_FILE"
-  },
-  {
-    "path": "session.redis.tls.server_name",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_TLS_SERVER_NAME"
-  },
-  {
-    "path": "session.redis.tls.skip_verify",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_TLS_SKIP_VERIFY"
-  },
-  {
-    "path": "session.redis.username",
-    "secret": false,
-    "env": "AUTHELIA_SESSION_REDIS_USERNAME"
-  },
-  {
     "path": "session.remember_me",
     "secret": false,
     "env": "AUTHELIA_SESSION_REMEMBER_ME"
@@ -1043,6 +1473,11 @@
     "path": "session.secret",
     "secret": true,
     "env": "AUTHELIA_SESSION_SECRET_FILE"
+  },
+  {
+    "path": "session.storage",
+    "secret": false,
+    "env": "AUTHELIA_SESSION_STORAGE"
   },
   {
     "path": "storage.encryption_key",

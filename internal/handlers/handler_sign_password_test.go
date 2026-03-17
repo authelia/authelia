@@ -14,12 +14,31 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
+
+func TestSecondFactorPasswordPOSTShouldErrorSessionProviderUnavailable(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+	mock.Ctx.Request.SetBody([]byte(`{"password":"123456"}`))
+
+	SecondFactorPasswordPOST(nil)(mock.Ctx)
+
+	mock.Assert401KO(t, "Authentication failed. Check your credentials.")
+
+	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to get session provider during 2FA attempt", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+}
+
+func TestRunHandlerSignPasswordSuite(t *testing.T) {
+	suite.Run(t, new(HandlerSignPasswordSuite))
+}
 
 type HandlerSignPasswordSuite struct {
 	suite.Suite
@@ -37,7 +56,7 @@ func (s *HandlerSignPasswordSuite) SetupTest() {
 	userSession.AuthenticationMethodRefs.WebAuthnUserPresence = true
 	userSession.AuthenticationMethodRefs.WebAuthnUserVerified = true
 
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 
 	s.mock.Clock.Set(time.Unix(1701295903, 0))
 	s.mock.Ctx.Providers.Clock = &s.mock.Clock
@@ -58,6 +77,10 @@ func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURL() {
 			EXPECT().
 			CheckUserPassword(gomock.Eq("john"), gomock.Eq("123456")).
 			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -93,6 +116,10 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleOpenIDConnect() {
 			EXPECT().
 			CheckUserPassword(gomock.Eq("john"), gomock.Eq("123456")).
 			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -128,6 +155,10 @@ func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURLDelayFunc()
 			EXPECT().
 			CheckUserPassword(gomock.Eq("john"), gomock.Eq("123456")).
 			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -162,6 +193,10 @@ func (s *HandlerSignPasswordSuite) TestShouldErrorMarkAttempt() {
 			EXPECT().
 			CheckUserPassword(gomock.Eq("john"), gomock.Eq("123456")).
 			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -299,20 +334,37 @@ func (s *HandlerSignPasswordSuite) TestShouldErrorBadRequestBody() {
 	s.AssertLastLogMessage("Failed to parse 1FA request body", "unable to parse body: unexpected end of JSON input")
 }
 
-func TestSecondFactorPasswordPOSTShouldErrorSessionProviderUnavailable(t *testing.T) {
-	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
+func (s *HandlerSignPasswordSuite) TestShouldHandleUserDetailsError() {
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			CheckUserPassword(gomock.Eq("john"), gomock.Eq("123456")).
+			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(nil, fmt.Errorf("failed to lookup user")),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
+				Username:   testUsername,
+				Successful: false,
+				Banned:     false,
+				Time:       s.mock.Clock.Now(),
+				Type:       regulation.AuthTypePassword,
+				RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
+			})).
+			Return(nil),
+	)
 
-	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
-	mock.Ctx.Request.SetBody([]byte(`{"password":"123456"}`))
+	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{ //nolint:gosec
+		Password: "123456",
+	})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	SecondFactorPasswordPOST(nil)(mock.Ctx)
+	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	mock.Assert401KO(t, "Authentication failed. Check your credentials.")
-
-	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to get session provider during 2FA attempt", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
-}
-
-func TestRunHandlerSignPasswordSuite(t *testing.T) {
-	suite.Run(t, new(HandlerSignPasswordSuite))
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	s.AssertLastLogMessage("Unsuccessful Password authentication attempt by user 'john'", "")
 }

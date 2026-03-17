@@ -34,6 +34,8 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 		size, table, desc = sha512.BlockSize, tableOneTimeCode, "one time-codes"
 	case hmacNameOneTimePassword:
 		size, table, desc = sha256.BlockSize, tableTOTPHistory, "totp history"
+	case hmacNameSession:
+		size, table, desc = sha256.BlockSize, tableSession, "sessions"
 	default:
 		return fmt.Errorf("unknown key name '%s'", name)
 	}
@@ -691,6 +693,11 @@ func (p *SQLProvider) setCrypographyKey(ctx context.Context, conn SQLXConnection
 	}
 
 	return key, nil
+}
+
+// LoadHMACKey returns the HMAC key of the given name and size, generating and persisting it when it does not exist.
+func (p *SQLProvider) LoadHMACKey(ctx context.Context, name string, size int) (key []byte, err error) {
+	return p.getHMACKey(ctx, name, size)
 }
 
 func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (key []byte, err error) {
