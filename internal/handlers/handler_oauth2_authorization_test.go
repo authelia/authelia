@@ -250,6 +250,35 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		assert.Empty(t, location.Query().Get("error"))
 	})
 
+	t.Run("ShouldHandleUserDetailsError", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		client := newTestOIDCAuthorizationCodeClient(t)
+		client.ConsentMode = "implicit"
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		mock.UserProviderMock.EXPECT().
+			GetDetailsExtended(testUsername).
+			Return(nil, sql.ErrConnDone)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, newTestOIDCAuthorizationValues())
+
+		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+		require.Equal(t, http.StatusSeeOther, rw.Code)
+
+		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "server_error", location.Query().Get("error"))
+	})
+
 	t.Run("ShouldRedirectUserWithInsufficientAuthenticationLevelToFlow", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
