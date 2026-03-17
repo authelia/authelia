@@ -6,6 +6,7 @@ package utils
 
 import (
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -97,6 +98,46 @@ func TestHasDomainSuffix(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			assert.Equal(t, tc.Expected, HasDomainSuffix(tc.Domain, tc.DomainSuffix))
+		})
+	}
+}
+
+func TestIsHostnameValid(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Hostname string
+		Expected bool
+	}{
+		{"ShouldAllowDomain", "example.com", true},
+		{"ShouldAllowSubdomain", "auth.example.com", true},
+		{"ShouldAllowSingleLabel", "localhost", true},
+		{"ShouldAllowUpperCase", "Auth.Example.COM", true},
+		{"ShouldAllowHyphen", "my-app.example.com", true},
+		{"ShouldAllowDigits", "1app.example123.com", true},
+		{"ShouldAllowMaxLengthLabel", strings.Repeat("a", 63) + ".example.com", true},
+		{"ShouldAllowMaxLength", strings.Repeat("a.", 126) + "a", true},
+		{"ShouldAllowIPv4", "192.168.1.1", true},
+		{"ShouldAllowIPv6", "2001:db8::1", true},
+		{"ShouldNotAllowEmpty", "", false},
+		{"ShouldNotAllowUnderscore", "foo_bar.example.com", false},
+		{"ShouldNotAllowEmptyLabel", "auth..example.com", false},
+		{"ShouldNotAllowLeadingPeriod", ".example.com", false},
+		{"ShouldNotAllowTrailingPeriod", "example.com.", false},
+		{"ShouldNotAllowLeadingHyphen", "-auth.example.com", false},
+		{"ShouldNotAllowTrailingHyphen", "auth-.example.com", false},
+		{"ShouldNotAllowLabelTooLong", strings.Repeat("a", 64) + ".example.com", false},
+		{"ShouldNotAllowTooLong", strings.Repeat("a.", 126) + "ab", false},
+		{"ShouldNotAllowSpace", "auth example.com", false},
+		{"ShouldNotAllowWildcard", "*.example.com", false},
+		{"ShouldNotAllowPercentEncoding", "auth%2eexample.com", false},
+		{"ShouldNotAllowNonASCII", "authé.example.com", false},
+		{"ShouldNotAllowPort", "example.com:443", false},
+		{"ShouldNotAllowBracketedIPv6", "[2001:db8::1]", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, IsHostnameValid(tc.Hostname))
 		})
 	}
 }
