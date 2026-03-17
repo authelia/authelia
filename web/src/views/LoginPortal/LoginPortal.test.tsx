@@ -94,6 +94,7 @@ const mockNotificationsReturn: ReturnType<typeof useNotifications> = {
     isActive: false,
     notification: null,
     resetNotification: vi.fn(),
+    showNotification: vi.fn(),
 };
 
 beforeEach(() => {
