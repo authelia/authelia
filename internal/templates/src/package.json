@@ -33,8 +33,8 @@
   "pnpm": {
     "overrides": {
       "@babel/traverse": "7.29.0",
-      "@babel/helpers": "7.28.6",
-      "@babel/runtime": "7.28.6",
+      "@babel/helpers": "7.29.2",
+      "@babel/runtime": "7.29.2",
       "ajv": "8.18.0",
       "brace-expansion": "5.0.4",
       "esbuild": "0.27.4",
@@ -43,7 +43,7 @@
       "js-yaml": "4.1.1",
       "rollup": "4.59.0",
       "minimatch": "10.2.4",
-      "nanoid": "5.1.6",
+      "nanoid": "5.1.7",
       "prismjs": "1.30.0",
       "vite": "8.0.0"
     },
