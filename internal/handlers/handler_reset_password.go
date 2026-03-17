@@ -47,6 +47,13 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if err = ctx.RegenerateSession(); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	token, err = jwt.ParseWithClaims(body.Token, &model.IdentityVerificationClaim{},
 		func(token *jwt.Token) (any, error) {
 			return []byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret), nil
@@ -148,6 +155,13 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if err = ctx.RegenerateSession(); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
+		ctx.SetJSONError(messageUnableToResetPassword)
+
+		return
+	}
+
 	// Those checks unsure that the identity verification process has been initiated and completed successfully
 	// otherwise PasswordReset would not be set to true. We can improve the security of this check by making the
 	// request expire at some point because here it only expires when the cookie expires.
@@ -194,7 +208,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession.PasswordResetUsername = nil
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred saving the session while updating the password reset state")
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -293,7 +307,7 @@ func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, usern
 
 	userSession.PasswordResetUsername = &username
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Unable to enable password reset in session for user '%s'", userSession.Username)
 	}
 }
