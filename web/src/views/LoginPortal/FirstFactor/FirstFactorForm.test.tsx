@@ -31,7 +31,7 @@ vi.mock("@hooks/OpenIDConnect", () => ({
     useUserCode: () => null,
 }));
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: vi.fn(),
     }),

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
 
 import { ConsentCompletionSubRoute, ConsentOpenIDSubRoute } from "@constants/Routes";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoGET } from "@hooks/UserInfo";
 import { UserInfo } from "@models/UserInfo";

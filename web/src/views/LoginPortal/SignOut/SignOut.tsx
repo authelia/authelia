@@ -6,8 +6,8 @@ import { useSearchParams } from "react-router-dom";
 
 import { IndexRoute } from "@constants/Routes";
 import { RedirectionRestoreURL, RedirectionURL } from "@constants/SearchParams";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useIsMountedRef } from "@hooks/Mounted";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useRedirector } from "@hooks/Redirector";
 import { useRouterNavigate } from "@hooks/RouterNavigate";

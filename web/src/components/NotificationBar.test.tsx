@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 
 import NotificationBar from "@components/NotificationBar";
-import NotificationsContext from "@hooks/NotificationsContext";
+import NotificationsContext from "@contexts/NotificationsContext";
 import { Notification } from "@models/Notifications";
 
 const testNotification: Notification = {

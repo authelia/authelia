@@ -8,8 +8,8 @@ import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
 import { RedirectionURL } from "@constants/SearchParams";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlow } from "@hooks/Flow";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postSecondFactor } from "@services/Password";

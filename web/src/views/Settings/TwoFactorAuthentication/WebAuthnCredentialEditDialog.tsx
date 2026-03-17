@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { WebAuthnCredential } from "@models/WebAuthn";
 import { updateUserWebAuthnCredential } from "@services/WebAuthn";
 

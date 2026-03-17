@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 import ComponentWithTooltip from "@components/ComponentWithTooltip";
 import { IndexRoute } from "@constants/Routes";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { initiateResetPasswordProcess } from "@services/ResetPassword";
 

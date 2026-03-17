@@ -1,10 +1,6 @@
 import { Alert, Slide, SlideProps, Snackbar } from "@mui/material";
 
-import { useNotifications } from "@hooks/NotificationsContext";
-
-export interface Props {
-    onClose: () => void;
-}
+import { useNotifications } from "@contexts/NotificationsContext";
 
 type NotificationBarTransitionProps = Omit<SlideProps, "direction">;
 
@@ -12,8 +8,8 @@ function NotificationBarTransition(props: Readonly<NotificationBarTransitionProp
     return <Slide {...props} direction={"left"} />;
 }
 
-const NotificationBar = function (props: Props) {
-    const { notification } = useNotifications();
+const NotificationBar = function () {
+    const { notification, resetNotification } = useNotifications();
 
     const shouldSnackbarBeOpen = notification !== undefined && notification !== null;
 
@@ -22,7 +18,7 @@ const NotificationBar = function (props: Props) {
             open={shouldSnackbarBeOpen}
             anchorOrigin={{ horizontal: "right", vertical: "top" }}
             autoHideDuration={notification ? notification.timeout * 1000 : 10000}
-            onClose={props.onClose}
+            onClose={resetNotification}
             slots={{ transition: NotificationBarTransition }}
         >
             {notification ? (
