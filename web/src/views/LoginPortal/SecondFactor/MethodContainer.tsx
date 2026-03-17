@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import InformationIcon from "@components/InformationIcon";
 import Authenticated from "@views/LoginPortal/Authenticated";
 
-/* eslint-disable no-unused-vars */
 export enum State {
     ALREADY_AUTHENTICATED = 1,
     NOT_REGISTERED = 2,
