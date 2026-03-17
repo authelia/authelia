@@ -9,6 +9,7 @@
   },
   "pnpm": {
     "overrides": {
+      "@babel/core": "7.29.0",
       "@babel/traverse": "7.29.0",
       "@babel/helpers": "7.29.2",
       "@babel/runtime": "7.29.2",
@@ -16,12 +17,9 @@
       "@typescript-eslint/parser": "8.57.1",
       "@typescript-eslint/typescript-estree": "8.57.1",
       "@typescript-eslint/utils": "8.57.1",
-      "babel": "7.26.10",
       "body-parser": "2.2.2",
       "brace-expansion": "5.0.4",
       "esbuild": "0.27.4",
-      "eslint-plugin-jest": "29.15.0",
-      "eslint-plugin-testing-library": "7.16.0",
       "express": "5.2.1",
       "flatted": "3.4.1",
       "glob": "13.0.6",
@@ -42,6 +40,7 @@
       }
     },
     "onlyBuiltDependencies": [
+      "esbuild",
       "lefthook",
       "unrs-resolver"
     ],
