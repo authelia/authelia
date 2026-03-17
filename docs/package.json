@@ -32,11 +32,13 @@
     "bootstrap": "5.3.8",
     "clipboard": "2.0.11",
     "flexsearch": "0.8.212",
-    "hugo-extended": "0.158.0",
     "postcss": "8.5.8",
     "postcss-cli": "11.0.1",
     "prettier": "3.8.1",
-    "vite": "7.3.1"
+    "vite": "8.0.0"
+  },
+  "optionalDependencies": {
+    "hugo-extended": "0.158.0"
   },
   "engines": {
     "node": ">=24.13.0",
