@@ -1,24 +1,14 @@
-const autoprefixer = require('autoprefixer');
-const { purgeCSSPlugin } = require('@fullhuman/postcss-purgecss');
-const whitelister = require('purgecss-whitelister');
+import autoprefixer from 'autoprefixer';
+import purgeCSSPlugin from '@fullhuman/postcss-purgecss';
 
-module.exports = {
-  plugins: [
-    autoprefixer(),
-    purgeCSSPlugin({
-      content: ['./hugo_stats.json'],
-      extractors: [
-        {
-          extractor: (content) => {
-            const els = JSON.parse(content).htmlElements;
-            return els.tags.concat(els.classes, els.ids);
-          },
-          extensions: ['json']
-        }
-      ],
-      dynamicAttributes: [
+const purgecss = purgeCSSPlugin({
+    content: ['./hugo_stats.json'],
+    defaultExtractor: (content) => {
+        const els = JSON.parse(content).htmlElements;
+        return [...(els.tags || []), ...(els.classes || []), ...(els.ids || [])];
+    },
+    dynamicAttributes: [
         'aria-expanded',
-        'aria-selected',
         'data-bs-popper',
         'data-bs-target',
         'data-bs-theme',
@@ -31,8 +21,8 @@ module.exports = {
         'id',
         'size',
         'type'
-      ],
-      safelist: [
+    ],
+    safelist: [
         'active',
         'btn-clipboard', // clipboards.js
         'clipboard', // clipboards.js
@@ -58,8 +48,11 @@ module.exports = {
         'page-item',
         'page-link',
         'not-content',
-        ...whitelister(['./assets/scss/**/*.scss', './node_modules/@thulite/doks-core/assets/scss/components/_code.scss', './node_modules/@thulite/doks-core/assets/scss/components/_expressive-code.scss', './node_modules/@thulite/doks-core/assets/scss/common/_syntax.scss', './node_modules/@docsearch/css/dist/modal.css'])
-      ]
-    })
-  ]
+        'copy',
+        'btn-copy'
+    ]
+});
+
+export default {
+    plugins: [autoprefixer(), ...(process.env.HUGO_ENVIRONMENT === 'production' ? [purgecss] : [])]
 };
