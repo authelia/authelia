@@ -23,7 +23,6 @@ export interface CredentialRequest {
     publicKey: PublicKeyCredentialRequestOptionsJSON;
 }
 
-/* eslint-disable no-unused-vars */
 export enum AttestationResult {
     Success = 1,
     Failure,

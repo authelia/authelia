@@ -1,7 +1,6 @@
 import { StatePath } from "@services/Api";
 import { Get } from "@services/Client";
 
-/* eslint-disable no-unused-vars */
 export enum AuthenticationLevel {
     Unauthenticated = 0,
     OneFactor = 1,

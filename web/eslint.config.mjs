@@ -1,5 +1,6 @@
 import { fixupPluginRules } from "@eslint/compat";
 import limegrassImportAlias from "@limegrass/eslint-plugin-import-alias";
+import tsEslintPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
 import perfectionist from "eslint-plugin-perfectionist";
@@ -45,10 +46,12 @@ export default [
     {
         plugins: {
             "@limegrass/import-alias": limegrassImportAlias,
+            "@typescript-eslint": tsEslintPlugin,
             import: importPlugin,
             perfectionist,
         },
         rules: {
+            "@typescript-eslint/no-unused-vars": ["error", { args: "all", argsIgnorePattern: "^_" }],
             "no-restricted-imports": [
                 "error",
                 {
@@ -62,7 +65,7 @@ export default [
                     ],
                 },
             ],
-            "no-unused-vars": ["error", { args: "all", argsIgnorePattern: "^_" }],
+            "no-unused-vars": "off",
             "perfectionist/sort-array-includes": ["error"],
             "perfectionist/sort-imports": [
                 "error",

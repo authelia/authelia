@@ -1,6 +1,5 @@
 import { CSSProperties } from "react";
 
-/* eslint-disable no-unused-vars */
 declare module "@mui/material/styles" {
     interface Theme {
         custom: {
