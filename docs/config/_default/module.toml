@@ -90,6 +90,10 @@
   source = "assets"
   target = "assets"
 
+[[mounts]]
+  source = "static"
+  target = "assets"
+
 ## static
 [[mounts]]
   source = "node_modules/@thulite/doks-core/static"

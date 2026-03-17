@@ -21,6 +21,9 @@ importers:
       '@tabler/icons':
         specifier: 3.40.0
         version: 3.40.0
+      '@thulite/core':
+        specifier: 1.5.9
+        version: 1.5.9(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       '@thulite/doks-core':
         specifier: 1.9.3
         version: 1.9.3
@@ -37,7 +40,7 @@ importers:
         specifier: 1.13.1
         version: 1.13.1
       thulite:
-        specifier: ^2.6.5
+        specifier: 2.6.5
         version: 2.6.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
     devDependencies:
       '@changesets/changelog-github':
@@ -46,6 +49,30 @@ importers:
       '@changesets/cli':
         specifier: 2.29.8
         version: 2.29.8
+      '@fullhuman/postcss-purgecss':
+        specifier: 8.0.0
+        version: 8.0.0(postcss@8.5.8)
+      autoprefixer:
+        specifier: 10.4.27
+        version: 10.4.27(postcss@8.5.8)
+      basiclightbox:
+        specifier: 5.0.4
+        version: 5.0.4
+      bootstrap:
+        specifier: 5.3.8
+        version: 5.3.8(@popperjs/core@2.11.8)
+      clipboard:
+        specifier: 2.0.11
+        version: 2.0.11
+      flexsearch:
+        specifier: 0.8.212
+        version: 0.8.212
+      postcss:
+        specifier: 8.5.8
+        version: 8.5.8
+      postcss-cli:
+        specifier: 11.0.1
+        version: 11.0.1(postcss@8.5.8)
       prettier:
         specifier: 3.8.1
         version: 3.8.1
@@ -1111,8 +1138,8 @@ packages:
     resolution: {integrity: sha512-HGyxoOTYUyCM6stUe6EJgnd4EoewAI7zMdfqO+kGjnlZmBDz/cR5pf8r/cR4Wq60sL/p0IkcjUEEPwS3GFrIyw==}
     engines: {node: '>=8'}
 
-  autoprefixer@10.4.24:
-    resolution: {integrity: sha512-uHZg7N9ULTVbutaIsDRoUkoS8/h3bdsmVJYZ5l3wv8Cp/6UIIoRDm90hZ+BwxUj/hGBEzLxdHNSKuFpn8WOyZw==}
+  autoprefixer@10.4.27:
+    resolution: {integrity: sha512-NP9APE+tO+LuJGn7/9+cohklunJsXWiaWEfV3si4Gi/XHDwVNgkwr1J3RQYFIvPy76GmJ9/bW8vyoU1LcxwKHA==}
     engines: {node: ^10 || ^12 || >=14}
     hasBin: true
     peerDependencies:
@@ -1174,6 +1201,9 @@ packages:
 
   caniuse-lite@1.0.30001770:
     resolution: {integrity: sha512-x/2CLQ1jHENRbHg5PSId2sXq1CIO1CISvwWAj027ltMVG2UNgW+w9oH2+HzgEIRFembL8bUlXtfbBHR1fCg2xw==}
+
+  caniuse-lite@1.0.30001779:
+    resolution: {integrity: sha512-U5og2PN7V4DMgF50YPNtnZJGWVLFjjsN3zb6uMT5VGYIewieDj1upwfuVNXf4Kor+89c3iCRJnSzMD5LmTvsfA==}
 
   chardet@2.1.1:
     resolution: {integrity: sha512-PsezH1rqdV9VvyNhxxOW32/d75r01NY7TQCmOqomRo15ZSOKbpTFVsfjghxo6JloQUCGnH4k1LGu0R4yCLlWQQ==}
@@ -1362,6 +1392,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globby@11.1.0:
     resolution: {integrity: sha512-jhIXaOzy1sb8IyocaruWSn1TjmnBVs8Ayhcy83rmxNJ8q2uWKCAj3CnJY+KpGSXCueAPc0i05kVvVKtP1t9S3g==}
@@ -1391,6 +1422,7 @@ packages:
 
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
+    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -3226,7 +3258,7 @@ snapshots:
       '@babel/core': 7.29.0
       '@babel/preset-env': 7.29.0(@babel/core@7.29.0)
       '@fullhuman/postcss-purgecss': 8.0.0(postcss@8.5.8)
-      autoprefixer: 10.4.24(postcss@8.5.8)
+      autoprefixer: 10.4.27(postcss@8.5.8)
       lazysizes: 5.3.2
       modern-css-reset: 1.4.0
       postcss: 8.5.8
@@ -3293,10 +3325,10 @@ snapshots:
 
   array-union@2.1.0: {}
 
-  autoprefixer@10.4.24(postcss@8.5.8):
+  autoprefixer@10.4.27(postcss@8.5.8):
     dependencies:
       browserslist: 4.28.1
-      caniuse-lite: 1.0.30001770
+      caniuse-lite: 1.0.30001779
       fraction.js: 5.3.4
       picocolors: 1.1.1
       postcss: 8.5.8
@@ -3362,6 +3394,8 @@ snapshots:
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
 
   caniuse-lite@1.0.30001770: {}
+
+  caniuse-lite@1.0.30001779: {}
 
   chardet@2.1.1: {}
 
