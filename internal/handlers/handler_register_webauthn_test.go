@@ -58,9 +58,13 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
@@ -76,6 +80,31 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldHandleUserDetailsError",
+			&schema.DefaultWebAuthnConfiguration,
+			`{"description":"test"}`,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				mock.UserProviderMock.
+					EXPECT().
+					GetDetails(testUsername).
+					Return(nil, fmt.Errorf("failed to lookup user"))
+			},
+			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
+			fasthttp.StatusBadRequest,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred loading user details", "failed to lookup user")
+			},
+		},
+		{
 			"ShouldErrorOnInvalidOrigin",
 			&schema.DefaultWebAuthnConfiguration,
 			`{"description":"test"}`,
@@ -87,7 +116,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK")
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK")
@@ -134,7 +163,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
 			fasthttp.StatusBadRequest,
@@ -154,7 +183,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
 			fasthttp.StatusBadRequest,
@@ -174,9 +203,13 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
@@ -205,9 +238,13 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
@@ -232,9 +269,13 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
@@ -306,7 +347,7 @@ func TestWebAuthnRegistrationDELETE(t *testing.T) {
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
@@ -433,9 +474,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -491,9 +536,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -551,9 +600,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -607,9 +660,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -657,9 +714,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -703,9 +764,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
@@ -726,6 +791,40 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 			},
 		},
 		{
+			"ShouldHandleUserDetailsError",
+			&schema.DefaultWebAuthnConfiguration,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.WebAuthn = &session.WebAuthn{
+					Description: "test",
+					SessionData: &webauthn.SessionData{
+						Challenge:        "aq_AXdvsDMsKW_1aY31XQhU17ZMg1i0TK013DwukB2U",
+						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						Expires:          time.Now().Add(time.Minute),
+						UserVerification: "preferred",
+					},
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(&us))
+
+				mock.UserProviderMock.
+					EXPECT().
+					GetDetails(testUsername).
+					Return(nil, fmt.Errorf("failed to lookup user"))
+			},
+			dataPOSTGood,
+			`{"status":"KO","message":"Unable to register your security key."}`,
+			fasthttp.StatusBadRequest,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred loading user details", "failed to lookup user")
+			},
+		},
+		{
 			"ShouldHandleNoSession",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -736,7 +835,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			dataPOSTGood,
 			`{"status":"KO","message":"Unable to register your security key."}`,
@@ -771,7 +870,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 			},
 			strings.Replace(dataPOSTGood, `{"id":"rwOw`, `{"id":wOw`, 1),
 			`{"status":"KO","message":"Unable to register your security key."}`,
@@ -806,7 +905,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "---123=123=1")
 			},
@@ -873,9 +972,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "example.com", testUsername).
@@ -925,9 +1028,13 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
