@@ -183,7 +183,7 @@ func (mr *MockAccessRequesterMockRecorder) GetRequestedScopes() *gomock.Call {
 // GetSession mocks base method.
 func (m *MockAccessRequester) GetSession() oauth2.Session {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSession")
+	ret := m.ctrl.Call(m, "SessionGet")
 	ret0, _ := ret[0].(oauth2.Session)
 	return ret0
 }
@@ -191,7 +191,7 @@ func (m *MockAccessRequester) GetSession() oauth2.Session {
 // GetSession indicates an expected call of GetSession.
 func (mr *MockAccessRequesterMockRecorder) GetSession() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockAccessRequester)(nil).GetSession))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SessionGet", reflect.TypeOf((*MockAccessRequester)(nil).GetSession))
 }
 
 // GrantAudience mocks base method.

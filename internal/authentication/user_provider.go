@@ -14,6 +14,8 @@ type UserProvider interface {
 	// GetDetails is used to get a user's information.
 	GetDetails(username string) (details *UserDetails, err error)
 
+	// GetDetailsExtended is used to get a user's information similar to GetDetails although with an extended suite of
+	// attributes.
 	GetDetailsExtended(username string) (details *UserDetailsExtended, err error)
 
 	// UpdatePassword is used to change a user's password without verifying their old password.
@@ -22,5 +24,6 @@ type UserProvider interface {
 	// ChangePassword is used to change a user's password but requires their old password to be successfully verified.
 	ChangePassword(username string, oldPassword string, newPassword string) (err error)
 
+	// Close is used to close the provider and clean up any resources.
 	Close() (err error)
 }

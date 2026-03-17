@@ -142,3 +142,99 @@ type CachedCredential struct {
 	expires time.Time
 	value   []byte
 }
+
+type CachedUserProvider struct {
+	UserProvider
+
+	lifespan time.Duration
+
+	details  CachedUserDetails
+	extended CachedUserDetailsExtended
+}
+
+// GetDetails is used to get a user's information.
+func (p *CachedUserProvider) GetDetails(username string) (details *UserDetails, err error) {
+	var result any
+
+	result, err, _ = p.details.Do(username, p.doGetDetails(username))
+
+	return result.(*UserDetails), err
+}
+
+func (p *CachedUserProvider) doGetDetails(username string) func() (result any, err error) {
+	return func() (result any, err error) {
+		now := time.Now()
+
+		if cached, ok := p.details.values[username]; ok && cached.expires.After(now) {
+			return &(*cached.UserDetails), nil
+		}
+
+		var details *UserDetails
+
+		if details, err = p.UserProvider.GetDetails(username); err != nil {
+			delete(p.details.values, username)
+
+			return nil, err
+		}
+
+		p.details.values[username] = CachedUserDetailsItem{UserDetails: details, expires: now.Add(p.lifespan)}
+
+		return details, nil
+	}
+}
+
+// GetDetailsExtended is used to get a user's information similar to GetDetails although with an extended suite of
+// attributes.
+func (p *CachedUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
+	var result any
+
+	result, err, _ = p.details.Do(username, p.doGetDetailsExtended(username))
+
+	return result.(*UserDetailsExtended), err
+}
+
+func (p *CachedUserProvider) doGetDetailsExtended(username string) func() (result any, err error) {
+	return func() (result any, err error) {
+		now := time.Now()
+
+		if cached, ok := p.extended.values[username]; ok && cached.expires.After(now) {
+			return &(*cached.UserDetailsExtended), nil
+		}
+
+		var details *UserDetailsExtended
+
+		if details, err = p.UserProvider.GetDetailsExtended(username); err != nil {
+			delete(p.extended.values, username)
+
+			return nil, err
+		}
+
+		p.extended.values[username] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: now.Add(p.lifespan)}
+
+		return details, nil
+	}
+}
+
+type CachedUserDetails struct {
+	singleflight.Group
+
+	values map[string]CachedUserDetailsItem
+}
+
+type CachedUserDetailsExtended struct {
+	singleflight.Group
+
+	values map[string]CachedUserDetailsExtendedItem
+}
+
+type CachedUserDetailsItem struct {
+	*UserDetails
+
+	expires time.Time
+}
+
+type CachedUserDetailsExtendedItem struct {
+	*UserDetailsExtended
+
+	expires time.Time
+}

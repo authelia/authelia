@@ -218,7 +218,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 			`{"status":"KO","message":"Unable to set up one-time password."}`,
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a TOTP registration session for user 'john': error parsing the request body", "invalid character 'S' after object key")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a TOTP registration session for user 'john': error parsing the request body", "invalid character 'SessionSave' after object key")
 			},
 		},
 		{
