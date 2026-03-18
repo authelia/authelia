@@ -386,6 +386,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/AlexViridi"><img src="https://avatars.githubusercontent.com/u/80551059?v=4?s=100" width="100px;" alt="AlexViridi"/><br /><sub><b>AlexViridi</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=AlexViridi" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/xaabi6"><img src="https://avatars.githubusercontent.com/u/22637294?v=4?s=100" width="100px;" alt="Xabi"/><br /><sub><b>Xabi</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=xaabi6" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://caiocdcs.github.io"><img src="https://avatars.githubusercontent.com/u/8338516?v=4?s=100" width="100px;" alt="Caio Silva"/><br /><sub><b>Caio Silva</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=caiocdcs" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/deprrous"><img src="https://avatars.githubusercontent.com/u/144512455?v=4?s=100" width="100px;" alt="deprrous"/><br /><sub><b>deprrous</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Adeprrous" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>
