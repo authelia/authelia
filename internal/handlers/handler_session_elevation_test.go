@@ -1177,6 +1177,35 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 			},
 		},
 		{
+			"ShouldHandleStorageNilNil",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.DisplayName = testDisplayName
+				us.Emails = []string{"john@example.com"}
+
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadOneTimeCodeByPublicID(mock.Ctx, id).
+						Return(nil, nil),
+				)
+			},
+			eid,
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred revoking user session elevation One-Time Code challenge: error occurred retrieving the code challenge from the storage backend", "the provided one-time code public id '01020304-0506-4722-8910-111213141500' does not appear to exist")
+			},
+		},
+		{
 			"ShouldHandleStorageRevokeErrorBadIntent",
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()

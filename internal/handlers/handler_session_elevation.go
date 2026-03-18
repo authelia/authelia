@@ -389,6 +389,13 @@ func UserSessionElevateDELETE(ctx *middlewares.AutheliaCtx) {
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
+	} else if code == nil {
+		ctx.Logger.WithError(fmt.Errorf("the provided one-time code public id '%s' does not appear to exist", id.String())).
+			Error("Error occurred revoking user session elevation One-Time Code challenge: error occurred retrieving the code challenge from the storage backend")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
 	}
 
 	if code.RevokedAt.Valid {
