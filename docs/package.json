@@ -15,20 +15,33 @@
     "@docsearch/css": "3.9.0",
     "@docsearch/js": "3.9.0",
     "@tabler/icons": "3.40.0",
+    "@thulite/core": "1.5.9",
     "@thulite/doks-core": "1.9.3",
     "@thulite/images": "3.3.4",
     "@thulite/inline-svg": "1.2.2",
     "@thulite/seo": "2.4.3",
     "bootstrap-icons": "1.13.1",
-    "exec-bin": "1.0.0",
-    "hugo-installer": "4.0.1",
     "thulite": "2.6.5"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "0.5.2",
+    "@changesets/cli": "2.29.8",
+    "@fullhuman/postcss-purgecss": "8.0.0",
+    "autoprefixer": "10.4.27",
+    "basiclightbox": "5.0.4",
+    "bootstrap": "5.3.8",
+    "clipboard": "2.0.11",
+    "flexsearch": "0.8.212",
+    "postcss": "8.5.8",
+    "postcss-cli": "11.0.1",
+    "prettier": "3.8.1",
     "vite": "8.0.0"
   },
+  "optionalDependencies": {
+    "hugo-extended": "0.158.0"
+  },
   "engines": {
-    "node": ">=22.14.0",
+    "node": ">=24.13.0",
     "pnpm": "10"
   },
   "packageManager": "pnpm@10.6.4",

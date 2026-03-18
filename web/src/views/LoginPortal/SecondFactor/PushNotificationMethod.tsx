@@ -25,7 +25,6 @@ import DeviceSelectionContainer, {
 } from "@views/LoginPortal/SecondFactor/DeviceSelectionContainer";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
-/* eslint-disable no-unused-vars */
 export enum State {
     SignInInProgress = 1,
     Success = 2,

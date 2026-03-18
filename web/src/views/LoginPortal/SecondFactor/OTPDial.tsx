@@ -19,7 +19,6 @@ export interface Props {
     onChange: (_passcode: string) => void;
 }
 
-/* eslint-disable no-unused-vars */
 export enum State {
     Idle = 1,
     InProgress = 2,

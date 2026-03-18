@@ -17,7 +17,7 @@ RUN \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.26.1-bookworm@sha256:a83c153005aa7193aaa915039dba5500ea603360b816f36cdf2df6ebf1ebe2f1 AS builder-backend
+FROM golang:1.26.1-bookworm@sha256:7f7bb1bd9f9082a44c8da6d367ec913171950d3cc8d49f7056ebc1152cbcaf28 AS builder-backend
 
 WORKDIR /go/src/app
 

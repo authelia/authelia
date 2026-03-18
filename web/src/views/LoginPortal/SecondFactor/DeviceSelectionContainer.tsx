@@ -5,7 +5,6 @@ import Grid from "@mui/material/Grid";
 
 import PushNotificationIcon from "@components/PushNotificationIcon";
 
-/* eslint-disable no-unused-vars */
 export enum State {
     DEVICE = 1,
     METHOD = 2,
