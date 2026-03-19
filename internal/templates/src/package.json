@@ -44,7 +44,7 @@
       "prismjs": "1.30.0",
       "rollup": "4.59.0",
       "socket.io-parser": "4.2.6",
-      "vite": "8.0.0"
+      "vite": "8.0.1"
     },
     "onlyBuiltDependencies": [
       "esbuild",
