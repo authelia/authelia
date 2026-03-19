@@ -8,7 +8,7 @@ export interface AdminConfigBody {
     allow_admins_to_add_admins: boolean;
 }
 
-export type AttributeType = "text" | "email" | "password" | "tel" | "url" | "date" | "checkbox";
+export type AttributeType = "text" | "email" | "password" | "tel" | "url" | "date" | "checkbox" | "groups";
 
 export interface AttributeMetadata {
     type: AttributeType;

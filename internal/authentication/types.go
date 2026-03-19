@@ -36,8 +36,8 @@ type UserDetails struct {
 }
 
 type UserManagementAttributeMetadata struct {
-	Type     string `json:"type"`
-	Multiple bool   `json:"multiple,omitempty"`
+	Type     AttributeType `json:"type"`
+	Multiple bool          `json:"multiple,omitempty"`
 }
 
 // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
@@ -568,6 +568,19 @@ type UserDetailsAddress struct {
 	PostalCode    string `json:"postal_code,omitempty"`
 	Country       string `json:"country,omitempty"`
 }
+
+type AttributeType string
+
+const (
+	Text      AttributeType = "text"
+	Email     AttributeType = "email"
+	Password  AttributeType = "password"
+	Telephone AttributeType = "tel"
+	Url       AttributeType = "url"
+	Date      AttributeType = "date"
+	Checkbox  AttributeType = "checkbox"
+	Groups    AttributeType = "groups"
+)
 
 type ldapUserProfile struct {
 	DN          string

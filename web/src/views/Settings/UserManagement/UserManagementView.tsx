@@ -204,6 +204,9 @@ const UserManagementView = () => {
                         sorting: {
                             sortModel: [{ field: "username", sort: "asc" }],
                         },
+                        pagination: {
+                            paginationModel: { pageSize: 25, page: 0 },
+                        },
                     }}
                 />
             </div>

@@ -17,28 +17,29 @@ type RFC2307bisUserManagement struct {
 }
 
 var attributeMetadataMap = map[string]UserManagementAttributeMetadata{
-	"username":        {Type: "text", Multiple: false},
-	"password":        {Type: "password", Multiple: false},
-	"display_name":    {Type: "text", Multiple: false},
-	"family_name":     {Type: "text", Multiple: false},
-	"given_name":      {Type: "text", Multiple: false},
-	"middle_name":     {Type: "text", Multiple: false},
-	"nickname":        {Type: "text", Multiple: false},
-	"gender":          {Type: "text", Multiple: false},
-	"birthdate":       {Type: "date", Multiple: false},
-	"website":         {Type: "url", Multiple: false},
-	"profile":         {Type: "url", Multiple: false},
-	"picture":         {Type: "url", Multiple: false},
-	"zoneinfo":        {Type: "text", Multiple: false},
-	"locale":          {Type: "text", Multiple: false},
-	"phone_number":    {Type: "tel", Multiple: false},
-	"phone_extension": {Type: "text", Multiple: false},
-	"street_address":  {Type: "text", Multiple: false},
-	"locality":        {Type: "text", Multiple: false},
-	"region":          {Type: "text", Multiple: false},
-	"postal_code":     {Type: "text", Multiple: false},
-	"country":         {Type: "text", Multiple: false},
-	"mail":            {Type: "email", Multiple: false},
+	"username":        {Type: Text, Multiple: false},
+	"groups":          {Type: Groups, Multiple: true},
+	"password":        {Type: Password, Multiple: false},
+	"display_name":    {Type: Text, Multiple: false},
+	"family_name":     {Type: Text, Multiple: false},
+	"given_name":      {Type: Text, Multiple: false},
+	"middle_name":     {Type: Text, Multiple: false},
+	"nickname":        {Type: Text, Multiple: false},
+	"gender":          {Type: Text, Multiple: false},
+	"birthdate":       {Type: Date, Multiple: false},
+	"website":         {Type: Url, Multiple: false},
+	"profile":         {Type: Url, Multiple: false},
+	"picture":         {Type: Url, Multiple: false},
+	"zoneinfo":        {Type: Text, Multiple: false},
+	"locale":          {Type: Text, Multiple: false},
+	"phone_number":    {Type: Telephone, Multiple: false},
+	"phone_extension": {Type: Text, Multiple: false},
+	"street_address":  {Type: Text, Multiple: false},
+	"locality":        {Type: Text, Multiple: false},
+	"region":          {Type: Text, Multiple: false},
+	"postal_code":     {Type: Text, Multiple: false},
+	"country":         {Type: Text, Multiple: false},
+	"mail":            {Type: Email, Multiple: false},
 }
 
 func (r *RFC2307bisUserManagement) GetRequiredAttributes() []string {
@@ -73,21 +74,25 @@ func (r *RFC2307bisUserManagement) GetSupportedAttributes() map[string]UserManag
 		metadata["password"] = meta
 	}
 
+	if meta, exists := attributeMetadataMap["groups"]; exists {
+		metadata["groups"] = meta
+	}
+
 	for key, extraAttr := range r.provider.config.Attributes.Extra {
 		attrName := extraAttr.Name
 		if attrName == "" {
 			attrName = key
 		}
 
-		var inputType string
+		var inputType AttributeType
 
 		switch extraAttr.ValueType {
 		case "boolean":
-			inputType = "checkbox"
+			inputType = Checkbox
 		case "integer", "string", "":
-			inputType = "text"
+			inputType = Text
 		default:
-			inputType = "text"
+			inputType = Text
 		}
 
 		metadata["extra."+attrName] = UserManagementAttributeMetadata{

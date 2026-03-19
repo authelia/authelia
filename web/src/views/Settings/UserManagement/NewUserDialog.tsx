@@ -16,6 +16,7 @@ import { generateRandomPassword } from "@utils/GeneratePassword";
 import { useUserManagementAttributeMetadataGET } from "@hooks/UserManagement.ts";
 import ScaleLoader from "react-spinners/ScaleLoader";
 import UserFormField from "@components/UserInputField.tsx";
+import { useAllGroupsGET } from "@hooks/GroupManagement.ts";
 
 interface Props {
     open: boolean;
@@ -27,12 +28,14 @@ const NewUserDialog = ({ onClose, open }: Props) => {
     const theme = useTheme();
     const { createErrorNotification, createSuccessNotification } = useNotifications();
     const [metadata, refetch, loading, error] = useUserManagementAttributeMetadataGET();
+    const [groups, groupsRefetch, groupsLoading, groupsError] = useAllGroupsGET();
 
     useEffect(() => {
         if (open) {
             refetch();
+            groupsRefetch()
         }
-    }, [open, refetch]);
+    }, [open, refetch, groupsRefetch]);
 
     const {
         formState: { errors, isDirty },
@@ -48,7 +51,6 @@ const NewUserDialog = ({ onClose, open }: Props) => {
         },
     });
 
-    // Reset form when dialog closes
     useEffect(() => {
         if (!open) {
             reset();
@@ -85,8 +87,7 @@ const NewUserDialog = ({ onClose, open }: Props) => {
 
     const handleClose = () => {
         if (isDirty) {
-            // Show confirmation dialog if needed
-            // For now, just close
+            // Show confirmation dialog
         }
         onClose();
     };
@@ -100,6 +101,7 @@ const NewUserDialog = ({ onClose, open }: Props) => {
         "username",
         "mail",
         "password",
+        "groups",
     ];
 
     const standardOptionalFields = [
@@ -205,11 +207,12 @@ const NewUserDialog = ({ onClose, open }: Props) => {
             <DialogTitle>{translate("New {{item}}", { item: translate("User") })}</DialogTitle>
 
             <DialogContent>
-                {loading && <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />}
+                {loading || groupsLoading && <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />}
 
-                {error && <div>Error loading content: {error.message}</div>}
+                {error && <div>Error loading users: {error.message}</div>}
+                {groupsError && <div>Error loading groups: {groupsError.message}</div>}
 
-                {!loading && !error && metadata && (
+                {!loading && !groupsLoading  && !error && !groupsError && groups && metadata && (
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <FormControl variant="standard">
                             <Grid container spacing={2}>
@@ -221,6 +224,7 @@ const NewUserDialog = ({ onClose, open }: Props) => {
                                             control={control}
                                             errors={errors}
                                             setValue={setValue}
+                                            options={groups}
                                             onGeneratePassword={field!.name === "password" ? generatePassword : undefined}
                                         />
                                     </Grid>

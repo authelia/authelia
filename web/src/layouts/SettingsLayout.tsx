@@ -1,6 +1,6 @@
 import { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Close, Dashboard, Menu, People, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
+import { Close, Dashboard, Groups, Menu, People, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
 import {
     AppBar,
     Box,
@@ -21,6 +21,7 @@ import { EncodedName } from "@constants/constants";
 import {
     IndexRoute,
     SecuritySubRoute,
+    SettingsGroupManagementSubRoute,
     SettingsRoute,
     SettingsTwoFactorAuthenticationSubRoute,
     SettingsUserManagementSubRoute,
@@ -185,6 +186,13 @@ const navItems: NavItem[] = [
         pathname: `${SettingsRoute}${SettingsUserManagementSubRoute}`,
         requireAdmin: true,
         text: "User Management",
+    },
+    {
+        icon: <Groups color={"primary"} />,
+        keyname: "users",
+        pathname: `${SettingsRoute}${SettingsGroupManagementSubRoute}`,
+        requireAdmin: true,
+        text: "Group Management",
     },
     { icon: <Close color={"error"} />, keyname: "close", pathname: IndexRoute, text: "Close" },
 ];

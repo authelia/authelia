@@ -5,6 +5,7 @@ import { Route, Routes } from "react-router-dom";
 import {
     IndexRoute,
     SecuritySubRoute,
+    SettingsGroupManagementSubRoute,
     SettingsTwoFactorAuthenticationSubRoute,
     SettingsUserManagementSubRoute,
 } from "@constants/Routes";
@@ -16,6 +17,7 @@ import SecurityView from "@views/Settings/Security/SecurityView";
 import SettingsView from "@views/Settings/SettingsView";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
 import UserManagementView from "@views/Settings/UserManagement/UserManagementView";
+import GroupManagementView from "@views/Settings/UserManagement/GroupManagementView.tsx";
 
 const SettingsRouter = function () {
     const navigate = useRouterNavigate();
@@ -37,6 +39,7 @@ const SettingsRouter = function () {
                 <Route path={IndexRoute} element={<SettingsView />} />
                 <Route path={SecuritySubRoute} element={<SecurityView />} />
                 <Route path={SettingsUserManagementSubRoute} element={<UserManagementView />} />
+                <Route path={SettingsGroupManagementSubRoute} element={<GroupManagementView />} />
                 <Route path={SettingsTwoFactorAuthenticationSubRoute} element={<TwoFactorAuthenticationView />} />
             </Routes>
         </SettingsLayout>

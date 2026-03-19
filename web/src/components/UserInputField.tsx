@@ -1,4 +1,5 @@
 import {
+    Autocomplete,
     Box,
     Button,
     Checkbox,
@@ -24,6 +25,7 @@ interface UserFormFieldProps<T extends CreateUserRequest | UserDetailsExtended =
     control: Control<T>;
     errors: FieldErrors<T>;
     setValue: UseFormSetValue<T>;
+    options?: string[];
     onGeneratePassword?: () => void;
 }
 
@@ -32,6 +34,7 @@ const UserFormField = <T extends CreateUserRequest | UserDetailsExtended = Creat
     register,
     control,
     errors,
+    options,
     onGeneratePassword
 }: UserFormFieldProps<T>) => {
     const { t: translate } = useTranslation("settings");
@@ -68,6 +71,17 @@ const UserFormField = <T extends CreateUserRequest | UserDetailsExtended = Creat
                 </>
             );
 
+        case "groups":
+            return (
+                <GroupsField
+                    field={field}
+                    control={control}
+                    error={error}
+                    options={options}
+                    register={register}
+                />
+            );
+
         case "mail":
             if (field.meta.multiple) {
                 return <MultiEmailField field={field} register={register} control={control} error={error} />;
@@ -87,7 +101,8 @@ const renderByType = <T extends CreateUserRequest | UserDetailsExtended = Create
     field: UserFormFieldProps<T>["field"],
     register: any,
     control: any,
-    error: any
+    error: any,
+    options?: string[],
 ) => {
     switch (field.meta.type) {
         case "email":
@@ -107,6 +122,9 @@ const renderByType = <T extends CreateUserRequest | UserDetailsExtended = Create
 
         case "checkbox":
             return <CheckboxField field={field} register={register} control={control} error={error} />
+
+        case "groups":
+            return <GroupsField field={field} control={control} error={error} options={options} register={register} />;
 
         case "text":
         case "password":
@@ -140,6 +158,47 @@ const TextField = <T extends CreateUserRequest | UserDetailsExtended = CreateUse
             required: field.required ? `${field.label} is required` : false,
         })}
     />
+);
+
+interface FieldComponentPropsWithOptions<T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest> extends FieldComponentProps<T> {
+    options?: string[] | { label: string; value: string }[];
+}
+
+const GroupsField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+                                                                                                field,
+                                                                                                control,
+                                                                                                error,
+                                                                                                options = []
+                                                                                            }: FieldComponentProps<T> & { options?: string[] }) => (
+    <FormControl fullWidth error={!!error} required={field.required}>
+        <Controller
+            name={field.name}
+            control={control}
+            rules={{
+                required: field.required ? `${field.label} is required` : false,
+            }}
+            render={({ field: { onChange, value, ...rest } }) => (
+                <Autocomplete<string, true>
+                    multiple
+                    disablePortal
+                    options={options}
+                    value={value || []}
+                    onChange={(_, newValue) => onChange(newValue)}
+                    renderInput={(params) => (
+                        <MuiTextField
+                            {...params}
+                            label={field.label}
+                            error={!!error}
+                            helperText={error?.message?.toString() || field.description}
+                            required={field.required}
+                            color="info"
+                        />
+                    )}
+                    {...rest}
+                />
+            )}
+        />
+    </FormControl>
 );
 
 const CheckboxField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({

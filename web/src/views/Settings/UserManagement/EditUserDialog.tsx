@@ -16,6 +16,7 @@ import { useUserManagementAttributeMetadataGET } from "@hooks/UserManagement.ts"
 import ScaleLoader from "react-spinners/ScaleLoader";
 import UserFormField from "@components/UserInputField.tsx";
 import VerifyExitDialog from "@views/Settings/Common/VerifyExitDialog";
+import { useAllGroupsGET } from "@hooks/GroupManagement.ts";
 
 interface Props {
     user: UserDetailsExtended | null;
@@ -28,14 +29,15 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
     const theme = useTheme();
     const { createErrorNotification, createSuccessNotification } = useNotifications();
     const [metadata, refetch, loading, error] = useUserManagementAttributeMetadataGET();
+    const [groups, groupsRefetch, groupsLoading, groupsError] = useAllGroupsGET();
     const [verifyExitDialogOpen, setVerifyExitDialogOpen] = useState(false);
 
     useEffect(() => {
         if (open) {
             refetch();
+            groupsRefetch()
         }
-    }, [open, refetch]);
-
+    }, [open, refetch, groupsRefetch]);
     const {
         formState: { errors, isDirty, dirtyFields },
         handleSubmit,
@@ -133,6 +135,7 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
 
     const basicFields = [
         "username",
+        "groups",
         "mail",
     ];
 
@@ -244,11 +247,12 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
                 </DialogTitle>
 
                 <DialogContent>
-                    {loading && <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />}
+                    {loading || groupsLoading && <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />}
 
-                    {error && <div>Error loading content: {error.message}</div>}
+                    {error && <div>Error loading users: {error.message}</div>}
+                    {groupsError && <div>Error loading groups: {groupsError.message}</div>}
 
-                    {!loading && !error && metadata && (
+                    {!loading && !groupsLoading  && !error && !groupsError && groups && metadata && (
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <FormControl variant="standard">
                                 <Grid container spacing={2}>
@@ -271,6 +275,7 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
                                                     control={control}
                                                     errors={errors}
                                                     setValue={setValue}
+                                                    options={groups}
                                                 />
                                             )}
                                         </Grid>
