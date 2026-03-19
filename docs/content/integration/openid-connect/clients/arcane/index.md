@@ -24,7 +24,7 @@ seo:
 - [Authelia]
   - [v4.39.16](https://github.com/authelia/authelia/releases/tag/v4.39.16)
 - [Arcane]
-  - [v1.1.0](https://github.com/ofkm/arcane/releases/tag/v1.1.0)
+  - [v1.16.3](https://github.com/ofkm/arcane/releases/tag/v1.16.3)
 
 {{% oidc-common %}}
 
@@ -133,9 +133,9 @@ To configure [Arcane] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 
 ## See Also
 
-- [Arcane OIDC Single Sign-On Documentation](https://arcane.ofkm.dev/docs/users/sso)
+- [Arcane OIDC Single Sign-On Documentation](https://getarcane.app/docs/configuration/sso)
 
 [Authelia]: https://www.authelia.com
-[Arcane]: https://arcane.ofkm.dev/
+[Arcane]: https://getarcane.app/
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
