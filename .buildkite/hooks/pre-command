@@ -19,10 +19,10 @@ fi
 if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
   if [[ "${CI_MERGE_QUEUE}" == "true" ]]; then
     PR_NUMBER=$(echo "${BUILDKITE_BRANCH}" | sed -E 's|^gh-readonly-queue/.*/pr-([0-9]+)-.*|\1|')
-    PR_HEAD=$(curl -s "https://api.github.com/repos/authelia/authelia/pulls/${PR_NUMBER}")
+    PR_HEAD=$(curl -fsL --retry 3 "https://api.github.com/repos/authelia/authelia/pulls/${PR_NUMBER}")
     PR_BRANCH=$(echo "${PR_HEAD}" | jq -r 'if .head.repo.full_name != .base.repo.full_name then .head.label else .head.ref end')
 
-    PR_BUILD=$(curl -sH "Authorization: Bearer ${BUILDKITE_TOKEN}" \
+    PR_BUILD=$(curl -fsL --retry 3 -H "Authorization: Bearer ${BUILDKITE_TOKEN}" \
       "https://api.buildkite.com/v2/organizations/authelia/pipelines/authelia/builds?branch=${PR_BRANCH}&state=passed&per_page=1&exclude_pipeline=true")
 
     BUILD_ID=$(echo "${PR_BUILD}" | jq -r 'first | .id')
