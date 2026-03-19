@@ -31,6 +31,8 @@ else
   CI_BYPASS="false"
 fi
 
+CI_MERGE_QUEUE="false"
+
 if [[ ${BUILDKITE_PULL_REQUEST_DRAFT} == "true" ]] && [[ ${BUILDKITE_BRANCH} =~ ^(dependabot|renovate) ]]; then
   CI_BYPASS="true"
   buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/draft
@@ -38,6 +40,7 @@ fi
 
 if [[ ${BUILDKITE_BRANCH} =~ ^gh-readonly-queue/.* ]]; then
   CI_BYPASS="true"
+  CI_MERGE_QUEUE="true"
   buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/merge-queue
 fi
 
@@ -47,6 +50,7 @@ env:
   BUILD_HAPROXY: ${BUILD_HAPROXY}
   BUILD_SAMBA: ${BUILD_SAMBA}
   CI_BYPASS: ${CI_BYPASS}
+  CI_MERGE_QUEUE: ${CI_MERGE_QUEUE}
 
 steps:
   - label: ":service_dog: Linting"
@@ -70,12 +74,15 @@ steps:
 
   - label: ":grype: Vulnerability Scanning"
     command: "grypescans.sh"
+EOF
+if [[ ${CI_MERGE_QUEUE} != "true" ]]; then
+cat << EOF
     depends_on:
       - "unit-test"
       - "build-docker-linux"
     if: build.env("CI_BYPASS") != "true" && build.message !~ /^docs/
-
 EOF
+fi
 if [[ ${BUILDKITE_TAG} != "" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [baseimage]"

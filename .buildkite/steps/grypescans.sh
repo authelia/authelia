@@ -9,18 +9,20 @@ masterBranch="master"
 publicRepoRegex='.*:.*'
 grypeCmd="grype -f low"
 
-if [[ -n "${ciTag}" ]]; then
-  echo "--- :grype: Scanning ${dockerImageName}:${ciTag/v}"
-  ${grypeCmd} ${dockerImageName}:${ciTag/v}
-elif [[ "${ciBranch}" != "${masterBranch}" && ! "${ciBranch}" =~ ${publicRepoRegex} ]]; then
-  echo "--- :grype: Scanning ${dockerImageName}:${ciBranch}"
-  ${grypeCmd} ${dockerImageName}:${ciBranch}
-elif [[ "${ciBranch}" != "${masterBranch}" && "${ciBranch}" =~ ${publicRepoRegex} ]]; then
-  echo "--- :grype: Scanning ${dockerImageName}:PR${ciPullRequest}"
-  ${grypeCmd} ${dockerImageName}:PR${ciPullRequest}
-elif [[ "${ciBranch}" == "${masterBranch}" && "${ciPullRequest}" == "false" ]]; then
-  echo "--- :grype: Scanning ${dockerImageName}:${masterBranch}"
-  ${grypeCmd} ${dockerImageName}:${masterBranch}
+if [[ "${CI_MERGE_QUEUE}" != "true" ]]; then
+  if [[ -n "${ciTag}" ]]; then
+    echo "--- :grype: Scanning ${dockerImageName}:${ciTag/v}"
+    ${grypeCmd} ${dockerImageName}:${ciTag/v}
+  elif [[ "${ciBranch}" != "${masterBranch}" && ! "${ciBranch}" =~ ${publicRepoRegex} ]]; then
+    echo "--- :grype: Scanning ${dockerImageName}:${ciBranch}"
+    ${grypeCmd} ${dockerImageName}:${ciBranch}
+  elif [[ "${ciBranch}" != "${masterBranch}" && "${ciBranch}" =~ ${publicRepoRegex} ]]; then
+    echo "--- :grype: Scanning ${dockerImageName}:PR${ciPullRequest}"
+    ${grypeCmd} ${dockerImageName}:PR${ciPullRequest}
+  elif [[ "${ciBranch}" == "${masterBranch}" && "${ciPullRequest}" == "false" ]]; then
+    echo "--- :grype: Scanning ${dockerImageName}:${masterBranch}"
+    ${grypeCmd} ${dockerImageName}:${masterBranch}
+  fi
 fi
 
 for file in *.spdx.json; do

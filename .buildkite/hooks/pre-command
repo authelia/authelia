@@ -17,7 +17,20 @@ if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
-  buildkite-agent artifact download "*.spdx.json" .
+  if [[ "${CI_MERGE_QUEUE}" == "true" ]]; then
+    PR_NUMBER=$(echo "${BUILDKITE_BRANCH}" | sed -E 's|^gh-readonly-queue/.*/pr-([0-9]+)-.*|\1|')
+    BUILD_ID=$(curl -sH "Authorization: Bearer ${BUILDKITE_TOKEN}" \
+      "https://api.buildkite.com/v2/organizations/authelia/pipelines/authelia/builds?state=passed&per_page=50&exclude_jobs=true&exclude_pipeline=true" \
+      | jq -r --arg pr "${PR_NUMBER}" '[.[] | select(.pull_request.id == $pr)] | first | .id')
+
+    if [[ -n "${BUILD_ID}" && "${BUILD_ID}" != "null" ]]; then
+      buildkite-agent artifact download "*.spdx.json" . --build "${BUILD_ID}"
+    else
+      echo "--- :warning: Could not find a passed build for PR#${PR_NUMBER}"
+    fi
+  else
+    buildkite-agent artifact download "*.spdx.json" .
+  fi
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
