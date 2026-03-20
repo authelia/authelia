@@ -5,8 +5,8 @@ import {
     getAllUserInfo,
     getUser,
     getUserAttributeMetadata,
-    postNewUser,
     patchChangeUser,
+    postNewUser,
 } from "@services/UserManagement";
 
 export function useAllUserInfoGET() {

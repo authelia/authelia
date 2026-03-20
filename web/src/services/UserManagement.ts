@@ -8,7 +8,7 @@ export interface AdminConfigBody {
     allow_admins_to_add_admins: boolean;
 }
 
-export type AttributeType = "text" | "email" | "password" | "tel" | "url" | "date" | "checkbox" | "groups";
+export type AttributeType = "checkbox" | "date" | "email" | "groups" | "password" | "tel" | "text" | "url";
 
 export interface AttributeMetadata {
     type: AttributeType;
@@ -43,7 +43,7 @@ export async function patchChangeUser(username: string, userData: Partial<UserDe
     }
 
     // Build the update_mask query parameter
-    const updateMaskParam = updateMask.join(',');
+    const updateMaskParam = updateMask.join(",");
 
     return PatchWithOptionalResponse(`${AdminUserRestPath}/${username}?update_mask=${updateMaskParam}`, data);
 }

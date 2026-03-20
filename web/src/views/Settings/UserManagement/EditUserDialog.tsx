@@ -3,28 +3,23 @@ import { useEffect, useState } from "react";
 import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextField, useTheme } from "@mui/material";
 import { Path, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
-import { useNotifications } from "@hooks/NotificationsContext";
-import {
-    getAttributeMetadata,
-    isAttributeRequired,
-    validateAttributeValue,
-    UserDetailsExtended,
-} from "@models/UserManagement";
-import { patchChangeUser } from "@services/UserManagement";
-import { useUserManagementAttributeMetadataGET } from "@hooks/UserManagement.ts";
 import ScaleLoader from "react-spinners/ScaleLoader";
+
 import UserFormField from "@components/UserInputField.tsx";
-import VerifyExitDialog from "@views/Settings/Common/VerifyExitDialog";
 import { useAllGroupsGET } from "@hooks/GroupManagement.ts";
+import { useNotifications } from "@hooks/NotificationsContext";
+import { useUserManagementAttributeMetadataGET } from "@hooks/UserManagement.ts";
+import { UserDetailsExtended } from "@models/UserManagement";
+import { patchChangeUser } from "@services/UserManagement";
+import VerifyExitDialog from "@views/Settings/Common/VerifyExitDialog";
 
 interface Props {
-    user: UserDetailsExtended | null;
+    user: null | UserDetailsExtended;
     open: boolean;
     onClose: () => void;
 }
 
-const EditUserDialog = ({ user, onClose, open }: Props) => {
+const EditUserDialog = ({ onClose, open, user }: Props) => {
     const { t: translate } = useTranslation("settings");
     const theme = useTheme();
     const { createErrorNotification, createSuccessNotification } = useNotifications();
@@ -35,15 +30,15 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
     useEffect(() => {
         if (open) {
             refetch();
-            groupsRefetch()
+            groupsRefetch();
         }
     }, [open, refetch, groupsRefetch]);
     const {
-        formState: { errors, isDirty, dirtyFields },
+        control,
+        formState: { dirtyFields, errors, isDirty },
         handleSubmit,
         register,
         reset,
-        control,
         setValue,
     } = useForm<UserDetailsExtended>({
         defaultValues: user || {},
@@ -67,7 +62,7 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
         try {
             const updateMask: string[] = [];
             const changedData: Partial<UserDetailsExtended> = {};
-            const addressFields = ['street_address', 'locality', 'region', 'postal_code', 'country'];
+            const addressFields = ["street_address", "locality", "region", "postal_code", "country"];
 
             const { extra: extraFieldNames } = categorizeFields();
 
@@ -81,7 +76,7 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
                         changedData.extra = {};
                     }
                     changedData.extra[key] = data[key] as any;
-                } else if (key === 'extra' && dirtyFields.extra) {
+                } else if (key === "extra" && dirtyFields.extra) {
                     Object.keys(dirtyFields.extra || {}).forEach((extraKey) => {
                         updateMask.push(`extra.${extraKey}`);
                     });
@@ -90,7 +85,6 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
                     updateMask.push(key);
                     changedData[key] = data[key] as any;
                 }
-
             });
 
             if (updateMask.length === 0) {
@@ -133,11 +127,7 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
         setVerifyExitDialogOpen(false);
     };
 
-    const basicFields = [
-        "username",
-        "groups",
-        "mail",
-    ];
+    const basicFields = ["username", "groups", "mail"];
 
     const standardOptionalFields = [
         "display_name",
@@ -174,7 +164,7 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
     ];
 
     const categorizeFields = () => {
-        if (!metadata) return { basic: [], required: [], optional: [], extra: [] };
+        if (!metadata) return { basic: [], extra: [], optional: [], required: [] };
 
         const allSupportedFields = Object.keys(metadata.supported_attributes);
 
@@ -183,7 +173,7 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
         const optional: string[] = [];
         const extra: string[] = [];
 
-        allSupportedFields.forEach(fieldName => {
+        allSupportedFields.forEach((fieldName) => {
             if (excludedFields.includes(fieldName)) return;
 
             const isRequiredField = metadata.required_attributes.includes(fieldName);
@@ -209,33 +199,27 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
 
         optional.sort((a, b) => standardOptionalFields.indexOf(a) - standardOptionalFields.indexOf(b));
 
-        return { basic, required, optional, extra };
+        return { basic, extra, optional, required };
     };
 
     const buildFieldConfig = (fieldName: string) => {
         if (!metadata) return null;
 
         return {
-            name: fieldName as Path<UserDetailsExtended>,
-            meta: metadata.supported_attributes[fieldName],
-            label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
             description: translate(`user_management.attributes.${fieldName}.description`, { defaultValue: "" }),
-            required: metadata.required_attributes.includes(fieldName),
             disabled: fieldName === "username",
+            label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
+            meta: metadata.supported_attributes[fieldName],
+            name: fieldName as Path<UserDetailsExtended>,
+            required: metadata.required_attributes.includes(fieldName),
         };
     };
 
-    const { basic, required, optional, extra } = categorizeFields();
+    const { basic, extra, optional, required } = categorizeFields();
 
-    const shownByDefaultFields = [
-        ...basic.map(buildFieldConfig),
-        ...required.map(buildFieldConfig),
-    ].filter(Boolean);
+    const shownByDefaultFields = [...basic.map(buildFieldConfig), ...required.map(buildFieldConfig)].filter(Boolean);
 
-    const additionalFields = [
-        ...optional.map(buildFieldConfig),
-        ...extra.map(buildFieldConfig),
-    ].filter(Boolean);
+    const additionalFields = [...optional.map(buildFieldConfig), ...extra.map(buildFieldConfig)].filter(Boolean);
 
     const [showAdditional, setShowAdditional] = useState(false);
 
@@ -247,12 +231,13 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
                 </DialogTitle>
 
                 <DialogContent>
-                    {loading || groupsLoading && <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />}
+                    {loading ||
+                        (groupsLoading && <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />)}
 
                     {error && <div>Error loading users: {error.message}</div>}
                     {groupsError && <div>Error loading groups: {groupsError.message}</div>}
 
-                    {!loading && !groupsLoading  && !error && !groupsError && groups && metadata && (
+                    {!loading && !groupsLoading && !error && !groupsError && groups && metadata && (
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <FormControl variant="standard">
                                 <Grid container spacing={2}>
@@ -291,23 +276,23 @@ const EditUserDialog = ({ user, onClose, open }: Props) => {
                                             >
                                                 {showAdditional
                                                     ? translate("Hide Additional Fields")
-                                                    : translate("Show Additional Fields")
-                                                }
+                                                    : translate("Show Additional Fields")}
                                             </Button>
                                         </Grid>
                                     )}
 
-                                    {showAdditional && additionalFields.map((field) => (
-                                        <Grid key={field!.name} size={12} sx={{ pt: 1.5 }}>
-                                            <UserFormField
-                                                field={field!}
-                                                register={register}
-                                                control={control}
-                                                errors={errors}
-                                                setValue={setValue}
-                                            />
-                                        </Grid>
-                                    ))}
+                                    {showAdditional &&
+                                        additionalFields.map((field) => (
+                                            <Grid key={field!.name} size={12} sx={{ pt: 1.5 }}>
+                                                <UserFormField
+                                                    field={field!}
+                                                    register={register}
+                                                    control={control}
+                                                    errors={errors}
+                                                    setValue={setValue}
+                                                />
+                                            </Grid>
+                                        ))}
 
                                     <Grid size={12} sx={{ pt: 3 }}>
                                         <Button

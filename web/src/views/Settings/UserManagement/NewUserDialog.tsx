@@ -3,8 +3,12 @@ import { useEffect, useState } from "react";
 import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextField, useTheme } from "@mui/material";
 import { Path, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import ScaleLoader from "react-spinners/ScaleLoader";
 
+import UserFormField from "@components/UserInputField.tsx";
+import { useAllGroupsGET } from "@hooks/GroupManagement.ts";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { useUserManagementAttributeMetadataGET } from "@hooks/UserManagement.ts";
 import {
     CreateUserRequest,
     getAttributeMetadata,
@@ -13,10 +17,6 @@ import {
 } from "@models/UserManagement";
 import { UserAttributeMetadataBody, postNewUser } from "@services/UserManagement";
 import { generateRandomPassword } from "@utils/GeneratePassword";
-import { useUserManagementAttributeMetadataGET } from "@hooks/UserManagement.ts";
-import ScaleLoader from "react-spinners/ScaleLoader";
-import UserFormField from "@components/UserInputField.tsx";
-import { useAllGroupsGET } from "@hooks/GroupManagement.ts";
 
 interface Props {
     open: boolean;
@@ -33,17 +33,17 @@ const NewUserDialog = ({ onClose, open }: Props) => {
     useEffect(() => {
         if (open) {
             refetch();
-            groupsRefetch()
+            groupsRefetch();
         }
     }, [open, refetch, groupsRefetch]);
 
     const {
+        control,
         formState: { errors, isDirty },
         handleSubmit,
         register,
         reset,
         setValue,
-        control,
     } = useForm<CreateUserRequest>({
         defaultValues: {
             password: "",
@@ -97,12 +97,7 @@ const NewUserDialog = ({ onClose, open }: Props) => {
         setValue("password", newPassword, { shouldDirty: true });
     };
 
-    const basicFields = [
-        "username",
-        "mail",
-        "password",
-        "groups",
-    ];
+    const basicFields = ["username", "mail", "password", "groups"];
 
     const standardOptionalFields = [
         "display_name",
@@ -138,7 +133,7 @@ const NewUserDialog = ({ onClose, open }: Props) => {
     ];
 
     const categorizeFields = () => {
-        if (!metadata) return { basic: [], required: [], optional: [], extra: [] };
+        if (!metadata) return { basic: [], extra: [], optional: [], required: [] };
 
         const allSupportedFields = Object.keys(metadata.supported_attributes);
 
@@ -147,7 +142,7 @@ const NewUserDialog = ({ onClose, open }: Props) => {
         const optional: string[] = [];
         const extra: string[] = [];
 
-        allSupportedFields.forEach(fieldName => {
+        allSupportedFields.forEach((fieldName) => {
             if (excludedFields.includes(fieldName)) return;
 
             const isRequiredField = metadata.required_attributes.includes(fieldName);
@@ -173,32 +168,26 @@ const NewUserDialog = ({ onClose, open }: Props) => {
 
         optional.sort((a, b) => standardOptionalFields.indexOf(a) - standardOptionalFields.indexOf(b));
 
-        return { basic, required, optional, extra };
+        return { basic, extra, optional, required };
     };
 
     const buildFieldConfig = (fieldName: string) => {
         if (!metadata) return null;
 
         return {
-            name: fieldName as Path<CreateUserRequest>,
-            meta: metadata.supported_attributes[fieldName],
-            label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
             description: translate(`user_management.attributes.${fieldName}.description`, { defaultValue: "" }),
+            label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
+            meta: metadata.supported_attributes[fieldName],
+            name: fieldName as Path<CreateUserRequest>,
             required: metadata.required_attributes.includes(fieldName),
         };
     };
 
-    const { basic = [], required = [], optional = [], extra = [] } = categorizeFields();
+    const { basic = [], extra = [], optional = [], required = [] } = categorizeFields();
 
-    const shownByDefaultFields = [
-        ...basic.map(buildFieldConfig),
-        ...required.map(buildFieldConfig),
-    ].filter(Boolean);
+    const shownByDefaultFields = [...basic.map(buildFieldConfig), ...required.map(buildFieldConfig)].filter(Boolean);
 
-    const additionalFields = [
-        ...optional.map(buildFieldConfig),
-        ...extra.map(buildFieldConfig),
-    ].filter(Boolean);
+    const additionalFields = [...optional.map(buildFieldConfig), ...extra.map(buildFieldConfig)].filter(Boolean);
 
     const [showAdditional, setShowAdditional] = useState(false);
 
@@ -207,12 +196,12 @@ const NewUserDialog = ({ onClose, open }: Props) => {
             <DialogTitle>{translate("New {{item}}", { item: translate("User") })}</DialogTitle>
 
             <DialogContent>
-                {loading || groupsLoading && <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />}
+                {loading || (groupsLoading && <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />)}
 
                 {error && <div>Error loading users: {error.message}</div>}
                 {groupsError && <div>Error loading groups: {groupsError.message}</div>}
 
-                {!loading && !groupsLoading  && !error && !groupsError && groups && metadata && (
+                {!loading && !groupsLoading && !error && !groupsError && groups && metadata && (
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <FormControl variant="standard">
                             <Grid container spacing={2}>
@@ -225,7 +214,9 @@ const NewUserDialog = ({ onClose, open }: Props) => {
                                             errors={errors}
                                             setValue={setValue}
                                             options={groups}
-                                            onGeneratePassword={field!.name === "password" ? generatePassword : undefined}
+                                            onGeneratePassword={
+                                                field!.name === "password" ? generatePassword : undefined
+                                            }
                                         />
                                     </Grid>
                                 ))}
@@ -240,24 +231,26 @@ const NewUserDialog = ({ onClose, open }: Props) => {
                                         >
                                             {showAdditional
                                                 ? translate("Hide Additional Fields")
-                                                : translate("Show Additional Fields")
-                                            }
+                                                : translate("Show Additional Fields")}
                                         </Button>
                                     </Grid>
                                 )}
 
-                                {showAdditional && additionalFields.map((field) => (
-                                    <Grid key={field!.name} size={12} sx={{ pt: 1.5 }}>
-                                        <UserFormField
-                                            field={field!}
-                                            register={register}
-                                            control={control}
-                                            errors={errors}
-                                            setValue={setValue}
-                                            onGeneratePassword={field!.name === "password" ? generatePassword : undefined}
-                                        />
-                                    </Grid>
-                                ))}
+                                {showAdditional &&
+                                    additionalFields.map((field) => (
+                                        <Grid key={field!.name} size={12} sx={{ pt: 1.5 }}>
+                                            <UserFormField
+                                                field={field!}
+                                                register={register}
+                                                control={control}
+                                                errors={errors}
+                                                setValue={setValue}
+                                                onGeneratePassword={
+                                                    field!.name === "password" ? generatePassword : undefined
+                                                }
+                                            />
+                                        </Grid>
+                                    ))}
 
                                 <Grid size={12} sx={{ pt: 3 }}>
                                     <Button

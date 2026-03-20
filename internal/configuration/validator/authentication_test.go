@@ -1413,6 +1413,7 @@ func TestLDAPUserManagementRequiredAttributesValidation(t *testing.T) {
 	}
 }
 
+//nolint:unparam
 func mustParseAddress(uri string) *schema.AddressLDAP {
 	addr, err := schema.NewAddress(uri)
 	if err != nil {

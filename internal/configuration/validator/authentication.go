@@ -391,7 +391,7 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 }
 
 func validateLDAPAuthenticationBackendUserManagement(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	validateLDAPAuthenticationBackendUserManagementObjectClasses(config, validator)
+	validateLDAPAuthenticationBackendUserManagementObjectClasses(config)
 	validateLDAPAuthenticationBackendUserManagementRequiredAttributes(config, validator)
 	validateLDAPAuthenticationBackendUserManagementRDNTemplate(config, validator)
 	validateLDAPAuthenticationBackendUserManagementRDNAttribute(config, validator)
@@ -596,11 +596,13 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 	}
 }
 
-func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema.AuthenticationBackend) {
 	if len(config.LDAP.UserManagement.UserObjectClasses) == 0 {
 		switch config.LDAP.Implementation {
 		case schema.LDAPImplementationRFC2307bis:
 			config.LDAP.UserManagement.UserObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.UserObjectClasses
+		default:
+			panic("not implemented")
 		}
 	}
 
@@ -608,6 +610,8 @@ func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema
 		switch config.LDAP.Implementation {
 		case schema.LDAPImplementationRFC2307bis:
 			config.LDAP.UserManagement.GroupObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.GroupObjectClasses
+		default:
+			panic("not implemented")
 		}
 	}
 }
@@ -916,15 +920,15 @@ func validateLDAPAuthenticationBackendUserManagementRDNTemplate(config *schema.A
 	fields := extractTemplateFields(config.LDAP.UserManagement.CreatedUsersRDNFormat)
 
 	// Get the base required attributes for the implementation.
-	baseRequiredAttributes := authentication.GetBaseRequiredAttributesForImplementation(config.LDAP.Implementation)
-	allRequiredAttributes := append(baseRequiredAttributes, config.LDAP.UserManagement.RequiredAttributes...)
+	requiredAttributes := authentication.GetBaseRequiredAttributesForImplementation(config.LDAP.Implementation)
+	requiredAttributes = append(requiredAttributes, config.LDAP.UserManagement.RequiredAttributes...)
 
 	for _, field := range fields {
 		if !utils.IsStringInSlice(field, supportedFields) {
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserManagementRDNTemplateFieldUnsupported, field))
 		}
 
-		if !utils.IsStringInSlice(field, allRequiredAttributes) {
+		if !utils.IsStringInSlice(field, requiredAttributes) {
 			validator.Push(fmt.Errorf("authentication: ldap: user_management: created_users_rdn_format: field '%s' must be in required_attributes when used in RDN template", field))
 		}
 	}

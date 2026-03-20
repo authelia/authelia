@@ -82,9 +82,10 @@ authentication_backend:
     password: 'password'
 
     user_management:
+      created_groups_dn: ""
       created_users_dn: ""
-      created_users_rdn_attribute: "cn"
-      created_users_rdn_format: "[[ .given_name ]] [[ .family_name ]]"
+      created_users_rdn_attribute: "uid"
+      created_users_rdn_format: "[[ .username ]]"
       user_object_classes:
         - "top"
         - "person"

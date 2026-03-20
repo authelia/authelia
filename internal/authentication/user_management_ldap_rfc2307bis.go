@@ -750,6 +750,17 @@ func (r *RFC2307bisUserManagement) GetGroups() ([]*ldap.Entry, error) {
 	return searchResult.Entries, nil
 }
 
+func (p *LDAPUserProvider) BuildGroupDN(groupName string) string {
+	baseDN := p.groupsBaseDN
+	if p.config.UserManagement.CreatedGroupsDN != "" {
+		baseDN = p.config.UserManagement.CreatedGroupsDN + "," + p.groupsBaseDN
+	}
+
+	rdn := fmt.Sprintf("%s=%s", p.config.Attributes.GroupName, ldap.EscapeFilter(groupName))
+
+	return fmt.Sprintf("%s,%s", rdn, baseDN)
+}
+
 // AddGroup creates a new group in LDAP.
 func (r *RFC2307bisUserManagement) AddGroup(groupName string) error {
 	var (
@@ -766,7 +777,7 @@ func (r *RFC2307bisUserManagement) AddGroup(groupName string) error {
 		}
 	}()
 
-	groupDN := fmt.Sprintf("%s=%s,%s", r.provider.config.Attributes.GroupName, ldap.EscapeFilter(groupName), r.provider.groupsBaseDN)
+	groupDN := r.provider.BuildGroupDN(groupName)
 
 	// Check if group already exists.
 	exists, err := r.groupExists(client, groupName)

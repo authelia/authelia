@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
-import { Button, Stack } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { DataGrid, GridActionsCellItem, GridColDef, GridRowParams, GridRowsProp } from "@mui/x-data-grid";
 import { useTranslation } from "react-i18next";
 
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useAllGroupsGET } from "@hooks/GroupManagement";
+import { useNotifications } from "@hooks/NotificationsContext";
 import NewGroupDialog from "@views/Settings/UserManagement/NewGroupDialog";
 import VerifyDeleteGroupDialog from "@views/Settings/UserManagement/VerifyDeleteGroupDialog";
 
@@ -34,13 +34,10 @@ const GroupManagementView = () => {
         fetchGroups();
     }, [handleResetState, fetchGroups]);
 
-    const handleOpenVerifyDeleteGroupDialog = useCallback(
-        (groupName: string) => {
-            setGroupToDelete(groupName);
-            setIsVerifyDeleteGroupDialogOpen(true);
-        },
-        [],
-    );
+    const handleOpenVerifyDeleteGroupDialog = useCallback((groupName: string) => {
+        setGroupToDelete(groupName);
+        setIsVerifyDeleteGroupDialogOpen(true);
+    }, []);
 
     const handleCloseVerifyDeleteGroupDialog = useCallback(() => {
         setIsVerifyDeleteGroupDialogOpen(false);
@@ -97,7 +94,18 @@ const GroupManagementView = () => {
     ];
 
     return (
-        <>
+        <Box
+            sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "85vh",
+                minHeight: 0,
+                width: "100%",
+            }}
+        >
+            <Typography variant="h4" sx={{ mb: 2 }}>
+                {translate("Group Management")}
+            </Typography>
             <NewGroupDialog open={isNewGroupDialogOpen} onClose={handleCloseNewGroupDialog} />
             <VerifyDeleteGroupDialog
                 groupName={groupToDelete || ""}
@@ -109,22 +117,26 @@ const GroupManagementView = () => {
                     {translate("Add a {{item}}", { item: "group" })}
                 </Button>
             </Stack>
-            <div style={{ height: 400, width: "100%" }}>
+            <Box style={{ flex: 1, minHeight: 0, minWidth: 0, width: "100%" }}>
                 <DataGrid
                     rows={rows}
                     columns={columns}
                     checkboxSelection={false}
+                    sx={{
+                        height: "100%",
+                        width: "100%",
+                    }}
                     initialState={{
+                        pagination: {
+                            paginationModel: { page: 0, pageSize: 25 },
+                        },
                         sorting: {
                             sortModel: [{ field: "name", sort: "asc" }],
                         },
-                        pagination: {
-                            paginationModel: { pageSize: 25, page: 0 },
-                        },
                     }}
                 />
-            </div>
-        </>
+            </Box>
+        </Box>
     );
 };
 

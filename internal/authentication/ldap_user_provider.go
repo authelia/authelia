@@ -127,7 +127,7 @@ func NewLDAPUserProviderWithFactory(config *schema.AuthenticationBackendLDAP, di
 func (p *LDAPUserProvider) BuildUserDN(userData *UserDetailsExtended) (string, error) {
 	baseDN := p.usersBaseDN
 	if p.config.UserManagement.CreatedUsersDN != "" {
-		baseDN = p.config.UserManagement.CreatedUsersDN + "," + p.config.BaseDN
+		baseDN = p.config.UserManagement.CreatedUsersDN + "," + p.usersBaseDN
 	}
 
 	var (

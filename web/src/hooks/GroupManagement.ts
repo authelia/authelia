@@ -1,9 +1,5 @@
 import { useRemoteCall } from "@hooks/RemoteCall";
-import {
-    deleteGroup,
-    getAllGroups,
-    postNewGroup,
-} from "@services/GroupManagement";
+import { deleteGroup, getAllGroups, postNewGroup } from "@services/GroupManagement";
 
 export function useAllGroupsGET() {
     return useRemoteCall(getAllGroups);

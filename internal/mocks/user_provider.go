@@ -212,6 +212,20 @@ func (mr *MockUserProviderMockRecorder) GetUser(username any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserProvider)(nil).GetUser), username)
 }
 
+// IsExtraAttribute mocks base method.
+func (m *MockUserProvider) IsExtraAttribute(fieldName string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsExtraAttribute", fieldName)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsExtraAttribute indicates an expected call of IsExtraAttribute.
+func (mr *MockUserProviderMockRecorder) IsExtraAttribute(fieldName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsExtraAttribute", reflect.TypeOf((*MockUserProvider)(nil).IsExtraAttribute), fieldName)
+}
+
 // ListGroups mocks base method.
 func (m *MockUserProvider) ListGroups() ([]string, error) {
 	m.ctrl.T.Helper()
@@ -268,20 +282,6 @@ func (m *MockUserProvider) UpdatePassword(username, newPassword string) error {
 func (mr *MockUserProviderMockRecorder) UpdatePassword(username, newPassword any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserProvider)(nil).UpdatePassword), username, newPassword)
-}
-
-// UpdateUser mocks base method.
-func (m *MockUserProvider) UpdateUser(username string, userData *authentication.UserDetailsExtended) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser", username, userData)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateUser indicates an expected call of UpdateUser.
-func (mr *MockUserProviderMockRecorder) UpdateUser(username, userData any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserProvider)(nil).UpdateUser), username, userData)
 }
 
 // UpdateUserWithMask mocks base method.

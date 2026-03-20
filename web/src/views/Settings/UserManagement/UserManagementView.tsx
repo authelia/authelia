@@ -2,17 +2,17 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import EditIcon from "@mui/icons-material/Edit";
-import { Button, Stack } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { DataGrid, GridActionsCellItem, GridColDef, GridRowParams, GridRowsProp } from "@mui/x-data-grid";
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useAllUserInfoGET } from "@hooks/UserManagement";
+import { UserDetailsExtended } from "@models/UserManagement.ts";
 import { Method2FA, to2FAString, toSecondFactorMethod } from "@services/UserInfo";
 import EditUserDialog from "@views/Settings/UserManagement/EditUserDialog";
 import NewUserDialog from "@views/Settings/UserManagement/NewUserDialog.tsx";
 import VerifyDeleteUserDialog from "@views/Settings/UserManagement/VerifyDeleteUserDialog.tsx";
-import { UserDetailsExtended } from "@models/UserManagement.ts";
 
 const UserManagementView = () => {
     const { t: translate } = useTranslation("settings");
@@ -117,9 +117,7 @@ const UserManagementView = () => {
                     ? new Date(user.last_password_change).toLocaleString()
                     : "-",
                 method:
-                    methodEnum && (user.has_duo || user.has_totp || user.has_webauthn)
-                        ? to2FAString(methodEnum)
-                        : "-",
+                    methodEnum && (user.has_duo || user.has_totp || user.has_webauthn) ? to2FAString(methodEnum) : "-",
                 user_created_at: user.user_created_at ? new Date(user.user_created_at).toLocaleString() : "-",
                 username: user.username,
             };
@@ -166,7 +164,19 @@ const UserManagementView = () => {
     ];
 
     return (
-        <>
+        <Box
+            sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "85vh",
+                minHeight: 0,
+                width: "100%",
+            }}
+        >
+            <Typography variant="h4" sx={{ mb: 2 }}>
+                {translate("User Management")}
+            </Typography>
+
             <EditUserDialog
                 key={selectedUser?.username || "new"}
                 user={selectedUser}
@@ -184,13 +194,17 @@ const UserManagementView = () => {
                     {translate("Add a {{item}}", { item: "user" })}
                 </Button>
             </Stack>
-            <div style={{ height: 400, width: "100%" }}>
+            <Box style={{ flex: 1, minHeight: 0, minWidth: 0, width: "100%" }}>
                 <DataGrid
                     rows={rows}
                     columns={columns}
                     editMode={"row"}
                     onRowDoubleClick={handleRowClick}
                     checkboxSelection={false}
+                    sx={{
+                        height: "100%",
+                        width: "100%",
+                    }}
                     initialState={{
                         columns: {
                             columnVisibilityModel: {
@@ -201,16 +215,16 @@ const UserManagementView = () => {
                                 password_change_required: false,
                             },
                         },
+                        pagination: {
+                            paginationModel: { page: 0, pageSize: 25 },
+                        },
                         sorting: {
                             sortModel: [{ field: "username", sort: "asc" }],
                         },
-                        pagination: {
-                            paginationModel: { pageSize: 25, page: 0 },
-                        },
                     }}
                 />
-            </div>
-        </>
+            </Box>
+        </Box>
     );
 };
 

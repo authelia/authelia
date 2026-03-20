@@ -7,10 +7,11 @@ import {
     FormHelperText,
     TextField as MuiTextField,
 } from "@mui/material";
-import { useTranslation } from "react-i18next";
-import { AttributeMetadata } from "@services/UserManagement";
 import { Control, Controller, FieldErrors, Path, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+
 import { CreateUserRequest, UserDetailsExtended } from "@root/models/UserManagement";
+import { AttributeMetadata } from "@services/UserManagement";
 
 interface UserFormFieldProps<T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest> {
     field: {
@@ -30,12 +31,12 @@ interface UserFormFieldProps<T extends CreateUserRequest | UserDetailsExtended =
 }
 
 const UserFormField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
-    field,
-    register,
     control,
     errors,
+    field,
+    onGeneratePassword,
     options,
-    onGeneratePassword
+    register,
 }: UserFormFieldProps<T>) => {
     const { t: translate } = useTranslation("settings");
     const error = errors[field.name as keyof FieldErrors<T>];
@@ -72,15 +73,7 @@ const UserFormField = <T extends CreateUserRequest | UserDetailsExtended = Creat
             );
 
         case "groups":
-            return (
-                <GroupsField
-                    field={field}
-                    control={control}
-                    error={error}
-                    options={options}
-                    register={register}
-                />
-            );
+            return <GroupsField field={field} control={control} error={error} options={options} register={register} />;
 
         case "mail":
             if (field.meta.multiple) {
@@ -95,7 +88,6 @@ const UserFormField = <T extends CreateUserRequest | UserDetailsExtended = Creat
             return renderByType(field, register, control, error);
     }
 };
-
 
 const renderByType = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>(
     field: UserFormFieldProps<T>["field"],
@@ -121,7 +113,7 @@ const renderByType = <T extends CreateUserRequest | UserDetailsExtended = Create
             return <DateField field={field} register={register} control={control} error={error} />;
 
         case "checkbox":
-            return <CheckboxField field={field} register={register} control={control} error={error} />
+            return <CheckboxField field={field} register={register} control={control} error={error} />;
 
         case "groups":
             return <GroupsField field={field} control={control} error={error} options={options} register={register} />;
@@ -133,7 +125,6 @@ const renderByType = <T extends CreateUserRequest | UserDetailsExtended = Create
     }
 };
 
-
 interface FieldComponentProps<T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest> {
     field: UserFormFieldProps<T>["field"];
     register: any;
@@ -142,9 +133,9 @@ interface FieldComponentProps<T extends CreateUserRequest | UserDetailsExtended 
 }
 
 const TextField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+    error,
     field,
     register,
-    error
 }: FieldComponentProps<T>) => (
     <MuiTextField
         fullWidth
@@ -160,16 +151,12 @@ const TextField = <T extends CreateUserRequest | UserDetailsExtended = CreateUse
     />
 );
 
-interface FieldComponentPropsWithOptions<T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest> extends FieldComponentProps<T> {
-    options?: string[] | { label: string; value: string }[];
-}
-
 const GroupsField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
-                                                                                                field,
-                                                                                                control,
-                                                                                                error,
-                                                                                                options = []
-                                                                                            }: FieldComponentProps<T> & { options?: string[] }) => (
+    control,
+    error,
+    field,
+    options = [],
+}: FieldComponentProps<T> & { options?: string[] }) => (
     <FormControl fullWidth error={!!error} required={field.required}>
         <Controller
             name={field.name}
@@ -202,12 +189,12 @@ const GroupsField = <T extends CreateUserRequest | UserDetailsExtended = CreateU
 );
 
 const CheckboxField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
-                                                                                                  field,
-                                                                                                  control,
-                                                                                                  error
-                                                                                              }: FieldComponentProps<T>) => (
+    control,
+    error,
+    field,
+}: FieldComponentProps<T>) => (
     <FormControl error={!!error} required={field.required}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ alignItems: "center", display: "flex" }}>
             <Controller
                 name={field.name}
                 control={control}
@@ -215,15 +202,10 @@ const CheckboxField = <T extends CreateUserRequest | UserDetailsExtended = Creat
                     required: field.required ? `${field.label} is required` : false,
                 }}
                 render={({ field: { onChange, value, ...rest } }) => (
-                    <Checkbox
-                        color="info"
-                        checked={!!value}
-                        onChange={(e) => onChange(e.target.checked)}
-                        {...rest}
-                    />
+                    <Checkbox color="info" checked={!!value} onChange={(e) => onChange(e.target.checked)} {...rest} />
                 )}
             />
-            <Box component="label" sx={{ cursor: 'pointer' }}>
+            <Box component="label" sx={{ cursor: "pointer" }}>
                 {field.label}
             </Box>
         </Box>
@@ -234,9 +216,9 @@ const CheckboxField = <T extends CreateUserRequest | UserDetailsExtended = Creat
 );
 
 const EmailField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+    error,
     field,
     register,
-    error
 }: FieldComponentProps<T>) => (
     <MuiTextField
         fullWidth
@@ -247,19 +229,19 @@ const EmailField = <T extends CreateUserRequest | UserDetailsExtended = CreateUs
         error={!!error}
         required={field.required}
         {...register(field.name, {
-            required: field.required ? `${field.label} is required` : false,
             pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                 message: "Invalid email address",
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
             },
+            required: field.required ? `${field.label} is required` : false,
         })}
     />
 );
 
 const PhoneField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+    error,
     field,
     register,
-    error
 }: FieldComponentProps<T>) => (
     <MuiTextField
         fullWidth
@@ -270,19 +252,19 @@ const PhoneField = <T extends CreateUserRequest | UserDetailsExtended = CreateUs
         error={!!error}
         required={field.required}
         {...register(field.name, {
-            required: field.required ? `${field.label} is required` : false,
             pattern: {
-                value: /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/,
                 message: "Invalid phone number",
+                value: /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/,
             },
+            required: field.required ? `${field.label} is required` : false,
         })}
     />
 );
 
 const UrlField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+    error,
     field,
     register,
-    error
 }: FieldComponentProps<T>) => (
     <MuiTextField
         fullWidth
@@ -308,10 +290,9 @@ const UrlField = <T extends CreateUserRequest | UserDetailsExtended = CreateUser
 );
 
 const DateField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+    error,
     field,
     register,
-    control,
-    error
 }: FieldComponentProps<T>) => {
     return (
         <MuiTextField
@@ -325,7 +306,7 @@ const DateField = <T extends CreateUserRequest | UserDetailsExtended = CreateUse
             slotProps={{
                 inputLabel: {
                     shrink: true,
-                }
+                },
             }}
             {...register(field.name, {
                 required: field.required ? `${field.label} is required` : false,
@@ -335,10 +316,9 @@ const DateField = <T extends CreateUserRequest | UserDetailsExtended = CreateUse
 };
 
 const MultiEmailField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+    error,
     field,
     register,
-    control,
-    error
 }: FieldComponentProps<T>) => {
     //TODO: implement actual component
     return (
@@ -355,9 +335,9 @@ const MultiEmailField = <T extends CreateUserRequest | UserDetailsExtended = Cre
                 required: field.required ? `${field.label} is required` : false,
                 validate: (value: string) => {
                     if (!value) return true;
-                    const emails = value.split(",").map(e => e.trim());
+                    const emails = value.split(",").map((e) => e.trim());
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    const allValid = emails.every(email => emailRegex.test(email));
+                    const allValid = emails.every((email) => emailRegex.test(email));
                     return allValid || "One or more invalid email addresses";
                 },
             })}

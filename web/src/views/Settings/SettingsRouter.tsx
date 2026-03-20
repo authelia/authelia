@@ -16,8 +16,8 @@ import { AuthenticationLevel } from "@services/State";
 import SecurityView from "@views/Settings/Security/SecurityView";
 import SettingsView from "@views/Settings/SettingsView";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
-import UserManagementView from "@views/Settings/UserManagement/UserManagementView";
 import GroupManagementView from "@views/Settings/UserManagement/GroupManagementView.tsx";
+import UserManagementView from "@views/Settings/UserManagement/UserManagementView";
 
 const SettingsRouter = function () {
     const navigate = useRouterNavigate();

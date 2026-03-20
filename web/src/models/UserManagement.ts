@@ -4,10 +4,10 @@ import { AttributeMetadata, UserAttributeMetadataBody } from "@services/UserMana
 export interface UserDetailsExtended {
     username: string;
     password?: string;
+    groups?: string[];
 
     display_name?: string;
     mail?: string[];
-    groups?: string[];
 
     given_name?: string;
     family_name?: string;
@@ -44,7 +44,6 @@ export interface UserDetailsExtended {
     has_duo?: boolean;
 }
 
-
 export interface CreateUserRequest extends Omit<
     UserDetailsExtended,
     "has_duo" | "has_totp" | "has_webauthn" | "last_logged_in" | "last_password_change" | "method" | "user_created_at"
@@ -53,7 +52,7 @@ export interface CreateUserRequest extends Omit<
     password: string;
 }
 
-export function validateAttributeValue(value: any, metadata: AttributeMetadata, fieldName: string): null | string {
+export function validateAttributeValue(value: any, metadata: AttributeMetadata): null | string {
     if (!value) return null;
 
     if (metadata.type === "email") {
