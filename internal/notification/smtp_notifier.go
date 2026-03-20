@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net"
 	"net/mail"
 	"os"
 	"strings"
@@ -66,6 +67,11 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		gomail.WithHELO(config.Identifier),
 		gomail.WithoutNoop(),
 		gomail.WithPort(int(config.Address.Port())),
+		gomail.WithDialContextFunc(func(ctx context.Context, network, addr string) (net.Conn, error) {
+			d := net.Dialer{Timeout: config.Timeout}
+
+			return d.DialContext(ctx, network, addr)
+		}),
 	)
 
 	var domain string
