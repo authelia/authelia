@@ -16,9 +16,13 @@ import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
+import {usePasswordVisibility} from "@hooks/PasswordVisibility.tsx";
 
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
+
+    const { showPassword, passwordSlotProps } = usePasswordVisibility();
+
 
     const [formDisabled, setFormDisabled] = useState(true);
     const [password1, setPassword1] = useState("");
@@ -27,7 +31,6 @@ const ResetPasswordStep2 = function () {
     const [errorPassword2, setErrorPassword2] = useState(false);
     const { createErrorNotification, createSuccessNotification } = useNotifications();
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false);
 
     const [pPolicy, setPPolicy] = useState<PasswordPolicyConfiguration>({
         max_length: 0,
@@ -148,39 +151,7 @@ const ResetPasswordStep2 = function () {
                             error={errorPassword1}
                             sx={{ width: "100%" }}
                             autoComplete="new-password"
-                            slotProps={{
-                                input: {
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                aria-label="toggle password visibility"
-                                                edge="end"
-                                                size="large"
-                                                onMouseDown={() => setShowPassword(true)}
-                                                onMouseUp={() => setShowPassword(false)}
-                                                onMouseLeave={() => setShowPassword(false)}
-                                                onTouchStart={() => setShowPassword(true)}
-                                                onTouchEnd={() => setShowPassword(false)}
-                                                onTouchCancel={() => setShowPassword(false)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(true);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                onKeyUp={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(false);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                            >
-                                                {showPassword ? <Visibility /> : <VisibilityOff />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                },
-                            }}
+                            slotProps={passwordSlotProps}
                         />
                         {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
                             <PasswordMeter value={password1} policy={pPolicy} />
