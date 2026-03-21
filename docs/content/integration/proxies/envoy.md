@@ -29,10 +29,6 @@ It's __*strongly recommended*__ that users setting up *Authelia* for the first t
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
-It's also important users check the
-[Validating Forwarded Authentication](../../reference/guides/validating-forwarded-authentication.md) reference guide
-when using this integration.
-
 ## Trusted Proxies and Integration Security
 
 {{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}

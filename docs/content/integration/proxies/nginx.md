@@ -427,7 +427,7 @@ proxy_buffers 64 256k;
 
 ## Trusted Proxies Configuration
 ## Please read the following documentation before configuring this:
-##     https://www.authelia.com/integration/proxies/nginx/#trusted-proxies
+##     https://www.authelia.com/integration/proxies/nginx/#trusted-proxies-and-integration-security
 # set_real_ip_from 10.0.0.0/8;
 # set_real_ip_from 172.16.0.0/12;
 # set_real_ip_from 192.168.0.0/16;

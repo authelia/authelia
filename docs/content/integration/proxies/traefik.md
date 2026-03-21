@@ -235,6 +235,7 @@ services:
       ## configured in the Session Cookies section of the Authelia configuration.
       # traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
       traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader: 'true'
+      traefik.http.middlewares.authelia.forwardAuth.maxResponseBodySize: '8192'
       traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Email,Remote-Name'
   nextcloud:
     container_name: 'nextcloud'
@@ -430,6 +431,7 @@ http:
         ## configured in the Session Cookies section of the Authelia configuration.
         # address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
         trustForwardHeader: true
+        .maxResponseBodySize: 8192
         authResponseHeaders:
           - 'Remote-User'
           - 'Remote-Groups'
@@ -443,6 +445,7 @@ http:
       forwardAuth:
         address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/verify?auth=basic'
         trustForwardHeader: true
+        maxResponseBodySize: 8192
         authResponseHeaders:
           - 'Remote-User'
           - 'Remote-Groups'
@@ -564,6 +567,7 @@ traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" n
 ## configured in the Session Cookies section of the Authelia configuration.
 # traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
 traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader: 'true'
+traefik.http.middlewares.authelia.forwardAuth.maxResponseBodySize: '8192'
 traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Email,Remote-Name'
 ```
 

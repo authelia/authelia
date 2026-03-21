@@ -158,7 +158,7 @@ support to ensure the basic example covers your use case in a secure way.
 ```caddyfile
 ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies-and-integration-security
 # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 
 # Authelia Portal.
@@ -189,7 +189,7 @@ nextcloud.{{< sitevar name="domain" nojs="example.com" >}} {
 ```caddyfile
 ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies-and-integration-security
 # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 
 {{</* sitevar name="domain" nojs="example.com" */>}} {
@@ -247,7 +247,7 @@ preferred in *most* situations. If you are unsure of what you're doing please do
 ```caddyfile
 ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies-and-integration-security
 # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 
 # Authelia Portal.
