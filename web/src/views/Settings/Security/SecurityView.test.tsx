@@ -21,7 +21,7 @@ vi.mock("@hooks/Configuration", () => ({
     useConfiguration: () => [{ password_change_disabled: false }, vi.fn(), false, null],
 }));
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: vi.fn(),
         createSuccessNotification: vi.fn(),

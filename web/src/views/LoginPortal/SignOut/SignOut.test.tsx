@@ -26,7 +26,7 @@ vi.mock("@hooks/Mounted", () => ({
     useIsMountedRef: () => ({ current: true }),
 }));
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: mockCreateError,
     }),

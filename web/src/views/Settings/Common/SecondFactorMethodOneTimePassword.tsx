@@ -2,7 +2,7 @@ import { Fragment, useCallback, useEffect, useReducer, useRef } from "react";
 
 import { useTranslation } from "react-i18next";
 
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
 import LoadingPage from "@views/LoadingPage/LoadingPage";

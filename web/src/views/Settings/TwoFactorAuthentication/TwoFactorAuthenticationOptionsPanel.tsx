@@ -5,7 +5,7 @@ import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";

@@ -24,7 +24,7 @@ vi.mock("@hooks/Flow", () => ({
     useFlowPresent: () => false,
 }));
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: vi.fn(),
     }),

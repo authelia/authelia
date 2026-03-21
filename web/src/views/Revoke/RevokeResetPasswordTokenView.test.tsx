@@ -14,7 +14,7 @@ vi.mock("@constants/Routes", () => ({
     IndexRoute: "/",
 }));
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: mockCreateError,
         createSuccessNotification: mockCreateSuccess,

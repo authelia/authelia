@@ -3,7 +3,7 @@ import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { IndexRoute } from "@constants/Routes";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useToken } from "@hooks/Revoke";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { deleteResetPasswordToken } from "@services/ResetPassword";

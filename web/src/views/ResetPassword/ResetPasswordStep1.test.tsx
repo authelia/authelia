@@ -23,7 +23,7 @@ vi.mock("@constants/Routes", () => ({
 const mockCreateError = vi.fn();
 const mockCreateInfo = vi.fn();
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: mockCreateError,
         createInfoNotification: mockCreateInfo,

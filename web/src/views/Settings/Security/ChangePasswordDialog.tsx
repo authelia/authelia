@@ -15,8 +15,8 @@ import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import PasswordMeter from "@components/PasswordMeter";
+import { useNotifications } from "@contexts/NotificationsContext";
 import useCheckCapsLock from "@hooks/CapsLock";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { postPasswordChange } from "@services/ChangePassword";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
