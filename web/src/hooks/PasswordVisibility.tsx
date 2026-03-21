@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { IconButton, InputAdornment } from "@mui/material";
+
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { IconButton, InputAdornment } from "@mui/material";
 
 export const usePasswordVisibility = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -40,8 +41,8 @@ export const usePasswordVisibility = () => {
     });
 
     return {
-        showPassword,
-        setShowPassword,
         passwordSlotProps: getPasswordSlotProps(),
+        setShowPassword,
+        showPassword,
     };
 };

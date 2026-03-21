@@ -17,10 +17,10 @@ import { useTranslation } from "react-i18next";
 import PasswordMeter from "@components/PasswordMeter";
 import useCheckCapsLock from "@hooks/CapsLock";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility.tsx";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { postPasswordChange } from "@services/ChangePassword";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
-import { usePasswordVisibility } from "@hooks/PasswordVisibility.tsx";
 
 interface Props {
     username: string;
@@ -33,8 +33,8 @@ const ChangePasswordDialog = (props: Props) => {
     const { t: translate } = useTranslation(["settings", "portal"]);
 
     const { createErrorNotification, createSuccessNotification } = useNotifications();
-    const { showPassword: showOldPassword, passwordSlotProps: oldPasswordSlotProps } = usePasswordVisibility();
-    const { showPassword: showNewPassword, passwordSlotProps: newPasswordSlotProps } = usePasswordVisibility();
+    const { passwordSlotProps: oldPasswordSlotProps, showPassword: showOldPassword } = usePasswordVisibility();
+    const { passwordSlotProps: newPasswordSlotProps, showPassword: showNewPassword } = usePasswordVisibility();
 
     const [loading, setLoading] = useState(false);
     const [oldPassword, setOldPassword] = useState("");

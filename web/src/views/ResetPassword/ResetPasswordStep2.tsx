@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, FormControl, IconButton, InputAdornment } from "@mui/material";
+import { Button, FormControl } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
@@ -11,18 +10,17 @@ import PasswordMeter from "@components/PasswordMeter";
 import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility.tsx";
 import { useQueryParam } from "@hooks/QueryParam";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
-import {usePasswordVisibility} from "@hooks/PasswordVisibility.tsx";
 
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
 
-    const { showPassword, passwordSlotProps } = usePasswordVisibility();
-
+    const { passwordSlotProps, showPassword } = usePasswordVisibility();
 
     const [formDisabled, setFormDisabled] = useState(true);
     const [password1, setPassword1] = useState("");

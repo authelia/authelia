@@ -1,7 +1,5 @@
 import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
     Alert,
     AlertTitle,
@@ -10,8 +8,6 @@ import {
     CircularProgress,
     FormControl,
     FormControlLabel,
-    IconButton,
-    InputAdornment,
     Link,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -25,12 +21,12 @@ import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility.tsx";
 import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
-import { usePasswordVisibility } from "@hooks/PasswordVisibility.tsx";
 
 export interface Props {
     disabled: boolean;
@@ -54,7 +50,7 @@ const FirstFactorForm = function (props: Props) {
     const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
     const { createErrorNotification } = useNotifications();
-    const { showPassword, passwordSlotProps } = usePasswordVisibility();
+    const { passwordSlotProps, showPassword } = usePasswordVisibility();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
