@@ -255,7 +255,7 @@ const FirstFactorForm = function (props: Props) {
                             onChange={(v) => setUsername(v.target.value)}
                             onFocus={() => setUsernameError(false)}
                             autoCapitalize="none"
-                            autoComplete="username"
+                            autoComplete="username webauthn"
                             onKeyDown={handleUsernameKeyDown}
                         />
                     </Grid>
