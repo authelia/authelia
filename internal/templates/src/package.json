@@ -42,7 +42,7 @@
       "minimatch": "10.2.4",
       "nanoid": "5.1.7",
       "prismjs": "1.30.0",
-      "rollup": "4.59.0",
+      "rollup": "4.59.1",
       "socket.io-parser": "4.2.6",
       "vite": "8.0.1"
     },
