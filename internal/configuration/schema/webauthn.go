@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/go-webauthn/webauthn/metadata"
@@ -15,6 +16,8 @@ type WebAuthn struct {
 	EnablePasskey2FA     bool   `koanf:"experimental_enable_passkey_uv_two_factors" yaml:"experimental_enable_passkey_uv_two_factors" toml:"experimental_enable_passkey_uv_two_factors" json:"experimental_enable_passkey_uv_two_factors" jsonschema:"default=false,title=Experimental: Enable User Verified Passkey Second Factor" jsonschema_description:"This option is experimental and WILL be removed. When true this will consider a Passkey login where the WebAuthn user verification requirement is met as being a single event 2FA login."`
 	EnablePasskeyUpgrade bool   `koanf:"experimental_enable_passkey_upgrade" yaml:"experimental_enable_passkey_upgrade" toml:"experimental_enable_passkey_upgrade" json:"experimental_enable_passkey_upgrade" jsonschema:"default=false,title=Experimental: Enable User Verified Passkey Second Factor" jsonschema_description:"When true this will attempt to automatically upgrade a WebAuthn credential to a Passkey when the browser or authenticator does not report a newly registered WebAuthn credential to be a Passkey."`
 	DisplayName          string `koanf:"display_name" yaml:"display_name,omitempty" toml:"display_name,omitempty" json:"display_name,omitempty" jsonschema:"default=Authelia,title=Display Name" jsonschema_description:"The display name attribute for the WebAuthn relying party."`
+
+	RelatedOrigins map[string]WebAuthnRelatedOrigin `koanf:"related_origins" yaml:"related_origins" toml:"related_origins" json:"related_origins" jsonschema:"title=Related Origins" jsonschema_description:"WebAuthn Related Origins allow using credentials between different origins."`
 
 	ConveyancePreference protocol.ConveyancePreference `koanf:"attestation_conveyance_preference" yaml:"attestation_conveyance_preference,omitempty" toml:"attestation_conveyance_preference,omitempty" json:"attestation_conveyance_preference,omitempty" jsonschema:"default=indirect,enum=none,enum=indirect,enum=direct,title=Conveyance Preference" jsonschema_description:"The default conveyance preference for all WebAuthn credentials."`
 
@@ -49,6 +52,24 @@ type WebAuthnFiltering struct {
 	ProhibitBackupEligibility bool        `koanf:"prohibit_backup_eligibility" yaml:"prohibit_backup_eligibility" toml:"prohibit_backup_eligibility" json:"prohibit_backup_eligibility" jsonschema:"default=false,title=Prohibit Backup Eligibility" jsonschema_description:"Prohibits registering authenticators which claim backup eligibility i.e. exporting credentials off of the device."`
 	PermittedAAGUIDs          []uuid.UUID `koanf:"permitted_aaguids" yaml:"permitted_aaguids,omitempty" toml:"permitted_aaguids,omitempty" json:"permitted_aaguids,omitempty" jsonschema:"title=Permitted AAGUIDs" jsonschema_description:"List of allowed WebAuthn AAGUIDs. No other authenticator can be registered."`
 	ProhibitedAAGUIDs         []uuid.UUID `koanf:"prohibited_aaguids" yaml:"prohibited_aaguids,omitempty" toml:"prohibited_aaguids,omitempty" json:"prohibited_aaguids,omitempty" jsonschema:"title=Prohibited AAGUIDs" jsonschema_description:"List of prohibited WebAuthn AAGUIDs. Authenticators with these AAGUIDs cannot be registered."`
+}
+
+type WebAuthnRelatedOrigin struct {
+	Origins []*url.URL `koanf:"origins" yaml:"origins,omitempty" toml:"origins,omitempty" json:"origins,omitempty" jsonschema:"title=Origins" jsonschema_description:"The list of allowed origins for the WebAuthn relying party."`
+}
+
+func (w *WebAuthnRelatedOrigin) StringOrigins() []string {
+	origins := make([]string, len(w.Origins))
+
+	for i, origin := range w.Origins {
+		if origin == nil {
+			continue
+		}
+
+		origins[i] = origin.String()
+	}
+
+	return origins
 }
 
 // DefaultWebAuthnConfiguration describes the default values for the WebAuthn.
