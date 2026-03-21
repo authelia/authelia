@@ -28,7 +28,7 @@ bootstrapping *Authelia*.
 
 It's also important users check the
 [Validating Forwarded Authentication](../../reference/guides/validating-forwarded-authentication.md) reference guide
-when using this integration.
+when using these integrations.
 
 ## Support
 
