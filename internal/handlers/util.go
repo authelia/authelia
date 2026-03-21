@@ -329,15 +329,15 @@ func GenerateUserChangeLogWithMask(oldUser, newUser *authentication.UserDetailsE
 		}
 	}
 
-	if inMask("first_name") && oldUser.GivenName != newUser.GivenName {
-		changes["first_name"] = map[string]interface{}{
+	if inMask("given_name") && oldUser.GivenName != newUser.GivenName {
+		changes["given_name"] = map[string]interface{}{
 			"from": oldUser.GivenName,
 			"to":   newUser.GivenName,
 		}
 	}
 
-	if inMask("last_name") && oldUser.FamilyName != newUser.FamilyName {
-		changes["last_name"] = map[string]interface{}{
+	if inMask("family_name") && oldUser.FamilyName != newUser.FamilyName {
+		changes["family_name"] = map[string]interface{}{
 			"from": oldUser.FamilyName,
 			"to":   newUser.FamilyName,
 		}
@@ -378,8 +378,8 @@ func GenerateUserChangeLogWithMask(oldUser, newUser *authentication.UserDetailsE
 		}
 	}
 
-	if inMask("zone_info") && oldUser.ZoneInfo != newUser.ZoneInfo {
-		changes["zone_info"] = map[string]interface{}{
+	if inMask("zoneinfo") && oldUser.ZoneInfo != newUser.ZoneInfo {
+		changes["zoneinfo"] = map[string]interface{}{
 			"from": oldUser.ZoneInfo,
 			"to":   newUser.ZoneInfo,
 		}

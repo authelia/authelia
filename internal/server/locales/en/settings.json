@@ -233,7 +233,7 @@
 				"label": "Birthdate",
 				"description": "User's date of birth"
 			},
-			"zone_info": {
+			"zoneinfo": {
 				"label": "Time Zone",
 				"description": "User's time zone (e.g., America/New_York)"
 			},

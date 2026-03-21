@@ -215,7 +215,7 @@ func (p *LDAPUserProvider) BuildRDNFromTemplate(userData *UserDetailsExtended) (
 	}
 
 	if userData.ZoneInfo != "" {
-		data["zone_info"] = userData.ZoneInfo
+		data["zoneinfo"] = userData.ZoneInfo
 	}
 
 	if userData.PhoneNumber != "" {

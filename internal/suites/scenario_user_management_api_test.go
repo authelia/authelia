@@ -243,13 +243,13 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldReturnForbiddenFo
 	username := nonAdminUsername
 	updateData := map[string]interface{}{
 		"username":     username,
-		"first_name":   "Bob",
-		"last_name":    "Dylan",
+		"given_name":   "Bob",
+		"family_name":  "Dylan",
 		"display_name": "Updated Bob Dylan",
-		"emails":       []string{"updated@example.com"},
+		"mail":         []string{"updated@example.com"},
 	}
 
-	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=first_name,last_name,display_name,emails", username), updateData)
+	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=given_name,family_name,display_name,emails", username), updateData)
 
 	s.Assert().Equal(http.StatusForbidden, res.StatusCode)
 }
@@ -270,12 +270,12 @@ func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldCreateUserWithNoGroup
 	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", testUserUsername), nil)
 
 	newUser := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"test-user@example.com"},
-		"groups":     []string{},
-		"password":   "password",
+		"username":    testUserUsername,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"test-user@example.com"},
+		"groups":      []string{},
+		"password":    "password",
 	}
 
 	res, body := s.apiRequest("POST", "/api/admin/users", newUser)
@@ -293,12 +293,12 @@ func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldCreateUserWithMultipl
 	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", testUserUsername), nil)
 
 	newUser := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"test-user@example.com"},
-		"groups":     []string{"dev", "admins"},
-		"password":   "password",
+		"username":    testUserUsername,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"test-user@example.com"},
+		"groups":      []string{"dev", "admins"},
+		"password":    "password",
 	}
 
 	res, body := s.apiRequest("POST", "/api/admin/users", newUser)
@@ -316,12 +316,12 @@ func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldErrorWhenCreatingUser
 	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", testUserUsername), nil)
 
 	newUser := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"test-user@example.com"},
-		"groups":     []string{"dev", nonExistentGroupName},
-		"password":   "password",
+		"username":    testUserUsername,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"test-user@example.com"},
+		"groups":      []string{"dev", nonExistentGroupName},
+		"password":    "password",
 	}
 
 	res, _ := s.apiRequest("POST", "/api/admin/users", newUser)
@@ -336,16 +336,58 @@ func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldFailWithInvalidEmail(
 	s.login(adminUsername, adminPassword)
 
 	newUser := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"invalid.example.com"},
-		"groups":     []string{"dev"},
-		"password":   "password",
+		"username":    testUserUsername,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"invalid.example.com"},
+		"groups":      []string{"dev"},
+		"password":    "password",
 	}
 
 	res, _ := s.apiRequest("POST", "/api/admin/users", newUser)
 	s.Assert().Equal(http.StatusBadRequest, res.StatusCode)
+}
+
+func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldCreateUserWithExtraAttributes() {
+	s.login(adminUsername, adminPassword)
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", testUserUsername), nil)
+
+	updateData := map[string]interface{}{
+		"username":    testUserUsername,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"test@example.com"},
+		"groups":      []string{"dev"},
+		"password":    "password",
+		"extra": map[string]interface{}{
+			"employee_id":   "EMP12345",
+			"employee_type": "IT",
+			"test_flag":     "TRUE",
+			"tags":          []string{"tag1", "tag2"},
+		},
+	}
+
+	res, _ := s.apiRequest("POST", "/api/admin/users", updateData)
+	s.Assert().Equal(http.StatusCreated, res.StatusCode)
+
+	res, body := s.apiRequest("GET", fmt.Sprintf("/api/admin/users/%s", testUserUsername), nil)
+	s.Assert().Equal(http.StatusOK, res.StatusCode)
+
+	var response struct {
+		Status string                             `json:"status"`
+		Data   authentication.UserDetailsExtended `json:"data"`
+	}
+
+	err := json.Unmarshal(body, &response)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(response.Data.Extra)
+	s.Assert().Equal("EMP12345", response.Data.Extra["employee_id"])
+	s.Assert().Equal("IT", response.Data.Extra["employee_type"])
+	s.Assert().Equal(true, response.Data.Extra["test_flag"])
+	s.Assert().Equal("tag1", response.Data.Extra["tags"].([]interface{})[0])
+
+	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", testUserUsername), nil)
 }
 
 func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldFailWhenPasswordProvided() {
@@ -355,13 +397,13 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldFailWhenPasswordP
 	updateData := map[string]interface{}{
 		"password":     "password",
 		"username":     username,
-		"first_name":   "Bob",
-		"last_name":    "Dylan",
+		"given_name":   "Bob",
+		"family_name":  "Dylan",
 		"display_name": "Updated Bob Dylan",
-		"emails":       []string{"updated@example.com"},
+		"mail":         []string{"updated@example.com"},
 	}
 
-	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=first_name,last_name,display_name,emails,password", username), updateData)
+	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=given_name,family_name,display_name,mail,password", username), updateData)
 
 	s.Assert().Equal(http.StatusBadRequest, res.StatusCode)
 }
@@ -372,13 +414,13 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldFailWithInvalidEm
 	username := nonAdminUsername
 	updateData := map[string]interface{}{
 		"username":     username,
-		"first_name":   "Bob",
-		"last_name":    "Dylan",
+		"given_name":   "Bob",
+		"family_name":  "Dylan",
 		"display_name": "Updated Bob Dylan",
-		"emails":       []string{"invalid.example.com"},
+		"mail":         []string{"invalid.example.com"},
 	}
 
-	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=first_name,last_name,display_name,emails", username), updateData)
+	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=given_name,family_name,display_name,mail", username), updateData)
 
 	s.Assert().Equal(http.StatusBadRequest, res.StatusCode)
 }
@@ -408,12 +450,12 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldAddUserToExisting
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	newUser := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"test-user@example.com"},
-		"groups":     []string{"dev"},
-		"password":   "password",
+		"username":    testUserUsername,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"test-user@example.com"},
+		"groups":      []string{"dev"},
+		"password":    "password",
 	}
 
 	res, body := s.apiRequest("POST", "/api/admin/users", newUser)
@@ -453,12 +495,12 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldRemoveUserFromGro
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	newUser := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"test-user@example.com"},
-		"groups":     []string{"dev", "admins"},
-		"password":   testPassword,
+		"username":    testUserUsername,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"test-user@example.com"},
+		"groups":      []string{"dev", "admins"},
+		"password":    testPassword,
 	}
 
 	res, body := s.apiRequest("POST", "/api/admin/users", newUser)
@@ -498,12 +540,12 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldReplaceAllUserGro
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	newUser := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"test-user@example.com"},
-		"groups":     []string{"dev", "admins"},
-		"password":   testPassword,
+		"username":    testUserUsername,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"test-user@example.com"},
+		"groups":      []string{"dev", "admins"},
+		"password":    testPassword,
 	}
 
 	res, body := s.apiRequest("POST", "/api/admin/users", newUser)
@@ -552,12 +594,12 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldErrorWhenAddingNo
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	newUser := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"test-user@example.com"},
-		"groups":     []string{"dev", "admins"},
-		"password":   testPassword,
+		"username":    testUserUsername,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"test-user@example.com"},
+		"groups":      []string{"dev", "admins"},
+		"password":    testPassword,
 	}
 
 	res, body := s.apiRequest("POST", "/api/admin/users", newUser)
@@ -619,18 +661,17 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateDisplayName
 func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateGivenNameAndFamilyName() {
 	s.login(adminUsername, adminPassword)
 
-	username := nonAdminUsername
 	updateData := map[string]interface{}{
-		"first_name": "Robert",
-		"last_name":  "Smith",
+		"given_name":  "Robert",
+		"family_name": "Smith",
 	}
 
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=first_name,last_name", username), updateData)
+	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=given_name,family_name", nonAdminUsername), updateData)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode,
 		fmt.Sprintf("Failed to update user: %s", string(body)))
 
-	res, body = s.apiRequest("GET", fmt.Sprintf("/api/admin/users/%s", username), nil)
+	res, body = s.apiRequest("GET", fmt.Sprintf("/api/admin/users/%s", nonAdminUsername), nil)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	var response struct {
@@ -642,33 +683,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateGivenNameAn
 	s.Assert().NoError(err)
 	s.Assert().Equal("Robert", response.Data.GivenName)
 	s.Assert().Equal("Smith", response.Data.FamilyName)
-}
-
-func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateMultipleEmailAddresses() {
-	s.login(adminUsername, adminPassword)
-
-	username := nonAdminUsername
-	emails := []string{"bob.primary@example.com", "bob.secondary@example.com", "bob.work@example.com"}
-	updateData := map[string]interface{}{
-		"emails": emails,
-	}
-
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=emails", username), updateData)
-
-	s.Assert().Equal(http.StatusOK, res.StatusCode,
-		fmt.Sprintf("Failed to update user: %s", string(body)))
-
-	res, body = s.apiRequest("GET", fmt.Sprintf("/api/admin/users/%s", username), nil)
-	s.Assert().Equal(http.StatusOK, res.StatusCode)
-
-	var response struct {
-		Status string                             `json:"status"`
-		Data   authentication.UserDetailsExtended `json:"data"`
-	}
-
-	err := json.Unmarshal(body, &response)
-	s.Assert().NoError(err)
-	s.Assert().Equal(emails[0], response.Data.Emails[0])
 }
 
 func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdatePhoneNumber() {
@@ -703,7 +717,6 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateAddressFiel
 	username := nonAdminUsername
 	updateData := map[string]interface{}{
 		"address": map[string]interface{}{
-			"formatted":      "123 Main St, Springfield, IL 62701, USA",
 			"street_address": "123 Main St",
 			"locality":       "Springfield",
 			"region":         "IL",
@@ -712,7 +725,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateAddressFiel
 		},
 	}
 
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address", username), updateData)
+	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address.street_address,address.locality,address.region,address.postal_code,address.country", username), updateData)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode,
 		fmt.Sprintf("Failed to update user: %s", string(body)))
@@ -749,7 +762,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateSingleAddre
 			"country":        "USA",
 		},
 	}
-	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address", username), setupData)
+	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address.street_address,address.locality,address.region,address.postal_code,address.country", username), setupData)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	updateData := map[string]interface{}{
@@ -795,7 +808,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateMultipleAdd
 			"country":        "USA",
 		},
 	}
-	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address", username), setupData)
+	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=address.street_address,address.locality,address.region,address.postal_code,address.country", username), setupData)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	updateData := map[string]interface{}{
@@ -866,11 +879,11 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateLocaleAndZo
 
 	username := nonAdminUsername
 	updateData := map[string]interface{}{
-		"locale":    "en-US",
-		"zone_info": "America/New_York",
+		"locale":   "en-US",
+		"zoneinfo": "America/New_York",
 	}
 
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=locale,zone_info", username), updateData)
+	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=locale,zoneinfo", username), updateData)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode,
 		fmt.Sprintf("Failed to update user: %s", string(body)))
@@ -898,10 +911,12 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateExtraFields
 		"extra": map[string]interface{}{
 			"employee_id":   "EMP12345",
 			"employee_type": "IT",
+			"test_flag":     "TRUE",
+			"tags":          []string{"tag1", "tag2"},
 		},
 	}
 
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=extra", username), updateData)
+	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=extra.employee_id,extra.employee_type,extra.test_flag,extra.tags", username), updateData)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode,
 		fmt.Sprintf("Failed to update user: %s", string(body)))
@@ -919,6 +934,8 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateExtraFields
 	s.Assert().NotNil(response.Data.Extra)
 	s.Assert().Equal("EMP12345", response.Data.Extra["employee_id"])
 	s.Assert().Equal("IT", response.Data.Extra["employee_type"])
+	s.Assert().Equal(true, response.Data.Extra["test_flag"])
+	s.Assert().Equal("tag1", response.Data.Extra["tags"].([]interface{})[0])
 }
 
 func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldClearOptionalFields() {
@@ -1009,17 +1026,17 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldOnlyUpdateMaskedF
 
 	setupData := map[string]interface{}{
 		"display_name": "Bob Dylan",
-		"first_name":   "Bob",
-		"last_name":    "Dylan",
+		"given_name":   "Bob",
+		"family_name":  "Dylan",
 		"phone_number": "+1234567890",
 	}
-	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=display_name,first_name,last_name,phone_number", username), setupData)
+	res, _ := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=display_name,given_name,family_name,phone_number", username), setupData)
 	s.Assert().Equal(http.StatusOK, res.StatusCode)
 
 	updateData := map[string]interface{}{
 		"display_name": "Robert Dylan",
-		"first_name":   "Robert",
-		"last_name":    "Smith",
+		"given_name":   "Robert",
+		"family_name":  "Smith",
 		"phone_number": "+9999999999",
 	}
 
@@ -1252,11 +1269,11 @@ func (s *UserManagementAPIScenario) Test_DeleteGroupDELETE_ShouldRemoveGroupFrom
 		fmt.Sprintf("Failed to create group: %s", string(body)))
 
 	newUser := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "Test",
-		"last_name":  "User",
-		"emails":     []string{fmt.Sprintf("%s@example.com", testUserUsername)},
-		"password":   "password",
+		"username":    testUserUsername,
+		"given_name":  "Test",
+		"family_name": "User",
+		"mail":        []string{fmt.Sprintf("%s@example.com", testUserUsername)},
+		"password":    "password",
 	}
 
 	res, body = s.apiRequest("POST", "/api/admin/users", newUser)
@@ -1315,11 +1332,11 @@ func (s *UserManagementAPIScenario) Test_GetGroupsGET_ShouldShowGroupMemberCount
 		fmt.Sprintf("Failed to create group: %s", string(body)))
 
 	newUserPostBody := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "Test",
-		"last_name":  "User1",
-		"emails":     []string{fmt.Sprintf("%s@example.com", testUserUsername)},
-		"password":   "password",
+		"username":    testUserUsername,
+		"given_name":  "Test",
+		"family_name": "User1",
+		"mail":        []string{fmt.Sprintf("%s@example.com", testUserUsername)},
+		"password":    "password",
 	}
 
 	res, body = s.apiRequest("POST", "/api/admin/users", newUserPostBody)
@@ -1335,11 +1352,11 @@ func (s *UserManagementAPIScenario) Test_GetGroupsGET_ShouldShowGroupMemberCount
 		fmt.Sprintf("Failed to update user1 groups: %s", string(body)))
 
 	newUserPostBody2 := map[string]interface{}{
-		"username":   testUserUsername2,
-		"first_name": "Test",
-		"last_name":  "User2",
-		"emails":     []string{fmt.Sprintf("%s@example.com", testUserUsername2)},
-		"password":   "password",
+		"username":    testUserUsername2,
+		"given_name":  "Test",
+		"family_name": "User2",
+		"mail":        []string{fmt.Sprintf("%s@example.com", testUserUsername2)},
+		"password":    "password",
 	}
 
 	res, body = s.apiRequest("POST", "/api/admin/users", newUserPostBody2)

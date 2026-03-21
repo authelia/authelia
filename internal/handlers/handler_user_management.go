@@ -9,6 +9,8 @@ import (
 	"github.com/go-ldap/ldap/v3"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/utils"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -297,17 +299,24 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 		switch {
 		case field == "display_name":
 			partialUpdate.DisplayName = requestBody.GetDisplayName()
-		case field == "emails":
+		case field == "mail":
 			partialUpdate.Emails = requestBody.GetEmails()
+			if !utils.ValidateEmailString(partialUpdate.Emails[0]) {
+				ctx.Logger.Debugf("unable to add user '%s': %s", partialUpdate.GetUsername(), messageInvalidEmail)
+				ctx.SetStatusCode(fasthttp.StatusBadRequest)
+				ctx.SetJSONError(fmt.Sprintf("unable to add user '%s': %s", partialUpdate.GetUsername(), messageInvalidEmail))
+
+				return
+			}
 		case field == "groups":
 			partialUpdate.Groups = requestBody.GetGroups()
-		case field == "first_name", field == "given_name":
+		case field == "given_name":
 			partialUpdate.GivenName = requestBody.GivenName
-		case field == "last_name", field == "family_name":
+		case field == "family_name":
 			partialUpdate.FamilyName = requestBody.FamilyName
 		case field == "middle_name":
 			partialUpdate.MiddleName = requestBody.MiddleName
-		case field == "full_name", field == "common_name":
+		case field == "common_name":
 			partialUpdate.CommonName = requestBody.CommonName
 		case field == "nickname":
 			partialUpdate.Nickname = requestBody.Nickname
@@ -321,7 +330,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 			partialUpdate.Gender = requestBody.Gender
 		case field == "birthdate":
 			partialUpdate.Birthdate = requestBody.Birthdate
-		case field == "zone_info", field == "zoneinfo":
+		case field == "zoneinfo":
 			partialUpdate.ZoneInfo = requestBody.ZoneInfo
 		case field == "locale":
 			partialUpdate.Locale = requestBody.Locale
@@ -527,6 +536,14 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if len(newUserRequest.Emails) > 0 {
+		if !utils.ValidateEmailString(newUserRequest.Emails[0]) {
+			ctx.Logger.Debugf("unable to add user '%s': %s", newUserRequest.GetUsername(), messageInvalidEmail)
+			ctx.SetStatusCode(fasthttp.StatusBadRequest)
+			ctx.SetJSONError(fmt.Sprintf("unable to add user '%s': %s", newUserRequest.GetUsername(), messageInvalidEmail))
+
+			return
+		}
+
 		userDataBuilder = userDataBuilder.WithEmail(newUserRequest.Emails[0])
 	}
 

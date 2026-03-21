@@ -123,7 +123,7 @@ authentication_backend:
       picture: 'picture'
       profile: 'profile'
       website: 'website'
-      zoneinfo: "zoneinfo"
+      zoneinfo: 'zoneinfo'
 
       extra:
         employeeNumber:
@@ -135,11 +135,11 @@ authentication_backend:
           multi_valued: false
           value_type: 'string'
         testFlag:
-          name: "test_flag"
+          name: 'test_flag'
           multi_valued: false
           value_type: 'boolean'
         tags:
-          name: "tags"
+          name: 'tags'
           multi_valued: true
           value_type: 'string'
 

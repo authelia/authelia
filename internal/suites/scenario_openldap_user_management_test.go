@@ -127,12 +127,12 @@ func (s *UserManagementOpenLDAPScenario) Test_NewUserPOST_OpenLDAP_ShouldCreateN
 	_, _ = s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username), nil)
 
 	newUser := map[string]interface{}{
-		"username":   username,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"testuser@example.com"},
-		"groups":     []string{"dev"},
-		"password":   "password",
+		"username":    username,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"testuser@example.com"},
+		"groups":      []string{"dev"},
+		"password":    "password",
 	}
 
 	res, body := s.apiRequest("POST", "/api/admin/users", newUser)
@@ -148,13 +148,13 @@ func (s *UserManagementOpenLDAPScenario) Test_ChangeUserPATCH_OpenLDAP_ShouldUpd
 	username := nonAdminUsername
 	updateData := map[string]interface{}{
 		"username":     username,
-		"first_name":   "Bob",
-		"last_name":    "Dylan",
+		"given_name":   "Bob",
+		"family_name":  "Dylan",
 		"display_name": "Updated Bob Dylan",
-		"emails":       []string{"updated@example.com"},
+		"mail":         []string{"updated@example.com"},
 	}
 
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=first_name,last_name,display_name,emails", username), updateData)
+	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=given_name,family_name,display_name,mail", username), updateData)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode,
 		fmt.Sprintf("Failed to update user: %s", string(body)))
@@ -168,12 +168,12 @@ func (s *UserManagementOpenLDAPScenario) Test_DeleteUserDELETE_OpenLDAP_ShouldDe
 	s.apiRequest("DELETE", fmt.Sprintf("/api/admin/users/%s", username), nil)
 
 	newUser := map[string]interface{}{
-		"username":   username,
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"testuser@example.com"},
-		"groups":     []string{"dev"},
-		"password":   "password",
+		"username":    username,
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"testuser@example.com"},
+		"groups":      []string{"dev"},
+		"password":    "password",
 	}
 
 	res, body := s.apiRequest("POST", "/api/admin/users", newUser)
@@ -193,12 +193,12 @@ func (s *UserManagementOpenLDAPScenario) Test_NewUserPOST_OpenLDAP_ShouldFailWit
 	s.login(adminUsername, adminPassword)
 
 	newUser := map[string]interface{}{
-		"username":   "",
-		"first_name": "test",
-		"last_name":  "user",
-		"emails":     []string{"testuser@example.com"},
-		"groups":     []string{"dev"},
-		"password":   "password",
+		"username":    "",
+		"given_name":  "test",
+		"family_name": "user",
+		"mail":        []string{"testuser@example.com"},
+		"groups":      []string{"dev"},
+		"password":    "password",
 	}
 
 	res, _ := s.apiRequest("POST", "/api/admin/users", newUser)
@@ -209,12 +209,12 @@ func (s *UserManagementOpenLDAPScenario) Test_NewUserPOST_OpenLDAP_ShouldFailWit
 	s.login(adminUsername, adminPassword)
 
 	newUser := map[string]interface{}{
-		"username":   testUserUsername,
-		"first_name": "test",
-		"last_name":  "",
-		"emails":     []string{"testuser@example.com"},
-		"groups":     []string{"dev"},
-		"password":   "password",
+		"username":    testUserUsername,
+		"given_name":  "test",
+		"family_name": "",
+		"mail":        []string{"testuser@example.com"},
+		"groups":      []string{"dev"},
+		"password":    "password",
 	}
 
 	res, _ := s.apiRequest("POST", "/api/admin/users", newUser)

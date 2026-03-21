@@ -287,6 +287,11 @@ func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) 
 			return
 		}
 
+		err = ctx.Providers.StorageProvider.UpdateUserSignInDateByUsername(ctx, userSession.Username)
+		if err != nil {
+			ctx.Logger.WithError(err).Errorf("failed to update user sign in date for user '%s'", userSession.Username)
+		}
+
 		successful = true
 
 		if len(bodyJSON.Flow) > 0 {

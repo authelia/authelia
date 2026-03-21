@@ -77,13 +77,14 @@ const (
 	messageIncorrectPassword                     = "Incorrect Password"
 	messageMFAValidationFailed                   = "Authentication failed, please retry later."
 	messagePasswordWeak                          = "Your supplied password does not meet the password policy requirements."
-	messageUnableToModifyUser                    = "Unable to modify specified user"
 	messageUnableToAddUser                       = "Unable to add specified user"
+	messageUnableToModifyUser                    = "Unable to modify specified user"
 	messageUnableToDeleteUser                    = "Unable to delete specified user"
 	messageNewUserRequiredFields                 = "Username, DisplayName, and Password are required fields"
 	messageIncompleteUserCreation                = "The user has been created but metadata creation failed"
 	messageUnableToDeleteUserMetadata            = "Unable to delete specified user metadata"
 	messageUsernameRequired                      = "username parameter required"
+	messageInvalidEmail                          = "invalid email address"
 )
 
 const (

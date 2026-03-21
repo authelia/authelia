@@ -180,7 +180,7 @@ func (r *RFC2307bisUserManagement) buildAttributeValueMap(userData *UserDetailsE
 	values["gender"] = userData.Gender
 	values["birthdate"] = userData.Birthdate
 	values["locale"] = userData.GetLocale()
-	values["zone_info"] = userData.ZoneInfo
+	values["zoneinfo"] = userData.ZoneInfo
 
 	values["phone_number"] = userData.PhoneNumber
 	values["phone_extension"] = userData.PhoneExtension
@@ -266,9 +266,9 @@ func (r *RFC2307bisUserManagement) UpdateUserWithMask(username string, userData 
 
 	for _, field := range updateMask {
 		switch {
-		case field == "first_name":
+		case field == "given_name":
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.GivenName, userData.GivenName)
-		case field == "last_name":
+		case field == "family_name":
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.FamilyName, userData.FamilyName)
 		case field == "middle_name":
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.MiddleName, userData.MiddleName)
@@ -278,7 +278,7 @@ func (r *RFC2307bisUserManagement) UpdateUserWithMask(username string, userData 
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Gender, userData.Gender)
 		case field == "birthdate":
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Birthdate, userData.Birthdate)
-		case field == "zone_info":
+		case field == "zoneinfo":
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.ZoneInfo, userData.ZoneInfo)
 		case field == "phone_number":
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PhoneNumber, userData.PhoneNumber)

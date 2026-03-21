@@ -717,7 +717,7 @@ func getSupportedLDAPUserProfileAttributes(config *schema.AuthenticationBackendL
 	}
 
 	if config.Attributes.ZoneInfo != "" {
-		attributes = append(attributes, "zone_info")
+		attributes = append(attributes, "zoneinfo")
 	}
 
 	if config.Attributes.Locale != "" {
@@ -834,7 +834,7 @@ func getSupportedLDAPRDNTemplateFields(config *schema.AuthenticationBackendLDAP)
 	}
 
 	if config.Attributes.ZoneInfo != "" {
-		attributes = append(attributes, "zone_info")
+		attributes = append(attributes, "zoneinfo")
 	}
 
 	if config.Attributes.Locale != "" {

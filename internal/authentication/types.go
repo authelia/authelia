@@ -86,7 +86,7 @@ type UserDetailsExtended struct {
 	Website        *url.URL            `json:"website,omitempty"`
 	Gender         string              `json:"gender,omitempty"`
 	Birthdate      string              `json:"birthdate,omitempty"`
-	ZoneInfo       string              `json:"zone_info,omitempty"`
+	ZoneInfo       string              `json:"zoneinfo,omitempty"`
 	Locale         *language.Tag       `json:"locale,omitempty"`
 	PhoneNumber    string              `json:"phone_number,omitempty"`
 	PhoneExtension string              `json:"phone_extension,omitempty"`
