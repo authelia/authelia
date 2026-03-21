@@ -61,17 +61,24 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		log.Trace("Configuring with Mandatory TLS")
 	}
 
+	n := &SMTPNotifier{
+		factory: &StandardSMTPClientFactory{
+			config: config,
+			opts:   opts,
+		},
+		config: config,
+		random: &random.Cryptographical{},
+		tls:    configTLS,
+		log:    log,
+	}
+
 	opts = append(opts,
 		gomail.WithTLSConfig(configTLS),
 		gomail.WithTimeout(config.Timeout),
 		gomail.WithHELO(config.Identifier),
 		gomail.WithoutNoop(),
 		gomail.WithPort(int(config.Address.Port())),
-		gomail.WithDialContextFunc(func(ctx context.Context, network, addr string) (net.Conn, error) {
-			d := net.Dialer{Timeout: config.Timeout}
-
-			return d.DialContext(ctx, network, addr)
-		}),
+		gomail.WithDialContextFunc(n.dialContext),
 	)
 
 	var domain string
@@ -84,6 +91,9 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		domain = "localhost.localdomain"
 	}
 
+	n.opts = opts
+	n.domain = domain
+
 	log.WithFields(map[string]any{
 		"port":    config.Address.Port(),
 		"helo":    config.Identifier,
@@ -91,18 +101,7 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		"domain":  domain,
 	}).Trace("Configuring Provider")
 
-	return &SMTPNotifier{
-		factory: &StandardSMTPClientFactory{
-			config: config,
-			opts:   opts,
-		},
-		config: config,
-		domain: domain,
-		random: &random.Cryptographical{},
-		tls:    configTLS,
-		log:    log,
-		opts:   opts,
-	}
+	return n
 }
 
 // SMTPNotifier a notifier to send emails to SMTP servers.
@@ -214,6 +213,19 @@ func (n *SMTPNotifier) setMessageID(msg *gomail.Msg) {
 	pid := os.Getpid() + rm
 
 	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", pid, rn, rm, rs, n.domain))
+}
+
+func (n *SMTPNotifier) dialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+	var dialContextFunc gomail.DialContextFunc
+
+	netDialer := net.Dialer{}
+	dialContextFunc = netDialer.DialContext
+	if n.config.Address.IsExplicitlySecure() {
+		tlsDialer := tls.Dialer{NetDialer: &netDialer, Config: n.tls}
+		dialContextFunc = tlsDialer.DialContext
+	}
+
+	return dialContextFunc(ctx, network, addr)
 }
 
 type StandardSMTPClientFactory struct {
