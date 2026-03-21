@@ -296,7 +296,7 @@ func (r *RFC2307bisUserManagement) UpdateUserWithMask(username string, userData 
 			if userData.GetDisplayName() != "" {
 				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.DisplayName, userData.GetDisplayName())
 			}
-		case field == "emails":
+		case field == "mail":
 			//TODO: handle multiple emails, this will require authelia-internal "primary" email tracking. See https://github.com/authelia/authelia/discussions/6093
 			if len(userData.Emails) > 0 {
 				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Mail, userData.Emails[0])
