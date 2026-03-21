@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import PasswordMeter from "@components/PasswordMeter";
 import useCheckCapsLock from "@hooks/CapsLock";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility.tsx";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { postPasswordChange } from "@services/ChangePassword";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
@@ -32,6 +33,8 @@ const ChangePasswordDialog = (props: Props) => {
     const { t: translate } = useTranslation(["settings", "portal"]);
 
     const { createErrorNotification, createSuccessNotification } = useNotifications();
+    const { passwordSlotProps: oldPasswordSlotProps, showPassword: showOldPassword } = usePasswordVisibility();
+    const { passwordSlotProps: newPasswordSlotProps, showPassword: showNewPassword } = usePasswordVisibility();
 
     const [loading, setLoading] = useState(false);
     const [oldPassword, setOldPassword] = useState("");
@@ -99,12 +102,12 @@ const ChangePasswordDialog = (props: Props) => {
                     ns: "portal",
                 }),
             );
-            setLoading(true);
+            setLoading(false);
         }
     }, [createErrorNotification, translate]);
 
     useEffect(() => {
-        asyncProcess();
+        void asyncProcess();
     }, [asyncProcess]);
 
     const handlePasswordChange = useCallback(async () => {
@@ -221,7 +224,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 fullWidth
                                 onChange={(v) => setOldPassword(v.target.value)}
                                 onFocus={() => setOldPasswordError(false)}
-                                type="password"
+                                type={showOldPassword ? "text" : "password"}
                                 autoCapitalize="off"
                                 autoComplete="off"
                                 onKeyDown={handleOldPWKeyDown}
@@ -229,6 +232,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 helperText={isCapsLockOnOldPW ? translate("Caps Lock is on") : " "}
                                 color={isCapsLockOnOldPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnOldPW(false)}
+                                slotProps={oldPasswordSlotProps}
                             />
                         </Grid>
                         <Grid size={{ xs: 12 }} sx={{ mt: 3 }}>
@@ -244,7 +248,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 error={newPasswordError}
                                 onChange={(v) => setNewPassword(v.target.value)}
                                 onFocus={() => setNewPasswordError(false)}
-                                type="password"
+                                type={showNewPassword ? "text" : "password"}
                                 autoCapitalize="off"
                                 autoComplete="off"
                                 onKeyDown={handleNewPWKeyDown}
@@ -252,6 +256,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 helperText={isCapsLockOnNewPW ? translate("Caps Lock is on") : " "}
                                 color={isCapsLockOnNewPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnNewPW(false)}
+                                slotProps={newPasswordSlotProps}
                             />
                             {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
                                 <PasswordMeter value={newPassword} policy={pPolicy} />
@@ -270,7 +275,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 error={repeatNewPasswordError}
                                 onChange={(v) => setRepeatNewPassword(v.target.value)}
                                 onFocus={() => setRepeatNewPasswordError(false)}
-                                type="password"
+                                type={showNewPassword ? "text" : "password"}
                                 autoCapitalize="off"
                                 autoComplete="off"
                                 onKeyDown={handleRepeatNewPWKeyDown}
@@ -278,6 +283,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 helperText={isCapsLockOnRepeatNewPW ? translate("Caps Lock is on") : " "}
                                 color={isCapsLockOnRepeatNewPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
+                                slotProps={newPasswordSlotProps}
                             />
                         </Grid>
                     </Grid>

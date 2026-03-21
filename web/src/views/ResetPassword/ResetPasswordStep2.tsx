@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, FormControl, IconButton, InputAdornment } from "@mui/material";
+import { Button, FormControl } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
@@ -11,6 +10,7 @@ import PasswordMeter from "@components/PasswordMeter";
 import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility.tsx";
 import { useQueryParam } from "@hooks/QueryParam";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
@@ -20,6 +20,8 @@ import { completeResetPasswordProcess, resetPassword } from "@services/ResetPass
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
 
+    const { passwordSlotProps, showPassword } = usePasswordVisibility();
+
     const [formDisabled, setFormDisabled] = useState(true);
     const [password1, setPassword1] = useState("");
     const [password2, setPassword2] = useState("");
@@ -27,7 +29,6 @@ const ResetPasswordStep2 = function () {
     const [errorPassword2, setErrorPassword2] = useState(false);
     const { createErrorNotification, createSuccessNotification } = useNotifications();
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false);
 
     const [pPolicy, setPPolicy] = useState<PasswordPolicyConfiguration>({
         max_length: 0,
@@ -148,39 +149,7 @@ const ResetPasswordStep2 = function () {
                             error={errorPassword1}
                             sx={{ width: "100%" }}
                             autoComplete="new-password"
-                            slotProps={{
-                                input: {
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                aria-label="toggle password visibility"
-                                                edge="end"
-                                                size="large"
-                                                onMouseDown={() => setShowPassword(true)}
-                                                onMouseUp={() => setShowPassword(false)}
-                                                onMouseLeave={() => setShowPassword(false)}
-                                                onTouchStart={() => setShowPassword(true)}
-                                                onTouchEnd={() => setShowPassword(false)}
-                                                onTouchCancel={() => setShowPassword(false)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(true);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                onKeyUp={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(false);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                            >
-                                                {showPassword ? <Visibility /> : <VisibilityOff />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                },
-                            }}
+                            slotProps={passwordSlotProps}
                         />
                         {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
                             <PasswordMeter value={password1} policy={pPolicy} />
