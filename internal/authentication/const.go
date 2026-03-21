@@ -151,3 +151,15 @@ const (
 	ValueTypeInteger = "integer"
 	ValueTypeBoolean = "boolean"
 )
+
+// LDAP Boolean Syntax Values.
+//
+// See the linked documents for more information.
+//
+// RFC4517 Section 3.3.3: https://datatracker.ietf.org/doc/html/rfc4517#section-3.3.3
+//
+// Syntax OID Reference: https://oidref.com/1.3.6.1.4.1.1466.115.121.1.7
+const (
+	BooleanValueTrue  = "TRUE"
+	BooleanValueFalse = "FALSE"
+)

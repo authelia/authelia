@@ -138,6 +138,10 @@ authentication_backend:
           name: "test_flag"
           multi_valued: false
           value_type: 'boolean'
+        tags:
+          name: "tags"
+          multi_valued: true
+          value_type: 'string'
 
 totp:
   issuer: 'example.com'

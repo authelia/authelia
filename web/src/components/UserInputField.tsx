@@ -38,38 +38,18 @@ const UserFormField = <T extends CreateUserRequest | UserDetailsExtended = Creat
     options,
     register,
 }: UserFormFieldProps<T>) => {
-    const { t: translate } = useTranslation("settings");
     const error = errors[field.name as keyof FieldErrors<T>];
 
     switch (field.name as string) {
         case "password":
             return (
-                <>
-                    <Controller
-                        name={field.name}
-                        control={control}
-                        rules={{
-                            required: field.required ? `${field.label} is required` : false,
-                        }}
-                        render={({ field: controllerField }) => (
-                            <MuiTextField
-                                {...controllerField}
-                                fullWidth
-                                type="password"
-                                color="info"
-                                label={field.label}
-                                helperText={error?.message?.toString() || field.description}
-                                error={!!error}
-                                required={field.required}
-                            />
-                        )}
-                    />
-                    {onGeneratePassword && (
-                        <Button onClick={onGeneratePassword} color="info" size="small" sx={{ mt: 0.75 }}>
-                            {translate("Generate Password")}
-                        </Button>
-                    )}
-                </>
+                <PasswordField
+                    field={field}
+                    register={register}
+                    error={error}
+                    onGeneratePassword={onGeneratePassword}
+                    control={control}
+                />
             );
 
         case "groups":
@@ -95,6 +75,7 @@ const renderByType = <T extends CreateUserRequest | UserDetailsExtended = Create
     control: any,
     error: any,
     options?: string[],
+    onGeneratePassword?: () => void,
 ) => {
     switch (field.meta.type) {
         case "email":
@@ -118,9 +99,22 @@ const renderByType = <T extends CreateUserRequest | UserDetailsExtended = Create
         case "groups":
             return <GroupsField field={field} control={control} error={error} options={options} register={register} />;
 
-        case "text":
         case "password":
+            return (
+                <PasswordField
+                    field={field}
+                    register={register}
+                    error={error}
+                    onGeneratePassword={onGeneratePassword}
+                    control={control}
+                />
+            );
+
+        case "text":
         default:
+            if (field.meta.multiple) {
+                return <MultiValuedTextField field={field} register={register} error={error} control={control} />;
+            }
             return <TextField field={field} register={register} error={error} />;
     }
 };
@@ -128,8 +122,9 @@ const renderByType = <T extends CreateUserRequest | UserDetailsExtended = Create
 interface FieldComponentProps<T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest> {
     field: UserFormFieldProps<T>["field"];
     register: any;
-    control?: any;
     error: any;
+    control?: any;
+    onGeneratePassword?: () => void;
 }
 
 const TextField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
@@ -150,6 +145,81 @@ const TextField = <T extends CreateUserRequest | UserDetailsExtended = CreateUse
         })}
     />
 );
+
+const MultiValuedTextField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+    control,
+    error,
+    field,
+}: FieldComponentProps<T>) => {
+    return (
+        <Controller
+            name={field.name}
+            control={control}
+            rules={{
+                required: field.required ? `${field.label} is required` : false,
+            }}
+            render={({ field: { onChange, value } }) => (
+                <Autocomplete
+                    multiple
+                    freeSolo
+                    options={[]}
+                    value={value || []}
+                    onChange={(_, newValue) => onChange(newValue)}
+                    renderInput={(params) => (
+                        <MuiTextField
+                            {...params}
+                            label={`${field.label} (Press Enter to add multiple)`}
+                            placeholder={field.label}
+                            helperText={error?.message?.toString() || field.description}
+                            error={!!error}
+                            required={field.required}
+                            color="info"
+                        />
+                    )}
+                />
+            )}
+        />
+    );
+};
+
+const PasswordField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+    control,
+    error,
+    field,
+    onGeneratePassword,
+}: FieldComponentProps<T>) => {
+    const { t: translate } = useTranslation("settings");
+
+    //TODO: refactor password field to have password visibility button
+    return (
+        <>
+            <Controller
+                name={field.name}
+                control={control}
+                rules={{
+                    required: field.required ? `${field.label} is required` : false,
+                }}
+                render={({ field: controllerField }) => (
+                    <MuiTextField
+                        {...controllerField}
+                        fullWidth
+                        type="password"
+                        color="info"
+                        label={field.label}
+                        helperText={error?.message?.toString() || field.description}
+                        error={!!error}
+                        required={field.required}
+                    />
+                )}
+            />
+            {onGeneratePassword && (
+                <Button onClick={onGeneratePassword} color="info" size="small" sx={{ mt: 0.75 }}>
+                    {translate("Generate Password")}
+                </Button>
+            )}
+        </>
+    );
+};
 
 const GroupsField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
     control,

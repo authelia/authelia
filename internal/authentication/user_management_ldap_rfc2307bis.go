@@ -551,28 +551,55 @@ func (r *RFC2307bisUserManagement) handleReferralDelete(referral string, deleteR
 	return nil
 }
 
-func (r *RFC2307bisUserManagement) replaceAttributeIfPresent(req *ldap.ModifyRequest, ldapAttr, value string) {
+func (r *RFC2307bisUserManagement) replaceAttributeIfPresent(req *ldap.ModifyRequest, ldapAttr string, value interface{}) {
 	if ldapAttr == "" {
 		return
 	}
 
-	if value == "" {
+	if value == nil {
 		req.Delete(ldapAttr, []string{})
-	} else {
-		req.Replace(ldapAttr, []string{value})
+		return
+	}
+
+	switch v := value.(type) {
+	case string:
+		if v == "" {
+			req.Delete(ldapAttr, []string{})
+		} else {
+			req.Replace(ldapAttr, []string{v})
+		}
+	case []string:
+		if len(v) == 0 {
+			req.Delete(ldapAttr, []string{})
+		} else {
+			req.Replace(ldapAttr, v)
+		}
 	}
 }
 
-func (r *RFC2307bisUserManagement) addAttributeIfPresent(req *ldap.AddRequest, ldapAttr, value string) {
+func (r *RFC2307bisUserManagement) addAttributeIfPresent(req *ldap.AddRequest, ldapAttr string, value interface{}) {
 	if ldapAttr == "" {
 		return
 	}
 
-	if value == "" {
+	if value == nil {
 		return
 	}
 
-	req.Attribute(ldapAttr, []string{value})
+	switch v := value.(type) {
+	case string:
+		if v == "" {
+			return
+		}
+
+		req.Attribute(ldapAttr, []string{v})
+	case []string:
+		if len(v) == 0 {
+			return
+		}
+
+		req.Attribute(ldapAttr, v)
+	}
 }
 
 //nolint:gocyclo
@@ -1039,15 +1066,37 @@ func (r *RFC2307bisUserManagement) getCurrentUserGroups(client LDAPExtendedClien
 	return groups, nil
 }
 
-func (r *RFC2307bisUserManagement) normalizeExtraAttributes(value any) string {
+func (r *RFC2307bisUserManagement) normalizeExtraAttributes(value any) interface{} {
+	switch v := value.(type) {
+	case bool:
+		if v {
+			return BooleanValueTrue
+		}
+
+		return BooleanValueFalse
+	case []interface{}:
+		result := make([]string, 0, len(v))
+		for _, item := range v {
+			result = append(result, r.normalizeExtraAttributeValue(item))
+		}
+
+		return result
+	case []string:
+		return v
+	default:
+		return fmt.Sprintf("%v", value)
+	}
+}
+
+func (r *RFC2307bisUserManagement) normalizeExtraAttributeValue(value any) string {
 	var ldapValue string
 
 	switch v := value.(type) {
 	case bool:
 		if v {
-			ldapValue = "TRUE"
+			ldapValue = BooleanValueTrue
 		} else {
-			ldapValue = "FALSE"
+			ldapValue = BooleanValueFalse
 		}
 	default:
 		ldapValue = fmt.Sprintf("%v", value)

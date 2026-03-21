@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextField, useTheme } from "@mui/material";
+import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, useTheme } from "@mui/material";
 import { Path, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import ScaleLoader from "react-spinners/ScaleLoader";
@@ -9,13 +9,8 @@ import UserFormField from "@components/UserInputField.tsx";
 import { useAllGroupsGET } from "@hooks/GroupManagement.ts";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserManagementAttributeMetadataGET } from "@hooks/UserManagement.ts";
-import {
-    CreateUserRequest,
-    getAttributeMetadata,
-    isAttributeRequired,
-    validateAttributeValue,
-} from "@models/UserManagement";
-import { UserAttributeMetadataBody, postNewUser } from "@services/UserManagement";
+import { CreateUserRequest } from "@models/UserManagement";
+import { postNewUser } from "@services/UserManagement";
 import { generateRandomPassword } from "@utils/GeneratePassword";
 
 interface Props {
