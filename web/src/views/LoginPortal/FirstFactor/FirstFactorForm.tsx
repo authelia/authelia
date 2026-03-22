@@ -1,7 +1,5 @@
 import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
     Alert,
     AlertTitle,
@@ -10,8 +8,6 @@ import {
     CircularProgress,
     FormControl,
     FormControlLabel,
-    IconButton,
-    InputAdornment,
     Link,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -25,6 +21,7 @@ import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility.tsx";
 import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
@@ -53,6 +50,7 @@ const FirstFactorForm = function (props: Props) {
     const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
     const { createErrorNotification } = useNotifications();
+    const { passwordSlotProps, showPassword } = usePasswordVisibility();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
@@ -60,7 +58,6 @@ const FirstFactorForm = function (props: Props) {
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
     const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
@@ -276,39 +273,7 @@ const FirstFactorForm = function (props: Props) {
                             autoComplete="current-password"
                             onKeyDown={handlePasswordKeyDown}
                             onKeyUp={handlePasswordKeyUp}
-                            slotProps={{
-                                input: {
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                aria-label="toggle password visibility"
-                                                edge="end"
-                                                size="large"
-                                                onMouseDown={() => setShowPassword(true)}
-                                                onMouseUp={() => setShowPassword(false)}
-                                                onMouseLeave={() => setShowPassword(false)}
-                                                onTouchStart={() => setShowPassword(true)}
-                                                onTouchEnd={() => setShowPassword(false)}
-                                                onTouchCancel={() => setShowPassword(false)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(true);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                onKeyUp={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(false);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                            >
-                                                {showPassword ? <Visibility /> : <VisibilityOff />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                },
-                            }}
+                            slotProps={passwordSlotProps}
                         />
                     </Grid>
                     {passwordCapsLock ? (
