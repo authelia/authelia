@@ -3,8 +3,10 @@ package authentication
 import (
 	"crypto/hmac"
 	"crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"hash"
+	"math"
 	"sync"
 	"time"
 
@@ -19,7 +21,8 @@ func NewCredentialCacheHMAC(h func() hash.Hash, lifespan time.Duration) *Credent
 
 	return &CredentialCacheHMAC{
 		mu:       sync.Mutex{},
-		hash:     hmac.New(h, secret),
+		hash:     h,
+		secret:   secret,
 		lifespan: lifespan,
 
 		values: map[string]CachedCredential{},
@@ -28,9 +31,10 @@ func NewCredentialCacheHMAC(h func() hash.Hash, lifespan time.Duration) *Credent
 
 // CredentialCacheHMAC implements in-memory credential caching using a HMAC function and effective lifespan.
 type CredentialCacheHMAC struct {
-	mu    sync.Mutex
-	hash  hash.Hash
-	group singleflight.Group
+	mu     sync.Mutex
+	hash   func() hash.Hash
+	secret []byte
+	group  singleflight.Group
 
 	lifespan time.Duration
 
@@ -57,23 +61,41 @@ func (c *CredentialCacheHMAC) Check(ctx Context, username, password string) (val
 }
 
 func (c *CredentialCacheHMAC) sum(username, password string) (hex string, sum []byte, err error) {
-	c.mu.Lock()
+	digest := hmac.New(c.hash, c.secret)
 
-	defer c.mu.Unlock()
-
-	defer c.hash.Reset()
-
-	if _, err = c.hash.Write([]byte(password)); err != nil {
-		return "", nil, fmt.Errorf("error occurred calculating cache hmac: %w", err)
+	if err = c.writeDigest(digest, password); err != nil {
+		return "", nil, err
 	}
 
-	if _, err = c.hash.Write([]byte(username)); err != nil {
-		return "", nil, fmt.Errorf("error occurred calculating cache hmac: %w", err)
+	if err = c.writeDigest(digest, username); err != nil {
+		return "", nil, err
 	}
 
-	sum = c.hash.Sum(nil)
+	sum = digest.Sum(nil)
 
 	return fmt.Sprintf("%x", sum), sum, nil
+}
+
+func (c *CredentialCacheHMAC) writeDigest(digest hash.Hash, value string) (err error) {
+	var length [4]byte
+
+	n := len(value)
+
+	if uint(n) > math.MaxUint32 {
+		return fmt.Errorf("error occurred calculating cache hmac: value is too long: %d > %d", n, uint32(math.MaxUint32))
+	}
+
+	binary.BigEndian.PutUint32(length[:], uint32(n))
+
+	if _, err = digest.Write(length[:]); err != nil {
+		return fmt.Errorf("error occurred calculating cache hmac: %w", err)
+	}
+
+	if _, err = digest.Write([]byte(value)); err != nil {
+		return fmt.Errorf("error occurred calculating cache hmac: %w", err)
+	}
+
+	return nil
 }
 
 func (c *CredentialCacheHMAC) check(ctx Context, username, password string, sum []byte) func() (value any, err error) {
@@ -115,11 +137,11 @@ func (c *CredentialCacheHMAC) valid(ctx Context, username string, value []byte) 
 
 			return false, false
 		}
+	} else {
+		return false, ok
 	}
 
-	valid = hmac.Equal(value, entry.value)
-
-	return valid, true
+	return hmac.Equal(value, entry.value), ok
 }
 
 func (c *CredentialCacheHMAC) put(ctx Context, username string, value []byte) (err error) {
