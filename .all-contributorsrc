@@ -1205,6 +1205,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "deprrous",
+      "name": "deprrous",
+      "avatar_url": "https://avatars.githubusercontent.com/u/144512455?v=4",
+      "profile": "https://github.com/deprrous",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7

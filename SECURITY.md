@@ -5,6 +5,15 @@
 The __Authelia__ team takes security very seriously. Because __Authelia__ is intended as a security product a lot of
 decisions are made with security being the priority and we always aim to implement security by design.
 
+## General Guidelines
+
+1. Reports that include a severity rating must use the CVSSv4 rating system.
+2. Reporters that used Generative AI in any part of discovery of a vulnerability, providing information about a
+   a vulnerability, providing a proof-of-concept for a vulnerability, or providing a suggested fix to a vulnerability
+   must fully disclose the use of Generative AI as well as how it was used for which parts of the process.
+3. Reporters that are aware of specific requirements to trigger a vulnerability such as configurations or architectures
+   should include this information in their report.
+
 ## Coordinated vulnerability disclosure
 
 __Authelia__ follows the [coordinated vulnerability disclosure] model when dealing with security vulnerabilities. This

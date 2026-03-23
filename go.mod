@@ -17,7 +17,7 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667
 	github.com/go-crypt/crypt v0.4.10
 	github.com/go-jose/go-jose/v4 v4.1.3
-	github.com/go-ldap/ldap/v3 v3.4.12
+	github.com/go-ldap/ldap/v3 v3.4.13
 	github.com/go-rod/rod v0.116.2
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/go-viper/mapstructure/v2 v2.5.0
@@ -26,14 +26,14 @@ require (
 	github.com/google/cel-go v0.27.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.8
-	github.com/jackc/pgx/v5 v5.8.0
+	github.com/jackc/pgx/v5 v5.9.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/knadh/koanf/parsers/yaml v1.1.0
 	github.com/knadh/koanf/providers/confmap v1.0.0
 	github.com/knadh/koanf/providers/env/v2 v2.0.0
 	github.com/knadh/koanf/providers/posflag v1.0.1
 	github.com/knadh/koanf/providers/rawbytes v1.0.0
-	github.com/knadh/koanf/v2 v2.3.3
+	github.com/knadh/koanf/v2 v2.3.4
 	github.com/mattn/go-sqlite3 v1.14.37
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.1
