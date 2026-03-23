@@ -17,10 +17,11 @@ import (
 
 // UserDetails represent the details retrieved for a given user.
 type UserDetails struct {
-	Username    string
-	DisplayName string
-	Emails      []string
-	Groups      []string
+	Username      string
+	DisplayName   string
+	Emails        []string
+	Groups        []string
+	RecoveryEmail string
 }
 
 // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
@@ -29,13 +30,30 @@ func (d *UserDetails) Addresses() (addresses []mail.Address) {
 		return nil
 	}
 
-	addresses = make([]mail.Address, len(d.Emails))
+	hasRecoveryEmail := len(d.RecoveryEmail) != 0
+
+	getEmailIndex := func(idx int) int {
+		if hasRecoveryEmail {
+			return idx + 1
+		}
+
+		return idx
+	}
+
+	makeMailAddress := func(address string) mail.Address {
+		return mail.Address{
+			Name:    d.DisplayName,
+			Address: address,
+		}
+	}
+	addresses = make([]mail.Address, getEmailIndex(len(d.Emails)))
+
+	if hasRecoveryEmail {
+		addresses[0] = makeMailAddress(d.RecoveryEmail)
+	}
 
 	for i, email := range d.Emails {
-		addresses[i] = mail.Address{
-			Name:    d.DisplayName,
-			Address: email,
-		}
+		addresses[getEmailIndex(i)] = makeMailAddress(email)
 	}
 
 	return addresses
