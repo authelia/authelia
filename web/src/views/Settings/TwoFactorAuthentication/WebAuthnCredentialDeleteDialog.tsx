@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { WebAuthnCredential } from "@models/WebAuthn";
 import { deleteUserWebAuthnCredential } from "@services/WebAuthn";
 import DeleteDialog from "@views/Settings/TwoFactorAuthentication/DeleteDialog";

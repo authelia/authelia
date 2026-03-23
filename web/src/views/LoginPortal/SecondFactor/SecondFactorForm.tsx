@@ -17,8 +17,8 @@ import {
     SettingsTwoFactorAuthenticationSubRoute,
 } from "@constants/Routes";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlowPresent } from "@hooks/Flow";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";

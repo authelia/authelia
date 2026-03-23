@@ -3,8 +3,8 @@ import { Fragment, useCallback, useEffect, useState } from "react";
 import { Box, Button, Container, List, ListItem, Paper, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useConfiguration } from "@hooks/Configuration";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoGET } from "@hooks/UserInfo";
 import { Configuration } from "@models/Configuration";
 import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";

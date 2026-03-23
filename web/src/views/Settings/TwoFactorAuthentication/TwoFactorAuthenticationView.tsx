@@ -5,8 +5,8 @@ import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useConfiguration } from "@hooks/Configuration";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfiguration";
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";

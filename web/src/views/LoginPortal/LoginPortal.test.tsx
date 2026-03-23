@@ -2,8 +2,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useConfiguration } from "@hooks/Configuration";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
@@ -31,7 +31,7 @@ vi.mock("@hooks/Configuration", () => ({
     useConfiguration: vi.fn(),
 }));
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: vi.fn(),
 }));
 
@@ -94,6 +94,7 @@ const mockNotificationsReturn: ReturnType<typeof useNotifications> = {
     isActive: false,
     notification: null,
     resetNotification: vi.fn(),
+    showNotification: vi.fn(),
 };
 
 beforeEach(() => {

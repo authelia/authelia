@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 
 import OneTimeCodeTextField from "@components/OneTimeCodeTextField";
 import SuccessIcon from "@components/SuccessIcon";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import {
     UserSessionElevation,
     deleteUserSessionElevation,

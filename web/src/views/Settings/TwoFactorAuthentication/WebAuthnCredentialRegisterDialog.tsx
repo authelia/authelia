@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 
 import InformationIcon from "@components/InformationIcon";
 import WebAuthnRegisterIcon from "@components/WebAuthnRegisterIcon";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { AttestationResult, AttestationResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
 import {
     finishWebAuthnRegistration,

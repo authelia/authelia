@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import {
     DuoDevicePostRequest,
     completeDuoDeviceSelectionProcess,

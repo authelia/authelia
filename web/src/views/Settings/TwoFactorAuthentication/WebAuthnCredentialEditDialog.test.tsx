@@ -9,7 +9,7 @@ vi.mock("react-i18next", () => ({
 const mockCreateError = vi.fn();
 const mockCreateSuccess = vi.fn();
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: mockCreateError,
         createSuccessNotification: mockCreateSuccess,

@@ -32,7 +32,7 @@ vi.mock("@hooks/Flow", () => ({
     useFlow: () => ({ flow: "openid-connect", id: "flow-1", subflow: null }),
 }));
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: vi.fn(),
         resetNotification: vi.fn(),

@@ -15,7 +15,7 @@ vi.mock("@contexts/LocalStorageMethodContext", () => ({
     }),
 }));
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: vi.fn(),
     }),

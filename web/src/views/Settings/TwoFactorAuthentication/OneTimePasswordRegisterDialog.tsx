@@ -34,7 +34,7 @@ import AppStoreBadges from "@components/AppStoreBadges";
 import CopyButton from "@components/CopyButton";
 import SuccessIcon from "@components/SuccessIcon";
 import { GoogleAuthenticator } from "@constants/constants";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { toAlgorithmString } from "@models/TOTPConfiguration";
 import { completeTOTPRegister, stopTOTPRegister } from "@services/OneTimePassword";
 import { getTOTPSecret } from "@services/RegisterDevice";

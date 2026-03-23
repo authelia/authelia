@@ -12,7 +12,7 @@ vi.mock("@constants/Routes", () => ({
     ConsentOpenIDSubRoute: "/openid",
 }));
 
-vi.mock("@hooks/NotificationsContext", () => ({
+vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: vi.fn(),
         resetNotification: vi.fn(),

@@ -22,8 +22,8 @@ import { useNavigate } from "react-router-dom";
 
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlow } from "@hooks/Flow";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
