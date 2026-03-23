@@ -71,7 +71,7 @@ func (s *MultiCookieDomainScenario) TestCookieName() {
 
 	cookieNames := s.GetCookieNames()
 
-	s.Assert().Equalf(s.cookieNames, cookieNames, "cookie names should include '%s' (only and all of) but includes '%s'", strings.Join(s.cookieNames, ","), strings.Join(cookieNames, ","))
+	s.Assert().ElementsMatchf(s.cookieNames, cookieNames, "cookie names should include '%s' (only and all of) but includes '%s'", strings.Join(s.cookieNames, ","), strings.Join(cookieNames, ","))
 }
 
 func (s *MultiCookieDomainScenario) TestRememberMe() {
