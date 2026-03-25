@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import SuccessIcon from "@components/SuccessIcon";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
@@ -61,13 +62,20 @@ const RedirectAfterEnrollmentDialog = function (props: Props) {
     }
 
     return (
-        <Dialog open={props.open} onClose={props.setClosed}>
+        <Dialog open={props.open} onClose={props.setClosed} maxWidth={"sm"} fullWidth={true}>
             <DialogTitle>{translate("Multi-Factor Authentication Registered")}</DialogTitle>
             <DialogContent>
+                <SuccessIcon />
+                <DialogContentText>
+                    {translate("You have successfully added a multi-factor authentication method")}
+                </DialogContentText>
+                <DialogContentText>
+                    {translate("Would you like to continue to your originally requested resource?")}
+                </DialogContentText>
                 <DialogContentText>{targetURL}</DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={props.setClosed}>{translate("Close")}</Button>
+                <Button onClick={props.setClosed}>{translate("Stay Here")}</Button>
                 <Button onClick={handleContinue}>{translate("Continue")}</Button>
             </DialogActions>
         </Dialog>
