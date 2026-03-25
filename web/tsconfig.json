@@ -1,20 +1,19 @@
 {
     "compilerOptions": {
-        "baseUrl": "./src",
         "paths": {
-            "@root/*": ["./*"],
-            "@assets/*": ["assets/*"],
-            "@components/*": ["components/*"],
-            "@constants/*": ["constants/*"],
-            "@contexts/*": ["contexts/*"],
-            "@hooks/*": ["hooks/*"],
-            "@i18n/*": ["i18n/*"],
-            "@layouts/*": ["layouts/*"],
-            "@models/*": ["models/*"],
-            "@services/*": ["services/*"],
-            "@themes/*": ["themes/*"],
-            "@utils/*": ["utils/*"],
-            "@views/*": ["views/*"]
+            "@root/*": ["./src/*"],
+            "@assets/*": ["./src/assets/*"],
+            "@components/*": ["./src/components/*"],
+            "@constants/*": ["./src/constants/*"],
+            "@contexts/*": ["./src/contexts/*"],
+            "@hooks/*": ["./src/hooks/*"],
+            "@i18n/*": ["./src/i18n/*"],
+            "@layouts/*": ["./src/layouts/*"],
+            "@models/*": ["./src/models/*"],
+            "@services/*": ["./src/services/*"],
+            "@themes/*": ["./src/themes/*"],
+            "@utils/*": ["./src/utils/*"],
+            "@views/*": ["./src/views/*"]
         },
         "target": "es2022",
         "lib": ["dom", "dom.iterable", "esnext"],
