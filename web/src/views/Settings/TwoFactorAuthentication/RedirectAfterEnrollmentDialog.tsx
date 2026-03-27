@@ -1,6 +1,14 @@
 import { useCallback } from "react";
 
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Typography,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import SuccessIcon from "@components/SuccessIcon";
@@ -57,12 +65,16 @@ const RedirectAfterEnrollmentDialog = function (props: Props) {
         props.setClosed();
     }, [targetURL, redirect, createErrorNotification, translate, props]);
 
+    const handleStayHere = useCallback(() => {
+        props.setClosed();
+    }, [props]);
+
     if (!targetURL) {
         return null;
     }
 
     return (
-        <Dialog open={props.open} onClose={props.setClosed} maxWidth={"sm"} fullWidth={true}>
+        <Dialog open={props.open} onClose={handleStayHere} maxWidth={"sm"} fullWidth={true}>
             <DialogTitle>{translate("Multi-Factor Authentication Registered")}</DialogTitle>
             <DialogContent>
                 <SuccessIcon />
@@ -72,11 +84,11 @@ const RedirectAfterEnrollmentDialog = function (props: Props) {
                 <DialogContentText>
                     {translate("Would you like to continue to your originally requested resource?")}
                 </DialogContentText>
-                <DialogContentText>{targetURL}</DialogContentText>
+                <Typography variant={"body2"}>{targetURL}</Typography>
             </DialogContent>
             <DialogActions>
-                <Button onClick={props.setClosed}>{translate("Stay Here")}</Button>
-                <Button onClick={handleContinue}>{translate("Continue")}</Button>
+                <Button id={"dialog-stay-here"} onClick={handleStayHere}>{translate("Stay Here")}</Button>
+                <Button id={"dialog-continue"} onClick={handleContinue}>{translate("Continue")}</Button>
             </DialogActions>
         </Dialog>
     );
