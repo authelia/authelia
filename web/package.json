@@ -59,7 +59,7 @@
     "@mui/icons-material": "7.3.9",
     "@mui/material": "7.3.9",
     "@simplewebauthn/browser": "13.3.0",
-    "axios": "1.13.6",
+    "axios": "1.14.0",
     "broadcast-channel": "7.3.0",
     "clsx": "2.1.1",
     "i18next": "25.10.9",
