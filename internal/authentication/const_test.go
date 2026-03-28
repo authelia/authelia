@@ -3,8 +3,9 @@ package authentication
 import (
 	"testing"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 const (

@@ -102,7 +102,7 @@ func NewMetrics(config *schema.Configuration, providers middlewares.Providers) (
 	server = &fasthttp.Server{
 		ErrorHandler:          handleError("telemetry.metrics"),
 		NoDefaultServerHeader: true,
-		Handler:               handlerMetrics(config.Telemetry.Metrics.Address.RouterPath()),
+		Handler:               handlerMetrics(providers.Metrics, config.Telemetry.Metrics.Address.RouterPath()),
 		ReadBufferSize:        config.Telemetry.Metrics.Buffers.Read,
 		WriteBufferSize:       config.Telemetry.Metrics.Buffers.Write,
 		ReadTimeout:           config.Telemetry.Metrics.Timeouts.Read,
