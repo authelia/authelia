@@ -9,7 +9,6 @@ import (
 	oauthelia2 "authelia.com/provider/oauth2"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 	"github.com/go-jose/go-jose/v4"
-	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -216,7 +215,6 @@ type Context interface {
 	GetClock() (clock clock.Provider)
 	GetRandom() (random random.Provider)
 	GetConfiguration() (config *schema.Configuration)
-	GetJWTWithTimeFuncOption() (option jwt.ParserOption)
 	GetProviderStorage() storage.Provider
 	GetUserProvider() authentication.UserProvider
 	GetProviderUserAttributeResolver() expression.UserAttributeResolver
