@@ -5,33 +5,88 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func TestNtpIsOffsetTooLarge(t *testing.T) {
-	maxOffset, _ := utils.ParseDurationString("1s")
-	assert.True(t, ntpIsOffsetTooLarge(maxOffset, time.Now(), time.Now().Add(time.Second*2)))
-	assert.True(t, ntpIsOffsetTooLarge(maxOffset, time.Now().Add(time.Second*2), time.Now()))
-	assert.False(t, ntpIsOffsetTooLarge(maxOffset, time.Now(), time.Now()))
-}
-
-func TestNtpPacketToTime(t *testing.T) {
-	resp := &ntpPacket{
-		TxTimeSeconds:  60,
-		TxTimeFraction: 0,
+func TestNTPIsOffsetTooLarge(t *testing.T) {
+	testCases := []struct {
+		name     string
+		max      time.Duration
+		first    time.Time
+		second   time.Time
+		expected bool
+	}{
+		{"ShouldReturnTrueWhenSecondIsAhead", time.Second, time.Now(), time.Now().Add(2 * time.Second), true},
+		{"ShouldReturnTrueWhenFirstIsAhead", time.Second, time.Now().Add(2 * time.Second), time.Now(), true},
+		{"ShouldReturnFalseWhenEqual", time.Second, time.Now(), time.Now(), false},
+		{"ShouldReturnFalseWhenWithinOffset", time.Second, time.Now(), time.Now().Add(500 * time.Millisecond), false},
 	}
 
-	expected := time.Unix(int64(float64(60)-ntpEpochOffset), 0)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, ntpIsOffsetTooLarge(tc.max, tc.first, tc.second))
+		})
+	}
+}
 
-	ntpTime := ntpPacketToTime(resp)
-	assert.Equal(t, expected, ntpTime)
+func TestNTPPacketToTime(t *testing.T) {
+	testCases := []struct {
+		name     string
+		packet   *ntpPacket
+		expected time.Time
+	}{
+		{
+			"ShouldConvertPacketWithZeroFraction",
+			&ntpPacket{TxTimeSeconds: 60, TxTimeFraction: 0},
+			time.Unix(int64(float64(60)-ntpEpochOffset), 0),
+		},
+		{
+			"ShouldConvertPacketWithNonZeroFraction",
+			&ntpPacket{TxTimeSeconds: 3900000000, TxTimeFraction: 2147483648},
+			time.Unix(int64(float64(3900000000)-ntpEpochOffset), (int64(2147483648)*1e9)>>32),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, ntpPacketToTime(tc.packet))
+		})
+	}
 }
 
 func TestLeapVersionClientMode(t *testing.T) {
-	v3Noleap := uint8(0xdb)
-	v4Noleap := uint8(0xe3)
+	testCases := []struct {
+		name     string
+		version  ntpVersion
+		expected uint8
+	}{
+		{"ShouldReturnV3NoLeap", ntpV3, 0xdb},
+		{"ShouldReturnV4NoLeap", ntpV4, 0xe3},
+	}
 
-	assert.Equal(t, v3Noleap, ntpLeapVersionClientMode(ntpV3))
-	assert.Equal(t, v4Noleap, ntpLeapVersionClientMode(ntpV4))
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, ntpLeapVersionClientMode(tc.version))
+		})
+	}
+}
+
+func TestCalcOffset(t *testing.T) {
+	now := time.Now()
+
+	testCases := []struct {
+		name     string
+		first    time.Time
+		second   time.Time
+		expected time.Duration
+	}{
+		{"ShouldReturnOffsetWhenFirstAfterSecond", now.Add(5 * time.Second), now, 5 * time.Second},
+		{"ShouldReturnOffsetWhenSecondAfterFirst", now, now.Add(3 * time.Second), 3 * time.Second},
+		{"ShouldReturnZeroWhenEqual", now, now, 0},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, calcOffset(tc.first, tc.second))
+		})
+	}
 }
