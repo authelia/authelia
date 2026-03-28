@@ -174,34 +174,34 @@ func TestRunCryptoHashGenerate(t *testing.T) {
 			}
 		})
 	}
-}
 
-func TestRunCryptoHashGenerateRandom(t *testing.T) {
-	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	flags.String(cmdFlagNamePassword, "", "")
-	flags.Bool(cmdFlagNameNoConfirm, true, "")
-	flags.Bool(cmdFlagNameRandom, true, "")
-	flags.String(cmdFlagNameRandomCharSet, cmdFlagValueCharSet, "")
-	flags.String(cmdFlagNameRandomCharacters, "", "")
-	flags.Int(cmdFlagNameRandomLength, 72, "")
+	t.Run("ShouldSucceedRandomPassword", func(t *testing.T) {
+		flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+		flags.String(cmdFlagNamePassword, "", "")
+		flags.Bool(cmdFlagNameNoConfirm, true, "")
+		flags.Bool(cmdFlagNameRandom, true, "")
+		flags.String(cmdFlagNameRandomCharSet, cmdFlagValueCharSet, "")
+		flags.String(cmdFlagNameRandomCharacters, "", "")
+		flags.Int(cmdFlagNameRandomLength, 72, "")
 
-	require.NoError(t, flags.Set(cmdFlagNameRandom, "true"))
+		require.NoError(t, flags.Set(cmdFlagNameRandom, "true"))
 
-	config := &schema.Configuration{
-		AuthenticationBackend: schema.AuthenticationBackend{
-			File: &schema.AuthenticationBackendFile{
-				Password: schema.DefaultPasswordConfig,
+		config := &schema.Configuration{
+			AuthenticationBackend: schema.AuthenticationBackend{
+				File: &schema.AuthenticationBackendFile{
+					Password: schema.DefaultPasswordConfig,
+				},
 			},
-		},
-	}
+		}
 
-	buf := new(bytes.Buffer)
+		buf := new(bytes.Buffer)
 
-	err := runCryptoHashGenerate(buf, flags, cmdUseGenerate, nil, config)
+		err := runCryptoHashGenerate(buf, flags, cmdUseGenerate, nil, config)
 
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Random Password:")
-	assert.Contains(t, buf.String(), "Digest:")
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Random Password:")
+		assert.Contains(t, buf.String(), "Digest:")
+	})
 }
 
 func TestCmdFlagsCryptoHashPasswordRandom(t *testing.T) {

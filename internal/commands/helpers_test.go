@@ -62,10 +62,10 @@ func TestContainsIdentifier(t *testing.T) {
 			assert.Equal(t, tc.expected, containsIdentifier(tc.identifier, identifiers))
 		})
 	}
-}
 
-func TestContainsIdentifierEmptySlice(t *testing.T) {
-	assert.False(t, containsIdentifier(model.UserOpaqueIdentifier{Service: "openid", SectorID: "example.com", Username: "john"}, nil))
+	t.Run("ShouldNotMatchEmptySlice", func(t *testing.T) {
+		assert.False(t, containsIdentifier(model.UserOpaqueIdentifier{Service: "openid", SectorID: "example.com", Username: "john"}, nil))
+	})
 }
 
 func TestStorageWrapCheckSchemaErr(t *testing.T) {

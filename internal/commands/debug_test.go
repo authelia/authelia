@@ -242,39 +242,70 @@ func TestDebugTLSRunE(t *testing.T) {
 			}
 		})
 	}
-}
 
-func TestDebugTLSRunENotTLS(t *testing.T) {
-	// Start a plain TCP server (no TLS).
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err)
+	t.Run("ShouldHandleNonTLSServer", func(t *testing.T) {
+		ln, err := net.Listen("tcp", "127.0.0.1:0")
+		require.NoError(t, err)
 
-	go func() {
-		for {
-			conn, err := ln.Accept()
-			if err != nil {
-				return
+		go func() {
+			for {
+				conn, err := ln.Accept()
+				if err != nil {
+					return
+				}
+
+				_, _ = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+
+				conn.Close()
 			}
+		}()
 
-			_, _ = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+		t.Cleanup(func() {
+			ln.Close()
+		})
 
-			conn.Close()
-		}
-	}()
+		flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+		flags.String("hostname", "", "")
 
-	t.Cleanup(func() {
-		ln.Close()
+		buf := new(bytes.Buffer)
+
+		err = runDebugTLS(buf, flags, nil, ln.Addr().String())
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Did not receive a TLS handshake")
 	})
 
-	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	flags.String("hostname", "", "")
+	t.Run("ShouldSucceedRunECmd", func(t *testing.T) {
+		addr, pool := newTestTLSServer(t)
 
-	buf := new(bytes.Buffer)
+		cmdCtx := NewCmdCtx()
+		cmdCtx.trusted = pool
 
-	err = runDebugTLS(buf, flags, nil, ln.Addr().String())
+		cmd, buf := newTestCmdWithBuf()
+		cmd.Flags().String("hostname", "", "")
 
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Did not receive a TLS handshake")
+		err := cmdCtx.DebugTLSRunE(cmd, []string{addr})
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "General Information:")
+		assert.Contains(t, buf.String(), "Certificate Information:")
+	})
+
+	t.Run("ShouldOutputSuggestedConfig", func(t *testing.T) {
+		addr, pool := newTestTLSServer(t)
+
+		flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+		flags.String("hostname", "", "")
+
+		buf := new(bytes.Buffer)
+
+		err := runDebugTLS(buf, flags, pool, addr)
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Suggested Configuration:")
+		assert.Contains(t, buf.String(), "tls:")
+		assert.Contains(t, buf.String(), "minimum_version:")
+	})
 }
 
 func TestDebugExpressionRunE(t *testing.T) {
@@ -349,6 +380,20 @@ func TestDebugExpressionRunE(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldSucceedRunECmd", func(t *testing.T) {
+		config := newTestFileAuthConfig(t)
+
+		cmdCtx := NewCmdCtx()
+		cmdCtx.config = config
+
+		cmd, buf := newTestCmdWithBuf()
+
+		err := cmdCtx.DebugExpressionRunE(cmd, []string{"john", "'admins'", "in", "groups"})
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Resolved: true")
+	})
 }
 
 func TestDebugOIDCClaimsRunE(t *testing.T) {
@@ -455,87 +500,40 @@ func TestDebugOIDCClaimsRunE(t *testing.T) {
 			}
 		})
 	}
-}
 
-func TestDebugOIDCClaimsRunECmd(t *testing.T) {
-	config := newTestFileAuthConfig(t)
+	t.Run("ShouldSucceedRunECmd", func(t *testing.T) {
+		config := newTestFileAuthConfig(t)
 
-	config.IdentityProviders.OIDC = &schema.IdentityProvidersOpenIDConnect{
-		Scopes: map[string]schema.IdentityProvidersOpenIDConnectScope{
-			oidc.ScopeOpenID: {},
-		},
-	}
+		config.IdentityProviders.OIDC = &schema.IdentityProvidersOpenIDConnect{
+			Scopes: map[string]schema.IdentityProvidersOpenIDConnectScope{
+				oidc.ScopeOpenID: {},
+			},
+		}
 
-	cmdCtx := NewCmdCtx()
-	cmdCtx.config = config
+		cmdCtx := NewCmdCtx()
+		cmdCtx.config = config
 
-	cmd, buf := newTestCmdWithBuf()
-	cmd.Flags().String("client-id", "example", "")
-	cmd.Flags().String("policy", "", "")
-	cmd.Flags().String("response-type", oidc.ResponseTypeAuthorizationCodeFlow, "")
-	cmd.Flags().String("grant-type", oidc.GrantTypeAuthorizationCode, "")
-	cmd.Flags().StringSlice("scopes", []string{oidc.ScopeOpenID}, "")
-	cmd.Flags().StringSlice("claims", nil, "")
+		cmd, buf := newTestCmdWithBuf()
+		cmd.Flags().String("client-id", "example", "")
+		cmd.Flags().String("policy", "", "")
+		cmd.Flags().String("response-type", oidc.ResponseTypeAuthorizationCodeFlow, "")
+		cmd.Flags().String("grant-type", oidc.GrantTypeAuthorizationCode, "")
+		cmd.Flags().StringSlice("scopes", []string{oidc.ScopeOpenID}, "")
+		cmd.Flags().StringSlice("claims", nil, "")
 
-	err := cmdCtx.DebugOIDCClaimsRunE(cmd, []string{"john"})
+		err := cmdCtx.DebugOIDCClaimsRunE(cmd, []string{"john"})
 
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Results:")
-}
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Results:")
+	})
 
-func TestDebugExpressionRunECmd(t *testing.T) {
-	config := newTestFileAuthConfig(t)
+	t.Run("ShouldReturnNilResolverFromContext", func(t *testing.T) {
+		ctx := &debugClaimsStrategyContext{
+			Context:  context.Background(),
+			resolver: nil,
+		}
 
-	cmdCtx := NewCmdCtx()
-	cmdCtx.config = config
-
-	cmd, buf := newTestCmdWithBuf()
-
-	err := cmdCtx.DebugExpressionRunE(cmd, []string{"john", "'admins'", "in", "groups"})
-
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Resolved: true")
-}
-
-func TestDebugTLSRunECmd(t *testing.T) {
-	addr, pool := newTestTLSServer(t)
-
-	cmdCtx := NewCmdCtx()
-	cmdCtx.trusted = pool
-
-	cmd, buf := newTestCmdWithBuf()
-	cmd.Flags().String("hostname", "", "")
-
-	err := cmdCtx.DebugTLSRunE(cmd, []string{addr})
-
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "General Information:")
-	assert.Contains(t, buf.String(), "Certificate Information:")
-}
-
-func TestDebugClaimsStrategyContext(t *testing.T) {
-	ctx := &debugClaimsStrategyContext{
-		Context:  context.Background(),
-		resolver: nil,
-	}
-
-	assert.Nil(t, ctx.GetProviderUserAttributeResolver())
-
-	assert.NotNil(t, ctx.Context)
-}
-
-func TestDebugTLSRunESuggestedConfig(t *testing.T) {
-	addr, pool := newTestTLSServer(t)
-
-	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	flags.String("hostname", "", "")
-
-	buf := new(bytes.Buffer)
-
-	err := runDebugTLS(buf, flags, pool, addr)
-
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Suggested Configuration:")
-	assert.Contains(t, buf.String(), "tls:")
-	assert.Contains(t, buf.String(), "minimum_version:")
+		assert.Nil(t, ctx.GetProviderUserAttributeResolver())
+		assert.NotNil(t, ctx.Context)
+	})
 }

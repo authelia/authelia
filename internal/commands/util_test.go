@@ -16,15 +16,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 )
 
-type TestX509SystemCertPoolFactory struct {
-	pool *x509.CertPool
-	err  error
-}
-
-func (f *TestX509SystemCertPoolFactory) SystemCertPool() (*x509.CertPool, error) {
-	return f.pool, f.err
-}
-
 func TestLoadXEnvCLIStringSliceValue(t *testing.T) {
 	testCases := []struct {
 		name                        string
@@ -432,6 +423,17 @@ func TestFlagsGetRandomCharacters(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrLengthWrongFlagType", func(t *testing.T) {
+		flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+		flags.String("length", "10", "")
+		flags.String("charset", "ascii", "")
+		flags.String("characters", "", "")
+
+		_, err := flagsGetRandomCharacters(flags, "length", "charset", "characters")
+
+		assert.ErrorContains(t, err, "trying to get int value of flag of type string")
+	})
 }
 
 func TestFlagParseFileMode(t *testing.T) {
@@ -494,6 +496,15 @@ func TestFlagParseFileMode(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrWrongFlagType", func(t *testing.T) {
+		flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+		flags.Bool("mode", false, "")
+
+		_, err := flagParseFileMode("mode", flags)
+
+		assert.ErrorContains(t, err, "trying to get string value of flag of type bool")
+	})
 }
 
 func TestTermReadPasswordWithPrompt(t *testing.T) {
@@ -527,24 +538,22 @@ func TestTermReadPasswordWithPrompt(t *testing.T) {
 			assert.EqualError(t, err, tc.err)
 		})
 	}
-}
 
-func TestGetTerminal(t *testing.T) {
-	// In a test environment, stdin is not a terminal.
-	terminal, fd, state, err := getTerminal("prompt> ")
+	t.Run("ShouldErrGetTerminalNotTerminal", func(t *testing.T) {
+		terminal, fd, state, err := getTerminal("prompt> ")
 
-	assert.Nil(t, terminal)
-	assert.Equal(t, -1, fd)
-	assert.Nil(t, state)
-	assert.ErrorIs(t, err, ErrStdinIsNotTerminal)
-}
+		assert.Nil(t, terminal)
+		assert.Equal(t, -1, fd)
+		assert.Nil(t, state)
+		assert.ErrorIs(t, err, ErrStdinIsNotTerminal)
+	})
 
-func TestTermReadConfirmation(t *testing.T) {
-	// In a test environment, stdin is not a terminal so getTerminal returns an error.
-	confirmed, err := termReadConfirmation("Confirm: ", "YES")
+	t.Run("ShouldErrTermReadConfirmationNotTerminal", func(t *testing.T) {
+		confirmed, err := termReadConfirmation("Confirm: ", "YES")
 
-	assert.False(t, confirmed)
-	assert.Error(t, err)
+		assert.False(t, confirmed)
+		assert.Error(t, err)
+	})
 }
 
 func TestExportYAMLWithJSONSchema(t *testing.T) {
@@ -737,45 +746,34 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldSucceedWithConfigFiles", func(t *testing.T) {
+		dir := t.TempDir()
+
+		configFile := filepath.Join(dir, "config.yml")
+
+		require.NoError(t, os.WriteFile(configFile, []byte("---\n"), 0600))
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, configFile))
+
+		configs, filters, err := loadXEnvCLIConfigValues(cmd)
+
+		assert.NoError(t, err)
+		assert.Len(t, configs, 1)
+		assert.Contains(t, configs[0], "config.yml")
+		assert.NotNil(t, filters)
+	})
 }
 
-func TestLoadXEnvCLIConfigValuesWithConfigFiles(t *testing.T) {
-	dir := t.TempDir()
-
-	configFile := filepath.Join(dir, "config.yml")
-
-	require.NoError(t, os.WriteFile(configFile, []byte("---\n"), 0600))
-
-	cmd := &cobra.Command{}
-	cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
-	cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
-
-	require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, configFile))
-
-	configs, filters, err := loadXEnvCLIConfigValues(cmd)
-
-	assert.NoError(t, err)
-	assert.Len(t, configs, 1)
-	assert.Contains(t, configs[0], "config.yml")
-	assert.NotNil(t, filters)
+type TestX509SystemCertPoolFactory struct {
+	pool *x509.CertPool
+	err  error
 }
 
-func TestFlagParseFileModeWrongType(t *testing.T) {
-	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	flags.Bool("mode", false, "")
-
-	_, err := flagParseFileMode("mode", flags)
-
-	assert.ErrorContains(t, err, "trying to get string value of flag of type bool")
-}
-
-func TestFlagsGetRandomCharactersLengthWrongType(t *testing.T) {
-	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	flags.String("length", "10", "")
-	flags.String("charset", "ascii", "")
-	flags.String("characters", "", "")
-
-	_, err := flagsGetRandomCharacters(flags, "length", "charset", "characters")
-
-	assert.ErrorContains(t, err, "trying to get int value of flag of type string")
+func (f *TestX509SystemCertPoolFactory) SystemCertPool() (*x509.CertPool, error) {
+	return f.pool, f.err
 }

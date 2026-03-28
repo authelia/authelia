@@ -1,11 +1,13 @@
 package validator
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -5028,6 +5030,43 @@ func TestShouldValidateOpenIDConnectClaimsPolicies(t *testing.T) {
 	}
 }
 
+func TestShouldValidateOpenIDConnectClaimsPoliciesDuplicateCustomClaimName(t *testing.T) {
+	config := &schema.Configuration{
+		AuthenticationBackend: schema.AuthenticationBackend{
+			File: &schema.AuthenticationBackendFile{
+				ExtraAttributes: map[string]schema.AuthenticationBackendExtraAttribute{
+					"my_claim": {ValueType: "string"},
+				},
+			},
+		},
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+					"example": {
+						CustomClaims: schema.IdentityProvidersOpenIDConnectCustomClaims{
+							"my_claim": {Attribute: "my_claim"},
+							"alias":    {Name: "my_claim", Attribute: "my_claim"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	val := schema.NewStructValidator()
+
+	validateOIDCClaims(config, val)
+
+	require.Len(t, val.Errors(), 1)
+
+	errStr := val.Errors()[0].Error()
+
+	assert.Contains(t, errStr, "claim with name 'my_claim' is mapped in both")
+	assert.Contains(t, errStr, "alias")
+	assert.Contains(t, errStr, "my_claim")
+	assert.Contains(t, errStr, "claim configurations")
+}
+
 func TestShouldValidateOpenIDConnectScopes(t *testing.T) {
 	testCases := []struct {
 		name    string
@@ -5138,6 +5177,179 @@ func TestShouldValidateOpenIDConnectScopes(t *testing.T) {
 
 			for i, err := range tc.errors {
 				assert.EqualError(t, errs[i], err)
+			}
+		})
+	}
+}
+
+func TestValidateOIDCClientSectorIdentifierURI(t *testing.T) {
+	testCases := []struct {
+		name          string
+		setup         func(t *testing.T) (*url.URL, *http.Client)
+		redirectURIs  []string
+		expectedErrs  int
+		expectedWarns int
+		errContains   []string
+	}{
+		{
+			"ShouldSucceedWhenRedirectURIsMatch",
+			func(t *testing.T) (*url.URL, *http.Client) {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					_ = json.NewEncoder(w).Encode([]string{"https://app.example.com/callback"})
+				}))
+
+				t.Cleanup(srv.Close)
+
+				sectorURI, err := url.Parse(srv.URL)
+				require.NoError(t, err)
+
+				sectorURI.Scheme = schemeHTTPS
+
+				return sectorURI, srv.Client()
+			},
+			[]string{"https://app.example.com/callback"},
+			0,
+			0,
+			nil,
+		},
+		{
+			"ShouldErrWhenRedirectURIsMismatch",
+			func(t *testing.T) (*url.URL, *http.Client) {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					_ = json.NewEncoder(w).Encode([]string{"https://other.example.com/callback"})
+				}))
+
+				t.Cleanup(srv.Close)
+
+				sectorURI, err := url.Parse(srv.URL)
+				require.NoError(t, err)
+
+				sectorURI.Scheme = schemeHTTPS
+
+				return sectorURI, srv.Client()
+			},
+			[]string{"https://app.example.com/callback"},
+			1,
+			0,
+			[]string{"sector_identifier_uri", "redirect_uri"},
+		},
+		{
+			"ShouldErrWhenServerReturnsInvalidJSON",
+			func(t *testing.T) (*url.URL, *http.Client) {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					_, _ = w.Write([]byte("not json"))
+				}))
+
+				t.Cleanup(srv.Close)
+
+				sectorURI, err := url.Parse(srv.URL)
+				require.NoError(t, err)
+
+				sectorURI.Scheme = schemeHTTPS
+
+				return sectorURI, srv.Client()
+			},
+			[]string{"https://app.example.com/callback"},
+			1,
+			0,
+			[]string{"sector_identifier_uri"},
+		},
+		{
+			"ShouldErrWhenServerUnreachable",
+			func(t *testing.T) (*url.URL, *http.Client) {
+				return &url.URL{Scheme: "https", Host: "127.0.0.1:1"}, &http.Client{
+					Transport: &http.Transport{TLSClientConfig: &tls.Config{RootCAs: x509.NewCertPool()}},
+					Timeout:   100 * time.Millisecond,
+				}
+			},
+			[]string{"https://app.example.com/callback"},
+			1,
+			0,
+			[]string{"sector_identifier_uri"},
+		},
+		{
+			"ShouldSkipWhenSectorIdentifierURINil",
+			func(t *testing.T) (*url.URL, *http.Client) {
+				return nil, nil
+			},
+			nil,
+			0,
+			0,
+			nil,
+		},
+		{
+			"ShouldErrWhenSchemeNotHTTPS",
+			func(t *testing.T) (*url.URL, *http.Client) {
+				return &url.URL{Scheme: "http", Host: "example.com", Path: "/sector"}, nil
+			},
+			nil,
+			1,
+			0,
+			[]string{"scheme"},
+		},
+		{
+			"ShouldSucceedWithMultipleRedirectURIs",
+			func(t *testing.T) (*url.URL, *http.Client) {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					_ = json.NewEncoder(w).Encode([]string{
+						"https://app.example.com/callback",
+						"https://app.example.com/callback2",
+					})
+				}))
+
+				t.Cleanup(srv.Close)
+
+				sectorURI, err := url.Parse(srv.URL)
+				require.NoError(t, err)
+
+				sectorURI.Scheme = "https"
+
+				return sectorURI, srv.Client()
+			},
+			[]string{"https://app.example.com/callback", "https://app.example.com/callback2"},
+			0,
+			0,
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			sectorURI, client := tc.setup(t)
+
+			config := &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "test-client",
+						SectorIdentifierURI: sectorURI,
+						RedirectURIs:        tc.redirectURIs,
+					},
+				},
+			}
+
+			val := schema.NewStructValidator()
+
+			ctx := &ValidateCtx{
+				Context:                   context.Background(),
+				client:                    client,
+				cacheSectorIdentifierURIs: map[string][]string{},
+			}
+
+			validateOIDCClientSectorIdentifier(ctx, 0, config, val, func() {})
+
+			assert.Len(t, val.Errors(), tc.expectedErrs)
+			assert.Len(t, val.Warnings(), tc.expectedWarns)
+
+			if len(tc.errContains) > 0 {
+				require.GreaterOrEqual(t, len(val.Errors()), 1)
+
+				for _, s := range tc.errContains {
+					assert.Contains(t, val.Errors()[0].Error(), s)
+				}
 			}
 		})
 	}

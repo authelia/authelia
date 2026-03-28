@@ -2,16 +2,23 @@ package schema
 
 import (
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
+	"math/big"
 	"os"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/authelia/jsonschema"
 	"github.com/go-crypt/crypt"
@@ -518,6 +525,368 @@ func TestJSONSchema(t *testing.T) {
 			assert.NotNil(t, tc.JSONSchema())
 		})
 	}
+}
+
+func TestDecodeAlgorithmDigest(t *testing.T) {
+	t.Run("ShouldDecodeArgon2id", func(t *testing.T) {
+		digest, err := DecodeAlgorithmDigest("$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
+
+		assert.NoError(t, err)
+		assert.NotNil(t, digest)
+	})
+
+	t.Run("ShouldDecodeBcrypt", func(t *testing.T) {
+		digest, err := DecodeAlgorithmDigest("$2b$12$WApznUPhDubN0oeveSXHp.Uka5bMCMzlTijNPCdUhEVqZBGBMkNKm")
+
+		assert.NoError(t, err)
+		assert.NotNil(t, digest)
+	})
+
+	t.Run("ShouldErrInvalidDigest", func(t *testing.T) {
+		digest, err := DecodeAlgorithmDigest("not-a-valid-digest")
+
+		assert.Error(t, err)
+		assert.Nil(t, digest)
+	})
+}
+
+func TestNewPasswordDigest(t *testing.T) {
+	t.Run("ShouldCreateFromAlgorithmDigest", func(t *testing.T) {
+		d, err := DecodeAlgorithmDigest("$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
+		require.NoError(t, err)
+
+		pd := NewPasswordDigest(d)
+
+		assert.NotNil(t, pd)
+		assert.True(t, pd.Valid())
+		assert.False(t, pd.IsPlainText())
+	})
+
+	t.Run("ShouldCreateFromNilDigest", func(t *testing.T) {
+		pd := NewPasswordDigest(nil)
+
+		assert.NotNil(t, pd)
+		assert.False(t, pd.Valid())
+	})
+}
+
+func TestRefreshIntervalDuration(t *testing.T) {
+	t.Run("ShouldCreateWithDuration", func(t *testing.T) {
+		d := NewRefreshIntervalDuration(5 * time.Minute)
+
+		assert.True(t, d.Valid())
+		assert.True(t, d.Update())
+		assert.False(t, d.Always())
+		assert.False(t, d.Never())
+		assert.Equal(t, 5*time.Minute, d.Value())
+	})
+
+	t.Run("ShouldCreateAlways", func(t *testing.T) {
+		d := NewRefreshIntervalDurationAlways()
+
+		assert.True(t, d.Valid())
+		assert.False(t, d.Update())
+		assert.True(t, d.Always())
+		assert.False(t, d.Never())
+		assert.Equal(t, time.Duration(0), d.Value())
+	})
+
+	t.Run("ShouldCreateNever", func(t *testing.T) {
+		d := NewRefreshIntervalDurationNever()
+
+		assert.True(t, d.Valid())
+		assert.False(t, d.Update())
+		assert.False(t, d.Always())
+		assert.True(t, d.Never())
+		assert.Equal(t, time.Duration(0), d.Value())
+	})
+
+	t.Run("ShouldBeInvalidWhenZeroValue", func(t *testing.T) {
+		var d RefreshIntervalDuration
+
+		assert.False(t, d.Valid())
+		assert.True(t, d.Update())
+		assert.False(t, d.Always())
+		assert.False(t, d.Never())
+		assert.Equal(t, time.Duration(0), d.Value())
+	})
+
+	t.Run("ShouldReturnJSONSchema", func(t *testing.T) {
+		var d RefreshIntervalDuration
+
+		s := d.JSONSchema()
+
+		assert.NotNil(t, s)
+		assert.Equal(t, "5 minutes", s.Default)
+		assert.Len(t, s.OneOf, 3)
+	})
+}
+
+func TestPasswordDigestValid(t *testing.T) {
+	t.Run("ShouldReturnFalseForNil", func(t *testing.T) {
+		var d *PasswordDigest
+
+		assert.False(t, d.Valid())
+	})
+
+	t.Run("ShouldReturnFalseForNilDigest", func(t *testing.T) {
+		d := &PasswordDigest{}
+
+		assert.False(t, d.Valid())
+	})
+
+	t.Run("ShouldReturnTrueForValidDigest", func(t *testing.T) {
+		d, err := DecodePasswordDigest("$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
+		require.NoError(t, err)
+
+		assert.True(t, d.Valid())
+	})
+}
+
+func TestPasswordDigestGetPlainTextValue(t *testing.T) {
+	t.Run("ShouldErrForNil", func(t *testing.T) {
+		var d *PasswordDigest
+
+		value, err := d.GetPlainTextValue()
+
+		assert.Nil(t, value)
+		assert.EqualError(t, err, "error: nil value")
+	})
+
+	t.Run("ShouldErrForNonPlainText", func(t *testing.T) {
+		d, err := DecodePasswordDigest("$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
+		require.NoError(t, err)
+
+		value, err := d.GetPlainTextValue()
+
+		assert.Nil(t, value)
+		assert.EqualError(t, err, "error: digest isn't plaintext")
+	})
+
+	t.Run("ShouldReturnValueForPlainText", func(t *testing.T) {
+		d, err := DecodePasswordDigest("$plaintext$example")
+		require.NoError(t, err)
+
+		value, err := d.GetPlainTextValue()
+
+		assert.NoError(t, err)
+		assert.Equal(t, []byte("example"), value)
+	})
+}
+
+func TestTLSVersionMarshalYAML(t *testing.T) {
+	t.Run("ShouldMarshalTLS13", func(t *testing.T) {
+		v := TLSVersion{Value: tls.VersionTLS13}
+
+		result, err := v.MarshalYAML()
+
+		assert.NoError(t, err)
+		assert.Equal(t, "TLS 1.3", result)
+	})
+
+	t.Run("ShouldMarshalTLS12", func(t *testing.T) {
+		v := TLSVersion{Value: tls.VersionTLS12}
+
+		result, err := v.MarshalYAML()
+
+		assert.NoError(t, err)
+		assert.Equal(t, "TLS 1.2", result)
+	})
+
+	t.Run("ShouldMarshalZeroValue", func(t *testing.T) {
+		v := TLSVersion{Value: 0}
+
+		result, err := v.MarshalYAML()
+
+		assert.NoError(t, err)
+		assert.Equal(t, "", result)
+	})
+}
+
+func TestX509CertificateChainEqualKeyECDSA(t *testing.T) {
+	ecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	template := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: "test"},
+		NotBefore:             time.Now().Add(-time.Hour),
+		NotAfter:              time.Now().Add(time.Hour),
+		BasicConstraintsValid: true,
+	}
+
+	certBytes, err := x509.CreateCertificate(rand.Reader, template, template, &ecKey.PublicKey, ecKey)
+	require.NoError(t, err)
+
+	cert, err := x509.ParseCertificate(certBytes)
+	require.NoError(t, err)
+
+	chain := NewX509CertificateChainFromCerts([]*x509.Certificate{cert})
+
+	otherKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	t.Run("ShouldMatchECDSAPublicKeyPointer", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(&ecKey.PublicKey))
+	})
+
+	t.Run("ShouldMatchECDSAPublicKeyValue", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(ecKey.PublicKey))
+	})
+
+	t.Run("ShouldMatchECDSAPrivateKeyPointer", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(ecKey))
+	})
+
+	t.Run("ShouldMatchECDSAPrivateKeyValue", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(*ecKey))
+	})
+
+	t.Run("ShouldNotMatchDifferentECDSAKey", func(t *testing.T) {
+		assert.False(t, chain.EqualKey(&otherKey.PublicKey))
+	})
+}
+
+func TestX509CertificateChainEqualKeyEd25519(t *testing.T) {
+	edPub, edPriv, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	template := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: "test"},
+		NotBefore:             time.Now().Add(-time.Hour),
+		NotAfter:              time.Now().Add(time.Hour),
+		BasicConstraintsValid: true,
+	}
+
+	certBytes, err := x509.CreateCertificate(rand.Reader, template, template, edPub, edPriv)
+	require.NoError(t, err)
+
+	cert, err := x509.ParseCertificate(certBytes)
+	require.NoError(t, err)
+
+	chain := NewX509CertificateChainFromCerts([]*x509.Certificate{cert})
+
+	otherPub, _, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	t.Run("ShouldMatchEd25519PublicKeyPointer", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(&edPub))
+	})
+
+	t.Run("ShouldMatchEd25519PublicKeyValue", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(edPub))
+	})
+
+	t.Run("ShouldMatchEd25519PrivateKeyPointer", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(&edPriv))
+	})
+
+	t.Run("ShouldMatchEd25519PrivateKeyValue", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(edPriv))
+	})
+
+	t.Run("ShouldNotMatchDifferentEd25519Key", func(t *testing.T) {
+		assert.False(t, chain.EqualKey(&otherPub))
+	})
+}
+
+func TestX509CertificateChainEqualKeyRSA(t *testing.T) {
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	template := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: "test"},
+		NotBefore:             time.Now().Add(-time.Hour),
+		NotAfter:              time.Now().Add(time.Hour),
+		BasicConstraintsValid: true,
+	}
+
+	certBytes, err := x509.CreateCertificate(rand.Reader, template, template, &rsaKey.PublicKey, rsaKey)
+	require.NoError(t, err)
+
+	cert, err := x509.ParseCertificate(certBytes)
+	require.NoError(t, err)
+
+	chain := NewX509CertificateChainFromCerts([]*x509.Certificate{cert})
+
+	otherKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	t.Run("ShouldMatchRSAPublicKeyPointer", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(&rsaKey.PublicKey))
+	})
+
+	t.Run("ShouldMatchRSAPublicKeyValue", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(rsaKey.PublicKey))
+	})
+
+	t.Run("ShouldMatchRSAPrivateKeyPointer", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(rsaKey))
+	})
+
+	t.Run("ShouldMatchRSAPrivateKeyValue", func(t *testing.T) {
+		assert.True(t, chain.EqualKey(*rsaKey))
+	})
+
+	t.Run("ShouldNotMatchDifferentRSAKey", func(t *testing.T) {
+		assert.False(t, chain.EqualKey(&otherKey.PublicKey))
+	})
+}
+
+func TestX509CertificateChainEqualKeyEdgeCases(t *testing.T) {
+	t.Run("ShouldReturnFalseForNil", func(t *testing.T) {
+		chain := NewX509CertificateChainFromCerts(nil)
+
+		assert.False(t, chain.EqualKey(&rsa.PublicKey{}))
+	})
+
+	t.Run("ShouldReturnFalseForNilKey", func(t *testing.T) {
+		ecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		require.NoError(t, err)
+
+		template := &x509.Certificate{
+			SerialNumber:          big.NewInt(1),
+			Subject:               pkix.Name{CommonName: "test"},
+			NotBefore:             time.Now().Add(-time.Hour),
+			NotAfter:              time.Now().Add(time.Hour),
+			BasicConstraintsValid: true,
+		}
+
+		certBytes, err := x509.CreateCertificate(rand.Reader, template, template, &ecKey.PublicKey, ecKey)
+		require.NoError(t, err)
+
+		cert, err := x509.ParseCertificate(certBytes)
+		require.NoError(t, err)
+
+		chain := NewX509CertificateChainFromCerts([]*x509.Certificate{cert})
+
+		assert.False(t, chain.EqualKey(nil))
+	})
+
+	t.Run("ShouldReturnFalseForUnknownType", func(t *testing.T) {
+		ecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		require.NoError(t, err)
+
+		template := &x509.Certificate{
+			SerialNumber:          big.NewInt(1),
+			Subject:               pkix.Name{CommonName: "test"},
+			NotBefore:             time.Now().Add(-time.Hour),
+			NotAfter:              time.Now().Add(time.Hour),
+			BasicConstraintsValid: true,
+		}
+
+		certBytes, err := x509.CreateCertificate(rand.Reader, template, template, &ecKey.PublicKey, ecKey)
+		require.NoError(t, err)
+
+		cert, err := x509.ParseCertificate(certBytes)
+		require.NoError(t, err)
+
+		chain := NewX509CertificateChainFromCerts([]*x509.Certificate{cert})
+
+		assert.False(t, chain.EqualKey("not a key"))
+	})
 }
 
 func MustParseX509CertificateChain(data string) *X509CertificateChain {

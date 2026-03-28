@@ -44,6 +44,10 @@ const (
 	hashBcrypt    = "bcrypt"
 )
 
+const (
+	hashVariantYesCrypt = "yescrypt"
+)
+
 // Scheme constants.
 const (
 	schemeHTTP  = "http"

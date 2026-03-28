@@ -74,6 +74,17 @@ func TestRunBuildInfo(t *testing.T) {
 			buf.Reset()
 		})
 	}
+
+	t.Run("ShouldErrVerboseFlagWrongType", func(t *testing.T) {
+		flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+		flags.String("verbose", "notabool", "")
+
+		buf := new(bytes.Buffer)
+
+		err := runBuildInfo(buf, flags)
+
+		assert.ErrorContains(t, err, "trying to get bool value of flag of type string")
+	})
 }
 
 func TestRunBuildInfoOutput(t *testing.T) {
@@ -184,15 +195,4 @@ func TestBuildInfoRunE(t *testing.T) {
 		assert.Contains(t, buf.String(), "Last Tag:")
 		assert.Contains(t, buf.String(), "Go:")
 	})
-}
-
-func TestRunBuildInfoVerboseFlagError(t *testing.T) {
-	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	flags.String("verbose", "notabool", "")
-
-	buf := new(bytes.Buffer)
-
-	err := runBuildInfo(buf, flags)
-
-	assert.ErrorContains(t, err, "trying to get bool value of flag of type string")
 }
