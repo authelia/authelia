@@ -31,7 +31,7 @@
       "picomatch@>=4.0.0 <4.0.4": "4.0.4",
       "qs": "6.15.0",
       "semver": "7.7.4",
-      "vite": "8.0.2",
+      "vite": "8.0.3",
       "yaml@>=1.0.0 <1.10.3": "1.10.3"
     },
     "peerDependencyRules": {
@@ -136,7 +136,7 @@
     "lefthook": "2.1.4",
     "prettier": "3.8.1",
     "typescript": "6.0.2",
-    "vite": "8.0.2",
+    "vite": "8.0.3",
     "vite-plugin-checker": "0.12.0",
     "vite-plugin-istanbul": "8.0.0",
     "vite-plugin-svgr": "4.5.0",
