@@ -659,3 +659,213 @@ func (s *StoreSuite) TestMarkJWTUsedForTime() {
 	s.NoError(s.store.MarkJWTUsedForTime(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202", time.Unix(160000000, 0)))
 	s.EqualError(s.store.MarkJWTUsedForTime(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201", time.Unix(160000000, 0)), "already marked")
 }
+
+func (s *StoreSuite) TestCreateDeviceCodeSession() {
+	challenge := model.MustNullUUID(model.NewRandomNullUUID())
+	session := &oidc.Session{ChallengeID: challenge}
+
+	s.T().Run("ShouldSucceed", func(t *testing.T) {
+		s.mock.EXPECT().SaveOAuth2DeviceCodeSession(s.ctx, gomock.Any()).Return(nil)
+
+		err := s.store.CreateDeviceCodeSession(s.ctx, abc, &oauthelia2.DeviceAuthorizeRequest{
+			Request: oauthelia2.Request{
+				ID:      abc,
+				Client:  &oidc.RegisteredClient{ID: "example"},
+				Session: session,
+			},
+		})
+
+		assert.NoError(t, err)
+	})
+
+	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
+		s.mock.EXPECT().SaveOAuth2DeviceCodeSession(s.ctx, gomock.Any()).Return(fmt.Errorf("storage error"))
+
+		err := s.store.CreateDeviceCodeSession(s.ctx, abc, &oauthelia2.DeviceAuthorizeRequest{
+			Request: oauthelia2.Request{
+				ID:      abc,
+				Client:  &oidc.RegisteredClient{ID: "example"},
+				Session: session,
+			},
+		})
+
+		assert.EqualError(t, err, "storage error")
+	})
+
+	s.T().Run("ShouldErrOnNilSession", func(t *testing.T) {
+		err := s.store.CreateDeviceCodeSession(s.ctx, abc, &oauthelia2.DeviceAuthorizeRequest{
+			Request: oauthelia2.Request{
+				ID:      abc,
+				Client:  &oidc.RegisteredClient{ID: "example"},
+				Session: nil,
+			},
+		})
+
+		assert.Error(t, err)
+	})
+}
+
+func (s *StoreSuite) TestUpdateDeviceCodeSession() {
+	challenge := model.MustNullUUID(model.NewRandomNullUUID())
+	session := &oidc.Session{ChallengeID: challenge}
+
+	s.T().Run("ShouldSucceed", func(t *testing.T) {
+		s.mock.EXPECT().UpdateOAuth2DeviceCodeSessionData(s.ctx, gomock.Any()).Return(nil)
+
+		err := s.store.UpdateDeviceCodeSession(s.ctx, abc, &oauthelia2.DeviceAuthorizeRequest{
+			Request: oauthelia2.Request{
+				ID:      abc,
+				Client:  &oidc.RegisteredClient{ID: "example"},
+				Session: session,
+			},
+		})
+
+		assert.NoError(t, err)
+	})
+
+	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
+		s.mock.EXPECT().UpdateOAuth2DeviceCodeSessionData(s.ctx, gomock.Any()).Return(fmt.Errorf("update error"))
+
+		err := s.store.UpdateDeviceCodeSession(s.ctx, abc, &oauthelia2.DeviceAuthorizeRequest{
+			Request: oauthelia2.Request{
+				ID:      abc,
+				Client:  &oidc.RegisteredClient{ID: "example"},
+				Session: session,
+			},
+		})
+
+		assert.EqualError(t, err, "update error")
+	})
+}
+
+func (s *StoreSuite) TestGetDeviceCodeSession() {
+	challenge := model.MustNullUUID(model.NewRandomNullUUID())
+	session := &oidc.Session{ChallengeID: challenge}
+	sessionData, _ := json.Marshal(session)
+
+	s.T().Run("ShouldSucceedWithActiveSession", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSession(s.ctx, abc).Return(&model.OAuth2DeviceCodeSession{
+			Active:    true,
+			Signature: abc,
+			RequestID: abc,
+			ClientID:  "hs256",
+			Session:   sessionData,
+		}, nil)
+
+		request, err := s.store.GetDeviceCodeSession(s.ctx, abc, session)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, request)
+	})
+
+	s.T().Run("ShouldErrWhenInactive", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSession(s.ctx, abc).Return(&model.OAuth2DeviceCodeSession{
+			Active:    false,
+			Signature: abc,
+		}, nil)
+
+		request, err := s.store.GetDeviceCodeSession(s.ctx, abc, session)
+
+		assert.Error(t, err)
+		assert.Nil(t, request)
+	})
+
+	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSession(s.ctx, abc).Return(nil, fmt.Errorf("load error"))
+
+		request, err := s.store.GetDeviceCodeSession(s.ctx, abc, session)
+
+		assert.EqualError(t, err, "load error")
+		assert.Nil(t, request)
+	})
+
+	s.T().Run("ShouldCreateDefaultSessionWhenNil", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSession(s.ctx, abc).Return(&model.OAuth2DeviceCodeSession{
+			Active:    true,
+			Signature: abc,
+			RequestID: abc,
+			ClientID:  "hs256",
+			Session:   sessionData,
+		}, nil)
+
+		request, err := s.store.GetDeviceCodeSession(s.ctx, abc, nil)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, request)
+	})
+}
+
+func (s *StoreSuite) TestInvalidateDeviceCodeSession() {
+	s.T().Run("ShouldSucceed", func(t *testing.T) {
+		s.mock.EXPECT().DeactivateOAuth2DeviceCodeSession(s.ctx, abc).Return(nil)
+
+		err := s.store.InvalidateDeviceCodeSession(s.ctx, abc)
+
+		assert.NoError(t, err)
+	})
+
+	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
+		s.mock.EXPECT().DeactivateOAuth2DeviceCodeSession(s.ctx, abc).Return(fmt.Errorf("deactivate error"))
+
+		err := s.store.InvalidateDeviceCodeSession(s.ctx, abc)
+
+		assert.EqualError(t, err, "deactivate error")
+	})
+}
+
+func (s *StoreSuite) TestGetDeviceCodeSessionByUserCode() {
+	challenge := model.MustNullUUID(model.NewRandomNullUUID())
+	session := &oidc.Session{ChallengeID: challenge}
+	sessionData, _ := json.Marshal(session)
+
+	s.T().Run("ShouldSucceedWithActiveSession", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSessionByUserCode(s.ctx, "user-code-123").Return(&model.OAuth2DeviceCodeSession{
+			Active:    true,
+			Signature: abc,
+			RequestID: abc,
+			ClientID:  "hs256",
+			Session:   sessionData,
+		}, nil)
+
+		request, err := s.store.GetDeviceCodeSessionByUserCode(s.ctx, "user-code-123", session)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, request)
+	})
+
+	s.T().Run("ShouldErrWhenInactive", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSessionByUserCode(s.ctx, "user-code-123").Return(&model.OAuth2DeviceCodeSession{
+			Active:    false,
+			Signature: abc,
+		}, nil)
+
+		request, err := s.store.GetDeviceCodeSessionByUserCode(s.ctx, "user-code-123", session)
+
+		assert.Error(t, err)
+		assert.Nil(t, request)
+	})
+
+	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSessionByUserCode(s.ctx, "user-code-123").Return(nil, fmt.Errorf("load error"))
+
+		request, err := s.store.GetDeviceCodeSessionByUserCode(s.ctx, "user-code-123", session)
+
+		assert.EqualError(t, err, "load error")
+		assert.Nil(t, request)
+	})
+
+	s.T().Run("ShouldCreateDefaultSessionWhenNil", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DeviceCodeSessionByUserCode(s.ctx, "user-code-123").Return(&model.OAuth2DeviceCodeSession{
+			Active:    true,
+			Signature: abc,
+			RequestID: abc,
+			ClientID:  "hs256",
+			Session:   sessionData,
+		}, nil)
+
+		request, err := s.store.GetDeviceCodeSessionByUserCode(s.ctx, "user-code-123", nil)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, request)
+	})
+}

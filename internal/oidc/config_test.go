@@ -385,3 +385,44 @@ func TestMisc(t *testing.T) {
 
 	assert.Equal(t, "https://example.com/issuer/consent/openid/device-authorization", config.GetRFC8628UserVerificationURL(tctx))
 }
+
+func TestConfig_GetAuthorizeErrorFieldResponseStrategy(t *testing.T) {
+	testCases := []struct {
+		name      string
+		setup     func() *oidc.Config
+		callTwice bool
+	}{
+		{
+			"ShouldLazilyInitializeStrategy",
+			func() *oidc.Config {
+				return &oidc.Config{}
+			},
+			false,
+		},
+		{
+			"ShouldReturnSameStrategyOnSecondCall",
+			func() *oidc.Config {
+				return &oidc.Config{}
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := tc.setup()
+
+			ctx := context.Background()
+
+			strategy := config.GetAuthorizeErrorFieldResponseStrategy(ctx)
+
+			assert.NotNil(t, strategy)
+
+			if tc.callTwice {
+				strategy2 := config.GetAuthorizeErrorFieldResponseStrategy(ctx)
+
+				assert.Equal(t, strategy, strategy2)
+			}
+		})
+	}
+}

@@ -38,34 +38,34 @@ func IsPushedAuthorizedRequestForm(form url.Values, prefix string) (is bool) {
 // Sorting occurs in the order of from within the RFC's.
 type SortedSigningAlgs []string
 
-func (algs SortedSigningAlgs) Len() int {
-	return len(algs)
+func (s SortedSigningAlgs) Len() int {
+	return len(s)
 }
 
-func (algs SortedSigningAlgs) Less(i, j int) bool {
-	return isSigningAlgLess(algs[i], algs[j])
+func (s SortedSigningAlgs) Less(i, j int) bool {
+	return isSigningAlgLess(s[i], s[j])
 }
 
-func (algs SortedSigningAlgs) Swap(i, j int) {
-	algs[i], algs[j] = algs[j], algs[i]
+func (s SortedSigningAlgs) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
 
 type SortedJSONWebKey []jose.JSONWebKey
 
-func (jwks SortedJSONWebKey) Len() int {
-	return len(jwks)
+func (s SortedJSONWebKey) Len() int {
+	return len(s)
 }
 
-func (jwks SortedJSONWebKey) Less(i, j int) bool {
-	if jwks[i].Algorithm == jwks[j].Algorithm {
-		return jwks[i].KeyID < jwks[j].KeyID
+func (s SortedJSONWebKey) Less(i, j int) bool {
+	if s[i].Algorithm == s[j].Algorithm {
+		return s[i].KeyID < s[j].KeyID
 	}
 
-	return isSigningAlgLess(jwks[i].Algorithm, jwks[j].Algorithm)
+	return isSigningAlgLess(s[i].Algorithm, s[j].Algorithm)
 }
 
-func (jwks SortedJSONWebKey) Swap(i, j int) {
-	jwks[i], jwks[j] = jwks[j], jwks[i]
+func (s SortedJSONWebKey) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
 
 //nolint:gocyclo // Low importance func.
