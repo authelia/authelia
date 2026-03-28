@@ -11,6 +11,133 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+func TestNewMetricsRequest(t *testing.T) {
+	testCases := []struct {
+		name       string
+		method     string
+		statusCode int
+	}{
+		{"ShouldRecordGET200", fasthttp.MethodGet, fasthttp.StatusOK},
+		{"ShouldRecordPOST401", fasthttp.MethodPost, fasthttp.StatusUnauthorized},
+		{"ShouldRecordDELETE404", fasthttp.MethodDelete, fasthttp.StatusNotFound},
+		{"ShouldRecordPUT500", fasthttp.MethodPut, fasthttp.StatusInternalServerError},
+	}
+
+	t.Run("ShouldReturnNilWhenRecorderNil", func(t *testing.T) {
+		assert.Nil(t, NewMetricsRequest(nil))
+	})
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			recorder := &mockMetricsRecorder{}
+
+			middleware := NewMetricsRequest(recorder)
+
+			require.NotNil(t, middleware)
+
+			nextCalled := false
+
+			handler := middleware(func(ctx *fasthttp.RequestCtx) {
+				nextCalled = true
+
+				ctx.Response.SetStatusCode(tc.statusCode)
+			})
+
+			ctx := newRequestCtx(tc.method, 0)
+			handler(ctx)
+
+			assert.True(t, nextCalled)
+			require.Len(t, recorder.requestCalls, 1)
+			assert.Equal(t, strconv.Itoa(tc.statusCode), recorder.requestCalls[0].statusCode)
+			assert.Equal(t, tc.method, recorder.requestCalls[0].requestMethod)
+			assert.True(t, recorder.requestCalls[0].elapsed >= 0)
+		})
+	}
+}
+
+func TestNewMetricsRequestOpenIDConnect(t *testing.T) {
+	testCases := []struct {
+		name             string
+		endpoint         string
+		statusCode       int
+		expectedEndpoint string
+	}{
+		{"ShouldRecordTokenEndpoint", "token", fasthttp.StatusOK, "token"},
+		{"ShouldRecordWithHyphenReplacement", "pushed-authorization-request", fasthttp.StatusOK, "pushed_authorization_request"},
+		{"ShouldRecordUserinfoEndpoint", "userinfo", fasthttp.StatusForbidden, "userinfo"},
+	}
+
+	t.Run("ShouldReturnNilWhenRecorderNil", func(t *testing.T) {
+		assert.Nil(t, NewMetricsRequestOpenIDConnect(nil, "token"))
+	})
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			recorder := &mockMetricsRecorder{}
+
+			middleware := NewMetricsRequestOpenIDConnect(recorder, tc.endpoint)
+
+			require.NotNil(t, middleware)
+
+			nextCalled := false
+
+			handler := middleware(func(ctx *fasthttp.RequestCtx) {
+				nextCalled = true
+
+				ctx.Response.SetStatusCode(tc.statusCode)
+			})
+
+			ctx := newRequestCtx(fasthttp.MethodPost, 0)
+			handler(ctx)
+
+			assert.True(t, nextCalled)
+			require.Len(t, recorder.oidcCalls, 1)
+			assert.Equal(t, tc.expectedEndpoint, recorder.oidcCalls[0].endpoint)
+			assert.True(t, recorder.oidcCalls[0].elapsed >= 0)
+		})
+	}
+}
+
+func TestNewMetricsAuthzRequest(t *testing.T) {
+	testCases := []struct {
+		name       string
+		statusCode int
+	}{
+		{"ShouldRecordAuthz200", fasthttp.StatusOK},
+		{"ShouldRecordAuthz401", fasthttp.StatusUnauthorized},
+		{"ShouldRecordAuthz403", fasthttp.StatusForbidden},
+	}
+
+	t.Run("ShouldReturnNilWhenRecorderNil", func(t *testing.T) {
+		assert.Nil(t, NewMetricsAuthzRequest(nil))
+	})
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			recorder := &mockMetricsRecorder{}
+
+			middleware := NewMetricsAuthzRequest(recorder)
+
+			require.NotNil(t, middleware)
+
+			nextCalled := false
+
+			handler := middleware(func(ctx *fasthttp.RequestCtx) {
+				nextCalled = true
+
+				ctx.Response.SetStatusCode(tc.statusCode)
+			})
+
+			ctx := newRequestCtx(fasthttp.MethodGet, 0)
+			handler(ctx)
+
+			assert.True(t, nextCalled)
+			require.Len(t, recorder.authzCalls, 1)
+			assert.Equal(t, strconv.Itoa(tc.statusCode), recorder.authzCalls[0].statusCode)
+		})
+	}
+}
+
 type mockMetricsRecorder struct {
 	requestCalls []mockMetricsRequestCall
 	oidcCalls    []mockMetricsOIDCCall
@@ -55,210 +182,17 @@ func (m *mockMetricsRecorder) RecordAuthenticationDuration(success bool, elapsed
 	m.authDurCalls = append(m.authDurCalls, mockMetricsAuthDurCall{success, elapsed})
 }
 
-func newFasthttpRequestCtx(method string, statusCode int) *fasthttp.RequestCtx {
+func newRequestCtx(method string, statusCode int) *fasthttp.RequestCtx {
 	var (
 		ctx fasthttp.RequestCtx
 		req fasthttp.Request
 	)
 
 	req.Header.SetMethod(method)
+
 	ctx.Init(&req, &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8080}, nil)
+
 	ctx.Response.SetStatusCode(statusCode)
 
 	return &ctx
-}
-
-func TestNewMetricsRequestNil(t *testing.T) {
-	assert.Nil(t, NewMetricsRequest(nil))
-}
-
-func TestNewMetricsRequest(t *testing.T) {
-	testCases := []struct {
-		name       string
-		method     string
-		statusCode int
-	}{
-		{"ShouldRecordGET200", fasthttp.MethodGet, fasthttp.StatusOK},
-		{"ShouldRecordPOST401", fasthttp.MethodPost, fasthttp.StatusUnauthorized},
-		{"ShouldRecordDELETE404", fasthttp.MethodDelete, fasthttp.StatusNotFound},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			recorder := &mockMetricsRecorder{}
-
-			middleware := NewMetricsRequest(recorder)
-
-			require.NotNil(t, middleware)
-
-			next := func(ctx *fasthttp.RequestCtx) {
-				ctx.Response.SetStatusCode(tc.statusCode)
-			}
-
-			handler := middleware(next)
-
-			ctx := newFasthttpRequestCtx(tc.method, 0)
-			handler(ctx)
-
-			require.Len(t, recorder.requestCalls, 1)
-			assert.Equal(t, tc.method, recorder.requestCalls[0].requestMethod)
-			assert.True(t, recorder.requestCalls[0].elapsed >= 0)
-		})
-	}
-}
-
-func TestNewMetricsRequestOpenIDConnectNil(t *testing.T) {
-	assert.Nil(t, NewMetricsRequestOpenIDConnect(nil, "token"))
-}
-
-func TestNewMetricsRequestOpenIDConnect(t *testing.T) {
-	testCases := []struct {
-		name             string
-		endpoint         string
-		statusCode       int
-		expectedEndpoint string
-	}{
-		{"ShouldRecordTokenEndpoint", "token", fasthttp.StatusOK, "token"},
-		{"ShouldRecordWithHyphenReplacement", "pushed-authorization-request", fasthttp.StatusOK, "pushed_authorization_request"},
-		{"ShouldRecordUserinfoEndpoint", "userinfo", fasthttp.StatusForbidden, "userinfo"},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			recorder := &mockMetricsRecorder{}
-
-			middleware := NewMetricsRequestOpenIDConnect(recorder, tc.endpoint)
-
-			require.NotNil(t, middleware)
-
-			next := func(ctx *fasthttp.RequestCtx) {
-				ctx.Response.SetStatusCode(tc.statusCode)
-			}
-
-			handler := middleware(next)
-
-			ctx := newFasthttpRequestCtx(fasthttp.MethodPost, 0)
-			handler(ctx)
-
-			require.Len(t, recorder.oidcCalls, 1)
-			assert.Equal(t, tc.expectedEndpoint, recorder.oidcCalls[0].endpoint)
-			assert.True(t, recorder.oidcCalls[0].elapsed >= 0)
-		})
-	}
-}
-
-func TestNewMetricsAuthzRequestNil(t *testing.T) {
-	assert.Nil(t, NewMetricsAuthzRequest(nil))
-}
-
-func TestNewMetricsAuthzRequest(t *testing.T) {
-	testCases := []struct {
-		name       string
-		statusCode int
-	}{
-		{"ShouldRecordAuthz200", fasthttp.StatusOK},
-		{"ShouldRecordAuthz401", fasthttp.StatusUnauthorized},
-		{"ShouldRecordAuthz403", fasthttp.StatusForbidden},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			recorder := &mockMetricsRecorder{}
-
-			middleware := NewMetricsAuthzRequest(recorder)
-
-			require.NotNil(t, middleware)
-
-			next := func(ctx *fasthttp.RequestCtx) {
-				ctx.Response.SetStatusCode(tc.statusCode)
-			}
-
-			handler := middleware(next)
-
-			ctx := newFasthttpRequestCtx(fasthttp.MethodGet, 0)
-			handler(ctx)
-
-			require.Len(t, recorder.authzCalls, 1)
-			assert.Equal(t, strconv.Itoa(tc.statusCode), recorder.authzCalls[0].statusCode)
-		})
-	}
-}
-
-func TestNewMetricsRequestCallsNext(t *testing.T) {
-	recorder := &mockMetricsRecorder{}
-
-	nextCalled := false
-
-	middleware := NewMetricsRequest(recorder)
-
-	require.NotNil(t, middleware)
-
-	handler := middleware(func(ctx *fasthttp.RequestCtx) {
-		nextCalled = true
-		ctx.Response.SetStatusCode(fasthttp.StatusOK)
-	})
-
-	ctx := newFasthttpRequestCtx(fasthttp.MethodGet, 0)
-	handler(ctx)
-
-	assert.True(t, nextCalled)
-}
-
-func TestNewMetricsAuthzRequestCallsNext(t *testing.T) {
-	recorder := &mockMetricsRecorder{}
-
-	nextCalled := false
-
-	middleware := NewMetricsAuthzRequest(recorder)
-
-	require.NotNil(t, middleware)
-
-	handler := middleware(func(ctx *fasthttp.RequestCtx) {
-		nextCalled = true
-		ctx.Response.SetStatusCode(fasthttp.StatusOK)
-	})
-
-	ctx := newFasthttpRequestCtx(fasthttp.MethodGet, 0)
-	handler(ctx)
-
-	assert.True(t, nextCalled)
-}
-
-func TestNewMetricsRequestOpenIDConnectCallsNext(t *testing.T) {
-	recorder := &mockMetricsRecorder{}
-
-	nextCalled := false
-
-	middleware := NewMetricsRequestOpenIDConnect(recorder, "token")
-
-	require.NotNil(t, middleware)
-
-	handler := middleware(func(ctx *fasthttp.RequestCtx) {
-		nextCalled = true
-		ctx.Response.SetStatusCode(fasthttp.StatusOK)
-	})
-
-	ctx := newFasthttpRequestCtx(fasthttp.MethodPost, 0)
-	handler(ctx)
-
-	assert.True(t, nextCalled)
-}
-
-func TestNewMetricsRequestStatusCodeRecording(t *testing.T) {
-	recorder := &mockMetricsRecorder{}
-
-	middleware := NewMetricsRequest(recorder)
-
-	require.NotNil(t, middleware)
-
-	handler := middleware(func(ctx *fasthttp.RequestCtx) {
-		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
-	})
-
-	ctx := newFasthttpRequestCtx(fasthttp.MethodPut, 0)
-	handler(ctx)
-
-	require.Len(t, recorder.requestCalls, 1)
-	assert.Equal(t, "500", recorder.requestCalls[0].statusCode)
-	assert.Equal(t, fasthttp.MethodPut, recorder.requestCalls[0].requestMethod)
 }

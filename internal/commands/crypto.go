@@ -267,9 +267,9 @@ func (ctx *CmdCtx) CryptoRandRunE(cmd *cobra.Command, args []string) (err error)
 
 	if len(files) == 0 {
 		return runCryptoRandPrint(cmd.OutOrStdout(), cmd.Flags())
-	} else {
-		return runCryptoRandFiles(cmd.OutOrStdout(), cmd.Flags(), files)
 	}
+
+	return runCryptoRandFiles(cmd.OutOrStdout(), cmd.Flags(), files)
 }
 
 func runCryptoRandPrint(w io.Writer, flags *pflag.FlagSet) (err error) {
@@ -333,6 +333,8 @@ func runCryptoRandFiles(w io.Writer, flags *pflag.FlagSet, files []string) (err 
 		}
 
 		if _, err = file.WriteString(values[i]); err != nil {
+			_ = file.Close()
+
 			return err
 		}
 
@@ -632,6 +634,7 @@ func (ctx *CmdCtx) CryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privat
 	return runCryptoPairGenerate(cmd.OutOrStdout(), legacy, privateKey, dir, privateKeyPath, privateKeyLegacyPath, publicKeyPath, publicKeyLegacyPath, extLegacy)
 }
 
+//nolint:unparam
 func runCryptoPairGenerate(w io.Writer, legacy bool, privateKey any, dir, privateKeyPath, privateKeyLegacyPath, publicKeyPath, publicKeyLegacyPath, extLegacy string) (err error) {
 	buf := bytes.NewBuffer(nil)
 

@@ -111,137 +111,6 @@ func TestCmdCtx_StorageBansList(t *testing.T) {
 	assert.Equal(t, "No results.\n", buf.String())
 }
 
-// newTestSQLiteStore creates a new SQLite storage provider without an encryption key.
-func newTestSQLiteStore(t *testing.T) storage.Provider {
-	t.Helper()
-
-	dir := t.TempDir()
-
-	config := &schema.Configuration{
-		Storage: schema.Storage{
-			Local: &schema.StorageLocal{
-				Path: filepath.Join(dir, "db.sqlite3"),
-			},
-		},
-	}
-
-	store := storage.NewProvider(config, nil)
-
-	require.NoError(t, store.StartupCheck())
-
-	return store
-}
-
-// newTestSQLiteStoreWithEncryptionKey creates a new SQLite storage provider with an encryption key
-// so that CheckSchema passes.
-func newTestSQLiteStoreWithEncryptionKey(t *testing.T) storage.Provider {
-	t.Helper()
-
-	dir := t.TempDir()
-
-	config := &schema.Configuration{
-		Storage: schema.Storage{
-			//gitleaks:allow // This is not an actual secret.
-			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
-			Local: &schema.StorageLocal{
-				Path: filepath.Join(dir, "db.sqlite3"),
-			},
-		},
-	}
-
-	store := storage.NewProvider(config, nil)
-
-	require.NoError(t, store.StartupCheck())
-
-	return store
-}
-
-// newTestCmdCtx creates a CmdCtx with a working SQLite store and encryption key that passes
-// CheckSchema.
-func newTestCmdCtx(t *testing.T) *CmdCtx {
-	t.Helper()
-
-	dir := t.TempDir()
-
-	ctx := NewCmdCtx()
-
-	ctx.config.Storage = schema.Storage{
-		//gitleaks:allow // This is not an actual secret.
-		EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
-		Local: &schema.StorageLocal{
-			Path: filepath.Join(dir, "db.sqlite3"),
-		},
-	}
-
-	ctx.config.TOTP = schema.DefaultTOTPConfiguration
-
-	ctx.providers.StorageProvider = storage.NewProvider(ctx.config, nil)
-
-	require.NoError(t, ctx.providers.StorageProvider.StartupCheck())
-
-	return ctx
-}
-
-// newTestCmdWithBuf creates a cobra.Command with a buffer as stdout and returns both.
-func newTestCmdWithBuf() (*cobra.Command, *bytes.Buffer) {
-	buf := new(bytes.Buffer)
-
-	cmd := &cobra.Command{
-		Use: "test",
-	}
-
-	cmd.SetOut(buf)
-
-	return cmd, buf
-}
-
-// seedTOTPConfig saves a TOTP configuration for the given user into the store.
-func seedTOTPConfig(t *testing.T, ctx context.Context, store storage.Provider, username string) {
-	t.Helper()
-
-	require.NoError(t, store.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
-		CreatedAt: time.Now(),
-		Username:  username,
-		Issuer:    "Authelia",
-		Algorithm: "SHA1",
-		Digits:    6,
-		Period:    30,
-		Secret:    []byte("JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PX"),
-	}))
-}
-
-// seedWebAuthnCredential saves a WebAuthn credential for the given user into the store.
-func seedWebAuthnCredential(t *testing.T, ctx context.Context, store storage.Provider, username, description string, kid []byte) {
-	t.Helper()
-
-	require.NoError(t, store.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
-		CreatedAt:       time.Now(),
-		RPID:            "example.com",
-		Username:        username,
-		Description:     description,
-		KID:             model.NewBase64(kid),
-		AttestationType: "none",
-		Attachment:      "cross-platform",
-		Transport:       "",
-		PublicKey:       []byte("fake-public-key"),
-	}))
-}
-
-// seedUserOpaqueIdentifier saves a user opaque identifier into the store.
-func seedUserOpaqueIdentifier(t *testing.T, ctx context.Context, store storage.Provider, username, service, sector string) {
-	t.Helper()
-
-	id, err := uuid.NewRandom()
-	require.NoError(t, err)
-
-	require.NoError(t, store.SaveUserOpaqueIdentifier(ctx, model.UserOpaqueIdentifier{
-		Service:    service,
-		SectorID:   sector,
-		Username:   username,
-		Identifier: id,
-	}))
-}
-
 func TestRunStorageBansList(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -322,17 +191,31 @@ func TestRunStorageCacheDelete(t *testing.T) {
 }
 
 func TestRunStorageSchemaInfo(t *testing.T) {
-	store := newTestSQLiteStore(t)
+	t.Run("ShouldShowBasicInfo", func(t *testing.T) {
+		store := newTestSQLiteStore(t)
 
-	buf := new(bytes.Buffer)
+		buf := new(bytes.Buffer)
 
-	err := runStorageSchemaInfo(context.Background(), buf, store)
+		err := runStorageSchemaInfo(context.Background(), buf, store)
 
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Schema Version:")
-	assert.Contains(t, buf.String(), "Schema Upgrade Available:")
-	assert.Contains(t, buf.String(), "Schema Tables:")
-	assert.Contains(t, buf.String(), "Schema Encryption Key:")
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Schema Version:")
+		assert.Contains(t, buf.String(), "Schema Upgrade Available:")
+		assert.Contains(t, buf.String(), "Schema Tables:")
+		assert.Contains(t, buf.String(), "Schema Encryption Key:")
+	})
+
+	t.Run("ShouldShowValidEncryptionKey", func(t *testing.T) {
+		store := newTestSQLiteStoreWithEncryptionKey(t)
+
+		buf := new(bytes.Buffer)
+
+		err := runStorageSchemaInfo(context.Background(), buf, store)
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Schema Encryption Key: valid")
+		assert.Contains(t, buf.String(), "Schema Upgrade Available: no")
+	})
 }
 
 func TestRunStorageMigrateHistory(t *testing.T) {
@@ -408,6 +291,29 @@ func TestRunStorageSchemaEncryptionCheckKey(t *testing.T) {
 			assert.Contains(t, buf.String(), tc.expected)
 		})
 	}
+
+	t.Run("ShouldSucceedWithEncryptionNonVerbose", func(t *testing.T) {
+		store := newTestSQLiteStoreWithEncryptionKey(t)
+
+		buf := new(bytes.Buffer)
+
+		err := runStorageSchemaEncryptionCheckKey(context.Background(), buf, store, false)
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Storage Encryption Key Validation: SUCCESS")
+	})
+
+	t.Run("ShouldSucceedWithEncryptionVerbose", func(t *testing.T) {
+		store := newTestSQLiteStoreWithEncryptionKey(t)
+
+		buf := new(bytes.Buffer)
+
+		err := runStorageSchemaEncryptionCheckKey(context.Background(), buf, store, true)
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Storage Encryption Key Validation: SUCCESS")
+		assert.Contains(t, buf.String(), "Tables:")
+	})
 }
 
 func TestRunStorageSchemaEncryptionChangeKey(t *testing.T) {
@@ -454,39 +360,35 @@ func TestRunStorageSchemaEncryptionChangeKey(t *testing.T) {
 }
 
 func TestRunStorageMigration(t *testing.T) {
-	testCases := []struct {
-		name      string
-		up        bool
-		version   int
-		destroy   bool
-		useTarget bool
-		err       string
-	}{
-		{
-			"ShouldErrDownMigrationNoTarget",
-			false,
-			0,
-			false,
-			false,
-			"you must set a target version",
-		},
-	}
+	t.Run("ShouldErrDownMigrationNoTarget", func(t *testing.T) {
+		store := newTestSQLiteStore(t)
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStore(t)
+		buf := new(bytes.Buffer)
 
-			buf := new(bytes.Buffer)
+		err := runStorageMigration(context.Background(), buf, store, false, 0, false, false)
 
-			err := runStorageMigration(context.Background(), buf, store, tc.up, tc.version, tc.destroy, tc.useTarget)
+		assert.EqualError(t, err, "you must set a target version")
+	})
 
-			if tc.err == "" {
-				assert.NoError(t, err)
-			} else {
-				assert.EqualError(t, err, tc.err)
-			}
-		})
-	}
+	t.Run("ShouldErrUpMigrationAlreadyLatest", func(t *testing.T) {
+		store := newTestSQLiteStore(t)
+
+		buf := new(bytes.Buffer)
+
+		err := runStorageMigration(context.Background(), buf, store, true, storage.SchemaLatest, false, false)
+
+		assert.ErrorContains(t, err, "schema already up to date")
+	})
+
+	t.Run("ShouldSucceedDownMigrationWithDestroy", func(t *testing.T) {
+		store := newTestSQLiteStoreWithEncryptionKey(t)
+
+		buf := new(bytes.Buffer)
+
+		err := runStorageMigration(context.Background(), buf, store, false, 0, true, true)
+
+		assert.NoError(t, err)
+	})
 }
 
 func TestRunStorageUserWebAuthnListAll(t *testing.T) {
@@ -693,6 +595,32 @@ func TestRunStorageUserWebAuthnExport(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldSucceedExportImportRoundTrip", func(t *testing.T) {
+		store1 := newTestSQLiteStoreWithEncryptionKey(t)
+
+		seedWebAuthnCredential(t, context.Background(), store1, "john", "key-1", []byte("kid-1"))
+		seedWebAuthnCredential(t, context.Background(), store1, "harry", "key-2", []byte("kid-2"))
+
+		exportFile := filepath.Join(t.TempDir(), "webauthn-export.yml")
+		exportBuf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageUserWebAuthnExport(context.Background(), exportBuf, store1, exportFile))
+		assert.Contains(t, exportBuf.String(), "Successfully exported 2 WebAuthn credentials")
+
+		store2 := newTestSQLiteStoreWithEncryptionKey(t)
+
+		importBuf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageUserWebAuthnImport(context.Background(), importBuf, store2, exportFile))
+		assert.Contains(t, importBuf.String(), "Successfully imported 2 WebAuthn credentials")
+
+		listBuf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageUserWebAuthnListAll(context.Background(), listBuf, store2))
+		assert.Contains(t, listBuf.String(), "john")
+		assert.Contains(t, listBuf.String(), "harry")
+	})
 }
 
 func TestRunStorageUserWebAuthnImport(t *testing.T) {
@@ -758,27 +686,27 @@ func TestRunStorageUserWebAuthnImport(t *testing.T) {
 			}
 		})
 	}
-}
 
-func TestRunStorageUserWebAuthnImportSuccess(t *testing.T) {
-	store := newTestSQLiteStoreWithEncryptionKey(t)
+	t.Run("ShouldSucceedImportRoundTrip", func(t *testing.T) {
+		store := newTestSQLiteStoreWithEncryptionKey(t)
 
-	seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
+		seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
 
-	exportFile := filepath.Join(t.TempDir(), "export.yml")
+		exportFile := filepath.Join(t.TempDir(), "export.yml")
 
-	buf := new(bytes.Buffer)
+		buf := new(bytes.Buffer)
 
-	require.NoError(t, runStorageUserWebAuthnExport(context.Background(), buf, store, exportFile))
+		require.NoError(t, runStorageUserWebAuthnExport(context.Background(), buf, store, exportFile))
 
-	store2 := newTestSQLiteStoreWithEncryptionKey(t)
+		store2 := newTestSQLiteStoreWithEncryptionKey(t)
 
-	buf.Reset()
+		buf.Reset()
 
-	err := runStorageUserWebAuthnImport(context.Background(), buf, store2, exportFile)
+		err := runStorageUserWebAuthnImport(context.Background(), buf, store2, exportFile)
 
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Successfully imported 1 WebAuthn credentials")
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Successfully imported 1 WebAuthn credentials")
+	})
 }
 
 func TestRunStorageUserTOTPExportURI(t *testing.T) {
@@ -975,27 +903,27 @@ func TestRunStorageUserTOTPImport(t *testing.T) {
 			assert.ErrorContains(t, err, tc.err)
 		})
 	}
-}
 
-func TestRunStorageUserTOTPImportSuccess(t *testing.T) {
-	store := newTestSQLiteStoreWithEncryptionKey(t)
+	t.Run("ShouldSucceedImportRoundTrip", func(t *testing.T) {
+		store := newTestSQLiteStoreWithEncryptionKey(t)
 
-	seedTOTPConfig(t, context.Background(), store, "john")
+		seedTOTPConfig(t, context.Background(), store, "john")
 
-	exportFile := filepath.Join(t.TempDir(), "export.yml")
+		exportFile := filepath.Join(t.TempDir(), "export.yml")
 
-	buf := new(bytes.Buffer)
+		buf := new(bytes.Buffer)
 
-	require.NoError(t, runStorageUserTOTPExport(context.Background(), buf, store, exportFile))
+		require.NoError(t, runStorageUserTOTPExport(context.Background(), buf, store, exportFile))
 
-	store2 := newTestSQLiteStoreWithEncryptionKey(t)
+		store2 := newTestSQLiteStoreWithEncryptionKey(t)
 
-	buf.Reset()
+		buf.Reset()
 
-	err := runStorageUserTOTPImport(context.Background(), buf, store2, exportFile)
+		err := runStorageUserTOTPImport(context.Background(), buf, store2, exportFile)
 
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Successfully imported 1 TOTP configurations")
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Successfully imported 1 TOTP configurations")
+	})
 }
 
 func TestRunStorageUserIdentifiersExport(t *testing.T) {
@@ -1103,27 +1031,27 @@ func TestRunStorageUserIdentifiersImport(t *testing.T) {
 			assert.ErrorContains(t, err, tc.err)
 		})
 	}
-}
 
-func TestRunStorageUserIdentifiersImportSuccess(t *testing.T) {
-	store := newTestSQLiteStore(t)
+	t.Run("ShouldSucceedImportRoundTrip", func(t *testing.T) {
+		store := newTestSQLiteStore(t)
 
-	seedUserOpaqueIdentifier(t, context.Background(), store, "john", "openid", "example.com")
+		seedUserOpaqueIdentifier(t, context.Background(), store, "john", "openid", "example.com")
 
-	exportFile := filepath.Join(t.TempDir(), "export.yml")
+		exportFile := filepath.Join(t.TempDir(), "export.yml")
 
-	buf := new(bytes.Buffer)
+		buf := new(bytes.Buffer)
 
-	require.NoError(t, runStorageUserIdentifiersExport(context.Background(), buf, store, exportFile))
+		require.NoError(t, runStorageUserIdentifiersExport(context.Background(), buf, store, exportFile))
 
-	store2 := newTestSQLiteStore(t)
+		store2 := newTestSQLiteStore(t)
 
-	buf.Reset()
+		buf.Reset()
 
-	err := runStorageUserIdentifiersImport(context.Background(), buf, store2, exportFile)
+		err := runStorageUserIdentifiersImport(context.Background(), buf, store2, exportFile)
 
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Successfully imported")
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Successfully imported")
+	})
 }
 
 func TestRunStorageUserIdentifiersGenerate(t *testing.T) {
@@ -1185,23 +1113,23 @@ func TestRunStorageUserIdentifiersGenerate(t *testing.T) {
 			}
 		})
 	}
-}
 
-func TestRunStorageUserIdentifiersGenerateDuplicates(t *testing.T) {
-	store := newTestSQLiteStore(t)
+	t.Run("ShouldSkipDuplicates", func(t *testing.T) {
+		store := newTestSQLiteStore(t)
 
-	buf := new(bytes.Buffer)
+		buf := new(bytes.Buffer)
 
-	err := runStorageUserIdentifiersGenerate(context.Background(), buf, store, []string{"john"}, []string{"openid"}, nil)
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Total: 1")
+		err := runStorageUserIdentifiersGenerate(context.Background(), buf, store, []string{"john"}, []string{"openid"}, nil)
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Total: 1")
 
-	buf.Reset()
+		buf.Reset()
 
-	err = runStorageUserIdentifiersGenerate(context.Background(), buf, store, []string{"john"}, []string{"openid"}, nil)
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Skipped Duplicates: 1")
-	assert.Contains(t, buf.String(), "Total: 0")
+		err = runStorageUserIdentifiersGenerate(context.Background(), buf, store, []string{"john"}, []string{"openid"}, nil)
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Skipped Duplicates: 1")
+		assert.Contains(t, buf.String(), "Total: 0")
+	})
 }
 
 func TestRunStorageUserIdentifiersAdd(t *testing.T) {
@@ -1416,6 +1344,17 @@ func TestRunStorageBansAddIP(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldSucceedAddIPTemporaryWithReason", func(t *testing.T) {
+		store := newTestSQLiteStore(t)
+
+		buf := new(bytes.Buffer)
+
+		err := runStorageBansAddIP(context.Background(), buf, store, "192.168.1.1", "malicious", time.Hour, false)
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Successfully banned IP '192.168.1.1' until")
+	})
 }
 
 func TestRunStorageBansAddUser(t *testing.T) {
@@ -1461,17 +1400,6 @@ func TestRunStorageBansAddUser(t *testing.T) {
 			assert.Contains(t, buf.String(), tc.expected)
 		})
 	}
-}
-
-func TestRunStorageBansAddIPTemporary(t *testing.T) {
-	store := newTestSQLiteStore(t)
-
-	buf := new(bytes.Buffer)
-
-	err := runStorageBansAddIP(context.Background(), buf, store, "192.168.1.1", "malicious", time.Hour, false)
-
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Successfully banned IP '192.168.1.1' until")
 }
 
 func TestRunStorageCacheMDS3Dump(t *testing.T) {
@@ -1695,40 +1623,39 @@ func TestRunStorageUserTOTPGenerate(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldSucceedGenerateWithPNG", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		buf := new(bytes.Buffer)
+
+		pngFile := filepath.Join(t.TempDir(), "totp.png")
+
+		err := runStorageUserTOTPGenerate(cmdCtx, buf, cmdCtx.providers.StorageProvider, cmdCtx.config, pngFile, "john", "", false)
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Successfully generated TOTP configuration for user 'john'")
+		assert.Contains(t, buf.String(), "saved it as a PNG image")
+
+		_, statErr := os.Stat(pngFile)
+		assert.NoError(t, statErr)
+	})
+
+	t.Run("ShouldErrPNGFileExists", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		buf := new(bytes.Buffer)
+
+		pngFile := filepath.Join(t.TempDir(), "totp.png")
+
+		require.NoError(t, os.WriteFile(pngFile, []byte(""), 0600))
+
+		err := runStorageUserTOTPGenerate(cmdCtx, buf, cmdCtx.providers.StorageProvider, cmdCtx.config, pngFile, "john", "", false)
+
+		assert.EqualError(t, err, "image output filepath already exists")
+	})
 }
 
-func TestRunStorageUserTOTPGenerateWithPNG(t *testing.T) {
-	cmdCtx := newTestCmdCtx(t)
-
-	buf := new(bytes.Buffer)
-
-	pngFile := filepath.Join(t.TempDir(), "totp.png")
-
-	err := runStorageUserTOTPGenerate(cmdCtx, buf, cmdCtx.providers.StorageProvider, cmdCtx.config, pngFile, "john", "", false)
-
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Successfully generated TOTP configuration for user 'john'")
-	assert.Contains(t, buf.String(), "saved it as a PNG image")
-
-	_, statErr := os.Stat(pngFile)
-	assert.NoError(t, statErr)
-}
-
-func TestRunStorageUserTOTPGenerateWithPNGExists(t *testing.T) {
-	cmdCtx := newTestCmdCtx(t)
-
-	buf := new(bytes.Buffer)
-
-	pngFile := filepath.Join(t.TempDir(), "totp.png")
-
-	require.NoError(t, os.WriteFile(pngFile, []byte(""), 0600))
-
-	err := runStorageUserTOTPGenerate(cmdCtx, buf, cmdCtx.providers.StorageProvider, cmdCtx.config, pngFile, "john", "", false)
-
-	assert.EqualError(t, err, "image output filepath already exists")
-}
-
-// TestStorageUserTOTPDeleteRunE tests the RunE for the TOTP delete command.
 func TestStorageUserTOTPDeleteRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -1775,7 +1702,6 @@ func TestStorageUserTOTPDeleteRunE(t *testing.T) {
 	}
 }
 
-// TestStorageUserTOTPGenerateRunE tests the RunE for the TOTP generate command.
 func TestStorageUserTOTPGenerateRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -1832,7 +1758,6 @@ func TestStorageUserTOTPGenerateRunE(t *testing.T) {
 	}
 }
 
-// TestStorageUserTOTPExportRunE tests the RunE for the TOTP export YAML command.
 func TestStorageUserTOTPExportRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -1881,25 +1806,23 @@ func TestStorageUserTOTPExportRunE(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrFileExists", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		cmd, _ := newTestCmdWithBuf()
+
+		filename := filepath.Join(t.TempDir(), "export.yml")
+		require.NoError(t, os.WriteFile(filename, []byte(""), 0600))
+
+		cmd.Flags().String(cmdFlagNameFile, filename, "")
+
+		err := cmdCtx.StorageUserTOTPExportRunE(cmd, nil)
+
+		assert.ErrorContains(t, err, "must specify a file that doesn't exist but")
+	})
 }
 
-// TestStorageUserTOTPExportRunEFileExists tests the RunE when the output file already exists.
-func TestStorageUserTOTPExportRunEFileExists(t *testing.T) {
-	cmdCtx := newTestCmdCtx(t)
-
-	cmd, _ := newTestCmdWithBuf()
-
-	filename := filepath.Join(t.TempDir(), "export.yml")
-	require.NoError(t, os.WriteFile(filename, []byte(""), 0600))
-
-	cmd.Flags().String(cmdFlagNameFile, filename, "")
-
-	err := cmdCtx.StorageUserTOTPExportRunE(cmd, nil)
-
-	assert.ErrorContains(t, err, "must specify a file that doesn't exist but")
-}
-
-// TestStorageUserTOTPImportRunE tests the RunE for the TOTP import command.
 func TestStorageUserTOTPImportRunE(t *testing.T) {
 	cmdCtx1 := newTestCmdCtx(t)
 
@@ -1920,7 +1843,6 @@ func TestStorageUserTOTPImportRunE(t *testing.T) {
 	assert.Contains(t, buf2.String(), "Successfully imported 1 TOTP configurations")
 }
 
-// TestStorageUserTOTPExportCSVRunE tests the RunE for the TOTP export CSV command.
 func TestStorageUserTOTPExportCSVRunE(t *testing.T) {
 	cmdCtx := newTestCmdCtx(t)
 
@@ -1937,7 +1859,6 @@ func TestStorageUserTOTPExportCSVRunE(t *testing.T) {
 	assert.Contains(t, buf.String(), "Successfully exported 1 TOTP configurations as CSV")
 }
 
-// TestStorageUserTOTPExportPNGRunE tests the RunE for the TOTP export PNG command.
 func TestStorageUserTOTPExportPNGRunE(t *testing.T) {
 	cmdCtx := newTestCmdCtx(t)
 
@@ -1957,7 +1878,6 @@ func TestStorageUserTOTPExportPNGRunE(t *testing.T) {
 	assert.NoError(t, statErr)
 }
 
-// TestStorageUserWebAuthnDeleteRunE tests the RunE for the WebAuthn delete command.
 func TestStorageUserWebAuthnDeleteRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2023,7 +1943,6 @@ func TestStorageUserWebAuthnDeleteRunE(t *testing.T) {
 	}
 }
 
-// TestStorageUserWebAuthnListAllRunE tests the RunE for the WebAuthn list all command.
 func TestStorageUserWebAuthnListAllRunE(t *testing.T) {
 	cmdCtx := newTestCmdCtx(t)
 
@@ -2038,7 +1957,6 @@ func TestStorageUserWebAuthnListAllRunE(t *testing.T) {
 	assert.Contains(t, buf.String(), "john")
 }
 
-// TestStorageUserWebAuthnListRunE tests the RunE for the WebAuthn list command (with args).
 func TestStorageUserWebAuthnListRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2099,7 +2017,6 @@ func TestStorageUserWebAuthnListRunE(t *testing.T) {
 	}
 }
 
-// TestStorageUserIdentifiersAddRunE tests the RunE for the identifiers add command.
 func TestStorageUserIdentifiersAddRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2163,7 +2080,6 @@ func TestStorageUserIdentifiersAddRunE(t *testing.T) {
 	}
 }
 
-// TestStorageUserIdentifiersGenerateRunE tests the RunE for the identifiers generate command.
 func TestStorageUserIdentifiersGenerateRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2216,7 +2132,6 @@ func TestStorageUserIdentifiersGenerateRunE(t *testing.T) {
 	}
 }
 
-// TestStorageUserIdentifiersExportRunE tests the RunE for the identifiers export command.
 func TestStorageUserIdentifiersExportRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2263,7 +2178,6 @@ func TestStorageUserIdentifiersExportRunE(t *testing.T) {
 	}
 }
 
-// TestStorageSchemaEncryptionChangeKeyRunE tests the RunE for the encryption change-key command.
 func TestStorageSchemaEncryptionChangeKeyRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2309,7 +2223,6 @@ func TestStorageSchemaEncryptionChangeKeyRunE(t *testing.T) {
 	}
 }
 
-// TestStorageSchemaEncryptionCheckRunE tests the RunE for the encryption check command.
 func TestStorageSchemaEncryptionCheckRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2343,7 +2256,6 @@ func TestStorageSchemaEncryptionCheckRunE(t *testing.T) {
 	}
 }
 
-// TestStorageMigrateHistoryRunE tests the RunE for the migrate history command.
 func TestStorageMigrateHistoryRunE(t *testing.T) {
 	cmdCtx := newTestCmdCtx(t)
 
@@ -2358,7 +2270,6 @@ func TestStorageMigrateHistoryRunE(t *testing.T) {
 	assert.Contains(t, buf.String(), "Authelia Version")
 }
 
-// TestNewStorageMigrateListRunE tests the RunE for the migrate list command.
 func TestNewStorageMigrateListRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2393,7 +2304,6 @@ func TestNewStorageMigrateListRunE(t *testing.T) {
 	}
 }
 
-// TestNewStorageMigrationRunE tests the RunE for the migrate up/down command.
 func TestNewStorageMigrationRunE(t *testing.T) {
 	testCases := []struct {
 		name  string
@@ -2446,7 +2356,6 @@ func TestNewStorageMigrationRunE(t *testing.T) {
 	}
 }
 
-// TestStorageSchemaInfoRunE tests the RunE for the schema info command.
 func TestStorageSchemaInfoRunE(t *testing.T) {
 	testCases := []struct {
 		name           string
@@ -2500,7 +2409,6 @@ func TestStorageSchemaInfoRunE(t *testing.T) {
 	}
 }
 
-// TestStorageUserWebAuthnExportRunE tests the RunE for the webauthn export command.
 func TestStorageUserWebAuthnExportRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2548,25 +2456,23 @@ func TestStorageUserWebAuthnExportRunE(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrFileExists", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		cmd, _ := newTestCmdWithBuf()
+
+		filename := filepath.Join(t.TempDir(), "export.yml")
+		require.NoError(t, os.WriteFile(filename, []byte(""), 0600))
+
+		cmd.Flags().String(cmdFlagNameFile, filename, "")
+
+		err := cmdCtx.StorageUserWebAuthnExportRunE(cmd, nil)
+
+		assert.ErrorContains(t, err, "must specify a file that doesn't exist but")
+	})
 }
 
-// TestStorageUserWebAuthnExportRunEFileExists tests the RunE when the export file already exists.
-func TestStorageUserWebAuthnExportRunEFileExists(t *testing.T) {
-	cmdCtx := newTestCmdCtx(t)
-
-	cmd, _ := newTestCmdWithBuf()
-
-	filename := filepath.Join(t.TempDir(), "export.yml")
-	require.NoError(t, os.WriteFile(filename, []byte(""), 0600))
-
-	cmd.Flags().String(cmdFlagNameFile, filename, "")
-
-	err := cmdCtx.StorageUserWebAuthnExportRunE(cmd, nil)
-
-	assert.ErrorContains(t, err, "must specify a file that doesn't exist but")
-}
-
-// TestStorageUserWebAuthnImportRunE tests the RunE for the webauthn import command.
 func TestStorageUserWebAuthnImportRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2632,7 +2538,6 @@ func TestStorageUserWebAuthnImportRunE(t *testing.T) {
 	}
 }
 
-// TestStorageUserWebAuthnVerifyRunE tests the RunE for the webauthn verify command.
 func TestStorageUserWebAuthnVerifyRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2679,7 +2584,6 @@ func TestStorageUserWebAuthnVerifyRunE(t *testing.T) {
 	}
 }
 
-// TestRunStorageUserWebAuthnVerify tests the internal verify function.
 func TestRunStorageUserWebAuthnVerify(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -2724,119 +2628,6 @@ func TestRunStorageUserWebAuthnVerify(t *testing.T) {
 			}
 		})
 	}
-}
-
-// TestRunStorageSchemaEncryptionCheckKeyWithEncryption tests encryption check with a properly
-// configured encryption key.
-func TestRunStorageSchemaEncryptionCheckKeyWithEncryption(t *testing.T) {
-	testCases := []struct {
-		name     string
-		verbose  bool
-		expected []string
-	}{
-		{
-			"ShouldSucceedNonVerbose",
-			false,
-			[]string{"Storage Encryption Key Validation: SUCCESS"},
-		},
-		{
-			"ShouldSucceedVerbose",
-			true,
-			[]string{"Storage Encryption Key Validation: SUCCESS", "Tables:"},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
-
-			buf := new(bytes.Buffer)
-
-			err := runStorageSchemaEncryptionCheckKey(context.Background(), buf, store, tc.verbose)
-
-			assert.NoError(t, err)
-
-			for _, s := range tc.expected {
-				assert.Contains(t, buf.String(), s)
-			}
-		})
-	}
-}
-
-// TestRunStorageSchemaInfoWithEncryptionKey tests schema info with encryption showing "valid".
-func TestRunStorageSchemaInfoWithEncryptionKey(t *testing.T) {
-	store := newTestSQLiteStoreWithEncryptionKey(t)
-
-	buf := new(bytes.Buffer)
-
-	err := runStorageSchemaInfo(context.Background(), buf, store)
-
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "Schema Encryption Key: valid")
-	assert.Contains(t, buf.String(), "Schema Upgrade Available: no")
-}
-
-// TestRunStorageUserWebAuthnExportImportRoundTrip tests a full export→import cycle.
-func TestRunStorageUserWebAuthnExportImportRoundTrip(t *testing.T) {
-	store1 := newTestSQLiteStoreWithEncryptionKey(t)
-
-	seedWebAuthnCredential(t, context.Background(), store1, "john", "key-1", []byte("kid-1"))
-	seedWebAuthnCredential(t, context.Background(), store1, "harry", "key-2", []byte("kid-2"))
-
-	exportFile := filepath.Join(t.TempDir(), "webauthn-export.yml")
-	exportBuf := new(bytes.Buffer)
-
-	require.NoError(t, runStorageUserWebAuthnExport(context.Background(), exportBuf, store1, exportFile))
-	assert.Contains(t, exportBuf.String(), "Successfully exported 2 WebAuthn credentials")
-
-	store2 := newTestSQLiteStoreWithEncryptionKey(t)
-
-	importBuf := new(bytes.Buffer)
-
-	require.NoError(t, runStorageUserWebAuthnImport(context.Background(), importBuf, store2, exportFile))
-	assert.Contains(t, importBuf.String(), "Successfully imported 2 WebAuthn credentials")
-
-	listBuf := new(bytes.Buffer)
-
-	require.NoError(t, runStorageUserWebAuthnListAll(context.Background(), listBuf, store2))
-	assert.Contains(t, listBuf.String(), "john")
-	assert.Contains(t, listBuf.String(), "harry")
-}
-
-// TestRunStorageMigrationUpAlreadyLatest tests that migrating up when already at latest returns an error.
-func TestRunStorageMigrationUpAlreadyLatest(t *testing.T) {
-	store := newTestSQLiteStore(t)
-
-	buf := new(bytes.Buffer)
-
-	err := runStorageMigration(context.Background(), buf, store, true, storage.SchemaLatest, false, false)
-
-	assert.ErrorContains(t, err, "schema already up to date")
-}
-
-// TestRunStorageMigrationDownWithDestroy tests a down migration with the destroy flag.
-func TestRunStorageMigrationDownWithDestroy(t *testing.T) {
-	store := newTestSQLiteStoreWithEncryptionKey(t)
-
-	buf := new(bytes.Buffer)
-
-	err := runStorageMigration(context.Background(), buf, store, false, 0, true, true)
-
-	assert.NoError(t, err)
-}
-
-// seedBanIP saves an IP ban into the store.
-func seedBanIP(t *testing.T, ctx context.Context, store storage.Provider, ip string, reason string, permanent bool) {
-	t.Helper()
-
-	require.NoError(t, runStorageBansAddIP(ctx, &bytes.Buffer{}, store, ip, reason, time.Hour, permanent))
-}
-
-// seedBanUser saves a user ban into the store.
-func seedBanUser(t *testing.T, ctx context.Context, store storage.Provider, username string, reason string, permanent bool) {
-	t.Helper()
-
-	require.NoError(t, runStorageBansAddUser(ctx, &bytes.Buffer{}, store, username, reason, time.Hour, permanent))
 }
 
 func TestRunStorageBansListWithData(t *testing.T) {
@@ -2951,25 +2742,25 @@ func TestRunStorageBansRevokeIPWithData(t *testing.T) {
 			}
 		})
 	}
-}
 
-func TestRunStorageBansRevokeIPAlreadyRevoked(t *testing.T) {
-	store := newTestSQLiteStore(t)
+	t.Run("ShouldSkipAlreadyRevoked", func(t *testing.T) {
+		store := newTestSQLiteStore(t)
 
-	seedBanIP(t, context.Background(), store, "192.168.1.1", "", true)
+		seedBanIP(t, context.Background(), store, "192.168.1.1", "", true)
 
-	buf := new(bytes.Buffer)
+		buf := new(bytes.Buffer)
 
-	err := runStorageBansRevokeIP(context.Background(), buf, store, 1, "")
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "SUCCESS")
+		err := runStorageBansRevokeIP(context.Background(), buf, store, 1, "")
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "SUCCESS")
 
-	buf.Reset()
+		buf.Reset()
 
-	err = runStorageBansRevokeIP(context.Background(), buf, store, 1, "")
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "SKIPPED")
-	assert.Contains(t, buf.String(), "Ban has already been revoked")
+		err = runStorageBansRevokeIP(context.Background(), buf, store, 1, "")
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "SKIPPED")
+		assert.Contains(t, buf.String(), "Ban has already been revoked")
+	})
 }
 
 func TestRunStorageBansRevokeUserWithData(t *testing.T) {
@@ -3021,25 +2812,25 @@ func TestRunStorageBansRevokeUserWithData(t *testing.T) {
 			}
 		})
 	}
-}
 
-func TestRunStorageBansRevokeUserAlreadyRevoked(t *testing.T) {
-	store := newTestSQLiteStore(t)
+	t.Run("ShouldSkipAlreadyRevoked", func(t *testing.T) {
+		store := newTestSQLiteStore(t)
 
-	seedBanUser(t, context.Background(), store, "john", "", true)
+		seedBanUser(t, context.Background(), store, "john", "", true)
 
-	buf := new(bytes.Buffer)
+		buf := new(bytes.Buffer)
 
-	err := runStorageBansRevokeUser(context.Background(), buf, store, 1, "")
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "SUCCESS")
+		err := runStorageBansRevokeUser(context.Background(), buf, store, 1, "")
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "SUCCESS")
 
-	buf.Reset()
+		buf.Reset()
 
-	err = runStorageBansRevokeUser(context.Background(), buf, store, 1, "")
-	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "SKIPPED")
-	assert.Contains(t, buf.String(), "Ban has already been revoked")
+		err = runStorageBansRevokeUser(context.Background(), buf, store, 1, "")
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "SKIPPED")
+		assert.Contains(t, buf.String(), "Ban has already been revoked")
+	})
 }
 
 func TestRunStorageBansAdd(t *testing.T) {
@@ -3231,7 +3022,6 @@ func TestRunStorageBansRevokeFull(t *testing.T) {
 	}
 }
 
-// TestStorageBansListRunE tests the RunE for the bans list command.
 func TestStorageBansListRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -3294,7 +3084,6 @@ func TestStorageBansListRunE(t *testing.T) {
 	}
 }
 
-// TestStorageBansAddRunE tests the RunE for the bans add command.
 func TestStorageBansAddRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -3373,7 +3162,6 @@ func TestStorageBansAddRunE(t *testing.T) {
 	}
 }
 
-// TestStorageBansRevokeRunE tests the RunE for the bans revoke command.
 func TestStorageBansRevokeRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -3480,7 +3268,6 @@ func TestStorageBansRevokeRunE(t *testing.T) {
 	}
 }
 
-// TestStorageBansFullLifecycle tests adding, listing, and revoking bans end-to-end.
 func TestStorageBansFullLifecycle(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -3543,6 +3330,142 @@ func TestStorageBansFullLifecycle(t *testing.T) {
 			assert.Contains(t, buf.String(), "SKIPPED")
 		})
 	}
+}
+
+func newTestSQLiteStore(t *testing.T) storage.Provider {
+	t.Helper()
+
+	dir := t.TempDir()
+
+	config := &schema.Configuration{
+		Storage: schema.Storage{
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(dir, "db.sqlite3"),
+			},
+		},
+	}
+
+	store := storage.NewProvider(config, nil)
+
+	require.NoError(t, store.StartupCheck())
+
+	return store
+}
+
+func newTestSQLiteStoreWithEncryptionKey(t *testing.T) storage.Provider {
+	t.Helper()
+
+	dir := t.TempDir()
+
+	config := &schema.Configuration{
+		Storage: schema.Storage{
+			//gitleaks:allow // This is not an actual secret.
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(dir, "db.sqlite3"),
+			},
+		},
+	}
+
+	store := storage.NewProvider(config, nil)
+
+	require.NoError(t, store.StartupCheck())
+
+	return store
+}
+
+func newTestCmdCtx(t *testing.T) *CmdCtx {
+	t.Helper()
+
+	dir := t.TempDir()
+
+	ctx := NewCmdCtx()
+
+	ctx.config.Storage = schema.Storage{
+		//gitleaks:allow // This is not an actual secret.
+		EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+		Local: &schema.StorageLocal{
+			Path: filepath.Join(dir, "db.sqlite3"),
+		},
+	}
+
+	ctx.config.TOTP = schema.DefaultTOTPConfiguration
+
+	ctx.providers.StorageProvider = storage.NewProvider(ctx.config, nil)
+
+	require.NoError(t, ctx.providers.StorageProvider.StartupCheck())
+
+	return ctx
+}
+
+func newTestCmdWithBuf() (*cobra.Command, *bytes.Buffer) {
+	buf := new(bytes.Buffer)
+
+	cmd := &cobra.Command{
+		Use: "test",
+	}
+
+	cmd.SetOut(buf)
+
+	return cmd, buf
+}
+
+func seedTOTPConfig(t *testing.T, ctx context.Context, store storage.Provider, username string) {
+	t.Helper()
+
+	require.NoError(t, store.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+		CreatedAt: time.Now(),
+		Username:  username,
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    []byte("JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PX"),
+	}))
+}
+
+func seedWebAuthnCredential(t *testing.T, ctx context.Context, store storage.Provider, username, description string, kid []byte) {
+	t.Helper()
+
+	require.NoError(t, store.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+		CreatedAt:       time.Now(),
+		RPID:            "example.com",
+		Username:        username,
+		Description:     description,
+		KID:             model.NewBase64(kid),
+		AttestationType: "none",
+		Attachment:      "cross-platform",
+		Transport:       "",
+		PublicKey:       []byte("fake-public-key"),
+	}))
+}
+
+func seedUserOpaqueIdentifier(t *testing.T, ctx context.Context, store storage.Provider, username, service, sector string) {
+	t.Helper()
+
+	id, err := uuid.NewRandom()
+	require.NoError(t, err)
+
+	require.NoError(t, store.SaveUserOpaqueIdentifier(ctx, model.UserOpaqueIdentifier{
+		Service:    service,
+		SectorID:   sector,
+		Username:   username,
+		Identifier: id,
+	}))
+}
+
+//nolint:unparam
+func seedBanIP(t *testing.T, ctx context.Context, store storage.Provider, ip string, reason string, permanent bool) {
+	t.Helper()
+
+	require.NoError(t, runStorageBansAddIP(ctx, &bytes.Buffer{}, store, ip, reason, time.Hour, permanent))
+}
+
+//nolint:unparam
+func seedBanUser(t *testing.T, ctx context.Context, store storage.Provider, username string, reason string, permanent bool) {
+	t.Helper()
+
+	require.NoError(t, runStorageBansAddUser(ctx, &bytes.Buffer{}, store, username, reason, time.Hour, permanent))
 }
 
 func newFlagSetWithInt(name string, value int) *pflag.FlagSet {

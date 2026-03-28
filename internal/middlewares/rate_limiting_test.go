@@ -131,7 +131,7 @@ func TestNewRateLimit(t *testing.T) {
 func TestNewRateLimitHandler(t *testing.T) {
 	nextCalled := false
 
-	next := func(ctx *AutheliaCtx) {
+	next := func(_ *AutheliaCtx) {
 		nextCalled = true
 	}
 
@@ -317,6 +317,7 @@ func TestNewRateLimiterMiddleware(t *testing.T) {
 
 			handler := middleware(func(ctx *AutheliaCtx) {
 				nextCalled = true
+
 				ctx.SetStatusCode(fasthttp.StatusOK)
 			})
 
@@ -325,6 +326,7 @@ func TestNewRateLimiterMiddleware(t *testing.T) {
 			for i := 0; i < tc.requests; i++ {
 				lastCtx = newTestAutheliaCtx("192.168.1.1")
 				nextCalled = false
+
 				handler(lastCtx)
 			}
 
@@ -421,6 +423,7 @@ func TestNewRateLimiterCustomHandler(t *testing.T) {
 
 	middleware := NewRateLimiter(NewIPRateLimitBucket, func(ctx *AutheliaCtx) {
 		customHandlerCalled = true
+
 		ctx.SetStatusCode(fasthttp.StatusTooManyRequests)
 		ctx.SetBodyString("custom rate limit response")
 	}, RateLimitBucketConfig{

@@ -254,6 +254,8 @@ func TestCmdFlagsCryptoHashGetPassword(t *testing.T) {
 		name       string
 		setup      func(flags *pflag.FlagSet)
 		use        string
+		args       []string
+		useArgs    bool
 		useRandom  bool
 		err        string
 		expectedPW string
@@ -265,6 +267,8 @@ func TestCmdFlagsCryptoHashGetPassword(t *testing.T) {
 				require.NoError(nil, flags.Set(cmdFlagNamePassword, "mypassword"))
 			},
 			cmdUseGenerate,
+			nil,
+			false,
 			false,
 			"",
 			"mypassword",
@@ -276,15 +280,89 @@ func TestCmdFlagsCryptoHashGetPassword(t *testing.T) {
 				require.NoError(nil, flags.Set(cmdFlagNameRandom, "true"))
 			},
 			cmdUseGenerate,
+			nil,
+			false,
 			true,
 			"",
 			"",
 			true,
 		},
 		{
+			"ShouldReturnPasswordFromArgs",
+			func(flags *pflag.FlagSet) {},
+			cmdUseGenerate,
+			[]string{"argpassword"},
+			true,
+			false,
+			"",
+			"argpassword",
+			false,
+		},
+		{
+			"ShouldReturnJoinedPasswordFromMultipleArgs",
+			func(flags *pflag.FlagSet) {},
+			cmdUseGenerate,
+			[]string{"arg", "password", "here"},
+			true,
+			false,
+			"",
+			"arg password here",
+			false,
+		},
+		{
+			"ShouldPreferPasswordFlagOverArgs",
+			func(flags *pflag.FlagSet) {
+				require.NoError(nil, flags.Set(cmdFlagNamePassword, "flagpassword"))
+			},
+			cmdUseGenerate,
+			[]string{"argpassword"},
+			true,
+			false,
+			"",
+			"flagpassword",
+			false,
+		},
+		{
+			"ShouldPreferRandomOverArgs",
+			func(flags *pflag.FlagSet) {
+				require.NoError(nil, flags.Set(cmdFlagNameRandom, "true"))
+			},
+			cmdUseGenerate,
+			[]string{"argpassword"},
+			true,
+			true,
+			"",
+			"",
+			true,
+		},
+		{
+			"ShouldErrNoTerminalWhenUseArgsButNoArgs",
+			func(flags *pflag.FlagSet) {},
+			cmdUseGenerate,
+			nil,
+			true,
+			false,
+			"failed to read the password from the terminal:",
+			"",
+			false,
+		},
+		{
 			"ShouldErrNoTerminal",
 			func(flags *pflag.FlagSet) {},
 			cmdUseGenerate,
+			nil,
+			false,
+			false,
+			"failed to read the password from the terminal:",
+			"",
+			false,
+		},
+		{
+			"ShouldErrNoTerminalValidateUse",
+			func(flags *pflag.FlagSet) {},
+			fmt.Sprintf(cmdUseFmtValidate, cmdUseValidate),
+			nil,
+			false,
 			false,
 			"failed to read the password from the terminal:",
 			"",
@@ -306,7 +384,7 @@ func TestCmdFlagsCryptoHashGetPassword(t *testing.T) {
 
 			buf := new(bytes.Buffer)
 
-			password, random, err := cmdFlagsCryptoHashGetPassword(buf, flags, tc.use, nil, false, tc.useRandom)
+			password, random, err := cmdFlagsCryptoHashGetPassword(buf, flags, tc.use, tc.args, tc.useArgs, tc.useRandom)
 
 			if tc.err == "" {
 				assert.NoError(t, err)
@@ -538,9 +616,7 @@ func TestNewCryptoHashGenerateSubCmd(t *testing.T) {
 	}
 }
 
-func splitLines(s string) []string {
-	var lines []string
-
+func splitLines(s string) (lines []string) {
 	for _, line := range bytes.Split([]byte(s), []byte("\n")) {
 		lines = append(lines, string(line))
 	}

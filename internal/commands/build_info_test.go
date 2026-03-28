@@ -8,6 +8,7 @@ import (
 	"runtime/debug"
 	"testing"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -145,4 +146,53 @@ func TestRunBuildInfoOutput(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestBuildInfoRunE(t *testing.T) {
+	t.Run("ShouldSucceed", func(t *testing.T) {
+		cmdCtx := NewCmdCtx()
+
+		cmd := &cobra.Command{Use: "build-info"}
+
+		buf := new(bytes.Buffer)
+		cmd.SetOut(buf)
+
+		cmd.Flags().BoolP("verbose", "v", false, "")
+
+		err := cmdCtx.BuildInfoRunE(cmd, nil)
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Last Tag:")
+		assert.Contains(t, buf.String(), "Go:")
+	})
+
+	t.Run("ShouldSucceedVerbose", func(t *testing.T) {
+		cmdCtx := NewCmdCtx()
+
+		cmd := &cobra.Command{Use: "build-info"}
+
+		buf := new(bytes.Buffer)
+		cmd.SetOut(buf)
+
+		cmd.Flags().BoolP("verbose", "v", false, "")
+
+		require.NoError(t, cmd.Flags().Set("verbose", "true"))
+
+		err := cmdCtx.BuildInfoRunE(cmd, nil)
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Last Tag:")
+		assert.Contains(t, buf.String(), "Go:")
+	})
+}
+
+func TestRunBuildInfoVerboseFlagError(t *testing.T) {
+	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	flags.String("verbose", "notabool", "")
+
+	buf := new(bytes.Buffer)
+
+	err := runBuildInfo(buf, flags)
+
+	assert.ErrorContains(t, err, "trying to get bool value of flag of type string")
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestNewACLCommand(t *testing.T) {
@@ -173,6 +174,159 @@ func TestHitMissMay(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			out := hitMissMay(tc.input...)
 			assert.Equal(t, tc.expected, out)
+		})
+	}
+}
+
+func TestAccessControlCheckRunE(t *testing.T) {
+	testCases := []struct {
+		name           string
+		config         func() *schema.Configuration
+		flags          map[string]string
+		err            string
+		expectContains []string
+	}{
+		{
+			"ShouldSucceedBypassRule",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "deny",
+						Rules: []schema.AccessControlRule{
+							{
+								Domains: schema.AccessControlRuleDomains{"example.com"},
+								Policy:  "bypass",
+							},
+						},
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/", "method": fasthttp.MethodGet, "username": "john", "ip": "10.0.0.1"},
+			"",
+			[]string{"bypass", "rule #1"},
+		},
+		{
+			"ShouldSucceedDefaultPolicyDenyNoRules",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "deny",
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/", "method": fasthttp.MethodGet},
+			"",
+			[]string{"The default policy 'deny' will be applied to ALL requests as no rules are configured."},
+		},
+		{
+			"ShouldSucceedDefaultPolicyNoMatch",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "two_factor",
+						Rules: []schema.AccessControlRule{
+							{
+								Domains: schema.AccessControlRuleDomains{"other.com"},
+								Policy:  "bypass",
+							},
+						},
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/", "method": fasthttp.MethodGet},
+			"",
+			[]string{"two_factor", "default policy"},
+		},
+		{
+			"ShouldSucceedWithVerboseOutput",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "deny",
+						Rules: []schema.AccessControlRule{
+							{
+								Domains: schema.AccessControlRuleDomains{"example.com"},
+								Policy:  "one_factor",
+							},
+						},
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/", "method": fasthttp.MethodPost, "username": "alice", "groups": "admins", "ip": "192.168.1.1", "verbose": "true"},
+			"",
+			[]string{"one_factor", "rule #1", "alice", "admins", "192.168.1.1"},
+		},
+		{
+			"ShouldSucceedWithMultipleRules",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "deny",
+						Rules: []schema.AccessControlRule{
+							{
+								Domains: schema.AccessControlRuleDomains{"other.com"},
+								Policy:  "bypass",
+							},
+							{
+								Domains: schema.AccessControlRuleDomains{"example.com"},
+								Policy:  "two_factor",
+							},
+						},
+					},
+				}
+			},
+			map[string]string{"url": "https://example.com/", "method": fasthttp.MethodGet},
+			"",
+			[]string{"two_factor", "rule #2"},
+		},
+		{
+			"ShouldErrInvalidURL",
+			func() *schema.Configuration {
+				return &schema.Configuration{
+					AccessControl: schema.AccessControl{
+						DefaultPolicy: "deny",
+					},
+				}
+			},
+			map[string]string{"url": "://invalid", "method": fasthttp.MethodGet},
+			"missing protocol scheme",
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmdCtx := NewCmdCtx()
+			cmdCtx.config = tc.config()
+			cmdCtx.cconfig = NewCmdCtxConfig()
+
+			cmd := &cobra.Command{Use: "check-policy"}
+
+			buf := new(bytes.Buffer)
+			cmd.SetOut(buf)
+
+			cmd.Flags().String("url", "", "")
+			cmd.Flags().String("method", fasthttp.MethodGet, "")
+			cmd.Flags().String("username", "", "")
+			cmd.Flags().StringSlice("groups", nil, "")
+			cmd.Flags().String("ip", "", "")
+			cmd.Flags().Bool("verbose", false, "")
+
+			for k, v := range tc.flags {
+				require.NoError(t, cmd.Flags().Set(k, v))
+			}
+
+			err := cmdCtx.AccessControlCheckRunE(cmd, nil)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+
+				for _, s := range tc.expectContains {
+					assert.Contains(t, buf.String(), s)
+				}
+			} else {
+				assert.ErrorContains(t, err, tc.err)
+			}
 		})
 	}
 }
