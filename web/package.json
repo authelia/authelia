@@ -27,7 +27,7 @@
       "js-yaml": "4.1.1",
       "minimatch": "10.2.4",
       "path-to-regexp": "8.4.0",
-      "picomatch@<2.3.2": "2.3.2",
+      "picomatch@<2.3.2": "4.0.4",
       "picomatch@>=4.0.0 <4.0.4": "4.0.4",
       "qs": "6.15.0",
       "semver": "7.7.4",
