@@ -2,7 +2,7 @@
 title: "authelia-scripts"
 description: "Reference for the authelia-scripts command."
 lead: ""
-date: 2026-04-02T15:48:22+11:00
+date: 2026-04-04T11:57:43+11:00
 draft: false
 images: []
 weight: 920
@@ -58,6 +58,7 @@ authelia-scripts help
 * [authelia-scripts ci](authelia-scripts_ci.md)	 - Run the continuous integration script
 * [authelia-scripts clean](authelia-scripts_clean.md)	 - Clean build artifacts
 * [authelia-scripts docker](authelia-scripts_docker.md)	 - Commands related to building and publishing docker image
+* [authelia-scripts fuzztest](authelia-scripts_fuzztest.md)	 - Run fuzz tests
 * [authelia-scripts serve](authelia-scripts_serve.md)	 - Serve compiled version of Authelia
 * [authelia-scripts suites](authelia-scripts_suites.md)	 - Commands related to suites management
 * [authelia-scripts unittest](authelia-scripts_unittest.md)	 - Run unit tests

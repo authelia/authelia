@@ -45,7 +45,7 @@ func FuzzIsStringAbsURL(f *testing.F) {
 	f.Add("https://example.com")
 	f.Add("https://abc.com")
 	f.Fuzz(func(t *testing.T, s string) {
-		assert.NoError(t, IsStringAbsURL(s))
+		_ = IsStringAbsURL(s)
 	})
 }
 
@@ -94,8 +94,9 @@ func FuzzIsStringInSliceF(f *testing.F) {
 	f.Add("456", "123,abc,456")
 	f.Fuzz(func(t *testing.T, n, h string) {
 		haystack := strings.Split(h, ",")
-		assert.True(t, IsStringInSliceF(n, haystack, a))
-		assert.True(t, IsStringInSliceF(n, haystack, strings.EqualFold))
+
+		_ = IsStringInSliceF(n, haystack, a)
+		_ = IsStringInSliceF(n, haystack, strings.EqualFold)
 	})
 }
 

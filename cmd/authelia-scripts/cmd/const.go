@@ -151,6 +151,15 @@ Suites can be listed with the authelia-scripts suites list command.`
 
 	cmdUnitTestExample = `authelia-scripts unittest`
 
+	cmdFuzzTestShort = "Run fuzz tests"
+
+	cmdFuzzTestLong = `Run fuzz tests.
+
+This command discovers and runs Go fuzz tests with configurable time budgets.`
+
+	cmdFuzzTestExample = `authelia-scripts fuzztest ./...
+authelia-scripts fuzztest --individual-budget 2m --total-budget 8m ./...`
+
 	cmdXFlagsShort = "Generate X LDFlags for building Authelia"
 
 	cmdXFlagsLong = `Generate X LDFlags for building Authelia.`
