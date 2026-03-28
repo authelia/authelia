@@ -15,7 +15,7 @@ overrides:
   js-yaml: 4.1.1
   minimatch: 10.2.4
   nanoid: 5.1.7
-  picomatch@>=4.0.0 <4.0.4: 4.0.4
+  picomatch: 4.0.4
   prismjs: 1.30.0
   rollup: 4.60.0
   socket.io-parser: 4.2.6
