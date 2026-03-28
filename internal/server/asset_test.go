@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/mocks"
 )
 
 func TestGenerateEtag(t *testing.T) {
@@ -197,6 +199,118 @@ func TestNewLocalesPathResolver(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, resolver)
+
+	testCases := []struct {
+		name              string
+		language          string
+		namespace         string
+		variant           string
+		expectedSupported bool
+		expectedAsset     string
+		expectedEmbedded  bool
+	}{
+		{
+			"ShouldResolveEnglishPortal",
+			"en",
+			"portal",
+			"",
+			true,
+			"locales/en/portal.json",
+			true,
+		},
+		{
+			"ShouldResolveGermanWithVariant",
+			"de",
+			"portal",
+			"DE",
+			true,
+			"locales/de-DE/portal.json",
+			true,
+		},
+		{
+			"ShouldResolveFrenchWithVariant",
+			"fr",
+			"portal",
+			"FR",
+			true,
+			"locales/fr-FR/portal.json",
+			true,
+		},
+		{
+			"ShouldResolveChineseAlias",
+			"zh",
+			"portal",
+			"",
+			true,
+			"locales/zh-CN/portal.json",
+			true,
+		},
+		{
+			"ShouldResolveCzechAlias",
+			"cs",
+			"portal",
+			"",
+			true,
+			"locales/cs-CZ/portal.json",
+			true,
+		},
+		{
+			"ShouldResolveJapaneseAlias",
+			"ja",
+			"portal",
+			"",
+			true,
+			"locales/ja-JP/portal.json",
+			true,
+		},
+		{
+			"ShouldReturnUnsupportedForUnknownLanguage",
+			"xx",
+			"portal",
+			"",
+			false,
+			"",
+			false,
+		},
+		{
+			"ShouldResolveSpanishWithVariant",
+			"es",
+			"portal",
+			"ES",
+			true,
+			"locales/es-ES/portal.json",
+			true,
+		},
+		{
+			"ShouldResolveWithDifferentNamespace",
+			"en",
+			"common",
+			"",
+			true,
+			"locales/en/common.json",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.SetUserValue("language", tc.language)
+			mock.Ctx.SetUserValue("namespace", tc.namespace)
+
+			if tc.variant != "" {
+				mock.Ctx.SetUserValue("variant", tc.variant)
+			}
+
+			supported, asset, embedded := resolver(mock.Ctx)
+
+			assert.Equal(t, tc.expectedSupported, supported)
+			assert.Equal(t, tc.expectedAsset, asset)
+			assert.Equal(t, tc.expectedEmbedded, embedded)
+		})
+	}
 }
 
 func TestNewLocalesEmbeddedHandler(t *testing.T) {
@@ -204,6 +318,131 @@ func TestNewLocalesEmbeddedHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, handler)
+
+	testCases := []struct {
+		name               string
+		language           string
+		namespace          string
+		variant            string
+		method             string
+		ifNoneMatch        string
+		expectedStatusCode int
+		expectJSON         bool
+	}{
+		{
+			"ShouldServeEnglishPortal",
+			"en",
+			"portal",
+			"",
+			fasthttp.MethodGet,
+			"",
+			fasthttp.StatusOK,
+			true,
+		},
+		{
+			"ShouldServeGermanPortalWithVariant",
+			"de",
+			"portal",
+			"DE",
+			fasthttp.MethodGet,
+			"",
+			fasthttp.StatusOK,
+			true,
+		},
+		{
+			"ShouldReturn404ForUnsupportedLanguage",
+			"xx",
+			"portal",
+			"",
+			fasthttp.MethodGet,
+			"",
+			fasthttp.StatusNotFound,
+			false,
+		},
+		{
+			"ShouldHandleHEADRequest",
+			"en",
+			"portal",
+			"",
+			fasthttp.MethodHead,
+			"",
+			fasthttp.StatusOK,
+			false,
+		},
+		{
+			"ShouldServeChineseAlias",
+			"zh",
+			"portal",
+			"",
+			fasthttp.MethodGet,
+			"",
+			fasthttp.StatusOK,
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.SetMethod(tc.method)
+			mock.Ctx.SetUserValue("language", tc.language)
+			mock.Ctx.SetUserValue("namespace", tc.namespace)
+
+			if tc.variant != "" {
+				mock.Ctx.SetUserValue("variant", tc.variant)
+			}
+
+			handler(mock.Ctx)
+
+			assert.Equal(t, tc.expectedStatusCode, mock.Ctx.Response.StatusCode())
+
+			if tc.expectJSON {
+				ct := string(mock.Ctx.Response.Header.ContentType())
+				assert.Contains(t, ct, "application/json")
+			}
+		})
+	}
+}
+
+func TestNewLocalesEmbeddedHandlerETagCaching(t *testing.T) {
+	handler, err := newLocalesEmbeddedHandler()
+
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name               string
+		expectedStatusCode int
+	}{
+		{"ShouldReturn304WithMatchingETag", fasthttp.StatusNotModified},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock1 := mocks.NewMockAutheliaCtx(t)
+			defer mock1.Close()
+
+			mock1.Ctx.SetUserValue("language", "en")
+			mock1.Ctx.SetUserValue("namespace", "portal")
+
+			handler(mock1.Ctx)
+
+			etag := mock1.Ctx.Response.Header.Peek("ETag")
+			require.NotEmpty(t, etag)
+
+			mock2 := mocks.NewMockAutheliaCtx(t)
+			defer mock2.Close()
+
+			mock2.Ctx.SetUserValue("language", "en")
+			mock2.Ctx.SetUserValue("namespace", "portal")
+			mock2.Ctx.Request.Header.SetBytesKV([]byte("If-None-Match"), etag)
+
+			handler(mock2.Ctx)
+
+			assert.Equal(t, tc.expectedStatusCode, mock2.Ctx.Response.StatusCode())
+		})
+	}
 }
 
 func TestNewLocalesListHandler(t *testing.T) {
@@ -211,4 +450,82 @@ func TestNewLocalesListHandler(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, handler)
+
+	testCases := []struct {
+		name               string
+		method             string
+		ifNoneMatch        string
+		expectedStatusCode int
+		expectJSON         bool
+	}{
+		{
+			"ShouldReturnLocaleList",
+			fasthttp.MethodGet,
+			"",
+			fasthttp.StatusOK,
+			true,
+		},
+		{
+			"ShouldHandleHEADRequest",
+			fasthttp.MethodHead,
+			"",
+			fasthttp.StatusOK,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.SetMethod(tc.method)
+
+			handler(mock.Ctx)
+
+			assert.Equal(t, tc.expectedStatusCode, mock.Ctx.Response.StatusCode())
+
+			if tc.expectJSON {
+				ct := string(mock.Ctx.Response.Header.ContentType())
+				assert.Contains(t, ct, "application/json")
+			}
+
+			etag := mock.Ctx.Response.Header.Peek("ETag")
+			assert.NotEmpty(t, etag)
+		})
+	}
+}
+
+func TestNewLocalesListHandlerETagCaching(t *testing.T) {
+	handler, err := newLocalesListHandler()
+
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name               string
+		expectedStatusCode int
+	}{
+		{"ShouldReturn304WithMatchingETag", fasthttp.StatusNotModified},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock1 := mocks.NewMockAutheliaCtx(t)
+			defer mock1.Close()
+
+			handler(mock1.Ctx)
+
+			etag := mock1.Ctx.Response.Header.Peek("ETag")
+			require.NotEmpty(t, etag)
+
+			mock2 := mocks.NewMockAutheliaCtx(t)
+			defer mock2.Close()
+
+			mock2.Ctx.Request.Header.SetBytesKV([]byte("If-None-Match"), etag)
+
+			handler(mock2.Ctx)
+
+			assert.Equal(t, tc.expectedStatusCode, mock2.Ctx.Response.StatusCode())
+		})
+	}
 }
