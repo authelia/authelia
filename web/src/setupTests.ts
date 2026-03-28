@@ -4,7 +4,6 @@ import { initReactI18next } from "react-i18next";
 
 await i18n.use(initReactI18next).init({
     resources: { en: { testNS: {} } },
-    showSupportNotice: false,
 });
 
 interface LocalStorageMock {
