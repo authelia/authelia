@@ -3,9 +3,11 @@ package server
 import (
 	"errors"
 	"io/fs"
+	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 )
 
@@ -106,4 +108,107 @@ func TestHFSHandleErr(t *testing.T) {
 			assert.Equal(t, tc.wantStatus, ctx.Response.StatusCode())
 		})
 	}
+}
+
+func TestNewPublicHTMLEmbeddedHandler(t *testing.T) {
+	handler := newPublicHTMLEmbeddedHandler()
+
+	require.NotNil(t, handler)
+
+	testCases := []struct {
+		name               string
+		path               string
+		method             string
+		expectedStatusCode int
+	}{
+		{"ShouldServeExistingFile", "/api/openapi.yml", fasthttp.MethodGet, fasthttp.StatusOK},
+		{"ShouldServeIndexHTML", "/api/index.html", fasthttp.MethodGet, fasthttp.StatusOK},
+		{"ShouldReturn404ForMissing", "/nonexistent.file", fasthttp.MethodGet, fasthttp.StatusNotFound},
+		{"ShouldHandleHEADRequest", "/api/openapi.yml", fasthttp.MethodHead, fasthttp.StatusOK},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				ctx fasthttp.RequestCtx
+				req fasthttp.Request
+			)
+
+			req.Header.SetMethod(tc.method)
+			req.SetRequestURI(tc.path)
+			ctx.Init(&req, &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8080}, nil)
+
+			handler(&ctx)
+
+			assert.Equal(t, tc.expectedStatusCode, ctx.Response.StatusCode())
+		})
+	}
+}
+
+func TestNewPublicHTMLEmbeddedHandlerETagCaching(t *testing.T) {
+	handler := newPublicHTMLEmbeddedHandler()
+
+	testCases := []struct {
+		name               string
+		path               string
+		sendETag           bool
+		expectedStatusCode int
+	}{
+		{"ShouldReturn200WithoutETag", "/api/openapi.yml", false, fasthttp.StatusOK},
+		{"ShouldReturn304WithMatchingETag", "/api/openapi.yml", true, fasthttp.StatusNotModified},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				ctx1 fasthttp.RequestCtx
+				req1 fasthttp.Request
+			)
+
+			req1.SetRequestURI(tc.path)
+			ctx1.Init(&req1, &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8080}, nil)
+
+			handler(&ctx1)
+
+			etag := ctx1.Response.Header.Peek("ETag")
+
+			if tc.sendETag && len(etag) > 0 {
+				var (
+					ctx2 fasthttp.RequestCtx
+					req2 fasthttp.Request
+				)
+
+				req2.SetRequestURI(tc.path)
+				req2.Header.SetBytesKV([]byte("If-None-Match"), etag)
+				ctx2.Init(&req2, &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8080}, nil)
+
+				handler(&ctx2)
+
+				assert.Equal(t, tc.expectedStatusCode, ctx2.Response.StatusCode())
+			} else {
+				assert.Equal(t, tc.expectedStatusCode, ctx1.Response.StatusCode())
+			}
+		})
+	}
+}
+
+func TestNewLocalesPathResolver(t *testing.T) {
+	resolver, err := newLocalesPathResolver()
+
+	require.NoError(t, err)
+	require.NotNil(t, resolver)
+}
+
+func TestNewLocalesEmbeddedHandler(t *testing.T) {
+	handler, err := newLocalesEmbeddedHandler()
+
+	require.NoError(t, err)
+	require.NotNil(t, handler)
+}
+
+func TestNewLocalesListHandler(t *testing.T) {
+	handler, err := newLocalesListHandler()
+
+	require.NoError(t, err)
+	require.NotNil(t, handler)
 }
