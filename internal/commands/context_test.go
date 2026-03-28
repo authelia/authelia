@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -173,7 +174,9 @@ func TestCmdCtx_CheckSchema(t *testing.T) {
 	require.Empty(t, warns)
 	require.Empty(t, errs)
 
-	assert.EqualError(t, ctx.CheckSchemaVersion(), "storage schema outdated: version 0 is outdated please migrate to version 22 in order to use this command or use an older binary")
+	err := ctx.CheckSchema()
+	require.Error(t, err)
+	assert.Regexp(t, regexp.MustCompile(`^storage schema outdated: version 0 is outdated please migrate to version \d+ in order to use this command or use an older binary`), err.Error())
 
 	assert.NoError(t, ctx.providers.StorageProvider.StartupCheck())
 

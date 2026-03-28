@@ -2,7 +2,9 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"regexp"
+	"runtime"
 	"runtime/debug"
 	"testing"
 
@@ -33,21 +35,19 @@ func TestRunBuildInfo(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name    string
+		name     string
 		flags    *pflag.FlagSet
 		expected string
 		err      string
 	}{
 		{
 			"Successful",
-			false,
 			newFlags(false),
 			"Last Tag: unknown\nState: untagged dirty\nBranch: master\nCommit: unknown\nBuild Number: 0\nBuild OS: linux\nBuild Arch: amd64\nBuild Compiler: gc\nBuild Date: \nDevelopment: false\nExtra: \n\nGo:\n    Version: go1.25.0\n    Module Path: github.com/authelia/authelia/v4\n    Executable Path: github.com/authelia/authelia/v4/internal/commands.test\n",
 			"",
 		},
 		{
 			"SuccessfulVerbose",
-			true,
 			newFlags(true),
 			"Last Tag: unknown\nState: untagged dirty\nBranch: master\nCommit: unknown\nBuild Number: 0\nBuild OS: linux\nBuild Arch: amd64\nBuild Compiler: gc\nBuild Date: \nDevelopment: false\nExtra: \n\nGo:\n    Version: go1.25.0\n    Module Path: github.com/authelia/authelia/v4\n    Executable Path: github.com/authelia/authelia/v4/internal/commands.test\n",
 			"",
@@ -59,7 +59,6 @@ func TestRunBuildInfo(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			err := runBuildInfo(buf, tc.verbose)
 
 			err := runBuildInfo(buf, tc.flags)
 
@@ -93,7 +92,7 @@ func TestRunBuildInfoOutput(t *testing.T) {
 				},
 			},
 			[]string{
-				"Last Tag: unknown\nState: untagged dirty\nBranch: master\nCommit: unknown\nBuild Number: 0\nBuild OS: linux\nBuild Arch: amd64\nBuild Compiler: gc\nBuild Date: \nDevelopment: false\nExtra: \n\nGo:\n    Version: \n    Module Path: github.com/authelia/authelia/v4",
+				fmt.Sprintf("Last Tag: unknown\nState: untagged dirty\nBranch: master\nCommit: unknown\nBuild Number: 0\nBuild OS: %s\nBuild Arch: %s\nBuild Compiler: gc\nBuild Date: \nDevelopment: false\nExtra: \n\nGo:\n    Version: \n    Module Path: github.com/authelia/authelia/v4", runtime.GOOS, runtime.GOARCH),
 			},
 			"",
 		},
@@ -112,7 +111,7 @@ func TestRunBuildInfoOutput(t *testing.T) {
 				},
 			},
 			[]string{
-				"Last Tag: unknown\nState: untagged dirty\nBranch: master\nCommit: unknown\nBuild Number: 0\nBuild OS: linux\nBuild Arch: amd64\nBuild Compiler: gc\nBuild Date: \nDevelopment: false\nExtra: \n\nGo:\n    Version: \n    Module Path: github.com/authelia/authelia/v4",
+				fmt.Sprintf("Last Tag: unknown\nState: untagged dirty\nBranch: master\nCommit: unknown\nBuild Number: 0\nBuild OS: %s\nBuild Arch: %s\nBuild Compiler: gc\nBuild Date: \nDevelopment: false\nExtra: \n\nGo:\n    Version: \n    Module Path: github.com/authelia/authelia/v4", runtime.GOOS, runtime.GOARCH),
 				"Dependencies:\n        github.com/a/fake/pkg@v1.0.0 ()\n",
 			},
 			"",

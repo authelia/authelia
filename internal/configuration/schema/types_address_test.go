@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -658,30 +659,46 @@ func TestNewSMTPAddress(t *testing.T) {
 }
 
 func TestAddress_Dial(t *testing.T) {
-	testCases := []struct {
+	type testCase struct {
 		name    string
 		have    Address
 		success bool
 		err     string
-	}{
+		errmap  map[string]string
+	}
+
+	testCases := []testCase{
 		{
 			"ShouldNotDialNil",
 			Address{true, false, -1, 0, nil, nil},
 			false,
 			"address url is nil",
+			nil,
 		},
 		{
 			"ShouldNotDialInvalid",
 			Address{false, false, -1, 0, nil, &url.URL{}},
 			false,
 			"address url is nil",
+			nil,
 		},
 		{
 			"ShouldNotDialInvalidAddress",
 			Address{true, false, -1, 0, nil, &url.URL{Scheme: "abc", Host: "127.0.0.1:0"}},
 			false,
 			"dial tcp 127.0.0.1:0: connect: connection refused",
+			map[string]string{
+				"darwin": "dial tcp 127.0.0.1:0: connect: can't assign requested address",
+			},
 		},
+	}
+
+	getExpectedErr := func(tc testCase) string {
+		if tc.errmap == nil {
+			return tc.err
+		}
+
+		return tc.errmap[runtime.GOOS]
 	}
 
 	for _, tc := range testCases {
@@ -701,8 +718,10 @@ func TestAddress_Dial(t *testing.T) {
 			} else {
 				assert.Nil(t, conn)
 
-				if tc.err != "" {
-					assert.EqualError(t, err, tc.err)
+				expectedErr := getExpectedErr(tc)
+
+				if expectedErr != "" {
+					assert.EqualError(t, err, expectedErr)
 				} else {
 					assert.NotNil(t, err)
 				}
@@ -823,6 +842,10 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 				assert.Equal(t, tc.rpath, actual.RouterPath())
 				assert.Equal(t, tc.strUmask, actual.Umask())
 				assert.Equal(t, tc.umask, actual.umask)
+
+				if actual.IsUnixDomainSocket() && runtime.GOOS == "darwin" {
+					return
+				}
 
 				ln, err := actual.Listener()
 

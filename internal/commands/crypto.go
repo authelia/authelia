@@ -706,7 +706,7 @@ func runCryptoPairGenerate(w io.Writer, legacy bool, privateKey any, dir, privat
 
 	buf.WriteString("\n")
 
-	_, _ = fmt.Fprint(cmd.OutOrStdout(), buf.String())
+	_, _ = fmt.Fprint(w, buf.String())
 
 	buf.Reset()
 

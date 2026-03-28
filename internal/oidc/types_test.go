@@ -8,6 +8,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	xjwt "authelia.com/provider/oauth2/token/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -11,6 +11,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -608,6 +609,10 @@ func (ctx *AutheliaCtx) GetClock() (provider clock.Provider) {
 	}
 
 	return ctx.Providers.Clock
+}
+
+func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
+	return jwt.WithTimeFunc(ctx.GetClock().Now)
 }
 
 // GetRandom returns the random provider. For use with interface fulfillment.

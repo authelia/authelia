@@ -381,7 +381,7 @@ func TestDuoProvider_AuthCall(t *testing.T) {
 			"127.0.0.1",
 			"Jane",
 			&http.Response{StatusCode: 200},
-			[]byte(`{"stat":"OK","message":"All Good!","message_detail":"Great job.","code":200,"response":{"result":"allow","status":"allow","status_msg":"Success. Logging you in...","trusted_device_token":"REkxSzP00Ld4ddEVTRZOUlYMEl8RFVVQkdJ05HwUldRRThJR1VTNE0=||1627133735|8356ef7779bb0ec4c28ca9b04dc50493c4d2e05e"}}`),
+			[]byte(`{"stat":"OK","message":"All Good!","message_detail":"Great job.","code":200,"response":{"result":"allow","status":"allow","status_msg":"Success. Logging you in...","trusted_device_token":"REkxSzP00Ld4ddEVTRZOUlYMEl8RFVVQkdJ05HwUldRRThJR1VTNE0=||1627133735|8356ef7779bb0ec4c28ca9b04dc50493c4d2e05e"}}`), //nolint:gosec
 			"",
 			&AuthResponse{
 				Result:             "allow",

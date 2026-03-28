@@ -308,7 +308,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 		}
 	}
 
-	consent.SetRespondedAt(ctx.Clock.Now(), 0)
+	consent.SetRespondedAt(ctx.GetClock().Now(), 0)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
 		ctx.Logger.

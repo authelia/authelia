@@ -2,10 +2,12 @@ package validator
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/url"
 	"testing"
 	"time"
 
+	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -435,7 +437,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenScryptOptio
 	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: scrypt: option 'iterations' is configured as '59' but must be less than or equal to '58'")
 	suite.EqualError(suite.validator.Errors()[1], "authentication_backend: file: password: scrypt: option 'block_size' is configured as '360287970189639672' but must be less than or equal to '36028797018963967'")
 	suite.EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: scrypt: option 'parallelism' is configured as '1073741825' but must be less than or equal to '1073741823'")
-	suite.EqualError(suite.validator.Errors()[3], "authentication_backend: file: password: scrypt: option 'key_length' is configured as '1374389534409' but must be less than or equal to '137438953440'")
+	suite.EqualError(suite.validator.Errors()[3], fmt.Sprintf("authentication_backend: file: password: scrypt: option 'key_length' is configured as '1374389534409' but must be less than or equal to '%d'", scrypt.KeyLengthMax))
 	suite.EqualError(suite.validator.Errors()[4], "authentication_backend: file: password: scrypt: option 'salt_length' is configured as '2147483647' but must be less than or equal to '1024'")
 }
 
