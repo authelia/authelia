@@ -346,6 +346,70 @@ func TestSMTPNotifier_Send_ErrorDial(t *testing.T) {
 	assert.EqualError(t, notifier.Send(context.Background(), mail.Address{Name: "Example One", Address: "admin@example.cm"}, "example subject", et, nil), "notifier: smtp: failed to dial connection: DIND NX container: there's no way it's DIND")
 }
 
+func TestSMTPNotifier_Send_ErrorTemplate(t *testing.T) {
+	failText := tt.Must(tt.New("fail").Funcs(tt.FuncMap{
+		"fail": func() (string, error) { return "", fmt.Errorf("text template error") },
+	}).Parse("{{ fail }}"))
+
+	failHTML := th.Must(th.New("fail").Funcs(th.FuncMap{
+		"fail": func() (string, error) { return "", fmt.Errorf("html template error") },
+	}).Parse("{{ fail }}"))
+
+	goodText, err := tt.New("good").Parse("Hello World")
+	require.NoError(t, err)
+
+	goodHTML, err := th.New("good").Parse("<p>Hello World</p>")
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name        string
+		disableHTML bool
+		et          *templates.EmailTemplate
+		err         string
+	}{
+		{
+			"ShouldReturnErrorWhenTextTemplateFailsWithHTMLDisabled",
+			true,
+			&templates.EmailTemplate{Text: failText, HTML: goodHTML},
+			`notifier: smtp: failed to create envelope: failed to set body: text template errored: failed to execute template: template: fail:1:3: executing "fail" at <fail>: error calling fail: text template error`,
+		},
+		{
+			"ShouldReturnErrorWhenTextTemplateFailsWithHTMLEnabled",
+			false,
+			&templates.EmailTemplate{Text: failText, HTML: goodHTML},
+			`notifier: smtp: failed to create envelope: failed to set body: text template errored: failed to execute template: template: fail:1:3: executing "fail" at <fail>: error calling fail: text template error`,
+		},
+		{
+			"ShouldReturnErrorWhenHTMLTemplateFails",
+			false,
+			&templates.EmailTemplate{Text: goodText, HTML: failHTML},
+			`notifier: smtp: failed to create envelope: failed to set body: html template errored: failed to execute template: template: fail:1:3: executing "fail" at <fail>: error calling fail: html template error`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			factory := NewMockSMTPClientFactory(ctrl)
+			logger, _ := test.NewNullLogger()
+
+			notifier := SetupNotifier(factory, logger)
+			notifier.config.Sender = mail.Address{Name: "Admin", Address: "admin@example.com"}
+			notifier.config.DisableHTMLEmails = tc.disableHTML
+
+			err := notifier.Send(context.Background(), mail.Address{Name: "User", Address: "user@example.com"}, "subject", tc.et, nil)
+
+			if len(tc.err) != 0 {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestSMTPNotifier_Send_ErrorGetClient(t *testing.T) {
 	ctrl, factory, _, et := SetupMockTest(t)
 	defer ctrl.Finish()

@@ -640,6 +640,17 @@ func TestInitializeSessionDefaults(t *testing.T) {
 				DefaultSession: &openid.DefaultSession{},
 			},
 		},
+		{
+			"ShouldHandleHeadersWithNilExtra",
+			&oidc.Session{
+				DefaultSession: &openid.DefaultSession{
+					Headers: &fjwt.Headers{},
+					Claims: &fjwt.IDTokenClaims{
+						Extra: map[string]any{},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

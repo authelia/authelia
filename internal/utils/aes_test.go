@@ -36,12 +36,40 @@ func TestShouldFailDecryptOnInvalidKey(t *testing.T) {
 	assert.Error(t, err, "message authentication failed")
 }
 
-func TestShouldFailDecryptOnInvalidCypherText(t *testing.T) {
-	var key = sha256.Sum256([]byte("the key"))
+func TestDecrypt(t *testing.T) {
+	key := sha256.Sum256([]byte("the key"))
 
-	encryptedSecret := []byte("abc123")
+	testCases := []struct {
+		name       string
+		ciphertext []byte
+		err        string
+	}{
+		{
+			"ShouldReturnErrorForTooShortCiphertext",
+			[]byte("abc123"),
+			"malformed ciphertext",
+		},
+		{
+			"ShouldReturnErrorForEmptyCiphertext",
+			[]byte{},
+			"malformed ciphertext",
+		},
+		{
+			"ShouldReturnErrorForNilCiphertext",
+			nil,
+			"malformed ciphertext",
+		},
+	}
 
-	_, err := Decrypt(encryptedSecret, &key)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := Decrypt(tc.ciphertext, &key)
 
-	assert.Error(t, err, "message authentication failed")
+			if len(tc.err) != 0 {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }

@@ -389,6 +389,86 @@ func TestValidateSectorIdentifierURI(t *testing.T) {
 	}
 }
 
+func TestFloat64Match(t *testing.T) {
+	testCases := []struct {
+		name     string
+		expected float64
+		value    any
+		values   []any
+		result   bool
+	}{
+		{
+			"ShouldMatchFloat64Value",
+			1.0,
+			float64(1.0),
+			nil,
+			true,
+		},
+		{
+			"ShouldMatchInt64Value",
+			5.0,
+			int64(5),
+			nil,
+			true,
+		},
+		{
+			"ShouldNotMatchDifferentValue",
+			1.0,
+			float64(2.0),
+			nil,
+			false,
+		},
+		{
+			"ShouldMatchInValues",
+			3.0,
+			nil,
+			[]any{float64(1.0), float64(3.0)},
+			true,
+		},
+		{
+			"ShouldNotMatchInValuesWhenAbsent",
+			5.0,
+			nil,
+			[]any{float64(1.0), float64(3.0)},
+			false,
+		},
+		{
+			"ShouldReturnFalseForNilValueAndEmptyValues",
+			1.0,
+			nil,
+			nil,
+			false,
+		},
+		{
+			"ShouldReturnFalseForNonNumericValue",
+			1.0,
+			"not a number",
+			nil,
+			false,
+		},
+		{
+			"ShouldReturnFalseForNonNumericValues",
+			1.0,
+			nil,
+			[]any{"not a number"},
+			false,
+		},
+		{
+			"ShouldPreferValueOverValues",
+			1.0,
+			float64(1.0),
+			[]any{float64(2.0)},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.result, float64Match(tc.expected, tc.value, tc.values))
+		})
+	}
+}
+
 type testClientContext struct {
 	context.Context
 	client *http.Client

@@ -12,9 +12,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
@@ -425,4 +430,69 @@ func TestConfig_GetAuthorizeErrorFieldResponseStrategy(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfig_GetJWTStrategy(t *testing.T) {
+	strategy := &jwt.DefaultStrategy{}
+
+	config := &oidc.Config{
+		Strategy: oidc.StrategyConfig{
+			JWT: strategy,
+		},
+	}
+
+	assert.Equal(t, strategy, config.GetJWTStrategy(context.Background()))
+}
+
+func TestConfig_GetContext(t *testing.T) {
+	testCases := []struct {
+		name     string
+		ctx      context.Context
+		expected bool
+	}{
+		{
+			"ShouldReturnNilForBackgroundContext",
+			context.Background(),
+			false,
+		},
+		{
+			"ShouldReturnContextFromValue",
+			context.WithValue(context.Background(), model.CtxKeyAutheliaCtx, &TestContext{Context: context.Background()}),
+			true,
+		},
+		{
+			"ShouldReturnContextFromDirectTypeAssertion",
+			&testConfigContext{Context: context.Background()},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &oidc.Config{}
+
+			result := config.GetContext(tc.ctx)
+
+			if tc.expected {
+				assert.NotNil(t, result)
+			} else {
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+type testConfigContext struct {
+	context.Context
+}
+
+func (t *testConfigContext) RootURL() (issuerURL *url.URL)                { return nil }
+func (t *testConfigContext) IssuerURL() (issuerURL *url.URL, err error)   { return nil, nil }
+func (t *testConfigContext) GetClock() clock.Provider                     { return nil }
+func (t *testConfigContext) GetRandom() random.Provider                   { return nil }
+func (t *testConfigContext) GetConfiguration() *schema.Configuration      { return nil }
+func (t *testConfigContext) GetProviderStorage() storage.Provider         { return nil }
+func (t *testConfigContext) GetUserProvider() authentication.UserProvider { return nil }
+func (t *testConfigContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
+	return nil
 }

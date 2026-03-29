@@ -198,7 +198,7 @@ func startMockNTPServer(t *testing.T, respondTime time.Time) *net.UDPAddr {
 	}()
 
 	t.Cleanup(func() {
-		conn.Close()
+		_ = conn.Close()
 	})
 
 	return addr

@@ -1,55 +1,101 @@
 package utils
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestShouldCheckIfFileExists(t *testing.T) {
-	exists, err := FileExists("../../README.md")
-	assert.NoError(t, err)
-	assert.True(t, exists)
+func TestFileExists(t *testing.T) {
+	dir := t.TempDir()
 
-	exists, err = FileExists("../../")
-	assert.EqualError(t, err, "path is a directory")
-	assert.False(t, exists)
+	filePath := filepath.Join(dir, "testfile")
+	require.NoError(t, os.WriteFile(filePath, []byte("data"), 0600))
 
-	exists, err = FileExists("../../NOTAFILE.md")
-	assert.NoError(t, err)
-	assert.False(t, exists)
+	testCases := []struct {
+		name           string
+		path           string
+		expectedExists bool
+		expectedErr    string
+	}{
+		{"ShouldReturnTrueForExistingFile", filePath, true, ""},
+		{"ShouldReturnErrorForDirectory", dir, false, "path is a directory"},
+		{"ShouldReturnFalseForNonExistentFile", filepath.Join(dir, "nonexistent"), false, ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			exists, err := FileExists(tc.path)
+
+			assert.Equal(t, tc.expectedExists, exists)
+
+			if tc.expectedErr != "" {
+				assert.EqualError(t, err, tc.expectedErr)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
-func TestShouldCheckIfDirectoryExists(t *testing.T) {
-	exists, err := DirectoryExists("../../")
+func TestDirectoryExists(t *testing.T) {
+	dir := t.TempDir()
 
-	assert.NoError(t, err)
-	assert.True(t, exists)
+	filePath := filepath.Join(dir, "testfile")
+	require.NoError(t, os.WriteFile(filePath, []byte("data"), 0600))
 
-	exists, err = DirectoryExists("../../README.md")
-	assert.EqualError(t, err, "path is a file")
-	assert.False(t, exists)
+	testCases := []struct {
+		name           string
+		path           string
+		expectedExists bool
+		expectedErr    string
+	}{
+		{"ShouldReturnTrueForExistingDirectory", dir, true, ""},
+		{"ShouldReturnErrorForFile", filePath, false, "path is a file"},
+		{"ShouldReturnFalseForNonExistentDirectory", filepath.Join(dir, "nonexistent"), false, ""},
+	}
 
-	exists, err = DirectoryExists("../../NOTADIRECTORY/")
-	assert.NoError(t, err)
-	assert.False(t, exists)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			exists, err := DirectoryExists(tc.path)
+
+			assert.Equal(t, tc.expectedExists, exists)
+
+			if tc.expectedErr != "" {
+				assert.EqualError(t, err, tc.expectedErr)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
-func TestShouldCheckIfPathExists(t *testing.T) {
-	exists, err := PathExists("../../README.md")
+func TestPathExists(t *testing.T) {
+	dir := t.TempDir()
 
-	assert.NoError(t, err)
-	assert.True(t, exists)
+	filePath := filepath.Join(dir, "testfile")
+	require.NoError(t, os.WriteFile(filePath, []byte("data"), 0600))
 
-	exists, err = PathExists("../../")
-	assert.NoError(t, err)
-	assert.True(t, exists)
+	testCases := []struct {
+		name           string
+		path           string
+		expectedExists bool
+	}{
+		{"ShouldReturnTrueForExistingFile", filePath, true},
+		{"ShouldReturnTrueForExistingDirectory", dir, true},
+		{"ShouldReturnFalseForNonExistentFile", filepath.Join(dir, "nonexistent"), false},
+		{"ShouldReturnFalseForNonExistentDirectory", filepath.Join(dir, "nonexistent", "dir"), false},
+	}
 
-	exists, err = PathExists("../../NOTAFILE.md")
-	assert.NoError(t, err)
-	assert.False(t, exists)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			exists, err := PathExists(tc.path)
 
-	exists, err = PathExists("../../NOTADIRECTORY/")
-	assert.NoError(t, err)
-	assert.False(t, exists)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedExists, exists)
+		})
+	}
 }

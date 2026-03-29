@@ -434,6 +434,30 @@ func TestWebAuthnCredentialData_ToCredential(t *testing.T) {
 			nil,
 			"error occurred deocding kid: illegal base64 data at input byte 0",
 		},
+		{
+			"ShouldErrBadPublicKey",
+			model.WebAuthnCredentialData{
+				SignCount:       2,
+				RPID:            "org.example.com",
+				Transports:      []string{"nfc", "usb"},
+				AttestationType: "fido-u2f",
+				PublicKey:       "!!!invalid-base64!!!",
+			},
+			nil,
+			"illegal base64 data at input byte 0",
+		},
+		{
+			"ShouldErrBadAttestation",
+			model.WebAuthnCredentialData{
+				SignCount:       2,
+				RPID:            "org.example.com",
+				Transports:      []string{"nfc"},
+				AttestationType: "fido-u2f",
+				Attestation:     "!!!invalid-base64!!!",
+			},
+			nil,
+			"illegal base64 data at input byte 0",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -562,6 +586,98 @@ func TestWebAuthnCredentialImportExport(t *testing.T) {
 			assert.Equal(t, expected.Username, actual.Username)
 		})
 	}
+}
+
+func TestWebAuthnCredential_ToCredential_Errors(t *testing.T) {
+	testCases := []struct {
+		name string
+		have model.WebAuthnCredential
+		err  string
+	}{
+		{
+			"ShouldErrBadAttestationJSON",
+			model.WebAuthnCredential{
+				KID:         model.NewBase64([]byte("abc")),
+				PublicKey:   []byte("key"),
+				Attestation: []byte("not-json"),
+			},
+			"invalid character 'o' in literal null (expecting 'u')",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			credential, err := tc.have.ToCredential()
+
+			assert.Nil(t, credential)
+			assert.EqualError(t, err, tc.err)
+		})
+	}
+}
+
+func TestWebAuthnCredential_UnmarshalYAML_Errors(t *testing.T) {
+	testCases := []struct {
+		name string
+		yaml string
+		err  string
+	}{
+		{
+			"ShouldErrOnInvalidYAML",
+			"rpid: [[[",
+			"yaml: while parsing a flow node at line 1: did not find expected node content",
+		},
+		{
+			"ShouldErrOnInvalidPublicKeyBase64",
+			"rpid: example.com\npublic_key: '!!!bad!!!'\nkid: dGVzdA==\n",
+			"illegal base64 data at input byte 0",
+		},
+		{
+			"ShouldErrOnInvalidKIDBase64",
+			"rpid: example.com\npublic_key: dGVzdA==\nkid: '!!!bad!!!'\n",
+			"illegal base64 data at input byte 0",
+		},
+		{
+			"ShouldErrOnInvalidAAGUID",
+			"rpid: example.com\npublic_key: dGVzdA==\nkid: dGVzdA==\naaguid: 'not-a-uuid'\n",
+			"invalid UUID length: 10",
+		},
+		{
+			"ShouldErrOnInvalidAttestationBase64",
+			"rpid: example.com\npublic_key: dGVzdA==\nkid: dGVzdA==\nattestation: '!!!bad!!!'\n",
+			"illegal base64 data at input byte 0",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			credential := &model.WebAuthnCredential{}
+
+			err := yaml.Unmarshal([]byte(tc.yaml), credential)
+
+			if len(tc.err) != 0 {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestWebAuthnUser_WebAuthnCredentials_WithError(t *testing.T) {
+	user := &model.WebAuthnUser{
+		Credentials: []model.WebAuthnCredential{
+			{
+				KID:         model.NewBase64([]byte("good")),
+				PublicKey:   []byte("key"),
+				Attestation: []byte("not-json"),
+			},
+		},
+	}
+
+	credentials := user.WebAuthnCredentials()
+
+	assert.Len(t, credentials, 1)
+	assert.Equal(t, webauthn.Credential{}, credentials[0])
 }
 
 func MustRead(n int) []byte {
