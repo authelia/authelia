@@ -10,5 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "express": "5.2.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "path-to-regexp": "8.4.0"
+    }
   }
 }
