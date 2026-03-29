@@ -312,3 +312,48 @@ func TestLDAPDiscovery_Strings(t *testing.T) {
 		})
 	}
 }
+
+func TestFmtLDAPVersions(t *testing.T) {
+	testCases := []struct {
+		name     string
+		versions []int
+		expected string
+	}{
+		{
+			"ShouldReturnEmptyForNil",
+			nil,
+			"",
+		},
+		{
+			"ShouldReturnEmptyForEmpty",
+			[]int{},
+			"",
+		},
+		{
+			"ShouldFormatSingleVersion",
+			[]int{3},
+			"LDAPv3",
+		},
+		{
+			"ShouldFormatTwoVersions",
+			[]int{3, 2},
+			"LDAPv3, and LDAPv2",
+		},
+		{
+			"ShouldFormatThreeVersions",
+			[]int{3, 2, 1},
+			"LDAPv3, LDAPv2, and LDAPv1",
+		},
+		{
+			"ShouldFormatFourVersions",
+			[]int{4, 3, 2, 1},
+			"LDAPv4, LDAPv3, LDAPv2, and LDAPv1",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, fmtLDAPVersions(tc.versions))
+		})
+	}
+}

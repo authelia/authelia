@@ -248,3 +248,22 @@ func ldapNewSearchRequestRootDSE() *ldap.SearchRequest {
 	return ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
 		1, 0, false, ldapBaseObjectFilter, []string{ldapObjectClassAttribute, ldapSupportedLDAPVersionAttribute, ldapSupportedExtensionAttribute, ldapSupportedControlAttribute, ldapSupportedFeaturesAttribute, ldapSupportedSASLMechanismsAttribute, ldapVendorNameAttribute, ldapVendorVersionAttribute, ldapDomainFunctionalityAttribute, ldapForestFunctionalityAttribute}, nil)
 }
+
+func fmtLDAPVersions(versions []int) string {
+	n := len(versions)
+
+	switch n {
+	case 0:
+		return ""
+	case 1:
+		return fmt.Sprintf("LDAPv%d", versions[0])
+	default:
+		parts := make([]string, n)
+
+		for i, v := range versions {
+			parts[i] = fmt.Sprintf("LDAPv%d", v)
+		}
+
+		return strings.Join(parts[:n-1], ", ") + ", and " + parts[n-1]
+	}
+}
