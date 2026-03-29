@@ -34,7 +34,7 @@ fi
 echo "[BOOTSTRAP] Checking if Go is installed..."
 if [[ ! -x "$(command -v go)" ]];
 then
-  echo "[ERROR] You must install Go on your machine.";
+  echo "[ERROR] You must install Go on your machine." >&2
   return
 fi
 
