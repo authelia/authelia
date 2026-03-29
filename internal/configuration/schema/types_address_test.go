@@ -14,7 +14,12 @@ import (
 )
 
 func TestNewAddressFromString(t *testing.T) {
-	four := uint64(4)
+	dir := t.TempDir()
+
+	f, err := os.CreateTemp(dir, "fd-test")
+	require.NoError(t, err)
+
+	fd := uint64(f.Fd())
 
 	testCases := []struct {
 		name                                         string
@@ -176,26 +181,26 @@ func TestNewAddressFromString(t *testing.T) {
 		},
 		{
 			"ShouldParseFileDescriptor",
-			"fd://4",
-			&Address{true, false, -1, 0, &four, &url.URL{Scheme: "fd", Host: "4"}},
-			"4",
-			"fd://4",
+			fmt.Sprintf("fd://%d", fd),
+			&Address{true, false, -1, 0, &fd, &url.URL{Scheme: "fd", Host: fmt.Sprintf("%d", fd)}},
+			fmt.Sprintf("%d", fd),
+			fmt.Sprintf("fd://%d", fd),
 			"",
 		},
 		{
 			"ShouldParseFileDescriptorWithUmask",
-			"fd://4?umask=0022",
-			&Address{true, false, 18, 0, &four, &url.URL{Scheme: "fd", Host: "4", RawQuery: "umask=0022"}},
-			"4",
-			"fd://4?umask=0022",
+			fmt.Sprintf("fd://%d?umask=0022", fd),
+			&Address{true, false, 18, 0, &fd, &url.URL{Scheme: "fd", Host: fmt.Sprintf("%d", fd), RawQuery: "umask=0022"}},
+			fmt.Sprintf("%d", fd),
+			fmt.Sprintf("fd://%d?umask=0022", fd),
 			"",
 		},
 		{
 			"ShouldParseFileDescriptorWithUmaskAndPath",
-			"fd://4?umask=0022&path=example",
-			&Address{true, false, 18, 0, &four, &url.URL{Scheme: "fd", Host: "4", RawQuery: "umask=0022&path=example"}},
-			"4",
-			"fd://4?umask=0022&path=example",
+			fmt.Sprintf("fd://%d?umask=0022&path=example", fd),
+			&Address{true, false, 18, 0, &fd, &url.URL{Scheme: "fd", Host: fmt.Sprintf("%d", fd), RawQuery: "umask=0022&path=example"}},
+			fmt.Sprintf("%d", fd),
+			fmt.Sprintf("fd://%d?umask=0022&path=example", fd),
 			"",
 		},
 		{
@@ -843,7 +848,7 @@ func TestAddress_UnixDomainSocket(t *testing.T) {
 				assert.Equal(t, tc.strUmask, actual.Umask())
 				assert.Equal(t, tc.umask, actual.umask)
 
-				if actual.IsUnixDomainSocket() && runtime.GOOS == "darwin" {
+				if runtime.GOOS == "darwin" && actual.IsUnixDomainSocket() {
 					return
 				}
 

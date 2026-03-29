@@ -5339,10 +5339,16 @@ func TestValidateOIDCClientSectorIdentifierURI(t *testing.T) {
 				cacheSectorIdentifierURIs: map[string][]string{},
 			}
 
-			validateOIDCClientSectorIdentifier(ctx, 0, config, val, func() {})
+			deprecated := false
+
+			validateOIDCClientSectorIdentifier(ctx, 0, config, val, func() {
+				deprecated = true
+			})
 
 			assert.Len(t, val.Errors(), tc.expectedErrs)
 			assert.Len(t, val.Warnings(), tc.expectedWarns)
+
+			assert.False(t, deprecated)
 
 			if len(tc.errContains) > 0 {
 				require.GreaterOrEqual(t, len(val.Errors()), 1)

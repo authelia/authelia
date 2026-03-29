@@ -212,7 +212,7 @@ func TestCmdFlagsCryptoHashPasswordRandom(t *testing.T) {
 	}{
 		{
 			"ShouldReturnFalseByDefault",
-			func(flags *pflag.FlagSet) {},
+			nil,
 			false,
 		},
 		{
@@ -239,7 +239,9 @@ func TestCmdFlagsCryptoHashPasswordRandom(t *testing.T) {
 			flags.String(cmdFlagNameRandomCharacters, "", "")
 			flags.Int(cmdFlagNameRandomLength, 72, "")
 
-			tc.setup(flags)
+			if tc.setup != nil {
+				tc.setup(flags)
+			}
 
 			random, err := cmdFlagsCryptoHashPasswordRandom(flags, cmdFlagNameRandom, cmdFlagNameRandomCharSet, cmdFlagNameRandomCharacters, cmdFlagNameRandomLength)
 
@@ -289,7 +291,7 @@ func TestCmdFlagsCryptoHashGetPassword(t *testing.T) {
 		},
 		{
 			"ShouldReturnPasswordFromArgs",
-			func(flags *pflag.FlagSet) {},
+			nil,
 			cmdUseGenerate,
 			[]string{"argpassword"},
 			true,
@@ -300,7 +302,7 @@ func TestCmdFlagsCryptoHashGetPassword(t *testing.T) {
 		},
 		{
 			"ShouldReturnJoinedPasswordFromMultipleArgs",
-			func(flags *pflag.FlagSet) {},
+			nil,
 			cmdUseGenerate,
 			[]string{"arg", "password", "here"},
 			true,
@@ -337,7 +339,7 @@ func TestCmdFlagsCryptoHashGetPassword(t *testing.T) {
 		},
 		{
 			"ShouldErrNoTerminalWhenUseArgsButNoArgs",
-			func(flags *pflag.FlagSet) {},
+			nil,
 			cmdUseGenerate,
 			nil,
 			true,
@@ -348,7 +350,7 @@ func TestCmdFlagsCryptoHashGetPassword(t *testing.T) {
 		},
 		{
 			"ShouldErrNoTerminal",
-			func(flags *pflag.FlagSet) {},
+			nil,
 			cmdUseGenerate,
 			nil,
 			false,
@@ -359,7 +361,7 @@ func TestCmdFlagsCryptoHashGetPassword(t *testing.T) {
 		},
 		{
 			"ShouldErrNoTerminalValidateUse",
-			func(flags *pflag.FlagSet) {},
+			nil,
 			fmt.Sprintf(cmdUseFmtValidate, cmdUseValidate),
 			nil,
 			false,
@@ -380,7 +382,9 @@ func TestCmdFlagsCryptoHashGetPassword(t *testing.T) {
 			flags.String(cmdFlagNameRandomCharacters, "", "")
 			flags.Int(cmdFlagNameRandomLength, 72, "")
 
-			tc.setup(flags)
+			if tc.setup != nil {
+				tc.setup(flags)
+			}
 
 			buf := new(bytes.Buffer)
 

@@ -111,6 +111,14 @@ func TestCryptoGetSANsFromCmd(t *testing.T) {
 			assert.Equal(t, tc.expectedIPSANs, ipSANs)
 		})
 	}
+
+	t.Run("ShouldErrWhenSANsFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+
+		_, _, err := cryptoGetSANsFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: sans")
+	})
 }
 
 func TestCryptoGetSubjectFromCmd(t *testing.T) {
@@ -172,6 +180,98 @@ func TestCryptoGetSubjectFromCmd(t *testing.T) {
 			assert.Equal(t, tc.expected, subject)
 		})
 	}
+
+	t.Run("ShouldErrWhenCommonNameFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+
+		_, err := cryptoGetSubjectFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: common-name")
+	})
+
+	t.Run("ShouldErrWhenOrganizationFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().String(cmdFlagNameCommonName, "", "")
+
+		_, err := cryptoGetSubjectFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: organization")
+	})
+
+	t.Run("ShouldErrWhenOrganizationalUnitFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().String(cmdFlagNameCommonName, "", "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganization, nil, "")
+
+		_, err := cryptoGetSubjectFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: organizational-unit")
+	})
+
+	t.Run("ShouldErrWhenCountryFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().String(cmdFlagNameCommonName, "", "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganization, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganizationalUnit, nil, "")
+
+		_, err := cryptoGetSubjectFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: country")
+	})
+
+	t.Run("ShouldErrWhenLocalityFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().String(cmdFlagNameCommonName, "", "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganization, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganizationalUnit, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameCountry, nil, "")
+
+		_, err := cryptoGetSubjectFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: locality")
+	})
+
+	t.Run("ShouldErrWhenProvinceFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().String(cmdFlagNameCommonName, "", "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganization, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganizationalUnit, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameCountry, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameLocality, nil, "")
+
+		_, err := cryptoGetSubjectFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: province")
+	})
+
+	t.Run("ShouldErrWhenStreetAddressFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().String(cmdFlagNameCommonName, "", "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganization, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganizationalUnit, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameCountry, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameLocality, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameProvince, nil, "")
+
+		_, err := cryptoGetSubjectFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: street-address")
+	})
+
+	t.Run("ShouldErrWhenPostcodeFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().String(cmdFlagNameCommonName, "", "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganization, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganizationalUnit, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameCountry, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameLocality, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameProvince, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameStreetAddress, nil, "")
+
+		_, err := cryptoGetSubjectFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: postcode")
+	})
 }
 
 func TestCryptoGetAlgFromCmd(t *testing.T) {
@@ -344,6 +444,45 @@ func TestCryptoGetWritePathsFromCmd(t *testing.T) {
 			assert.Equal(t, tc.expectedPublicFile, publicKey)
 		})
 	}
+
+	t.Run("ShouldErrWhenDirectoryFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{Use: "generate"}
+
+		_, _, _, err := cryptoGetWritePathsFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: directory")
+	})
+
+	t.Run("ShouldErrWhenPrivateKeyFlagNotDefined", func(t *testing.T) {
+		grandparent := &cobra.Command{Use: "certificate"}
+		parent := &cobra.Command{Use: cmdUseRSA}
+		cmd := &cobra.Command{Use: "generate"}
+
+		grandparent.AddCommand(parent)
+		parent.AddCommand(cmd)
+
+		cmd.Flags().String(cmdFlagNameDirectory, "", "")
+
+		_, _, _, err := cryptoGetWritePathsFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: file.private-key")
+	})
+
+	t.Run("ShouldErrWhenPublicKeyFlagNotDefined", func(t *testing.T) {
+		grandparent := &cobra.Command{Use: "certificate"}
+		parent := &cobra.Command{Use: cmdUseRSA}
+		cmd := &cobra.Command{Use: "generate"}
+
+		grandparent.AddCommand(parent)
+		parent.AddCommand(cmd)
+
+		cmd.Flags().String(cmdFlagNameDirectory, "", "")
+		cmd.Flags().String(cmdFlagNameFilePrivateKey, "private.pem", "")
+
+		_, _, _, err := cryptoGetWritePathsFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: file.certificate")
+	})
 }
 
 func TestCryptoGenPrivateKeyFromCmd(t *testing.T) {
@@ -438,6 +577,32 @@ func TestCryptoGenPrivateKeyFromCmd(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrWhenRSABitsFlagNotDefined", func(t *testing.T) {
+		cmdCtx := NewCmdCtx()
+
+		parent := &cobra.Command{Use: cmdUseRSA}
+		cmd := &cobra.Command{Use: "generate"}
+
+		parent.AddCommand(cmd)
+
+		_, err := cmdCtx.cryptoGenPrivateKeyFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: bits")
+	})
+
+	t.Run("ShouldErrWhenECDSACurveFlagNotDefined", func(t *testing.T) {
+		cmdCtx := NewCmdCtx()
+
+		parent := &cobra.Command{Use: cmdUseECDSA}
+		cmd := &cobra.Command{Use: "generate"}
+
+		parent.AddCommand(cmd)
+
+		_, err := cmdCtx.cryptoGenPrivateKeyFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: curve")
+	})
 }
 
 func TestCryptoCertificateValidityFromCmd(t *testing.T) {
@@ -508,6 +673,14 @@ func TestCryptoCertificateValidityFromCmd(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrWhenDurationFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+
+		_, _, err := cryptoCertificateValidityFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: duration")
+	})
 }
 
 func TestCryptoGetCertificateFromCmd(t *testing.T) {
@@ -578,6 +751,36 @@ func TestCryptoGetCertificateFromCmd(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrWhenCAFlagNotDefined", func(t *testing.T) {
+		cmdCtx := NewCmdCtx()
+
+		parent := &cobra.Command{Use: cmdUseRSA}
+		cmd := &cobra.Command{Use: "generate"}
+
+		parent.AddCommand(cmd)
+
+		_, err := cmdCtx.cryptoGetCertificateFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: ca")
+	})
+
+	t.Run("ShouldErrWhenExtendedUsageFlagNotDefined", func(t *testing.T) {
+		cmdCtx := NewCmdCtx()
+
+		parent := &cobra.Command{Use: cmdUseRSA}
+		cmd := &cobra.Command{Use: "generate"}
+
+		parent.AddCommand(cmd)
+
+		cmdFlagsCryptoCertificateCommon(cmd)
+
+		cmd.Flags().Bool(cmdFlagNameCA, false, "")
+
+		_, err := cmdCtx.cryptoGetCertificateFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: extended-usage")
+	})
 }
 
 func TestCryptoGetCSRFromCmd(t *testing.T) {
@@ -622,6 +825,40 @@ func TestCryptoGetCSRFromCmd(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrWhenSubjectFlagsNotDefined", func(t *testing.T) {
+		parent := &cobra.Command{Use: cmdUseRSA}
+		cmd := &cobra.Command{Use: cmdUseRequest}
+
+		parent.AddCommand(cmd)
+
+		cmd.Flags().String(cmdFlagNameSignature, "SHA256", "")
+
+		_, err := cryptoGetCSRFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: common-name")
+	})
+
+	t.Run("ShouldErrWhenSANsFlagNotDefinedInCSR", func(t *testing.T) {
+		parent := &cobra.Command{Use: cmdUseRSA}
+		cmd := &cobra.Command{Use: cmdUseRequest}
+
+		parent.AddCommand(cmd)
+
+		cmd.Flags().String(cmdFlagNameSignature, "SHA256", "")
+		cmd.Flags().String(cmdFlagNameCommonName, "", "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganization, []string{"Authelia"}, "")
+		cmd.Flags().StringSlice(cmdFlagNameOrganizationalUnit, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameCountry, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameProvince, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameLocality, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameStreetAddress, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNamePostcode, nil, "")
+
+		_, err := cryptoGetCSRFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: sans")
+	})
 }
 
 func TestCryptoGetCAFromCmd(t *testing.T) {
@@ -633,7 +870,7 @@ func TestCryptoGetCAFromCmd(t *testing.T) {
 	}{
 		{
 			"ShouldReturnNilWhenNotSet",
-			func(t *testing.T, cmd *cobra.Command) {},
+			nil,
 			"",
 			true,
 		},
@@ -735,7 +972,9 @@ func TestCryptoGetCAFromCmd(t *testing.T) {
 			cmd := &cobra.Command{}
 			cmdFlagsCryptoCertificateGenerate(cmd)
 
-			tc.setup(t, cmd)
+			if tc.setup != nil {
+				tc.setup(t, cmd)
+			}
 
 			key, cert, err := cryptoGetCAFromCmd(cmd)
 
@@ -754,6 +993,29 @@ func TestCryptoGetCAFromCmd(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrWhenFileCAPrivateKeyFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().String(cmdFlagNamePathCA, "", "")
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNamePathCA, t.TempDir()))
+
+		_, _, err := cryptoGetCAFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: file.ca-private-key")
+	})
+
+	t.Run("ShouldErrWhenFileCACertificateFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().String(cmdFlagNamePathCA, "", "")
+		cmd.Flags().String(cmdFlagNameFileCAPrivateKey, "ca.private.pem", "")
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNamePathCA, t.TempDir()))
+
+		_, _, err := cryptoGetCAFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: file.ca-certificate")
+	})
 }
 
 func TestCryptoGenerateCertificateBundlesFromCmd(t *testing.T) {
@@ -841,6 +1103,36 @@ func TestCryptoGenerateCertificateBundlesFromCmd(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("ShouldErrWhenBundlesFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+
+		err := cryptoGenerateCertificateBundlesFromCmd(cmd, "", nil, nil, nil)
+
+		assert.EqualError(t, err, "flag accessed but not defined: bundles")
+	})
+
+	t.Run("ShouldErrWhenChainFileFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice(cmdFlagNameBundles, nil, "")
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameBundles, "chain"))
+
+		err := cryptoGenerateCertificateBundlesFromCmd(cmd, "", nil, nil, nil)
+
+		assert.EqualError(t, err, "flag accessed but not defined: file.bundle.chain")
+	})
+
+	t.Run("ShouldErrWhenPrivChainFileFlagNotDefined", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice(cmdFlagNameBundles, nil, "")
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameBundles, "priv-chain"))
+
+		err := cryptoGenerateCertificateBundlesFromCmd(cmd, "", nil, nil, nil)
+
+		assert.EqualError(t, err, "flag accessed but not defined: file.bundle.priv-chain")
+	})
 }
 
 func TestFmtCryptoHashUse(t *testing.T) {

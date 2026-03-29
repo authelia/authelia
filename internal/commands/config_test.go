@@ -108,7 +108,7 @@ func TestConfigValidateRunE(t *testing.T) {
 	}{
 		{
 			"ShouldSucceedNoErrors",
-			func(ctx *CmdCtx) {},
+			nil,
 			"",
 			"Configuration parsed and loaded successfully without errors.",
 		},
@@ -135,7 +135,9 @@ func TestConfigValidateRunE(t *testing.T) {
 			cmdCtx := NewCmdCtx()
 			cmdCtx.cconfig = NewCmdCtxConfig()
 
-			tc.setup(cmdCtx)
+			if tc.setup != nil {
+				tc.setup(cmdCtx)
+			}
 
 			cmd := &cobra.Command{Use: "validate"}
 
