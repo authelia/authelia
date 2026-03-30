@@ -25,7 +25,7 @@
       "glob": "13.0.6",
       "import-meta-resolve": "4.2.0",
       "js-yaml": "4.1.1",
-      "minimatch": "10.2.4",
+      "minimatch": "10.2.5",
       "path-to-regexp": "8.4.0",
       "picomatch": "4.0.4",
       "qs": "6.15.0",
