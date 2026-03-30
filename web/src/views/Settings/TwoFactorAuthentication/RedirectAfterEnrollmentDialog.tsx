@@ -76,19 +76,41 @@ const RedirectAfterEnrollmentDialog = function (props: Props) {
     return (
         <Dialog open={props.open} onClose={handleStayHere} maxWidth={"sm"} fullWidth={true}>
             <DialogTitle>{translate("Multi-Factor Authentication Registered")}</DialogTitle>
-            <DialogContent>
+            <DialogContent
+                sx={{
+                    alignItems: "center",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    py: 3,
+                    textAlign: "center",
+                }}
+            >
                 <SuccessIcon />
-                <DialogContentText>
+                <DialogContentText sx={{ mt: 2 }}>
                     {translate("You have successfully added a multi-factor authentication method")}
                 </DialogContentText>
                 <DialogContentText>
                     {translate("Would you like to continue to your originally requested resource?")}
                 </DialogContentText>
-                <Typography variant={"body2"}>{targetURL}</Typography>
+                <Typography
+                    variant={"body2"}
+                    sx={(theme) => ({
+                        color: theme.palette.primary.main,
+                        fontWeight: "bold",
+                        wordBreak: "break-all",
+                    })}
+                >
+                    {targetURL}
+                </Typography>
             </DialogContent>
-            <DialogActions>
-                <Button id={"dialog-stay-here"} onClick={handleStayHere}>{translate("Stay Here")}</Button>
-                <Button id={"dialog-continue"} onClick={handleContinue}>{translate("Continue")}</Button>
+            <DialogActions sx={{ gap: 1, justifyContent: "center", pb: 2 }}>
+                <Button id={"dialog-stay-here"} color={"secondary"} variant={"outlined"} onClick={handleStayHere}>
+                    {translate("Stay Here")}
+                </Button>
+                <Button id={"dialog-continue"} color={"success"} variant={"contained"} onClick={handleContinue}>
+                    {translate("Continue")}
+                </Button>
             </DialogActions>
         </Dialog>
     );
