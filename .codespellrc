@@ -13,4 +13,5 @@ ignore-regex = https?://\S+|\b[a-z]+[A-Z]\w*\b|\b[A-Z][a-z]+[A-Z]\w*\b
 # re-use: valid hyphenated form (appears in RFC quotes)
 # intoto: in-toto attestation format filename (authelia.intoto.jsonl)
 # fot: appears in base64-encoded RSA key test data
-ignore-words-list = fpt,ot,datas,fo,acn,ue,re-use,intoto,fot
+# anothe: intentional test endpoint name in server_test.go (distinct from "another")
+ignore-words-list = fpt,ot,datas,fo,acn,ue,re-use,intoto,fot,anothe

@@ -657,7 +657,7 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 				"another":       {Implementation: "ExtAuthz"},
 				"another/test":  {Implementation: "ForwardAuth"},
 				"anotherb/test": {Implementation: "ForwardAuth"},
-				"another":        {Implementation: "ExtAuthz"},
+				"anothe":        {Implementation: "ExtAuthz"},
 				"anotherc/test": {Implementation: "ForwardAuth"},
 				"anotherc":      {Implementation: "ExtAuthz"},
 				"anotherd/test": {Implementation: "ForwardAuth"},

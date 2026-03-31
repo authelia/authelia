@@ -169,7 +169,7 @@ The [Claim Stability and Uniqueness] Section of [OpenID Connect 1.0] reads:
 > NOT be used as unique identifiers for the End-User, whether obtained from the ID Token or the UserInfo Endpoint.
 
 The intent and gravity of neglecting this element is very clear as soon as you realize that providers may allow users to
-change their email address or username. these values are intended to be persistent identifiers for a user, never
+change their email address or username. These values are intended to be persistent identifiers for a user, never
 changing, regardless of what other values change. Not only for security, but for the user experience to be seamless.
 Just because they change their email they should not be prevented from signing into an application; and this would be
 the case if you do not use the intended _Claims_[^1].
