@@ -85,7 +85,7 @@ authelia-scripts suites test
 authelia-scripts suites teardown Standalone
 ```
 
-In order to test all suites (approx 30 minutes), you need to make sure there is no currently running sui te and then you
+In order to test all suites (approx 30 minutes), you need to make sure there is no currently running suite and then you
 should run:
 
 ```bash
