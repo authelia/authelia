@@ -104,7 +104,7 @@ policy in [provider authorization policies](../../../configuration/identity-prov
 To configure [Jellyfin] there are two methods, using the [Configuration File](#configuration-file), or using the
 [Web GUI](#web-gui).
 
-However the following steps must be compelted via the UI first regardless of which option you choose:
+However the following steps must be completed via the UI first regardless of which option you choose:
 
 1. Visit the `Catalog` tab.
 2. Select `SSO Authentication` from the `Authentication` section.
