@@ -3,9 +3,11 @@ package authentication
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
+	ber "github.com/go-asn1-ber/asn1-ber"
 	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -183,6 +185,13 @@ func getExtraValueFromEntry(entry *ldap.Entry, attribute string, properties sche
 
 	switch properties.ValueType {
 	case ValueTypeString:
+		// TODO: This changes behavior for consumers relying on empty string extra attributes.
+		// being present in API responses (e.g. {"employee_id": ""} becomes absent entirely).
+		// Does this require a changelog mention? "Empty string extra LDAP attributes are no longer included in API responses.".
+		if str == "" {
+			return nil, nil
+		}
+
 		value = str
 	case ValueTypeInteger:
 		if str == "" {
@@ -266,4 +275,70 @@ func fmtLDAPVersions(versions []int) string {
 
 		return strings.Join(parts[:n-1], ", ") + ", and " + parts[n-1]
 	}
+}
+
+func ldapGetReferral(err error) (referral string, ok bool) {
+	var e *ldap.Error
+
+	switch {
+	case errors.As(err, &e):
+		if e.ResultCode != ldap.LDAPResultReferral {
+			return "", false
+		}
+
+		if e.Packet == nil {
+			return "", false
+		}
+
+		if len(e.Packet.Children) < 2 {
+			return "", false
+		}
+
+		if e.Packet.Children[1].Tag != ber.TagObjectDescriptor {
+			return "", false
+		}
+
+		for i := 0; i < len(e.Packet.Children[1].Children); i++ {
+			if e.Packet.Children[1].Children[i].Tag != ber.TagBitString || len(e.Packet.Children[1].Children[i].Children) < 1 {
+				continue
+			}
+
+			referral, ok = e.Packet.Children[1].Children[i].Children[0].Value.(string)
+
+			if !ok {
+				continue
+			}
+
+			return referral, true
+		}
+
+		return "", false
+	default:
+		return "", false
+	}
+}
+
+func getFieldNames(s interface{}) []string {
+	v := reflect.ValueOf(s)
+	t := reflect.TypeOf(s)
+
+	if t.Kind() == reflect.Ptr {
+		v = v.Elem()
+		t = t.Elem()
+	}
+
+	var fields []string
+
+	for i := 0; i < t.NumField(); i++ {
+		fieldTag := t.Field(i).Tag.Get("koanf")
+		fieldValue := v.Field(i)
+
+		if fieldValue.Kind() == reflect.String && fieldValue.String() == "" {
+			continue
+		}
+
+		fields = append(fields, fieldTag)
+	}
+
+	return fields
 }

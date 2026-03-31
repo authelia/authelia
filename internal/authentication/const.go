@@ -80,6 +80,11 @@ const (
 const (
 	ldapAttributeUnicodePwd   = "unicodePwd"
 	ldapAttributeUserPassword = "userPassword"
+
+	ldapAttrMail        = "mail"
+	ldapAttrCommonName  = "cn"
+	ldapAttrMemberOf    = "memberOf"
+	ldapAttrObjectClass = "objectClass"
 )
 
 const (
@@ -122,6 +127,10 @@ var (
 	// ErrUserNotFound indicates the user wasn't found in the authentication backend.
 	ErrUserNotFound = errors.New("user not found")
 
+	ErrGroupNotFound = errors.New("group not found")
+
+	ErrGroupExists = errors.New("group already exists")
+
 	// ErrWatcherNoContent is returned when the file is empty.
 	ErrWatcherNoContent = errors.New("no file content")
 
@@ -135,9 +144,21 @@ var (
 
 	ErrPasswordWeak = errors.New("your supplied password does not meet the password policy requirements")
 
+	// ErrPasswordReuse is returned when the new password is the same as the existing password.
+	ErrPasswordReuse = errors.New("you cannot reuse your old password")
+
+	// ErrEmptyInput is returned when an empty string or nil value is used to set a value.
+	ErrEmptyInput = errors.New("empty input is not valid")
+
+	ErrPasswordEmpty = errors.New("your password cannot be blank")
+
 	ErrAuthenticationFailed = errors.New("authentication failed")
 
 	ErrLDAPHealthCheckFailedEntryCount = errors.New("incorrect number entries found when performing RootDSE search")
+)
+var (
+	ErrUsernameIsRequired   = errors.New("username is required")
+	ErrFamilyNameIsRequired = errors.New("family name is required")
 )
 
 const fileAuthenticationMode = 0600
@@ -168,3 +189,15 @@ func (e *errReload) Unwrap() error {
 func (e *errReload) WatcherReloadErrorCritical() bool {
 	return e.critical
 }
+
+// LDAP Boolean Syntax Values.
+//
+// See the linked documents for more information.
+//
+// RFC4517 Section 3.3.3: https://datatracker.ietf.org/doc/html/rfc4517#section-3.3.3
+//
+// Syntax OID Reference: https://oidref.com/1.3.6.1.4.1.1466.115.121.1.7
+const (
+	BooleanValueTrue  = "TRUE"
+	BooleanValueFalse = "FALSE"
+)

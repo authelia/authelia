@@ -40,6 +40,10 @@ func (s *LDAPSuite) TestChangePasswordScenario() {
 	suite.Run(s.T(), NewChangePasswordScenario())
 }
 
+func (s *LDAPSuite) TestUserManagementOpenLDAPScenario() {
+	suite.Run(s.T(), NewUserManagementOpenLDAPScenario())
+}
+
 func TestLDAPSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")

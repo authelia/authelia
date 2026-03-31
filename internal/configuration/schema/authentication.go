@@ -147,11 +147,28 @@ type AuthenticationBackendLDAP struct {
 
 	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" yaml:"attributes,omitempty" toml:"attributes,omitempty" json:"attributes,omitempty"`
 
+	UserManagement AuthenticationBackendLDAPUserManagement `koanf:"user_management" yaml:"user_management,omitempty" toml:"user_management,omitempty" json:"user_management,omitempty" jsonschema:"title=User Management" jsonschema_description:"The LDAP User Management properties."`
+
 	PermitReferrals           bool `koanf:"permit_referrals" yaml:"permit_referrals" toml:"permit_referrals" json:"permit_referrals" jsonschema:"default=false,title=Permit Referrals" jsonschema_description:"Enables chasing LDAP referrals."`
 	PermitUnauthenticatedBind bool `koanf:"permit_unauthenticated_bind" yaml:"permit_unauthenticated_bind" toml:"permit_unauthenticated_bind" json:"permit_unauthenticated_bind" jsonschema:"default=false,title=Permit Unauthenticated Bind" jsonschema_description:"Enables omission of the password to perform an unauthenticated bind."`
 
 	User     string `koanf:"user" yaml:"user,omitempty" toml:"user,omitempty" json:"user,omitempty" jsonschema:"title=User" jsonschema_description:"The user distinguished name for LDAP binding."`
 	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."`
+}
+
+type AuthenticationBackendLDAPUserManagement struct {
+	CreatedUsersDN  string `koanf:"created_users_dn" yaml:"created_users_dn,omitempty" toml:"created_users_dn,omitempty" json:"created_users_dn,omitempty" jsonschema:"default='',title=Created Users Distinguished Name" jsonschema_description:"The additional distinguished name for created users."`
+	CreatedGroupsDN string `koanf:"created_groups_dn" yaml:"created_groups_dn,omitempty" toml:"created_groups_dn,omitempty" json:"created_groups_dn,omitempty" jsonschema:"default='',title=Created Groups Distinguished Name" jsonschema_description:"The additional distinguished name for created groups."`
+
+	CreatedUsersRDNAttribute string `koanf:"created_users_rdn_attribute" yaml:"created_users_rdn_attribute,omitempty" toml:"created_users_rdn_attribute,omitempty" json:"created_users_rdn_attribute,omitempty" jsonschema:"default='',title=Created Users Relative Distinguished Name Attribute" jsonschema_description:"The value to use for the user's relative distinguished name attribute."`
+	CreatedUsersRDNFormat    string `koanf:"created_users_rdn_format" yaml:"created_users_rdn_format,omitempty" toml:"created_users_rdn_format,omitempty" json:"created_users_rdn_format,omitempty" jsonschema:"default='',title=Created Users Relative Distinguished Name Format" jsonschema_description:"The template string used to generate created user's rdn format."`
+
+	RequiredAttributes []string `koanf:"required_attributes" yaml:"required_attributes,omitempty" toml:"required_attributes,omitempty" json:"required_attributes,omitempty" jsonschema:"title=Required Attributes" jsonschema_description:"The attributes required for new users."`
+
+	UserObjectClasses  []string `koanf:"user_object_classes" yaml:"user_object_classes,omitempty" toml:"user_object_classes,omitempty" json:"user_object_classes,omitempty" jsonschema:"title=Additional Object Classes for Users" jsonschema_description:"Additional object classes for new users."`
+	GroupObjectClasses []string `koanf:"group_object_classes" yaml:"group_object_classes,omitempty" toml:"group_object_classes,omitempty" json:"group_object_classes,omitempty" jsonschema:"title=Additional Object Classes for Groups" jsonschema_description:"Additional object classes for new group."`
+
+	DefaultUserGroups []string `koanf:"default_user_groups" yaml:"default_user_groups,omitempty" toml:"default_user_groups,omitempty" json:"default_user_groups,omitempty" jsonschema:"title=Default Groups for Users" jsonschema_description:"Groups to add to new users."`
 }
 
 type AuthenticationBackendLDAPPooling struct {
@@ -187,6 +204,7 @@ type AuthenticationBackendLDAPAttributes struct {
 	Mail              string `koanf:"mail" yaml:"mail,omitempty" toml:"mail,omitempty" json:"mail,omitempty" jsonschema:"title=Attribute: User Mail" jsonschema_description:"The directory server attribute which contains the mail address for all users and groups."`
 	MemberOf          string `koanf:"member_of" yaml:"member_of,omitempty" toml:"member_of,omitempty" json:"member_of,omitempty" jsonschema:"title=Attribute: Member Of" jsonschema_description:"The directory server attribute which contains the objects that an object is a member of."`
 	GroupName         string `koanf:"group_name" yaml:"group_name,omitempty" toml:"group_name,omitempty" json:"group_name,omitempty" jsonschema:"title=Attribute: Group Name" jsonschema_description:"The directory server attribute which contains the group name for all groups."`
+	GroupMember       string `koanf:"group_member" yaml:"group_member,omitempty" toml:"group_member,omitempty" json:"group_member,omitempty" jsonschema:"title=Attribute: Group Member" jsonschema_description:"The directory server attribute which contains the members of a group."`
 
 	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
@@ -265,6 +283,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = Authenti
 		DisplayName: ldapAttrDisplayName,
 		Mail:        ldapAttrMail,
 		GroupName:   ldapAttrCommonName,
+		GroupMember: ldapAttrGroupMember,
 	},
 	Timeout: time.Second * 20,
 	Pooling: AuthenticationBackendLDAPPooling{
@@ -317,10 +336,25 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis = Auth
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
+		GivenName:   ldapAttrGivenName,
+		FamilyName:  ldapAttrSurname,
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+	UserManagement: AuthenticationBackendLDAPUserManagement{
+		CreatedUsersRDNAttribute: ldapAttrCommonName,
+		UserObjectClasses: []string{
+			"top",
+			"person",
+			"organizationalPerson",
+			"inetOrgPerson",
+		},
+		GroupObjectClasses: []string{
+			"top",
+			"groupOfNames",
+		},
 	},
 }
 
@@ -335,6 +369,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = Authent
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
+		GroupMember: ldapAttrGroupMember,
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{
@@ -355,6 +390,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationLLDAP = Authentic
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
+		GroupMember: ldapAttrGroupMember,
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{
@@ -373,6 +409,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth = Authenti
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,
+		GroupMember: ldapAttrGroupMember,
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{
