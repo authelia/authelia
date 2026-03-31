@@ -1,6 +1,16 @@
 [codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file
-skip = .git,.gitignore,.gitattributes,*.svg,*.ai,go.sum,i18n,*-lock.yaml,*.css,.codespellrc
+skip = .git,.gitignore,.gitattributes,*.svg,*.ai,go.sum,*-lock.yaml,*.css,.codespellrc,*.pem,*.crt,*/locales/*,./internal/suites/example/compose/squid,./internal/suites/example/compose/redis,./internal/suites/example/compose/haproxy,.all-contributorsrc,./docs/static/schemas
 check-hidden = true
-# ignore-regex = 
-# ignore-words-list =
+# Ignore URLs and camelCase/PascalCase identifiers
+ignore-regex = https?://\S+|\b[a-z]+[A-Z]\w*\b|\b[A-Z][a-z]+[A-Z]\w*\b
+# fpt: fingerprint authentication method reference (RFC 8176)
+# ot: test OAuth2 session identifier
+# datas: Go variadic parameter name
+# fo: contributor initials (FlorianObermayer)
+# acn: test data for middleware sequence
+# ue: Unreal Engine abbreviation in docs
+# re-use: valid hyphenated form (appears in RFC quotes)
+# intoto: in-toto attestation format filename (authelia.intoto.jsonl)
+# fot: appears in base64-encoded RSA key test data
+ignore-words-list = fpt,ot,datas,fo,acn,ue,re-use,intoto,fot
