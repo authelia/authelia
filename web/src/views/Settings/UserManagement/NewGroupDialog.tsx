@@ -4,7 +4,7 @@ import { Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextFiel
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { NewGroupRequest, postNewGroup } from "@services/GroupManagement";
 
 interface Props {

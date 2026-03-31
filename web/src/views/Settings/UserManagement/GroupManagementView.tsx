@@ -5,8 +5,8 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import { DataGrid, GridActionsCellItem, GridColDef, GridRowParams, GridRowsProp } from "@mui/x-data-grid";
 import { useTranslation } from "react-i18next";
 
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useAllGroupsGET } from "@hooks/GroupManagement";
-import { useNotifications } from "@hooks/NotificationsContext";
 import NewGroupDialog from "@views/Settings/UserManagement/NewGroupDialog";
 import VerifyDeleteGroupDialog from "@views/Settings/UserManagement/VerifyDeleteGroupDialog";
 

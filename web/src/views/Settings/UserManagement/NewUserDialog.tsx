@@ -6,8 +6,8 @@ import { useTranslation } from "react-i18next";
 import ScaleLoader from "react-spinners/ScaleLoader";
 
 import UserFormField from "@components/UserInputField.tsx";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useAllGroupsGET } from "@hooks/GroupManagement.ts";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserManagementAttributeMetadataGET } from "@hooks/UserManagement.ts";
 import { CreateUserRequest } from "@models/UserManagement";
 import { postNewUser } from "@services/UserManagement";

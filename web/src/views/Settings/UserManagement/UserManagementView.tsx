@@ -18,7 +18,7 @@ import {
 import { DataGrid, GridActionsCellItem, GridColDef, GridRowParams, GridRowsProp } from "@mui/x-data-grid";
 import { useTranslation } from "react-i18next";
 
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useAllUserInfoGET } from "@hooks/UserManagement";
 import { UserDetailsExtended } from "@models/UserManagement.ts";
 import { Method2FA, to2FAString, toSecondFactorMethod } from "@services/UserInfo";
@@ -223,7 +223,7 @@ const UserManagementView = () => {
                 username: user.username,
             };
         });
-    }, [users, createErrorNotification]);
+    }, [users, createErrorNotification, translate]);
 
     const columns: GridColDef[] = [
         { field: "username", flex: 1, headerName: "Username" },

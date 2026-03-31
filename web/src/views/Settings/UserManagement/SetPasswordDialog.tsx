@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { useNotifications } from "@hooks/NotificationsContext.ts";
+import { useNotifications } from "@contexts/NotificationsContext.ts";
 import { postChangePasswordForUser } from "@services/UserManagement.ts";
 
 interface Props {
