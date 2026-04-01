@@ -1,0 +1,30 @@
+# .mailmap - Consolidate git author identities
+# See: https://git-scm.com/docs/gitmailmap
+#
+# Format: Canonical Name <canonical@email.com> Old Name <old@email.com>
+
+# Amir Zarrinkafsh
+Amir Zarrinkafsh <nightah@me.com> <3339418+nightah@users.noreply.github.com>
+
+# Brynn Crowley
+Brynn Crowley <littlehill723@gmail.com> Crowley723 <littlehill723@gmail.com>
+
+# Clément Michaud
+Clément Michaud <clement.michaud34@gmail.com> Clement Michaud <clement.michaud34@gmail.com>
+Clément Michaud <clement.michaud34@gmail.com> Clement Michaud <c.michaud@criteo.com>
+Clément Michaud <clement.michaud34@gmail.com> Clément Michaud <c.michaud@criteo.com>
+
+# FrozenDragoon
+FrozenDragoon <Frozendragoon@gmail.com> <5301673+FrozenDragoon@users.noreply.github.com>
+
+# Lenard Hess
+Lenard Hess <lenard@rrhess.de> LenardHess <lenard@rrhess.de>
+
+# Philipp Staiger
+Philipp Staiger <9325003+lippl@users.noreply.github.com> <lippl1@msn.com>
+
+# Scott
+Scott <fma96580@gmail.com> <fma965@cyanlabs.net>
+
+# yossbg
+yossbg <youssri@flyweight.tech> <45292366+you1996@users.noreply.github.com>
