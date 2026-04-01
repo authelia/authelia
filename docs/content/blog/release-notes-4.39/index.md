@@ -78,7 +78,7 @@ password to perform full MFA.
 
 {{< figure src="password_2fa.png" caption="Passkey Login MFA Password Prompt" alt="Passkey Login MFA Password Prompt" sizes="50dvh" >}}
 
-A configuration option exists to change this behaviour. It should be noted we have future plans
+A configuration option exists to change this behavior. It should be noted we have future plans
 to make this experience more customizable which will remove this configuration option in favor of one that uses
 [Authentication Method Reference](#authentication-method-reference).
 

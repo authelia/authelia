@@ -88,7 +88,7 @@ To configure [Pangolin] there is one method, using the [Web GUI](#web-gui).
 #### Web GUI
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-Unless you have a Pangolin licence, you will need to manually create the user in Access Control > Users before attempting login.
+Unless you have a Pangolin license, you will need to manually create the user in Access Control > Users before attempting login.
 {{< /callout >}}
 
 To configure [Pangolin] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following

@@ -49,7 +49,7 @@
   ## This is disabled by default if either /app/.healthcheck.env or /app/healthcheck.sh do not exist.
   # disable_healthcheck: false
 
-  ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behaviour.
+  ## Authelia by default doesn't accept TLS communication on the server port. This section overrides this behavior.
   # tls:
     ## The path to the DER base64/PEM format private key.
     # key: ''
@@ -272,7 +272,7 @@
   ## Metadata Service validation via MDS3.
   # metadata:
 
-    ## Enable the metadata fetch behaviour.
+    ## Enable the metadata fetch behavior.
     # enabled: false
 
     ## Configure the Cache Policy for the Metadata Service.
@@ -446,13 +446,13 @@ identity_validation:
     ## The default port is '636', unless the scheme is 'ldap' in which case it's '389'.
     # address: 'ldaps://127.0.0.1:636'
 
-    ## The LDAP implementation, this affects elements like the attribute utilised for resetting a password.
+    ## The LDAP implementation, this affects elements like the attribute utilized for resetting a password.
     ## Acceptable options are as follows:
     ## - 'activedirectory' - for Microsoft Active Directory.
     ## - 'freeipa' - for FreeIPA.
     ## - 'lldap' - for lldap.
     ## - 'custom' - for custom specifications of attributes and filters.
-    ## This currently defaults to 'custom' to maintain existing behaviour.
+    ## This currently defaults to 'custom' to maintain existing behavior.
     ##
     ## Depending on the option here certain other values in this section have a default value, notably all of the
     ## attribute mappings have a default value that this config overrides, you can read more about these default values
@@ -829,7 +829,7 @@ session:
       # authelia_url: 'https://auth.example.com'
 
       ## Optional. The fully qualified URI used as the redirection location if the portal is accessed directly. Not
-      ## configuring this option disables the automatic redirection behaviour.
+      ## configuring this option disables the automatic redirection behavior.
       ##
       ## Note: this parameter is optional. If not provided, user won't be redirected upon successful authentication
       ## unless they were redirected to Authelia by the proxy.
@@ -1344,8 +1344,8 @@ session:
     ## The lifespans configure the expiration for these token types in the duration common syntax. In addition to this
     ## syntax the lifespans can be customized per-client.
     # lifespans:
-      ## Configures the default/fallback lifespan for given token types. This behaviour applies to all clients and all
-      ## grant types but you can override this behaviour using the custom lifespans.
+      ## Configures the default/fallback lifespan for given token types. This behavior applies to all clients and all
+      ## grant types but you can override this behavior using the custom lifespans.
       # access_token: '1 hour'
       # authorize_code: '1 minute'
       # id_token: '1 hour'

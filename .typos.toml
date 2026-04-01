@@ -1,0 +1,77 @@
+[default]
+locale = "en-us"
+
+[default.extend-words]
+# RFC 8176 fingerprint authentication method reference
+fpt = "fpt"
+# SMTP protocol command (not "hello")
+HELO = "HELO"
+helo = "helo"
+# MITRE Corporation (proper noun, not "miter")
+MITRE = "MITRE"
+# HashiCorp (proper noun)
+Hashi = "Hashi"
+# Go variadic parameter name
+datas = "datas"
+# Contributor initials (FlorianObermayer)
+fo = "fo"
+Fo = "Fo"
+FO = "FO"
+# Test OAuth2 session identifier
+ot = "ot"
+Ot = "Ot"
+# Test data for middleware sequence
+acn = "acn"
+ACN = "ACN"
+# in-toto attestation format filename
+intoto = "intoto"
+# Intentional test endpoint name
+anothe = "anothe"
+# Appears in base64-encoded RSA key test data
+fot = "fot"
+Fot = "Fot"
+# Fragments inside base64, tokens, hashes, and encoded test data
+nd = "nd"
+Nd = "Nd"
+ND = "ND"
+ba = "ba"
+Ba = "Ba"
+BA = "BA"
+ue = "ue"
+Ue = "Ue"
+UE = "UE"
+iy = "iy"
+Iy = "Iy"
+Iz = "Iz"
+Pn = "Pn"
+Thi = "Thi"
+ABOV = "ABOV"
+MYE = "MYE"
+# Test data values (intentional misspellings in test inputs)
+hass = "hass"
+cpy = "cpy"
+peom = "peom"
+
+[files]
+ignore-hidden = false
+extend-exclude = [
+    ".git/",
+    "*.svg",
+    "go.sum",
+    "*-lock.yaml",
+    "*.css",
+    "*.pem",
+    "*.crt",
+    "*.crl",
+    "*.csr",
+    "docs/static/schemas/",
+    "docs/static/keys/",
+    "**/locales/*/",
+    "!**/locales/en/",
+    # Third-party config files (not ours to fix)
+    "internal/suites/example/compose/squid/",
+    "internal/suites/example/compose/redis/",
+    "internal/suites/example/compose/haproxy/",
+    "internal/suites/example/compose/ldap/",
+    "internal/suites/example/kube/ldap/",
+]

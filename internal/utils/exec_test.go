@@ -56,7 +56,7 @@ func TestShouldRunFuncUntilNoError(t *testing.T) {
 	assert.NoError(t, err, "")
 }
 
-func TestShouldFailAfterMaxAttemps(t *testing.T) {
+func TestShouldFailAfterMaxAttempts(t *testing.T) {
 	counter := 0
 
 	err := RunFuncWithRetry(3, 500*time.Millisecond, func() error {

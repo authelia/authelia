@@ -41,7 +41,7 @@ relies on the [Access Token] which should be kept completely private to request 
 [UserInfo] endpoint.
 
 The [Scope Definitions] indicate the default locations for a specific claim depending on the granted [Scope] when the
-[Claims Parameter] is not used and the default behaviour is not overridden by the registered client configuration.
+[Claims Parameter] is not used and the default behavior is not overridden by the registered client configuration.
 
 [Scope Definitions]: #scope-definitions
 [Scope]: https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
@@ -104,7 +104,7 @@ definitions:
   user_attributes:
     ## Gives Authelia access to a user attribute named 'attribute_name'.
     attribute_name:
-      expression: '"attibute_name_users" in groups'
+      expression: '"attribute_name_users" in groups'
 identity_providers:
   oidc:
     claims_policies:
@@ -156,7 +156,7 @@ However we acknowledge this is not entirely possible in all situations due to pr
 don't have developers with enough time to work on these things, for this reason we allow administrators to make
 adjustments to individual clients to work around this enhancement.
 
-The following example is a claims policy which restores that behaviour for those broken clients. Users may choose to
+The following example is a claims policy which restores that behavior for those broken clients. Users may choose to
 expand on this on their own as they desire. This example also shows how to apply this policy to a client using the
 `claims_policy` option. This example restores all of the claims which were previously incorrectly present within
 ID Tokens, it's recommended that users ascertain the exact claims necessary and only include those, adapting the example

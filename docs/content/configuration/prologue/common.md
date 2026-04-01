@@ -28,7 +28,7 @@ The dictionary reference syntax is a syntax where often the key can arbitrarily 
 can be used elsewhere to reference this configuration.
 
 For instance, when considering the below example if the key named `policies` was noted as a dictionary within the
-documentation then the `aribtrary_name` could be used elsewhere to communicate the policy to be applied, like in the
+documentation then the `arbitrary_name` could be used elsewhere to communicate the policy to be applied, like in the
 `usage_example` section where it's used as the `policy`.
 
 ```yaml

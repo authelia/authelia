@@ -255,7 +255,7 @@ the `audience` parameter are granted. This behavior can be tuned using the
 [requested_audience_mode](#requested_audience_mode).
 
 This value does not generally affect the minted ID Tokens as they are always issued with the client identifier being the
-audience unless the [claims policy](#claims_policy) changes this behaviour.
+audience unless the [claims policy](#claims_policy) changes this behavior.
 
 ### scopes
 
@@ -408,7 +408,7 @@ setting has no effect. The following table describes the different modes:
 [pre_configured_consent_duration]: #pre_configured_consent_duration
 
 See the [Frequently Asked Questions](../../../integration/openid-connect/frequently-asked-questions.md#why-does-authelia-ask-for-consent-when-ive-asked-for-my-consent-to-be-remembered-or-used-the-implicit-consent-policy)
-for more information on specific behaviour around why consent may be required despite this configuration option.
+for more information on specific behavior around why consent may be required despite this configuration option.
 
 ### pre_configured_consent_duration
 

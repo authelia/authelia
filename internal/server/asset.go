@@ -84,7 +84,7 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 //nolint:gocyclo
 func newLocalesPathResolver() (handler func(ctx *middlewares.AutheliaCtx) (supported bool, asset string, embedded bool), err error) {
 	var (
-		languages, embededDirs []string
+		languages, embeddedDirs []string
 
 		aliases map[string]string
 		entries []fs.DirEntry
@@ -102,8 +102,8 @@ func newLocalesPathResolver() (handler func(ctx *middlewares.AutheliaCtx) (suppo
 				continue
 			}
 
-			if !utils.IsStringInSlice(entry.Name(), embededDirs) {
-				embededDirs = append(embededDirs, entry.Name())
+			if !utils.IsStringInSlice(entry.Name(), embeddedDirs) {
+				embeddedDirs = append(embeddedDirs, entry.Name())
 			}
 
 			if utils.IsStringInSlice(lng, languages) {
@@ -173,9 +173,9 @@ func newLocalesPathResolver() (handler func(ctx *middlewares.AutheliaCtx) (suppo
 		switch {
 		case useAlias:
 			return true, fmt.Sprintf("locales/%s/%s.json", alias, namespace), true
-		case utils.IsStringInSlice(locale, embededDirs):
+		case utils.IsStringInSlice(locale, embeddedDirs):
 			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace), true
-		case utils.IsStringInSlice(ll, embededDirs):
+		case utils.IsStringInSlice(ll, embeddedDirs):
 			return true, fmt.Sprintf("locales/%s-%s/%s.json", language, strings.ToUpper(language), namespace), true
 		default:
 			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace), true
@@ -195,7 +195,7 @@ func newLocalesEmbeddedHandler() (handler func(ctx *middlewares.AutheliaCtx), er
 	}
 
 	return func(ctx *middlewares.AutheliaCtx) {
-		supported, asset, useEmbeded := getAssetName(ctx)
+		supported, asset, useEmbedded := getAssetName(ctx)
 
 		if !supported {
 			handlers.SetStatusCodeResponse(ctx.RequestCtx, fasthttp.StatusNotFound)
@@ -219,7 +219,7 @@ func newLocalesEmbeddedHandler() (handler func(ctx *middlewares.AutheliaCtx), er
 			err  error
 		)
 
-		if useEmbeded {
+		if useEmbedded {
 			if data, err = locales.ReadFile(asset); err != nil {
 				data = []byte("{}")
 			}
@@ -300,7 +300,7 @@ func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err er
 	// parse embedded locales.
 	data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
 	if err != nil {
-		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred marshalling the locale list: %w", err)
+		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred marshaling the locale list: %w", err)
 	}
 
 	// generate etag for embedded locales.

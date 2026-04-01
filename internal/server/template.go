@@ -23,7 +23,7 @@ import (
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
-// this is utilised to pass information between the backend and frontend
+// this is utilized to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
 func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
 	ext := path.Ext(t.Name())
