@@ -9,7 +9,7 @@ import (
 // AuthenticationBackend represents the configuration related to the authentication backend.
 type AuthenticationBackend struct {
 	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" yaml:"password_reset,omitempty" toml:"password_reset,omitempty" json:"password_reset,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behavior."`
-	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" yaml:"password_change,omitempty" toml:"password_change,omitempty" json:"password_change,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behavior."`
+	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" yaml:"password_change,omitempty" toml:"password_change,omitempty" json:"password_change,omitempty" jsonschema:"title=Password Change" jsonschema_description:"Allows configuration of the password change behavior."`
 
 	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" yaml:"refresh_interval,omitempty" toml:"refresh_interval,omitempty" json:"refresh_interval,omitempty" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend."`
 
