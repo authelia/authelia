@@ -57,7 +57,9 @@ func (f *FileUserManagement) GetSupportedAttributes() map[string]UserManagementA
 			switch attrConfig.ValueType {
 			case ValueTypeBoolean:
 				inputType = Checkbox
-			case ValueTypeInteger, ValueTypeString, "":
+			case ValueTypeInteger:
+				inputType = Number
+			case ValueTypeString, "":
 				inputType = Text
 			default:
 				inputType = Text
@@ -489,6 +491,8 @@ func (f *FileUserManagement) DeleteGroup(groupName string) error {
 }
 
 // convertExtraAttributeValue converts an extra attribute value to the proper type based on configuration.
+//
+//nolint:gocyclo
 func (f *FileUserManagement) convertExtraAttributeValue(attrName string, value any) (any, error) {
 	attrConfig, exists := f.provider.config.ExtraAttributes[attrName]
 	if !exists {
@@ -530,11 +534,16 @@ func (f *FileUserManagement) convertExtraAttributeValue(attrName string, value a
 		}
 	case ValueTypeInteger:
 		if intVal, ok := value.(int); ok {
-			return intVal, nil
+			return int64(intVal), nil
 		}
 
 		if int64Val, ok := value.(int64); ok {
 			return int64Val, nil
+		}
+
+		// JSON unmarshals numbers as float64.
+		if floatVal, ok := value.(float64); ok {
+			return int64(floatVal), nil
 		}
 
 		if strVal, ok := value.(string); ok {

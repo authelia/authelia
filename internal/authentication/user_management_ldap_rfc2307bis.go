@@ -63,7 +63,9 @@ func (r *RFC2307bisUserManagement) GetSupportedAttributes() map[string]UserManag
 		switch extraAttr.ValueType {
 		case ValueTypeBoolean:
 			inputType = Checkbox
-		case ValueTypeInteger, ValueTypeString, "":
+		case ValueTypeInteger:
+			inputType = Number
+		case ValueTypeString, "":
 			inputType = Text
 		default:
 			inputType = Text

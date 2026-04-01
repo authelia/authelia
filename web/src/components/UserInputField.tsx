@@ -10,6 +10,7 @@ import {
 import { Control, Controller, FieldErrors, Path, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
+import { REGEX } from "@constants/Regex.ts";
 import { CreateUserRequest, UserDetailsExtended } from "@root/models/UserManagement";
 import { AttributeMetadata } from "@services/UserManagement";
 
@@ -41,6 +42,8 @@ const UserFormField = <T extends CreateUserRequest | UserDetailsExtended = Creat
     const error = errors[field.name as keyof FieldErrors<T>];
 
     switch (field.name as string) {
+        case "username":
+            return <UsernameField field={field} register={register} error={error} control={control} />;
         case "password":
             return (
                 <PasswordField
@@ -95,6 +98,9 @@ const renderByType = <T extends CreateUserRequest | UserDetailsExtended = Create
 
         case "checkbox":
             return <CheckboxField field={field} register={register} control={control} error={error} />;
+
+        case "number":
+            return <NumberField field={field} register={register} error={error} />;
 
         case "groups":
             return <GroupsField field={field} control={control} error={error} options={options} register={register} />;
@@ -226,37 +232,50 @@ const GroupsField = <T extends CreateUserRequest | UserDetailsExtended = CreateU
     error,
     field,
     options = [],
-}: FieldComponentProps<T> & { options?: string[] }) => (
-    <FormControl fullWidth error={!!error} required={field.required}>
-        <Controller
-            name={field.name}
-            control={control}
-            rules={{
-                required: field.required ? `${field.label} is required` : false,
-            }}
-            render={({ field: { onChange, value, ...rest } }) => (
-                <Autocomplete<string, true>
-                    multiple
-                    disablePortal
-                    options={options}
-                    value={value || []}
-                    onChange={(_, newValue) => onChange(newValue)}
-                    renderInput={(params) => (
-                        <MuiTextField
-                            {...params}
-                            label={field.label}
-                            error={!!error}
-                            helperText={error?.message?.toString() || field.description}
-                            required={field.required}
-                            color="info"
-                        />
-                    )}
-                    {...rest}
-                />
-            )}
-        />
-    </FormControl>
-);
+    register,
+}: FieldComponentProps<T> & { options?: string[] }) => {
+    const { t: translate } = useTranslation("settings");
+    return (
+        <FormControl fullWidth error={!!error} required={field.required}>
+            <Controller
+                name={field.name}
+                control={control}
+                rules={{
+                    required: field.required ? `${field.label} is required` : false,
+                }}
+                render={({ field: { onChange, value, ...rest } }) => (
+                    <Autocomplete<string, true>
+                        multiple
+                        disablePortal
+                        options={options}
+                        value={value || []}
+                        onChange={(_, newValue) => onChange(newValue)}
+                        renderInput={(params) => (
+                            <MuiTextField
+                                {...params}
+                                label={field.label}
+                                error={!!error}
+                                helperText={error?.message?.toString() || field.description}
+                                required={field.required}
+                                color="info"
+                                {...register(field.name, {
+                                    pattern: {
+                                        message: translate(
+                                            "Group names must contain only alphanumeric characters, hyphens (-), underscores (_), and commas (,) with a maximum length of 100 characters.",
+                                        ),
+                                        value: REGEX.GROUP,
+                                    },
+                                    required: field.required ? `${field.label} is required` : false,
+                                })}
+                            />
+                        )}
+                        {...rest}
+                    />
+                )}
+            />
+        </FormControl>
+    );
+};
 
 const CheckboxField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
     control,
@@ -289,81 +308,147 @@ const EmailField = <T extends CreateUserRequest | UserDetailsExtended = CreateUs
     error,
     field,
     register,
-}: FieldComponentProps<T>) => (
-    <MuiTextField
-        fullWidth
-        type="email"
-        color="info"
-        label={field.label}
-        helperText={error?.message?.toString() || field.description}
-        error={!!error}
-        required={field.required}
-        {...register(field.name, {
-            pattern: {
-                message: "Invalid email address",
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-            },
-            required: field.required ? `${field.label} is required` : false,
-        })}
-    />
-);
+}: FieldComponentProps<T>) => {
+    const { t: translate } = useTranslation("settings");
+
+    return (
+        <MuiTextField
+            fullWidth
+            type="email"
+            color="info"
+            label={field.label}
+            helperText={error?.message?.toString() || field.description}
+            error={!!error}
+            required={field.required}
+            {...register(field.name, {
+                pattern: {
+                    message: translate("Invalid email address"),
+                    value: REGEX.EMAIL,
+                },
+                required: field.required ? translate("{{item}} is required", { item: field.label }) : false,
+            })}
+        />
+    );
+};
+
+const UsernameField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+    error,
+    field,
+    register,
+}: FieldComponentProps<T>) => {
+    const { t: translate } = useTranslation("settings");
+    return (
+        <MuiTextField
+            fullWidth
+            type="email"
+            color="info"
+            label={field.label}
+            helperText={error?.message?.toString() || field.description}
+            error={!!error}
+            required={field.required}
+            {...register(field.name, {
+                pattern: {
+                    message: translate(
+                        "Usernames must contain only alphanumeric characters, hyphens (-), underscores (_), and commas (,) with a maximum length of 100 characters.",
+                    ),
+                    value: REGEX.USERNAME,
+                },
+                required: field.required ? translate("{{item}} is required", { item: field.label }) : false,
+            })}
+        />
+    );
+};
+
+const NumberField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
+    error,
+    field,
+    register,
+}: FieldComponentProps<T>) => {
+    const { t: translate } = useTranslation("settings");
+
+    return (
+        <MuiTextField
+            fullWidth
+            type="number"
+            color="info"
+            label={field.label}
+            helperText={error?.message?.toString() || field.description}
+            error={!!error}
+            required={field.required}
+            {...register(field.name, {
+                required: field.required ? translate("{{item}} is required", { item: field.label }) : false,
+                valueAsNumber: true,
+            })}
+        />
+    );
+};
 
 const PhoneField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
     error,
     field,
     register,
-}: FieldComponentProps<T>) => (
-    <MuiTextField
-        fullWidth
-        type="tel"
-        color="info"
-        label={field.label}
-        helperText={error?.message?.toString() || field.description}
-        error={!!error}
-        required={field.required}
-        {...register(field.name, {
-            pattern: {
-                message: "Invalid phone number",
-                value: /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/,
-            },
-            required: field.required ? `${field.label} is required` : false,
-        })}
-    />
-);
+}: FieldComponentProps<T>) => {
+    const { t: translate } = useTranslation("settings");
+
+    return (
+        <MuiTextField
+            fullWidth
+            type="tel"
+            color="info"
+            label={field.label}
+            helperText={error?.message?.toString() || field.description}
+            error={!!error}
+            required={field.required}
+            {...register(field.name, {
+                pattern: {
+                    message: translate("Invalid phone number"),
+                    value: REGEX.TELEPHONE_NUMBER,
+                },
+                required: field.required ? translate("{{item}} is required", { item: field.label }) : false,
+            })}
+        />
+    );
+};
 
 const UrlField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
     error,
     field,
     register,
-}: FieldComponentProps<T>) => (
-    <MuiTextField
-        fullWidth
-        type="url"
-        color="info"
-        label={field.label}
-        helperText={error?.message?.toString() || field.description}
-        error={!!error}
-        required={field.required}
-        {...register(field.name, {
-            required: field.required ? `${field.label} is required` : false,
-            validate: (value: string) => {
-                if (!value) return true;
-                try {
-                    new URL(value);
-                    return true;
-                } catch {
-                    return "Invalid URL format";
-                }
-            },
-        })}
-    />
-);
+}: FieldComponentProps<T>) => {
+    const { t: translate } = useTranslation("settings");
+
+    return (
+        <MuiTextField
+            fullWidth
+            type="url"
+            color="info"
+            label={field.label}
+            helperText={error?.message?.toString() || field.description}
+            error={!!error}
+            required={field.required}
+            {...register(field.name, {
+                required: field.required ? translate("{{item}} is required", { item: field.label }) : false,
+                validate: (value: string) => {
+                    if (!value) return true;
+                    try {
+                        new URL(value);
+                        return true;
+                    } catch {
+                        return "Invalid URL";
+                    }
+                },
+            })}
+        />
+    );
+};
 
 const DateField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
     error,
     field,
     register,
 }: FieldComponentProps<T>) => {
+    const { t: translate } = useTranslation("settings");
+
     return (
         <MuiTextField
             fullWidth
@@ -379,7 +464,7 @@ const DateField = <T extends CreateUserRequest | UserDetailsExtended = CreateUse
                 },
             }}
             {...register(field.name, {
-                required: field.required ? `${field.label} is required` : false,
+                required: field.required ? translate("{{item}} is required", { item: field.label }) : false,
             })}
         />
     );
@@ -390,6 +475,8 @@ const MultiEmailField = <T extends CreateUserRequest | UserDetailsExtended = Cre
     field,
     register,
 }: FieldComponentProps<T>) => {
+    const { t: translate } = useTranslation("settings");
+
     //TODO: implement actual component
     return (
         <MuiTextField
@@ -402,11 +489,11 @@ const MultiEmailField = <T extends CreateUserRequest | UserDetailsExtended = Cre
             required={field.required}
             placeholder="email1@example.com, email2@example.com"
             {...register(field.name, {
-                required: field.required ? `${field.label} is required` : false,
+                required: field.required ? translate("{{item}} is required", { item: field.label }) : false,
                 validate: (value: string) => {
                     if (!value) return true;
                     const emails = value.split(",").map((e) => e.trim());
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    const emailRegex = REGEX.EMAIL;
                     const allValid = emails.every((email) => emailRegex.test(email));
                     return allValid || "One or more invalid email addresses";
                 },

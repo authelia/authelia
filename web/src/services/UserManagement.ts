@@ -15,7 +15,7 @@ export interface AdminConfigBody {
     group_management_enabled: boolean;
 }
 
-export type AttributeType = "checkbox" | "date" | "email" | "groups" | "password" | "tel" | "text" | "url";
+export type AttributeType = "checkbox" | "date" | "email" | "groups" | "number" | "password" | "tel" | "text" | "url";
 
 export interface AttributeMetadata {
     type: AttributeType;

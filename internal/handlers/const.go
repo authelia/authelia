@@ -84,7 +84,7 @@ const (
 	messageUnableToDeleteUserMetadata            = "Unable to delete specified user metadata"
 	messageUsernameRequired                      = "username parameter required"
 	messageInvalidEmail                          = "invalid email address"
-	messageUnableToSendPasswordResetEmail        = "Unable to send password reset email"
+	messageUnableToSendPasswordResetEmail        = "Unable to send password reset email" //nolint:gosec // not a password.
 )
 
 const (

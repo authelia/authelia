@@ -359,10 +359,11 @@ func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldCreateUserWithExtraAt
 		"groups":      []string{"dev"},
 		"password":    "password",
 		"extra": map[string]interface{}{
-			"employee_id":   "EMP12345",
-			"employee_type": "IT",
-			"test_flag":     "TRUE",
-			"tags":          []string{"tag1", "tag2"},
+			"employee_id":     "EMP12345",
+			"employee_type":   "IT",
+			"employee_number": 42,
+			"test_flag":       "TRUE",
+			"tags":            []string{"tag1", "tag2"},
 		},
 	}
 
@@ -382,6 +383,7 @@ func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldCreateUserWithExtraAt
 	s.Assert().NotNil(response.Data.Extra)
 	s.Assert().Equal("EMP12345", response.Data.Extra["employee_id"])
 	s.Assert().Equal("IT", response.Data.Extra["employee_type"])
+	s.Assert().Equal(int64(42), response.Data.Extra["employee_number"])
 	s.Assert().Equal(true, response.Data.Extra["test_flag"])
 	s.Assert().Equal("tag1", response.Data.Extra["tags"].([]interface{})[0])
 
@@ -907,14 +909,15 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateExtraFields
 	username := nonAdminUsername
 	updateData := map[string]interface{}{
 		"extra": map[string]interface{}{
-			"employee_id":   "EMP12345",
-			"employee_type": "IT",
-			"test_flag":     "TRUE",
-			"tags":          []string{"tag1", "tag2"},
+			"employee_id":     "EMP12345",
+			"employee_type":   "IT",
+			"employee_number": 42,
+			"test_flag":       "TRUE",
+			"tags":            []string{"tag1", "tag2"},
 		},
 	}
 
-	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=extra.employee_id,extra.employee_type,extra.test_flag,extra.tags", username), updateData)
+	res, body := s.apiRequest("PATCH", fmt.Sprintf("/api/admin/users/%s?update_mask=extra.employee_id,extra.employee_type,extra.employee_number,extra.test_flag,extra.tags", username), updateData)
 
 	s.Assert().Equal(http.StatusOK, res.StatusCode,
 		fmt.Sprintf("Failed to update user: %s", string(body)))
@@ -932,6 +935,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateExtraFields
 	s.Assert().NotNil(response.Data.Extra)
 	s.Assert().Equal("EMP12345", response.Data.Extra["employee_id"])
 	s.Assert().Equal("IT", response.Data.Extra["employee_type"])
+	s.Assert().Equal(int64(42), response.Data.Extra["employee_number"])
 	s.Assert().Equal(true, response.Data.Extra["test_flag"])
 	s.Assert().Equal("tag1", response.Data.Extra["tags"].([]interface{})[0])
 }

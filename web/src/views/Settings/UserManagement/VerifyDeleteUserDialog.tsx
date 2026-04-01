@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { deleteUser } from "@services/UserManagement.ts";
 import { useNotifications } from "@contexts/NotificationsContext.tsx";
+import { deleteUser } from "@services/UserManagement.ts";
 
 interface Props {
     open: boolean;
