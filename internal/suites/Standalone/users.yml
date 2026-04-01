@@ -1,23 +1,43 @@
 users:
     bob:
-        password: $argon2id$v=19$m=65536,t=3,p=4$1CRisux3/JfmRB1c+fNtVA$xQ1krw4K88n0Q+spasc28PDtsKS6jhfhO3UaSKDUYpE
-        displayname: Bob Dylann
+        password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+        displayname: Robert Dylan
         email: bob.dylan@authelia.com
         groups:
-            - abc
-        disabled: false
+            - dev
+        given_name: Robert
+        family_name: Smith
+        website: https://bobdylan.com
+        profile: https://example.com/bob
+        picture: https://example.com/bob.jpg
+        zoneinfo: America/New_York
+        locale: en-US
+        phone_number: "+1234567890"
+        address:
+            street_address: 123 Main St
+            locality: Springfield
+            region: CA
+            postal_code: "62701"
+            country: USA
+        extra:
+            employee_id: EMP12345
+            employee_type: IT
+            tags:
+                - tag1
+                - tag2
+                - tag3
+                - tag4
+            test_flag: true
     harry:
         password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
         displayname: Harry Potter
         email: harry.potter@authelia.com
         groups: []
-        disabled: false
     james:
         password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
         displayname: James Dean
         email: james.dean@authelia.com
         groups: []
-        disabled: false
     john:
         password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
         displayname: John Doe
@@ -26,4 +46,3 @@ users:
             - admins
             - dev
             - authelia-admin
-        disabled: false

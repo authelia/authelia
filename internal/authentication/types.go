@@ -18,11 +18,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// GetBaseRequiredAttributesForImplementation returns the base required attributes for a given LDAP implementation.
+// GetBaseRequiredAttributesForImplementation returns the base required attributes for a given user management implementation.
 func GetBaseRequiredAttributesForImplementation(implementation string) []string {
 	switch implementation {
 	case schema.LDAPImplementationRFC2307bis:
 		return []string{"username", "password", "family_name", "mail"}
+	case schema.FileImplementation:
+		return []string{"username", "password", "display_name", "mail"}
 	default:
 		return []string{"username", "password", "family_name", "mail"}
 	}
@@ -575,6 +577,7 @@ type AttributeType string
 
 const (
 	Text      AttributeType = "text"
+	Number    AttributeType = "number"
 	Email     AttributeType = "email"
 	Password  AttributeType = "password"
 	Telephone AttributeType = "tel"

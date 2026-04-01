@@ -50,34 +50,6 @@ type LDAPUserProvider struct {
 	groupsFilterReplacementsMemberOfRDN bool
 }
 
-func (p *LDAPUserProvider) ListGroups() ([]string, error) {
-	if p.Management == nil {
-		return nil, fmt.Errorf("user management is not configured for this provider")
-	}
-
-	return p.Management.ListGroups()
-}
-
-func (p *LDAPUserProvider) DeleteGroup(group string) error {
-	if p.Management == nil {
-		return fmt.Errorf("user management is not configured for this provider")
-	}
-
-	if err := p.Management.DeleteGroup(group); err != nil {
-		return fmt.Errorf("unable to delete group '%s': %w", group, err)
-	}
-
-	return nil
-}
-
-func (p *LDAPUserProvider) AddGroup(newGroup string) error {
-	if p.Management == nil {
-		return fmt.Errorf("user management is not configured for this provider")
-	}
-
-	return p.Management.AddGroup(newGroup)
-}
-
 // NewLDAPUserProvider creates a new instance of LDAPUserProvider with the StandardLDAPClientFactory.
 func NewLDAPUserProvider(config schema.AuthenticationBackend, certs *x509.CertPool) (provider *LDAPUserProvider) {
 	if config.LDAP.TLS == nil {
@@ -121,6 +93,34 @@ func NewLDAPUserProviderWithFactory(config *schema.AuthenticationBackendLDAP, di
 	}
 
 	return provider
+}
+
+func (p *LDAPUserProvider) ListGroups() ([]string, error) {
+	if p.Management == nil {
+		return nil, fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.ListGroups()
+}
+
+func (p *LDAPUserProvider) DeleteGroup(group string) error {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	if err := p.Management.DeleteGroup(group); err != nil {
+		return fmt.Errorf("unable to delete group '%s': %w", group, err)
+	}
+
+	return nil
+}
+
+func (p *LDAPUserProvider) AddGroup(newGroup string) error {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.AddGroup(newGroup)
 }
 
 // BuildUserDN constructs the full distinguished name for a user based on the configured CreatedUsersDN and CreatedUsersRDNFormat.

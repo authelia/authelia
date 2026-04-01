@@ -315,15 +315,15 @@ type FileUserDatabaseUserDetails struct {
 
 	Address *FileUserDatabaseUserDetailsAddressModel `json:"address,omitempty" jsonschema:"title=Address" jsonschema_description:"The address for the user."`
 
-	Extra map[string]any `json:"extra" jsonschema:"title=Extra" jsonschema_description:"The extra attributes for the user."`
+	Extra map[string]any `json:"extra,omitempty" jsonschema:"title=Extra" jsonschema_description:"The extra attributes for the user."`
 }
 
 type FileUserDatabaseUserDetailsAddressModel struct {
-	StreetAddress string `yaml:"street_address" json:"street_address,omitempty" jsonschema:"title=Street Address" jsonschema_description:"The street address for the user."`
-	Locality      string `yaml:"locality" json:"locality,omitempty" jsonschema:"title=Locality" jsonschema_description:"The locality for the user."`
-	Region        string `yaml:"region" json:"region,omitempty" jsonschema:"title=Region" jsonschema_description:"The region for the user."`
-	PostalCode    string `yaml:"postal_code" json:"postal_code,omitempty" jsonschema:"title=Postal Code" jsonschema_description:"The postal code or postcode for the user."`
-	Country       string `yaml:"country" json:"country,omitempty" jsonschema:"title=Country" jsonschema_description:"The country for the user."`
+	StreetAddress string `yaml:"street_address,omitempty" json:"street_address,omitempty" jsonschema:"title=Street Address" jsonschema_description:"The street address for the user."`
+	Locality      string `yaml:"locality,omitempty" json:"locality,omitempty" jsonschema:"title=Locality" jsonschema_description:"The locality for the user."`
+	Region        string `yaml:"region,omitempty" json:"region,omitempty" jsonschema:"title=Region" jsonschema_description:"The region for the user."`
+	PostalCode    string `yaml:"postal_code,omitempty" json:"postal_code,omitempty" jsonschema:"title=Postal Code" jsonschema_description:"The postal code or postcode for the user."`
+	Country       string `yaml:"country,omitempty" json:"country,omitempty" jsonschema:"title=Country" jsonschema_description:"The country for the user."`
 }
 
 // ToUserDetails converts FileUserDatabaseUserDetails into a *UserDetails.
@@ -491,24 +491,24 @@ type FileDatabaseUserDetailsModel struct {
 	DisplayName    string   `yaml:"displayname" valid:"required"`
 	Email          string   `yaml:"email"`
 	Groups         []string `yaml:"groups"`
-	GivenName      string   `yaml:"given_name"`
-	MiddleName     string   `yaml:"middle_name"`
-	FamilyName     string   `yaml:"family_name"`
-	Nickname       string   `yaml:"nickname"`
-	Gender         string   `yaml:"gender"`
-	Birthdate      string   `yaml:"birthdate"`
-	Website        string   `yaml:"website"`
-	Profile        string   `yaml:"profile"`
-	Picture        string   `yaml:"picture"`
-	ZoneInfo       string   `yaml:"zoneinfo"`
-	Locale         string   `yaml:"locale"`
-	PhoneNumber    string   `yaml:"phone_number"`
-	PhoneExtension string   `yaml:"phone_extension"`
-	Disabled       bool     `yaml:"disabled"`
+	GivenName      string   `yaml:"given_name,omitempty"`
+	MiddleName     string   `yaml:"middle_name,omitempty"`
+	FamilyName     string   `yaml:"family_name,omitempty"`
+	Nickname       string   `yaml:"nickname,omitempty"`
+	Gender         string   `yaml:"gender,omitempty"`
+	Birthdate      string   `yaml:"birthdate,omitempty"`
+	Website        string   `yaml:"website,omitempty"`
+	Profile        string   `yaml:"profile,omitempty"`
+	Picture        string   `yaml:"picture,omitempty"`
+	ZoneInfo       string   `yaml:"zoneinfo,omitempty"`
+	Locale         string   `yaml:"locale,omitempty"`
+	PhoneNumber    string   `yaml:"phone_number,omitempty"`
+	PhoneExtension string   `yaml:"phone_extension,omitempty"`
+	Disabled       bool     `yaml:"disabled,omitempty"`
 
-	Address *FileUserDatabaseUserDetailsAddressModel `yaml:"address"`
+	Address *FileUserDatabaseUserDetailsAddressModel `yaml:"address,omitempty"`
 
-	Extra map[string]any `yaml:"extra"`
+	Extra map[string]any `yaml:"extra,omitempty"`
 }
 
 //nolint:gocyclo

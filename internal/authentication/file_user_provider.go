@@ -15,8 +15,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/go-crypt/crypt/algorithm/shacrypt"
-
-	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
@@ -30,28 +29,49 @@ type FileUserProvider struct {
 	database      FileUserProviderDatabase
 	mutex         sync.Mutex
 	timeoutReload time.Time
+	log           *logrus.Entry
+
+	Management UserManagementProvider
 }
 
 func (p *FileUserProvider) ListGroups() ([]string, error) {
-	// TODO implement me.
-	panic("implement me")
+	if p.Management == nil {
+		return nil, fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.ListGroups()
 }
 
 func (p *FileUserProvider) DeleteGroup(group string) error {
-	return fmt.Errorf("group management is not supported for file-based authentication")
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.DeleteGroup(group)
 }
 
 func (p *FileUserProvider) AddGroup(newGroup string) error {
-	return fmt.Errorf("group management is not supported for file-based authentication")
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.AddGroup(newGroup)
 }
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
 func NewFileUserProvider(config *schema.AuthenticationBackendFile) (provider *FileUserProvider) {
-	return &FileUserProvider{
+	provider = &FileUserProvider{
 		config:        config,
 		timeoutReload: time.Now().Add(-1 * time.Second),
 		database:      NewFileUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive, getExtra(config)),
+		log:           logging.Logger().WithFields(map[string]any{"provider": "file"}),
 	}
+
+	provider.Management = &FileUserManagement{
+		provider: provider,
+	}
+
+	return provider
 }
 
 func getExtra(config *schema.AuthenticationBackendFile) (extra map[string]expression.ExtraAttribute) {
@@ -138,25 +158,20 @@ func (p *FileUserProvider) GetUser(username string) (details *UserDetailsExtende
 }
 
 // ListUsers returns a list of all users and their attributes.
-// TODO: Properly add extra attributes to list.
 func (p *FileUserProvider) ListUsers() (userList []UserDetailsExtended, err error) {
 	if _, err := p.Reload(); err != nil {
-		return nil, fmt.Errorf("failed to reload user database: %w", err)
+		var reloadErr *errReload
+		if !errors.As(err, &reloadErr) || !errors.Is(reloadErr.err, ErrWatcherCooldown) {
+			return nil, fmt.Errorf("failed to reload user database: %w", err)
+		}
 	}
 
 	allUsers := p.database.GetAllUsers()
 	userList = make([]UserDetailsExtended, 0, len(allUsers))
 
-	for username, details := range allUsers {
-		user := UserDetailsExtended{
-			UserDetails: &UserDetails{
-				Username:    username,
-				DisplayName: details.DisplayName,
-				Emails:      []string{details.Email},
-				Groups:      details.Groups,
-			},
-		}
-		userList = append(userList, user)
+	for _, details := range allUsers {
+		extendedDetails := details.ToExtendedUserDetails()
+		userList = append(userList, *extendedDetails)
 	}
 
 	return userList, nil
@@ -259,48 +274,21 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	return nil
 }
 
-// AddUser creates a new user in the file database. Takes additional, optional values via opts.
+// AddUser creates a new user in the file database.
 func (p *FileUserProvider) AddUser(userData *UserDetailsExtended) (err error) {
-	if err = p.ValidateUserData(userData); err != nil {
-		return fmt.Errorf("validation of user data failed: %w", err)
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
 	}
 
-	var digest algorithm.Digest
-
-	if digest, err = p.hash.Hash(userData.Password); err != nil {
-		return err
-	}
-
-	var email string
-	if userData.UserDetails != nil && len(userData.Emails) > 0 {
-		email = userData.Emails[0]
-	}
-
-	var groups []string
-	if userData.UserDetails != nil && len(userData.Groups) > 0 {
-		groups = userData.Groups
-	}
-
-	details := FileUserDatabaseUserDetails{
-		Username:    userData.Username,
-		DisplayName: userData.DisplayName,
-		Password:    schema.NewPasswordDigest(digest),
-		Email:       email,
-		Groups:      groups,
-		Disabled:    false,
-	}
-
-	p.database.SetUserDetails(details.Username, &details)
-
-	p.mutex.Lock()
-	p.setTimeoutReload(time.Now())
-	p.mutex.Unlock()
-
-	return p.database.Save()
+	return p.Management.AddUser(userData)
 }
 
 func (p *FileUserProvider) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) (err error) {
-	panic("not implemented")
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.UpdateUserWithMask(username, userData, updateMask)
 }
 
 // UpdateUser modifies an existing user in the file database. Takes new values via opts.
@@ -353,11 +341,11 @@ func (p *FileUserProvider) UpdateUser(username string, userData *UserDetailsExte
 }
 
 func (p *FileUserProvider) GetRequiredAttributes() []string {
-	return []string{
-		"Username",
-		"Password",
-		"DisplayName",
+	if p.Management == nil {
+		return []string{}
 	}
+
+	return p.Management.GetRequiredAttributes()
 }
 
 func (p *FileUserProvider) IsExtraAttribute(fieldName string) bool {
@@ -366,20 +354,20 @@ func (p *FileUserProvider) IsExtraAttribute(fieldName string) bool {
 }
 
 func (p *FileUserProvider) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {
-	return map[string]UserManagementAttributeMetadata{}
+	if p.Management == nil {
+		return map[string]UserManagementAttributeMetadata{}
+	}
+
+	return p.Management.GetSupportedAttributes()
 }
 
 // DeleteUser deletes a user from the file database.
 func (p *FileUserProvider) DeleteUser(username string) (err error) {
-	p.database.DeleteUserDetails(username)
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
 
-	p.mutex.Lock()
-
-	p.setTimeoutReload(time.Now())
-
-	p.mutex.Unlock()
-
-	return p.database.Save()
+	return p.Management.DeleteUser(username)
 }
 
 // StartupCheck implements the startup check provider interface.
@@ -402,47 +390,19 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 }
 
 func (p *FileUserProvider) ValidateUserData(userData *UserDetailsExtended) error {
-	if userData == nil {
-		return fmt.Errorf("userData cannot be nil")
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
 	}
 
-	if userData.UserDetails == nil {
-		return fmt.Errorf("userDetails cannot be nil")
-	}
-
-	if userData.Username == "" {
-		return fmt.Errorf("username is required")
-	}
-
-	if userData.Password == "" {
-		return fmt.Errorf("password is required")
-	}
-
-	if userData.DisplayName == "" {
-		return fmt.Errorf("displayName is required")
-	}
-
-	if !utils.ValidateUsername(userData.Username) {
-		return fmt.Errorf("invalid username format")
-	}
-
-	if len(userData.Emails) > 0 {
-		if !utils.ValidateEmailString(userData.Emails[0]) {
-			return fmt.Errorf("invalid email format")
-		}
-	}
-
-	if len(userData.Groups) > 0 {
-		if valid, invalidGroup := utils.ValidateGroups(userData.Groups); !valid {
-			return fmt.Errorf("invalid group name: %s", invalidGroup)
-		}
-	}
-
-	return nil
+	return p.Management.ValidateUserData(userData)
 }
 
 func (p *FileUserProvider) ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error {
-	panic("not implemented")
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.ValidatePartialUpdate(userData, updateMask)
 }
 
 func (p *FileUserProvider) setTimeoutReload(now time.Time) {

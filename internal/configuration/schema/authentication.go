@@ -38,7 +38,15 @@ type AuthenticationBackendFile struct {
 
 	Search AuthenticationBackendFileSearch `koanf:"search" yaml:"search,omitempty" toml:"search,omitempty" json:"search,omitempty" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
 
+	UserManagement AuthenticationBackendFileUserManagement `koanf:"user_management" yaml:"user_management,omitempty" toml:"user_management,omitempty" json:"user_management,omitempty" jsonschema:"title=User Management" jsonschema_description:"The File User Management properties."`
+
 	ExtraAttributes map[string]AuthenticationBackendExtraAttribute `koanf:"extra_attributes" yaml:"extra_attributes,omitempty" toml:"extra_attributes,omitempty" json:"extra_attributes,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
+}
+
+type AuthenticationBackendFileUserManagement struct {
+	RequiredAttributes []string `koanf:"required_attributes" yaml:"required_attributes,omitempty" toml:"required_attributes,omitempty" json:"required_attributes,omitempty" jsonschema:"title=Required Attributes" jsonschema_description:"The attributes required for new users."`
+
+	DefaultUserGroups []string `koanf:"default_user_groups" yaml:"default_user_groups,omitempty" toml:"default_user_groups,omitempty" json:"default_user_groups,omitempty" jsonschema:"title=Default Groups for Users" jsonschema_description:"Groups to add to new users."`
 }
 
 type AuthenticationBackendExtraAttribute struct {

@@ -295,9 +295,11 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 			r.PATCH("/api/admin/users/{username}", RequireAdminUser1FA(handlers.ChangeUserPATCH))
 			r.DELETE("/api/admin/users/{username}", RequireAdminUser1FA(handlers.DeleteUserDELETE))
 
-			r.GET("/api/admin/groups", RequireAdminUser1FA(handlers.GetGroupsGET))
-			r.POST("/api/admin/groups", RequireAdminUser1FA(handlers.NewGroupPOST))
-			r.DELETE("/api/admin/groups/{group}", RequireAdminUser1FA(handlers.DeleteGroupDELETE))
+			if config.AuthenticationBackend.File != nil {
+				r.GET("/api/admin/groups", RequireAdminUser1FA(handlers.GetGroupsGET))
+				r.POST("/api/admin/groups", RequireAdminUser1FA(handlers.NewGroupPOST))
+				r.DELETE("/api/admin/groups/{group}", RequireAdminUser1FA(handlers.DeleteGroupDELETE))
+			}
 
 			//TODO: add config option to allow disabling this separately from the existing flags.
 			r.POST("/api/admin/users/{username}/password/change", RequireAdminUser1FA(handlers.AdminChangePasswordPOST))

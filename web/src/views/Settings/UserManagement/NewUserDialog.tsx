@@ -25,12 +25,17 @@ const NewUserDialog = ({ onClose, open }: Props) => {
     const [metadata, refetch, loading, error] = useUserManagementAttributeMetadataGET();
     const [groups, groupsRefetch, groupsLoading, groupsError] = useAllGroupsGET();
 
+    const groupsFieldType = metadata?.supported_attributes?.groups?.type;
+    const shouldFetchGroups = groupsFieldType === "groups";
+
     useEffect(() => {
         if (open) {
             refetch();
-            groupsRefetch();
+            if (shouldFetchGroups) {
+                groupsRefetch();
+            }
         }
-    }, [open, refetch, groupsRefetch]);
+    }, [open, refetch, groupsRefetch, shouldFetchGroups]);
 
     const {
         control,
@@ -196,7 +201,7 @@ const NewUserDialog = ({ onClose, open }: Props) => {
                 {error && <div>Error loading users: {error.message}</div>}
                 {groupsError && <div>Error loading groups: {groupsError.message}</div>}
 
-                {!loading && !groupsLoading && !error && !groupsError && groups && metadata && (
+                {!loading && !groupsLoading && !error && !groupsError && metadata && (
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <FormControl variant="standard">
                             <Grid container spacing={2}>

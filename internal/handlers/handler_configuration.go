@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -38,6 +39,7 @@ type AdminConfigurationResponseBody struct {
 	Enabled                bool   `json:"enabled"`
 	AdminGroup             string `json:"admin_group"`
 	AllowAdminsToAddAdmins bool   `json:"allow_admins_to_add_admins"`
+	GroupManagementEnabled bool   `json:"group_management_enabled"`
 }
 
 // AdminConfigurationGET get the configuration accessible to authenticated administrators.
@@ -69,10 +71,18 @@ func AdminConfigurationGET(ctx *middlewares.AutheliaCtx) {
 		Enabled:                ctx.Configuration.Administration.Enabled,
 		AdminGroup:             ctx.Configuration.Administration.AdminGroup,
 		AllowAdminsToAddAdmins: ctx.Configuration.Administration.AllowAdminsToAddAdmins,
+		GroupManagementEnabled: supportsStandaloneGroupManagement(ctx),
 	}
 
 	err = ctx.SetJSONBody(adminConfig)
 	if err != nil {
 		ctx.Logger.Errorf("Unable to set admin config response in body: %+v", err)
 	}
+}
+
+// supportsStandaloneGroupManagement checks if the user provider supports standalone group management.
+// File-based providers do not support standalone groups; groups are managed as user attributes.
+func supportsStandaloneGroupManagement(ctx *middlewares.AutheliaCtx) bool {
+	_, isFileProvider := ctx.Providers.UserProvider.(*authentication.FileUserProvider)
+	return !isFileProvider
 }

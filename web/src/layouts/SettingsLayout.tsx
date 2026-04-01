@@ -76,12 +76,23 @@ const SettingsLayout = function (props: Props) {
 
     const isItemVisible = useCallback(
         (item: NavItem) => {
-            if (!item.requireAdmin) return true;
+            if (!item.requireAdmin && !item.requireGroupManagement) return true;
 
             if (fetchAdminConfigError || !adminConfig || fetchUserInfoError || !userInfo) {
                 return false;
             }
-            return adminConfig?.enabled && userInfo?.groups?.includes(adminConfig?.admin_group);
+
+            const isAdmin = adminConfig?.enabled && userInfo?.groups?.includes(adminConfig?.admin_group);
+
+            if (item.requireAdmin && !isAdmin) {
+                return false;
+            }
+
+            if (item.requireGroupManagement && !adminConfig?.group_management_enabled) {
+                return false;
+            }
+
+            return true;
         },
         [adminConfig, userInfo, fetchAdminConfigError, fetchUserInfoError],
     );
@@ -163,6 +174,7 @@ interface NavItem {
     pathname: string;
     icon?: ReactNode;
     requireAdmin?: boolean;
+    requireGroupManagement?: boolean;
     disabled?: boolean;
 }
 
@@ -189,9 +201,10 @@ const navItems: NavItem[] = [
     },
     {
         icon: <Groups color={"primary"} />,
-        keyname: "users",
+        keyname: "groups",
         pathname: `${SettingsRoute}${SettingsGroupManagementSubRoute}`,
         requireAdmin: true,
+        requireGroupManagement: true,
         text: "Group Management",
     },
     { icon: <Close color={"error"} />, keyname: "close", pathname: IndexRoute, text: "Close" },

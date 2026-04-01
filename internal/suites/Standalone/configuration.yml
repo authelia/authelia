@@ -87,6 +87,23 @@ session:
 authentication_backend:
   file:
     path: '/config/users.yml'
+    extra_attributes:
+      employee_type:
+        multi_valued: false
+        value_type: 'string'
+      employee_id:
+        multi_valued: false
+        value_type: 'string'
+      employee_number:
+        multi_valued: false
+        value_type: 'integer'
+      test_flag:
+        multi_valued: false
+        value_type: 'boolean'
+      tags:
+        multi_valued: true
+        value_type: 'string'
+
 
 totp:
   issuer: 'example.com'

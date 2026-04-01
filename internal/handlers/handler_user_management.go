@@ -88,21 +88,25 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if len(newUserRequest.Groups) > 0 {
-		availableGroups, err := ctx.Providers.UserProvider.ListGroups()
-		if err != nil {
-			ctx.Logger.WithError(err).Error("Error occurred retrieving groups")
-			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-			ctx.SetJSONError(messageOperationFailed)
-
-			return
-		}
-
-		for _, group := range newUserRequest.Groups {
-			if !slices.Contains(availableGroups, group) {
-				ctx.SetStatusCode(fasthttp.StatusBadRequest)
-				ctx.SetJSONError(fmt.Sprintf("Group '%s' does not exist", group))
+		// Only validate groups exist for providers with standalone group management (e.g., LDAP)
+		// File providers treat groups as arbitrary strings.
+		if supportsStandaloneGroupManagement(ctx) {
+			availableGroups, err := ctx.Providers.UserProvider.ListGroups()
+			if err != nil {
+				ctx.Logger.WithError(err).Error("Error occurred retrieving groups")
+				ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+				ctx.SetJSONError(messageOperationFailed)
 
 				return
+			}
+
+			for _, group := range newUserRequest.Groups {
+				if !slices.Contains(availableGroups, group) {
+					ctx.SetStatusCode(fasthttp.StatusBadRequest)
+					ctx.SetJSONError(fmt.Sprintf("Group '%s' does not exist", group))
+
+					return
+				}
 			}
 		}
 
@@ -376,7 +380,29 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 				return
 			}
 		case field == "groups":
-			partialUpdate.Groups = requestBody.GetGroups()
+			groups := requestBody.GetGroups()
+
+			if supportsStandaloneGroupManagement(ctx) {
+				availableGroups, err := ctx.Providers.UserProvider.ListGroups()
+				if err != nil {
+					ctx.Logger.WithError(err).Error("Error occurred retrieving groups")
+					ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+					ctx.SetJSONError(messageOperationFailed)
+
+					return
+				}
+
+				for _, group := range groups {
+					if !slices.Contains(availableGroups, group) {
+						ctx.SetStatusCode(fasthttp.StatusBadRequest)
+						ctx.SetJSONError(fmt.Sprintf("Group '%s' does not exist", group))
+
+						return
+					}
+				}
+			}
+
+			partialUpdate.Groups = groups
 		case field == "given_name":
 			partialUpdate.GivenName = requestBody.GivenName
 		case field == "family_name":

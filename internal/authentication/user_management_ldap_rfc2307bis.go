@@ -16,32 +16,6 @@ type RFC2307bisUserManagement struct {
 	provider *LDAPUserProvider
 }
 
-var attributeMetadataMap = map[string]UserManagementAttributeMetadata{
-	"username":        {Type: Text, Multiple: false},
-	"groups":          {Type: Groups, Multiple: true},
-	"password":        {Type: Password, Multiple: false},
-	"display_name":    {Type: Text, Multiple: false},
-	"family_name":     {Type: Text, Multiple: false},
-	"given_name":      {Type: Text, Multiple: false},
-	"middle_name":     {Type: Text, Multiple: false},
-	"nickname":        {Type: Text, Multiple: false},
-	"gender":          {Type: Text, Multiple: false},
-	"birthdate":       {Type: Date, Multiple: false},
-	"website":         {Type: Url, Multiple: false},
-	"profile":         {Type: Url, Multiple: false},
-	"picture":         {Type: Url, Multiple: false},
-	"zoneinfo":        {Type: Text, Multiple: false},
-	"locale":          {Type: Text, Multiple: false},
-	"phone_number":    {Type: Telephone, Multiple: false},
-	"phone_extension": {Type: Text, Multiple: false},
-	"street_address":  {Type: Text, Multiple: false},
-	"locality":        {Type: Text, Multiple: false},
-	"region":          {Type: Text, Multiple: false},
-	"postal_code":     {Type: Text, Multiple: false},
-	"country":         {Type: Text, Multiple: false},
-	"mail":            {Type: Email, Multiple: false},
-}
-
 func (r *RFC2307bisUserManagement) GetRequiredAttributes() []string {
 	requiredFieldNames := GetBaseRequiredAttributesForImplementation(schema.LDAPImplementationRFC2307bis)
 
@@ -87,15 +61,15 @@ func (r *RFC2307bisUserManagement) GetSupportedAttributes() map[string]UserManag
 		var inputType AttributeType
 
 		switch extraAttr.ValueType {
-		case "boolean":
+		case ValueTypeBoolean:
 			inputType = Checkbox
-		case "integer", "string", "":
+		case ValueTypeInteger, ValueTypeString, "":
 			inputType = Text
 		default:
 			inputType = Text
 		}
 
-		metadata["extra."+attrName] = UserManagementAttributeMetadata{
+		metadata[PrefixAttributeExtra+attrName] = UserManagementAttributeMetadata{
 			Type:     inputType,
 			Multiple: extraAttr.MultiValued,
 		}
@@ -165,37 +139,37 @@ func (r *RFC2307bisUserManagement) ValidateUserData(userData *UserDetailsExtende
 func (r *RFC2307bisUserManagement) buildAttributeValueMap(userData *UserDetailsExtended) map[string]interface{} {
 	values := make(map[string]interface{})
 
-	values["username"] = userData.GetUsername()
-	values["password"] = userData.Password
-	values["display_name"] = userData.GetDisplayName()
-	values["given_name"] = userData.GetGivenName()
-	values["family_name"] = userData.GetFamilyName()
-	values["middle_name"] = userData.MiddleName
-	values["nickname"] = userData.Nickname
+	values[AttributeUsername] = userData.GetUsername()
+	values[AttributePassword] = userData.Password
+	values[AttributeDisplayName] = userData.GetDisplayName()
+	values[AttributeGivenName] = userData.GetGivenName()
+	values[AttributeFamilyName] = userData.GetFamilyName()
+	values[AttributeMiddleName] = userData.MiddleName
+	values[AttributeNickname] = userData.Nickname
 	values["common_name"] = userData.CommonName
 
-	values["profile"] = userData.GetProfile()
-	values["picture"] = userData.GetPicture()
-	values["website"] = userData.GetWebsite()
-	values["gender"] = userData.Gender
-	values["birthdate"] = userData.Birthdate
-	values["locale"] = userData.GetLocale()
-	values["zoneinfo"] = userData.ZoneInfo
+	values[AttributeProfile] = userData.GetProfile()
+	values[AttributePicture] = userData.GetPicture()
+	values[AttributeWebsite] = userData.GetWebsite()
+	values[AttributeGender] = userData.Gender
+	values[AttributeBirthdate] = userData.Birthdate
+	values[AttributeLocale] = userData.GetLocale()
+	values[AttributeZoneInfo] = userData.ZoneInfo
 
-	values["phone_number"] = userData.PhoneNumber
-	values["phone_extension"] = userData.PhoneExtension
+	values[AttributePhoneNumber] = userData.PhoneNumber
+	values[AttributePhoneExtension] = userData.PhoneExtension
 
 	if len(userData.GetEmails()) > 0 {
-		values["mail"] = userData.GetEmails()[0]
+		values[AttributeMail] = userData.GetEmails()[0]
 		values["emails"] = userData.GetEmails()
 	}
 
 	if userData.Address != nil {
-		values["street_address"] = userData.Address.StreetAddress
-		values["locality"] = userData.Address.Locality
-		values["region"] = userData.Address.Region
-		values["postal_code"] = userData.Address.PostalCode
-		values["country"] = userData.Address.Country
+		values[AttributeAddressStreetAddress] = userData.Address.StreetAddress
+		values[AttributeAddressLocality] = userData.Address.Locality
+		values[AttributeAddressRegion] = userData.Address.Region
+		values[AttributeAddressPostalCode] = userData.Address.PostalCode
+		values[AttributeAddressCountry] = userData.Address.Country
 	}
 
 	// Add extra attributes.
@@ -226,7 +200,7 @@ func (r *RFC2307bisUserManagement) ValidatePartialUpdate(userData *UserDetailsEx
 		maskSet[field] = true
 	}
 
-	if maskSet["emails"] && userData.UserDetails != nil && len(userData.GetEmails()) > 0 {
+	if maskSet[AttributeMail] && userData.UserDetails != nil && len(userData.GetEmails()) > 0 {
 		for _, email := range userData.GetEmails() {
 			if !utils.ValidateEmailString(email) {
 				return fmt.Errorf("invalid email address: %s", email)
@@ -266,49 +240,49 @@ func (r *RFC2307bisUserManagement) UpdateUserWithMask(username string, userData 
 
 	for _, field := range updateMask {
 		switch {
-		case field == "given_name":
+		case field == AttributeGivenName:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.GivenName, userData.GivenName)
-		case field == "family_name":
+		case field == AttributeFamilyName:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.FamilyName, userData.FamilyName)
-		case field == "middle_name":
+		case field == AttributeMiddleName:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.MiddleName, userData.MiddleName)
-		case field == "nickname":
+		case field == AttributeNickname:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Nickname, userData.Nickname)
-		case field == "gender":
+		case field == AttributeGender:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Gender, userData.Gender)
-		case field == "birthdate":
+		case field == AttributeBirthdate:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Birthdate, userData.Birthdate)
-		case field == "zoneinfo":
+		case field == AttributeZoneInfo:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.ZoneInfo, userData.ZoneInfo)
-		case field == "phone_number":
+		case field == AttributePhoneNumber:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PhoneNumber, userData.PhoneNumber)
-		case field == "phone_extension":
+		case field == AttributePhoneExtension:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PhoneExtension, userData.PhoneExtension)
-		case field == "locale":
+		case field == AttributeLocale:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Locale, userData.GetLocale())
-		case field == "profile":
+		case field == AttributeProfile:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Profile, userData.GetProfile())
-		case field == "picture":
+		case field == AttributePicture:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Picture, userData.GetPicture())
-		case field == "website":
+		case field == AttributeWebsite:
 			r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Website, userData.GetWebsite())
-		case field == "display_name":
+		case field == AttributeDisplayName:
 			if userData.GetDisplayName() != "" {
 				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.DisplayName, userData.GetDisplayName())
 			}
-		case field == "mail":
+		case field == AttributeMail:
 			//TODO: handle multiple emails, this will require authelia-internal "primary" email tracking. See https://github.com/authelia/authelia/discussions/6093
 			if len(userData.Emails) > 0 {
 				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Mail, userData.Emails[0])
 			}
-		case field == "groups":
+		case field == AttributeGroups:
 			if userData.GetGroups() != nil {
 				if err := r.UpdateUserGroups(username, userData.GetGroups()); err != nil {
 					return err
 				}
 			}
-		case strings.HasPrefix(field, "extra."):
-			extraField := strings.TrimPrefix(field, "extra.")
+		case strings.HasPrefix(field, PrefixAttributeExtra):
+			extraField := strings.TrimPrefix(field, PrefixAttributeExtra)
 
 			if userData.Extra != nil {
 				if value, exists := userData.Extra[extraField]; exists && value != nil {
@@ -321,7 +295,7 @@ func (r *RFC2307bisUserManagement) UpdateUserWithMask(username string, userData 
 					r.replaceAttributeIfPresent(modifyRequest, ldapAttr, r.normalizeExtraAttributes(value))
 				}
 			}
-		case field == "address":
+		case field == AttributeAddress:
 			if userData.Address != nil {
 				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.StreetAddress, userData.Address.StreetAddress)
 				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Locality, userData.Address.Locality)
@@ -329,19 +303,19 @@ func (r *RFC2307bisUserManagement) UpdateUserWithMask(username string, userData 
 				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PostalCode, userData.Address.PostalCode)
 				r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Country, userData.Address.Country)
 			}
-		case strings.HasPrefix(field, "address."):
+		case strings.HasPrefix(field, PrefixAttributeAddress):
 			if userData.Address != nil {
-				subField := strings.TrimPrefix(field, "address.")
+				subField := strings.TrimPrefix(field, PrefixAttributeAddress)
 				switch subField {
-				case "street_address":
+				case AttributeAddressStreetAddress:
 					r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.StreetAddress, userData.Address.StreetAddress)
-				case "locality":
+				case AttributeAddressLocality:
 					r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Locality, userData.Address.Locality)
-				case "region":
+				case AttributeAddressRegion:
 					r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Region, userData.Address.Region)
-				case "postal_code":
+				case AttributeAddressPostalCode:
 					r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.PostalCode, userData.Address.PostalCode)
-				case "country":
+				case AttributeAddressCountry:
 					r.replaceAttributeIfPresent(modifyRequest, r.provider.config.Attributes.Country, userData.Address.Country)
 				}
 			}

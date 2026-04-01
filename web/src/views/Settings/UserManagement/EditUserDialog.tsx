@@ -27,12 +27,18 @@ const EditUserDialog = ({ onClose, open, user }: Props) => {
     const [groups, groupsRefetch, groupsLoading, groupsError] = useAllGroupsGET();
     const [verifyExitDialogOpen, setVerifyExitDialogOpen] = useState(false);
 
+    // Check if groups field uses "groups" type (LDAP) or "text" type (file provider)
+    const groupsFieldType = metadata?.supported_attributes?.groups?.type;
+    const shouldFetchGroups = groupsFieldType === "groups";
+
     useEffect(() => {
         if (open) {
             refetch();
-            groupsRefetch();
+            if (shouldFetchGroups) {
+                groupsRefetch();
+            }
         }
-    }, [open, refetch, groupsRefetch]);
+    }, [open, refetch, groupsRefetch, shouldFetchGroups]);
     const {
         control,
         formState: { dirtyFields, errors, isDirty },
@@ -237,7 +243,7 @@ const EditUserDialog = ({ onClose, open, user }: Props) => {
                     {error && <div>Error loading users: {error.message}</div>}
                     {groupsError && <div>Error loading groups: {groupsError.message}</div>}
 
-                    {!loading && !groupsLoading && !error && !groupsError && groups && metadata && (
+                    {!loading && !groupsLoading && !error && !groupsError && metadata && (
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <FormControl variant="standard">
                                 <Grid container spacing={2}>

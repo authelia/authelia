@@ -80,6 +80,8 @@ const (
 
 	// LDAPImplementationGLAuth is the string for the GLAuth LDAP implementation.
 	LDAPImplementationGLAuth = "glauth"
+
+	FileImplementation = "file"
 )
 
 const (

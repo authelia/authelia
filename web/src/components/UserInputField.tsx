@@ -53,7 +53,7 @@ const UserFormField = <T extends CreateUserRequest | UserDetailsExtended = Creat
             );
 
         case "groups":
-            return <GroupsField field={field} control={control} error={error} options={options} register={register} />;
+            return renderByType(field, register, control, error, options);
 
         case "mail":
             if (field.meta.multiple) {

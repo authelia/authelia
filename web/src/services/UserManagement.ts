@@ -12,6 +12,7 @@ export interface AdminConfigBody {
     enabled: boolean;
     admin_group: string;
     allow_admins_to_add_admins: boolean;
+    group_management_enabled: boolean;
 }
 
 export type AttributeType = "checkbox" | "date" | "email" | "groups" | "password" | "tel" | "text" | "url";

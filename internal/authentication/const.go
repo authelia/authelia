@@ -201,3 +201,68 @@ const (
 	BooleanValueTrue  = "TRUE"
 	BooleanValueFalse = "FALSE"
 )
+
+// User management attribute names for update masks.
+const (
+	AttributeUsername       = "username"
+	AttributePassword       = "password"
+	AttributeDisplayName    = "display_name"
+	AttributeGivenName      = "given_name"
+	AttributeFamilyName     = "family_name"
+	AttributeMiddleName     = "middle_name"
+	AttributeNickname       = "nickname"
+	AttributeGender         = "gender"
+	AttributeBirthdate      = "birthdate"
+	AttributeWebsite        = "website"
+	AttributeProfile        = "profile"
+	AttributePicture        = "picture"
+	AttributeZoneInfo       = "zoneinfo"
+	AttributeLocale         = "locale"
+	AttributePhoneNumber    = "phone_number"
+	AttributePhoneExtension = "phone_extension"
+	AttributeMail           = "mail"
+	AttributeGroups         = "groups"
+	AttributeAddress        = "address"
+	AttributeExtra          = "extra"
+)
+
+// Address subfield attribute names.
+const (
+	AttributeAddressStreetAddress = "street_address"
+	AttributeAddressLocality      = "locality"
+	AttributeAddressRegion        = "region"
+	AttributeAddressPostalCode    = "postal_code"
+	AttributeAddressCountry       = "country"
+)
+
+// Attribute prefixes for composite attributes.
+const (
+	PrefixAttributeExtra   = "extra."
+	PrefixAttributeAddress = "address."
+)
+
+var attributeMetadataMap = map[string]UserManagementAttributeMetadata{
+	AttributeUsername:             {Type: Text, Multiple: false},
+	AttributeGroups:               {Type: Groups, Multiple: true},
+	AttributePassword:             {Type: Password, Multiple: false},
+	AttributeDisplayName:          {Type: Text, Multiple: false},
+	AttributeFamilyName:           {Type: Text, Multiple: false},
+	AttributeGivenName:            {Type: Text, Multiple: false},
+	AttributeMiddleName:           {Type: Text, Multiple: false},
+	AttributeNickname:             {Type: Text, Multiple: false},
+	AttributeGender:               {Type: Text, Multiple: false},
+	AttributeBirthdate:            {Type: Date, Multiple: false},
+	AttributeWebsite:              {Type: Url, Multiple: false},
+	AttributeProfile:              {Type: Url, Multiple: false},
+	AttributePicture:              {Type: Url, Multiple: false},
+	AttributeZoneInfo:             {Type: Text, Multiple: false},
+	AttributeLocale:               {Type: Text, Multiple: false},
+	AttributePhoneNumber:          {Type: Telephone, Multiple: false},
+	AttributePhoneExtension:       {Type: Text, Multiple: false},
+	AttributeAddressStreetAddress: {Type: Text, Multiple: false},
+	AttributeAddressLocality:      {Type: Text, Multiple: false},
+	AttributeAddressRegion:        {Type: Text, Multiple: false},
+	AttributeAddressPostalCode:    {Type: Text, Multiple: false},
+	AttributeAddressCountry:       {Type: Text, Multiple: false},
+	AttributeMail:                 {Type: Email, Multiple: false},
+}
