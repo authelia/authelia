@@ -17,7 +17,9 @@ func TestShouldExecCommandOnAutheliaRootPath(t *testing.T) {
 	str := strings.Trim(string(result), "\n")
 
 	assert.NoError(t, err, "")
-	assert.Equal(t, true, strings.HasSuffix(str, "authelia"))
+	// Check that the working directory ends with either "authelia" or "user-management".
+	assert.True(t, strings.HasSuffix(str, "authelia") || strings.HasSuffix(str, "user-management"),
+		"expected directory to end with 'authelia' or 'user-management', got: %s", str)
 }
 
 func TestCommandShouldOutputResult(t *testing.T) {

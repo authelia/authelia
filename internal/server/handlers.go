@@ -213,6 +213,11 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		WithPostMiddlewares(middlewares.RequireElevated).
 		Build()
 
+	RequireAdminUser1FA := middlewares.NewBridgeBuilder(*config, providers).
+		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPostMiddlewares(middlewares.RequireAdminUser, middlewares.Require1FA).
+		Build()
+
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 
@@ -276,6 +281,31 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
 	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
+
+	if config.Administration.Enabled {
+		r.GET("/api/admin/config", RequireAdminUser1FA(handlers.AdminConfigurationGET))
+
+		if config.Administration.EnableUserManagement {
+			r.GET("/api/admin/user-fields", RequireAdminUser1FA(handlers.UserManagementAttributesGet))
+
+			r.GET("/api/admin/users", RequireAdminUser1FA(handlers.AllUsersInfoGET))
+			r.POST("/api/admin/users", RequireAdminUser1FA(handlers.NewUserPOST))
+
+			r.GET("/api/admin/users/{username}", RequireAdminUser1FA(handlers.GetUserGET))
+			r.PATCH("/api/admin/users/{username}", RequireAdminUser1FA(handlers.ChangeUserPATCH))
+			r.DELETE("/api/admin/users/{username}", RequireAdminUser1FA(handlers.DeleteUserDELETE))
+
+			if config.AuthenticationBackend.File != nil {
+				r.GET("/api/admin/groups", RequireAdminUser1FA(handlers.GetGroupsGET))
+				r.POST("/api/admin/groups", RequireAdminUser1FA(handlers.NewGroupPOST))
+				r.DELETE("/api/admin/groups/{group}", RequireAdminUser1FA(handlers.DeleteGroupDELETE))
+			}
+
+			//TODO: add config option to allow disabling this separately from the existing flags.
+			r.POST("/api/admin/users/{username}/password/change", RequireAdminUser1FA(handlers.AdminChangePasswordPOST))
+			r.POST("/api/admin/users/{username}/password/reset", RequireAdminUser1FA(handlers.AdminResetPasswordPOST))
+		}
+	}
 
 	// User Session Elevation.
 	middlewareElevatePOST := middlewares.NewBridgeBuilder(*config, providers).

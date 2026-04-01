@@ -39,6 +39,47 @@ func (m *MockFileUserDatabase) EXPECT() *MockFileUserDatabaseMockRecorder {
 	return m.recorder
 }
 
+// DeleteUserDetails mocks base method.
+func (m *MockFileUserDatabase) DeleteUserDetails(username string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "DeleteUserDetails", username)
+}
+
+// DeleteUserDetails indicates an expected call of DeleteUserDetails.
+func (mr *MockFileUserDatabaseMockRecorder) DeleteUserDetails(username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUserDetails", reflect.TypeOf((*MockFileUserDatabase)(nil).DeleteUserDetails), username)
+}
+
+// GetAllUserDetails mocks base method.
+func (m *MockFileUserDatabase) GetAllUserDetails() ([]UserDetails, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllUserDetails")
+	ret0, _ := ret[0].([]UserDetails)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllUserDetails indicates an expected call of GetAllUserDetails.
+func (mr *MockFileUserDatabaseMockRecorder) GetAllUserDetails() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUserDetails", reflect.TypeOf((*MockFileUserDatabase)(nil).GetAllUserDetails))
+}
+
+// GetAllUsers mocks base method.
+func (m *MockFileUserDatabase) GetAllUsers() map[string]FileUserDatabaseUserDetails {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllUsers")
+	ret0, _ := ret[0].(map[string]FileUserDatabaseUserDetails)
+	return ret0
+}
+
+// GetAllUsers indicates an expected call of GetAllUsers.
+func (mr *MockFileUserDatabaseMockRecorder) GetAllUsers() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUsers", reflect.TypeOf((*MockFileUserDatabase)(nil).GetAllUsers))
+}
+
 // GetUserDetails mocks base method.
 func (m *MockFileUserDatabase) GetUserDetails(username string) (FileUserDatabaseUserDetails, error) {
 	m.ctrl.T.Helper()

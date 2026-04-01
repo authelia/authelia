@@ -3,7 +3,10 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"regexp"
 	"strings"
+	"text/template"
 
 	"github.com/go-crypt/crypt/algorithm/argon2"
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
@@ -384,6 +387,14 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 
 	validateLDAPExtraAttributes(config, validator)
 	validateLDAPRequiredParameters(config, validator)
+	validateLDAPAuthenticationBackendUserManagement(config, validator)
+}
+
+func validateLDAPAuthenticationBackendUserManagement(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	validateLDAPAuthenticationBackendUserManagementObjectClasses(config)
+	validateLDAPAuthenticationBackendUserManagementRequiredAttributes(config, validator)
+	validateLDAPAuthenticationBackendUserManagementRDNTemplate(config, validator)
+	validateLDAPAuthenticationBackendUserManagementRDNAttribute(config, validator)
 }
 
 func validateLDAPAuthenticationBackendImplementation(config *schema.AuthenticationBackend, validator *schema.StructValidator) *schema.TLS {
@@ -583,4 +594,373 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 	if (pMemberOfDN || pMemberOfRDN) && config.LDAP.Attributes.MemberOf == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
 	}
+}
+
+func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema.AuthenticationBackend) {
+	if len(config.LDAP.UserManagement.UserObjectClasses) == 0 {
+		switch config.LDAP.Implementation {
+		case schema.LDAPImplementationRFC2307bis:
+			config.LDAP.UserManagement.UserObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.UserObjectClasses
+		default:
+			panic("not implemented")
+		}
+	}
+
+	if len(config.LDAP.UserManagement.GroupObjectClasses) == 0 {
+		switch config.LDAP.Implementation {
+		case schema.LDAPImplementationRFC2307bis:
+			config.LDAP.UserManagement.GroupObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.GroupObjectClasses
+		default:
+			panic("not implemented")
+		}
+	}
+}
+
+func validateLDAPAuthenticationBackendUserManagementRequiredAttributes(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	if len(config.LDAP.UserManagement.RequiredAttributes) == 0 {
+		return
+	}
+
+	supportedAttributes := getSupportedLDAPUserProfileAttributes(config.LDAP)
+
+	for _, requiredAttr := range config.LDAP.UserManagement.RequiredAttributes {
+		if !utils.IsStringInSlice(requiredAttr, supportedAttributes) {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserManagementRequiredAttributeNotSupported, requiredAttr))
+		}
+	}
+}
+
+// toSnakeCase converts a PascalCase string to snake_case.
+func toSnakeCase(s string) string {
+	var result strings.Builder
+
+	for i, r := range s {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			result.WriteRune('_')
+		}
+
+		result.WriteRune(r)
+	}
+
+	return strings.ToLower(result.String())
+}
+
+// getFieldNamesFromStruct extracts field names in snake_case from a struct using reflection.
+func getFieldNamesFromStruct(t reflect.Type) map[string]string {
+	fieldMap := make(map[string]string)
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+
+		if !field.IsExported() {
+			continue
+		}
+
+		fieldMap[field.Name] = toSnakeCase(field.Name)
+	}
+
+	return fieldMap
+}
+
+// getSupportedLDAPUserProfileAttributes returns a list of all attributes that are supported based on the LDAP configuration's attribute mappings and extra attributes.
+//
+//nolint:gocyclo
+func getSupportedLDAPUserProfileAttributes(config *schema.AuthenticationBackendLDAP) []string {
+	var attributes []string
+
+	if config.Attributes.Username != "" {
+		attributes = append(attributes, "username")
+	}
+
+	if config.Attributes.DisplayName != "" {
+		attributes = append(attributes, "display_name")
+	}
+
+	if config.Attributes.Mail != "" {
+		attributes = append(attributes, "mail")
+	}
+
+	if config.Attributes.GivenName != "" {
+		attributes = append(attributes, "given_name")
+	}
+
+	if config.Attributes.FamilyName != "" {
+		attributes = append(attributes, "family_name")
+	}
+
+	if config.Attributes.MiddleName != "" {
+		attributes = append(attributes, "middle_name")
+	}
+
+	if config.Attributes.Nickname != "" {
+		attributes = append(attributes, "nickname")
+	}
+
+	if config.Attributes.Profile != "" {
+		attributes = append(attributes, "profile")
+	}
+
+	if config.Attributes.Picture != "" {
+		attributes = append(attributes, "picture")
+	}
+
+	if config.Attributes.Website != "" {
+		attributes = append(attributes, "website")
+	}
+
+	if config.Attributes.Gender != "" {
+		attributes = append(attributes, "gender")
+	}
+
+	if config.Attributes.Birthdate != "" {
+		attributes = append(attributes, "birthdate")
+	}
+
+	if config.Attributes.ZoneInfo != "" {
+		attributes = append(attributes, "zoneinfo")
+	}
+
+	if config.Attributes.Locale != "" {
+		attributes = append(attributes, "locale")
+	}
+
+	if config.Attributes.PhoneNumber != "" {
+		attributes = append(attributes, "phone_number")
+	}
+
+	if config.Attributes.PhoneExtension != "" {
+		attributes = append(attributes, "phone_extension")
+	}
+
+	if config.Attributes.StreetAddress != "" {
+		attributes = append(attributes, "address", "address.street_address")
+	}
+
+	if config.Attributes.Locality != "" {
+		attributes = append(attributes, "address", "address.locality")
+	}
+
+	if config.Attributes.Region != "" {
+		attributes = append(attributes, "address", "address.region")
+	}
+
+	if config.Attributes.PostalCode != "" {
+		attributes = append(attributes, "address", "address.postal_code")
+	}
+
+	if config.Attributes.Country != "" {
+		attributes = append(attributes, "address", "address.country")
+	}
+
+	if config.Attributes.MemberOf != "" || config.Attributes.GroupName != "" {
+		attributes = append(attributes, "groups")
+	}
+
+	for name := range config.Attributes.Extra {
+		attributes = append(attributes, name)
+	}
+
+	attributes = append(attributes, "password", "full_name")
+
+	seen := make(map[string]bool)
+	unique := make([]string, 0, len(attributes))
+
+	for _, attr := range attributes {
+		if !seen[attr] {
+			seen[attr] = true
+			unique = append(unique, attr)
+		}
+	}
+
+	return unique
+}
+
+// getSupportedLDAPRDNTemplateFields returns a list of all fields that are supported in RDN templates
+// based on the LDAP configuration's attribute mappings and extra attributes.
+// Field names are derived from the ldapUserProfileExtended struct and converted to snake_case for template usage.
+//
+//nolint:gocyclo
+func getSupportedLDAPRDNTemplateFields(config *schema.AuthenticationBackendLDAP) []string {
+	var attributes []string
+
+	// Map LDAP attribute configuration to template field names (snake_case versions of struct fields)
+	// These correspond to fields in ldapUserProfileExtended and its embedded ldapUserProfile.
+	if config.Attributes.Username != "" {
+		attributes = append(attributes, "username")
+	}
+
+	if config.Attributes.DisplayName != "" {
+		attributes = append(attributes, "display_name")
+	}
+
+	if config.Attributes.Mail != "" {
+		attributes = append(attributes, "emails")
+	}
+
+	if config.Attributes.GivenName != "" {
+		attributes = append(attributes, "given_name")
+	}
+
+	if config.Attributes.FamilyName != "" {
+		attributes = append(attributes, "family_name")
+	}
+
+	if config.Attributes.MiddleName != "" {
+		attributes = append(attributes, "middle_name")
+	}
+
+	if config.Attributes.Nickname != "" {
+		attributes = append(attributes, "nickname")
+	}
+
+	if config.Attributes.Profile != "" {
+		attributes = append(attributes, "profile")
+	}
+
+	if config.Attributes.Picture != "" {
+		attributes = append(attributes, "picture")
+	}
+
+	if config.Attributes.Website != "" {
+		attributes = append(attributes, "website")
+	}
+
+	if config.Attributes.Gender != "" {
+		attributes = append(attributes, "gender")
+	}
+
+	if config.Attributes.Birthdate != "" {
+		attributes = append(attributes, "birthdate")
+	}
+
+	if config.Attributes.ZoneInfo != "" {
+		attributes = append(attributes, "zoneinfo")
+	}
+
+	if config.Attributes.Locale != "" {
+		attributes = append(attributes, "locale")
+	}
+
+	if config.Attributes.PhoneNumber != "" {
+		attributes = append(attributes, "phone_number")
+	}
+
+	if config.Attributes.PhoneExtension != "" {
+		attributes = append(attributes, "phone_extension")
+	}
+
+	addressType := reflect.TypeOf(authentication.UserDetailsAddress{})
+	addressFieldMap := getFieldNamesFromStruct(addressType)
+
+	if config.Attributes.StreetAddress != "" {
+		if addrField, exists := addressFieldMap["StreetAddress"]; exists {
+			attributes = append(attributes, "address", "address."+addrField)
+		}
+	}
+
+	if config.Attributes.Locality != "" {
+		if addrField, exists := addressFieldMap["Locality"]; exists {
+			attributes = append(attributes, "address", "address."+addrField)
+		}
+	}
+
+	if config.Attributes.Region != "" {
+		if addrField, exists := addressFieldMap["Region"]; exists {
+			attributes = append(attributes, "address", "address."+addrField)
+		}
+	}
+
+	if config.Attributes.PostalCode != "" {
+		if addrField, exists := addressFieldMap["PostalCode"]; exists {
+			attributes = append(attributes, "address", "address."+addrField)
+		}
+	}
+
+	if config.Attributes.Country != "" {
+		if addrField, exists := addressFieldMap["Country"]; exists {
+			attributes = append(attributes, "address", "address."+addrField)
+		}
+	}
+
+	if config.Attributes.MemberOf != "" || config.Attributes.GroupName != "" {
+		attributes = append(attributes, "member_of")
+	}
+
+	for name := range config.Attributes.Extra {
+		attributes = append(attributes, name)
+	}
+
+	attributes = append(attributes, "password", "full_name")
+
+	seen := make(map[string]bool)
+	unique := make([]string, 0, len(attributes))
+
+	for _, attr := range attributes {
+		if !seen[attr] {
+			seen[attr] = true
+			unique = append(unique, attr)
+		}
+	}
+
+	return unique
+}
+
+func validateLDAPAuthenticationBackendUserManagementRDNTemplate(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	if config.LDAP.UserManagement.CreatedUsersRDNFormat == "" {
+		return
+	}
+
+	tmpl, err := template.New("rdn").Delims("[[", "]]").Funcs(template.FuncMap{}).Parse(config.LDAP.UserManagement.CreatedUsersRDNFormat)
+	if err != nil {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserManagementRDNTemplateInvalid, err))
+		return
+	}
+
+	supportedFields := getSupportedLDAPRDNTemplateFields(config.LDAP)
+	fields := extractTemplateFields(config.LDAP.UserManagement.CreatedUsersRDNFormat)
+
+	// Get the base required attributes for the implementation.
+	requiredAttributes := authentication.GetBaseRequiredAttributesForImplementation(config.LDAP.Implementation)
+	requiredAttributes = append(requiredAttributes, config.LDAP.UserManagement.RequiredAttributes...)
+
+	for _, field := range fields {
+		if !utils.IsStringInSlice(field, supportedFields) {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserManagementRDNTemplateFieldUnsupported, field))
+		}
+
+		if !utils.IsStringInSlice(field, requiredAttributes) {
+			validator.Push(fmt.Errorf("authentication: ldap: user_management: created_users_rdn_format: field '%s' must be in required_attributes when used in RDN template", field))
+		}
+	}
+
+	_ = tmpl
+}
+
+func validateLDAPAuthenticationBackendUserManagementRDNAttribute(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	if config.LDAP.UserManagement.CreatedUsersRDNFormat == "" {
+		config.LDAP.UserManagement.CreatedUsersRDNAttribute = ""
+
+		return
+	}
+
+	if config.LDAP.UserManagement.CreatedUsersRDNAttribute == "" {
+		validator.Push(fmt.Errorf("authentication_backend: ldap: user_management: rdn_attribute must be set when using created_users_rdn_format"))
+		return
+	}
+}
+
+// extractTemplateFields extracts field names from a Go template string.
+func extractTemplateFields(tmplStr string) []string {
+	var fields []string
+
+	re := regexp.MustCompile(`\[\[\s*\.(\w+)\s*\]\]`)
+	matches := re.FindAllStringSubmatch(tmplStr, -1)
+
+	for _, match := range matches {
+		if len(match) > 1 {
+			fields = append(fields, match[1])
+		}
+	}
+
+	return fields
 }

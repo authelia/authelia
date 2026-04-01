@@ -22,7 +22,7 @@ export async function PutWithOptionalResponse<T = undefined>(path: string, body?
 export async function PostWithOptionalResponse<T = undefined>(path: string, body?: any): Promise<T | undefined> {
     const res = await axios.post<ServiceResponse<T>>(path, body);
 
-    if (res.status !== 200 || hasServiceError(res).errored) {
+    if ((res.status !== 200 && res.status !== 201) || hasServiceError(res).errored) {
         throw new Error(`Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
     }
 
@@ -48,8 +48,18 @@ export async function PostWithOptionalResponseRateLimited<T = undefined>(
     return toDataRateLimited<T>(res);
 }
 
+export async function PatchWithOptionalResponse<T = undefined>(path: string, body?: any): Promise<T | undefined> {
+    const res = await axios.patch<ServiceResponse<T>>(path, body);
+
+    if (res.status !== 200 || hasServiceError(res).errored) {
+        throw new Error(`Failed PATCH to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
+    }
+
+    return toData<T>(res);
+}
+
 export async function DeleteWithOptionalResponse<T = undefined>(path: string, body?: any): Promise<T | undefined> {
-    const res = await axios.delete<ServiceResponse<T>>(path, body);
+    const res = await axios.delete<ServiceResponse<T>>(path, { data: body });
 
     if (res.status !== 200 || hasServiceError(res).errored) {
         throw new Error(`Failed DELETE to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
