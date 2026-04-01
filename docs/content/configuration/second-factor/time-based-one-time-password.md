@@ -65,7 +65,7 @@ This disables One-Time Password (TOTP) if set to true.
 Applications generating Time-based One-Time Passwords usually display an issuer to
 differentiate applications registered by the user.
 
-Authelia allows customisation of the issuer to differentiate the entry created
+Authelia allows customization of the issuer to differentiate the entry created
 by Authelia from others.
 
 ### algorithm

@@ -502,7 +502,7 @@ func TestShouldNotAllowLoginOfDisabledUsers(t *testing.T) {
 }
 
 func TestShouldErrorOnInvalidCaseSensitiveFile(t *testing.T) {
-	WithDatabase(t, UserDatabaseContentInvalidSearchCaseInsenstive, func(path string) {
+	WithDatabase(t, UserDatabaseContentInvalidSearchCaseInsensitive, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Search.Email = false
@@ -841,7 +841,7 @@ users:
       example: '123'
 `)
 
-var UserDatabaseContentInvalidSearchCaseInsenstive = []byte(`
+var UserDatabaseContentInvalidSearchCaseInsensitive = []byte(`
 users:
   john:
     displayname: "John Doe"

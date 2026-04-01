@@ -156,7 +156,7 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 	if err = json.Unmarshal(ctx.Request.Body(), &bodyJSON); err != nil {
 		ctx.Logger.
 			WithError(err).
-			Error("Error occurred unmarshalling consent request body")
+			Error("Error occurred unmarshaling consent request body")
 
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -334,7 +334,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
-			Error("Error occurred marshalling JSON response body")
+			Error("Error occurred marshaling JSON response body")
 
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -614,7 +614,7 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
-			Error("Error occurred marshalling JSON response body")
+			Error("Error occurred marshaling JSON response body")
 
 		ctx.SetJSONError(messageOperationFailed)
 

@@ -153,7 +153,7 @@ With this configuration you can protect your virtual hosts with Authelia, by fol
     acl protected-frontends hdr(host) -m reg -i ^(?i)(jenkins|nextcloud|phpmyadmin)\.example\.com
     ```
 
-2. Add host ACL(s) in the form of `host-service`, this will be utilised to route to the correct
+2. Add host ACL(s) in the form of `host-service`, this will be utilized to route to the correct
 backend upon successful authentication, for example:
 
     ```text

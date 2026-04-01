@@ -391,7 +391,7 @@ const (
 	errFmtSessionDomainMustBeRoot                        = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '%s'"
 	errFmtSessionDomainSameSite                          = "session: domain config %s: option 'same_site' must be one of %s but it's configured as '%s'"
 	errFmtSessionDomainOptionRequired                    = "session: domain config %s: option '%s' is required"
-	errFmtSessionDomainHasPeriodPrefix                   = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"
+	errFmtSessionDomainHasPeriodPrefix                   = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behavior: you can use this at your own risk but we recommend removing it"
 	errFmtSessionDomainDuplicate                         = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
 	errFmtSessionDomainDuplicateCookieScope              = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
 	errFmtSessionDomainURLNotAbsolute                    = "session: domain config %s: option '%s' is not absolute with a value of '%s'"

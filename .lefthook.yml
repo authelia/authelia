@@ -8,7 +8,7 @@ pre-commit:
         MISSING=""
         COUNT=0
 
-        for TOOL in golangci-lint pnpm trufflehog yamllint; do
+        for TOOL in golangci-lint pnpm trufflehog typos yamllint; do
           if ! command -v ${TOOL} >/dev/null 2>&1; then
             if [ "$COUNT" -eq 0 ]; then
               MISSING=${TOOL}
@@ -44,6 +44,10 @@ pre-commit:
 
           - name: trufflehog
             run: trufflehog --fail --log-level=-1 filesystem -x .trufflehog . && echo "0 issues."
+
+          - name: typos
+            run: typos -w --format brief && echo "0 issues."
+            stage_fixed: true
 
           - name: yamllint
             run: yamllint -f parsable . && echo "0 issues."

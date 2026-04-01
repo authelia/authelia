@@ -20,7 +20,7 @@ import (
 // values, sets Access-Control-Allow-Methods to the value specified by the Access-Control-Request-Method header, sets
 // the Access-Control-Max-Age header to 100.
 //
-// These behaviours can be overridden by the With methods on the returned policy.
+// These behaviors can be overridden by the With methods on the returned policy.
 func NewCORSPolicyBuilder() (policy *CORSPolicyBuilder) {
 	return &CORSPolicyBuilder{
 		enabled: true,
@@ -328,7 +328,7 @@ func (p *CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 func (p *CORSPolicy) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
 	switch len(p.methods) {
 	case 0:
-		// TODO: It may be beneficial to be able to control this automatic behaviour.
+		// TODO: It may be beneficial to be able to control this automatic behavior.
 		if requestMethods := ctx.Request.Header.PeekBytes(headerAccessControlRequestMethod); requestMethods != nil {
 			ctx.Response.Header.SetBytesKV(headerAccessControlAllowMethods, requestMethods)
 		}
@@ -340,7 +340,7 @@ func (p *CORSPolicy) handleAllowedMethods(ctx *fasthttp.RequestCtx) {
 func (p *CORSPolicy) handleAllowedHeaders(ctx *fasthttp.RequestCtx) {
 	switch len(p.headers) {
 	case 0:
-		// TODO: It may be beneficial to be able to control this automatic behaviour.
+		// TODO: It may be beneficial to be able to control this automatic behavior.
 		if headers := ctx.Request.Header.PeekBytes(headerAccessControlRequestHeaders); headers != nil {
 			requestedHeaders := strings.Split(string(headers), ",")
 			allowHeaders := make([]string, 0, len(requestedHeaders))

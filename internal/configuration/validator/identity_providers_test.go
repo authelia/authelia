@@ -1022,7 +1022,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		abc123abc = "abc123abc"
 	)
 
-	testCasses := []struct {
+	testCases := []struct {
 		name     string
 		setup    func(have *schema.IdentityProvidersOpenIDConnect)
 		validate func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect)
@@ -3302,7 +3302,7 @@ func TestValidateOIDCClients(t *testing.T) {
 
 	errDeprecatedFunc := func() {}
 
-	for _, tc := range testCasses {
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			have := &schema.IdentityProvidersOpenIDConnect{
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
@@ -3363,7 +3363,7 @@ func TestValidateOIDCClients(t *testing.T) {
 }
 
 func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
-	testCasses := []struct {
+	testCases := []struct {
 		name     string
 		have     string
 		public   bool
@@ -3402,7 +3402,7 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCasses {
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			have := &schema.IdentityProvidersOpenIDConnect{
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{

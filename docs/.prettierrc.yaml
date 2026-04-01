@@ -9,7 +9,7 @@ bracketSameLine: true
 quoteProps: consistent
 experimentalTernaries: true
 
-# Overrided config
+# Overridden config
 overrides:
   - files: ["*.md", "*.json", "*.yaml"]
     options:

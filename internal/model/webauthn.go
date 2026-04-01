@@ -407,7 +407,7 @@ func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential,
 		var kid []byte
 
 		if kid, err = base64.StdEncoding.DecodeString(c.KID); err != nil {
-			return nil, fmt.Errorf("error occurred deocding kid: %w", err)
+			return nil, fmt.Errorf("error occurred decoding kid: %w", err)
 		}
 
 		credential.KID = NewBase64(kid)

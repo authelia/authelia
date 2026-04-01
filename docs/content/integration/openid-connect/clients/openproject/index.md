@@ -93,7 +93,7 @@ To configure [OpenProject] to utilize Authelia as an [OpenID Connect 1.0] Provid
 6. Select `Custom`.
 7. Configure the following options:
    - Display Name: `Authelia`
-   - I have a disovery endpoint URL: Selected
+   - I have a discovery endpoint URL: Selected
    - Endpoint URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
 8. Click the `Continue` button.
 9. Configure the following options:
