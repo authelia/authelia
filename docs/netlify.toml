@@ -12,7 +12,7 @@
   PNPM_FLAGS = "--no-optional"
 
 [context.production]
-  command = "pnpm build"
+  command = "./tool/build"
 
 [context.staging]
   command = "./tool/build -b $DEPLOY_PRIME_URL"
