@@ -69,6 +69,7 @@ func newRootCmd() *cobra.Command {
 		newLocalesCmd(),
 		newCommitLintCmd(),
 		newMiscCmd(),
+		newReleaseCmd(),
 	)
 
 	return cmd
@@ -93,6 +94,10 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 		}
 
 		if cmd.Use == cmdUseRoot && subCmd.Use == cmdUseMisc {
+			continue
+		}
+
+		if cmd.Use == cmdUseRoot && subCmd.Use == cmdUseRelease {
 			continue
 		}
 
