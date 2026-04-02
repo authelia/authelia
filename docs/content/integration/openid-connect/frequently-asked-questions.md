@@ -263,7 +263,7 @@ token.
 This effectively means that both the consent mode and remembered consent i.e. pre-configured consent are essentially
 preferences should the conditions not require explicit consent and should not be seen as concrete.
 
-In addition it's important to note that the consent mode is merely a suggested default behaviour, especially the
+In addition it's important to note that the consent mode is merely a suggested default behavior, especially the
 `implicit` consent mode which is not specifically supported by the specification and in many cases will either revert to
 `explicit`, silently not perform certain expected actions, or should be expected to return an error the client. This
 mode is intended for development and testing, and is heavily discouraged in production.

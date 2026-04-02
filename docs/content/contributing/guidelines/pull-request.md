@@ -62,7 +62,7 @@ maintainers in their review process.
   - [Database Schema](database-schema.md)
   - [Documentation](documentation.md)
   - [Testing](testing.md)
-  - [Accessibility](accessibiliy.md)
+  - [Accessibility](accessibility.md)
   - [Style](style.md)
 - The changes adhere to all of the relevant linting and quality testing automations
 - The pull request closes related issues by mentioning them appropriately

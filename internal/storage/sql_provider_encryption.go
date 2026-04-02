@@ -336,22 +336,22 @@ func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvi
 			return nil
 		}
 
-		return fmt.Errorf("error selecting encyption value: %w", err)
+		return fmt.Errorf("error selecting encryption value: %w", err)
 	}
 
 	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateEncryptionEncryptedData, tableEncryption))
 
 	for _, c := range configs {
 		if c.Value, err = provider.decrypt(c.Value); err != nil {
-			return fmt.Errorf("error decrypting encyption value with id '%d': %w", c.ID, err)
+			return fmt.Errorf("error decrypting encryption value with id '%d': %w", c.ID, err)
 		}
 
 		if c.Value, err = utils.Encrypt(c.Value, &key); err != nil {
-			return fmt.Errorf("error encrypting encyption value with id '%d': %w", c.ID, err)
+			return fmt.Errorf("error encrypting encryption value with id '%d': %w", c.ID, err)
 		}
 
 		if _, err = tx.ExecContext(ctx, query, c.Value, c.ID); err != nil {
-			return fmt.Errorf("error updating encyption value with id '%d': %w", c.ID, err)
+			return fmt.Errorf("error updating encryption value with id '%d': %w", c.ID, err)
 		}
 	}
 

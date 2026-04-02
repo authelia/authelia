@@ -815,7 +815,7 @@ func (c *Config) GetPushedAuthorizeRequestURIPrefix(ctx context.Context) string 
 	return c.PAR.URIPrefix
 }
 
-// GetRequirePushedAuthorizationRequests indicates if the use of Pushed Authorization Requests is gobally required.
+// GetRequirePushedAuthorizationRequests indicates if the use of Pushed Authorization Requests is globally required.
 // In this mode, a client cannot pass authorize parameters at the 'authorize' endpoint. The 'authorize' endpoint
 // must contain the PAR request_uri.
 func (c *Config) GetRequirePushedAuthorizationRequests(ctx context.Context) (enforce bool) {

@@ -432,7 +432,7 @@ func TestWebAuthnCredentialData_ToCredential(t *testing.T) {
 				KID:             "---123===123",
 			},
 			nil,
-			"error occurred deocding kid: illegal base64 data at input byte 0",
+			"error occurred decoding kid: illegal base64 data at input byte 0",
 		},
 		{
 			"ShouldErrBadPublicKey",

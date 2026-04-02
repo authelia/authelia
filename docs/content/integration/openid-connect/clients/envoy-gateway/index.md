@@ -167,7 +167,7 @@ following instructions:
   - `kubectl create secret generic envoy-oidc-client-secret --from-literal=client-secret=insecure_secret`
 2. Apply the below manifests for the `eg` [Gateway].
 
-The following example [HTTPRoute] is a fake application just for the redirection behaviour.
+The following example [HTTPRoute] is a fake application just for the redirection behavior.
 
 ```yaml {title="httproute.yaml
 ---

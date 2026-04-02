@@ -143,7 +143,7 @@ customize them to your needs as they come with self-signed certificates.
 #### [Local](https://www.authelia.com/integration/deployment/docker/#local)
 The Local compose bundle is intended to test Authelia without worrying about configuration.
 It's meant to be used for scenarios where the server is not be exposed to the internet.
-Domains will be defined in the local hosts file and self-signed certificates will be utilised.
+Domains will be defined in the local hosts file and self-signed certificates will be utilized.
 
 #### [Lite](https://www.authelia.com/integration/deployment/docker/#lite)
 The Lite compose bundle is intended for scenarios where the server will be exposed to the internet, domains and DNS will

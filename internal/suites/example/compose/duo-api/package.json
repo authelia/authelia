@@ -13,7 +13,7 @@
   },
   "pnpm": {
     "overrides": {
-      "path-to-regexp": "8.4.1"
+      "path-to-regexp": "8.4.2"
     }
   }
 }
