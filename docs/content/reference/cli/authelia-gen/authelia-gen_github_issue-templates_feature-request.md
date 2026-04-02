@@ -2,7 +2,7 @@
 title: "authelia-gen github issue-templates feature-request"
 description: "Reference for the authelia-gen github issue-templates feature-request command."
 lead: ""
-date: 2025-08-01T16:23:47+10:00
+date: 2026-04-02T15:48:22+11:00
 draft: false
 images: []
 weight: 915

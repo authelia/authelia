@@ -2,7 +2,7 @@
 title: "authelia storage user totp export uri"
 description: "Reference for the authelia storage user totp export uri command."
 lead: ""
-date: 2025-08-01T16:23:47+10:00
+date: 2026-04-02T15:48:21+11:00
 draft: false
 images: []
 weight: 905

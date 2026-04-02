@@ -1,6 +1,6 @@
 ---
-title: "authelia-gen github"
-description: "Reference for the authelia-gen github command."
+title: "authelia-gen release"
+description: "Reference for the authelia-gen release command."
 lead: ""
 date: 2026-04-02T15:48:22+11:00
 draft: false
@@ -14,18 +14,18 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia-gen github
+## authelia-gen release
 
-Generate GitHub files
+Prepare a release by updating version references, accepts one argument of either major, minor, or patch
 
 ```
-authelia-gen github [flags]
+authelia-gen release [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for github
+  -h, --help   help for release
 ```
 
 ### Options inherited from parent commands
@@ -73,5 +73,4 @@ authelia-gen github [flags]
 ### SEE ALSO
 
 * [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
-* [authelia-gen github issue-templates](authelia-gen_github_issue-templates.md)	 - Generate GitHub issue templates
 
