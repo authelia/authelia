@@ -2,7 +2,7 @@
 title: "authelia-gen docs seo openid-connect"
 description: "Reference for the authelia-gen docs seo openid-connect command."
 lead: ""
-date: 2025-08-01T16:23:47+10:00
+date: 2026-04-02T15:48:22+11:00
 draft: false
 images: []
 weight: 915
