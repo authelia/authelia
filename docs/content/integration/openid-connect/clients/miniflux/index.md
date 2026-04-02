@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.16](https://github.com/authelia/authelia/releases/tag/v4.39.16)
+  - [v4.39.17](https://github.com/authelia/authelia/releases/tag/v4.39.17)
 - [Miniflux]
   - [v2.2.8](https://github.com/miniflux/v2/releases/tag/2.2.8)
 
