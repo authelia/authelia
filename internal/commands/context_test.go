@@ -159,7 +159,6 @@ func TestCmdCtx_CheckSchema(t *testing.T) {
 	assert.NoError(t, ctx.ConfigStorageCommandLineConfigRunE(NewRootCmd(), nil))
 
 	ctx.config.Storage = schema.Storage{
-		//gitleaks:allo // This is not an actual secret.
 		EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 		Local: &schema.StorageLocal{
 			Path: filepath.Join(dir, "db.sqlite3"),
