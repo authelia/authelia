@@ -34,7 +34,7 @@ specified.
 If any directory is specified all files in that directory (non-recursive) should be considered part of the effective
 Authelia configuration regardless if they handled by a specific configuration parser or not. Storing files not loaded
 by Authelia in this directory **_is not supported_** and should it cause an error in the future this
-**_is expected behaviour_**. This allows us to add additional file parsers in the future as well as configuration logic.
+**_is expected behavior_**. This allows us to add additional file parsers in the future as well as configuration logic.
 {{< /callout >}}
 
 Configuration options can be discovered via either the Argument or Environment Variable, but not both at the same time.

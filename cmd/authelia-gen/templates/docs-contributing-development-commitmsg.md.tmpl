@@ -131,9 +131,9 @@ The content of the commit message body should contain:
 fix(logging): disable colored logging outputs when file is specified
 
 In some scenarios if a user has a log_file_path specified and a TTY seems to be detected this causes terminal coloring outputs to be written to the file.
-This in turn will cause issues when attempting to utilise the log with the provided fail2ban regexes.
+This in turn will cause issues when attempting to utilize the log with the provided fail2ban regexes.
 
-We now override any TTY detection/logging treatments and disable coloring/removal of the timestamp when a user is utilising the text based logger to a file.
+We now override any TTY detection/logging treatments and disable coloring/removal of the timestamp when a user is utilizing the text based logger to a file.
 
 Fixes #1480.
 

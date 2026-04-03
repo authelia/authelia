@@ -108,7 +108,7 @@ To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provi
   - Application ID: `synology-dsm`
   - Application Key: `insecure_secret`
   - Redirect URL: `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}`
-  - Authorisation Scope: `openid profile groups email`
+  - Authorization Scope: `openid profile groups email`
   - Username Claim: `preferred_username`
 7. Save the settings.
 

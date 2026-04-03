@@ -75,7 +75,7 @@ This section describes the individual configuration options.
 
 {{< confkey type="string" required="yes" >}}
 
-The [redis] host or unix socket path. If utilising an IPv6 literal address it must be enclosed by square brackets and
+The [redis] host or unix socket path. If utilizing an IPv6 literal address it must be enclosed by square brackets and
 quoted:
 
 ```yaml {title="configuration.yml"}

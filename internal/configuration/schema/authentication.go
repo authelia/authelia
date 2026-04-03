@@ -8,8 +8,8 @@ import (
 
 // AuthenticationBackend represents the configuration related to the authentication backend.
 type AuthenticationBackend struct {
-	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" yaml:"password_reset,omitempty" toml:"password_reset,omitempty" json:"password_reset,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
-	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" yaml:"password_change,omitempty" toml:"password_change,omitempty" json:"password_change,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
+	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" yaml:"password_reset,omitempty" toml:"password_reset,omitempty" json:"password_reset,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behavior."`
+	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" yaml:"password_change,omitempty" toml:"password_change,omitempty" json:"password_change,omitempty" jsonschema:"title=Password Change" jsonschema_description:"Allows configuration of the password change behavior."`
 
 	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" yaml:"refresh_interval,omitempty" toml:"refresh_interval,omitempty" json:"refresh_interval,omitempty" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend."`
 
@@ -36,7 +36,7 @@ type AuthenticationBackendFile struct {
 
 	Password AuthenticationBackendFilePassword `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
 
-	Search AuthenticationBackendFileSearch `koanf:"search" yaml:"search,omitempty" toml:"search,omitempty" json:"search,omitempty" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
+	Search AuthenticationBackendFileSearch `koanf:"search" yaml:"search,omitempty" toml:"search,omitempty" json:"search,omitempty" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behavior."`
 
 	ExtraAttributes map[string]AuthenticationBackendExtraAttribute `koanf:"extra_attributes" yaml:"extra_attributes,omitempty" toml:"extra_attributes,omitempty" json:"extra_attributes,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }

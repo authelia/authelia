@@ -304,7 +304,7 @@ func TestToTimeDurationHookFunc(t *testing.T) {
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFourtyFiveSeconds",
+			desc:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   time.Second * 45,
 			decode: true,
@@ -455,7 +455,7 @@ func TestToTimeDurationHookFuncPointer(t *testing.T) {
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFourtyFiveSeconds",
+			desc:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   testTimeDurationPtr(time.Second * 45),
 			decode: true,
@@ -577,7 +577,7 @@ func TestToRefreshIntervalDurationHookFunc(t *testing.T) {
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFourtyFiveSeconds",
+			desc:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   schema.NewRefreshIntervalDuration(time.Second * 45),
 			decode: true,
@@ -728,7 +728,7 @@ func TestTestToRefreshIntervalDurationHookFuncPointer(t *testing.T) {
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFourtyFiveSeconds",
+			desc:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   testRefreshIntervalDurationPtr(time.Second * 45),
 			decode: true,

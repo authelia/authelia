@@ -160,7 +160,7 @@ func (c *TOTPConfiguration) UnmarshalYAML(value *yaml.Node) (err error) {
 	return nil
 }
 
-// TOTPConfigurationData is used for marshalling/unmarshalling tasks.
+// TOTPConfigurationData is used for marshaling/unmarshaling tasks.
 type TOTPConfigurationData struct {
 	CreatedAt  time.Time  `yaml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time the configuration was created."`
 	LastUsedAt *time.Time `yaml:"last_used_at" json:"last_used_at" jsonschema:"title=Last Used At" jsonschema_description:"The time the configuration was last used at."`

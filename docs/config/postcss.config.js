@@ -22,7 +22,8 @@ const purgecss = purgeCSSPlugin({
         'size',
         'type'
     ],
-    safelist: [
+    safelist: {
+        standard: [
         'active',
         'btn-clipboard', // clipboards.js
         'clipboard', // clipboards.js
@@ -50,7 +51,9 @@ const purgecss = purgeCSSPlugin({
         'not-content',
         'copy',
         'btn-copy'
-    ]
+        ],
+        greedy: [/^DocSearch/]
+    }
 });
 
 export default {

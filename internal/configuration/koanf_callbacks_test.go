@@ -62,7 +62,7 @@ func TestKoanfSecretCallbackWithValidSecrets(t *testing.T) {
 
 	dir := t.TempDir()
 
-	secretOne := filepath.Join(dir, "secert_one")
+	secretOne := filepath.Join(dir, "secret_one")
 	secretTwo := filepath.Join(dir, "secret_two")
 
 	assert.NoError(t, testCreateFile(secretOne, "value one", 0600))

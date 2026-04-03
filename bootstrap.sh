@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-if [[ $(uname) == "Darwin" ]]; then
-  echo "Authelia's development workflow currently isn't supported on macOS"
-  exit
-fi
-
 export PATH=$PATH:$PWD/cmd/dev/:$PWD/.buildkite/steps/:$GOPATH/bin:$PWD/web/node_modules/.bin:/tmp \
 DOCKER_BUILDKIT=1
 

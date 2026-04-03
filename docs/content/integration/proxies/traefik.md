@@ -549,7 +549,7 @@ complains that: `middleware authelia@docker not found`.
 This can be avoided a couple different ways:
 
 1. Ensure __Authelia__ container is up before [Traefik] is started:
-   * Utilise the [depends_on](https://docs.docker.com/compose/compose-file/#depends_on) option
+   * Utilize the [depends_on](https://docs.docker.com/compose/compose-file/#depends_on) option
 2. Define the __Authelia__ middleware on your [Traefik] container. See the below example.
 
 ```yaml {title="compose.yml"}

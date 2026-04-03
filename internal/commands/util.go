@@ -373,7 +373,7 @@ func exportYAMLWithJSONSchema(w io.Writer, name string, v any) (err error) {
 	encoder := yaml.NewEncoder(w)
 
 	if err = encoder.Encode(v); err != nil {
-		return fmt.Errorf("error occurred marshalling data to YAML: %w", err)
+		return fmt.Errorf("error occurred marshaling data to YAML: %w", err)
 	}
 
 	return nil

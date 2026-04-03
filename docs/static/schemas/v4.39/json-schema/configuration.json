@@ -316,12 +316,12 @@
         "password_reset": {
           "$ref": "#/$defs/AuthenticationBackendPasswordReset",
           "title": "Password Reset",
-          "description": "Allows configuration of the password reset behaviour."
+          "description": "Allows configuration of the password reset behavior."
         },
         "password_change": {
           "$ref": "#/$defs/AuthenticationBackendPasswordChange",
-          "title": "Password Reset",
-          "description": "Allows configuration of the password reset behaviour."
+          "title": "Password Change",
+          "description": "Allows configuration of the password change behavior."
         },
         "refresh_interval": {
           "$ref": "#/$defs/RefreshIntervalDuration",
@@ -385,7 +385,7 @@
         "search": {
           "$ref": "#/$defs/AuthenticationBackendFileSearch",
           "title": "Search",
-          "description": "Configures the user searching behaviour."
+          "description": "Configures the user searching behavior."
         },
         "extra_attributes": {
           "patternProperties": {
@@ -2905,7 +2905,7 @@
         "disable_failure": {
           "type": "boolean",
           "title": "Disable Failure",
-          "description": "Disables complete failure whe the Startup Check fails and instead just logs the error.",
+          "description": "Disables complete failure when the Startup Check fails and instead just logs the error.",
           "default": false
         }
       },

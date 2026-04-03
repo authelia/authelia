@@ -69,7 +69,7 @@ func LoadDefinitions(val *schema.StructValidator, sources ...Source) (definition
 	}
 
 	if err = final.UnmarshalWithConf("", legacy, c); err != nil {
-		val.Push(fmt.Errorf("error occurred during unmarshalling definitions configuration: %w", err))
+		val.Push(fmt.Errorf("error occurred during unmarshaling definitions configuration: %w", err))
 	}
 
 	d := legacy.Definitions
@@ -98,7 +98,7 @@ func mapDefinitions(val *schema.StructValidator, networks []schema.AccessControl
 
 	for _, network := range networks {
 		if _, ok = definitions.Network[network.Name]; ok {
-			val.Push(fmt.Errorf("error occurred during unmarshalling definitions configuration: the definition for network with name '%s' exists in both the definitions section and access control section which is not permitted", network.Name))
+			val.Push(fmt.Errorf("error occurred during unmarshaling definitions configuration: the definition for network with name '%s' exists in both the definitions section and access control section which is not permitted", network.Name))
 
 			continue
 		}
@@ -143,7 +143,7 @@ func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o any,
 	}
 
 	if err := ko.UnmarshalWithConf(path, o, c); err != nil {
-		val.Push(fmt.Errorf("error occurred during unmarshalling configuration: %w", err))
+		val.Push(fmt.Errorf("error occurred during unmarshaling configuration: %w", err))
 	}
 }
 

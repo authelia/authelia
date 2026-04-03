@@ -588,7 +588,7 @@ identity_providers:
 
 {{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
 
-The claims policies are policies which allow customizing the behaviour of claims and the available claims for a
+The claims policies are policies which allow customizing the behavior of claims and the available claims for a
 particular client.
 
 The keys under `claims_policies` is an arbitrary value that can be used in the
@@ -600,7 +600,7 @@ The keys under `claims_policies` is an arbitrary value that can be used in the
 
 {{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
 This option is a escape hatch which should not normally be used. It allows confidential personally identifiable
-information to be hydrated into the ID Token which is not normally encrypted. In addition this behaviour is only
+information to be hydrated into the ID Token which is not normally encrypted. In addition this behavior is only
 necessary for clients which do not actually support OpenID Connect 1.0 and indicates a significant bug with the client.
 
 This also is a common indicator that the client uses claims other than `iss` and `sub` to link users with the provider,

@@ -13,6 +13,12 @@ runner:
       - '%C%.%#'
     level: error
 
+  typos:
+    cmd: typos --format brief .
+    errorformat:
+      - '%f:%l:%c: %m'
+    level: error
+
   yamllint:
     cmd: yamllint -f parsable .
     errorformat:

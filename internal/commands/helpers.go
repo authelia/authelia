@@ -29,7 +29,7 @@ func containsIdentifier(identifier model.UserOpaqueIdentifier, identifiers []mod
 func storageWrapCheckSchemaErr(err error) error {
 	switch {
 	case errors.Is(err, errStorageSchemaIncompatible):
-		return fmt.Errorf("command requires the use of a compatibe schema version: %w", err)
+		return fmt.Errorf("command requires the use of a compatible schema version: %w", err)
 	case errors.Is(err, errStorageSchemaOutdated):
 		return fmt.Errorf("command requires the use of a up to date schema version: %w", err)
 	default:

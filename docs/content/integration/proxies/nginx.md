@@ -526,7 +526,7 @@ proxy_set_header Remote-Name $name;
 
 ## Configure the redirection when the authz failure occurs. Lines starting with 'Modern Method' and 'Legacy Method'
 ## should be commented / uncommented as pairs. The modern method uses the session cookies configuration's authelia_url
-## value to determine the redirection URL here. It's much simpler and compatible with the mutli-cookie domain easily.
+## value to determine the redirection URL here. It's much simpler and compatible with the multi-cookie domain easily.
 
 ## Modern Method: Set the $redirection_url to the Location header of the response to the Authz endpoint.
 auth_request_set $redirection_url $upstream_http_location;

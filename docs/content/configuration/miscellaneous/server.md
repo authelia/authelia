@@ -84,7 +84,7 @@ server:
 ```
 
 ```yaml
-# When running "systemd-socket-activate -l 9091 go run ./cmd/authelia", the connections to port 9091 will be forwaded to file descriptor 3.
+# When running "systemd-socket-activate -l 9091 go run ./cmd/authelia", the connections to port 9091 will be forwarded to file descriptor 3.
 server:
   address: fd://:3
 ```

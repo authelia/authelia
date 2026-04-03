@@ -146,7 +146,7 @@ const (
 	// AuthzImplForwardAuth is the modern Forward Auth Authz implementation which is used by Caddy and Traefik.
 	AuthzImplForwardAuth
 
-	// AuthzImplAuthRequest is the modern Auth Request Authz implementation which is used by NGINX and modelled after
+	// AuthzImplAuthRequest is the modern Auth Request Authz implementation which is used by NGINX and modeled after
 	// the ingress-nginx k8s ingress.
 	AuthzImplAuthRequest
 
