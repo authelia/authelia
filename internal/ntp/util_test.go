@@ -23,7 +23,7 @@ func TestNTPIsOffsetTooLarge(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, ntpIsOffsetTooLarge(tc.max, tc.first, tc.second))
+			assert.Equal(t, tc.expected, isOffsetTooLarge(tc.max, tc.first, tc.second))
 		})
 	}
 }
@@ -31,24 +31,24 @@ func TestNTPIsOffsetTooLarge(t *testing.T) {
 func TestNTPPacketToTime(t *testing.T) {
 	testCases := []struct {
 		name     string
-		packet   *ntpPacket
+		packet   *packet
 		expected time.Time
 	}{
 		{
 			"ShouldConvertPacketWithZeroFraction",
-			&ntpPacket{TxTimeSeconds: 60, TxTimeFraction: 0},
-			time.Unix(int64(float64(60)-ntpEpochOffset), 0),
+			&packet{TxTimeSeconds: 60, TxTimeFraction: 0},
+			time.Unix(int64(60)-epochOffset, 0),
 		},
 		{
 			"ShouldConvertPacketWithNonZeroFraction",
-			&ntpPacket{TxTimeSeconds: 3900000000, TxTimeFraction: 2147483648},
-			time.Unix(int64(float64(3900000000)-ntpEpochOffset), (int64(2147483648)*1e9)>>32),
+			&packet{TxTimeSeconds: 3900000000, TxTimeFraction: 2147483648},
+			time.Unix(int64(3900000000)-epochOffset, (int64(2147483648)*1e9)>>32),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, ntpPacketToTime(tc.packet))
+			assert.Equal(t, tc.expected, secondsAndFractionToTime(tc.packet.TxTimeSeconds, tc.packet.TxTimeFraction))
 		})
 	}
 }
@@ -56,37 +56,16 @@ func TestNTPPacketToTime(t *testing.T) {
 func TestLeapVersionClientMode(t *testing.T) {
 	testCases := []struct {
 		name     string
-		version  ntpVersion
+		version  version
 		expected uint8
 	}{
-		{"ShouldReturnV3NoLeap", ntpV3, 0xdb},
-		{"ShouldReturnV4NoLeap", ntpV4, 0xe3},
+		{"ShouldReturnV3NoLeap", v3, 0xdb},
+		{"ShouldReturnV4NoLeap", v4, 0xe3},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, ntpLeapVersionClientMode(tc.version))
-		})
-	}
-}
-
-func TestCalcOffset(t *testing.T) {
-	now := time.Now()
-
-	testCases := []struct {
-		name     string
-		first    time.Time
-		second   time.Time
-		expected time.Duration
-	}{
-		{"ShouldReturnOffsetWhenFirstAfterSecond", now.Add(5 * time.Second), now, 5 * time.Second},
-		{"ShouldReturnOffsetWhenSecondAfterFirst", now, now.Add(3 * time.Second), 3 * time.Second},
-		{"ShouldReturnZeroWhenEqual", now, now, 0},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, calcOffset(tc.first, tc.second))
+			assert.Equal(t, tc.expected, leapVersionClientMode(tc.version))
 		})
 	}
 }
