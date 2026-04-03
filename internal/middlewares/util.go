@@ -47,7 +47,6 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
 
 	var err error
-
 	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath}); err != nil {
 		errs = append(errs, err)
 	}

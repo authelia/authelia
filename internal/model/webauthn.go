@@ -12,7 +12,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 const (
@@ -407,7 +407,7 @@ func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential,
 		var kid []byte
 
 		if kid, err = base64.StdEncoding.DecodeString(c.KID); err != nil {
-			return nil, fmt.Errorf("error occurred deocding kid: %w", err)
+			return nil, fmt.Errorf("error occurred decoding kid: %w", err)
 		}
 
 		credential.KID = NewBase64(kid)

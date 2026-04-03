@@ -1,4 +1,4 @@
-import React from "react";
+import { FC } from "react";
 
 import { Divider, Paper, Stack, Typography, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -11,19 +11,10 @@ import {
     ErrorDescription,
     ErrorHint,
     Error as ErrorParam,
-    ErrorStatusCode,
     ErrorURI,
 } from "@constants/SearchParams";
 import LoginLayout from "@layouts/LoginLayout";
-import { UserInfo } from "@models/UserInfo";
-import { AutheliaState } from "@services/State";
-
-export interface Props {
-    userInfo?: UserInfo;
-    state: AutheliaState;
-}
-
-const CompletionView: React.FC<Props> = (props: Props) => {
+const CompletionView = () => {
     const { t: translate } = useTranslation(["consent"]);
     const theme = useTheme();
 
@@ -34,14 +25,16 @@ const CompletionView: React.FC<Props> = (props: Props) => {
     const error_description = query.get(ErrorDescription);
     const error_hint = query.get(ErrorHint);
     const error_debug = query.get(ErrorDebug);
-    const error_status_code = query.get(ErrorStatusCode);
     const error_uri = query.get(ErrorURI);
 
-    const title = error
-        ? "An error occurred processing the request"
-        : decision && decision === "accepted"
-          ? "Consent has been accepted and processed"
-          : "Consent has been rejected and processed";
+    let title;
+    if (error) {
+        title = "An error occurred processing the request";
+    } else if (decision === "accepted") {
+        title = "Consent has been accepted and processed";
+    } else {
+        title = "Consent has been rejected and processed";
+    }
 
     return (
         <LoginLayout id={"openid-completion-stage"} title={translate(title)} maxWidth={"sm"}>
@@ -53,7 +46,6 @@ const CompletionView: React.FC<Props> = (props: Props) => {
                         error_description={error_description}
                         error_hint={error_hint}
                         error_debug={error_debug}
-                        error_status_code={error_status_code}
                         error_uri={error_uri}
                     />
                 ) : null}
@@ -70,13 +62,12 @@ export default CompletionView;
 
 interface ErrorProps {
     error: string;
-    error_description: string | null;
-    error_hint: string | null;
-    error_debug: string | null;
-    error_status_code: string | null;
-    error_uri: string | null;
+    error_description: null | string;
+    error_hint: null | string;
+    error_debug: null | string;
+    error_uri: null | string;
 }
-const CompletionErrorView: React.FC<ErrorProps> = (props: ErrorProps) => {
+const CompletionErrorView: FC<ErrorProps> = (props: ErrorProps) => {
     const { t: translate } = useTranslation(["consent"]);
     const theme = useTheme();
 

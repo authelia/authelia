@@ -24,7 +24,6 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
 
@@ -107,7 +106,6 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		response *protocol.ParsedCredentialAssertionData
 	)
-
 	if provider, err = ctx.GetSessionProvider(); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, errStrUserSessionData)
 
@@ -337,7 +335,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	userSession.SetOneFactorPasskey(
 		ctx.Clock.Now(), details,
 		keepMeLoggedIn,
-		response.ParsedPublicKeyCredential.AuthenticatorAttachment == protocol.CrossPlatform,
+		response.AuthenticatorAttachment == protocol.CrossPlatform,
 		response.Response.AuthenticatorData.Flags.HasUserPresent(),
 		response.Response.AuthenticatorData.Flags.HasUserVerified(),
 	)

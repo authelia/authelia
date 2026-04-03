@@ -19,17 +19,25 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
-// this is utilised to pass information between the backend and frontend
+// this is utilized to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
 func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
-	isDevEnvironment := os.Getenv(environment) == dev
 	ext := path.Ext(t.Name())
 
 	return func(ctx *middlewares.AutheliaCtx) {
 		var err error
+
+		lang := "en"
+
+		if c := ctx.Request.Header.Cookie("language"); c != nil {
+			if reValidLanguageCodes.MatchString(string(c)) {
+				lang = string(c)
+			}
+		}
 
 		logoOverride := strFalse
 
@@ -55,7 +63,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		switch {
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(string(ctx.Configuration.Server.Headers.CSPTemplate), placeholderCSPNonce, nonce))
-		case isDevEnvironment:
+		case utils.Dev:
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDevelopment, nonce))
 		default:
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDefault, nonce))
@@ -77,9 +85,9 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 
 		data := &bytes.Buffer{}
 
-		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, logoOverride, rememberMe)); err != nil {
-			ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, rememberMe)); err != nil {
+			ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
 			return
 		}
@@ -91,8 +99,8 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
 		default:
 			if _, err = data.WriteTo(ctx.Response.BodyWriter()); err != nil {
-				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-				ctx.Logger.WithError(err).Errorf("Error occcurred writing body")
+				ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+				ctx.Logger.WithError(err).Errorf("Error occurred writing body")
 
 				return
 			}
@@ -134,8 +142,8 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 
 		data := &bytes.Buffer{}
 		if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), baseURL, domain, nonce)); err != nil {
-			ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
+			ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
 			return
 		}
@@ -147,8 +155,8 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
 		default:
 			if _, err = data.WriteTo(ctx.Response.BodyWriter()); err != nil {
-				ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
-				ctx.Logger.WithError(err).Errorf("Error occcurred writing body")
+				ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+				ctx.Logger.WithError(err).Errorf("Error occurred writing body")
 
 				return
 			}
@@ -243,7 +251,7 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port uint16) 
 		path = ""
 	}
 
-	_, err = file.WriteString(fmt.Sprintf(healthCheckEnv, scheme, host, port, path))
+	_, err = fmt.Fprintf(file, healthCheckEnv, scheme, host, port, path)
 
 	return err
 }
@@ -262,13 +270,13 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		PrivacyPolicyAccept:     strFalse,
 		Session:                 "",
 		Theme:                   config.Theme,
-		EndpointsPasswordReset:  !(config.AuthenticationBackend.PasswordReset.Disable || config.AuthenticationBackend.PasswordReset.CustomURL.String() != ""),
+		EndpointsPasswordReset:  !config.AuthenticationBackend.PasswordReset.Disable && config.AuthenticationBackend.PasswordReset.CustomURL.String() == "",
 		EndpointsPasswordChange: !config.AuthenticationBackend.PasswordChange.Disable,
 		EndpointsWebAuthn:       !config.WebAuthn.Disable,
 		EndpointsPasskeys:       !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
 		EndpointsTOTP:           !config.TOTP.Disable,
 		EndpointsDuo:            !config.DuoAPI.Disable,
-		EndpointsOpenIDConnect:  !(config.IdentityProviders.OIDC == nil),
+		EndpointsOpenIDConnect:  config.IdentityProviders.OIDC != nil,
 		EndpointsAuthz:          config.Server.Endpoints.Authz,
 	}
 
@@ -310,16 +318,18 @@ type TemplatedFileOptions struct {
 }
 
 // CommonData returns a TemplatedFileCommonData with the dynamic options.
-func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, logoOverride, rememberMe string) TemplatedFileCommonData {
+func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, language, logoOverride, rememberMe string) TemplatedFileCommonData {
 	if rememberMe != "" {
-		return options.commonDataWithRememberMe(base, baseURL, domain, nonce, logoOverride, rememberMe)
+		return options.commonDataWithRememberMe(base, baseURL, domain, nonce, language, logoOverride, rememberMe)
 	}
 
 	return TemplatedFileCommonData{
-		Base:                   base,
-		BaseURL:                baseURL,
-		Domain:                 domain,
-		CSPNonce:               nonce,
+		Base:     base,
+		BaseURL:  baseURL,
+		Domain:   domain,
+		CSPNonce: nonce,
+		Language: language,
+
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
@@ -334,12 +344,13 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, lo
 }
 
 // CommonDataWithRememberMe returns a TemplatedFileCommonData with the dynamic options.
-func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, domain, nonce, logoOverride, rememberMe string) TemplatedFileCommonData {
+func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, domain, nonce, language, logoOverride, rememberMe string) TemplatedFileCommonData {
 	return TemplatedFileCommonData{
 		Base:                   base,
 		BaseURL:                baseURL,
 		Domain:                 domain,
 		CSPNonce:               nonce,
+		Language:               language,
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
@@ -378,6 +389,7 @@ type TemplatedFileCommonData struct {
 	BaseURL                string
 	Domain                 string
 	CSPNonce               string
+	Language               string
 	LogoOverride           string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string

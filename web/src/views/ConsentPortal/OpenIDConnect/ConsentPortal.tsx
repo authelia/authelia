@@ -1,4 +1,4 @@
-import React, { lazy } from "react";
+import { FC, lazy } from "react";
 
 import { Route, Routes } from "react-router-dom";
 
@@ -15,7 +15,7 @@ export interface Props {
     state: AutheliaState;
 }
 
-const ConsentPortal: React.FC<Props> = (props: Props) => {
+const ConsentPortal: FC<Props> = (props: Props) => {
     return (
         <Routes>
             <Route

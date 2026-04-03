@@ -1,8 +1,6 @@
-import React from "react";
-
 import { useTranslation } from "react-i18next";
 
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { WebAuthnCredential } from "@models/WebAuthn";
 import { deleteUserWebAuthnCredential } from "@services/WebAuthn";
 import DeleteDialog from "@views/Settings/TwoFactorAuthentication/DeleteDialog";
@@ -15,7 +13,7 @@ interface Props {
 
 const WebAuthnCredentialDeleteDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const handleCancel = () => {
         props.handleClose();
@@ -65,18 +63,11 @@ const WebAuthnCredentialDeleteDialog = function (props: Props) {
         props.handleClose();
     };
 
-    const handleClose = (ok: boolean) => {
-        if (ok) {
-            handleRemove().catch(console.error);
-        } else {
-            handleCancel();
-        }
-    };
-
     return (
         <DeleteDialog
             open={props.open}
-            handleClose={handleClose}
+            onConfirm={() => handleRemove().catch(console.error)}
+            onCancel={handleCancel}
             title={translate("Remove {{item}}", { item: translate("WebAuthn Credential") })}
             text={translate("Are you sure you want to remove the WebAuthn Credential from your account", {
                 description: props.credential?.description,

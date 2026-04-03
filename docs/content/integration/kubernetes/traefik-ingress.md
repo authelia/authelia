@@ -2,7 +2,7 @@
 title: "Traefik Ingress"
 description: "A guide to integrating Authelia with the Traefik Kubernetes Ingress."
 summary: "A guide to integrating Authelia with the Traefik Kubernetes Ingress."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 550
@@ -19,8 +19,8 @@ We officially support the Traefik 2.x Kubernetes ingress controllers. These come
 * [Traefik Kubernetes Ingress](https://doc.traefik.io/traefik/providers/kubernetes-ingress/)
 * [Traefik Kubernetes CRD](https://doc.traefik.io/traefik/providers/kubernetes-crd/)
 
-The [Traefik documentation](../proxies/traefik.md) may also be useful for crafting advanced annotations to use with
-this ingress even though it's not specific to Kubernetes.
+The [Traefik Proxy documentation](../proxies/traefik.md) may also be useful with this ingress even though it's not
+specific to Kubernetes.
 
 ## Get started
 
@@ -114,8 +114,9 @@ spec:
 ## IngressRoute
 
 This is an example [IngressRoute] manifest which uses the above [Middleware](#middleware). This example assumes you have
-an application you wish to serve on `https://app.{{< sitevar name="domain" nojs="example.com" >}}` and there is a Kubernetes [Service] with the name `app` in
-the `default` [Namespace] with TCP port `80` configured to route to the application [Pod]'s HTTP port.
+an application you wish to serve on `https://app.{{< sitevar name="domain" nojs="example.com" >}}` and there is a
+Kubernetes [Service] with the name `app` in the `default` [Namespace] with TCP port `80` configured to route to the
+application [Pod]'s HTTP port.
 
 ```yaml {title="ingressRoute.yml"}
 ---
@@ -141,6 +142,41 @@ spec:
           scheme: 'http'
           strategy: 'RoundRobin'
           weight: 10
+...
+```
+
+### HTTPRoute
+
+This is an example [HTTPRoute] manifest which uses the above [Middleware](#middleware). This example assumes you have
+an application you wish to serve on `https://app.{{< sitevar name="domain" nojs="example.com" >}}` and there is a
+Kubernetes [Service] with the name `app` in the `default` [Namespace] with TCP port `80` configured to route to the
+application [Pod]'s HTTP port.
+
+```yaml {title="httproute.yaml"}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: 'app'
+  namespace: 'default'
+spec:
+  parentRefs:
+    - name: 'traefik'
+      sectionName: 'http'
+      kind: 'Gateway'
+  hostnames:
+    - 'app.{{< sitevar name="domain" nojs="example.com" >}}'
+  rules:
+    - backendRefs:
+        - name: 'app'
+          namespace: 'default'
+          port: 80
+      filters:
+        - type: 'ExtensionRef'
+          extensionRef:
+            group: 'traefik.io'
+            kind: 'Middleware'
+            name: 'forwardauth-authelia'
 ...
 ```
 

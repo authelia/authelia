@@ -2,7 +2,7 @@
 title: "HTTP Archive Files"
 description: "This guide describes and helps users create HTTP Archive (HAR) files"
 summary: "This guide describes and helps users create HTTP Archive (HAR) files."
-date: 2022-08-26T13:50:51+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 220

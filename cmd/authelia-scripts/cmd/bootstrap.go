@@ -143,8 +143,8 @@ var hostEntries = []HostEntry{
 
 func runCommand(cmd string, args ...string) {
 	command := utils.CommandWithStdout(cmd, args...)
-	err := command.Run()
 
+	err := command.Run()
 	if err != nil {
 		panic(err)
 	}
@@ -168,7 +168,6 @@ func checkCommandExist(cmd string, resolutionHint string) {
 
 func createTemporaryDirectory() {
 	err := os.MkdirAll("/tmp/authelia", 0755)
-
 	if err != nil {
 		panic(err)
 	}
@@ -178,11 +177,10 @@ func createPNPMDirectory() {
 	if _, ok := os.LookupEnv("PNPM_HOME"); !ok {
 		home := os.Getenv("HOME")
 		if home != "" {
-			if _, err := os.Stat(home + pathPNPMStore); os.IsNotExist(err) {
+			if _, err := os.Stat(home + pathPNPMStore); os.IsNotExist(err) { //nolint:gosec // TODO: Run this line through taint analysis.
 				bootstrapPrintln("Creating ", home+pathPNPMStore)
 
-				err = os.MkdirAll(home+pathPNPMStore, 0755)
-				if err != nil {
+				if err = os.MkdirAll(home+pathPNPMStore, 0755); err != nil { //nolint:gosec // TODO: Run this line through taint analysis.
 					panic(err)
 				}
 			}
@@ -208,7 +206,7 @@ func pnpmInstall() {
 }
 
 func bootstrapPrintln(args ...any) {
-	a := make([]any, 0)
+	a := make([]any, 0, 1+len(args))
 	a = append(a, "[BOOTSTRAP]")
 	a = append(a, args...)
 	fmt.Println(a...)
@@ -220,7 +218,6 @@ func shell(cmd string) {
 
 func prepareHostsFile() {
 	contentBytes, err := readHostsFile()
-
 	if err != nil {
 		panic(err)
 	}
@@ -294,8 +291,8 @@ func readHostsFile() ([]byte, error) {
 
 func readVersion(cmd string, args ...string) {
 	command := exec.Command(cmd, args...)
-	b, err := command.Output()
 
+	b, err := command.Output()
 	if err != nil {
 		panic(err)
 	}

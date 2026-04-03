@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"errors"
 	"testing"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
@@ -9,62 +8,125 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLDAPGetFeatureSupportFromNilEntry(t *testing.T) {
-	control, extension, feature := ldapGetFeatureSupportFromEntry(nil)
-	assert.Len(t, control, 0)
-	assert.Len(t, extension, 0)
-	assert.Equal(t, LDAPSupportedFeatures{}, feature)
+func TestLDAPGetDiscoveryFromLDAPEntryNil(t *testing.T) {
+	discovery := ldapGetDiscoveryFromLDAPEntry(nil)
+	assert.Len(t, discovery.Extensions.OIDs, 0)
+	assert.Len(t, discovery.Controls.OIDs, 0)
+	assert.Equal(t, LDAPDiscovery{}, discovery)
 }
 
 func TestLDAPGetFeatureSupportFromEntry(t *testing.T) {
 	testCases := []struct {
-		description                        string
-		haveControlOIDs, haveExtensionOIDs []string
-		expected                           LDAPSupportedFeatures
+		description               string
+		haveObjectClass           []string
+		haveLDAPVersion           []string
+		haveControlOIDs           []string
+		haveExtensionOIDs         []string
+		haveFeatureOIDs           []string
+		haveSASLMechanisms        []string
+		haveVendorName            []string
+		haveVendorVersion         []string
+		haveDomainFunctionalLevel []string
+		haveForestFunctionalLevel []string
+		expected                  LDAPDiscovery
 	}{
 		{
 			description:       "ShouldReturnExtensionPwdModifyExOp",
 			haveControlOIDs:   []string{},
-			haveExtensionOIDs: []string{ldapOIDExtensionPwdModifyExOp},
-			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{PwdModifyExOp: true}},
+			haveExtensionOIDs: []string{ldapOIDExtensionPwdModify},
+			expected:          LDAPDiscovery{Successful: true, Extensions: LDAPDiscoveryExtensions{PwdModify: true, OIDs: []string{ldapOIDExtensionPwdModify}}, Controls: LDAPDiscoveryControls{OIDs: []string{}}},
+		},
+		{
+			description:       "ShouldHandleOpenLDAP",
+			haveObjectClass:   []string{"top", ldapVendorOpenLDAPObjectClass},
+			haveControlOIDs:   []string{},
+			haveExtensionOIDs: []string{ldapOIDExtensionPwdModify},
+			expected:          LDAPDiscovery{Successful: true, Extensions: LDAPDiscoveryExtensions{PwdModify: true, OIDs: []string{ldapOIDExtensionPwdModify}}, Controls: LDAPDiscoveryControls{OIDs: []string{}}, Vendor: LDAPDiscoveryVendor{Name: "OpenLDAP"}},
 		},
 		{
 			description:       "ShouldReturnExtensionTLS",
 			haveControlOIDs:   []string{},
 			haveExtensionOIDs: []string{ldapOIDExtensionTLS},
-			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{TLS: true}},
+			expected:          LDAPDiscovery{Successful: true, Extensions: LDAPDiscoveryExtensions{TLS: true, OIDs: []string{ldapOIDExtensionTLS}}, Controls: LDAPDiscoveryControls{OIDs: []string{}}},
 		},
 		{
 			description:       "ShouldReturnExtensionAll",
 			haveControlOIDs:   []string{},
-			haveExtensionOIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModifyExOp},
-			expected:          LDAPSupportedFeatures{Extensions: LDAPSupportedExtensions{TLS: true, PwdModifyExOp: true}},
+			haveExtensionOIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify},
+			expected:          LDAPDiscovery{Successful: true, Extensions: LDAPDiscoveryExtensions{TLS: true, PwdModify: true, OIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify}}, Controls: LDAPDiscoveryControls{OIDs: []string{}}},
 		},
 		{
 			description:       "ShouldReturnControlMsftPPolHints",
 			haveControlOIDs:   []string{ldapOIDControlMsftServerPolicyHints},
 			haveExtensionOIDs: []string{},
-			expected:          LDAPSupportedFeatures{ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHints: true}},
+			expected:          LDAPDiscovery{Successful: true, Extensions: LDAPDiscoveryExtensions{OIDs: []string{}}, Controls: LDAPDiscoveryControls{MsftPwdPolHints: true, OIDs: []string{ldapOIDControlMsftServerPolicyHints}}},
 		},
 		{
 			description:       "ShouldReturnControlMsftPPolHintsDeprecated",
 			haveControlOIDs:   []string{ldapOIDControlMsftServerPolicyHintsDeprecated},
 			haveExtensionOIDs: []string{},
-			expected:          LDAPSupportedFeatures{ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHintsDeprecated: true}},
+			expected:          LDAPDiscovery{Successful: true, Extensions: LDAPDiscoveryExtensions{OIDs: []string{}}, Controls: LDAPDiscoveryControls{MsftPwdPolHintsDeprecated: true, OIDs: []string{ldapOIDControlMsftServerPolicyHintsDeprecated}}},
 		},
 		{
 			description:       "ShouldReturnControlAll",
 			haveControlOIDs:   []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
 			haveExtensionOIDs: []string{},
-			expected:          LDAPSupportedFeatures{ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true}},
+			expected:          LDAPDiscovery{Successful: true, Extensions: LDAPDiscoveryExtensions{OIDs: []string{}}, Controls: LDAPDiscoveryControls{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true, OIDs: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated}}},
 		},
 		{
 			description:       "ShouldReturnExtensionAndControlAll",
 			haveControlOIDs:   []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
-			haveExtensionOIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModifyExOp},
-			expected: LDAPSupportedFeatures{
-				ControlTypes: LDAPSupportedControlTypes{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true},
-				Extensions:   LDAPSupportedExtensions{TLS: true, PwdModifyExOp: true},
+			haveExtensionOIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify},
+			expected: LDAPDiscovery{
+				Successful: true,
+				Controls:   LDAPDiscoveryControls{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true, OIDs: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated}},
+				Extensions: LDAPDiscoveryExtensions{TLS: true, PwdModify: true, OIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify}},
+			},
+		},
+		{
+			description:        "ShouldReturnAllDiscovery",
+			haveLDAPVersion:    []string{"2", "3"},
+			haveControlOIDs:    []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+			haveExtensionOIDs:  []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify},
+			haveFeatureOIDs:    []string{"example"},
+			haveSASLMechanisms: []string{"SCRAM"},
+			haveVendorName:     []string{"Authelia"},
+			haveVendorVersion:  []string{"Authelia LDAP v0.1.0"},
+			expected: LDAPDiscovery{
+				Successful:     true,
+				LDAPVersion:    []int{2, 3},
+				Controls:       LDAPDiscoveryControls{MsftPwdPolHints: true, MsftPwdPolHintsDeprecated: true, OIDs: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated}},
+				Extensions:     LDAPDiscoveryExtensions{TLS: true, PwdModify: true, OIDs: []string{ldapOIDExtensionTLS, ldapOIDExtensionPwdModify}},
+				Features:       LDAPDiscoveryFeatures{OIDs: []string{"example"}},
+				SASLMechanisms: []string{"SCRAM"},
+				Vendor: LDAPDiscoveryVendor{
+					Name:    "Authelia",
+					Version: "Authelia LDAP v0.1.0",
+				},
+			},
+		},
+		{
+			description:               "ShouldReturnMicrosoftAD",
+			haveControlOIDs:           []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+			haveExtensionOIDs:         []string{ldapOIDExtensionPwdModify},
+			haveDomainFunctionalLevel: []string{"4"},
+			haveForestFunctionalLevel: []string{"5"},
+			expected: LDAPDiscovery{
+				Successful: true,
+				Extensions: LDAPDiscoveryExtensions{
+					OIDs:      []string{ldapOIDExtensionPwdModify},
+					PwdModify: true,
+				},
+				Controls: LDAPDiscoveryControls{
+					OIDs:                      []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+					MsftPwdPolHints:           true,
+					MsftPwdPolHintsDeprecated: true,
+				},
+				Vendor: LDAPDiscoveryVendor{
+					Name:                  "Microsoft Corporation",
+					DomainFunctionalLevel: 4,
+					ForestFunctionalLevel: 5,
+				},
 			},
 		},
 	}
@@ -72,17 +134,54 @@ func TestLDAPGetFeatureSupportFromEntry(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
 			entry := &ldap.Entry{
-				DN: "",
-				Attributes: []*ldap.EntryAttribute{
-					{Name: ldapSupportedExtensionAttribute, Values: tc.haveExtensionOIDs},
-					{Name: ldapSupportedControlAttribute, Values: tc.haveControlOIDs},
-				},
+				DN:         "",
+				Attributes: []*ldap.EntryAttribute{},
 			}
 
-			actualControlOIDs, actualExtensionOIDs, actual := ldapGetFeatureSupportFromEntry(entry)
+			if tc.haveObjectClass != nil {
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapObjectClassAttribute, Values: tc.haveObjectClass})
+			}
 
-			assert.Equal(t, tc.haveExtensionOIDs, actualExtensionOIDs)
-			assert.Equal(t, tc.haveControlOIDs, actualControlOIDs)
+			if tc.haveLDAPVersion != nil {
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapSupportedLDAPVersionAttribute, Values: tc.haveLDAPVersion})
+			}
+
+			if tc.haveExtensionOIDs != nil {
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapSupportedExtensionAttribute, Values: tc.haveExtensionOIDs})
+			}
+
+			if tc.haveControlOIDs != nil {
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapSupportedControlAttribute, Values: tc.haveControlOIDs})
+			}
+
+			if tc.haveFeatureOIDs != nil {
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapSupportedFeaturesAttribute, Values: tc.haveFeatureOIDs})
+			}
+
+			if tc.haveSASLMechanisms != nil {
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapSupportedSASLMechanismsAttribute, Values: tc.haveSASLMechanisms})
+			}
+
+			if tc.haveVendorName != nil {
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapVendorNameAttribute, Values: tc.haveVendorName})
+			}
+
+			if tc.haveVendorVersion != nil {
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapVendorVersionAttribute, Values: tc.haveVendorVersion})
+			}
+
+			if tc.haveDomainFunctionalLevel != nil {
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapDomainFunctionalityAttribute, Values: tc.haveDomainFunctionalLevel})
+			}
+
+			if tc.haveForestFunctionalLevel != nil {
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: ldapForestFunctionalityAttribute, Values: tc.haveForestFunctionalLevel})
+			}
+
+			actual := ldapGetDiscoveryFromLDAPEntry(entry)
+
+			assert.Equal(t, tc.haveExtensionOIDs, actual.Extensions.OIDs)
+			assert.Equal(t, tc.haveControlOIDs, actual.Controls.OIDs)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
@@ -138,79 +237,6 @@ func TestLDAPEntriesContainsEntry(t *testing.T) {
 	}
 }
 
-func TestLDAPGetReferral(t *testing.T) {
-	testCases := []struct {
-		description      string
-		have             error
-		expectedReferral string
-		expectedOK       bool
-	}{
-		{
-			description:      "ShouldGetValidPacket",
-			have:             &ldap.Error{ResultCode: ldap.LDAPResultReferral, Packet: &testBERPacketReferral},
-			expectedReferral: "ldap://192.168.0.1",
-			expectedOK:       true,
-		},
-		{
-			description:      "ShouldNotGetNilPacket",
-			have:             &ldap.Error{ResultCode: ldap.LDAPResultReferral, Packet: nil},
-			expectedReferral: "",
-			expectedOK:       false,
-		},
-		{
-			description:      "ShouldNotGetInvalidPacketWithNoObjectDescriptor",
-			have:             &ldap.Error{ResultCode: ldap.LDAPResultReferral, Packet: &testBERPacketReferralInvalidObjectDescriptor},
-			expectedReferral: "",
-			expectedOK:       false,
-		},
-		{
-			description:      "ShouldNotGetInvalidPacketWithBadErrorCode",
-			have:             &ldap.Error{ResultCode: ldap.LDAPResultBusy, Packet: &testBERPacketReferral},
-			expectedReferral: "",
-			expectedOK:       false,
-		},
-		{
-			description:      "ShouldNotGetInvalidPacketWithoutBitString",
-			have:             &ldap.Error{ResultCode: ldap.LDAPResultReferral, Packet: &testBERPacketReferralWithoutBitString},
-			expectedReferral: "",
-			expectedOK:       false,
-		},
-		{
-			description:      "ShouldNotGetInvalidPacketWithInvalidBitString",
-			have:             &ldap.Error{ResultCode: ldap.LDAPResultReferral, Packet: &testBERPacketReferralWithInvalidBitString},
-			expectedReferral: "",
-			expectedOK:       false,
-		},
-		{
-			description:      "ShouldNotGetInvalidPacketWithoutEnoughChildren",
-			have:             &ldap.Error{ResultCode: ldap.LDAPResultReferral, Packet: &testBERPacketReferralWithoutEnoughChildren},
-			expectedReferral: "",
-			expectedOK:       false,
-		},
-		{
-			description:      "ShouldNotGetInvalidErrType",
-			have:             errors.New("not an err"),
-			expectedReferral: "",
-			expectedOK:       false,
-		},
-		{
-			description:      "ShouldNotGetInvalidErrType",
-			have:             errors.New("not an err"),
-			expectedReferral: "",
-			expectedOK:       false,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.description, func(t *testing.T) {
-			referral, ok := ldapGetReferral(tc.have)
-
-			assert.Equal(t, tc.expectedOK, ok)
-			assert.Equal(t, tc.expectedReferral, referral)
-		})
-	}
-}
-
 var testBERPacketReferral = ber.Packet{
 	Children: []*ber.Packet{
 		{},
@@ -234,93 +260,100 @@ var testBERPacketReferral = ber.Packet{
 	},
 }
 
-var testBERPacketReferralInvalidObjectDescriptor = ber.Packet{
-	Children: []*ber.Packet{
-		{},
+func TestLDAPDiscovery_Strings(t *testing.T) {
+	testCases := []struct {
+		name                   string
+		have                   LDAPDiscovery
+		expectedExtensions     string
+		expectedControls       string
+		expectedFeatures       string
+		expectedSASLMechanisms string
+	}{
 		{
-			Identifier: ber.Identifier{
-				Tag: ber.TagEOC,
-			},
-			Children: []*ber.Packet{
-				{
-					Identifier: ber.Identifier{
-						Tag: ber.TagBitString,
-					},
-					Children: []*ber.Packet{
-						{
-							Value: "ldap://192.168.0.1",
-						},
-					},
+			"ShouldHandleAll",
+			LDAPDiscovery{
+				Successful:     true,
+				SASLMechanisms: []string{"SCRAM", "CRAM"},
+				Extensions: LDAPDiscoveryExtensions{
+					OIDs: []string{ldapOIDExtensionPwdModify, ldapOIDExtensionTLS},
+				},
+				Controls: LDAPDiscoveryControls{
+					OIDs: []string{ldapOIDControlMsftServerPolicyHints, ldapOIDControlMsftServerPolicyHintsDeprecated},
+				},
+				Features: LDAPDiscoveryFeatures{
+					OIDs: []string{"example"},
 				},
 			},
+			"1.3.6.1.4.1.4203.1.11.1, 1.3.6.1.4.1.1466.20037",
+			"1.2.840.113556.1.4.2239, 1.2.840.113556.1.4.2066",
+			"example",
+			"SCRAM, CRAM",
 		},
-	},
+		{
+			"ShouldHandleNone",
+			LDAPDiscovery{
+				Successful: true,
+			},
+			"none",
+			"none",
+			"none",
+			"none",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			extensions, controls, features, saslMechanisms := tc.have.Strings()
+
+			assert.Equal(t, tc.expectedExtensions, extensions)
+			assert.Equal(t, tc.expectedControls, controls)
+			assert.Equal(t, tc.expectedFeatures, features)
+			assert.Equal(t, tc.expectedSASLMechanisms, saslMechanisms)
+		})
+	}
 }
 
-var testBERPacketReferralWithoutBitString = ber.Packet{
-	Children: []*ber.Packet{
-		{},
+func TestFmtLDAPVersions(t *testing.T) {
+	testCases := []struct {
+		name     string
+		versions []int
+		expected string
+	}{
 		{
-			Identifier: ber.Identifier{
-				Tag: ber.TagObjectDescriptor,
-			},
-			Children: []*ber.Packet{
-				{
-					Identifier: ber.Identifier{
-						Tag: ber.TagSequence,
-					},
-					Children: []*ber.Packet{
-						{
-							Value: "ldap://192.168.0.1",
-						},
-					},
-				},
-			},
+			"ShouldReturnEmptyForNil",
+			nil,
+			"",
 		},
-	},
-}
+		{
+			"ShouldReturnEmptyForEmpty",
+			[]int{},
+			"",
+		},
+		{
+			"ShouldFormatSingleVersion",
+			[]int{3},
+			"LDAPv3",
+		},
+		{
+			"ShouldFormatTwoVersions",
+			[]int{3, 2},
+			"LDAPv3, and LDAPv2",
+		},
+		{
+			"ShouldFormatThreeVersions",
+			[]int{3, 2, 1},
+			"LDAPv3, LDAPv2, and LDAPv1",
+		},
+		{
+			"ShouldFormatFourVersions",
+			[]int{4, 3, 2, 1},
+			"LDAPv4, LDAPv3, LDAPv2, and LDAPv1",
+		},
+	}
 
-var testBERPacketReferralWithInvalidBitString = ber.Packet{
-	Children: []*ber.Packet{
-		{},
-		{
-			Identifier: ber.Identifier{
-				Tag: ber.TagObjectDescriptor,
-			},
-			Children: []*ber.Packet{
-				{
-					Identifier: ber.Identifier{
-						Tag: ber.TagBitString,
-					},
-					Children: []*ber.Packet{
-						{
-							Value: 55,
-						},
-					},
-				},
-			},
-		},
-	},
-}
-
-var testBERPacketReferralWithoutEnoughChildren = ber.Packet{
-	Children: []*ber.Packet{
-		{
-			Identifier: ber.Identifier{
-				Tag: ber.TagEOC,
-			},
-			Children: []*ber.Packet{
-				{
-					Identifier: ber.Identifier{
-						Tag: ber.TagBitString,
-					},
-					Children: []*ber.Packet{
-						{
-							Value: "ldap://192.168.0.1",
-						},
-					},
-				},
-			},
-		},
-	},
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, fmtLDAPVersions(tc.versions))
+		})
+	}
 }

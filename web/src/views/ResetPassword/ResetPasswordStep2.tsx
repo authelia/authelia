@@ -1,17 +1,16 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, FormControl, IconButton, InputAdornment, Theme } from "@mui/material";
+import { Button, FormControl, IconButton, InputAdornment } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { makeStyles } from "tss-react/mui";
 
 import PasswordMeter from "@components/PasswordMeter";
 import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
@@ -20,14 +19,13 @@ import { completeResetPasswordProcess, resetPassword } from "@services/ResetPass
 
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
-    const { classes, cx } = useStyles();
 
     const [formDisabled, setFormDisabled] = useState(true);
     const [password1, setPassword1] = useState("");
     const [password2, setPassword2] = useState("");
     const [errorPassword1, setErrorPassword1] = useState(false);
     const [errorPassword2, setErrorPassword2] = useState(false);
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -35,11 +33,11 @@ const ResetPasswordStep2 = function () {
         max_length: 0,
         min_length: 8,
         min_score: 0,
+        mode: PasswordPolicyMode.Disabled,
         require_lowercase: false,
         require_number: false,
         require_special: false,
         require_uppercase: false,
-        mode: PasswordPolicyMode.Disabled,
     });
 
     // Get the token from the query param to give it back to the API when requesting
@@ -47,45 +45,42 @@ const ResetPasswordStep2 = function () {
     const processToken = useQueryParam(IdentityToken);
 
     const handleRateLimited = useCallback(
-        (retryAfter: number) => {
-            createErrorNotification(translate("You have made too many requests"));
+        (_retryAfter: number) => {
+            createErrorNotification(translate("You have made too many requests")); // TODO: Do we want to add the amount of seconds a user should retry in the message?
         },
         [createErrorNotification, translate],
     );
 
-    const handleSubmitReset = useCallback(async () => {
-        if (!processToken) {
-            setFormDisabled(true);
-            createErrorNotification(translate("No verification token provided"));
-            return;
-        }
-
-        try {
-            setFormDisabled(true);
-
-            const response = await completeResetPasswordProcess(processToken);
-
-            if (response && response.limited) {
-                handleRateLimited(response.retryAfter);
-
+    useEffect(() => {
+        const submitReset = async () => {
+            if (!processToken) {
+                setFormDisabled(true);
+                createErrorNotification(translate("No verification token provided"));
                 return;
             }
 
-            const policy = await getPasswordPolicyConfiguration();
-            setPPolicy(policy);
-            setFormDisabled(false);
-        } catch (err) {
-            console.error(err);
-            createErrorNotification(
-                translate("There was an issue completing the process the verification token might have expired"),
-            );
-            setFormDisabled(true);
-        }
-    }, [processToken, createErrorNotification, translate, handleRateLimited]);
+            try {
+                const response = await completeResetPasswordProcess(processToken);
 
-    useEffect(() => {
-        handleSubmitReset();
-    }, [handleSubmitReset]);
+                if (response?.limited) {
+                    handleRateLimited(response.retryAfter);
+                    return;
+                }
+
+                const policy = await getPasswordPolicyConfiguration();
+                setPPolicy(policy);
+                setFormDisabled(false);
+            } catch (err) {
+                console.error(err);
+                createErrorNotification(
+                    translate("There was an issue completing the process the verification token might have expired"),
+                );
+                setFormDisabled(true);
+            }
+        };
+
+        submitReset().catch(console.error);
+    }, [processToken, createErrorNotification, translate, handleRateLimited]);
 
     const doResetPassword = async () => {
         setPassword1("");
@@ -117,11 +112,7 @@ const ResetPasswordStep2 = function () {
             setTimeout(() => navigate(IndexRoute), 1500);
         } catch (err) {
             console.error(err);
-            if ((err as Error).message.includes("0000052D.")) {
-                createErrorNotification(
-                    translate("Your supplied password does not meet the password policy requirements"),
-                );
-            } else if ((err as Error).message.includes("policy")) {
+            if ((err as Error).message.includes("0000052D.") || (err as Error).message.includes("policy")) {
                 createErrorNotification(
                     translate("Your supplied password does not meet the password policy requirements"),
                 );
@@ -131,14 +122,20 @@ const ResetPasswordStep2 = function () {
         }
     };
 
-    const handleResetClick = () => doResetPassword();
+    const handleResetClick = () => {
+        doResetPassword().catch(console.error);
+    };
 
     const handleCancelClick = () => navigate(IndexRoute);
 
     return (
         <MinimalLayout title={translate("Enter new password")} id="reset-password-step2-stage">
             <FormControl id={"form-reset-password"}>
-                <Grid container className={classes.root} spacing={2}>
+                <Grid
+                    container
+                    spacing={2}
+                    sx={{ marginBottom: (theme) => theme.spacing(2), marginTop: (theme) => theme.spacing(2) }}
+                >
                     <Grid size={{ xs: 12 }}>
                         <TextField
                             id="password1-textfield"
@@ -149,7 +146,7 @@ const ResetPasswordStep2 = function () {
                             disabled={formDisabled}
                             onChange={(e) => setPassword1(e.target.value)}
                             error={errorPassword1}
-                            className={cx(classes.fullWidth)}
+                            sx={{ width: "100%" }}
                             autoComplete="new-password"
                             slotProps={{
                                 input: {
@@ -201,11 +198,11 @@ const ResetPasswordStep2 = function () {
                             error={errorPassword2}
                             onKeyDown={(ev) => {
                                 if (ev.key === "Enter") {
-                                    doResetPassword();
+                                    doResetPassword().catch(console.error);
                                     ev.preventDefault();
                                 }
                             }}
-                            className={cx(classes.fullWidth)}
+                            sx={{ width: "100%" }}
                             autoComplete="new-password"
                         />
                     </Grid>
@@ -217,7 +214,7 @@ const ResetPasswordStep2 = function () {
                             name="password1"
                             disabled={formDisabled}
                             onClick={handleResetClick}
-                            className={classes.fullWidth}
+                            sx={{ width: "100%" }}
                         >
                             {translate("Reset")}
                         </Button>
@@ -229,7 +226,7 @@ const ResetPasswordStep2 = function () {
                             color="primary"
                             name="password2"
                             onClick={handleCancelClick}
-                            className={classes.fullWidth}
+                            sx={{ width: "100%" }}
                         >
                             {translate("Cancel")}
                         </Button>
@@ -239,15 +236,5 @@ const ResetPasswordStep2 = function () {
         </MinimalLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
-    fullWidth: {
-        width: "100%",
-    },
-}));
 
 export default ResetPasswordStep2;

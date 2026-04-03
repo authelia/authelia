@@ -304,7 +304,7 @@ func TestToTimeDurationHookFunc(t *testing.T) {
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFourtyFiveSeconds",
+			desc:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   time.Second * 45,
 			decode: true,
@@ -455,7 +455,7 @@ func TestToTimeDurationHookFuncPointer(t *testing.T) {
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFourtyFiveSeconds",
+			desc:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   testTimeDurationPtr(time.Second * 45),
 			decode: true,
@@ -577,7 +577,7 @@ func TestToRefreshIntervalDurationHookFunc(t *testing.T) {
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFourtyFiveSeconds",
+			desc:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   schema.NewRefreshIntervalDuration(time.Second * 45),
 			decode: true,
@@ -728,7 +728,7 @@ func TestTestToRefreshIntervalDurationHookFuncPointer(t *testing.T) {
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFourtyFiveSeconds",
+			desc:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   testRefreshIntervalDurationPtr(time.Second * 45),
 			decode: true,
@@ -2176,14 +2176,13 @@ type TestConfigDefinitions struct {
 	Definitions schema.Definitions `koanf:"definitions"`
 }
 
+//nolint:gosec // Test Credentials.
 var (
-	//nolint:gosec
 	x509PrivateKeyRSABad = `
 -----BEGIN RSA PRIVATE KEY-----
 bad key
 -----END RSA PRIVATE KEY-----`
 
-	//nolint:gosec
 	x509PrivateKeyECBad = `
 -----BEGIN EC PRIVATE KEY-----
 bad key
@@ -2354,7 +2353,6 @@ func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) string {
 		data []byte
 		err  error
 	)
-
 	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
 		panic(err)
 	}

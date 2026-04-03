@@ -31,8 +31,7 @@ func (s *AvailableMethodsScenario) SetupSuite() {
 }
 
 func (s *AvailableMethodsScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,6 +49,7 @@ func (s *AvailableMethodsScenario) TearDownTest() {
 
 func (s *AvailableMethodsScenario) TestShouldCheckAvailableMethods() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -66,7 +66,7 @@ func (s *AvailableMethodsScenario) TestShouldCheckAvailableMethods() {
 	s.Assert().NoError(err)
 	s.Assert().Len(options, len(s.methods))
 
-	optionsList := make([]string, 0)
+	optionsList := make([]string, 0, len(options))
 
 	for _, o := range options {
 		txt, err := o.Text()

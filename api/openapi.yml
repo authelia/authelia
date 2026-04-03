@@ -1329,6 +1329,26 @@ paths:
   {{- end }}
   {{- if .Duo }}
   /api/secondfactor/duo:
+    get:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - Duo Mobile Push
+      description: This endpoint retrieves the users preferred Duo device and method.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.DuoDevicesResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
     post:
       tags:
         - Second Factor
@@ -2395,31 +2415,33 @@ components:
     handlers.DuoDevicesResponse:
       type: object
       properties:
-        status:
+        result:
           type: string
-          example: OK
-        data:
-          type: object
-          properties:
-            result:
-              type: string
-              example: auth
-            devices:
-              type: array
-              items:
-                type: object
-                properties:
-                  device:
-                    type: string
-                    example: ABCDE123456789FGHIJK
-                  display_name:
-                    type: string
-                    example: iOS (+XX XXX XXX 123)
-                  capabilities:
-                    type: array
-                    items:
-                      type: string
-                      example: push
+          example: auth
+        devices:
+          type: array
+          items:
+            type: object
+            properties:
+              device:
+                type: string
+                example: ABCDE123456789FGHIJK
+              display_name:
+                type: string
+                example: iOS (+XX XXX XXX 123)
+              capabilities:
+                type: array
+                items:
+                  type: string
+                  example: push
+        enroll_url:
+          type: string
+        preferred_device:
+          type: string
+          example: ABCDE123456789FGHIJK
+        preferred_method:
+          type: string
+          example: push
     handlers.bodyPasswordRequest:
       required:
         - 'password'

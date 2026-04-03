@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0"
 description: "OpenID Connect 1.0 is a authorization identity framework supported by Authelia."
 summary: ""
-date: 2022-11-27T16:07:08+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 330
@@ -31,7 +31,7 @@ Connect 1.0 specifications and protocols we support.
 
 Authelia is [OpenID Certified™] to conform to the [OpenID Connect™ protocol].
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" sizes="200px" >}}
 
 For more information please see the
 [OpenID Connect 1.0 Integration Documentation](../../integration/openid-connect/introduction.md#openid-certified).

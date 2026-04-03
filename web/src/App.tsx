@@ -1,11 +1,10 @@
-import React, { Suspense, lazy, useState } from "react";
+import { Suspense, lazy } from "react";
 
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
 import { CssBaseline } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
-import NotificationBar from "@components/NotificationBar";
 import {
     ConsentRoute,
     IndexRoute,
@@ -18,9 +17,8 @@ import {
 } from "@constants/Routes";
 import LanguageContextProvider from "@contexts/LanguageContext";
 import LocalStorageMethodContextProvider from "@contexts/LocalStorageMethodContext";
+import NotificationsContextProvider from "@contexts/NotificationsContext";
 import ThemeContextProvider from "@contexts/ThemeContext";
-import NotificationsContext from "@hooks/NotificationsContext";
-import { Notification } from "@models/Notifications";
 import { getBasePath } from "@utils/BasePath";
 import {
     getDuoSelfEnrollment,
@@ -45,7 +43,6 @@ const RevokeResetPasswordTokenView = lazy(() => import("@views/Revoke/RevokeRese
 faConfig.autoAddCss = false;
 
 function App() {
-    const [notification, setNotification] = useState(null as Notification | null);
     const { i18n } = useTranslation();
 
     return (
@@ -53,10 +50,9 @@ function App() {
             <ThemeContextProvider>
                 <Suspense fallback={<LoadingPage />}>
                     <CssBaseline />
-                    <NotificationsContext.Provider value={{ notification, setNotification }}>
+                    <NotificationsContextProvider>
                         <LocalStorageMethodContextProvider>
                             <Router basename={getBasePath()}>
-                                <NotificationBar onClose={() => setNotification(null)} />
                                 <Routes>
                                     <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
                                     <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
@@ -80,7 +76,7 @@ function App() {
                                 </Routes>
                             </Router>
                         </LocalStorageMethodContextProvider>
-                    </NotificationsContext.Provider>
+                    </NotificationsContextProvider>
                 </Suspense>
             </ThemeContextProvider>
         </LanguageContextProvider>

@@ -249,7 +249,7 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
 	var caches []encCachedData
 
-	if err = tx.SelectContext(ctx, &caches, fmt.Sprintf(queryFmtSelectCachedDataEncryptedData, tableCachedData)); err != nil {
+	if err = tx.SelectContext(ctx, &caches, tx.Rebind(fmt.Sprintf(queryFmtSelectCachedDataValueEncrypted, tableCachedData)), true); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
@@ -336,22 +336,22 @@ func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvi
 			return nil
 		}
 
-		return fmt.Errorf("error selecting encyption value: %w", err)
+		return fmt.Errorf("error selecting encryption value: %w", err)
 	}
 
 	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateEncryptionEncryptedData, tableEncryption))
 
 	for _, c := range configs {
 		if c.Value, err = provider.decrypt(c.Value); err != nil {
-			return fmt.Errorf("error decrypting encyption value with id '%d': %w", c.ID, err)
+			return fmt.Errorf("error decrypting encryption value with id '%d': %w", c.ID, err)
 		}
 
 		if c.Value, err = utils.Encrypt(c.Value, &key); err != nil {
-			return fmt.Errorf("error encrypting encyption value with id '%d': %w", c.ID, err)
+			return fmt.Errorf("error encrypting encryption value with id '%d': %w", c.ID, err)
 		}
 
 		if _, err = tx.ExecContext(ctx, query, c.Value, c.ID); err != nil {
-			return fmt.Errorf("error updating encyption value with id '%d': %w", c.ID, err)
+			return fmt.Errorf("error updating encryption value with id '%d': %w", c.ID, err)
 		}
 	}
 
@@ -363,7 +363,6 @@ func schemaEncryptionCheckKeyOneTimeCode(ctx context.Context, provider *SQLProvi
 		rows *sqlx.Rows
 		err  error
 	)
-
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectOTCEncryptedData, tableOneTimeCode)); err != nil {
 		return tableOneTimeCode, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting one time-codes: %w", err)}
 	}
@@ -394,7 +393,6 @@ func schemaEncryptionCheckKeyTOTP(ctx context.Context, provider *SQLProvider) (t
 		rows *sqlx.Rows
 		err  error
 	)
-
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectTOTPConfigurationsEncryptedData, tableTOTPConfigurations)); err != nil {
 		return tableTOTPConfigurations, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting TOTP configurations: %w", err)}
 	}
@@ -425,7 +423,6 @@ func schemaEncryptionCheckKeyWebAuthn(ctx context.Context, provider *SQLProvider
 		rows *sqlx.Rows
 		err  error
 	)
-
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectWebAuthnCredentialsEncryptedData, tableWebAuthnCredentials)); err != nil {
 		return tableWebAuthnCredentials, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting WebAuthn credentials: %w", err)}
 	}
@@ -460,8 +457,7 @@ func schemaEncryptionCheckKeyCachedData(ctx context.Context, provider *SQLProvid
 		rows *sqlx.Rows
 		err  error
 	)
-
-	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectCachedDataEncryptedData, tableCachedData)); err != nil {
+	if rows, err = provider.db.QueryxContext(ctx, provider.db.Rebind(fmt.Sprintf(queryFmtSelectCachedDataValueEncrypted, tableCachedData)), true); err != nil {
 		return tableCachedData, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting cached data: %w", err)}
 	}
 
@@ -492,7 +488,6 @@ func schemaEncryptionCheckKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType) 
 			rows *sqlx.Rows
 			err  error
 		)
-
 		if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectOAuth2SessionEncryptedData, typeOAuth2Session.Table())); err != nil {
 			return typeOAuth2Session.Table(), EncryptionValidationTableResult{Error: fmt.Errorf("error selecting oauth2 %s sessions: %w", typeOAuth2Session.String(), err)}
 		}
@@ -524,7 +519,6 @@ func schemaEncryptionCheckKeyEncryption(ctx context.Context, provider *SQLProvid
 		rows *sqlx.Rows
 		err  error
 	)
-
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectEncryptionEncryptedData, tableEncryption)); err != nil {
 		return tableEncryption, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting encryption values: %w", err)}
 	}
@@ -592,7 +586,6 @@ func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (ke
 			key = make([]byte, size)
 
 			_, err = rand.Read(key)
-
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate hmac key: %w", err)
 			}

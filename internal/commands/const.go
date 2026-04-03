@@ -6,6 +6,11 @@ import (
 )
 
 const (
+	cliOutputFmtSuccessfulUserExportFile = "Successfully exported %d %s as %s to the '%s' file\n"
+	cliOutputFmtSuccessfulUserImportFile = "Successfully imported %d %s from the %s file '%s' into the database\n"
+)
+
+const (
 	fmtCmdAutheliaShort = "authelia %s"
 
 	fmtCmdAutheliaLong = `authelia %s
@@ -30,6 +35,7 @@ Build OS: %s
 Build Arch: %s
 Build Compiler: %s
 Build Date: %s
+Development: %t
 Extra: %s`
 
 	fmtAutheliaBuildGo = `

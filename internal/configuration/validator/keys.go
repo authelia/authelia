@@ -19,8 +19,8 @@ func ValidateKeys(keys, remapped []string, prefix string, validator *schema.Stru
 	for _, key := range schema.Keys {
 		pattern, _ := NewKeyPattern(key)
 
-		switch {
-		case pattern == nil:
+		switch pattern {
+		case nil:
 			continue
 		default:
 			patterns = append(patterns, pattern)

@@ -113,7 +113,6 @@ func validateSMTPNotifierAddress(config *schema.NotifierSMTP, validator *schema.
 		}
 
 		var err error
-
 		if err = config.Address.ValidateSMTP(); err != nil {
 			validator.Push(fmt.Errorf(errFmtNotifierSMTPAddress, config.Address.String(), err))
 		}

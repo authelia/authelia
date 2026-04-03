@@ -1,16 +1,15 @@
-import { DependencyList, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 
-type PromisifiedFunction<Ret> = (...args: any) => Promise<Ret>;
+type PromisifiedFunction<Ret> = (..._args: any) => Promise<Ret>;
 
 export function useRemoteCall<Ret>(
     fn: PromisifiedFunction<Ret>,
-    deps: DependencyList,
 ): [Ret | undefined, () => void, boolean, Error | undefined] {
     const [data, setData] = useState(undefined as Ret | undefined);
     const [inProgress, setInProgress] = useState(false);
     const [error, setError] = useState(undefined as Error | undefined);
 
-    const fnCallback = useCallback(fn, [fn, deps]);
+    const fnCallback = useCallback(() => fn(), [fn]);
 
     const triggerCallback = useCallback(() => {
         (async () => {

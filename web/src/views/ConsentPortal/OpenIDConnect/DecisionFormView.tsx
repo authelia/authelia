@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FC, Fragment, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
@@ -10,7 +10,6 @@ import {
     FormControl,
     IconButton,
     InputAdornment,
-    Theme,
     Tooltip,
     Typography,
     useTheme,
@@ -19,14 +18,13 @@ import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
 import SwitchUserButton from "@components/SwitchUserButton";
 import { ConsentCompletionSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
 import { Decision, Flow, SubFlow, SubFlowNameDeviceAuthorization } from "@constants/SearchParams";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlow } from "@hooks/Flow";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useRedirector } from "@hooks/Redirector";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
@@ -52,16 +50,14 @@ export interface Props {
     state: AutheliaState;
 }
 
-const DecisionFormView: React.FC<Props> = (props: Props) => {
+const DecisionFormView: FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent", "portal"]);
     const theme = useTheme();
-
-    const { classes } = useStyles();
 
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useRouterNavigate();
     const redirect = useRedirector();
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
 
     const [password, setPassword] = useState("");
@@ -93,6 +89,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
             getConsentResponse(flowID, userCode)
                 .then((r) => {
                     setResponse(r);
+                    setClaims(r.claims || []);
                 })
                 .catch((error) => {
                     setError(error);
@@ -257,11 +254,11 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
     }, [focusPassword]);
 
     const handlePasswordKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
                 event.preventDefault();
 
-                if (!password.length) {
+                if (password.length === 0) {
                     focusPassword();
                 } else {
                     handleAcceptConsent().catch(console.error);
@@ -272,7 +269,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
     );
 
     const handlePasswordKeyUp = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (password.length <= 1) {
                 setHasCapsLock(false);
                 setIsCapsLockPartial(false);
@@ -319,10 +316,10 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                 "Client ID: " + response?.client_id
                                             }
                                         >
-                                            <Typography className={classes.clientDescription}>
-                                                {response.client_description !== ""
-                                                    ? response.client_description
-                                                    : response?.client_id}
+                                            <Typography sx={{ fontWeight: 600 }}>
+                                                {response.client_description === ""
+                                                    ? response?.client_id
+                                                    : response.client_description}
                                             </Typography>
                                         </Tooltip>
                                     </Box>
@@ -334,7 +331,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                 </Grid>
                                 <DecisionFormScopes scopes={response.scopes} />
                                 <DecisionFormClaims
-                                    claims={response.claims}
+                                    claims={claims}
                                     essential_claims={response.essential_claims}
                                     onChangeChecked={(claims) => setClaims(claims)}
                                 />
@@ -454,7 +451,11 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                 <span>
                                                     <Button
                                                         id={"openid-consent-accept"}
-                                                        className={classes.button}
+                                                        sx={{
+                                                            marginLeft: (theme) => theme.spacing(),
+                                                            marginRight: (theme) => theme.spacing(),
+                                                            width: "100%",
+                                                        }}
                                                         disabled={!response || passwordMissing || loading}
                                                         onClick={handleAcceptConsent}
                                                         color={"primary"}
@@ -471,7 +472,11 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                 <span>
                                                     <Button
                                                         id={"openid-consent-deny"}
-                                                        className={classes.button}
+                                                        sx={{
+                                                            marginLeft: (theme) => theme.spacing(),
+                                                            marginRight: (theme) => theme.spacing(),
+                                                            width: "100%",
+                                                        }}
                                                         disabled={!response || loading}
                                                         onClick={handleRejectConsent}
                                                         color={"secondary"}
@@ -497,16 +502,5 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
         </Fragment>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    clientDescription: {
-        fontWeight: 600,
-    },
-    button: {
-        marginLeft: theme.spacing(),
-        marginRight: theme.spacing(),
-        width: "100%",
-    },
-}));
 
 export default DecisionFormView;

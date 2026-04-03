@@ -14,9 +14,11 @@ import (
 	"github.com/go-webauthn/webauthn/metadata/providers/cached"
 	"github.com/go-webauthn/webauthn/metadata/providers/memory"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
@@ -25,10 +27,12 @@ import (
 func NewMetaDataProvider(config *schema.Configuration, store storage.CachedDataProvider) (provider MetaDataProvider, err error) {
 	if config.WebAuthn.Metadata.Enabled {
 		p := &StoreCachedMetadataProvider{
-			new:     newMetadataProviderMemory(config),
-			clock:   &metadata.RealClock{},
-			store:   store,
-			handler: &productionMDS3Provider{},
+			new:         newMetadataProviderMemory(config),
+			clock:       &metadata.RealClock{},
+			store:       store,
+			log:         logging.Logger().WithFields(map[string]any{logging.FieldProvider: "webauthn-metadata"}),
+			cachePolicy: config.WebAuthn.Metadata.CachePolicy,
+			handler:     &productionMDS3Provider{},
 		}
 
 		if p.decoder, err = metadata.NewDecoder(metadata.WithIgnoreEntryParsingErrors()); err != nil {
@@ -77,6 +81,10 @@ type StoreCachedMetadataProvider struct {
 	decoder *metadata.Decoder
 	clock   metadata.Clock
 	handler MDS3Provider
+
+	log *logrus.Entry
+
+	cachePolicy string
 
 	update time.Time
 	number int
@@ -131,11 +139,19 @@ func (p *StoreCachedMetadataProvider) init() (err error) {
 	_, _, _ = p.loadCache(ctx)
 
 	if _, data, err = p.loadCurrent(ctx, p.number); err != nil {
-		return fmt.Errorf("error initializing provider: %w", err)
+		if p.cachePolicy == CachePolicyStrict {
+			return fmt.Errorf("error initializing provider: %w", err)
+		}
+
+		p.log.WithError(err).Debug("Error occurred fetching current metadata but the cache policy is relaxed")
 	}
 
 	if p.number <= 0 {
 		return fmt.Errorf("error initializing provider: no metadata was loaded")
+	}
+
+	if p.update.Before(p.clock.Now()) {
+		return fmt.Errorf("error initializing provider: outdated metadata was loaded")
 	}
 
 	if data == nil {

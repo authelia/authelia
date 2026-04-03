@@ -1,19 +1,16 @@
-import React, { Fragment, useEffect, useState } from "react";
+import { FC, Fragment, useEffect, useState } from "react";
 
-import { Checkbox, FormControlLabel, Theme, Tooltip } from "@mui/material";
+import { Checkbox, FormControlLabel, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 export interface Props {
     pre_configuration: boolean;
-    onChangePreConfiguration: (value: boolean) => void;
+    onChangePreConfiguration: (_value: boolean) => void;
 }
 
-const DecisionFormPreConfiguration: React.FC<Props> = (props: Props) => {
+const DecisionFormPreConfiguration: FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent"]);
-
-    const { classes } = useStyles();
 
     const [preConfigure, setPreConfigure] = useState(false);
 
@@ -40,7 +37,6 @@ const DecisionFormPreConfiguration: React.FC<Props> = (props: Props) => {
                                     color="primary"
                                 />
                             }
-                            className={classes.preConfigure}
                             label={translate("Remember Consent")}
                         />
                     </Tooltip>
@@ -49,9 +45,5 @@ const DecisionFormPreConfiguration: React.FC<Props> = (props: Props) => {
         </Fragment>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    preConfigure: {},
-}));
 
 export default DecisionFormPreConfiguration;

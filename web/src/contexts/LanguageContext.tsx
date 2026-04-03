@@ -1,20 +1,20 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { i18n } from "i18next";
 
 import { LocalStorageLanguagePreference } from "@constants/LocalStorage";
 import { setLocalStorage } from "@services/LocalStorage";
 
-export const LanguageContext = createContext<ValueProps | null>(null);
+export const LanguageContext = createContext<null | ValueProps>(null);
 
 export interface Props {
-    i18n: i18n;
-    children: React.ReactNode;
+    readonly i18n: i18n;
+    readonly children: ReactNode;
 }
 
 export interface ValueProps {
-    locale: string;
-    setLocale: (locale: string) => void;
+    readonly locale: string;
+    readonly setLocale: (_locale: string) => void;
 }
 
 export default function LanguageContextProvider(props: Props) {
@@ -50,19 +50,22 @@ export default function LanguageContextProvider(props: Props) {
     );
 
     useEffect(() => {
-        window.addEventListener("storage", listener);
+        globalThis.addEventListener("storage", listener);
 
         return () => {
-            window.removeEventListener("storage", listener);
+            globalThis.removeEventListener("storage", listener);
         };
     }, [listener]);
 
     return (
         <LanguageContext.Provider
-            value={{
-                locale,
-                setLocale: callback,
-            }}
+            value={useMemo(
+                () => ({
+                    locale,
+                    setLocale: callback,
+                }),
+                [locale, callback],
+            )}
         >
             {props.children}
         </LanguageContext.Provider>

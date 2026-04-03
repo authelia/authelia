@@ -71,6 +71,20 @@ func (mr *MockAccessTokenStrategyMockRecorder) GenerateAccessToken(ctx, requeste
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateAccessToken", reflect.TypeOf((*MockAccessTokenStrategy)(nil).GenerateAccessToken), ctx, requester)
 }
 
+// IsOpaqueAccessToken mocks base method.
+func (m *MockAccessTokenStrategy) IsOpaqueAccessToken(ctx context.Context, token string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsOpaqueAccessToken", ctx, token)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsOpaqueAccessToken indicates an expected call of IsOpaqueAccessToken.
+func (mr *MockAccessTokenStrategyMockRecorder) IsOpaqueAccessToken(ctx, token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsOpaqueAccessToken", reflect.TypeOf((*MockAccessTokenStrategy)(nil).IsOpaqueAccessToken), ctx, token)
+}
+
 // ValidateAccessToken mocks base method.
 func (m *MockAccessTokenStrategy) ValidateAccessToken(ctx context.Context, requester oauth2.Requester, token string) error {
 	m.ctrl.T.Helper()

@@ -2,7 +2,7 @@
 title: "Access Control"
 description: "Access Control is the main authorization system in Authelia."
 summary: "Access Control is the main authorization system in Authelia."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 310
@@ -40,7 +40,7 @@ access_control:
 ```
 
 This rule matches when the request targets the domain `dev.example.com`, the path matches the regular expression
-`^/groups/dev/.*$`, the user is a member of the `dev` group, the request comes from a client on the 192.168.2.0/24
+`^/groups/dev/.*$`, the user is a member of the `dev` group, the request comes from a client on the 192.168.1.0/24
 subnet, and the HTTP method verb is GET or POST. In that case, a two-factor policy is applied requiring the user to
 authenticate with two factors.
 

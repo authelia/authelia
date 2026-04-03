@@ -19,7 +19,6 @@ func TimeBasedOneTimePasswordGET(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred retrieving TOTP configuration: %s", errStrUserSessionData)
 
@@ -41,12 +40,12 @@ func TimeBasedOneTimePasswordGET(ctx *middlewares.AutheliaCtx) {
 	var config *model.TOTPConfiguration
 
 	if config, err = ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred retrieving TOTP configuration for user '%s': error occurred retrieving the configuration from the storage backend", userSession.Username)
-
 		if errors.Is(err, storage.ErrNoTOTPConfiguration) {
+			ctx.Logger.WithError(err).Debugf("Error occurred retrieving TOTP configuration for user '%s'", userSession.Username)
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
 			ctx.SetJSONError("Could not find TOTP Configuration for user.")
 		} else {
+			ctx.Logger.WithError(err).Errorf("Error occurred retrieving TOTP configuration for user '%s': error occurred retrieving the configuration from the storage backend", userSession.Username)
 			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 			ctx.SetJSONError("Could not find TOTP Configuration for user.")
 		}
@@ -77,7 +76,6 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		step          uint64
 		err           error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication: %s", errStrUserSessionData)
 

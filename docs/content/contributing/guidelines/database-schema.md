@@ -2,7 +2,7 @@
 title: "Database Schema"
 description: "Authelia Development Database Schema Guidelines"
 summary: "This section covers the database schema guidelines we use for development."
-date: 2022-11-19T16:47:09+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 320

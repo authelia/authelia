@@ -1,11 +1,18 @@
 package authentication
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/mail"
 	"net/url"
+	"strings"
 
+	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/text/language"
+
+	"github.com/authelia/authelia/v4/internal/clock"
 )
 
 // UserDetails represent the details retrieved for a given user.
@@ -192,6 +199,7 @@ func stringURL(uri *url.URL) string {
 	return uri.String()
 }
 
+// UserDetailsAddress is a structure with a users address information.
 type UserDetailsAddress struct {
 	StreetAddress string
 	Locality      string
@@ -228,22 +236,89 @@ type ldapUserProfileExtended struct {
 	*ldapUserProfile
 }
 
-// LDAPSupportedFeatures represents features which a server may support which are implemented in code.
-type LDAPSupportedFeatures struct {
-	Extensions   LDAPSupportedExtensions
-	ControlTypes LDAPSupportedControlTypes
+// LDAPDiscovery represents various information about a server, such as LDAP Version, Features, Extensions, Controls.
+// and SASL Mechanisms.
+type LDAPDiscovery struct {
+	Successful bool
+
+	LDAPVersion    []int
+	SASLMechanisms []string
+
+	Extensions LDAPDiscoveryExtensions
+	Controls   LDAPDiscoveryControls
+	Features   LDAPDiscoveryFeatures
+	Vendor     LDAPDiscoveryVendor
 }
 
-// LDAPSupportedExtensions represents extensions which a server may support which are implemented in code.
-type LDAPSupportedExtensions struct {
-	TLS           bool
-	PwdModifyExOp bool
+func (d LDAPDiscovery) Strings() (extensions, controls, features, saslMechanisms string) {
+	if !d.Successful {
+		return none, none, none, none
+	}
+
+	extensions = d.Extensions.String()
+	controls = d.Controls.String()
+	features = d.Features.String()
+
+	if len(d.SASLMechanisms) == 0 {
+		return extensions, controls, features, none
+	}
+
+	saslMechanisms = strings.Join(d.SASLMechanisms, ", ")
+
+	return extensions, controls, features, saslMechanisms
 }
 
-// LDAPSupportedControlTypes represents control types which a server may support which are implemented in code.
-type LDAPSupportedControlTypes struct {
+// LDAPDiscoveryExtensions represents the extended operations a server supports.
+type LDAPDiscoveryExtensions struct {
+	OIDs []string
+
+	TLS       bool
+	PwdModify bool
+	WhoAmI    bool
+}
+
+func (s LDAPDiscoveryExtensions) String() string {
+	if len(s.OIDs) == 0 {
+		return none
+	}
+
+	return strings.Join(s.OIDs, ", ")
+}
+
+// LDAPDiscoveryControls represents the request and response controls which a server may support.
+type LDAPDiscoveryControls struct {
+	OIDs []string
+
 	MsftPwdPolHints           bool
 	MsftPwdPolHintsDeprecated bool
+}
+
+func (s LDAPDiscoveryControls) String() string {
+	if len(s.OIDs) == 0 {
+		return none
+	}
+
+	return strings.Join(s.OIDs, ", ")
+}
+
+// LDAPDiscoveryFeatures represents the features a server supports.
+type LDAPDiscoveryFeatures struct {
+	OIDs []string
+}
+
+func (s LDAPDiscoveryFeatures) String() string {
+	if len(s.OIDs) == 0 {
+		return none
+	}
+
+	return strings.Join(s.OIDs, ", ")
+}
+
+type LDAPDiscoveryVendor struct {
+	Name                  string
+	Version               string
+	ForestFunctionalLevel int
+	DomainFunctionalLevel int
 }
 
 // Level is the type representing a level of authentication.
@@ -272,4 +347,69 @@ func (l Level) String() string {
 	default:
 		return "invalid"
 	}
+}
+
+type Context interface {
+	context.Context
+
+	GetUserProvider() UserProvider
+	GetLogger() *logrus.Entry
+	GetClock() clock.Provider
+}
+
+func NewPoolCtxErr(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		return &PoolErr{
+			err:             err,
+			isDeadlineError: true,
+		}
+	}
+
+	return &PoolErr{err: err}
+}
+
+type PoolErr struct {
+	err             error
+	isDeadlineError bool
+}
+
+func (e *PoolErr) Error() string {
+	return e.err.Error()
+}
+
+func (e *PoolErr) Is(target error) bool {
+	return errors.Is(e.err, target)
+}
+
+func (e *PoolErr) Unwrap() error {
+	return e.err
+}
+
+func (e *PoolErr) IsDeadlineError() bool {
+	return e.isDeadlineError
+}
+
+// LDAPBaseClient is an extended version of the ldap.Client with some additional functions.
+type LDAPBaseClient interface {
+	ldap.Client
+
+	GSSAPIBind(client ldap.GSSAPIClient, servicePrincipal, authzid string) (err error)
+	GSSAPIBindRequest(client ldap.GSSAPIClient, req *ldap.GSSAPIBindRequest) (err error)
+	GSSAPIBindRequestWithAPOptions(client ldap.GSSAPIClient, req *ldap.GSSAPIBindRequest, APOptions []int) (err error)
+	MD5Bind(host, username, password string) error
+	DigestMD5Bind(digestMD5BindRequest *ldap.DigestMD5BindRequest) (*ldap.DigestMD5BindResult, error)
+	NTLMChallengeBind(challenge *ldap.NTLMBindRequest) (result *ldap.NTLMBindResult, err error)
+	NTLMBindWithHash(domain, username, hash string) (err error)
+	NTLMBind(domain, username, password string) (err error)
+	WhoAmI(controls []ldap.Control) (result *ldap.WhoAmIResult, err error)
+}
+
+type LDAPExtendedClient interface {
+	LDAPBaseClient
+
+	Discovery() (features LDAPDiscovery)
 }

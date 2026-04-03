@@ -2,7 +2,7 @@
 title: "Schemas"
 description: "A reference guide on the schemas provided by Authelia"
 summary: "This section contains reference documentation for Authelia's schemas."
-date: 2023-09-03T16:01:46+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 220

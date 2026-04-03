@@ -13,12 +13,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 func TestNewSession(t *testing.T) {
@@ -31,7 +33,6 @@ func TestNewSession(t *testing.T) {
 	assert.Equal(t, "", session.Subject)
 	require.NotNil(t, session.Claims)
 	assert.NotNil(t, session.Claims.Extra)
-	assert.NotNil(t, session.Extra)
 	require.NotNil(t, session.Headers)
 	assert.NotNil(t, session.Headers.Extra)
 }
@@ -74,7 +75,6 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	session := oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request, nil)
 
 	require.NotNil(t, session)
-	require.NotNil(t, session.Extra)
 	require.NotNil(t, session.Headers)
 	require.NotNil(t, session.Headers.Extra)
 	require.NotNil(t, session.Claims)
@@ -109,7 +109,6 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	session = oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request, claims)
 
 	require.NotNil(t, session)
-	require.NotNil(t, session.Extra)
 	require.NotNil(t, session.Headers)
 	require.NotNil(t, session.Headers.Extra)
 	require.NotNil(t, session.Claims)
@@ -207,18 +206,10 @@ func (m *TestContext) GetJWTWithTimeFuncOption() jwt.ParserOption {
 	return jwt.WithTimeFunc(m.GetClock().Now)
 }
 
-type TestCodeStrategy struct {
-	signature string
+func (m *TestContext) GetProviderStorage() storage.Provider {
+	return nil
 }
 
-func (m *TestCodeStrategy) AuthorizeCodeSignature(ctx context.Context, token string) string {
-	return m.signature
-}
-
-func (m *TestCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester) (token string, signature string, err error) {
-	return "", "", nil
-}
-
-func (m *TestCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester, token string) (err error) {
+func (m *TestContext) GetUserProvider() authentication.UserProvider {
 	return nil
 }

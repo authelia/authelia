@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
     Box,
@@ -9,14 +9,12 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    Theme,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import OneTimeCodeTextField from "@components/OneTimeCodeTextField";
 import SuccessIcon from "@components/SuccessIcon";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import {
     UserSessionElevation,
     deleteUserSessionElevation,
@@ -27,17 +25,15 @@ import {
 type Props = {
     elevation?: UserSessionElevation;
     opening: boolean;
-    handleClosed: (ok: boolean) => void;
+    handleClosed: (_ok: boolean) => void;
     handleOpened: () => void;
 };
 
 const IdentityVerificationDialog = function (props: Props) {
+    const { elevation, handleClosed, handleOpened, opening } = props;
     const { t: translate } = useTranslation("settings");
-    const { classes } = useStyles();
-
     const { createErrorNotification } = useNotifications();
 
-    const [open, setOpen] = useState(false);
     const [closing, setClosing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -45,21 +41,23 @@ const IdentityVerificationDialog = function (props: Props) {
     const [codeInput, setCodeInput] = useState("");
     const [codeDelete, setCodeDelete] = useState<string>();
     const [codeError, setCodeError] = useState(false);
+    const [ready, setReady] = useState(false);
     const codeRef = useRef<HTMLInputElement>(null);
+
+    const open = useMemo(() => ready && !closing && opening && !!elevation, [ready, closing, opening, elevation]);
 
     const handleClose = useCallback(
         (ok: boolean) => {
-            setOpen(false);
-
             setCodeInput("");
             setCodeDelete(undefined);
             setCodeError(false);
             setLoading(false);
             setSuccess(false);
             setClosing(false);
-            props.handleClosed(ok);
+            setReady(false);
+            handleClosed(ok);
         },
-        [props],
+        [handleClosed],
     );
 
     const handleDelete = useCallback(async () => {
@@ -98,26 +96,6 @@ const IdentityVerificationDialog = function (props: Props) {
         codeRef.current?.focus();
     }, [createErrorNotification, translate]);
 
-    const handleLoad = useCallback(async () => {
-        if (props.elevation && (props.elevation.elevated || props.elevation.skip_second_factor)) {
-            handleClose(true);
-
-            return;
-        }
-
-        if (open) {
-            return;
-        }
-
-        const attempt = await generateUserSessionElevation();
-
-        if (!attempt) throw new Error("Failed to load the data.");
-
-        setCodeDelete(attempt.delete_id);
-        props.handleOpened();
-        setOpen(true);
-    }, [handleClose, open, props]);
-
     const handleSubmit = useCallback(async () => {
         if (codeInput === "") return;
 
@@ -132,15 +110,12 @@ const IdentityVerificationDialog = function (props: Props) {
     }, [codeInput, handleFailure, handleSuccess]);
 
     const handleSubmitKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        async (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
-                if (!codeInput.length) {
+                if (codeInput.length === 0) {
                     setCodeError(true);
-                } else if (codeInput.length) {
-                    handleSubmit();
                 } else {
-                    setCodeError(false);
-                    codeRef.current?.focus();
+                    await handleSubmit();
                 }
             }
         },
@@ -148,15 +123,29 @@ const IdentityVerificationDialog = function (props: Props) {
     );
 
     useEffect(() => {
-        if (closing || !props.opening || !props.elevation) {
+        if (closing || !opening || !elevation) {
             return;
         }
 
-        handleLoad().catch(console.error);
-    }, [closing, handleLoad, props.elevation, props.opening]);
+        if (ready) return;
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setCodeInput(e.target.value.replace(/\s/g, ""));
+        generateUserSessionElevation()
+            .then((attempt) => {
+                if (!attempt) throw new Error("Failed to load the data.");
+
+                setCodeDelete(attempt.delete_id);
+                handleOpened();
+                setReady(true);
+            })
+            .catch((error) => {
+                console.error(error);
+                createErrorNotification(translate("Failed to generate the One-Time Code. Please try again later."));
+                handleClose(false);
+            });
+    }, [closing, opening, elevation, ready, translate, handleClose, handleOpened, createErrorNotification]);
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setCodeInput(e.target.value.replaceAll(/\s/g, ""));
         setCodeError(false);
     };
 
@@ -166,13 +155,14 @@ const IdentityVerificationDialog = function (props: Props) {
             {success ? (
                 <DialogContent>
                     <Box
-                        className={classes.success}
                         sx={{
                             display: "flex",
+                            flex: "0 0 100%",
                             flexDirection: "column",
                             m: "auto",
-                            width: "fit-content",
+                            marginBottom: (theme) => theme.spacing(2),
                             padding: "5.0rem",
+                            width: "fit-content",
                         }}
                     >
                         <SuccessIcon />
@@ -193,14 +183,13 @@ const IdentityVerificationDialog = function (props: Props) {
                             display: "flex",
                             flexDirection: "column",
                             m: "auto",
-                            width: "fit-content",
                             marginY: "2.5rem",
+                            width: "fit-content",
                         }}
                     >
                         <OneTimeCodeTextField
                             id={"one-time-code"}
                             label={"One-Time Code"}
-                            autoFocus={true}
                             value={codeInput}
                             onChange={handleChange}
                             error={codeError}
@@ -215,7 +204,7 @@ const IdentityVerificationDialog = function (props: Props) {
                 <DialogActions>
                     <Button
                         id={"dialog-cancel"}
-                        variant={"outlined"}
+                        variant={"contained"}
                         color={"error"}
                         disabled={loading}
                         onClick={handleCancelled}
@@ -224,8 +213,8 @@ const IdentityVerificationDialog = function (props: Props) {
                     </Button>
                     <Button
                         id={"dialog-verify"}
-                        variant={"outlined"}
-                        color={"primary"}
+                        variant={"contained"}
+                        color={"info"}
                         disabled={loading}
                         startIcon={loading ? <CircularProgress color="inherit" size={20} /> : undefined}
                         onClick={handleSubmit}
@@ -237,17 +226,5 @@ const IdentityVerificationDialog = function (props: Props) {
         </Dialog>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    success: {
-        marginBottom: theme.spacing(2),
-        flex: "0 0 100%",
-        display: "flex",
-        flexDirection: "column",
-        m: "auto",
-        width: "fit-content",
-        marginY: "2.5rem",
-    },
-}));
 
 export default IdentityVerificationDialog;

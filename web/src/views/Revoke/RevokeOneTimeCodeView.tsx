@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import { useTranslation } from "react-i18next";
 
 import { IndexRoute } from "@constants/Routes";
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useID } from "@hooks/Revoke";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { deleteUserSessionElevation } from "@services/UserSessionElevation";
@@ -11,7 +11,7 @@ import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 const RevokeOneTimeCodeView = function () {
     const { t: translate } = useTranslation();
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const id = useID();
     const navigate = useRouterNavigate();

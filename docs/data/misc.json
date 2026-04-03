@@ -1,14 +1,40 @@
 {
     "csp": {
-        "default": "default-src 'self'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'; frame-ancestors 'none'; base-uri 'self'",
-        "development": "default-src 'self' 'unsafe-eval'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'; frame-ancestors 'none'; base-uri 'self'",
+        "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-${NONCE}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
+        "development": "default-src 'self' 'unsafe-eval'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
         "nonce": "${NONCE}"
     },
-    "latest": "4.39.3",
+    "latest": "4.39.16",
     "support": {
         "traefik": [
-            "v3.4.0",
-            "v2.11.24"
+            "v3.6.11",
+            "v2.11.41"
         ]
+    },
+    "hashing_algorithms": {
+        "pbkdf2": {
+            "variants": {
+                "sha1": {
+                    "fips": "Approved only for Legacy Systems",
+                    "default_iterations": "1600000"
+                },
+                "sha224": {
+                    "fips": "Approved",
+                    "default_iterations": "900000"
+                },
+                "sha256": {
+                    "fips": "Approved",
+                    "default_iterations": "700000"
+                },
+                "sha384": {
+                    "fips": "Approved (Recommended)",
+                    "default_iterations": "280000"
+                },
+                "sha512": {
+                    "fips": "Approved",
+                    "default_iterations": "310000"
+                }
+            }
+        }
     }
 }

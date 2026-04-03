@@ -6,7 +6,7 @@ GROUP="unset"
 PREFIX="authelia/"
 TAG="unset"
 
-if [[ "${BUILDKITE_BRANCH}" =~ ^renovate/ ]]; then
+if [[ "${BUILDKITE_BRANCH}" =~ ^renovate- ]]; then
   TAG="renovate"
 elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
   TAG="${BUILDKITE_BRANCH}"

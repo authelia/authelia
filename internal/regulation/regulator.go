@@ -38,7 +38,6 @@ func (r *Regulator) HandleAttempt(ctx Context, successful, banned bool, username
 	}
 
 	var err error
-
 	if err = r.store.AppendAuthenticationLog(ctx, attempt); err != nil {
 		ctx.GetLogger().WithFields(map[string]any{fieldUsername: username, "successful": successful}).WithError(err).Errorf("Failed to record %s authentication attempt", authType)
 	}
@@ -96,7 +95,7 @@ func (r *Regulator) handleAttemptPossibleBannedIP(ctx Context, since time.Time) 
 }
 
 func (r *Regulator) handleAttemptPossibleBannedUser(ctx Context, since time.Time, username string) {
-	if !r.users {
+	if !r.users || username == "" {
 		return
 	}
 

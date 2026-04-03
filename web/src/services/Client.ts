@@ -13,7 +13,7 @@ export async function PutWithOptionalResponse<T = undefined>(path: string, body?
     const res = await axios.put<ServiceResponse<T>>(path, body);
 
     if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new Error(`Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
+        throw new Error(`Failed PUT to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
     }
 
     return toData<T>(res);
@@ -94,7 +94,7 @@ export async function Get<T = undefined>(path: string): Promise<T> {
     return d;
 }
 
-export async function GetWithOptionalData<T = undefined>(path: string): Promise<T | null> {
+export async function GetWithOptionalData<T = undefined>(path: string): Promise<null | T> {
     const res = await axios.get<ServiceResponse<T>>(path);
 
     if (res.status !== 200 || hasServiceError(res).errored) {

@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 // FuncMap returns the template FuncMap commonly used in several templates.
@@ -409,7 +409,7 @@ func FuncDict(pairs ...any) map[string]any {
 			continue
 		}
 
-		m[key] = pairs[i+1]
+		m[key] = pairs[i+1] //nolint:gosec // This can only panic on invalid inputs which all occur in templating.
 	}
 
 	return m
@@ -616,7 +616,6 @@ func FuncDateInZone(format string, date any, zone string) string {
 		location *time.Location
 		err      error
 	)
-
 	if location, err = time.LoadLocation(zone); err != nil {
 		location = time.UTC
 	}

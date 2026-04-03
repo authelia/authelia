@@ -2,7 +2,7 @@
 title: "Redis"
 description: "Redis Session Configuration"
 summary: "Configuring the Redis Session Storage."
-date: 2021-04-11T21:25:03+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 106200
@@ -75,7 +75,7 @@ This section describes the individual configuration options.
 
 {{< confkey type="string" required="yes" >}}
 
-The [redis] host or unix socket path. If utilising an IPv6 literal address it must be enclosed by square brackets and
+The [redis] host or unix socket path. If utilizing an IPv6 literal address it must be enclosed by square brackets and
 quoted:
 
 ```yaml {title="configuration.yml"}

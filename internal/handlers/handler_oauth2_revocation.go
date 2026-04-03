@@ -17,7 +17,6 @@ func OAuth2RevocationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, 
 		requestID uuid.UUID
 		err       error
 	)
-
 	if requestID, err = uuid.NewRandom(); err != nil {
 		ctx.Providers.OpenIDConnect.WriteRevocationResponse(ctx, rw, oauthelia2.ErrServerError)
 

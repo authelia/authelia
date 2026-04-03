@@ -9,6 +9,11 @@ img[data-sizes="auto"] {
   width: unset !important;
 }
 
+img.oidc-certification {
+  height: 10dvh;
+  width: auto;
+}
+
 .text-orange {
   --bs-text-opacity: 1;
 
@@ -141,6 +146,12 @@ a:hover.confkey-syntax {
   background-color: $cyan-800;
 }
 
+.security-issue {
+  color: $orange;
+  font-style: italic;
+  font-weight: bold;
+}
+
 img.center {
   display: block;
   margin: 0.7rem auto;
@@ -158,4 +169,25 @@ img.floatright {
 
 figcaption.center {
   text-align: center;
+}
+
+// DocSearch
+
+.DocSearch-Container {
+  z-index: 2000 !important;
+}
+
+.DocSearch-Hit-icon {
+  display: flex;
+  align-items: center;
+}
+
+.DocSearch-Hits mark {
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .DocSearch-Modal {
+    position: fixed !important;
+  }
 }

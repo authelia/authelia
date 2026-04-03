@@ -23,7 +23,6 @@ func PasswordPolicyConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var err error
-
 	if err = ctx.SetJSONBody(policyResponse); err != nil {
 		ctx.Logger.Errorf("Unable to send password Policy: %s", err)
 	}

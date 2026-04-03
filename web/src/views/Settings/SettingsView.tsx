@@ -1,9 +1,7 @@
 import { Box, Paper, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-export interface Props {}
-
-const SettingsView = function (props: Props) {
+const SettingsView = function () {
     const { t: translate } = useTranslation("settings");
 
     return (

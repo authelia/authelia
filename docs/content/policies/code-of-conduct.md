@@ -2,19 +2,20 @@
 title: "Code of Conduct"
 description: "The Code of Conduct that all community members must agree to abide by."
 summary: "The Code of Conduct that all community members must agree to abide by."
-date: 2021-07-30T16:46:06+10:00
+date: 2024-11-14T11:21:52+00:00
 draft: false
 images: []
 weight: 100
 toc: true
 type: legal
 aliases:
-  - /code-of-conduct
-  - /code-of-conduct.html
-  - /conduct
-  - /conduct.html
-  - /coc
-  - /coc.html
+  - '/code-of-conduct'
+  - '/code-of-conduct.html'
+  - '/conduct'
+  - '/conduct.html'
+  - '/coc'
+  - '/coc.html'
+  - '/information/code-of-conduct/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

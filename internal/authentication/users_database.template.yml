@@ -8,7 +8,7 @@
 
 users:
   authelia:
-    disabled: false
+    disabled: true
     displayname: "Test User"
     password: "$argon2id$v=19$m=32768,t=1,p=8$eUhVT1dQa082YVk2VUhDMQ$E8QI4jHbUBt3EdsU1NFDu4Bq5jObKNx7nBKSn1EYQxk"  # Password is 'authelia'
     email: authelia@authelia.com

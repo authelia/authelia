@@ -162,7 +162,6 @@ func validateQuery(i int, rule schema.AccessControlRule, config *schema.Configur
 						pattern *regexp.Regexp
 						err     error
 					)
-
 					if pattern, err = regexp.Compile(v); err != nil {
 						validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalidValueParse, ruleDescriptor(i+1, rule), "value", err))
 					} else {

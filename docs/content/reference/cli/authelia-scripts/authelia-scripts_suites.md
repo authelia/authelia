@@ -2,7 +2,7 @@
 title: "authelia-scripts suites"
 description: "Reference for the authelia-scripts suites command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2026-04-02T15:48:22+11:00
 draft: false
 images: []
 weight: 925

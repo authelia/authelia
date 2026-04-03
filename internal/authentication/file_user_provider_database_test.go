@@ -42,9 +42,10 @@ func TestDatabaseModel_Read(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.EqualError(t, model.Read(f), "could not parse the YAML database: yaml: line 2: found character that cannot start any token")
+	assert.EqualError(t, model.Read(f), "could not parse the YAML database: yaml: while scanning for the next token at line 2: found character that cannot start any token")
 }
 
+//nolint:gosec // Test Credentials.
 func TestDatabaseModelExtended(t *testing.T) {
 	mustParseURI := func(in string) *url.URL {
 		if u, err := url.ParseRequestURI(in); err != nil {

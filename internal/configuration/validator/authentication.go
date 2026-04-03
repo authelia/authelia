@@ -131,7 +131,7 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Authen
 		config.Argon2.Memory = schema.DefaultPasswordConfig.Argon2.Memory
 	case config.Argon2.Memory < argon2.MemoryMin:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashArgon2, "memory", config.Argon2.Memory, argon2.MemoryMin))
-	case uint64(config.Argon2.Memory) > uint64(argon2.MemoryMax): //nolint:gosec // Validated at runtime.
+	case uint64(config.Argon2.Memory) > uint64(argon2.MemoryMax):
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashArgon2, "memory", config.Argon2.Memory, argon2.MemoryMax))
 	case config.Argon2.Memory < (config.Argon2.Parallelism * argon2.MemoryMinParallelismMultiplier):
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordArgon2MemoryTooLow, config.Argon2.Memory, config.Argon2.Parallelism*argon2.MemoryMinParallelismMultiplier, config.Argon2.Parallelism, argon2.MemoryMinParallelismMultiplier))
@@ -197,7 +197,7 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Authen
 
 	switch {
 	case config.PBKDF2.Iterations == 0:
-		config.PBKDF2.Iterations = schema.DefaultPasswordConfig.PBKDF2.Iterations
+		config.PBKDF2.Iterations = schema.PBKDF2VariantDefaultIterations(config.PBKDF2.Variant)
 	case config.PBKDF2.Iterations < pbkdf2.IterationsMin:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashPBKDF2, "iterations", config.PBKDF2.Iterations, pbkdf2.IterationsMin))
 	case config.PBKDF2.Iterations > pbkdf2.IterationsMax:
@@ -308,11 +308,7 @@ func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Authen
 		}
 
 		if config.SaltLength > 0 && config.SHA2Crypt.SaltLength == 0 {
-			if config.SaltLength > 16 {
-				config.SHA2Crypt.SaltLength = 16
-			} else {
-				config.SHA2Crypt.SaltLength = config.SaltLength
-			}
+			config.SHA2Crypt.SaltLength = min(config.SaltLength, 16)
 		}
 	case hashLegacyArgon2id:
 		config.Algorithm = hashArgon2
@@ -488,7 +484,6 @@ func validateLDAPAuthenticationAddress(config *schema.AuthenticationBackendLDAP,
 	var (
 		err error
 	)
-
 	if err = config.Address.ValidateLDAP(); err != nil {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendAddress, config.Address.String(), err))
 	}

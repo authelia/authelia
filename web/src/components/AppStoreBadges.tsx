@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Box, Link } from "@mui/material";
 
 import AppleStore from "@assets/images/applestore-badge.svg";

@@ -445,7 +445,9 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {
 			Password: "pass",
 			Database: "database",
 			TLS: &schema.TLS{
-				MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+				MinimumVersion: schema.TLSVersion{
+					Value: tls.VersionSSL30, //nolint:staticcheck
+				},
 			},
 		},
 	}

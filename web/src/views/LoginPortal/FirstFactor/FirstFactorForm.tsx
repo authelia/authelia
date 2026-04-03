@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -13,19 +13,17 @@ import {
     IconButton,
     InputAdornment,
     Link,
-    Theme,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { makeStyles } from "tss-react/mui";
 
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlow } from "@hooks/Flow";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
@@ -42,18 +40,17 @@ export interface Props {
 
     onAuthenticationStart: () => void;
     onAuthenticationStop: () => void;
-    onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
     onChannelStateChange: () => void;
 }
 
 const FirstFactorForm = function (props: Props) {
     const { t: translate } = useTranslation();
-    const { classes, cx } = useStyles();
 
     const navigate = useNavigate();
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
-    const { id: flowID, flow, subflow } = useFlow();
+    const { flow, id: flowID, subflow } = useFlow();
     const userCode = useUserCode();
     const { createErrorNotification } = useNotifications();
 
@@ -163,7 +160,7 @@ const FirstFactorForm = function (props: Props) {
 
     const handleResetPasswordClick = () => {
         if (props.resetPassword) {
-            if (props.resetPasswordCustomURL !== "") {
+            if (props.resetPasswordCustomURL) {
                 window.open(props.resetPasswordCustomURL);
             } else {
                 navigate(ResetPasswordStep1Route);
@@ -172,7 +169,7 @@ const FirstFactorForm = function (props: Props) {
     };
 
     const handleUsernameKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     setUsernameError(true);
@@ -188,7 +185,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handlePasswordKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     focusUsername();
@@ -203,7 +200,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handlePasswordKeyUp = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLDivElement>) => {
             if (password.length <= 1) {
                 setPasswordCapsLock(false);
                 setPasswordCapsLockPartial(false);
@@ -227,7 +224,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handleRememberMeKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLButtonElement>) => {
+        (event: KeyboardEvent<HTMLButtonElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     focusUsername();
@@ -325,7 +322,15 @@ const FirstFactorForm = function (props: Props) {
                         </Grid>
                     ) : null}
                     {props.rememberMe ? (
-                        <Grid size={{ xs: 12 }} className={cx(classes.actionRow)}>
+                        <Grid
+                            size={{ xs: 12 }}
+                            sx={{
+                                display: "flex",
+                                flexDirection: "row",
+                                marginBottom: (theme) => theme.spacing(-1),
+                                marginTop: (theme) => theme.spacing(-1),
+                            }}
+                        >
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -338,7 +343,7 @@ const FirstFactorForm = function (props: Props) {
                                         color="primary"
                                     />
                                 }
-                                className={classes.rememberMe}
+                                sx={{ flexGrow: 1 }}
                                 label={translate("Remember me")}
                             />
                         </Grid>
@@ -371,12 +376,21 @@ const FirstFactorForm = function (props: Props) {
                         />
                     ) : null}
                     {props.resetPassword ? (
-                        <Grid size={{ xs: 12 }} className={cx(classes.actionRow, classes.flexEnd)}>
+                        <Grid
+                            size={{ xs: 12 }}
+                            sx={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "flex-end",
+                                marginBottom: (theme) => theme.spacing(-1),
+                                marginTop: (theme) => theme.spacing(-1),
+                            }}
+                        >
                             <Link
                                 id="reset-password-button"
                                 component="button"
                                 onClick={handleResetPasswordClick}
-                                className={classes.resetLink}
+                                sx={{ cursor: "pointer", paddingBottom: "13.5px", paddingTop: "13.5px" }}
                                 underline="hover"
                             >
                                 {translate("Reset password?")}
@@ -388,25 +402,5 @@ const FirstFactorForm = function (props: Props) {
         </LoginLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    actionRow: {
-        display: "flex",
-        flexDirection: "row",
-        marginTop: theme.spacing(-1),
-        marginBottom: theme.spacing(-1),
-    },
-    resetLink: {
-        cursor: "pointer",
-        paddingTop: 13.5,
-        paddingBottom: 13.5,
-    },
-    rememberMe: {
-        flexGrow: 1,
-    },
-    flexEnd: {
-        justifyContent: "flex-end",
-    },
-}));
 
 export default FirstFactorForm;

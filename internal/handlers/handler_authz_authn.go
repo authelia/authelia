@@ -114,7 +114,7 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 		}
 	}
 
-	if invalid := handleAuthnCookieValidate(ctx, provider, &userSession, s.refresh); invalid {
+	if modified, invalid := handleAuthnCookieValidate(ctx, provider, &userSession, s.refresh); invalid {
 		if err = ctx.DestroySession(); err != nil {
 			ctx.Logger.WithError(err).Errorf("Unable to destroy user session")
 		}
@@ -127,10 +127,10 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 		}
 
 		return authn, nil
-	}
-
-	if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
-		ctx.Logger.WithError(err).Error("Unable to save updated user session")
+	} else if modified {
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Error("Unable to save updated user session")
+		}
 	}
 
 	return &Authn{
@@ -197,23 +197,9 @@ func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	cache := authentication.NewCredentialCacheHMAC(sha256.New, lifespan)
 
 	return func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
-		if valid, _ = cache.Valid(authorization.Basic()); valid {
-			return true, true, nil
-		}
+		username, password := authorization.Basic()
 
-		if valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic()); err != nil {
-			return false, false, err
-		}
-
-		if valid {
-			if err = cache.Put(authorization.Basic()); err != nil {
-				ctx.Logger.WithError(err).Errorf("Error occurred saving basic authorization credentials to cache for user '%s'", authorization.BasicUsername())
-			}
-
-			return true, false, nil
-		}
-
-		return false, false, nil
+		return cache.Check(ctx, username, password)
 	}
 }
 
@@ -332,7 +318,11 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 	var valid, cached bool
 
 	if valid, cached, err = s.basic(ctx, authn.Header.Authorization); err != nil {
-		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+		if isRegulatorSkippedErr(err) {
+			ctx.Logger.WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, authn.Header.Authorization.BasicUsername())
+		} else {
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+		}
 
 		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
 	}
@@ -458,37 +448,39 @@ func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.Authelia
 	handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 }
 
-func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
+func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
 	// TODO: Remove this check as it's no longer possible i.e. ineffectual.
 	isAnonymous := userSession.Username == ""
 
 	if isAnonymous && userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) != authentication.NotAuthenticated {
 		ctx.Logger.WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
 
-		return true
+		return modified, true
 	}
 
 	if invalid = handleAuthnCookieValidateInactivity(ctx, provider, userSession, isAnonymous); invalid {
 		ctx.Logger.WithField("username", userSession.Username).Info("Session for user not marked as remembered has exceeded configured session inactivity")
 
-		return true
+		return modified, true
 	}
 
-	if invalid = handleSessionValidateRefresh(ctx, userSession, refresh); invalid {
-		return true
+	if modified, invalid = handleSessionValidateRefresh(ctx, userSession, refresh); invalid {
+		return modified, true
 	}
 
 	if username := ctx.Request.Header.PeekBytes(headerSessionUsername); username != nil && !strings.EqualFold(string(username), userSession.Username) {
 		ctx.Logger.WithField("username", userSession.Username).Warnf("Session for user does not match the Session-Username header with value '%s' which could be a sign of a cookie hijack", username)
 
-		return true
+		return modified, true
 	}
 
 	if !userSession.KeepMeLoggedIn {
+		modified = true
+
 		userSession.LastActivity = ctx.Clock.Now().Unix()
 	}
 
-	return false
+	return modified, false
 }
 
 func handleAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
@@ -501,15 +493,15 @@ func handleAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, provider 
 	return time.Unix(userSession.LastActivity, 0).Add(provider.Config.Inactivity).Before(ctx.Clock.Now())
 }
 
-func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
+func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
 	if refresh.Never() || userSession.IsAnonymous() {
-		return false
+		return false, false
 	}
 
 	ctx.Logger.WithField("username", userSession.Username).Trace("Checking if we need check the authentication backend for an updated profile for user")
 
 	if !refresh.Always() && userSession.RefreshTTL.After(ctx.Clock.Now()) {
-		return false
+		return false, false
 	}
 
 	ctx.Logger.WithField("username", userSession.Username).Debug("Checking the authentication backend for an updated profile for user")
@@ -518,17 +510,16 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 		details *authentication.UserDetails
 		err     error
 	)
-
 	if details, err = ctx.Providers.UserProvider.GetDetails(userSession.Username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
 			ctx.Logger.WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
-			return true
+			return false, true
 		}
 
 		ctx.Logger.WithError(err).WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user")
 
-		return false
+		return false, false
 	}
 
 	var (
@@ -539,13 +530,15 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 	diffDisplayName = userSession.DisplayName != details.DisplayName
 
 	if !refresh.Always() {
+		modified = true
+
 		userSession.RefreshTTL = ctx.Clock.Now().Add(refresh.Value())
 	}
 
 	if !diffEmails && !diffGroups && !diffDisplayName {
 		ctx.Logger.WithField("username", userSession.Username).Trace("Updated profile not detected for user")
 
-		return false
+		return modified, false
 	}
 
 	ctx.Logger.WithField("username", userSession.Username).Debug("Updated profile detected for user")
@@ -556,7 +549,7 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 
 	userSession.Emails, userSession.Groups, userSession.DisplayName = details.Emails, details.Groups, details.DisplayName
 
-	return false
+	return true, false
 }
 
 func handleVerifyGETAuthorizationBearer(ctx *middlewares.AutheliaCtx, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
@@ -585,7 +578,6 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		ErrorField:       "invalid_token",
 		DescriptionField: "The access token is expired, revoked, malformed, or invalid for other reasons. The client can obtain a new access token and try again.",
 	}
-
 	if use, requester, err = provider.IntrospectToken(ctx, authn.Header.Authorization.Value(), oauthelia2.AccessToken, oidc.NewSession(), oidc.ScopeAutheliaBearerAuthz); err != nil {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("error performing token introspection: %w", oauthelia2.ErrorToDebugRFC6749Error(err))
 	}
@@ -627,7 +619,7 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("client id '%s' is registered but does not permit an audience for the url '%s' with the error: %w", osession.ClientID, audience[0], err)
 	}
 
-	if osession.DefaultSession == nil || osession.DefaultSession.Claims == nil {
+	if osession.DefaultSession == nil || osession.Claims == nil {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("introspection returned a session missing required values")
 	}
 

@@ -11,7 +11,7 @@ import (
 )
 
 func handleAuthzGetObjectExtAuthz(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
-	protocol, host, uri := ctx.XForwardedProto(), ctx.RequestCtx.Host(), ctx.AuthzPath()
+	protocol, host, uri := ctx.XForwardedProto(), ctx.Host(), ctx.AuthzPath()
 
 	var (
 		targetURL *url.URL

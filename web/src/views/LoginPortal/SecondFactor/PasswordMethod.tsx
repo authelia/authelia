@@ -1,6 +1,3 @@
-import React from "react";
-
-import { UserInfo } from "@models/UserInfo";
 import { AuthenticationLevel } from "@services/State";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 import PasswordForm from "@views/LoginPortal/SecondFactor/PasswordForm";
@@ -9,9 +6,8 @@ export interface Props {
     id: string;
 
     authenticationLevel: AuthenticationLevel;
-    userInfo: UserInfo;
 
-    onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const PasswordMethod = function (props: Props) {

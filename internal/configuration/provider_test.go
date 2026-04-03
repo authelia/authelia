@@ -93,6 +93,108 @@ func TestShouldHaveNotifier(t *testing.T) {
 	assert.NotNil(t, config.Notifier)
 }
 
+func TestShouldHandleNoAutoMapEmptyNewKey(t *testing.T) {
+	testSetEnv(t, "SESSION_SECRET", "abc")
+	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_no_automap.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+	assert.Len(t, val.Errors(), 0)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'authentication_backend.ldap.permit_feature_detection_failure' is deprecated in 4.39.16 and has been removed: you are not required to make any configuration changes right now but you may be required to in 5.0.0")
+	assert.NotNil(t, config.Notifier)
+
+	assert.NotContains(t, keys, "authentication_backend.ldap.permit_feature_detection_failure")
+}
+
+func TestShouldHandleSubPathVariations(t *testing.T) {
+	testCases := []struct {
+		name         string
+		value        string
+		expectedPath string
+		errs         []string
+	}{
+		{
+			"ShouldReturnEmptyStringUnconfigured",
+			"",
+			"/",
+			nil,
+		},
+		{
+			"ShouldReturnEmptyStringConfiguredEmptyPath",
+			"tcp://127.0.0.1:9091",
+			"/",
+			nil,
+		},
+		{
+			"ShouldReturnSlashConfiguredSlashPath",
+			"tcp://127.0.0.1:9091/",
+			"/",
+			nil,
+		},
+		{
+			"ShouldReturnSubPathConfiguredSubPath",
+			"tcp://127.0.0.1:9091/auth",
+			"/auth",
+			nil,
+		},
+		{
+			"ShouldReturnTrailingSlashStripped",
+			"tcp://127.0.0.1:9091/auth/",
+			"/auth/",
+			[]string{
+				"server: option 'address' must be a single subpath (i.e. '/auth'), but '/auth/' contains multiple segments",
+			},
+		},
+		{
+			"ShouldErrorTrailingSlashSubPath",
+			"tcp://127.0.0.1:9091/auth/abc",
+			"/auth/abc",
+			[]string{
+				"server: option 'address' must be a single subpath (i.e. '/auth'), but '/auth/abc' contains multiple segments",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testSetEnv(t, "SESSION_SECRET", "abc")
+			testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
+			testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
+			testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
+			testSetEnv(t, "SERVER_ADDRESS", tc.value)
+			testSetEnv(t, "STORAGE_ENCRYPTION_KEY", "kjwngjkwnekjfnakjdnakjdnfa")
+			testSetEnv(t, "DUO_API_SECRET_KEY", "kjwngjkwnekjfnakjdnakjdnfa")
+
+			val := schema.NewStructValidator()
+			_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+			require.NoError(t, err)
+			require.Len(t, val.Errors(), 0)
+			require.Len(t, val.Warnings(), 0)
+
+			validator.ValidateConfiguration(config, val)
+
+			require.Len(t, val.Errors(), len(tc.errs))
+
+			if len(tc.errs) != 0 {
+				for i, err := range tc.errs {
+					assert.EqualError(t, val.Errors()[i], err)
+				}
+			}
+
+			require.Len(t, val.Warnings(), 0)
+
+			assert.Equal(t, tc.expectedPath, config.Server.Address.RouterPath())
+		})
+	}
+}
+
 func TestShouldHaveEndpointSubPath(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
@@ -159,7 +261,7 @@ func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 	assert.Len(t, val.Warnings(), 0)
 }
 
-func TestShouldValidateConfigurationWithOverridenDefaults(t *testing.T) {
+func TestShouldValidateConfigurationWithOverriddenDefaults(t *testing.T) {
 	val := schema.NewStructValidator()
 	_, config, err := Load(val, NewDefaultSourcesWithDefaults([]string{"./test_resources/config.webauthn.yml"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter, nil)...)
 
@@ -172,7 +274,7 @@ func TestShouldValidateConfigurationWithOverridenDefaults(t *testing.T) {
 	assert.Equal(t, protocol.UserVerificationRequirement(""), config.WebAuthn.SelectionCriteria.UserVerification)
 }
 
-func TestShouldValidateConfigurationWithoutOverridenDefaults(t *testing.T) {
+func TestShouldValidateConfigurationWithoutOverriddenDefaults(t *testing.T) {
 	val := schema.NewStructValidator()
 	_, config, err := Load(val, NewDefaultSourcesWithDefaults([]string{"./test_resources/config.webauthn-defaults.yml"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter, nil)...)
 
@@ -451,7 +553,7 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	assert.Len(t, val.Errors(), 1)
 
 	assert.EqualError(t, val.Warnings()[0], fmt.Sprintf("configuration environment variable not expected: %sSTORAGE_MYSQL", DefaultEnvPrefix))
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: decoding failed due to the following error(s):\n\nerror decoding 'authentication_backend.ldap.address': could not decode 'an env authentication backend ldap password' to a *schema.AddressLDAP: could not parse string 'an env authentication backend ldap password' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"ldaps://an env authentication backend ldap password\": invalid character \" \" in host name")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshaling configuration: decoding failed due to the following error(s):\n\n'authentication_backend.ldap.address' could not decode 'an env authentication backend ldap password' to a *schema.AddressLDAP: could not parse string 'an env authentication backend ldap password' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"ldaps://an env authentication backend ldap password\": invalid character \" \" in host name")
 }
 
 func TestShouldValidateServerAddressValues(t *testing.T) {
@@ -803,7 +905,7 @@ func TestShouldHandleOIDCClaims(t *testing.T) {
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).D)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).N)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).E)
-	assert.Equal(t, 256, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).PublicKey.Size())
+	assert.Equal(t, 256, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).Size())
 	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain)
 	assert.True(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain.HasCertificates())
 
@@ -825,7 +927,7 @@ func TestShouldHandleOIDCClaims(t *testing.T) {
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).D)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).N)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).E)
-	assert.Equal(t, 512, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).PublicKey.Size())
+	assert.Equal(t, 512, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).Size())
 }
 
 func TestShouldDisableOIDCModern(t *testing.T) {
@@ -857,7 +959,7 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).D)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).N)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).E)
-	assert.Equal(t, 256, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).PublicKey.Size())
+	assert.Equal(t, 256, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).Size())
 	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain)
 	assert.True(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain.HasCertificates())
 
@@ -879,7 +981,7 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).D)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).N)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).E)
-	assert.Equal(t, 512, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).PublicKey.Size())
+	assert.Equal(t, 512, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).Size())
 }
 
 func TestShouldConfigureConsent(t *testing.T) {
@@ -982,7 +1084,7 @@ func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: decoding failed due to the following error(s):\n\nerror decoding 'notifier.smtp.sender': could not decode 'admin' to a mail.Address (RFC5322): mail: missing '@' or angle-addr")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshaling configuration: decoding failed due to the following error(s):\n\n'notifier.smtp.sender' could not decode 'admin' to a mail.Address (RFC5322): mail: missing '@' or angle-addr")
 }
 
 func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
@@ -1134,7 +1236,7 @@ func TestShouldErrOnParseInvalidRegex(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: decoding failed due to the following error(s):\n\nerror decoding 'access_control.rules[0].domain_regex[0]': could not decode '^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshaling configuration: decoding failed due to the following error(s):\n\n'access_control.rules[0].domain_regex[0]' could not decode '^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
 }
 
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {
@@ -1173,6 +1275,8 @@ func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 }
 
 func testSetEnv(t *testing.T, key, value string) {
+	t.Helper()
+
 	t.Setenv(DefaultEnvPrefix+key, value)
 }
 
@@ -1437,7 +1541,6 @@ func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) string {
 		data []byte
 		err  error
 	)
-
 	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
 		panic(err)
 	}

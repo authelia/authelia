@@ -47,8 +47,6 @@ var (
 )
 
 const (
-	environment = "ENVIRONMENT"
-	dev         = "dev"
 	strFalse    = "false"
 	strTrue     = "true"
 	localhost   = "localhost"
@@ -87,4 +85,5 @@ const (
 
 var (
 	reTLSRequestOnPlainTextSocketErr = regexp.MustCompile(`contents: \\x16\\x([a-fA-F0-9]{2})\\x([a-fA-F0-9]{2})`)
+	reValidLanguageCodes             = regexp.MustCompile(`^[a-zA-Z0-9-]{1,15}$`)
 )

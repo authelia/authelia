@@ -28,11 +28,11 @@ export interface UserInfoTOTPConfigurationPayload {
 
 function toUserInfoTOTPConfiguration(payload: UserInfoTOTPConfigurationPayload): UserInfoTOTPConfiguration {
     return {
-        created_at: new Date(payload.created_at),
-        last_used_at: payload.last_used_at ? new Date(payload.last_used_at) : undefined,
-        issuer: payload.issuer,
         algorithm: toEnum(payload.algorithm),
+        created_at: new Date(payload.created_at),
         digits: payload.digits,
+        issuer: payload.issuer,
+        last_used_at: payload.last_used_at ? new Date(payload.last_used_at) : undefined,
         period: payload.period,
     };
 }
@@ -43,7 +43,7 @@ export async function getUserInfoTOTPConfiguration(): Promise<UserInfoTOTPConfig
     return toUserInfoTOTPConfiguration(res);
 }
 
-export async function getUserInfoTOTPConfigurationOptional(): Promise<UserInfoTOTPConfiguration | null> {
+export async function getUserInfoTOTPConfigurationOptional(): Promise<null | UserInfoTOTPConfiguration> {
     const res = await axios.get<ServiceResponse<UserInfoTOTPConfigurationPayload>>(TOTPConfigurationPath, {
         validateStatus: function (status) {
             return status < 300 || status === 404;

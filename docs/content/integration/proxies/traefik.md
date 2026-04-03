@@ -2,7 +2,7 @@
 title: "Traefik"
 description: "An integration guide for Authelia and the Traefik reverse proxy"
 summary: "A guide on integrating Authelia with the Traefik reverse proxy."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 370
@@ -164,7 +164,7 @@ networks:
 services:
   traefik:
     container_name: 'traefik'
-    image: 'traefik:v3.1'
+    image: 'traefik:v3.5'
     restart: 'unless-stopped'
     command:
       - '--api=true'
@@ -292,7 +292,7 @@ networks:
 services:
   traefik:
     container_name: 'traefik'
-    image: 'traefik:v3.1'
+    image: 'traefik:v3.5'
     restart: 'unless-stopped'
     command:
       - '--api=true'
@@ -526,6 +526,11 @@ http:
 ...
 ```
 
+## Kubernetes
+
+Authelia supports some of the [Traefik] based Kubernetes Ingress. See the
+[Kubernetes Integration Guide](../kubernetes/traefik-ingress.md) for more information.
+
 ## Frequently Asked Questions
 
 ### Basic Authentication
@@ -544,7 +549,7 @@ complains that: `middleware authelia@docker not found`.
 This can be avoided a couple different ways:
 
 1. Ensure __Authelia__ container is up before [Traefik] is started:
-   * Utilise the [depends_on](https://docs.docker.com/compose/compose-file/#depends_on) option
+   * Utilize the [depends_on](https://docs.docker.com/compose/compose-file/#depends_on) option
 2. Define the __Authelia__ middleware on your [Traefik] container. See the below example.
 
 ```yaml {title="compose.yml"}

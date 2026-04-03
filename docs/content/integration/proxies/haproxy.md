@@ -2,7 +2,7 @@
 title: "HAProxy"
 description: "An integration guide for Authelia and the HAProxy reverse proxy"
 summary: "A guide on integrating Authelia with the HAProxy reverse proxy."
-date: 2020-02-29T01:43:59+01:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 340
@@ -153,7 +153,7 @@ With this configuration you can protect your virtual hosts with Authelia, by fol
     acl protected-frontends hdr(host) -m reg -i ^(?i)(jenkins|nextcloud|phpmyadmin)\.example\.com
     ```
 
-2. Add host ACL(s) in the form of `host-service`, this will be utilised to route to the correct
+2. Add host ACL(s) in the form of `host-service`, this will be utilized to route to the correct
 backend upon successful authentication, for example:
 
     ```text

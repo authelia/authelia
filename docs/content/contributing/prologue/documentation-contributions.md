@@ -2,7 +2,7 @@
 title: "Documentation Contributions"
 description: "Information on contributing documentation to the Authelia project."
 summary: "Authelia has great documentation however there are always things that can be added. This section describes the contribution process for the documentation even though it's incredibly easy."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 130
@@ -51,6 +51,33 @@ The following steps will allow you to run the website on the localhost and view 
     ```
 2. Visit [http://localhost:1313/](http://localhost:1313/) in your browser.
 3. Modify pages to see the effects live in your browser.
+
+## Generators
+
+There are several documentation generators that exist.
+
+Primarily they modify the files in the following locations:
+
+  - [docs/data](https://github.com/authelia/authelia/tree/master/docs/data) which is generated based on various changes
+    throughout the repository.
+  - [docs/content/reference/cli](https://github.com/authelia/authelia/tree/master/docs/content/reference/cli) which is
+    generated based on the changes to the cobra commands.
+  - [docs/static/schemas](https://github.com/authelia/authelia/tree/master/docs/static/schemas) which is generated based
+    on changes to struct tags in [internal/configuration/schema](https://github.com/authelia/authelia/tree/master/internal/configuration/schema)
+    and other struct tags within the repository.
+
+However the generators also update the [Front Matter](#front-matter) dates of when a document was first created using
+git history.
+
+We recommend running the following command sequence after modification of the source code:
+
+```shell
+source bootstrap.sh
+authelia-gen --exclude docs.date,docs.cli
+```
+
+Alternatively if you've changed the CLI or created new documents running the above command without
+`authelia-gen --exclude docs.date,docs.cli`.
 
 ## Front Matter
 

@@ -3,7 +3,7 @@ title: "First Factor"
 name: "test"
 description: "Configuring Authelia First Factor Authentication."
 summary: "Authelia uses a username and password for a first factor method. This section describes configuring this."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 102100

@@ -1,5 +1,3 @@
-import React, { Fragment } from "react";
-
 import { Link, LinkProps } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
@@ -11,11 +9,9 @@ const PrivacyPolicyLink = function (props: LinkProps) {
     const hrefPrivacyPolicy = getPrivacyPolicyURL();
 
     return (
-        <Fragment>
-            <Link {...props} href={hrefPrivacyPolicy} target="_blank" rel="noopener" underline="hover">
-                {translate("Privacy Policy")}
-            </Link>
-        </Fragment>
+        <Link {...props} href={hrefPrivacyPolicy} target="_blank" rel="noopener" underline="hover">
+            {translate("Privacy Policy")}
+        </Link>
     );
 };
 

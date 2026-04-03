@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0 Clients"
 description: "OpenID Connect 1.0 Registered Clients Configuration"
 summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure the registered clients."
-date: 2023-05-15T10:32:10+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 110220
@@ -72,7 +72,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: 'S256'
         authorization_signed_response_key_id: ''
-        authorization_signed_response_alg: 'none'
+        authorization_signed_response_alg: 'RS256'
         authorization_encrypted_response_key_id: ''
         authorization_encrypted_response_alg: 'none'
         authorization_encrypted_response_enc: 'A128CBC-HS256'
@@ -255,19 +255,19 @@ the `audience` parameter are granted. This behavior can be tuned using the
 [requested_audience_mode](#requested_audience_mode).
 
 This value does not generally affect the minted ID Tokens as they are always issued with the client identifier being the
-audience unless the [claims policy](#claims_policy) changes this behaviour.
+audience unless the [claims policy](#claims_policy) changes this behavior.
 
 ### scopes
 
 {{< confkey type="list(string)" default="openid,groups,profile,email" required="no" >}}
 
 A list of scopes to allow this client to consume. See
-[scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) for more information. The
+[scope definitions](../../../integration/openid-connect/openid-connect-1.0-claims.md#scope-definitions) for more information. The
 documentation for the application you are trying to configure [OpenID Connect 1.0] for will likely have a list of scopes
 or claims required which can be matched with the above guide.
 
 The scope values should generally be one of those documented in the
-[scope definitions](../../../integration/openid-connect/introduction.md#scope-definitions) with the exception of when a client requires a specific scope we do not define. Users should
+[scope definitions](../../../integration/openid-connect/openid-connect-1.0-claims.md#scope-definitions) with the exception of when a client requires a specific scope we do not define. Users should
 expect to see a warning in the logs if they configure a scope not in our definitions with the exception of a client
 where the configured [grant_types](#grant_types) includes the `client_credentials` grant in which case arbitrary scopes are
 expected,
@@ -324,6 +324,17 @@ type, but when it is supported it will include the `query` response mode.
 ### authorization_policy
 
 {{< confkey type="string" default="two_factor" required="no" >}}
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is aimed at providing authorization customization for this particular client. This option should not be
+confused with the [Access Control Rules](../../security/access-control.md#rules) section and this option is distinctly
+and intentionally different. The reasons for the differences are clearly explained in the
+[OpenID Connect 1.0 FAQ](../../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10)
+and [ADR1](../../../reference/architecture-decision-log/1.md). This policy specifically applies solely to Authorization Requests and
+should not be used as a crutch for applications which do not implement the most basic
+level of access control on their end.
+{{< /callout >}}
+
 
 The authorization policy for this client: either `one_factor`, `two_factor`, or one of the ones configured in the
 provider [authorization_policies](./provider.md#authorization_policies) section.
@@ -384,7 +395,8 @@ misused in certain conditions specifically with the public client type or when t
 secret) has been exposed to an attacker. For these reasons this mode is discouraged.
 {{< /callout >}}
 
-Configures the consent mode. The following table describes the different modes:
+Configures the fallback consent mode. If explicit consent or a condition that requires explicit consent is present this
+setting has no effect. The following table describes the different modes:
 
 |     Value      |                                                                  Description                                                                   |
 |:--------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -395,24 +407,8 @@ Configures the consent mode. The following table describes the different modes:
 
 [pre_configured_consent_duration]: #pre_configured_consent_duration
 
-#### implicit
-
-The `implicit` consent mode is largely unsupported and in various cases either revert to `explicit`, silently not
-perform certain expected actions, or outright fail. This mode is intended for development and testing, and should
-not be used in production.
-
-The following specific and intentional limitations exist:
-
-1. The Authorization Code Flow will not mint and grant a Refresh Token unless the user either provides explicit consent
-   or has previously provided explicit consent and requested their consent is remembered.
-2. If the client requests the user is prompted to provide consent the mode will automatically be `explicit` regardless
-   of client configuration.
-3. If the client requests the user is prompted to login again then either the mode will either automatically be
-   `explicit` or the flow may also result in a failure that returns an error to the client.
-4. If the client requests the `offline_access` or `offline` scope the mode will automatically be `explicit` regardless
-   of client configuration.
-5. If the current flow is not compatible with implicit consent for any reason; for example:
-   1. Device Authorization Flow
+See the [Frequently Asked Questions](../../../integration/openid-connect/frequently-asked-questions.md#why-does-authelia-ask-for-consent-when-ive-asked-for-my-consent-to-be-remembered-or-used-the-implicit-consent-policy)
+for more information on specific behavior around why consent may be required despite this configuration option.
 
 ### pre_configured_consent_duration
 
@@ -483,7 +479,7 @@ To be considered valid:
 
 ### authorization_signed_response_alg
 
-{{< confkey type="string" default="none" required="no" >}}
+{{< confkey type="string" default="RS256" required="no" >}}
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 A majority of clients will not support this option with any value other than `none` as it implements the

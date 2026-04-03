@@ -27,8 +27,7 @@ func (s *ResetPasswordScenario) SetupSuite() {
 }
 
 func (s *ResetPasswordScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,6 +45,7 @@ func (s *ResetPasswordScenario) TearDownTest() {
 
 func (s *ResetPasswordScenario) TestShouldResetPassword() {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -73,6 +73,7 @@ func (s *ResetPasswordScenario) TestShouldResetPassword() {
 
 func (s *ResetPasswordScenario) TestShouldMakeAttackerThinkPasswordResetIsInitiated() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -90,6 +91,7 @@ func (s *ResetPasswordScenario) TestShouldMakeAttackerThinkPasswordResetIsInitia
 
 func (s *ResetPasswordScenario) TestShouldNotifyUserOnBlankUsername() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -105,8 +107,9 @@ func (s *ResetPasswordScenario) TestShouldNotifyUserOnBlankUsername() {
 	s.VerifyPageElementAttributeValueBoolean(s.T(), s.Context(ctx), "username-textfield", "aria-invalid", true, true)
 }
 
-func (s *ResetPasswordScenario) TestShouldLetUserNoticeThereIsAPasswordMismatch() {
+func (s *ResetPasswordScenario) TestShouldNotifyUserThereIsAPasswordMismatch() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

@@ -12,7 +12,6 @@ package authentication
 import (
 	reflect "reflect"
 
-	ldap "github.com/go-ldap/ldap/v3"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -55,14 +54,14 @@ func (mr *MockLDAPClientFactoryMockRecorder) Close() *gomock.Call {
 }
 
 // GetClient mocks base method.
-func (m *MockLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (ldap.Client, error) {
+func (m *MockLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (LDAPExtendedClient, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetClient", varargs...)
-	ret0, _ := ret[0].(ldap.Client)
+	ret0, _ := ret[0].(LDAPExtendedClient)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -88,7 +87,7 @@ func (mr *MockLDAPClientFactoryMockRecorder) Initialize() *gomock.Call {
 }
 
 // ReleaseClient mocks base method.
-func (m *MockLDAPClientFactory) ReleaseClient(client ldap.Client) error {
+func (m *MockLDAPClientFactory) ReleaseClient(client LDAPExtendedClient) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReleaseClient", client)
 	ret0, _ := ret[0].(error)

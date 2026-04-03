@@ -8,10 +8,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -57,8 +58,9 @@ func (s *CLISuite) TestShouldPrintBuildInformation() {
 	s.Contains(output, "Build OS: ")
 	s.Contains(output, "Build Arch: ")
 	s.Contains(output, "Build Date: ")
+	s.Contains(output, "Development: ")
 
-	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Compiler: gc\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nExtra: \n\nGo:\n\s+Version: go\d+\.\d+\.\d+ X:nosynchashtriemap\n\s+Module Path: github.com/authelia/authelia/v4\n\s+Executable Path: github.com/authelia/authelia/v4/cmd/authelia`)
+	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Compiler: gc\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nDevelopment: (true|false)\nExtra: \n\nGo:\n\s+Version: go\d+\.\d+\.\d+( X:nosynchashtriemap)?\n\s+Module Path: github.com/authelia/authelia/v4\n\s+Executable Path: github.com/authelia/authelia/v4/cmd/authelia`)
 	s.Regexp(r, output)
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "build-info", "-v"})
@@ -70,6 +72,7 @@ func (s *CLISuite) TestShouldPrintBuildInformation() {
 	s.Contains(output, "Build OS: ")
 	s.Contains(output, "Build Arch: ")
 	s.Contains(output, "Build Date: ")
+	s.Contains(output, "Development: ")
 
 	s.Regexp(r, output)
 }
@@ -534,10 +537,10 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.NoError(err)
 	s.False(utils.IsX509PrivateKey(cCA))
 
-	certificate, ok := utils.CastX509AsCertificate(c)
+	certificate, ok := utils.AssertToX509Certificate(c)
 	s.True(ok)
 
-	certificateCA, ok := utils.CastX509AsCertificate(cCA)
+	certificateCA, ok := utils.AssertToX509Certificate(cCA)
 	s.True(ok)
 
 	s.Require().NotNil(certificate)
@@ -840,7 +843,7 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "migrate", "history", "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
 
-	s.Contains(output, "No migration history is available for schemas that not version 1 or above.\n")
+	s.Contains(output, "No migration history is available for schemas that are not version 1 or above.\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "migrate", "list-up", "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
@@ -1120,7 +1123,7 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector='bad-uuid.com'", "--identifier=d49564dc-b7a1-11ec-8429-fcaa147128ea", "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
-	s.Contains(output, "Error: the identifier providerd 'd49564dc-b7a1-11ec-8429-fcaa147128ea' is a version 1 UUID but only version 4 UUID's accepted as identifiers")
+	s.Contains(output, "Error: the identifier provided 'd49564dc-b7a1-11ec-8429-fcaa147128ea' is a version 1 UUID but only version 4 UUID's accepted as identifiers")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector='bad-uuid.com'", "--identifier=asdmklasdm", "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
@@ -1293,6 +1296,15 @@ func (s *CLISuite) TestStorage07CacheMDS3() {
 	reUpdated := regexp.MustCompile(`^WebAuthn MDS3 cache data updated to version (\d+) and is due for update on ([A-Za-z]+ \d{1,2}, \d{4}).`)
 	reAlreadyUpToDate := regexp.MustCompile(`^WebAuthn MDS3 cache data with version (\d+) due for update on ([A-Za-z]+ \d{1,2}, \d{4}) does not require an update.`)
 
+	var updateArgs []string
+
+	mds3 := filepath.Join("/buildkite/.cache/fido/", "mds.jwt")
+
+	_, err = os.Stat(mds3)
+	if err == nil {
+		updateArgs = append(updateArgs, "--path="+strings.Replace(mds3, "/buildkite/.cache/fido/", "/tmp/", 1))
+	}
+
 	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
 	s.NoError(err)
 	s.Regexp(reUpdated, output)
@@ -1302,13 +1314,13 @@ func (s *CLISuite) TestStorage07CacheMDS3() {
 	version := matches[1]
 	date := matches[2]
 
-	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
+	output, err = s.ExecWithEnv("authelia-backend", append([]string{"authelia", "storage", "cache", "mds3", "update"}, updateArgs...), env)
 	s.NoError(err)
 	s.Regexp(reAlreadyUpToDate, output)
 	s.Contains(output, version)
 	s.Contains(output, date)
 
-	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update", "-f"}, env)
+	output, err = s.ExecWithEnv("authelia-backend", append([]string{"authelia", "storage", "cache", "mds3", "update", "-f"}, updateArgs...), env)
 	s.NoError(err)
 	s.Regexp(reUpdated, output)
 

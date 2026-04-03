@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import { Route, Routes } from "react-router-dom";
 
@@ -11,9 +11,7 @@ import SecurityView from "@views/Settings/Security/SecurityView";
 import SettingsView from "@views/Settings/SettingsView";
 import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
 
-export interface Props {}
-
-const SettingsRouter = function (props: Props) {
+const SettingsRouter = function () {
     const navigate = useRouterNavigate();
     const [state, fetchState, , fetchStateError] = useAutheliaState();
 

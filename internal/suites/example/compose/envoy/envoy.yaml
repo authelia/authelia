@@ -104,6 +104,7 @@ static_resources:
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:
+                              - exact: 'location'
                               - exact: 'authorization'
                               - exact: 'proxy-authorization'
                               - prefix: 'remote-'

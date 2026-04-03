@@ -1,10 +1,8 @@
 package authentication
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
-
-	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -20,7 +18,7 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 		return err
 	}
 
-	var client ldap.Client
+	var client LDAPExtendedClient
 
 	if client, err = p.factory.GetClient(); err != nil {
 		return err
@@ -32,68 +30,54 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 		}
 	}()
 
-	if p.features, err = p.getServerSupportedFeatures(client); err != nil {
-		return err
+	p.logStartupCheckDiscovery(client.Discovery())
+
+	return nil
+}
+
+func (p *LDAPUserProvider) logStartupCheckDiscovery(discovery LDAPDiscovery) {
+	version := none
+
+	if discovery.LDAPVersion != nil {
+		values := make([]string, 0, len(discovery.LDAPVersion))
+
+		for _, v := range discovery.LDAPVersion {
+			values = append(values, strconv.Itoa(v))
+		}
+
+		version = strings.Join(values, ", ")
 	}
 
-	if !p.features.Extensions.PwdModifyExOp && !p.disableResetPassword &&
+	controls, extensions, features, saslMechanisms := discovery.Strings()
+
+	if discovery.Vendor.Name == ldapVendorNameMicrosoftCorporation {
+		p.log.Debugf("LDAP Discovery. LDAP Version: %s; Controls: %s; Extensions: %s; Features: %s; SASL Mechanisms: %s; Vendor Name: %s; Domain Functionality Level: %d, Forest Functionality Level: %d", version, controls, extensions, features, saslMechanisms, discovery.Vendor.Name, discovery.Vendor.DomainFunctionalLevel, discovery.Vendor.ForestFunctionalLevel)
+	} else {
+		p.log.Debugf("LDAP Discovery. LDAP Version: %s; Controls: %s; Extensions: %s; Features: %s; SASL Mechanisms: %s; Vendor Name: %s; Vendor Version; %s", version, controls, extensions, features, saslMechanisms, discovery.Vendor.Name, discovery.Vendor.Version)
+	}
+
+	if discovery.Successful {
+		if len(discovery.LDAPVersion) == 0 {
+			p.log.Warn("The configured LDAP server does not advertise the version of LDAP it supports or does not advertise the version it supports correctly. This server is not supported.")
+		} else if !utils.IsIntegerInSlice(3, discovery.LDAPVersion) {
+			p.log.Warnf("The configured LDAP server advertises it supports %s but only LDAPv3 is supported. This server is not supported.", fmtLDAPVersions(discovery.LDAPVersion))
+		}
+	} else {
+		p.log.Warn("The configured LDAP server does not support discovery via searching the RootDSE.")
+	}
+
+	if !discovery.Extensions.PwdModify && !p.disableResetPassword &&
 		p.config.Implementation != schema.LDAPImplementationActiveDirectory {
 		p.log.Warn("Your LDAP server implementation may not support a method for password hashing " +
 			"known to Authelia, it's strongly recommended you ensure your directory server hashes the password " +
 			"attribute when users reset their password via Authelia.")
 	}
 
-	if p.features.Extensions.TLS && !p.config.StartTLS && !p.config.Address.IsExplicitlySecure() {
+	if discovery.Extensions.TLS && !p.config.StartTLS && !p.config.Address.IsExplicitlySecure() {
 		p.log.Error("Your LDAP Server supports TLS but you don't appear to be utilizing it. We strongly " +
 			"recommend using the scheme 'ldaps://' or enabling the StartTLS option to secure connections with your " +
 			"LDAP Server.")
 	}
-
-	return nil
-}
-
-func (p *LDAPUserProvider) getServerSupportedFeatures(client ldap.Client) (features LDAPSupportedFeatures, err error) {
-	var (
-		request *ldap.SearchRequest
-		result  *ldap.SearchResult
-	)
-
-	request = ldap.NewSearchRequest("", ldap.ScopeBaseObject, ldap.NeverDerefAliases,
-		1, 0, false, ldapBaseObjectFilter, []string{ldapSupportedExtensionAttribute, ldapSupportedControlAttribute}, nil)
-
-	if result, err = client.Search(request); err != nil {
-		if p.config.PermitFeatureDetectionFailure {
-			p.log.WithError(err).Warnf("Error occurred during RootDSE search. This may result in reduced functionality.")
-
-			return features, nil
-		}
-
-		return features, fmt.Errorf("error occurred during RootDSE search: %w", err)
-	}
-
-	if len(result.Entries) != 1 {
-		p.log.Errorf("The LDAP Server did not respond appropriately to a RootDSE search. This may result in reduced functionality.")
-
-		return features, nil
-	}
-
-	var controlTypeOIDs, extensionOIDs []string
-
-	controlTypeOIDs, extensionOIDs, features = ldapGetFeatureSupportFromEntry(result.Entries[0])
-
-	controlTypes, extensions := none, none
-
-	if len(controlTypeOIDs) != 0 {
-		controlTypes = strings.Join(controlTypeOIDs, ", ")
-	}
-
-	if len(extensionOIDs) != 0 {
-		extensions = strings.Join(extensionOIDs, ", ")
-	}
-
-	p.log.Debugf("LDAP Supported OIDs. Control Types: %s. Extensions: %s", controlTypes, extensions)
-
-	return features, nil
 }
 
 //nolint:gocyclo

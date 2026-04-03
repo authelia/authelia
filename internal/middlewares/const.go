@@ -49,6 +49,11 @@ var (
 	headerXDNSPrefetchControl       = []byte("X-DNS-Prefetch-Control")
 )
 
+const (
+	HeaderCacheControlNotStore = "no-store"
+	HeaderPragmaNoCache        = "no-cache"
+)
+
 var (
 	headerValueFalse           = []byte("false")
 	headerValueTrue            = []byte("true")
@@ -70,8 +75,8 @@ var (
 	headerValueSameSite                = []byte("same-site")
 	headerValueUnsafeNone              = []byte("unsafe-none")
 	headerValueRequireCORP             = []byte("require-corp")
-	headerValueNoCache                 = []byte("no-cache")
-	headerValueNoStore                 = []byte("no-store")
+	headerValueNoCache                 = []byte(HeaderPragmaNoCache)
+	headerValueNoStore                 = []byte(HeaderCacheControlNotStore)
 	headerValuePermissionsPolicy       = []byte("accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()")
 )
 
@@ -96,10 +101,8 @@ const (
 )
 
 const (
-	LogFieldProvider                 = "provider"
 	LogMessageStartupCheckError      = "Error occurred running a startup check"
 	LogMessageStartupCheckPerforming = "Performing Startup Check"
-	LogMessageStartupCheckSuccess    = "Startup Check Completed Successfully"
 
 	ProviderNameNTP              = "ntp"
 	ProviderNameStorage          = "storage"
@@ -107,6 +110,11 @@ const (
 	ProviderNameNotification     = "notification"
 	ProviderNameExpressions      = "expressions"
 	ProviderNameWebAuthnMetaData = "webauthn-metadata"
+)
+
+const (
+	ContentTypeApplicationJSON = "application/json; charset=utf-8"
+	ContentTypeApplicationJWT  = "application/jwt; charset=utf-8"
 )
 
 var (
@@ -120,7 +128,7 @@ var (
 
 	contentTypeTextPlain       = []byte("text/plain; charset=utf-8")
 	contentTypeTextHTML        = []byte("text/html; charset=utf-8")
-	contentTypeApplicationJSON = []byte("application/json; charset=utf-8")
+	contentTypeApplicationJSON = []byte(ContentTypeApplicationJSON)
 	contentTypeApplicationYAML = []byte("application/yaml; charset=utf-8")
 )
 

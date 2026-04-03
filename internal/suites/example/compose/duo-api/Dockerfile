@@ -1,9 +1,10 @@
-FROM node:24-alpine@sha256:37712740dc486f179b9540be1c6703cef3f805ea932573a007db748b71189afe
+FROM node:25-alpine@sha256:ad82ecad30371c43f4057aaa4800a8ed88f9446553a2d21323710c7b937177fc
 
 WORKDIR /usr/app/src
 
-ADD package.json package.json
-RUN yarn install --frozen-lockfile --production --silent
+COPY --link package.json pnpm-lock.yaml ./
+
+RUN yarn global add pnpm && pnpm install --frozen-lockfile --prod
 
 EXPOSE 3000
 

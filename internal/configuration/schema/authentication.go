@@ -8,8 +8,8 @@ import (
 
 // AuthenticationBackend represents the configuration related to the authentication backend.
 type AuthenticationBackend struct {
-	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" yaml:"password_reset,omitempty" toml:"password_reset,omitempty" json:"password_reset,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
-	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" yaml:"password_change,omitempty" toml:"password_change,omitempty" json:"password_change,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
+	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" yaml:"password_reset,omitempty" toml:"password_reset,omitempty" json:"password_reset,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behavior."`
+	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" yaml:"password_change,omitempty" toml:"password_change,omitempty" json:"password_change,omitempty" jsonschema:"title=Password Change" jsonschema_description:"Allows configuration of the password change behavior."`
 
 	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" yaml:"refresh_interval,omitempty" toml:"refresh_interval,omitempty" json:"refresh_interval,omitempty" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend."`
 
@@ -36,7 +36,7 @@ type AuthenticationBackendFile struct {
 
 	Password AuthenticationBackendFilePassword `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
 
-	Search AuthenticationBackendFileSearch `koanf:"search" yaml:"search,omitempty" toml:"search,omitempty" json:"search,omitempty" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
+	Search AuthenticationBackendFileSearch `koanf:"search" yaml:"search,omitempty" toml:"search,omitempty" json:"search,omitempty" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behavior."`
 
 	ExtraAttributes map[string]AuthenticationBackendExtraAttribute `koanf:"extra_attributes" yaml:"extra_attributes,omitempty" toml:"extra_attributes,omitempty" json:"extra_attributes,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
@@ -147,9 +147,8 @@ type AuthenticationBackendLDAP struct {
 
 	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" yaml:"attributes,omitempty" toml:"attributes,omitempty" json:"attributes,omitempty"`
 
-	PermitReferrals               bool `koanf:"permit_referrals" yaml:"permit_referrals" toml:"permit_referrals" json:"permit_referrals" jsonschema:"default=false,title=Permit Referrals" jsonschema_description:"Enables chasing LDAP referrals."`
-	PermitUnauthenticatedBind     bool `koanf:"permit_unauthenticated_bind" yaml:"permit_unauthenticated_bind" toml:"permit_unauthenticated_bind" json:"permit_unauthenticated_bind" jsonschema:"default=false,title=Permit Unauthenticated Bind" jsonschema_description:"Enables omission of the password to perform an unauthenticated bind."`
-	PermitFeatureDetectionFailure bool `koanf:"permit_feature_detection_failure" yaml:"permit_feature_detection_failure" toml:"permit_feature_detection_failure" json:"permit_feature_detection_failure" jsonschema:"default=false,title=Permit Feature Detection Failure" jsonschema_description:"Enables failures when detecting directory server features using the Root DSE lookup."`
+	PermitReferrals           bool `koanf:"permit_referrals" yaml:"permit_referrals" toml:"permit_referrals" json:"permit_referrals" jsonschema:"default=false,title=Permit Referrals" jsonschema_description:"Enables chasing LDAP referrals."`
+	PermitUnauthenticatedBind bool `koanf:"permit_unauthenticated_bind" yaml:"permit_unauthenticated_bind" toml:"permit_unauthenticated_bind" json:"permit_unauthenticated_bind" jsonschema:"default=false,title=Permit Unauthenticated Bind" jsonschema_description:"Enables omission of the password to perform an unauthenticated bind."`
 
 	User     string `koanf:"user" yaml:"user,omitempty" toml:"user,omitempty" json:"user,omitempty" jsonschema:"title=User" jsonschema_description:"The user distinguished name for LDAP binding."`
 	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."`
@@ -210,13 +209,13 @@ var DefaultPasswordConfig = AuthenticationBackendFilePassword{
 		SaltLength:  16,
 	},
 	SHA2Crypt: AuthenticationBackendFilePasswordSHA2Crypt{
-		Variant:    sha512,
+		Variant:    SHA512Lower,
 		Iterations: 50000,
 		SaltLength: 16,
 	},
 	PBKDF2: AuthenticationBackendFilePasswordPBKDF2{
-		Variant:    sha512,
-		Iterations: 310000,
+		Variant:    SHA512Lower,
+		Iterations: defaultIterationsPBKDF2SHA512,
 		SaltLength: 16,
 	},
 	Bcrypt: AuthenticationBackendFilePasswordBcrypt{
@@ -233,6 +232,14 @@ var DefaultPasswordConfig = AuthenticationBackendFilePassword{
 	},
 }
 
+const (
+	defaultIterationsPBKDF2SHA512 = 310000
+	defaultIterationsPBKDF2SHA384 = 280000
+	defaultIterationsPBKDF2SHA256 = 700000
+	defaultIterationsPBKDF2SHA224 = 900000
+	defaultIterationsPBKDF2SHA1   = 1600000
+)
+
 // DefaultCIPasswordConfig represents the default configuration related to Argon2id hashing for CI.
 var DefaultCIPasswordConfig = AuthenticationBackendFilePassword{
 	Algorithm: argon2,
@@ -244,7 +251,7 @@ var DefaultCIPasswordConfig = AuthenticationBackendFilePassword{
 		SaltLength:  16,
 	},
 	SHA2Crypt: AuthenticationBackendFilePasswordSHA2Crypt{
-		Variant:    sha512,
+		Variant:    SHA512Lower,
 		Iterations: 50000,
 		SaltLength: 16,
 	},

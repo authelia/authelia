@@ -29,8 +29,7 @@ func (s *RedirectionCheckScenario) SetupSuite() {
 }
 
 func (s *RedirectionCheckScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,6 +58,7 @@ var redirectionAuthorizations = map[string]bool{
 
 func (s *RedirectionCheckScenario) TestShouldRedirectOnLoginOnlyWhenDomainIsSafe() {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -94,6 +94,7 @@ var logoutRedirectionURLs = map[string]bool{
 
 func (s *RedirectionCheckScenario) TestShouldRedirectOnLogoutOnlyWhenDomainIsSafe() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

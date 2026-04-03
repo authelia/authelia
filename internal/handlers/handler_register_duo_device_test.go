@@ -36,7 +36,7 @@ func (s *RegisterDuoDeviceSuite) TearDownTest() {
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
 
 	values := url.Values{}
 	values.Set("username", "john")
@@ -51,7 +51,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithSelection() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
 
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
@@ -79,7 +79,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithSelection() {
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithAllowOnBypass() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
 
 	values := url.Values{}
 	values.Set("username", "john")
@@ -95,7 +95,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithAllowOnBypass() {
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
 
 	var enrollURL = "https://api-example.duosecurity.com/portal?code=1234567890ABCDEF&akey=12345ABCDEFGHIJ67890"
 
@@ -114,7 +114,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
 
 	values := url.Values{}
 	values.Set("username", "john")

@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0 Provider"
 description: "OpenID Connect 1.0 Provider Configuration"
 summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure this."
-date: 2023-05-15T10:32:10+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 110200
@@ -19,7 +19,7 @@ seo:
 ---
 
 __Authelia__ currently supports the [OpenID Connect 1.0] Provider role as an open
-[__beta__](../../../roadmap/active/openid-connect.md) feature. We currently do not support the [OpenID Connect 1.0] Relying
+[__beta__](../../../roadmap/active/openid-connect-1.0-provider.md) feature. We currently do not support the [OpenID Connect 1.0] Relying
 Party role. This means other applications that implement the [OpenID Connect 1.0] Relying Party role can use Authelia as
 an [OpenID Connect 1.0] Provider similar to how you may use social media or development platforms for login.
 
@@ -37,7 +37,7 @@ More information about the beta can be found in the [roadmap](../../../roadmap/a
 
 Authelia is [OpenID Certified™] to conform to the [OpenID Connect™ protocol].
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" sizes="40dvh" >}}
 
 For more information please see the
 [OpenID Connect 1.0 Integration Documentation](../../../integration/openid-connect/introduction.md#openid-certified).
@@ -100,6 +100,7 @@ identity_providers:
         id_token_audience_mode: 'specification'
         custom_claims:
           claim_name:
+            name: 'claim_name'
             attribute: 'attribute_name'
     scopes:
       scope_name:
@@ -393,7 +394,9 @@ available are distinctly and intentionally different to those of the
 [Access Control Rules](../../security/access-control.md#rules) unless explicitly specified in this section. The reasons
 for the differences are clearly explained in the
 [OpenID Connect 1.0 FAQ](../../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10)
-and [ADR1](../../../reference/architecture-decision-log/1.md).
+and [ADR1](../../../reference/architecture-decision-log/1.md). These policies specifically apply solely to Authorization Requests and
+should not be used as a crutch for applications which do not implement the most basic
+level of access control on their end.
 {{< /callout >}}
 
 The authorization policies section allows creating custom authorization policies which can be applied to clients. This
@@ -585,7 +588,7 @@ identity_providers:
 
 {{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
 
-The claims policies are policies which allow customizing the behaviour of claims and the available claims for a
+The claims policies are policies which allow customizing the behavior of claims and the available claims for a
 particular client.
 
 The keys under `claims_policies` is an arbitrary value that can be used in the
@@ -594,6 +597,18 @@ The keys under `claims_policies` is an arbitrary value that can be used in the
 #### id_token
 
 {{< confkey type="list(string)" required="no" >}}
+
+{{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
+This option is a escape hatch which should not normally be used. It allows confidential personally identifiable
+information to be hydrated into the ID Token which is not normally encrypted. In addition this behavior is only
+necessary for clients which do not actually support OpenID Connect 1.0 and indicates a significant bug with the client.
+
+This also is a common indicator that the client uses claims other than `iss` and `sub` to link users with the provider,
+which is a fairly significant security issue.
+
+For these reasons this option is highly discouraged and it's recommended the client in question fixes this significant
+bug instead. This option is provided only on a best effort basis
+{{< /callout >}}
 
 The list of claims automatically copied to the ID Token in addition to the standard ID Token claims provided the
 relevant scope was granted.
@@ -633,13 +648,19 @@ The list of claims available in this policy in addition to the standard claims. 
 which can either be concrete attributes from the [first factor](../../first-factor/introduction.md) backend or can be
 those defined via [definitions](../../definitions/user-attributes.md).
 
-The keys under `custom_claims` are arbitrary values which are the names of the claims.
+The keys under `custom_claims` are arbitrary values, and by default are the claim name and attribute values.
+
+##### name
+
+{{< confkey type="string" required="no" >}}
+
+The claim name for this claim. By default it's the same as the dictionary key.
 
 ##### attribute
 
 {{< confkey type="string" required="no" >}}
 
-The attribute name that this claim returns. By default it's the same as the claim name.
+The attribute name that this claim returns. By default it's the same as the dictionary key.
 
 ### scopes
 

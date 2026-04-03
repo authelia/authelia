@@ -97,7 +97,7 @@ type bodyEditWebAuthnCredentialRequest struct {
 	Description string `json:"description"`
 }
 
-// bodySignDuoRequest is the  model of the request body of Duo 2FA authentication endpoint.
+// bodySignDuoRequest is the model of the request body of Duo 2FA authentication endpoint.
 type bodySignDuoRequest struct {
 	TargetURL string `json:"targetURL"`
 	Passcode  string `json:"passcode"`
@@ -181,11 +181,13 @@ type DuoDevice struct {
 	Capabilities []string `json:"capabilities"`
 }
 
-// DuoDevicesResponse represents all available user devices and methods as well as an optional enrollment url.
+// DuoDevicesResponse represents all available user devices and methods, the user's preferred device and method selections, and an optional enrollment url.
 type DuoDevicesResponse struct {
-	Result    string      `json:"result" valid:"required"`
-	Devices   []DuoDevice `json:"devices,omitempty"`
-	EnrollURL string      `json:"enroll_url,omitempty"`
+	Result          string      `json:"result" valid:"required"`
+	Devices         []DuoDevice `json:"devices,omitempty"`
+	EnrollURL       string      `json:"enroll_url,omitempty"`
+	PreferredDevice string      `json:"preferred_device,omitempty"`
+	PreferredMethod string      `json:"preferred_method,omitempty"`
 }
 
 // DuoSignResponse represents a result of the preauth and or auth call with further optional info.

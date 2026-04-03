@@ -27,7 +27,6 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		policy    oidc.ClientAuthorizationPolicy
 		err       error
 	)
-
 	if requester, err = ctx.Providers.OpenIDConnect.NewAuthorizeRequest(ctx, r); requester == nil {
 		err = oauthelia2.ErrServerError.WithDebug("The requester was nil.")
 
@@ -82,10 +81,19 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		issuer      *url.URL
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession
+		provider    *session.Session
 		handled     bool
 	)
 
-	if userSession, err = ctx.GetSession(); err != nil {
+	if provider, err = ctx.GetSessionProvider(); err != nil {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred obtaining session information: %+v", requester.GetID(), client.GetID(), policy.Name, err)
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the user session."))
+
+		return
+	}
+
+	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred obtaining session information: %+v", requester.GetID(), client.GetID(), policy.Name, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the user session."))
@@ -103,7 +111,7 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	issuer = ctx.RootURL()
 
-	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, userSession, rw, r, requester); handled {
+	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, policy, provider, userSession, rw, r, requester); handled {
 		return
 	}
 
@@ -132,7 +140,7 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
 	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
-		session.DefaultSession.Claims.Audience = append([]string{clientID}, requester.GetGrantedAudience()...)
+		session.Claims.Audience = append([]string{clientID}, requester.GetGrantedAudience()...)
 	}
 
 	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' using policy '%s' creating session for Authorization Response for subject '%s' with username '%s' with groups: %+v and claims: %+v",
@@ -164,7 +172,9 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var err error
 
-	if err = r.ParseMultipartForm(1 << 20); err != nil && !errors.Is(err, http.ErrNotMultipart) {
+	r.Body = http.MaxBytesReader(rw, r.Body, 10<<20)
+
+	if err = r.ParseMultipartForm(5 << 20); err != nil && !errors.Is(err, http.ErrNotMultipart) {
 		requester := oauthelia2.NewAuthorizeRequest()
 
 		ctx.Logger.WithError(err).Errorf("Authorization Request with id '%s' had an error parsing a multipart form.", requester.GetID())
@@ -194,7 +204,6 @@ func OAuth2PushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw http.Resp
 		responder oauthelia2.PushedAuthorizeResponder
 		err       error
 	)
-
 	if requester, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeRequest(ctx, r); err != nil {
 		ctx.Logger.Errorf("Pushed Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 

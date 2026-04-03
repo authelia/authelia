@@ -2,7 +2,7 @@
 title: "Envoy"
 description: "An integration guide for Authelia and the Envoy reverse proxy"
 summary: "A guide on integrating Authelia with the Envoy reverse proxy."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 330
@@ -210,7 +210,7 @@ static_resources:
                   name: 'local_route'
                   virtual_hosts:
                     - name: 'whoami_service'
-                      domains: ["nextcloud.{{< sitevar name="domain" nojs="example.com" >}}']
+                      domains: ['nextcloud.{{< sitevar name="domain" nojs="example.com" >}}']
                       routes:
                         - match:
                             prefix: '/'
@@ -234,10 +234,11 @@ static_resources:
                       transport_api_version: 'v3'
                       allowed_headers:
                         patterns:
-                          - exact: 'Authorization'
-                          - exact: 'Proxy-Authorization'
-                          - exact: 'Accept'
-                          - exact: 'Cookie'
+                          - exact: 'authorization'
+                          - exact: 'proxy-authorization'
+                          - exact: 'accept'
+                          - exact: 'cookie'
+                          - exact: 'location'
                       http_service:
                         path_prefix: '/api/authz/ext-authz/'
                         server_uri:
@@ -247,10 +248,11 @@ static_resources:
                         authorization_request:
                           allowed_headers:
                             patterns:
-                              - exact: 'Authorization'
-                              - exact: 'Proxy-Authorization'
-                              - exact: 'Accept'
-                              - exact: 'Cookie'
+                              - exact: 'authorization'
+                              - exact: 'proxy-authorization'
+                              - exact: 'accept'
+                              - exact: 'cookie'
+                              - exact: 'location'
                           headers_to_add:
                             - key: 'X-Forwarded-Proto'
                               value: '%REQ(:SCHEME)%'
@@ -315,109 +317,11 @@ layered_runtime:
           global_downstream_max_connections: 50000
 ```
 
-## Gateway API (Kubernetes)
+## Kubernetes
 
-### Secure route
-
-```yaml
-apiVersion: 'gateway.envoyproxy.io/v1alpha1'
-kind: 'SecurityPolicy'
-metadata:
-  name: 'authelia-example'
-  namespace: 'example'
-spec:
-  extAuth:
-    failOpen: false
-    headersToExtAuth:
-      - 'X-Forwarded-Proto'
-      - 'Authorization'
-      - 'Proxy-Authorization'
-      - 'Accept'
-      - 'Cookie'
-    http:
-      path: '/api/authz/ext-authz/'
-      backendRefs:
-        - group: ''
-          kind: 'Service'
-          name: 'authelia'
-          namespace: 'authelia'
-          port: 80
-  targetRefs:
-    - group: 'gateway.networking.k8s.io'
-      kind: 'HTTPRoute'
-      name: 'example'
-```
-
-If the route namespace differs from the authelia service namespace, there is a need to declare a ReferenceGrant:
-
-```yaml
-apiVersion: 'gateway.networking.k8s.io/v1beta1'
-kind: 'ReferenceGrant'
-metadata:
-  name: 'example-ref-authelia-svc'
-  namespace: 'authelia'
-spec:
-  from:
-    - group: 'gateway.envoyproxy.io'
-      kind: 'SecurityPolicy'
-      namespace: 'example'
-      name: 'authelia-example'
-  to:
-    - group: ''
-      kind: 'Service'
-      name: 'authelia'
-```
-
-### Secure gateway
-
-```yaml
-apiVersion: 'gateway.envoyproxy.io/v1alpha1'
-kind: 'SecurityPolicy'
-metadata:
-  name: 'authelia-example'
-  namespace: 'example'
-spec:
-  extAuth:
-    failOpen: false
-    headersToExtAuth:
-      - 'X-Forwarded-Proto'
-      - 'Authorization'
-      - 'Proxy-Authorization'
-      - 'Accept'
-      - 'Cookie'
-    http:
-      path: '/api/authz/ext-authz/'
-      backendRefs:
-        - group: ''
-          kind: 'Service'
-          name: 'authelia'
-          namespace: 'authelia'
-          port: 80
-  targetRefs:
-    - group: 'gateway.networking.k8s.io'
-      kind: 'Gateway'
-      name: 'example'
-```
-
-If the gateway namespace differs from the authelia service namespace, there is a need to declare a ReferenceGrant:
-
-```yaml
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
-metadata:
-  name: 'example-ref-authelia-svc'
-  namespace: 'authelia'
-spec:
-  from:
-    - group: 'gateway.envoyproxy.io'
-      kind: 'SecurityPolicy'
-      namespace: 'example'
-      name: 'authelia-example'
-  to:
-    - group: ''
-      kind: 'Service'
-      name: 'authelia'
-```
+Authelia supports some of the [Envoy] based Kubernetes Ingresses such as [Envoy Gateway](../kubernetes/envoy/gateway.md)
+and [Istio](../kubernetes/envoy/istio.md). To see the full list see the
+[Kubernetes Integration Guide](../kubernetes/envoy/introduction.md).
 
 ## See Also
 

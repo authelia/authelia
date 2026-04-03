@@ -52,9 +52,10 @@ for, and the structure it must have.
   │       │
   │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|clock|
   │                          cmd|codecov|commands|configuration|deps|docker|duo|expression|go|
-  │                          golangci-lint|handlers|husky|logging|metrics|middlewares|mocks|model|
-  │                          notification|npm|ntp|oidc|random|regulation|renovate|reviewdog|server|
-  │                          service|session|storage|suites|templates|totp|utils|web|webauthn
+  │                          golangci-lint|handlers|lefthook|logging|metrics|middlewares|mocks|
+  │                          model|notification|npm|ntp|oidc|random|regulation|renovate|reviewdog|
+  │                          server|service|session|storage|suites|templates|totp|utils|web|
+  │                          webauthn
   │
   └─⫸ Commit Type: build|ci|docs|feat|fix|i18n|perf|refactor|release|revert|test
 ```
@@ -66,7 +67,7 @@ The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is opti
 * __build__ Changes that affect the build system or external dependencies
   (example scopes: bundler, deps, docker, go, npm)
 * __ci__ Changes to our CI configuration files and scripts
-  (example scopes: autheliabot, buildkite, codecov, husky, golangci-lint, renovate, reviewdog)
+  (example scopes: autheliabot, buildkite, codecov, lefthook, golangci-lint, renovate, reviewdog)
 * __docs__ Documentation only changes
 * __feat__ A new feature
 * __fix__ A bug fix
@@ -168,9 +169,9 @@ The content of the commit message body should contain:
 fix(logging): disable colored logging outputs when file is specified
 
 In some scenarios if a user has a log_file_path specified and a TTY seems to be detected this causes terminal coloring outputs to be written to the file.
-This in turn will cause issues when attempting to utilise the log with the provided fail2ban regexes.
+This in turn will cause issues when attempting to utilize the log with the provided fail2ban regexes.
 
-We now override any TTY detection/logging treatments and disable coloring/removal of the timestamp when a user is utilising the text based logger to a file.
+We now override any TTY detection/logging treatments and disable coloring/removal of the timestamp when a user is utilizing the text based logger to a file.
 
 Fixes #1480.
 

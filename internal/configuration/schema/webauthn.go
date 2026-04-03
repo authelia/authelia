@@ -28,6 +28,8 @@ type WebAuthn struct {
 type WebAuthnMetadata struct {
 	Enabled bool `koanf:"enabled" yaml:"enabled" toml:"enabled" json:"enabled" jsonschema:"default=false,title=Enabled" jsonschema_description:"Enables the use of the WebAuthn Metadata Service."`
 
+	CachePolicy string `koanf:"cache_policy" yaml:"cache_policy" toml:"cache_policy" json:"cache_policy" jsonschema:"default=strict,enum=strict,enum=relaxed,title=Cache Policy" jsonschema_description:"WebAuthn Authenticator metadata cache policy."`
+
 	ValidateTrustAnchor           bool `koanf:"validate_trust_anchor" yaml:"validate_trust_anchor" toml:"validate_trust_anchor" json:"validate_trust_anchor" jsonschema:"default=true,title=Validate Trust Anchor" jsonschema_description:"WebAuthn Authenticator metadata entry trust anchor validation."`
 	ValidateEntry                 bool `koanf:"validate_entry" yaml:"validate_entry" toml:"validate_entry" json:"validate_entry" jsonschema:"default=true,title=Filtering" jsonschema_description:"WebAuthn Authenticator metadata entry validation requires the AAGUID exists as a MDS3 registered entry."`
 	ValidateEntryPermitZeroAAGUID bool `koanf:"validate_entry_permit_zero_aaguid" yaml:"validate_entry_permit_zero_aaguid" toml:"validate_entry_permit_zero_aaguid" json:"validate_entry_permit_zero_aaguid" jsonschema:"default=true,title=Filtering" jsonschema_description:"WebAuthn Authenticator metadata entry validation zero AAGUID's can be skipped'."`
@@ -38,7 +40,7 @@ type WebAuthnMetadata struct {
 }
 
 type WebAuthnSelectionCriteria struct {
-	Attachment       protocol.AuthenticatorAttachment     `koanf:"attachment" yaml:"attachment,omitempty" toml:"attachment,omitempty" json:"attachment,omitempty" jsonschema:"default=,enum=platform,enum=cross-platform,title=Attachment" jsonschema_description:"WebAuthn Authenticator attachment preference."`
+	Attachment       protocol.AuthenticatorAttachment     `koanf:"attachment" yaml:"attachment,omitempty" toml:"attachment,omitempty" json:"attachment,omitempty" jsonschema:"default=,enum=,enum=platform,enum=cross-platform,title=Attachment" jsonschema_description:"WebAuthn Authenticator attachment preference."`
 	Discoverability  protocol.ResidentKeyRequirement      `koanf:"discoverability" yaml:"discoverability,omitempty" toml:"discoverability,omitempty" json:"discoverability,omitempty" jsonschema:"default=preferred,enum=discouraged,enum=preferred,enum=required,title=Discoverability Selection" jsonschema_description:"The default discoverable preference when registering WebAuthn credentials."`
 	UserVerification protocol.UserVerificationRequirement `koanf:"user_verification" yaml:"user_verification,omitempty" toml:"user_verification,omitempty" json:"user_verification,omitempty" jsonschema:"default=preferred,enum=discouraged,enum=preferred,enum=required,title=User Verification" jsonschema_description:"The default user verification preference for all WebAuthn credentials."`
 }

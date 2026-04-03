@@ -15,7 +15,7 @@ type ClientSecretDigest struct {
 
 // Compare decorates the *schema.PasswordDigest's implementation to satisfy oauth2.ClientSecret's Compare function.
 func (d *ClientSecretDigest) Compare(ctx context.Context, rawSecret []byte) (err error) {
-	if d.PasswordDigest == nil || d.PasswordDigest.Digest == nil {
+	if d.PasswordDigest == nil || d.Digest == nil {
 		return oauthelia2.ErrClientSecretNotRegistered
 	}
 

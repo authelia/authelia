@@ -47,7 +47,7 @@ func (r *Cryptographical) BytesCustomErr(n int, charset []byte) (data []byte, er
 
 	if t > 0 {
 		for i := 0; i < n; i++ {
-			data[i] = charset[data[i]%byte(t)]
+			data[i] = charset[data[i]%byte(t)] //nolint:gosec // This is safe.
 		}
 	}
 
@@ -125,7 +125,6 @@ func (r *Cryptographical) IntErr(max *big.Int) (value *big.Int, err error) {
 // Int returns a random *big.Int with a maximum of max.
 func (r *Cryptographical) Int(max *big.Int) (value *big.Int) {
 	var err error
-
 	if value, err = r.IntErr(max); err != nil {
 		return big.NewInt(-1)
 	}

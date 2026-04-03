@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -43,7 +44,7 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 	data := DocsDataMisc{
 		CSP: TemplateCSP{
 			PlaceholderNONCE:    codeCSPNonce,
-			TemplateDefault:     buildCSP(codeCSPProductionDefaultSrc, codeCSPValuesCommon, codeCSPValuesProduction),
+			TemplateDefault:     buildCSP(codeCSPSelf, codeCSPValuesCommon, codeCSPValuesProduction),
 			TemplateDevelopment: buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon, codeCSPValuesDevelopment),
 		},
 	}
@@ -77,6 +78,14 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	data.Support.Traefik = append(data.Support.Traefik, tag)
+
+	data.HashingAlgorithms.PBKDF2.Variants = map[string]DocsDataMiscHashingAlgorithmsVariant{
+		schema.SHA512Lower: {DefaultIterations: strconv.Itoa(schema.PBKDF2VariantDefaultIterations(schema.SHA512Lower)), FIPS: "Approved"},
+		schema.SHA384Lower: {DefaultIterations: strconv.Itoa(schema.PBKDF2VariantDefaultIterations(schema.SHA384Lower)), FIPS: "Approved (Recommended)"},
+		schema.SHA256Lower: {DefaultIterations: strconv.Itoa(schema.PBKDF2VariantDefaultIterations(schema.SHA256Lower)), FIPS: "Approved"},
+		schema.SHA224Lower: {DefaultIterations: strconv.Itoa(schema.PBKDF2VariantDefaultIterations(schema.SHA224Lower)), FIPS: "Approved"},
+		schema.SHA1Lower:   {DefaultIterations: strconv.Itoa(schema.PBKDF2VariantDefaultIterations(schema.SHA1Lower)), FIPS: "Approved only for Legacy Systems"},
+	}
 
 	var (
 		outputPath string
@@ -118,7 +127,6 @@ func newDocsDataKeysCmd() *cobra.Command {
 }
 
 func docsKeysRunE(cmd *cobra.Command, args []string) (err error) {
-	//nolint:prealloc
 	var (
 		data []ConfigurationKey
 	)

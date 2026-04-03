@@ -96,7 +96,6 @@ func (p *Session) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Dur
 	}
 
 	err = store.SetExpiration(expiration)
-
 	if err != nil {
 		return err
 	}
@@ -107,7 +106,6 @@ func (p *Session) UpdateExpiration(ctx *fasthttp.RequestCtx, expiration time.Dur
 // GetExpiration get the expiration of the current session.
 func (p *Session) GetExpiration(ctx *fasthttp.RequestCtx) (time.Duration, error) {
 	store, err := p.sessionHolder.Get(ctx)
-
 	if err != nil {
 		return time.Duration(0), err
 	}

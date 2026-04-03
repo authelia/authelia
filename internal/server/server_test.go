@@ -91,8 +91,8 @@ func (cc *CertificateContext) GenerateCertificate() (*TemporaryCertificate, erro
 	tmpCertificate.CertificatePEM = certBytes
 
 	block, _ := pem.Decode(certBytes)
-	c, err := x509.ParseCertificate(block.Bytes)
 
+	c, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse certificate: %v", err)
 	}
@@ -149,7 +149,6 @@ func NewTLSServerContext(configuration schema.Configuration) (serverContext *TLS
 	}
 
 	s, listener, _, _, err := New(&configuration, providers)
-
 	if err != nil {
 		return nil, err
 	}

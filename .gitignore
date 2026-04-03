@@ -1,12 +1,15 @@
 # IDE user configuration
 .idea/
 .vscode/
+.github/_/
+.lefthook-local.yml
 
 # Nodejs modules
 .pnpm-store/
 node_modules/
 
 # Coverage reports
+web/html/
 coverage/
 .nyc_output/
 coverage.txt

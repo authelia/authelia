@@ -259,6 +259,21 @@ func TestValidateWebAuthn(t *testing.T) {
 			},
 			nil,
 		},
+		{
+			"ShouldHandleBadCachePolicy",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					Metadata: schema.WebAuthnMetadata{
+						Enabled:     true,
+						CachePolicy: "x",
+					},
+				},
+			},
+			nil,
+			[]string{
+				"webauthn: metadata: option 'cache_policy' is 'x' but it must be 'strict' or 'relaxed'",
+			},
+		},
 	}
 
 	for _, tc := range testCases {

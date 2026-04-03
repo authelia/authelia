@@ -2,7 +2,7 @@
 title: "Time-based One-Time Password"
 description: "Configuring the Time-based One-Time Password Second Factor Method."
 summary: "Authelia supports utilizing Time-based One-Time Passwords as a 2FA method."
-date: 2020-02-29T01:43:59+01:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 103300
@@ -65,7 +65,7 @@ This disables One-Time Password (TOTP) if set to true.
 Applications generating Time-based One-Time Passwords usually display an issuer to
 differentiate applications registered by the user.
 
-Authelia allows customisation of the issuer to differentiate the entry created
+Authelia allows customization of the issuer to differentiate the entry created
 by Authelia from others.
 
 ### algorithm

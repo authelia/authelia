@@ -65,6 +65,7 @@ const (
 	FieldResponded           = "responded"
 	FieldGranted             = "granted"
 	FieldStatus              = "status"
+	FieldProvider            = "provider"
 )
 
 var (

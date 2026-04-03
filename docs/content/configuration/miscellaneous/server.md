@@ -2,7 +2,7 @@
 title: "Server"
 description: "Configuring the Server Settings."
 summary: "Authelia runs an internal web server. This section describes how to configure and tune this."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 199200
@@ -84,7 +84,7 @@ server:
 ```
 
 ```yaml
-# When running "systemd-socket-activate -l 9091 go run ./cmd/authelia", the connections to port 9091 will be forwaded to file descriptor 3.
+# When running "systemd-socket-activate -l 9091 go run ./cmd/authelia", the connections to port 9091 will be forwarded to file descriptor 3.
 server:
   address: fd://:3
 ```
@@ -150,13 +150,15 @@ or intermediate certificates. If no item is provided mutual TLS is disabled.
 
 ### headers
 
-#### csp_template
-
-{{< confkey type="string" required="no" >}}
+{{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
+This header is a security critical header which protects you from malicious parties and should almost never be
+configured. This is an advanced option to customize, and at minimum you should do sufficient research about how browsers
+utilize and understand this header before attempting to customize it; though it's strongly recommended you seek advice
+from a security professional before adjusting this.
+{{< /callout >}}
 
 This customizes the value of the Content-Security-Policy header. It will replace all instances of the below placeholder
-with the nonce value of the Authelia react bundle. This is an advanced option to customize, and you should do
-sufficient research about how browsers utilize and understand this header before attempting to customize it.
+with the nonce value of the Authelia react bundle.
 
 {{< csp >}}
 

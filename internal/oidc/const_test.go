@@ -57,7 +57,6 @@ func MustLoadCrypto(alg, mod, ext string, extra ...string) any {
 		decoded any
 		err     error
 	)
-
 	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "_"), ext)); err != nil {
 		panic(err)
 	}
@@ -83,7 +82,6 @@ func MustLoadRSACryptoSet(legacy bool, extra ...string) (chain schema.X509Certif
 		err     error
 		ok      bool
 	)
-
 	if decoded, err = utils.ParseX509FromPEMRecursive(k); err != nil {
 		panic(err)
 	}
@@ -109,7 +107,6 @@ func MustLoadECDSACryptoSet(legacy bool, extra ...string) (chain schema.X509Cert
 		err     error
 		ok      bool
 	)
-
 	if decoded, err = utils.ParseX509FromPEMRecursive(k); err != nil {
 		panic(err)
 	}
@@ -154,7 +151,6 @@ func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) []byte {
 		data []byte
 		err  error
 	)
-
 	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
 		panic(err)
 	}
@@ -173,7 +169,6 @@ func MustParseCertificateChain(blocks ...[]byte) schema.X509CertificateChain {
 		decoded any
 		err     error
 	)
-
 	if decoded, err = utils.ParseX509FromPEMRecursive(buf.Bytes()); err != nil {
 		panic(err)
 	}

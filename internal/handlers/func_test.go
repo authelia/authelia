@@ -13,6 +13,8 @@ import (
 )
 
 func AssertLogEntryMessageAndError(t *testing.T, entry *logrus.Entry, message, err any) {
+	t.Helper()
+
 	require.NotNil(t, entry)
 
 	switch value := message.(type) {
@@ -61,6 +63,8 @@ func AssertLogEntryMessageAndError(t *testing.T, entry *logrus.Entry, message, e
 }
 
 func MustGetLogLastSeq(t *testing.T, hook *test.Hook, seq int) *logrus.Entry {
+	t.Helper()
+
 	require.Greater(t, len(hook.Entries), seq)
 
 	return &hook.Entries[len(hook.Entries)-1-seq]

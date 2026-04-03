@@ -1,11 +1,10 @@
-import React, { lazy, useEffect, useState } from "react";
+import { lazy, useState } from "react";
 
 import { Box, Button, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
-import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
 import SwitchUserButton from "@components/SwitchUserButton";
@@ -18,8 +17,8 @@ import {
     SettingsTwoFactorAuthenticationSubRoute,
 } from "@constants/Routes";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlowPresent } from "@hooks/Flow";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
@@ -42,24 +41,19 @@ export interface Props {
     duoSelfEnrollment: boolean;
 
     onMethodChanged: () => void;
-    onAuthenticationSuccess: (redirectURL: string | undefined) => void;
+    onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
 }
 
 const SecondFactorForm = function (props: Props) {
     const { t: translate } = useTranslation();
-    const { classes } = useStyles();
 
     const navigate = useRouterNavigate();
     const flowPresent = useFlowPresent();
-    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { localStorageMethodAvailable, setLocalStorageMethod } = useLocalStorageMethodContext();
     const { createErrorNotification } = useNotifications();
 
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
-    const [stateWebAuthnSupported, setStateWebAuthnSupported] = useState(false);
-
-    useEffect(() => {
-        setStateWebAuthnSupported(browserSupportsWebAuthn());
-    }, [setStateWebAuthnSupported]);
+    const stateWebAuthnSupported = browserSupportsWebAuthn();
 
     const handleMethodSelectionClick = () => {
         setMethodSelectionOpen(true);
@@ -114,7 +108,16 @@ const SecondFactorForm = function (props: Props) {
                         </Button>
                     ) : null}
                 </Grid>
-                <Box className={classes.methodContainer}>
+                <Box
+                    sx={(theme: Theme) => ({
+                        border: "1px solid #d6d6d6",
+                        borderRadius: "10px",
+                        marginBottom: theme.spacing(2),
+                        marginTop: theme.spacing(2),
+                        minWidth: "300px",
+                        padding: theme.spacing(4),
+                    })}
+                >
                     <Routes>
                         <Route
                             path={SecondFactorPasswordSubRoute}
@@ -122,7 +125,6 @@ const SecondFactorForm = function (props: Props) {
                                 <PasswordMethod
                                     id="password-method"
                                     authenticationLevel={props.authenticationLevel}
-                                    userInfo={props.userInfo}
                                     onAuthenticationSuccess={props.onAuthenticationSuccess}
                                 />
                             }
@@ -179,16 +181,5 @@ const SecondFactorForm = function (props: Props) {
         </LoginLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    methodContainer: {
-        border: "1px solid #d6d6d6",
-        borderRadius: "10px",
-        padding: theme.spacing(4),
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-        minWidth: "300px",
-    },
-}));
 
 export default SecondFactorForm;

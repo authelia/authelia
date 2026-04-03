@@ -135,6 +135,7 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 func HandlePasskeyResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string, isTwoFactor bool) {
 	if isTwoFactor {
 		Handle2FAResponse(ctx, targetURI)
+		return
 	}
 
 	Handle1FAResponse(ctx, targetURI, requestMethod, username, groups)
@@ -175,7 +176,6 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		consent *model.OAuth2ConsentSession
 		err     error
 	)
-
 	if flowID, err = uuid.Parse(id); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
@@ -328,7 +328,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 		return
 	}
 
-	if signature, err = ctx.Providers.OpenIDConnect.Config.Strategy.Core.RFC8628UserCodeSignature(ctx, userCode); err != nil {
+	if signature, err = ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(ctx, userCode); err != nil {
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username}).

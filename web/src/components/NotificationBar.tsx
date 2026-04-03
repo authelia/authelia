@@ -1,50 +1,45 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Alert, Slide, SlideProps, Snackbar } from "@mui/material";
 
-import { useNotifications } from "@hooks/NotificationsContext";
+import { useNotifications } from "@contexts/NotificationsContext";
 import { Notification } from "@models/Notifications";
-
-export interface Props {
-    onClose: () => void;
-}
 
 type NotificationBarTransitionProps = Omit<SlideProps, "direction">;
 
-function NotificationBarTransition(props: NotificationBarTransitionProps) {
+function NotificationBarTransition(props: Readonly<NotificationBarTransitionProps>) {
     return <Slide {...props} direction={"left"} />;
 }
 
-const NotificationBar = function (props: Props) {
-    const [tmpNotification, setTmpNotification] = useState(null as Notification | null);
-    const { notification } = useNotifications();
+const NotificationBar = function () {
+    const { notification, resetNotification } = useNotifications();
+    const [lastNotification, setLastNotification] = useState<Notification | null>(null);
 
-    useEffect(() => {
-        if (notification) {
-            setTmpNotification(notification);
-        }
-    }, [notification, setTmpNotification]);
+    if (notification !== null && notification !== lastNotification) {
+        setLastNotification(notification);
+    }
 
-    const shouldSnackbarBeOpen = notification !== undefined && notification !== null;
+    const handleExited = useCallback(() => {
+        setLastNotification(null);
+    }, []);
+
+    const open = notification !== null;
+    const displayed = notification ?? lastNotification;
 
     return (
         <Snackbar
-            open={shouldSnackbarBeOpen}
-            anchorOrigin={{ vertical: "top", horizontal: "right" }}
-            autoHideDuration={tmpNotification ? tmpNotification.timeout * 1000 : 10000}
-            onClose={props.onClose}
-            TransitionComponent={NotificationBarTransition}
-            TransitionProps={{
-                onExited: () => setTmpNotification(null),
-            }}
+            open={open}
+            anchorOrigin={{ horizontal: "right", vertical: "top" }}
+            autoHideDuration={displayed ? displayed.timeout * 1000 : 10000}
+            onClose={resetNotification}
+            slots={{ transition: NotificationBarTransition }}
+            slotProps={{ transition: { onExited: handleExited } }}
         >
-            {tmpNotification ? (
-                <Alert severity={tmpNotification.level} variant={"filled"} elevation={6} className={"notification"}>
-                    {tmpNotification.message}
+            {displayed ? (
+                <Alert severity={displayed.level} variant={"filled"} elevation={6} className={"notification"}>
+                    {displayed.message}
                 </Alert>
-            ) : (
-                <Alert severity={"success"} elevation={6} variant={"filled"} className={"notification"} />
-            )}
+            ) : undefined}
         </Snackbar>
     );
 };

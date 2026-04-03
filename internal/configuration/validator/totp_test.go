@@ -30,7 +30,7 @@ func TestValidateTOTP(t *testing.T) {
 		{
 			desc: "ShouldNormalizeTOTPAlgorithm",
 			have: schema.TOTP{
-				DefaultAlgorithm: digestSHA1,
+				DefaultAlgorithm: schema.SHA1Lower,
 				DefaultDigits:    6,
 				DefaultPeriod:    30,
 				SecretSize:       32,
@@ -103,21 +103,6 @@ func TestValidateTOTP(t *testing.T) {
 				"totp: option 'period' option must be 15 or more but it's configured as '5'",
 				"totp: option 'digits' must be 6 or 8 but it's configured as '20'",
 				"totp: option 'secret_size' must be 20 or higher but it's configured as '10'",
-			},
-		},
-		{
-			desc: "ShouldRaiseErrorWhenInvalidTOTPAllowedValues",
-			have: schema.TOTP{
-				Skew:              schema.DefaultTOTPConfiguration.Skew,
-				Issuer:            "abc",
-				AllowedAlgorithms: []string{"sha3"},
-				AllowedPeriods:    []int{5},
-				AllowedDigits:     []int{20},
-			},
-			errs: []string{
-				"totp: option 'allowed_algorithm' must be one of 'SHA1', 'SHA256', or 'SHA512' but one of the values is 'SHA3'",
-				"totp: option 'allowed_periods' option must be 15 or more but one of the values is '5'",
-				"totp: option 'allowed_digits' must only have the values 6 or 8 but one of the values is '6'",
 			},
 		},
 		{

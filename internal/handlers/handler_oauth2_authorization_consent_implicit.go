@@ -109,7 +109,6 @@ func handleOAuth2AuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Auth
 	var (
 		err error
 	)
-
 	if consent, err = handleOAuth2NewConsentSession(ctx, subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", err)
 

@@ -1,10 +1,6 @@
-import React from "react";
-
 import SignOutButton from "@components/SignOutButton";
 
-export interface Props {}
-
-const SwitchUserButton = function (props: Props) {
+const SwitchUserButton = function () {
     return (
         <SignOutButton
             id={"switch-user-button"}

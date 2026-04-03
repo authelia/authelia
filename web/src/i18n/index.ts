@@ -26,19 +26,20 @@ i18n.use(Backend)
     .use(CustomLanguageDetector)
     .use(initReactI18next)
     .init({
-        detection: {
-            order: ["querystring", "localStorageCustom", "navigator"],
-            lookupQuerystring: "lng",
-            lookupLocalStorage: LocalStorageLanguageCurrent,
-        },
         backend: {
             loadPath: basePath + "/locales/{{lng}}/{{ns}}.json",
         },
-        load: "all",
-        ns: ["consent", "portal", "settings"],
+        debug: false,
         defaultNS: "portal",
+        detection: {
+            caches: ["cookie"],
+            cookieMinutes: 365 * 24 * 60,
+            cookieOptions: { path: "/", sameSite: "strict", secure: true },
+            lookupCookie: "language",
+            lookupLocalStorage: LocalStorageLanguageCurrent,
+            order: ["localStorageCustom", "navigator"],
+        },
         fallbackLng: {
-            default: ["en"],
             af: ["en"],
             "af-ZA": ["af", "en"],
             ar: ["en"],
@@ -53,6 +54,7 @@ i18n.use(Backend)
             "da-DK": ["da", "en"],
             de: ["en"],
             "de-DE": ["de", "en"],
+            default: ["en"],
             el: ["en"],
             "el-GR": ["el", "en"],
             es: ["en"],
@@ -150,6 +152,13 @@ i18n.use(Backend)
             "zh-SG": ["zh", "en"],
             "zh-TW": ["zh", "en"],
         },
+        interpolation: {
+            escapeValue: false,
+        },
+        load: "all",
+        lowerCaseLng: false,
+        nonExplicitSupportedLngs: true,
+        ns: ["consent", "portal", "settings"],
         supportedLngs: [
             "en",
             "af",
@@ -263,12 +272,6 @@ i18n.use(Backend)
             "zh-SG",
             "zh-TW",
         ],
-        lowerCaseLng: false,
-        nonExplicitSupportedLngs: true,
-        interpolation: {
-            escapeValue: false,
-        },
-        debug: false,
     });
 
 export default i18n;

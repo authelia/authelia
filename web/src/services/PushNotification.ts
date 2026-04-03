@@ -21,10 +21,10 @@ export function completePushNotificationSignIn(
     userCode?: string,
 ) {
     const body: CompletePushSignInBody = {
-        targetURL,
-        flowID,
         flow,
+        flowID,
         subflow,
+        targetURL,
         userCode,
     };
 
@@ -42,6 +42,8 @@ export interface DuoDevicesGetResponse {
     result: string;
     devices: DuoDevice[];
     enroll_url: string;
+    preferred_device?: string;
+    preferred_method?: string;
 }
 
 export interface DuoDevice {
@@ -52,6 +54,10 @@ export interface DuoDevice {
 
 export async function initiateDuoDeviceSelectionProcess() {
     return Get<DuoDevicesGetResponse>(InitiateDuoDeviceSelectionPath);
+}
+
+export async function getPreferredDuoDevice() {
+    return Get<DuoDevicesGetResponse>(CompletePushNotificationSignInPath);
 }
 
 export interface DuoDevicePostRequest {

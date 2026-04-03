@@ -42,8 +42,8 @@ func (k K3D) ClusterExists() (bool, error) {
 	cmd := k3dCommand("k3d cluster list")
 	cmd.Stdout = nil
 	cmd.Stderr = nil
-	output, err := cmd.Output()
 
+	output, err := cmd.Output()
 	if err != nil {
 		return false, err
 	}

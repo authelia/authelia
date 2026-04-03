@@ -1187,7 +1187,7 @@ func TestYAML(t *testing.T) {
 
 	actual, err := FuncFromYAML(data)
 
-	assert.EqualError(t, err, "yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `this is...` into map[string]interface {}")
+	assert.EqualError(t, err, "yaml: construct errors:\n  line 1: cannot construct !!str `this is...` into map[string]interface {}")
 	assert.Nil(t, actual)
 }
 

@@ -1,46 +1,31 @@
-import React, { Fragment, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, FC, Fragment, useCallback, useMemo } from "react";
 
-import { Box, Checkbox, FormControlLabel, List, Theme, Tooltip } from "@mui/material";
+import { Box, Checkbox, FormControlLabel, List, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import { formatClaim } from "@services/ConsentOpenIDConnect";
 
 export interface Props {
-    onChangeChecked: (claims: string[]) => void;
-    claims: string[] | null;
-    essential_claims: string[] | null;
+    onChangeChecked: (_claims: string[]) => void;
+    claims: null | string[];
+    essential_claims: null | string[];
 }
 
-const DecisionFormClaims: React.FC<Props> = (props: Props) => {
+const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeChecked }: Props) => {
     const { t: translate } = useTranslation(["consent"]);
 
-    const { classes } = useStyles();
+    const checked = useMemo(() => claims || [], [claims]);
 
-    const [checked, setChecked] = useState<string[]>([]);
+    const handleClaimCheckboxOnChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const checking = !checked.includes(event.target.value);
 
-    const handleClaimCheckboxOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setChecked((prevState) => {
-            const checking = !prevState.includes(event.target.value);
-
-            if (checking) {
-                return [...prevState, event.target.value];
-            } else {
-                return prevState.filter((value) => value !== event.target.value);
-            }
-        });
-    };
-
-    useEffect(() => {
-        if (props.claims) {
-            setChecked(props.claims);
+        if (checking) {
+            onChangeChecked([...checked, event.target.value]);
+        } else {
+            onChangeChecked(checked.filter((value) => value !== event.target.value));
         }
-    }, [props.claims]);
-
-    useEffect(() => {
-        props.onChangeChecked(checked);
-    }, [checked, props]);
+    };
 
     const claimChecked = useCallback(
         (claim: string) => {
@@ -49,15 +34,22 @@ const DecisionFormClaims: React.FC<Props> = (props: Props) => {
         [checked],
     );
 
-    const hasClaims = props?.essential_claims || props?.claims;
+    const hasClaims = essential_claims || claims;
 
     return (
         <Fragment>
             {hasClaims ? (
                 <Grid size={{ xs: 12 }}>
-                    <Box className={classes.container}>
-                        <List className={classes.list}>
-                            {props.essential_claims?.map((claim: string) => (
+                    <Box sx={{ textAlign: "center" }}>
+                        <List
+                            sx={{
+                                backgroundColor: (theme) => theme.palette.background.paper,
+                                display: "inline-block",
+                                marginBottom: (theme) => theme.spacing(2),
+                                marginTop: (theme) => theme.spacing(2),
+                            }}
+                        >
+                            {essential_claims?.map((claim: string) => (
                                 <Tooltip key={`${claim}-essential`} title={translate("Claim", { name: claim })}>
                                     <FormControlLabel
                                         control={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
@@ -65,7 +57,7 @@ const DecisionFormClaims: React.FC<Props> = (props: Props) => {
                                     />
                                 </Tooltip>
                             ))}
-                            {props.claims?.map((claim: string) => (
+                            {claims?.map((claim: string) => (
                                 <Tooltip key={claim} title={translate("Claim", { name: claim })}>
                                     <FormControlLabel
                                         control={
@@ -87,17 +79,5 @@ const DecisionFormClaims: React.FC<Props> = (props: Props) => {
         </Fragment>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    container: {
-        textAlign: "center",
-    },
-    list: {
-        display: "inline-block",
-        backgroundColor: theme.palette.background.paper,
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
-}));
 
 export default DecisionFormClaims;

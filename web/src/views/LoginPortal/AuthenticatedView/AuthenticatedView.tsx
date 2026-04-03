@@ -1,9 +1,5 @@
-import React from "react";
-
-import { Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
-import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
 import MinimalLayout from "@layouts/MinimalLayout";
@@ -17,8 +13,6 @@ export interface Props {
 const AuthenticatedView = function (props: Props) {
     const { t: translate } = useTranslation();
 
-    const { classes } = useStyles();
-
     return (
         <MinimalLayout
             id={"authenticated-stage"}
@@ -29,22 +23,21 @@ const AuthenticatedView = function (props: Props) {
                 <Grid size={{ xs: 12 }}>
                     <LogoutButton />
                 </Grid>
-                <Grid size={{ xs: 12 }} className={classes.mainContainer}>
+                <Grid
+                    size={{ xs: 12 }}
+                    sx={{
+                        border: "1px solid #d6d6d6",
+                        borderRadius: "10px",
+                        marginBottom: (theme) => theme.spacing(2),
+                        marginTop: (theme) => theme.spacing(2),
+                        padding: (theme) => theme.spacing(4),
+                    }}
+                >
                     <Authenticated />
                 </Grid>
             </Grid>
         </MinimalLayout>
     );
 };
-
-const useStyles = makeStyles()((theme: Theme) => ({
-    mainContainer: {
-        border: "1px solid #d6d6d6",
-        borderRadius: "10px",
-        padding: theme.spacing(4),
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
-}));
 
 export default AuthenticatedView;

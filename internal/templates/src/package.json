@@ -1,45 +1,55 @@
 {
-	"name": "authelia-email-templates",
-	"version": "1.0.0",
-	"description": "",
-	"scripts": {
-		"dev": "email dev",
-		"buildx": "email build",
-		"build": "tsc && node dist/index.js",
-		"render": "tsc && node dist/index.js"
-	},
-	"keywords": [],
-	"author": "Authelia",
-	"license": "Apache-2.0",
-	"dependencies": {
-		"@react-email/components": "0.0.41",
-		"@react-email/render": "1.1.2",
-		"esbuild": "0.25.4",
-		"react": "19.1.0",
-		"react-dom": "19.1.0",
-		"react-email": "4.0.13",
-		"tailwind-merge": "3.3.0",
-		"tailwindcss": "4.1.6",
-		"typescript": "5.8.3"
-	},
-	"devDependencies": {
-		"@radix-ui/colors": "3.0.0",
-		"@types/node": "22.15.18",
-		"@types/react": "19.1.4",
-		"@types/react-dom": "19.1.5",
-		"eslint": "9.26.0",
-		"tsx": "4.19.4",
-		"vitest": "3.1.3"
-	},
-	"pnpm": {
-		"overrides": {
-			"@babel/traverse": "7.27.1",
-			"@babel/helpers": "7.27.1",
-			"@babel/runtime": "7.27.1",
-			"esbuild": "0.25.4",
-			"nanoid": "5.1.5",
-			"prismjs": "1.30.0",
-			"vite": "6.3.5"
-		}
-	}
+  "name": "authelia-email-templates",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "email dev",
+    "render": "tsc && node dist/index.js"
+  },
+  "keywords": [],
+  "author": "Authelia",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@react-email/components": "1.0.11",
+    "@react-email/render": "2.0.5",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-email": "5.2.10",
+    "tailwind-merge": "3.5.0",
+    "tailwindcss": "4.2.2",
+    "typescript": "6.0.2"
+  },
+  "devDependencies": {
+    "@radix-ui/colors": "3.0.0",
+    "@react-email/preview-server": "5.2.10",
+    "@types/node": "25.5.2",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "eslint": "10.1.0",
+    "tsx": "4.21.0",
+    "vitest": "4.1.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "@babel/traverse": "7.29.0",
+      "@babel/helpers": "7.29.2",
+      "@babel/runtime": "7.29.2",
+      "ajv": "8.18.0",
+      "brace-expansion": "5.0.5",
+      "flatted": "3.4.2",
+      "glob": "13.0.6",
+      "js-yaml": "4.1.1",
+      "minimatch": "10.2.5",
+      "nanoid": "5.1.7",
+      "picomatch": "4.0.4",
+      "prismjs": "1.30.0",
+      "rollup": "4.60.1",
+      "socket.io-parser": "4.2.6",
+      "vite": "8.0.3"
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
+  }
 }

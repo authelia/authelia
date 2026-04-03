@@ -2,13 +2,14 @@
 title: "File"
 description: "File"
 summary: "Authelia supports a file based first factor user provider. This section describes configuring this."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 102300
 toc: true
 aliases:
-  - /docs/configuration/authentication/file.html
+  - '/docs/configuration/authentication/file.html'
+  - '/docs/configuration/authentication/file.html%E2%80%8B'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -260,14 +261,24 @@ The [PBKDF2] algorithm implementation.
 
 {{< confkey type="string" default="sha512" required="no" >}}
 
-Controls the variant when hashing passwords using [PBKDF2]. Recommended `sha512`.
-Permitted values `sha1`, `sha224`, `sha256`, `sha384`, `sha512`.
+Controls the variant when hashing passwords using [PBKDF2].
+
+The below table has the supported variants, information on NIST FIPS 140 compliance status. Compliant means it's been
+formally tested by a NIST accredited laboratory, Approved means it should theoretically become Compliant when formally
+tested by a NIST accredited laboratory.
+
+{{% hashing-pbkdf2-variants %}}
 
 #### iterations
 
-{{< confkey type="integer" default="310000" required="no" >}}
+{{< confkey type="integer" required="no" >}}
 
 Controls the number of iterations when hashing passwords using [PBKDF2].
+
+The default value is based on the variant as described in the below table. These values are slightly higher than the
+FIPS 140 recommendations for future proofing.
+
+{{% hashing-pbkdf2-iterations %}}
 
 #### salt_length
 

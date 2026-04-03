@@ -1,5 +1,5 @@
 ---
-default_redirection_url: 'https://home.example.com:8080/'
+
 
 server:
   address: 'tcp://127.0.0.1:9091'
@@ -146,7 +146,10 @@ session:
   name: 'authelia_session'
   expiration: '1h'  # 1 hour
   inactivity: '5m'  # 5 minutes
-  domain: 'example.com'
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://auth.example.com:8080/'
+      default_redirection_url: 'https://home.example.com:8080/'
   redis:
     host: '127.0.0.1'
     port: 6379

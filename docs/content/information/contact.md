@@ -2,14 +2,15 @@
 title: "Contact"
 description: "Drop us an email."
 summary: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 toc: true
 type: legal
 aliases:
-  - /contact
-  - /contact.html
+  - '/contact'
+  - '/contact.html'
+  - '/docs/community/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

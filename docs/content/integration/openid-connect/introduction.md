@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0"
 description: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party"
 summary: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 610
@@ -33,7 +33,7 @@ This page is intended as an integration reference point for any implementers who
 Authelia is [OpenID Certified™] to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP profiles of the
 [OpenID Connect™ protocol].
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 300x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" sizes="50dvh" >}}
 
 For more information on certified implementations please see the [OpenID Foundations](https://openid.net/foundation/)
 publicized [Certified OpenID Providers & Profiles] and [Certified OpenID Providers for Logout Profiles] tables. We will
@@ -278,8 +278,8 @@ field is both the required value for the `grant_type` parameter in the access / 
 ### Client Authentication Method
 
 The following describes the supported client authentication methods. See the [OpenID Connect 1.0 Client Authentication]
-specification and the [OAuth 2.0 - Client Types] specification for more information. The value
-field is the valid values for the
+[OAuth 2.0 Client Authentication](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3) documentation for more
+information. The value field is the valid values for the
 [token_endpoint_auth_method](../../configuration/identity-providers/openid-connect/clients.md#token_endpoint_auth_method)
 client configuration option.
 
@@ -497,6 +497,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] (CIBA)                 |     None      |                                              N/A                                              |
 |                                    [OpenID Shared Signals Framework 1.0] (SSF)                                     |     None      |                                              N/A                                              |
 |                           [OpenID Continuous Access Evaluation Profile 1.0] (CAEP - SSF)                           |     None      |                                              N/A                                              |
+|                                    [OpenID Connect for Identity Assurance 1.0]                                     |     None      |                                              N/A                                              |
 |                                     [CAEP Interoperability Profile 1.0] (SSF)                                      |     None      |                                              N/A                                              |
 |                                             [Proof Key Code Exchange]                                              | Certified[^3] |         [RFC7636], [OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/pkce/)         |
 |                                                  [OAuth 2.0 Core]                                                  | Certified[^3] |                                           [RFC6749]                                           |
@@ -616,6 +617,7 @@ either implemented, have our eye on, or are refusing to implement.
 [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0]: https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html
 [OpenID Shared Signals Framework 1.0]: https://openid.net/specs/openid-sharedsignals-framework-1_0-ID3.html
 [OpenID Continuous Access Evaluation Profile 1.0]: https://openid.net/specs/openid-caep-1_0-ID2.html
+[OpenID Connect for Identity Assurance 1.0]: https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html
 [CAEP Interoperability Profile 1.0]: https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 [OAuth 2.0 Multiple Response Types]: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
 [OAuth 2.0 Form Post Response Mode]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html

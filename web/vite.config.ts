@@ -3,7 +3,6 @@ import { defineConfig, loadEnv } from "vite";
 import checkerPlugin from "vite-plugin-checker";
 import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd());
@@ -28,58 +27,59 @@ export default defineConfig(({ mode }) => {
             assetsDir: "static",
             emptyOutDir: true,
             outDir: "../internal/server/public_html",
-            rollupOptions: {
+            rolldownOptions: {
                 output: {
-                    assetFileNames: ({ name }) => {
-                        if (name && name.endsWith(".css")) {
+                    assetFileNames: (assetInfo) => {
+                        if (assetInfo.names.some((name) => name.endsWith(".css"))) {
                             return "static/css/[name].[hash].[ext]";
                         }
 
                         return "static/media/[name].[hash].[ext]";
                     },
                     chunkFileNames: (chunkInfo) => {
-                        switch (chunkInfo.name) {
-                            case "index":
+                        if (chunkInfo.name === "index") {
+                            return `static/js/[name].[hash].js`;
+                        } else {
+                            if (chunkInfo.moduleIds.length === 0) {
                                 return `static/js/[name].[hash].js`;
-                            default:
-                                if (chunkInfo.moduleIds.length === 0) {
-                                    return `static/js/[name].[hash].js`;
-                                }
+                            }
 
-                                const last = chunkInfo.moduleIds[chunkInfo.moduleIds.length - 1];
+                            const last = chunkInfo.moduleIds.at(-1);
 
-                                if (last.includes("@mui/")) {
-                                    return `static/js/mui.[name].[hash].js`;
-                                }
+                            if (last?.includes("@mui/")) {
+                                return `static/js/mui.[name].[hash].js`;
+                            }
 
-                                const match = last.match(/authelia\/web\/src\/([a-zA-Z]+)\/([a-zA-Z]+)/);
+                            if (last) {
+                                const regexp = /authelia\/web\/src\/([a-zA-Z]+)\/([a-zA-Z]+)/;
+                                const match = regexp.exec(last);
 
                                 if (match) {
-                                    switch (match[2]) {
-                                        case "LoginPortal":
-                                            return `static/js/portal.[name].[hash].js`;
-                                        case "ResetPassword":
-                                            return `static/js/reset-password.[name].[hash].js`;
-                                        case "Settings":
-                                            switch (chunkInfo.name) {
-                                                case "SettingsRouter":
-                                                    return `static/js/settings.router.[hash].js`;
-                                                default:
-                                                    return `static/js/settings.[name].[hash].js`;
-                                            }
-                                        default:
-                                            switch (chunkInfo.name) {
-                                                case "LoginLayout":
-                                                    return `static/js/${match[1]}.Login.[hash].js`;
-                                                case "MinimalLayout":
-                                                    return `static/js/${match[1]}.Minimal.[hash].js`;
-                                                default:
-                                                    return `static/js/${match[1]}.[name].[hash].js`;
-                                            }
+                                    if (match[2] === "LoginPortal") {
+                                        return `static/js/portal.[name].[hash].js`;
+                                    } else if (match[2] === "ResetPassword") {
+                                        return `static/js/reset-password.[name].[hash].js`;
+                                    } else if (match[2] === "Settings") {
+                                        if (chunkInfo.name === "SettingsRouter") {
+                                            return `static/js/settings.router.[hash].js`;
+                                        } else {
+                                            return `static/js/settings.[name].[hash].js`;
+                                        }
+                                    } else {
+                                        if (chunkInfo.name === "LoginLayout") {
+                                            return `static/js/${match[1]}.Login.[hash].js`;
+                                        }
+
+                                        if (chunkInfo.name === "MinimalLayout") {
+                                            return `static/js/${match[1]}.Minimal.[hash].js`;
+                                        }
+
+                                        return `static/js/${match[1]}.[name].[hash].js`;
                                     }
                                 }
+                            }
 
-                                return `static/js/[name].[hash].js`;
+                            return `static/js/[name].[hash].js`;
                         }
                     },
                     entryFileNames: `static/js/[name].[hash].js`,
@@ -90,28 +90,35 @@ export default defineConfig(({ mode }) => {
         optimizeDeps: {
             include: ["@emotion/react", "@emotion/styled"],
         },
+        plugins: [
+            checkerPlugin({
+                eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx", useFlatConfig: true },
+                typescript: true,
+            }),
+            istanbulPlugin,
+            react(),
+            svgr(),
+        ],
+        resolve: {
+            tsconfigPaths: true,
+        },
         server: {
+            allowedHosts: ["login.example.com", ...allowedHosts],
             open: false,
             port: 3000,
-            allowedHosts: ["login.example.com", ...allowedHosts],
+            watch: {
+                ignored: ["**/node_modules/**", "**/dist/**", "**/.*/**"],
+            },
         },
         test: {
             coverage: {
+                include: ["src"],
                 provider: "istanbul",
             },
             environment: "happy-dom",
             globals: true,
-            onConsoleLog() {
-                return false;
-            },
+            reporters: ["default", "html"],
             setupFiles: ["src/setupTests.ts"],
         },
-        plugins: [
-            checkerPlugin({ eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx" }, typescript: true }),
-            istanbulPlugin,
-            react(),
-            svgr(),
-            tsconfigPaths(),
-        ],
     };
 });

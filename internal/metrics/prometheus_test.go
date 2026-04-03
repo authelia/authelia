@@ -16,5 +16,7 @@ func TestNewPrometheus(t *testing.T) {
 	p.RecordAuthz("400")
 	p.RecordAuthn(true, false, "WebAuthn")
 	p.RecordAuthn(true, false, "1fa")
+	p.RecordAuthn(true, false, "passkey")
 	p.RecordAuthenticationDuration(true, time.Second)
+	p.RecordRequestOpenIDConnect("example", "200", time.Second)
 }

@@ -30,8 +30,7 @@ func (s *BypassPolicyScenario) SetupSuite() {
 }
 
 func (s *BypassPolicyScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,6 +48,7 @@ func (s *BypassPolicyScenario) TearDownTest() {
 
 func (s *BypassPolicyScenario) TestShouldAccessPublicResource() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

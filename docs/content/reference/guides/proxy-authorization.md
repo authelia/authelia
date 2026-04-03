@@ -2,7 +2,7 @@
 title: "Proxy Authorization"
 description: "A reference guide on Proxy Authorization implementations"
 summary: "This section contains reference guide on Proxy Authorization implementations Authelia supports."
-date: 2023-01-25T20:36:40+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 menu:

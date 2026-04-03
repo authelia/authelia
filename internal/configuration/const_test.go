@@ -1,5 +1,6 @@
 package configuration
 
+//nolint:gosec // Test Credentials.
 const (
 	KEY_EXAMPLE                 = "KEY_EXAMPLE"
 	KEY_EXAMPLE_UNDERSCORE      = "KEY_EXAMPLE_UNDERSCORE"
@@ -7,7 +8,7 @@ const (
 	MYSECRET_PASSWORD_FILE      = "MYSECRET_PASSWORD_FILE"
 	MYSECRET_USER_PASSWORD_FILE = "MYSECRET_USER_PASSWORD_FILE"
 	SOME_SECRET                 = "SOME_SECRET"
-	JWT_SECRET_FILE             = "JWT_SECRET_FILE" //nolint:gosec
+	JWT_SECRET_FILE             = "JWT_SECRET_FILE"
 )
 
 const (

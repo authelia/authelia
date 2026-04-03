@@ -10,6 +10,8 @@ import (
 )
 
 func doHTTPGetQuery(t *testing.T, url string) []byte {
+	t.Helper()
+
 	client := NewHTTPClient()
 	req, err := http.NewRequest(fasthttp.MethodGet, url, nil)
 	assert.NoError(t, err)
@@ -19,6 +21,7 @@ func doHTTPGetQuery(t *testing.T, url string) []byte {
 	assert.NoError(t, err)
 
 	defer resp.Body.Close()
+
 	body, _ := io.ReadAll(resp.Body)
 
 	return body

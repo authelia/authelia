@@ -32,8 +32,7 @@ func (s *OneFactorOnlySuite) SetupSuite() {
 }
 
 func (s *OneFactorOnlySuite) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,6 +51,7 @@ func (s *OneFactorOnlySuite) TearDownTest() {
 // No target url is provided, then the user should be redirect to the default url.
 func (s *OneFactorOnlySuite) TestShouldRedirectUserToDefaultURL() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -64,6 +64,7 @@ func (s *OneFactorOnlySuite) TestShouldRedirectUserToDefaultURL() {
 // Unsafe URL is provided, then the user should be redirect to the default url.
 func (s *OneFactorOnlySuite) TestShouldRedirectUserToDefaultURLWhenURLIsUnsafe() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -76,6 +77,7 @@ func (s *OneFactorOnlySuite) TestShouldRedirectUserToDefaultURLWhenURLIsUnsafe()
 // When use logged in and visit the portal again, she gets redirect to the authenticated view.
 func (s *OneFactorOnlySuite) TestShouldDisplayAuthenticatedView() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -89,6 +91,7 @@ func (s *OneFactorOnlySuite) TestShouldDisplayAuthenticatedView() {
 
 func (s *OneFactorOnlySuite) TestShouldRedirectAlreadyAuthenticatedUser() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -104,6 +107,7 @@ func (s *OneFactorOnlySuite) TestShouldRedirectAlreadyAuthenticatedUser() {
 
 func (s *OneFactorOnlySuite) TestShouldNotRedirectAlreadyAuthenticatedUserToUnsafeURL() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

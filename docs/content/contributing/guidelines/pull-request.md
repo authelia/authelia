@@ -2,7 +2,7 @@
 title: "Pull Request"
 description: "Authelia Development Pull Request Guidelines"
 summary: "This section covers the pull request guidelines."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 320
@@ -62,7 +62,7 @@ maintainers in their review process.
   - [Database Schema](database-schema.md)
   - [Documentation](documentation.md)
   - [Testing](testing.md)
-  - [Accessibility](accessibiliy.md)
+  - [Accessibility](accessibility.md)
   - [Style](style.md)
 - The changes adhere to all of the relevant linting and quality testing automations
 - The pull request closes related issues by mentioning them appropriately

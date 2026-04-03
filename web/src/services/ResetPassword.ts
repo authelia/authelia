@@ -23,10 +23,10 @@ export async function resetPassword(newPassword: string) {
 }
 
 export async function deleteResetPasswordToken(token: string) {
-    const res = await axios<OKResponse | ErrorResponse>({
+    const res = await axios<ErrorResponse | OKResponse>({
+        data: { token: token },
         method: "DELETE",
         url: ResetPasswordPath,
-        data: { token: token },
         validateStatus: validateStatusTooManyRequests,
     });
 

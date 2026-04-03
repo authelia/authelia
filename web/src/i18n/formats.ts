@@ -1,7 +1,7 @@
 export const FormatDateHumanReadable = {
+    day: "numeric",
     hour: "numeric",
     minute: "numeric",
-    year: "numeric",
     month: "long",
-    day: "numeric",
+    year: "numeric",
 };

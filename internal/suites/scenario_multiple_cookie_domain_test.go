@@ -41,8 +41,7 @@ func (s *MultiCookieDomainScenario) SetupSuite() {
 }
 
 func (s *MultiCookieDomainScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,6 +59,7 @@ func (s *MultiCookieDomainScenario) TearDownTest() {
 
 func (s *MultiCookieDomainScenario) TestCookieName() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -71,11 +71,12 @@ func (s *MultiCookieDomainScenario) TestCookieName() {
 
 	cookieNames := s.GetCookieNames()
 
-	s.Assert().Equalf(s.cookieNames, cookieNames, "cookie names should include '%s' (only and all of) but includes '%s'", strings.Join(s.cookieNames, ","), strings.Join(cookieNames, ","))
+	s.Assert().ElementsMatchf(s.cookieNames, cookieNames, "cookie names should include '%s' (only and all of) but includes '%s'", strings.Join(s.cookieNames, ","), strings.Join(cookieNames, ","))
 }
 
 func (s *MultiCookieDomainScenario) TestRememberMe() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -92,6 +93,7 @@ func (s *MultiCookieDomainScenario) TestRememberMe() {
 
 func (s *MultiCookieDomainScenario) TestShouldAuthorizeSecret() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -104,6 +106,7 @@ func (s *MultiCookieDomainScenario) TestShouldAuthorizeSecret() {
 
 func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnNextDomainAfterLoginOnFirstDomain() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -121,6 +124,7 @@ func (s *MultiCookieDomainScenario) TestShouldRequestLoginOnNextDomainAfterLogin
 
 func (s *MultiCookieDomainScenario) TestShouldStayLoggedInOnNextDomainWhenLoggedOffOnFirstDomain() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

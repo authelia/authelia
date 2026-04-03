@@ -2,7 +2,7 @@
 title: "Environment"
 description: "Using the Environment Variable Configuration Method."
 summary: "Authelia has a layered configuration model. This section describes how to implement the environment configuration."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 101300
@@ -18,9 +18,10 @@ Environment variables are applied after the configuration file meaning anything 
 overrides the configuration files.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-It is not possible to configure several sections at this time, these include but may not be
-limited to the rules section in access control, the clients section in the OpenID Connect 1.0 Provider, the cookies
-section of in session, and the authz section in the server endpoints.
+It is not possible to configure several sections using environment variables or secrets. The sections affected are all
+lists of objects. These include but may not be limited to the rules section in access control, the clients section in
+the OpenID Connect 1.0 Provider, the cookies section of in session, and the authz section in the server endpoints. See
+[ADR2](../../reference/architecture-decision-log/2.md) for more information.
 {{< /callout >}}
 
 ## Prefix

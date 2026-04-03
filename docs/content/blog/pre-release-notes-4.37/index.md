@@ -2,7 +2,7 @@
 title: "4.37: Pre-Release Notes"
 description: "Authelia 4.37 is just around the corner. This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
 summary: "Authelia 4.37 is just around the corner. This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
-date: 2022-09-26T06:55:09+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 weight: 50
 categories: ["News", "Release Notes"]

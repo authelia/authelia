@@ -26,17 +26,19 @@ i18n.use(Backend)
     .use(CustomLanguageDetector)
     .use(initReactI18next)
     .init({
-        detection: {
-            order: ["querystring", "localStorageCustom", "navigator"],
-            lookupQuerystring: "lng",
-            lookupLocalStorage: LocalStorageLanguageCurrent,
-        },
         backend: {
             loadPath: basePath + "/locales/{{"{{lng}}"}}/{{"{{ns}}"}}.json",
         },
-        load: "all",
-        ns: [{{ range $i, $value := .Namespaces }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
+        debug: false,
         defaultNS: "{{ .Defaults.Namespace }}",
+        detection: {
+            caches: ["cookie"],
+            cookieMinutes: 365 * 24 * 60,
+            cookieOptions: { path: "/", sameSite: "strict", secure: true },
+            lookupCookie: "language",
+            lookupLocalStorage: LocalStorageLanguageCurrent,
+            order: ["localStorageCustom", "navigator"],
+        },
         fallbackLng: {
             default: ["{{ .Defaults.Language.Locale }}"],
             {{- range .Languages }}
@@ -45,17 +47,18 @@ i18n.use(Backend)
             {{- end }}
             {{- end }}
         },
+        interpolation: {
+            escapeValue: false,
+        },
+        load: "all",
+        lowerCaseLng: false,
+        nonExplicitSupportedLngs: true,
+        ns: [{{ range $i, $value := .Namespaces }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
         supportedLngs: [
         	{{- range $i, $value := .Languages }}
             "{{ $value.Locale }}",
         	{{- end }}
         ],
-        lowerCaseLng: false,
-        nonExplicitSupportedLngs: true,
-        interpolation: {
-            escapeValue: false,
-        },
-        debug: false,
     });
 
 export default i18n;

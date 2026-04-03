@@ -316,12 +316,12 @@
         "password_reset": {
           "$ref": "#/$defs/AuthenticationBackendPasswordReset",
           "title": "Password Reset",
-          "description": "Allows configuration of the password reset behaviour."
+          "description": "Allows configuration of the password reset behavior."
         },
         "password_change": {
           "$ref": "#/$defs/AuthenticationBackendPasswordChange",
-          "title": "Password Reset",
-          "description": "Allows configuration of the password reset behaviour."
+          "title": "Password Change",
+          "description": "Allows configuration of the password change behavior."
         },
         "refresh_interval": {
           "$ref": "#/$defs/RefreshIntervalDuration",
@@ -385,7 +385,7 @@
         "search": {
           "$ref": "#/$defs/AuthenticationBackendFileSearch",
           "title": "Search",
-          "description": "Configures the user searching behaviour."
+          "description": "Configures the user searching behavior."
         },
         "extra_attributes": {
           "patternProperties": {
@@ -801,12 +801,6 @@
           "type": "boolean",
           "title": "Permit Unauthenticated Bind",
           "description": "Enables omission of the password to perform an unauthenticated bind.",
-          "default": false
-        },
-        "permit_feature_detection_failure": {
-          "type": "boolean",
-          "title": "Permit Feature Detection Failure",
-          "description": "Enables failures when detecting directory server features using the Root DSE lookup.",
           "default": false
         },
         "user": {
@@ -1484,12 +1478,7 @@
           "default": "specification"
         },
         "custom_claims": {
-          "patternProperties": {
-            ".*": {
-              "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaim"
-            }
-          },
-          "type": "object",
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaims",
           "title": "Custom Claims",
           "description": "The custom claims available in this policy in addition to the Standard Claims."
         }
@@ -1552,9 +1541,11 @@
             "enum": [
               "openid",
               "offline_access",
-              "groups",
-              "email",
               "profile",
+              "email",
+              "address",
+              "phone",
+              "groups",
               "authelia.bearer.authz"
             ]
           },
@@ -1679,6 +1670,7 @@
         "pkce_challenge_method": {
           "type": "string",
           "enum": [
+            "",
             "plain",
             "S256"
           ],
@@ -1689,7 +1681,6 @@
           "type": "string",
           "enum": [
             "",
-            "none",
             "HS256",
             "HS384",
             "HS512",
@@ -1705,7 +1696,7 @@
           ],
           "title": "Authorization Signing Algorithm",
           "description": "The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value.",
-          "default": "none"
+          "default": "RS256"
         },
         "authorization_signed_response_key_id": {
           "type": "string",
@@ -2296,6 +2287,11 @@
     },
     "IdentityProvidersOpenIDConnectCustomClaim": {
       "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "The name of claim."
+        },
         "attribute": {
           "type": "string",
           "title": "Attribute",
@@ -2303,6 +2299,14 @@
         }
       },
       "additionalProperties": false,
+      "type": "object"
+    },
+    "IdentityProvidersOpenIDConnectCustomClaims": {
+      "patternProperties": {
+        ".*": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaim"
+        }
+      },
       "type": "object"
     },
     "IdentityProvidersOpenIDConnectLifespan": {
@@ -2901,7 +2905,7 @@
         "disable_failure": {
           "type": "boolean",
           "title": "Disable Failure",
-          "description": "Disables complete failure whe the Startup Check fails and instead just logs the error.",
+          "description": "Disables complete failure when the Startup Check fails and instead just logs the error.",
           "default": false
         }
       },
@@ -3023,7 +3027,7 @@
         "disable_require_tls": {
           "type": "boolean",
           "title": "Disable Require TLS",
-          "description": "Disables the requirement to use TLS.",
+          "description": "Disables the requirement to use TLS. This means security critical information and SMTP auth credentials will be sent in the clear due to an unencrypted connection. While this option exists, we heavily discourage it and do not support it.",
           "default": false
         },
         "disable_html_emails": {
@@ -3488,7 +3492,7 @@
           "type": "string",
           "title": "CSP Template",
           "description": "The Content Security Policy template.",
-          "default": "default-src 'self'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
+          "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"
         }
       },
       "additionalProperties": false,
@@ -4396,6 +4400,16 @@
           "description": "Enables the use of the WebAuthn Metadata Service.",
           "default": false
         },
+        "cache_policy": {
+          "type": "string",
+          "enum": [
+            "strict",
+            "relaxed"
+          ],
+          "title": "Cache Policy",
+          "description": "WebAuthn Authenticator metadata cache policy.",
+          "default": "strict"
+        },
         "validate_trust_anchor": {
           "type": "boolean",
           "title": "Validate Trust Anchor",
@@ -4479,6 +4493,7 @@
         "attachment": {
           "type": "string",
           "enum": [
+            "",
             "platform",
             "cross-platform"
           ],

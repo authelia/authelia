@@ -51,10 +51,23 @@ type IdentityProvidersOpenIDConnectClaimsPolicy struct {
 
 	IDTokenAudienceMode string `koanf:"id_token_audience_mode" yaml:"id_token_audience_mode,omitempty" toml:"id_token_audience_mode,omitempty" json:"id_token_audience_mode,omitempty" jsonschema:"default=specification,title=ID Token Audience Mode,enum=specification,enum=experimental-merged" jsonschema_description:"Sets the mode for ID Token audience derivation for clients that use this policy."`
 
-	CustomClaims map[string]IdentityProvidersOpenIDConnectCustomClaim `koanf:"custom_claims" yaml:"custom_claims,omitempty" toml:"custom_claims,omitempty" json:"custom_claims,omitempty" jsonschema:"title=Custom Claims" jsonschema_description:"The custom claims available in this policy in addition to the Standard Claims."`
+	CustomClaims IdentityProvidersOpenIDConnectCustomClaims `koanf:"custom_claims" yaml:"custom_claims,omitempty" toml:"custom_claims,omitempty" json:"custom_claims,omitempty" jsonschema:"title=Custom Claims" jsonschema_description:"The custom claims available in this policy in addition to the Standard Claims."`
+}
+
+type IdentityProvidersOpenIDConnectCustomClaims map[string]IdentityProvidersOpenIDConnectCustomClaim
+
+func (c IdentityProvidersOpenIDConnectCustomClaims) GetCustomClaimByName(name string) IdentityProvidersOpenIDConnectCustomClaim {
+	for _, properties := range c {
+		if properties.Name == name {
+			return properties
+		}
+	}
+
+	return IdentityProvidersOpenIDConnectCustomClaim{}
 }
 
 type IdentityProvidersOpenIDConnectCustomClaim struct {
+	Name      string `koanf:"name" yaml:"name" toml:"name,omitempty" json:"name,omitempty" jsonschema:"title=Name" jsonschema_description:"The name of claim."`
 	Attribute string `koanf:"attribute" yaml:"attribute,omitempty" toml:"attribute,omitempty" json:"attribute,omitempty" jsonschema:"title=Attribute" jsonschema_description:"The attribute that populates this claim."`
 }
 
@@ -153,7 +166,7 @@ type IdentityProvidersOpenIDConnectClient struct {
 	RequestURIs  IdentityProvidersOpenIDConnectClientURIs `koanf:"request_uris" yaml:"request_uris,omitempty" toml:"request_uris,omitempty" json:"request_uris" jsonschema:"title=Request URIs" jsonschema_description:"List of whitelisted request URIs."`
 
 	Audience      []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audiences."`
-	Scopes        []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=groups,enum=email,enum=profile,enum=authelia.bearer.authz,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
+	Scopes        []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
 	GrantTypes    []string `koanf:"grant_types" yaml:"grant_types,omitempty" toml:"grant_types,omitempty" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,enum=client_credentials,enum=urn:ietf:params:oauth:grant-type:device_code,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
 	ResponseTypes []string `koanf:"response_types" yaml:"response_types,omitempty" toml:"response_types,omitempty" json:"response_types" jsonschema:"enum=code,enum=id_token token,enum=id_token,enum=token,enum=code token,enum=code id_token,enum=code id_token token,uniqueItems,title=Response Types" jsonschema_description:"The Response Types the client is authorized to request."`
 	ResponseModes []string `koanf:"response_modes" yaml:"response_modes,omitempty" toml:"response_modes,omitempty" json:"response_modes" jsonschema:"enum=form_post,enum=form_post.jwt,enum=query,enum=query.jwt,enum=fragment,enum=fragment.jwt,enum=jwt,uniqueItems,title=Response Modes" jsonschema_description:"The Response Modes this client is authorized request."`
@@ -169,9 +182,9 @@ type IdentityProvidersOpenIDConnectClient struct {
 	RequirePushedAuthorizationRequests bool `koanf:"require_pushed_authorization_requests" yaml:"require_pushed_authorization_requests,omitempty" toml:"require_pushed_authorization_requests,omitempty" json:"require_pushed_authorization_requests" jsonschema:"default=false,title=Require Pushed Authorization Requests" jsonschema_description:"Requires Pushed Authorization Requests for this client to perform an authorization."`
 	RequirePKCE                        bool `koanf:"require_pkce" yaml:"require_pkce,omitempty" toml:"require_pkce,omitempty" json:"require_pkce" jsonschema:"default=false,title=Require PKCE" jsonschema_description:"Requires a Proof Key for this client to perform Code Exchange."`
 
-	PKCEChallengeMethod string `koanf:"pkce_challenge_method" yaml:"pkce_challenge_method,omitempty" toml:"pkce_challenge_method,omitempty" json:"pkce_challenge_method" jsonschema:"enum=plain,enum=S256,title=PKCE Challenge Method" jsonschema_description:"The PKCE Challenge Method enforced on this client."`
+	PKCEChallengeMethod string `koanf:"pkce_challenge_method" yaml:"pkce_challenge_method,omitempty" toml:"pkce_challenge_method,omitempty" json:"pkce_challenge_method" jsonschema:"enum=,enum=plain,enum=S256,title=PKCE Challenge Method" jsonschema_description:"The PKCE Challenge Method enforced on this client."`
 
-	AuthorizationSignedResponseAlg      string `koanf:"authorization_signed_response_alg" yaml:"authorization_signed_response_alg,omitempty" toml:"authorization_signed_response_alg,omitempty" json:"authorization_signed_response_alg" jsonschema:"default=none,enum=,enum=none,enum=HS256,enum=HS384,enum=HS512,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Authorization Signing Algorithm" jsonschema_description:"The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value."`
+	AuthorizationSignedResponseAlg      string `koanf:"authorization_signed_response_alg" yaml:"authorization_signed_response_alg,omitempty" toml:"authorization_signed_response_alg,omitempty" json:"authorization_signed_response_alg" jsonschema:"default=RS256,enum=,enum=HS256,enum=HS384,enum=HS512,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Authorization Signing Algorithm" jsonschema_description:"The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value."`
 	AuthorizationSignedResponseKeyID    string `koanf:"authorization_signed_response_key_id" yaml:"authorization_signed_response_key_id,omitempty" toml:"authorization_signed_response_key_id,omitempty" json:"authorization_signed_response_key_id" jsonschema:"title=Authorization Signing Key ID" jsonschema_description:"The Key ID of a JOSE signing key (JWS) this client uses to sign the Authorization objects that it generates and responds with. This value overrides the 'authorization_signed_response_alg'. i.e. the JWS 'kid' value."`
 	AuthorizationEncryptedResponseAlg   string `koanf:"authorization_encrypted_response_alg" yaml:"authorization_encrypted_response_alg,omitempty" toml:"authorization_encrypted_response_alg,omitempty" json:"authorization_encrypted_response_alg" jsonschema:"default=none,enum=,enum=none,enum=RSA1_5,enum=RSA-OAEP,enum=RSA-OAEP-256,enum=A128KW,enum=A192KW,enum=A256KW,enum=dir,enum=ECDH-ES,enum=ECDH-ES+A128KW,enum=ECDH-ES+A192KW,enum=ECDH-ES+A256KW,enum=A128GCMKW,enum=A192GCMKW,enum=A256GCMKW,enum=PBES2-HS256+A128KW,enum=PBES2-HS384+A192KW,enum=PBES2-HS512+A256KW,title=Authorization Encryption Algorithm (CEK)" jsonschema_description:"The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects CEK that it generates and responds with. i.e. the JWE 'alg' value."`
 	AuthorizationEncryptedResponseEnc   string `koanf:"authorization_encrypted_response_enc" yaml:"authorization_encrypted_response_enc,omitempty" toml:"authorization_encrypted_response_enc,omitempty" json:"authorization_encrypted_response_enc" jsonschema:"default=A128CBC-HS256,enum=,enum=A128CBC-HS256,enum=A192CBC-HS384,enum=A256CBC-HS512,enum=A128GCM,enum=A192GCM,enum=A256GCM,title=Authorization Encryption Algorithm (Content)" jsonschema_description:"The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects content that it generates and responds with. i.e. the JWE 'enc' value."`
@@ -251,7 +264,7 @@ var DefaultOpenIDConnectClientConfiguration = IdentityProvidersOpenIDConnectClie
 	Scopes:                         []string{"openid", "groups", "profile", "email"},
 	ResponseTypes:                  []string{"code"},
 	ResponseModes:                  []string{"form_post"},
-	AuthorizationSignedResponseAlg: "none",
+	AuthorizationSignedResponseAlg: "RS256",
 	IDTokenSignedResponseAlg:       "RS256",
 	AccessTokenSignedResponseAlg:   "none",
 	UserinfoSignedResponseAlg:      "none",

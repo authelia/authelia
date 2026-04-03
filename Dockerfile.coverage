@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:24-alpine@sha256:37712740dc486f179b9540be1c6703cef3f805ea932573a007db748b71189afe AS builder-frontend
+FROM node:25-alpine@sha256:ad82ecad30371c43f4057aaa4800a8ed88f9446553a2d21323710c7b937177fc AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -11,13 +11,13 @@ COPY --link web ./
 # Install the dependencies and build
 RUN \
 	yarn global add pnpm && \
-	pnpm install --frozen-lockfile && \
+	pnpm install --frozen-lockfile --ignore-scripts && \
 	pnpm coverage
 
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.24.3-bookworm@sha256:89a04cc2e2fbafef82d4a45523d4d4ae4ecaf11a197689036df35fef3bde444a AS builder-backend
+FROM golang:1.26.1-bookworm@sha256:8e8aa801e8417ef0b5c42b504dd34db3db911bb73dba933bd8bde75ed815fdbb AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -37,13 +37,13 @@ ARG LDFLAGS_EXTRA
 RUN \
 	mv api internal/server/public_html/api && \
 	echo ">> Starting go build (coverage via -cover)..." && \
-	GOEXPERIMENT="nosynchashtriemap" CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build -cover -covermode=atomic \
+	CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build -tags dev -cover -covermode=atomic \
 	-ldflags "${LDFLAGS_EXTRA}" -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest
+FROM authelia/base:latest@sha256:589235f9fb97f50129df29f5e3bdab42078413c88b41e0a946733af9748ef554
 
 WORKDIR /app
 

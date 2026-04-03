@@ -70,7 +70,6 @@ func ValidateCredentialAllowed(config *schema.WebAuthn, credential *model.WebAut
 
 func FormatError(err error) error {
 	out := &protocol.Error{}
-
 	if errors.As(err, &out) {
 		if len(out.DevInfo) == 0 {
 			if len(out.Type) == 0 {

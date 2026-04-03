@@ -11,5 +11,6 @@ services:
       - './common/pki/public.crt:/certs/public.crt'
       - './common/pki/ca/ca.public.crt:/certs/ca.public.crt'
       - '/tmp:/tmp'
+      - '/buildkite/.cache/fido/mds.jwt:/tmp/mds.jwt'
     user: '${USER_ID}:${GROUP_ID}'
 ...

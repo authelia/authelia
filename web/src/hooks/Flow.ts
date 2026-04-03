@@ -10,9 +10,9 @@ export function useFlow(): { id?: string; flow?: string; subflow?: string } {
     const subflow = query.get(SubFlow);
 
     return {
-        id: id === null ? undefined : id,
-        flow: flow === null ? undefined : flow,
-        subflow: subflow === null ? undefined : subflow,
+        flow: flow ?? undefined,
+        id: id ?? undefined,
+        subflow: subflow ?? undefined,
     };
 }
 

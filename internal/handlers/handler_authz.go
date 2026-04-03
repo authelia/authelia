@@ -19,7 +19,6 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		provider    *session.Session
 		err         error
 	)
-
 	if object, err = authz.handleGetObject(ctx); err != nil {
 		ctx.Logger.WithError(err).Error("Error getting Target URL and Request Method")
 

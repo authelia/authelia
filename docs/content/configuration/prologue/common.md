@@ -2,7 +2,7 @@
 title: "Common"
 description: "Common configuration options and notations."
 summary: "This section details common configuration elements within the Authelia configuration. This section is mainly used as a reference for other sections as necessary."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 100200
@@ -28,7 +28,7 @@ The dictionary reference syntax is a syntax where often the key can arbitrarily 
 can be used elsewhere to reference this configuration.
 
 For instance, when considering the below example if the key named `policies` was noted as a dictionary within the
-documentation then the `aribtrary_name` could be used elsewhere to communicate the policy to be applied, like in the
+documentation then the `arbitrary_name` could be used elsewhere to communicate the policy to be applied, like in the
 `usage_example` section where it's used as the `policy`.
 
 ```yaml

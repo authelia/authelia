@@ -131,6 +131,8 @@ definitions:
   user_attributes:
     authelia_admin:
       expression: '"admin" in groups'
+    ioadmin:
+      expression: '"ioadmin" in groups'
 
 identity_providers:
   oidc:
@@ -265,12 +267,36 @@ identity_providers:
       allowed_origins:
         - 'https://google.com'
         - 'https://example.com'
+    scopes:
+      example_scope:
+        claims:
+          - 'http://example.com/myclaim'
     claims_policies:
       default:
         custom_claims:
           authelia_admin: {}
+      example_policy:
+        custom_claims:
+          example:
+            name: 'http://example.com/myclaim'
+            attribute: 'ioadmin'
     clients:
       - client_id: 'abc'
         client_secret: '123'
         consent_mode: 'explicit'
+      - client_id: 'example_client'
+        client_secret: ''
+        public: true
+        authorization_policy: 'one_factor'
+        consent_mode: 'implicit'
+        redirect_uris:
+          - 'http://localhost:42420/3rdparty.UIL.Shell'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'groups'
+          - 'email'
+          - 'example_scope'
+        token_endpoint_auth_method: 'none'
+        claims_policy: 'example_policy'
 ...

@@ -60,7 +60,6 @@ func validateSQLConfiguration(config, defaults *schema.StorageSQL, validator *sc
 		validator.Push(fmt.Errorf(errFmtStorageOptionMustBeProvided, provider, "address"))
 	} else {
 		var err error
-
 		if err = config.Address.ValidateSQL(); err != nil {
 			validator.Push(fmt.Errorf(errFmtStorageAddressValidate, provider, config.Address.String(), err))
 		}
@@ -144,7 +143,6 @@ func validatePostgreSQLConfigurationServers(config *schema.StoragePostgreSQL, va
 			validator.Push(fmt.Errorf(errFmtStorageOptionMustBeProvided, description, "address"))
 		} else {
 			var err error
-
 			if err = server.Address.ValidateSQL(); err != nil {
 				validator.Push(fmt.Errorf(errFmtStorageAddressValidate, description, server.Address.String(), err))
 			}

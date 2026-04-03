@@ -32,8 +32,7 @@ func (s *CustomHeadersScenario) SetupSuite() {
 }
 
 func (s *CustomHeadersScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,6 +50,7 @@ func (s *CustomHeadersScenario) TearDownTest() {
 
 func (s *CustomHeadersScenario) TestShouldNotForwardCustomHeaderForUnauthenticatedUser() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -82,6 +82,7 @@ type HeadersPayload struct {
 
 func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUser() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

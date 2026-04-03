@@ -32,8 +32,7 @@ func (s *BypassAllWebDriverSuite) SetupSuite() {
 }
 
 func (s *BypassAllWebDriverSuite) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,6 +50,7 @@ func (s *BypassAllWebDriverSuite) TearDownTest() {
 
 func (s *BypassAllWebDriverSuite) TestShouldAccessPublicResource() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

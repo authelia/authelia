@@ -1,4 +1,4 @@
-import React, { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
+import { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
 import { Close, Dashboard, Menu, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
 import {
@@ -27,7 +27,6 @@ import {
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {
-    id?: string;
     children?: ReactNode;
     drawerWidth?: number;
 }
@@ -39,10 +38,10 @@ const SettingsLayout = function (props: Props) {
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
-        document.title = translate("Settings - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
+        document.title = translate("Settings - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
 
-    const drawerWidth = props.drawerWidth === undefined ? defaultDrawerWidth : props.drawerWidth;
+    const drawerWidth = props.drawerWidth ?? defaultDrawerWidth;
 
     const handleToggleDrawer = (event: SyntheticEvent) => {
         if (
@@ -56,7 +55,7 @@ const SettingsLayout = function (props: Props) {
         setDrawerOpen((state) => !state);
     };
 
-    const container = window !== undefined ? () => window.document.body : undefined;
+    const container = typeof globalThis === "undefined" ? undefined : () => globalThis.document.body;
 
     const drawer = (
         <Box onClick={handleToggleDrawer} sx={{ textAlign: "center" }}>
@@ -95,7 +94,7 @@ const SettingsLayout = function (props: Props) {
                     <Typography
                         variant={"h6"}
                         component={"div"}
-                        sx={{ flexGrow: 1, display: { xs: drawerOpen ? "none" : "block" } }}
+                        sx={{ display: { xs: drawerOpen ? "none" : "block" }, flexGrow: 1 }}
                     >
                         {translate("Settings")}
                     </Typography>
@@ -112,14 +111,14 @@ const SettingsLayout = function (props: Props) {
                         keepMounted: true,
                     }}
                     sx={{
-                        display: { xs: "block" },
                         "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
+                        display: { xs: "block" },
                     }}
                 >
                     {drawer}
                 </SwipeableDrawer>
             </Box>
-            <Box component="main" sx={{ flexGrow: 1, p: { xs: 0, sm: 3 } }}>
+            <Box component="main" sx={{ flexGrow: 1, p: { sm: 3, xs: 0 } }}>
                 <Toolbar />
                 {props.children}
             </Box>
@@ -135,24 +134,25 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-    { keyname: "overview", text: "Overview", pathname: SettingsRoute, icon: <Dashboard color={"primary"} /> },
+    { icon: <Dashboard color={"primary"} />, keyname: "overview", pathname: SettingsRoute, text: "Overview" },
     {
-        keyname: "security",
-        text: "Security",
-        pathname: `${SettingsRoute}${SecuritySubRoute}`,
         icon: <Security color={"primary"} />,
+        keyname: "security",
+        pathname: `${SettingsRoute}${SecuritySubRoute}`,
+        text: "Security",
     },
     {
-        keyname: "twofactor",
-        text: "Two-Factor Authentication",
-        pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
         icon: <SystemSecurityUpdateGood color={"primary"} />,
+        keyname: "twofactor",
+        pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
+        text: "Two-Factor Authentication",
     },
-    { keyname: "close", text: "Close", pathname: IndexRoute, icon: <Close color={"error"} /> },
+    { icon: <Close color={"error"} />, keyname: "close", pathname: IndexRoute, text: "Close" },
 ];
 
 const DrawerNavItem = function (props: NavItem) {
-    const selected = window.location.pathname === props.pathname || window.location.pathname === props.pathname + "/";
+    const selected =
+        globalThis.location.pathname === props.pathname || globalThis.location.pathname === props.pathname + "/";
     const navigate = useRouterNavigate();
 
     const handleOnClick = useCallback(() => {

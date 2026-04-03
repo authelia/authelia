@@ -125,7 +125,6 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Error(fmt.Errorf("error occurred retrieving session for user: %w", err), messageUnableToResetPassword)
 		return
@@ -218,14 +217,13 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identity, error) {
 	var requestBody resetPasswordStep1RequestBody
-	err := json.Unmarshal(ctx.PostBody(), &requestBody)
 
+	err := json.Unmarshal(ctx.PostBody(), &requestBody)
 	if err != nil {
 		return nil, err
 	}
 
 	details, err := ctx.Providers.UserProvider.GetDetails(requestBody.Username)
-
 	if err != nil {
 		return nil, err
 	}

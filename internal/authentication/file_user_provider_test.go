@@ -124,7 +124,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 				provider.timeoutReload = time.Now().Add(time.Minute)
 			},
 			false,
-			"",
+			"watcher on cooldown",
 		},
 		{
 			"ShouldReloadWithoutError",
@@ -148,7 +148,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive, nil)
 			},
 			false,
-			"",
+			"error reading the authentication database: no file content",
 		},
 	}
 
@@ -410,7 +410,7 @@ func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: yaml: line 4: mapping values are not allowed in this context")
+		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: yaml: line 4, column 6: mapping values are not allowed in this context")
 	})
 }
 
@@ -502,7 +502,7 @@ func TestShouldNotAllowLoginOfDisabledUsers(t *testing.T) {
 }
 
 func TestShouldErrorOnInvalidCaseSensitiveFile(t *testing.T) {
-	WithDatabase(t, UserDatabaseContentInvalidSearchCaseInsenstive, func(path string) {
+	WithDatabase(t, UserDatabaseContentInvalidSearchCaseInsensitive, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
 		config.Path = path
 		config.Search.Email = false
@@ -841,7 +841,7 @@ users:
       example: '123'
 `)
 
-var UserDatabaseContentInvalidSearchCaseInsenstive = []byte(`
+var UserDatabaseContentInvalidSearchCaseInsensitive = []byte(`
 users:
   john:
     displayname: "John Doe"
@@ -1015,6 +1015,8 @@ users:
 `)
 
 func WithDatabase(t *testing.T, content []byte, f func(path string)) {
+	t.Helper()
+
 	dir := t.TempDir()
 
 	db, err := os.CreateTemp(dir, "users_database.*.yml")

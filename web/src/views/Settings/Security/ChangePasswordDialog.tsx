@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Dispatch, KeyboardEvent, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 
 import {
     Button,
@@ -15,8 +15,8 @@ import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import PasswordMeter from "@components/PasswordMeter";
+import { useNotifications } from "@contexts/NotificationsContext";
 import useCheckCapsLock from "@hooks/CapsLock";
-import { useNotifications } from "@hooks/NotificationsContext";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { postPasswordChange } from "@services/ChangePassword";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
@@ -31,7 +31,7 @@ interface Props {
 const ChangePasswordDialog = (props: Props) => {
     const { t: translate } = useTranslation(["settings", "portal"]);
 
-    const { createSuccessNotification, createErrorNotification } = useNotifications();
+    const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [loading, setLoading] = useState(false);
     const [oldPassword, setOldPassword] = useState("");
@@ -52,11 +52,11 @@ const ChangePasswordDialog = (props: Props) => {
         max_length: 0,
         min_length: 8,
         min_score: 0,
+        mode: PasswordPolicyMode.Disabled,
         require_lowercase: false,
         require_number: false,
         require_special: false,
         require_uppercase: false,
-        mode: PasswordPolicyMode.Disabled,
     });
 
     const resetPasswordErrors = useCallback(() => {
@@ -177,11 +177,11 @@ const ChangePasswordDialog = (props: Props) => {
 
     const useHandleKeyDown = (
         passwordState: string,
-        setError: React.Dispatch<React.SetStateAction<boolean>>,
-        nextRef?: React.RefObject<HTMLInputElement | null>,
+        setError: Dispatch<SetStateAction<boolean>>,
+        nextRef?: RefObject<HTMLInputElement | null>,
     ) => {
         return useCallback(
-            (event: React.KeyboardEvent<HTMLDivElement>) => {
+            (event: KeyboardEvent<HTMLDivElement>) => {
                 if (event.key === "Enter") {
                     if (!passwordState.length) {
                         setError(true);

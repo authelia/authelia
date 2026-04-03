@@ -2,14 +2,14 @@
 title: "NGINX"
 description: "An integration guide for Authelia and the NGINX reverse proxy"
 summary: "A guide on integrating Authelia with the nginx reverse proxy."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 350
 toc: true
 aliases:
-  - /i/nginx
-  - /docs/deployment/supported-proxies/nginx.html
+  - '/i/nginx'
+  - '/docs/deployment/supported-proxies/nginx.html'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -526,7 +526,7 @@ proxy_set_header Remote-Name $name;
 
 ## Configure the redirection when the authz failure occurs. Lines starting with 'Modern Method' and 'Legacy Method'
 ## should be commented / uncommented as pairs. The modern method uses the session cookies configuration's authelia_url
-## value to determine the redirection URL here. It's much simpler and compatible with the mutli-cookie domain easily.
+## value to determine the redirection URL here. It's much simpler and compatible with the multi-cookie domain easily.
 
 ## Modern Method: Set the $redirection_url to the Location header of the response to the Authz endpoint.
 auth_request_set $redirection_url $upstream_http_location;
@@ -694,6 +694,11 @@ proxy_set_header Remote-Email $email;
 ## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
 error_page 401 =302 /internal/authelia/authz/detect?rd=$target_url;
 ```
+
+## Kubernetes
+
+Authelia supports some of the [NGINX] based Kubernetes Ingress. See the
+[Kubernetes Integration Guide](../kubernetes/nginx-ingress.md) for more information.
 
 ## See Also
 

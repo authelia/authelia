@@ -263,7 +263,7 @@ func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
 	config.KeepStdout = true
 
 	if err = logging.InitializeLogger(schema.Log{Level: ctx.config.Log.Level}, false); err != nil {
-		return fmt.Errorf("Cannot initialize logger: %w", err)
+		return fmt.Errorf("cannot initialize logger: %w", err)
 	}
 
 	ctx.log.WithFields(map[string]any{"filters": ctx.cconfig.filters, "files": ctx.cconfig.files}).Debug("Loaded Configuration Sources")

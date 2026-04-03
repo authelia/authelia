@@ -73,6 +73,10 @@ func (f *File) Close() (err error) {
 
 	defer f.mu.Unlock()
 
+	if f.file == nil {
+		return fmt.Errorf("error closing log file: file isn't open")
+	}
+
 	if err = f.file.Close(); err != nil {
 		return fmt.Errorf("error closing log file: error closing current log file: %w", err)
 	}

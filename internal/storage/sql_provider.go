@@ -1231,7 +1231,6 @@ func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2S
 		session.Subject, session.RequestedAt, session.RequestedScopes, session.GrantedScopes,
 		session.RequestedAudience, session.GrantedAudience,
 		session.Active, session.Revoked, session.Form, session.Session)
-
 	if err != nil {
 		return fmt.Errorf("error inserting oauth2 %s session with signature '%s' for subject '%s' and request id '%s' and challenge id '%s': %w", sessionType, session.Signature, session.Subject.String, session.RequestID, session.ChallengeID.UUID, err)
 	}
@@ -1386,7 +1385,6 @@ func (p *SQLProvider) SaveOAuth2DeviceCodeSession(ctx context.Context, session *
 		session.RequestedScopes, session.GrantedScopes,
 		session.RequestedAudience, session.GrantedAudience,
 		session.Active, session.Revoked, session.Form, session.Session)
-
 	if err != nil {
 		return fmt.Errorf("error inserting oauth2 device code session with device code signature '%s' and user code signature '%s' for subject '%s' and request id '%s': %w", session.Signature, session.UserCodeSignature, session.Subject.String, session.RequestID, err)
 	}
@@ -1403,7 +1401,6 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, session
 		session.ChallengeID, session.RequestID, session.ClientID, session.Status, session.Subject, session.RequestedAt,
 		session.CheckedAt, session.RequestedScopes, session.RequestedAudience, session.GrantedScopes, session.GrantedAudience,
 		session.Active, session.Revoked, session.Form, session.Session, session.Signature)
-
 	if err != nil {
 		return fmt.Errorf("error updating oauth2 device code session with device code signature '%s': %w", session.Signature, err)
 	}
@@ -1420,7 +1417,6 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, ses
 		session.ChallengeID, session.ClientID, session.Status, session.Subject,
 		session.RequestedScopes, session.RequestedAudience, session.GrantedScopes, session.GrantedAudience,
 		session.Form, session.Session, session.Signature)
-
 	if err != nil {
 		return fmt.Errorf("error updating oauth2 device code session data with device code signature '%s': %w", session.Signature, err)
 	}
@@ -1430,7 +1426,6 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, ses
 
 func (p *SQLProvider) DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlDeactivateOAuth2DeviceCodeSession, signature)
-
 	if err != nil {
 		return fmt.Errorf("error deactivating oauth2 device code session with device code signature '%s': %w", signature, err)
 	}

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/authelia/otp"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 type TOTPOptions struct {
@@ -34,7 +34,7 @@ type TOTPConfiguration struct {
 	Algorithm  string       `db:"algorithm"`
 	Digits     uint32       `db:"digits"`
 	Period     uint         `db:"period"`
-	Secret     []byte       `db:"secret"`
+	Secret     []byte       `db:"secret" json:"-"`
 }
 
 // TOTPConfigurationJSON is the JSON representation for a TOTPConfiguration.
@@ -62,21 +62,6 @@ func (c TOTPConfiguration) MarshalJSON() (data []byte, err error) {
 	}
 
 	return json.Marshal(o)
-}
-
-// HistorySince provides a reasonably accurate window for previously successful attempts to check for history.
-func (c *TOTPConfiguration) HistorySince(now time.Time, skew *int) time.Time {
-	var s int
-
-	if skew == nil {
-		s = 2
-	} else {
-		s = *skew + 2
-	}
-
-	// TODO: Adjust the logic here to not require the lint comment.
-	//nolint:gosec // Safe as the values set are always convertable to int64.
-	return now.Add(-time.Second * time.Duration(c.Period) * time.Duration(s))
 }
 
 // LastUsed provides LastUsedAt as a *time.Time instead of sql.NullTime.
@@ -175,7 +160,7 @@ func (c *TOTPConfiguration) UnmarshalYAML(value *yaml.Node) (err error) {
 	return nil
 }
 
-// TOTPConfigurationData is used for marshalling/unmarshalling tasks.
+// TOTPConfigurationData is used for marshaling/unmarshaling tasks.
 type TOTPConfigurationData struct {
 	CreatedAt  time.Time  `yaml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time the configuration was created."`
 	LastUsedAt *time.Time `yaml:"last_used_at" json:"last_used_at" jsonschema:"title=Last Used At" jsonschema_description:"The time the configuration was last used at."`

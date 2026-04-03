@@ -2,13 +2,14 @@
 title: "WebAuthn"
 description: "Configuring the WebAuthn Second Factor Method."
 summary: "WebAuthn is the modern browser security key specification that Authelia supports. This section describes configuring it."
-date: 2022-03-03T22:20:43+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 103400
 toc: true
 aliases:
-  - /docs/configuration/webauthn.html
+  - '/docs/configuration/webauthn.html'
+  - '/configuration/webauthn.html'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -37,6 +38,7 @@ webauthn:
     user_verification: 'preferred'
   metadata:
     enabled: false
+    cache_policy: strict
     validate_trust_anchor: true
     validate_entry: true
     validate_entry_permit_zero_aaguid: false
@@ -220,6 +222,16 @@ service blob which will utilize about 5MB of data in your configured [storage](.
 
 By default to prevent breaking changes this value is false. It's recommended however users take the time to configure
 it now that it's available.
+
+#### cache_policy
+
+{{< confkey type="string" default="strict" required="no" >}}
+
+Changes the mode by which the metadata service cache operates. The options are `strict` and `relaxed`. The `strict`
+policy will try to download a fresh copy at startup and will error if this is not possible. The `relaxed` policy
+will still try to download a fresh copy at startup, however provided there is a cached version of the metadata service
+data and it's not expired, it will just log an error if the metadata service returns a `429 Too Many Requests` status
+code.
 
 #### validate_trust_anchor
 

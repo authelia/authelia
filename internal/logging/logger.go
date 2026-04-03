@@ -24,22 +24,22 @@ func InitializeLogger(config schema.Log, log bool) (err error) {
 }
 
 func initializeStackTracer(config schema.Log) {
+	var (
+		callerLevels, stackLevels []logrus.Level
+	)
+
+	switch LogLevel(config.Level).Level() {
+	case logrus.DebugLevel:
+		stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
+	case logrus.TraceLevel:
+		stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
+		callerLevels = logrus.AllLevels
+	default:
+		stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel}
+	}
+
 	// Ensure the stack trace hook is only initialized once.
 	stacktrace.Do(func() {
-		var (
-			callerLevels, stackLevels []logrus.Level
-		)
-
-		switch LogLevel(config.Level).Level() {
-		case logrus.DebugLevel:
-			stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
-		case logrus.TraceLevel:
-			stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
-			callerLevels = logrus.AllLevels
-		default:
-			stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel}
-		}
-
 		logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
 	})
 }

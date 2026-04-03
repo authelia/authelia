@@ -345,7 +345,6 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				SigningAlgRSAPSSUsingSHA256,
 				SigningAlgRSAPSSUsingSHA384,
 				SigningAlgRSAPSSUsingSHA512,
-				SigningAlgNone,
 			},
 			AuthorizationEncryptionAlgValuesSupported: []string{
 				EncryptionAlgRSA15,
@@ -469,6 +468,11 @@ func (opts OpenIDConnectWellKnownConfiguration) Copy() (optsCopy OpenIDConnectWe
 	if opts.OpenIDFederationDiscoveryOptions != nil {
 		optsCopy.OpenIDFederationDiscoveryOptions = &OpenIDFederationDiscoveryOptions{}
 		*optsCopy.OpenIDFederationDiscoveryOptions = *opts.OpenIDFederationDiscoveryOptions
+	}
+
+	if opts.OpenIDConnectIdentityAssurance != nil {
+		optsCopy.OpenIDConnectIdentityAssurance = &OpenIDConnectIdentityAssurance{}
+		*optsCopy.OpenIDConnectIdentityAssurance = *opts.OpenIDConnectIdentityAssurance
 	}
 
 	return optsCopy

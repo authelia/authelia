@@ -1,0 +1,54 @@
+{{- $clientID := .Get "client_id" | default "example" }}
+{{- $policy := .Get "policy_name" | default $clientID }}
+{{- $claims := .Get "claims" | default "rat,groups,email,email_verified,alt_emails,preferred_username,name" }}
+{{- $example := .Get "example" }}
+<div class="callout callout-tip d-flex flex-row mt-4 mb-4 pt-4 pe-4 pb-2 ps-3">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="outline/rocket svg-inline callout-icon me-2 mb-3" id="svg-rocket" role="img"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 13a8 8 0 017 7 6 6 0 003-5 9 9 0 006-8 3 3 0 00-3-3 9 9 0 00-8 6 6 6 0 00-5 3"></path><path d="M7 14a6 6 0 00-3 6 6 6 0 006-3"></path><path d="M15 9m-1 0a1 1 0 102 0 1 1 0 10-2 0"></path></svg>
+  <div class="callout-content">
+    <div class="callout-title">
+      <p>Potential Escape Hatch Configuration Required</p>
+    </div>
+    <div class="callout-body">
+      <p>Unfortunately at the time of writing this integration this client does not support <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect 1.0</a>.
+        Fortunately Authelia has implemented an escape hatch that works for most clients which don't properly support <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect 1.0</a>.
+        This requires additional configuration to that which is described above.
+        You can read more about this in the
+        <a href="/integration/openid-connect/openid-connect-1.0-claims/#restore-functionality-prior-to-claims-parameter">OpenID Connect 1.0 Claims Guide</a>.
+      </p>
+      <p>Clients are required to operate under the assumption that claims requested by scope values are
+        available by using the Access Token (the scope is granted and issued to the Access Token) at the UserInfo
+        Endpoint as described by
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims" target="_blank">5.4. Requesting Claims using Scope Values</a>
+        with the exception of an Implicit Flow that does not return an Access Token, or explicitly request them via the
+        claims parameter as described by
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter" target="_blank">5.5. Requesting Claims using the "claims" Request Parameter</a> .
+      </p>
+      <p>
+        The requirement to use this option is also often a clear indication the client also ignores the
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability" target="_blank">claims stability requirements</a>
+        which only allows clients to anchor accounts via the <code>sub</code> and <code>iss</code> claims. This requirement
+        is strictly required by the specification.
+      </p>
+      <p>
+        Both of these elements are clear indications the client does not properly support
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect 1.0</a> and is not conformant.
+      </p>
+    </div>
+  </div>
+</div>
+
+The following is an example of adaptation to the above configuration that works around the fact this client does not
+support <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect 1.0</a>:
+
+{{- if not (eq $example "disable") }}
+```yaml
+identity_providers:
+  oidc:
+    claims_policies:
+      {{ $policy }}:
+        id_token: ['{{ delimit (split $claims ",") "', '" | safeHTML }}']
+    clients:
+      - client_id: '{{ $clientID }}'
+        claims_policy: '{{ $policy }}'
+```
+{{- end }}

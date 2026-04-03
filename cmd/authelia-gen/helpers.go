@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"encoding/json"
@@ -18,7 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -48,18 +50,37 @@ func getPFlagPath(flags *pflag.FlagSet, flagNames ...string) (fullPath string, e
 }
 
 func buildCSP(defaultSrc string, ruleSets ...[]CSPValue) string {
-	var rules []string
+	final := map[string]string{}
 
 	for _, ruleSet := range ruleSets {
 		for _, rule := range ruleSet {
-			switch rule.Name {
-			case "default-src":
-				rules = append(rules, fmt.Sprintf("%s %s", rule.Name, defaultSrc))
-			default:
-				rules = append(rules, fmt.Sprintf("%s %s", rule.Name, rule.Value))
+			if rule.Value == "" && rule.Name == codeCSPDirectiveDefaultSrc {
+				final[rule.Name] = defaultSrc
+
+				continue
 			}
+
+			final[rule.Name] = rule.Value
 		}
 	}
+
+	rules := make([]string, 0, len(final))
+
+	for name, rule := range final {
+		rules = append(rules, fmt.Sprintf("%s %s", name, rule))
+	}
+
+	sort.Slice(rules, func(i, j int) bool {
+		if strings.HasPrefix(rules[i], codeCSPDirectiveDefaultSrc) {
+			return true
+		}
+
+		if strings.HasPrefix(rules[j], codeCSPDirectiveDefaultSrc) {
+			return false
+		}
+
+		return rules[i] < rules[j]
+	})
 
 	return strings.Join(rules, "; ")
 }
@@ -345,4 +366,83 @@ func removeDuplicate[T comparable](sliceList []T) []T {
 	}
 
 	return list
+}
+
+func replaceFrontMatter(path, current, replacement, prefix string) {
+	f, err := os.Open(path)
+	if err != nil {
+		return
+	}
+
+	buf := bytes.Buffer{}
+
+	scanner := bufio.NewScanner(f)
+
+	found := 0
+
+	frontmatter := 0
+
+	for scanner.Scan() {
+		if found < 2 && frontmatter < 2 {
+			switch {
+			case scanner.Text() == delimiterLineFrontMatter:
+				buf.Write(scanner.Bytes())
+
+				frontmatter++
+			case frontmatter != 0 && len(prefix) == 0 && scanner.Text() == current:
+				fallthrough
+			case frontmatter != 0 && len(prefix) != 0 && strings.HasPrefix(scanner.Text(), prefix):
+				buf.WriteString(replacement)
+
+				found++
+			default:
+				buf.Write(scanner.Bytes())
+			}
+		} else {
+			buf.Write(scanner.Bytes())
+		}
+
+		buf.Write(newline)
+	}
+
+	f.Close()
+
+	newF, err := os.Create(path)
+	if err != nil {
+		return
+	}
+
+	_, _ = buf.WriteTo(newF)
+
+	newF.Close()
+}
+
+func getFrontmatter(path string) []byte {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil
+	}
+
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+
+	var start bool
+
+	buf := bytes.Buffer{}
+
+	for scanner.Scan() {
+		if start {
+			if scanner.Text() == delimiterLineFrontMatter {
+				break
+			}
+
+			buf.Write(scanner.Bytes())
+			buf.Write(newline)
+		} else if scanner.Text() == delimiterLineFrontMatter {
+			start = true
+		}
+	}
+
+	return buf.Bytes()
 }

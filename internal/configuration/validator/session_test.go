@@ -257,7 +257,7 @@ func TestShouldWarnSessionValuesWhenPotentiallyInvalid(t *testing.T) {
 	require.Len(t, validator.Warnings(), 1)
 	assert.Len(t, validator.Errors(), 0)
 
-	assert.EqualError(t, validator.Warnings()[0], "session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it")
+	assert.EqualError(t, validator.Warnings()[0], "session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behavior: you can use this at your own risk but we recommend removing it")
 }
 
 func TestShouldErrorWithoutSessionDomainAutheliaURL(t *testing.T) {
@@ -855,7 +855,7 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 		{"ShouldRaiseErrorOnDomainWithoutDots", "localhost", nil, []string{"session: domain config #1 (domain 'localhost'): option 'domain' is not a valid cookie domain: must have at least a single period or be an ip address"}},
 		{"ShouldRaiseErrorOnPublicDomainDuckDNS", "duckdns.org", nil, []string{"session: domain config #1 (domain 'duckdns.org'): option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"}},
 		{"ShouldNotRaiseErrorOnSuffixOfPublicDomainDuckDNS", "example.duckdns.org", nil, nil},
-		{"ShouldRaiseWarningOnDomainWithLeadingDot", ".example.com", []string{"session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behaviour: you can use this at your own risk but we recommend removing it"}, nil},
+		{"ShouldRaiseWarningOnDomainWithLeadingDot", ".example.com", []string{"session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behavior: you can use this at your own risk but we recommend removing it"}, nil},
 		{"ShouldRaiseErrorOnDomainWithLeadingStarDot", "*.example.com", nil, []string{"session: domain config #1 (domain '*.example.com'): option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '*.example.com'"}},
 		{"ShouldRaiseErrorOnDomainNotSet", "", nil, []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
 	}
@@ -1028,7 +1028,6 @@ func TestShouldNotAllowLegacyAndModernCookiesConfig(t *testing.T) {
 
 func MustParseURL(uri string) *url.URL {
 	u, err := url.Parse(uri)
-
 	if err != nil {
 		panic(err)
 	}

@@ -85,7 +85,6 @@ func setupSuite(cmd *cobra.Command, args []string) {
 	s := suites.GlobalRegistry.Get(suiteName)
 
 	cwd, err := filepath.Abs("./")
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +92,6 @@ func setupSuite(cmd *cobra.Command, args []string) {
 	suiteResourcePath := cwd + "/internal/suites/" + suiteName
 
 	exist, err := utils.PathExists(suiteResourcePath)
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -123,13 +121,11 @@ func setupSuite(cmd *cobra.Command, args []string) {
 
 	if exist {
 		err := copy.Copy(suiteResourcePath, suiteTmpDirectory)
-
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else {
 		err := os.MkdirAll(suiteTmpDirectory, 0755)
-
 		if err != nil {
 			log.Fatal(err)
 		}

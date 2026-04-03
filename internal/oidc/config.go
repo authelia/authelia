@@ -63,9 +63,9 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 	}
 
 	if config.Discovery.JWTResponseAccessTokens {
-		c.Strategy.Core = oauth2.NewCoreStrategy(c, "authelia_%s_", c.Strategy.JWT)
+		c.Strategy.Core = oauth2.NewCoreStrategy(c, fmtAutheliaOpaqueOAuth2Token, c.Strategy.JWT)
 	} else {
-		c.Strategy.Core = oauth2.NewCoreStrategy(c, "authelia_%s_", nil)
+		c.Strategy.Core = oauth2.NewCoreStrategy(c, fmtAutheliaOpaqueOAuth2Token, nil)
 	}
 
 	c.Strategy.OpenID = &openid.DefaultStrategy{
@@ -815,7 +815,7 @@ func (c *Config) GetPushedAuthorizeRequestURIPrefix(ctx context.Context) string 
 	return c.PAR.URIPrefix
 }
 
-// GetRequirePushedAuthorizationRequests indicates if the use of Pushed Authorization Requests is gobally required.
+// GetRequirePushedAuthorizationRequests indicates if the use of Pushed Authorization Requests is globally required.
 // In this mode, a client cannot pass authorize parameters at the 'authorize' endpoint. The 'authorize' endpoint
 // must contain the PAR request_uri.
 func (c *Config) GetRequirePushedAuthorizationRequests(ctx context.Context) (enforce bool) {
@@ -849,7 +849,6 @@ func (c *Config) GetAllowedJWTAssertionAudiences(ctx context.Context) (audiences
 		issuer *url.URL
 		err    error
 	)
-
 	if issuer, err = octx.IssuerURL(); err != nil {
 		logging.Logger().WithError(err).Error("Error retrieving issuer")
 		return nil

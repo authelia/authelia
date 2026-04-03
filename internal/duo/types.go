@@ -2,6 +2,7 @@ package duo
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/url"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
@@ -10,16 +11,21 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-// API interface wrapping duo api library for testing purpose.
-type API interface {
+// BaseProvider describes the upstream provider we intend to utilize. Implemented by duoapi.
+type BaseProvider interface {
+	SignedCall(method string, uri string, params url.Values, options ...duoapi.DuoApiOption) (*http.Response, []byte, error)
+}
+
+// The Provider interface is used to describe this provider for the purpose of mock testing.
+type Provider interface {
 	Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method string, path string) (response *Response, err error)
 	PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *PreAuthResponse, err error)
 	AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *AuthResponse, err error)
 }
 
-// APIImpl implementation of DuoAPI interface.
-type APIImpl struct {
-	*duoapi.DuoApi
+// Production implementation of the Provider interface.
+type Production struct {
+	BaseProvider
 }
 
 // Device holds all necessary info for frontend.

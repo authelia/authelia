@@ -129,6 +129,9 @@ func TestSignalService_Run(t *testing.T) {
 
 			time.Sleep(100 * time.Millisecond)
 
+			assert.NotNil(t, service.log)
+			assert.NotNil(t, service.Log())
+
 			service.Shutdown()
 
 			select {
@@ -251,6 +254,7 @@ func TestSignalService_Shutdown(t *testing.T) {
 	}
 
 	done := make(chan struct{})
+
 	go func() {
 		err := service.Run()
 		assert.NoError(t, err)

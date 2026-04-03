@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0 Provider"
 description: "Authelia OpenID Connect 1.0 Provider Implementation"
 summary: "The OpenID Connect 1.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products."
-date: 2022-06-15T17:51:47+10:00
+date: 2025-03-23T19:03:40+11:00
 draft: false
 images: []
 weight: 320
@@ -34,7 +34,7 @@ issues.
 
 Authelia is [OpenID Certified™] to conform to the [OpenID Connect™ protocol].
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" sizes="100px" >}}
 
 For more information read the
 [Integration Documentation](../../integration/openid-connect/introduction.md#openid-certified).

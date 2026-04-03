@@ -2,14 +2,15 @@
 title: "Secrets"
 description: "Using the Secrets Configuration Method."
 summary: "Authelia allows providing configuration via secrets method. This section describes how to implement this."
-date: 2020-02-29T01:43:59+01:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 101400
 toc: true
 aliases:
-  - /c/secrets
-  - /docs/configuration/secrets.html
+  - '/c/secrets'
+  - '/docs/configuration/secrets.html'
+  - '/configuration/secrets/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -71,6 +72,13 @@ configuration in a logically secure way.
 
 A secret value can be loaded by *Authelia* when the configuration key ends with one of the following words: `key`,
 `secret`, `password`, `token` or `certificate_chain`.
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+It is not possible to configure several sections using environment variables or secrets. The sections affected are all
+lists of objects. These include but may not be limited to the rules section in access control, the clients section in
+the OpenID Connect 1.0 Provider, the cookies section of in session, and the authz section in the server endpoints. See
+[ADR2](../../reference/architecture-decision-log/2.md) for more information.
+{{< /callout >}}
 
 If you take the expected environment variable for the configuration option with the `_FILE` suffix at the end. The value
 of these environment variables must be the path of a file that is readable by the Authelia process, if they are not,

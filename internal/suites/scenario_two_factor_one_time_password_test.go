@@ -30,8 +30,7 @@ func (s *TwoFactorOneTimePasswordScenario) SetupSuite() {
 }
 
 func (s *TwoFactorOneTimePasswordScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,6 +43,7 @@ func (s *TwoFactorOneTimePasswordScenario) TearDownTest() {
 
 func (s *TwoFactorOneTimePasswordScenario) TestShouldRegisterAllAdvancedOptions() {
 	ctx, cancel := context.WithTimeout(context.Background(), 240*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

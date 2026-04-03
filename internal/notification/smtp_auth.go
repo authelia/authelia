@@ -18,10 +18,11 @@ func NewOpportunisticSMTPAuth(config *schema.NotifierSMTP, preference ...mail.SM
 	}
 
 	return &OpportunisticSMTPAuth{
-		username:      config.Username,
-		password:      config.Password,
-		host:          config.Address.Hostname(),
-		satPreference: preference,
+		username:          config.Username,
+		password:          config.Password,
+		host:              config.Address.Hostname(),
+		satPreference:     preference,
+		disableRequireTLS: config.DisableRequireTLS,
 	}
 }
 
@@ -29,8 +30,9 @@ func NewOpportunisticSMTPAuth(config *schema.NotifierSMTP, preference ...mail.SM
 type OpportunisticSMTPAuth struct {
 	username, password, host string
 
-	satPreference []mail.SMTPAuthType
-	sa            smtp.Auth
+	satPreference     []mail.SMTPAuthType
+	sa                smtp.Auth
+	disableRequireTLS bool
 }
 
 // Start begins an authentication with a server.
@@ -64,9 +66,9 @@ func (a *OpportunisticSMTPAuth) setPreferred(server *smtp.ServerInfo) {
 			case mail.SMTPAuthCramMD5:
 				a.sa = smtp.CRAMMD5Auth(a.username, a.password)
 			case mail.SMTPAuthPlain:
-				a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
+				a.sa = smtp.PlainAuth("", a.username, a.password, a.host, a.disableRequireTLS)
 			case mail.SMTPAuthLogin:
-				a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
+				a.sa = smtp.LoginAuth(a.username, a.password, a.host, a.disableRequireTLS)
 			}
 
 			if a.sa != nil {
@@ -77,23 +79,17 @@ func (a *OpportunisticSMTPAuth) setPreferred(server *smtp.ServerInfo) {
 }
 
 func (a *OpportunisticSMTPAuth) set(server *smtp.ServerInfo) {
-	for _, sa := range server.Auth {
-		switch mail.SMTPAuthType(sa) {
-		case mail.SMTPAuthSCRAMSHA256:
-			a.sa = smtp.ScramSHA256Auth(a.username, a.password)
-		case mail.SMTPAuthSCRAMSHA1:
-			a.sa = smtp.ScramSHA1Auth(a.username, a.password)
-		case mail.SMTPAuthCramMD5:
-			a.sa = smtp.CRAMMD5Auth(a.username, a.password)
-		case mail.SMTPAuthPlain:
-			a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
-		case mail.SMTPAuthLogin:
-			a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
-		}
-
-		if a.sa != nil {
-			break
-		}
+	switch {
+	case utils.IsStringInSlice(string(mail.SMTPAuthSCRAMSHA256), server.Auth):
+		a.sa = smtp.ScramSHA256Auth(a.username, a.password)
+	case utils.IsStringInSlice(string(mail.SMTPAuthSCRAMSHA1), server.Auth):
+		a.sa = smtp.ScramSHA1Auth(a.username, a.password)
+	case utils.IsStringInSlice(string(mail.SMTPAuthCramMD5), server.Auth):
+		a.sa = smtp.CRAMMD5Auth(a.username, a.password)
+	case utils.IsStringInSlice(string(mail.SMTPAuthPlain), server.Auth):
+		a.sa = smtp.PlainAuth("", a.username, a.password, a.host, a.disableRequireTLS)
+	case utils.IsStringInSlice(string(mail.SMTPAuthLogin), server.Auth):
+		a.sa = smtp.LoginAuth(a.username, a.password, a.host, a.disableRequireTLS)
 	}
 }
 

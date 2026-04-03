@@ -2,7 +2,7 @@
 title: "Templating"
 description: "A reference guide on the templates system"
 summary: "This section contains reference documentation for Authelia's templating capabilities."
-date: 2022-12-23T21:58:54+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 220

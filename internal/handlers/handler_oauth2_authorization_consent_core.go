@@ -18,8 +18,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	userSession session.UserSession,
+func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client, policy oidc.ClientAuthorizationPolicy,
+	provider *session.Session, userSession session.UserSession,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		subject uuid.UUID
@@ -28,7 +28,10 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 
 	var handler handlerAuthorizationConsent
 
-	policy := client.GetAuthorizationPolicy()
+	if handled = handleOAuth2AuthorizationConsentSessionUpdates(ctx, provider, &userSession, client, policy, rw, requester); handled {
+		return nil, handled
+	}
+
 	level := policy.GetRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
 
 	switch {
@@ -43,33 +46,27 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 			return nil, true
 		}
 
-		switch client.GetConsentPolicy().Mode {
-		case oidc.ClientConsentModeExplicit:
+		mode := client.GetConsentPolicy().Mode
+
+		if oidc.RequesterRequiresExplicitConsent(requester) && mode != oidc.ClientConsentModeExplicit {
+			ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' using policy '%s' was determined to require explicit consent due to requirements requested by the client", requester.GetID(), client.GetID(), policy.Name)
+
 			handler = handleOAuth2AuthorizationConsentModeExplicit
-		case oidc.ClientConsentModeImplicit:
-			if requester.GetRequestForm().Get(oidc.FormParameterPrompt) == oidc.PromptConsent {
+		} else {
+			switch mode {
+			case oidc.ClientConsentModeExplicit:
 				handler = handleOAuth2AuthorizationConsentModeExplicit
+			case oidc.ClientConsentModeImplicit:
+				handler = handleOAuth2AuthorizationConsentModeImplicit
+			case oidc.ClientConsentModePreConfigured:
+				handler = handleOAuth2AuthorizationConsentModePreConfigured
+			default:
+				ctx.Logger.Errorf(logFmtErrConsentCantDetermineConsentMode, requester.GetID(), client.GetID())
 
-				break
+				ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not determine the client consent mode."))
+
+				return nil, true
 			}
-
-			if requester.GetRequestedScopes().Has(oidc.ScopeOfflineAccess) || requester.GetRequestedScopes().Has(oidc.ScopeOffline) {
-				if ar, ok := requester.(oauthelia2.AuthorizeRequester); ok && ar.GetResponseTypes().Has(oidc.ResponseTypeAuthorizationCodeFlow) {
-					handler = handleOAuth2AuthorizationConsentModeExplicit
-
-					break
-				}
-			}
-
-			handler = handleOAuth2AuthorizationConsentModeImplicit
-		case oidc.ClientConsentModePreConfigured:
-			handler = handleOAuth2AuthorizationConsentModePreConfigured
-		default:
-			ctx.Logger.Errorf(logFmtErrConsentCantDetermineConsentMode, requester.GetID(), client.GetID())
-
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not determine the client consent mode."))
-
-			return nil, true
 		}
 	case level == authorization.Denied:
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the user '%s' is not authorized to use this client", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
@@ -84,11 +81,41 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 	return handler(ctx, issuer, client, userSession, subject, rw, r, requester)
 }
 
+func handleOAuth2AuthorizationConsentSessionUpdates(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, client oidc.Client, policy oidc.ClientAuthorizationPolicy, rw http.ResponseWriter, requester oauthelia2.Requester) (handled bool) {
+	var err error
+
+	if modified, invalid := handleSessionValidateRefresh(ctx, userSession, ctx.Configuration.AuthenticationBackend.RefreshInterval); invalid {
+		if err = ctx.DestroySession(); err != nil {
+			ctx.Logger.WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while destroying session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
+		}
+
+		*userSession = provider.NewDefaultUserSession()
+		userSession.LastActivity = ctx.Clock.Now().Unix()
+
+		if err = provider.SaveSession(ctx.RequestCtx, *userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while saving updated session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
+
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
+
+			return true
+		}
+	} else if modified {
+		if err = provider.SaveSession(ctx.RequestCtx, *userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while saving updated session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
+
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrClientAuthorizationUserAccessDenied)
+
+			return true
+		}
+	}
+
+	return false
+}
+
 func handleOAuth2AuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	_ session.UserSession, _ uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var err error
-
 	if consent, err = handleOAuth2NewConsentSession(ctx, uuid.UUID{}, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", err)
 
