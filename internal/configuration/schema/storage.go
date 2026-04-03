@@ -27,7 +27,7 @@ type StorageSQL struct {
 	Username string        `koanf:"username" yaml:"username,omitempty" toml:"username,omitempty" json:"username,omitempty" jsonschema:"title=Username" jsonschema_description:"The username to use to authenticate."`
 	Password string        `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password to use to authenticate."`
 	Timeout  time.Duration `koanf:"timeout" yaml:"timeout,omitempty" toml:"timeout,omitempty" json:"timeout,omitempty" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The timeout for the database connection."`
-	TLS      *TLS          `koanf:"tls" yaml:"tls,omitempty" toml:"tls,omitempty" json:"tls,omitempty"`
+	TLS      *TLS          `koanf:"tls" yaml:"tls,omitempty" toml:"tls,omitempty" json:"tls,omitempty" jsonschema:"title=TLS" jsonschema_description:"The TLS configuration for the SQL Server."`
 }
 
 // StorageMySQL represents the configuration of a MySQL database.
@@ -49,7 +49,7 @@ type StoragePostgreSQL struct {
 
 type StoragePostgreSQLServer struct {
 	Address *AddressTCP `koanf:"address" yaml:"address,omitempty" toml:"address,omitempty" json:"address,omitempty" jsonschema:"title=Address" jsonschema_description:"The address of the PostgreSQL Server."`
-	TLS     *TLS        `koanf:"tls" yaml:"tls,omitempty" toml:"tls,omitempty" json:"tls,omitempty"`
+	TLS     *TLS        `koanf:"tls" yaml:"tls,omitempty" toml:"tls,omitempty" json:"tls,omitempty" jsonschema:"title=TLS" jsonschema_description:"The TLS configuration for the PostgreSQL Server."`
 }
 
 // StoragePostgreSQLSSL represents the SSL configuration of a PostgreSQL database.
