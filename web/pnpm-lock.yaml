@@ -15,7 +15,7 @@ overrides:
   '@typescript-eslint/utils': 8.58.0
   body-parser: 2.2.2
   brace-expansion: 5.0.5
-  esbuild: 0.27.7
+  esbuild: 0.28.0
   express: 5.2.1
   flatted: 3.4.2
   glob: 13.0.6
@@ -3929,7 +3929,7 @@ packages:
     peerDependencies:
       '@types/node': ^20.19.0 || >=22.12.0
       '@vitejs/devtools': ^0.1.0
-      esbuild: 0.27.7
+      esbuild: 0.28.0
       jiti: '>=1.21.0'
       less: ^4.0.0
       sass: ^1.70.0
