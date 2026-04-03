@@ -176,6 +176,40 @@ This subcommand allows you to change the encryption key of an Authelia SQL datab
 	cmdAutheliaStorageEncryptionChangeKeyExample = `authelia storage encryption change-key --config config.yml --new-encryption-key 0e95cb49-5804-4ad9-be82-bb04a9ddecd8
 authelia storage encryption change-key --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --new-encryption-key 0e95cb49-5804-4ad9-be82-bb04a9ddecd8 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
+	cmdAutheliaStorageEncryptionRotateShort = "Rotate storage encryption values"
+
+	cmdAutheliaStorageEncryptionRotateLong = `Rotate storage encryption values.
+
+This subcommand allows rotation of various storage encryption values.`
+
+	cmdAutheliaStorageEncryptionRotateExample = `authelia storage encryption rotate --help`
+
+	cmdAutheliaStorageEncryptionRotateHMACShort = "Rotate HMAC keys"
+
+	cmdAutheliaStorageEncryptionRotateHMACLong = `Rotate HMAC keys.
+
+This subcommand allows rotation of HMAC keys used for various purposes.`
+
+	cmdAutheliaStorageEncryptionRotateHMACExample = `authelia storage encryption rotate hmac --help`
+
+	cmdAutheliaStorageEncryptionRotateHMACOTPShort = "Rotate the OTP HMAC key"
+
+	cmdAutheliaStorageEncryptionRotateHMACOTPLong = `Rotate the OTP HMAC key.
+
+This subcommand allows rotation of the HMAC key used for recording the TOTP history. In addition it truncates the 'totp_history' table.`
+
+	cmdAutheliaStorageEncryptionRotateHMACOTPExample = `authelia storage encryption rotate hmac otp --config config.yml
+authelia storage encryption rotate hmac otp --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
+
+	cmdAutheliaStorageEncryptionRotateHMACOTCShort = "Rotate the OTC HMAC key"
+
+	cmdAutheliaStorageEncryptionRotateHMACOTCLong = `Rotate the OTC HMAC key.
+
+This subcommand allows rotation of the HMAC key used for one-time codes. In addition it truncates the 'one_time_code' table.`
+
+	cmdAutheliaStorageEncryptionRotateHMACOTCExample = `authelia storage encryption rotate hmac otc --config config.yml
+authelia storage encryption rotate hmac otc --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
+
 	cmdAutheliaStorageBansShort = "Manages user and ip bans"
 
 	cmdAutheliaStorageBansLong = `Manages user and ip bans.

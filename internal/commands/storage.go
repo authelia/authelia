@@ -167,7 +167,79 @@ func newStorageEncryptionCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageEncryptionChangeKeyCmd(ctx),
 		newStorageEncryptionCheckCmd(ctx),
+		newStorageEncryptionRotateCmd(ctx),
 	)
+
+	return cmd
+}
+
+func newStorageEncryptionRotateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "rotate",
+		Short:   cmdAutheliaStorageEncryptionRotateShort,
+		Long:    cmdAutheliaStorageEncryptionRotateLong,
+		Example: cmdAutheliaStorageEncryptionRotateExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageEncryptRotateHMACCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "hmac",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageEncryptRotateHMACOTPCmd(ctx),
+		newStorageEncryptRotateHMACOTCCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACOTPCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "otc",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACOTCShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACOTCLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACOTCExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().Bool(cmdFlagNameForce, false, "force the rotation without confirmation")
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACOTCCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "otp",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACOTPShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACOTPLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACOTPExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().Bool(cmdFlagNameForce, false, "force the rotation without confirmation")
 
 	return cmd
 }

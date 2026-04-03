@@ -1,6 +1,6 @@
 ---
-title: "authelia storage encryption"
-description: "Reference for the authelia storage encryption command."
+title: "authelia storage encryption rotate hmac otc"
+description: "Reference for the authelia storage encryption rotate hmac otc command."
 lead: ""
 date: 2026-04-03T20:58:18+11:00
 draft: false
@@ -14,26 +14,32 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia storage encryption
+## authelia storage encryption rotate hmac otc
 
-Manage storage encryption
+Rotate the OTC HMAC key
 
 ### Synopsis
 
-Manage storage encryption.
+Rotate the OTC HMAC key.
 
-This subcommand allows management of the storage encryption.
+This subcommand allows rotation of the HMAC key used for one-time codes. In addition it truncates the 'one_time_code' table.
+
+```
+authelia storage encryption rotate hmac otc [flags]
+```
 
 ### Examples
 
 ```
-authelia storage encryption --help
+authelia storage encryption rotate hmac otc --config config.yml
+authelia storage encryption rotate hmac otc --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
 ```
 
 ### Options
 
 ```
-  -h, --help   help for encryption
+      --force   force the rotation without confirmation
+  -h, --help    help for otc
 ```
 
 ### Options inherited from parent commands
@@ -56,8 +62,5 @@ authelia storage encryption --help
 
 ### SEE ALSO
 
-* [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
-* [authelia storage encryption change-key](authelia_storage_encryption_change-key.md)	 - Changes the encryption key
-* [authelia storage encryption check](authelia_storage_encryption_check.md)	 - Checks the encryption key against the database data
-* [authelia storage encryption rotate](authelia_storage_encryption_rotate.md)	 - Rotate storage encryption values
+* [authelia storage encryption rotate hmac](authelia_storage_encryption_rotate_hmac.md)	 - Rotate HMAC keys
 

@@ -63,6 +63,14 @@ const (
 )
 
 const (
+	keyTypeCryptographyEnc  = "enc"
+	keyTypeCryptographyHMAC = "hmac"
+
+	fmtNameKeyHMAC = "hmac_key_%s"
+	fmtNameKeyEnc  = "enc_key_%s"
+)
+
+const (
 	driverParameterFmtAppName = "authelia %s"
 )
 

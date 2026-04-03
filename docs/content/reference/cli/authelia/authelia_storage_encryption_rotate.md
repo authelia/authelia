@@ -1,6 +1,6 @@
 ---
-title: "authelia storage encryption"
-description: "Reference for the authelia storage encryption command."
+title: "authelia storage encryption rotate"
+description: "Reference for the authelia storage encryption rotate command."
 lead: ""
 date: 2026-04-03T20:58:18+11:00
 draft: false
@@ -14,26 +14,26 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia storage encryption
+## authelia storage encryption rotate
 
-Manage storage encryption
+Rotate storage encryption values
 
 ### Synopsis
 
-Manage storage encryption.
+Rotate storage encryption values.
 
-This subcommand allows management of the storage encryption.
+This subcommand allows rotation of various storage encryption values.
 
 ### Examples
 
 ```
-authelia storage encryption --help
+authelia storage encryption rotate --help
 ```
 
 ### Options
 
 ```
-  -h, --help   help for encryption
+  -h, --help   help for rotate
 ```
 
 ### Options inherited from parent commands
@@ -56,8 +56,6 @@ authelia storage encryption --help
 
 ### SEE ALSO
 
-* [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
-* [authelia storage encryption change-key](authelia_storage_encryption_change-key.md)	 - Changes the encryption key
-* [authelia storage encryption check](authelia_storage_encryption_check.md)	 - Checks the encryption key against the database data
-* [authelia storage encryption rotate](authelia_storage_encryption_rotate.md)	 - Rotate storage encryption values
+* [authelia storage encryption](authelia_storage_encryption.md)	 - Manage storage encryption
+* [authelia storage encryption rotate hmac](authelia_storage_encryption_rotate_hmac.md)	 - Rotate HMAC keys
 
