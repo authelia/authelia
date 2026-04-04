@@ -1,6 +1,7 @@
 package clock
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -26,10 +27,10 @@ func TestRealClock(t *testing.T) {
 
 	done := make(chan struct{})
 
-	value := false
+	var value atomic.Bool
 
 	c.AfterFunc(time.Millisecond*20, func() {
-		value = true
+		value.Store(true)
 
 		close(done)
 	})
@@ -38,12 +39,12 @@ func TestRealClock(t *testing.T) {
 	case <-done:
 		t.Fatal("AfterFunc executed synchronously")
 	default:
-		assert.Equal(t, false, value)
+		assert.False(t, value.Load())
 	}
 
 	select {
 	case <-done:
-		assert.Equal(t, true, value)
+		assert.True(t, value.Load())
 	case <-time.After(200 * time.Millisecond):
 		t.Fatal("AfterFunc didn't execute within expected time")
 	}

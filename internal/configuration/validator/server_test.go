@@ -860,7 +860,7 @@ func TestValidateServerAssets(t *testing.T) {
 				return out
 			},
 			errors: []any{
-				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/\\]+/locales' directory: open [\w#/\\]+locales: permission denied`),
+				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/.\\-]+/locales' directory: open [\w#/.\\-]+locales: permission denied`),
 			},
 		},
 		{
@@ -874,7 +874,7 @@ func TestValidateServerAssets(t *testing.T) {
 				return out
 			},
 			errors: []any{
-				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/\\]+/locales/en' directory: open [\w#/\\]+locales/en: permission denied`),
+				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/.\\-]+/locales/en' directory: open [\w#/.\\-]+locales/en: permission denied`),
 			},
 		},
 		{
@@ -895,7 +895,7 @@ func TestValidateServerAssets(t *testing.T) {
 				return out
 			},
 			errors: []any{
-				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/\\]+/locales/en/portal.json' file: open [\w#/\\]+locales/en/portal.json: permission denied`),
+				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/.\\-]+/locales/en/portal.json' file: open [\w#/.\\-]+locales/en/portal.json: permission denied`),
 			},
 		},
 		{
@@ -926,7 +926,7 @@ func TestValidateServerAssets(t *testing.T) {
 				return out
 			},
 			errors: []any{
-				regexp.MustCompile(`server: asset_path: error occurred decoding the '[\w#/\\]+/locales/en/portal.json' file: invalid character 'o' in literal null \(expecting 'u'\)`),
+				regexp.MustCompile(`server: asset_path: error occurred decoding the '[\w#/.\\-]+/locales/en/portal.json' file: invalid character 'o' in literal null \(expecting 'u'\)`),
 			},
 		},
 	}

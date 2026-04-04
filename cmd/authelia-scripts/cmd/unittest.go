@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -24,19 +25,27 @@ func newUnitTestCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
-func cmdUnitTestRun(_ *cobra.Command, _ []string) {
+func cmdUnitTestRun(cmd *cobra.Command, _ []string) {
 	log.SetLevel(log.TraceLevel)
 
-	if err := utils.Shell("go test -coverprofile=coverage.txt -covermode=atomic $(go list ./... | grep -v suites)").Run(); err != nil {
+	goTestCmd := "go test -coverprofile=coverage.txt -covermode=atomic"
+
+	if buildkite, _ := cmd.Flags().GetBool("buildkite"); buildkite && strings.HasPrefix(os.Getenv("BUILDKITE_BRANCH"), "gh-readonly-queue/master/") {
+		goTestCmd += " -race"
+	}
+
+	goTestCmd += " $(go list ./... | grep -v suites)"
+
+	if err := utils.Shell(goTestCmd).Run(); err != nil {
 		log.Fatal(err)
 	}
 
-	cmd := utils.Shell("pnpm test")
-	cmd.Dir = webDirectory
+	pnpmCmd := utils.Shell("pnpm test")
+	pnpmCmd.Dir = webDirectory
 
-	cmd.Env = append(os.Environ(), "CI=true")
+	pnpmCmd.Env = append(os.Environ(), "CI=true")
 
-	if err := cmd.Run(); err != nil {
+	if err := pnpmCmd.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

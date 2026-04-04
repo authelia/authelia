@@ -102,6 +102,8 @@ func TestSignalService_Run(t *testing.T) {
 				signals: []os.Signal{syscall.SIGHUP},
 				action:  action,
 				log:     logger.WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "log-reload"}),
+				notify:  make(chan os.Signal, 1),
+				quit:    make(chan struct{}),
 			}
 
 			errChan := make(chan error, 1)
@@ -251,6 +253,8 @@ func TestSignalService_Shutdown(t *testing.T) {
 		signals: []os.Signal{syscall.SIGHUP},
 		action:  action,
 		log:     logger.WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "test"}),
+		notify:  make(chan os.Signal, 1),
+		quit:    make(chan struct{}),
 	}
 
 	done := make(chan struct{})
