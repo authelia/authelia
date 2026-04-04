@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"testing"
 	"time"
 
@@ -26,7 +28,9 @@ func TestProvisionUsersFileWatcher(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, f.Close())
 
-	tx, err := templates.New(templates.Config{})
+	providers := middlewares.NewProvidersBasic()
+
+	providers.Templates, err = templates.New(templates.Config{})
 	require.NoError(t, err)
 
 	address, err := schema.NewAddress("tcp://:9091")
@@ -43,10 +47,8 @@ func TestProvisionUsersFileWatcher(t *testing.T) {
 	ctx := &testCtx{
 		Context:       context.Background(),
 		Configuration: config,
-		Providers: middlewares.Providers{
-			Templates: tx,
-		},
-		Logger: logrus.NewEntry(logging.Logger()),
+		Providers:     providers,
+		Logger:        logrus.NewEntry(logging.Logger()),
 	}
 
 	watcher, err := provision(ctx)
@@ -143,7 +145,6 @@ func TestNewFileWatcherDirectory(t *testing.T) {
 		require.NoError(t, service.Run())
 	}()
 
-	// Give the service a moment to start.
 	time.Sleep(100 * time.Millisecond)
 
 	f, err := os.Create(filepath.Join(dir, "test.log"))
@@ -156,7 +157,12 @@ func TestNewFileWatcherDirectory(t *testing.T) {
 
 	time.Sleep(time.Second)
 
-	assert.Equal(t, 2, reloader.count)
+	switch runtime.GOOS {
+	case "darwin":
+		assert.Equal(t, 1, reloader.count)
+	default:
+		assert.Equal(t, 2, reloader.count)
+	}
 
 	service.Shutdown()
 }
@@ -169,7 +175,7 @@ func TestNewFileWatcherBadPath(t *testing.T) {
 	service, err := NewFileWatcher("example", filepath.Join(dir, "test.log"), reloader, logrus.NewEntry(logging.Logger()))
 
 	require.Error(t, err)
-	assert.Regexp(t, regexp.MustCompile(`^error initializing file watcher: error stating file '/tmp/[^/]+/\d+/test.log': file does not exist$`), err.Error())
+	assert.Regexp(t, regexp.MustCompile(fmt.Sprintf(`^error initializing file watcher: error stating file '%s/test.log': file does not exist$`, dir)), err.Error())
 
 	assert.Nil(t, service)
 }
@@ -191,7 +197,7 @@ func TestNewFileWatcherBadPermission(t *testing.T) {
 	service, err := NewFileWatcher("example", filepath.Join(dir, "tmp", "test.log"), reloader, logrus.NewEntry(logging.Logger()))
 
 	require.Error(t, err)
-	assert.Regexp(t, regexp.MustCompile(`^error initializing file watcher: error stating file '/tmp/[^/]+/\d+/tmp/test.log': permission denied trying to read the file$`), err.Error())
+	assert.Regexp(t, regexp.MustCompile(fmt.Sprintf(`^error initializing file watcher: error stating file '%s/tmp/test.log': permission denied trying to read the file$`, dir)), err.Error())
 
 	require.NoError(t, os.Chmod(filepath.Join(dir, "tmp"), 0o700))
 

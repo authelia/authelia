@@ -165,6 +165,62 @@ func TestTOTPConfigurationImportExport(t *testing.T) {
 	}
 }
 
+func TestTOTPConfigurationMarshalYAML(t *testing.T) {
+	config := &TOTPConfiguration{
+		CreatedAt: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    []byte("ABCDEF"),
+	}
+
+	result, err := config.MarshalYAML()
+
+	assert.NoError(t, err)
+	assert.IsType(t, TOTPConfigurationData{}, result)
+
+	data := result.(TOTPConfigurationData)
+
+	assert.Equal(t, "john", data.Username)
+	assert.Equal(t, "Authelia", data.Issuer)
+	assert.Equal(t, "QUJDREVG", data.Secret)
+}
+
+func TestTOTPConfigurationUnmarshalYAMLErrors(t *testing.T) {
+	testCases := []struct {
+		name string
+		yaml string
+		err  string
+	}{
+		{
+			"ShouldErrOnInvalidBase64Secret",
+			"username: john\nissuer: Authelia\nalgorithm: SHA1\ndigits: 6\nperiod: 30\nsecret: '!!!invalid-base64!!!'\n",
+			"illegal base64 data at input byte 0",
+		},
+		{
+			"ShouldErrOnInvalidYAML",
+			"username: [[[",
+			"yaml: while parsing a flow node at line 1: did not find expected node content",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &TOTPConfiguration{}
+
+			err := yaml.Unmarshal([]byte(tc.yaml), config)
+
+			if len(tc.err) != 0 {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func MustRead(n int) []byte {
 	data := make([]byte, n)
 

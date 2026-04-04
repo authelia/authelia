@@ -1,6 +1,10 @@
 package authentication
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
@@ -21,4 +25,16 @@ func MustParseAddress(input string) *schema.AddressLDAP {
 	}
 
 	return &schema.AddressLDAP{Address: *address}
+}
+
+func TestErrReload(t *testing.T) {
+	have := &errReload{err: ErrWatcherCooldown}
+
+	assert.Equal(t, have.Unwrap(), ErrWatcherCooldown)
+	assert.Equal(t, have.Error(), "watcher on cooldown")
+	assert.Equal(t, have.WatcherReloadErrorCritical(), false)
+
+	have.critical = true
+
+	assert.Equal(t, have.WatcherReloadErrorCritical(), true)
 }

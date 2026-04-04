@@ -120,7 +120,7 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 		}
 
 		userSession = provider.NewDefaultUserSession()
-		userSession.LastActivity = ctx.Clock.Now().Unix()
+		userSession.LastActivity = ctx.GetClock().Now().Unix()
 
 		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 			ctx.Logger.WithError(err).Error("Unable to save updated user session")
@@ -477,7 +477,7 @@ func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.S
 	if !userSession.KeepMeLoggedIn {
 		modified = true
 
-		userSession.LastActivity = ctx.Clock.Now().Unix()
+		userSession.LastActivity = ctx.GetClock().Now().Unix()
 	}
 
 	return modified, false
@@ -488,9 +488,9 @@ func handleAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, provider 
 		return false
 	}
 
-	ctx.Logger.WithField("username", userSession.Username).Tracef("Inactivity report for user. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", ctx.Clock.Now().Unix(), userSession.LastActivity, int(provider.Config.Inactivity.Seconds()))
+	ctx.Logger.WithField("username", userSession.Username).Tracef("Inactivity report for user. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", ctx.GetClock().Now().Unix(), userSession.LastActivity, int(provider.Config.Inactivity.Seconds()))
 
-	return time.Unix(userSession.LastActivity, 0).Add(provider.Config.Inactivity).Before(ctx.Clock.Now())
+	return time.Unix(userSession.LastActivity, 0).Add(provider.Config.Inactivity).Before(ctx.GetClock().Now())
 }
 
 func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
@@ -500,7 +500,7 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 
 	ctx.Logger.WithField("username", userSession.Username).Trace("Checking if we need check the authentication backend for an updated profile for user")
 
-	if !refresh.Always() && userSession.RefreshTTL.After(ctx.Clock.Now()) {
+	if !refresh.Always() && userSession.RefreshTTL.After(ctx.GetClock().Now()) {
 		return false, false
 	}
 
@@ -532,7 +532,7 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 	if !refresh.Always() {
 		modified = true
 
-		userSession.RefreshTTL = ctx.Clock.Now().Add(refresh.Value())
+		userSession.RefreshTTL = ctx.GetClock().Now().Add(refresh.Value())
 	}
 
 	if !diffEmails && !diffGroups && !diffDisplayName {

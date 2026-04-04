@@ -76,7 +76,7 @@ func handleOAuth2AuthorizationConsentModeImplicitWithID(ctx *middlewares.Autheli
 		ctx.Logger.WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
-	if !consent.CanGrant(ctx.Clock.Now()) {
+	if !consent.CanGrant(ctx.GetClock().Now()) {
 		ctx.Logger.Errorf(logFmtErrConsentCantGrant, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, "implicit")
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
@@ -87,9 +87,9 @@ func handleOAuth2AuthorizationConsentModeImplicitWithID(ctx *middlewares.Autheli
 	var requests *oidc.ClaimsRequests
 
 	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
-		oidc.ConsentGrantImplicit(consent, requests.ToSlice(), subject, ctx.Clock.Now())
+		oidc.ConsentGrantImplicit(consent, requests.ToSlice(), subject, ctx.GetClock().Now())
 	} else {
-		oidc.ConsentGrantImplicit(consent, nil, subject, ctx.Clock.Now())
+		oidc.ConsentGrantImplicit(consent, nil, subject, ctx.GetClock().Now())
 	}
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
@@ -146,9 +146,9 @@ func handleOAuth2AuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Auth
 	var requests *oidc.ClaimsRequests
 
 	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
-		oidc.ConsentGrantImplicit(consent, requests.ToSlice(), subject, ctx.Clock.Now())
+		oidc.ConsentGrantImplicit(consent, requests.ToSlice(), subject, ctx.GetClock().Now())
 	} else {
-		oidc.ConsentGrantImplicit(consent, nil, subject, ctx.Clock.Now())
+		oidc.ConsentGrantImplicit(consent, nil, subject, ctx.GetClock().Now())
 	}
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {

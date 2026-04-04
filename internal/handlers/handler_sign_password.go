@@ -74,7 +74,7 @@ func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middl
 
 		doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypePassword, nil)
 
-		userSession.SetTwoFactorPassword(ctx.Clock.Now())
+		userSession.SetTwoFactorPassword(ctx.GetClock().Now())
 
 		if err = ctx.RegenerateSession(); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypePassword, userSession.Username)

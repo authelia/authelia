@@ -142,6 +142,56 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Nil(t, session.Claims.AuthenticationMethodsReferences)
 }
 
+func TestWellKnownSignedConfigurationToMap(t *testing.T) {
+	testCases := []struct {
+		name  string
+		toMap func() xjwt.MapClaims
+	}{
+		{
+			"ShouldReturnMapClaimsForOAuth2WithIssuer",
+			func() xjwt.MapClaims {
+				claims := &oidc.OAuth2WellKnownSignedConfiguration{}
+				claims.Issuer = authExampleCom
+
+				return claims.ToMap()
+			},
+		},
+		{
+			"ShouldReturnMapClaimsForOAuth2Empty",
+			func() xjwt.MapClaims {
+				claims := &oidc.OAuth2WellKnownSignedConfiguration{}
+
+				return claims.ToMap()
+			},
+		},
+		{
+			"ShouldReturnMapClaimsForOpenIDConnectWithIssuer",
+			func() xjwt.MapClaims {
+				claims := &oidc.OpenIDConnectWellKnownSignedConfiguration{}
+				claims.Issuer = authExampleCom
+
+				return claims.ToMap()
+			},
+		},
+		{
+			"ShouldReturnMapClaimsForOpenIDConnectEmpty",
+			func() xjwt.MapClaims {
+				claims := &oidc.OpenIDConnectWellKnownSignedConfiguration{}
+
+				return claims.ToMap()
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.toMap()
+
+			assert.NotNil(t, result)
+		})
+	}
+}
+
 // TestContext is a minimal implementation of Context for the purpose of testing.
 type TestContext struct {
 	context.Context
@@ -150,6 +200,9 @@ type TestContext struct {
 	IssuerURLFunc func() (issuerURL *url.URL, err error)
 	Clock         clock.Provider
 	Config        schema.Configuration
+	NilResolver   bool
+	Storage       storage.Provider
+	UserProvider  authentication.UserProvider
 }
 
 func (m *TestContext) Value(key any) any {
@@ -164,11 +217,17 @@ func (m *TestContext) GetRandom() (r random.Provider) {
 	return random.NewMathematical()
 }
 
-func (m *TestContext) GetConfiguration() (config schema.Configuration) {
-	return m.Config
+func (m *TestContext) GetConfiguration() (config *schema.Configuration) {
+	copied := m.Config
+
+	return &copied
 }
 
 func (m *TestContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
+	if m.NilResolver {
+		return nil
+	}
+
 	return &expression.UserAttributes{}
 }
 
@@ -207,9 +266,25 @@ func (m *TestContext) GetJWTWithTimeFuncOption() jwt.ParserOption {
 }
 
 func (m *TestContext) GetProviderStorage() storage.Provider {
-	return nil
+	return m.Storage
 }
 
 func (m *TestContext) GetUserProvider() authentication.UserProvider {
+	return m.UserProvider
+}
+
+type TestCodeStrategy struct {
+	signature string
+}
+
+func (m *TestCodeStrategy) AuthorizeCodeSignature(ctx context.Context, token string) string {
+	return m.signature
+}
+
+func (m *TestCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester) (token string, signature string, err error) {
+	return "", "", nil
+}
+
+func (m *TestCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester, token string) (err error) {
 	return nil
 }

@@ -24,7 +24,7 @@ type LDAPClientDialerStandard struct{}
 // DialURL takes a single address and dials it returning the LDAPClient.
 func (d *LDAPClientDialerStandard) DialURL(addr string, opts ...ldap.DialOpt) (client LDAPBaseClient, err error) {
 	if client, err = ldap.DialURL(addr, opts...); err != nil {
-		return nil, fmt.Errorf("failed to dial LDAP server at %s: %w", addr, err)
+		return nil, fmt.Errorf("error occurred attempting to dial LDAP server at '%s': %w", addr, err)
 	}
 
 	return client, nil

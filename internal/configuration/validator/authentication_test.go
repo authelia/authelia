@@ -2,10 +2,13 @@ package validator
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -435,7 +438,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenScryptOptio
 	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: file: password: scrypt: option 'iterations' is configured as '59' but must be less than or equal to '58'")
 	suite.EqualError(suite.validator.Errors()[1], "authentication_backend: file: password: scrypt: option 'block_size' is configured as '360287970189639672' but must be less than or equal to '36028797018963967'")
 	suite.EqualError(suite.validator.Errors()[2], "authentication_backend: file: password: scrypt: option 'parallelism' is configured as '1073741825' but must be less than or equal to '1073741823'")
-	suite.EqualError(suite.validator.Errors()[3], "authentication_backend: file: password: scrypt: option 'key_length' is configured as '1374389534409' but must be less than or equal to '137438953440'")
+	suite.EqualError(suite.validator.Errors()[3], fmt.Sprintf("authentication_backend: file: password: scrypt: option 'key_length' is configured as '1374389534409' but must be less than or equal to '%d'", scrypt.KeyLengthMax))
 	suite.EqualError(suite.validator.Errors()[4], "authentication_backend: file: password: scrypt: option 'salt_length' is configured as '2147483647' but must be less than or equal to '1024'")
 }
 
@@ -568,6 +571,141 @@ func (suite *FileBasedAuthenticationBackend) TestShouldConfigureDisableResetPass
 	suite.Len(suite.validator.Errors(), 0)
 
 	suite.False(suite.config.PasswordReset.Disable)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldValidateExtraAttributeString() {
+	suite.config.File.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{
+		"custom_attr": {ValueType: "string"},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldValidateExtraAttributeInteger() {
+	suite.config.File.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{
+		"custom_int": {ValueType: "integer"},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldValidateExtraAttributeBoolean() {
+	suite.config.File.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{
+		"custom_bool": {ValueType: "boolean"},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenExtraAttributeValueTypeMissing() {
+	suite.config.File.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{
+		"custom_attr": {ValueType: ""},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: file: extra_attributes: custom_attr: option 'value_type' is required")
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenExtraAttributeValueTypeInvalid() {
+	suite.config.File.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{
+		"custom_attr": {ValueType: "invalid"},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: file: extra_attributes: custom_attr: option 'value_type' must be one of 'string', 'integer', or 'boolean' but it's configured as 'invalid'")
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenExtraAttributeNameReserved() {
+	suite.config.File.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{
+		"username": {ValueType: "string"},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: file: extra_attributes: username: attribute name 'username' is reserved")
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseMultipleErrorsForExtraAttributes() {
+	suite.config.File.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{
+		"email": {ValueType: "string"},
+		"bad":   {ValueType: ""},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.GreaterOrEqual(len(suite.validator.Errors()), 2)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenScryptVariantInvalid() {
+	suite.config.File.Password.Algorithm = "scrypt"
+	suite.config.File.Password.Scrypt.Variant = "invalid"
+	suite.config.File.Password.Scrypt.Iterations = 1
+	suite.config.File.Password.Scrypt.BlockSize = 1
+	suite.config.File.Password.Scrypt.Parallelism = 1
+	suite.config.File.Password.Scrypt.KeyLength = 16
+	suite.config.File.Password.Scrypt.SaltLength = 8
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().GreaterOrEqual(len(suite.validator.Errors()), 1)
+
+	found := false
+
+	for _, err := range suite.validator.Errors() {
+		if strings.Contains(err.Error(), "variant") {
+			found = true
+
+			break
+		}
+	}
+
+	suite.True(found)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenScryptYescryptParallelismNotOne() {
+	suite.config.File.Password.Algorithm = hashScrypt
+	suite.config.File.Password.Scrypt.Variant = hashScryptVariantYesCrypt
+	suite.config.File.Password.Scrypt.Iterations = 1
+	suite.config.File.Password.Scrypt.BlockSize = 1
+	suite.config.File.Password.Scrypt.Parallelism = 2
+	suite.config.File.Password.Scrypt.KeyLength = 16
+	suite.config.File.Password.Scrypt.SaltLength = 8
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().GreaterOrEqual(len(suite.validator.Errors()), 1)
+
+	found := false
+
+	for _, err := range suite.validator.Errors() {
+		if strings.Contains(err.Error(), "parallelism") && strings.Contains(err.Error(), "yescrypt") {
+			found = true
+
+			break
+		}
+	}
+
+	suite.True(found)
 }
 
 func TestFileBasedAuthenticationBackend(t *testing.T) {
@@ -966,6 +1104,105 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowTLSVerMinGreaterT
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS 1.3 is greater than the maximum version TLS 1.2")
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateExtraAttributeString() {
+	suite.config.LDAP.Attributes.Extra = map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+		"custom_attr": {AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "string"}},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateExtraAttributeInteger() {
+	suite.config.LDAP.Attributes.Extra = map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+		"custom_int": {AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "integer"}},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateExtraAttributeBoolean() {
+	suite.config.LDAP.Attributes.Extra = map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+		"custom_bool": {AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "boolean"}},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenExtraAttributeValueTypeMissing() {
+	suite.config.LDAP.Attributes.Extra = map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+		"custom_attr": {AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: ""}},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: attributes: extra: custom_attr: option 'value_type' is required")
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenExtraAttributeValueTypeInvalid() {
+	suite.config.LDAP.Attributes.Extra = map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+		"custom_attr": {AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "float"}},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: attributes: extra: custom_attr: option 'value_type' must be one of 'string', 'integer', or 'boolean' but it's configured as 'float'")
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenExtraAttributeNameReserved() {
+	suite.config.LDAP.Attributes.Extra = map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+		"username": {AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "string"}},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: attributes: extra: username: attribute name 'username' is reserved")
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenExtraAttributeCustomNameReserved() {
+	suite.config.LDAP.Attributes.Extra = map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+		"custom": {
+			Name: "email",
+
+			AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "string"},
+		},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: attributes: extra: custom: attribute name 'email' is reserved")
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateExtraAttributeWithCustomName() {
+	suite.config.LDAP.Attributes.Extra = map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+		"custom": {
+			Name:                                "myattr",
+			AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "string"},
+		},
+	}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
 }
 
 func TestLDAPAuthenticationBackend(t *testing.T) {

@@ -1833,6 +1833,134 @@ func TestOrderedClaimsRequestsSerialized(t *testing.T) {
 	}
 }
 
+func TestHydrateAccessTokenClaims(t *testing.T) {
+	t.Run("ShouldSucceedWithValidResolver", func(t *testing.T) {
+		strategy := oidc.NewDefaultCustomClaimsStrategy()
+		ctx := &TestContext{}
+
+		client := &oidc.RegisteredClient{ID: "test-client"}
+		detailer := &testDetailer{username: "john", emails: []string{"john@example.com"}, extra: map[string]any{}}
+		extra := map[string]any{}
+		now := time.Now()
+
+		err := strategy.HydrateAccessTokenClaims(ctx, oauthelia2.ExactScopeStrategy, client, nil, nil, nil, detailer, now, now, nil, extra)
+
+		assert.NoError(t, oauthelia2.ErrorToDebugRFC6749Error(err))
+	})
+
+	t.Run("ShouldErrWithNilResolver", func(t *testing.T) {
+		strategy := oidc.NewDefaultCustomClaimsStrategy()
+		ctx := &TestContext{NilResolver: true}
+
+		client := &oidc.RegisteredClient{ID: "test-client"}
+		detailer := &testDetailer{username: "john", extra: map[string]any{}}
+		extra := map[string]any{}
+		now := time.Now()
+
+		err := strategy.HydrateAccessTokenClaims(ctx, oauthelia2.ExactScopeStrategy, client, nil, nil, nil, detailer, now, now, nil, extra)
+
+		assert.Error(t, err)
+	})
+}
+
+func TestHydrateClientCredentialsUserInfoClaims(t *testing.T) {
+	t.Run("ShouldPopulateAudience", func(t *testing.T) {
+		strategy := oidc.NewDefaultCustomClaimsStrategy()
+		ctx := &TestContext{}
+
+		client := &oidc.RegisteredClient{ID: "test-client"}
+		original := map[string]any{oidc.ClaimSubject: "john"}
+		extra := map[string]any{}
+
+		err := strategy.HydrateClientCredentialsUserInfoClaims(ctx, client, original, extra)
+
+		assert.NoError(t, err)
+		assert.Contains(t, extra, oidc.ClaimSubject)
+		assert.Contains(t, extra, oidc.ClaimAudience)
+	})
+
+	t.Run("ShouldHandleEmptyOriginal", func(t *testing.T) {
+		strategy := oidc.NewDefaultCustomClaimsStrategy()
+		ctx := &TestContext{}
+
+		client := &oidc.RegisteredClient{ID: "test-client"}
+		original := map[string]any{}
+		extra := map[string]any{}
+
+		err := strategy.HydrateClientCredentialsUserInfoClaims(ctx, client, original, extra)
+
+		assert.NoError(t, err)
+		assert.Contains(t, extra, oidc.ClaimAudience)
+	})
+
+	t.Run("ShouldAppendToExistingAudience", func(t *testing.T) {
+		strategy := oidc.NewDefaultCustomClaimsStrategy()
+		ctx := &TestContext{}
+
+		client := &oidc.RegisteredClient{ID: "test-client"}
+		original := map[string]any{oidc.ClaimAudience: []string{"existing"}}
+		extra := map[string]any{}
+
+		err := strategy.HydrateClientCredentialsUserInfoClaims(ctx, client, original, extra)
+
+		assert.NoError(t, err)
+
+		aud, ok := extra[oidc.ClaimAudience]
+		assert.True(t, ok)
+
+		audSlice, ok := aud.([]string)
+		assert.True(t, ok)
+		assert.Contains(t, audSlice, "existing")
+		assert.Contains(t, audSlice, "test-client")
+	})
+}
+
+func TestMergeAccessTokenAudienceWithIDTokenAudience(t *testing.T) {
+	t.Run("ShouldReturnFalseByDefault", func(t *testing.T) {
+		strategy := oidc.NewDefaultCustomClaimsStrategy()
+
+		assert.False(t, strategy.MergeAccessTokenAudienceWithIDTokenAudience())
+	})
+
+	t.Run("ShouldReturnTrueWhenConfigured", func(t *testing.T) {
+		strategy := oidc.NewCustomClaimsStrategy(
+			"test",
+			[]string{oidc.ScopeOpenID},
+			nil,
+			map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+				"test": {
+					IDTokenAudienceMode: oidc.IDTokenAudienceModeExperimentalMerged,
+				},
+			},
+		)
+
+		assert.True(t, strategy.MergeAccessTokenAudienceWithIDTokenAudience())
+	})
+}
+
+func TestToSliceDeduplicates(t *testing.T) {
+	t.Run("ShouldDeduplicateEssentialAndOptional", func(t *testing.T) {
+		cr := &oidc.ClaimsRequests{
+			IDToken: map[string]*oidc.ClaimRequest{
+				"email":    nil,
+				"username": {Essential: true},
+			},
+		}
+
+		claims := cr.ToSlice()
+
+		count := 0
+
+		for _, c := range claims {
+			if c == "username" {
+				count++
+			}
+		}
+
+		assert.Equal(t, 1, count)
+	})
+}
+
 type testDetailer struct {
 	username  string
 	groups    []string

@@ -22,6 +22,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -488,10 +489,15 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 	r.POST(oidc.EndpointPathRevocation, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2RevocationPOST)))))
 }
 
-func handlerMetrics(path string) fasthttp.RequestHandler {
+func handlerMetrics(provider metrics.Provider, path string) fasthttp.RequestHandler {
 	r := router.New()
 
-	r.GET(path, fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler()))
+	registerer := provider.GetRegisterer()
+	gatherer := provider.GetGatherer()
+
+	handler := promhttp.HandlerFor(gatherer, promhttp.HandlerOpts{})
+
+	r.GET(path, fasthttpadaptor.NewFastHTTPHandler(promhttp.InstrumentMetricHandler(registerer, handler)))
 
 	r.HandleMethodNotAllowed = true
 	r.MethodNotAllowed = handlers.Status(fasthttp.StatusMethodNotAllowed)

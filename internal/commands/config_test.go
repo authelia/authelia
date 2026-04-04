@@ -99,6 +99,118 @@ func TestRunConfigValidate(t *testing.T) {
 	}
 }
 
+func TestConfigValidateRunE(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(ctx *CmdCtx)
+		err      string
+		expected string
+	}{
+		{
+			"ShouldSucceedNoErrors",
+			nil,
+			"",
+			"Configuration parsed and loaded successfully without errors.",
+		},
+		{
+			"ShouldErrWithValidationErrors",
+			func(ctx *CmdCtx) {
+				ctx.cconfig.validator.Push(fmt.Errorf("test error"))
+			},
+			"configuration validation failed",
+			"test error",
+		},
+		{
+			"ShouldSucceedWithWarnings",
+			func(ctx *CmdCtx) {
+				ctx.cconfig.validator.PushWarning(fmt.Errorf("test warning"))
+			},
+			"",
+			"test warning",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmdCtx := NewCmdCtx()
+			cmdCtx.cconfig = NewCmdCtxConfig()
+
+			if tc.setup != nil {
+				tc.setup(cmdCtx)
+			}
+
+			cmd := &cobra.Command{Use: "validate"}
+
+			buf := new(bytes.Buffer)
+			cmd.SetOut(buf)
+
+			err := cmdCtx.ConfigValidateRunE(cmd, nil)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tc.err)
+			}
+
+			assert.Contains(t, buf.String(), tc.expected)
+		})
+	}
+}
+
+func TestConfigTemplateRunE(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(t *testing.T, ctx *CmdCtx)
+		err      string
+		expected string
+	}{
+		{
+			"ShouldErrNoSources",
+			func(t *testing.T, ctx *CmdCtx) {
+				ctx.cconfig.sources = nil
+			},
+			"templating requires configuration files however no configuration file sources were specified",
+			"",
+		},
+		{
+			"ShouldSucceedWithFileSource",
+			func(t *testing.T, ctx *CmdCtx) {
+				dir := t.TempDir()
+				path := filepath.Join(dir, "config.yml")
+
+				require.NoError(t, os.WriteFile(path, []byte("---\nserver:\n  address: tcp://0.0.0.0:9091\n"), 0600))
+
+				ctx.cconfig.sources = []configuration.Source{configuration.NewFileSource(path)}
+			},
+			"",
+			"Authelia rendered configuration file",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmdCtx := NewCmdCtx()
+			cmdCtx.cconfig = NewCmdCtxConfig()
+
+			tc.setup(t, cmdCtx)
+
+			cmd := &cobra.Command{Use: "template"}
+
+			buf := new(bytes.Buffer)
+			cmd.SetOut(buf)
+
+			err := cmdCtx.ConfigTemplateRunE(cmd, nil)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Contains(t, buf.String(), tc.expected)
+			} else {
+				assert.ErrorContains(t, err, tc.err)
+			}
+		})
+	}
+}
+
 func TestRunConfigTemplate(t *testing.T) {
 	dir := t.TempDir()
 

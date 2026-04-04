@@ -23,6 +23,15 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+func TestShouldReturnErrorWhenX509CertPoolFactoryNotProvided(t *testing.T) {
+	pool, warnings, errors := NewX509CertPoolWithFactory("", nil)
+	assert.Nil(t, pool)
+	assert.Nil(t, warnings)
+
+	require.Len(t, errors, 1)
+	assert.EqualError(t, errors[0], "failed to create x509 cert pool as no factory was provided")
+}
+
 func TestShouldReturnErrWhenX509DirectoryNotExist(t *testing.T) {
 	pool, warnings, errors := NewX509CertPool("/tmp/asdfzyxabc123/not/a/real/dir")
 	assert.NotNil(t, pool)
@@ -64,7 +73,7 @@ func TestShouldReadCertsFromDirectoryButNotKeys(t *testing.T) {
 	assert.NotNil(t, pool)
 	require.Len(t, errors, 3)
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == windows {
 		require.Len(t, warnings, 1)
 		assert.EqualError(t, warnings[0], "could not load system certificate pool which may result in untrusted certificate issues: crypto/x509: system root pool is not available on Windows")
 	} else {
@@ -1245,6 +1254,78 @@ func TestWritePEMBlocksToWriter(t *testing.T) {
 			} else {
 				assert.EqualError(t, err, tc.err)
 			}
+		})
+	}
+}
+
+func TestWriteKeyToPEM(t *testing.T) {
+	key, _, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name   string
+		key    any
+		legacy bool
+		err    string
+	}{
+		{
+			"ShouldWriteEd25519Key",
+			key,
+			false,
+			"",
+		},
+		{
+			"ShouldReturnErrorForInvalidKey",
+			"not-a-key",
+			false,
+			"failed to marshal key: failed to match key type: string",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, "key.pem")
+
+			err := WriteKeyToPEM(tc.key, path, tc.legacy)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				require.NoError(t, err)
+
+				data, err := os.ReadFile(path)
+				require.NoError(t, err)
+				assert.Contains(t, string(data), "-----BEGIN")
+			}
+		})
+	}
+}
+
+func TestParsePEMBlockUnknownTypes(t *testing.T) {
+	testCases := []struct {
+		name      string
+		blockType string
+		err       string
+	}{
+		{
+			"ShouldReturnErrorForUnknownBlockType",
+			"UNKNOWN BLOCK",
+			"unknown block type: UNKNOWN BLOCK",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			block := &pem.Block{
+				Type:  tc.blockType,
+				Bytes: []byte("invalid"),
+			}
+
+			key, err := ParsePEMBlock(block)
+
+			assert.Nil(t, key)
+			assert.EqualError(t, err, tc.err)
 		})
 	}
 }

@@ -3,6 +3,8 @@ package metrics
 import (
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
@@ -10,6 +12,9 @@ import (
 type Provider interface {
 	Recorder
 	regulation.MetricsRecorder
+
+	GetRegisterer() prometheus.Registerer
+	GetGatherer() prometheus.Gatherer
 }
 
 // Recorder of metrics.

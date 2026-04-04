@@ -177,3 +177,20 @@ func TestFileNotifier_Send(t *testing.T) {
 		})
 	}
 }
+
+func TestFileNotifier_Send_TemplateError(t *testing.T) {
+	base := t.TempDir()
+	filePath := filepath.Join(base, "notify.log")
+
+	n := NewFileNotifier(schema.NotifierFileSystem{Filename: filePath})
+
+	failTmpl := template.Must(template.New("text").Funcs(template.FuncMap{
+		"fail": func() (string, error) { return "", assert.AnError },
+	}).Parse("{{ fail }}"))
+	et := &templates.EmailTemplate{Text: failTmpl}
+
+	rcpt := mail.Address{Name: "John Doe", Address: "john@example.com"}
+	err := n.Send(context.Background(), rcpt, "Test Subject", et, nil)
+
+	assert.EqualError(t, err, `failed to execute template: template: text:1:3: executing "text" at <fail>: error calling fail: assert.AnError general error for testing`)
+}

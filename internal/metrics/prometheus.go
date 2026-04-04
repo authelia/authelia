@@ -19,6 +19,8 @@ func NewPrometheus() (provider *Prometheus) {
 
 // Prometheus is a middleware for recording prometheus metrics.
 type Prometheus struct {
+	registry *prometheus.Registry
+
 	authnDuration       *prometheus.HistogramVec
 	reqDuration         *prometheus.HistogramVec
 	reqDurationOIDC     *prometheus.HistogramVec
@@ -27,6 +29,14 @@ type Prometheus struct {
 	authnCounter        *prometheus.CounterVec
 	authnPasskeyCounter *prometheus.CounterVec
 	authn2FACounter     *prometheus.CounterVec
+}
+
+func (r *Prometheus) GetRegisterer() prometheus.Registerer {
+	return r.registry
+}
+
+func (r *Prometheus) GetGatherer() prometheus.Gatherer {
+	return r.registry
 }
 
 // RecordRequest takes the statusCode string, requestMethod string, and the elapsed time.Duration to record the request and request duration metrics.
@@ -63,7 +73,9 @@ func (r *Prometheus) RecordAuthenticationDuration(success bool, elapsed time.Dur
 }
 
 func (r *Prometheus) register() {
-	r.authnDuration = promauto.NewHistogramVec(
+	r.registry = prometheus.NewRegistry()
+
+	r.authnDuration = promauto.With(r.registry).NewHistogramVec(
 		prometheus.HistogramOpts{
 			Subsystem: "authelia",
 			Name:      "authn_duration",
@@ -73,7 +85,7 @@ func (r *Prometheus) register() {
 		[]string{"success"},
 	)
 
-	r.reqDuration = promauto.NewHistogramVec(
+	r.reqDuration = promauto.With(r.registry).NewHistogramVec(
 		prometheus.HistogramOpts{
 			Subsystem: "authelia",
 			Name:      "request_duration",
@@ -83,7 +95,7 @@ func (r *Prometheus) register() {
 		[]string{"code"},
 	)
 
-	r.reqDurationOIDC = promauto.NewHistogramVec(
+	r.reqDurationOIDC = promauto.With(r.registry).NewHistogramVec(
 		prometheus.HistogramOpts{
 			Subsystem: "authelia",
 			Name:      "request_duration_openid_connect",
@@ -93,7 +105,7 @@ func (r *Prometheus) register() {
 		[]string{"endpoint", "code"},
 	)
 
-	r.reqCounter = promauto.NewCounterVec(
+	r.reqCounter = promauto.With(r.registry).NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "authelia",
 			Name:      "request",
@@ -102,7 +114,7 @@ func (r *Prometheus) register() {
 		[]string{"code", "method"},
 	)
 
-	r.authzCounter = promauto.NewCounterVec(
+	r.authzCounter = promauto.With(r.registry).NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "authelia",
 			Name:      "authz",
@@ -111,7 +123,7 @@ func (r *Prometheus) register() {
 		[]string{"code"},
 	)
 
-	r.authnCounter = promauto.NewCounterVec(
+	r.authnCounter = promauto.With(r.registry).NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "authelia",
 			Name:      "authn",
@@ -120,7 +132,7 @@ func (r *Prometheus) register() {
 		[]string{"success", "banned"},
 	)
 
-	r.authnPasskeyCounter = promauto.NewCounterVec(
+	r.authnPasskeyCounter = promauto.With(r.registry).NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "authelia",
 			Name:      "authn_passkey",
@@ -129,7 +141,7 @@ func (r *Prometheus) register() {
 		[]string{"success"},
 	)
 
-	r.authn2FACounter = promauto.NewCounterVec(
+	r.authn2FACounter = promauto.With(r.registry).NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "authelia",
 			Name:      "authn_second_factor",

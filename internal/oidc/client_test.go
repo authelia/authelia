@@ -1651,6 +1651,12 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 }
 
 func TestGetClientSecretPlainText(t *testing.T) {
+	plainDigest, digestErr := schema.DecodePasswordDigest("$plaintext$mysecret")
+	require.NoError(t, digestErr)
+
+	argon2Digest, digestErr := schema.DecodePasswordDigest("$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM")
+	require.NoError(t, digestErr)
+
 	testCases := []struct {
 		name   string
 		client *oidc.RegisteredClient
@@ -1663,6 +1669,27 @@ func TestGetClientSecretPlainText(t *testing.T) {
 			client: &oidc.RegisteredClient{ClientSecret: nil},
 			secret: nil,
 			ok:     false,
+			err:    "",
+		},
+		{
+			name:   "ShouldReturnNotOkWhenDigestInvalid",
+			client: &oidc.RegisteredClient{ClientSecret: &oidc.ClientSecretDigest{PasswordDigest: &schema.PasswordDigest{}}},
+			secret: nil,
+			ok:     false,
+			err:    "",
+		},
+		{
+			name:   "ShouldReturnOkButNilSecretForNonPlainText",
+			client: &oidc.RegisteredClient{ClientSecret: &oidc.ClientSecretDigest{PasswordDigest: argon2Digest}},
+			secret: nil,
+			ok:     true,
+			err:    "",
+		},
+		{
+			name:   "ShouldReturnSecretForPlainText",
+			client: &oidc.RegisteredClient{ClientSecret: &oidc.ClientSecretDigest{PasswordDigest: plainDigest}},
+			secret: []byte("mysecret"),
+			ok:     true,
 			err:    "",
 		},
 	}

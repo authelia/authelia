@@ -181,7 +181,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	config.UpdateSignInInfo(ctx.Clock.Now())
+	config.UpdateSignInInfo(ctx.GetClock().Now())
 
 	if err = ctx.Providers.StorageProvider.UpdateTOTPConfigurationSignIn(ctx, config.ID, config.LastUsedAt); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred saving the credential sign-in information to the storage backend", userSession.Username)
@@ -192,7 +192,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession.SetTwoFactorTOTP(ctx.Clock.Now())
+	userSession.SetTwoFactorTOTP(ctx.GetClock().Now())
 
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': %s", userSession.Username, errStrUserSessionDataSave)

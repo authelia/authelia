@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"runtime"
 	"sort"
 	"testing"
 
@@ -149,6 +150,45 @@ func TestErrSliceSortAlphabetical_SortIntegration(t *testing.T) {
 			}
 
 			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestGetExpectedErrTxt(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		notEmpty bool
+	}{
+		{"ShouldReturnPathNotFound", "pathnotfound", true},
+		{"ShouldReturnFileNotFound", "filenotfound", true},
+		{"ShouldReturnStatPathNotFound", "statpathnotfound", true},
+		{"ShouldReturnStatFileNotFound", "statfilenotfound", true},
+		{"ShouldReturnIsDir", "isdir", true},
+		{"ShouldReturnEmptyForUnknown", "unknown", false},
+		{"ShouldReturnEmptyForEmptyInput", "", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := GetExpectedErrTxt(tc.input)
+
+			if tc.notEmpty {
+				assert.NotEmpty(t, result)
+
+				if runtime.GOOS != "windows" {
+					switch tc.input {
+					case "pathnotfound", "filenotfound":
+						assert.Contains(t, result, "no such file or directory")
+					case "statpathnotfound", "statfilenotfound":
+						assert.Contains(t, result, "no such file or directory")
+					case "isdir":
+						assert.Contains(t, result, "is a directory")
+					}
+				}
+			} else {
+				assert.Empty(t, result)
+			}
 		})
 	}
 }

@@ -42,6 +42,8 @@ const (
 	hashPBKDF2    = "pbkdf2"
 	hashScrypt    = "scrypt"
 	hashBcrypt    = "bcrypt"
+
+	hashScryptVariantYesCrypt = "yescrypt"
 )
 
 // Scheme constants.

@@ -21,9 +21,9 @@ const (
 	onefactor      = "one_factor"
 	twofactor      = "two_factor"
 	examplecom     = "https://example.com"
+	authExampleCom = "https://auth.example.com"
 	examplecomsid  = "example.com"
 	badhmac        = "asbdhaaskmdlkamdklasmdlkams"
-	badTokenString = "badTokenString"
 )
 
 const (

@@ -90,6 +90,7 @@ func TestShouldNotPanicOnNilDB(t *testing.T) {
 	}
 
 	assert.NoError(t, provider.StartupCheck())
+	assert.NoError(t, provider.Close())
 }
 
 func TestShouldHandleBadConfig(t *testing.T) {
@@ -400,6 +401,151 @@ func TestShouldErrOnUpdatePasswordNoUser(t *testing.T) {
 
 		assert.Equal(t, provider.UpdatePassword("nousers", "newpassword"), ErrUserNotFound)
 		assert.Equal(t, provider.UpdatePassword("dis", "example"), ErrUserNotFound)
+	})
+}
+
+func TestShouldChangePassword(t *testing.T) {
+	testCases := []struct {
+		name        string
+		username    string
+		oldPassword string
+		newPassword string
+		err         string
+	}{
+		{
+			"ShouldChangePasswordSuccessfully",
+			"john",
+			"password",
+			"newpassword",
+			"",
+		},
+		{
+			"ShouldErrUserNotFound",
+			"nouser",
+			"password",
+			"newpassword",
+			"user not found",
+		},
+		{
+			"ShouldErrDisabledUser",
+			"dis",
+			"password",
+			"newpassword",
+			"user not found",
+		},
+		{
+			"ShouldErrEmptyNewPassword",
+			"john",
+			"password",
+			"",
+			"your supplied password does not meet the password policy requirements",
+		},
+		{
+			"ShouldErrWhitespaceNewPassword",
+			"john",
+			"password",
+			"   ",
+			"your supplied password does not meet the password policy requirements",
+		},
+		{
+			"ShouldErrSamePassword",
+			"john",
+			"password",
+			"password",
+			"your supplied password does not meet the password policy requirements",
+		},
+		{
+			"ShouldErrIncorrectOldPassword",
+			"john",
+			"wrong_password",
+			"newpassword",
+			"incorrect password",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContent, func(path string) {
+				config := DefaultFileAuthenticationBackendConfiguration
+				config.Path = path
+
+				provider := NewFileUserProvider(&config)
+
+				assert.NoError(t, provider.StartupCheck())
+
+				err := provider.ChangePassword(tc.username, tc.oldPassword, tc.newPassword)
+
+				if tc.err == "" {
+					assert.NoError(t, err)
+
+					// Verify the new password works by resetting the provider.
+					provider = NewFileUserProvider(&config)
+
+					assert.NoError(t, provider.StartupCheck())
+
+					ok, err := provider.CheckUserPassword(tc.username, tc.newPassword)
+					assert.NoError(t, err)
+					assert.True(t, ok)
+				} else {
+					assert.ErrorContains(t, err, tc.err)
+				}
+			})
+		})
+	}
+}
+
+func TestShouldChangePasswordHashError(t *testing.T) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mock := NewMockHash(ctrl)
+		provider.hash = mock
+
+		mock.EXPECT().Hash("newpassword").Return(nil, fmt.Errorf("failed to mock hash"))
+
+		err := provider.ChangePassword("john", "password", "newpassword")
+		assert.ErrorContains(t, err, "operation failed")
+	})
+}
+
+func TestShouldChangePasswordSaveError(t *testing.T) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
+		db := NewFileUserDatabase(path, false, false, nil)
+		assert.NoError(t, db.Load())
+
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mock := NewMockFileUserDatabase(ctrl)
+
+		provider.database = mock
+
+		details, _ := db.GetUserDetails("john")
+
+		gomock.InOrder(
+			mock.EXPECT().GetUserDetails("john").Return(details, nil),
+			mock.EXPECT().GetUserDetails("john").Return(details, nil),
+			mock.EXPECT().SetUserDetails("john", gomock.Any()),
+			mock.EXPECT().Save().Return(fmt.Errorf("failed to mock save")),
+		)
+
+		err := provider.ChangePassword("john", "password", "newpassword")
+		assert.ErrorContains(t, err, "operation failed")
 	})
 }
 

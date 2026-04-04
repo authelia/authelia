@@ -640,6 +640,17 @@ func TestInitializeSessionDefaults(t *testing.T) {
 				DefaultSession: &openid.DefaultSession{},
 			},
 		},
+		{
+			"ShouldHandleHeadersWithNilExtra",
+			&oidc.Session{
+				DefaultSession: &openid.DefaultSession{
+					Headers: &fjwt.Headers{},
+					Claims: &fjwt.IDTokenClaims{
+						Extra: map[string]any{},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -903,4 +914,84 @@ func (t TestGetLangRequester) Merge(requester oauthelia2.Requester) {}
 
 func (t TestGetLangRequester) Sanitize(allowedParameters []string) oauthelia2.Requester {
 	return nil
+}
+
+func TestPopulateClientCredentialsFlowRequester(t *testing.T) {
+	testCases := []struct {
+		name      string
+		ctx       oidc.Context
+		config    oauthelia2.Configurator
+		client    oauthelia2.Client
+		requester oauthelia2.Requester
+		err       string
+	}{
+		{
+			"ShouldSucceedWithValidScopes",
+			&TestContext{Context: context.Background()},
+			&oidc.Config{},
+			&oidc.RegisteredClient{ID: "example"},
+			&oauthelia2.Request{RequestedScope: oauthelia2.Arguments{oidc.ScopeOpenID}},
+			"",
+		},
+		{
+			"ShouldSucceedWithAuthzScope",
+			&TestContext{Context: context.Background()},
+			&oidc.Config{},
+			&oidc.RegisteredClient{ID: "example"},
+			&oauthelia2.Request{RequestedScope: oauthelia2.Arguments{oidc.ScopeAutheliaBearerAuthz}},
+			"",
+		},
+		{
+			"ShouldSucceedWithAuthzAndOfflineScope",
+			&TestContext{Context: context.Background()},
+			&oidc.Config{},
+			&oidc.RegisteredClient{ID: "example"},
+			&oauthelia2.Request{RequestedScope: oauthelia2.Arguments{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess}},
+			"",
+		},
+		{
+			"ShouldErrWithNilClient",
+			&TestContext{Context: context.Background()},
+			&oidc.Config{},
+			nil,
+			&oauthelia2.Request{},
+			"Failed to get the client, configuration, or requester for the request.",
+		},
+		{
+			"ShouldErrWithNilConfig",
+			&TestContext{Context: context.Background()},
+			nil,
+			&oidc.RegisteredClient{ID: "example"},
+			&oauthelia2.Request{},
+			"Failed to get the client, configuration, or requester for the request.",
+		},
+		{
+			"ShouldErrWithNilRequester",
+			&TestContext{Context: context.Background()},
+			&oidc.Config{},
+			&oidc.RegisteredClient{ID: "example"},
+			nil,
+			"Failed to get the client, configuration, or requester for the request.",
+		},
+		{
+			"ShouldErrWithAuthzAndOtherScopes",
+			&TestContext{Context: context.Background()},
+			&oidc.Config{},
+			&oidc.RegisteredClient{ID: "example"},
+			&oauthelia2.Request{RequestedScope: oauthelia2.Arguments{oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOpenID}},
+			fmt.Sprintf("The scope '%s' must only be requested by itself or with the '%s' scope, no other scopes are permitted.", oidc.ScopeAutheliaBearerAuthz, oidc.ScopeOfflineAccess),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := oidc.PopulateClientCredentialsFlowRequester(tc.ctx, tc.config, tc.client, tc.requester)
+
+			if tc.err != "" {
+				assert.ErrorContains(t, oauthelia2.ErrorToDebugRFC6749Error(err), tc.err)
+			} else {
+				assert.NoError(t, oauthelia2.ErrorToDebugRFC6749Error(err))
+			}
+		})
+	}
 }
