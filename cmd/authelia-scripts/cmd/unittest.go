@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"os"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -30,7 +29,7 @@ func cmdUnitTestRun(cmd *cobra.Command, _ []string) {
 
 	goTestCmd := "go test -coverprofile=coverage.txt -covermode=atomic"
 
-	if buildkite, _ := cmd.Flags().GetBool("buildkite"); buildkite && strings.HasPrefix(os.Getenv("BUILDKITE_BRANCH"), "gh-readonly-queue/master/") {
+	if buildkite, _ := cmd.Flags().GetBool("buildkite"); buildkite {
 		goTestCmd += " -race"
 	}
 
