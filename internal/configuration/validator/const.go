@@ -43,7 +43,7 @@ const (
 	hashScrypt    = "scrypt"
 	hashBcrypt    = "bcrypt"
 
-	hashVariantYesCrypt = "yescrypt"
+	hashScryptVariantYesCrypt = "yescrypt"
 )
 
 // Scheme constants.

@@ -683,7 +683,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenScryptVaria
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenScryptYescryptParallelismNotOne() {
 	suite.config.File.Password.Algorithm = hashScrypt
-	suite.config.File.Password.Scrypt.Variant = hashVariantYesCrypt
+	suite.config.File.Password.Scrypt.Variant = hashScryptVariantYesCrypt
 	suite.config.File.Password.Scrypt.Iterations = 1
 	suite.config.File.Password.Scrypt.BlockSize = 1
 	suite.config.File.Password.Scrypt.Parallelism = 2
