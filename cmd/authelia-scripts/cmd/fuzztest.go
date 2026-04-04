@@ -19,7 +19,7 @@ func newFuzzTestCmd() (cmd *cobra.Command) {
 		Short:   cmdFuzzTestShort,
 		Long:    cmdFuzzTestLong,
 		Example: cmdFuzzTestExample,
-		Args:    cobra.ExactArgs(1),
+		Args:    cobra.MinimumNArgs(1),
 		RunE:    cmdFuzzTestRunE,
 
 		DisableAutoGenTag: true,
@@ -44,28 +44,33 @@ func cmdFuzzTestRunE(cmd *cobra.Command, args []string) (err error) {
 
 	failed := false
 
-	tests, err := findFuzzTests(args[0], nil, individualBudget, totalBudget)
+	tests, err := findFuzzTests(args[len(args)-1], nil, individualBudget, totalBudget)
 
 	for _, test := range tests {
-		pkg := filepath.Dir(test.File)
+		pkg := test.File
 
-		//nolint:gosec // False positive.
-		ecmd := exec.Command(
-			"go",
+		targs := []string{
 			"test",
 			"-run", "^$",
-			"-fuzz", "^"+test.Name+"$",
+			"-fuzz", "^" + test.Name + "$",
 			"-fuzztime", test.Duration.String(),
-			pkg,
-		)
+		}
 
-		ecmd.Env = os.Environ()
-		ecmd.Stdout = os.Stdout
-		ecmd.Stderr = os.Stderr
+		if len(args) > 1 {
+			targs = append(targs, args[:len(args)-1]...)
+		}
 
-		fmt.Printf("--- :game_die: Running %s for %s\n\n > Command: %s\n", test.Name, test.Duration.String(), ecmd.String())
+		targs = append(targs, pkg)
 
-		if err = ecmd.Run(); err != nil {
+		tcmd := exec.Command("go", targs...)
+
+		tcmd.Env = os.Environ()
+		tcmd.Stdout = os.Stdout
+		tcmd.Stderr = os.Stderr
+
+		fmt.Printf("--- :game_die: Running %s for %s\n\n > Command: %s\n", test.Name, test.Duration.String(), tcmd.String())
+
+		if err = tcmd.Run(); err != nil {
 			fmt.Println("^^^ +++")
 			fmt.Printf("FAILED: :boom: Failed to run %s for %s\n\n > Error: %s\n", test.Name, test.Duration.String(), err.Error())
 
@@ -102,12 +107,22 @@ func findFuzzTests(pattern string, weights map[string]float64, individualBudget,
 		return nil, err
 	}
 
+	if packages.PrintErrors(pkgs) > 0 {
+		return nil, fmt.Errorf("errors occurred loading packages matching pattern '%s'", pattern)
+	}
+
 	var found []fuzzEntry
 
 	for _, pkg := range pkgs {
-		for i, file := range pkg.Syntax {
-			fileName := pkg.GoFiles[i]
+		var pkgDir string
 
+		if len(pkg.GoFiles) > 0 {
+			pkgDir = filepath.Dir(pkg.GoFiles[0])
+		} else if len(pkg.CompiledGoFiles) > 0 {
+			pkgDir = filepath.Dir(pkg.CompiledGoFiles[0])
+		}
+
+		for _, file := range pkg.Syntax {
 			for _, decl := range file.Decls {
 				fn, ok := decl.(*ast.FuncDecl)
 				if !ok || fn.Name == nil || !isFuzzFunc(fn) {
@@ -116,7 +131,7 @@ func findFuzzTests(pattern string, weights map[string]float64, individualBudget,
 
 				found = append(found, fuzzEntry{
 					name: fn.Name.Name,
-					file: fileName,
+					file: pkgDir,
 				})
 			}
 		}
