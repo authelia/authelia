@@ -10,7 +10,7 @@ comment:
 coverage:
   precision: 2
   round: down
-  range: "80...100"
+  range: "70...95"
   status:
     project:
       default: false
@@ -24,6 +24,10 @@ coverage:
         threshold: 0.15%
         flags:
           - frontend
+  patch:
+    default:
+      target: 90%
+      threshold: 10%
 
 flags:
   backend:
