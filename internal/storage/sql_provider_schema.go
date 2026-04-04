@@ -253,7 +253,26 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnectio
 
 		if migration.Version == 1 && migration.Up {
 			// Add the schema encryption value if upgrading to v1.
-			if err = p.setNewEncryptionCheckValue(ctx, conn, &p.keys.encryption); err != nil {
+			if err = p.setNewEncryptionCheckValue(ctx, conn, p.keys.encryption); err != nil {
+				return err
+			}
+		}
+	}
+
+	var (
+		migrationsSpecial []fSchemaMigration
+		ok                bool
+	)
+
+	if migration.Up {
+		migrationsSpecial, ok = migrationsSpecialUp[migration.Version]
+	} else {
+		migrationsSpecial, ok = migrationsSpecialDown[migration.Version]
+	}
+
+	if ok {
+		for _, special := range migrationsSpecial {
+			if err = special(ctx, conn, p, migration.Before(), migration.After()); err != nil {
 				return err
 			}
 		}

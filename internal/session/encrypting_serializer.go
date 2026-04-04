@@ -17,13 +17,13 @@ type Serializer interface {
 
 // EncryptingSerializer a serializer encrypting the data with AES-GCM with 256-bit keys.
 type EncryptingSerializer struct {
-	key [32]byte
+	key []byte
 }
 
 // NewEncryptingSerializer return new encrypt instance.
 func NewEncryptingSerializer(secret string) *EncryptingSerializer {
 	key := sha256.Sum256([]byte(secret))
-	return &EncryptingSerializer{key}
+	return &EncryptingSerializer{key[:]}
 }
 
 // Encode encode and encrypt session.
@@ -34,11 +34,11 @@ func (e *EncryptingSerializer) Encode(src session.Dict) (data []byte, err error)
 
 	dst, err := src.MarshalMsg(nil)
 	if err != nil {
-		return nil, fmt.Errorf("unable to marshal session: %v", err)
+		return nil, fmt.Errorf("error marshaling session: %v", err)
 	}
 
-	if data, err = utils.Encrypt(dst, &e.key); err != nil {
-		return nil, fmt.Errorf("unable to encrypt session: %v", err)
+	if data, err = utils.Encrypt(dst, e.key); err != nil {
+		return nil, fmt.Errorf("error encrypting session: %v", err)
 	}
 
 	return data, nil
@@ -56,8 +56,8 @@ func (e *EncryptingSerializer) Decode(dst *session.Dict, src []byte) (err error)
 
 	var data []byte
 
-	if data, err = utils.Decrypt(src, &e.key); err != nil {
-		return fmt.Errorf("unable to decrypt session: %s", err)
+	if data, err = utils.Decrypt(src, e.key); err != nil {
+		return fmt.Errorf("error decrypting session: %s", err)
 	}
 
 	_, err = dst.UnmarshalMsg(data)

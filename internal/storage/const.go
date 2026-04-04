@@ -63,6 +63,10 @@ const (
 )
 
 const (
+	hkdfKeyInfo = "authelia-v4_storage-encryption-v1"
+)
+
+const (
 	driverParameterFmtAppName = "authelia %s"
 )
 

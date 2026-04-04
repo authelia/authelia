@@ -12,10 +12,10 @@ func TestShouldEncryptAndDecriptUsingAES(t *testing.T) {
 
 	var secret = "the secret"
 
-	encryptedSecret, err := Encrypt([]byte(secret), &key)
+	encryptedSecret, err := Encrypt([]byte(secret), key[:])
 	assert.NoError(t, err, "")
 
-	decryptedSecret, err := Decrypt(encryptedSecret, &key)
+	decryptedSecret, err := Decrypt(encryptedSecret, key[:])
 
 	assert.NoError(t, err, "")
 	assert.Equal(t, secret, string(decryptedSecret))
@@ -26,12 +26,12 @@ func TestShouldFailDecryptOnInvalidKey(t *testing.T) {
 
 	var secret = "the secret"
 
-	encryptedSecret, err := Encrypt([]byte(secret), &key)
+	encryptedSecret, err := Encrypt([]byte(secret), key[:])
 	assert.NoError(t, err, "")
 
 	key = sha256.Sum256([]byte("the key 2"))
 
-	_, err = Decrypt(encryptedSecret, &key)
+	_, err = Decrypt(encryptedSecret, key[:])
 
 	assert.Error(t, err, "message authentication failed")
 }
@@ -63,7 +63,7 @@ func TestDecrypt(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := Decrypt(tc.ciphertext, &key)
+			_, err := Decrypt(tc.ciphertext, key[:])
 
 			if len(tc.err) != 0 {
 				assert.EqualError(t, err, tc.err)

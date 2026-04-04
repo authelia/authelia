@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"crypto/sha256"
 	"crypto/x509"
 	"database/sql"
 	"errors"
@@ -18,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewProvider dynamically initializes a storage.Provider given a *schema.Configuration and *x509.CertPool.
@@ -44,10 +44,6 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		driverName: driverName,
 		config:     config,
 		errOpen:    err,
-
-		keys: SQLProviderKeys{
-			encryption: sha256.Sum256([]byte(config.Storage.EncryptionKey)),
-		},
 
 		log: logging.Logger(),
 
@@ -382,7 +378,7 @@ type SQLProvider struct {
 
 // SQLProviderKeys are the cryptography keys used by a SQLProvider.
 type SQLProviderKeys struct {
-	encryption [32]byte
+	encryption []byte
 	otcHMAC    []byte
 	otpHMAC    []byte
 }
@@ -406,6 +402,10 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return fmt.Errorf("error pinging database: %w", err)
 	}
 
+	if p.keys.encryption, err = utils.DeriveCryptographyKey256([]byte(p.config.Storage.EncryptionKey), hkdfKeyInfo); err != nil {
+		return fmt.Errorf("error deriving encryption key: %w", err)
+	}
+
 	p.log.Infof("Storage schema is being checked for updates")
 
 	ctx := context.Background()
@@ -420,10 +420,10 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return ErrSchemaEncryptionInvalidKey
 	}
 
-	switch err = p.SchemaMigrate(ctx, true, SchemaLatest); err {
-	case nil:
+	switch err = p.SchemaMigrate(ctx, true, SchemaLatest); {
+	case err == nil:
 		break
-	case ErrSchemaAlreadyUpToDate:
+	case errors.Is(err, ErrSchemaAlreadyUpToDate):
 		p.log.Infof("Storage schema is already up to date")
 	default:
 		return fmt.Errorf("error during schema migrate: %w", err)
@@ -623,7 +623,7 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 		return nil, fmt.Errorf("error selecting TOTP configuration for user '%s': %w", username, err)
 	}
 
-	if config.Secret, err = p.decrypt(config.Secret); err != nil {
+	if config.Secret, err = utils.Decrypt(config.Secret, p.keys.encryption); err != nil {
 		return nil, fmt.Errorf("error decrypting TOTP secret for user '%s': %w", username, err)
 	}
 
@@ -667,7 +667,7 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 	}
 
 	for i, c := range configs {
-		if configs[i].Secret, err = p.decrypt(c.Secret); err != nil {
+		if configs[i].Secret, err = utils.Decrypt(c.Secret, p.keys.encryption); err != nil {
 			return nil, fmt.Errorf("error decrypting TOTP configuration for user '%s': %w", c.Username, err)
 		}
 	}
@@ -805,12 +805,12 @@ func (p *SQLProvider) LoadWebAuthnCredentials(ctx context.Context, limit, page i
 	}
 
 	for i, credential := range credentials {
-		if credentials[i].PublicKey, err = p.decrypt(credential.PublicKey); err != nil {
+		if credentials[i].PublicKey, err = utils.Decrypt(credential.PublicKey, p.keys.encryption); err != nil {
 			return nil, fmt.Errorf("error decrypting WebAuthn credential public key of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
 		}
 
 		if len(credential.Attestation) != 0 {
-			if credentials[i].Attestation, err = p.decrypt(credential.Attestation); err != nil {
+			if credentials[i].Attestation, err = utils.Decrypt(credential.Attestation, p.keys.encryption); err != nil {
 				return nil, fmt.Errorf("error decrypting WebAuthn credential attestation of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
 			}
 		}
