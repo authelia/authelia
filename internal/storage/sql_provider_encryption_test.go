@@ -87,13 +87,11 @@ func TestSchemaEncryptionChangeKey(t *testing.T) {
 	}{
 		{
 			"ShouldSucceedChangeKey",
-			//gitleaks:allow
 			"authelia-new-test-key-not-a-secret-authelia-new-key",
 			"",
 		},
 		{
 			"ShouldErrSameKey",
-			//gitleaks:allow
 			"authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			"error changing the storage encryption key: the old key and the new key are the same",
 		},
@@ -141,7 +139,6 @@ func TestSchemaEncryptionChangeKeyWithData(t *testing.T) {
 				Secret:    []byte("JBSWY3DPEHPK3PXP"),
 			}))
 
-			//gitleaks:allow
 			err := provider.SchemaEncryptionChangeKey(ctx, "authelia-new-test-key-not-a-secret-authelia-new-key")
 
 			assert.NoError(t, err)
@@ -160,7 +157,6 @@ func TestSchemaEncryptionCheckKeyVersionUnsupported(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			config := &schema.Configuration{
 				Storage: schema.Storage{
-					//gitleaks:allow
 					EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 					Local: &schema.StorageLocal{
 						Path: filepath.Join(t.TempDir(), "db.sqlite3"),
@@ -183,7 +179,6 @@ func newTestSQLiteProviderWithEncryption(t *testing.T) *SQLiteProvider {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
-			//gitleaks:allow
 			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(t.TempDir(), "db.sqlite3"),

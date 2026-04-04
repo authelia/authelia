@@ -42,9 +42,7 @@ const (
 	hashPBKDF2    = "pbkdf2"
 	hashScrypt    = "scrypt"
 	hashBcrypt    = "bcrypt"
-)
 
-const (
 	hashVariantYesCrypt = "yescrypt"
 )
 
