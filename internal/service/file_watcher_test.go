@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -119,15 +120,15 @@ func TestNewFileWatcher(t *testing.T) {
 
 	time.Sleep(time.Second)
 
-	assert.Equal(t, 1, reloader.count)
+	assert.Equal(t, int32(1), reloader.count.Load())
 
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, "test2.log"), []byte("test"), 0600))
 
-	assert.Equal(t, 1, reloader.count)
+	assert.Equal(t, int32(1), reloader.count.Load())
 
 	assert.NoError(t, os.Remove(filepath.Join(dir, "test2.log")))
 
-	assert.Equal(t, 1, reloader.count)
+	assert.Equal(t, int32(1), reloader.count.Load())
 
 	service.Shutdown()
 }
@@ -159,9 +160,9 @@ func TestNewFileWatcherDirectory(t *testing.T) {
 
 	switch runtime.GOOS {
 	case "darwin":
-		assert.Equal(t, 1, reloader.count)
+		assert.Equal(t, int32(1), reloader.count.Load())
 	default:
-		assert.Equal(t, 2, reloader.count)
+		assert.Equal(t, int32(2), reloader.count.Load())
 	}
 
 	service.Shutdown()
@@ -205,13 +206,13 @@ func TestNewFileWatcherBadPermission(t *testing.T) {
 }
 
 type testReloader struct {
-	count  int
+	count  atomic.Int32
 	reload bool
 	err    error
 }
 
 func (r *testReloader) Reload() (bool, error) {
-	r.count++
+	r.count.Add(1)
 
 	return r.reload, r.err
 }
