@@ -83,7 +83,7 @@
         "javascript"
       ],
       "minimumReleaseAge": "2 days",
-      "minimumReleaseAgeBehaviour": "timestamp-required"
+      "minimumReleaseAgeBehavior": "timestamp-required" // typos:disable-line
     }
   ],
   "postUpdateOptions": [
