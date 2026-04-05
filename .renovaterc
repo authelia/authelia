@@ -81,7 +81,9 @@
       ],
       "addLabels": [
         "javascript"
-      ]
+      ],
+      "minimumReleaseAge": "2 days",
+      "minimumReleaseAgeBehaviour": "timestamp-required"
     }
   ],
   "postUpdateOptions": [
