@@ -121,7 +121,7 @@ func TestStringToMailAddressHookFuncPointer(t *testing.T) {
 		{
 			desc:   "ShouldNotDecodeToInt",
 			have:   "fred",
-			want:   testInt32Ptr(4),
+			want:   ptr(4),
 			decode: false,
 		},
 	}
@@ -269,7 +269,7 @@ func TestStringToURLHookFuncPointer(t *testing.T) {
 		{
 			desc:   "ShouldNotDecodeToInt",
 			have:   "fred",
-			want:   testInt32Ptr(4),
+			want:   ptr(4),
 			decode: false,
 		},
 	}
@@ -457,74 +457,74 @@ func TestToTimeDurationHookFuncPointer(t *testing.T) {
 		{
 			desc:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
-			want:   testTimeDurationPtr(time.Second * 45),
+			want:   ptr(time.Second * 45),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeOneMinute",
 			have:   "1m",
-			want:   testTimeDurationPtr(time.Minute),
+			want:   ptr(time.Minute),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeTwoHours",
 			have:   "2h",
-			want:   testTimeDurationPtr(time.Hour * 2),
+			want:   ptr(time.Hour * 2),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeThreeDays",
 			have:   "3d",
-			want:   testTimeDurationPtr(time.Hour * 24 * 3),
+			want:   ptr(time.Hour * 24 * 3),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeFourWeeks",
 			have:   "4w",
-			want:   testTimeDurationPtr(time.Hour * 24 * 7 * 4),
+			want:   ptr(time.Hour * 24 * 7 * 4),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeFiveMonths",
 			have:   "5M",
-			want:   testTimeDurationPtr(time.Hour * 24 * 30 * 5),
+			want:   ptr(time.Hour * 24 * 30 * 5),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeSixYears",
 			have:   "6y",
-			want:   testTimeDurationPtr(time.Hour * 24 * 365 * 6),
+			want:   ptr(time.Hour * 24 * 365 * 6),
 			decode: true,
 		},
 		{
 			desc:   "ShouldNotDecodeInvalidString",
 			have:   "abc",
-			want:   testTimeDurationPtr(time.Duration(0)),
+			want:   ptr(time.Duration(0)),
 			err:    "could not decode 'abc' to a *time.Duration: could not parse 'abc' as a duration",
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeIntToSeconds",
 			have:   60,
-			want:   testTimeDurationPtr(time.Second * 60),
+			want:   ptr(time.Second * 60),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeInt32ToSeconds",
 			have:   int32(90),
-			want:   testTimeDurationPtr(time.Second * 90),
+			want:   ptr(time.Second * 90),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeInt64ToSeconds",
 			have:   int64(120),
-			want:   testTimeDurationPtr(time.Second * 120),
+			want:   ptr(time.Second * 120),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeTimeDuration",
 			have:   time.Second * 30,
-			want:   testTimeDurationPtr(time.Second * 30),
+			want:   ptr(time.Second * 30),
 			decode: true,
 		},
 		{
@@ -536,7 +536,7 @@ func TestToTimeDurationHookFuncPointer(t *testing.T) {
 		{
 			desc:   "ShouldDecodeFromIntZero",
 			have:   0,
-			want:   testTimeDurationPtr(time.Duration(0)),
+			want:   ptr(time.Duration(0)),
 			decode: true,
 		},
 		{
@@ -730,74 +730,74 @@ func TestTestToRefreshIntervalDurationHookFuncPointer(t *testing.T) {
 		{
 			desc:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
-			want:   testRefreshIntervalDurationPtr(time.Second * 45),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Second * 45)),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeOneMinute",
 			have:   "1m",
-			want:   testRefreshIntervalDurationPtr(time.Minute),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Minute)),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeTwoHours",
 			have:   "2h",
-			want:   testRefreshIntervalDurationPtr(time.Hour * 2),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Hour * 2)),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeThreeDays",
 			have:   "3d",
-			want:   testRefreshIntervalDurationPtr(time.Hour * 24 * 3),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Hour * 24 * 3)),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeFourWeeks",
 			have:   "4w",
-			want:   testRefreshIntervalDurationPtr(time.Hour * 24 * 7 * 4),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Hour * 24 * 7 * 4)),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeFiveMonths",
 			have:   "5M",
-			want:   testRefreshIntervalDurationPtr(time.Hour * 24 * 30 * 5),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Hour * 24 * 30 * 5)),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeSixYears",
 			have:   "6y",
-			want:   testRefreshIntervalDurationPtr(time.Hour * 24 * 365 * 6),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Hour * 24 * 365 * 6)),
 			decode: true,
 		},
 		{
 			desc:   "ShouldNotDecodeInvalidString",
 			have:   "abc",
-			want:   testRefreshIntervalDurationPtr(time.Duration(0)),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Duration(0))),
 			err:    "could not decode 'abc' to a *schema.RefreshIntervalDuration: could not parse 'abc' as a duration",
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeIntToSeconds",
 			have:   60,
-			want:   testRefreshIntervalDurationPtr(time.Second * 60),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Second * 60)),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeInt32ToSeconds",
 			have:   int32(90),
-			want:   testRefreshIntervalDurationPtr(time.Second * 90),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Second * 90)),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeInt64ToSeconds",
 			have:   int64(120),
-			want:   testRefreshIntervalDurationPtr(time.Second * 120),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Second * 120)),
 			decode: true,
 		},
 		{
 			desc:   "ShouldDecodeTimeDuration",
 			have:   time.Second * 30,
-			want:   testRefreshIntervalDurationPtr(time.Second * 30),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Second * 30)),
 			decode: true,
 		},
 		{
@@ -809,7 +809,7 @@ func TestTestToRefreshIntervalDurationHookFuncPointer(t *testing.T) {
 		{
 			desc:   "ShouldDecodeFromIntZero",
 			have:   0,
-			want:   testRefreshIntervalDurationPtr(time.Duration(0)),
+			want:   ptr(schema.NewRefreshIntervalDuration(time.Duration(0))),
 			decode: true,
 		},
 		{
@@ -891,7 +891,7 @@ func TestStringToRegexpFunc(t *testing.T) {
 		{
 			desc:   "ShouldNotDecodeToInt32",
 			have:   "^(?P<area>api|admin)(one|two)$",
-			want:   testInt32Ptr(0),
+			want:   ptr(0),
 			decode: false,
 		},
 		{
@@ -1109,13 +1109,13 @@ func TestStringToAddressHookFunc(t *testing.T) {
 		},
 		{
 			name:     "ShouldNotDecodeIntegerPtrToCorrectType",
-			have:     testInt32Ptr(1),
+			have:     ptr(1),
 			expected: schema.Address{},
 			decode:   false,
 		},
 		{
 			name:     "ShouldNotDecodeIntegerPtrToCorrectTypePtr",
-			have:     testInt32Ptr(1),
+			have:     ptr(1),
 			expected: &schema.Address{},
 			decode:   false,
 		},
@@ -1128,13 +1128,13 @@ func TestStringToAddressHookFunc(t *testing.T) {
 		{
 			name:     "ShouldNotDecodeToIntPtr",
 			have:     "tcp://0.0.0.0:2020",
-			expected: testInt32Ptr(1),
+			expected: ptr(1),
 			decode:   false,
 		},
 		{
 			name:     "ShouldNotDecodeToIntPtr",
 			have:     "tcp://0.0.0.0:2020",
-			expected: testInt32Ptr(1),
+			expected: ptr(1),
 			decode:   false,
 		},
 		{
@@ -2013,10 +2013,6 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 func TestStringToUUIDHookFunc(t *testing.T) {
 	var nilkey *uuid.UUID
 
-	toPtr := func(value uuid.UUID) *uuid.UUID {
-		return &value
-	}
-
 	testCases := []struct {
 		name      string
 		have      any
@@ -2048,7 +2044,7 @@ func TestStringToUUIDHookFunc(t *testing.T) {
 		{
 			name:     "ShouldDecodeValidPtr",
 			have:     "cb69481e-8ff7-4039-93ec-0a2729a154a8",
-			expected: toPtr(uuid.MustParse("cb69481e-8ff7-4039-93ec-0a2729a154a8")),
+			expected: ptr(uuid.MustParse("cb69481e-8ff7-4039-93ec-0a2729a154a8")),
 			decode:   true,
 			err:      "",
 		},
@@ -2262,18 +2258,8 @@ func MustParseX509CertificateChain(datas ...string) *schema.X509CertificateChain
 	return chain
 }
 
-func testInt32Ptr(i int32) *int32 {
-	return &i
-}
-
-func testTimeDurationPtr(t time.Duration) *time.Duration {
-	return &t
-}
-
-func testRefreshIntervalDurationPtr(t time.Duration) *schema.RefreshIntervalDuration {
-	x := schema.NewRefreshIntervalDuration(t)
-
-	return &x
+func ptr[T any](in T) *T {
+	return &in
 }
 
 var (
