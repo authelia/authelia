@@ -32,7 +32,7 @@ The following outlines the specific requirements we have for testing the Autheli
 
 We run tests using several test framework and platforms and aim to ensure both SAST and DAST scanning tools are happy
 with the code. The rational for this is to ensure that the code is not vulnerable to any known security issues, and
-while having more tools increases the noise we can adaquately make a better judgement call with more information at our
+while having more tools increases the noise we can adequately make a better judgment call with more information at our
 disposal.
 
 |                                          Tool                                          |                  Purpose                   |                                                              Notes                                                               |
@@ -49,4 +49,4 @@ disposal.
 |                       [Code Rabbit](https://www.coderabbit.ai/)                        |      Quality and Security Assessment       |                                Analysis of General Pull Requests before every commit to `master`                                 |
 |              [OpenSSF Scorecard](https://openssf.org/projects/scorecard/)              |       Security Practices Assessment        |                                            Automated on every new commit to `master`                                             |
 |      [OpenSSF Best Practices](https://openssf.org/projects/best-practices-badge/)      |       Security Practices Assessment        |                                   Manual Assessment for Security Practice Posture Improvements                                   |
-|       [StepSecurity Harden-Runnner](https://docs.stepsecurity.io/harden-runner)        |             CI Agent Security              |                                       As Part of any Job Running in GitHub CI Job Runners                                        |
+|        [StepSecurity Harden-Runner](https://docs.stepsecurity.io/harden-runner)        |             CI Agent Security              |                                       As Part of any Job Running in GitHub CI Job Runners                                        |
