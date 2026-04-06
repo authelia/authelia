@@ -81,6 +81,28 @@ server:
             requests: 5
           - period: '1 hour'
             requests: 15
+      openid_connect_token:
+        enable: true
+        buckets:
+          - period: '1 minute'
+            requests: 30
+          - period: '2 minutes'
+            requests: 40
+          - period: '10 minutes'
+            requests: 50
+          - period: '1 hour'
+            requests: 100
+      openid_connect_pushed_authorization_request:
+        enable: true
+        buckets:
+          - period: '1 minute'
+            requests: 30
+          - period: '2 minutes'
+            requests: 40
+          - period: '10 minutes'
+            requests: 50
+          - period: '1 hour'
+            requests: 100
 ```
 
 ## Common Options
@@ -152,5 +174,19 @@ See [Common Options](#common-options) for the individual options for this sectio
 
 Configures the rate limiter which applies to the [Elevated Session](../identity-validation/elevated-session.md) endpoint
 which consumes the code for the elevated session flow.
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### openid_connect_token
+
+Configures the rate limiter which applies to the
+[OpenID Connect 1.0 Token Endpoint](../../integration/openid-connect/introduction.md#well-known-discovery-endpoints).
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### openid_connect_pushed_authorization_request
+
+Configures the rate limiter which applies to the
+[OpenID Connect 1.0 Pushed Authorization Request Endpoint](../../integration/openid-connect/introduction.md#well-known-discovery-endpoints).
 
 See [Common Options](#common-options) for the individual options for this section.

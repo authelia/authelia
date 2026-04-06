@@ -94,6 +94,22 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 						{Period: schema.DefaultIdentityValidation.ElevatedSession.ElevationLifespan * 6, Requests: 15},
 					},
 				},
+				OpenIDConnectToken: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 2 * time.Minute, Requests: 40},
+						{Period: 10 * time.Minute, Requests: 50},
+						{Period: time.Hour, Requests: 100},
+					},
+				},
+				OpenIDConnectPushedAuthorizationRequest: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 2 * time.Minute, Requests: 40},
+						{Period: 10 * time.Minute, Requests: 50},
+						{Period: time.Hour, Requests: 100},
+					},
+				},
 			},
 		},
 	}
@@ -108,6 +124,8 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 			assert.Len(t, validator.Errors(), 0)
 			assert.Len(t, validator.Warnings(), 0)
 
+			assert.Equal(t, tc.expected.OpenIDConnectPushedAuthorizationRequest, tc.config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest)
+			assert.Equal(t, tc.expected.OpenIDConnectToken, tc.config.Server.Endpoints.RateLimits.OpenIDConnectToken)
 			assert.Equal(t, tc.expected.ResetPasswordStart, tc.config.Server.Endpoints.RateLimits.ResetPasswordStart)
 			assert.Equal(t, tc.expected.ResetPasswordFinish, tc.config.Server.Endpoints.RateLimits.ResetPasswordFinish)
 			assert.Equal(t, tc.expected.SecondFactorTOTP, tc.config.Server.Endpoints.RateLimits.SecondFactorTOTP)
