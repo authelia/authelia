@@ -185,7 +185,7 @@ repository:
     contributing-guide: https://www.authelia.com/contributing/prologue/introduction/
     review-policy: ~
     security-policy: https://www.authelia.com/policies/security/
-    governance: https://www.authelia.com/information/about/
+    governance: https://www.authelia.com/policies/governance/
     dependency-management-policy: ~
   release:
     changelog: https://github.com/authelia/authelia/releases/tag/{version}

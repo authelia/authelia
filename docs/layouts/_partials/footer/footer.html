@@ -3,8 +3,27 @@
   <div class="row">
     <div class="col-lg-8 text-center text-lg-start">
       <ul class="list-inline">
-        {{ range .Site.Menus.footer -}}
-        <li class="list-inline-item"><a class="text-muted" href="{{ .URL | relURL }}">{{ .Name }}</a></li>
+        {{- range where .Site.Menus.footer "Parent" "" -}}
+        {{- if not .HasChildren }}
+        <li class="list-inline-item">
+          <a class="text-muted" href="{{ .URL | relURL }}">{{ .Name }}</a>
+        </li>
+        {{- else }}
+        <li class="list-inline-item dropup">
+          {{- $id := printf "%s-dropdown" (replace (.Name | lower) " " "-") }}
+          <a id="{{ $id }}" class="text-muted dropdown-toggle" href="#" role="button"
+             data-bs-toggle="dropdown" data-bs-boundary="document"  data-bs-display="static" aria-expanded="true">
+            {{ .Name }}
+          </a>
+          <ul class="dropdown-menu">
+            {{- range .Children }}
+            <li>
+              <a class="dropdown-item" href="{{ .URL | relURL }}">{{ .Name }}</a>
+            </li>
+            {{- end }}
+          </ul>
+        </li>
+        {{- end }}
         {{- end }}
       </ul>
     </div>
