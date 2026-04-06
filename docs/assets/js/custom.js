@@ -1,6 +1,9 @@
 // Based on: https://github.com/gohugoio/hugoDocs/blob/master/_vendor/github.com/gohugoio/gohugoioTheme/assets/js/tabs.js
 // Put your custom JS code here
+import * as bootstrap from 'bootstrap';
 import { Popover } from 'bootstrap';
+
+window.bootstrap = bootstrap;
 
 const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
 const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new Popover(popoverTriggerEl))
@@ -297,3 +300,14 @@ customTabsConfigure('env');
 customTabsConfigure('session');
 
 siteVariablesConfigure();
+
+document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach((dropdownToggleEl) => {
+  const dropdownInstance = new bootstrap.Dropdown(dropdownToggleEl);
+  dropdownToggleEl._dropdownInstance = dropdownInstance;
+
+  dropdownToggleEl.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropdownInstance.toggle();
+  });
+});
