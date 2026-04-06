@@ -279,6 +279,7 @@ const (
 	EndpointIntrospection              = "introspection"
 	EndpointRevocation                 = "revocation"
 	EndpointPushedAuthorizationRequest = "pushed-authorization-request"
+	EndpointEndSession                 = "end-session"
 )
 
 // Paths.
@@ -303,6 +304,7 @@ const (
 	EndpointPathRevocation                 = EndpointPathRoot + "/" + EndpointRevocation
 	EndpointPathDeviceAuthorization        = EndpointPathRoot + "/" + EndpointDeviceAuthorization
 	EndpointPathPushedAuthorizationRequest = EndpointPathRoot + "/" + EndpointPushedAuthorizationRequest
+	EndpointPathEndSession                 = EndpointPathRoot + "/" + EndpointEndSession
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176

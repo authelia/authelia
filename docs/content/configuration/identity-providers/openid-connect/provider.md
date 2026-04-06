@@ -698,6 +698,7 @@ option is at least in this list. The potential endpoints which this can be enabl
 * revocation
 * introspection
 * userinfo
+* end-session
 
 #### allowed_origins
 
