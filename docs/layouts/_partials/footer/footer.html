@@ -11,8 +11,7 @@
         {{- else }}
         <li class="list-inline-item dropup">
           {{- $id := printf "%s-dropdown" (replace (.Name | lower) " " "-") }}
-          <a id="{{ $id }}" class="text-muted dropdown-toggle" href="#" role="button"
-             data-bs-toggle="dropdown" data-bs-boundary="document"  data-bs-display="static" aria-expanded="true">
+          <a id="{{ $id }}" class="text-muted dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" data-bs-boundary="document" aria-expanded="false">
             {{ .Name }}
           </a>
           <ul class="dropdown-menu">
