@@ -224,17 +224,17 @@ useful for SPA's and CLI tools. This option requires setting the [client secret]
 
 {{< confkey type="list(string)" required="yes" >}}
 
-A list of valid callback URIs this client will redirect to. All other callbacks will be considered unsafe. The URIs are
-case-sensitive and they differ from application to application - the community has provided
-[a list of URL´s for common applications](../../../integration/openid-connect/introduction.md).
+A list of valid callback URIs this client will redirect to after authorization. All other callbacks will be considered
+unsafe. The URIs are case-sensitive and they differ from application to application. All redirect URIs are matched as
+per the requirements in the specification i.e. no patterns and it is an exact match.
 
-Some restrictions that have been placed on clients and
-their redirect URIs are as follows:
+The community has [provided configurations](../../../integration/openid-connect/introduction.md) for lots of common
+applications which may include example values.
+
+Some restrictions that have been placed on clients and their redirect URIs are as follows:
 
 1. If a client attempts to authorize with Authelia and its redirect URI is not listed in the client configuration the
    attempt to authorize will fail and an error will be generated.
-2. The redirect URIs are case-sensitive.
-3. The URI must include a scheme and that scheme must be one of `http` or `https`.
 
 ### request_uris
 
@@ -244,6 +244,23 @@ A list of URIs which can be used for the OpenID Connect 1.0 Request Object to pa
 JSON Web Token remote URI using the `request_uri` parameter.
 
 These URIs must have the `https` scheme.
+
+### post_logout_redirect_uris
+
+{{< confkey type="list(string)" required="no" >}}
+
+A list of valid callback URIs this client will redirect to after a relying-party initiated logout. All other callbacks
+will be considered unsafe. The URIs are case-sensitive and they differ from application to application. All redirect
+URIs are matched as per the requirements in the specification i.e. no patterns and it is an exact match.
+
+The community has [provided configurations](../../../integration/openid-connect/introduction.md) for lots of common
+applications which may include example values.
+
+Some restrictions that have been placed on clients and their post logout redirect URIs are as follows:
+
+1. If a client attempts to perform an end session request with Authelia and its redirect URI is not listed in the client
+   configuration the attempt to perform the end session will fail and an error will be generated.
+2. The URI must include a scheme and that scheme must be `https`.
 
 ### audience
 

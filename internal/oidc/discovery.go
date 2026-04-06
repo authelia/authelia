@@ -374,6 +374,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				EncryptionEncA256GCM,
 			},
 		},
+		OpenIDConnectRPInitiatedLogoutDiscoveryOptions: &OpenIDConnectRPInitiatedLogoutDiscoveryOptions{},
 	}
 
 	if c.EnablePKCEPlainChallenge {

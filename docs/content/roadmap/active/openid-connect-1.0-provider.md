@@ -188,6 +188,18 @@ See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Pro
 
 {{< roadmap-status stage="in-progress" version="v4.40.0" >}}
 
+Breaking Changes:
+
+* Removal of plaintext passwords except in cases that explicitly require them (HMAC-based client auth methods)
+
+Feature List:
+
+* [OpenID Connect RP-Initiated Logout 1.0](#openid-connect-rp-initiated-logout-10)
+
+### Beta 9
+
+{{< roadmap-status stage="in-progress" version="v4.41.0" >}}
+
 {{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 This version will contain one or more breaking changes per our
 [Versioning Policy](../../policies/versioning.md#experimental-features).
@@ -223,7 +235,7 @@ Potential Feature List:
 * Injecting Bearer JSON Web Tokens into Requests (backend authentication)
 * Revoke Tokens on User Logout or Expiration
 
-### Beta 9
+### Beta 10
 
 {{< roadmap-status >}}
 
@@ -232,7 +244,6 @@ Feature List:
 * [OpenID Connect Session Management 1.0](#openid-connect-session-management-10)
 * [OpenID Connect Back-Channel Logout 1.0](#openid-connect-back-channel-logout-10)
 * [OpenID Connect Front-Channel Logout 1.0](#openid-connect-front-channel-logout-10)
-* [OpenID Connect RP-Initiated Logout 1.0](#openid-connect-rp-initiated-logout-10)
 * [OpenID Connect Client-Initiated Backchannel Authentication Flow 1.0 (CIBA)](#openid-connect-client-initiated-backchannel-authentication-flow-10-ciba)
 
 Potential Feature List:
