@@ -18,6 +18,7 @@ const mockUserInfo = {
     display_name: "john",
     emails: ["john@example.com"],
     has_duo: false,
+    has_telegram: false,
     has_totp: false,
     has_webauthn: false,
     method: 1,

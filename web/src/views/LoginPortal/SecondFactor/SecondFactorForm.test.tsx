@@ -73,6 +73,7 @@ const defaultProps = {
     userInfo: {
         display_name: "John",
         has_duo: false,
+        has_telegram: false,
         has_totp: true,
         has_webauthn: true,
     },

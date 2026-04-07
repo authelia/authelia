@@ -27,6 +27,7 @@ const mockConfig = {
 
 const mockUserInfo = {
     has_duo: false,
+    has_telegram: false,
     has_totp: true,
     has_webauthn: true,
     method: SecondFactorMethod.TOTP,

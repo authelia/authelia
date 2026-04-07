@@ -51,7 +51,7 @@ it("renders options panel with radio groups", () => {
 });
 
 it("renders nothing when user has no methods", () => {
-    const noMethodsInfo = { ...info, has_duo: false, has_totp: false, has_webauthn: false };
+    const noMethodsInfo = { ...info, has_duo: false, has_telegram: false, has_totp: false, has_webauthn: false };
     const { container } = render(
         <TwoFactorAuthenticationOptionsPanel config={config} info={noMethodsInfo} refresh={vi.fn()} />,
     );
