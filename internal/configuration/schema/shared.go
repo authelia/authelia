@@ -34,6 +34,6 @@ type JWK struct {
 	KeyID            string               `koanf:"key_id" yaml:"key_id,omitempty" toml:"key_id,omitempty" json:"key_id,omitempty" jsonschema:"maxLength=100,title=Key ID" jsonschema_description:"The ID of this JWK."`
 	Use              string               `koanf:"use" yaml:"use,omitempty" toml:"use,omitempty" json:"use,omitempty" jsonschema:"default=sig,enum=sig,title=Use" jsonschema_description:"The Use of this JWK."`
 	Algorithm        string               `koanf:"algorithm" yaml:"algorithm,omitempty" toml:"algorithm,omitempty" json:"algorithm,omitempty" jsonschema:"enum=HS256,enum=HS384,enum=HS512,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Algorithm" jsonschema_description:"The Algorithm of this JWK."`
-	Key              CryptographicKey     `koanf:"key" yaml:"key,omitempty" toml:"key,omitempty" json:"key,omitempty" jsonschema_description:"The Private/Public key material of this JWK in Base64 PEM format."`
+	Key              CryptographicKey     `koanf:"key" yaml:"key,omitempty" toml:"key,omitempty" json:"key,omitempty" jsonschema:"title=Key" jsonschema_description:"The Private/Public key material of this JWK in Base64 PEM format."`
 	CertificateChain X509CertificateChain `koanf:"certificate_chain" yaml:"certificate_chain,omitempty" toml:"certificate_chain,omitempty" json:"certificate_chain,omitempty" jsonschema:"title=Certificate Chain" jsonschema_description:"The optional associated certificate which matches the Key public key portion for this JWK."`
 }

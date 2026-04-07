@@ -24,7 +24,7 @@ type ServerEndpoints struct {
 	EnablePprof   bool `koanf:"enable_pprof" yaml:"enable_pprof" toml:"enable_pprof" json:"enable_pprof" jsonschema:"default=false,title=Enable PProf" jsonschema_description:"Enables the developer specific pprof endpoints which should not be used in production and only used for debugging purposes."`
 	EnableExpvars bool `koanf:"enable_expvars" yaml:"enable_expvars" toml:"enable_expvars" json:"enable_expvars" jsonschema:"default=false,title=Enable ExpVars" jsonschema_description:"Enables the developer specific ExpVars endpoints which should not be used in production and only used for debugging purposes."`
 
-	RateLimits ServerEndpointRateLimits `koanf:"rate_limits" yaml:"rate_limits,omitempty" toml:"rate_limits,omitempty" json:"rate_limits,omitempty"`
+	RateLimits ServerEndpointRateLimits `koanf:"rate_limits" yaml:"rate_limits,omitempty" toml:"rate_limits,omitempty" json:"rate_limits,omitempty" jsonschema:"title=Rate Limits" jsonschema_description:"Configure the endpoint rate limits."`
 
 	Authz map[string]ServerEndpointsAuthz `koanf:"authz" yaml:"authz,omitempty" toml:"authz,omitempty" json:"authz,omitempty" jsonschema:"title=Authz" jsonschema_description:"Configures the Authorization endpoints."`
 }
@@ -56,22 +56,22 @@ type ServerHeaders struct {
 }
 
 type ServerEndpointRateLimits struct {
-	ResetPasswordStart     ServerEndpointRateLimit `koanf:"reset_password_start" yaml:"reset_password_start,omitempty" toml:"reset_password_start,omitempty" json:"reset_password_start,omitempty"`
-	ResetPasswordFinish    ServerEndpointRateLimit `koanf:"reset_password_finish" yaml:"reset_password_finish,omitempty" toml:"reset_password_finish,omitempty" json:"reset_password_finish,omitempty"`
-	SecondFactorTOTP       ServerEndpointRateLimit `koanf:"second_factor_totp" yaml:"second_factor_totp,omitempty" toml:"second_factor_totp,omitempty" json:"second_factor_totp,omitempty"`
-	SecondFactorDuo        ServerEndpointRateLimit `koanf:"second_factor_duo" yaml:"second_factor_duo,omitempty" toml:"second_factor_duo,omitempty" json:"second_factor_duo,omitempty"`
-	SessionElevationStart  ServerEndpointRateLimit `koanf:"session_elevation_start" yaml:"session_elevation_start,omitempty" toml:"session_elevation_start,omitempty" json:"session_elevation_start,omitempty"`
-	SessionElevationFinish ServerEndpointRateLimit `koanf:"session_elevation_finish" yaml:"session_elevation_finish,omitempty" toml:"session_elevation_finish,omitempty" json:"session_elevation_finish,omitempty"`
+	ResetPasswordStart     ServerEndpointRateLimit `koanf:"reset_password_start" yaml:"reset_password_start,omitempty" toml:"reset_password_start,omitempty" json:"reset_password_start,omitempty" jsonschema:"title=Reset Password Start" jsonschema_description:"Configures the rate limiter which applies to the endpoint that initializes the reset password flow."`
+	ResetPasswordFinish    ServerEndpointRateLimit `koanf:"reset_password_finish" yaml:"reset_password_finish,omitempty" toml:"reset_password_finish,omitempty" json:"reset_password_finish,omitempty" jsonschema:"title=Reset Password Finish" jsonschema_description:"Configures the rate limiter which applies to endpoints which consume tokens for the reset password flow."`
+	SecondFactorTOTP       ServerEndpointRateLimit `koanf:"second_factor_totp" yaml:"second_factor_totp,omitempty" toml:"second_factor_totp,omitempty" json:"second_factor_totp,omitempty" jsonschema:"title=Second Factor TOTP" jsonschema_description:"Configures the rate limiter which applies to the TOTP endpoint code submissions for the second factor flow."`
+	SecondFactorDuo        ServerEndpointRateLimit `koanf:"second_factor_duo" yaml:"second_factor_duo,omitempty" toml:"second_factor_duo,omitempty" json:"second_factor_duo,omitempty" jsonschema:"title=Second Factor Duo" jsonschema_description:"Configures the rate limiter which applies to the Duo endpoint which initializes the application authorization flow for the second factor flow."`
+	SessionElevationStart  ServerEndpointRateLimit `koanf:"session_elevation_start" yaml:"session_elevation_start,omitempty" toml:"session_elevation_start,omitempty" json:"session_elevation_start,omitempty" jsonschema:"title=Session Elevation Start" jsonschema_description:"Configures the rate limiter which applies to the Elevated Session endpoint which initializes the code generation and notification for the elevated session flow."`
+	SessionElevationFinish ServerEndpointRateLimit `koanf:"session_elevation_finish" yaml:"session_elevation_finish,omitempty" toml:"session_elevation_finish,omitempty" json:"session_elevation_finish,omitempty" jsonschema:"title=Session Elevation Finish" jsonschema_description:"Configures the rate limiter which applies to the Elevated Session endpoint which consumes the code for the elevated session flow."`
 }
 
 type ServerEndpointRateLimit struct {
-	Enable  bool                            `koanf:"enable" yaml:"enable" toml:"enable" json:"enable"`
-	Buckets []ServerEndpointRateLimitBucket `koanf:"buckets" yaml:"buckets,omitempty" toml:"buckets,omitempty" json:"buckets,omitempty"`
+	Enable  bool                            `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"default=true,title=Enable" jsonschema_description:"Enables the rate limiter for this endpoint."`
+	Buckets []ServerEndpointRateLimitBucket `koanf:"buckets" yaml:"buckets,omitempty" toml:"buckets,omitempty" json:"buckets,omitempty" jsonschema:"title=Buckets" jsonschema_description:"The list of rate limit buckets."`
 }
 
 type ServerEndpointRateLimitBucket struct {
-	Period   time.Duration `koanf:"period" yaml:"period,omitempty" toml:"period,omitempty" json:"period,omitempty" jsonschema:"" jsonschema_description:"The period of time this rate limit bucket applies to."`
-	Requests int           `koanf:"requests" yaml:"requests" toml:"requests" json:"requests" jsonschema:"" jsonschema_description:"The number of requests allowed in this rate limit bucket for the configured period before the rate limit kicks in."`
+	Period   time.Duration `koanf:"period" yaml:"period,omitempty" toml:"period,omitempty" json:"period,omitempty" jsonschema:"title=Period" jsonschema_description:"The period of time this rate limit bucket applies to."`
+	Requests int           `koanf:"requests" yaml:"requests" toml:"requests" json:"requests" jsonschema:"title=Requests" jsonschema_description:"The number of requests allowed in this rate limit bucket for the configured period before the rate limit kicks in."`
 }
 
 // DefaultServerConfiguration represents the default values of the Server.
