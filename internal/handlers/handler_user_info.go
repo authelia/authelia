@@ -68,6 +68,10 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		userInfo.HasDuo = false
 	}
 
+	if ctx.Configuration.Telegram != nil {
+		userInfo.HasTelegram = true
+	}
+
 	userInfo.DisplayName = userSession.DisplayName
 
 	err = ctx.SetJSONBody(userInfo)
@@ -98,6 +102,10 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userInfo.DisplayName = userSession.DisplayName
+
+	if ctx.Configuration.Telegram != nil {
+		userInfo.HasTelegram = true
+	}
 
 	// it should be noted that UserInfo only contains info from the database and NOT any info from the authn_backend (email/groups).
 	for _, email := range userSession.Emails {

@@ -33,6 +33,7 @@ type AuthenticationMethodsReferences struct {
 	UsernameAndPassword          bool
 	TOTP                         bool
 	Duo                          bool
+	Telegram                     bool
 	WebAuthn                     bool
 	WebAuthnHardware             bool
 	WebAuthnSoftware             bool
@@ -47,7 +48,7 @@ func (r AuthenticationMethodsReferences) FactorKnowledge() bool {
 
 // FactorPossession returns true if a "something you have" factor of authentication was used.
 func (r AuthenticationMethodsReferences) FactorPossession() bool {
-	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.TOTP || r.Duo || r.Telegram || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
 }
 
 // MultiFactorAuthentication returns true if multiple factors were used.
@@ -62,7 +63,7 @@ func (r AuthenticationMethodsReferences) ChannelBrowser() bool {
 
 // ChannelService returns true if a non-browser service was used to authenticate.
 func (r AuthenticationMethodsReferences) ChannelService() bool {
-	return r.Duo
+	return r.Duo || r.Telegram
 }
 
 // MultiChannelAuthentication returns true if the user used more than one channel to authenticate.

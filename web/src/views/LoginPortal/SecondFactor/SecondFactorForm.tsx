@@ -12,6 +12,7 @@ import {
     SecondFactorPasswordSubRoute,
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
+    SecondFactorTelegramSubRoute,
     SecondFactorWebAuthnSubRoute,
     SettingsRoute,
     SettingsTwoFactorAuthenticationSubRoute,
@@ -32,6 +33,7 @@ const OneTimePasswordMethod = lazy(() => import("@views/LoginPortal/SecondFactor
 const PushNotificationMethod = lazy(() => import("@views/LoginPortal/SecondFactor/PushNotificationMethod"));
 const WebAuthnMethod = lazy(() => import("@views/LoginPortal/SecondFactor/WebAuthnMethod"));
 const PasswordMethod = lazy(() => import("@views/LoginPortal/SecondFactor/PasswordMethod"));
+const TelegramMethod = lazy(() => import("@views/LoginPortal/SecondFactor/TelegramMethod"));
 
 export interface Props {
     authenticationLevel: AuthenticationLevel;
@@ -60,13 +62,25 @@ const SecondFactorForm = function (props: Props) {
     };
 
     const handleMethodSelected = async (method: SecondFactorMethod) => {
+        setMethodSelectionOpen(false);
+
         if (localStorageMethodAvailable) {
             setLocalStorageMethod(method);
         } else {
             await handleMethodSelectedFallback(method);
         }
 
-        setMethodSelectionOpen(false);
+        let sub = "";
+
+        if (method === SecondFactorMethod.TOTP) sub = SecondFactorTOTPSubRoute;
+        else if (method === SecondFactorMethod.MobilePush) sub = SecondFactorPushSubRoute;
+        else if (method === SecondFactorMethod.Telegram) sub = SecondFactorTelegramSubRoute;
+        else if (method === SecondFactorMethod.WebAuthn) sub = SecondFactorWebAuthnSubRoute;
+
+        if (sub) {
+            globalThis.location.assign(`#/2fa${sub}`);
+        }
+
         props.onMethodChanged();
     };
 
@@ -170,6 +184,21 @@ const SecondFactorForm = function (props: Props) {
                                     duoSelfEnrollment={props.duoSelfEnrollment}
                                     registered={props.userInfo.has_duo}
                                     onSelectionClick={props.onMethodChanged}
+                                    onSignInError={(err) => createErrorNotification(err.message)}
+                                    onSignInSuccess={props.onAuthenticationSuccess}
+                                />
+                            }
+                        />
+                        <Route
+                            path={SecondFactorTelegramSubRoute}
+                            element={
+                                <TelegramMethod
+                                    id={"telegram-method"}
+                                    authenticationLevel={props.authenticationLevel}
+                                    registered={props.userInfo.has_telegram}
+                                    onRegisterClick={() => {
+                                        navigate(`${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`);
+                                    }}
                                     onSignInError={(err) => createErrorNotification(err.message)}
                                     onSignInSuccess={props.onAuthenticationSuccess}
                                 />

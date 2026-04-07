@@ -116,6 +116,12 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeleteDuoDevice: fmt.Sprintf(queryFmtDeleteDuoDevice, tableDuoDevices),
 		sqlSelectDuoDevice: fmt.Sprintf(queryFmtSelectDuoDevice, tableDuoDevices),
 
+		sqlInsertTelegramVerification:         fmt.Sprintf(queryFmtInsertTelegramVerification, tableTelegramVerifications),
+		sqlSelectTelegramVerification:         fmt.Sprintf(queryFmtSelectTelegramVerification, tableTelegramVerifications),
+		sqlDeleteTelegramVerification:         fmt.Sprintf(queryFmtDeleteTelegramVerification, tableTelegramVerifications),
+		sqlDeleteTelegramVerificationsPending: fmt.Sprintf(queryFmtDeleteTelegramVerificationsPending, tableTelegramVerifications),
+		sqlDeleteTelegramVerificationsExpired: fmt.Sprintf(queryFmtDeleteTelegramVerificationsExpired, tableTelegramVerifications),
+
 		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
 		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices, tableUserPreferences),
@@ -287,6 +293,13 @@ type SQLProvider struct {
 	sqlUpsertDuoDevice string
 	sqlDeleteDuoDevice string
 	sqlSelectDuoDevice string
+
+	// Table: telegram_verifications.
+	sqlInsertTelegramVerification          string
+	sqlSelectTelegramVerification          string
+	sqlDeleteTelegramVerification          string
+	sqlDeleteTelegramVerificationsPending  string
+	sqlDeleteTelegramVerificationsExpired  string
 
 	// Table: user_preferences.
 	sqlUpsertPreferred2FAMethod string

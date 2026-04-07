@@ -107,6 +107,29 @@ type bodySignDuoRequest struct {
 	UserCode  string `json:"userCode"`
 }
 
+// bodySignTelegramRequest is the model of the request body of Telegram 2FA authentication endpoint.
+type bodySignTelegramRequest struct {
+	Token     string `json:"token" valid:"required"`
+	TargetURL string `json:"targetURL"`
+	FlowID    string `json:"flowID"`
+	Flow      string `json:"flow"`
+	SubFlow   string `json:"subflow"`
+	UserCode  string `json:"userCode"`
+}
+
+// bodyTelegramAuthRequestResponse is the response for initiating Telegram auth.
+type bodyTelegramAuthRequestResponse struct {
+	Token       string `json:"token"`
+	BotUsername string `json:"bot_username"`
+	BotDeepLink string `json:"bot_deep_link"`
+}
+
+// bodyTelegramAuthStatusResponse is the response for checking Telegram auth status.
+type bodyTelegramAuthStatusResponse struct {
+	Verified bool `json:"verified"`
+	Expired  bool `json:"expired"`
+}
+
 // bodyPreferred2FAMethod the selected 2FA method.
 type bodyPreferred2FAMethod struct {
 	Method string `json:"method" valid:"required"`

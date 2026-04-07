@@ -82,6 +82,12 @@ func (s *UserSession) SetTwoFactorDuo(now time.Time) {
 	s.AuthenticationMethodRefs.Duo = true
 }
 
+// SetTwoFactorTelegram sets the relevant Telegram AMR's and sets the factor to 2FA.
+func (s *UserSession) SetTwoFactorTelegram(now time.Time) {
+	s.setTwoFactor(now)
+	s.AuthenticationMethodRefs.Telegram = true
+}
+
 // SetTwoFactorWebAuthn sets the relevant WebAuthn AMR's and sets the factor to 2FA.
 func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, hardware, userPresence, userVerified bool) {
 	s.setTwoFactor(now)

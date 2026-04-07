@@ -55,7 +55,7 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 
 // AvailableSecondFactorMethods returns the available 2FA methods.
 func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
-	methods = make([]string, 0, 3)
+	methods = make([]string, 0, 4)
 
 	if !ctx.Configuration.TOTP.Disable {
 		methods = append(methods, model.SecondFactorMethodTOTP)
@@ -67,6 +67,10 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 
 	if !ctx.Configuration.DuoAPI.Disable {
 		methods = append(methods, model.SecondFactorMethodDuo)
+	}
+
+	if ctx.Configuration.Telegram != nil {
+		methods = append(methods, model.SecondFactorMethodTelegram)
 	}
 
 	return methods

@@ -155,7 +155,15 @@ it("OneFactor with no 2FA methods navigates to /authenticated", async () => {
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: false, has_totp: false, has_webauthn: false, method: 1 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_telegram: false,
+            has_totp: false,
+            has_webauthn: false,
+            method: 1,
+        },
         vi.fn(),
         false,
         undefined,
@@ -187,7 +195,15 @@ it("OneFactor with TOTP preferred navigates to /2fa/totp", async () => {
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: false, has_totp: true, has_webauthn: false, method: 1 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_telegram: false,
+            has_totp: true,
+            has_webauthn: false,
+            method: 1,
+        },
         vi.fn(),
         false,
         undefined,
@@ -219,7 +235,15 @@ it("OneFactor with WebAuthn preferred navigates to /2fa/webauthn", async () => {
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: false, has_totp: false, has_webauthn: true, method: 2 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_telegram: false,
+            has_totp: false,
+            has_webauthn: true,
+            method: 2,
+        },
         vi.fn(),
         false,
         undefined,
@@ -251,7 +275,15 @@ it("OneFactor with MobilePush preferred navigates to /2fa/push", async () => {
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: true, has_totp: false, has_webauthn: false, method: 3 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: true,
+            has_telegram: false,
+            has_totp: false,
+            has_webauthn: false,
+            method: 3,
+        },
         vi.fn(),
         false,
         undefined,
@@ -283,7 +315,15 @@ it("OneFactor with factor_knowledge false navigates to /2fa/password", async () 
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: false, has_totp: true, has_webauthn: false, method: 1 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_telegram: false,
+            has_totp: true,
+            has_webauthn: false,
+            method: 1,
+        },
         vi.fn(),
         false,
         undefined,
@@ -315,7 +355,15 @@ it("localStorageMethod overrides userInfo.method", async () => {
         undefined,
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
-        { display_name: "test", emails: [], has_duo: false, has_totp: true, has_webauthn: false, method: 1 },
+        {
+            display_name: "test",
+            emails: [],
+            has_duo: false,
+            has_telegram: false,
+            has_totp: true,
+            has_webauthn: false,
+            method: 1,
+        },
         vi.fn(),
         false,
         undefined,

@@ -16,6 +16,13 @@ type AuthenticationBackend struct {
 	// The file authentication backend configuration.
 	File *AuthenticationBackendFile `koanf:"file" yaml:"file,omitempty" toml:"file,omitempty" json:"file,omitempty" jsonschema:"title=File Backend" jsonschema_description:"The file authentication backend configuration."`
 	LDAP *AuthenticationBackendLDAP `koanf:"ldap" yaml:"ldap,omitempty" toml:"ldap,omitempty" json:"ldap,omitempty" jsonschema:"title=LDAP Backend" jsonschema_description:"The LDAP authentication backend configuration."`
+
+	PostgreSQL *AuthenticationBackendPostgreSQL `koanf:"postgresql" yaml:"postgresql,omitempty" toml:"postgresql,omitempty" json:"postgresql,omitempty" jsonschema:"title=PostgreSQL Backend" jsonschema_description:"The PostgreSQL authentication backend configuration."`
+}
+
+// AuthenticationBackendPostgreSQL represents the configuration for PostgreSQL-backed user storage.
+type AuthenticationBackendPostgreSQL struct {
+	DSN string `koanf:"dsn" yaml:"dsn" json:"dsn" jsonschema:"title=DSN" jsonschema_description:"PostgreSQL connection string."`
 }
 
 // AuthenticationBackendPasswordChange represents the configuration related to password reset functionality.

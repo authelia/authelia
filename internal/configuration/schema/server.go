@@ -60,6 +60,7 @@ type ServerEndpointRateLimits struct {
 	ResetPasswordFinish    ServerEndpointRateLimit `koanf:"reset_password_finish" yaml:"reset_password_finish,omitempty" toml:"reset_password_finish,omitempty" json:"reset_password_finish,omitempty"`
 	SecondFactorTOTP       ServerEndpointRateLimit `koanf:"second_factor_totp" yaml:"second_factor_totp,omitempty" toml:"second_factor_totp,omitempty" json:"second_factor_totp,omitempty"`
 	SecondFactorDuo        ServerEndpointRateLimit `koanf:"second_factor_duo" yaml:"second_factor_duo,omitempty" toml:"second_factor_duo,omitempty" json:"second_factor_duo,omitempty"`
+	SecondFactorTelegram   ServerEndpointRateLimit `koanf:"second_factor_telegram" yaml:"second_factor_telegram,omitempty" toml:"second_factor_telegram,omitempty" json:"second_factor_telegram,omitempty"`
 	SessionElevationStart  ServerEndpointRateLimit `koanf:"session_elevation_start" yaml:"session_elevation_start,omitempty" toml:"session_elevation_start,omitempty" json:"session_elevation_start,omitempty"`
 	SessionElevationFinish ServerEndpointRateLimit `koanf:"session_elevation_finish" yaml:"session_elevation_finish,omitempty" toml:"session_elevation_finish,omitempty" json:"session_elevation_finish,omitempty"`
 }
@@ -158,6 +159,12 @@ var DefaultServerConfiguration = Server{
 				},
 			},
 			SecondFactorDuo: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 10},
+					{Period: 2 * time.Minute, Requests: 15},
+				},
+			},
+			SecondFactorTelegram: ServerEndpointRateLimit{
 				Buckets: []ServerEndpointRateLimitBucket{
 					{Period: 1 * time.Minute, Requests: 10},
 					{Period: 2 * time.Minute, Requests: 15},

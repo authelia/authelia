@@ -46,6 +46,7 @@ const TwoFactorAuthenticationView = function () {
 
     const enabledWebAuthn = configuration?.available_methods.has(SecondFactorMethod.WebAuthn);
     const enabledTOTP = configuration?.available_methods.has(SecondFactorMethod.TOTP);
+    const enabledTelegram = configuration?.available_methods.has(SecondFactorMethod.Telegram);
 
     useEffect(() => {
         fetchConfiguration();
@@ -121,7 +122,7 @@ const TwoFactorAuthenticationView = function () {
             return false;
         }
 
-        const hasAvailableMethods = enabledTOTP || enabledWebAuthn;
+        const hasAvailableMethods = enabledTOTP || enabledWebAuthn || enabledTelegram;
 
         return !hasAvailableMethods;
     };
@@ -157,6 +158,20 @@ const TwoFactorAuthenticationView = function () {
                     ) : (
                         <WebAuthnCredentialsDisabledPanel />
                     )}
+                </Grid>
+            ) : null}
+            {!renderSecondFactorDisabled() && enabledTelegram ? (
+                <Grid size={{ xs: 12 }}>
+                    <Paper sx={{ p: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                            {translate("Telegram")}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {translate(
+                                "Telegram verification is automatically available. When signing in, select Telegram as your second factor method and verify via the Telegram bot.",
+                            )}
+                        </Typography>
+                    </Paper>
                 </Grid>
             ) : null}
             {configuration && userInfo ? (

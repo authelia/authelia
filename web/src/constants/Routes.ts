@@ -6,6 +6,7 @@ export const SecondFactorPasswordSubRoute: string = "/password";
 export const SecondFactorWebAuthnSubRoute: string = "/webauthn";
 export const SecondFactorTOTPSubRoute: string = "/one-time-password";
 export const SecondFactorPushSubRoute: string = "/push-notification";
+export const SecondFactorTelegramSubRoute: string = "/telegram";
 
 export const ResetPasswordStep1Route: string = "/reset-password/step1";
 export const ResetPasswordStep2Route: string = "/reset-password/step2";

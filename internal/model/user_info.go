@@ -23,6 +23,9 @@ type UserInfo struct {
 
 	// True if a duo device has been configured as the preferred.
 	HasDuo bool `db:"has_duo" json:"has_duo" valid:"required"`
+
+	// True if a Telegram device has been configured.
+	HasTelegram bool `db:"-" json:"has_telegram"`
 }
 
 // SetDefaultPreferred2FAMethod configures the default method based on what is configured as available and the users available methods.
@@ -34,7 +37,7 @@ func (i *UserInfo) SetDefaultPreferred2FAMethod(methods []string, fallback strin
 
 	before := i.Method
 
-	totp, webauthn, duo := utils.IsStringInSlice(SecondFactorMethodTOTP, methods), utils.IsStringInSlice(SecondFactorMethodWebAuthn, methods), utils.IsStringInSlice(SecondFactorMethodDuo, methods)
+	totp, webauthn, duo, telegram := utils.IsStringInSlice(SecondFactorMethodTOTP, methods), utils.IsStringInSlice(SecondFactorMethodWebAuthn, methods), utils.IsStringInSlice(SecondFactorMethodDuo, methods), utils.IsStringInSlice(SecondFactorMethodTelegram, methods)
 
 	if i.Method == "" && utils.IsStringInSlice(fallback, methods) {
 		i.Method = fallback
@@ -43,13 +46,13 @@ func (i *UserInfo) SetDefaultPreferred2FAMethod(methods []string, fallback strin
 	}
 
 	if i.Method == "" {
-		i.setMethod(totp, webauthn, duo, methods, fallback)
+		i.setMethod(totp, webauthn, duo, telegram, methods, fallback)
 	}
 
 	return before != i.Method
 }
 
-func (i *UserInfo) setMethod(totp, webauthn, duo bool, methods []string, fallback string) {
+func (i *UserInfo) setMethod(totp, webauthn, duo, telegram bool, methods []string, fallback string) {
 	switch {
 	case i.HasTOTP && totp:
 		i.Method = SecondFactorMethodTOTP
@@ -65,5 +68,7 @@ func (i *UserInfo) setMethod(totp, webauthn, duo bool, methods []string, fallbac
 		i.Method = SecondFactorMethodWebAuthn
 	case duo:
 		i.Method = SecondFactorMethodDuo
+	case telegram:
+		i.Method = SecondFactorMethodTelegram
 	}
 }

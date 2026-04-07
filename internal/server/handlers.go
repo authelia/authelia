@@ -360,6 +360,18 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
 	}
 
+	// Configure Telegram api endpoint only if configuration exists.
+	if config.Telegram != nil {
+		middlewareRateLimitTelegram := middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimit(config.Server.Endpoints.RateLimits.SecondFactorTelegram), middlewares.Require1FA).
+			Build()
+
+		r.GET("/api/secondfactor/telegram", middleware1FA(handlers.TelegramAuthRequestGET))
+		r.GET("/api/secondfactor/telegram/status/{token}", middleware1FA(handlers.TelegramAuthStatusGET))
+		r.POST("/api/secondfactor/telegram", middlewareRateLimitTelegram(handlers.TelegramAuthCompletePOST))
+	}
+
 	if config.Server.Endpoints.EnablePprof {
 		r.GET("/debug/pprof/{name?}", pprofhandler.PprofHandler)
 	}

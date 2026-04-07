@@ -30,3 +30,20 @@ authelia-image-dev.tar
 __debug_bin
 
 internal/suites/common/pki/ca/*.private.pem
+
+# CyberSec deployment — NEVER commit these
+*.env
+.env
+configuration.yml
+config/configuration.yml
+users.yml
+config/users.yml
+*.pem
+*.key
+oidc_issuer.pem
+
+# Bot secrets
+authelia-tgbot/.env
+
+# Build artifacts
+internal/server/public_html/

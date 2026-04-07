@@ -21,6 +21,9 @@ const (
 	// AuthTypeDuo is the string representing an auth log for second-factor authentication via DUO.
 	AuthTypeDuo = "Duo"
 
+	// AuthTypeTelegram is the string representing an auth log for second-factor authentication via Telegram.
+	AuthTypeTelegram = "Telegram"
+
 	// AuthTypePassword is the string representing an auth log for second-factor authentication via a Password.
 	AuthTypePassword = "Password"
 )

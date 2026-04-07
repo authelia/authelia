@@ -11,6 +11,7 @@ import {
     SecondFactorPushSubRoute,
     SecondFactorRoute,
     SecondFactorTOTPSubRoute,
+    SecondFactorTelegramSubRoute,
     SecondFactorWebAuthnSubRoute,
 } from "@constants/Routes";
 import { RedirectionURL } from "@constants/SearchParams";
@@ -125,6 +126,18 @@ const LoginPortal = function (props: Props) {
                 navigate(AuthenticatedRoute, false);
             } else {
                 const method = localStorageMethod || userInfo.method;
+                console.log(
+                    "[DEBUG-NAV] method:",
+                    method,
+                    "lsm:",
+                    localStorageMethod,
+                    "ui:",
+                    userInfo.method,
+                    "tg:",
+                    SecondFactorMethod.Telegram,
+                    "eq:",
+                    method === SecondFactorMethod.Telegram,
+                );
 
                 if (!state!.factor_knowledge) {
                     navigate(`${SecondFactorRoute}${SecondFactorPasswordSubRoute}`);
@@ -132,6 +145,8 @@ const LoginPortal = function (props: Props) {
                     navigate(`${SecondFactorRoute}${SecondFactorWebAuthnSubRoute}`);
                 } else if (method === SecondFactorMethod.MobilePush) {
                     navigate(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
+                } else if (method === SecondFactorMethod.Telegram) {
+                    navigate(`${SecondFactorRoute}${SecondFactorTelegramSubRoute}`);
                 } else {
                     navigate(`${SecondFactorRoute}${SecondFactorTOTPSubRoute}`);
                 }
