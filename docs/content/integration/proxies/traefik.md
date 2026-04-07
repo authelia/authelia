@@ -431,7 +431,7 @@ http:
         ## configured in the Session Cookies section of the Authelia configuration.
         # address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
         trustForwardHeader: true
-        .maxResponseBodySize: 8192
+        maxResponseBodySize: 8192
         authResponseHeaders:
           - 'Remote-User'
           - 'Remote-Groups'

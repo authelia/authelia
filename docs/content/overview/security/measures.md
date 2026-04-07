@@ -216,7 +216,7 @@ key.
 
 The encrypted data in the database is as follows:
 
-|               Table               |  Column(s)   |                                                Rationale                                                |
+|               Table               |  Column(s)   |                                               Rationale                                                |
 |:---------------------------------:|:------------:|:------------------------------------------------------------------------------------------------------:|
 |            encryption             |    value     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
 |            cached_data            |    value     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |

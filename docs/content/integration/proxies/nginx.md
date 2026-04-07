@@ -398,7 +398,7 @@ use cases.
 #### proxy.conf
 
 The following is an example `proxy.conf`. The important directives include the `real_ip` directives which you should read
-[Trusted Proxies](#trusted-proxies) section to understand, or set the `X-Forwarded-Proto`, `X-Forwarded-Host`,
+[Trusted Proxies](#trusted-proxies-and-integration-security) section to understand, or set the `X-Forwarded-Proto`, `X-Forwarded-Host`,
 `X-Forwarded-URI`, and `X-Forwarded-For` headers.
 
 ##### Standard Variant
