@@ -92,6 +92,12 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectDuoDevice = provider.db.Rebind(provider.sqlSelectDuoDevice)
 	provider.sqlDeleteDuoDevice = provider.db.Rebind(provider.sqlDeleteDuoDevice)
 
+	provider.sqlInsertTelegramVerification = provider.db.Rebind(provider.sqlInsertTelegramVerification)
+	provider.sqlSelectTelegramVerification = provider.db.Rebind(provider.sqlSelectTelegramVerification)
+	provider.sqlDeleteTelegramVerification = provider.db.Rebind(provider.sqlDeleteTelegramVerification)
+	provider.sqlDeleteTelegramVerificationsPending = provider.db.Rebind(provider.sqlDeleteTelegramVerificationsPending)
+	provider.sqlDeleteTelegramVerificationsExpired = provider.db.Rebind(provider.sqlDeleteTelegramVerificationsExpired)
+
 	provider.sqlInsertAuthenticationAttempt = provider.db.Rebind(provider.sqlInsertAuthenticationAttempt)
 	provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername)
 	provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP)

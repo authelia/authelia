@@ -279,6 +279,32 @@ const (
 )
 
 const (
+	queryFmtInsertTelegramVerification = `
+		INSERT INTO %s (username, token, telegram_id, phone, verified, created_at)
+		VALUES (?, ?, ?, ?, ?, ?);`
+
+	queryFmtSelectTelegramVerification = `
+		SELECT id, username, token, telegram_id, phone, verified, created_at
+		FROM %s
+		WHERE username = ? AND token = ? AND created_at > ?;`
+
+	queryFmtDeleteTelegramVerification = `
+		DELETE
+		FROM %s
+		WHERE username = ? AND token = ?;`
+
+	queryFmtDeleteTelegramVerificationsPending = `
+		DELETE
+		FROM %s
+		WHERE username = ? AND verified = false;`
+
+	queryFmtDeleteTelegramVerificationsExpired = `
+		DELETE
+		FROM %s
+		WHERE created_at < ?;`
+)
+
+const (
 	queryFmtInsertAuthenticationLogEntry = `
 		INSERT INTO %s (time, successful, banned, username, auth_type, remote_ip, request_uri, request_method)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`

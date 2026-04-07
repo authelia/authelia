@@ -138,6 +138,21 @@ type Provider interface {
 	// LoadPreferredDuoDevice loads a Duo device from the storage provider for a given username.
 	LoadPreferredDuoDevice(ctx context.Context, username string) (device *model.DuoDevice, err error)
 
+	// SaveTelegramVerification saves a pending Telegram verification to the storage provider.
+	SaveTelegramVerification(ctx context.Context, verification model.TelegramVerification) (err error)
+
+	// LoadTelegramVerification loads a Telegram verification from the storage provider for a given username, token, and minimum creation time.
+	LoadTelegramVerification(ctx context.Context, username, token string, createdAfter time.Time) (verification *model.TelegramVerification, err error)
+
+	// DeleteTelegramVerification deletes a Telegram verification from the storage provider for a given username and token.
+	DeleteTelegramVerification(ctx context.Context, username, token string) (err error)
+
+	// DeleteTelegramVerificationsPending deletes all pending (unverified) tokens for a user.
+	DeleteTelegramVerificationsPending(ctx context.Context, username string) (err error)
+
+	// DeleteTelegramVerificationsExpired deletes all expired tokens.
+	DeleteTelegramVerificationsExpired(ctx context.Context, before time.Time) (err error)
+
 	/*
 		Implementation for Identity Verification (JWT).
 	*/

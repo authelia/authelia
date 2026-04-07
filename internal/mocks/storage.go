@@ -214,6 +214,48 @@ func (mr *MockStorageMockRecorder) DeleteTOTPConfiguration(ctx, username any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTOTPConfiguration", reflect.TypeOf((*MockStorage)(nil).DeleteTOTPConfiguration), ctx, username)
 }
 
+// DeleteTelegramVerification mocks base method.
+func (m *MockStorage) DeleteTelegramVerification(ctx context.Context, username, token string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteTelegramVerification", ctx, username, token)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTelegramVerification indicates an expected call of DeleteTelegramVerification.
+func (mr *MockStorageMockRecorder) DeleteTelegramVerification(ctx, username, token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTelegramVerification", reflect.TypeOf((*MockStorage)(nil).DeleteTelegramVerification), ctx, username, token)
+}
+
+// DeleteTelegramVerificationsExpired mocks base method.
+func (m *MockStorage) DeleteTelegramVerificationsExpired(ctx context.Context, before time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteTelegramVerificationsExpired", ctx, before)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTelegramVerificationsExpired indicates an expected call of DeleteTelegramVerificationsExpired.
+func (mr *MockStorageMockRecorder) DeleteTelegramVerificationsExpired(ctx, before any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTelegramVerificationsExpired", reflect.TypeOf((*MockStorage)(nil).DeleteTelegramVerificationsExpired), ctx, before)
+}
+
+// DeleteTelegramVerificationsPending mocks base method.
+func (m *MockStorage) DeleteTelegramVerificationsPending(ctx context.Context, username string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteTelegramVerificationsPending", ctx, username)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTelegramVerificationsPending indicates an expected call of DeleteTelegramVerificationsPending.
+func (mr *MockStorageMockRecorder) DeleteTelegramVerificationsPending(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTelegramVerificationsPending", reflect.TypeOf((*MockStorage)(nil).DeleteTelegramVerificationsPending), ctx, username)
+}
+
 // DeleteWebAuthnCredential mocks base method.
 func (m *MockStorage) DeleteWebAuthnCredential(ctx context.Context, kid string) error {
 	m.ctrl.T.Helper()
@@ -645,6 +687,21 @@ func (m *MockStorage) LoadTOTPConfigurations(ctx context.Context, limit, page in
 func (mr *MockStorageMockRecorder) LoadTOTPConfigurations(ctx, limit, page any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTOTPConfigurations", reflect.TypeOf((*MockStorage)(nil).LoadTOTPConfigurations), ctx, limit, page)
+}
+
+// LoadTelegramVerification mocks base method.
+func (m *MockStorage) LoadTelegramVerification(ctx context.Context, username, token string, createdAfter time.Time) (*model.TelegramVerification, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadTelegramVerification", ctx, username, token, createdAfter)
+	ret0, _ := ret[0].(*model.TelegramVerification)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadTelegramVerification indicates an expected call of LoadTelegramVerification.
+func (mr *MockStorageMockRecorder) LoadTelegramVerification(ctx, username, token, createdAfter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTelegramVerification", reflect.TypeOf((*MockStorage)(nil).LoadTelegramVerification), ctx, username, token, createdAfter)
 }
 
 // LoadUserInfo mocks base method.
@@ -1147,6 +1204,20 @@ func (m *MockStorage) SaveTOTPHistory(ctx context.Context, username string, step
 func (mr *MockStorageMockRecorder) SaveTOTPHistory(ctx, username, step any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTOTPHistory", reflect.TypeOf((*MockStorage)(nil).SaveTOTPHistory), ctx, username, step)
+}
+
+// SaveTelegramVerification mocks base method.
+func (m *MockStorage) SaveTelegramVerification(ctx context.Context, verification model.TelegramVerification) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveTelegramVerification", ctx, verification)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveTelegramVerification indicates an expected call of SaveTelegramVerification.
+func (mr *MockStorageMockRecorder) SaveTelegramVerification(ctx, verification any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTelegramVerification", reflect.TypeOf((*MockStorage)(nil).SaveTelegramVerification), ctx, verification)
 }
 
 // SaveUserOpaqueIdentifier mocks base method.

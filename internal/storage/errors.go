@@ -20,6 +20,9 @@ var (
 	// ErrNoDuoDevice error thrown when no Duo device and method has been found in DB.
 	ErrNoDuoDevice = errors.New("no Duo device and method saved")
 
+	// ErrNoTelegramVerification error thrown when no Telegram verification has been found in DB.
+	ErrNoTelegramVerification = errors.New("no Telegram verification found")
+
 	// ErrNoAvailableMigrations is returned when no available migrations can be found.
 	ErrNoAvailableMigrations = errors.New("no available migrations")
 
