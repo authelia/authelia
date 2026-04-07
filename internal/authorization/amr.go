@@ -1,6 +1,13 @@
 package authorization
 
+import "github.com/authelia/authelia/v4/internal/utils"
+
+// NewAuthenticationMethodsReferencesFromClaim translate AMR claim arrays into a struct.
+//
+//nolint:gocyclo // This function is entirely clear even with the complexity.
 func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr AuthenticationMethodsReferences) {
+	var extras []string
+
 	for _, ref := range claim {
 		switch ref {
 		case AMRKnowledgeBasedAuthentication:
@@ -19,9 +26,28 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 		case AMRSoftwareSecuredKey:
 			amr.WebAuthn = true
 			amr.WebAuthnSoftware = true
-		case AMRUserPresence:
+		case AMRPersonalIdentificationNumber:
 			amr.WebAuthnUserVerified = true
+		case AMRUserPresence:
+			amr.WebAuthnUserPresence = true
+		default:
+			extras = append(extras, ref)
 		}
+	}
+
+	for _, extra := range extras {
+		switch extra {
+		case AMRMultiFactorAuthentication:
+			if amr.MultiFactorAuthentication() {
+				continue
+			}
+		case AMRMultiChannelAuthentication:
+			if amr.MultiChannelAuthentication() {
+				continue
+			}
+		}
+
+		amr.Extra = append(amr.Extra, extra)
 	}
 
 	return amr
@@ -38,6 +64,7 @@ type AuthenticationMethodsReferences struct {
 	WebAuthnSoftware             bool
 	WebAuthnUserPresence         bool
 	WebAuthnUserVerified         bool
+	Extra                        []string
 }
 
 // FactorKnowledge returns true if a "something you know" factor of authentication was used.
@@ -72,6 +99,8 @@ func (r AuthenticationMethodsReferences) MultiChannelAuthentication() bool {
 
 // MarshalRFC8176 returns the AMR claim slice of strings in the RFC8176 format.
 // https://datatracker.ietf.org/doc/html/rfc8176
+//
+//nolint:gocyclo // The function is simple to understand.
 func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 	var amr []string
 
@@ -117,6 +146,14 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 
 	if r.MultiChannelAuthentication() {
 		amr = append(amr, AMRMultiChannelAuthentication)
+	}
+
+	for _, extra := range r.Extra {
+		if utils.IsStringInSlice(extra, amr) {
+			continue
+		}
+
+		amr = append(amr, extra)
 	}
 
 	return amr

@@ -44,7 +44,13 @@ It's __*strongly recommended*__ that users setting up *Authelia* for the first t
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
-## Trusted Proxies
+## Trusted Proxies and Integration Security
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+In addition to this section which is important to read, you should read the
+[Validating Forwarded Authentication](../../reference/guides/validating-forwarded-authentication.md) reference guide
+and perform the validation steps as part of your regular security validation routine when using this integration.
+{{< /callout >}}
 
 *__Important:__ You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
 Especially if you have never read it before.*
@@ -229,6 +235,7 @@ services:
       ## configured in the Session Cookies section of the Authelia configuration.
       # traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
       traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader: 'true'
+      traefik.http.middlewares.authelia.forwardAuth.maxResponseBodySize: '8192'
       traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Email,Remote-Name'
   nextcloud:
     container_name: 'nextcloud'
@@ -424,6 +431,7 @@ http:
         ## configured in the Session Cookies section of the Authelia configuration.
         # address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
         trustForwardHeader: true
+        maxResponseBodySize: 8192
         authResponseHeaders:
           - 'Remote-User'
           - 'Remote-Groups'
@@ -437,6 +445,7 @@ http:
       forwardAuth:
         address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/verify?auth=basic'
         trustForwardHeader: true
+        maxResponseBodySize: 8192
         authResponseHeaders:
           - 'Remote-User'
           - 'Remote-Groups'
@@ -558,6 +567,7 @@ traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" n
 ## configured in the Session Cookies section of the Authelia configuration.
 # traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
 traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader: 'true'
+traefik.http.middlewares.authelia.forwardAuth.maxResponseBodySize: '8192'
 traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Email,Remote-Name'
 ```
 
