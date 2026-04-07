@@ -31,7 +31,7 @@ protection the Administrator can employ.
 |    Manual    | The measure contains a description of how an Administrator may improve security |
 |    Design    |        The measure is part of how Authelia is designed in a broad sense         |
 
-## Protection against return oriented programming attacks and general hardening
+## Protection against return-oriented programming attacks and general hardening
 
 **Measure Types:** In-built
 
@@ -179,7 +179,7 @@ support SHA512, which previously was the default.
 
 Secondly Authelia uses salting with all hashing algorithms. These salts are generated with a random string generator,
 which is seeded every time it's used by a cryptographically secure 1024bit prime number. This ensures that even if an
-attacker obtains the file, each password has to be brute forced individually.
+attacker obtains the file, each password has to be brute-forced individually.
 
 Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the key length, salt used, iterations
 (time), parallelism, and memory usage. To read more about this, please read how to
@@ -232,7 +232,7 @@ The encrypted data in the database is as follows:
 
 The HMAC signatures stored in the database use the encrypted key stored in the `encryption` table where the `name`
 column matches the table below. We both ensure the keys are encrypted and use unique keys for each purpose to ensure
-any potential for brute forcing the key is low.
+any potential for brute-forcing the key is low.
 
 |     Table     |  Column   |   Key Name   |                         Notes                         |
 |:-------------:|:---------:|:------------:|:-----------------------------------------------------:|
