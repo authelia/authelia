@@ -20,6 +20,9 @@ const (
 
 	// SecondFactorMethodDuo method using Duo application to receive push notifications.
 	SecondFactorMethodDuo = "mobile_push"
+
+	// SecondFactorMethodTelegram method using Telegram phone verification.
+	SecondFactorMethodTelegram = "telegram"
 )
 
 var (
