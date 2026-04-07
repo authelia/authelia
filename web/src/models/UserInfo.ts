@@ -7,4 +7,5 @@ export interface UserInfo {
     has_webauthn: boolean;
     has_totp: boolean;
     has_duo: boolean;
+    has_telegram: boolean;
 }

@@ -26,6 +26,10 @@ export const CompletePushNotificationSignInPath = basePath + "/api/secondfactor/
 export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp";
 export const CompletePasswordSignInPath = basePath + "/api/secondfactor/password";
 
+export const TelegramInitPath = basePath + "/api/secondfactor/telegram";
+export const TelegramStatusPath = basePath + "/api/secondfactor/telegram/status";
+export const CompleteTelegramSignInPath = basePath + "/api/secondfactor/telegram";
+
 export const InitiateResetPasswordPath = basePath + "/api/reset-password/identity/start";
 export const CompleteResetPasswordPath = basePath + "/api/reset-password/identity/finish";
 

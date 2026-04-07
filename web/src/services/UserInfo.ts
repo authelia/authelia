@@ -3,7 +3,7 @@ import { UserInfo } from "@models/UserInfo";
 import { UserInfo2FAMethodPath, UserInfoPath } from "@services/Api";
 import { Get, Post, PostWithOptionalResponse } from "@services/Client";
 
-export type Method2FA = "mobile_push" | "totp" | "webauthn";
+export type Method2FA = "mobile_push" | "telegram" | "totp" | "webauthn";
 
 export interface UserInfoPayload {
     display_name: string;
@@ -12,6 +12,7 @@ export interface UserInfoPayload {
     has_webauthn: boolean;
     has_totp: boolean;
     has_duo: boolean;
+    has_telegram: boolean;
 }
 
 export interface MethodPreferencePayload {
@@ -19,7 +20,7 @@ export interface MethodPreferencePayload {
 }
 
 export function isMethod2FA(method: string) {
-    return ["mobile_push", "totp", "webauthn"].includes(method);
+    return ["mobile_push", "telegram", "totp", "webauthn"].includes(method);
 }
 
 export function toSecondFactorMethod(method: Method2FA): SecondFactorMethod {
@@ -30,6 +31,8 @@ export function toSecondFactorMethod(method: Method2FA): SecondFactorMethod {
             return SecondFactorMethod.WebAuthn;
         case "mobile_push":
             return SecondFactorMethod.MobilePush;
+        case "telegram":
+            return SecondFactorMethod.Telegram;
     }
 }
 
@@ -41,6 +44,8 @@ export function toMethod2FA(method: SecondFactorMethod): Method2FA {
             return "webauthn";
         case SecondFactorMethod.MobilePush:
             return "mobile_push";
+        case SecondFactorMethod.Telegram:
+            return "telegram";
     }
 }
 

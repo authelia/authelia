@@ -55,6 +55,16 @@ const TwoFactorAuthenticationOptionsMethodsRadioGroup = function (props: Props) 
                                     value={v}
                                 />
                             );
+                        case SecondFactorMethod.Telegram:
+                            return (
+                                <FormControlLabel
+                                    id={`method-${props.id}-default-telegram`}
+                                    control={<Radio />}
+                                    label={translate("Telegram")}
+                                    key={v}
+                                    value={v}
+                                />
+                            );
                         default:
                             return null;
                     }
