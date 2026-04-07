@@ -1503,7 +1503,7 @@ func TestLDAPUserProvider_GetDetailsExtended_ShouldErrorBadPictureURL(t *testing
 
 	details, err := provider.GetDetailsExtended("john")
 	assert.Nil(t, details)
-	assert.EqualError(t, err, "error occurred parsing user details for 'john': failed to parse the picture attribute 'photoURL' with value 'bad_+URL': parse \"bad_+URL\": invalid URI for request")
+	assert.EqualError(t, err, "error occurred parsing user details for 'john': failed to parse the 'photoURL' ('picture') attribute with value 'bad_+URL': parse \"bad_+URL\": invalid URI for request")
 }
 
 func TestLDAPUserProvider_GetDetailsExtended_ShouldErrorBadProfileURL(t *testing.T) {
@@ -1587,7 +1587,7 @@ func TestLDAPUserProvider_GetDetailsExtended_ShouldErrorBadProfileURL(t *testing
 
 	details, err := provider.GetDetailsExtended("john")
 	assert.Nil(t, details)
-	assert.EqualError(t, err, "error occurred parsing user details for 'john': failed to parse the profile attribute 'profile' with value 'bad_+URL': parse \"bad_+URL\": invalid URI for request")
+	assert.EqualError(t, err, "error occurred parsing user details for 'john': failed to parse the 'profile' ('profile') attribute with value 'bad_+URL': parse \"bad_+URL\": invalid URI for request")
 }
 
 func TestLDAPUserProvider_GetDetailsExtended_ShouldErrorBadWebsiteURL(t *testing.T) {
@@ -1671,7 +1671,7 @@ func TestLDAPUserProvider_GetDetailsExtended_ShouldErrorBadWebsiteURL(t *testing
 
 	details, err := provider.GetDetailsExtended("john")
 	assert.Nil(t, details)
-	assert.EqualError(t, err, "error occurred parsing user details for 'john': failed to parse the website attribute 'www' with value 'bad_+URL': parse \"bad_+URL\": invalid URI for request")
+	assert.EqualError(t, err, "error occurred parsing user details for 'john': failed to parse the 'www' ('website') attribute with value 'bad_+URL': parse \"bad_+URL\": invalid URI for request")
 }
 
 func TestLDAPUserProvider_GetDetailsExtended_ShouldErrorBadLocale(t *testing.T) {
@@ -6233,7 +6233,7 @@ func TestShouldReturnErrorWhenMultipleUsernameAttributes(t *testing.T) {
 	profile, err := provider.getUserProfile(client, "john")
 
 	assert.Nil(t, profile)
-	assert.EqualError(t, err, "user 'john' has 2 values for for attribute 'uid' but the attribute must be a single value attribute")
+	assert.EqualError(t, err, "user 'john' has 2 values for attribute 'uid' but the attribute must be a single value attribute")
 }
 
 func TestShouldReturnErrorWhenZeroUsernameAttributes(t *testing.T) {
