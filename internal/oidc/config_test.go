@@ -486,7 +486,6 @@ type testConfigContext struct {
 	context.Context
 }
 
-func (t *testConfigContext) RootURL() (issuerURL *url.URL)                { return nil }
 func (t *testConfigContext) IssuerURL() (issuerURL *url.URL, err error)   { return nil, nil }
 func (t *testConfigContext) GetClock() clock.Provider                     { return nil }
 func (t *testConfigContext) GetRandom() random.Provider                   { return nil }

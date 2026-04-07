@@ -238,17 +238,8 @@ func (ctx *AutheliaCtx) BasePathSlash() string {
 	return strSlash
 }
 
-// RootURL returns the Root URL.
-func (ctx *AutheliaCtx) RootURL() (issuerURL *url.URL) {
-	return &url.URL{
-		Scheme: string(ctx.XForwardedProto()),
-		Host:   string(ctx.GetXForwardedHost()),
-		Path:   ctx.BasePath(),
-	}
-}
-
-// RootURLSlash is the same as RootURL but includes a final slash as well.
-func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
+// TemplateRootURL is the same as RootURL but includes a final slash as well.
+func (ctx *AutheliaCtx) TemplateRootURL() (issuerURL *url.URL) {
 	return &url.URL{
 		Scheme: string(ctx.XForwardedProto()),
 		Host:   string(ctx.GetXForwardedHost()),
@@ -527,6 +518,32 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 
 	if len(issuerURL.Host) == 0 {
 		return nil, ErrMissingXForwardedHost
+	}
+
+	if issuerURL.Scheme != strProtoHTTPS {
+		return nil, ErrMissingXForwardedProto
+	}
+
+	var provider *session.Session
+
+	if provider, err = ctx.GetSessionProvider(); err != nil {
+		return nil, err
+	}
+
+	autheliaURL := provider.Config.AutheliaURL
+
+	if autheliaURL != nil {
+		if !(strings.EqualFold(autheliaURL.Scheme, issuerURL.Scheme) && !strings.EqualFold(autheliaURL.Host, issuerURL.Host)) {
+			return nil, fmt.Errorf("failed to find issuer URL")
+		}
+
+		return autheliaURL, nil
+	} else if !strings.HasSuffix(issuerURL.Host, provider.Config.Domain) {
+		return nil, fmt.Errorf(
+			"failed to find issuer URL, the domain '%s' does not match the configured domain '%s'",
+			issuerURL.Host,
+			provider.Config.Domain,
+		)
 	}
 
 	return issuerURL, nil

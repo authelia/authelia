@@ -368,7 +368,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 	var (
 		dataPOSTGood        = fmt.Sprintf(dataPOSTFmt, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientDataJSON, "https://login.example.com:8080"))))
-		dataPOSTBadRPIDHash = fmt.Sprintf(dataPOSTFmt, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientDataJSON, "http://example.com"))))
+		dataPOSTBadRPIDHash = fmt.Sprintf(dataPOSTFmt, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientDataJSON, "https://example.com"))))
 	)
 
 	testCases := []struct {

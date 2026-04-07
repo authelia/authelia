@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path"
+	"net/url"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -21,6 +21,15 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 	}
 
 	return func(ctx *AutheliaCtx) {
+		var (
+			issuerURL *url.URL
+			err       error
+		)
+		if issuerURL, err = ctx.IssuerURL(); err != nil {
+			ctx.Error(err, messageOperationFailed)
+			return
+		}
+
 		requestTime := time.Now()
 		success := false
 
@@ -47,7 +56,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		verification := model.NewIdentityVerification(jti, identity.Username, args.ActionClaim, ctx.RemoteIP(), ctx.Configuration.IdentityValidation.ResetPassword.JWTExpiration)
 
 		// Create the claim with the action to sign it.
-		claims := verification.ToIdentityVerificationClaim()
+		claims := verification.ToIdentityVerificationClaim(issuerURL)
 
 		var method *jwt.SigningMethodHMAC
 
@@ -75,23 +84,31 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			return
 		}
 
-		linkURL := ctx.RootURL()
+		linkURL := &url.URL{
+			Scheme: issuerURL.Scheme,
+			Host:   issuerURL.Host,
+			Path:   issuerURL.Path,
+		}
 
 		query := linkURL.Query()
 
 		query.Set(queryArgToken, signedToken)
 
-		linkURL.Path = path.Join(linkURL.Path, args.TargetEndpoint)
 		linkURL.RawQuery = query.Encode()
+		linkURL = linkURL.JoinPath(args.TargetEndpoint)
 
-		revocationLinkURL := ctx.RootURL()
+		revocationLinkURL := &url.URL{
+			Scheme: issuerURL.Scheme,
+			Host:   issuerURL.Host,
+			Path:   issuerURL.Path,
+		}
 
 		query = revocationLinkURL.Query()
 
 		query.Set(queryArgToken, signedToken)
 
-		revocationLinkURL.Path = path.Join(revocationLinkURL.Path, args.RevokeEndpoint)
 		revocationLinkURL.RawQuery = query.Encode()
+		revocationLinkURL = revocationLinkURL.JoinPath(args.RevokeEndpoint)
 
 		domain, _ := ctx.GetCookieDomain()
 
@@ -140,12 +157,19 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			return
 		}
 
+		var issuerURL *url.URL
+
+		if issuerURL, err = ctx.IssuerURL(); err != nil {
+			ctx.Error(err, messageOperationFailed)
+			return
+		}
+
 		token, err := jwt.ParseWithClaims(finishBody.Token, &model.IdentityVerificationClaim{},
 			func(token *jwt.Token) (any, error) {
 				return []byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret), nil
 			},
 			jwt.WithIssuedAt(),
-			jwt.WithIssuer("Authelia"),
+			jwt.WithIssuer(issuerURL.String()),
 			jwt.WithStrictDecoding(),
 			ctx.GetClock().GetJWTWithTimeFuncOption(),
 		)

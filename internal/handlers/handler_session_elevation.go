@@ -4,7 +4,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
-	"path"
+	"net/url"
 	"strings"
 
 	"github.com/google/uuid"
@@ -167,14 +167,22 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 
 	deleteID := base64.RawURLEncoding.EncodeToString(otp.PublicID[:])
 
-	linkURL := ctx.RootURL()
+	var linkURL *url.URL
+	if linkURL, err = ctx.IssuerURL(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred saving the challenge to the storage backend", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
 
 	query := linkURL.Query()
 
 	query.Set("id", deleteID)
 
-	linkURL.Path = path.Join(linkURL.Path, "/revoke/one-time-code")
 	linkURL.RawQuery = query.Encode()
+	linkURL = linkURL.JoinPath("/revoke/one-time-code")
 
 	identity := userSession.Identity()
 

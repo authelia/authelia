@@ -211,7 +211,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: consent.ClientID}).
 			Error("Error occurred loading the client for the consent session")
@@ -234,12 +234,21 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		form   url.Values
 	)
 
-	issuer = ctx.RootURL()
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
+			Error("Error occurred determining the issuer")
+
+		return
+	}
 
 	if form, err = consent.GetForm(); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 			Error("Error occurred getting the original form from the consent session")
@@ -276,13 +285,13 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		targetURL.RawQuery = form.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-			ctx.Logger.
+			ctx.GetLogger().
 				WithError(err).
 				WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 				Error("Error occurred marshaling JSON response body for consent redirection")
 		}
 	default:
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
 			Info("OpenID Connect 1.0 client requires 2FA")
 
@@ -294,6 +303,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 
 func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, subflow, userCode string) {
 	var (
+		issuer    *url.URL
 		signature string
 		device    *model.OAuth2DeviceCodeSession
 		client    oidc.Client
@@ -303,7 +313,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	if userSession.IsAnonymous() {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
 			Error("Failed to handle flow response as the user is anonymous")
@@ -311,15 +321,25 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 		return
 	}
 
-	issuer := ctx.RootURL()
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
+			Error("Error occurred determining the issuer preventing a successful flow response")
+
+		return
+	}
 
 	if n := len(userCode); n == 0 {
 		handleFlowResponseOpenIDConnectDeviceAuthSubflowResponseNoUserCode(ctx, userSession, id, subflow, level, issuer)
 
 		return
 	} else if n > 32 {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username}).
 			Error("Failed to handle flow response as the user code is too long")
 
@@ -329,7 +349,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	}
 
 	if signature, err = ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(ctx, userCode); err != nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username}).
 			Error("Error occurred determining the signature of the user code session preventing a successful flow response")
@@ -340,7 +360,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	}
 
 	if device, err = ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, signature); err != nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature}).
 			Error("Error occurred using the signature of the user code session to retrieve the device code session preventing a successful flow response")
@@ -351,7 +371,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	}
 
 	if device.Subject.Valid || device.ChallengeID.Valid || device.Status != int(oauthelia2.DeviceAuthorizeStatusNew) {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldSubject: device.Subject, logging.FieldFlowID: device.ChallengeID, logging.FieldStatus: device.Status}).
 			Error("Failed to handle flow response as the device code session is in an invalid state")
 
@@ -363,7 +383,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, device.ClientID); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username, logging.FieldSignature: signature, logging.FieldClientID: device.ClientID}).
 			Error("Error occurred loading the client for the device code session")

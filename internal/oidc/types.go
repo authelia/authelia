@@ -210,7 +210,6 @@ type RefreshFlowScopeClient interface {
 
 // Context represents the context implementation that is used by some OpenID Connect 1.0 implementations.
 type Context interface {
-	RootURL() (issuerURL *url.URL)
 	IssuerURL() (issuerURL *url.URL, err error)
 	GetClock() (clock clock.Provider)
 	GetRandom() (random random.Provider)

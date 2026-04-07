@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/url"
-	"path"
 	"time"
 
 	"authelia.com/provider/oauth2"
@@ -185,7 +184,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 	)
 
 	if bodyJSON.FlowID == nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			Error("Request is missing the required field 'flow_id' from the JSON body")
 
 		ctx.SetJSONError(messageOperationFailed)
@@ -194,7 +193,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 	}
 
 	if flowID, err = uuid.Parse(*bodyJSON.FlowID); err != nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: *bodyJSON.FlowID}).
 			Error("Error occurred parsing flow ID as a UUID")
@@ -216,7 +215,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 	}
 
 	if consent.ClientID != bodyJSON.ClientID {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, "body_client_id": bodyJSON.ClientID, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 			Error("The client id of the form and the client id of the consent session do not match")
 
@@ -228,7 +227,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
 
 	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldGroups: userSession.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
 			Error("User is not sufficiently authenticated to provide consent given the client authorization policy")
 
@@ -243,7 +242,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 	)
 
 	if query, err = consent.GetForm(); err != nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 			Error("Error occurred trying to obtain the request form from the consent session")
@@ -255,7 +254,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 
 	if !consent.Subject.Valid {
 		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
-			ctx.Logger.
+			ctx.GetLogger().
 				WithError(err).
 				WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 				Error("Error occurred trying to determine the subject for the consent session")
@@ -269,7 +268,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 	}
 
 	if form, err = handleGetConsentForm(ctx, query); err != nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 			Error("Error occurred trying to obtain the actual authorization parameters from the request form")
@@ -280,7 +279,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 	}
 
 	if oidc.RequestFormRequiresLogin(form, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 			Error("The authorization request requires the user performs a login even prior to providing consent")
 
@@ -311,7 +310,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 	consent.SetRespondedAt(ctx.GetClock().Now(), 0)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 			Error("Error occurred saving the consent session response to the database")
@@ -321,12 +320,23 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 		return
 	}
 
-	redirectURI := ctx.RootURL()
+	var redirectURI *url.URL
+
+	if redirectURI, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
+			Error("Error occurred trying to determine the issuer URL")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
 
 	query.Set(queryArgConsentID, consent.ChallengeID.String())
 
-	redirectURI.Path = path.Join(redirectURI.Path, oidc.EndpointPathAuthorization)
 	redirectURI.RawQuery = query.Encode()
+	redirectURI = redirectURI.JoinPath(oidc.EndpointPathAuthorization)
 
 	response := oidc.ConsentPostResponseBody{RedirectURI: redirectURI.String()}
 
