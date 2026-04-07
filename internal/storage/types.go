@@ -21,13 +21,17 @@ type SQLXConnection interface {
 
 	sqlx.Ext
 	sqlx.ExtContext
+
+	Rebind(query string) string
+	GetContext(ctx context.Context, dest any, query string, args ...any) (err error)
+	SelectContext(ctx context.Context, dest any, query string, args ...any) (err error)
 }
 
 // EncryptionChangeKeyFunc handles encryption key changes for a specific table or tables.
-type EncryptionChangeKeyFunc func(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error)
+type EncryptionChangeKeyFunc func(ctx context.Context, conn SQLXConnection, decryptKey, encryptKey []byte) (err error)
 
 // EncryptionCheckKeyFunc handles encryption key checking for a specific table or tables.
-type EncryptionCheckKeyFunc func(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult)
+type EncryptionCheckKeyFunc func(ctx context.Context, provider *SQLProvider, key []byte) (table string, result EncryptionValidationTableResult)
 
 type encOAuth2Session struct {
 	ID      int    `db:"id"`
@@ -80,8 +84,10 @@ func (b *banExpiresExpired) Expiration() time.Time {
 
 // EncryptionValidationResult contains information about the success of a schema encryption validation.
 type EncryptionValidationResult struct {
-	InvalidCheckValue bool
-	Tables            map[string]EncryptionValidationTableResult
+	RequiresEncryptionUpgrade bool
+	InvalidCheckValue         bool
+
+	Tables map[string]EncryptionValidationTableResult
 }
 
 // Success returns true if no validation errors occurred.

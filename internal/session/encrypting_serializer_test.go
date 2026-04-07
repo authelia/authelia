@@ -37,5 +37,5 @@ func TestShouldNotSupportUnencryptedSessionForBackwardCompatibility(t *testing.T
 
 	decodedPayload := session.Dict{}
 	err = serializer.Decode(&decodedPayload, dst)
-	assert.EqualError(t, err, "unable to decrypt session: cipher: message authentication failed")
+	assert.EqualError(t, err, "error decrypting session: error decrypting data: error occurred decrypting the ciphertext: cipher: message authentication failed")
 }

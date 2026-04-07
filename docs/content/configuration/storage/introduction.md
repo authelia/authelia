@@ -41,14 +41,18 @@ This section describes the individual configuration options.
 
 {{< confkey type="string" required="yes" secret="yes" >}}
 
-The encryption key used to encrypt data in the database. We encrypt data by creating a sha256 checksum of the provided
-value, and use that to encrypt the data with the AES-GCM 256bit algorithm.
+The encryption key used to encrypt data in the database.
 
-The minimum length of this key is 20 characters.
-
-It's __strongly recommended__ this is a
+While the minimum length of this key is 20 characters, it's __strongly recommended__ this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
-characters.
+randomly generated characters.
+
+To ensure safe entropy and the specific length of bits needed for the encryption algorithm without loss to the input
+entropy, the encryption key is passed through the HMAC-based Extract-and-Expand Key Derivation Function (HKDF) as
+defined by [RFC 5869](https://datatracker.ietf.org/doc/html/rfc5869).
+
+This key is used to perform application level encryption on sensitive columns within the database using the AES-256-GCM
+algorithm with a random nonce per row and column.
 
 See [security measures](../../overview/security/measures.md#storage-security-measures) for more information.
 
