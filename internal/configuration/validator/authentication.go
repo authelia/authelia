@@ -19,7 +19,7 @@ import (
 
 // ValidateAuthenticationBackend validates and updates the authentication backend configuration.
 func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	if config.LDAP == nil && config.File == nil {
+	if config.LDAP == nil && config.File == nil && config.PostgreSQL == nil {
 		validator.Push(errors.New(errFmtAuthBackendNotConfigured))
 	}
 

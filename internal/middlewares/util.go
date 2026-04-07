@@ -83,6 +83,14 @@ func NewProvidersBasic() Providers {
 // NewAuthenticationProvider returns a new authentication.UserProvider.
 func NewAuthenticationProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider authentication.UserProvider) {
 	switch {
+	case config.AuthenticationBackend.PostgreSQL != nil:
+		p, err := authentication.NewPGUserProvider(*config.AuthenticationBackend.PostgreSQL)
+		if err != nil {
+			// Log without exposing DSN credentials
+			panic("failed to create PostgreSQL user provider: check DSN configuration")
+		}
+
+		return p
 	case config.AuthenticationBackend.File != nil:
 		return authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	case config.AuthenticationBackend.LDAP != nil:
