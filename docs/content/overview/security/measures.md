@@ -29,7 +29,7 @@ protection the Administrator can employ.
 | Customizable |    The measure can be configured by the Administrator to reduce the security    |
 | Configurable |   The measure can be configured by the Administrator to enhance the security    |
 |    Manual    | The measure contains a description of how an Administrator may improve security |
-|    Design    |        The measure is part of how Authelia is designed in a board sense         |
+|    Design    |        The measure is part of how Authelia is designed in a broad sense         |
 
 ## Protection against return oriented programming attacks and general hardening
 
