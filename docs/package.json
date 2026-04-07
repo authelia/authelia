@@ -35,7 +35,7 @@
     "postcss": "8.5.8",
     "postcss-cli": "11.0.1",
     "prettier": "3.8.1",
-    "vite": "8.0.0"
+    "vite": "8.0.7"
   },
   "optionalDependencies": {
     "hugo-extended": "0.158.0"
@@ -56,7 +56,7 @@
       "semver": "7.5.2",
       "yaml": "2.8.3",
       "yauzl": "3.2.1",
-      "vite": "8.0.5"
+      "vite": "8.0.7"
     }
   }
 }
