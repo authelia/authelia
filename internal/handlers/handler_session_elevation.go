@@ -141,6 +141,16 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var linkURL *url.URL
+	if linkURL, err = ctx.IssuerURL(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred determining issuer")
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	var (
 		otp *model.OneTimeCode
 	)
@@ -166,16 +176,6 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	deleteID := base64.RawURLEncoding.EncodeToString(otp.PublicID[:])
-
-	var linkURL *url.URL
-	if linkURL, err = ctx.IssuerURL(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred saving the challenge to the storage backend", userSession.Username)
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
 
 	query := linkURL.Query()
 
