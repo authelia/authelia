@@ -18,18 +18,56 @@ import (
 )
 
 func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name string) (err error) {
-	if _, err = p.setCrypographyKey(ctx, keyTypeCryptographyHMAC, name, sha256.BlockSize); err != nil {
-		return fmt.Errorf("error setting the HMAC key: %w", err)
-	}
+	var tx *sqlx.Tx
 
 	switch name {
 	case "otc":
-		if err = p.truncate(ctx, tableOneTimeCode); err != nil {
+		if tx, err = p.db.Beginx(); err != nil {
+			return fmt.Errorf("error beginning transaction to rotate hmac key: %w", err)
+		}
+
+		if _, err = p.setCrypographyKey(ctx, tx, keyTypeCryptographyHMAC, name, sha512.BlockSize); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+			}
+
+			return fmt.Errorf("error setting the hmac key: %w", err)
+		}
+
+		if err = p.truncate(ctx, tx, tableOneTimeCode); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+			}
+
 			return fmt.Errorf("error truncating one time-codes: %w", err)
 		}
+
+		if err = tx.Commit(); err != nil {
+			return fmt.Errorf("error committing transaction to rotate hmac key: %w", err)
+		}
 	case "otp":
-		if err = p.truncate(ctx, tableTOTPHistory); err != nil {
+		if tx, err = p.db.Beginx(); err != nil {
+			return fmt.Errorf("error beginning transaction to rotate hmac key: %w", err)
+		}
+
+		if _, err = p.setCrypographyKey(ctx, tx, keyTypeCryptographyHMAC, name, sha256.BlockSize); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+			}
+
+			return fmt.Errorf("error setting the hmac key: %w", err)
+		}
+
+		if err = p.truncate(ctx, tx, tableTOTPHistory); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+			}
+
 			return fmt.Errorf("error truncating totp history: %w", err)
+		}
+
+		if err = tx.Commit(); err != nil {
+			return fmt.Errorf("error committing transaction to rotate hmac key: %w", err)
 		}
 	default:
 		return fmt.Errorf("unknown key name '%s'", name)
@@ -601,11 +639,10 @@ func (p *SQLProvider) getHMACOneTimePassword(ctx context.Context) (key []byte, e
 	return p.getHMACKey(ctx, "otp", sha256.BlockSize)
 }
 
-func (p *SQLProvider) setCrypographyKey(ctx context.Context, typ string, name string, size int) (key []byte, err error) {
+func (p *SQLProvider) setCrypographyKey(ctx context.Context, conn SQLXConnection, typ string, name string, size int) (key []byte, err error) {
 	key = make([]byte, size)
 
-	_, err = rand.Read(key)
-	if err != nil {
+	if _, err = rand.Read(key); err != nil {
 		return nil, fmt.Errorf("failed to generate key: %w", err)
 	}
 
@@ -620,7 +657,7 @@ func (p *SQLProvider) setCrypographyKey(ctx context.Context, typ string, name st
 		return nil, fmt.Errorf("invalid key type: %s", typ)
 	}
 
-	if err = p.setEncryptionValue(ctx, encName, key); err != nil {
+	if err = p.setEncryptionValue(ctx, conn, encName, key); err != nil {
 		return nil, err
 	}
 
@@ -630,7 +667,7 @@ func (p *SQLProvider) setCrypographyKey(ctx context.Context, typ string, name st
 func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (key []byte, err error) {
 	if key, err = p.getEncryptionValue(ctx, fmt.Sprintf(fmtNameKeyHMAC, name)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return p.setCrypographyKey(ctx, keyTypeCryptographyHMAC, name, size)
+			return p.setCrypographyKey(ctx, p.db, keyTypeCryptographyHMAC, name, size)
 		}
 
 		return nil, err
@@ -650,12 +687,12 @@ func (p *SQLProvider) getEncryptionValue(ctx context.Context, name string) (valu
 	return p.decrypt(encryptedValue)
 }
 
-func (p *SQLProvider) setEncryptionValue(ctx context.Context, name string, value []byte) (err error) {
+func (p *SQLProvider) setEncryptionValue(ctx context.Context, conn SQLXConnection, name string, value []byte) (err error) {
 	if value, err = p.encrypt(value); err != nil {
 		return err
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlUpsertEncryptionValue, name, value); err != nil {
+	if _, err = conn.ExecContext(ctx, p.sqlUpsertEncryptionValue, name, value); err != nil {
 		return err
 	}
 

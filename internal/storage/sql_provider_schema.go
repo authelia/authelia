@@ -13,14 +13,14 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func (p *SQLProvider) truncate(ctx context.Context, table string) (err error) {
+func (p *SQLProvider) truncate(ctx context.Context, conn SQLXConnection, table string) (err error) {
 	switch p.name {
 	case providerMySQL:
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf("TRUNCATE TABLE %s;", table))
+		_, err = conn.ExecContext(ctx, fmt.Sprintf("TRUNCATE TABLE %s;", table))
 	case providerPostgres:
-		_, err = p.db.ExecContext(ctx, fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE;", table))
+		_, err = conn.ExecContext(ctx, fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE;", table))
 	case providerSQLite:
-		err = p.truncateSQLite3(ctx, table)
+		err = p.truncateSQLite3(ctx, conn, table)
 	default:
 		err = fmt.Errorf("unsupported provider: %s", p.name)
 	}
@@ -32,16 +32,16 @@ func (p *SQLProvider) truncate(ctx context.Context, table string) (err error) {
 	return nil
 }
 
-func (p *SQLProvider) truncateSQLite3(ctx context.Context, table string) (err error) {
-	if _, err = p.db.ExecContext(ctx, fmt.Sprintf("DELETE FROM %s;", table)); err != nil {
+func (p *SQLProvider) truncateSQLite3(ctx context.Context, conn SQLXConnection, table string) (err error) {
+	if _, err = conn.ExecContext(ctx, fmt.Sprintf("DELETE FROM %s;", table)); err != nil {
 		return fmt.Errorf("error occurred performing the delete: %w", err)
 	}
 
-	if _, err = p.db.ExecContext(ctx, "DELETE FROM sqlite_sequence WHERE name = ?;", table); err != nil {
+	if _, err = conn.ExecContext(ctx, "DELETE FROM sqlite_sequence WHERE name = ?;", table); err != nil {
 		return fmt.Errorf("error occurred deleting the start sequence: %w", err)
 	}
 
-	if _, err = p.db.ExecContext(ctx, "VACUUM;"); err != nil {
+	if _, err = conn.ExecContext(ctx, "VACUUM;"); err != nil {
 		return fmt.Errorf("error occurred vacuuming the database: %w", err)
 	}
 
