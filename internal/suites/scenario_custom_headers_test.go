@@ -70,10 +70,10 @@ func (s *CustomHeadersScenario) TestShouldNotForwardCustomHeaderForUnauthenticat
 }
 
 type Headers struct {
-	ForwardedEmail  string `json:"Remote-Email"`
-	ForwardedGroups string `json:"Remote-Groups"`
-	ForwardedName   string `json:"Remote-Name"`
-	ForwardedUser   string `json:"Remote-User"`
+	ForwardedEmail  []string `json:"Remote-Email"`
+	ForwardedGroups []string `json:"Remote-Groups"`
+	ForwardedName   []string `json:"Remote-Name"`
+	ForwardedUser   []string `json:"Remote-User"`
 }
 
 type HeadersPayload struct {
@@ -105,11 +105,16 @@ func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUse
 	payload := HeadersPayload{}
 	s.Require().NoError(json.Unmarshal([]byte(content), &payload))
 
-	groups := strings.Split(payload.Headers.ForwardedGroups, ",")
+	s.Require().NotEmpty(payload.Headers.ForwardedUser)
+	s.Require().NotEmpty(payload.Headers.ForwardedGroups)
+	s.Require().NotEmpty(payload.Headers.ForwardedName)
+	s.Require().NotEmpty(payload.Headers.ForwardedEmail)
 
-	s.Assert().Equal("john", payload.Headers.ForwardedUser)
-	s.Assert().Equal("John Doe", payload.Headers.ForwardedName)
-	s.Assert().Equal("john.doe@authelia.com", payload.Headers.ForwardedEmail)
+	groups := strings.Split(payload.Headers.ForwardedGroups[0], ",")
+
+	s.Assert().Equal("john", payload.Headers.ForwardedUser[0])
+	s.Assert().Equal("John Doe", payload.Headers.ForwardedName[0])
+	s.Assert().Equal("john.doe@authelia.com", payload.Headers.ForwardedEmail[0])
 
 	for _, group := range expectedGroups {
 		s.Assert().Contains(groups, group)

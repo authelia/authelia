@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/spf13/cobra"
 
@@ -46,42 +47,86 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	data, err := utils.GetDirectoryLanguages(filepath.Join(root, pathLocales))
-	if err != nil {
+	var data *utils.Languages
+
+	if data, err = utils.GetDirectoryLanguages(filepath.Join(root, pathLocales)); err != nil {
 		return err
 	}
 
-	fullPathWebI18NIndex := filepath.Join(root, pathWebI18NIndex)
+	fWriteWebI18NIndex := func(path string, data *utils.Languages) (err error) {
+		var (
+			f *os.File
+		)
 
-	var (
-		f *os.File
-	)
+		if f, err = os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0600); err != nil {
+			return fmt.Errorf("failed to write file '%s': %w", path, err)
+		}
 
-	if f, err = os.Create(fullPathWebI18NIndex); err != nil {
-		return fmt.Errorf("failed to create file '%s': %w", fullPathWebI18NIndex, err)
+		defer func() {
+			_ = f.Close()
+		}()
+
+		type valueType struct {
+			Languages    map[string][]string
+			LanguageKeys []string
+
+			Data *utils.Languages
+		}
+
+		values := &valueType{
+			Languages:    map[string][]string{},
+			LanguageKeys: []string{},
+			Data:         data,
+		}
+
+		for _, language := range data.Languages {
+			values.LanguageKeys = append(values.LanguageKeys, language.Locale)
+			values.Languages[language.Locale] = language.Fallbacks
+		}
+
+		values.LanguageKeys = append(values.LanguageKeys, "default")
+		values.Languages["default"] = []string{values.Data.Defaults.Language.Locale}
+
+		sort.Strings(values.LanguageKeys)
+
+		if err = tmplWebI18NIndex.Execute(f, values); err != nil {
+			return err
+		}
+
+		return nil
 	}
 
-	if err = tmplWebI18NIndex.Execute(f, data); err != nil {
+	fWriteDocsDataLanguages := func(path string, data *utils.Languages) (err error) {
+		var (
+			f *os.File
+		)
+
+		if f, err = os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0600); err != nil {
+			return fmt.Errorf("failed to write file '%s': %w", path, err)
+		}
+
+		defer func() {
+			_ = f.Close()
+		}()
+
+		encoder := json.NewEncoder(f)
+
+		encoder.SetIndent("", "    ")
+
+		if err = encoder.Encode(data); err != nil {
+			return fmt.Errorf("failed to encode json data: %w", err)
+		}
+
+		return nil
+	}
+
+	if err = fWriteWebI18NIndex(pathWebI18NIndex, data); err != nil {
 		return err
 	}
 
-	_ = f.Close()
-
-	fullPathDocsDataLanguages := filepath.Join(root, pathDocsDataLanguages)
-
-	if f, err = os.OpenFile(fullPathDocsDataLanguages, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0600); err != nil {
-		return fmt.Errorf("failed to write file '%s': %w", fullPathDocsDataLanguages, err)
+	if err = fWriteDocsDataLanguages(pathDocsDataLanguages, data); err != nil {
+		return err
 	}
-
-	encoder := json.NewEncoder(f)
-
-	encoder.SetIndent("", "    ")
-
-	if err = encoder.Encode(data); err != nil {
-		return fmt.Errorf("failed to encode json data: %w", err)
-	}
-
-	_ = f.Close()
 
 	return nil
 }

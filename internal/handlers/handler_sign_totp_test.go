@@ -840,18 +840,20 @@ func TestSignTOTPHandleGetSessionError(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
 
 			mock.Clock.Set(time.Unix(1701295903, 0))
 			mock.Ctx.Providers.Clock = &mock.Clock
 			mock.Ctx.Configuration.TOTP = schema.DefaultTOTPConfiguration
-			mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.notexample.com")
 
 			tc.handler(mock.Ctx)
 
 			assert.Equal(t, fasthttp.StatusForbidden, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, fmt.Sprintf(`{"status":"KO","message":"%s"}`, tc.message), string(mock.Ctx.Response.Body()))
 
-			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), tc.expected, "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), tc.expected, "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com/'")
 		})
 	}
 }

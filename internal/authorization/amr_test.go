@@ -18,17 +18,22 @@ func TestNewAuthenticationMethodsReferencesFromClaim(t *testing.T) {
 		{
 			"ShouldHandleWebAuthnSoftware",
 			[]string{"pop", "swk", "mca", "mfa", "pwd", "otp"},
-			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnSoftware: true, UsernameAndPassword: true, TOTP: true},
+			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnSoftware: true, UsernameAndPassword: true, TOTP: true, Extra: []string{"mca"}},
 		},
 		{
 			"ShouldHandleWebAuthnHardware",
 			[]string{"pop", "hwk", "mca", "mfa", "pwd", "sms", "user"},
-			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserVerified: true},
+			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserPresence: true},
 		},
 		{
-			"ShouldHandleWebAuthnHardware",
+			"ShouldHandleWebAuthnHardwareAndKBA",
 			[]string{"kba", "pop", "hwk", "mca", "mfa", "pwd", "sms", "user"},
-			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserVerified: true, KnowledgeBasedAuthentication: true},
+			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserPresence: true, KnowledgeBasedAuthentication: true},
+		},
+		{
+			"ShouldHandleWebAuthnHardwareWithPINAndKBA",
+			[]string{"kba", "pop", "hwk", "mca", "mfa", "pwd", "sms", "user", "pin"},
+			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserPresence: true, WebAuthnUserVerified: true, KnowledgeBasedAuthentication: true},
 		},
 	}
 
@@ -36,6 +41,10 @@ func TestNewAuthenticationMethodsReferencesFromClaim(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := authorization.NewAuthenticationMethodsReferencesFromClaim(tc.have)
 			assert.Equal(t, tc.expected, actual)
+
+			out := actual.MarshalRFC8176()
+
+			assert.ElementsMatch(t, tc.have, out)
 		})
 	}
 }

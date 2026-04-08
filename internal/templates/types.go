@@ -78,7 +78,7 @@ type EmailIdentityVerificationJWTValues struct {
 	RevocationLinkText string
 }
 
-// EmailIdentityVerificationOTCValues are the values used for the identity verification OTP templates.
+// EmailIdentityVerificationOTCValues are the values used for the identity verification OTC templates.
 type EmailIdentityVerificationOTCValues struct {
 	Title              string
 	DisplayName        string

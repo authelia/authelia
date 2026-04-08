@@ -670,7 +670,7 @@ func TestShouldErrorOnDuplicateEmail(t *testing.T) {
 		provider := NewFileUserProvider(&config)
 
 		err := provider.StartupCheck()
-		assert.Regexp(t, regexp.MustCompile(`^error loading authentication database: email 'john.doe@authelia.com' is configured for for more than one user \(users are '(harry|john)', '(harry|john)'\) which isn't allowed when email search is enabled$`), err.Error())
+		assert.Regexp(t, regexp.MustCompile(`^error loading authentication database: email 'john.doe@authelia.com' is configured for more than one user \(users are '(harry|john)', '(harry|john)'\) which isn't allowed when email search is enabled$`), err.Error())
 	})
 }
 

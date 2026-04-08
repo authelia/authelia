@@ -100,8 +100,8 @@
         },
         "backup_state": {
           "type": "boolean",
-          "title": "Backup Eligible",
-          "description": "The backup eligible status of this credential."
+          "title": "Backup State",
+          "description": "The backup state of this credential."
         },
         "public_key": {
           "type": "string",

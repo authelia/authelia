@@ -2,6 +2,7 @@ package model
 
 import (
 	"net"
+	"net/url"
 	"testing"
 	"time"
 
@@ -38,7 +39,7 @@ func TestNewIdentityVerification(t *testing.T) {
 			IdentityVerificationClaim{
 				RegisteredClaims: jwt.RegisteredClaims{
 					ID:     "bdc765ef-e1a4-4bf7-a1ef-89102cde635c",
-					Issuer: "Authelia",
+					Issuer: "https://auth.example.com",
 				},
 				Action:   "an_action",
 				Username: "example",
@@ -56,7 +57,7 @@ func TestNewIdentityVerification(t *testing.T) {
 
 			assert.WithinDuration(t, time.Now().Add(tc.expiration), result.ExpiresAt, time.Second)
 
-			claim := result.ToIdentityVerificationClaim()
+			claim := result.ToIdentityVerificationClaim(&url.URL{Scheme: "https", Host: "auth.example.com"})
 
 			assert.Equal(t, tc.expectedClaim.Username, claim.Username)
 			assert.Equal(t, tc.expectedClaim.Action, claim.Action)

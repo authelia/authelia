@@ -9,7 +9,7 @@ import (
 
 // IdentityProviders represents the Identity Providers configuration for Authelia.
 type IdentityProviders struct {
-	OIDC *IdentityProvidersOpenIDConnect `koanf:"oidc" yaml:"oidc,omitempty" toml:"oidc,omitempty" json:"oidc,omitempty"`
+	OIDC *IdentityProvidersOpenIDConnect `koanf:"oidc" yaml:"oidc,omitempty" toml:"oidc,omitempty" json:"oidc,omitempty" jsonschema:"title=OpenID Connect 1.0" jsonschema_description:"OpenID Connect 1.0 configuration."`
 }
 
 // IdentityProvidersOpenIDConnect represents the configuration for OpenID Connect 1.0.
