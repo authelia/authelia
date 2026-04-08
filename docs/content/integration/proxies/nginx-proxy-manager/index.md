@@ -1,6 +1,6 @@
 ---
 title: "NGINX Proxy Manager"
-description: "An integration guide for Authelia and the NGINX Proxy Manager reverse proxy"
+description: "An integration guide for Authelia and NGINX Proxy Manager which is an NGINX-based reverse proxy with a web configuration user interface."
 summary: "A guide on integrating Authelia with NGINX Proxy Manager."
 date: 2024-03-14T06:00:14+11:00
 draft: false

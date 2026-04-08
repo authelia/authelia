@@ -1,6 +1,6 @@
 ---
 title: "NGINX Ingress"
-description: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
+description: "A guide to integrating Authelia with the NGINX Kubernetes Ingress controller including ingress annotations, configuration examples, and variables."
 summary: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Clients"
-description: "OpenID Connect 1.0 Client Integration Guides"
+description: "A list of integration guides for configuring various applications as clients with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO)."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

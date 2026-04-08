@@ -1,6 +1,6 @@
 ---
 title: "Password Policy"
-description: "Password Policy Configuration"
+description: "Configuring the Authelia password policy enforcement including standard policy requirements for length and character types and the zxcvbn strength scoring mode."
 summary: "Configuring the Password Policy."
 date: 2024-03-14T06:00:14+11:00
 draft: false

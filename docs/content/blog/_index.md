@@ -1,6 +1,6 @@
 ---
 title: "Blog"
-description: "The Authelia Blog."
+description: "The Authelia blog featuring release notes, technical articles, setup guides, and project announcements related to authentication and authorization."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 lastmod: 2023-09-07T16:21:44+02:00

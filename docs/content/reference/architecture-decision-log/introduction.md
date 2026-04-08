@@ -1,6 +1,6 @@
 ---
 title: "Architecture Decision Log"
-description: "The Authelia Architecture Decision Log"
+description: "An introduction to the Authelia Architecture Decision Log explaining the purpose, structure, and key sections of architecture decision records."
 summary: "This section contains Architecture Decision Records for Authelia."
 date: 2024-06-16T09:32:59+10:00
 draft: false

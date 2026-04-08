@@ -1,6 +1,6 @@
 ---
 title: "Access Control"
-description: "Configuring the Access Control or RBAC settings."
+description: "Configuring the Authelia access control rules including domain matching, user and group policies, network conditions, URI patterns, and CEL expressions."
 summary: "Authelia supports a comprehensive access control system. This section describes configuring this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

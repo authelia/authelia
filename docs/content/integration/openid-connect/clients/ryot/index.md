@@ -1,6 +1,6 @@
 ---
 title: "Ryot (Roll Your Own Tracker)"
-description: "Integrating Ryot with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Ryot with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-07-26T19:41:59+10:00
 draft: false

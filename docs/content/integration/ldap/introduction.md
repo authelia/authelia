@@ -1,6 +1,6 @@
 ---
 title: "LDAP"
-description: "An introduction into integrating Authelia with LDAP."
+description: "An introduction into integrating Authelia with LDAP covering binding methods, search considerations, and implementation-specific configuration notes."
 summary: "An introduction into integrating Authelia with LDAP."
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Artifact Signing and Provenance"
-description: "An overview of Authelia's Artifact Signing and Provenance."
+description: "An overview of Authelia's artifact signing with GPG keys and SLSA Build Level 3 provenance for verifying the integrity and authenticity of releases."
 summary: "An overview of Authelia's Artifact Signing and Provenance."
 date: 2024-03-14T06:00:14+11:00
 draft: false

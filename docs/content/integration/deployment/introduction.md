@@ -1,6 +1,6 @@
 ---
 title: "Deployment"
-description: "An introduction into integrating Authelia with a product."
+description: "An introduction to deploying Authelia covering the three main deployment methods of Docker, Kubernetes, and bare-metal with getting started guidance."
 summary: "An introduction into integrating Authelia within your architecture."
 date: 2024-03-14T06:00:14+11:00
 draft: false

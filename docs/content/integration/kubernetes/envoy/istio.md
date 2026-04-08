@@ -1,6 +1,6 @@
 ---
 title: "Istio"
-description: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
+description: "A guide to integrating Authelia with the Istio Kubernetes Ingress which uses Envoy and the external authorization filter for authentication."
 summary: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
 date: 2025-06-13T14:12:09+00:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Contributors"
-description: "The Authelia contributors."
+description: "The Authelia contributors who are core team members and maintainers actively developing and maintaining the Authelia project."
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []

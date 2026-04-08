@@ -1,6 +1,6 @@
 ---
 title: "Seafile"
-description: "Trusted Header SSO Integration for Seafile"
+description: "A guide on integrating Authelia with Seafile via the Trusted Header SSO authentication method including configuration examples and tested versions."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

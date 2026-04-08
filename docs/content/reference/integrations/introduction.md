@@ -1,6 +1,6 @@
 ---
 title: "Integrations"
-description: "A collection of integration reference guides"
+description: "An introduction to the Authelia integration reference guides detailing support requirements and general rules for third-party product integrations."
 summary: "This section contains integration reference guides for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

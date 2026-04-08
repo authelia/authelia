@@ -1,6 +1,6 @@
 ---
 title: "NGINX"
-description: "An integration guide for Authelia and the NGINX reverse proxy"
+description: "An integration guide for Authelia and the NGINX reverse proxy including auth_request module configuration examples and deployment considerations."
 summary: "A guide on integrating Authelia with the nginx reverse proxy."
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Validating Forwarded Authentication"
-description: "A reference guide on validating the Forwarded Authentication Integration"
+description: "A reference guide on validating that the Authelia Forwarded Authentication proxy integration is operating correctly after configuration or changes."
 summary: "This section contains reference documentation for validating the Forwarded Authentication Integration."
 date: 2024-03-14T06:00:14+11:00
 draft: false

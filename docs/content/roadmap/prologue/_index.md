@@ -1,6 +1,6 @@
 ---
 title: "Prologue"
-description: "Roadmap Prologue"
+description: "The Authelia roadmap prologue providing introductory context for the planned, in-progress, and completed features on the roadmap."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Brynn Crowley"
-description: "Maintainer of Authelia."
+description: "The contributor profile for Brynn Crowley who is a maintainer of the Authelia open-source authentication and authorization server."
 summary: "Maintainer of Authelia."
 date: 2024-11-09T03:22:03+00:00
 lastmod: 2024-11-09T06:00:14+11:00

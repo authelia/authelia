@@ -1,6 +1,6 @@
 ---
 title: "Access Control Rule Guide"
-description: "A reference guide on access control rule operators"
+description: "A reference guide on the Authelia access control rule operators and multi-level logical criteria including examples of AND and OR list expressions."
 summary: "This section contains a reference guide on access control rule operators."
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Prologue"
-description: "An introduction into the Authelia overview."
+description: "An introduction to Authelia as a 2FA and SSO authentication server providing two-factor authentication, identity verification, and password reset capabilities."
 summary: "An introduction into the Authelia overview."
 date: 2024-03-14T06:00:14+11:00
 draft: false

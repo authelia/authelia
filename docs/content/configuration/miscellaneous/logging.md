@@ -1,6 +1,6 @@
 ---
 title: "Log"
-description: "Configuring the Log Settings."
+description: "Configuring the Authelia logging settings including log level, output format, file path destination, and the keep stdout option for log management."
 summary: "Authelia performs logging to various locations. This section describes how to configure and tune this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

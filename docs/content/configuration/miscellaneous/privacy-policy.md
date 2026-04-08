@@ -1,6 +1,6 @@
 ---
 title: "Privacy Policy"
-description: "Privacy Policy Configuration."
+description: "Configuring the Authelia privacy policy display settings including enabling the privacy policy link, requiring user acceptance, and setting the policy URL."
 summary: "This describes a section of the configuration for enabling a Privacy Policy link display."
 date: 2024-03-14T06:00:14+11:00
 draft: false

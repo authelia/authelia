@@ -1,6 +1,6 @@
 ---
 title: "Prologue"
-description: "An introduction into Authelia reference documentation."
+description: "An introduction into the Authelia reference documentation explaining the purpose of this section and how to navigate the available reference material."
 summary: "This section contains reference documentation for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

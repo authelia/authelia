@@ -1,6 +1,6 @@
 ---
 title: "Active Directory"
-description: ""
+description: "A guide on integrating Authelia with Active Directory as an LDAP authentication backend including configuration examples and default filter settings."
 summary: ""
 date: 2025-05-22T10:12:47+00:00
 draft: false

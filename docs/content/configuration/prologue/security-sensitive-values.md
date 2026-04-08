@@ -1,6 +1,6 @@
 ---
 title: "Security Sensitive Values"
-description: "An introduction into configuring Authelia's security sensitive values."
+description: "A guide to securely configuring Authelia security sensitive values such as secrets, passwords, and keys using the secrets system or environment."
 summary: "An introduction into configuring Authelia's security sensitive values."
 date: 2024-03-31T23:24:06+00:00
 draft: false

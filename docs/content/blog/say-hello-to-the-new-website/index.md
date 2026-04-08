@@ -1,6 +1,6 @@
 ---
 title: "Say hello to the new website 👋"
-description: "Introducing the new website"
+description: "Introducing the new Authelia website which combines the main landing site and documentation into one package using the Hugo Doks theme."
 summary: "Introducing the new website"
 date: 2024-03-14T06:00:14+11:00
 draft: false

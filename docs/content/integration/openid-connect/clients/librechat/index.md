@@ -1,6 +1,6 @@
 ---
 title: "LibreChat"
-description: "Integrating LibreChat with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating LibreChat with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-09-18T18:02:11+10:00
 draft: false

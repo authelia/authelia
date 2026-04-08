@@ -1,6 +1,6 @@
 ---
 title: "Trusted Header SSO"
-description: "Trusted Header SSO Integration"
+description: "An introduction into integrating Authelia with applications using Trusted Header SSO authentication including response headers and terminology."
 summary: "An introduction into integrating Authelia with an application which implements authentication via trusted headers."
 date: 2024-03-14T06:00:14+11:00
 draft: false

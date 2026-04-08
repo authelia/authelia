@@ -1,6 +1,6 @@
 ---
 title: "Passwords"
-description: "A reference guide on passwords and hashing etc"
+description: "A reference guide on the Authelia user password file format, supported hashing algorithms including Argon2, bcrypt, scrypt, and PBKDF2, and their tuning."
 summary: "This section contains reference documentation for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Kubernetes"
-description: "An introduction into integrating Authelia with Kubernetes."
+description: "An introduction into integrating Authelia with Kubernetes including important notes on external traffic policy, service links, and pod security."
 summary: "An introduction into integrating Authelia with Kubernetes."
 date: 2024-03-14T06:00:14+11:00
 draft: false

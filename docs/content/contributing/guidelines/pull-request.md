@@ -1,6 +1,6 @@
 ---
 title: "Pull Request"
-description: "Authelia Development Pull Request Guidelines"
+description: "Authelia development pull request guidelines covering the squash merge policy, force push restrictions, review process, and acceptance requirements."
 summary: "This section covers the pull request guidelines."
 date: 2024-03-14T06:00:14+11:00
 draft: false

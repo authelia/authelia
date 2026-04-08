@@ -1,6 +1,6 @@
 ---
 title: "Matomo"
-description: "Integrating Matomo with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Matomo with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-10-05T22:31:30+10:00
 draft: false

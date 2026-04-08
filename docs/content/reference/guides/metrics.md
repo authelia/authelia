@@ -1,6 +1,6 @@
 ---
 title: "Telemetry"
-description: "A reference guide on the telemetry collection"
+description: "A reference guide on the Authelia telemetry and metrics system including Prometheus integration, recorded metrics, vectored counters, and histograms."
 summary: "This section contains reference documentation for Authelia's telemetry systems."
 date: 2024-03-14T06:00:14+11:00
 draft: false

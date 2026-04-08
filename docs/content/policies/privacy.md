@@ -1,6 +1,6 @@
 ---
 title: "Privacy Policy"
-description: "We do not use cookies and we do not collect any personal data."
+description: "The Authelia privacy policy for the public website which does not use cookies or collect any personal data from website visitors."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

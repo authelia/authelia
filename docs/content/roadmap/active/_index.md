@@ -1,6 +1,6 @@
 ---
 title: "Active"
-description: "Active Roadmap Details"
+description: "The actively developed Authelia roadmap items which are currently being designed or implemented by the development team."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

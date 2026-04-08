@@ -1,6 +1,6 @@
 ---
 title: "File"
-description: "File"
+description: "Configuring the Authelia file-based first factor authentication provider including user database path, search options, and password hashing settings."
 summary: "Authelia supports a file based first factor user provider. This section describes configuring this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

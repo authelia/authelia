@@ -1,6 +1,6 @@
 ---
 title: "Bare-Metal"
-description: "Deploying Authelia on Bare-Metal."
+description: "A guide on deploying Authelia on bare-metal as a daemon including systemd unit file examples and instructions for running behind a reverse proxy."
 summary: "Authelia can be deployed on Bare-Metal as long as it sits behind a proxy."
 date: 2024-03-14T06:00:14+11:00
 draft: false

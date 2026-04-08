@@ -1,6 +1,6 @@
 ---
 title: "ezBookkeeping"
-description: "Integrating ezBookkeeping with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating ezBookkeeping with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-10-25T13:41:05+08:00
 draft: false

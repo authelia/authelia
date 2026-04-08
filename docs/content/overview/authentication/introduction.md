@@ -1,6 +1,6 @@
 ---
 title: "Authentication"
-description: "An overview of a authentication."
+description: "An overview of Authelia's multi-factor authentication including first factor credentials, second factor methods, and configurable authorization policies."
 summary: "An overview of a authentication."
 date: 2024-03-14T06:00:14+11:00
 draft: false

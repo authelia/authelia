@@ -1,6 +1,6 @@
 ---
 title: "Migration"
-description: "Information regarding configuration migration."
+description: "Information regarding Authelia configuration key migrations between versions including automatic migration behavior and a history of all key changes."
 summary: "An introduction into configuring Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

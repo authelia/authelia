@@ -1,6 +1,6 @@
 ---
 title: "Prologue"
-description: "An introduction into contributing to the Authelia project."
+description: "An introduction to contributing to the Authelia project via GitHub issues, discussions, development, documentation, and financial support."
 summary: "An introduction into contributing to the Authelia project."
 date: 2024-03-14T06:00:14+11:00
 draft: false

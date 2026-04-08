@@ -1,6 +1,6 @@
 ---
 title: "Supported Proxies"
-description: "An introduction into the Authelia overview."
+description: "A support matrix for Authelia features across reverse proxies including Traefik, Caddy, Envoy, NGINX, HAProxy, Skipper, and others."
 summary: "An introduction into the Authelia overview."
 date: 2024-03-14T06:00:14+11:00
 draft: false

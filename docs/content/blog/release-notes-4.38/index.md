@@ -1,6 +1,6 @@
 ---
 title: "4.38: Release Notes"
-description: "Authelia 4.38 release notes."
+description: "Authelia 4.38 release notes covering several major roadmap additions including new features and improvements for administrators and users."
 summary: "Authelia 4.38 has been released and the following is a guide on all the massive changes."
 date: 2024-03-14T06:00:14+11:00
 draft: false

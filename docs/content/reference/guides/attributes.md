@@ -1,6 +1,6 @@
 ---
 title: "Attributes"
-description: "This guide highlights information about attributes available via various methods"
+description: "A reference guide on the standard, extra, and custom attributes available in Authelia including their sources, validation constraints, and usage."
 summary: "This guide highlights information about attributes available via various methods."
 date: 2025-02-22T06:40:08+00:00
 draft: false

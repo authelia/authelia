@@ -1,6 +1,6 @@
 ---
 title: "Schemas"
-description: "A reference guide on the schemas provided by Authelia"
+description: "A reference guide on the JSON Schema documents published by Authelia for configuration validation, user databases, and TOTP export file formats."
 summary: "This section contains reference documentation for Authelia's schemas."
 date: 2024-03-14T06:00:14+11:00
 draft: false

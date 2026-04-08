@@ -1,6 +1,6 @@
 ---
 title: "Envoy Gateway"
-description: "A guide to integrating Authelia with the Kubernetes Envoy Gateway."
+description: "A guide to integrating Authelia with the Kubernetes Envoy Gateway implementation using the external authorization filter and Gateway API resources."
 summary: "A guide to integrating Authelia with the Kubernetes Envoy Gateway."
 date: 2025-06-13T14:12:09+00:00
 draft: false
