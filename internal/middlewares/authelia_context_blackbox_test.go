@@ -494,12 +494,12 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 		{
 			"ShouldHandleXForwardedWithNoScheme",
 			map[string]any{
-				fasthttp.HeaderXForwardedProto: "https",
+				fasthttp.HeaderXForwardedProto: nil,
 				fasthttp.HeaderXForwardedHost:  "login.example.com:8080",
 				"X-Forwarded-URI":              "/abc",
 			},
-			"https://login.example.com:8080",
 			"",
+			"missing required X-Forwarded-Proto header",
 		},
 		{
 			"ShouldHandleXForwardedWithNoHost",
