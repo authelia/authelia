@@ -5,6 +5,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -19,23 +20,31 @@ func OAuth2IntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 		responder oauthelia2.IntrospectionResponder
 		err       error
 	)
+	if _, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred determining issuer")
+
+		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
+
+		return
+	}
+
 	if requestID, err = uuid.NewRandom(); err != nil {
 		ctx.Providers.OpenIDConnect.WriteIntrospectionError(ctx, rw, oauthelia2.ErrServerError)
 
 		return
 	}
 
-	ctx.Logger.Debugf("Introspection Request with id '%s' is being processed", requestID)
+	ctx.GetLogger().Debugf("Introspection Request with id '%s' is being processed", requestID)
 
 	if responder, err = ctx.Providers.OpenIDConnect.NewIntrospectionRequest(ctx, req, oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())); err != nil {
-		ctx.Logger.Errorf("Introspection Request with id '%s' failed with error: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))
+		ctx.GetLogger().Errorf("Introspection Request with id '%s' failed with error: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteIntrospectionError(ctx, rw, err)
 
 		return
 	}
 
-	ctx.Logger.Tracef("Introspection Request with id '%s' yielded a %s (active: %t) requested at %s created with request id '%s' on client with id '%s'", requestID, responder.GetTokenUse(), responder.IsActive(), responder.GetAccessRequester().GetRequestedAt().String(), responder.GetAccessRequester().GetID(), responder.GetAccessRequester().GetClient().GetID())
+	ctx.GetLogger().Tracef("Introspection Request with id '%s' yielded a %s (active: %t) requested at %s created with request id '%s' on client with id '%s'", requestID, responder.GetTokenUse(), responder.IsActive(), responder.GetAccessRequester().GetRequestedAt().String(), responder.GetAccessRequester().GetID(), responder.GetAccessRequester().GetClient().GetID())
 
 	ctx.Providers.OpenIDConnect.WriteIntrospectionResponse(ctx, rw, responder)
 }

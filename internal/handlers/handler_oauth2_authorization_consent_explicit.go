@@ -28,7 +28,7 @@ func handleOAuth2AuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, 
 		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, uuid.Nil, rw, r, requester)
 	default:
 		if consentID, err = uuid.ParseBytes(bytesConsentID); err != nil {
-			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.GetConsentPolicy(), bytesConsentID, err)
+			ctx.GetLogger().Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.GetConsentPolicy(), bytesConsentID, err)
 
 			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentMalformedChallengeID)
 
@@ -47,7 +47,7 @@ func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.Autheli
 	)
 
 	if consentID == uuid.Nil {
-		ctx.Logger.Errorf(logFmtErrConsentZeroID, requester.GetID(), client.GetID(), client.GetConsentPolicy())
+		ctx.GetLogger().Errorf(logFmtErrConsentZeroID, requester.GetID(), client.GetID(), client.GetConsentPolicy())
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -55,7 +55,7 @@ func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.Autheli
 	}
 
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
-		ctx.Logger.Errorf(logFmtErrConsentLookupLoadingSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consentID, err)
+		ctx.GetLogger().Errorf(logFmtErrConsentLookupLoadingSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consentID, err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -69,7 +69,7 @@ func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.Autheli
 	}
 
 	if subject != consent.Subject.UUID {
-		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
+		ctx.GetLogger().Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
@@ -83,7 +83,7 @@ func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.Autheli
 	}
 
 	if !consent.CanGrant(ctx.GetClock().Now()) {
-		ctx.Logger.Errorf(logFmtErrConsentCantGrant, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, "explicit")
+		ctx.GetLogger().Errorf(logFmtErrConsentCantGrant, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, "explicit")
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
 
@@ -92,7 +92,7 @@ func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.Autheli
 
 	if !consent.IsAuthorized() {
 		if consent.Responded() {
-			ctx.Logger.Errorf(logFmtErrConsentCantGrantRejected, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID)
+			ctx.GetLogger().Errorf(logFmtErrConsentCantGrantRejected, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID)
 
 			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied)
 
