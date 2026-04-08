@@ -104,8 +104,8 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				require.NoError(t, err)
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.Ctx.Request.Header.Set("X-Original-URL", "123")
-				mock.Ctx.Request.Header.Set("X-Forwarded-Host", "____")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "____")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "____")
 			},
 			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}$`),
 			fasthttp.StatusForbidden,
@@ -115,7 +115,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				assert.Nil(t, us.WebAuthn)
 				assert.NoError(t, err)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "failed to parse X-Original-URL header: parse \"123\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"____://____/\": invalid URI for request")
 			},
 		},
 	}
@@ -130,7 +130,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				mock.Ctx.Configuration.WebAuthn = *tc.config
 			}
 
-			mock.Ctx.Request.Header.Set("X-Original-URL", "https://login.example.com:8080")
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "login.example.com:8080")
 
 			if tc.setup != nil {
 				tc.setup(t, mock)
@@ -309,7 +309,6 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				require.NoError(t, err)
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.Ctx.Request.Header.Set("X-Original-URL", "123")
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "123")
 			},
 			dataReqGood,
@@ -321,7 +320,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				assert.Nil(t, us.WebAuthn)
 				assert.NoError(t, err)
 
-				AssertLogEntryMessageAndError(t, mock.LogEntryN(1), "Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "failed to parse X-Original-URL header: parse \"123\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.LogEntryN(1), "Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"123://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{
@@ -1571,7 +1570,6 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				mock.Ctx.Request.Header.Set("X-Original-URL", "123")
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "123")
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -1584,7 +1582,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.LogEntryN(1), "Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "failed to parse X-Original-URL header: parse \"123\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.LogEntryN(1), "Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"123://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{
@@ -1764,7 +1762,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				mock.Ctx.Request.SetBodyString(tc.have)
 			}
 
-			mock.Ctx.Request.Header.Set("X-Original-URL", "https://login.example.com:8080")
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "login.example.com:8080")
 
 			if tc.setup != nil {
 				tc.setup(t, mock)

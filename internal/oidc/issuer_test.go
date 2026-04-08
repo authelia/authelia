@@ -404,7 +404,6 @@ type issuerTestContext struct {
 	context.Context
 }
 
-func (c *issuerTestContext) RootURL() *url.URL                            { return nil }
 func (c *issuerTestContext) IssuerURL() (*url.URL, error)                 { return nil, nil }
 func (c *issuerTestContext) GetClock() clock.Provider                     { return nil }
 func (c *issuerTestContext) GetRandom() random.Provider                   { return nil }

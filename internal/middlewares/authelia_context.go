@@ -238,17 +238,8 @@ func (ctx *AutheliaCtx) BasePathSlash() string {
 	return strSlash
 }
 
-// RootURL returns the Root URL.
-func (ctx *AutheliaCtx) RootURL() (issuerURL *url.URL) {
-	return &url.URL{
-		Scheme: string(ctx.XForwardedProto()),
-		Host:   string(ctx.GetXForwardedHost()),
-		Path:   ctx.BasePath(),
-	}
-}
-
-// RootURLSlash is the same as RootURL but includes a final slash as well.
-func (ctx *AutheliaCtx) RootURLSlash() (issuerURL *url.URL) {
+// TemplateRootURL is the same as RootURL but includes a final slash as well.
+func (ctx *AutheliaCtx) TemplateRootURL() (issuerURL *url.URL) {
 	return &url.URL{
 		Scheme: string(ctx.XForwardedProto()),
 		Host:   string(ctx.GetXForwardedHost()),
@@ -271,6 +262,24 @@ func (ctx *AutheliaCtx) GetCookieDomainFromTargetURI(targetURI *url.URL) string 
 	}
 
 	return ""
+}
+
+func (ctx *AutheliaCtx) GetCookieConfigFromAutheliaURL(autheliaURL *url.URL) (cookie schema.SessionCookie) {
+	if len(ctx.Configuration.Session.Cookies) == 1 && ctx.Configuration.Session.Cookies[0].AutheliaURL == nil {
+		return ctx.Configuration.Session.Cookies[0]
+	}
+
+	for _, cookie = range ctx.Configuration.Session.Cookies {
+		if cookie.AutheliaURL == nil {
+			continue
+		}
+
+		if autheliaURL.Host == cookie.AutheliaURL.Host {
+			return cookie
+		}
+	}
+
+	return schema.SessionCookie{}
 }
 
 // IsSafeRedirectionTargetURI returns true if the targetURI is within the scope of a cookie domain and secure.
@@ -507,14 +516,11 @@ func (ctx *AutheliaCtx) GetXOriginalURLOrXForwardedURL() (requestURI *url.URL, e
 
 // GetOrigin returns the expected origin for requests from this endpoint.
 func (ctx *AutheliaCtx) GetOrigin() (origin *url.URL, err error) {
-	if origin, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
+	if origin, err = ctx.GetXForwardedURL(); err != nil {
 		return nil, err
 	}
 
-	origin.Path = ""
-	origin.RawPath = ""
-
-	return origin, nil
+	return &url.URL{Scheme: origin.Scheme, Host: origin.Host}, nil
 }
 
 // IssuerURL returns the expected Issuer.
@@ -527,6 +533,22 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 
 	if len(issuerURL.Host) == 0 {
 		return nil, ErrMissingXForwardedHost
+	}
+
+	if issuerURL.Scheme != strProtoHTTPS {
+		return nil, ErrMissingXForwardedProto
+	}
+
+	cookie := ctx.GetCookieConfigFromAutheliaURL(issuerURL)
+
+	if cookie.Domain == "" {
+		return nil, fmt.Errorf("error occurred discovering the issuer: no session cookie configuration matches url '%s'", issuerURL)
+	}
+
+	if cookie.AutheliaURL != nil {
+		return issuerURL, nil
+	} else if utils.HasURIDomainSuffix(issuerURL, cookie.Domain) {
+		return nil, fmt.Errorf("error occurred discovering the issuer: the hostname '%s' does not match the configured domain '%s'", issuerURL.Hostname(), cookie.Domain)
 	}
 
 	return issuerURL, nil

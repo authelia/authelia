@@ -52,9 +52,9 @@ func (s *AuthzSuite) RequireParseRequestURI(rawURL string) *url.URL {
 	return u
 }
 
-func (s *AuthzSuite) ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock *mocks.MockAutheliaCtx) {
-	for i, cookie := range mock.Ctx.Configuration.Session.Cookies {
-		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = s.RequireParseRequestURI(fmt.Sprintf("https://auth.%s", cookie.Domain))
+func (s *AuthzSuite) ConfigureMockSessionProviderWithoutAutheliaURLs(mock *mocks.MockAutheliaCtx) {
+	for i := range mock.Ctx.Configuration.Session.Cookies {
+		mock.Ctx.Configuration.Session.Cookies[i].AutheliaURL = nil
 	}
 
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
@@ -126,8 +126,6 @@ func (s *AuthzSuite) TestShouldNotBeAbleToParseBasicAuth() {
 
 	defer mock.Close()
 
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 	targetURI := s.RequireParseRequestURI("https://test.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
@@ -160,8 +158,6 @@ func (s *AuthzSuite) TestShouldApplyDefaultPolicy() {
 	defer mock.Close()
 
 	setUpMockClock(mock)
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://test.example.com")
 
@@ -239,8 +235,6 @@ func (s *AuthzSuite) TestShouldDenyObject() {
 
 			defer mock.Close()
 
-			s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 			targetURI := s.RequireParseRequestURI(tc.value)
 
 			s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
@@ -269,8 +263,6 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
 	defer mock.Close()
 
 	setUpMockClock(mock)
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
@@ -336,8 +328,6 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 	defer mock.Close()
 
 	setUpMockClock(mock)
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -407,8 +397,6 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 	defer mock.Close()
 
 	setUpMockClock(mock)
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -526,8 +514,6 @@ func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCache
 
 	setUpMockClock(mock)
 
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
@@ -637,8 +623,6 @@ func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached(
 	defer mock.Close()
 
 	setUpMockClock(mock)
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -750,8 +734,6 @@ func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBasicScheme
 
 	setUpMockClock(mock)
 
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
@@ -812,8 +794,6 @@ func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBearerSchem
 
 	defer mock.Close()
 
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
@@ -836,8 +816,6 @@ func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBearerSchem
 
 	defer mock.Close()
 
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
@@ -859,8 +837,6 @@ func (s *AuthzSuite) TestShouldVerifyOneFactorWithErrorToGetDetailsUsingBearerSc
 	mock := mocks.NewMockAutheliaCtx(s.T())
 
 	defer mock.Close()
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -888,8 +864,6 @@ func (s *AuthzSuite) TestShouldVerifyOneFactorWithErrorToGetDetailsUsingBearerSc
 	mock := mocks.NewMockAutheliaCtx(s.T())
 
 	defer mock.Close()
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -919,8 +893,6 @@ func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {
 	setUpMockClock(mock)
 
 	authz := s.Builder().WithConfig(&mock.Ctx.Configuration).Build()
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
@@ -958,8 +930,6 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 	defer mock.Close()
 
 	setUpMockClock(mock)
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -1025,8 +995,6 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 	defer mock.Close()
 
 	setUpMockClock(mock)
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -1145,8 +1113,6 @@ func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
 
 			setUpMockClock(mock)
 
-			s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 			targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
 			s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
@@ -1213,8 +1179,6 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 	defer mock.Close()
 
 	setUpMockClock(mock)
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -1288,8 +1252,6 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfDenyDomain() {
 
 	setUpMockClock(mock)
 
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 	targetURI := s.RequireParseRequestURI("https://deny.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
@@ -1362,8 +1324,6 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 	defer mock.Close()
 
 	setUpMockClock(mock)
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -1442,8 +1402,6 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithoutHeaderNoCookie() {
 
 	defer mock.Close()
 
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
@@ -1474,8 +1432,6 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithEmptyAuthorizationHeader() {
 	mock := mocks.NewMockAutheliaCtx(s.T())
 
 	defer mock.Close()
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -1509,8 +1465,6 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 	defer mock.Close()
 
 	setUpMockClock(mock)
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -1579,8 +1533,6 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() { // TestSho
 
 	defer mock.Close()
 
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
@@ -1608,7 +1560,6 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 	authz := builder.Build()
 
 	mock := mocks.NewMockAutheliaCtx(s.T())
-
 	defer mock.Close()
 
 	setUpMockClock(mock)
@@ -1616,8 +1567,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 	past := mock.Clock.Now().Add(-1 * time.Hour)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -1663,8 +1613,7 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -1712,8 +1661,7 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -1762,8 +1710,7 @@ func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbidden
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://deny.example.com")
 
@@ -1825,8 +1772,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	mock.Ctx.Providers.Clock = &mock.Clock
 	mock.Ctx.Configuration.AuthenticationBackend.RefreshInterval = schema.NewRefreshIntervalDurationNever()
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -1906,8 +1852,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://two-factor.example.com")
 
@@ -1993,8 +1938,7 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://admin.example.com")
 
@@ -2078,8 +2022,7 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://admin.example.com")
 
@@ -2162,8 +2105,7 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -2213,8 +2155,7 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 	setUpMockClock(mock)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
@@ -2284,8 +2225,7 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 	past := mock.Clock.Now().Add(-24 * time.Hour)
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 
@@ -2357,8 +2297,7 @@ func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
 	defer mock.Close()
 
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
-
-	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
 	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
 

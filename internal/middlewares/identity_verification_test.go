@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
@@ -167,12 +168,17 @@ func (s *IdentityVerificationFinishProcess) TearDownTest() {
 	s.mock.Close()
 }
 
-func createToken(ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification model.IdentityVerification) {
+func createToken(t *testing.T, ctx *mocks.MockAutheliaCtx, username, action string, expiresAt time.Time) (data string, verification model.IdentityVerification) {
+	t.Helper()
+
 	verification = model.NewIdentityVerification(uuid.New(), username, action, ctx.Ctx.RemoteIP(), time.Minute*5)
 
 	verification.ExpiresAt = expiresAt
 
-	claims := verification.ToIdentityVerificationClaim()
+	issuerURL, err := ctx.Ctx.IssuerURL()
+	require.NoError(t, err)
+
+	claims := verification.ToIdentityVerificationClaim(issuerURL)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString([]byte(ctx.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret))
@@ -205,7 +211,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotProvided()
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotFoundInDB() {
-	token, verification := createToken(s.mock, "john", "Login",
+	token, verification := createToken(s.T(), s.mock, "john", "Login",
 		time.Now().Add(1*time.Minute))
 
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
@@ -231,7 +237,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsInvalid() {
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenExpired() {
 	args := newArgs(defaultRetriever)
-	token, _ := createToken(s.mock, "john", args.ActionClaim,
+	token, _ := createToken(s.T(), s.mock, "john", args.ActionClaim,
 		time.Now().Add(-1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
@@ -242,7 +248,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenExpired() {
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongAction() {
-	token, verification := createToken(s.mock, "", "",
+	token, verification := createToken(s.T(), s.mock, "", "",
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
@@ -257,7 +263,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongAction() {
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongUser() {
-	token, verification := createToken(s.mock, "harry", "EXP_ACTION",
+	token, verification := createToken(s.T(), s.mock, "harry", "EXP_ACTION",
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
@@ -274,7 +280,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailForWrongUser() {
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemovedFromDB() {
-	token, verification := createToken(s.mock, "john", "EXP_ACTION",
+	token, verification := createToken(s.T(), s.mock, "john", "EXP_ACTION",
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
@@ -293,7 +299,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemoved
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete() {
-	token, verification := createToken(s.mock, "john", "EXP_ACTION",
+	token, verification := createToken(s.T(), s.mock, "john", "EXP_ACTION",
 		time.Now().Add(1*time.Minute))
 	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
 
