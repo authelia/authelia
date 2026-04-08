@@ -891,7 +891,7 @@ func TestStringToRegexpFunc(t *testing.T) {
 		{
 			desc:   "ShouldNotDecodeToInt32",
 			have:   "^(?P<area>api|admin)(one|two)$",
-			want:   ptr(0),
+			want:   ptr(int32(0)),
 			decode: false,
 		},
 		{
