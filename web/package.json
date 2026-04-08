@@ -28,7 +28,7 @@
       "minimatch": "10.2.5",
       "path-to-regexp": "8.4.2",
       "picomatch": "4.0.4",
-      "qs": "6.15.0",
+      "qs": "6.15.1",
       "semver": "7.7.4",
       "vite": "8.0.7",
       "yaml": "2.8.3"
