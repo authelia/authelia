@@ -163,6 +163,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			ctx.GetLogger().WithError(err).Error("Error occurred determining the issuer")
 
 			ctx.Error(err, messageOperationFailed)
+
 			return
 		}
 

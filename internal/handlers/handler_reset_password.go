@@ -38,6 +38,7 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 		ctx.GetLogger().WithError(err).Error("Error occurred determining the issuer")
 
 		ctx.Error(err, messageOperationFailed)
+
 		return
 	}
 
