@@ -30,7 +30,10 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 	body := &bodyRequestPasswordResetDELETE{}
 
 	if err = ctx.ParseBody(body); err != nil {
-		ctx.Error(fmt.Errorf("error occurred parsing reset password delete body: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred parsing reset password delete body")
+
+		ctx.Error(err, messageOperationFailed)
+
 		return
 	}
 
