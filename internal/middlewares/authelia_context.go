@@ -547,7 +547,7 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 
 	if cookie.AutheliaURL != nil {
 		return issuerURL, nil
-	} else if !strings.HasSuffix(strings.ToLower(issuerURL.Hostname()), strings.ToLower(cookie.Domain)) {
+	} else if utils.HasURIDomainSuffix(issuerURL, cookie.Domain) {
 		return nil, fmt.Errorf("error occurred discovering the issuer: the hostname '%s' does not match the configured domain '%s'", issuerURL.Hostname(), cookie.Domain)
 	}
 
