@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -18,6 +19,7 @@ import (
 // ResetPasswordDELETE handler for deleting password reset JWT's.
 func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 	var (
+		issuerURL    *url.URL
 		token        *jwt.Token
 		verification *model.IdentityVerification
 		claims       *model.IdentityVerificationClaim
@@ -32,12 +34,19 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if issuerURL, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred determining the issuer")
+
+		ctx.Error(err, messageOperationFailed)
+		return
+	}
+
 	token, err = jwt.ParseWithClaims(body.Token, &model.IdentityVerificationClaim{},
 		func(token *jwt.Token) (any, error) {
 			return []byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret), nil
 		},
 		jwt.WithIssuedAt(),
-		jwt.WithIssuer("Authelia"),
+		jwt.WithIssuer(issuerURL.String()),
 		jwt.WithStrictDecoding(),
 		ctx.GetClock().GetJWTWithTimeFuncOption(),
 	)
@@ -46,48 +55,48 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 	case err == nil:
 		break
 	case errors.Is(err, jwt.ErrTokenMalformed):
-		ctx.Logger.WithError(err).Error("Error occurred validating the identity verification token as it appears to be malformed, this potentially can occur if you've not copied the full link")
+		ctx.GetLogger().WithError(err).Error("Error occurred validating the identity verification token as it appears to be malformed, this potentially can occur if you've not copied the full link")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	case errors.Is(err, jwt.ErrTokenExpired):
-		ctx.Logger.WithError(err).Error("Error occurred validating the identity verification token validity period as it appears to be expired")
+		ctx.GetLogger().WithError(err).Error("Error occurred validating the identity verification token validity period as it appears to be expired")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	case errors.Is(err, jwt.ErrTokenNotValidYet):
-		ctx.Logger.WithError(err).Error("Error occurred validating the identity verification token validity period as it appears to only be valid in the future")
+		ctx.GetLogger().WithError(err).Error("Error occurred validating the identity verification token validity period as it appears to only be valid in the future")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	case errors.Is(err, jwt.ErrTokenSignatureInvalid):
-		ctx.Logger.WithError(err).Error("Error occurred validating the identity verification token signature")
+		ctx.GetLogger().WithError(err).Error("Error occurred validating the identity verification token signature")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	default:
-		ctx.Logger.WithError(err).Error("Error occurred validating the identity verification token")
+		ctx.GetLogger().WithError(err).Error("Error occurred validating the identity verification token")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if claims, ok = token.Claims.(*model.IdentityVerificationClaim); !ok {
-		ctx.Logger.WithError(fmt.Errorf("failed to map the %T claims to a *model.IdentityVerificationClaim", claims)).Error("Error occurred validating the identity verification token claims")
+		ctx.GetLogger().WithError(fmt.Errorf("failed to map the %T claims to a *model.IdentityVerificationClaim", claims)).Error("Error occurred validating the identity verification token claims")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if verification, err = claims.ToIdentityVerification(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred validating the identity verification token claims as they appear to be malformed")
+		ctx.GetLogger().WithError(err).Error("Error occurred validating the identity verification token claims as they appear to be malformed")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if verification.Action != ActionResetPassword {
-		ctx.Logger.Errorf("Error occurred revoking the identity verification token, the token action '%s' does not match the endpoint action '%s' which is not allowed", claims.Action, ActionResetPassword)
+		ctx.GetLogger().Errorf("Error occurred revoking the identity verification token, the token action '%s' does not match the endpoint action '%s' which is not allowed", claims.Action, ActionResetPassword)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -96,21 +105,21 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 	var full *model.IdentityVerification
 
 	if full, err = ctx.Providers.StorageProvider.LoadIdentityVerification(ctx, verification.JTI.String()); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred looking up identity verification during the revocation phase")
+		ctx.GetLogger().WithError(err).Error("Error occurred looking up identity verification during the revocation phase")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if full.RevokedAt.Valid {
-		ctx.Logger.Error("Error occurred revoking identity verification token as it's already revoked")
+		ctx.GetLogger().Error("Error occurred revoking identity verification token as it's already revoked")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if err = ctx.Providers.StorageProvider.RevokeIdentityVerification(ctx, verification.JTI.String(), model.NewNullIP(ctx.RemoteIP())); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred revoking identity verification when attempting to save the revocation status to the database")
+		ctx.GetLogger().WithError(err).Error("Error occurred revoking identity verification when attempting to save the revocation status to the database")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -164,7 +173,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.Logger.Debugf("Password of user %s has been reset", username)
+	ctx.GetLogger().Debugf("Password of user %s has been reset", username)
 
 	// Reset the request.
 	userSession.PasswordResetUsername = nil
@@ -177,14 +186,14 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	// Send Notification.
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
-		ctx.Logger.Error(err)
+		ctx.GetLogger().Error(err)
 		ctx.ReplyOK()
 
 		return
 	}
 
 	if len(userInfo.Emails) == 0 {
-		ctx.Logger.Error(fmt.Errorf("user %s has no email address configured", username))
+		ctx.GetLogger().Error(fmt.Errorf("user %s has no email address configured", username))
 		ctx.ReplyOK()
 
 		return
@@ -204,11 +213,11 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	addresses := userInfo.Addresses()
 
-	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
+	ctx.GetLogger().Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
 		username, addresses[0].String())
 
 	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
-		ctx.Logger.Error(err)
+		ctx.GetLogger().Error(err)
 		ctx.ReplyOK()
 
 		return
@@ -260,7 +269,7 @@ func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, usern
 	ctx.ReplyOK()
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Unable to get session to clear password reset flag in session for user '%s'", userSession.Username)
+		ctx.GetLogger().WithError(err).Errorf("Unable to get session to clear password reset flag in session for user '%s'", userSession.Username)
 
 		return
 	}
@@ -268,7 +277,7 @@ func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, usern
 	userSession.PasswordResetUsername = &username
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf("Unable to clear password reset flag in session for user '%s'", userSession.Username)
+		ctx.GetLogger().WithError(err).Errorf("Unable to clear password reset flag in session for user '%s'", userSession.Username)
 	}
 }
 
