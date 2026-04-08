@@ -187,7 +187,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	// Send Notification.
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
-		ctx.GetLogger().Error(err)
+		ctx.GetLogger().WithError(err).Error("Error occurred retrieving user details")
 		ctx.ReplyOK()
 
 		return
