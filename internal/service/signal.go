@@ -38,7 +38,7 @@ type Signal struct {
 	quit   chan struct{}
 }
 
-// ServiceType returns the service type for this service, which is always 'server'.
+// ServiceType returns the service type for this service, which is always 'signal'.
 func (service *Signal) ServiceType() string {
 	return serviceTypeSignal
 }

@@ -147,7 +147,7 @@ func (m *FileUserDatabase) loadAliasEmail(k string, user FileUserDatabaseUserDet
 	if len(duplicates) != 0 {
 		duplicates = append(duplicates, k)
 
-		return fmt.Errorf("error loading authentication database: email '%s' is configured for for more than one user (users are '%s') which isn't allowed when email search is enabled", e, strings.Join(duplicates, "', '"))
+		return fmt.Errorf("error loading authentication database: email '%s' is configured for more than one user (users are '%s') which isn't allowed when email search is enabled", e, strings.Join(duplicates, "', '"))
 	}
 
 	if _, ok := m.Users[e]; ok && k != e {

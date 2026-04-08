@@ -132,6 +132,7 @@
         },
         "methods": {
           "$ref": "#/$defs/AccessControlRuleMethods",
+          "title": "Methods",
           "description": "The list of request methods this rule applies to."
         },
         "query": {
@@ -635,6 +636,7 @@
             "scrypt",
             "yescrypt"
           ],
+          "title": "Variant",
           "description": "The Scrypt variant to be used.",
           "default": "scrypt"
         },
@@ -650,7 +652,7 @@
           "type": "integer",
           "maximum": 36028797018963967,
           "minimum": 1,
-          "title": "Key Length",
+          "title": "Block Size",
           "description": "The Scrypt block size to be used.",
           "default": 8
         },
@@ -658,7 +660,7 @@
           "type": "integer",
           "maximum": 1073741823,
           "minimum": 1,
-          "title": "Key Length",
+          "title": "Parallelism",
           "description": "The Scrypt parallelism factor to be used.",
           "default": 1
         },
@@ -789,7 +791,9 @@
           "default": "filter"
         },
         "attributes": {
-          "$ref": "#/$defs/AuthenticationBackendLDAPAttributes"
+          "$ref": "#/$defs/AuthenticationBackendLDAPAttributes",
+          "title": "Attributes",
+          "description": "The LDAP directory server attributes."
         },
         "permit_referrals": {
           "type": "boolean",
@@ -1257,7 +1261,9 @@
     "IdentityProviders": {
       "properties": {
         "oidc": {
-          "$ref": "#/$defs/IdentityProvidersOpenIDConnect"
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnect",
+          "title": "OpenID Connect 1.0",
+          "description": "OpenID Connect 1.0 configuration."
         }
       },
       "additionalProperties": false,
@@ -2815,6 +2821,7 @@
         "key": {
           "type": "string",
           "pattern": "^-{5}BEGIN (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\\n?$",
+          "title": "Key",
           "description": "The Private/Public key material of this JWK in Base64 PEM format."
         },
         "certificate_chain": {
@@ -3321,13 +3328,18 @@
     "ServerEndpointRateLimit": {
       "properties": {
         "enable": {
-          "type": "boolean"
+          "type": "boolean",
+          "title": "Enable",
+          "description": "Enables the rate limiter for this endpoint.",
+          "default": true
         },
         "buckets": {
           "items": {
             "$ref": "#/$defs/ServerEndpointRateLimitBucket"
           },
-          "type": "array"
+          "type": "array",
+          "title": "Buckets",
+          "description": "The list of rate limit buckets."
         }
       },
       "additionalProperties": false,
@@ -3346,10 +3358,12 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Period",
           "description": "The period of time this rate limit bucket applies to."
         },
         "requests": {
           "type": "integer",
+          "title": "Requests",
           "description": "The number of requests allowed in this rate limit bucket for the configured period before the rate limit kicks in."
         }
       },
@@ -3359,22 +3373,34 @@
     "ServerEndpointRateLimits": {
       "properties": {
         "reset_password_start": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Reset Password Start",
+          "description": "Configures the rate limiter which applies to the endpoint that initializes the reset password flow."
         },
         "reset_password_finish": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Reset Password Finish",
+          "description": "Configures the rate limiter which applies to endpoints which consume tokens for the reset password flow."
         },
         "second_factor_totp": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Second Factor TOTP",
+          "description": "Configures the rate limiter which applies to the TOTP endpoint code submissions for the second factor flow."
         },
         "second_factor_duo": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Second Factor Duo",
+          "description": "Configures the rate limiter which applies to the Duo endpoint which initializes the application authorization flow for the second factor flow."
         },
         "session_elevation_start": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Session Elevation Start",
+          "description": "Configures the rate limiter which applies to the Elevated Session endpoint which initializes the code generation and notification for the elevated session flow."
         },
         "session_elevation_finish": {
-          "$ref": "#/$defs/ServerEndpointRateLimit"
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Session Elevation Finish",
+          "description": "Configures the rate limiter which applies to the Elevated Session endpoint which consumes the code for the elevated session flow."
         }
       },
       "additionalProperties": false,
@@ -3395,7 +3421,9 @@
           "default": false
         },
         "rate_limits": {
-          "$ref": "#/$defs/ServerEndpointRateLimits"
+          "$ref": "#/$defs/ServerEndpointRateLimits",
+          "title": "Rate Limits",
+          "description": "Configure the endpoint rate limits."
         },
         "authz": {
           "patternProperties": {
@@ -3578,6 +3606,7 @@
       "properties": {
         "name": {
           "type": "string",
+          "title": "Name",
           "description": "The session cookie name.",
           "default": "authelia_session"
         },
@@ -3588,6 +3617,7 @@
             "strict",
             "none"
           ],
+          "title": "Same Site",
           "description": "The session cookie same site value.",
           "default": "lax"
         },
@@ -3602,6 +3632,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Expiration",
           "description": "The session cookie expiration when remember me is not checked."
         },
         "inactivity": {
@@ -3615,6 +3646,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Inactivity",
           "description": "The session inactivity timeout."
         },
         "remember_me": {
@@ -3628,6 +3660,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Remember Me",
           "description": "The session cookie expiration when remember me is checked."
         },
         "secret": {
@@ -3663,6 +3696,7 @@
       "properties": {
         "name": {
           "type": "string",
+          "title": "Name",
           "description": "The session cookie name.",
           "default": "authelia_session"
         },
@@ -3673,6 +3707,7 @@
             "strict",
             "none"
           ],
+          "title": "Same Site",
           "description": "The session cookie same site value.",
           "default": "lax"
         },
@@ -3687,6 +3722,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Expiration",
           "description": "The session cookie expiration when remember me is not checked."
         },
         "inactivity": {
@@ -3700,6 +3736,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Inactivity",
           "description": "The session inactivity timeout."
         },
         "remember_me": {
@@ -3713,6 +3750,7 @@
               "description": "The duration in seconds"
             }
           ],
+          "title": "Remember Me",
           "description": "The session cookie expiration when remember me is checked."
         },
         "domain": {
@@ -3747,7 +3785,7 @@
         },
         "port": {
           "type": "integer",
-          "title": "Host",
+          "title": "Port",
           "description": "The redis server port.",
           "default": 6379
         },
@@ -3799,10 +3837,14 @@
           "description": "The minimum idle connections that should be open to redis."
         },
         "tls": {
-          "$ref": "#/$defs/TLS"
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The TLS configuration for the redis server."
         },
         "high_availability": {
-          "$ref": "#/$defs/SessionRedisHighAvailability"
+          "$ref": "#/$defs/SessionRedisHighAvailability",
+          "title": "High Availability",
+          "description": "The redis high availability configuration."
         }
       },
       "additionalProperties": false,
@@ -3823,8 +3865,8 @@
         },
         "sentinel_password": {
           "type": "string",
-          "title": "Sentinel Username",
-          "description": "The username for the sentinel instance."
+          "title": "Sentinel Password",
+          "description": "The password for the sentinel instance."
         },
         "route_by_latency": {
           "type": "boolean",
@@ -3945,7 +3987,9 @@
           "description": "The timeout for the database connection."
         },
         "tls": {
-          "$ref": "#/$defs/TLS"
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The TLS configuration for the SQL Server."
         }
       },
       "additionalProperties": false,
@@ -3989,7 +4033,9 @@
           "description": "The timeout for the database connection."
         },
         "tls": {
-          "$ref": "#/$defs/TLS"
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The TLS configuration for the SQL Server."
         },
         "schema": {
           "type": "string",
@@ -4061,7 +4107,9 @@
           "description": "The address of the PostgreSQL Server."
         },
         "tls": {
-          "$ref": "#/$defs/TLS"
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The TLS configuration for the PostgreSQL Server."
         }
       },
       "additionalProperties": false,
@@ -4353,10 +4401,12 @@
         },
         "selection_criteria": {
           "$ref": "#/$defs/WebAuthnSelectionCriteria",
+          "title": "Selection Criteria",
           "description": "WebAuthn Authenticator selection criteria settings."
         },
         "metadata": {
           "$ref": "#/$defs/WebAuthnMetadata",
+          "title": "Metadata",
           "description": "WebAuthn Metadata Service settings."
         }
       },
@@ -4418,14 +4468,14 @@
         },
         "validate_entry": {
           "type": "boolean",
-          "title": "Filtering",
+          "title": "Validate Entry",
           "description": "WebAuthn Authenticator metadata entry validation requires the AAGUID exists as a MDS3 registered entry.",
           "default": true
         },
         "validate_entry_permit_zero_aaguid": {
           "type": "boolean",
-          "title": "Filtering",
-          "description": "WebAuthn Authenticator metadata entry validation zero AAGUID's can be skipped'.",
+          "title": "Validate Entry Permit Zero AAGUID",
+          "description": "WebAuthn Authenticator metadata entry validation zero AAGUID's can be skipped.",
           "default": true
         },
         "validate_status": {
