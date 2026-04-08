@@ -2,7 +2,7 @@
 title: "authelia storage encryption rotate hmac otc"
 description: "Reference for the authelia storage encryption rotate hmac otc command."
 lead: ""
-date: 2026-04-03T20:58:18+11:00
+date: 2026-04-08T18:46:07+10:00
 draft: false
 images: []
 weight: 905
@@ -38,7 +38,7 @@ authelia storage encryption rotate hmac otc --encryption-key b3453fde-ecc2-4a1f-
 ### Options
 
 ```
-      --force   force the rotation without confirmation
+  -f, --force   force the rotation without confirmation
   -h, --help    help for otc
 ```
 

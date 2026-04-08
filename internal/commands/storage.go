@@ -222,7 +222,7 @@ func newStorageEncryptRotateHMACOTCCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().Bool(cmdFlagNameForce, false, "force the rotation without confirmation")
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
 
 	return cmd
 }
@@ -239,7 +239,7 @@ func newStorageEncryptRotateHMACOTPCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().Bool(cmdFlagNameForce, false, "force the rotation without confirmation")
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
 
 	return cmd
 }
