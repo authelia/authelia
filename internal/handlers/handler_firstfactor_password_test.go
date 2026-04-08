@@ -964,7 +964,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://example.com/consent/openid/decision?flow=openid_connect&flow_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c"})
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://login.example.com:8080/consent/openid/decision?flow=openid_connect&flow_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c"})
 }
 
 func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLoginBadForm() {
@@ -1139,7 +1139,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds1FA() {
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://example.com/api/oidc/authorization?consent_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c&grant_type=authorization_code"})
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://login.example.com:8080/api/oidc/authorization?consent_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c&grant_type=authorization_code"})
 }
 
 type FirstFactorReauthenticateSuite struct {

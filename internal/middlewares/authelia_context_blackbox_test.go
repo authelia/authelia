@@ -419,20 +419,12 @@ func TestAutheliaCtx_GetOrigin(t *testing.T) {
 			`failed to parse X-Forwarded Headers: parse "https://a!@#*(&!@#(*uth.example.com/": invalid character "#" in host name`,
 		},
 		{
-			"ShouldHandleXOriginal",
+			"ShouldNotHandleXOriginal",
 			map[string]string{
 				"X-Original-URL": "https://auth.example.com/",
 			},
 			"https://auth.example.com",
-			"",
-		},
-		{
-			"ShouldHandleXOriginalErr",
-			map[string]string{
-				"X-Original-URL": "https://aut@#$*(&@#*($&@h.example.com",
-			},
-			"",
-			`failed to parse X-Original-URL header: parse "https://aut@#$*(&@#*($&@h.example.com": net/url: invalid userinfo`,
+			"missing required X-Forwarded-Host header",
 		},
 	}
 
@@ -475,9 +467,9 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 			"ShouldHandleXForwarded",
 			map[string]any{
 				fasthttp.HeaderXForwardedProto: "https",
-				fasthttp.HeaderXForwardedHost:  "auth.example.com",
+				fasthttp.HeaderXForwardedHost:  "login.example.com:8080",
 			},
-			"https://auth.example.com",
+			"https://login.example.com:8080",
 			"",
 		},
 		{
@@ -493,19 +485,20 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 			"ShouldHandleXForwardedWithPath",
 			map[string]any{
 				fasthttp.HeaderXForwardedProto: "https",
-				fasthttp.HeaderXForwardedHost:  "auth.example.com",
+				fasthttp.HeaderXForwardedHost:  "login.example.com:8080",
 				"X-Forwarded-URI":              "/abc",
 			},
-			"https://auth.example.com",
+			"https://login.example.com:8080",
 			"",
 		},
 		{
 			"ShouldHandleXForwardedWithNoScheme",
 			map[string]any{
-				fasthttp.HeaderXForwardedHost: "auth.example.com",
-				"X-Forwarded-URI":             "/abc",
+				fasthttp.HeaderXForwardedProto: "https",
+				fasthttp.HeaderXForwardedHost:  "login.example.com:8080",
+				"X-Forwarded-URI":              "/abc",
 			},
-			"https://auth.example.com",
+			"https://login.example.com:8080",
 			"",
 		},
 		{

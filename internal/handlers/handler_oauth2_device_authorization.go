@@ -55,6 +55,8 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 }
 
 // OAuth2DeviceAuthorizationPUT handles the User Code Flow of the the Device Authorization Flow.
+//
+//nolint:gocyclo
 func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		requester oauthelia2.DeviceAuthorizeRequester

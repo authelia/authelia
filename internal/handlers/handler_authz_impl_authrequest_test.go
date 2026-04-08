@@ -37,8 +37,8 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsDeny() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, pairURI := range []urlpair{
-				{s.RequireParseRequestURI("https://one-factor.example.com"), s.RequireParseRequestURI("https://auth.example.com/")},
-				{s.RequireParseRequestURI("https://one-factor.example.com/subpath"), s.RequireParseRequestURI("https://auth.example.com/")},
+				{s.RequireParseRequestURI("https://one-factor.example.com"), s.RequireParseRequestURI("https://login.example.com:8080/")},
+				{s.RequireParseRequestURI("https://one-factor.example.com/subpath"), s.RequireParseRequestURI("https://login.example.com:8080/")},
 				{s.RequireParseRequestURI("https://one-factor.example2.com"), s.RequireParseRequestURI("https://auth.example2.com/")},
 				{s.RequireParseRequestURI("https://one-factor.example2.com/subpath"), s.RequireParseRequestURI("https://auth.example2.com/")},
 			} {
@@ -48,12 +48,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsDeny() {
 					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, pairURI.TargetURI, true, false)
 
@@ -158,10 +153,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsAllow() {
 					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -184,10 +176,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					s.setRequest(mock.Ctx, method, targetURI, true, false)
 
@@ -197,7 +186,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 						assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 						assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation))
 					} else {
-						expected := s.RequireParseRequestURI("https://auth.example.com/")
+						expected := s.RequireParseRequestURI("https://login.example.com:8080/")
 
 						query := expected.Query()
 						query.Set(queryArgRD, targetURI.String())
@@ -248,8 +237,6 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 					mock.Ctx.Configuration.AccessControl.DefaultPolicy = testBypass
 					mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&mock.Ctx.Configuration)
 
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
-
 					mock.Ctx.Request.Header.Set(testXOriginalMethod, method)
 					mock.Ctx.Request.Header.SetBytesKV([]byte(testXOriginalUrl), tc.uri)
 
@@ -276,10 +263,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllow() {
 					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestExtAuthz(mock.Ctx, method, targetURI, true, false)
 
@@ -308,10 +292,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsAllowXHR() 
 							authz := s.Builder().Build()
 
 							mock := mocks.NewMockAutheliaCtx(t)
-
 							defer mock.Close()
-
-							s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 							setRequestExtAuthz(mock.Ctx, method, targetURI, x, x)
 
@@ -336,10 +317,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleExtAuthzAllMethodsWithMethods
 					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestExtAuthz(mock.Ctx, method, targetURI, true, false)
 
@@ -366,10 +344,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleForwardAuthAllMethodsAllow() 
 					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestForwardAuth(mock.Ctx, method, targetURI, true, false)
 
@@ -398,10 +373,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleForwardAuthAllMethodsAllowXHR
 							authz := s.Builder().Build()
 
 							mock := mocks.NewMockAutheliaCtx(t)
-
 							defer mock.Close()
-
-							s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 							setRequestForwardAuth(mock.Ctx, method, targetURI, x, x)
 
@@ -426,10 +398,7 @@ func (s *AuthRequestAuthzSuite) TestShouldNotHandleForwardAuthAllMethodsWithMeth
 					authz := s.Builder().Build()
 
 					mock := mocks.NewMockAutheliaCtx(t)
-
 					defer mock.Close()
-
-					s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 					setRequestForwardAuth(mock.Ctx, method, targetURI, true, false)
 
