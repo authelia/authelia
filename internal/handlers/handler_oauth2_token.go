@@ -29,6 +29,14 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 		return
 	}
 
+	if _, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred determining issuer")
+
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Error occurred determining issuer"))
+
+		return
+	}
+
 	client, ok := requester.GetClient().(oidc.Client)
 	if !ok {
 		err = oauthelia2.ErrServerError.WithDebug("The requester contained an unknown client implementation")

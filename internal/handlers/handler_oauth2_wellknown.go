@@ -24,7 +24,7 @@ func WellKnownOAuthAuthorizationServerGET(ctx *middlewares.AutheliaCtx) {
 		err    error
 	)
 	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred determining issuer")
+		ctx.GetLogger().WithError(err).Errorf("Error occurred determining issuer")
 
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
@@ -56,7 +56,7 @@ func WellKnownOAuthAuthorizationServerGET(ctx *middlewares.AutheliaCtx) {
 		strategy := ctx.Providers.OpenIDConnect.GetJWTStrategy(ctx)
 
 		if metadata.SignedMetadata, _, err = strategy.Encode(ctx, claims, jwt.WithHeaders(headers)); err != nil {
-			ctx.Logger.WithError(err).Errorf("Error occurred signing metadata")
+			ctx.GetLogger().WithError(err).Errorf("Error occurred signing metadata")
 
 			ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
@@ -65,7 +65,7 @@ func WellKnownOAuthAuthorizationServerGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.ReplyJSON(metadata, fasthttp.StatusOK); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred encoding JSON response")
+		ctx.GetLogger().WithError(err).Error("Error occurred encoding JSON response")
 
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
