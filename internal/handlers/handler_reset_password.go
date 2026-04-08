@@ -187,14 +187,14 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	// Send Notification.
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
-		ctx.GetLogger().WithError(err).Error("Error occurred retrieving user details")
+		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": username}).Error("Error occurred retrieving user details")
 		ctx.ReplyOK()
 
 		return
 	}
 
 	if len(userInfo.Emails) == 0 {
-		ctx.GetLogger().Error(fmt.Errorf("user %s has no email address configured", username))
+		ctx.GetLogger().WithFields(map[string]any{"username": username}).Error("Error occurred retrieving user details: user has no email address configured")
 		ctx.ReplyOK()
 
 		return
