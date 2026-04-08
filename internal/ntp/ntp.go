@@ -7,6 +7,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 )
@@ -15,6 +16,7 @@ import (
 func NewProvider(config *schema.NTP) *Provider {
 	return &Provider{
 		config: config,
+		clock:  clock.New(),
 		log:    logging.Logger(),
 	}
 }
@@ -23,7 +25,7 @@ func NewProvider(config *schema.NTP) *Provider {
 func (p *Provider) StartupCheck() (err error) {
 	var offset time.Duration
 
-	if offset, err = p.GetOffset(); err != nil {
+	if offset, err = p.offset(); err != nil {
 		p.log.WithError(err).Warnf("Could not determine the clock offset due to an error")
 
 		return nil
@@ -36,8 +38,7 @@ func (p *Provider) StartupCheck() (err error) {
 	return nil
 }
 
-// GetOffset returns the current offset for this provider.
-func (p *Provider) GetOffset() (offset time.Duration, err error) {
+func (p *Provider) offset() (offset time.Duration, err error) {
 	var conn net.Conn
 
 	if conn, err = net.Dial(p.config.Address.Network(), p.config.Address.NetworkAddress()); err != nil {
@@ -45,8 +46,8 @@ func (p *Provider) GetOffset() (offset time.Duration, err error) {
 	}
 
 	defer func() {
-		if closeErr := conn.Close(); closeErr != nil {
-			p.log.WithError(err).Error("Error occurred closing connection with NTP sever")
+		if err := conn.Close(); err != nil {
+			p.log.WithError(err).Error("Error occurred closing connection with NTP server")
 		}
 	}()
 
@@ -54,26 +55,34 @@ func (p *Provider) GetOffset() (offset time.Duration, err error) {
 		return offset, fmt.Errorf("error occurred setting connection deadline: %w", err)
 	}
 
-	version := ntpV4
+	v := v4
 	if p.config.Version == 3 {
-		version = ntpV3
+		v = v3
 	}
 
-	req := &ntpPacket{LeapVersionMode: ntpLeapVersionClientMode(version)}
+	t1 := p.clock.Now()
+
+	t1Seconds, t1Fraction := timeToSecondsAndFraction(t1)
+
+	req := &packet{
+		LeapVersionMode: leapVersionClientMode(v),
+		TxTimeSeconds:   t1Seconds,
+		TxTimeFraction:  t1Fraction,
+	}
 
 	if err = binary.Write(conn, binary.BigEndian, req); err != nil {
 		return offset, fmt.Errorf("error occurred writing ntp packet request to the connection: %w", err)
 	}
 
-	now := time.Now()
+	r := &packet{}
 
-	resp := &ntpPacket{}
-
-	if err = binary.Read(conn, binary.BigEndian, resp); err != nil {
+	if err = binary.Read(conn, binary.BigEndian, r); err != nil {
 		return offset, fmt.Errorf("error occurred reading ntp packet response to the connection: %w", err)
 	}
 
-	ntpTime := ntpPacketToTime(resp)
+	t2 := secondsAndFractionToTime(r.RxTimeSeconds, r.RxTimeFraction)
+	t3 := secondsAndFractionToTime(r.TxTimeSeconds, r.TxTimeFraction)
+	t4 := p.clock.Now()
 
-	return calcOffset(now, ntpTime), nil
+	return calcOffset(t1, t2, t3, t4), nil
 }
