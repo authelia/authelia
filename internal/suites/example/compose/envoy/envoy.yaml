@@ -224,7 +224,7 @@ static_resources:
                   address:
                     socket_address:
                       address: 'httpbin'
-                      port_value: 8000
+                      port_value: 8080
     - name: 'nginx-backend'
       connect_timeout: '0.25s'
       type: 'logical_dns'
