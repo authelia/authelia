@@ -479,7 +479,7 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 				fasthttp.HeaderXForwardedHost:  "auth.notexample.com",
 			},
 			"",
-			"error occurred discovering the issuer: no session cookie configuration matches url 'https://auth.notexample.com",
+			"error occurred discovering the issuer: no session cookie configuration matches url 'https://auth.notexample.com'",
 		},
 		{
 			"ShouldHandleXForwardedWithPath",

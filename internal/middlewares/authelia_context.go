@@ -542,7 +542,7 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 	cookie := ctx.GetCookieConfigFromAutheliaURL(issuerURL)
 
 	if cookie.Domain == "" {
-		return nil, fmt.Errorf("error occurred discovering the issuer: no session cookie configuration matches url '%s", issuerURL)
+		return nil, fmt.Errorf("error occurred discovering the issuer: no session cookie configuration matches url '%s'", issuerURL)
 	}
 
 	if cookie.AutheliaURL != nil {
