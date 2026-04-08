@@ -844,7 +844,6 @@ func TestSignTOTPHandleGetSessionError(t *testing.T) {
 			mock.Clock.Set(time.Unix(1701295903, 0))
 			mock.Ctx.Providers.Clock = &mock.Clock
 			mock.Ctx.Configuration.TOTP = schema.DefaultTOTPConfiguration
-			mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 
 			tc.handler(mock.Ctx)
 
