@@ -149,12 +149,12 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 			"ShouldHandleBadCookieDomain",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.notexample.com")
 			},
 			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com/'")
 			},
 		},
 		{
@@ -170,7 +170,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.Ctx.Request.Header.Set("X-Original-URL", "!@NJK#N!@#IKJ!@NJK")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "!@NJK#N!@#IKJ!@NJK")
 			},
 			regexp.MustCompile(`^\{"status":"KO","message":"Authentication failed, please retry later."}`),
 			fasthttp.StatusForbidden,
@@ -181,7 +181,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Original-URL header: parse \"!@NJK#N!@#IKJ!@NJK\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn authentication challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"!@NJK#N!@#IKJ!@NJK://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 	}
@@ -196,7 +196,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				mock.Ctx.Configuration.WebAuthn = *tc.config
 			}
 
-			mock.Ctx.Request.Header.Set("X-Original-URL", "https://login.example.com:8080")
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "login.example.com:8080")
 
 			if tc.setup != nil {
 				tc.setup(t, mock)
@@ -681,13 +681,13 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				mock.Clock.Set(mock.Clock.Now().Add(2 * time.Minute))
 
 				// This malformed URL is chosen to invoke the url.Parse errors.
-				mock.Ctx.Request.Header.Set("X-Original-URL", "!@#*(&jklqnwdkjqwe")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "!@#*(&jklqnwdkjqwe")
 			},
 			dataReqGood,
 			"",
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Original-URL header: parse \"!@#*(&jklqnwdkjqwe\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"!@#*(&jklqnwdkjqwe://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{
@@ -824,7 +824,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				mock.Ctx.Request.SetBodyString(tc.have)
 			}
 
-			mock.Ctx.Request.Header.Set("X-Original-URL", "https://login.example.com:8080")
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "login.example.com:8080")
 
 			if tc.setup != nil {
 				tc.setup(t, mock)

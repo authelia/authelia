@@ -22,6 +22,12 @@ dist/
 /config.yml
 /config.test.yml
 
+# Build Directories and Files
+internal/server/public_html/static/
+internal/server/public_html/favicon.ico
+internal/server/public_html/manifest.json
+internal/server/public_html/robots.txt
+
 .suite
 .kube
 authelia-image-dev.tar

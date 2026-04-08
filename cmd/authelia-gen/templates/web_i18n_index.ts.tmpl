@@ -30,7 +30,7 @@ i18n.use(Backend)
             loadPath: basePath + "/locales/{{"{{lng}}"}}/{{"{{ns}}"}}.json",
         },
         debug: false,
-        defaultNS: "{{ .Defaults.Namespace }}",
+        defaultNS: "{{ .Data.Defaults.Namespace }}",
         detection: {
             caches: ["cookie"],
             cookieMinutes: 365 * 24 * 60,
@@ -40,10 +40,10 @@ i18n.use(Backend)
             order: ["localStorageCustom", "navigator"],
         },
         fallbackLng: {
-            default: ["{{ .Defaults.Language.Locale }}"],
-            {{- range .Languages }}
-            {{- if and (not (eq .Locale "en")) (not (eq (len .Fallbacks) 0)) }}
-            {{ if contains "-" .Locale }}"{{ .Locale }}"{{ else }}{{ .Locale }}{{ end }}: [{{ range $i, $value := .Fallbacks }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
+            {{- range .LanguageKeys }}
+            {{- $fallbacks := index $.Languages . }}
+            {{- if and (not (eq . "en")) (not (eq (len $fallbacks) 0)) }}
+            {{ if contains "-" . }}"{{ . }}"{{ else }}{{ . }}{{ end }}: [{{ range $i, $value := $fallbacks }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
             {{- end }}
             {{- end }}
         },
@@ -53,9 +53,9 @@ i18n.use(Backend)
         load: "all",
         lowerCaseLng: false,
         nonExplicitSupportedLngs: true,
-        ns: [{{ range $i, $value := .Namespaces }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
+        ns: [{{ range $i, $value := .Data.Namespaces }}{{ if eq $i 0 }}"{{ $value }}"{{ else }}, "{{ $value }}"{{ end }}{{ end }}],
         supportedLngs: [
-        	{{- range $i, $value := .Languages }}
+        	{{- range $i, $value := .Data.Languages }}
             "{{ $value.Locale }}",
         	{{- end }}
         ],

@@ -75,12 +75,13 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.Ctx.Request.Header.Set("X-Original-URL", "haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK")
 			},
 			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Original-URL header: parse \"haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK://haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK/\": invalid URI for request")
 			},
 		},
 		{
@@ -99,12 +100,12 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 			&schema.DefaultWebAuthnConfiguration,
 			`{"description":"test"}`,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.notexample.com")
 			},
 			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com/'")
 			},
 		},
 		{
@@ -244,6 +245,8 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 
 			defer mock.Close()
 
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
+
 			if tc.config != nil {
 				mock.Ctx.Configuration.WebAuthn = *tc.config
 			}
@@ -315,12 +318,12 @@ func TestWebAuthnRegistrationDELETE(t *testing.T) {
 			"ShouldErrorBadCookieDomain",
 			&schema.DefaultWebAuthnConfiguration,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.notexample.com")
 			},
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting a WebAuthn registration challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting a WebAuthn registration challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com/'")
 			},
 		},
 	}
@@ -368,7 +371,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 	var (
 		dataPOSTGood        = fmt.Sprintf(dataPOSTFmt, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientDataJSON, "https://login.example.com:8080"))))
-		dataPOSTBadRPIDHash = fmt.Sprintf(dataPOSTFmt, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientDataJSON, "http://example.com"))))
+		dataPOSTBadRPIDHash = fmt.Sprintf(dataPOSTFmt, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientDataJSON, "https://example.com"))))
 	)
 
 	testCases := []struct {
@@ -773,7 +776,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.Ctx.Request.Header.Set("X-Original-URL", "---123=123=1")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "---123=123=1")
 			},
 			dataPOSTGood,
 			`{"status":"KO","message":"Unable to register your security key."}`,
@@ -785,7 +788,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Original-URL header: parse \"---123=123=1\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"---123=123=1://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{
@@ -843,15 +846,15 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadWebAuthnUser(mock.Ctx, exampleDotCom, testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
+						LoadWebAuthnUser(mock.Ctx, "example.com", testUsername).
+						Return(&model.WebAuthnUser{ID: 1, RPID: "example.com", Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
-						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, "example.com", testUsername).
 						Return(nil, nil),
 				)
 
-				mock.Ctx.Request.Header.Del("X-Original-URL")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
 			},
 			dataPOSTBadRPIDHash,
 			`{"status":"KO","message":"Unable to register your security key."}`,
@@ -878,7 +881,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				mock.Ctx.Configuration.WebAuthn = *tc.config
 			}
 
-			mock.Ctx.Request.Header.Set("X-Original-URL", "https://login.example.com:8080")
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "login.example.com:8080")
 
 			if tc.setup != nil {
 				tc.setup(t, mock)

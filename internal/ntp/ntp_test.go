@@ -2,19 +2,22 @@
 package ntp
 
 import (
+	"bytes"
 	"encoding/binary"
 	"net"
+	"regexp"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestShouldCheckNTPV4(t *testing.T) {
-	addr := startMockNTPServer(t, time.Now())
+	addr := testServer(t, clock.New())
 
 	ntp := NewProvider(&schema.NTP{
 		Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, addr.IP.String(), uint16(addr.Port))},
@@ -26,7 +29,7 @@ func TestShouldCheckNTPV4(t *testing.T) {
 }
 
 func TestShouldCheckNTPV3(t *testing.T) {
-	addr := startMockNTPServer(t, time.Now())
+	addr := testServer(t, clock.New())
 
 	ntp := NewProvider(&schema.NTP{
 		Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, addr.IP.String(), uint16(addr.Port))},
@@ -39,15 +42,14 @@ func TestShouldCheckNTPV3(t *testing.T) {
 
 func TestStartupCheck(t *testing.T) {
 	testCases := []struct {
-		name        string
-		setup       func(t *testing.T) *Provider
-		expectErr   bool
-		errContains string
+		name  string
+		setup func(t *testing.T) *Provider
+		err   string
 	}{
 		{
 			"ShouldSucceedWithMockNTPServer",
 			func(t *testing.T) *Provider {
-				addr := startMockNTPServer(t, time.Now())
+				addr := testServer(t, clock.New())
 
 				return NewProvider(&schema.NTP{
 					Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, addr.IP.String(), uint16(addr.Port))},
@@ -55,13 +57,12 @@ func TestStartupCheck(t *testing.T) {
 					MaximumDesync: time.Minute,
 				})
 			},
-			false,
 			"",
 		},
 		{
 			"ShouldErrWhenOffsetTooLarge",
 			func(t *testing.T) *Provider {
-				addr := startMockNTPServer(t, time.Now().Add(time.Hour))
+				addr := testServer(t, clock.NewFixed(time.Now().Add(time.Minute*10)))
 
 				return NewProvider(&schema.NTP{
 					Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, addr.IP.String(), uint16(addr.Port))},
@@ -69,8 +70,7 @@ func TestStartupCheck(t *testing.T) {
 					MaximumDesync: time.Second,
 				})
 			},
-			true,
-			"the system clock is not synchronized accurately enough",
+			"the system clock is not synchronized accurately enough with the configured NTP server",
 		},
 		{
 			"ShouldNotErrWhenConnectionFails",
@@ -81,7 +81,6 @@ func TestStartupCheck(t *testing.T) {
 					MaximumDesync: time.Minute,
 				})
 			},
-			false,
 			"",
 		},
 	}
@@ -92,9 +91,8 @@ func TestStartupCheck(t *testing.T) {
 
 			err := provider.StartupCheck()
 
-			if tc.expectErr {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), tc.errContains)
+			if len(tc.err) > 0 {
+				assert.EqualError(t, err, tc.err)
 			} else {
 				assert.NoError(t, err)
 			}
@@ -104,14 +102,14 @@ func TestStartupCheck(t *testing.T) {
 
 func TestGetOffset(t *testing.T) {
 	testCases := []struct {
-		name      string
-		setup     func(t *testing.T) *Provider
-		expectErr bool
+		name  string
+		setup func(t *testing.T) *Provider
+		err   any
 	}{
 		{
 			"ShouldReturnOffsetFromMockServer",
 			func(t *testing.T) *Provider {
-				addr := startMockNTPServer(t, time.Now())
+				addr := testServer(t, clock.New())
 
 				return NewProvider(&schema.NTP{
 					Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, addr.IP.String(), uint16(addr.Port))},
@@ -119,12 +117,12 @@ func TestGetOffset(t *testing.T) {
 					MaximumDesync: time.Minute,
 				})
 			},
-			false,
+			nil,
 		},
 		{
 			"ShouldReturnOffsetWithV3",
 			func(t *testing.T) *Provider {
-				addr := startMockNTPServer(t, time.Now())
+				addr := testServer(t, clock.New())
 
 				return NewProvider(&schema.NTP{
 					Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, addr.IP.String(), uint16(addr.Port))},
@@ -132,7 +130,7 @@ func TestGetOffset(t *testing.T) {
 					MaximumDesync: time.Minute,
 				})
 			},
-			false,
+			nil,
 		},
 		{
 			"ShouldErrWhenServerUnreachable",
@@ -143,7 +141,7 @@ func TestGetOffset(t *testing.T) {
 					MaximumDesync: time.Minute,
 				})
 			},
-			true,
+			regexp.MustCompile(`^error occurred reading ntp packet response to the connection: read udp \d+.\d+.\d+.\d+:\d+->\d+.\d+.\d+.\d+:\d+: i/o timeout$`),
 		},
 	}
 
@@ -151,10 +149,11 @@ func TestGetOffset(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			provider := tc.setup(t)
 
-			offset, err := provider.GetOffset()
+			offset, err := provider.offset()
 
-			if tc.expectErr {
-				assert.Error(t, err)
+			if tc.err != nil {
+				require.Error(t, err)
+				assert.Regexp(t, tc.err, err.Error())
 			} else {
 				assert.NoError(t, err)
 				assert.Less(t, offset, time.Minute)
@@ -163,7 +162,7 @@ func TestGetOffset(t *testing.T) {
 	}
 }
 
-func startMockNTPServer(t *testing.T, respondTime time.Time) *net.UDPAddr {
+func testServer(t *testing.T, clock clock.Provider) *net.UDPAddr {
 	t.Helper()
 
 	conn, err := net.ListenPacket("udp", "127.0.0.1:0")
@@ -172,9 +171,9 @@ func startMockNTPServer(t *testing.T, respondTime time.Time) *net.UDPAddr {
 	addr := conn.LocalAddr().(*net.UDPAddr)
 
 	go func() {
-		buf := make([]byte, 48)
-
 		for {
+			buf := make([]byte, 48)
+
 			n, clientAddr, err := conn.ReadFrom(buf)
 			if err != nil {
 				return
@@ -184,16 +183,36 @@ func startMockNTPServer(t *testing.T, respondTime time.Time) *net.UDPAddr {
 				continue
 			}
 
-			seconds := uint32(respondTime.Unix() + ntpEpochOffset)
-			fraction := uint32(0)
+			req := &packet{}
 
-			resp := make([]byte, 48)
-			resp[0] = buf[0]
+			if err = binary.Read(bytes.NewReader(buf), binary.BigEndian, req); err != nil {
+				continue
+			}
 
-			binary.BigEndian.PutUint32(resp[40:44], seconds)
-			binary.BigEndian.PutUint32(resp[44:48], fraction)
+			now := clock.Now()
 
-			_, _ = conn.WriteTo(resp, clientAddr)
+			seconds, fraction := timeToSecondsAndFraction(now)
+
+			resp := &packet{
+				LeapVersionMode:    (req.LeapVersionMode & maskVersion) | (leapUnknown << 6) | 4,
+				Stratum:            1,
+				Poll:               req.Poll,
+				Precision:          -20,
+				OriginTimeSeconds:  req.TxTimeSeconds,
+				OriginTimeFraction: req.TxTimeFraction,
+				RxTimeSeconds:      seconds,
+				RxTimeFraction:     fraction,
+				TxTimeSeconds:      seconds,
+				TxTimeFraction:     fraction,
+			}
+
+			var out bytes.Buffer
+
+			if err = binary.Write(&out, binary.BigEndian, resp); err != nil {
+				continue
+			}
+
+			_, _ = conn.WriteTo(out.Bytes(), clientAddr)
 		}
 	}()
 

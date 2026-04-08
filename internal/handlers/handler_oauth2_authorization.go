@@ -109,7 +109,13 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		return
 	}
 
-	issuer = ctx.RootURL()
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred determining the effective issuer", requester.GetID(), client.GetID(), policy.Name)
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the issuer details."))
+
+		return
+	}
 
 	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, policy, provider, userSession, rw, r, requester); handled {
 		return
@@ -170,14 +176,14 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 // OAuth2AuthorizationPOST handles redirecting users to use the GET request to ensure the session cookie is
 // included if available.
 func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+	requester := oauthelia2.NewAuthorizeRequest()
+
 	var err error
 
 	r.Body = http.MaxBytesReader(rw, r.Body, 10<<20)
 
 	if err = r.ParseMultipartForm(5 << 20); err != nil && !errors.Is(err, http.ErrNotMultipart) {
-		requester := oauthelia2.NewAuthorizeRequest()
-
-		ctx.Logger.WithError(err).Errorf("Authorization Request with id '%s' had an error parsing a multipart form.", requester.GetID())
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' had an error parsing a multipart form.", requester.GetID())
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
@@ -186,7 +192,15 @@ func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 
 	query := r.Form
 
-	redirectURL := ctx.RootURL()
+	var redirectURL *url.URL
+
+	if redirectURL, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' had an error determining issuer.", requester.GetID())
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the issuer details."))
+
+		return
+	}
 
 	redirectURL = redirectURL.JoinPath(oidc.EndpointPathAuthorization)
 

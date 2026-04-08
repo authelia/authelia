@@ -92,7 +92,7 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).Return(nil, storage.ErrNoWebAuthnCredential)
+				mock.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).Return(nil, storage.ErrNoWebAuthnCredential)
 			},
 			`{"status":"OK","data":null}`,
 			fasthttp.StatusOK,
@@ -119,12 +119,12 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.Ctx.Request.Header.Set("X-Original-URL", "haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK")
 			},
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials for user 'john': error occurred attempting to retrieve origin", "failed to parse X-Original-URL header: parse \"haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials for user 'john': error occurred attempting to retrieve origin", "failed to parse X-Forwarded Headers: parse \"haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{
@@ -139,7 +139,7 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).Return(nil, fmt.Errorf("bad block"))
+				mock.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).Return(nil, fmt.Errorf("bad block"))
 			},
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusOK,
@@ -159,7 +159,7 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
-				mock.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).Return([]model.WebAuthnCredential{{ID: 1}}, nil)
+				mock.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).Return([]model.WebAuthnCredential{{ID: 1}}, nil)
 			},
 			"{\"status\":\"OK\",\"data\":[{\"id\":1,\"created_at\":\"0001-01-01T00:00:00Z\",\"rpid\":\"\",\"username\":\"\",\"description\":\"\",\"kid\":\"\",\"attestation_type\":\"\",\"attachment\":\"\",\"transports\":null,\"sign_count\":0,\"clone_warning\":false,\"legacy\":false,\"discoverable\":false,\"present\":false,\"verified\":false,\"backup_eligible\":false,\"backup_state\":false,\"public_key\":\"\"}]}",
 			fasthttp.StatusOK,
@@ -217,7 +217,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
-						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
 						Return([]model.WebAuthnCredential{{ID: 1, Username: testUsername}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -249,7 +249,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
-						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
 						Return([]model.WebAuthnCredential{{ID: 1, Username: testUsername}}, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -281,7 +281,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
-						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
 						Return([]model.WebAuthnCredential{{ID: 1, Username: testUsername}, {ID: 2, Description: "abc", Username: testUsername}}, nil),
 				)
 			},
@@ -311,7 +311,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
-						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
 						Return(nil, fmt.Errorf("oops")),
 				)
 			},
@@ -341,13 +341,13 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
 				)
 
-				mock.Ctx.Request.Header.Set("X-Original-URL", "##!@#!@")
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "##!@#!@")
 			},
 			`{"description":"abc"}`,
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred determining the origin for the request", "failed to parse X-Original-URL header: parse \"##!@#!@\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred determining the origin for the request", "failed to parse X-Forwarded Headers: parse \"##!@#!@://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{
@@ -395,7 +395,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername}, nil),
 					mock.StorageMock.
 						EXPECT().
-						LoadWebAuthnCredentialsByUsername(mock.Ctx, exampleDotCom, testUsername).
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
 						Return([]model.WebAuthnCredential{{ID: 1, Username: testUsername}}, nil),
 					mock.StorageMock.
 						EXPECT().

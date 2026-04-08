@@ -47,11 +47,24 @@ type RedirectAuthorizeErrorFieldResponseStrategy struct {
 }
 
 func (s *RedirectAuthorizeErrorFieldResponseStrategy) WriteErrorFieldResponse(ctx context.Context, rw http.ResponseWriter, requester oauthelia2.AuthorizeRequester, rfc *oauthelia2.RFC6749Error) {
+	var (
+		issuer *url.URL
+		err    error
+	)
+
+	ctxx := s.Config.GetContext(ctx)
+
+	if issuer, err = ctxx.IssuerURL(); err != nil {
+		return
+	}
+
 	if rfc == nil {
 		rfc = oauthelia2.ErrServerError
 	}
 
-	query := url.Values{}
+	location := issuer.JoinPath(FrontendEndpointPathConsentCompletion)
+
+	query := location.Query()
 
 	if len(rfc.ErrorField) != 0 {
 		query.Set("error", rfc.ErrorField)
@@ -72,10 +85,6 @@ func (s *RedirectAuthorizeErrorFieldResponseStrategy) WriteErrorFieldResponse(ct
 	if s.Config.GetSendDebugMessagesToClients(ctx) && len(rfc.DebugField) != 0 {
 		query.Set("error_debug", rfc.DebugField)
 	}
-
-	ctxx := s.Config.GetContext(ctx)
-
-	location := ctxx.RootURL().JoinPath(FrontendEndpointPathConsentCompletion)
 
 	location.RawQuery = query.Encode()
 

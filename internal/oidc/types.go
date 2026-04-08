@@ -159,8 +159,8 @@ type Client interface {
 	GetIDTokenSignedResponseKeyID() (kid string)
 	GetIDTokenSignedResponseAlg() (alg string)
 	GetIDTokenEncryptedResponseKeyID() (kid string)
-	GetIDTokenEncryptedResponseAlg() (kid string)
-	GetIDTokenEncryptedResponseEnc() (kid string)
+	GetIDTokenEncryptedResponseAlg() (alg string)
+	GetIDTokenEncryptedResponseEnc() (enc string)
 
 	GetAccessTokenSignedResponseKeyID() (kid string)
 	GetAccessTokenSignedResponseAlg() (alg string)
@@ -178,8 +178,8 @@ type Client interface {
 	GetIntrospectionSignedResponseKeyID() (kid string)
 	GetIntrospectionSignedResponseAlg() (alg string)
 	GetIntrospectionEncryptedResponseKeyID() (kid string)
-	GetIntrospectionEncryptedResponseAlg() (kid string)
-	GetIntrospectionEncryptedResponseEnc() (kid string)
+	GetIntrospectionEncryptedResponseAlg() (alg string)
+	GetIntrospectionEncryptedResponseEnc() (enc string)
 
 	GetRequirePushedAuthorizationRequests() (enforce bool)
 
@@ -210,7 +210,6 @@ type RefreshFlowScopeClient interface {
 
 // Context represents the context implementation that is used by some OpenID Connect 1.0 implementations.
 type Context interface {
-	RootURL() (issuerURL *url.URL)
 	IssuerURL() (issuerURL *url.URL, err error)
 	GetClock() (clock clock.Provider)
 	GetRandom() (random random.Provider)

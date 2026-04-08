@@ -76,7 +76,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			provider   *session.Session
 		)
 
-		baseURL = ctx.RootURLSlash().String()
+		baseURL = ctx.TemplateRootURL().String()
 
 		if provider, err = ctx.GetSessionProvider(); err == nil {
 			domain = provider.Config.Domain
@@ -134,7 +134,7 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 			err      error
 		)
 
-		baseURL = ctx.RootURLSlash().String()
+		baseURL = ctx.TemplateRootURL().String()
 
 		if provider, err = ctx.GetSessionProvider(); err == nil {
 			domain = provider.Config.Domain
@@ -172,7 +172,7 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 	mu := &sync.Mutex{}
 
 	return func(ctx *middlewares.AutheliaCtx) {
-		k := ctx.RootURLSlash().String()
+		k := ctx.TemplateRootURL().String()
 
 		mu.Lock()
 

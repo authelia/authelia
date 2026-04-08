@@ -3,18 +3,20 @@ package ntp
 import (
 	"github.com/sirupsen/logrus"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // Provider type is the NTP provider.
 type Provider struct {
 	config *schema.NTP
+	clock  clock.Provider
 	log    *logrus.Logger
 }
 
-type ntpVersion int
+type version int
 
-type ntpPacket struct {
+type packet struct {
 	LeapVersionMode       uint8
 	Stratum               uint8
 	Poll                  int8

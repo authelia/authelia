@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 	"time"
 
@@ -192,14 +191,18 @@ func handleOAuth2AuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issu
 	var location *url.URL
 
 	if client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
-		location, _ = url.ParseRequestURI(issuer.String())
-		location.Path = path.Join(location.Path, oidc.FrontendEndpointPathConsentDecision)
+		location = &url.URL{
+			Scheme: issuer.Scheme,
+			Host:   issuer.Host,
+			Path:   issuer.Path,
+		}
 
 		query := location.Query()
 		query.Set(queryArgFlow, flowNameOpenIDConnect)
 		query.Set(queryArgFlowID, consent.ChallengeID.String())
 
 		location.RawQuery = query.Encode()
+		location = location.JoinPath(oidc.FrontendEndpointPathConsentDecision)
 
 		ctx.Logger.Debugf(logFmtDbgConsentAuthenticationSufficiency, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String(), "sufficient", client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}))
 	} else {
