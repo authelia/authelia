@@ -2780,16 +2780,6 @@ components:
               description: The default algorithm for the generated configuration.
               type: string
               example: 'SHA1'
-            length:
-              default: 30
-              description: The default period or length of time for the generated configuration.
-              type: integer
-              example: 30
-            digits:
-              default: 6
-              description: The default digits for the generated configuration.
-              type: integer
-              example: 6
             algorithms:
               default:
                 - 'SHA1'
@@ -2799,21 +2789,31 @@ components:
               type: array
               items:
                 type: string
+            length:
+              default: 30
+              description: The default length value for the generated configuration.
+              type: integer
+              example: 30
             lengths:
               default:
-                - 30
-              description: The allowed period or length values for the generated configuration.
+                - 6
+              description: The allowed length values for the generated configuration.
               example:
-                - 30
+                - 6
               type: array
               items:
                 type: integer
+            period:
+              default: 30
+              description: The default period value for the generated configuration.
+              type: integer
+              example: 30
             periods:
               default:
-                - 6
-              description: The allowed digits values for the generated configuration.
+                - 30
+              description: The allowed period values for the generated configuration.
               example:
-                - 6
+                - 30
               type: array
               items:
                 type: integer

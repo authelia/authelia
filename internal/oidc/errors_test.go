@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -69,10 +70,10 @@ func TestRedirectAuthorizeErrorFieldResponseStrategy(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rootURL := &url.URL{Scheme: "https", Host: "auth.example.com"}
+			issuer := &url.URL{Scheme: "https", Host: "auth.example.com"}
 
 			strategy := &RedirectAuthorizeErrorFieldResponseStrategy{
-				Config: &testErrorConfig{rootURL: rootURL, sendDebug: tc.sendDebug},
+				Config: &testErrorConfig{issuer: issuer, sendDebug: tc.sendDebug},
 			}
 
 			rw := httptest.NewRecorder()
@@ -97,7 +98,7 @@ func TestRedirectAuthorizeErrorFieldResponseStrategy(t *testing.T) {
 }
 
 type testErrorConfig struct {
-	rootURL   *url.URL
+	issuer    *url.URL
 	sendDebug bool
 }
 
@@ -106,14 +107,19 @@ func (c *testErrorConfig) GetSendDebugMessagesToClients(_ context.Context) bool 
 }
 
 func (c *testErrorConfig) GetContext(_ context.Context) Context {
-	return &testErrorContext{rootURL: c.rootURL}
+	return &testErrorContext{issuer: c.issuer}
 }
 
 type testErrorContext struct {
 	Context
-	rootURL *url.URL
+
+	issuer *url.URL
 }
 
-func (c *testErrorContext) RootURL() *url.URL {
-	return c.rootURL
+func (c *testErrorContext) IssuerURL() (*url.URL, error) {
+	if c.issuer == nil {
+		return nil, fmt.Errorf("failed")
+	}
+
+	return c.issuer, nil
 }

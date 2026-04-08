@@ -357,7 +357,7 @@ type WebAuthnCredentialData struct {
 	Present         bool       `yaml:"present" json:"present" jsonschema:"title=Present" jsonschema_description:"The user presence status of this credential."`
 	Verified        bool       `yaml:"verified" json:"verified" jsonschema:"title=Verified" jsonschema_description:"The verified status of this credential."`
 	BackupEligible  bool       `yaml:"backup_eligible" json:"backup_eligible" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
-	BackupState     bool       `yaml:"backup_state" json:"backup_state" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
+	BackupState     bool       `yaml:"backup_state" json:"backup_state" jsonschema:"title=Backup State" jsonschema_description:"The backup state of this credential."`
 	PublicKey       string     `yaml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The credential public key."`
 	Attestation     string     `yaml:"attestation" json:"attestation,omitempty" jsonschema:"title=Attestation" jsonschema_description:"The credential attestation information for auditing and validation."`
 }

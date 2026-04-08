@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"net"
+	"net/url"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -37,11 +38,11 @@ type IdentityVerification struct {
 }
 
 // ToIdentityVerificationClaim converts the IdentityVerification into a IdentityVerificationClaim.
-func (v IdentityVerification) ToIdentityVerificationClaim() (claim *IdentityVerificationClaim) {
+func (v IdentityVerification) ToIdentityVerificationClaim(issuer *url.URL) (claim *IdentityVerificationClaim) {
 	return &IdentityVerificationClaim{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        v.JTI.String(),
-			Issuer:    "Authelia",
+			Issuer:    issuer.String(),
 			IssuedAt:  jwt.NewNumericDate(v.IssuedAt),
 			ExpiresAt: jwt.NewNumericDate(v.ExpiresAt),
 		},

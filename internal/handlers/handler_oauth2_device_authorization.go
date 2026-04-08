@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"strings"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -54,6 +55,8 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 }
 
 // OAuth2DeviceAuthorizationPUT handles the User Code Flow of the the Device Authorization Flow.
+//
+//nolint:gocyclo
 func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		requester oauthelia2.DeviceAuthorizeRequester
@@ -74,7 +77,7 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	log := ctx.Logger.WithFields(map[string]any{logging.FieldRequestID: requester.GetID(), logging.FieldClientID: requester.GetClient().GetID()})
+	log := ctx.GetLogger().WithFields(map[string]any{logging.FieldRequestID: requester.GetID(), logging.FieldClientID: requester.GetClient().GetID()})
 
 	log.Debug("Device Authorization Request is processing the User Authorization Flow")
 
@@ -167,7 +170,16 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	issuer := ctx.RootURL()
+	var issuer *url.URL
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		log.
+			WithError(err).
+			Error("Device Authorization Request failed to obtain the issuer during the User Authorization Flow")
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the issuer details."))
+
+		return
+	}
 
 	var details *authentication.UserDetailsExtended
 

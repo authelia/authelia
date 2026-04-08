@@ -64,6 +64,6 @@ mail.example.com:8080 {
 		import tls-transport
 	}
 
-	reverse_proxy /headers httpbin:8000
+	reverse_proxy /headers httpbin:8080
 	reverse_proxy nginx-backend
 }

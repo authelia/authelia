@@ -4,7 +4,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
-	"path"
+	"net/url"
 	"strings"
 
 	"github.com/google/uuid"
@@ -141,6 +141,16 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var linkURL *url.URL
+	if linkURL, err = ctx.IssuerURL(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred determining issuer")
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	var (
 		otp *model.OneTimeCode
 	)
@@ -167,14 +177,12 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 
 	deleteID := base64.RawURLEncoding.EncodeToString(otp.PublicID[:])
 
-	linkURL := ctx.RootURL()
-
 	query := linkURL.Query()
 
 	query.Set("id", deleteID)
 
-	linkURL.Path = path.Join(linkURL.Path, "/revoke/one-time-code")
 	linkURL.RawQuery = query.Encode()
+	linkURL = linkURL.JoinPath("/revoke/one-time-code")
 
 	identity := userSession.Identity()
 

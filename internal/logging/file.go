@@ -51,7 +51,7 @@ func (f *File) Reopen() (err error) {
 	}
 
 	if err = f.file.Close(); err != nil {
-		return fmt.Errorf("error reopning log file: error closing current log file: %w", err)
+		return fmt.Errorf("error reopening log file: error closing current log file: %w", err)
 	}
 
 	f.file = nil
@@ -59,7 +59,7 @@ func (f *File) Reopen() (err error) {
 	var file *os.File
 
 	if file, err = os.OpenFile(FormatFilePath(f.name, time.Now()), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
-		return fmt.Errorf("error reopning log file: error opening new log file: %w", err)
+		return fmt.Errorf("error reopening log file: error opening new log file: %w", err)
 	}
 
 	f.file = file

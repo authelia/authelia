@@ -62,6 +62,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 			},
 			Domain:                "example.com",
 			DefaultRedirectionURL: &url.URL{Scheme: "https", Host: "www.example.com"},
+			AutheliaURL:           &url.URL{Scheme: "https", Host: "login.example.com:8080"},
 		},
 		{
 			SessionCookieCommon: schema.SessionCookieCommon{
@@ -71,6 +72,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 			},
 			Domain:                "example2.com",
 			DefaultRedirectionURL: &url.URL{Scheme: "https", Host: "www.example2.com"},
+			AutheliaURL:           &url.URL{Scheme: "https", Host: "auth.example2.com"},
 		},
 	}
 
@@ -201,8 +203,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.Authorizer = authorization.NewAuthorizer(
 		&config)
 
-	providers.SessionProvider = session.NewProvider(
-		config.Session, nil)
+	providers.SessionProvider = session.NewProvider(config.Session, nil)
 
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, &mockAuthelia.Clock)
 
@@ -221,11 +222,9 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	}
 
 	request := &fasthttp.RequestCtx{}
-	// Set a cookie to identify this client throughout the test.
-	// request.Request.Header.SetCookie("authelia_session", "client_cookie").
 
-	// Set X-Forwarded-Host for compatibility with multi-root-domain implementation.
-	request.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
+	request.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	request.Request.Header.Set(fasthttp.HeaderXForwardedHost, "login.example.com:8080")
 
 	ctx := middlewares.NewAutheliaCtx(request, config, providers)
 	mockAuthelia.Ctx = ctx
