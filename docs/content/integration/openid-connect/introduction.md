@@ -525,7 +525,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                                             [OAuth 2.0 Bearer Tokens]                                              |   Complete    |                                           [RFC6750]                                           |
 |                 [OAuth 2.0 Assertion Framework for Client Authentication and Authorization Grants]                 |   Complete    |                                           [RFC7521]                                           |
 |                                            [OAuth 2.0 Private Key JWT]                                             |   Complete    |                                           [RFC7521]                                           |
-|                                    OAuth 2.0 JWT-Secured Authorization Request                                     |    Partial    |                                           [RFC9101]                                           |
+|                                    OAuth 2.0 JWT-Secured Authorization Request                                     |   Complete    |                                           [RFC9101]                                           |
 |                                OAuth 2.0 Authorization Server Issuer Identification                                |   Complete    |                                           [RFC9207]                                           |
 |                                       OAuth 2.0 Protected Resource Metadata                                        |     None      |                                           [RFC9728]                                           |
 |                                           OAuth 2.0 Resource Indicators                                            |     None      |                                           [RFC8707]                                           |
@@ -541,10 +541,10 @@ either implemented, have our eye on, or are refusing to implement.
 
 [^1]: It should be noted the key type `Symmetric` nearly always uses a symmetric shared secret derived from the client
       secret, which means the client secret itself must be stored using a plaintext format.
-[^2]: This algorithm is strongly discouraged due to concerns about its security and it is only supported for the purpose
-      of compatibility.
+[^2]: This algorithm is strongly discouraged due to concerns about its security and it is only supported for
+      compatibility.
 [^3]: This is [OpenID Certified™] by it being used within one or more conformance suites which have been
-      [OpenID Certified™]. This specification may not have a direct certification process but reasonable should be
+      [OpenID Certified™]. This specification may not have a direct certification process but reasonably should be
       assumed to be certified by the requirements of another certification process.
 [^4]: The Resource Owner Password Grant is currently
       [heavily discouraged and deprecated](https://oauth.net/2/grant-types/password/) by the OAuth 2.0 specifications

@@ -13,7 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
-// FileNotifier a notifier to send emails to SMTP servers.
+// FileNotifier a notifier to write notifications to a file.
 type FileNotifier struct {
 	path   string
 	append bool
