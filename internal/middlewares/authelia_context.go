@@ -264,6 +264,24 @@ func (ctx *AutheliaCtx) GetCookieDomainFromTargetURI(targetURI *url.URL) string 
 	return ""
 }
 
+func (ctx *AutheliaCtx) GetCookieConfigFromAutheliaURL(autheliaURL *url.URL) (cookie schema.SessionCookie) {
+	if len(ctx.Configuration.Session.Cookies) == 1 && ctx.Configuration.Session.Cookies[0].AutheliaURL == nil {
+		return ctx.Configuration.Session.Cookies[0]
+	}
+
+	for _, cookie = range ctx.Configuration.Session.Cookies {
+		if cookie.AutheliaURL == nil {
+			continue
+		}
+
+		if autheliaURL.Host == cookie.AutheliaURL.Host {
+			return cookie
+		}
+	}
+
+	return schema.SessionCookie{}
+}
+
 // IsSafeRedirectionTargetURI returns true if the targetURI is within the scope of a cookie domain and secure.
 func (ctx *AutheliaCtx) IsSafeRedirectionTargetURI(targetURI *url.URL) bool {
 	if targetURI == nil {
@@ -524,26 +542,16 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 		return nil, ErrMissingXForwardedProto
 	}
 
-	var provider *session.Session
+	cookie := ctx.GetCookieConfigFromAutheliaURL(issuerURL)
 
-	if provider, err = ctx.GetSessionProvider(); err != nil {
-		return nil, err
+	if cookie.Domain == "" {
+		return nil, fmt.Errorf("error occurred discovering the issuer: no session cookie configuration matches url '%s", issuerURL)
 	}
 
-	autheliaURL := provider.Config.AutheliaURL
-
-	if autheliaURL != nil {
-		if !(strings.EqualFold(autheliaURL.Scheme, issuerURL.Scheme) && !strings.EqualFold(autheliaURL.Host, issuerURL.Host)) {
-			return nil, fmt.Errorf("failed to find issuer URL")
-		}
-
-		return autheliaURL, nil
-	} else if !strings.HasSuffix(issuerURL.Host, provider.Config.Domain) {
-		return nil, fmt.Errorf(
-			"failed to find issuer URL, the domain '%s' does not match the configured domain '%s'",
-			issuerURL.Host,
-			provider.Config.Domain,
-		)
+	if cookie.AutheliaURL != nil {
+		return issuerURL, nil
+	} else if !strings.HasSuffix(strings.ToLower(issuerURL.Hostname()), strings.ToLower(cookie.Domain)) {
+		return nil, fmt.Errorf("error occurred discovering the issuer: the hostname '%s' does not match the configured domain '%s'", issuerURL.Hostname(), cookie.Domain)
 	}
 
 	return issuerURL, nil
