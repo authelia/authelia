@@ -86,12 +86,12 @@ including the extra attributes which may not exist unless they are configured.
 
 The file contains hashed passwords instead of plain text passwords for security reasons.
 
-You can use Authelia binary or docker image to generate the hash of any password. The [crypt hash generate] command has
+You can use Authelia binary or docker image to generate the hash of any password. The [crypto hash generate] command has
 many supported algorithms. To view them run the `authelia crypto hash generate --help` command. To see the tunable
 options for an algorithm subcommand include that command before `--help`. For example for the [Argon2] algorithm use the
 `authelia crypto hash generate argon2 --help` command to see the available options.
 
-Passwords passed to [crypt hash generate] should be single quoted if using the `--password` parameter instead of the
+Passwords passed to [crypto hash generate] should be single quoted if using the `--password` parameter instead of the
 console prompt, especially if it has  special characters to prevent parameter substitution.
 
 To generate an [Argon2] hash with the docker image interactively just run:
@@ -285,5 +285,5 @@ This table suggests the parameters for the [SHA2 Crypt] algorithm:
 
 [RFC9106 Parameter Choice]: https://datatracker.ietf.org/doc/html/rfc9106#section-4
 [YAML]: https://yaml.org/
-[crypt hash generate]: ../cli/authelia/authelia_crypto_hash_generate.md
+[crypto hash generate]: ../cli/authelia/authelia_crypto_hash_generate.md
 [Password Hashing Competition]: https://en.wikipedia.org/wiki/Password_Hashing_Competition
