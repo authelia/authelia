@@ -1220,6 +1220,20 @@ func (mr *MockStorageMockRecorder) SchemaEncryptionCheckKey(ctx, verbose any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaEncryptionCheckKey", reflect.TypeOf((*MockStorage)(nil).SchemaEncryptionCheckKey), ctx, verbose)
 }
 
+// SchemaEncryptionRotateHMACKey mocks base method.
+func (m *MockStorage) SchemaEncryptionRotateHMACKey(ctx context.Context, name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SchemaEncryptionRotateHMACKey", ctx, name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SchemaEncryptionRotateHMACKey indicates an expected call of SchemaEncryptionRotateHMACKey.
+func (mr *MockStorageMockRecorder) SchemaEncryptionRotateHMACKey(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SchemaEncryptionRotateHMACKey", reflect.TypeOf((*MockStorage)(nil).SchemaEncryptionRotateHMACKey), ctx, name)
+}
+
 // SchemaLatestVersion mocks base method.
 func (m *MockStorage) SchemaLatestVersion() (int, error) {
 	m.ctrl.T.Helper()
