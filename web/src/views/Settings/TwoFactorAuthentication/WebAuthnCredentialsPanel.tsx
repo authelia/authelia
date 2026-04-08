@@ -19,6 +19,7 @@ interface Props {
     info?: UserInfo;
     credentials: undefined | WebAuthnCredential[];
     handleRefreshState: () => void;
+    onRegistrationSuccess?: () => void;
 }
 
 const WebAuthnCredentialsPanel = function (props: Props) {
@@ -237,6 +238,7 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                     handleResetState();
                     props.handleRefreshState();
                 }}
+                onRegistrationSuccess={props.onRegistrationSuccess}
             />
             <WebAuthnCredentialInformationDialog
                 credential={
