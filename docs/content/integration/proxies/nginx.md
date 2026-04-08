@@ -39,7 +39,13 @@ You need the following to run __Authelia__ with [NGINX]:
 * [NGINX] must be built with the `http_set_misc` module or the `nginx-mod-http-set-misc` package if you want to use the
   legacy method and preserve more than one query parameter when redirected to the portal due to a limitation in [NGINX]
 
-## Trusted Proxies
+## Trusted Proxies and Integration Security
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+In addition to this section which is important to read, you should read the
+[Validating Forwarded Authentication](../../reference/guides/validating-forwarded-authentication.md) reference guide
+and perform the validation steps as part of your regular security validation routine when using this integration.
+{{< /callout >}}
 
 *__Important:__ You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
 Especially if you have never read it before.*
@@ -392,7 +398,7 @@ use cases.
 #### proxy.conf
 
 The following is an example `proxy.conf`. The important directives include the `real_ip` directives which you should read
-[Trusted Proxies](#trusted-proxies) section to understand, or set the `X-Forwarded-Proto`, `X-Forwarded-Host`,
+[Trusted Proxies](#trusted-proxies-and-integration-security) section to understand, or set the `X-Forwarded-Proto`, `X-Forwarded-Host`,
 `X-Forwarded-URI`, and `X-Forwarded-For` headers.
 
 ##### Standard Variant
@@ -421,7 +427,7 @@ proxy_buffers 64 256k;
 
 ## Trusted Proxies Configuration
 ## Please read the following documentation before configuring this:
-##     https://www.authelia.com/integration/proxies/nginx/#trusted-proxies
+##     https://www.authelia.com/integration/proxies/nginx/#trusted-proxies-and-integration-security
 # set_real_ip_from 10.0.0.0/8;
 # set_real_ip_from 172.16.0.0/12;
 # set_real_ip_from 192.168.0.0/16;

@@ -118,10 +118,10 @@ type AuthenticationBackendFilePasswordBcrypt struct {
 
 // AuthenticationBackendFilePasswordScrypt represents the scrypt hashing settings.
 type AuthenticationBackendFilePasswordScrypt struct {
-	Variant     string `koanf:"variant" yaml:"variant,omitempty" toml:"variant,omitempty" json:"variant,omitempty" jsonschema:"default=scrypt,enum=scrypt,enum=yescrypt,titleVariant" jsonschema_description:"The Scrypt variant to be used."`
+	Variant     string `koanf:"variant" yaml:"variant,omitempty" toml:"variant,omitempty" json:"variant,omitempty" jsonschema:"default=scrypt,enum=scrypt,enum=yescrypt,title=Variant" jsonschema_description:"The Scrypt variant to be used."`
 	Iterations  int    `koanf:"iterations" yaml:"iterations" toml:"iterations" json:"iterations" jsonschema:"default=16,minimum=1,maximum=58,title=Iterations" jsonschema_description:"The Scrypt iterations to be used."`
-	BlockSize   int    `koanf:"block_size" yaml:"block_size" toml:"block_size" json:"block_size" jsonschema:"default=8,minimum=1,maximum=36028797018963967,title=Key Length" jsonschema_description:"The Scrypt block size to be used."`
-	Parallelism int    `koanf:"parallelism" yaml:"parallelism" toml:"parallelism" json:"parallelism" jsonschema:"default=1,minimum=1,maximum=1073741823,title=Key Length" jsonschema_description:"The Scrypt parallelism factor to be used."`
+	BlockSize   int    `koanf:"block_size" yaml:"block_size" toml:"block_size" json:"block_size" jsonschema:"default=8,minimum=1,maximum=36028797018963967,title=Block Size" jsonschema_description:"The Scrypt block size to be used."`
+	Parallelism int    `koanf:"parallelism" yaml:"parallelism" toml:"parallelism" json:"parallelism" jsonschema:"default=1,minimum=1,maximum=1073741823,title=Parallelism" jsonschema_description:"The Scrypt parallelism factor to be used."`
 	KeyLength   int    `koanf:"key_length" yaml:"key_length" toml:"key_length" json:"key_length" jsonschema:"default=32,minimum=1,maximum=137438953440,title=Key Length" jsonschema_description:"The Scrypt key length to be used."`
 	SaltLength  int    `koanf:"salt_length" yaml:"salt_length" toml:"salt_length" json:"salt_length" jsonschema:"default=16,minimum=8,maximum=1024,title=Salt Length" jsonschema_description:"The Scrypt salt length to be used."`
 }
@@ -145,7 +145,7 @@ type AuthenticationBackendLDAP struct {
 	GroupsFilter       string `koanf:"groups_filter" yaml:"groups_filter,omitempty" toml:"groups_filter,omitempty" json:"groups_filter,omitempty" jsonschema:"title=Groups Filter" jsonschema_description:"The LDAP filter used to search for group objects."`
 	GroupSearchMode    string `koanf:"group_search_mode" yaml:"group_search_mode,omitempty" toml:"group_search_mode,omitempty" json:"group_search_mode,omitempty" jsonschema:"default=filter,enum=filter,enum=memberof,title=Groups Search Modes" jsonschema_description:"The LDAP group search mode used to search for group objects."`
 
-	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" yaml:"attributes,omitempty" toml:"attributes,omitempty" json:"attributes,omitempty"`
+	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" yaml:"attributes,omitempty" toml:"attributes,omitempty" json:"attributes,omitempty" jsonschema:"title=Attributes" jsonschema_description:"The LDAP directory server attributes."`
 
 	PermitReferrals           bool `koanf:"permit_referrals" yaml:"permit_referrals" toml:"permit_referrals" json:"permit_referrals" jsonschema:"default=false,title=Permit Referrals" jsonschema_description:"Enables chasing LDAP referrals."`
 	PermitUnauthenticatedBind bool `koanf:"permit_unauthenticated_bind" yaml:"permit_unauthenticated_bind" toml:"permit_unauthenticated_bind" json:"permit_unauthenticated_bind" jsonschema:"default=false,title=Permit Unauthenticated Bind" jsonschema_description:"Enables omission of the password to perform an unauthenticated bind."`

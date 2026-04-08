@@ -53,7 +53,7 @@ func (p *LDAPUserProvider) logStartupCheckDiscovery(discovery LDAPDiscovery) {
 	if discovery.Vendor.Name == ldapVendorNameMicrosoftCorporation {
 		p.log.Debugf("LDAP Discovery. LDAP Version: %s; Controls: %s; Extensions: %s; Features: %s; SASL Mechanisms: %s; Vendor Name: %s; Domain Functionality Level: %d, Forest Functionality Level: %d", version, controls, extensions, features, saslMechanisms, discovery.Vendor.Name, discovery.Vendor.DomainFunctionalLevel, discovery.Vendor.ForestFunctionalLevel)
 	} else {
-		p.log.Debugf("LDAP Discovery. LDAP Version: %s; Controls: %s; Extensions: %s; Features: %s; SASL Mechanisms: %s; Vendor Name: %s; Vendor Version; %s", version, controls, extensions, features, saslMechanisms, discovery.Vendor.Name, discovery.Vendor.Version)
+		p.log.Debugf("LDAP Discovery. LDAP Version: %s; Controls: %s; Extensions: %s; Features: %s; SASL Mechanisms: %s; Vendor Name: %s; Vendor Version: %s", version, controls, extensions, features, saslMechanisms, discovery.Vendor.Name, discovery.Vendor.Version)
 	}
 
 	if discovery.Successful {

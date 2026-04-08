@@ -40,7 +40,13 @@ You need the following to run __Authelia__ with [Caddy]:
 
 * [Caddy] [v2.5.1](https://github.com/caddyserver/caddy/releases/tag/v2.5.1) or greater
 
-## Trusted Proxies
+## Trusted Proxies and Integration Security
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+In addition to this section which is important to read, you should read the
+[Validating Forwarded Authentication](../../reference/guides/validating-forwarded-authentication.md) reference guide
+and perform the validation steps as part of your regular security validation routine when using this integration.
+{{< /callout >}}
 
 *__Important:__ You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
 Especially if you have never read it before.*
@@ -152,7 +158,7 @@ support to ensure the basic example covers your use case in a secure way.
 ```caddyfile
 ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies-and-integration-security
 # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 
 # Authelia Portal.
@@ -183,7 +189,7 @@ nextcloud.{{< sitevar name="domain" nojs="example.com" >}} {
 ```caddyfile
 ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies-and-integration-security
 # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 
 {{</* sitevar name="domain" nojs="example.com" */>}} {
@@ -241,7 +247,7 @@ preferred in *most* situations. If you are unsure of what you're doing please do
 ```caddyfile
 ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
 ## It is important to read the following document before enabling this section:
-##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
+##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies-and-integration-security
 # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 
 # Authelia Portal.

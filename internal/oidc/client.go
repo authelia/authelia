@@ -387,7 +387,7 @@ func (c *RegisteredClient) GetUserinfoEncryptedResponseEnc() (enc string) {
 }
 
 // GetIntrospectionSignedResponseKeyID returns the IntrospectionSignedResponseKeyID.
-func (c *RegisteredClient) GetIntrospectionSignedResponseKeyID() (alg string) {
+func (c *RegisteredClient) GetIntrospectionSignedResponseKeyID() (kid string) {
 	return c.IntrospectionSignedResponseKeyID
 }
 
@@ -402,8 +402,7 @@ func (c *RegisteredClient) GetIntrospectionSignedResponseAlg() (alg string) {
 
 // GetIntrospectionEncryptedResponseKeyID returns the specific key identifier used to satisfy JWE requirements for
 // OAuth 2.0 JWT introspection response specifications. If unspecified the other available parameters will be
-//
-//	// utilized to select an appropriate key.
+// utilized to select an appropriate key.
 func (c *RegisteredClient) GetIntrospectionEncryptedResponseKeyID() (kid string) {
 	return c.IntrospectionEncryptedResponseKeyID
 }

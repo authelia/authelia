@@ -493,7 +493,7 @@ func (p *LDAPUserProvider) getUserProfileResultToProfile(username string, entry 
 		return nil, fmt.Errorf("user '%s' must have value for attribute '%s'",
 			username, p.config.Attributes.Username)
 	default:
-		return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
+		return nil, fmt.Errorf("user '%s' has %d values for attribute '%s' but the attribute must be a single value attribute",
 			username, n, p.config.Attributes.Username)
 	}
 
@@ -874,16 +874,16 @@ func (p *LDAPUserProvider) pwdModify(client LDAPExtendedClient, pwdModifyRequest
 func parseAttributeURI(username, attributeName, attribute, value string) (uri *url.URL, err error) {
 	if uri, err = url.ParseRequestURI(value); err == nil {
 		if uri.Scheme != "http" && uri.Scheme != "https" {
-			err = fmt.Errorf("invalid URL scheme '%s' for profile attribute", uri.Scheme)
+			err = fmt.Errorf("invalid URL scheme '%s' for the attribute", uri.Scheme)
 		}
 	}
 
 	if err != nil {
 		if attributeName == "" {
-			return nil, fmt.Errorf("error occurred parsing user details for '%s': failed to parse the %s attribute with value '%s': %w", username, attribute, value, err)
+			return nil, fmt.Errorf("error occurred parsing user details for '%s': failed to parse the '%s' attribute with value '%s': %w", username, attribute, value, err)
 		}
 
-		return nil, fmt.Errorf("error occurred parsing user details for '%s': failed to parse the %s attribute '%s' with value '%s': %w", username, attributeName, attribute, value, err)
+		return nil, fmt.Errorf("error occurred parsing user details for '%s': failed to parse the '%s' ('%s') attribute with value '%s': %w", username, attribute, attributeName, value, err)
 	}
 
 	return uri, nil

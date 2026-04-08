@@ -34,5 +34,5 @@ func TestNewFile(t *testing.T) {
 
 	assert.NoError(t, os.Chmod(filepath.Join(dir, "authelia2.log"), 0000))
 
-	assert.EqualError(t, l.Reopen(), fmt.Sprintf("error reopning log file: error opening new log file: open %s: permission denied", filepath.Join(dir, "authelia2.log")))
+	assert.EqualError(t, l.Reopen(), fmt.Sprintf("error reopening log file: error opening new log file: open %s: permission denied", filepath.Join(dir, "authelia2.log")))
 }
