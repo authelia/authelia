@@ -40,7 +40,7 @@ func (d *Production) Call(ctx middlewares.Context, userSession *session.UserSess
 	case "OK":
 		switch response.Code {
 		// The status codes 200 and 404 are the only status codes that are expected to be returned with a response.
-		case fasthttp.StatusOK, fasthttp.StatusNotFound:
+		case fasthttp.StatusOK, fasthttp.StatusNotFound, 0:
 			ctx.GetLogger().
 				WithFields(map[string]any{"status": response.Stat, "status_code": response.Code, "message": response.Message, "message_detail": response.MessageDetail, "username": userSession.Username}).
 				Trace("Duo Push Auth success response.")
