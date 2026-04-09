@@ -53,7 +53,7 @@
     "overrides": {
       "brace-expansion": "1.1.13",
       "picomatch": "4.0.4",
-      "semver": "7.5.2",
+      "semver": "7.5.4",
       "yaml": "2.8.3",
       "yauzl": "3.2.1",
       "vite": "8.0.8"
