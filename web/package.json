@@ -139,7 +139,7 @@
     "vite-plugin-checker": "0.12.0",
     "vite-plugin-istanbul": "8.0.0",
     "vite-plugin-svgr": "5.2.0",
-    "vitest": "4.1.3",
+    "vitest": "4.1.4",
     "vitest-preview": "0.0.3"
   }
 }
