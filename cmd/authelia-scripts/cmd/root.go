@@ -19,7 +19,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 	cmd.PersistentFlags().Bool("buildkite", false, "Set CI flag for Buildkite")
 	cmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Set the log level for the command")
 
-	cmd.AddCommand(newBootstrapCmd(), newBuildCmd(), newCleanCmd(), newCICmd(), newDockerCmd(), newServeCmd(), newSuitesCmd(), newUnitTestCmd(), newXFlagsCmd())
+	cmd.AddCommand(newBootstrapCmd(), newBuildCmd(), newCleanCmd(), newCICmd(), newDockerCmd(), newServeCmd(), newSuitesCmd(), newUnitTestCmd(), newFuzzTestCmd(), newXFlagsCmd())
 
 	cobra.OnInitialize(cmdRootInit)
 
