@@ -37,7 +37,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.1
 	github.com/prometheus/client_golang v1.23.2
-	github.com/rpadovani/sqlx-v2 v0.1.1
+	github.com/rpadovani/sqlx-v2 v0.1.2
 	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
