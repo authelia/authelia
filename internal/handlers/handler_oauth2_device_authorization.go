@@ -9,6 +9,7 @@ import (
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/x/errorsx"
 	"github.com/google/uuid"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -27,8 +28,16 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 		err error
 	)
+	if _, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Error occurred determining issuer")
+
+		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
+
+		return
+	}
+
 	if requester, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeRequest(ctx, r); err != nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 			Error("Device Authorization Request failed with error during the Device Authorization Flow")
 
@@ -37,7 +46,7 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 		return
 	}
 
-	log := ctx.Logger.WithFields(map[string]any{logging.FieldRequestID: requester.GetID(), logging.FieldClientID: requester.GetClient().GetID(), logging.FieldScope: strings.Join(requester.GetRequestedScopes(), " ")})
+	log := ctx.GetLogger().WithFields(map[string]any{logging.FieldRequestID: requester.GetID(), logging.FieldClientID: requester.GetClient().GetID(), logging.FieldScope: strings.Join(requester.GetRequestedScopes(), " ")})
 
 	log.Debug("Device Authorization Request is processing the Device Authorization Flow")
 
@@ -68,7 +77,7 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		err error
 	)
 	if requester, err = ctx.Providers.OpenIDConnect.NewRFC8628UserAuthorizeRequest(ctx, r); err != nil {
-		ctx.Logger.
+		ctx.GetLogger().
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 			Error("Device Authorization Request failed with error during the User Authorization Flow")
 
