@@ -24,7 +24,7 @@
     "thulite": "2.6.5"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "0.5.2",
+    "@changesets/changelog-github": "0.6.0",
     "@changesets/cli": "2.29.8",
     "@fullhuman/postcss-purgecss": "8.0.0",
     "autoprefixer": "10.4.27",
