@@ -60,6 +60,14 @@ steps:
     command: "lint.sh -reporter=github-check -filter-mode=nofilter -fail-level=error"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 
+  - label: ":nodejs: Package Validation [docs]"
+    command: "pkgvalidate.sh docs"
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
+
+  - label: ":nodejs: Package Validation [templates]"
+    command: "pkgvalidate.sh templates"
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
+
   - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci --buildkite"
     agents:

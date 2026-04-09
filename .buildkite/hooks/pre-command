@@ -13,7 +13,7 @@ INTEGRATION() {
 }
 
 if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
-  cd web && pnpm install && cd ../
+  pnpm -C web install
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
