@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.16](https://github.com/authelia/authelia/releases/tag/v4.39.16)
+  - [v4.39.17](https://github.com/authelia/authelia/releases/tag/v4.39.17)
 - [Semaphore]
   - [v2.13.14](https://github.com/semaphoreui/semaphore/releases/tag/v2.13.14)
 
