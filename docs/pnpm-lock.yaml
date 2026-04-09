@@ -7,7 +7,7 @@ settings:
 overrides:
   brace-expansion: 1.1.13
   picomatch: 4.0.4
-  semver: 7.5.4
+  semver: 7.7.4
   yaml: 2.8.3
   yauzl: 3.2.1
   vite: 8.0.8
@@ -1589,10 +1589,6 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lru-cache@6.0.0:
-    resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
-    engines: {node: '>=10'}
-
   make-dir@2.1.0:
     resolution: {integrity: sha512-LS9X+dc8KLxXCb8dni79fLIIUA5VyZoyjSMCwTluaXA0o27cCK0bhXkpgw+sTXVpPy/lSO57ilRixqk0vDmtRA==}
     engines: {node: '>=6'}
@@ -1880,8 +1876,8 @@ packages:
   select@1.1.2:
     resolution: {integrity: sha512-OwpTSOfy6xSs1+pwcNrv0RBMOzI39Lp3qQKUTPVVPRjCdNa5JH/oPRiqsesIskK8TVgmRiHwO4KXlV2Li9dANA==}
 
-  semver@7.5.4:
-    resolution: {integrity: sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==}
+  semver@7.7.4:
+    resolution: {integrity: sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -2072,9 +2068,6 @@ packages:
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
 
-  yallist@4.0.0:
-    resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
-
   yallist@5.0.0:
     resolution: {integrity: sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==}
     engines: {node: '>=18'}
@@ -2237,7 +2230,7 @@ snapshots:
       debug: 4.4.3
       gensync: 1.0.0-beta.2
       json5: 2.2.3
-      semver: 7.5.4
+      semver: 7.7.4
     transitivePeerDependencies:
       - supports-color
 
@@ -2259,7 +2252,7 @@ snapshots:
       '@babel/helper-validator-option': 7.27.1
       browserslist: 4.28.1
       lru-cache: 5.1.1
-      semver: 7.5.4
+      semver: 7.7.4
 
   '@babel/helper-create-class-features-plugin@7.28.6(@babel/core@7.29.0)':
     dependencies:
@@ -2270,7 +2263,7 @@ snapshots:
       '@babel/helper-replace-supers': 7.28.6(@babel/core@7.29.0)
       '@babel/helper-skip-transparent-expression-wrappers': 7.27.1
       '@babel/traverse': 7.29.0
-      semver: 7.5.4
+      semver: 7.7.4
     transitivePeerDependencies:
       - supports-color
 
@@ -2279,7 +2272,7 @@ snapshots:
       '@babel/core': 7.29.0
       '@babel/helper-annotate-as-pure': 7.27.3
       regexpu-core: 6.4.0
-      semver: 7.5.4
+      semver: 7.7.4
 
   '@babel/helper-define-polyfill-provider@0.6.6(@babel/core@7.29.0)':
     dependencies:
@@ -2831,7 +2824,7 @@ snapshots:
       babel-plugin-polyfill-corejs3: 0.14.0(@babel/core@7.29.0)
       babel-plugin-polyfill-regenerator: 0.6.6(@babel/core@7.29.0)
       core-js-compat: 3.48.0
-      semver: 7.5.4
+      semver: 7.7.4
     transitivePeerDependencies:
       - supports-color
 
@@ -2881,7 +2874,7 @@ snapshots:
       outdent: 0.5.0
       prettier: 2.8.8
       resolve-from: 5.0.0
-      semver: 7.5.4
+      semver: 7.7.4
 
   '@changesets/assemble-release-plan@6.0.9':
     dependencies:
@@ -2890,7 +2883,7 @@ snapshots:
       '@changesets/should-skip-package': 0.1.2
       '@changesets/types': 6.1.0
       '@manypkg/get-packages': 1.1.3
-      semver: 7.5.4
+      semver: 7.7.4
 
   '@changesets/changelog-git@0.2.1':
     dependencies:
@@ -2929,7 +2922,7 @@ snapshots:
       package-manager-detector: 0.2.11
       picocolors: 1.1.1
       resolve-from: 5.0.0
-      semver: 7.5.4
+      semver: 7.7.4
       spawndamnit: 3.0.1
       term-size: 2.2.1
     transitivePeerDependencies:
@@ -2955,7 +2948,7 @@ snapshots:
       '@changesets/types': 6.1.0
       '@manypkg/get-packages': 1.1.3
       picocolors: 1.1.1
-      semver: 7.5.4
+      semver: 7.7.4
 
   '@changesets/get-github-info@0.8.0':
     dependencies:
@@ -3372,7 +3365,7 @@ snapshots:
       '@babel/compat-data': 7.29.0
       '@babel/core': 7.29.0
       '@babel/helper-define-polyfill-provider': 0.6.6(@babel/core@7.29.0)
-      semver: 7.5.4
+      semver: 7.7.4
     transitivePeerDependencies:
       - supports-color
 
@@ -3786,14 +3779,10 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lru-cache@6.0.0:
-    dependencies:
-      yallist: 4.0.0
-
   make-dir@2.1.0:
     dependencies:
       pify: 4.0.1
-      semver: 7.5.4
+      semver: 7.7.4
 
   merge2@1.4.1: {}
 
@@ -4065,9 +4054,7 @@ snapshots:
 
   select@1.1.2: {}
 
-  semver@7.5.4:
-    dependencies:
-      lru-cache: 6.0.0
+  semver@7.7.4: {}
 
   shebang-command@2.0.0:
     dependencies:
@@ -4204,8 +4191,6 @@ snapshots:
   y18n@5.0.8: {}
 
   yallist@3.1.1: {}
-
-  yallist@4.0.0: {}
 
   yallist@5.0.0:
     optional: true
