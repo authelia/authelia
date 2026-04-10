@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -12,6 +12,7 @@ import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfigu
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
 import { SecondFactorMethod } from "@models/Methods";
 import OneTimePasswordPanel from "@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel";
+import RedirectAfterEnrollmentDialog from "@views/Settings/TwoFactorAuthentication/RedirectAfterEnrollmentDialog";
 import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
 import WebAuthnCredentialsDisabledPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsDisabledPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
@@ -33,6 +34,9 @@ const TwoFactorAuthenticationView = function () {
 
     const hasTOTP = userInfo?.has_totp ?? false;
     const hasWebAuthn = userInfo?.has_webauthn ?? false;
+
+    const [redirectDialogOpen, setRedirectDialogOpen] = useState(false);
+    const hadDevicesBeforeRef = useRef<boolean | null>(null);
 
     const handleRefreshWebAuthnState = () => {
         setRefreshState((refreshState) => refreshState + 1);
