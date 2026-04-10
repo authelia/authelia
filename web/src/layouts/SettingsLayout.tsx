@@ -64,7 +64,7 @@ const SettingsLayout = function (props: Props) {
             </nav>
             <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
                 <SheetContent side="left" className="p-0" style={{ width: drawerWidth }}>
-                    <div className="text-center" onClick={handleToggleDrawer}>
+                    <div className="text-center">
                         <h6 className="my-4 text-lg font-medium">{translate("Settings")}</h6>
                         <Separator />
                         <ul className="list-none p-0">
@@ -75,6 +75,7 @@ const SettingsLayout = function (props: Props) {
                                     text={translate(item.text)}
                                     pathname={item.pathname}
                                     icon={item.icon}
+                                    onNavigate={() => setDrawerOpen(false)}
                                 />
                             ))}
                         </ul>
@@ -115,12 +116,18 @@ const navItems: NavItem[] = [
     { icon: <X className="size-5 text-destructive" />, keyname: "close", pathname: IndexRoute, text: "Close" },
 ];
 
-const DrawerNavItem = function (props: NavItem) {
+interface DrawerNavItemProps extends NavItem {
+    onNavigate: () => void;
+}
+
+const DrawerNavItem = function (props: DrawerNavItemProps) {
     const selected =
         globalThis.location.pathname === props.pathname || globalThis.location.pathname === props.pathname + "/";
     const navigate = useRouterNavigate();
 
     const handleOnClick = useCallback(() => {
+        props.onNavigate();
+
         if (selected) {
             return;
         }
