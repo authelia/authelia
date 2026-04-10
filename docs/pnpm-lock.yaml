@@ -17,8 +17,8 @@ importers:
   .:
     dependencies:
       '@docsearch/css':
-        specifier: 3.9.0
-        version: 3.9.0
+        specifier: 4.6.2
+        version: 4.6.2
       '@docsearch/js':
         specifier: 3.9.0
         version: 3.9.0(@algolia/client-search@5.34.0)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)(search-insights@2.17.3)
@@ -727,6 +727,9 @@ packages:
 
   '@docsearch/css@3.9.0':
     resolution: {integrity: sha512-cQbnVbq0rrBwNAKegIac/t6a8nWoUAn8frnkLFW6YARaRmAQr5/Eoe6Ln2fqkUCZ40KpdrKbpSAmgrkviOxuWA==}
+
+  '@docsearch/css@4.6.2':
+    resolution: {integrity: sha512-fH/cn8BjEEdM2nJdjNMHIvOVYupG6AIDtFVDgIZrNzdCSj4KXr9kd+hsehqsNGYjpUjObeKYKvgy/IwCb1jZYQ==}
 
   '@docsearch/js@3.9.0':
     resolution: {integrity: sha512-4bKHcye6EkLgRE8ze0vcdshmEqxeiJM77M0JXjef7lrYZfSlMunrDOCqyLjiZyo1+c0BhUqA2QpFartIjuHIjw==}
@@ -3029,6 +3032,8 @@ snapshots:
       prettier: 2.8.8
 
   '@docsearch/css@3.9.0': {}
+
+  '@docsearch/css@4.6.2': {}
 
   '@docsearch/js@3.9.0(@algolia/client-search@5.34.0)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)(search-insights@2.17.3)':
     dependencies:
