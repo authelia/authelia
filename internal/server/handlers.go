@@ -491,6 +491,16 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 
 	r.OPTIONS(oidc.EndpointPathRevocation, policyCORSRevocation.HandleOPTIONS)
 	r.POST(oidc.EndpointPathRevocation, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2RevocationPOST)))))
+
+	policyCORSEndSession := middlewares.NewCORSPolicyBuilder().
+		WithAllowCredentials(true).
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
+		WithAllowedOrigins(allowedOrigins...).
+		WithEnabled(utils.IsStringInSlice(oidc.EndpointEndSession, config.IdentityProviders.OIDC.CORS.Endpoints)).
+		Build()
+
+	r.OPTIONS(oidc.EndpointPathEndSession, policyCORSEndSession.HandleOnlyOPTIONS)
+	r.GET(oidc.EndpointPathEndSession, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointEndSession), policyCORSEndSession.Middleware(bridge(handlers.OpenIDConnectEndSession))))
 }
 
 func handlerMetrics(provider metrics.Provider, path string) fasthttp.RequestHandler {
