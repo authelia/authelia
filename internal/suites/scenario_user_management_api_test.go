@@ -383,7 +383,7 @@ func (s *UserManagementAPIScenario) Test_NewUserPOST_ShouldCreateUserWithExtraAt
 	s.Assert().NotNil(response.Data.Extra)
 	s.Assert().Equal("EMP12345", response.Data.Extra["employee_id"])
 	s.Assert().Equal("IT", response.Data.Extra["employee_type"])
-	s.Assert().Equal(int64(42), response.Data.Extra["employee_number"])
+	s.Assert().Equal(float64(42), response.Data.Extra["employee_number"])
 	s.Assert().Equal(true, response.Data.Extra["test_flag"])
 	s.Assert().Equal("tag1", response.Data.Extra["tags"].([]interface{})[0])
 
@@ -935,7 +935,7 @@ func (s *UserManagementAPIScenario) Test_ChangeUserPATCH_ShouldUpdateExtraFields
 	s.Assert().NotNil(response.Data.Extra)
 	s.Assert().Equal("EMP12345", response.Data.Extra["employee_id"])
 	s.Assert().Equal("IT", response.Data.Extra["employee_type"])
-	s.Assert().Equal(int64(42), response.Data.Extra["employee_number"])
+	s.Assert().Equal(float64(42), response.Data.Extra["employee_number"])
 	s.Assert().Equal(true, response.Data.Extra["test_flag"])
 	s.Assert().Equal("tag1", response.Data.Extra["tags"].([]interface{})[0])
 }

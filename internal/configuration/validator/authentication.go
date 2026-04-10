@@ -391,7 +391,7 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 }
 
 func validateLDAPAuthenticationBackendUserManagement(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	validateLDAPAuthenticationBackendUserManagementObjectClasses(config)
+	validateLDAPAuthenticationBackendUserManagementObjectClasses(config, validator)
 	validateLDAPAuthenticationBackendUserManagementRequiredAttributes(config, validator)
 	validateLDAPAuthenticationBackendUserManagementRDNTemplate(config, validator)
 	validateLDAPAuthenticationBackendUserManagementRDNAttribute(config, validator)
@@ -596,13 +596,14 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 	}
 }
 
-func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema.AuthenticationBackend) {
+func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
 	if len(config.LDAP.UserManagement.UserObjectClasses) == 0 {
 		switch config.LDAP.Implementation {
 		case schema.LDAPImplementationRFC2307bis:
 			config.LDAP.UserManagement.UserObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.UserObjectClasses
+		case schema.LDAPImplementationCustom:
 		default:
-			panic("not implemented")
+			validator.Push(errors.New(errFmtAuthBackendUserManagementUserObjectClassesRequiredForCustom))
 		}
 	}
 
@@ -610,8 +611,9 @@ func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema
 		switch config.LDAP.Implementation {
 		case schema.LDAPImplementationRFC2307bis:
 			config.LDAP.UserManagement.GroupObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.GroupObjectClasses
+		case schema.LDAPImplementationCustom:
 		default:
-			panic("not implemented")
+			validator.Push(errors.New(errFmtAuthBackendUserManagementGroupObjectClassesRequiredForCustom))
 		}
 	}
 }

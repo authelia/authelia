@@ -340,7 +340,7 @@ const UsernameField = <T extends CreateUserRequest | UserDetailsExtended = Creat
     return (
         <MuiTextField
             fullWidth
-            type="email"
+            type="text"
             color="info"
             label={field.label}
             helperText={error?.message?.toString() || field.description}

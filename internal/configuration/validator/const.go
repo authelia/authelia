@@ -135,9 +135,11 @@ const (
 	errFmtLDAPAuthBackendFilterMissingAttribute = "authentication_backend: ldap: attributes: option '%s' " +
 		"must be provided when using the %s placeholder but it's absent"
 
-	errFmtLDAPAuthBackendUserManagementRequiredAttributeNotSupported = "authentication_backend: ldap: user_management: option 'required_attributes' contains the attribute '%s' which is not a supported attribute: supported attributes are determined by the LDAP attribute mappings and extra attributes configured"
-	errFmtLDAPAuthBackendUserManagementRDNTemplateInvalid            = "authentication_backend: ldap: user_management: option 'created_users_rdn_format' is invalid: %w"
-	errFmtLDAPAuthBackendUserManagementRDNTemplateFieldUnsupported   = "authentication_backend: ldap: user_management: option 'created_users_rdn_format' references field '%s' which is not a supported attribute: ensure the attribute is mapped in the LDAP configuration"
+	errFmtLDAPAuthBackendUserManagementRequiredAttributeNotSupported   = "authentication_backend: ldap: user_management: option 'required_attributes' contains the attribute '%s' which is not a supported attribute: supported attributes are determined by the LDAP attribute mappings and extra attributes configured"
+	errFmtLDAPAuthBackendUserManagementRDNTemplateInvalid              = "authentication_backend: ldap: user_management: option 'created_users_rdn_format' is invalid: %w"
+	errFmtLDAPAuthBackendUserManagementRDNTemplateFieldUnsupported     = "authentication_backend: ldap: user_management: option 'created_users_rdn_format' references field '%s' which is not a supported attribute: ensure the attribute is mapped in the LDAP configuration"
+	errFmtAuthBackendUserManagementUserObjectClassesRequiredForCustom  = "authentication_backend: ldap: user_management: option 'user_object_classes' must be specified for custom/unknown LDAP servers"
+	errFmtAuthBackendUserManagementGroupObjectClassesRequiredForCustom = "authentication_backend: ldap: user_management: option 'group_object_classes' must be specified for custom/unknown LDAP servers"
 )
 
 // TOTP Error constants.
