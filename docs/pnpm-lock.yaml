@@ -9,7 +9,7 @@ overrides:
   picomatch: 4.0.4
   semver: 7.5.4
   yaml: 2.8.3
-  yauzl: 3.2.1
+  yauzl: 3.3.0
   vite: 8.0.8
 
 importers:
