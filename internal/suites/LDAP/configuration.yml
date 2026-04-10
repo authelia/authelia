@@ -60,7 +60,7 @@ session:
 
 authentication_backend:
   ldap:
-    address: 'ldaps://openldap'
+    address: 'ldap://ldap.example.com'
     pooling:
       enable: true
       count: 4
