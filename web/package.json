@@ -133,7 +133,7 @@
     "eslint-plugin-react-hooks": "7.0.1",
     "happy-dom": "20.8.9",
     "lefthook": "2.1.5",
-    "prettier": "3.8.1",
+    "prettier": "3.8.2",
     "typescript": "6.0.2",
     "vite": "8.0.8",
     "vite-plugin-checker": "0.12.0",
