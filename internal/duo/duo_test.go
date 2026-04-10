@@ -124,28 +124,6 @@ func TestDuoProvider_PreAuthCall_Unknown(t *testing.T) {
 	assert.Nil(t, response)
 }
 
-func TestDuoProvider_PreAuthCall_OKWithBadStatus(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	base := mocks.NewMockDuoBaseProvider(ctrl)
-	provider := NewDuoAPI(base)
-	assert.NotNil(t, provider.BaseProvider)
-
-	ctx := NewTestCtx(net.ParseIP("127.0.0.1"))
-
-	gomock.InOrder(
-		base.EXPECT().
-			SignedCall(fasthttp.MethodPost, "/auth/v2/preauth", url.Values{"username": {"Jane"}}).
-			Return(nil, []byte(`{"stat":"OK","message":"All Good!","message_detail":"Great job.","code":401}`), nil),
-	)
-
-	response, err := provider.PreAuthCall(ctx, &session.UserSession{Username: "Jane"}, url.Values{"username": {"Jane"}})
-
-	assert.EqualError(t, err, "error occurred making the preauth call to the duo api: failure status code was returned")
-	assert.Nil(t, response)
-}
-
 func TestDuoProvider_PreAuthCall_OKWithoutResponse(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -159,7 +137,7 @@ func TestDuoProvider_PreAuthCall_OKWithoutResponse(t *testing.T) {
 	gomock.InOrder(
 		base.EXPECT().
 			SignedCall(fasthttp.MethodPost, "/auth/v2/preauth", url.Values{"username": {"Jane"}}).
-			Return(nil, []byte(`{"stat":"OK","message":"All Good!","message_detail":"Great job.","code":200}`), nil),
+			Return(nil, []byte(`{"stat":"OK"}`), nil),
 	)
 
 	response, err := provider.PreAuthCall(ctx, &session.UserSession{Username: "Jane"}, url.Values{"username": {"Jane"}})
@@ -220,21 +198,11 @@ func TestDuoProvider_PreAuthCall(t *testing.T) {
 			"error occurred making the preauth call to the duo api: unknown status was returned",
 		},
 		{
-			"ShouldHandleAPIOKStatusWithBadStatusCode",
-			"127.0.0.1",
-			"Jane",
-			&http.Response{StatusCode: 401},
-			[]byte(`{"stat":"OK","message":"All Good!","message_detail":"Great job.","code":401}`),
-			"",
-			nil,
-			"error occurred making the preauth call to the duo api: failure status code was returned",
-		},
-		{
 			"ShouldHandleAPIOKWithoutResponse",
 			"127.0.0.1",
 			"Jane",
 			&http.Response{StatusCode: 200},
-			[]byte(`{"stat":"OK","message":"All Good!","message_detail":"Great job.","code":200}`),
+			[]byte(`{"stat":"OK"}`),
 			"",
 			nil,
 			"error occurred parsing the duo api preauth json response: unexpected end of JSON input",
@@ -244,7 +212,7 @@ func TestDuoProvider_PreAuthCall(t *testing.T) {
 			"127.0.0.1",
 			"Jane",
 			&http.Response{StatusCode: 200},
-			[]byte(`{"stat":"OK","code":200,"response":{"devices":[{"capabilities":["auto","push","sms","phone","mobile_otp"],"device":"DPFZRS9FB0D46QFTM891","display_name":"iOS (XXX-XXX-0100)","name":"","number":"XXX-XXX-0100","type":"phone"},{"device":"DHEKH0JJIYC1LX3AZWO4","name":"0","type":"token"}],"result":"auth","status_msg":"Account is active"}}`),
+			[]byte(`{"stat":"OK","response":{"devices":[{"capabilities":["auto","push","sms","phone","mobile_otp"],"device":"DPFZRS9FB0D46QFTM891","display_name":"iOS (XXX-XXX-0100)","name":"","number":"XXX-XXX-0100","type":"phone"},{"device":"DHEKH0JJIYC1LX3AZWO4","name":"0","type":"token"}],"result":"auth","status_msg":"Account is active"}}`),
 			"",
 			&PreAuthResponse{
 				Result:        "auth",
@@ -357,21 +325,11 @@ func TestDuoProvider_AuthCall(t *testing.T) {
 			"error occurred making the auth call to the duo api: unknown status was returned",
 		},
 		{
-			"ShouldHandleAPIOKStatusWithBadStatusCode",
-			"127.0.0.1",
-			"Jane",
-			&http.Response{StatusCode: 401},
-			[]byte(`{"stat":"OK","message":"All Good!","message_detail":"Great job.","code":401}`),
-			"",
-			nil,
-			"error occurred making the auth call to the duo api: failure status code was returned",
-		},
-		{
 			"ShouldHandleAPIOKWithoutResponse",
 			"127.0.0.1",
 			"Jane",
 			&http.Response{StatusCode: 200},
-			[]byte(`{"stat":"OK","message":"All Good!","message_detail":"Great job.","code":200}`),
+			[]byte(`{"stat":"OK"}`),
 			"",
 			nil,
 			"error occurred parsing the duo api auth json response: unexpected end of JSON input",
@@ -381,7 +339,7 @@ func TestDuoProvider_AuthCall(t *testing.T) {
 			"127.0.0.1",
 			"Jane",
 			&http.Response{StatusCode: 200},
-			[]byte(`{"stat":"OK","message":"All Good!","message_detail":"Great job.","code":200,"response":{"result":"allow","status":"allow","status_msg":"Success. Logging you in...","trusted_device_token":"REkxSzP00Ld4ddEVTRZOUlYMEl8RFVVQkdJ05HwUldRRThJR1VTNE0=||1627133735|8356ef7779bb0ec4c28ca9b04dc50493c4d2e05e"}}`),
+			[]byte(`{"stat":"OK","response":{"result":"allow","status":"allow","status_msg":"Success. Logging you in...","trusted_device_token":"REkxSzP00Ld4ddEVTRZOUlYMEl8RFVVQkdJ05HwUldRRThJR1VTNE0=||1627133735|8356ef7779bb0ec4c28ca9b04dc50493c4d2e05e"}}`),
 			"",
 			&AuthResponse{ //nolint:gosec
 				Result:             "allow",
