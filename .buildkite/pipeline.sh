@@ -62,11 +62,11 @@ steps:
 
   - label: ":nodejs: Package Validation [docs]"
     command: "pkgvalidate.sh docs"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/ && build.env("CI_MERGE_QUEUE") != "true"
 
   - label: ":nodejs: Package Validation [templates]"
     command: "pkgvalidate.sh templates"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/ && build.env("CI_MERGE_QUEUE") != "true"
 
   - label: ":hammer_and_wrench: Unit Test"
     command: "authelia-scripts --log-level debug ci --buildkite"
