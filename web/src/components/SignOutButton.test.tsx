@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import SignOutButton from "@components/SignOutButton";
+import { TooltipProvider } from "@components/UI/Tooltip";
 
 const mockDoSignOut = vi.fn();
 
@@ -18,7 +19,11 @@ it("renders button with translated text", () => {
 });
 
 it("renders tooltip when provided", () => {
-    render(<SignOutButton id="test" text="Sign Out" tooltip="Sign out" />);
+    render(
+        <TooltipProvider>
+            <SignOutButton id="test" text="Sign Out" tooltip="Sign out" />
+        </TooltipProvider>,
+    );
     expect(screen.getByText("Sign Out")).toBeInTheDocument();
 });
 

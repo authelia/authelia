@@ -1,12 +1,12 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
 
-import { Box, Button, FormControl, useTheme } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
 import LogoutButton from "@components/LogoutButton";
 import SwitchUserButton from "@components/SwitchUserButton";
+import { Button } from "@components/UI/Button";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
 import { ConsentDecisionSubRoute, ConsentOpenIDSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
 import {
     Flow,
@@ -27,7 +27,6 @@ export interface Props {
 
 const DeviceAuthorizationFormView: FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent", "settings"]);
-    const theme = useTheme();
 
     const userCode = useUserCode();
 
@@ -87,46 +86,43 @@ const DeviceAuthorizationFormView: FC<Props> = (props: Props) => {
     }, [handleCode, props.state.authentication_level, userCode]);
 
     return props.state.authentication_level === AuthenticationLevel.Unauthenticated ? (
-        <Box>
+        <div>
             <LoadingPage />
-        </Box>
+        </div>
     ) : (
         <LoginLayout id={"openid-consent-device-auth-stage"} title={translate("Confirm the Code")}>
-            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
-                <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
+            <div className="flex flex-col items-center justify-center">
+                <div className="w-full pb-4">
                     <LogoutButton /> {" | "} <SwitchUserButton />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                    <FormControl id={"form-consent-openid-device-code-authorization"}>
-                        <Grid container spacing={2}>
-                            <Grid size={{ xs: 12 }}>
-                                <TextField
+                </div>
+                <div className="w-full">
+                    <div id={"form-consent-openid-device-code-authorization"}>
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="w-full">
+                                <Label htmlFor="user-code">{translate("Code")}</Label>
+                                <Input
                                     id={"user-code"}
-                                    label={translate("Code")}
-                                    variant={"outlined"}
                                     required
                                     value={code}
-                                    fullWidth
                                     onChange={(v) => setCode(v.target.value)}
                                     autoCapitalize={"none"}
                                 />
-                            </Grid>
-                            <Grid size={{ xs: 12 }}>
+                            </div>
+                            <div className="w-full">
                                 <Button
                                     id={"confirm-button"}
-                                    variant={"contained"}
-                                    color={"primary"}
-                                    fullWidth
+                                    variant={"default"}
+                                    className="w-full"
                                     onClick={() => handleCode(code)}
                                     disabled={code === ""}
                                 >
                                     {translate("Confirm", { ns: "settings" })}
                                 </Button>
-                            </Grid>
-                        </Grid>
-                    </FormControl>
-                </Grid>
-            </Grid>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </LoginLayout>
     );
 };

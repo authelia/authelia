@@ -1,19 +1,19 @@
 import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-    Box,
-    Button,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-} from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import OneTimeCodeTextField from "@components/OneTimeCodeTextField";
 import SuccessIcon from "@components/SuccessIcon";
+import { Button } from "@components/UI/Button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@components/UI/Dialog";
+import { Spinner } from "@components/UI/Spinner";
 import { useNotifications } from "@contexts/NotificationsContext";
 import {
     UserSessionElevation,
@@ -150,79 +150,68 @@ const IdentityVerificationDialog = function (props: Props) {
     };
 
     return (
-        <Dialog id={"dialog-verify-one-time-code"} open={open} onClose={handleCancelled}>
-            <DialogTitle>{translate("Identity Verification")}</DialogTitle>
-            {success ? (
-                <DialogContent>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flex: "0 0 100%",
-                            flexDirection: "column",
-                            m: "auto",
-                            marginBottom: (theme) => theme.spacing(2),
-                            padding: "5.0rem",
-                            width: "fit-content",
-                        }}
-                    >
+        <Dialog
+            open={open}
+            onOpenChange={(isOpen) => {
+                if (!isOpen) handleCancelled();
+            }}
+        >
+            <DialogContent id={"dialog-verify-one-time-code"} showCloseButton={false}>
+                <DialogHeader>
+                    <DialogTitle>{translate("Identity Verification")}</DialogTitle>
+                </DialogHeader>
+                {success ? (
+                    <div className="flex flex-col m-auto mb-4 p-20 w-fit">
                         <SuccessIcon />
-                    </Box>
-                </DialogContent>
-            ) : (
-                <DialogContent dividers>
-                    <DialogContentText gutterBottom>
-                        {translate(
-                            "In order to perform this action policy enforcement requires additional identity verification and a One-Time Code has been sent to your email",
-                        )}
-                    </DialogContentText>
-                    <DialogContentText gutterBottom>
-                        {translate("Closing this dialog or selecting cancel will invalidate the One-Time Code")}
-                    </DialogContentText>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            m: "auto",
-                            marginY: "2.5rem",
-                            width: "fit-content",
-                        }}
-                    >
-                        <OneTimeCodeTextField
-                            id={"one-time-code"}
-                            label={"One-Time Code"}
-                            value={codeInput}
-                            onChange={handleChange}
-                            error={codeError}
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <DialogDescription>
+                            {translate(
+                                "In order to perform this action policy enforcement requires additional identity verification and a One-Time Code has been sent to your email",
+                            )}
+                        </DialogDescription>
+                        <DialogDescription>
+                            {translate("Closing this dialog or selecting cancel will invalidate the One-Time Code")}
+                        </DialogDescription>
+                        <div className="flex flex-col m-auto my-10 w-fit">
+                            <OneTimeCodeTextField
+                                id={"one-time-code"}
+                                label={"One-Time Code"}
+                                value={codeInput}
+                                onChange={handleChange}
+                                error={codeError}
+                                disabled={loading}
+                                inputRef={codeRef}
+                                onKeyDown={handleSubmitKeyDown}
+                            />
+                        </div>
+                    </div>
+                )}
+                {success ? null : (
+                    <DialogFooter>
+                        <Button
+                            id={"dialog-cancel"}
+                            variant={"ghost"}
+                            color={"destructive"}
                             disabled={loading}
-                            inputRef={codeRef}
-                            onKeyDown={handleSubmitKeyDown}
-                        />
-                    </Box>
-                </DialogContent>
-            )}
-            {success ? null : (
-                <DialogActions>
-                    <Button
-                        id={"dialog-cancel"}
-                        variant={"contained"}
-                        color={"error"}
-                        disabled={loading}
-                        onClick={handleCancelled}
-                    >
-                        {translate("Cancel")}
-                    </Button>
-                    <Button
-                        id={"dialog-verify"}
-                        variant={"contained"}
-                        color={"info"}
-                        disabled={loading}
-                        startIcon={loading ? <CircularProgress color="inherit" size={20} /> : undefined}
-                        onClick={handleSubmit}
-                    >
-                        {translate("Verify")}
-                    </Button>
-                </DialogActions>
-            )}
+                            onClick={handleCancelled}
+                        >
+                            {translate("Cancel")}
+                        </Button>
+                        <Button
+                            id={"dialog-verify"}
+                            variant={"ghost"}
+                            color={"primary"}
+                            disabled={loading}
+                            onClick={handleSubmit}
+                        >
+                            {loading ? <Spinner size={20} /> : null}
+                            {translate("Verify")}
+                        </Button>
+                    </DialogFooter>
+                )}
+            </DialogContent>
         </Dialog>
     );
 };

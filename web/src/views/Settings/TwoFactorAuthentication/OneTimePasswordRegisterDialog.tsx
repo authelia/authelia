@@ -1,61 +1,33 @@
-import { ChangeEvent, Fragment, ReactNode, useCallback, useEffect, useState } from "react";
+import { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
-import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-    Box,
-    Button,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    FormControl,
-    FormControlLabel,
-    FormLabel,
-    Link,
-    Radio,
-    RadioGroup,
-    Step,
-    StepLabel,
-    Stepper,
-    Switch,
-    TextField,
-    Typography,
-    styled,
-} from "@mui/material";
-import { red } from "@mui/material/colors";
-import Grid from "@mui/material/Grid";
+import { XCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 
 import AppStoreBadges from "@components/AppStoreBadges";
 import CopyButton from "@components/CopyButton";
 import SuccessIcon from "@components/SuccessIcon";
+import { Button } from "@components/UI/Button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@components/UI/Dialog";
+import { Label } from "@components/UI/Label";
+import { RadioGroup, RadioGroupItem } from "@components/UI/RadioGroup";
+import { Step, StepLabel, Stepper } from "@components/UI/Stepper";
+import { Switch } from "@components/UI/Switch";
 import { GoogleAuthenticator } from "@constants/constants";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { toAlgorithmString } from "@models/TOTPConfiguration";
 import { completeTOTPRegister, stopTOTPRegister } from "@services/OneTimePassword";
 import { getTOTPSecret } from "@services/RegisterDevice";
 import { getTOTPOptions } from "@services/UserInfoTOTPConfiguration";
+import { cn } from "@utils/Styles";
 import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
-
-const StyledQRCode = styled(QRCodeSVG)(({ theme }) => ({
-    backgroundColor: "white",
-    display: "inline-block",
-    marginBottom: theme.spacing(2),
-    marginTop: theme.spacing(2),
-    padding: theme.spacing(),
-}));
-
-const StyledErrorIcon = styled(FontAwesomeIcon)(() => ({
-    color: red[400],
-    fontSize: "8rem",
-    left: "calc(128px - 64px)",
-    position: "absolute",
-    top: "calc(128px - 64px)",
-}));
 
 const steps = ["Start", "Register", "Confirm"];
 
@@ -257,37 +229,31 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
         })();
     }, [activeStep, dialState, dialValue, dialValue.length, handleFinished, props.open, selected.length]);
 
-    const handleChangeAlgorithm = (ev: ChangeEvent<HTMLInputElement>, value: string) => {
+    const handleChangeAlgorithm = (value: string) => {
         setSelected((prevState) => {
             return {
                 ...prevState,
                 algorithm: value,
             };
         });
-
-        ev.preventDefault();
     };
 
-    const handleChangeLength = (ev: ChangeEvent<HTMLInputElement>, value: string) => {
+    const handleChangeLength = (value: string) => {
         setSelected((prevState) => {
             return {
                 ...prevState,
                 length: Number.parseInt(value),
             };
         });
-
-        ev.preventDefault();
     };
 
-    const handleChangePeriod = (ev: ChangeEvent<HTMLInputElement>, value: string) => {
+    const handleChangePeriod = (value: string) => {
         setSelected((prevState) => {
             return {
                 ...prevState,
                 period: Number.parseInt(value),
             };
         });
-
-        ev.preventDefault();
     };
 
     const toggleAdvanced = () => {
@@ -312,171 +278,174 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 return (
                     <Fragment>
                         {defaults === null ? (
-                            <Grid size={{ xs: 12 }} my={3}>
-                                <Typography>Loading...</Typography>
-                            </Grid>
+                            <div className="col-span-12 my-6">
+                                <p>Loading...</p>
+                            </div>
                         ) : (
-                            <Grid container>
-                                <Grid size={{ xs: 12 }} my={3}>
-                                    <Typography>{translate("To begin select next")}</Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12 }} hidden={disableAdvanced}>
-                                    <FormControlLabel
-                                        disabled={disableAdvanced}
-                                        control={
-                                            <Switch
-                                                id={"one-time-password-advanced"}
-                                                checked={showAdvanced}
-                                                onChange={toggleAdvanced}
-                                            />
-                                        }
-                                        label={translate("Advanced")}
-                                    />
-                                </Grid>
-                                <Grid
-                                    size={{ xs: 12 }}
-                                    hidden={disableAdvanced || !showAdvanced}
-                                    justifyContent={"center"}
-                                    alignItems={"center"}
+                            <div className="grid grid-cols-12">
+                                <div className="col-span-12 my-6">
+                                    <p>{translate("To begin select next")}</p>
+                                </div>
+                                <div className={cn("col-span-12", disableAdvanced && "hidden")}>
+                                    <div className="flex items-center gap-2">
+                                        <Switch
+                                            id={"one-time-password-advanced"}
+                                            checked={showAdvanced}
+                                            onCheckedChange={toggleAdvanced}
+                                            disabled={disableAdvanced}
+                                        />
+                                        <Label htmlFor={"one-time-password-advanced"}>{translate("Advanced")}</Label>
+                                    </div>
+                                </div>
+                                <div
+                                    className={cn(
+                                        "col-span-12 flex flex-col items-center justify-center",
+                                        (disableAdvanced || !showAdvanced) && "hidden",
+                                    )}
                                 >
-                                    <FormControl fullWidth>
+                                    <div className="mt-4 w-full space-y-4">
                                         {hideAlgorithms ? null : (
-                                            <Fragment>
-                                                <FormLabel id={"lbl-adv-algorithms"}>
-                                                    {translate("Algorithm")}
-                                                </FormLabel>
+                                            <div className="space-y-2">
+                                                <Label id={"lbl-adv-algorithms"}>{translate("Algorithm")}</Label>
                                                 <RadioGroup
-                                                    row
                                                     aria-labelledby={"lbl-adv-algorithms"}
                                                     value={selected.algorithm}
-                                                    sx={{
-                                                        justifyContent: "center",
-                                                    }}
-                                                    onChange={handleChangeAlgorithm}
+                                                    className="flex flex-row gap-4"
+                                                    onValueChange={handleChangeAlgorithm}
                                                 >
                                                     {available.algorithms.map((algorithm) => (
-                                                        <FormControlLabel
-                                                            key={algorithm}
-                                                            value={algorithm}
-                                                            control={
-                                                                <Radio
-                                                                    id={`one-time-password-algorithm-${algorithm}`}
-                                                                />
-                                                            }
-                                                            label={algorithm}
-                                                        />
+                                                        <div key={algorithm} className="flex items-center gap-2">
+                                                            <RadioGroupItem
+                                                                id={`one-time-password-algorithm-${algorithm}`}
+                                                                value={algorithm}
+                                                            />
+                                                            <Label htmlFor={`one-time-password-algorithm-${algorithm}`}>
+                                                                {algorithm}
+                                                            </Label>
+                                                        </div>
                                                     ))}
                                                 </RadioGroup>
-                                            </Fragment>
+                                            </div>
                                         )}
                                         {hideLengths ? null : (
-                                            <Fragment>
-                                                <FormLabel id={"lbl-adv-lengths"}>{translate("Length")}</FormLabel>
+                                            <div className="space-y-2">
+                                                <Label id={"lbl-adv-lengths"}>{translate("Length")}</Label>
                                                 <RadioGroup
-                                                    row
                                                     aria-labelledby={"lbl-adv-lengths"}
                                                     value={selected.length.toString()}
-                                                    sx={{
-                                                        justifyContent: "center",
-                                                    }}
-                                                    onChange={handleChangeLength}
+                                                    className="flex flex-row gap-4"
+                                                    onValueChange={handleChangeLength}
                                                 >
                                                     {available.lengths.map((length) => (
-                                                        <FormControlLabel
+                                                        <div
                                                             key={length.toString()}
-                                                            value={length.toString()}
-                                                            control={
-                                                                <Radio
-                                                                    id={`one-time-password-length-${length.toString()}`}
-                                                                />
-                                                            }
-                                                            label={length.toString()}
-                                                        />
+                                                            className="flex items-center gap-2"
+                                                        >
+                                                            <RadioGroupItem
+                                                                id={`one-time-password-length-${length.toString()}`}
+                                                                value={length.toString()}
+                                                            />
+                                                            <Label
+                                                                htmlFor={`one-time-password-length-${length.toString()}`}
+                                                            >
+                                                                {length.toString()}
+                                                            </Label>
+                                                        </div>
                                                     ))}
                                                 </RadioGroup>
-                                            </Fragment>
+                                            </div>
                                         )}
                                         {hidePeriods ? null : (
-                                            <Fragment>
-                                                <FormLabel id={"lbl-adv-periods"}>{translate("Seconds")}</FormLabel>
+                                            <div className="space-y-2">
+                                                <Label id={"lbl-adv-periods"}>{translate("Seconds")}</Label>
                                                 <RadioGroup
-                                                    row
                                                     aria-labelledby={"lbl-adv-periods"}
                                                     value={selected.period.toString()}
-                                                    sx={{
-                                                        justifyContent: "center",
-                                                    }}
-                                                    onChange={handleChangePeriod}
+                                                    className="flex flex-row gap-4"
+                                                    onValueChange={handleChangePeriod}
                                                 >
                                                     {available.periods.map((period) => (
-                                                        <FormControlLabel
+                                                        <div
                                                             key={period.toString()}
-                                                            value={period.toString()}
-                                                            control={
-                                                                <Radio
-                                                                    id={`one-time-password-period-${period.toString()}`}
-                                                                />
-                                                            }
-                                                            label={period.toString()}
-                                                        />
+                                                            className="flex items-center gap-2"
+                                                        >
+                                                            <RadioGroupItem
+                                                                id={`one-time-password-period-${period.toString()}`}
+                                                                value={period.toString()}
+                                                            />
+                                                            <Label
+                                                                htmlFor={`one-time-password-period-${period.toString()}`}
+                                                            >
+                                                                {period.toString()}
+                                                            </Label>
+                                                        </div>
                                                     ))}
                                                 </RadioGroup>
-                                            </Fragment>
+                                            </div>
                                         )}
-                                    </FormControl>
-                                </Grid>
-                            </Grid>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </Fragment>
                 );
             case 1:
                 return (
                     <Fragment>
-                        <Grid size={{ xs: 12 }} my={2}>
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        id={"qr-toggle"}
-                                        checked={showQRCode}
-                                        onChange={() => {
-                                            setShowQRCode((value) => !value);
-                                        }}
-                                    />
-                                }
-                                label={translate("QR Code")}
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 12 }} hidden={!showQRCode}>
-                            <Box
-                                sx={() => ({
-                                    display: "inline-block",
-                                    position: "relative",
-                                    ...(isLoading || hasErrored ? { filter: "blur(10px)" } : {}),
-                                })}
-                            >
+                        <div className="col-span-12 my-4">
+                            <div className="flex items-center gap-2">
+                                <Switch
+                                    id={"qr-toggle"}
+                                    checked={showQRCode}
+                                    onCheckedChange={(checked) => {
+                                        setShowQRCode(checked);
+                                    }}
+                                />
+                                <Label htmlFor={"qr-toggle"}>{translate("QR Code")}</Label>
+                            </div>
+                        </div>
+                        <div className={cn("col-span-12", !showQRCode && "hidden")}>
+                            <div className={cn("inline-block relative", (isLoading || hasErrored) && "blur-sm")}>
                                 {secretURL ? (
-                                    <Link href={secretURL} underline="hover">
-                                        <StyledQRCode value={secretURL} size={200} />
+                                    <a href={secretURL} className="hover:opacity-80">
+                                        <QRCodeSVG
+                                            value={secretURL}
+                                            size={200}
+                                            className="inline-block my-4 p-2 bg-white"
+                                        />
                                         {isLoading && !hasErrored ? (
-                                            <CircularProgress
-                                                sx={{
+                                            <div
+                                                className="absolute"
+                                                style={{
                                                     color: "rgba(255, 255, 255, 0.5)",
                                                     left: "calc(128px - 64px)",
-                                                    position: "absolute",
                                                     top: "calc(128px - 64px)",
                                                 }}
-                                                size={128}
+                                            >
+                                                <div className="size-32 animate-spin rounded-full border-4 border-current border-t-transparent" />
+                                            </div>
+                                        ) : null}
+                                        {hasErrored ? (
+                                            <XCircle
+                                                className="absolute text-red-400"
+                                                style={{
+                                                    fontSize: "8rem",
+                                                    height: "128px",
+                                                    left: "calc(128px - 64px)",
+                                                    top: "calc(128px - 64px)",
+                                                    width: "128px",
+                                                }}
                                             />
                                         ) : null}
-                                        {hasErrored ? <StyledErrorIcon icon={faTimesCircle} /> : null}
-                                    </Link>
+                                    </a>
                                 ) : null}
-                            </Box>
-                        </Grid>
-                        <Grid size={{ xs: 12 }} hidden={showQRCode}>
-                            <Grid container spacing={2} justifyContent={"center"}>
-                                <Grid size={{ xs: 4 }}>
+                            </div>
+                        </div>
+                        <div className={cn("col-span-12", showQRCode && "hidden")}>
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="grid w-64 grid-cols-2 gap-4">
                                     <CopyButton
+                                        variant={"default"}
                                         tooltip={translate("Click to Copy")}
                                         value={secretURL}
                                         childrenCopied={translate("Copied")}
@@ -484,9 +453,8 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                     >
                                         {translate("URI")}
                                     </CopyButton>
-                                </Grid>
-                                <Grid size={{ xs: 4 }}>
                                     <CopyButton
+                                        variant={"default"}
                                         tooltip={translate("Click to Copy")}
                                         value={secretValue}
                                         childrenCopied={translate("Copied")}
@@ -494,58 +462,39 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                     >
                                         {translate("Secret")}
                                     </CopyButton>
-                                </Grid>
-                                <Grid size={{ xs: 12 }}>
-                                    <TextField
+                                </div>
+                                <div className="flex flex-col items-start">
+                                    <Label htmlFor="secret-url">{translate("Secret")}</Label>
+                                    <textarea
                                         id={"secret-url"}
-                                        label={translate("Secret")}
-                                        sx={(theme) => ({
-                                            marginBottom: theme.spacing(1),
-                                            marginTop: theme.spacing(1),
-                                            width: "256px",
-                                        })}
+                                        className="my-2 w-64 resize-none overflow-hidden rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none"
                                         value={secretURL ?? ""}
-                                        multiline={true}
-                                        slotProps={{
-                                            input: {
-                                                readOnly: true,
-                                            },
-                                        }}
+                                        readOnly
+                                        rows={secretURL ? Math.ceil(secretURL.length / 30) : 1}
                                     />
-                                </Grid>
-                            </Grid>
-                        </Grid>
-                        <Grid size={{ xs: 12 }} sx={{ display: { md: "block", xs: "none" } }}>
-                            <Box>
-                                <Typography
-                                    sx={(theme) => ({
-                                        fontSize: theme.typography.fontSize * 0.8,
-                                    })}
-                                >
-                                    {translate("Need Google Authenticator?")}
-                                </Typography>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-span-12 hidden md:block">
+                            <div className="text-center">
+                                <p className="text-xs mb-1">{translate("Need Google Authenticator?")}</p>
                                 <AppStoreBadges
                                     iconSize={110}
                                     targetBlank
                                     googlePlayLink={GoogleAuthenticator.googlePlay}
                                     appleStoreLink={GoogleAuthenticator.appleStore}
                                 />
-                            </Box>
-                        </Grid>
+                            </div>
+                        </div>
                     </Fragment>
                 );
             case 2:
                 return (
-                    <Grid size={{ xs: 12 }} paddingY={4}>
+                    <div className="col-span-12 py-8">
                         {success ? (
-                            <Box
-                                sx={(theme) => ({
-                                    flex: "0 0 100%",
-                                    marginBottom: theme.spacing(2),
-                                })}
-                            >
+                            <div className="flex-[0_0_100%] mb-4">
                                 <SuccessIcon />
-                            </Box>
+                            </div>
                         ) : (
                             <OTPDial
                                 passcode={dialValue}
@@ -555,22 +504,31 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                 onChange={setDialValue}
                             />
                         )}
-                    </Grid>
+                    </div>
                 );
         }
     }
 
     return (
-        <Dialog open={props.open} onClose={handleOnClose} fullWidth={true}>
-            <DialogTitle>{translate("Register {{item}}", { item: translate("One-Time Password") })}</DialogTitle>
-            <DialogContent>
-                <DialogContentText sx={{ mb: 3 }}>
-                    {translate("This dialog handles registration of a {{item}}", {
-                        item: translate("One-Time Password"),
-                    })}
-                </DialogContentText>
-                <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                    <Grid size={{ xs: 12 }}>
+        <Dialog
+            open={props.open}
+            onOpenChange={(open) => {
+                if (!open) handleOnClose();
+            }}
+        >
+            <DialogContent showCloseButton={false} className="w-full">
+                <DialogHeader>
+                    <DialogTitle>
+                        {translate("Register {{item}}", { item: translate("One-Time Password") })}
+                    </DialogTitle>
+                    <DialogDescription className="mb-6">
+                        {translate("This dialog handles registration of a {{item}}", {
+                            item: translate("One-Time Password"),
+                        })}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-full px-6">
                         <Stepper activeStep={activeStep}>
                             {steps.map((label) => {
                                 const stepProps: { completed?: boolean } = {};
@@ -584,35 +542,35 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                 );
                             })}
                         </Stepper>
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <Grid container spacing={1} justifyContent={"center"}>
-                            {renderStep(activeStep)}
-                        </Grid>
-                    </Grid>
-                </Grid>
+                    </div>
+                    <div className="w-full">
+                        <div className="flex flex-col items-center justify-center gap-2">{renderStep(activeStep)}</div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button
+                        id={"dialog-previous"}
+                        variant={"ghost"}
+                        color={"primary"}
+                        onClick={handleSetStepPrevious}
+                        disabled={activeStep === 0}
+                    >
+                        {translate("Previous")}
+                    </Button>
+                    <Button id={"dialog-cancel"} variant={"ghost"} color={"destructive"} onClick={handleClose}>
+                        {translate("Cancel")}
+                    </Button>
+                    <Button
+                        id={"dialog-next"}
+                        variant={"ghost"}
+                        color={"primary"}
+                        onClick={handleSetStepNext}
+                        disabled={activeStep === steps.length - 1}
+                    >
+                        {translate("Next")}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions>
-                <Button
-                    id={"dialog-previous"}
-                    color={"primary"}
-                    onClick={handleSetStepPrevious}
-                    disabled={activeStep === 0}
-                >
-                    {translate("Previous")}
-                </Button>
-                <Button id={"dialog-cancel"} color={"error"} onClick={handleClose}>
-                    {translate("Cancel")}
-                </Button>
-                <Button
-                    id={"dialog-next"}
-                    color={"primary"}
-                    onClick={handleSetStepNext}
-                    disabled={activeStep === steps.length - 1}
-                >
-                    {translate("Next")}
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 };

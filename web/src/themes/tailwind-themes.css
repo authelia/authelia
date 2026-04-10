@@ -1,0 +1,202 @@
+/*
+ * Authelia theme definitions as CSS custom properties.
+ * These map the MUI theme palette values to CSS variables consumed by
+ * Tailwind CSS and shadcn/ui components.
+ */
+
+/* ---------- Light (also :root default) ---------- */
+:root,
+[data-theme="light"] {
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(0 0% 13%);
+
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(0 0% 13%);
+
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(0 0% 13%);
+
+    --primary: hsl(213 68% 46%);
+    --primary-foreground: hsl(0 0% 100%);
+
+    --secondary: hsl(340 100% 48%);
+    --secondary-foreground: hsl(0 0% 100%);
+
+    --muted: hsl(0 0% 96%);
+    --muted-foreground: hsl(0 0% 33%);
+
+    --accent: hsl(0 0% 96%);
+    --accent-foreground: hsl(0 0% 13%);
+
+    --destructive: hsl(4 90% 58%);
+    --destructive-foreground: hsl(0 0% 100%);
+
+    --success: hsl(122 39% 49%);
+    --success-foreground: hsl(0 0% 13%);
+
+    --warning: hsl(36 100% 50%);
+    --warning-foreground: hsl(0 0% 13%);
+
+    --info: hsl(207 90% 54%);
+    --info-foreground: hsl(0 0% 100%);
+
+    --border: hsl(0 0% 88%);
+    --input: hsl(0 0% 88%);
+    --ring: hsl(213 68% 46%);
+
+    --radius: 0.5rem;
+
+    --custom-icon: #000;
+    --custom-loading-bar: #000;
+
+    --divider: rgba(0, 0, 0, 0.12);
+
+    color-scheme: light;
+}
+
+/* ---------- Dark ---------- */
+[data-theme="dark"] {
+    --background: hsl(0 0% 19%);
+    --foreground: hsl(0 0% 100%);
+
+    --card: hsl(0 0% 26%);
+    --card-foreground: hsl(0 0% 100%);
+
+    --popover: hsl(0 0% 26%);
+    --popover-foreground: hsl(0 0% 100%);
+
+    --primary: hsl(213 68% 46%);
+    --primary-foreground: hsl(0 0% 100%);
+
+    --secondary: hsl(340 100% 48%);
+    --secondary-foreground: hsl(0 0% 100%);
+
+    --muted: hsl(0 0% 26%);
+    --muted-foreground: hsl(0 0% 100% / 0.7);
+
+    --accent: hsl(0 0% 26%);
+    --accent-foreground: hsl(0 0% 100%);
+
+    --destructive: hsl(4 90% 58%);
+    --destructive-foreground: hsl(0 0% 100%);
+
+    --success: hsl(122 39% 49%);
+    --success-foreground: hsl(0 0% 13%);
+
+    --warning: hsl(36 100% 50%);
+    --warning-foreground: hsl(0 0% 13%);
+
+    --info: hsl(207 90% 54%);
+    --info-foreground: hsl(0 0% 100%);
+
+    --border: hsl(0 0% 100% / 0.12);
+    --input: hsl(0 0% 100% / 0.12);
+    --ring: hsl(213 68% 46%);
+
+    --radius: 0.5rem;
+
+    --custom-icon: #fff;
+    --custom-loading-bar: #fff;
+
+    --divider: rgba(255, 255, 255, 0.12);
+
+    color-scheme: dark;
+}
+
+/* ---------- Grey ---------- */
+[data-theme="grey"] {
+    --background: hsl(220 13% 21%);
+    --foreground: hsl(220 6% 61%);
+
+    --card: hsl(220 13% 21%);
+    --card-foreground: hsl(220 6% 61%);
+
+    --popover: hsl(220 13% 21%);
+    --popover-foreground: hsl(220 6% 61%);
+
+    --primary: hsl(220 6% 61%);
+    --primary-foreground: hsl(0 0% 100%);
+
+    --secondary: hsl(340 100% 48%);
+    --secondary-foreground: hsl(0 0% 100%);
+
+    --muted: hsl(220 13% 26%);
+    --muted-foreground: hsl(220 6% 61%);
+
+    --accent: hsl(220 13% 26%);
+    --accent-foreground: hsl(220 6% 61%);
+
+    --destructive: hsl(4 90% 58%);
+    --destructive-foreground: hsl(0 0% 100%);
+
+    --success: hsl(122 39% 49%);
+    --success-foreground: hsl(0 0% 13%);
+
+    --warning: hsl(36 100% 50%);
+    --warning-foreground: hsl(0 0% 13%);
+
+    --info: hsl(207 90% 54%);
+    --info-foreground: hsl(0 0% 100%);
+
+    --border: hsl(220 6% 61%);
+    --input: hsl(220 6% 61%);
+    --ring: hsl(220 6% 61%);
+
+    --radius: 0.5rem;
+
+    --custom-icon: #929aa5;
+    --custom-loading-bar: #929aa5;
+
+    --divider: rgba(0, 0, 0, 0.12);
+
+    color-scheme: dark;
+}
+
+/* ---------- OLED ---------- */
+[data-theme="oled"] {
+    --background: hsl(0 0% 0%);
+    --foreground: hsl(0 0% 100%);
+
+    --card: hsl(0 0% 0%);
+    --card-foreground: hsl(0 0% 100%);
+
+    --popover: hsl(0 0% 0%);
+    --popover-foreground: hsl(0 0% 100%);
+
+    --primary: hsl(213 68% 46%);
+    --primary-foreground: hsl(0 0% 100%);
+
+    --secondary: hsl(340 100% 48%);
+    --secondary-foreground: hsl(0 0% 100%);
+
+    --muted: hsl(0 0% 10%);
+    --muted-foreground: hsl(0 0% 100% / 0.7);
+
+    --accent: hsl(0 0% 10%);
+    --accent-foreground: hsl(0 0% 100%);
+
+    --destructive: hsl(4 90% 58%);
+    --destructive-foreground: hsl(0 0% 100%);
+
+    --success: hsl(122 39% 49%);
+    --success-foreground: hsl(0 0% 100% / 0.87);
+
+    --warning: hsl(36 100% 50%);
+    --warning-foreground: hsl(0 0% 100% / 0.87);
+
+    --info: hsl(207 90% 54%);
+    --info-foreground: hsl(0 0% 100%);
+
+    --border: hsl(0 0% 100% / 0.12);
+    --input: hsl(0 0% 100% / 0.12);
+    --ring: hsl(213 68% 46%);
+
+    --radius: 0.5rem;
+
+    --custom-icon: #fff;
+    --custom-loading-bar: #fff;
+
+    --divider: rgba(255, 255, 255, 0.12);
+
+    color-scheme: dark;
+}

@@ -1,4 +1,6 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import path from "node:path";
 import { defineConfig, loadEnv } from "vite";
 import checkerPlugin from "vite-plugin-checker";
 import istanbul from "vite-plugin-istanbul";
@@ -46,10 +48,6 @@ export default defineConfig(({ mode }) => {
 
                             const last = chunkInfo.moduleIds.at(-1);
 
-                            if (last?.includes("@mui/")) {
-                                return `static/js/mui.[name].[hash].js`;
-                            }
-
                             if (last) {
                                 const regexp = /authelia\/web\/src\/([a-zA-Z]+)\/([a-zA-Z]+)/;
                                 const match = regexp.exec(last);
@@ -87,9 +85,6 @@ export default defineConfig(({ mode }) => {
             },
             sourcemap,
         },
-        optimizeDeps: {
-            include: ["@emotion/react", "@emotion/styled"],
-        },
         plugins: [
             checkerPlugin({
                 eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx", useFlatConfig: true },
@@ -98,8 +93,13 @@ export default defineConfig(({ mode }) => {
             istanbulPlugin,
             react(),
             svgr(),
+            tailwindcss(),
         ],
         resolve: {
+            // TODO: Remove alias when tailwindlabs/tailwindcss#19802 is resolved and in a release.
+            alias: {
+                "@themes": path.resolve(__dirname, "src/themes"),
+            },
             tsconfigPaths: true,
         },
         server: {

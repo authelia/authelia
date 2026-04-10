@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 
-import { Paper, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
+import { Card, CardContent } from "@components/UI/Card";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useConfiguration } from "@hooks/Configuration";
@@ -127,27 +126,29 @@ const TwoFactorAuthenticationView = function () {
     };
 
     return (
-        <Grid container spacing={2}>
+        <div className="grid grid-cols-1 gap-4">
             {renderSecondFactorDisabled() ? (
-                <Grid size={{ xs: 12 }} display="flex" justifyContent="center" alignItems="center">
-                    <Paper>
-                        <Typography variant={"h6"} sx={{ p: 6 }} text-align="center">
-                            {translate("There are no protected applications that require a second factor method")}
-                        </Typography>
-                    </Paper>
-                </Grid>
+                <div className="w-full flex justify-center items-center">
+                    <Card>
+                        <CardContent>
+                            <h6 className="text-lg font-semibold p-12 text-center">
+                                {translate("There are no protected applications that require a second factor method")}
+                            </h6>
+                        </CardContent>
+                    </Card>
+                </div>
             ) : null}
             {!renderSecondFactorDisabled() && enabledTOTP ? (
-                <Grid size={{ xs: 12 }}>
+                <div className="w-full">
                     <OneTimePasswordPanel
                         info={userInfo}
                         config={userTOTPConfig}
                         handleRefreshState={handleRefreshTOTPState}
                     />
-                </Grid>
+                </div>
             ) : null}
             {!renderSecondFactorDisabled() || enabledWebAuthn ? (
-                <Grid size={{ xs: 12 }}>
+                <div className="w-full">
                     {enabledWebAuthn ? (
                         <WebAuthnCredentialsPanel
                             info={userInfo}
@@ -157,18 +158,18 @@ const TwoFactorAuthenticationView = function () {
                     ) : (
                         <WebAuthnCredentialsDisabledPanel />
                     )}
-                </Grid>
+                </div>
             ) : null}
             {configuration && userInfo ? (
-                <Grid size={{ xs: 12 }}>
+                <div className="w-full">
                     <TwoFactorAuthenticationOptionsPanel
                         config={configuration}
                         info={userInfo}
                         refresh={handleRefreshUserInfo}
                     />
-                </Grid>
+                </div>
             ) : null}
-        </Grid>
+        </div>
     );
 };
 

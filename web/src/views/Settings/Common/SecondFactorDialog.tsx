@@ -1,24 +1,20 @@
 import { Fragment, lazy, useCallback, useLayoutEffect, useReducer } from "react";
 
-import {
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Divider,
-    Stack,
-    Step,
-    StepLabel,
-    Stepper,
-    Typography,
-} from "@mui/material";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 
 import SuccessIcon from "@components/SuccessIcon";
+import { Button } from "@components/UI/Button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@components/UI/Dialog";
+import { Separator } from "@components/UI/Separator";
+import { Step, StepLabel, Stepper } from "@components/UI/Stepper";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
 import { UserSessionElevation } from "@services/UserSessionElevation";
@@ -178,18 +174,9 @@ const SecondFactorDialog = function (props: Props) {
     const renderContent = () => {
         if (activeStep === 2) {
             return (
-                <Box
-                    sx={{
-                        display: "flex",
-                        flex: "0 0 100%",
-                        flexDirection: "column",
-                        m: "auto",
-                        padding: "5.0rem",
-                        width: "fit-content",
-                    }}
-                >
+                <div className="flex flex-col m-auto p-20 w-fit">
                     <SuccessIcon />
-                </Box>
+                </div>
             );
         }
 
@@ -199,56 +186,59 @@ const SecondFactorDialog = function (props: Props) {
 
         if (activeStep === 0) {
             return (
-                <Stack alignContent={"center"} justifyContent={"center"} alignItems={"center"} spacing={2} my={8}>
+                <div className="flex flex-col items-center justify-center gap-4 my-16">
                     {elevation.can_skip_second_factor ? (
                         <Fragment>
-                            <Button variant={"outlined"} onClick={handleOneTimeCode}>
+                            <Button variant={"outline"} onClick={handleOneTimeCode}>
                                 {translate("Email One-Time Code")}
                             </Button>
-                            <Divider />
-                            <Typography variant={"h5"}>{translate("or", { ns: "portal" })}</Typography>
-                            <Divider />
+                            <Separator />
+                            <h5 className="text-xl font-semibold">{translate("or", { ns: "portal" })}</h5>
+                            <Separator />
                         </Fragment>
                     ) : null}
                     {info.has_totp ? (
-                        <Button variant={"outlined"} onClick={handleClickOneTimePassword}>
+                        <Button variant={"outline"} onClick={handleClickOneTimePassword}>
                             {translate("One-Time Password")}
                         </Button>
                     ) : null}
                     {info.has_webauthn && browserSupportsWebAuthn() ? (
-                        <Button variant={"outlined"} onClick={handleClickWebAuthn}>
+                        <Button variant={"outline"} onClick={handleClickWebAuthn}>
                             {translate("WebAuthn")}
                         </Button>
                     ) : null}
                     {info.has_duo ? (
-                        <Button variant={"outlined"} onClick={handleClickMobilePush}>
+                        <Button variant={"outline"} onClick={handleClickMobilePush}>
                             {translate("Mobile Push")}
                         </Button>
                     ) : null}
-                </Stack>
+                </div>
             );
         }
 
         if (activeStep === 1) {
-            return (
-                <Stack alignContent={"center"} justifyContent={"center"} alignItems={"center"} my={8}>
-                    {getAuthComponent()}
-                </Stack>
-            );
+            return <div className="flex flex-col items-center justify-center my-16">{getAuthComponent()}</div>;
         }
 
         return <LoadingPage />;
     };
 
     return (
-        <Dialog id={"dialog-verify-second-factor"} open={open} onClose={handleCancelled}>
-            <DialogTitle>{translate("Identity Verification")}</DialogTitle>
-            <DialogContent>
-                <DialogContentText gutterBottom>
-                    {translate(
-                        "In order to perform this action, policy enforcement requires that two-factor authentication is performed",
-                    )}
-                </DialogContentText>
+        <Dialog
+            open={open}
+            onOpenChange={(isOpen) => {
+                if (!isOpen) handleCancelled();
+            }}
+        >
+            <DialogContent id={"dialog-verify-second-factor"} showCloseButton={false}>
+                <DialogHeader>
+                    <DialogTitle>{translate("Identity Verification")}</DialogTitle>
+                    <DialogDescription>
+                        {translate(
+                            "In order to perform this action, policy enforcement requires that two-factor authentication is performed",
+                        )}
+                    </DialogDescription>
+                </DialogHeader>
                 <Stepper activeStep={activeStep}>
                     <Step key={"step-1"}>
                         <StepLabel>{translate("Select a Method")}</StepLabel>
@@ -261,12 +251,12 @@ const SecondFactorDialog = function (props: Props) {
                     </Step>
                 </Stepper>
                 {renderContent()}
+                <DialogFooter>
+                    <Button variant={"outline"} color={"destructive"} disabled={loading} onClick={handleCancelled}>
+                        {translate("Cancel")}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions>
-                <Button variant={"outlined"} color={"error"} disabled={loading} onClick={handleCancelled}>
-                    {translate("Cancel")}
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 };

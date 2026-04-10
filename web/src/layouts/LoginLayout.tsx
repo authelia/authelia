@@ -1,7 +1,5 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
 
-import { Box, Breakpoint, Container } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
 import UserSvg from "@assets/images/user.svg?react";
@@ -15,6 +13,15 @@ import { Language } from "@models/LocaleInformation";
 import { UserInfo } from "@models/UserInfo";
 import { getLocaleInformation } from "@services/LocaleInformation";
 import { getLogoOverride } from "@utils/Configuration";
+import { cn } from "@utils/Styles";
+
+const maxWidthMap: Record<string, string> = {
+    lg: "max-w-4xl",
+    md: "max-w-2xl",
+    sm: "max-w-xl",
+    xl: "max-w-6xl",
+    xs: "max-w-[444px]",
+};
 
 export interface Props {
     id?: string;
@@ -24,7 +31,7 @@ export interface Props {
     subtitle?: null | string;
     subtitleTooltip?: null | string;
     userInfo?: UserInfo;
-    maxWidth?: Breakpoint | false;
+    maxWidth?: false | string;
 }
 
 const LoginLayout = function (props: Props) {
@@ -34,17 +41,14 @@ const LoginLayout = function (props: Props) {
     const [localeList, setLocaleList] = useState<Language[]>([]);
 
     const logo = getLogoOverride() ? (
-        <Box
-            component={"img"}
+        <img
             src="./static/media/logo.png"
             alt="Logo"
-            sx={{ fill: (theme) => theme.custom.icon, margin: (theme) => theme.spacing(), width: "64px" }}
+            className="mx-auto my-2 w-16"
+            style={{ fill: "var(--custom-icon)" }}
         />
     ) : (
-        <Box
-            component={UserSvg}
-            sx={{ fill: (theme) => theme.custom.icon, margin: (theme) => theme.spacing(), width: "64px" }}
-        />
+        <UserSvg className="mx-auto my-2 w-16" style={{ fill: "var(--custom-icon)" }} />
     );
 
     const handleChangeLanguage = (locale: string) => {
@@ -73,59 +77,45 @@ const LoginLayout = function (props: Props) {
         document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCodePoint(...EncodedName)) });
     }, [translate]);
 
+    const containerMaxWidth = props.maxWidth === false ? "" : (maxWidthMap[props.maxWidth ?? "xs"] ?? "max-w-xs");
+
     return (
-        <Box>
+        <div>
             <AppBarLoginPortal
                 userInfo={props.userInfo}
                 onLocaleChange={handleChangeLanguage}
                 localeList={localeList}
                 localeCurrent={locale}
             />
-            <Grid
-                id={props.id}
-                container
-                spacing={0}
-                alignItems="center"
-                justifyContent="center"
-                sx={{ minHeight: "90vh", textAlign: "center" }}
-            >
-                <Container maxWidth={props.maxWidth ?? "xs"} sx={{ paddingLeft: "32px", paddingRight: "32px" }}>
-                    <Grid container>
-                        <Grid size={{ xs: 12 }}>{logo}</Grid>
+            <div id={props.id} className="flex min-h-[90vh] items-center justify-center text-center">
+                <div className={cn("mx-auto w-full px-8", containerMaxWidth)}>
+                    <div className="flex flex-col items-stretch">
+                        <div className="w-full p-2">{logo}</div>
                         {props.title ? (
-                            <Grid size={{ xs: 12 }} maxWidth="xs">
+                            <div className="w-full">
                                 <TypographyWithTooltip
                                     variant="h5"
                                     value={props.title}
                                     tooltip={props.titleTooltip ?? undefined}
                                 />
-                            </Grid>
+                            </div>
                         ) : null}
                         {props.subtitle ? (
-                            <Grid size={{ xs: 12 }}>
+                            <div className="w-full">
                                 <TypographyWithTooltip
                                     variant="h6"
                                     value={props.subtitle}
                                     tooltip={props.subtitleTooltip ?? undefined}
                                 />
-                            </Grid>
+                            </div>
                         ) : null}
-                        <Grid
-                            size={{ xs: 12 }}
-                            sx={{
-                                marginTop: (theme) => theme.spacing(),
-                                paddingBottom: (theme) => theme.spacing(),
-                                paddingTop: (theme) => theme.spacing(),
-                            }}
-                        >
-                            {props.children}
-                        </Grid>
+                        <div className="mt-2 py-2">{props.children}</div>
                         <Brand />
-                    </Grid>
-                </Container>
+                    </div>
+                </div>
                 <PrivacyPolicyDrawer />
-            </Grid>
-        </Box>
+            </div>
+        </div>
     );
 };
 
