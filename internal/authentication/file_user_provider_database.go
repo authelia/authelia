@@ -236,6 +236,7 @@ type FileUserDatabaseUserDetails struct {
 	PhoneNumber    string                 `json:"phone_number,omitempty" jsonschema:"title=Phone Number" jsonschema_description:"The phone number for the user."`
 	PhoneExtension string                 `json:"phone_extension,omitempty" jsonschema:"title=Phone Extension" jsonschema_description:"The phone extension for the user."`
 	Email          string                 `json:"email" jsonschema:"title=Email" jsonschema_description:"The email for the user."`
+	RecoveryEmail  string                 `json:"recovery_email,omitempty" jsonschema:"title=Recovery Email" jsonschema_description:"The recovery email for the user."`
 	Groups         []string               `json:"groups" jsonschema:"title=Groups" jsonschema_description:"The groups list for the user."`
 	Disabled       bool                   `json:"disabled" jsonschema:"default=false,title=Disabled" jsonschema_description:"The disabled status for the user."`
 
@@ -261,10 +262,11 @@ func (m FileUserDatabaseUserDetails) ToUserDetails() (details *UserDetails) {
 	}
 
 	return &UserDetails{
-		Username:    m.Username,
-		DisplayName: m.DisplayName,
-		Emails:      emails,
-		Groups:      m.Groups,
+		Username:      m.Username,
+		DisplayName:   m.DisplayName,
+		Emails:        emails,
+		Groups:        m.Groups,
+		RecoveryEmail: m.RecoveryEmail,
 	}
 }
 
@@ -316,6 +318,7 @@ func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUse
 		PhoneNumber:    m.PhoneNumber,
 		PhoneExtension: m.PhoneExtension,
 		Email:          m.Email,
+		RecoveryEmail:  m.RecoveryEmail,
 		Groups:         m.Groups,
 		Address:        m.Address,
 		Extra:          m.Extra,
@@ -416,6 +419,7 @@ type FileDatabaseUserDetailsModel struct {
 	Password       string   `yaml:"password" valid:"required"`
 	DisplayName    string   `yaml:"displayname" valid:"required"`
 	Email          string   `yaml:"email"`
+	RecoveryEmail  string   `yaml:"recovery_email"`
 	Groups         []string `yaml:"groups"`
 	GivenName      string   `yaml:"given_name"`
 	MiddleName     string   `yaml:"middle_name"`
@@ -511,6 +515,7 @@ func (m FileDatabaseUserDetailsModel) ToDatabaseUserDetailsModel(username string
 		Disabled:       m.Disabled,
 		DisplayName:    m.DisplayName,
 		Email:          m.Email,
+		RecoveryEmail:  m.RecoveryEmail,
 		GivenName:      m.GivenName,
 		MiddleName:     m.MiddleName,
 		FamilyName:     m.FamilyName,
