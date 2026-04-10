@@ -60,26 +60,6 @@
   weight = 30
 
 [[footer]]
-  name = "Privacy Policy"
-  url = "/policies/privacy"
-  weight = 10
-
-[[footer]]
-  name = "Security Policy"
-  url = "/policies/security"
-  weight = 20
-
-[[footer]]
-  name = "Versioning Policy"
-  url = "/policies/versioning"
-  weight = 30
-
-[[footer]]
-  name = "Code of Conduct"
-  url = "/code-of-conduct"
-  weight = 40
-
-[[footer]]
   name = "About"
   url = "/information/about"
   weight = 50
@@ -88,3 +68,38 @@
   name = "Contact"
   url = "/information/contact"
   weight = 60
+
+[[footer]]
+  name       = "Policies"
+  identifier = "policies"
+  weight     = 10
+
+[[footer]]
+  name   = "Security Policy"
+  url    = "/policies/security/"
+  parent = "policies"
+  weight = 10
+
+[[footer]]
+  name   = "Privacy Policy"
+  url    = "/policies/privacy/"
+  parent = "policies"
+  weight = 20
+
+[[footer]]
+  name   = "Governance Policy"
+  url    = "/policies/governance/"
+  parent = "policies"
+  weight = 30
+
+[[footer]]
+  name   = "Versioning Policy"
+  url    = "/policies/versioning/"
+  parent = "policies"
+  weight = 40
+
+[[footer]]
+  name   = "Code of Conduct"
+  url    = "/policies/code-of-conduct/"
+  parent = "policies"
+  weight = 50

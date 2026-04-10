@@ -26,15 +26,9 @@ are free to contribute [financially](../contributing/prologue/financial.md) or w
 
 ## Teams
 
-The following section describes the various teams within the Authelia project.
-
-### Core Team
-
-{{% profile-team name="core" %}}
-
-### Maintainers Team
-
-{{% profile-team name="maintainers" %}}
+The Authelia project has two teams: the [Core Team](../policies/governance.md#core-team) and the
+[Maintainers Team](../policies/governance.md#maintainers). For detailed descriptions of each team's roles,
+responsibilities, and access to sensitive resources see the [governance policy](../policies/governance.md).
 
 ## Sponsors
 
@@ -86,14 +80,6 @@ Our [website and documentation](https://www.authelia.com) are built and hosted b
 [Netlify](https://www.netlify.com/?from=Authelia).
 
 [Open Collective]: https://opencollective.com/authelia-sponsors
-
-## Governance and Affiliations
-
-Authelia is free from any outside governance and is entirely governed as outlined on this page, in addition we do not
-have any affiliations which have ever asked this of us.
-
-Our affiliations with external companies will be transparently communicated in this section and the
-[sponsors](#sponsors) section.
 
 ## Compliance
 
