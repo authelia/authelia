@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.17](https://github.com/authelia/authelia/releases/tag/v4.39.17)
+  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
 - [SFTPGo]
   - [v2.6.6](https://github.com/drakkan/sftpgo/releases/tag/v2.6.6)
 

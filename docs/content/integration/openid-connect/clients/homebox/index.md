@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.17](https://github.com/authelia/authelia/releases/tag/v4.39.17)
+  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
 - [HomeBox]
   - [v0.23.1](https://github.com/sysadminsmedia/homebox/releases/tag/v0.23.1)
 

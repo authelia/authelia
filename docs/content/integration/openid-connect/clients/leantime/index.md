@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.17](https://github.com/authelia/authelia/releases/tag/v4.39.17)
+  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
 - [Leantime]
   - [v3.5.8](https://github.com/Leantime/leantime/releases/tag/v3.5.8)
 
