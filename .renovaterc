@@ -79,7 +79,20 @@
       "addLabels": [
         "javascript"
       ]
-    }
+    },
+    {
+      "matchDatasources": [
+        "go",
+        "gomod",
+        "npm"
+      ],
+      "prBodyNotes": [
+      	"{{#unless hasReleaseNotes}}⚠️ No changelog found for this update; review carefully before unblocking the workflow.{{/unless}}"
+      ],
+      "labels": [
+        "{{#unless hasReleaseNotes}}no-changelog{{/unless}}"
+      ]
+  	}
   ],
   "postUpdateOptions": [
     "gomodTidy"
