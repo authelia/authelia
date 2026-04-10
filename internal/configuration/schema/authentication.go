@@ -326,10 +326,24 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 		Country:           "c",
 		MemberOf:          ldapAttrMemberOf,
 		GroupName:         ldapAttrCommonName,
+		GroupMember:       ldapAttrGroupMember,
 	},
 	Timeout: time.Second * 5,
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
+	},
+	UserManagement: AuthenticationBackendLDAPUserManagement{
+		CreatedUsersRDNAttribute: ldapAttrCommonName,
+		UserObjectClasses: []string{
+			"top",
+			"person",
+			"organizationalPerson",
+			"user",
+		},
+		GroupObjectClasses: []string{
+			"top",
+			"group",
+		},
 	},
 }
 

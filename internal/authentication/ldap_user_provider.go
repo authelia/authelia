@@ -490,7 +490,7 @@ func (p *LDAPUserProvider) ListUsers() (users []UserDetailsExtended, err error) 
 		p.usersBaseDN,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
 		0, 0, false,
-		"(objectClass=inetOrgPerson)",
+		p.resolveAllUsersFilter(),
 		p.usersAttributesExtended,
 		nil,
 	)
@@ -1085,6 +1085,23 @@ attributes:
 	}
 
 	return ""
+}
+
+// resolveAllUsersFilter returns the LDAP filter for listing all users based on the implementation.
+//
+//nolint:goconst
+func (p *LDAPUserProvider) resolveAllUsersFilter() string {
+	switch p.config.Implementation {
+	case schema.LDAPImplementationActiveDirectory:
+		// Active Directory uses 'user' object class, and we should filter out computer accounts.
+		return "(&(objectClass=user)(!(objectClass=computer)))"
+	case schema.LDAPImplementationFreeIPA, schema.LDAPImplementationRFC2307bis:
+		return "(objectClass=inetOrgPerson)"
+	case schema.LDAPImplementationGLAuth, schema.LDAPImplementationLLDAP:
+		return "(objectClass=inetOrgPerson)"
+	default:
+		return "(objectClass=inetOrgPerson)"
+	}
 }
 
 type resolveUsersFilterOpts struct {

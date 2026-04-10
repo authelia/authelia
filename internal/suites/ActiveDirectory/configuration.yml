@@ -50,6 +50,11 @@ session:
       inactivity: '5 minutes'
       remember_me: '1 year'
 
+administration:
+  enabled: true
+  admin_group: "authelia-admin"
+  enable_user_management: true
+
 authentication_backend:
   ldap:
     address: 'ldap://sambaldap'
@@ -67,6 +72,75 @@ authentication_backend:
     additional_groups_dn: 'OU=Groups'
     user: 'CN=Administrator,CN=Users,DC=example,DC=com'
     password: 'password'
+
+    user_management:
+      created_groups_dn: ""
+      created_users_dn: ""
+      created_users_rdn_attribute: "cn"
+      created_users_rdn_format: "[[ .username ]]"
+      user_object_classes:
+        - "top"
+        - "person"
+        - "organizationalPerson"
+        - "user"
+      group_object_classes:
+        - "top"
+        - "group"
+      required_attributes:
+        - 'given_name'
+
+    attributes:
+      username: 'sAMAccountName'
+      distinguished_name: 'distinguishedName'
+      display_name: 'displayName'
+      mail: 'mail'
+      member_of: 'memberOf'
+      group_name: 'cn'
+      family_name: 'sn'
+      given_name: 'givenName'
+      group_member: 'member'
+      middle_name: 'middleName'
+      nickname: 'initials'
+      phone_number: 'telephoneNumber'
+      phone_extension: 'ipPhone'
+      street_address: 'streetAddress'
+      locality: 'l'
+      region: 'st'
+      postal_code: 'postalCode'
+      country: 'c'
+      website: 'wWWHomePage'
+      profile: 'personalTitle'
+      picture: 'jpegPhoto'
+      locale: 'preferredLanguage'
+      zoneinfo: 'comment'
+      birthdate: 'employeeID'
+      gender: 'title'
+
+      extra:
+        employeeNumber:
+          name: 'employee_id'
+          multi_valued: false
+          value_type: 'string'
+        employeeType:
+          name: 'employee_type'
+          multi_valued: false
+          value_type: 'string'
+        msExchHideFromAddressLists:
+          name: 'test_flag'
+          multi_valued: false
+          value_type: 'boolean'
+        department:
+          name: 'department'
+          multi_valued: false
+          value_type: 'string'
+        info:
+          name: 'employee_number'
+          multi_valued: false
+          value_type: 'integer'
+        keywords:
+          name: 'tags'
+          multi_valued: true
+          value_type: 'string'
 
 totp:
   issuer: 'example.com'

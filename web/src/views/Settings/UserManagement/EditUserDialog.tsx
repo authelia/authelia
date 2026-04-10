@@ -52,7 +52,11 @@ const EditUserDialog = ({ onClose, open, user }: Props) => {
 
     useEffect(() => {
         if (user) {
-            reset(user);
+            const formData = {
+                ...user,
+                address: user.address || {},
+            };
+            reset(formData);
         }
     }, [user, reset]);
 
@@ -73,22 +77,33 @@ const EditUserDialog = ({ onClose, open, user }: Props) => {
             const { extra: extraFieldNames } = categorizeFields();
 
             (Object.keys(dirtyFields) as Array<keyof UserDetailsExtended>).forEach((key) => {
-                if (addressFields.includes(key)) {
+                if (addressFields.includes(key as string)) {
                     updateMask.push(`address.${key}`);
-                    changedData[key] = data[key] as any;
-                } else if (extraFieldNames.includes(key)) {
+                    if (!changedData.address) {
+                        changedData.address = {};
+                    }
+                    if (data.address && key in data.address) {
+                        changedData.address[key as keyof typeof data.address] =
+                            data.address[key as keyof typeof data.address];
+                    }
+                } else if (extraFieldNames.includes(key as string)) {
                     updateMask.push(`extra.${key}`);
                     if (!changedData.extra) {
                         changedData.extra = {};
                     }
-                    changedData.extra[key] = data[key] as any;
+                    changedData.extra[key as string] = data[key] as any;
                 } else if (key === "extra" && dirtyFields.extra) {
                     Object.keys(dirtyFields.extra || {}).forEach((extraKey) => {
                         updateMask.push(`extra.${extraKey}`);
                     });
                     changedData[key] = data[key] as any;
+                } else if (key === "address" && dirtyFields.address) {
+                    Object.keys(dirtyFields.address || {}).forEach((addressKey) => {
+                        updateMask.push(`address.${addressKey}`);
+                    });
+                    changedData.address = data.address;
                 } else {
-                    updateMask.push(key);
+                    updateMask.push(key as string);
                     changedData[key] = data[key] as any;
                 }
             });
@@ -211,12 +226,16 @@ const EditUserDialog = ({ onClose, open, user }: Props) => {
     const buildFieldConfig = (fieldName: string) => {
         if (!metadata) return null;
 
+        const addressFields = ["street_address", "locality", "region", "postal_code", "country"];
+        const isAddressField = addressFields.includes(fieldName);
+        const fieldPath = isAddressField ? `address.${fieldName}` : fieldName;
+
         return {
             description: translate(`user_management.attributes.${fieldName}.description`, { defaultValue: "" }),
             disabled: fieldName === "username",
             label: translate(`user_management.attributes.${fieldName}.label`, { defaultValue: fieldName }),
             meta: metadata.supported_attributes[fieldName],
-            name: fieldName as Path<UserDetailsExtended>,
+            name: fieldPath as Path<UserDetailsExtended>,
             required: metadata.required_attributes.includes(fieldName),
         };
     };

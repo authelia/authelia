@@ -601,6 +601,8 @@ func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema
 		switch config.LDAP.Implementation {
 		case schema.LDAPImplementationRFC2307bis:
 			config.LDAP.UserManagement.UserObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.UserObjectClasses
+		case schema.LDAPImplementationActiveDirectory:
+			config.LDAP.UserManagement.UserObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UserManagement.UserObjectClasses
 		case schema.LDAPImplementationCustom:
 		default:
 			validator.Push(errors.New(errFmtAuthBackendUserManagementUserObjectClassesRequiredForCustom))
@@ -611,6 +613,8 @@ func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema
 		switch config.LDAP.Implementation {
 		case schema.LDAPImplementationRFC2307bis:
 			config.LDAP.UserManagement.GroupObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.GroupObjectClasses
+		case schema.LDAPImplementationActiveDirectory:
+			config.LDAP.UserManagement.GroupObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UserManagement.GroupObjectClasses
 		case schema.LDAPImplementationCustom:
 		default:
 			validator.Push(errors.New(errFmtAuthBackendUserManagementGroupObjectClassesRequiredForCustom))

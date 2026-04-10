@@ -71,7 +71,7 @@ func AdminConfigurationGET(ctx *middlewares.AutheliaCtx) {
 		Enabled:                ctx.Configuration.Administration.Enabled,
 		AdminGroup:             ctx.Configuration.Administration.AdminGroup,
 		AllowAdminsToAddAdmins: ctx.Configuration.Administration.AllowAdminsToAddAdmins,
-		GroupManagementEnabled: supportsStandaloneGroupManagement(ctx),
+		GroupManagementEnabled: SupportsStandaloneGroupManagement(ctx),
 	}
 
 	err = ctx.SetJSONBody(adminConfig)
@@ -80,9 +80,9 @@ func AdminConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// supportsStandaloneGroupManagement checks if the user provider supports standalone group management.
+// SupportsStandaloneGroupManagement checks if the user provider supports standalone group management.
 // File-based providers do not support standalone groups; groups are managed as user attributes.
-func supportsStandaloneGroupManagement(ctx *middlewares.AutheliaCtx) bool {
+func SupportsStandaloneGroupManagement(ctx *middlewares.AutheliaCtx) bool {
 	_, isFileProvider := ctx.Providers.UserProvider.(*authentication.FileUserProvider)
 	return !isFileProvider
 }

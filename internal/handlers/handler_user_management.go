@@ -89,8 +89,8 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 
 	if len(newUserRequest.Groups) > 0 {
 		// Only validate groups exist for providers with standalone group management (e.g., LDAP)
-		// File providers treat groups as arbitrary strings.
-		if supportsStandaloneGroupManagement(ctx) {
+		// File provider treats groups as arbitrary strings.
+		if SupportsStandaloneGroupManagement(ctx) {
 			availableGroups, err := ctx.Providers.UserProvider.ListGroups()
 			if err != nil {
 				ctx.Logger.WithError(err).Error("Error occurred retrieving groups")
@@ -382,7 +382,7 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 		case field == "groups":
 			groups := requestBody.GetGroups()
 
-			if supportsStandaloneGroupManagement(ctx) {
+			if SupportsStandaloneGroupManagement(ctx) {
 				availableGroups, err := ctx.Providers.UserProvider.ListGroups()
 				if err != nil {
 					ctx.Logger.WithError(err).Error("Error occurred retrieving groups")

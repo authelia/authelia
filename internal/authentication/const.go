@@ -224,6 +224,7 @@ const (
 	AttributeGroups         = "groups"
 	AttributeAddress        = "address"
 	AttributeExtra          = "extra"
+	AttributeCommonName     = "common_name"
 )
 
 // Address subfield attribute names.

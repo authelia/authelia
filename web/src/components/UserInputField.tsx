@@ -232,7 +232,6 @@ const GroupsField = <T extends CreateUserRequest | UserDetailsExtended = CreateU
     error,
     field,
     options = [],
-    register,
 }: FieldComponentProps<T> & { options?: string[] }) => {
     const { t: translate } = useTranslation("settings");
     return (
@@ -240,15 +239,16 @@ const GroupsField = <T extends CreateUserRequest | UserDetailsExtended = CreateU
             <Controller
                 name={field.name}
                 control={control}
+                defaultValue={[] as any}
                 rules={{
-                    required: field.required ? `${field.label} is required` : false,
+                    required: field.required ? translate("{{item}} is required", { item: field.label }) : false,
                 }}
                 render={({ field: { onChange, value, ...rest } }) => (
                     <Autocomplete<string, true>
                         multiple
                         disablePortal
                         options={options}
-                        value={value || []}
+                        value={Array.isArray(value) ? value : []}
                         onChange={(_, newValue) => onChange(newValue)}
                         renderInput={(params) => (
                             <MuiTextField
@@ -258,15 +258,6 @@ const GroupsField = <T extends CreateUserRequest | UserDetailsExtended = CreateU
                                 helperText={error?.message?.toString() || field.description}
                                 required={field.required}
                                 color="info"
-                                {...register(field.name, {
-                                    pattern: {
-                                        message: translate(
-                                            "Group names must contain only alphanumeric characters, hyphens (-), underscores (_), and commas (,) with a maximum length of 100 characters.",
-                                        ),
-                                        value: REGEX.GROUP,
-                                    },
-                                    required: field.required ? `${field.label} is required` : false,
-                                })}
                             />
                         )}
                         {...rest}
@@ -281,28 +272,36 @@ const CheckboxField = <T extends CreateUserRequest | UserDetailsExtended = Creat
     control,
     error,
     field,
-}: FieldComponentProps<T>) => (
-    <FormControl error={!!error} required={field.required}>
-        <Box sx={{ alignItems: "center", display: "flex" }}>
-            <Controller
-                name={field.name}
-                control={control}
-                rules={{
-                    required: field.required ? `${field.label} is required` : false,
-                }}
-                render={({ field: { onChange, value, ...rest } }) => (
-                    <Checkbox color="info" checked={!!value} onChange={(e) => onChange(e.target.checked)} {...rest} />
-                )}
-            />
-            <Box component="label" sx={{ cursor: "pointer" }}>
-                {field.label}
+}: FieldComponentProps<T>) => {
+    const { t: translate } = useTranslation("settings");
+    return (
+        <FormControl error={!!error} required={field.required}>
+            <Box sx={{ alignItems: "center", display: "flex" }}>
+                <Controller
+                    name={field.name}
+                    control={control}
+                    rules={{
+                        required: field.required ? translate("{{item}} is required", { item: field.label }) : false,
+                    }}
+                    render={({ field: { onChange, value, ...rest } }) => (
+                        <Checkbox
+                            color="info"
+                            checked={!!value}
+                            onChange={(e) => onChange(e.target.checked)}
+                            {...rest}
+                        />
+                    )}
+                />
+                <Box component="label" sx={{ cursor: "pointer" }}>
+                    {field.label}
+                </Box>
             </Box>
-        </Box>
-        {(error || field.description) && (
-            <FormHelperText>{error?.message?.toString() || field.description}</FormHelperText>
-        )}
-    </FormControl>
-);
+            {(error || field.description) && (
+                <FormHelperText>{error?.message?.toString() || field.description}</FormHelperText>
+            )}
+        </FormControl>
+    );
+};
 
 const EmailField = <T extends CreateUserRequest | UserDetailsExtended = CreateUserRequest>({
     error,

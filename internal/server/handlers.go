@@ -295,7 +295,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 			r.PATCH("/api/admin/users/{username}", RequireAdminUser1FA(handlers.ChangeUserPATCH))
 			r.DELETE("/api/admin/users/{username}", RequireAdminUser1FA(handlers.DeleteUserDELETE))
 
-			if config.AuthenticationBackend.File != nil {
+			if config.AuthenticationBackend.File == nil {
 				r.GET("/api/admin/groups", RequireAdminUser1FA(handlers.GetGroupsGET))
 				r.POST("/api/admin/groups", RequireAdminUser1FA(handlers.NewGroupPOST))
 				r.DELETE("/api/admin/groups/{group}", RequireAdminUser1FA(handlers.DeleteGroupDELETE))

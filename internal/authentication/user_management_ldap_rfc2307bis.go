@@ -148,7 +148,7 @@ func (r *RFC2307bisUserManagement) buildAttributeValueMap(userData *UserDetailsE
 	values[AttributeFamilyName] = userData.GetFamilyName()
 	values[AttributeMiddleName] = userData.MiddleName
 	values[AttributeNickname] = userData.Nickname
-	values["common_name"] = userData.CommonName
+	values[AttributeCommonName] = userData.CommonName
 
 	values[AttributeProfile] = userData.GetProfile()
 	values[AttributePicture] = userData.GetPicture()

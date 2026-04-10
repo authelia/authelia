@@ -1,6 +1,14 @@
 import { REGEX } from "@constants/Regex.js";
 import { AttributeMetadata, UserAttributeMetadataBody } from "@services/UserManagement.js";
 
+export interface UserAddress {
+    street_address?: string;
+    locality?: string;
+    region?: string;
+    postal_code?: string;
+    country?: string;
+}
+
 export interface UserDetailsExtended {
     username: string;
     password?: string;
@@ -22,11 +30,8 @@ export interface UserDetailsExtended {
     locale?: string;
     phone_number?: string;
     phone_extension?: string;
-    street_address?: string;
-    locality?: string;
-    region?: string;
-    postal_code?: string;
-    country?: string;
+
+    address?: UserAddress;
 
     member_of?: string[];
     group_name?: string;
