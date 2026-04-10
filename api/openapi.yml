@@ -1104,9 +1104,35 @@ paths:
         - authelia_auth: []
   {{- end }}
   {{- if .WebAuthn }}
+  /.well-known/webauthn:
+    get:
+      summary: Get authorized related origins for this relying party ID.
+      operationId: getWebAuthnRelatedOrigins
+      tags:
+        - WebAuthn
+        - Second Factor
+      responses:
+        "200":
+          description: Related origins returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webauthn.WellKnownRelatedOrigins'
+              examples:
+                default:
+                  value:
+                    origins:
+                      - https://auth.example.com
+                      - https://app.example.com
+                      - https://app.example2.com
+        "404":
+          description: No related origins configured for this relying party.
+        "500":
+          description: Server Error
   /api/secondfactor/webauthn:
     get:
       tags:
+        - WebAuthn
         - Second Factor
       summary: Second Factor Authentication - WebAuthn
       description: >
@@ -1129,6 +1155,7 @@ paths:
         - authelia_auth: []
     post:
       tags:
+        - WebAuthn
         - Second Factor
       summary: Second Factor Authentication - WebAuthn
       description: >
@@ -1158,6 +1185,7 @@ paths:
   /api/secondfactor/webauthn/register:
     put:
       tags:
+        - WebAuthn
         - Second Factor
       summary: WebAuthn Credential Registration (Attestation)
       description: >
@@ -1199,6 +1227,7 @@ paths:
         - authelia_auth: []
     post:
       tags:
+        - WebAuthn
         - Second Factor
       summary: WebAuthn Credential Registration (Attestation)
       description: >
@@ -1233,6 +1262,7 @@ paths:
         - authelia_auth: []
     delete:
       tags:
+        - WebAuthn
         - Second Factor
       summary: WebAuthn Credential Registration (Attestation)
       description: >
@@ -1256,6 +1286,7 @@ paths:
   /api/secondfactor/webauthn/credential/{credentialID}:
     put:
       tags:
+        - WebAuthn
         - Second Factor
       summary: WebAuthn Credential
       description: >
@@ -1298,6 +1329,7 @@ paths:
         - authelia_auth: []
     delete:
       tags:
+        - WebAuthn
         - Second Factor
       summary: WebAuthn Credential
       description: >
@@ -2922,6 +2954,25 @@ components:
               example: 'otpauth://totp/{{ .Domain | default "example.com" }}:john?algorithm=SHA1&digits=6&issuer=auth.{{ .Domain | default "example.com" }}&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q'
     {{- end }}
     {{- if .WebAuthn }}
+    webauthn.WellKnownRelatedOrigins:
+      type: object
+      additionalProperties: false
+      required:
+        - origins
+      properties:
+        origins:
+          type: array
+          description: HTTPS origins authorized to use this relying party identifier.
+          minItems: 1
+          items:
+            type: string
+            format: uri
+            pattern: '^https://'
+      example:
+        origins:
+          - https://auth.example.com
+          - https://app.example.com
+          - https://app.example2.com
     webauthn.PublicKeyCredential:
       type: object
       properties:

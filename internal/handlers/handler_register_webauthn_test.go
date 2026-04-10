@@ -81,7 +81,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 			regexp.MustCompile(`^\{"status":"KO","message":"Unable to register your security key."}$`),
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK://haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK/\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred generating a WebAuthn registration challenge for user 'john': error occurred provisioning the configuration", "error occurred determining the origin for the request: failed to parse X-Forwarded Headers: parse \"haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK://haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK/\": invalid URI for request")
 			},
 		},
 		{
@@ -788,7 +788,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"---123=123=1://login.example.com:8080/\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred provisioning the configuration", "error occurred determining the origin for the request: failed to parse X-Forwarded Headers: parse \"---123=123=1://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{

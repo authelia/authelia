@@ -687,7 +687,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"",
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred provisioning the configuration", "failed to parse X-Forwarded Headers: parse \"!@#*(&jklqnwdkjqwe://login.example.com:8080/\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error occurred provisioning the configuration", "error occurred determining the origin for the request: failed to parse X-Forwarded Headers: parse \"!@#*(&jklqnwdkjqwe://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{

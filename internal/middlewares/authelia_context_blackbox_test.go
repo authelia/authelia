@@ -1262,11 +1262,17 @@ func TestAutheliaCtx_Value(t *testing.T) {
 }
 
 func TestAutheliaCtx_GetWebAuthnProvider(t *testing.T) {
-	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.Providers{})
+	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{WebAuthn: schema.WebAuthn{Disable: true}}, middlewares.Providers{})
 
 	provider, err := ctx.GetWebAuthnProvider()
 	assert.Nil(t, provider)
-	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
+	assert.EqualError(t, err, "webauthn is disabled")
+
+	ctx = middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.Providers{})
+
+	provider, err = ctx.GetWebAuthnProvider()
+	assert.Nil(t, provider)
+	assert.EqualError(t, err, "error occurred determining the origin for the request: missing required X-Forwarded-Host header")
 
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -1287,6 +1293,65 @@ func TestAutheliaCtx_GetWebAuthnProvider(t *testing.T) {
 	provider, err = mock.Ctx.GetWebAuthnProvider()
 	assert.NotNil(t, provider)
 	assert.NoError(t, err)
+
+	mock.Ctx.Configuration.WebAuthn.Disable = true
+
+	provider, err = mock.Ctx.GetWebAuthnProvider()
+	assert.Nil(t, provider)
+	assert.EqualError(t, err, "webauthn is disabled")
+
+	mock.Ctx.Configuration.WebAuthn.Disable = false
+}
+
+func TestAutheliaCtx_GetWebAuthnProviderWithRelatedOrigins(t *testing.T) {
+	testCases := []struct {
+		name           string
+		relatedOrigins map[string]schema.WebAuthnRelatedOrigin
+		expectedErr    string
+	}{
+		{
+			"ShouldSucceedWithMatchingRelatedOrigin",
+			map[string]schema.WebAuthnRelatedOrigin{
+				"login.example.com": {
+					Origins: []*url.URL{
+						{Scheme: "https", Host: "login.example.com"},
+						{Scheme: "http", Host: "auth.example.com"},
+					},
+				},
+			},
+			"",
+		},
+		{
+			"ShouldFailWithNoMatchingRelatedOrigin",
+			map[string]schema.WebAuthnRelatedOrigin{
+				"other.com": {
+					Origins: []*url.URL{
+						{Scheme: "http", Host: "other.com"},
+					},
+				},
+			},
+			"error occurred finding the relying party: no related origin found for origin 'https://login.example.com:8080'",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration.WebAuthn.RelatedOrigins = tc.relatedOrigins
+
+			provider, err := mock.Ctx.GetWebAuthnProvider()
+
+			if tc.expectedErr != "" {
+				assert.Nil(t, provider)
+				assert.EqualError(t, err, tc.expectedErr)
+			} else {
+				assert.NotNil(t, provider)
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestAutheliaCtx_RecordAuthn(t *testing.T) {

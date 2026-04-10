@@ -313,6 +313,11 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	}
 
 	if !config.WebAuthn.Disable {
+		if len(config.WebAuthn.RelatedOrigins) != 0 {
+			r.OPTIONS("/.well-known/webauthn", policyCORSPublicGET.HandleOPTIONS)
+			r.GET("/.well-known/webauthn", policyCORSPublicGET.Middleware(bridge(handlers.WebAuthnWellKnownGET)))
+		}
+
 		r.GET("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionGET))
 		r.POST("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionPOST))
 
