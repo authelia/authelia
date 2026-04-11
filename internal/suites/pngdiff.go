@@ -121,7 +121,7 @@ func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte
 	}
 
 	if diff.Percentage <= tolerancePercentage {
-		t.Logf("snapshot %s differs by %d/%d pixels (%.4f%%) — within tolerance (%.4f%%)",
+		t.Logf("snapshot %s differs by %d/%d pixels (%.2f%%) — within tolerance (%.2f%%)",
 			baselinePath, diff.DifferingPixels, diff.TotalPixels, diff.Percentage, tolerancePercentage)
 
 		_ = os.Remove(actualPath)
@@ -129,6 +129,6 @@ func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte
 		return
 	}
 
-	t.Fatalf("snapshot %s differs: %d/%d pixels (%.4f%%, tolerance %.4f%%) (new snapshot at %s); re-run with --update-snapshots to refresh the baseline",
+	t.Fatalf("snapshot %s differs: %d/%d pixels (%.2f%%, tolerance %.2f%%) (new snapshot at %s); re-run with --update-snapshots to refresh the baseline",
 		baselinePath, diff.DifferingPixels, diff.TotalPixels, diff.Percentage, tolerancePercentage, actualPath)
 }
