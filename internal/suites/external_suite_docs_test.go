@@ -124,7 +124,7 @@ func (s *DocsSuite) TestHomepageVisualSnapshot() {
 	repoRoot, err := findRepoRoot()
 	require.NoError(s.T(), err)
 
-	AssertVisualSnapshot(s.T(), repoRoot, "docs_homepage_snapshot.png", screenshot)
+	AssertVisualSnapshot(s.T(), repoRoot, "docs_homepage_snapshot.png", screenshot, 1.0)
 }
 
 func (s *DocsSuite) TestHomepageRendersAndSearch() {

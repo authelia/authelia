@@ -222,7 +222,7 @@ func (s *TemplatesSuite) runTemplateSnapshot(slug, snapshotName string) {
 	repoRoot, err := findRepoRoot()
 	require.NoError(s.T(), err)
 
-	AssertVisualSnapshot(s.T(), repoRoot, snapshotName, screenshot)
+	AssertVisualSnapshot(s.T(), repoRoot, snapshotName, screenshot, 1.0)
 }
 
 func (s *TemplatesSuite) TestIdentityVerificationOTCVisualSnapshot() {

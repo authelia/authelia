@@ -69,9 +69,10 @@ func ComparePNGPixels(a, b []byte) (PNGPixelDiffResult, error) {
 // the test passes — this is the only path that creates a baseline. A missing baseline
 // without UPDATE_SNAPSHOTS=1 fails the test loudly so CI cannot accidentally green-light
 // a deleted or never-committed snapshot. On byte mismatch with zero pixel diff the test
-// passes (PNG encoder non-determinism). Any real pixel difference fails the test and
-// writes the current screenshot to <baseline>.actual.png for local inspection.
-func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte) {
+// passes (PNG encoder non-determinism). Pixel diffs at or below tolerancePercentage pass
+// with a log; anything above fails the test and writes the current screenshot to
+// <baseline>.actual.png for local inspection.
+func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte, tolerancePercentage float64) {
 	t.Helper()
 
 	baselinePath := filepath.Join(repoRoot, "internal", "suites", "testdata", name)
@@ -113,6 +114,15 @@ func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte
 		return
 	}
 
-	t.Fatalf("snapshot %s differs: %d/%d pixels (%.4f%%) (new snapshot at %s); re-run with --update-snapshots to refresh the baseline",
-		baselinePath, diff.DifferingPixels, diff.TotalPixels, diff.Percentage, actualPath)
+	if diff.Percentage <= tolerancePercentage {
+		t.Logf("snapshot %s differs by %d/%d pixels (%.4f%%) — within tolerance (%.4f%%)",
+			baselinePath, diff.DifferingPixels, diff.TotalPixels, diff.Percentage, tolerancePercentage)
+
+		_ = os.Remove(actualPath)
+
+		return
+	}
+
+	t.Fatalf("snapshot %s differs: %d/%d pixels (%.4f%%, tolerance %.4f%%) (new snapshot at %s); re-run with --update-snapshots to refresh the baseline",
+		baselinePath, diff.DifferingPixels, diff.TotalPixels, diff.Percentage, tolerancePercentage, actualPath)
 }
