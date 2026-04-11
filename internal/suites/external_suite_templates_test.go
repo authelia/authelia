@@ -5,6 +5,9 @@ package suites
 
 import (
 	"context"
+	"encoding/base64"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -186,9 +189,43 @@ func (s *TemplatesSuite) TestEventRenders() {
 	}
 }
 
+// injectEmbeddedFont returns srcdoc with a <style> block prepended that declares a data-URL
+// @font-face from the committed Liberation Sans TTF and forces every element to use it.
+// This eliminates cross-platform font selection variance (fontconfig picks different physical
+// fonts on Arch vs Alpine vs macOS) so visual snapshots rasterize from the same outlines
+// regardless of host.
+func (s *TemplatesSuite) injectEmbeddedFont(repoRoot, srcdoc string) string {
+	fontPath := filepath.Join(repoRoot, "internal", "suites", "testdata", "fonts", "LiberationSans-Regular.ttf")
+
+	fontBytes, err := os.ReadFile(fontPath)
+	require.NoError(s.T(), err)
+
+	fontB64 := base64.StdEncoding.EncodeToString(fontBytes)
+
+	style := `<style>
+@font-face {
+	font-family: 'SnapshotSans';
+	src: url(data:font/ttf;base64,` + fontB64 + `) format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+html, body, * {
+	font-family: 'SnapshotSans', sans-serif !important;
+}
+</style>`
+
+	if i := strings.Index(srcdoc, "</head>"); i != -1 {
+		return srcdoc[:i] + style + srcdoc[i:]
+	}
+
+	return style + srcdoc
+}
+
 // runTemplateSnapshot renders the given template's pristine srcdoc markup in a clean tab at
 // a fixed viewport, bypassing the preview server's resize / dark-mode chrome so the captured
-// image is deterministic run-to-run, and asserts it against the committed baseline.
+// image is deterministic run-to-run, and asserts it against the committed baseline. The
+// srcdoc is rewritten to render with an embedded font so the rasterized output is stable
+// across host platforms.
 func (s *TemplatesSuite) runTemplateSnapshot(slug, snapshotName string) {
 	outer := s.doCreateTab(s.T(), s.templatesURL("/preview/"+slug))
 	defer outer.MustClose()
@@ -211,16 +248,16 @@ func (s *TemplatesSuite) runTemplateSnapshot(slug, snapshotName string) {
 	srcdocAttr := iframeEl.MustAttribute("srcdoc")
 	require.NotNil(s.T(), srcdocAttr, "expected preview iframe to have a srcdoc attribute")
 
+	repoRoot, err := findRepoRoot()
+	require.NoError(s.T(), err)
+
 	clean.MustSetViewport(800, 1200, 1, false)
 
-	require.NoError(s.T(), clean.SetDocumentContent(*srcdocAttr))
+	require.NoError(s.T(), clean.SetDocumentContent(s.injectEmbeddedFont(repoRoot, *srcdocAttr)))
 
 	s.WaitForVisualStable(s.T(), clean)
 
 	screenshot := s.FullPageScreenshot(s.T(), clean)
-
-	repoRoot, err := findRepoRoot()
-	require.NoError(s.T(), err)
 
 	AssertVisualSnapshot(s.T(), repoRoot, snapshotName, screenshot, 1.0)
 }

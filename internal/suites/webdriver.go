@@ -97,6 +97,14 @@ func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 		Proxy(opts.proxy).
 		Headless(headless).
 		Devtools(!opts.disableDevtools)
+
+	if opts.disableDevtools {
+		l.Set("font-render-hinting", "none")
+		l.Set("disable-lcd-text")
+		l.Set("disable-font-subpixel-positioning")
+		l.Set("force-color-profile", "srgb")
+	}
+
 	url := l.MustLaunch()
 
 	browser := rod.New().
