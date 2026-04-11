@@ -120,7 +120,6 @@ services:
       AUTH_OIDC_CLIENT_NAME: 'Authelia'
       AUTH_OIDC_SCOPE_OVERWRITE: 'openid email profile groups'
       AUTH_OIDC_GROUPS_ATTRIBUTE: 'groups'
-      AUTH_OIDC_FORCE_USERINFO: 'true'
       AUTH_LOGOUT_REDIRECT_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout'
 ```
 
