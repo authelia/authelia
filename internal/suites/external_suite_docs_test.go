@@ -50,10 +50,7 @@ func (s *DocsSuite) SetupSuite() {
 	srv, err := StartDevServer(ctx, repoRoot, HugoDocsDevServer, nil, func(early *DevServer) {
 		globalDevServer = early
 	})
-	if err != nil {
-		globalDevServer = nil
-		require.NoError(s.T(), err)
-	}
+	require.NoError(s.T(), err)
 
 	s.devServer = srv
 	s.baseURL = srv.BaseURL()
@@ -101,7 +98,7 @@ func (s *DocsSuite) httpFetch(ctx context.Context, path string) (*http.Response,
 }
 
 func (s *DocsSuite) TestHomepageVisualSnapshot() {
-	page := s.doCreateTab(s.T(), s.docsURL("/"))
+	page := s.doCreateTab(s.T(), "about:blank")
 	defer page.MustClose()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -113,7 +110,11 @@ func (s *DocsSuite) TestHomepageVisualSnapshot() {
 
 	page = page.Context(ctx)
 
+	s.SetColorScheme(s.T(), page, "dark")
 	page.MustSetViewport(1280, 800, 1, false)
+
+	require.NoError(s.T(), page.Navigate(s.docsURL("/")))
+	require.NoError(s.T(), page.WaitLoad())
 
 	s.WaitElementLocatedByClassName(s.T(), page, "navbar")
 	s.WaitForVisualStable(s.T(), page)

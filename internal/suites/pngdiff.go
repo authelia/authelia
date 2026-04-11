@@ -65,9 +65,11 @@ func ComparePNGPixels(a, b []byte) (PNGPixelDiffResult, error) {
 }
 
 // AssertVisualSnapshot compares a screenshot against a committed baseline at
-// internal/suites/testdata/<name>. On missing baseline, or when UPDATE_SNAPSHOTS=1, the
-// baseline is (re)written and the test passes. On byte mismatch with zero pixel diff the
-// test passes (PNG encoder non-determinism). Any real pixel difference fails the test and
+// internal/suites/testdata/<name>. When UPDATE_SNAPSHOTS=1 the baseline is (re)written and
+// the test passes — this is the only path that creates a baseline. A missing baseline
+// without UPDATE_SNAPSHOTS=1 fails the test loudly so CI cannot accidentally green-light
+// a deleted or never-committed snapshot. On byte mismatch with zero pixel diff the test
+// passes (PNG encoder non-determinism). Any real pixel difference fails the test and
 // writes the current screenshot to <baseline>.actual.png for local inspection.
 func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte) {
 	t.Helper()
@@ -84,11 +86,7 @@ func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte
 
 	baseline, err := os.ReadFile(baselinePath)
 	if os.IsNotExist(err) {
-		require.NoError(t, os.MkdirAll(filepath.Dir(baselinePath), 0755))
-		require.NoError(t, os.WriteFile(baselinePath, screenshot, 0600))
-		t.Logf("snapshot baseline created at %s (first run; no comparison)", baselinePath)
-
-		return
+		t.Fatalf("snapshot baseline %s does not exist; re-run with --update-snapshots to create it", baselinePath)
 	}
 
 	require.NoError(t, err)

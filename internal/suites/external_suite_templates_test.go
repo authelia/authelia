@@ -52,10 +52,7 @@ func (s *TemplatesSuite) SetupSuite() {
 	srv, err := StartDevServer(ctx, repoRoot, cfg, nil, func(early *DevServer) {
 		globalDevServer = early
 	})
-	if err != nil {
-		globalDevServer = nil
-		require.NoError(s.T(), err)
-	}
+	require.NoError(s.T(), err)
 
 	s.devServer = srv
 	s.baseURL = srv.BaseURL()

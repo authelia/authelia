@@ -205,6 +205,19 @@ func (rs *RodSession) WaitForVisualStable(t *testing.T, page *rod.Page) {
 	require.NoError(t, err)
 }
 
+// SetColorScheme overrides the page's prefers-color-scheme media feature so that pages with
+// adaptive theming render in a deterministic mode regardless of the host's system preference.
+// Must be called before navigating to the target URL so the page's initial render picks up
+// the override.
+func (rs *RodSession) SetColorScheme(t *testing.T, page *rod.Page, scheme string) {
+	err := proto.EmulationSetEmulatedMedia{
+		Features: []*proto.EmulationMediaFeature{
+			{Name: "prefers-color-scheme", Value: scheme},
+		},
+	}.Call(page)
+	require.NoError(t, err)
+}
+
 // FullPageScreenshot captures a PNG screenshot of the full scrollable page. Scrollbars are
 // hidden before capture so a ~15px width delta from scrollbar presence does not make
 // dimensions flap between runs.
