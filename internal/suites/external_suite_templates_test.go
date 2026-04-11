@@ -53,7 +53,7 @@ func (s *TemplatesSuite) SetupSuite() {
 	cfg.StartTimeout = 2 * time.Minute
 
 	srv, err := StartDevServer(ctx, repoRoot, cfg, nil, func(early *DevServer) {
-		globalDevServer = early
+		globalDevServer.Store(early)
 	})
 	require.NoError(s.T(), err)
 
@@ -78,15 +78,14 @@ func (s *TemplatesSuite) TearDownSuite() {
 		}
 	}
 
-	globalDevServer = nil
+	globalDevServer.Store(nil)
 }
 
 func (s *TemplatesSuite) templatesURL(path string) string {
 	return s.baseURL + path
 }
 
-// openPreviewFrame loads /preview/<component> and returns the rod *Page representing the
-// same-origin srcdoc iframe the preview server renders the email into.
+// openPreviewFrame returns the inner page of the preview server's srcdoc iframe.
 func (s *TemplatesSuite) openPreviewFrame(outer *rod.Page) *rod.Page {
 	iframeEl := s.WaitElementLocatedBySelector(s.T(), outer, "iframe")
 
@@ -189,11 +188,8 @@ func (s *TemplatesSuite) TestEventRenders() {
 	}
 }
 
-// injectEmbeddedFont returns srcdoc with a <style> block prepended that declares a data-URL
-// @font-face from the committed Liberation Sans TTF and forces every element to use it.
-// This eliminates cross-platform font selection variance (fontconfig picks different physical
-// fonts on Arch vs Alpine vs macOS) so visual snapshots rasterize from the same outlines
-// regardless of host.
+// injectEmbeddedFont rewrites srcdoc to force Liberation Sans via a data-URL @font-face so
+// visual snapshots rasterize from the same outlines on every host.
 func (s *TemplatesSuite) injectEmbeddedFont(repoRoot, srcdoc string) string {
 	fontPath := filepath.Join(repoRoot, "internal", "suites", "testdata", "fonts", "LiberationSans-Regular.ttf")
 
@@ -221,11 +217,8 @@ html, body, * {
 	return style + srcdoc
 }
 
-// runTemplateSnapshot renders the given template's pristine srcdoc markup in a clean tab at
-// a fixed viewport, bypassing the preview server's resize / dark-mode chrome so the captured
-// image is deterministic run-to-run, and asserts it against the committed baseline. The
-// srcdoc is rewritten to render with an embedded font so the rasterized output is stable
-// across host platforms.
+// runTemplateSnapshot renders the template's srcdoc in a clean tab with an embedded font
+// and asserts it against the committed baseline.
 func (s *TemplatesSuite) runTemplateSnapshot(slug, snapshotName string) {
 	outer := s.doCreateTab(s.T(), s.templatesURL("/preview/"+slug))
 	defer outer.MustClose()
@@ -259,7 +252,7 @@ func (s *TemplatesSuite) runTemplateSnapshot(slug, snapshotName string) {
 
 	screenshot := s.FullPageScreenshot(s.T(), clean)
 
-	AssertVisualSnapshot(s.T(), repoRoot, snapshotName, screenshot, 1.0)
+	AssertVisualSnapshot(s.T(), repoRoot, snapshotName, screenshot, 0)
 }
 
 func (s *TemplatesSuite) TestIdentityVerificationOTCVisualSnapshot() {

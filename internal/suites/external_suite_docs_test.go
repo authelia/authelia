@@ -48,7 +48,7 @@ func (s *DocsSuite) SetupSuite() {
 	defer cancel()
 
 	srv, err := StartDevServer(ctx, repoRoot, HugoDocsDevServer, nil, func(early *DevServer) {
-		globalDevServer = early
+		globalDevServer.Store(early)
 	})
 	require.NoError(s.T(), err)
 
@@ -73,17 +73,22 @@ func (s *DocsSuite) TearDownSuite() {
 		}
 	}
 
-	globalDevServer = nil
+	globalDevServer.Store(nil)
 }
 
 func (s *DocsSuite) docsURL(path string) string {
 	return s.baseURL + path
 }
 
-func (s *DocsSuite) httpFetch(ctx context.Context, path string) (*http.Response, []byte) {
+func (s *DocsSuite) httpFetch(ctx context.Context, pathOrURL string) (*http.Response, []byte) {
 	client := &http.Client{Timeout: s.timeout}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.docsURL(path), nil)
+	url := pathOrURL
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		url = s.docsURL(pathOrURL)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	require.NoError(s.T(), err)
 
 	resp, err := client.Do(req)
@@ -124,7 +129,7 @@ func (s *DocsSuite) TestHomepageVisualSnapshot() {
 	repoRoot, err := findRepoRoot()
 	require.NoError(s.T(), err)
 
-	AssertVisualSnapshot(s.T(), repoRoot, "docs_homepage_snapshot.png", screenshot, 1.0)
+	AssertVisualSnapshot(s.T(), repoRoot, "docs_homepage_snapshot.png", screenshot, VisualSnapshotTolerance(1.0))
 }
 
 func (s *DocsSuite) TestHomepageRendersAndSearch() {
@@ -215,19 +220,21 @@ func (s *DocsSuite) TestOpenIDConnectIntroductionImages() {
 
 	// {{< figure >}} content-hashes the JPG through Hugo's asset pipeline, so match by
 	// substring rather than literal path.
-	s.WaitElementLocatedBySelector(s.T(), page, `img[src*="oid-certification"]`)
-	s.WaitElementLocatedBySelector(s.T(), page, `img[src$="/images/oid-map.png"]`)
-
 	for _, img := range []struct {
-		path        string
+		selector    string
 		contentType string
 	}{
-		{"/images/oid-certification.jpg", "image/jpeg"},
-		{"/images/oid-map.png", "image/png"},
+		{`img[src*="oid-certification"]`, "image/jpeg"},
+		{`img[src$="/images/oid-map.png"]`, "image/png"},
 	} {
-		resp, _ := s.httpFetch(ctx, img.path)
-		require.Equal(s.T(), http.StatusOK, resp.StatusCode, "expected 200 fetching %s", img.path)
-		require.True(s.T(), strings.HasPrefix(resp.Header.Get("Content-Type"), img.contentType), "expected %s for %s, got %s", img.contentType, img.path, resp.Header.Get("Content-Type"))
+		el := s.WaitElementLocatedBySelector(s.T(), page, img.selector)
+
+		srcPtr := el.MustAttribute("src")
+		require.NotNil(s.T(), srcPtr, "expected %s to have a src attribute", img.selector)
+
+		resp, _ := s.httpFetch(ctx, *srcPtr)
+		require.Equal(s.T(), http.StatusOK, resp.StatusCode, "expected 200 fetching %s", *srcPtr)
+		require.True(s.T(), strings.HasPrefix(resp.Header.Get("Content-Type"), img.contentType), "expected %s for %s, got %s", img.contentType, *srcPtr, resp.Header.Get("Content-Type"))
 	}
 }
 

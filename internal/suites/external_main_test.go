@@ -7,14 +7,16 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sync/atomic"
 	"syscall"
 	"testing"
 )
 
 // globalDevServer is shared across external suites so the TestMain signal handler can stop the
 // currently-running dev server on Ctrl+C even while a suite goroutine is blocked in a CDP wait.
-// Each SetupSuite assigns it via the StartDevServer onSpawn callback; each TearDownSuite clears it.
-var globalDevServer *DevServer
+// Each SetupSuite stores a value via StartDevServer's onSpawn callback; each TearDownSuite
+// clears it.
+var globalDevServer atomic.Pointer[DevServer]
 
 func TestMain(m *testing.M) {
 	sigCh := make(chan os.Signal, 1)
@@ -22,8 +24,8 @@ func TestMain(m *testing.M) {
 
 	go func() {
 		<-sigCh
-		if globalDevServer != nil {
-			_ = globalDevServer.Stop()
+		if srv := globalDevServer.Load(); srv != nil {
+			_ = srv.Stop()
 		}
 
 		os.Exit(130)

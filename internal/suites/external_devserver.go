@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -19,9 +20,11 @@ const (
 
 // DevServer wraps a long-running pnpm-based dev server child process.
 type DevServer struct {
-	cmd     *exec.Cmd
-	baseURL string
-	name    string
+	cmd      *exec.Cmd
+	baseURL  string
+	name     string
+	stopOnce sync.Once
+	stopErr  error
 }
 
 // DevServerConfig describes a pnpm-based dev server.
@@ -130,13 +133,17 @@ func (d *DevServer) Stop() error {
 		return nil
 	}
 
-	if err := stopProcessGroup(d.cmd.Process.Pid); err != nil {
-		return err
-	}
+	d.stopOnce.Do(func() {
+		if err := stopProcessGroup(d.cmd.Process.Pid); err != nil {
+			d.stopErr = err
 
-	_ = d.cmd.Wait()
+			return
+		}
 
-	return nil
+		_ = d.cmd.Wait()
+	})
+
+	return d.stopErr
 }
 
 func stopProcessGroup(pid int) error {

@@ -51,10 +51,8 @@ func RodSessionWithCredentials(provider RodSuiteCredentialsProvider) RodSessionO
 	}
 }
 
-// RodSessionWithoutDevtools disables Chrome's --auto-open-devtools-for-tabs flag. With
-// devtools attached, Chrome draws a device-emulation badge overlay whenever
-// setDeviceMetricsOverride is active, which gets captured in full-page screenshots and
-// breaks visual snapshot comparisons.
+// RodSessionWithoutDevtools disables auto-opened devtools so visual snapshots don't
+// capture Chrome's device-emulation overlay.
 func RodSessionWithoutDevtools() RodSessionOpt {
 	return func(opts *RodSessionOpts) (err error) {
 		opts.disableDevtools = true
@@ -213,10 +211,8 @@ func (rs *RodSession) WaitForVisualStable(t *testing.T, page *rod.Page) {
 	require.NoError(t, err)
 }
 
-// SetColorScheme overrides the page's prefers-color-scheme media feature so that pages with
-// adaptive theming render in a deterministic mode regardless of the host's system preference.
-// Must be called before navigating to the target URL so the page's initial render picks up
-// the override.
+// SetColorScheme overrides the page's prefers-color-scheme media feature. Call before
+// navigation so the initial render picks up the override.
 func (rs *RodSession) SetColorScheme(t *testing.T, page *rod.Page, scheme string) {
 	err := proto.EmulationSetEmulatedMedia{
 		Features: []*proto.EmulationMediaFeature{
@@ -226,9 +222,8 @@ func (rs *RodSession) SetColorScheme(t *testing.T, page *rod.Page, scheme string
 	require.NoError(t, err)
 }
 
-// FullPageScreenshot captures a PNG screenshot of the full scrollable page. Scrollbars are
-// hidden before capture so a ~15px width delta from scrollbar presence does not make
-// dimensions flap between runs.
+// FullPageScreenshot captures a PNG of the full scrollable page with scrollbars hidden
+// so width deltas don't flap between runs.
 func (rs *RodSession) FullPageScreenshot(t *testing.T, page *rod.Page) []byte {
 	_, err := page.Eval(`() => new Promise(resolve => {
 		const style = document.createElement('style');
@@ -247,8 +242,7 @@ func (rs *RodSession) FullPageScreenshot(t *testing.T, page *rod.Page) []byte {
 }
 
 // DoAndWaitForNavigation runs action and blocks until the next main-frame navigation fires,
-// returning the destination URL from the CDP event (more race-free than reading page.Info()
-// immediately after a cross-document navigation).
+// returning the destination URL from the CDP event.
 func (rs *RodSession) DoAndWaitForNavigation(ctx context.Context, page *rod.Page, action func()) string {
 	var destURL string
 
