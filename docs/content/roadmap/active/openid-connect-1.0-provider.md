@@ -1,6 +1,6 @@
 ---
 title: "OpenID Connect 1.0 Provider"
-description: "The Authelia roadmap item for the OpenID Connect 1.0 Provider role which is now OpenID Certified and enhances interoperability with other products."
+description: "The Authelia roadmap item for the OpenID Connect 1.0 Provider role which is now OpenID Certified and continues to evolve with additional specification support."
 summary: "The OpenID Connect 1.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products."
 date: 2025-03-23T19:03:40+11:00
 draft: false

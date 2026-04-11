@@ -1,6 +1,6 @@
 ---
 title: "Elevated Session"
-description: "Configuring the Authelia elevated session identity validation including one-time code lifespan, elevation duration, and second factor requirements."
+description: "Configuring the Authelia elevated session identity validation including one-time code lifespan, elevation duration, characters, and second factor options."
 summary: "Authelia uses multiple methods to verify the identity of users to prevent a malicious user from performing actions on behalf of them. This section describes the Elevated Session method."
 date: 2024-03-14T06:00:14+11:00
 draft: false

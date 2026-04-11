@@ -1,6 +1,6 @@
 ---
 title: "Support"
-description: "A support matrix for Authelia detailing feature compatibility with supported reverse proxies including standard and Kubernetes integration status."
+description: "A support matrix for Authelia detailing feature compatibility with supported reverse proxies including both standard and Kubernetes integration status details."
 summary: "This documentation details a support matrix for Authelia features and specific reverse proxies as well as several caveats etc."
 date: 2024-03-14T06:00:14+11:00
 draft: false

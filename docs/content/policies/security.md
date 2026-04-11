@@ -1,6 +1,6 @@
 ---
 title: "Security Policy"
-description: "The Authelia security policy describing coordinated vulnerability disclosure practices and how to privately report security vulnerabilities."
+description: "The Authelia security policy describing coordinated vulnerability disclosure practices and how to privately report security vulnerabilities to the project team."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

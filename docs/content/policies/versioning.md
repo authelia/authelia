@@ -1,6 +1,6 @@
 ---
 title: "Versioning Policy"
-description: "The Authelia versioning policy which describes how releases are numbered using Semantic Versioning and what compatibility guarantees are provided."
+description: "The Authelia versioning policy which describes how releases are numbered using Semantic Versioning and what compatibility guarantees are provided to all users."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

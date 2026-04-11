@@ -1,6 +1,6 @@
 ---
 title: "SMTP"
-description: "Configuring the Authelia SMTP notification settings including server connection, TLS options, authentication credentials, and email sender details."
+description: "Configuring the Authelia SMTP notification settings including the server connection, TLS options, authentication credentials, and email sender configuration."
 summary: "Authelia can send emails to users through an SMTP server. This section describes how to configure this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

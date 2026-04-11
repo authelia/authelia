@@ -1,6 +1,6 @@
 ---
 title: "Reset Password"
-description: "Configuring the Authelia reset password identity validation including the JWT secret, token lifespan, and signing algorithm settings."
+description: "Configuring the Authelia reset password identity validation including the JWT secret, token lifespan, signing algorithm, and custom URL redirect settings."
 summary: "Authelia uses multiple methods to verify the identity of users to prevent a malicious user from performing actions on behalf of them. This section describes Reset Password method."
 date: 2024-03-14T06:00:14+11:00
 draft: false

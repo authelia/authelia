@@ -1,6 +1,6 @@
 ---
 title: "Log Messages"
-description: "A reference guide explaining common Authelia log messages including request header too large errors, user inactivity warnings, and their resolutions."
+description: "A reference guide explaining common Authelia log messages including request header too large errors, storage encryption warnings, and session domain settings."
 summary: "This section contains log message references for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

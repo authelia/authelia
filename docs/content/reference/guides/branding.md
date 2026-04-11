@@ -1,6 +1,6 @@
 ---
 title: "Branding"
-description: "A reference guide on the Authelia branding assets including usage guidelines, licensing information, and the location of logo and banner files."
+description: "A reference guide on the Authelia branding assets including usage guidelines, licensing information, downloadable assets, and restrictions on logo and name use."
 summary: "This guide highlights information about Authelia's branding assets."
 date: 2024-03-14T06:00:14+11:00
 draft: false

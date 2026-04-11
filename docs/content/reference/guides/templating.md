@@ -1,6 +1,6 @@
 ---
 title: "Templating"
-description: "A reference guide on the Authelia templating system including available functions, environment variable usage, and configuration template validation."
+description: "A reference guide on the Authelia templating system including available functions, environment variable access, file operations, and string manipulation tools."
 summary: "This section contains reference documentation for Authelia's templating capabilities."
 date: 2024-03-14T06:00:14+11:00
 draft: false

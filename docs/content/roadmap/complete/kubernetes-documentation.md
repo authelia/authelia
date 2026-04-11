@@ -1,6 +1,6 @@
 ---
 title: "Kubernetes Documentation"
-description: "The completed Authelia roadmap item for Kubernetes documentation including integration guides and an official Helm Chart for deployment."
+description: "The completed Authelia roadmap item for Kubernetes documentation including integration guides and annotated example configurations for supported ingress setups."
 summary: "While there is some documentation for Kubernetes, and several people have it working, better documentation is needed."
 date: 2025-03-23T19:03:40+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "OpenID Connect 1.0 Clients"
-description: "Configuring the Authelia OpenID Connect 1.0 registered clients including client identifiers, secrets, grant types, scopes, and redirect URIs."
+description: "Configuring the Authelia OpenID Connect 1.0 registered clients including client identifiers, secrets, grant types, scopes, and redirect URI configuration."
 summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure the registered clients."
 date: 2024-03-14T06:00:14+11:00
 draft: false

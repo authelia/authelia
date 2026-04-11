@@ -1,6 +1,6 @@
 ---
 title: "Dashboard / Control Panel and CLI for Administrators"
-description: "The Authelia roadmap item for an administrator dashboard, control panel, and CLI allowing dynamic management of system settings."
+description: "The Authelia roadmap item for an administrator dashboard, control panel, and CLI allowing dynamic management of configuration, users, and access control rules."
 summary: "A dashboard or control panel for administrators to adjust system settings is easily one of the most impactful features we can implement."
 date: 2024-03-21T18:25:55+11:00
 draft: false

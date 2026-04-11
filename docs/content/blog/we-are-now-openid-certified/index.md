@@ -1,6 +1,6 @@
 ---
 title: "We are now OpenID Certified™"
-description: "Authelia is now OpenID Certified for the Basic OP, Implicit OP, Hybrid OP, Form Post OP, and Config OP profiles of the OpenID Connect protocol."
+description: "Authelia is now OpenID Certified for the Basic OP, Implicit OP, Hybrid OP, Form Post OP, and Config OP profiles of the OpenID Connect 1.0 protocol spec."
 summary: "This is a very important and exciting milestone for the Authelia project."
 date: 2025-05-18T21:35:50+10:00
 draft: false

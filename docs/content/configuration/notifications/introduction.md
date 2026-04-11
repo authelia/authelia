@@ -1,6 +1,6 @@
 ---
 title: "Notifications"
-description: "An introduction to configuring Authelia notification settings including the available providers, startup checks, and custom notification templates."
+description: "An introduction to configuring Authelia notification settings including the available providers, startup validation checks, and custom notification templates."
 summary: "Authelia sends messages to users in order to verify their identity. This section describes how to configure this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Manuel Nuñez"
-description: "The contributor profile for Manuel Nunez who is a maintainer of the Authelia open-source authentication and authorization server."
+description: "The contributor profile for Manuel Nunez who is a core team member and maintainer of the Authelia open-source authentication and authorization server project."
 summary: "Maintainer of Authelia."
 date: 2024-03-14T06:00:14+11:00
 lastmod: 2023-09-12T20:21:47+02:00

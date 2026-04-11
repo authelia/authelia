@@ -1,6 +1,6 @@
 ---
 title: "Documentation"
-description: "Authelia development documentation guidelines covering the use of example domains, certificate handling, and private key formatting conventions."
+description: "Authelia development documentation guidelines covering the use of example domains, TLS certificate handling, private key formatting, and content conventions."
 summary: "This section covers the guidelines we use when writing documentation."
 date: 2024-03-14T06:00:14+11:00
 draft: false

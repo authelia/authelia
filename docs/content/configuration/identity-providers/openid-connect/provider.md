@@ -1,6 +1,6 @@
 ---
 title: "OpenID Connect 1.0 Provider"
-description: "Configuring the Authelia OpenID Connect 1.0 Provider including issuer settings, signing keys, CORS policy, and all available provider options."
+description: "Configuring the Authelia OpenID Connect 1.0 Provider including issuer settings, signing keys, CORS policy, and all available provider configuration opts."
 summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

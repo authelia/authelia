@@ -1,6 +1,6 @@
 ---
 title: "Multi-Domain Protection"
-description: "The Authelia roadmap item for multi-domain protection allowing administrators to protect multiple root domains with a single instance."
+description: "The Authelia roadmap item for multi-domain protection allowing administrators to protect multiple root domains with a single Authelia instance and session."
 summary: "Multi-Domain Protection is one of the most requested Authelia features."
 date: 2024-03-14T06:00:14+11:00
 draft: false

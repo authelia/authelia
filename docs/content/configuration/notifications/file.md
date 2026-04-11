@@ -1,6 +1,6 @@
 ---
 title: "File System"
-description: "Configuring the Authelia filesystem notification provider which saves notifications to a local file primarily intended for testing purposes."
+description: "Configuring the Authelia filesystem notification provider which saves notifications to a file primarily intended for development and testing environment usage."
 summary: "Authelia can save notifications to a file. This section describes how to configure this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

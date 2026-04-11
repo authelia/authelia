@@ -1,6 +1,6 @@
 ---
 title: "ROM Manager (RomM)"
-description: "A guide on integrating ROM Manager with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
+description: "A guide on integrating ROM Manager with the Authelia OpenID Connect 1.0 Provider including configuration examples, tested versions, and available option info."
 summary: ""
 date: 2025-06-01T12:55:40+00:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Architecture"
-description: "An overview of the Authelia architecture describing how it integrates with reverse proxies to provide authentication and authorization for protected applications."
+description: "An overview of the Authelia architecture describing how it integrates with reverse proxies to provide authentication and authorization for applications."
 summary: "An overview of the Authelia architecture."
 date: 2024-03-14T06:00:14+11:00
 draft: false

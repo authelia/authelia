@@ -1,6 +1,6 @@
 ---
 title: "About"
-description: "About the Authelia project and its team of open source developers who contribute to the authentication and authorization server in their free time."
+description: "About the Authelia project and its team of open-source developers who voluntarily contribute to the authentication and authorization server in their spare time."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

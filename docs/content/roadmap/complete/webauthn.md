@@ -1,6 +1,6 @@
 ---
 title: "WebAuthn"
-description: "The completed Authelia roadmap item for WebAuthn implementation replacing the deprecated FIDO U2F protocol with modern passwordless authentication."
+description: "The completed Authelia roadmap item for WebAuthn implementation replacing the deprecated FIDO U2F protocol with modern passkey and security key authentication."
 summary: "An introduction into the Authelia roadmap."
 date: 2025-03-23T19:03:40+11:00
 draft: false

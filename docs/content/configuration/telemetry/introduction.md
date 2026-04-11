@@ -1,6 +1,6 @@
 ---
 title: "Telemetry"
-description: "An introduction to configuring Authelia telemetry settings explaining the available metrics collection capabilities and that all metrics are disabled by default."
+description: "An introduction to configuring Authelia telemetry settings explaining the available Prometheus metrics collection capabilities which are disabled by default."
 summary: "Configuring the Telemetry settings."
 date: 2024-03-14T06:00:14+11:00
 draft: false

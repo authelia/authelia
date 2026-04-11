@@ -1,6 +1,6 @@
 ---
 title: "Password Policy"
-description: "An overview of Authelia's password policy feature supporting classic rule-based requirements and zxcvbn strength estimation for secure passwords."
+description: "An overview of Authelia's password policy feature supporting classic rule-based requirements and zxcvbn strength estimation for enforcing secure user passwords."
 summary: "Authelia implements a password policy feature."
 date: 2024-03-14T06:00:14+11:00
 draft: false

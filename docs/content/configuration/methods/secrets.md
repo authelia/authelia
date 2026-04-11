@@ -1,6 +1,6 @@
 ---
 title: "Secrets"
-description: "Configuring Authelia using the secrets method to securely provide passwords and other sensitive values via file references and environment variables."
+description: "Configuring Authelia using the secrets method to securely provide passwords and other sensitive values via file references and environment variable pointers."
 summary: "Authelia allows providing configuration via secrets method. This section describes how to implement this."
 date: 2024-03-14T06:00:14+11:00
 draft: false
