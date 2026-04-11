@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.38.19)
+  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
 - [Homarr]
   - [1.59.0](https://github.com/homarr-labs/homarr/releases/tag/v1.59.0)
 
