@@ -85,15 +85,18 @@ func (s *TemplatesSuite) templatesURL(path string) string {
 	return s.baseURL + path
 }
 
-// openPreviewFrame returns the inner page of the preview server's srcdoc iframe.
+// openPreviewFrame returns the inner page of the preview server's srcdoc iframe once
+// react-email has populated it.
 func (s *TemplatesSuite) openPreviewFrame(outer *rod.Page) *rod.Page {
 	iframeEl := s.WaitElementLocatedBySelector(s.T(), outer, "iframe")
 
+	outer.MustWait(`() => {
+		const f = document.querySelector('iframe');
+		return f && f.contentDocument && f.contentDocument.body && f.contentDocument.body.children.length > 0;
+	}`)
+
 	frame, err := iframeEl.Frame()
 	require.NoError(s.T(), err, "failed to descend into preview iframe")
-
-	_, err = frame.Element("body")
-	require.NoError(s.T(), err, "preview iframe has no body yet")
 
 	return frame
 }
