@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.38.19](https://github.com/authelia/authelia/releases/tag/v4.38.19)
 - [Homarr]
-  - [1.7.0](https://github.com/homarr-labs/homarr/releases/tag/v1.7.0)
+  - [1.59.0](https://github.com/homarr-labs/homarr/releases/tag/v1.59.0)
 
 {{% oidc-common %}}
 
@@ -96,6 +96,7 @@ AUTH_OIDC_CLIENT_SECRET=insecure_secret
 AUTH_OIDC_CLIENT_NAME=Authelia
 AUTH_OIDC_SCOPE_OVERWRITE=openid email profile groups
 AUTH_OIDC_GROUPS_ATTRIBUTE=groups
+AUTH_OIDC_FORCE_USERINFO=true
 AUTH_LOGOUT_REDIRECT_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout
 ```
 
@@ -112,6 +113,7 @@ services:
       AUTH_OIDC_CLIENT_NAME: 'Authelia'
       AUTH_OIDC_SCOPE_OVERWRITE: 'openid email profile groups'
       AUTH_OIDC_GROUPS_ATTRIBUTE: 'groups'
+      AUTH_OIDC_FORCE_USERINFO: 'true'
       AUTH_LOGOUT_REDIRECT_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout'
 ```
 
