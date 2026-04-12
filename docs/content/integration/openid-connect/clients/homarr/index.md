@@ -23,11 +23,11 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.19](https://github.com/authelia/authelia/releases/tag/v4.38.19)
+  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
 - [Homarr]
-  - [1.7.0](https://github.com/homarr-labs/homarr/releases/tag/v1.7.0)
+  - [1.59.0](https://github.com/homarr-labs/homarr/releases/tag/v1.59.0)
 
-{{% oidc-common %}}
+{{% oidc-common bugs="claims-hydration" %}}
 
 ### Assumptions
 
@@ -85,6 +85,14 @@ To configure [Homarr] there is one method, using the [Environment Variables](#en
 #### Environment Variables
 
 To configure [Homarr] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
+
+##### Configuration Escape Hatch
+
+{{% oidc-escape-hatch-claims-hydration example="disable" %}}
+
+```shell {title=".env"}
+AUTH_OIDC_FORCE_USERINFO=true
+```
 
 ##### Standard
 
