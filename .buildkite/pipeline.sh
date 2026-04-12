@@ -60,12 +60,8 @@ steps:
     command: "lint.sh -reporter=github-check -filter-mode=nofilter -fail-level=error"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 
-  - label: ":nodejs: Package Validation [docs]"
-    command: "pkgvalidate.sh docs"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/ && build.env("CI_MERGE_QUEUE") != "true"
-
-  - label: ":nodejs: Package Validation [templates]"
-    command: "pkgvalidate.sh templates"
+  - label: ":chrome: External Tests"
+    command: "e2epackages.sh | buildkite-agent pipeline upload"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/ && build.env("CI_MERGE_QUEUE") != "true"
 
   - label: ":hammer_and_wrench: Unit Test"
