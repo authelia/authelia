@@ -145,6 +145,30 @@ Suites can be listed with the authelia-scripts suites list command.`
 
 	cmdSuitesTeardownExample = `authelia-scripts suites setup Standalone`
 
+	cmdSuitesExternalShort = "Commands related to external suites management"
+
+	cmdSuitesExternalLong = `Commands related to external suites management.
+
+External suites drive a project-local dev server and use the go-rod browser harness to assert the rendered output is correct.`
+
+	cmdSuitesExternalExample = `authelia-scripts suites external`
+
+	cmdSuitesExternalListShort = "List available external suites"
+
+	cmdSuitesExternalListLong = `List available external suites.
+
+External suites can be ran with the authelia-scripts suites external test [suite] command.`
+
+	cmdSuitesExternalListExample = `authelia-scripts suites external list`
+
+	cmdSuitesExternalTestShort = "Run an external test suite"
+
+	cmdSuitesExternalTestLong = `Run an external test suite.
+
+External suites can be listed with the authelia-scripts suites external list command.`
+
+	cmdSuitesExternalTestExample = `authelia-scripts suites external test docs`
+
 	cmdUnitTestShort = "Run unit tests"
 
 	cmdUnitTestLong = `Run unit tests.`
