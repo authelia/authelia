@@ -459,12 +459,14 @@ func TestAutheliaCtx_GetOrigin(t *testing.T) {
 func TestAutheliaCtx_IssuerURL(t *testing.T) {
 	testCases := []struct {
 		name     string
+		config   *schema.Session
 		headers  map[string]any
 		expected string
 		err      string
 	}{
 		{
 			"ShouldHandleXForwarded",
+			nil,
 			map[string]any{
 				fasthttp.HeaderXForwardedProto: "https",
 				fasthttp.HeaderXForwardedHost:  "login.example.com:8080",
@@ -474,6 +476,7 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 		},
 		{
 			"ShouldHandleWrongHost",
+			nil,
 			map[string]any{
 				fasthttp.HeaderXForwardedProto: "https",
 				fasthttp.HeaderXForwardedHost:  "auth.notexample.com",
@@ -483,6 +486,7 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 		},
 		{
 			"ShouldHandleXForwardedWithPath",
+			nil,
 			map[string]any{
 				fasthttp.HeaderXForwardedProto: "https",
 				fasthttp.HeaderXForwardedHost:  "login.example.com:8080",
@@ -493,22 +497,72 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 		},
 		{
 			"ShouldHandleXForwardedWithNoScheme",
+			nil,
 			map[string]any{
 				fasthttp.HeaderXForwardedProto: nil,
 				fasthttp.HeaderXForwardedHost:  "login.example.com:8080",
 				"X-Forwarded-URI":              "/abc",
 			},
 			"",
-			"missing required X-Forwarded-Proto header",
+			"invalid X-Forwarded-Proto header value 'http'",
 		},
 		{
 			"ShouldHandleXForwardedWithNoHost",
+			nil,
 			map[string]any{
 				"X-Forwarded-Host": nil,
 				"X-Forwarded-URI":  "/abc",
 			},
 			"",
 			"missing required X-Forwarded-Host header",
+		},
+		{
+			"ShouldHandleLegacySessionCookieSuccess",
+			&schema.Session{
+				Cookies: []schema.SessionCookie{
+					{
+						Domain: "example.com",
+					},
+				},
+			},
+			map[string]any{
+				fasthttp.HeaderXForwardedProto: "https",
+				fasthttp.HeaderXForwardedHost:  "login.example.com:8080",
+			},
+			"https://login.example.com:8080",
+			"",
+		},
+		{
+			"ShouldHandleLegacySessionCookieSuccessTLD",
+			&schema.Session{
+				Cookies: []schema.SessionCookie{
+					{
+						Domain: "login.example.com",
+					},
+				},
+			},
+			map[string]any{
+				fasthttp.HeaderXForwardedProto: "https",
+				fasthttp.HeaderXForwardedHost:  "login.example.com:8080",
+			},
+			"https://login.example.com:8080",
+			"",
+		},
+		{
+			"ShouldHandleLegacySessionCookieFailureNotSuffix",
+			&schema.Session{
+				Cookies: []schema.SessionCookie{
+					{
+						Domain: "login.example.com",
+					},
+				},
+			},
+			map[string]any{
+				fasthttp.HeaderXForwardedProto: "https",
+				fasthttp.HeaderXForwardedHost:  "login.xexample.com:8080",
+			},
+			"https://login.example.com:8080",
+			"error occurred discovering the issuer: the hostname 'login.xexample.com' does not match the configured domain 'login.example.com'",
 		},
 	}
 
@@ -517,6 +571,11 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 
 			defer mock.Close()
+
+			if tc.config != nil {
+				mock.Ctx.Configuration.Session.Cookies = tc.config.Cookies
+				mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			}
 
 			for k, v := range tc.headers {
 				switch value := v.(type) {

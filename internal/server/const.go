@@ -12,7 +12,6 @@ const (
 	fileLogo = "logo.png"
 
 	extHTML = ".html"
-	extJS   = ".js"
 	extJSON = ".json"
 	extYML  = ".yml"
 )
@@ -47,12 +46,9 @@ var (
 )
 
 const (
-	strFalse    = "false"
-	strTrue     = "true"
-	localhost   = "localhost"
-	schemeHTTP  = "http"
-	schemeHTTPS = "https"
-	prefixAPI   = "/api/"
+	strFalse  = "false"
+	strTrue   = "true"
+	prefixAPI = "/api/"
 )
 
 var (
@@ -62,14 +58,6 @@ var (
 
 	headerValueCacheControlETaggedAssets = []byte("public, max-age=0, must-revalidate")
 )
-
-const healthCheckEnv = `# Written by Authelia Process
-X_AUTHELIA_HEALTHCHECK=1
-X_AUTHELIA_HEALTHCHECK_SCHEME=%s
-X_AUTHELIA_HEALTHCHECK_HOST=%s
-X_AUTHELIA_HEALTHCHECK_PORT=%d
-X_AUTHELIA_HEALTHCHECK_PATH=%s
-`
 
 const (
 	errFmtMessageServerReadBuffer  = "Request from client exceeded the server read buffer. The read buffer can be adjusted by modifying the '%s.buffers.read' configuration value."

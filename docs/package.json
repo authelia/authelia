@@ -12,8 +12,8 @@
     "preview": "vite preview --outDir public"
   },
   "dependencies": {
-    "@docsearch/css": "3.9.0",
-    "@docsearch/js": "3.9.0",
+    "@docsearch/css": "4.6.2",
+    "@docsearch/js": "4.6.2",
     "@tabler/icons": "3.41.1",
     "@thulite/core": "1.5.9",
     "@thulite/doks-core": "1.9.3",
@@ -51,7 +51,7 @@
   },
   "pnpm": {
     "overrides": {
-      "brace-expansion": "1.1.13",
+      "brace-expansion": "5.0.5",
       "picomatch": "4.0.4",
       "semver": "7.7.4",
       "yaml": "2.8.3",
