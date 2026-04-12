@@ -24,7 +24,7 @@ func WellKnownOpenIDConfigurationGET(ctx *middlewares.AutheliaCtx) {
 		err    error
 	)
 	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Error occurred determining issuer")
+		ctx.GetLogger().WithError(err).Errorf("OpenID Connect 1.0 Discovery Request could not be processed: %s", oidc.ErrTextEffectiveIssuer)
 
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 
