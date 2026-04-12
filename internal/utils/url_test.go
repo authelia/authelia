@@ -60,6 +60,12 @@ func TestIsRedirectionSafe_ShouldReturnFalseOnBadDomain(t *testing.T) {
 	assert.False(t, isURLSafe("https://secure.example.co", "example.com"))
 }
 
+func TestHasURIDomainSuffix(t *testing.T) {
+	assert.True(t, HasURIDomainSuffix(&url.URL{Scheme: "https", Host: "example.com"}, "example.com"))
+	assert.True(t, HasURIDomainSuffix(&url.URL{Scheme: "https", Host: "auth.example.com"}, "example.com"))
+	assert.False(t, HasURIDomainSuffix(&url.URL{Scheme: "https", Host: "auth.xexample.com"}, "example.com"))
+}
+
 func TestHasDomainSuffix(t *testing.T) {
 	assert.False(t, HasDomainSuffix("abc", ""))
 	assert.False(t, HasDomainSuffix("", ""))
