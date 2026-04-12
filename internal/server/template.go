@@ -217,45 +217,6 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 	}
 }
 
-func writeHealthCheckEnv(disabled bool, scheme, host, path string, port uint16) (err error) {
-	if disabled {
-		return nil
-	}
-
-	_, err = os.Stat("/app/healthcheck.sh")
-	if err != nil {
-		return nil
-	}
-
-	_, err = os.Stat("/app/.healthcheck.env")
-	if err != nil {
-		return nil
-	}
-
-	file, err := os.OpenFile("/app/.healthcheck.env", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		_ = file.Close()
-	}()
-
-	if host == "0.0.0.0" {
-		host = localhost
-	} else if strings.Contains(host, ":") {
-		host = "[" + host + "]"
-	}
-
-	if path == "/" {
-		path = ""
-	}
-
-	_, err = fmt.Fprintf(file, healthCheckEnv, scheme, host, port, path)
-
-	return err
-}
-
 // NewTemplatedFileOptions returns a new *TemplatedFileOptions.
 func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileOptions) {
 	opts = &TemplatedFileOptions{
