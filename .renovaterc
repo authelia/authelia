@@ -8,9 +8,6 @@
   ],
   "branchPrefix": "renovate-",
   "rebaseWhen": "conflicted",
-  "ignorePaths": [
-    "docs/**"
-  ],
   "ignorePresets": [
     ":prHourlyLimit2",
     ":semanticPrefixFixDepsChoreOthers",

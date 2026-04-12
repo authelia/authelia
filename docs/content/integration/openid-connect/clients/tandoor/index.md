@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.16](https://github.com/authelia/authelia/releases/tag/v4.39.16)
+  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
 - [Tandoor]
   - [v1.5.34](https://github.com/TandoorRecipes/recipes/releases/tag/1.5.34)
 

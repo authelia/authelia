@@ -444,8 +444,10 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithEnabled(utils.IsStringInSliceFold(oidc.EndpointPushedAuthorizationRequest, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
+	rateLimitPAR := middlewares.NewIPRateLimit(middlewares.NewRateLimitBucketsConfig(config.Server.Endpoints.RateLimits.OpenIDConnectPushedAuthorizationRequest)...)
+
 	r.OPTIONS(oidc.EndpointPathPushedAuthorizationRequest, policyCORSPAR.HandleOnlyOPTIONS)
-	r.POST(oidc.EndpointPathPushedAuthorizationRequest, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointPushedAuthorizationRequest), policyCORSPAR.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2PushedAuthorizationRequest)))))
+	r.POST(oidc.EndpointPathPushedAuthorizationRequest, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointPushedAuthorizationRequest), policyCORSPAR.Middleware(bridge(rateLimitPAR(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2PushedAuthorizationRequest))))))
 
 	policyCORSToken := middlewares.NewCORSPolicyBuilder().
 		WithAllowCredentials(true).
@@ -454,8 +456,10 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointToken, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
+	rateLimitToken := middlewares.NewIPRateLimit(middlewares.NewRateLimitBucketsConfig(config.Server.Endpoints.RateLimits.OpenIDConnectToken)...)
+
 	r.OPTIONS(oidc.EndpointPathToken, policyCORSToken.HandleOPTIONS)
-	r.POST(oidc.EndpointPathToken, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointToken), policyCORSToken.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2TokenPOST)))))
+	r.POST(oidc.EndpointPathToken, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointToken), policyCORSToken.Middleware(bridge(rateLimitToken(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2TokenPOST))))))
 
 	policyCORSUserinfo := middlewares.NewCORSPolicyBuilder().
 		WithAllowCredentials(true).

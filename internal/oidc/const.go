@@ -1,7 +1,10 @@
 package oidc
 
 import (
+	"net/http"
 	"time"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 )
 
 // Scope strings.
@@ -429,4 +432,15 @@ const (
 	fieldRFC6750ErrorDescription = "error_description"
 	fieldRFC6750Realm            = "realm"
 	fieldRFC6750Scope            = valueScope
+)
+
+const ErrTextEffectiveIssuer = "error occurred determining the effective issuer for the given request"
+
+var (
+	ErrEffectiveIssuer = &oauthelia2.RFC6749Error{
+		ErrorField:       "server_error",
+		DescriptionField: "The authorization server encountered an unexpected condition that prevented it from fulfilling the request.",
+		HintField:        "Error occurred determining the effective issuer for this request. Either the server has not been setup to handle these requests, or a failure occurred looking up details for this request.",
+		CodeField:        http.StatusInternalServerError,
+	}
 )

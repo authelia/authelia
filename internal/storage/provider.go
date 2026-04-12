@@ -316,6 +316,11 @@ type Provider interface {
 	// SchemaMigrate migrates from the storage provider's current schema version to the provided schema version.
 	SchemaMigrate(ctx context.Context, up bool, version int) (err error)
 
+	// SchemaEncryptionRotateHMACKey rotates a HMAC key in the storage provider given a specific name. This is a
+	// destructive action and it cannot be recovered from. Any values generated and saved in the database will become
+	// immediately and irrevocably invalid.
+	SchemaEncryptionRotateHMACKey(ctx context.Context, name string) (err error)
+
 	// SchemaEncryptionChangeKey uses the currently configured key to decrypt values in the storage provider and the key
 	// provided by this command to encrypt the values again and update them using a transaction.
 	SchemaEncryptionChangeKey(ctx context.Context, key string) (err error)

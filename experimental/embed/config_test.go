@@ -24,6 +24,8 @@ func TestNewConfiguration(t *testing.T) {
 			paths: []string{"../../internal/configuration/test_resources/config.webauthn.yml"},
 			keys: []string{
 				"regulation.max_retries",
+				"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
+				"server.endpoints.rate_limits.openid_connect_token.enable",
 				"server.endpoints.rate_limits.reset_password_finish.enable",
 				"server.endpoints.rate_limits.reset_password_start.enable",
 				"server.endpoints.rate_limits.second_factor_duo.enable",
@@ -95,6 +97,8 @@ func TestNewConfiguration(t *testing.T) {
 				"server.endpoints.authz.forward-auth.authn_strategies[].name",
 				"server.endpoints.authz.forward-auth.implementation",
 				"server.endpoints.authz.legacy.implementation",
+				"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
+				"server.endpoints.rate_limits.openid_connect_token.enable",
 				"server.endpoints.rate_limits.reset_password_finish.enable",
 				"server.endpoints.rate_limits.reset_password_start.enable",
 				"server.endpoints.rate_limits.second_factor_duo.enable",

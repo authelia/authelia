@@ -22,9 +22,19 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 	session := oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())
 
 	if requester, err = ctx.Providers.OpenIDConnect.NewAccessRequest(ctx, req, session); err != nil {
-		ctx.Logger.Errorf("Access Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
+		ctx.GetLogger().Errorf("Access Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
+
+		return
+	}
+
+	ctx.GetLogger().Debugf("Access Request with id '%s' is being processed", requester.GetID())
+
+	if _, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Access Request with id '%s' could not be processed: %s", requester.GetID(), oidc.ErrTextEffectiveIssuer)
+
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, oidc.ErrEffectiveIssuer)
 
 		return
 	}
@@ -33,7 +43,7 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 	if !ok {
 		err = oauthelia2.ErrServerError.WithDebug("The requester contained an unknown client implementation")
 
-		ctx.Logger.Errorf("Access Response for Request with id '%s' failed with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
+		ctx.GetLogger().Errorf("Access Response for Request with id '%s' failed with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
@@ -54,7 +64,7 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 		}).
 		Trace("Access Request is being handled by a provider")
 
-	ctx.Logger.Debugf("Access Request with id '%s' on client with id '%s' is being processed", requester.GetID(), client.GetID())
+	ctx.GetLogger().Debugf("Access Request with id '%s' on client with id '%s' is being processed", requester.GetID(), client.GetID())
 
 	if handled := handleOAuth2TokenHydration(ctx, rw, requester, client, requester.GetSession().(*oidc.Session)); handled {
 		return
@@ -63,16 +73,16 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 	ctx.GetLogger().Tracef("Access Request with id '%s' on client with id '%s' response is being generated for session with type '%T'", requester.GetID(), client.GetID(), requester.GetSession())
 
 	if responder, err = ctx.Providers.OpenIDConnect.NewAccessResponse(ctx, requester); err != nil {
-		ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
+		ctx.GetLogger().Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
 		return
 	}
 
-	ctx.Logger.Debugf("Access Request with id '%s' on client with id '%s' has successfully been processed", requester.GetID(), client.GetID())
+	ctx.GetLogger().Debugf("Access Request with id '%s' on client with id '%s' has successfully been processed", requester.GetID(), client.GetID())
 
-	ctx.Logger.Tracef("Access Request with id '%s' on client with id '%s' produced the following claims: %+v", requester.GetID(), client.GetID(), oidc.AccessResponderToClearMap(responder))
+	ctx.GetLogger().Tracef("Access Request with id '%s' on client with id '%s' produced the following claims: %+v", requester.GetID(), client.GetID(), oidc.AccessResponderToClearMap(responder))
 
 	ctx.Providers.OpenIDConnect.WriteAccessResponse(ctx, rw, requester, responder)
 }

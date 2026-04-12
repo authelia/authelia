@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.16](https://github.com/authelia/authelia/releases/tag/v4.39.16)
+  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
 
 {{% oidc-common bugs="client-credentials-encoding,claims-hydration" %}}
 
@@ -94,10 +94,10 @@ To configure [Cloudflare Zero Trust] there is one method, using the [Web GUI](#w
 To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
 instructions:
 
-1. Visit the [Cloudflare Zero Trust Dashboard](https://dash.teams.cloudflare.com)
-2. Visit `Settings`
-3. Visit `Authentication`
-4. Under `Login methods` select `Add new`
+1. Visit the [Cloudflare Zero Trust Dashboard](https://dash.cloudflare.com/one)
+2. Visit `Integrations`
+3. Visit `Identity providers`
+4. Select `Add an identity provider`
 5. Select `OpenID Connect`
 6. Configure the following options:
    - Name: `Authelia`

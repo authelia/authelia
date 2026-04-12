@@ -3401,6 +3401,16 @@
           "$ref": "#/$defs/ServerEndpointRateLimit",
           "title": "Session Elevation Finish",
           "description": "Configures the rate limiter which applies to the Elevated Session endpoint which consumes the code for the elevated session flow."
+        },
+        "openid_connect_token": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect Token",
+          "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Token Endpoint."
+        },
+        "openid_connect_pushed_authorization_request": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect Pushed Authorization Request",
+          "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Pushed Authorization Request Endpoint."
         }
       },
       "additionalProperties": false,

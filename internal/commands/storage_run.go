@@ -359,6 +359,66 @@ func runStorageCacheMDS3Update(ctx context.Context, w io.Writer, store storage.P
 	return nil
 }
 
+// StorageSchemaEncryptionRotateRunE is the RunE for the authelia storage encryption rotate commands.
+func (ctx *CmdCtx) StorageSchemaEncryptionRotateRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	var force bool
+	if force, err = cmd.Flags().GetBool(cmdFlagNameForce); err != nil {
+		return err
+	}
+
+	var table string
+
+	switch cmd.Use {
+	case "otc":
+		table = "one_time_code"
+	case "otp":
+		table = "totp_history"
+	}
+
+	return runStorageSchemaEncryptionRotateKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, table, cmd.Use, force)
+}
+
+func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store storage.Provider, table, name string, force bool) (err error) {
+	var version int
+	if version, err = store.SchemaVersion(ctx); err != nil {
+		return err
+	}
+
+	if version <= 0 {
+		return errors.New("schema version must be at least version 1 to rotate keys")
+	}
+
+	if !force {
+		var confirmed bool
+
+		if confirmed, err = termReadConfirmation(fmt.Sprintf("This will rotate the HMAC key and truncate the '%s' table, this is not reversible, type 'ROTATE' and press return to continue: ", table), "ROTATE"); err != nil {
+			return err
+		}
+
+		if !confirmed {
+			return errors.New("cancelling key rotation due to user not accepting data destruction")
+		}
+	}
+
+	if err = store.SchemaEncryptionRotateHMACKey(ctx, name); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(w, "Completed the '%s' key rotation successfully and cleanly truncated the '%s' table.\n", name, table)
+
+	return nil
+}
+
 func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {

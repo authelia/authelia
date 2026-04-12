@@ -2,7 +2,7 @@
 title: "authelia storage encryption"
 description: "Reference for the authelia storage encryption command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-04-03T20:58:18+11:00
 draft: false
 images: []
 weight: 905
@@ -59,4 +59,5 @@ authelia storage encryption --help
 * [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
 * [authelia storage encryption change-key](authelia_storage_encryption_change-key.md)	 - Changes the encryption key
 * [authelia storage encryption check](authelia_storage_encryption_check.md)	 - Checks the encryption key against the database data
+* [authelia storage encryption rotate](authelia_storage_encryption_rotate.md)	 - Rotate storage encryption values
 

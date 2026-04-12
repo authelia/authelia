@@ -815,6 +815,16 @@
         "env": "AUTHELIA_SERVER_ENDPOINTS_ENABLE_PPROF"
     },
     {
+        "path": "server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_PUSHED_AUTHORIZATION_REQUEST_ENABLE"
+    },
+    {
+        "path": "server.endpoints.rate_limits.openid_connect_token.enable",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_OPENID_CONNECT_TOKEN_ENABLE"
+    },
+    {
         "path": "server.endpoints.rate_limits.reset_password_finish.enable",
         "secret": false,
         "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_RESET_PASSWORD_FINISH_ENABLE"
