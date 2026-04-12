@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/rpadovani/sqlx-v2"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"

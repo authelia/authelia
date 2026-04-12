@@ -3,7 +3,7 @@ package storage
 import (
 	"database/sql"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/rpadovani/sqlx-v2"
 
 	"github.com/authelia/authelia/v4/internal/model"
 )
