@@ -504,7 +504,7 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 				"X-Forwarded-URI":              "/abc",
 			},
 			"",
-			"missing required X-Forwarded-Proto header",
+			"invalid X-Forwarded-Proto header value 'http'",
 		},
 		{
 			"ShouldHandleXForwardedWithNoHost",
