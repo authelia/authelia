@@ -38,6 +38,14 @@ const TwoFactorAuthenticationView = function () {
     const [redirectDialogOpen, setRedirectDialogOpen] = useState(false);
     const hadDevicesBeforeRef = useRef<boolean | null>(null);
 
+    // Track whether the user had any MFA devices when the view first loaded.
+    // This lets us detect "first device" registration.
+    useEffect(() => {
+        if (userInfo && hadDevicesBeforeRef.current === null) {
+            hadDevicesBeforeRef.current = userInfo.has_totp || userInfo.has_webauthn;
+        }
+    }, [userInfo]);
+
     const handleRefreshWebAuthnState = () => {
         setRefreshState((refreshState) => refreshState + 1);
         setRefreshWebAuthnState((refreshWebAuthnState) => refreshWebAuthnState + 1);
