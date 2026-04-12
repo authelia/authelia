@@ -6,10 +6,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/google/uuid"
-
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/x/errorsx"
+	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
