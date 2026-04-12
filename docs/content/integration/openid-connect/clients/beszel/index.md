@@ -1,6 +1,6 @@
 ---
 title: "Beszel"
-description: "Integrating Beszel with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Beszel with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-04-26T11:03:16+00:00
 draft: false

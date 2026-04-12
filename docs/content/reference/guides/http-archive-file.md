@@ -1,6 +1,6 @@
 ---
 title: "HTTP Archive Files"
-description: "This guide describes and helps users create HTTP Archive (HAR) files"
+description: "A reference guide on creating and sanitizing HTTP Archive (HAR) files for troubleshooting Authelia issues including sensitive data removal and submission tips."
 summary: "This guide describes and helps users create HTTP Archive (HAR) files."
 date: 2024-03-14T06:00:14+11:00
 draft: false

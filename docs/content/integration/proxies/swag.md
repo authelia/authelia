@@ -1,6 +1,6 @@
 ---
 title: "SWAG"
-description: "An integration guide for Authelia and the SWAG reverse proxy"
+description: "An integration guide for Authelia and the SWAG reverse proxy which is an NGINX-based container with bundled configurations for easy and streamlined proxy setup."
 summary: "A guide on integrating Authelia with SWAG."
 date: 2024-03-14T06:00:14+11:00
 draft: false

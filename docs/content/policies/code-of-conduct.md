@@ -1,6 +1,6 @@
 ---
 title: "Code of Conduct"
-description: "The Code of Conduct that all community members must agree to abide by."
+description: "The Authelia Code of Conduct that all community members, contributors, and leaders must agree to abide by to ensure an inclusive and harassment-free experience."
 summary: "The Code of Conduct that all community members must agree to abide by."
 date: 2024-11-14T11:21:52+00:00
 draft: false

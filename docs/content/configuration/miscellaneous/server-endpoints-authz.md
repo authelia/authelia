@@ -1,6 +1,6 @@
 ---
 title: "Server Authz Endpoints"
-description: "Configuring the Server Authz Endpoint Settings."
+description: "Configuring the Authelia server authorization endpoints including ForwardAuth, ExtAuthz, AuthRequest, and Legacy implementations with authentication strategies."
 summary: "Authelia supports several authorization endpoints on the internal web server. This section describes how to configure and tune them."
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Redis"
-description: "Redis Session Configuration"
+description: "Configuring the Authelia Redis session storage provider including connection settings, TLS options, high availability with Sentinel, and connection pooling."
 summary: "Configuring the Redis Session Storage."
 date: 2024-03-14T06:00:14+11:00
 draft: false

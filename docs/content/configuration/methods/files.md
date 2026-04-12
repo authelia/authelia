@@ -1,6 +1,6 @@
 ---
 title: "Files"
-description: "Using the YAML File Configuration Method."
+description: "Configuring Authelia using YAML configuration files including file discovery, loading behavior, multiple file support, template filters, and search path rules."
 summary: "Authelia can be configured via files. This section describes utilizing this method."
 date: 2024-03-14T06:00:14+11:00
 draft: false

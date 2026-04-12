@@ -1,6 +1,6 @@
 ---
 title: "Stirling-PDF"
-description: "Integrating Stirling-PDF with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Stirling-PDF with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2025-02-23T04:38:52+00:00
 draft: false

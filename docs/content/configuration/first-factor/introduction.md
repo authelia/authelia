@@ -1,7 +1,7 @@
 ---
 title: "First Factor"
 name: "test"
-description: "Configuring Authelia First Factor Authentication."
+description: "An introduction to configuring Authelia first factor authentication including the authentication backend, password reset, and password change options."
 summary: "Authelia uses a username and password for a first factor method. This section describes configuring this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

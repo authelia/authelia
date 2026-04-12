@@ -1,6 +1,6 @@
 ---
 title: "Configuration"
-description: "Configuration Documentation"
+description: "An overview of the Authelia configuration documentation covering all available settings for authentication, authorization, identity management, and sessions."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Komodo"
-description: "Integrating Komodo with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Komodo with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and an overview of the options."
 summary: ""
 date: 2025-05-10T10:01:23+00:00
 draft: false

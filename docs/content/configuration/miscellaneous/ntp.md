@@ -1,6 +1,6 @@
 ---
 title: "NTP"
-description: "Configuring the NTP Settings."
+description: "Configuring the Authelia NTP time synchronization check including the server address, NTP version, maximum desync tolerance, and startup failure disable option."
 summary: "Authelia checks the system time is in sync with an NTP server. This section describes how to configure and tune this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

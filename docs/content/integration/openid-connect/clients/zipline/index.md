@@ -1,6 +1,6 @@
 ---
 title: "Zipline"
-description: "Integrating Zipline with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Zipline with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-03-04T23:12:34+11:00
 draft: false

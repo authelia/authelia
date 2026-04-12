@@ -1,6 +1,6 @@
 ---
 title: "Guidelines"
-description: "An introduction into guidelines for contributing to the Authelia project."
+description: "An introduction to the Authelia contribution guidelines covering automated enforcement, general recommendations, and expectations for pull request submissions."
 summary: "An introduction into guidelines for contributing to the Authelia project."
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "OpenID Connect 1.0 Relying Party"
-description: "Authelia OpenID Connect 1.0 Relying Party Implementation"
+description: "The Authelia roadmap item for the OpenID Connect 1.0 Relying Party role allowing delegation of authentication to external identity providers like Google."
 summary: "The OpenID Connect 1.0 Relying Party role is a great addition to the existing authentication methods Authelia provides."
 date: 2025-03-23T19:03:40+11:00
 draft: false

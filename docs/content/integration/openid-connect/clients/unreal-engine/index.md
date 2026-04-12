@@ -1,6 +1,6 @@
 ---
 title: "Unreal Engine"
-description: "Integrating Unreal Engine with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Unreal Engine with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options."
 summary: ""
 date: 2025-06-08T01:14:26+00:00
 draft: false

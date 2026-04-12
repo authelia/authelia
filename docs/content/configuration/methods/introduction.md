@@ -1,6 +1,6 @@
 ---
 title: "Methods"
-description: "Methods of Configuration."
+description: "An introduction to the Authelia configuration methods explaining the layered model with files, environment variables, and secrets and their precedence."
 summary: "Authelia has a layered configuration model. This section describes how to implement configuration."
 date: 2024-03-14T06:00:14+11:00
 draft: false

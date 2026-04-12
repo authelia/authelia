@@ -1,6 +1,6 @@
 ---
 title: "WUD (What's Up Docker)"
-description: "Integrating WUD (What's Up Docker) with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating WUD (What's Up Docker) with the Authelia OpenID Connect 1.0 Provider including configuration examples, tested versions, and SSO setup."
 summary: ""
 date: 2025-01-13T08:35:59+11:00
 draft: false

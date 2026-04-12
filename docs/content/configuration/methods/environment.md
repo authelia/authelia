@@ -1,6 +1,6 @@
 ---
 title: "Environment"
-description: "Using the Environment Variable Configuration Method."
+description: "Configuring Authelia using environment variables including the AUTHELIA_ prefix convention, mapping rules, and Kubernetes-specific deployment considerations."
 summary: "Authelia has a layered configuration model. This section describes how to implement the environment configuration."
 date: 2024-03-14T06:00:14+11:00
 draft: false
