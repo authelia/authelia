@@ -4,7 +4,7 @@
         "development": "default-src 'self' 'unsafe-eval'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
         "nonce": "${NONCE}"
     },
-    "latest": "4.39.18",
+    "latest": "4.39.19",
     "support": {
         "traefik": [
             "v3.6.13",
