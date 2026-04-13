@@ -2,13 +2,14 @@ package suites
 
 import (
 	"context"
-	"fmt"
-	"os/exec"
+	"errors"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/authelia/otp/totp"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/crypto/ssh"
 
 	"github.com/authelia/authelia/v4/internal/storage"
 )
@@ -87,31 +88,53 @@ func (s *PAMSuite) pamLogsSince(since time.Time) string {
 	return logs
 }
 
-// sshLogin performs an SSH login using expect to drive the keyboard-interactive prompts.
-// responses are provided in order for each prompt (password, TOTP, etc.).
+// sshLogin connects to the pam container's sshd and replies to each keyboard-interactive
+// prompt with the corresponding entry from responses. It returns an error if the server
+// rejects the authentication or if there are more prompts than responses.
 //
 //nolint:unparam // user is part of the helper's interface, reserved for future tests.
 func (s *PAMSuite) sshLogin(user string, responses []string) (string, error) {
-	// Build an expect script that connects via ssh and answers each prompt in order.
-	script := `set timeout 30
-spawn ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=keyboard-interactive -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 ` + user + `@ssh.example.com echo "AUTHELIA_PAM_LOGIN_SUCCESS"
-`
-	for _, resp := range responses {
-		script += fmt.Sprintf(`expect -re {[Pp]assword:|[Cc]ode:|[Pp]asscode:} { send "%s\r" }`+"\n", resp)
+	next := 0
+
+	cfg := &ssh.ClientConfig{
+		User: user,
+		Auth: []ssh.AuthMethod{
+			ssh.KeyboardInteractive(func(_, _ string, questions []string, _ []bool) ([]string, error) {
+				answers := make([]string, len(questions))
+
+				for i := range questions {
+					if next >= len(responses) {
+						return nil, errors.New("ran out of responses for prompts")
+					}
+
+					answers[i] = responses[next]
+					next++
+				}
+
+				return answers, nil
+			}),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // Test environment only.
+		Timeout:         10 * time.Second,
 	}
 
-	script += `expect {
-    "AUTHELIA_PAM_LOGIN_SUCCESS" { exit 0 }
-    "Permission denied" { exit 1 }
-    "Connection closed" { exit 1 }
-    timeout { exit 2 }
-    eof { exit 1 }
-}`
+	client, err := ssh.Dial("tcp", "ssh.example.com:22", cfg)
+	if err != nil {
+		return err.Error(), err
+	}
 
-	cmd := exec.Command("expect", "-c", script)
-	output, err := cmd.CombinedOutput()
+	defer client.Close()
 
-	return string(output), err
+	session, err := client.NewSession()
+	if err != nil {
+		return err.Error(), err
+	}
+
+	defer session.Close()
+
+	out, err := session.CombinedOutput(`echo "AUTHELIA_PAM_LOGIN_SUCCESS"`)
+
+	return string(out), err
 }
 
 func (s *PAMSuite) TestShouldAuthenticateWith1FA() {
@@ -210,39 +233,42 @@ func (s *PAMSuite) TestShouldAuthenticateWith2FAOnly() {
 // client correctly and reaches the polling state".
 //
 // Cleanup: the device-auth PAM config sets timeout=3 so the C shim gives up reading
-// from the Go binary after 3 seconds and sends SIGTERM. The Go binary polls immediately
-// on entering the loop, so a single authorization_pending response is logged well
-// within that window. The expect script closes the SSH connection as soon as the
-// user-visible QR code prompt appears, so no dead connection lingers between tests.
+// from the Go binary after 3 seconds and sends SIGTERM. The test aborts the SSH
+// connection as soon as the QR-code PAM_TEXT_INFO message is seen so no dead
+// connection lingers between tests.
 func (s *PAMSuite) TestShouldInitiateDeviceAuthorizationFlow() {
 	s.setPAMAuthLevel("device-auth")
 
 	since := time.Now()
 
-	script := `set timeout 5
-spawn ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=keyboard-interactive -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 john@ssh.example.com echo "AUTHELIA_PAM_LOGIN_SUCCESS"
-expect {
-    "Scan the QR code" {
-        # Give the Go binary time to complete its first (immediate) poll.
-        sleep 1
-        close
-        wait
-        exit 0
-    }
-    "Permission denied" { exit 1 }
-    timeout { exit 2 }
-    eof { exit 1 }
-}`
+	// Authelia's info messages arrive via the keyboard-interactive instruction field.
+	// Once we've seen the QR-code preamble we know the device flow has initiated and
+	// the first poll has been (or is about to be) fired; abort the auth attempt by
+	// returning an error from the callback.
+	errQRCodeSeen := errors.New("qr code observed")
 
-	cmd := exec.Command("expect", "-c", script)
-	out, _ := cmd.CombinedOutput()
+	cfg := &ssh.ClientConfig{
+		User: "john",
+		Auth: []ssh.AuthMethod{
+			ssh.KeyboardInteractive(func(_, instruction string, _ []string, _ []bool) ([]string, error) {
+				if strings.Contains(instruction, "Scan the QR code") {
+					return nil, errQRCodeSeen
+				}
 
-	// Give the C shim a moment to notice the SSH disconnect and tear down the Go binary
-	// via its poll() timeout (configured to 3s for this test).
+				return nil, nil
+			}),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // Test environment only.
+		Timeout:         5 * time.Second,
+	}
+
+	_, _ = ssh.Dial("tcp", "ssh.example.com:22", cfg)
+
+	// Give the C shim time to notice the disconnect and tear down the Go binary via
+	// its poll() timeout (configured to 3s for this test).
 	time.Sleep(4 * time.Second)
 
 	logs := s.pamLogsSince(since)
-	_ = out // output is opaque (PAM_TEXT_INFO + QR code); only the backend logs matter.
 
 	// Flow initiation: device authorization endpoint was hit and returned the expected
 	// RFC 8628 fields.
