@@ -51,6 +51,7 @@ func newCommitLintCmd() *cobra.Command {
 var commitScopesExtra = []NameDescriptionTmpl{
 	{"api", "used for changes that change the openapi specification", nil},
 	{"cmd", "used for changes to the `%s` top level binaries", nil},
+	{"extras", "used for changes to supplementary tools in the extras directory", nil},
 	{"web", "used for changes to the React based frontend", nil},
 }
 

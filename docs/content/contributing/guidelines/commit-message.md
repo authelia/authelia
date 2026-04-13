@@ -51,8 +51,8 @@ for, and the structure it must have.
   │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.
   │       │
   │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|clock|
-  │                          cmd|codecov|commands|configuration|deps|docker|duo|expression|go|
-  │                          golangci-lint|handlers|lefthook|logging|metrics|middlewares|mocks|
+  │                          cmd|codecov|commands|configuration|deps|docker|duo|expression|extras|
+  │                          go|golangci-lint|handlers|lefthook|logging|metrics|middlewares|mocks|
   │                          model|notification|npm|ntp|oidc|random|regulation|renovate|reviewdog|
   │                          server|service|session|storage|suites|templates|totp|utils|web|
   │                          webauthn
@@ -113,7 +113,8 @@ commit messages).
 There are currently a few exceptions to the "use package name" rule:
 
 * `api`: used for changes that change the openapi specification
-* `cmd`: used for changes to the `authelia|authelia-gen|authelia-scripts|authelia-suites` top level binaries
+* `cmd`: used for changes to the `authelia|authelia-gen|authelia-pam|authelia-scripts|authelia-suites` top level binaries
+* `extras`: used for changes to supplementary tools in the extras directory
 * `web`: used for changes to the React based frontend
 * none/empty string: useful for `test`, `refactor` and changes that are done across multiple packages
   (e.g. `test: add missing unit tests`) and for docs changes that are not related to a specific package
