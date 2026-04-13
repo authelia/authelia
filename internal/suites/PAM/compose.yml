@@ -9,4 +9,5 @@ services:
       - './common/pki:/pki'
       - './common/pki/public.crt:/certs/public.crt'
       - '/tmp:/tmp'
+    user: '${USER_ID}:${GROUP_ID}'
 ...
