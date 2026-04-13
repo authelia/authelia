@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-webauthn/webauthn/protocol"
@@ -790,6 +791,12 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) 
 	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
 
 	return webauthn.New(config)
+}
+
+func (ctx *AutheliaCtx) RecordAuthenticationDuration(success bool, elapsed time.Duration) {
+	if ctx.Providers.Metrics != nil {
+		ctx.Providers.Metrics.RecordAuthenticationDuration(success, elapsed)
+	}
 }
 
 // Value is a shaded method of context.Context which returns the AutheliaCtx struct if the key is the internal key

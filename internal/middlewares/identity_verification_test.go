@@ -71,9 +71,7 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 		Return(fmt.Errorf("cannot save"))
 
 	args := newArgs(defaultRetriever)
-	middlewares.IdentityVerificationStart(args, func(ctx *middlewares.AutheliaCtx, requestTime time.Time, successful *bool) {
-		time.Sleep(time.Millisecond * 10)
-	})(mock.Ctx)
+	middlewares.IdentityVerificationStart(args, middlewares.NewTimingAttackDelay(10, time.Millisecond*10))(mock.Ctx)
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "cannot save", mock.Hook.LastEntry().Message)
