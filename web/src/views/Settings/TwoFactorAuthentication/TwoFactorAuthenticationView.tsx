@@ -46,6 +46,14 @@ const TwoFactorAuthenticationView = function () {
         }
     }, [userInfo]);
 
+    const handleRegistrationSuccess = useCallback(() => {
+        if (hadDevicesBeforeRef.current === false) {
+            setRedirectDialogOpen(true);
+            // Mark so we don't show again for subsequent registrations in the same session.
+            hadDevicesBeforeRef.current = true;
+        }
+    }, []);
+
     const handleRefreshWebAuthnState = () => {
         setRefreshState((refreshState) => refreshState + 1);
         setRefreshWebAuthnState((refreshWebAuthnState) => refreshWebAuthnState + 1);
