@@ -40,9 +40,6 @@ func (s *PAMSuite) SetupSuite() {
 	})
 	s.DockerEnvironment = dockerEnvironment
 
-	// Seed john's TOTP configuration via the CLI (handles encryption with the configured key),
-	// then mark TOTP as john's preferred 2FA method via direct storage access so LoadUserInfo
-	// populates its subquery-driven fields correctly.
 	output, err := s.Exec("authelia-backend", []string{
 		"authelia", "storage", "user", "totp", "generate", "john",
 		"--force",
@@ -79,7 +76,7 @@ func (s *PAMSuite) setPAMAuthLevel(authLevel string) {
 }
 
 // pamLogsSince returns the pam container log output emitted since the given timestamp.
-// Used by tests to assert that specific authelia-pam debug lines were produced for the
+// Used by tests to assert that specific pam_authelia debug lines were produced for the
 // attempted authentication, giving richer validation than just checking the ssh exit code.
 func (s *PAMSuite) pamLogsSince(since time.Time) string {
 	logs, err := s.Logs("pam", []string{"--since", since.UTC().Format(time.RFC3339Nano)})
@@ -147,7 +144,7 @@ func (s *PAMSuite) TestShouldAuthenticateWith1FA() {
 
 	logs := s.pamLogsSince(since)
 	s.Contains(logs, "POST https://login.example.com:8080/api/firstfactor")
-	s.Contains(logs, `response status=200 body={"status":"OK"}`)
+	s.Contains(logs, `response status=200 status_field="OK"`)
 	s.NotContains(logs, "/api/secondfactor/")
 	s.Contains(logs, "Accepted keyboard-interactive/pam for john")
 }
@@ -163,7 +160,7 @@ func (s *PAMSuite) TestShouldReject1FAWithBadPassword() {
 	logs := s.pamLogsSince(since)
 	s.Contains(logs, "POST https://login.example.com:8080/api/firstfactor")
 	s.Contains(logs, "response status=401")
-	s.Contains(logs, "authentication failed: first factor authentication failed")
+	s.Contains(logs, "first factor authentication failed")
 	s.Contains(logs, "PAM: Authentication failure for john")
 	s.NotContains(logs, "Accepted keyboard-interactive/pam for john")
 }
@@ -181,9 +178,9 @@ func (s *PAMSuite) TestShouldAuthenticateWith1FA2FAUsingTOTP() {
 
 	logs := s.pamLogsSince(since)
 	s.Contains(logs, "POST https://login.example.com:8080/api/firstfactor")
-	s.Contains(logs, "user info response:")
-	s.Contains(logs, `"method":"totp"`)
-	s.Contains(logs, `"has_totp":true`)
+	s.Contains(logs, "user info method=")
+	s.Contains(logs, `method="totp"`)
+	s.Contains(logs, "has_totp=true")
 	s.Contains(logs, "POST https://login.example.com:8080/api/secondfactor/totp")
 	s.Contains(logs, "Accepted keyboard-interactive/pam for john")
 }
@@ -232,50 +229,54 @@ func (s *PAMSuite) TestShouldAuthenticateWith2FAOnly() {
 // covered by Authelia's OIDC suite. Our scope is "the PAM module drives the RFC 8628
 // client correctly and reaches the polling state".
 //
-// Cleanup: the device-auth PAM config sets timeout=3 so the C shim gives up reading
-// from the Go binary after 3 seconds and sends SIGTERM. The test aborts the SSH
-// connection as soon as the QR-code PAM_TEXT_INFO message is seen so no dead
-// connection lingers between tests.
+// Flow: the QR code arrives as a PROMPT_MULTI_VISIBLE keyboard-interactive question.
+// We answer with an empty response (as if the user pressed Enter after approving) so
+// the Go binary starts polling the token endpoint. Nobody ever approves, so the poll
+// sits in authorization_pending; the C shim's configured timeout=3 then fires and
+// kills the Go process, returning PAM_AUTH_ERR to sshd which terminates the session.
 func (s *PAMSuite) TestShouldInitiateDeviceAuthorizationFlow() {
 	s.setPAMAuthLevel("device-auth")
 
 	since := time.Now()
 
-	// Authelia's info messages arrive via the keyboard-interactive instruction field.
-	// Once we've seen the QR-code preamble we know the device flow has initiated and
-	// the first poll has been (or is about to be) fired; abort the auth attempt by
-	// returning an error from the callback.
-	errQRCodeSeen := errors.New("qr code observed")
+	var qrSeen bool
 
 	cfg := &ssh.ClientConfig{
 		User: "john",
 		Auth: []ssh.AuthMethod{
-			ssh.KeyboardInteractive(func(_, instruction string, _ []string, _ []bool) ([]string, error) {
-				if strings.Contains(instruction, "Scan the QR code") {
-					return nil, errQRCodeSeen
+			ssh.KeyboardInteractive(func(_, _ string, questions []string, _ []bool) ([]string, error) {
+				answers := make([]string, len(questions))
+
+				for i, q := range questions {
+					if strings.Contains(q, "Scan the QR code") {
+						qrSeen = true
+					}
+
+					answers[i] = ""
 				}
 
-				return nil, nil
+				return answers, nil
 			}),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // Test environment only.
-		Timeout:         5 * time.Second,
+		Timeout:         10 * time.Second,
 	}
 
 	_, _ = ssh.Dial("tcp", "ssh.example.com:22", cfg)
 
-	// Give the C shim time to notice the disconnect and tear down the Go binary via
-	// its poll() timeout (configured to 3s for this test).
+	// Give the C shim time to fire its 3-second deadline, kill the Go binary, and
+	// return PAM_AUTH_ERR to sshd so any polling stops before the next test runs.
 	time.Sleep(4 * time.Second)
+
+	s.Require().True(qrSeen, "did not observe QR code prompt from device flow")
 
 	logs := s.pamLogsSince(since)
 
-	// Flow initiation: device authorization endpoint was hit and returned the expected
-	// RFC 8628 fields.
+	// Flow initiation: device authorization endpoint was hit and returned 200. The
+	// response body is no longer logged, so we can't assert on the RFC 8628 fields
+	// directly — the fact that polling starts below implicitly proves they parsed OK.
 	s.Require().Contains(logs, "POST https://login.example.com:8080/api/oidc/device-authorization")
-	s.Require().Contains(logs, `"device_code"`)
-	s.Require().Contains(logs, `"user_code"`)
-	s.Require().Contains(logs, `"verification_uri"`)
+	s.Require().Contains(logs, "device authorization response status=200")
 
 	// Polling reached the healthy authorization_pending state — the only way this line
 	// appears is if the token endpoint was reached AND the OAuth2 client authenticated

@@ -1,10 +1,5 @@
-# Only include files needed for the PAM suite build.
+# Only include files needed for the PAM suite build context.
+# Sources are cloned from github.com/authelia/pam inside the Dockerfile itself.
 *
 
-!go.mod
-!go.sum
-!cmd/authelia-pam/
-!extras/pam/src/*.c
-!extras/pam/src/*.h
-!extras/pam/Makefile
 !internal/suites/example/compose/pam/entrypoint.sh

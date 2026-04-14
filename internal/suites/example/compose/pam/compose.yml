@@ -9,9 +9,6 @@ services:
     environment:
       AUTHELIA_URL: 'https://login.example.com:8080'
       CA_CERT: '/etc/ssl/certs/authelia-ca.crt'
-    depends_on:
-      - authelia-backend
-      - nginx-portal
     networks:
       authelianet:
         ipv4_address: 192.168.240.130

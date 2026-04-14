@@ -7,10 +7,6 @@ import (
 
 var pamSuiteName = "PAM"
 
-// pamTOTPSecret is the base32 secret seeded for user john via the
-// `authelia storage user totp generate --secret` command during suite setup.
-// Tests in suite_pam_test.go use this same constant to produce valid TOTP codes.
-// Must decode to at least 20 bytes (Authelia's minimum secret size).
 const pamTOTPSecret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" //nolint:gosec // Test fixture TOTP secret, not a real credential.
 
 func init() {
@@ -49,6 +45,6 @@ func init() {
 		TestTimeout:     3 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
-		Description:     "PAM module integration tests for SSH authentication via authelia-pam",
+		Description:     "PAM module integration tests for SSH authentication via pam_authelia",
 	})
 }
