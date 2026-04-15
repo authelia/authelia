@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-MODE=$1
+MODE=${1}
 
-cp /templates/${MODE}.conf /data/redis.conf
+cp "/templates/${MODE}.conf" /data/redis.conf
 chown -R redis:redis /data
 
 if [ "${MODE}" == "master" ] || [ "${MODE}" == "slave" ]; then
