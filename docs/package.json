@@ -34,7 +34,7 @@
     "flexsearch": "0.8.212",
     "postcss": "8.5.9",
     "postcss-cli": "11.0.1",
-    "prettier": "3.8.2",
+    "prettier": "3.8.3",
     "vite": "8.0.8"
   },
   "optionalDependencies": {
