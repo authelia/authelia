@@ -10,4 +10,5 @@ services:
       traefik.http.routers.httpbin.priority: '1000'
       traefik.http.routers.httpbin.tls: 'true'
       traefik.http.routers.httpbin.middlewares: 'authelia@docker'
+      traefik.http.services.httpbin.loadbalancer.server.port: '8080'
 ...
