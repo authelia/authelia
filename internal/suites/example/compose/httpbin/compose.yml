@@ -4,6 +4,8 @@ services:
     image: mccutchen/go-httpbin
     networks:
       authelianet: {}
+    expose:
+      - 8080
     labels:
       traefik.enable: 'true'
       traefik.http.routers.httpbin.rule: 'Host(`public.example.com`) && Path(`/headers`)'

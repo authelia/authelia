@@ -27,7 +27,7 @@
     "@changesets/changelog-github": "0.6.0",
     "@changesets/cli": "2.30.0",
     "@fullhuman/postcss-purgecss": "8.0.0",
-    "autoprefixer": "10.4.27",
+    "autoprefixer": "10.5.0",
     "basiclightbox": "5.0.4",
     "bootstrap": "5.3.8",
     "clipboard": "2.0.11",
