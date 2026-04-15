@@ -4,11 +4,12 @@ services:
     image: mccutchen/go-httpbin
     networks:
       authelianet: {}
+    expose:
+      - 8080
     labels:
       traefik.enable: 'true'
       traefik.http.routers.httpbin.rule: 'Host(`public.example.com`) && Path(`/headers`)'
       traefik.http.routers.httpbin.priority: '1000'
       traefik.http.routers.httpbin.tls: 'true'
       traefik.http.routers.httpbin.middlewares: 'authelia@docker'
-      traefik.http.services.httpbin.loadbalancer.server.port: '8080'
 ...
