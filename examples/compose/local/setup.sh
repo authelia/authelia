@@ -54,7 +54,13 @@ if [[ ${DOMAIN} == "" ]]; then
   DOMAIN="example.com"
 fi
 
-MODIFIED=$(grep "${DOMAIN}" /etc/hosts && echo true || echo false)
+MODIFIED=true
+for fqdn in {authelia,public,traefik,secure}."${DOMAIN}"; do
+  if ! grep -qF "${fqdn}" /etc/hosts; then
+    MODIFIED=false
+    break
+  fi
+done
 
 if [[ ${MODIFIED} == "false" ]]; then
   writehosts
