@@ -1,7 +1,7 @@
 ---
 services:
   authelia-frontend:
-    image: 'nginx:1.29.8-alpine'
+    image: 'nginx:1.30.0-alpine'
     volumes:
       - './example/compose/authelia/resources/nginx.conf:/etc/nginx/nginx.conf'
     labels:
