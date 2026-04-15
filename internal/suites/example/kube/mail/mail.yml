@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: mailpit
-          image: axllent/mailpit
+          image: axllent/mailpit:v1.29.6
           ports:
             - containerPort: 1025
             - containerPort: 8025
