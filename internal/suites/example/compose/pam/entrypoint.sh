@@ -36,22 +36,24 @@ EOF
 # Default sshd PAM config to 1FA+2FA; tests cp the appropriate file to switch modes.
 cp /etc/pam.d/authelia-1fa2fa /etc/pam.d/sshd
 
-echo "============================================"
-echo "  Authelia PAM Suite Test Container"
-echo "============================================"
-echo "  Authelia URL:  ${AUTHELIA_URL}"
-echo "  CA Cert:       ${CA_CERT:-<system default>}"
-echo "  SSH Host:      ssh.example.com (192.168.240.130)"
-echo "  SSH Port:      22"
-echo "  SSH User:      john"
-echo ""
-echo "  Default auth-level is 1FA+2FA. Tests switch modes by copying"
-echo "  /etc/pam.d/authelia-{1fa,2fa,1fa2fa} to /etc/pam.d/sshd."
-echo ""
-echo "  Connect with:"
-echo "    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \\"
-echo "        -o PreferredAuthentications=keyboard-interactive -o PubkeyAuthentication=no \\"
-echo "        john@ssh.example.com"
-echo "============================================"
+cat <<EOF
+============================================
+  Authelia PAM Suite Test Container
+============================================
+  Authelia URL:  ${AUTHELIA_URL}
+  CA Cert:       ${CA_CERT:-<system default>}
+  SSH Host:      ssh.example.com (192.168.240.130)
+  SSH Port:      22
+  SSH User:      john
+
+  Default auth-level is 1FA+2FA. Tests switch modes by copying
+  /etc/pam.d/authelia-{1fa,2fa,1fa2fa,device-auth} to /etc/pam.d/sshd.
+
+  Connect with:
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \\
+        -o PreferredAuthentications=keyboard-interactive -o PubkeyAuthentication=no \\
+        john@ssh.example.com
+============================================
+EOF
 
 exec /usr/sbin/sshd.pam -D -e

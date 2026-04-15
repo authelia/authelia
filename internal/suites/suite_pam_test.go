@@ -262,12 +262,16 @@ func (s *PAMSuite) TestShouldInitiateDeviceAuthorizationFlow() {
 		Timeout:         10 * time.Second,
 	}
 
-	_, _ = ssh.Dial("tcp", "ssh.example.com:22", cfg)
+	// Dial blocks until the C shim's 3-second deadline fires, pam_authelia returns
+	// PAM_AUTH_ERR, and sshd terminates the session — synchronizing the test on the
+	// real flow rather than an arbitrary sleep. An unexpected success would mean the
+	// device flow authenticated without anyone approving, which must fail the test.
+	client, err := ssh.Dial("tcp", "ssh.example.com:22", cfg)
+	if client != nil {
+		client.Close()
+	}
 
-	// Give the C shim time to fire its 3-second deadline, kill the Go binary, and
-	// return PAM_AUTH_ERR to sshd so any polling stops before the next test runs.
-	time.Sleep(4 * time.Second)
-
+	s.Require().Error(err, "device-auth SSH dial should fail when nobody approves the flow")
 	s.Require().True(qrSeen, "did not observe QR code prompt from device flow")
 
 	logs := s.pamLogsSince(since)
