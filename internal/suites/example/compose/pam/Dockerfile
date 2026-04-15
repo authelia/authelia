@@ -53,7 +53,7 @@ COPY --link --from=builder /src/shim/pam_authelia.so /tmp/pam_authelia.so
 RUN <<EOF
 set -eu
 PAM_DIR="$(dirname "$(find /lib /usr/lib -name 'pam_unix.so' -print -quit 2>/dev/null)")"
-cp /tmp/pam_authelia.so "$PAM_DIR/pam_authelia.so"
+cp /tmp/pam_authelia.so "${PAM_DIR}/pam_authelia.so"
 rm /tmp/pam_authelia.so
 EOF
 

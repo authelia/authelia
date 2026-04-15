@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
 
-AUTHELIA_URL="${AUTHELIA_URL:-https://authelia-backend:9091}"
+AUTHELIA_URL="${AUTHELIA_URL:-https://login.example.com:8080}"
 CA_CERT="${CA_CERT:-}"
 
 CA_FLAG=""
-if [ -n "$CA_CERT" ]; then
+if [ -n "${CA_CERT}" ]; then
     CA_FLAG=" ca-cert=${CA_CERT}"
 fi
 
