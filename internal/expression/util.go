@@ -4,6 +4,7 @@ import (
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/common/types/ref"
+	"github.com/google/cel-go/ext"
 )
 
 func optExtra(name string, attribute ExtraAttribute) (opt cel.EnvOption) {
@@ -208,8 +209,27 @@ func toNativeValueRefValMap(in map[ref.Val]ref.Val) (out map[string]any) {
 	return out
 }
 
+func withBaseCELEnvOpts(extra ...cel.EnvOption) (opts []cel.EnvOption) {
+	opts = make([]cel.EnvOption, 0, 8+len(extra))
+
+	opts = append(opts,
+		cel.OptionalTypes(),
+		ext.Lists(),
+		ext.Sets(),
+		ext.Strings(),
+		ext.Bindings(),
+		ext.Math(),
+		ext.Encoders(),
+		ext.Regex(),
+	)
+
+	opts = append(opts, extra...)
+
+	return opts
+}
+
 func getStandardCELEnvOpts() []cel.EnvOption {
-	return []cel.EnvOption{
+	return withBaseCELEnvOpts(
 		newAttributeUserUsername(),
 		newAttributeUserGroups(),
 		newAttributeUserDisplayName(),
@@ -241,5 +261,5 @@ func getStandardCELEnvOpts() []cel.EnvOption {
 		newAttributeUpdatedAt(),
 		newAttributeOAuth2AuthorizationRequestClaimValue(),
 		newAttributeOAuth2AuthorizationRequestClaimValues(),
-	}
+	)
 }
