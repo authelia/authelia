@@ -115,6 +115,68 @@ func TestPatternKeys(t *testing.T) {
 	require.Len(t, errs, 0)
 }
 
+func TestPatternKeysWithDottedMapKeySegments(t *testing.T) {
+	testCases := []struct {
+		name string
+		keys []string
+	}{
+		{
+			"ScopeWithDot",
+			[]string{
+				"identity_providers.oidc.scopes.my.scope",
+				"identity_providers.oidc.scopes.my.scope.claims",
+			},
+		},
+		{
+			"ClaimsPolicyWithDot",
+			[]string{
+				"identity_providers.oidc.claims_policies.my.policy",
+				"identity_providers.oidc.claims_policies.my.policy.id_token",
+				"identity_providers.oidc.claims_policies.my.policy.custom_claims",
+			},
+		},
+		{
+			"CustomClaimWithDot",
+			[]string{
+				"identity_providers.oidc.claims_policies.test.custom_claims.http://example.com/claim",
+				"identity_providers.oidc.claims_policies.test.custom_claims.http://example.com/claim.name",
+				"identity_providers.oidc.claims_policies.test.custom_claims.http://example.com/claim.attribute",
+			},
+		},
+		{
+			"AuthorizationPolicyWithDot",
+			[]string{
+				"identity_providers.oidc.authorization_policies.my.policy",
+				"identity_providers.oidc.authorization_policies.my.policy.default_policy",
+			},
+		},
+		{
+			"CustomLifespanWithDot",
+			[]string{
+				"identity_providers.oidc.lifespans.custom.my.lifespan",
+				"identity_providers.oidc.lifespans.custom.my.lifespan.access_token",
+			},
+		},
+		{
+			"ServerEndpointWithDot",
+			[]string{
+				"server.endpoints.authz.my.endpoint",
+				"server.endpoints.authz.my.endpoint.implementation",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			ValidateKeys(tc.keys, nil, "AUTHELIA_", validator)
+
+			assert.Len(t, validator.Errors(), 0, "keys with dots in map key segments should be accepted: %v", tc.keys)
+			assert.Len(t, validator.Warnings(), 0)
+		})
+	}
+}
+
 func TestReplacedErrors(t *testing.T) {
 	configKeys := []string{
 		"authentication_backend.ldap.skip_verify",
