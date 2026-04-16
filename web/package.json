@@ -22,6 +22,7 @@
       "esbuild": "0.28.0",
       "express": "5.2.1",
       "flatted": "3.4.2",
+      "follow-redirects": "1.16.0",
       "glob": "13.0.6",
       "import-meta-resolve": "4.2.0",
       "js-yaml": "4.1.1",
