@@ -163,6 +163,7 @@ const TwoFactorAuthenticationView = function () {
                         info={userInfo}
                         config={userTOTPConfig}
                         handleRefreshState={handleRefreshTOTPState}
+                        onRegistrationSuccess={handleRegistrationSuccess}
                     />
                 </Grid>
             ) : null}
