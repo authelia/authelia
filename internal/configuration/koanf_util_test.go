@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/knadh/koanf/parsers/yaml"
@@ -276,4 +277,51 @@ scopes:
 	assert.Equal(t, []string{"sub"}, conf.Scopes["my.scope"].Claims)
 
 	assert.NotContains(t, conf.Scopes, "my", "dotted scope name should not be split")
+}
+
+func TestKoanfRemapKeys_SpecialCharactersInMapKeys(t *testing.T) {
+	testCases := []struct {
+		name     string
+		key      string
+		yamlKey  string
+		expected string
+	}{
+		{"Colon", "urn:example:scope", "urn:example:scope", "urn:example:scope"},
+		{"ColonInClaimURI", "http://example.com:8080/claim", "http://example.com:8080/claim", "http://example.com:8080/claim"},
+		{"Dot", "my.scope", "my.scope", "my.scope"},
+		{"MultipleDots", "org.example.scope.v2", "org.example.scope.v2", "org.example.scope.v2"},
+		{"Tilde", "scope~draft", "scope~draft", "scope~draft"},
+		{"Slash", "org/scope", "org/scope", "org/scope"},
+		{"Underscore", "my_scope", "my_scope", "my_scope"},
+		{"Hyphen", "my-scope", "my-scope", "my-scope"},
+		{"MixedSpecialChars", "urn:ietf:params:oauth:scope:example.read", "urn:ietf:params:oauth:scope:example.read", "urn:ietf:params:oauth:scope:example.read"},
+		{"URNStyle", "urn:authelia:scope:pam", "urn:authelia:scope:pam", "urn:authelia:scope:pam"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			val := schema.NewStructValidator()
+
+			ko := koanf.New(".")
+
+			configYAML := []byte(fmt.Sprintf(`
+scopes:
+  '%s':
+    claims:
+      - sub
+`, tc.yamlKey))
+
+			require.NoError(t, ko.Load(rawbytes.Provider(configYAML), yaml.Parser()))
+
+			final, err := koanfRemapKeys(val, ko, nil, nil)
+			require.NoError(t, err)
+
+			conf := &testDottedMapKeysConf{}
+
+			require.NoError(t, final.Unmarshal("", conf))
+
+			require.Contains(t, conf.Scopes, tc.expected, "map key %q should be preserved", tc.key)
+			assert.Equal(t, []string{"sub"}, conf.Scopes[tc.expected].Claims)
+		})
+	}
 }

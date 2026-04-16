@@ -177,6 +177,73 @@ func TestPatternKeysWithDottedMapKeySegments(t *testing.T) {
 	}
 }
 
+func TestPatternKeysWithSpecialCharactersInMapKeySegments(t *testing.T) {
+	testCases := []struct {
+		name string
+		keys []string
+	}{
+		{
+			"Colon",
+			[]string{
+				"identity_providers.oidc.scopes.urn:example:scope",
+				"identity_providers.oidc.scopes.urn:example:scope.claims",
+			},
+		},
+		{
+			"ColonInURI",
+			[]string{
+				"identity_providers.oidc.claims_policies.test.custom_claims.http://example.com:8080/claim",
+				"identity_providers.oidc.claims_policies.test.custom_claims.http://example.com:8080/claim.name",
+			},
+		},
+		{
+			"MultipleDots",
+			[]string{
+				"identity_providers.oidc.scopes.org.example.scope.v2",
+				"identity_providers.oidc.scopes.org.example.scope.v2.claims",
+			},
+		},
+		{
+			"Tilde",
+			[]string{
+				"identity_providers.oidc.scopes.scope~draft",
+				"identity_providers.oidc.scopes.scope~draft.claims",
+			},
+		},
+		{
+			"Slash",
+			[]string{
+				"identity_providers.oidc.scopes.org/scope",
+				"identity_providers.oidc.scopes.org/scope.claims",
+			},
+		},
+		{
+			"MixedSpecialChars",
+			[]string{
+				"identity_providers.oidc.scopes.urn:ietf:params:oauth:scope:example.read",
+				"identity_providers.oidc.scopes.urn:ietf:params:oauth:scope:example.read.claims",
+			},
+		},
+		{
+			"URNStyle",
+			[]string{
+				"identity_providers.oidc.scopes.urn:authelia:scope:pam",
+				"identity_providers.oidc.scopes.urn:authelia:scope:pam.claims",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			ValidateKeys(tc.keys, nil, "AUTHELIA_", validator)
+
+			assert.Len(t, validator.Errors(), 0, "keys with special characters in map key segments should be accepted: %v", tc.keys)
+			assert.Len(t, validator.Warnings(), 0)
+		})
+	}
+}
+
 func TestReplacedErrors(t *testing.T) {
 	configKeys := []string{
 		"authentication_backend.ldap.skip_verify",
