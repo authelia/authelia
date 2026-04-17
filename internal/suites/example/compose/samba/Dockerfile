@@ -4,10 +4,10 @@ RUN \
 echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
 apk add --no-cache \
 	bash \
-	krb5@edge \
+	krb5 \
 	openldap-clients \
 	openssl \
-	samba-dc@edge \
+	samba-dc \
 	supervisor
 
 CMD ["/init.sh", "setup"]
