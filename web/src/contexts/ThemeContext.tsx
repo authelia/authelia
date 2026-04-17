@@ -1,4 +1,13 @@
-import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+    ReactNode,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+    useSyncExternalStore,
+} from "react";
 
 import { Theme, ThemeProvider } from "@mui/material";
 
@@ -23,30 +32,9 @@ export interface ValueProps {
 
 export default function ThemeContextProvider(props: Props) {
     const [themeName, setThemeName] = useState(GetCurrentThemeName());
-    const [prefersDark, setPrefersDark] = useState(() => globalThis.matchMedia?.(MediaQueryDarkMode).matches ?? false);
+    const prefersDark = useSyncExternalStore(subscribePrefersDark, getPrefersDarkSnapshot, getPrefersDarkSnapshot);
 
     const theme = useMemo(() => ThemeFromName(themeName, prefersDark), [themeName, prefersDark]);
-
-    useEffect(() => {
-        if (themeName !== themes.ThemeNameAuto) {
-            return;
-        }
-
-        const query = globalThis.matchMedia?.(MediaQueryDarkMode);
-        if (!query?.addEventListener) {
-            return;
-        }
-
-        const listener = (ev: MediaQueryListEvent) => {
-            setPrefersDark(ev.matches);
-        };
-
-        query.addEventListener("change", listener);
-
-        return () => {
-            query.removeEventListener("change", listener);
-        };
-    }, [themeName]);
 
     useEffect(() => {
         const listener = (ev: StorageEvent) => {
@@ -115,6 +103,19 @@ function GetCurrentThemeName() {
     }
 
     return getTheme();
+}
+
+function subscribePrefersDark(listener: () => void): () => void {
+    const query = globalThis.matchMedia?.(MediaQueryDarkMode);
+    if (!query?.addEventListener) {
+        return () => {};
+    }
+    query.addEventListener("change", listener);
+    return () => query.removeEventListener("change", listener);
+}
+
+function getPrefersDarkSnapshot(): boolean {
+    return globalThis.matchMedia?.(MediaQueryDarkMode).matches ?? false;
 }
 
 function ThemeFromName(name: string, prefersDark: boolean) {
