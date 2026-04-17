@@ -110,14 +110,18 @@ it("handles webauthn response posting", async () => {
     (axios.post as any).mockResolvedValue("response");
 
     const result = await postWebAuthnResponse("authResponse" as any, "url", "flow", "flowtype", "sub", "code");
-    expect(axios.post).toHaveBeenCalledWith("/webauthn/assertion", {
-        flow: "flowtype",
-        flowID: "flow",
-        response: "authResponse",
-        subflow: "sub",
-        targetURL: "url",
-        userCode: "code",
-    });
+    expect(axios.post).toHaveBeenCalledWith(
+        "/webauthn/assertion",
+        {
+            flow: "flowtype",
+            flowID: "flow",
+            response: "authResponse",
+            subflow: "sub",
+            targetURL: "url",
+            userCode: "code",
+        },
+        { signal: undefined },
+    );
     expect(result).toBe("response");
 });
 
@@ -149,15 +153,19 @@ it("handles webauthn passkey response posting", async () => {
         "flowtype",
         "sub",
     );
-    expect(axios.post).toHaveBeenCalledWith("/firstfactor/passkey", {
-        flow: "flowtype",
-        flowID: "flow",
-        keepMeLoggedIn: true,
-        requestMethod: "POST",
-        response: "authResponse",
-        subflow: "sub",
-        targetURL: "url",
-    });
+    expect(axios.post).toHaveBeenCalledWith(
+        "/firstfactor/passkey",
+        {
+            flow: "flowtype",
+            flowID: "flow",
+            keepMeLoggedIn: true,
+            requestMethod: "POST",
+            response: "authResponse",
+            subflow: "sub",
+            targetURL: "url",
+        },
+        { signal: undefined },
+    );
     expect(result).toBe("response");
 });
 
@@ -256,6 +264,25 @@ it("handles webauthn registration finish with axios error message", async () => 
 
     const result = await finishWebAuthnRegistration({} as any);
     expect(result).toEqual({ message, status: AttestationResult.Failure });
+});
+
+it("forwards the abort signal through GET, assertion POST and passkey POST", async () => {
+    const signal = new AbortController().signal;
+    const mockRes = { data: { data: { publicKey: "options" }, status: "OK" }, status: 200 };
+    (axios.get as any).mockResolvedValue(mockRes);
+    (axios.post as any).mockResolvedValue("response");
+
+    await getWebAuthnOptions(signal);
+    expect(axios.get).toHaveBeenLastCalledWith("/webauthn/assertion", { signal });
+
+    await getWebAuthnPasskeyOptions(signal);
+    expect(axios.get).toHaveBeenLastCalledWith("/firstfactor/passkey", { signal });
+
+    await postWebAuthnResponse("authResponse" as any, "url", "flow", "flowtype", "sub", "code", signal);
+    expect(axios.post).toHaveBeenLastCalledWith("/webauthn/assertion", expect.any(Object), { signal });
+
+    await postWebAuthnPasskeyResponse("authResponse" as any, true, "url", "POST", "flow", "flowtype", "sub", signal);
+    expect(axios.post).toHaveBeenLastCalledWith("/firstfactor/passkey", expect.any(Object), { signal });
 });
 
 it("handles webauthn credential deletion", async () => {

@@ -22,47 +22,51 @@ export interface ValueProps {
 }
 
 export default function ThemeContextProvider(props: Props) {
-    const [theme, setTheme] = useState(GetCurrentTheme());
     const [themeName, setThemeName] = useState(GetCurrentThemeName());
+    const [prefersDark, setPrefersDark] = useState(() => globalThis.matchMedia?.(MediaQueryDarkMode).matches ?? false);
+
+    const theme = useMemo(() => ThemeFromName(themeName, prefersDark), [themeName, prefersDark]);
 
     useEffect(() => {
-        if (themeName === themes.ThemeNameAuto) {
-            const query = globalThis.matchMedia?.(MediaQueryDarkMode);
-            if (query?.addEventListener) {
-                query.addEventListener("change", mediaQueryListener);
-
-                return () => {
-                    query.removeEventListener("change", mediaQueryListener);
-                };
-            }
-        }
-
-        setTheme(ThemeFromName(themeName));
-    }, [themeName]);
-
-    useEffect(() => {
-        globalThis.addEventListener?.("storage", storageListener);
-
-        return () => {
-            globalThis.removeEventListener?.("storage", storageListener);
-        };
-    }, []);
-
-    const storageListener = (ev: StorageEvent): any => {
-        if (ev.key !== LocalStorageThemeName) {
+        if (themeName !== themes.ThemeNameAuto) {
             return;
         }
 
-        if (ev.newValue && ev.newValue !== "") {
-            setThemeName(ev.newValue);
-        } else {
-            setThemeName(getUserThemeName());
+        const query = globalThis.matchMedia?.(MediaQueryDarkMode);
+        if (!query?.addEventListener) {
+            return;
         }
-    };
 
-    const mediaQueryListener = (ev: MediaQueryListEvent) => {
-        setTheme(ev.matches ? themes.Dark : themes.Light);
-    };
+        const listener = (ev: MediaQueryListEvent) => {
+            setPrefersDark(ev.matches);
+        };
+
+        query.addEventListener("change", listener);
+
+        return () => {
+            query.removeEventListener("change", listener);
+        };
+    }, [themeName]);
+
+    useEffect(() => {
+        const listener = (ev: StorageEvent) => {
+            if (ev.key !== LocalStorageThemeName) {
+                return;
+            }
+
+            if (ev.newValue && ev.newValue !== "") {
+                setThemeName(ev.newValue);
+            } else {
+                setThemeName(GetCurrentThemeName());
+            }
+        };
+
+        globalThis.addEventListener?.("storage", listener);
+
+        return () => {
+            globalThis.removeEventListener?.("storage", listener);
+        };
+    }, []);
 
     const callback = useCallback((name: string) => {
         setThemeName(name);
@@ -113,11 +117,7 @@ function GetCurrentThemeName() {
     return getTheme();
 }
 
-function GetCurrentTheme() {
-    return ThemeFromName(GetCurrentThemeName());
-}
-
-function ThemeFromName(name: string) {
+function ThemeFromName(name: string, prefersDark: boolean) {
     switch (name) {
         case themes.ThemeNameLight:
             return themes.Light;
@@ -128,20 +128,7 @@ function ThemeFromName(name: string) {
         case themes.ThemeNameOled:
             return themes.Oled;
         case themes.ThemeNameAuto:
-            return globalThis.matchMedia?.(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
         default:
-            return globalThis.matchMedia?.(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
+            return prefersDark ? themes.Dark : themes.Light;
     }
 }
-
-const getUserThemeName = () => {
-    if (localStorageAvailable()) {
-        const value = globalThis.localStorage?.getItem(LocalStorageThemeName);
-
-        if (value) {
-            return value;
-        }
-    }
-
-    return getTheme();
-};

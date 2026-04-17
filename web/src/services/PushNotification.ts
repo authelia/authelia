@@ -19,6 +19,7 @@ export function completePushNotificationSignIn(
     flow?: string,
     subflow?: string,
     userCode?: string,
+    signal?: AbortSignal,
 ) {
     const body: CompletePushSignInBody = {
         flow,
@@ -28,7 +29,7 @@ export function completePushNotificationSignIn(
         userCode,
     };
 
-    return PostWithOptionalResponseRateLimited<DuoSignInResponse>(CompletePushNotificationSignInPath, body);
+    return PostWithOptionalResponseRateLimited<DuoSignInResponse>(CompletePushNotificationSignInPath, body, signal);
 }
 
 export interface DuoSignInResponse {
@@ -52,12 +53,12 @@ export interface DuoDevice {
     capabilities: string[];
 }
 
-export async function initiateDuoDeviceSelectionProcess() {
-    return Get<DuoDevicesGetResponse>(InitiateDuoDeviceSelectionPath);
+export async function initiateDuoDeviceSelectionProcess(signal?: AbortSignal) {
+    return Get<DuoDevicesGetResponse>(InitiateDuoDeviceSelectionPath, signal);
 }
 
-export async function getPreferredDuoDevice() {
-    return Get<DuoDevicesGetResponse>(CompletePushNotificationSignInPath);
+export async function getPreferredDuoDevice(signal?: AbortSignal) {
+    return Get<DuoDevicesGetResponse>(CompletePushNotificationSignInPath, signal);
 }
 
 export interface DuoDevicePostRequest {
@@ -65,6 +66,10 @@ export interface DuoDevicePostRequest {
     method: string;
 }
 
-export async function completeDuoDeviceSelectionProcess(device: DuoDevicePostRequest) {
-    return PostWithOptionalResponse(CompleteDuoDeviceSelectionPath, { device: device.device, method: device.method });
+export async function completeDuoDeviceSelectionProcess(device: DuoDevicePostRequest, signal?: AbortSignal) {
+    return PostWithOptionalResponse(
+        CompleteDuoDeviceSelectionPath,
+        { device: device.device, method: device.method },
+        signal,
+    );
 }

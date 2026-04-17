@@ -1,4 +1,4 @@
-import { Dispatch, KeyboardEvent, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import {
     Button,
@@ -33,7 +33,7 @@ const ChangePasswordDialog = (props: Props) => {
 
     const { createErrorNotification, createSuccessNotification } = useNotifications();
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [oldPassword, setOldPassword] = useState("");
     const [oldPasswordError, setOldPasswordError] = useState(false);
     const [newPassword, setNewPassword] = useState("");
@@ -87,25 +87,21 @@ const ChangePasswordDialog = (props: Props) => {
         resetStates();
     }, [props, resetStates]);
 
-    const asyncProcess = useCallback(async () => {
-        try {
-            setLoading(true);
-            const policy = await getPasswordPolicyConfiguration();
-            setPPolicy(policy);
-            setLoading(false);
-        } catch {
-            createErrorNotification(
-                translate("There was an issue completing the process the verification token might have expired", {
-                    ns: "portal",
-                }),
-            );
-            setLoading(true);
-        }
-    }, [createErrorNotification, translate]);
-
     useEffect(() => {
-        asyncProcess();
-    }, [asyncProcess]);
+        (async () => {
+            try {
+                const policy = await getPasswordPolicyConfiguration();
+                setPPolicy(policy);
+                setLoading(false);
+            } catch {
+                createErrorNotification(
+                    translate("There was an issue completing the process the verification token might have expired", {
+                        ns: "portal",
+                    }),
+                );
+            }
+        })();
+    }, [createErrorNotification, translate]);
 
     const handlePasswordChange = useCallback(async () => {
         setLoading(true);
@@ -175,30 +171,41 @@ const ChangePasswordDialog = (props: Props) => {
         translate,
     ]);
 
-    const useHandleKeyDown = (
-        passwordState: string,
-        setError: Dispatch<SetStateAction<boolean>>,
-        nextRef?: RefObject<HTMLInputElement | null>,
-    ) => {
-        return useCallback(
-            (event: KeyboardEvent<HTMLDivElement>) => {
-                if (event.key === "Enter") {
-                    if (!passwordState.length) {
-                        setError(true);
-                    } else if (!nextRef) {
-                        handlePasswordChange().catch(console.error);
-                    } else if (nextRef.current) {
-                        nextRef.current.focus();
-                    }
-                }
-            },
-            [nextRef, passwordState.length, setError],
-        );
-    };
+    const handleOldPWKeyDown = useCallback(
+        (event: KeyboardEvent<HTMLDivElement>) => {
+            if (event.key !== "Enter") return;
+            if (!oldPassword.length) {
+                setOldPasswordError(true);
+            } else if (newPasswordRef.current) {
+                newPasswordRef.current.focus();
+            }
+        },
+        [oldPassword.length],
+    );
 
-    const handleOldPWKeyDown = useHandleKeyDown(oldPassword, setOldPasswordError, newPasswordRef);
-    const handleNewPWKeyDown = useHandleKeyDown(newPassword, setNewPasswordError, repeatNewPasswordRef);
-    const handleRepeatNewPWKeyDown = useHandleKeyDown(repeatNewPassword, setRepeatNewPasswordError);
+    const handleNewPWKeyDown = useCallback(
+        (event: KeyboardEvent<HTMLDivElement>) => {
+            if (event.key !== "Enter") return;
+            if (!newPassword.length) {
+                setNewPasswordError(true);
+            } else if (repeatNewPasswordRef.current) {
+                repeatNewPasswordRef.current.focus();
+            }
+        },
+        [newPassword.length],
+    );
+
+    const handleRepeatNewPWKeyDown = useCallback(
+        (event: KeyboardEvent<HTMLDivElement>) => {
+            if (event.key !== "Enter") return;
+            if (!repeatNewPassword.length) {
+                setRepeatNewPasswordError(true);
+            } else {
+                handlePasswordChange().catch(console.error);
+            }
+        },
+        [handlePasswordChange, repeatNewPassword.length],
+    );
 
     const disabled = props.disabled || false;
 
