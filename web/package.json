@@ -46,10 +46,7 @@
       "esbuild",
       "lefthook",
       "unrs-resolver"
-    ],
-    "patchedDependencies": {
-      "vite-plugin-checker@0.12.0": "patches/vite-plugin-checker@0.12.0.patch"
-    }
+    ]
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
@@ -71,7 +68,7 @@
     "qrcode.react": "4.2.0",
     "react": "19.2.5",
     "react-dom": "19.2.5",
-    "react-i18next": "17.0.3",
+    "react-i18next": "17.0.4",
     "react-router-dom": "7.14.1",
     "react-spinners": "0.17.0",
     "react18-input-otp": "1.1.4",
@@ -133,11 +130,11 @@
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.0.1",
     "happy-dom": "20.9.0",
-    "lefthook": "2.1.5",
+    "lefthook": "2.1.6",
     "prettier": "3.8.3",
-    "typescript": "6.0.2",
+    "typescript": "6.0.3",
     "vite": "8.0.8",
-    "vite-plugin-checker": "0.12.0",
+    "vite-plugin-checker": "0.13.0",
     "vite-plugin-istanbul": "8.0.0",
     "vite-plugin-svgr": "5.2.0",
     "vitest": "4.1.4",
