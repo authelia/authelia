@@ -115,7 +115,7 @@ func NewKeyMapPattern(key string) (pattern *regexp.Regexp, err error) {
 		}
 
 		if i < n {
-			buf.WriteString("\\.[a-zA-Z0-9](([a-zA-Z0-9/_-]+)?[a-zA-Z0-9])?")
+			buf.WriteString("\\.[a-zA-Z0-9](([a-zA-Z0-9/_.:~-]+)?[a-zA-Z0-9])?")
 		}
 	}
 

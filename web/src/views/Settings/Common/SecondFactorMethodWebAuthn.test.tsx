@@ -6,10 +6,6 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("@hooks/Mounted", () => ({
-    useIsMountedRef: () => ({ current: true }),
-}));
-
 vi.mock("@models/WebAuthn", () => ({
     AssertionResult: { Success: 0 },
     AssertionResultFailureString: () => "failure",
