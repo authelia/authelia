@@ -132,7 +132,7 @@
     "happy-dom": "20.9.0",
     "lefthook": "2.1.6",
     "prettier": "3.8.3",
-    "typescript": "6.0.2",
+    "typescript": "6.0.3",
     "vite": "8.0.8",
     "vite-plugin-checker": "0.13.0",
     "vite-plugin-istanbul": "8.0.0",
