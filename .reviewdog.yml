@@ -19,6 +19,14 @@ runner:
       - '%f:%l:%c: %m'
     level: error
 
+  shellcheck:
+    cmd: .buildkite/steps/lint.sh shellcheck --format=gcc
+    errorformat:
+      - '%f:%l:%c: %trror: %m'
+      - '%f:%l:%c: %tarning: %m'
+      - '%f:%l:%c: %tote: %m'
+    level: error
+
   yamllint:
     cmd: yamllint -f parsable .
     errorformat:

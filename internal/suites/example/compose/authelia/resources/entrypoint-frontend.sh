@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 PNPM_MODULE="./node_modules/.modules.yaml"
 

@@ -10,20 +10,21 @@ appSetup () {
   NOCOMPLEXITY=${NOCOMPLEXITY:-false}
   INSECURELDAP=${INSECURELDAP:-false}
 
-  LDOMAIN=${DOMAIN,,}
   UDOMAIN=${DOMAIN^^}
   URDOMAIN=${UDOMAIN%%.*}
 
   # Set up samba
   mv /etc/krb5.conf /etc/krb5.conf.orig
-  echo "[libdefaults]" > /etc/krb5.conf
-  echo "    dns_lookup_realm = false" >> /etc/krb5.conf
-  echo "    dns_lookup_kdc = true" >> /etc/krb5.conf
-  echo "    default_realm = ${UDOMAIN}" >> /etc/krb5.conf
+  cat > /etc/krb5.conf <<EOF
+[libdefaults]
+    dns_lookup_realm = false
+    dns_lookup_kdc = true
+    default_realm = ${UDOMAIN}
+EOF
   # If the finished file isn't there, this is brand new, we're not just moving to a new container
   if [[ ! -f /etc/samba/external/smb.conf ]]; then
     mv /etc/samba/smb.conf /etc/samba/smb.conf.orig
-    samba-tool domain provision --use-rfc2307 --domain=${URDOMAIN} --realm=${UDOMAIN} --server-role=dc --dns-backend=SAMBA_INTERNAL --adminpass=${DOMAINPASS}
+    samba-tool domain provision --use-rfc2307 --domain="${URDOMAIN}" --realm="${UDOMAIN}" --server-role=dc --dns-backend=SAMBA_INTERNAL --adminpass="${DOMAINPASS}"
     if [[ ${NOCOMPLEXITY,,} == "true" ]]; then
       samba-tool domain passwordsettings set --complexity=off
       samba-tool domain passwordsettings set --history-length=0
@@ -56,11 +57,13 @@ appSetup () {
 
   # Set up supervisor
   mkdir /etc/supervisor.d/
-  echo "[supervisord]" > /etc/supervisor.d/supervisord.ini
-  echo "nodaemon=true" >> /etc/supervisor.d/supervisord.ini
-  echo "" >> /etc/supervisor.d/supervisord.ini
-  echo "[program:samba]" >> /etc/supervisor.d/supervisord.ini
-  echo "command=/usr/sbin/samba -i" >> /etc/supervisor.d/supervisord.ini
+  cat > /etc/supervisor.d/supervisord.ini <<'EOF'
+[supervisord]
+nodaemon=true
+
+[program:samba]
+command=/usr/sbin/samba -i
+EOF
 
   appProvision
   appStart
@@ -84,7 +87,7 @@ appProvision () {
   samba-tool group addmembers "admins" john
 }
 
-case "$1" in
+case "${1}" in
   start)
     if [[ -f /etc/samba/external/smb.conf ]]; then
       cp /etc/samba/external/smb.conf /etc/samba/smb.conf

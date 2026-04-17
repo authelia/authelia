@@ -1,0 +1,5 @@
+# ShellCheck configuration for Authelia.
+# Default checks are enabled; require-variable-braces is opted in to
+# enforce the ${VAR} style repo-wide alongside them.
+enable=require-variable-braces
+external-sources=false
