@@ -46,10 +46,7 @@
       "esbuild",
       "lefthook",
       "unrs-resolver"
-    ],
-    "patchedDependencies": {
-      "vite-plugin-checker@0.12.0": "patches/vite-plugin-checker@0.12.0.patch"
-    }
+    ]
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
@@ -137,7 +134,7 @@
     "prettier": "3.8.3",
     "typescript": "6.0.2",
     "vite": "8.0.8",
-    "vite-plugin-checker": "0.12.0",
+    "vite-plugin-checker": "0.13.0",
     "vite-plugin-istanbul": "8.0.0",
     "vite-plugin-svgr": "5.2.0",
     "vitest": "4.1.4",
