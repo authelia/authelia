@@ -42,7 +42,7 @@ fi
 if [[ ${BUILDKITE_BRANCH} =~ ^gh-readonly-queue/.* ]]; then
   CI_BYPASS="true"
   CI_MERGE_QUEUE="true"
-  CI_MERGE_QUEUE_BYPASS=$(git diff --name-only "$(git merge-base origin/master HEAD)" | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}' && echo true || echo false)
+  CI_MERGE_QUEUE_BYPASS=$(git diff --name-only HEAD^ HEAD | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}' && echo true || echo false)
   buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/merge-queue
 fi
 
