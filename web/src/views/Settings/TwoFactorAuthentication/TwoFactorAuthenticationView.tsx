@@ -174,6 +174,7 @@ const TwoFactorAuthenticationView = function () {
                             info={userInfo}
                             credentials={userWebAuthnCredentials}
                             handleRefreshState={handleRefreshWebAuthnState}
+                            onRegistrationSuccess={handleRegistrationSuccess}
                         />
                     ) : (
                         <WebAuthnCredentialsDisabledPanel />
