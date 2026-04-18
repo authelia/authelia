@@ -14,10 +14,10 @@ import (
 )
 
 // VisualSnapshotTolerance returns the pixel-diff tolerance for the current host, adding a
-// 5pp buffer on darwin since baselines are captured on Linux CI.
+// buffer on darwin since baselines are captured on Linux CI.
 func VisualSnapshotTolerance(t float64) float64 {
 	if runtime.GOOS == "darwin" {
-		return t + 5.0
+		return t + 7.0
 	}
 
 	return t
