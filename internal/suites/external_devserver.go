@@ -92,7 +92,7 @@ func StartDevServer(ctx context.Context, repoRoot string, cfg DevServerConfig, o
 
 	// Spawn the dev server in its own process group so teardown can signal the whole
 	// pnpm/node/<binary> tree with a single call.
-	cmd := exec.Command("pnpm", "--silent", "-C", projectDir, cfg.Script)
+	cmd := exec.Command("pnpm", "--silent", "-C", projectDir, "run", cfg.Script)
 	cmd.Stdout = stdoutWriter
 	cmd.Stderr = stderrWriter
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
