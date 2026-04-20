@@ -9,6 +9,10 @@ masterBranch="master"
 publicRepoRegex='.*:.*'
 grypeCmd=(grype -f low)
 
+if [[ "${CI_PRIVATE}" == "true" ]]; then
+  dockerImageName="${dockerImageName}-cve"
+fi
+
 IMAGE=""
 if [[ "${CI_MERGE_QUEUE}" != "true" ]]; then
   if [[ -n "${ciTag}" ]]; then

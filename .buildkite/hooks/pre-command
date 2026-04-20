@@ -17,6 +17,10 @@ if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
+  if [[ "${CI_PRIVATE}" == "true" ]]; then
+    echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+  fi
+
   if [[ "${CI_MERGE_QUEUE}" == "true" ]]; then
     PR_NUMBER=$(echo "${BUILDKITE_BRANCH}" | sed -E 's|^gh-readonly-queue/.*/pr-([0-9]+)-.*|\1|')
     PR_HEAD=$(curl -fsL --retry 3 "https://api.github.com/repos/authelia/authelia/pulls/${PR_NUMBER}")
