@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -eu
 
+declare -A SUITE_AGENTS=(
+  [ActiveDirectory]="activedirectory"
+  [HighAvailability]="highavailability"
+  [Kubernetes]="kubernetes"
+  [Standalone]="standalone"
+)
+
 for SUITE_NAME in $(authelia-scripts suites list); do
+  AGENT="${SUITE_AGENTS[${SUITE_NAME}]:-all}"
 cat << EOF
   - label: ":selenium: ${SUITE_NAME} Suite"
     command: "authelia-scripts --log-level debug suites test ${SUITE_NAME} --failfast --headless"
@@ -9,34 +17,8 @@ cat << EOF
       automatic: true
       manual:
         permit_on_passed: true
-EOF
-if [[ "${SUITE_NAME}" = "ActiveDirectory" ]]; then
-cat << EOF
     agents:
-      suite: "activedirectory"
-EOF
-elif [[ "${SUITE_NAME}" = "HighAvailability" ]]; then
-cat << EOF
-    agents:
-      suite: "highavailability"
-EOF
-elif [[ "${SUITE_NAME}" = "Kubernetes" ]]; then
-cat << EOF
-    agents:
-      suite: "kubernetes"
-EOF
-elif [[ "${SUITE_NAME}" = "Standalone" ]]; then
-cat << EOF
-    agents:
-      suite: "standalone"
-EOF
-else
-cat << EOF
-    agents:
-      suite: "all"
-EOF
-fi
-cat << EOF
+      suite: "${AGENT}"
     env:
       SUITE: "${SUITE_NAME}"
 EOF

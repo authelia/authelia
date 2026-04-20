@@ -38,20 +38,20 @@ for T in "${TARGETS[@]}"; do
   elif [[ "${T}" == "checksums" ]]; then
     artifact_links "checksums.sha256"
   else
-  	for OS in "${!BUILDS[@]}"; do
-  	  for B in ${BUILDS[${OS}]}; do
-  	  	case "${B}" in
-  	      	"${T}"|"${T}-musl")
-  	      		artifact_links "${PREFIX}-${OS}-${B}.tar.gz"
-  	      		;;
-  	    	esac
-  	  done
-  	done
+    for OS in "${!BUILDS[@]}"; do
+      for B in ${BUILDS[${OS}]}; do
+        case "${B}" in
+          "${T}"|"${T}-musl")
+            artifact_links "${PREFIX}-${OS}-${B}.tar.gz"
+            ;;
+        esac
+      done
+    done
 
-  DEB_PREFIX=$(echo "${PREFIX}" | sed -e 's/v//' -e 's/-/_/' -e '/[0-9]$/s/$/-1/')
-  DEB_ARCH="${T}"
-  [[ "${T}" == "arm" ]] && DEB_ARCH="armhf"
-  artifact_links "${DEB_PREFIX}_${DEB_ARCH}.deb"
+    DEB_PREFIX=$(echo "${PREFIX}" | sed -e 's/v//' -e 's/-/_/' -e '/[0-9]$/s/$/-1/')
+    DEB_ARCH="${T}"
+    [[ "${T}" == "arm" ]] && DEB_ARCH="armhf"
+    artifact_links "${DEB_PREFIX}_${DEB_ARCH}.deb"
   fi
 
   echo '    </dd>'

@@ -52,19 +52,27 @@ if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
     zstdcat "authelia-image-coverage.tar.zst" | docker load
   fi
 
-  if [[ "${BUILD_DUO}" == "true" ]] && [[ "${SUITE}" == "DuoPush" ]]; then
-    CONTAINER="integration-duo"
-    FILE="internal/suites/example/compose/duo-api/compose.yml"
-    INTEGRATION
-  elif [[ "${BUILD_HAPROXY}" == "true" ]] && [[ "${SUITE}" == "HAProxy" ]]; then
-    CONTAINER="integration-haproxy"
-    FILE="internal/suites/example/compose/haproxy/compose.yml"
-    INTEGRATION
-  elif [[ "${BUILD_SAMBA}" == "true" ]] && [[ "${SUITE}" == "ActiveDirectory" ]]; then
-    CONTAINER="integration-samba"
-    FILE="internal/suites/example/compose/samba/compose.yml"
-    INTEGRATION
-  fi
+  BUILD_FLAG=""
+  CONTAINER=""
+  FILE=""
+  case "${SUITE}" in
+    DuoPush)
+      BUILD_FLAG="${BUILD_DUO}"
+      CONTAINER="integration-duo"
+      FILE="internal/suites/example/compose/duo-api/compose.yml"
+      ;;
+    HAProxy)
+      BUILD_FLAG="${BUILD_HAPROXY}"
+      CONTAINER="integration-haproxy"
+      FILE="internal/suites/example/compose/haproxy/compose.yml"
+      ;;
+    ActiveDirectory)
+      BUILD_FLAG="${BUILD_SAMBA}"
+      CONTAINER="integration-samba"
+      FILE="internal/suites/example/compose/samba/compose.yml"
+      ;;
+  esac
+  [[ "${BUILD_FLAG}" == "true" ]] && INTEGRATION
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build and Deploy" ]]; then

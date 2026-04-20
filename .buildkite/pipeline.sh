@@ -18,6 +18,7 @@ CI_BYPASS="false"
 CI_MERGE_QUEUE="false"
 CI_MERGE_QUEUE_BYPASS="false"
 CI_PRIVATE="false"
+LINT_REPORTER="github-check"
 
 if [[ ${DIVERGED} == 0 ]] && [[ ${BUILDKITE_TAG} == "" ]]; then
   if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
@@ -50,6 +51,7 @@ fi
 
 if [[ ${BUILDKITE_PIPELINE_SLUG} == "authelia-cve" ]]; then
   CI_PRIVATE="true"
+  LINT_REPORTER="local"
 fi
 
 cat << EOF
@@ -64,7 +66,7 @@ env:
 
 steps:
   - label: ":service_dog: Linting"
-    command: "lint.sh -reporter=github-check -filter-mode=nofilter -fail-level=error"
+    command: "lint.sh -reporter=${LINT_REPORTER} -filter-mode=nofilter -fail-level=error"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":chrome: External Tests"
