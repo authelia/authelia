@@ -2,11 +2,10 @@ package utils
 
 import (
 	"errors"
+	"os"
 	"strings"
 	"testing"
 	"time"
-
-	"os"
 
 	"github.com/stretchr/testify/assert"
 )
