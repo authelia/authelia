@@ -31,14 +31,13 @@ else
   CI_BYPASS="false"
 fi
 
-if [[ ${BUILDKITE_PIPELINE_SLUG} == "authelia-cve" ]]; then
-  CI_PRIVATE="true"
-else
-  CI_PRIVATE="false"
-fi
-
 CI_MERGE_QUEUE="false"
 CI_MERGE_QUEUE_BYPASS="false"
+CI_PRIVATE="false"
+
+if [[ ${BUILDKITE_PIPELINE_SLUG} == "authelia-cve" ]]; then
+  CI_PRIVATE="true"  
+fi
 
 if [[ ${BUILDKITE_PULL_REQUEST_DRAFT} == "true" ]] && [[ ${BUILDKITE_BRANCH} =~ ^(dependabot|renovate) ]]; then
   CI_BYPASS="true"
