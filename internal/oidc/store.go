@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
 	"authelia.com/provider/oauth2/handler/rfc8628"
 	ostorage "authelia.com/provider/oauth2/storage"
-	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"

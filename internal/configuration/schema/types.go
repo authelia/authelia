@@ -15,12 +15,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authelia/jsonschema"
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/valyala/fasthttp"
 	"go.yaml.in/yaml/v4"
+
+	"github.com/authelia/jsonschema"
 )
 
 var cdecoder algorithm.DecoderRegister

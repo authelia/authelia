@@ -5,6 +5,15 @@ runner:
     format: rdjson
     level: error
 
+  goimports-reviser:
+    cmd: >-
+      goimports-reviser -rm-unused -format
+      -excludes '*/node_modules,*/*/*/node_modules'
+      -company-prefixes authelia.com,github.com/authelia ./...
+      ; git diff --no-prefix -- '*.go'
+    format: diff
+    level: error
+
   golangci:
     cmd: golangci-lint run
     errorformat:

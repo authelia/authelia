@@ -8,7 +8,7 @@ pre-commit:
         MISSING=""
         COUNT=0
 
-        for TOOL in golangci-lint pnpm shellcheck trufflehog typos yamllint; do
+        for TOOL in goimports-reviser golangci-lint pnpm shellcheck trufflehog typos yamllint; do
           if ! command -v ${TOOL} >/dev/null 2>&1; then
             if [ "$COUNT" -eq 0 ]; then
               MISSING=${TOOL}
@@ -35,6 +35,14 @@ pre-commit:
             run: pnpm lint && echo "0 issues."
             root: "web/"
             glob: "*.{js,jsx,ts,tsx}"
+            stage_fixed: true
+
+          - name: goimports-reviser
+            run: |
+              goimports-reviser -rm-unused -format \
+              -company-prefixes authelia.com,github.com/authelia {staged_files} 2>/dev/null \
+              && echo "0 issues."
+            glob: "*.go"
             stage_fixed: true
 
           - name: golangci-lint

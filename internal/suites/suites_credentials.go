@@ -4,8 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/authelia/otp/totp"
 	"github.com/go-rod/rod/lib/proto"
+
+	"github.com/authelia/otp/totp"
 )
 
 func NewRodSuiteCredentials() *RodSuiteCredentials {

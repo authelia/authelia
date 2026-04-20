@@ -4,9 +4,10 @@ import (
 	"net/url"
 	"time"
 
-	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
+
+	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"

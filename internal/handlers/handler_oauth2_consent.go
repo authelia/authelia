@@ -6,8 +6,9 @@ import (
 	"net/url"
 	"time"
 
-	"authelia.com/provider/oauth2"
 	"github.com/google/uuid"
+
+	"authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/logging"

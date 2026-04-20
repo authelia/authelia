@@ -7,12 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authelia/otp"
-	"github.com/authelia/otp/totp"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/input"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/otp"
+	"github.com/authelia/otp/totp"
 )
 
 type OptionsTOTP struct {

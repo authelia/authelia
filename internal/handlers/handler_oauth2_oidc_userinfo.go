@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/valyala/fasthttp"
+
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 	"authelia.com/provider/oauth2/x/errorsx"
-	"github.com/google/uuid"
-	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
