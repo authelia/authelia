@@ -1,42 +1,39 @@
 #!/usr/bin/env bash
 DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 
-if [[ ${DIVERGED} == 0 ]]; then
-  if [[ ${BUILDKITE_TAG} == "" ]]; then
-    if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
-      BUILD_DUO=$(git diff --name-only HEAD~1 | grep -q ^internal/suites/example/compose/duo-api/Dockerfile && echo true || echo false)
-      BUILD_HAPROXY=$(git diff --name-only HEAD~1 | grep -q ^internal/suites/example/compose/haproxy/Dockerfile && echo true || echo false)
-      BUILD_SAMBA=$(git diff --name-only HEAD~1 | grep -q ^internal/suites/example/compose/samba/Dockerfile && echo true || echo false)
-      CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}' && echo true || echo false)
-    else
-      BUILD_DUO=$(git diff --name-only "$(git merge-base --fork-point origin/master)" | grep -q ^internal/suites/example/compose/duo-api/Dockerfile && echo true || echo false)
-      BUILD_HAPROXY=$(git diff --name-only "$(git merge-base --fork-point origin/master)" | grep -q ^internal/suites/example/compose/haproxy/Dockerfile && echo true || echo false)
-      BUILD_SAMBA=$(git diff --name-only "$(git merge-base --fork-point origin/master)" | grep -q ^internal/suites/example/compose/samba/Dockerfile && echo true || echo false)
-      CI_BYPASS=$(git diff --name-only "$(git merge-base --fork-point origin/master)" | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}' && echo true || echo false)
-    fi
+BYPASS_REGEX='/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}'
 
-    if [[ ${CI_BYPASS} == "true" ]]; then
-      buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/bypass
-    fi
-  else
-    BUILD_DUO="false"
-    BUILD_HAPROXY="false"
-    BUILD_SAMBA="false"
-    CI_BYPASS="false"
-  fi
-else
-  BUILD_DUO="false"
-  BUILD_HAPROXY="false"
-  BUILD_SAMBA="false"
-  CI_BYPASS="false"
-fi
+changed() {
+  git diff --name-only "${1}" | grep -q "^${2}"
+}
 
+bypass_check() {
+  git diff --name-only "${1}" | sed -rn "${BYPASS_REGEX}" && echo true || echo false
+}
+
+BUILD_DUO="false"
+BUILD_HAPROXY="false"
+BUILD_SAMBA="false"
+CI_BYPASS="false"
 CI_MERGE_QUEUE="false"
 CI_MERGE_QUEUE_BYPASS="false"
 CI_PRIVATE="false"
 
-if [[ ${BUILDKITE_PIPELINE_SLUG} == "authelia-cve" ]]; then
-  CI_PRIVATE="true"  
+if [[ ${DIVERGED} == 0 ]] && [[ ${BUILDKITE_TAG} == "" ]]; then
+  if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
+    BASE_REF="HEAD~1"
+  else
+    BASE_REF=$(git merge-base --fork-point origin/master)
+  fi
+
+  changed "${BASE_REF}" "internal/suites/example/compose/duo-api/Dockerfile" && BUILD_DUO="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/haproxy/Dockerfile" && BUILD_HAPROXY="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/samba/Dockerfile" && BUILD_SAMBA="true"
+  CI_BYPASS=$(bypass_check "${BASE_REF}")
+
+  if [[ ${CI_BYPASS} == "true" ]]; then
+    buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/bypass
+  fi
 fi
 
 if [[ ${BUILDKITE_PULL_REQUEST_DRAFT} == "true" ]] && [[ ${BUILDKITE_BRANCH} =~ ^(dependabot|renovate) ]]; then
@@ -47,8 +44,12 @@ fi
 if [[ ${BUILDKITE_BRANCH} =~ ^gh-readonly-queue/.* ]]; then
   CI_BYPASS="true"
   CI_MERGE_QUEUE="true"
-  CI_MERGE_QUEUE_BYPASS=$(git diff --name-only HEAD^ HEAD | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}' && echo true || echo false)
+  CI_MERGE_QUEUE_BYPASS=$(bypass_check "HEAD^..HEAD")
   buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/merge-queue
+fi
+
+if [[ ${BUILDKITE_PIPELINE_SLUG} == "authelia-cve" ]]; then
+  CI_PRIVATE="true"
 fi
 
 cat << EOF
@@ -57,9 +58,9 @@ env:
   BUILD_HAPROXY: ${BUILD_HAPROXY}
   BUILD_SAMBA: ${BUILD_SAMBA}
   CI_BYPASS: ${CI_BYPASS}
-  CI_PRIVATE: ${CI_PRIVATE}
   CI_MERGE_QUEUE: ${CI_MERGE_QUEUE}
   CI_MERGE_QUEUE_BYPASS: ${CI_MERGE_QUEUE_BYPASS}
+  CI_PRIVATE: ${CI_PRIVATE}
 
 steps:
   - label: ":service_dog: Linting"
