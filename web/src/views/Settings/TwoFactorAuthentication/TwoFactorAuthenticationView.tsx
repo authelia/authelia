@@ -190,6 +190,7 @@ const TwoFactorAuthenticationView = function () {
                     />
                 </Grid>
             ) : null}
+            <RedirectAfterEnrollmentDialog open={redirectDialogOpen} setClosed={() => setRedirectDialogOpen(false)} />
         </Grid>
     );
 };
