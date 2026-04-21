@@ -14,7 +14,7 @@
     "react-dom": "19.2.5",
     "react-email": "6.0.0",
     "tailwind-merge": "3.5.0",
-    "tailwindcss": "4.2.3",
+    "tailwindcss": "4.2.4",
     "typescript": "6.0.3"
   },
   "devDependencies": {
