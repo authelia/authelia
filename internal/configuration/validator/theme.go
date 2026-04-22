@@ -68,7 +68,7 @@ func checkDirective(directive, host string) bool {
 	}
 
 	for _, p := range parts[1:] {
-		if p == host || p == "*" || p == "https:*" || p == "https://*" {
+		if p == host || p == "*" || p == "https:" || p == "https:*" || p == "https://*" {
 			return true
 		}
 
