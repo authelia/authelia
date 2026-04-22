@@ -159,5 +159,10 @@
 	"Your browser does not appear to support the configuration": "Your browser does not appear to support the configuration",
 	"Your browser does not support the WebAuthn protocol": "Your browser does not support the WebAuthn protocol",
 	"Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements",
-	"Your device does not support user verification or resident keys but this was required": "Your device does not support user verification or resident keys but this was required"
+	"Your device does not support user verification or resident keys but this was required": "Your device does not support user verification or resident keys but this was required",
+	"Multi-Factor Authentication Registered": "Multi-Factor Authentication Registered",
+	"You have successfully added a multi-factor authentication method": "You have successfully added a multi-factor authentication method",
+	"Would you like to continue to your originally requested resource?": "Would you like to continue to your originally requested resource?",
+	"Stay Here": "Stay Here",
+	"Continue": "Continue"
 }
