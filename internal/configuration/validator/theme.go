@@ -30,9 +30,54 @@ func ValidateTheme(config *schema.Configuration, validator *schema.StructValidat
 
 			config.CustomCSSURL = u
 
-			if config.Server.Headers.CSPTemplate != "" && u.Host != "" && !strings.Contains(string(config.Server.Headers.CSPTemplate), u.Host) {
+			if config.Server.Headers.CSPTemplate != "" && u.Host != "" && !isHostAllowedInCSP(string(config.Server.Headers.CSPTemplate), u.Host) {
 				validator.PushWarning(fmt.Errorf(errFmtCustomCSSCSPTemplateIncompatibility, config.CustomCSS))
 			}
 		}
 	}
+}
+
+func isHostAllowedInCSP(csp, host string) bool {
+	directives := strings.Split(csp, ";")
+	var styleSrc, defaultSrc string
+
+	for _, d := range directives {
+		d = strings.TrimSpace(d)
+		if strings.HasPrefix(d, "style-src ") {
+			styleSrc = d
+		} else if strings.HasPrefix(d, "default-src ") {
+			defaultSrc = d
+		}
+	}
+
+	if styleSrc != "" {
+		return checkDirective(styleSrc, host)
+	}
+
+	if defaultSrc != "" {
+		return checkDirective(defaultSrc, host)
+	}
+
+	return false
+}
+
+func checkDirective(directive, host string) bool {
+	parts := strings.Fields(directive)
+	if len(parts) < 2 {
+		return false
+	}
+
+	for _, p := range parts[1:] {
+		if p == host || p == "*" || p == "https:*" || p == "https://*" {
+			return true
+		}
+
+		if strings.HasPrefix(p, "https://") {
+			if strings.TrimPrefix(p, "https://") == host {
+				return true
+			}
+		}
+	}
+
+	return false
 }

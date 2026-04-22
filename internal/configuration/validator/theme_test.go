@@ -104,11 +104,48 @@ func (suite *Theme) TestShouldWarnOnCSPTemplateIncompatibility() {
 
 func (suite *Theme) TestShouldNotWarnOnCSPTemplateCompatibility() {
 	suite.config.CustomCSS = "https://example.com/test.css"
-	suite.config.Server.Headers.CSPTemplate = "default-src 'self'; style-src 'self' example.com"
+	testCases := []string{
+		"default-src 'self'; style-src 'self' example.com",
+		"default-src 'self'; style-src 'self' https://example.com",
+		"default-src 'self'; style-src 'self' *",
+		"default-src 'self'; style-src 'self' https://*",
+		"style-src example.com",
+		"default-src example.com",
+	}
+
+	for _, tc := range testCases {
+		suite.T().Run(tc, func(t *testing.T) {
+			suite.SetupTest()
+			suite.config.CustomCSS = "https://example.com/test.css"
+			suite.config.Server.Headers.CSPTemplate = schema.CSPTemplate(tc)
+
+			ValidateTheme(suite.config, suite.validator)
+
+			suite.Assert().Len(suite.validator.Warnings(), 0)
+			suite.Assert().Len(suite.validator.Errors(), 0)
+		})
+	}
+}
+
+func (suite *Theme) TestShouldWarnWhenHostOnlyInNonStyleDirective() {
+	suite.config.CustomCSS = "https://example.com/test.css"
+	suite.config.Server.Headers.CSPTemplate = "default-src 'self'; img-src example.com"
 
 	ValidateTheme(suite.config, suite.validator)
 
-	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Warnings(), 1)
+	suite.Assert().EqualError(suite.validator.Warnings()[0], "option 'custom_css' with value 'https://example.com/test.css' appears to have a host which is not explicitly allowed in the 'server.headers.csp_template' which may prevent it from loading")
+	suite.Assert().Len(suite.validator.Errors(), 0)
+}
+
+func (suite *Theme) TestShouldWarnWhenHostIsSuffixOfAllowedHost() {
+	suite.config.CustomCSS = "https://example.com/test.css"
+	suite.config.Server.Headers.CSPTemplate = "default-src 'self'; style-src 'self' foo.example.com"
+
+	ValidateTheme(suite.config, suite.validator)
+
+	suite.Require().Len(suite.validator.Warnings(), 1)
+	suite.Assert().EqualError(suite.validator.Warnings()[0], "option 'custom_css' with value 'https://example.com/test.css' appears to have a host which is not explicitly allowed in the 'server.headers.csp_template' which may prevent it from loading")
 	suite.Assert().Len(suite.validator.Errors(), 0)
 }
 
