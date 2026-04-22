@@ -1,8 +1,10 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -19,8 +21,12 @@ func ValidateTheme(config *schema.Configuration, validator *schema.StructValidat
 	}
 
 	if config.CustomCSS != "" {
-		if _, err := url.Parse(config.CustomCSS); err != nil {
+		if u, err := url.Parse(config.CustomCSS); err != nil {
 			validator.Push(fmt.Errorf(errFmtCustomCSSURL, config.CustomCSS, err))
+		} else {
+			if u.Scheme != schemeHTTPS && (u.Scheme != "" || u.Host != "" || !strings.HasPrefix(u.Path, "/")) {
+				validator.Push(fmt.Errorf(errFmtCustomCSSURL, config.CustomCSS, errors.New("must be an absolute path or an https URL")))
+			}
 		}
 	}
 }

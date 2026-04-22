@@ -39,6 +39,54 @@ func (suite *Theme) TestShouldRaiseErrorWhenInvalidThemeProvided() {
 	suite.Assert().EqualError(suite.validator.Errors()[0], "option 'theme' must be one of 'light', 'dark', 'grey', 'oled', or 'auto' but it's configured as 'invalid'")
 }
 
+func (suite *Theme) TestShouldRaiseErrorWhenInvalidCustomCSSProvided() {
+	testCases := []struct {
+		name     string
+		have     string
+		expected string
+	}{
+		{"ShouldNotValidateOnProtocolRelative", "//example.com/test.css", "option 'custom_css' with value '//example.com/test.css' is invalid: must be an absolute path or an https URL"},
+		{"ShouldNotValidateOnHTTP", "http://example.com/test.css", "option 'custom_css' with value 'http://example.com/test.css' is invalid: must be an absolute path or an https URL"},
+		{"ShouldNotValidateOnJavascript", "javascript:alert(1)", "option 'custom_css' with value 'javascript:alert(1)' is invalid: must be an absolute path or an https URL"},
+		{"ShouldNotValidateOnRelativePath", "custom.css", "option 'custom_css' with value 'custom.css' is invalid: must be an absolute path or an https URL"},
+	}
+
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			suite.SetupTest()
+			suite.config.CustomCSS = tc.have
+
+			ValidateTheme(suite.config, suite.validator)
+
+			suite.Assert().Len(suite.validator.Warnings(), 0)
+			suite.Require().Len(suite.validator.Errors(), 1)
+			suite.Assert().EqualError(suite.validator.Errors()[0], tc.expected)
+		})
+	}
+}
+
+func (suite *Theme) TestShouldValidateValidCustomCSS() {
+	testCases := []struct {
+		name string
+		have string
+	}{
+		{"ShouldValidateOnHTTPS", "https://example.com/test.css"},
+		{"ShouldValidateOnAbsolutePath", "/custom-assets/styles.css"},
+	}
+
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			suite.SetupTest()
+			suite.config.CustomCSS = tc.have
+
+			ValidateTheme(suite.config, suite.validator)
+
+			suite.Assert().Len(suite.validator.Warnings(), 0)
+			suite.Assert().Len(suite.validator.Errors(), 0)
+		})
+	}
+}
+
 func TestThemes(t *testing.T) {
 	suite.Run(t, new(Theme))
 }

@@ -23,7 +23,7 @@
 ## The theme to display: light, dark, grey, auto.
 # theme: 'light'
 
-## The URL to a custom CSS file to apply to the web UI.
+## The URL to a custom CSS file to apply to the web UI. Must be an absolute path (starting with /) or an https URL.
 # custom_css: ''
 
 ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been

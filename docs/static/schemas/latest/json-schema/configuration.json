@@ -1073,7 +1073,7 @@
         "custom_css": {
           "type": "string",
           "title": "Custom CSS URL",
-          "description": "The URL to a custom CSS file to apply to the web UI."
+          "description": "The URL to a custom CSS file to apply to the web UI. Must be an absolute path (starting with /) or an https URL."
         },
         "certificates_directory": {
           "type": "string",
