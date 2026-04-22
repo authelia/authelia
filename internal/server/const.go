@@ -10,6 +10,7 @@ const (
 	assetsRoot = "public_html"
 
 	fileLogo = "logo.png"
+	fileCustomCSS = "custom.css"
 
 	extHTML = ".html"
 	extJSON = ".json"

@@ -1,9 +1,12 @@
 package server
 
 import (
+	"bytes"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"testing"
+	"text/template"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -182,6 +185,110 @@ func TestServeTemplatedFile(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestServeTemplatedFileWithCSSOverride(t *testing.T) {
+	tmpl, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, tmpl.LoadTemplatedAssets(assets))
+
+	testCases := []struct {
+		name     string
+		withCSS  bool
+		expected string
+	}{
+		{
+			"ShouldIncludeCSSLink",
+			true,
+			"\"CSSOverride\":\"true\"",
+		},
+		{
+			"ShouldNotIncludeCSSLink",
+			false,
+			"\"CSSOverride\":\"true\"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+
+			if tc.withCSS {
+				require.NoError(t, os.WriteFile(filepath.Join(dir, fileCustomCSS), []byte("body { background: red; }"), 0644))
+			}
+
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration.Server = schema.DefaultServerConfiguration
+			mock.Ctx.Configuration.Server.AssetPath = dir
+			mock.Ctx.Configuration.Session = schema.Session{
+				Cookies: []schema.SessionCookie{
+					{Domain: "example.com"},
+				},
+			}
+
+			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+
+			opts := NewTemplatedFileOptions(&mock.Ctx.Configuration)
+
+			handler := ServeTemplatedFile(tmpl.GetAssetIndexTemplate(), opts)
+
+			mock.Ctx.Request.Header.SetMethod(fasthttp.MethodGet)
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
+
+			handler(mock.Ctx)
+
+			assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+			body := string(mock.Ctx.Response.Body())
+
+			if tc.withCSS {
+				assert.Contains(t, body, tc.expected)
+			} else {
+				assert.NotContains(t, body, tc.expected)
+			}
+		})
+	}
+}
+
+func TestWebIndexTemplateCSSOverride(t *testing.T) {
+	importTmpl := func(data string) *template.Template {
+		return template.Must(template.New("test").Funcs(templates.FuncMap()).Parse(data))
+	}
+
+	data, err := os.ReadFile("../../web/index.html")
+	require.NoError(t, err)
+
+	t.Run("ShouldIncludeCSSLink", func(t *testing.T) {
+		t.Run("Enabled", func(t *testing.T) {
+			tt := importTmpl(string(data))
+
+			opts := &TemplatedFileCommonData{
+				CSSOverride: "true",
+			}
+
+			buf := &bytes.Buffer{}
+			require.NoError(t, tt.Execute(buf, opts))
+
+			assert.Contains(t, buf.String(), "<link rel=\"stylesheet\" href=\"/static/media/custom.css\">")
+		})
+
+		t.Run("Disabled", func(t *testing.T) {
+			tt := importTmpl(string(data))
+
+			opts := &TemplatedFileCommonData{
+				CSSOverride: "false",
+			}
+
+			buf := &bytes.Buffer{}
+			require.NoError(t, tt.Execute(buf, opts))
+
+			assert.NotContains(t, buf.String(), "<link rel=\"stylesheet\" href=\"/static/media/custom.css\">")
+		})
+	})
 }
 
 func TestETagRootURL(t *testing.T) {
@@ -368,7 +475,8 @@ func TestTemplatedFileOptionsCommonData(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			opts := NewTemplatedFileOptions(&schema.Configuration{})
 
-			data := opts.CommonData("/", "/", "example.com", "nonce123", "en", "", tc.rememberMe)
+			data := opts.CommonData("/", "/", "example.com", "nonce123", "en", "", "", tc.rememberMe)
+
 
 			assert.Equal(t, "/", data.Base)
 			assert.Equal(t, "example.com", data.Domain)

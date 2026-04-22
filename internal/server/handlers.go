@@ -170,6 +170,9 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.HEAD("/static/media/logo.png", middlewares.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
 	r.GET("/static/media/logo.png", middlewares.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
 
+	r.HEAD("/static/media/custom.css", middlewares.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
+	r.GET("/static/media/custom.css", middlewares.AssetOverride(config.Server.AssetPath, 2, handlerPublicHTML))
+
 	r.HEAD("/static/{filepath:*}", handlerPublicHTML)
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 

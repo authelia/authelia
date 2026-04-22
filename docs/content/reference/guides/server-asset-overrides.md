@@ -23,6 +23,7 @@ This guide effectively documents the usage of the
 /config/assets/
 ├── favicon.ico
 ├── logo.png
+├── custom.css
 └── locales/<lang>[-[variant]]/<namespace>.json
 ```
 
@@ -32,6 +33,7 @@ This guide effectively documents the usage of the
 |:-------------------:|:-----------:|:---------:|:-----------------------:|
 |       Favicon       | favicon.ico |    No     |           N/A           |
 |        Logo         |  logo.png   |    No     |           N/A           |
+|     Custom CSS      | custom.css  |    No     |           N/A           |
 | Translation Locales |   locales   |    Yes    | see [locales](#locales) |
 
 ## locales
