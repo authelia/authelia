@@ -91,6 +91,7 @@ Notable Advanced Customizations:
   - Email
   - Content Security Policy header
 - Localization / Internationalization Assets
+- Custom CSS
 
 ### Experimental Features
 
