@@ -1,0 +1,41 @@
+/* Corporate Muted Style */
+body {
+    /* Muted grey to blue-grey gradient */
+    background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%) !important;
+    background-attachment: fixed !important;
+    min-height: 100vh;
+}
+
+/* Hide the default User SVG icon */
+#UserSvg {
+    display: none !important;
+}
+
+/* Replace the icon with Corporate Text */
+/* Targeting the container of the logo using :has for precision */
+div.MuiGrid-root:has(> #UserSvg) {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px 0 !important;
+}
+
+div.MuiGrid-root:has(> #UserSvg)::before {
+    content: "ACME CORP";
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #1e293b; /* Dark slate blue */
+    text-transform: uppercase;
+    border-bottom: 3px solid #334155;
+    padding-bottom: 4px;
+}
+
+/* Optional: Slightly soften the login paper/container */
+.MuiContainer-root {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
