@@ -5,6 +5,7 @@ import (
 	"crypto/sha1" //nolint:gosec
 	"encoding/hex"
 	"fmt"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -60,14 +61,24 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 
 		nonce := ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
 
+		var csp string
+
 		switch {
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(string(ctx.Configuration.Server.Headers.CSPTemplate), placeholderCSPNonce, nonce))
+			csp = strings.ReplaceAll(string(ctx.Configuration.Server.Headers.CSPTemplate), placeholderCSPNonce, nonce)
 		case utils.Dev:
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDevelopment, nonce))
+			csp = fmt.Sprintf(tmplCSPDevelopment, nonce)
 		default:
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDefault, nonce))
+			csp = fmt.Sprintf(tmplCSPDefault, nonce)
 		}
+
+		if ctx.Configuration.CustomCSS != "" && ctx.Configuration.Server.Headers.CSPTemplate == "" {
+			if parsed, err := url.Parse(ctx.Configuration.CustomCSS); err == nil && parsed.Host != "" {
+				csp = strings.Replace(csp, "style-src ", fmt.Sprintf("style-src %s://%s ", parsed.Scheme, parsed.Host), 1)
+			}
+		}
+
+		ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, csp)
 
 		var (
 			rememberMe string
@@ -231,6 +242,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		PrivacyPolicyAccept:     strFalse,
 		Session:                 "",
 		Theme:                   config.Theme,
+		CustomCSS:               config.CustomCSS,
 		EndpointsPasswordReset:  !config.AuthenticationBackend.PasswordReset.Disable && config.AuthenticationBackend.PasswordReset.CustomURL.String() == "",
 		EndpointsPasswordChange: !config.AuthenticationBackend.PasswordChange.Disable,
 		EndpointsWebAuthn:       !config.WebAuthn.Disable,
@@ -266,6 +278,7 @@ type TemplatedFileOptions struct {
 	PrivacyPolicyAccept    string
 	Session                string
 	Theme                  string
+	CustomCSS              string
 
 	EndpointsPasswordReset  bool
 	EndpointsPasswordChange bool
@@ -301,6 +314,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
 		Theme:                  options.Theme,
+		CustomCSS:              options.CustomCSS,
 	}
 }
 
@@ -322,6 +336,7 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
 		Theme:                  options.Theme,
+		CustomCSS:              options.CustomCSS,
 	}
 }
 
@@ -361,6 +376,7 @@ type TemplatedFileCommonData struct {
 	PrivacyPolicyAccept    string
 	Session                string
 	Theme                  string
+	CustomCSS              string
 }
 
 // TemplatedFileOpenAPIData is a struct which is used for the OpenAPI spec file.

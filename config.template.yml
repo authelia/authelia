@@ -23,6 +23,9 @@
 ## The theme to display: light, dark, grey, auto.
 # theme: 'light'
 
+## The URL to a custom CSS file to apply to the web UI.
+# custom_css: ''
+
 ## Set the default 2FA method for new users and for when a user has a preferred method configured that has been
 ## disabled. This setting must be a method that is enabled.
 ## Options are totp, webauthn, mobile_push.

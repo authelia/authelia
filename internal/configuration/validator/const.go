@@ -365,7 +365,8 @@ const (
 
 // Theme Error constants.
 const (
-	errFmtThemeName = "option 'theme' must be one of %s but it's configured as '%s'"
+	errFmtThemeName     = "option 'theme' must be one of %s but it's configured as '%s'"
+	errFmtCustomCSSURL  = "option 'custom_css' with value '%s' is invalid: %w"
 )
 
 // NTP Error constants.

@@ -89,55 +89,78 @@ func TestServeTemplatedFile(t *testing.T) {
 		name               string
 		method             string
 		language           string
+		customCSS          string
 		cspTemplate        string
 		expectedStatusCode int
 		expectBody         bool
 		expectCSP          bool
+		expectedCSPStyle   string
 	}{
 		{
 			"ShouldServeIndexWithDefaultLanguage",
 			fasthttp.MethodGet,
 			"",
 			"",
+			"",
 			fasthttp.StatusOK,
 			true,
 			true,
+			"",
+		},
+		{
+			"ShouldServeIndexWithCustomCSSCSP",
+			fasthttp.MethodGet,
+			"",
+			"https://example.com/custom.css",
+			"",
+			fasthttp.StatusOK,
+			true,
+			true,
+			"https://example.com",
 		},
 		{
 			"ShouldServeIndexWithCustomLanguage",
 			fasthttp.MethodGet,
 			"fr",
 			"",
+			"",
 			fasthttp.StatusOK,
 			true,
 			true,
+			"",
 		},
 		{
 			"ShouldServeIndexWithInvalidLanguageFallback",
 			fasthttp.MethodGet,
 			"<script>alert(1)</script>",
 			"",
+			"",
 			fasthttp.StatusOK,
 			true,
 			true,
+			"",
 		},
 		{
 			"ShouldHandleHEADRequest",
 			fasthttp.MethodHead,
 			"",
 			"",
+			"",
 			fasthttp.StatusOK,
 			false,
 			true,
+			"",
 		},
 		{
 			"ShouldUseCustomCSPTemplate",
 			fasthttp.MethodGet,
 			"",
+			"",
 			"default-src 'self'; script-src 'nonce-${NONCE}'",
 			fasthttp.StatusOK,
 			true,
 			true,
+			"",
 		},
 	}
 
@@ -147,6 +170,7 @@ func TestServeTemplatedFile(t *testing.T) {
 			defer mock.Close()
 
 			mock.Ctx.Configuration.Server = schema.DefaultServerConfiguration
+			mock.Ctx.Configuration.CustomCSS = tc.customCSS
 			mock.Ctx.Configuration.Server.Headers.CSPTemplate = schema.CSPTemplate(tc.cspTemplate)
 			mock.Ctx.Configuration.Session = schema.Session{
 				Cookies: []schema.SessionCookie{
@@ -179,6 +203,10 @@ func TestServeTemplatedFile(t *testing.T) {
 			if tc.expectCSP {
 				csp := string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentSecurityPolicy))
 				assert.NotEmpty(t, csp)
+
+				if tc.expectedCSPStyle != "" {
+					assert.Contains(t, csp, "style-src "+tc.expectedCSPStyle)
+				}
 			}
 		})
 	}
@@ -271,6 +299,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 		expectedResetPassword  string
 		expectedPasswordChange string
 		expectedTheme          string
+		expectedCustomCSS      string
 		expectedPasskeyLogin   string
 	}{
 		{
@@ -278,6 +307,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			&schema.Configuration{},
 			"true",
 			"true",
+			"",
 			"",
 			"false",
 		},
@@ -293,6 +323,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"false",
 			"true",
 			"",
+			"",
 			"false",
 		},
 		{
@@ -305,6 +336,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"true",
 			"",
+			"",
 			"true",
 		},
 		{
@@ -315,6 +347,18 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"true",
 			"dark",
+			"",
+			"false",
+		},
+		{
+			"ShouldSetCustomCSS",
+			&schema.Configuration{
+				CustomCSS: "https://example.com/custom.css",
+			},
+			"true",
+			"true",
+			"",
+			"https://example.com/custom.css",
 			"false",
 		},
 		{
@@ -329,6 +373,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"false",
 			"",
+			"",
 			"false",
 		},
 	}
@@ -341,6 +386,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			assert.Equal(t, tc.expectedResetPassword, opts.ResetPassword)
 			assert.Equal(t, tc.expectedPasswordChange, opts.PasswordChange)
 			assert.Equal(t, tc.expectedTheme, opts.Theme)
+			assert.Equal(t, tc.expectedCustomCSS, opts.CustomCSS)
 			assert.Equal(t, tc.expectedPasskeyLogin, opts.PasskeyLogin)
 		})
 	}

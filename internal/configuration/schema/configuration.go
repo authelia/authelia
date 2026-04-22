@@ -7,6 +7,7 @@ import (
 // Configuration object extracted from YAML configuration file.
 type Configuration struct {
 	Theme                 string `koanf:"theme" yaml:"theme,omitempty" toml:"theme,omitempty" json:"theme,omitempty" jsonschema:"default=light,enum=auto,enum=light,enum=dark,enum=grey,enum=oled,title=Theme Name" jsonschema_description:"The name of the theme to apply to the web UI."`
+	CustomCSS             string `koanf:"custom_css" yaml:"custom_css,omitempty" toml:"custom_css,omitempty" json:"custom_css,omitempty" jsonschema:"title=Custom CSS URL" jsonschema_description:"The URL to a custom CSS file to apply to the web UI."`
 	CertificatesDirectory string `koanf:"certificates_directory" yaml:"certificates_directory,omitempty" toml:"certificates_directory,omitempty" json:"certificates_directory,omitempty" jsonschema:"title=Certificates Directory Path" jsonschema_description:"The path to a directory which is used to determine the certificates that are trusted."`
 	Default2FAMethod      string `koanf:"default_2fa_method" yaml:"default_2fa_method,omitempty" toml:"default_2fa_method,omitempty" json:"default_2fa_method,omitempty" jsonschema:"enum=totp,enum=webauthn,enum=mobile_push,title=Default 2FA method" jsonschema_description:"When a user logs in for the first time this is the 2FA method configured for them."`
 

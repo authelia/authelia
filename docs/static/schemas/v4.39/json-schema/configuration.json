@@ -1070,6 +1070,11 @@
           "description": "The name of the theme to apply to the web UI.",
           "default": "light"
         },
+        "custom_css": {
+          "type": "string",
+          "title": "Custom CSS URL",
+          "description": "The URL to a custom CSS file to apply to the web UI."
+        },
         "certificates_directory": {
           "type": "string",
           "title": "Certificates Directory Path",

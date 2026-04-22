@@ -395,6 +395,11 @@
         "env": "AUTHELIA_CERTIFICATES_DIRECTORY"
     },
     {
+        "path": "custom_css",
+        "secret": false,
+        "env": "AUTHELIA_CUSTOM_CSS"
+    },
+    {
         "path": "default_2fa_method",
         "secret": false,
         "env": "AUTHELIA_DEFAULT_2FA_METHOD"
