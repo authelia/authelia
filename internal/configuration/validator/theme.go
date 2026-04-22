@@ -27,6 +27,12 @@ func ValidateTheme(config *schema.Configuration, validator *schema.StructValidat
 			if u.Scheme != schemeHTTPS && (u.Scheme != "" || u.Host != "" || !strings.HasPrefix(u.Path, "/")) {
 				validator.Push(fmt.Errorf(errFmtCustomCSSURL, config.CustomCSS, errors.New("must be an absolute path or an https URL")))
 			}
+
+			config.CustomCSSURL = u
+
+			if config.Server.Headers.CSPTemplate != "" && u.Host != "" && !strings.Contains(string(config.Server.Headers.CSPTemplate), u.Host) {
+				validator.PushWarning(fmt.Errorf(errFmtCustomCSSCSPTemplateIncompatibility, config.CustomCSS))
+			}
 		}
 	}
 }

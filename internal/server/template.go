@@ -72,10 +72,11 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			csp = fmt.Sprintf(tmplCSPDefault, nonce)
 		}
 
-		if ctx.Configuration.CustomCSS != "" && ctx.Configuration.Server.Headers.CSPTemplate == "" {
-			if parsed, err := url.Parse(ctx.Configuration.CustomCSS); err == nil && parsed.Host != "" {
-				csp = strings.Replace(csp, "style-src ", fmt.Sprintf("style-src %s://%s ", parsed.Scheme, parsed.Host), 1)
-			}
+		// If custom_css is an external URL and no custom CSPTemplate is provided, we automatically
+		// append the host to the style-src directive of the default templates.
+		// Note: This relies on the literal "style-src " string being present in tmplCSPDefault/tmplCSPDevelopment.
+		if ctx.Configuration.CustomCSSURL != nil && ctx.Configuration.CustomCSSURL.Scheme != "" && ctx.Configuration.CustomCSSURL.Host != "" && ctx.Configuration.Server.Headers.CSPTemplate == "" {
+			csp = strings.Replace(csp, "style-src ", fmt.Sprintf("style-src %s://%s ", ctx.Configuration.CustomCSSURL.Scheme, ctx.Configuration.CustomCSSURL.Host), 1)
 		}
 
 		ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, csp)

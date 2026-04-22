@@ -83,8 +83,33 @@ func (suite *Theme) TestShouldValidateValidCustomCSS() {
 
 			suite.Assert().Len(suite.validator.Warnings(), 0)
 			suite.Assert().Len(suite.validator.Errors(), 0)
+			if tc.have == "https://example.com/test.css" {
+				suite.Assert().NotNil(suite.config.CustomCSSURL)
+				suite.Assert().Equal("example.com", suite.config.CustomCSSURL.Host)
+			}
 		})
 	}
+}
+
+func (suite *Theme) TestShouldWarnOnCSPTemplateIncompatibility() {
+	suite.config.CustomCSS = "https://example.com/test.css"
+	suite.config.Server.Headers.CSPTemplate = "default-src 'self'"
+
+	ValidateTheme(suite.config, suite.validator)
+
+	suite.Require().Len(suite.validator.Warnings(), 1)
+	suite.Assert().EqualError(suite.validator.Warnings()[0], "option 'custom_css' with value 'https://example.com/test.css' appears to have a host which is not explicitly allowed in the 'server.headers.csp_template' which may prevent it from loading")
+	suite.Assert().Len(suite.validator.Errors(), 0)
+}
+
+func (suite *Theme) TestShouldNotWarnOnCSPTemplateCompatibility() {
+	suite.config.CustomCSS = "https://example.com/test.css"
+	suite.config.Server.Headers.CSPTemplate = "default-src 'self'; style-src 'self' example.com"
+
+	ValidateTheme(suite.config, suite.validator)
+
+	suite.Assert().Len(suite.validator.Warnings(), 0)
+	suite.Assert().Len(suite.validator.Errors(), 0)
 }
 
 func TestThemes(t *testing.T) {

@@ -365,8 +365,9 @@ const (
 
 // Theme Error constants.
 const (
-	errFmtThemeName     = "option 'theme' must be one of %s but it's configured as '%s'"
-	errFmtCustomCSSURL  = "option 'custom_css' with value '%s' is invalid: %w"
+	errFmtThemeName                          = "option 'theme' must be one of %s but it's configured as '%s'"
+	errFmtCustomCSSURL                       = "option 'custom_css' with value '%s' is invalid: %w"
+	errFmtCustomCSSCSPTemplateIncompatibility = "option 'custom_css' with value '%s' appears to have a host which is not explicitly allowed in the 'server.headers.csp_template' which may prevent it from loading"
 )
 
 // NTP Error constants.
