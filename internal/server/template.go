@@ -5,7 +5,6 @@ import (
 	"crypto/sha1" //nolint:gosec
 	"encoding/hex"
 	"fmt"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
