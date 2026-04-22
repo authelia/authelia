@@ -60,9 +60,6 @@ vi.mock("@simplewebauthn/browser", () => ({
 }));
 
 const defaultProps = {
-    disabled: false,
-    onAuthenticationStart: vi.fn(),
-    onAuthenticationStop: vi.fn(),
     onAuthenticationSuccess: vi.fn(),
     onChannelStateChange: vi.fn(),
     passkeyLogin: false,

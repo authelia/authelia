@@ -294,7 +294,7 @@ export default function FirstFactorForm(props: Props) {
                     {props.passkeyLogin && isWebAuthnSupported ? (
                         <PasskeyForm
                             disabled={disabled}
-                            rememberMe={rememberMe}
+                            rememberMe={props.rememberMe}
                             onAuthenticationError={(err) => createErrorNotification(err.message)}
                             onAuthenticationStart={() => {
                                 setUsername("");
