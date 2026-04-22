@@ -1,7 +1,8 @@
-import { Fragment, useEffectEvent, useState } from "react";
+import { Fragment, useEffect, useEffectEvent, useState } from "react";
 
 import { Button, CircularProgress, Divider, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
+import { browserSupportsWebAuthnAutofill } from "@simplewebauthn/browser";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
@@ -33,7 +34,7 @@ export default function PasskeyForm(props: Props) {
 
     const [loading, setLoading] = useState(false);
 
-    const handleSignIn = useEffectEvent(async () => {
+    const handleSignIn = useEffectEvent(async (conditionalMediation: boolean) => {
         if (loading) return;
 
         const startUI = () => {
@@ -47,16 +48,19 @@ export default function PasskeyForm(props: Props) {
         };
 
         const fail = (message: string) => {
+            if (conditionalMediation) return;
             stopUI();
             props.onAuthenticationError(new Error(translate(message)));
         };
 
-        startUI();
+        if (!conditionalMediation) startUI();
 
         const signal = getSignal();
 
         try {
-            const optionsStatus = await getWebAuthnPasskeyOptions(signal);
+            const optionsStatus = await getWebAuthnPasskeyOptions(conditionalMediation, signal);
+
+            if (signal.aborted) return;
 
             if (signal.aborted) return;
 
@@ -65,7 +69,7 @@ export default function PasskeyForm(props: Props) {
                 return;
             }
 
-            const result = await getWebAuthnResult(optionsStatus.options);
+            const result = await getWebAuthnResult(optionsStatus.options, conditionalMediation);
 
             if (signal.aborted) return;
 
@@ -78,6 +82,8 @@ export default function PasskeyForm(props: Props) {
                 fail("The browser did not respond with the expected attestation data");
                 return;
             }
+
+            if (conditionalMediation) startUI();
 
             const response = await postWebAuthnPasskeyResponse(
                 result.response,
@@ -105,6 +111,25 @@ export default function PasskeyForm(props: Props) {
         }
     });
 
+    useEffect(() => {
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const supported = await browserSupportsWebAuthnAutofill();
+                if (cancelled || !supported) return;
+                await handleSignIn(true);
+            } catch (err) {
+                if (axios.isCancel(err)) return;
+                console.error(err);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
     return (
         <Fragment>
             <Grid size={{ xs: 12 }}>
@@ -118,7 +143,7 @@ export default function PasskeyForm(props: Props) {
                     variant="contained"
                     color="primary"
                     fullWidth
-                    onClick={() => handleSignIn()}
+                    onClick={() => handleSignIn(false)}
                     startIcon={<PasskeyIcon />}
                     disabled={props.disabled}
                     endIcon={loading ? <CircularProgress size={20} /> : null}

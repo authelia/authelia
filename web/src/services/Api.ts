@@ -9,6 +9,7 @@ export const OpenIDConnectDeviceAuthorizationPath = basePath + "/api/oidc/device
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
 export const FirstFactorPasskeyPath = basePath + "/api/firstfactor/passkey";
+export const FirstFactorPasskeyConditionalPath = basePath + "/api/firstfactor/passkey/conditional";
 export const FirstFactorReauthenticatePath = basePath + "/api/firstfactor/reauthenticate";
 
 export const TOTPRegistrationPath = basePath + "/api/secondfactor/totp/register";

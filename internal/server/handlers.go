@@ -319,7 +319,8 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.POST("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionPOST))
 
 		if config.WebAuthn.EnablePasskeyLogin {
-			r.GET("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyGET))
+			r.GET("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyGET(false)))
+			r.GET("/api/firstfactor/passkey/conditional", middlewareAPI(handlers.FirstFactorPasskeyGET(true)))
 			r.POST("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyPOST))
 			r.POST("/api/secondfactor/password", middleware1FA(handlers.SecondFactorPasswordPOST(funcDelayPassword)))
 		}

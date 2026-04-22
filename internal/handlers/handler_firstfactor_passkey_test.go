@@ -136,7 +136,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			FirstFactorPasskeyGET(mock.Ctx)
+			FirstFactorPasskeyGET(false)(mock.Ctx)
 
 			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
 			assert.Regexp(t, tc.expected, string(mock.Ctx.Response.Body()))

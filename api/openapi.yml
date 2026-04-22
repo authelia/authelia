@@ -522,6 +522,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+  /api/firstfactor/passkey/conditional:
+    get:
+      tags:
+        - First Factor
+      summary: First Factor Authentication - Passkey
+      description: >
+        The WebAuthn endpoint starts the first factor authentication process with the
+        FIDO2 WebAuthn credential with conditional mediation.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webauthn.PublicKeyCredentialRequestOptions'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
   {{- end }}
   /api/checks/safe-redirection:
     post:
@@ -3092,7 +3113,16 @@ components:
           example: OK
         data:
           type: object
+          required:
+            - 'publicKey'
           properties:
+            mediation:
+              type: string
+              enum:
+                - 'silent'
+                - 'conditional'
+                - 'optional'
+                - 'required'
             publicKey:
               allOf:
                 - $ref: '#/components/schemas/webauthn.UserVerification'
