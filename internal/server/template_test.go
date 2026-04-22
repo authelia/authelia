@@ -119,6 +119,17 @@ func TestServeTemplatedFile(t *testing.T) {
 			"https://example.com",
 		},
 		{
+			"ShouldServeIndexWithRelativeCustomCSS",
+			fasthttp.MethodGet,
+			"",
+			"/authelia-custom/style.css",
+			"",
+			fasthttp.StatusOK,
+			true,
+			true,
+			"",
+		},
+		{
 			"ShouldServeIndexWithCustomLanguage",
 			fasthttp.MethodGet,
 			"fr",
