@@ -24,14 +24,14 @@ func ValidateTheme(config *schema.Configuration, validator *schema.StructValidat
 		if u, err := url.Parse(config.CustomCSS); err != nil {
 			validator.Push(fmt.Errorf(errFmtCustomCSSURL, config.CustomCSS, err))
 		} else {
-			if u.Scheme != schemeHTTPS && (u.Scheme != "" || u.Host != "" || !strings.HasPrefix(u.Path, "/")) {
+			if (u.Scheme == "" && u.Host == "" && strings.HasPrefix(u.Path, "/")) || (u.Scheme == schemeHTTPS && u.Host != "") {
+				config.CustomCSSURL = u
+
+				if config.Server.Headers.CSPTemplate != "" && u.Host != "" && !isHostAllowedInCSP(string(config.Server.Headers.CSPTemplate), u.Host) {
+					validator.PushWarning(fmt.Errorf(errFmtCustomCSSCSPTemplateIncompatibility, config.CustomCSS))
+				}
+			} else {
 				validator.Push(fmt.Errorf(errFmtCustomCSSURL, config.CustomCSS, errors.New("must be an absolute path or an https URL")))
-			}
-
-			config.CustomCSSURL = u
-
-			if config.Server.Headers.CSPTemplate != "" && u.Host != "" && !isHostAllowedInCSP(string(config.Server.Headers.CSPTemplate), u.Host) {
-				validator.PushWarning(fmt.Errorf(errFmtCustomCSSCSPTemplateIncompatibility, config.CustomCSS))
 			}
 		}
 	}

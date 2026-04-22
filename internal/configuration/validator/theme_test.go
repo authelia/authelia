@@ -47,6 +47,7 @@ func (suite *Theme) TestShouldRaiseErrorWhenInvalidCustomCSSProvided() {
 	}{
 		{"ShouldNotValidateOnProtocolRelative", "//example.com/test.css", "option 'custom_css' with value '//example.com/test.css' is invalid: must be an absolute path or an https URL"},
 		{"ShouldNotValidateOnHTTP", "http://example.com/test.css", "option 'custom_css' with value 'http://example.com/test.css' is invalid: must be an absolute path or an https URL"},
+		{"ShouldNotValidateOnHTTPSNoHost", "https:///test.css", "option 'custom_css' with value 'https:///test.css' is invalid: must be an absolute path or an https URL"},
 		{"ShouldNotValidateOnJavascript", "javascript:alert(1)", "option 'custom_css' with value 'javascript:alert(1)' is invalid: must be an absolute path or an https URL"},
 		{"ShouldNotValidateOnRelativePath", "custom.css", "option 'custom_css' with value 'custom.css' is invalid: must be an absolute path or an https URL"},
 	}
