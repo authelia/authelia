@@ -247,6 +247,10 @@ func sessionDomainDescriptor(position int, domain schema.SessionCookie) string {
 }
 
 func validateRedisCommon(config *schema.Session, validator *schema.StructValidator) {
+	if config.Redis.KeyPrefix == "" {
+		config.Redis.KeyPrefix = schema.DefaultRedisConfiguration.KeyPrefix
+	}
+
 	if config.Secret == "" {
 		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, "redis"))
 	}
