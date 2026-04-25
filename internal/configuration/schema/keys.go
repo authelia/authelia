@@ -405,6 +405,7 @@ var Keys = []string{
 	"session.redis.high_availability.sentinel_password",
 	"session.redis.high_availability.sentinel_username",
 	"session.redis.host",
+	"session.redis.key_prefix",
 	"session.redis.max_retries",
 	"session.redis.maximum_active_connections",
 	"session.redis.minimum_idle_connections",
