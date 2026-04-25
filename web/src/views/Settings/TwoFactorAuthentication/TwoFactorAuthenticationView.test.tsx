@@ -64,6 +64,10 @@ vi.mock("@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel", () =
     default: () => <div data-testid="webauthn-panel" />,
 }));
 
+vi.mock("@views/Settings/TwoFactorAuthentication/RedirectAfterEnrollmentDialog", () => ({
+    default: () => null,
+}));
+
 it("renders OTP panel, WebAuthn panel, and options panel", () => {
     render(<TwoFactorAuthenticationView />);
     expect(screen.getByTestId("otp-panel")).toBeInTheDocument();
