@@ -1,6 +1,0 @@
-# Research Notes: MFA Enrollment Redirect (Issue #11016)
-# Studying existing dialog patterns:
-# - SecondFactorDialog.tsx (elevated session dialog)
-# - OneTimePasswordRegisterDialog.tsx (TOTP registration)
-# - WebAuthnCredentialRegisterDialog.tsx (WebAuthn registration)
-# Goal: Create redirect prompt dialog after first MFA enrollment
