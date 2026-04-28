@@ -15,8 +15,8 @@ github.com/derekparker/trie/v3 v3.2.1 h1:fkW2422T+lmRCKD7zuQ97MPgKETXkmJGa0Uze3+
 github.com/derekparker/trie/v3 v3.2.1/go.mod h1:P94lW0LPgiaMgKAEQD59IDZD2jMK9paKok8Nli/nQbE=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
-github.com/go-delve/delve v1.26.2 h1:YmqVunuA/MLzv6IcW/UnS5aBkAdfB/DBuH9LQpb51JE=
-github.com/go-delve/delve v1.26.2/go.mod h1:Ua/k2AAu4cLrUXGSRVH1b2Nzq2aCK188b9EYlAojlz4=
+github.com/go-delve/delve v1.26.3 h1:uCWPnLLYmVRXLt0yhw305sCi5lQLHzYB2fZ0FB3KLUI=
+github.com/go-delve/delve v1.26.3/go.mod h1:Ua/k2AAu4cLrUXGSRVH1b2Nzq2aCK188b9EYlAojlz4=
 github.com/go-delve/liner v1.2.3-0.20231231155935-4726ab1d7f62 h1:IGtvsNyIuRjl04XAOFGACozgUD7A82UffYxZt4DWbvA=
 github.com/go-delve/liner v1.2.3-0.20231231155935-4726ab1d7f62/go.mod h1:biJCRbqp51wS+I92HMqn5H8/A0PAhxn2vyOT+JqhiGI=
 github.com/go-quicktest/qt v1.101.1-0.20240301121107-c6c8733fa1e6 h1:teYtXy9B7y5lHTp8V9KPxpYRAVA7dozigQcMiBust1s=
