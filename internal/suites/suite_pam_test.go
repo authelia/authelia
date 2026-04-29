@@ -3,54 +3,92 @@ package suites
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/authelia/otp/totp"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/crypto/ssh"
+
+	"github.com/authelia/otp"
+	"github.com/authelia/otp/totp"
 
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 type PAMSuite struct {
-	*CommandSuite
+	*RodSuite
+
+	*DockerEnvironment
 }
 
 func NewPAMSuite() *PAMSuite {
 	return &PAMSuite{
-		CommandSuite: &CommandSuite{
-			BaseSuite: &BaseSuite{
-				Name: pamSuiteName,
-			},
-		},
+		RodSuite: NewRodSuite(pamSuiteName),
 	}
 }
 
 func (s *PAMSuite) SetupSuite() {
-	s.BaseSuite.SetupSuite()
-
-	dockerEnvironment := NewDockerEnvironment([]string{
+	s.DockerEnvironment = NewDockerEnvironment([]string{
 		"internal/suites/compose.yml",
 		"internal/suites/PAM/compose.yml",
 		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
 		"internal/suites/example/compose/nginx/portal/compose.yml",
 		"internal/suites/example/compose/pam/compose.yml",
 	})
-	s.DockerEnvironment = dockerEnvironment
 
+	s.seedUserTOTP("john")
+	s.seedUserTOTP("jane")
+
+	browser, err := NewRodSession(RodSessionWithCredentials(s))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s.RodSession = browser
+}
+
+func (s *PAMSuite) TearDownSuite() {
+	if s.RodSession == nil {
+		return
+	}
+
+	if err := s.RodSession.Stop(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// seedUserTOTP provisions TOTP for a user via the authelia CLI (which writes the
+// encrypted secret to Authelia's storage) and simultaneously records the same
+// secret in the suite's in-memory credential store so the Rod helpers can
+// generate matching TOTP codes at validation time. Both users also get their
+// preferred 2FA method set to totp so LoadUserInfo's subquery-driven fields
+// report correctly.
+func (s *PAMSuite) seedUserTOTP(username string) {
 	output, err := s.Exec("authelia-backend", []string{
-		"authelia", "storage", "user", "totp", "generate", "john",
+		"authelia", "storage", "user", "totp", "generate", username,
 		"--force",
 		"--secret", pamTOTPSecret,
 		"--config=/config/configuration.yml",
 	})
-	s.Require().NoError(err, "failed to seed TOTP for john: %s", output)
+	s.Require().NoError(err, "failed to seed TOTP for %s: %s", username, output)
 
 	ctx := context.Background()
 	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
-	s.Require().NoError(provider.SavePreferred2FAMethod(ctx, "john", "totp"))
+	s.Require().NoError(provider.SavePreferred2FAMethod(ctx, username, "totp"))
+
+	s.SetOneTimePassword(username, RodSuiteCredentialOneTimePassword{
+		Secret: pamTOTPSecret,
+		ValidationOptions: totp.ValidateOpts{
+			Period:    30,
+			Skew:      1,
+			Digits:    otp.DigitsSix,
+			Algorithm: otp.AlgorithmSHA1,
+		},
+	})
 }
 
 // setPAMAuthLevel switches /etc/pam.d/sshd in the pam container to one of the pre-seeded
@@ -67,6 +105,8 @@ func (s *PAMSuite) setPAMAuthLevel(authLevel string) {
 		source = "authelia-1fa2fa"
 	case "device-auth":
 		source = "authelia-device-auth"
+	case "device-auth-bind":
+		source = "authelia-device-auth-bind"
 	default:
 		s.T().Fatalf("unknown auth level: %s", authLevel)
 	}
@@ -132,6 +172,113 @@ func (s *PAMSuite) sshLogin(user string, responses []string) (string, error) {
 	out, err := session.CombinedOutput(`echo "AUTHELIA_PAM_LOGIN_SUCCESS"`)
 
 	return string(out), err
+}
+
+// extractVerificationURL scans a multi-line PROMPT_MULTI_VISIBLE payload for the first
+// https:// URL. That line is the verification_uri_complete emitted by pam_authelia's
+// performDeviceAuth (see cmd/pam_authelia/main.go in the pam repo) — the helper builds
+// a prompt body of the form "Scan the QR code below or visit the URL to approve.\n
+// <verification_uri_complete>\n\n<ASCII QR art>\n\nApprove on your device, then press
+// Enter." so the first https:// line is always the verification URL the browser drive
+// needs to hit.
+func extractVerificationURL(prompt string) string {
+	for _, line := range strings.Split(prompt, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "https://") {
+			return line
+		}
+	}
+
+	return ""
+}
+
+// driveDeviceAuthConsent opens a fresh browser tab against the Device Authorization
+// verification URL, logs in to Authelia as the given user with password + TOTP, and
+// accepts the OpenID Connect consent prompt. This is the browser half of the device
+// flow — pam_authelia is parked waiting for the user to press Enter in the SSH session
+// while this runs, then resumes polling the token endpoint once control returns.
+func (s *PAMSuite) driveDeviceAuthConsent(t *testing.T, verificationURL, username, password string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	page := s.doCreateTab(t, verificationURL)
+
+	defer func() {
+		_ = page.Close()
+	}()
+
+	s.verifyIsFirstFactorPage(t, page.Context(ctx))
+	s.doFillLoginPageAndClick(t, page.Context(ctx), username, password, false)
+	s.verifyIsSecondFactorPage(t, page.Context(ctx))
+	s.doValidateTOTP(t, page.Context(ctx), username)
+	s.verifyIsOpenIDConsentDecisionStage(t, page.Context(ctx))
+
+	require := s.Require()
+	require.NoError(s.WaitElementLocatedByID(t, page.Context(ctx), "openid-consent-accept").Click("left", 1))
+
+	s.verifyBodyContains(t, page.Context(ctx), "Consent has been accepted and processed")
+}
+
+// doDeviceAuthSSHLogin runs the SSH half of a Device Authorization flow: dials the
+// pam container's sshd, waits for the QR-code keyboard-interactive prompt, parses the
+// verification URL out of it, invokes approveFn to complete the browser-side consent
+// (which blocks until Authelia records the grant), and then returns an empty response
+// to unblock pam_authelia's polling. Returns the ssh.Dial error (nil on success, a
+// PAM_AUTH_ERR-derived handshake failure on identity mismatch).
+func (s *PAMSuite) doDeviceAuthSSHLogin(linuxUser string, approveFn func(verificationURL string)) error {
+	var qrSeen bool
+
+	cfg := &ssh.ClientConfig{
+		User: linuxUser,
+		Auth: []ssh.AuthMethod{
+			ssh.KeyboardInteractive(func(_, _ string, questions []string, _ []bool) ([]string, error) {
+				answers := make([]string, len(questions))
+
+				for i, q := range questions {
+					if !strings.Contains(q, "Scan the QR code") {
+						continue
+					}
+
+					qrSeen = true
+
+					verificationURL := extractVerificationURL(q)
+					if verificationURL == "" {
+						return nil, fmt.Errorf("could not extract verification URL from prompt")
+					}
+
+					approveFn(verificationURL)
+
+					answers[i] = ""
+				}
+
+				return answers, nil
+			}),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // Test environment only.
+		Timeout:         30 * time.Second,
+	}
+
+	client, dialErr := ssh.Dial("tcp", "ssh.example.com:22", cfg)
+	if client != nil {
+		defer client.Close()
+	}
+
+	s.Require().True(qrSeen, "did not observe QR code prompt from device flow")
+
+	if dialErr != nil {
+		return dialErr
+	}
+
+	session, err := client.NewSession()
+	if err != nil {
+		return err
+	}
+
+	defer session.Close()
+
+	_, err = session.CombinedOutput(`echo "AUTHELIA_PAM_LOGIN_SUCCESS"`)
+
+	return err
 }
 
 func (s *PAMSuite) TestShouldAuthenticateWith1FA() {
@@ -225,15 +372,11 @@ func (s *PAMSuite) TestShouldAuthenticateWith2FAOnly() {
 // to device_authorization, pam_authelia initiates the OAuth2 Device Authorization Grant
 // flow against Authelia, begins polling, and enters the authorization_pending state.
 //
-// The test does NOT complete the browser-side consent step — that end-to-end flow is
-// covered by Authelia's OIDC suite. Our scope is "the PAM module drives the RFC 8628
-// client correctly and reaches the polling state".
-//
-// Flow: the QR code arrives as a PROMPT_MULTI_VISIBLE keyboard-interactive question.
-// We answer with an empty response (as if the user pressed Enter after approving) so
-// the Go binary starts polling the token endpoint. Nobody ever approves, so the poll
-// sits in authorization_pending; the C shim's configured timeout=3 then fires and
-// kills the Go process, returning PAM_AUTH_ERR to sshd which terminates the session.
+// The test does NOT complete the browser-side consent step — that is covered by the
+// identity-binding tests below. This one exists to regress the shim's POLLRDHUP / timeout
+// cleanup path: the device-auth PAM config sets timeout=3 so the shim gives up reading
+// from the Go helper after 3 seconds and returns PAM_AUTH_ERR, synchronizing the test on
+// the real flow rather than an arbitrary sleep.
 func (s *PAMSuite) TestShouldInitiateDeviceAuthorizationFlow() {
 	s.setPAMAuthLevel("device-auth")
 
@@ -296,6 +439,61 @@ func (s *PAMSuite) TestShouldInitiateDeviceAuthorizationFlow() {
 
 	// Device flow short-circuits 1FA entirely; the password endpoint should never be hit.
 	s.NotContains(logs, "/api/firstfactor")
+}
+
+// TestShouldAuthenticateWithDeviceAuthorizationMatchingUser exercises the happy path
+// of the Device Authorization flow end to end: john initiates via SSH, john approves
+// in the browser. pam_authelia's VerifyDeviceIdentity then matches the issued token's
+// `authelia.pam.username` claim against the Linux username and returns PAM_SUCCESS.
+func (s *PAMSuite) TestShouldAuthenticateWithDeviceAuthorizationMatchingUser() {
+	s.setPAMAuthLevel("device-auth-bind")
+
+	since := time.Now()
+
+	err := s.doDeviceAuthSSHLogin("john", func(verificationURL string) {
+		s.driveDeviceAuthConsent(s.T(), verificationURL, "john", "password")
+	})
+	s.Require().NoError(err, "device-auth SSH with matching user should succeed")
+
+	logs := s.pamLogsSince(since)
+
+	s.Contains(logs, "POST https://login.example.com:8080/api/oidc/device-authorization")
+	s.Contains(logs, "device authorization response status=200")
+	s.Contains(logs, "POST https://login.example.com:8080/api/oidc/token")
+	s.Contains(logs, `device identity verified: claim "authelia.pam.username" == pam username "john"`)
+	s.Contains(logs, "Accepted keyboard-interactive/pam for john")
+	s.NotContains(logs, "does not match pam username")
+}
+
+// TestShouldRejectDeviceAuthorizationWithMismatchedUser exercises the confused-deputy
+// defense: john initiates the Device Authorization flow via SSH but jane approves it in
+// the browser. pam_authelia's VerifyDeviceIdentity then observes userinfo.authelia.pam
+// .username == "jane" != "john" and refuses to return PAM_SUCCESS, so sshd rejects the
+// login even though Authelia happily issued a valid token to jane.
+//
+// Without this check any Authelia account holder could approve another user's QR code
+// and end up logged in as them. This test locks that behavior in.
+func (s *PAMSuite) TestShouldRejectDeviceAuthorizationWithMismatchedUser() {
+	s.setPAMAuthLevel("device-auth-bind")
+
+	since := time.Now()
+
+	err := s.doDeviceAuthSSHLogin("john", func(verificationURL string) {
+		s.driveDeviceAuthConsent(s.T(), verificationURL, "jane", "password")
+	})
+	s.Require().Error(err, "device-auth SSH with mismatched approver must be rejected")
+
+	logs := s.pamLogsSince(since)
+
+	// The flow reached the token endpoint and Authelia granted the token to jane ….
+	s.Contains(logs, "POST https://login.example.com:8080/api/oidc/device-authorization")
+	s.Contains(logs, "POST https://login.example.com:8080/api/oidc/token")
+
+	// … but pam_authelia's VerifyDeviceIdentity rejected the mismatch.
+	s.Contains(logs, `authelia identity "jane" does not match pam username "john"`)
+	s.Contains(logs, "PAM: Authentication failure for john")
+	s.NotContains(logs, "Accepted keyboard-interactive/pam for john")
+	s.NotContains(logs, `device identity verified: claim "authelia.pam.username" == pam username "john"`)
 }
 
 func TestPAMSuite(t *testing.T) {

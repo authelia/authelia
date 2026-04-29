@@ -29,7 +29,12 @@ ${PAM_COMMON}
 EOF
 
 cat > /etc/pam.d/authelia-device-auth <<EOF
-auth required pam_authelia.so url=${AUTHELIA_URL} auth-level=1FA+2FA cookie-name=authelia_session${CA_FLAG} method-priority=device_authorization oauth2-client-id=device-code oauth2-client-secret=foobar timeout=3 debug
+auth required pam_authelia.so url=${AUTHELIA_URL} auth-level=1FA+2FA cookie-name=authelia_session${CA_FLAG} method-priority=device_authorization oauth2-client-id=device-code oauth2-client-secret=foobar oauth2-scope=openid,authelia.pam timeout=3 debug
+${PAM_COMMON}
+EOF
+
+cat > /etc/pam.d/authelia-device-auth-bind <<EOF
+auth required pam_authelia.so url=${AUTHELIA_URL} auth-level=1FA+2FA cookie-name=authelia_session${CA_FLAG} method-priority=device_authorization oauth2-client-id=device-code oauth2-client-secret=foobar oauth2-scope=openid,authelia.pam timeout=120 debug
 ${PAM_COMMON}
 EOF
 
@@ -47,7 +52,7 @@ cat <<EOF
   SSH User:      john
 
   Default auth-level is 1FA+2FA. Tests switch modes by copying
-  /etc/pam.d/authelia-{1fa,2fa,1fa2fa,device-auth} to /etc/pam.d/sshd.
+  /etc/pam.d/authelia-{1fa,2fa,1fa2fa,device-auth,device-auth-bind} to /etc/pam.d/sshd.
 
   Connect with:
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \\

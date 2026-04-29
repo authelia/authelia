@@ -12,7 +12,7 @@ import (
 )
 
 // suitesWithoutFrontend matches suite names that do not include the authelia-frontend service.
-var suitesWithoutFrontend = regexp.MustCompile(`^(CLI|PAM)$`)
+var suitesWithoutFrontend = regexp.MustCompile(`^CLI$`)
 
 func waitUntilServiceLogDetected(
 	interval time.Duration,

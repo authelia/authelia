@@ -14,6 +14,7 @@ func init() {
 		"internal/suites/compose.yml",
 		"internal/suites/PAM/compose.yml",
 		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
 		"internal/suites/example/compose/nginx/portal/compose.yml",
 		"internal/suites/example/compose/pam/compose.yml",
 	})

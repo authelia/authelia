@@ -15,6 +15,7 @@ RUN \
 USER dev
 
 ENV PATH="/app:${PATH}" \
+	GOCACHE="/go/cache/go-build" \
 	X_AUTHELIA_CONFIG="/config/configuration.yml"
 
 VOLUME /config

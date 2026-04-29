@@ -48,6 +48,15 @@ identity_providers:
     jwks:
       - key: {{ secret "/pki/private.oidc.pem" | mindent 10 "|" | msquote }}
         certificate_chain: {{ secret "/pki/public.oidc.chain.pem" | mindent 10 "|" | msquote }}
+    claims_policies:
+      pam:
+        custom_claims:
+          authelia.pam.username:
+            attribute: 'username'
+    scopes:
+      authelia.pam:
+        claims:
+          - 'authelia.pam.username'
     clients:
       - client_id: 'device-code'
         client_name: 'PAM Device Code Client'
@@ -56,9 +65,10 @@ identity_providers:
         grant_types:
           - 'urn:ietf:params:oauth:grant-type:device_code'
         token_endpoint_auth_method: 'client_secret_post'
+        claims_policy: 'pam'
         scopes:
           - 'openid'
-          - 'profile'
+          - 'authelia.pam'
 
 access_control:
   default_policy: 'one_factor'

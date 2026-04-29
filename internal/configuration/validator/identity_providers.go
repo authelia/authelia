@@ -210,10 +210,12 @@ func validateOIDCClaims(config *schema.Configuration, validator *schema.StructVa
 
 func validateOIDCScopes(config *schema.Configuration, validator *schema.StructValidator) {
 	for scope, properties := range config.IdentityProviders.OIDC.Scopes {
-		if utils.IsStringInSlice(scope, validOIDCClientScopes) {
-			validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as a custom scope because it's a standard scope", scope))
-		} else if strings.HasPrefix(scope, "authelia.") {
-			validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as a custom scope because all scopes prefixed with 'authelia.' are reserved", scope))
+		if !utils.IsStringInSlice(scope, validOIDCReservedCustomizableScopes) {
+			if utils.IsStringInSlice(scope, validOIDCClientScopes) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as a custom scope because it's a standard scope", scope))
+			} else if strings.HasPrefix(scope, "authelia.") {
+				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as a custom scope because all scopes prefixed with 'authelia.' are reserved", scope))
+			}
 		}
 
 		if !utils.IsStringInSlice(scope, config.IdentityProviders.OIDC.Discovery.Scopes) {
