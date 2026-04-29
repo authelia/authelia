@@ -30,6 +30,8 @@ func NewPAMSuite() *PAMSuite {
 }
 
 func (s *PAMSuite) SetupSuite() {
+	s.BaseSuite.SetupSuite()
+
 	s.seedUserTOTP("john")
 	s.seedUserTOTP("jane")
 
@@ -42,11 +44,8 @@ func (s *PAMSuite) SetupSuite() {
 }
 
 func (s *PAMSuite) TearDownSuite() {
-	if s.RodSession == nil {
-		return
-	}
-
-	if err := s.Stop(); err != nil {
+	err := s.Stop()
+	if err != nil {
 		log.Fatal(err)
 	}
 }
@@ -206,7 +205,7 @@ func (s *PAMSuite) TestShouldInitiateDeviceAuthorizationFlow() {
 }
 
 func (s *PAMSuite) TestShouldAuthenticateWithDeviceAuthorizationMatchingUser() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	s.setPAMAuthLevel("device-auth-bind")
@@ -229,7 +228,7 @@ func (s *PAMSuite) TestShouldAuthenticateWithDeviceAuthorizationMatchingUser() {
 }
 
 func (s *PAMSuite) TestShouldRejectDeviceAuthorizationWithMismatchedUser() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	s.setPAMAuthLevel("device-auth-bind")
