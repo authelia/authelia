@@ -42,6 +42,11 @@ it("returns correct avatar for authelia.bearer.authz", () => {
     expect(screen.getByTestId("LockOpenIcon")).toBeInTheDocument();
 });
 
+it("returns correct avatar for authelia.pam", () => {
+    render(ScopeAvatar("authelia.pam"));
+    expect(screen.getByTestId("TerminalIcon")).toBeInTheDocument();
+});
+
 it("returns policy avatar for unknown scope", () => {
     render(ScopeAvatar("unknown"));
     expect(screen.getByTestId("PolicyIcon")).toBeInTheDocument();
@@ -77,6 +82,10 @@ it("returns correct description for address", () => {
 
 it("returns correct description for authelia.bearer.authz", () => {
     expect(ScopeDescription("authelia.bearer.authz")).toBe("Access protected resources logged in as you");
+});
+
+it("returns correct description for authelia.pam", () => {
+    expect(ScopeDescription("authelia.pam")).toBe("Authenticate to a Linux system as you");
 });
 
 it("returns scope for unknown description", () => {
