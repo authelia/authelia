@@ -19,16 +19,6 @@ var pamDockerEnvironment = NewDockerEnvironment([]string{
 })
 
 func init() {
-	if os.Getenv("CI") == t {
-		pamDockerEnvironment = NewDockerEnvironment([]string{
-			"internal/suites/compose.yml",
-			"internal/suites/PAM/compose.yml",
-			"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-			"internal/suites/example/compose/nginx/portal/compose.yml",
-			"internal/suites/example/compose/pam/compose.yml",
-		})
-	}
-
 	setup := func(suitePath string) (err error) {
 		if err = pamDockerEnvironment.Up(); err != nil {
 			return err

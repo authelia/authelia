@@ -205,8 +205,16 @@ func (s *PAMSuite) TestShouldInitiateDeviceAuthorizationFlow() {
 }
 
 func (s *PAMSuite) TestShouldAuthenticateWithDeviceAuthorizationMatchingUser() {
+	s.Page = s.doCreateTab(s.T(), GetLoginBaseURL(BaseDomain))
+	s.verifyIsFirstFactorPage(s.T(), s.Page)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+		s.MustClose()
+	}()
 
 	s.setPAMAuthLevel("device-auth-bind")
 
@@ -228,8 +236,16 @@ func (s *PAMSuite) TestShouldAuthenticateWithDeviceAuthorizationMatchingUser() {
 }
 
 func (s *PAMSuite) TestShouldRejectDeviceAuthorizationWithMismatchedUser() {
+	s.Page = s.doCreateTab(s.T(), GetLoginBaseURL(BaseDomain))
+	s.verifyIsFirstFactorPage(s.T(), s.Page)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+		s.MustClose()
+	}()
 
 	s.setPAMAuthLevel("device-auth-bind")
 
@@ -387,22 +403,17 @@ func extractVerificationURL(prompt string) string {
 }
 
 func (s *PAMSuite) driveDeviceAuthConsent(ctx context.Context, t *testing.T, verificationURL, username, password string) {
-	page := s.doCreateTab(t, verificationURL)
-
-	defer func() {
-		_ = page.Close()
-	}()
-
-	s.verifyIsFirstFactorPage(t, page.Context(ctx))
-	s.doFillLoginPageAndClick(t, page.Context(ctx), username, password, false)
-	s.verifyIsSecondFactorPage(t, page.Context(ctx))
-	s.doValidateTOTP(t, page.Context(ctx), username)
-	s.verifyIsOpenIDConsentDecisionStage(t, page.Context(ctx))
+	s.doVisit(t, s.Context(ctx), verificationURL)
+	s.verifyIsFirstFactorPage(t, s.Context(ctx))
+	s.doFillLoginPageAndClick(t, s.Context(ctx), username, password, false)
+	s.verifyIsSecondFactorPage(t, s.Context(ctx))
+	s.doValidateTOTP(t, s.Context(ctx), username)
+	s.verifyIsOpenIDConsentDecisionStage(t, s.Context(ctx))
 
 	require := s.Require()
-	require.NoError(s.WaitElementLocatedByID(t, page.Context(ctx), "openid-consent-accept").Click("left", 1))
+	require.NoError(s.WaitElementLocatedByID(t, s.Context(ctx), "openid-consent-accept").Click("left", 1))
 
-	s.verifyBodyContains(t, page.Context(ctx), "Consent has been accepted and processed")
+	s.verifyBodyContains(t, s.Context(ctx), "Consent has been accepted and processed")
 }
 
 func (s *PAMSuite) doDeviceAuthSSHLogin(ctx context.Context, linuxUser string, approveFn func(verificationURL string)) error {
