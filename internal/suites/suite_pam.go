@@ -9,30 +9,44 @@ var pamSuiteName = "PAM"
 
 const pamTOTPSecret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" //nolint:gosec // Test fixture TOTP secret, not a real credential.
 
+var pamDockerEnvironment = NewDockerEnvironment([]string{
+	"internal/suites/compose.yml",
+	"internal/suites/PAM/compose.yml",
+	"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+	"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
+	"internal/suites/example/compose/nginx/portal/compose.yml",
+	"internal/suites/example/compose/pam/compose.yml",
+})
+
 func init() {
-	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
-		"internal/suites/PAM/compose.yml",
-		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/portal/compose.yml",
-		"internal/suites/example/compose/pam/compose.yml",
-	})
+	if os.Getenv("CI") == t {
+		pamDockerEnvironment = NewDockerEnvironment([]string{
+			"internal/suites/compose.yml",
+			"internal/suites/PAM/compose.yml",
+			"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+			"internal/suites/example/compose/nginx/portal/compose.yml",
+			"internal/suites/example/compose/pam/compose.yml",
+		})
+	}
 
 	setup := func(suitePath string) (err error) {
-		if err = dockerEnvironment.Up(); err != nil {
+		if err = pamDockerEnvironment.Up(); err != nil {
 			return err
 		}
 
-		return waitUntilAutheliaIsReady(dockerEnvironment, pamSuiteName)
+		if err = waitUntilAutheliaIsReady(pamDockerEnvironment, pamSuiteName); err != nil {
+			return err
+		}
+
+		return updateDevEnvFileForDomain(BaseDomain, true)
 	}
 
 	displayAutheliaLogs := func() error {
-		return dockerEnvironment.PrintLogs("authelia-backend", "pam")
+		return pamDockerEnvironment.PrintLogs("authelia-backend", "authelia-frontend", "pam")
 	}
 
 	teardown := func(suitePath string) error {
-		err := dockerEnvironment.Down()
+		err := pamDockerEnvironment.Down()
 		_ = os.Remove("/tmp/db.sqlite3")
 
 		return err
