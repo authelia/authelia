@@ -85,8 +85,8 @@ importers:
         version: 8.0.10(esbuild@0.27.3)(yaml@2.8.3)
     optionalDependencies:
       hugo-extended:
-        specifier: 0.161.0
-        version: 0.161.0
+        specifier: 0.161.1
+        version: 0.161.1
 
 packages:
 
@@ -1334,8 +1334,8 @@ packages:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
 
-  hugo-extended@0.161.0:
-    resolution: {integrity: sha512-mIqj89QYAmSMnc1LOoo5yAeWmfyRXLXlC+sy7J7EWZvzDx+zBDlC96kzXvuWYKW93tlpPIFQhJPWQVulPwYh5w==}
+  hugo-extended@0.161.1:
+    resolution: {integrity: sha512-kFpyOR7Kn6GmzFDevruc5uvUDV5k1424iyYOoclFh5mcAJCJtMJ0ymLw+oul9vany6aYyN9vwRIkr1hSIluTlw==}
     engines: {node: '>=18.17'}
     hasBin: true
 
@@ -3433,7 +3433,7 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  hugo-extended@0.161.0:
+  hugo-extended@0.161.1:
     dependencies:
       adm-zip: 0.5.17
       tar: 7.5.13
