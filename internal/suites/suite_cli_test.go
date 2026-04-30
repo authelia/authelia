@@ -1536,6 +1536,11 @@ func (s *CLISuite) TestShouldDeliverSequentialNotificationsToFIFO() {
 }
 
 func (s *CLISuite) TestShouldDeliverConcurrentNotificationsToFIFO() {
+	f, err := os.OpenFile(cliSuiteFIFOPath, os.O_RDWR, 0)
+	s.Require().NoError(err)
+
+	defer f.Close()
+
 	subjects := []string{"fifo-concurrent-one", "fifo-concurrent-two"}
 
 	type readResult struct {
@@ -1546,17 +1551,29 @@ func (s *CLISuite) TestShouldDeliverConcurrentNotificationsToFIFO() {
 	got := make(chan readResult, 1)
 
 	go func() {
-		f, err := os.OpenFile(cliSuiteFIFOPath, os.O_RDONLY, 0)
-		if err != nil {
-			got <- readResult{nil, err}
+		var buf bytes.Buffer
 
-			return
+		chunk := make([]byte, 4096)
+
+		for {
+			n, err := f.Read(chunk)
+			if n > 0 {
+				buf.Write(chunk[:n])
+			}
+
+			if err != nil && err != io.EOF {
+				got <- readResult{buf.Bytes(), err}
+
+				return
+			}
+
+			data := buf.Bytes()
+			if bytes.Contains(data, []byte(subjects[0])) && bytes.Contains(data, []byte(subjects[1])) {
+				got <- readResult{data, nil}
+
+				return
+			}
 		}
-
-		defer f.Close()
-
-		b, err := io.ReadAll(f)
-		got <- readResult{b, err}
 	}()
 
 	var wg sync.WaitGroup
