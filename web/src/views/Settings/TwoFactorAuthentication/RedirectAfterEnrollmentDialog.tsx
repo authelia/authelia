@@ -41,7 +41,7 @@ const RedirectAfterEnrollmentDialog = function (props: Props) {
         try {
             const res = await checkSafeRedirection(targetURL);
 
-            if (res) {
+            if (res?.ok) {
                 redirect(targetURL);
             } else {
                 createErrorNotification(

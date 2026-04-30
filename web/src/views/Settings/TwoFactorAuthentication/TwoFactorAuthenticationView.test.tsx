@@ -64,8 +64,14 @@ vi.mock("@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel", () =
     default: () => <div data-testid="webauthn-panel" />,
 }));
 
+const mockRedirectDialogProps = vi.fn();
+
 vi.mock("@views/Settings/TwoFactorAuthentication/RedirectAfterEnrollmentDialog", () => ({
-    default: () => null,
+    default: (props: { open: boolean; setClosed: () => void }) => {
+        mockRedirectDialogProps(props);
+
+        return props.open ? <div data-testid="redirect-dialog" /> : null;
+    },
 }));
 
 it("renders OTP panel, WebAuthn panel, and options panel", () => {
@@ -74,3 +80,12 @@ it("renders OTP panel, WebAuthn panel, and options panel", () => {
     expect(screen.getByTestId("webauthn-panel")).toBeInTheDocument();
     expect(screen.getByTestId("options-panel")).toBeInTheDocument();
 });
+
+it("does not show redirect dialog when user already has MFA devices", () => {
+    render(<TwoFactorAuthenticationView />);
+    expect(screen.queryByTestId("redirect-dialog")).not.toBeInTheDocument();
+    expect(mockRedirectDialogProps).toHaveBeenCalledWith(
+        expect.objectContaining({ open: false }),
+    );
+});
+
