@@ -14,7 +14,7 @@ overrides:
   glob: 13.0.6
   js-yaml: 4.1.1
   minimatch: 10.2.5
-  nanoid: 5.1.10
+  nanoid: 5.1.11
   picomatch: 4.0.4
   postcss: 8.5.13
   prismjs: 1.30.0
@@ -1391,8 +1391,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  nanoid@5.1.10:
-    resolution: {integrity: sha512-zL1BOcqQ9V2Fsm/UFRP6MpJAWtLrTh1YSK3Ie9OEPuXt347P6J1UiotM71Dkhj6/pmitBnS02TSbK28iXaS+Pg==}
+  nanoid@5.1.11:
+    resolution: {integrity: sha512-v+KEsUv2ps74PaSKv0gHTxTCgMXOIfBEbaqa6w6ISIGC7ZsvHN4N9oJ8d4cmf0n5oTzQz2SLmThbQWhjd/8eKg==}
     engines: {node: ^18 || >=20}
     hasBin: true
 
@@ -2875,7 +2875,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  nanoid@5.1.10: {}
+  nanoid@5.1.11: {}
 
   natural-compare@1.4.0: {}
 
@@ -2960,7 +2960,7 @@ snapshots:
 
   postcss@8.5.13:
     dependencies:
-      nanoid: 5.1.10
+      nanoid: 5.1.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
