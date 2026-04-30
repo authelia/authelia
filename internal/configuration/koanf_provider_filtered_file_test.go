@@ -38,28 +38,23 @@ func TestNewFileFilters(t *testing.T) {
 		},
 		{
 			"ShouldErrorOnDuplicateFilterName",
-			[]string{"expand-env", "expand-env"},
-			"duplicate filter named 'expand-env'",
+			[]string{"template", "template"},
+			"duplicate filter named 'template'",
 		},
 		{
 			"ShouldErrorOnDuplicateFilterNameCaps",
-			[]string{"expand-ENV", "expand-env"},
-			"duplicate filter named 'expand-env'",
+			[]string{"TEMPLATE", "template"},
+			"duplicate filter named 'template'",
 		},
 		{
 			"ShouldNotErrorOnValidFilters",
-			[]string{"expand-env", "template"},
+			[]string{"template"},
 			"",
 		},
 		{
-			"ShouldNotErrorOnExpandEnvFilter",
+			"ShouldErrorOnExpandEnvFilter",
 			[]string{"expand-env"},
-			"",
-		},
-		{
-			"ShouldNotErrorOnExpandEnvFilterCaps",
-			[]string{"EXPAND-env"},
-			"",
+			"filter named 'expand-env' has been removed, the 'template' filter should be used instead",
 		},
 		{
 			"ShouldNotErrorOnTemplateFilter",
@@ -75,7 +70,7 @@ func TestNewFileFilters(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, theError := NewFileFilters(nil, tc.have...)
+			actual, theError := NewFileFilters(nil, "", "", tc.have...)
 
 			switch tc.expect {
 			case "":
@@ -104,25 +99,11 @@ func TestNewFileFiltersValuesFiles(t *testing.T) {
 			"",
 		},
 		{
-			"ShouldLoadValuesForTemplateFilterWithExpandEnvFilter",
-			[]string{"./test_resources/config_values.values.yml"},
-			[]string{"expand-env", "template"},
-			map[string]any{"Example": map[string]any{"Value": "light"}},
-			"",
-		},
-		{
 			"ShouldErrorOnBadValuesFileForTemplateFilter",
 			[]string{"./test_resources/missing.yml"},
 			[]string{"template"},
 			nil,
 			"error reading values file: open ./test_resources/missing.yml: no such file or directory",
-		},
-		{
-			"ShouldIgnoreValuesWithoutAFilterWhichUtilizesThem",
-			[]string{"./test_resources/missing.yml"},
-			[]string{"expand-env"},
-			nil,
-			"",
 		},
 		{
 			"ShouldIgnoreValuesWithoutAnyFilters",
@@ -135,7 +116,7 @@ func TestNewFileFiltersValuesFiles(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, err := NewFileFilters(tc.valuesFiles, tc.filters...)
+			actual, err := NewFileFilters(tc.valuesFiles, "", "", tc.filters...)
 
 			if tc.err != "" {
 				assert.EqualError(t, err, tc.err)
@@ -207,7 +188,7 @@ func TestTemplateFilterMissingKeys(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			filters, err := NewFileFilters([]string{"./test_resources/config_values.values.yml"}, "template")
+			filters, err := NewFileFilters([]string{"./test_resources/config_values.values.yml"}, "", "", "template")
 			require.NoError(t, err)
 			require.Len(t, filters, 1)
 
@@ -225,7 +206,7 @@ func TestTemplateFilterMissingKeys(t *testing.T) {
 }
 
 func TestTemplateFilterShouldRenderLargeJSONIntegersExactly(t *testing.T) {
-	filters, err := NewFileFilters([]string{"./test_resources/config_values.numbers.large.json"}, "template")
+	filters, err := NewFileFilters([]string{"./test_resources/config_values.numbers.large.json"}, "", "", "template")
 	require.NoError(t, err)
 	require.Len(t, filters, 1)
 
@@ -606,4 +587,66 @@ func TestMergeValues(t *testing.T) {
 			assert.Equal(t, tc.expected, tc.dst)
 		})
 	}
+}
+
+func TestTemplateBytesFilter(t *testing.T) {
+	t.Run("ShouldReturnFilterName", func(t *testing.T) {
+		assert.Equal(t, filterTemplate, NewTemplateFileFilter(nil, "", "").Name())
+	})
+
+	t.Run("ShouldRenderWithDefaultDelimiters", func(t *testing.T) {
+		filter := NewTemplateFileFilter(nil, "", "")
+
+		out, err := filter.Filter([]byte(`hello {{ "world" }}`))
+
+		require.NoError(t, err)
+		assert.Equal(t, "hello world", string(out))
+	})
+
+	t.Run("ShouldRenderWithCustomDelimiters", func(t *testing.T) {
+		filter := NewTemplateFileFilter(nil, "<%", "%>")
+
+		out, err := filter.Filter([]byte(`hello <% "world" %> with {{ braces }} preserved`))
+
+		require.NoError(t, err)
+		assert.Equal(t, "hello world with {{ braces }} preserved", string(out))
+	})
+
+	t.Run("ShouldReturnErrorOnParseFailure", func(t *testing.T) {
+		filter := NewTemplateFileFilter(nil, "", "")
+
+		out, err := filter.Filter([]byte("{{ if }}"))
+
+		assert.Nil(t, out)
+		assert.ErrorContains(t, err, "missing value for if")
+	})
+
+	t.Run("ShouldReturnErrorOnExecuteFailure", func(t *testing.T) {
+		filter := NewTemplateFileFilter(nil, "", "")
+
+		out, err := filter.Filter([]byte(`{{ template "missing" }}`))
+
+		assert.Nil(t, out)
+		assert.ErrorContains(t, err, `template "missing"`)
+	})
+
+	t.Run("ShouldForwardCustomDelimitersThroughNewFileFilters", func(t *testing.T) {
+		filters, err := NewFileFilters(nil, "<%", "%>", filterTemplate)
+		require.NoError(t, err)
+		require.Len(t, filters, 1)
+
+		out, err := filters[0].Filter([]byte(`<% "rendered" %>`))
+
+		require.NoError(t, err)
+		assert.Equal(t, "rendered", string(out))
+	})
+}
+
+func TestFilteredFile_Read(t *testing.T) {
+	f := FilteredFileProvider("/tmp/does-not-matter")
+
+	m, err := f.Read()
+
+	assert.Nil(t, m)
+	assert.EqualError(t, err, "filtered file provider does not support this method")
 }

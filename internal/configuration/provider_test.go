@@ -356,7 +356,7 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 }
 
 func TestShouldValidateConfigurationWithFiltersValues(t *testing.T) {
-	filters, err := NewFileFilters([]string{"./test_resources/config_values.values.yml"}, "template")
+	filters, err := NewFileFilters([]string{"./test_resources/config_values.values.yml"}, "", "", "template")
 	require.NoError(t, err)
 
 	val := schema.NewStructValidator()
@@ -372,7 +372,7 @@ func TestShouldValidateConfigurationWithFiltersValues(t *testing.T) {
 
 func TestShouldValidateConfigurationWithFiltersWalk(t *testing.T) {
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_walk.yml"}, []BytesFilter{NewTemplateFileFilter(nil)}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_walk.yml"}, []BytesFilter{NewTemplateFileFilter(nil, "", "")}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 	assert.NoError(t, err)
 	assert.NotNil(t, config)
 	assert.NotNil(t, keys)
@@ -383,7 +383,7 @@ func TestShouldValidateConfigurationWithFiltersWalk(t *testing.T) {
 
 func TestShouldValidateConfigurationWithRegexACL(t *testing.T) {
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_regex.yml"}, []BytesFilter{NewTemplateFileFilter(nil)}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_regex.yml"}, []BytesFilter{NewTemplateFileFilter(nil, "", "")}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 	assert.NoError(t, err)
 	assert.NotNil(t, config)
 	assert.NotNil(t, keys)
@@ -420,7 +420,7 @@ func TestShouldValidateConfigurationWithRegexACL(t *testing.T) {
 
 func TestShouldValidateConfigurationWithFiltersGlob(t *testing.T) {
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_glob.yml"}, []BytesFilter{NewTemplateFileFilter(nil)}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_glob.yml"}, []BytesFilter{NewTemplateFileFilter(nil, "", "")}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 	assert.NoError(t, err)
 	assert.NotNil(t, config)
 	assert.NotNil(t, keys)
@@ -1698,9 +1698,9 @@ func TestFileSource_GetBytesFilterNames(t *testing.T) {
 	})
 
 	t.Run("ShouldReturnConfiguredFilterNames", func(t *testing.T) {
-		source := NewFilteredFileSource("./test_resources/config.yml", NewExpandEnvFileFilter(), NewTemplateFileFilter(nil))
+		source := NewFilteredFileSource("./test_resources/config.yml", NewTemplateFileFilter(nil, "", ""))
 
-		assert.Equal(t, []string{filterExpandEnv, filterTemplate}, source.GetBytesFilterNames())
+		assert.Equal(t, []string{filterTemplate}, source.GetBytesFilterNames())
 	})
 }
 
@@ -1726,8 +1726,8 @@ func TestBytesSource_ReadBytes(t *testing.T) {
 	t.Run("ShouldApplyFiltersInOrder", func(t *testing.T) {
 		t.Setenv("AUTHELIA_TEST_BYTES_FILTER_ENV", "expanded-value")
 
-		source := NewBytesSource([]byte("value: '${AUTHELIA_TEST_BYTES_FILTER_ENV}'\n"))
-		source.filters = []BytesFilter{NewExpandEnvFileFilter()}
+		source := NewBytesSource([]byte("value: '{{ env \"AUTHELIA_TEST_BYTES_FILTER_ENV\" }}'\n"))
+		source.filters = []BytesFilter{NewTemplateFileFilter(nil, "", "")}
 
 		data, err := source.ReadBytes()
 
@@ -1737,7 +1737,7 @@ func TestBytesSource_ReadBytes(t *testing.T) {
 
 	t.Run("ShouldReturnFilterError", func(t *testing.T) {
 		source := NewBytesSource([]byte("{{ if }}"))
-		source.filters = []BytesFilter{NewTemplateFileFilter(nil)}
+		source.filters = []BytesFilter{NewTemplateFileFilter(nil, "", "")}
 
 		data, err := source.ReadBytes()
 

@@ -571,7 +571,7 @@ This subcommand allows debugging the filtered YAML files with any of the availab
 command needs to be executed with the same environment variables and working path as when normally running Authelia to
 be useful.`
 
-	cmdAutheliaConfigTemplateExample = `authelia config template --config.experimental.filters=template --config=config.yml`
+	cmdAutheliaConfigTemplateExample = `authelia config template --config.filters=template --config=config.yml`
 
 	cmdAutheliaConfigValidateShort = "Check a configuration against the internal configuration validation mechanisms"
 
@@ -837,10 +837,16 @@ const (
 	cmdFlagNameConfig    = "config"
 	cmdFlagEnvNameConfig = "X_AUTHELIA_CONFIG"
 
-	cmdFlagNameConfigExpFilters       = "config.experimental.filters"
+	cmdFlagNameConfigFilters          = "config.filters"
 	cmdFlagNameConfigFiltersValues    = "config.filters.values"
 	cmdFlagEnvNameConfigFilters       = "X_AUTHELIA_CONFIG_FILTERS"
 	cmdFlagEnvNameConfigFiltersValues = "X_AUTHELIA_CONFIG_FILTERS_VALUES"
+
+	cmdFlagNameConfigFiltersTemplateDelimiterLeft    = "config.filters.template.delimiter.left"
+	cmdFlagEnvNameConfigFiltersTemplateLeftDelimiter = "X_AUTHELIA_CONFIG_FILTERS_TEMPLATE_DELIMITER_LEFT"
+
+	cmdFlagNameConfigFiltersTemplateDelimiterRight    = "config.filters.template.delimiter.right"
+	cmdFlagEnvNameConfigFiltersTemplateRightDelimiter = "X_AUTHELIA_CONFIG_FILTERS_TEMPLATE_DELIMITER_RIGHT"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"
@@ -947,10 +953,9 @@ var (
 const (
 	helpTopicConfigFilters = `Configuration Filters are a system for templating configuration files.
 
-To configure a list of filters use the --config.experimental.filters flag or the X_AUTHELIA_CONFIG_FILTERS environment
-variable. Multiple filters can be specified which apply to all configuration files that are loaded by Authelia. These
-filters are applied after loading the file data from the filesystem, but before they are parsed by the relevant file
-format parser.
+To configure a list of filters use the --config.filters flag or the X_AUTHELIA_CONFIG_FILTERS environment variable.
+Multiple filters can be specified which apply to all configuration files that are loaded by Authelia. These filters are
+applied after loading the file data from the filesystem, but before they are parsed by the relevant file format parser.
 
 The filters are processed in the order specified, and the content of each configuration file is logged as a base64 raw
 string when the log level is set to trace.
@@ -970,13 +975,7 @@ The following filters are available:
 		custom functions exist to facilitate this process. This filter has access to the data from the values files via
 		the '.Values' field, and the Authelia version and build metadata via the '.Authelia' field.
 
-		For a full list of functions see: https://www.authelia.com/reference/guides/templating/#functions
-
-	expand-env:
-
-		DEPRECATED: This filter expands environment variables in place where specified in the configuration. For example
-        the string ${DOMAIN_NAME} will be replaced with the value from the DOMAIN_NAME environment variable or an empty
-		string.`
+		For a full list of functions see: https://www.authelia.com/reference/guides/templating/#functions`
 
 	helpTopicConfig = `Configuration can be specified in multiple layers where each layer is a different source from
 the last. The layers are loaded in the order below where each layer potentially overrides the individual settings from

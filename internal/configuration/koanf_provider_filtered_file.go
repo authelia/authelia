@@ -75,29 +75,6 @@ type BytesFilter interface {
 	Filter(in []byte) (out []byte, err error)
 }
 
-// ExpandEnvBytesFilter is a BytesFilter which expands environment variables.
-type ExpandEnvBytesFilter struct {
-	log *logrus.Entry
-}
-
-// Name returns the name of this filter.
-func (f *ExpandEnvBytesFilter) Name() (name string) {
-	return filterExpandEnv
-}
-
-// Filter expands the environment variables in the given content.
-func (f *ExpandEnvBytesFilter) Filter(in []byte) (out []byte, err error) {
-	out = []byte(os.Expand(string(in), templates.FuncGetEnv))
-
-	if f.log.Level >= logrus.TraceLevel {
-		f.log.
-			WithField("content", base64.RawStdEncoding.EncodeToString(out)).
-			Trace("Expanded Env File Filter completed successfully")
-	}
-
-	return out, nil
-}
-
 // TemplateBytesFilterValues holds the values provided to the template filter.
 type TemplateBytesFilterValues struct {
 	Values   map[string]any
@@ -146,16 +123,16 @@ func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
 // NewFileFiltersDefault returns the default list of BytesFilter.
 func NewFileFiltersDefault() []BytesFilter {
 	return []BytesFilter{
-		NewExpandEnvFileFilter(),
-		NewTemplateFileFilter(nil),
+		NewTemplateFileFilter(nil, "", ""),
 	}
 }
 
 // NewFileFilters returns a list of BytesFilter provided they are valid. Each path in valuesFiles is loaded in order and
 // deep-merged over the previously-loaded values so that later files override earlier ones. The values files are only
 // loaded if one of the named filters utilizes them, otherwise a warning is logged and they're ignored. Errors which
-// occur loading the values files are wrapped in a *FilterValuesError.
-func NewFileFilters(valuesFiles []string, names ...string) (filters []BytesFilter, err error) {
+// occur loading the values files are wrapped in a *FilterValuesError. The left and right values are forwarded to
+// NewTemplateFileFilter when the template filter is present; empty values use the defaults ({{ and }}).
+func NewFileFilters(valuesFiles []string, left, right string, names ...string) (filters []BytesFilter, err error) {
 	filters = make([]BytesFilter, len(names))
 
 	var (
@@ -172,7 +149,8 @@ func NewFileFilters(valuesFiles []string, names ...string) (filters []BytesFilte
 		switch name {
 		case filterTemplate:
 			requiresValues = true
-		case filterExpandEnv:
+		case filterRemovedExpandEnv:
+			return nil, fmt.Errorf("filter named '%s' has been removed, the '%s' filter should be used instead", filterRemovedExpandEnv, filterTemplate)
 		default:
 			return nil, fmt.Errorf("invalid filter named '%s'", name)
 		}
@@ -199,9 +177,7 @@ func NewFileFilters(valuesFiles []string, names ...string) (filters []BytesFilte
 	for i, name := range filterNames {
 		switch name {
 		case filterTemplate:
-			filters[i] = NewTemplateFileFilter(values)
-		case filterExpandEnv:
-			filters[i] = NewExpandEnvFileFilter()
+			filters[i] = NewTemplateFileFilter(values, left, right)
 		}
 	}
 
@@ -382,15 +358,9 @@ func mergeValues(dst, src map[string]any) {
 	}
 }
 
-// NewExpandEnvFileFilter returns a new BytesFilter which passes the bytes through [os.Expand] using special env vars.
-func NewExpandEnvFileFilter() BytesFilter {
-	return &ExpandEnvBytesFilter{
-		log: logging.Logger().WithFields(map[string]any{filterField: filterExpandEnv}),
-	}
-}
-
-// NewTemplateFileFilter returns a new BytesFilter which passes the bytes through text/template.
-func NewTemplateFileFilter(values map[string]any) BytesFilter {
+// NewTemplateFileFilter returns a new BytesFilter which passes the bytes through text/template. An empty value for
+// left or right uses the default delimiter ({{ or }} respectively).
+func NewTemplateFileFilter(values map[string]any, left, right string) BytesFilter {
 	data := TemplateBytesFilterValues{
 		Values:   values,
 		Authelia: map[string]any{},
@@ -413,7 +383,7 @@ func NewTemplateFileFilter(values map[string]any) BytesFilter {
 
 	return &TemplateBytesFilter{
 		log:  logging.Logger().WithFields(map[string]any{filterField: filterTemplate}),
-		t:    template.New("config.template").Option("missingkey=error").Funcs(templates.FuncMap()),
+		t:    template.New("config.template").Delims(left, right).Option("missingkey=error").Funcs(templates.FuncMap()),
 		data: data,
 	}
 }
