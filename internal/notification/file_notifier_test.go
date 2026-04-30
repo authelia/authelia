@@ -254,7 +254,20 @@ func TestFileNotifier_Send_FIFOWritesIdenticalBytesToReader(t *testing.T) {
 	et := &templates.EmailTemplate{Text: tmpl}
 	rcpt := mail.Address{Name: "John Doe", Address: "john@example.com"}
 
-	require.NoError(t, n.Send(context.Background(), rcpt, "FIFOSubject", et, map[string]string{"User": "World"}))
+	sendErr := make(chan error, 1)
+
+	go func() {
+		sendErr <- n.Send(context.Background(), rcpt, "FIFOSubject", et, map[string]string{"User": "World"})
+	}()
+
+	deadline := time.After(5 * time.Second)
+
+	select {
+	case err := <-sendErr:
+		require.NoError(t, err)
+	case <-deadline:
+		t.Fatal("notifier Send blocked; FIFO reader did not connect")
+	}
 
 	select {
 	case r := <-got:
@@ -266,7 +279,7 @@ func TestFileNotifier_Send_FIFOWritesIdenticalBytesToReader(t *testing.T) {
 		assert.Contains(t, content, "Hello World")
 		assert.Contains(t, content, "Date: ")
 		assert.Contains(t, content, "Recipient: ")
-	case <-time.After(5 * time.Second):
+	case <-deadline:
 		t.Fatal("FIFO reader timed out; notifier did not write to the pipe")
 	}
 }

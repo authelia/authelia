@@ -8,10 +8,11 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	th "html/template"
 	"io"
 	"net/mail"
 	"strings"
-	"text/template"
+	tt "text/template"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -115,8 +116,12 @@ func runDebugNotification(w io.Writer, flags *pflag.FlagSet, config *schema.Conf
 
 	_, _ = fmt.Fprintf(w, "Startup check OK.\n")
 
-	tmpl := template.Must(template.New("text").Parse("This is a test notification from `authelia debug notification`.\n"))
-	et := &templates.EmailTemplate{Text: tmpl}
+	const body = "This is a test notification from `authelia debug notification`.\n"
+
+	et := &templates.EmailTemplate{
+		Text: tt.Must(tt.New("text").Parse(body)),
+		HTML: th.Must(th.New("html").Parse(body)),
+	}
 
 	_, _ = fmt.Fprintf(w, "Sending test notification to %s...\n", rcpt.Address)
 

@@ -1493,7 +1493,7 @@ func (s *CLISuite) TestShouldDeliverSequentialNotificationsToFIFO() {
 		err  error
 	}
 
-	for _, subject := range []string{"FIFO Sequential One", "FIFO Sequential Two", "FIFO Sequential Three"} {
+	for _, subject := range []string{"fifo-sequential-one", "fifo-sequential-two", "fifo-sequential-three"} {
 		s.Run(subject, func() {
 			got := make(chan readResult, 1)
 
@@ -1536,12 +1536,28 @@ func (s *CLISuite) TestShouldDeliverSequentialNotificationsToFIFO() {
 }
 
 func (s *CLISuite) TestShouldDeliverConcurrentNotificationsToFIFO() {
-	f, err := os.OpenFile(cliSuiteFIFOPath, os.O_RDWR, 0)
-	s.Require().NoError(err)
+	subjects := []string{"fifo-concurrent-one", "fifo-concurrent-two"}
 
-	defer f.Close()
+	type readResult struct {
+		data []byte
+		err  error
+	}
 
-	subjects := []string{"FIFO Concurrent One", "FIFO Concurrent Two"}
+	got := make(chan readResult, 1)
+
+	go func() {
+		f, err := os.OpenFile(cliSuiteFIFOPath, os.O_RDONLY, 0)
+		if err != nil {
+			got <- readResult{nil, err}
+
+			return
+		}
+
+		defer f.Close()
+
+		b, err := io.ReadAll(f)
+		got <- readResult{b, err}
+	}()
 
 	var wg sync.WaitGroup
 
@@ -1564,14 +1580,16 @@ func (s *CLISuite) TestShouldDeliverConcurrentNotificationsToFIFO() {
 
 	wg.Wait()
 
-	buf := make([]byte, 8192)
+	select {
+	case r := <-got:
+		s.Require().NoError(r.err)
 
-	n, err := f.Read(buf)
-	s.Require().NoError(err)
-
-	content := string(buf[:n])
-	s.Contains(content, fmt.Sprintf("Subject: %s", subjects[0]))
-	s.Contains(content, fmt.Sprintf("Subject: %s", subjects[1]))
+		content := string(r.data)
+		s.Contains(content, fmt.Sprintf("Subject: %s", subjects[0]))
+		s.Contains(content, fmt.Sprintf("Subject: %s", subjects[1]))
+	case <-time.After(15 * time.Second):
+		s.Fail("FIFO reader timed out for concurrent notifications")
+	}
 }
 
 func TestCLISuite(t *testing.T) {

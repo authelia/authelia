@@ -77,6 +77,13 @@ func (n *FileNotifier) Send(_ context.Context, recipient mail.Address, subject s
 
 	defer f.Close()
 
+	info, err := f.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to stat file: %w", err)
+	}
+
+	fifo = info.Mode()&os.ModeNamedPipe != 0
+
 	w := bufio.NewWriter(f)
 
 	if _, err = fmt.Fprintf(w, fileNotifierHeader, time.Now(), recipient, subject); err != nil {
