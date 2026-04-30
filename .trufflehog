@@ -6,6 +6,7 @@
 ^docs\/assets\/js\/docsearch\.js$
 ^docs\/content\/
 ^docs\/public\/
+^graphify-out\/
 ^internal\/configuration\/test_resources\/
 ^internal\/suites\/.*\/configuration\.yml$
 ^internal\/suites\/common\/pki\/.*\.pem$
