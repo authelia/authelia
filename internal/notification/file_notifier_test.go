@@ -3,11 +3,14 @@ package notification
 import (
 	"bufio"
 	"context"
+	"io"
 	"net/mail"
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -175,6 +178,96 @@ func TestFileNotifier_Send(t *testing.T) {
 				assert.NotContains(t, content, s)
 			}
 		})
+	}
+}
+
+func TestIsFIFO(t *testing.T) {
+	base := t.TempDir()
+
+	t.Run("MissingPathReturnsFalse", func(t *testing.T) {
+		fifo, err := isFIFO(filepath.Join(base, "does-not-exist"))
+		require.NoError(t, err)
+		assert.False(t, fifo)
+	})
+
+	t.Run("RegularFileReturnsFalse", func(t *testing.T) {
+		path := filepath.Join(base, "regular")
+		require.NoError(t, os.WriteFile(path, []byte("x"), 0o600))
+
+		fifo, err := isFIFO(path)
+		require.NoError(t, err)
+		assert.False(t, fifo)
+	})
+
+	t.Run("FIFOReturnsTrue", func(t *testing.T) {
+		path := filepath.Join(base, "pipe")
+		require.NoError(t, syscall.Mkfifo(path, 0o600))
+
+		fifo, err := isFIFO(path)
+		require.NoError(t, err)
+		assert.True(t, fifo)
+	})
+}
+
+func TestFileNotifier_StartupCheck_FIFOIsLeftUntouched(t *testing.T) {
+	base := t.TempDir()
+	path := filepath.Join(base, "notify.fifo")
+	require.NoError(t, syscall.Mkfifo(path, 0o600))
+
+	n := NewFileNotifier(schema.NotifierFileSystem{Filename: path})
+
+	require.NoError(t, n.StartupCheck())
+
+	info, err := os.Stat(path)
+	require.NoError(t, err)
+	assert.NotZero(t, info.Mode()&os.ModeNamedPipe, "StartupCheck must not replace the FIFO with a regular file")
+}
+
+func TestFileNotifier_Send_FIFOWritesIdenticalBytesToReader(t *testing.T) {
+	base := t.TempDir()
+	fifoPath := filepath.Join(base, "notify.fifo")
+	require.NoError(t, syscall.Mkfifo(fifoPath, 0o600))
+
+	type readResult struct {
+		data []byte
+		err  error
+	}
+
+	got := make(chan readResult, 1)
+
+	go func() {
+		f, err := os.OpenFile(fifoPath, os.O_RDONLY, 0)
+		if err != nil {
+			got <- readResult{nil, err}
+
+			return
+		}
+
+		defer f.Close()
+
+		b, err := io.ReadAll(f)
+		got <- readResult{b, err}
+	}()
+
+	n := NewFileNotifier(schema.NotifierFileSystem{Filename: fifoPath})
+	tmpl := template.Must(template.New("text").Parse("Hello {{ .User }}"))
+	et := &templates.EmailTemplate{Text: tmpl}
+	rcpt := mail.Address{Name: "John Doe", Address: "john@example.com"}
+
+	require.NoError(t, n.Send(context.Background(), rcpt, "FIFOSubject", et, map[string]string{"User": "World"}))
+
+	select {
+	case r := <-got:
+		require.NoError(t, r.err)
+
+		content := string(r.data)
+		assert.Contains(t, content, "Subject: FIFOSubject")
+		assert.Contains(t, content, "john@example.com")
+		assert.Contains(t, content, "Hello World")
+		assert.Contains(t, content, "Date: ")
+		assert.Contains(t, content, "Recipient: ")
+	case <-time.After(5 * time.Second):
+		t.Fatal("FIFO reader timed out; notifier did not write to the pipe")
 	}
 }
 

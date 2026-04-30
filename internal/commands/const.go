@@ -741,6 +741,14 @@ This subcommand allows checking certain OpenID Connect 1.0 scenarios.`
 This subcommand allows checking an OpenID Connect 1.0 claims hydration scenario by providing certain information about a request.`
 
 	cmdAutheliaDebugOIDCClaimsExample = `authelia debug oidc claims --help`
+
+	cmdAutheliaDebugNotificationShort = "Perform a notifier debug operation"
+
+	cmdAutheliaDebugNotificationLong = `Perform a notifier debug operation.
+
+This subcommand loads the Authelia configuration, runs the notifier startup check, and dispatches a single test notification. It is useful for verifying that the SMTP server, filesystem path, or named-pipe consumer is reachable.`
+
+	cmdAutheliaDebugNotificationExample = `authelia debug notification --recipient admin@example.com --subject "Test"`
 )
 
 const (
