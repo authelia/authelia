@@ -60,10 +60,11 @@ func ValidateConfiguration(config *schema.Configuration, val *schema.StructValid
 	validator.ValidateConfiguration(config, val)
 }
 
-// NewNamedConfigFileFilters allows configuring a set of file filters. The officially supported filter has the name
-// 'template'. The only other one at this stage is 'expand-env' which is deprecated.
-func NewNamedConfigFileFilters(names ...string) (filters []configuration.BytesFilter, err error) {
-	if filters, err = configuration.NewFileFilters(names); err != nil {
+// NewNamedConfigFileFilters allows configuring a set of file filters. The officially supported filter is 'template'.
+// The leftDelim and rightDelim parameters override the default template delimiters used by the 'template' filter; pass
+// empty strings to leave them at their defaults.
+func NewNamedConfigFileFilters(leftDelim, rightDelim string, names ...string) (filters []configuration.BytesFilter, err error) {
+	if filters, err = configuration.NewFileFilters(names, leftDelim, rightDelim); err != nil {
 		return nil, fmt.Errorf("error occurred loading filters: %w", err)
 	}
 
