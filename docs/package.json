@@ -33,7 +33,7 @@
     "bootstrap": "5.3.8",
     "clipboard": "2.0.11",
     "flexsearch": "0.8.212",
-    "postcss": "8.5.12",
+    "postcss": "8.5.13",
     "postcss-cli": "11.0.1",
     "prettier": "3.8.3",
     "vite": "8.0.10"
