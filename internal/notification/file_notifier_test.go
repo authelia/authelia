@@ -22,13 +22,13 @@ import (
 func TestFileNotifier_StartupCheck(t *testing.T) {
 	testCases := []struct {
 		name       string
-		setup      func(base string) string
+		setup      func(t *testing.T, base string) string
 		expectErr  bool
 		verifyFile func(t *testing.T, path string)
 	}{
 		{
 			name: "ShouldReturnErrorWhenParentIsFile",
-			setup: func(base string) string {
+			setup: func(t *testing.T, base string) string {
 				parent := filepath.Join(base, "notadir")
 				require.NoError(t, os.WriteFile(parent, []byte("x"), 0o600))
 
@@ -38,8 +38,38 @@ func TestFileNotifier_StartupCheck(t *testing.T) {
 			verifyFile: func(t *testing.T, path string) {},
 		},
 		{
+			name: "ShouldReturnErrorWhenStatDirFails",
+			setup: func(t *testing.T, base string) string {
+				regfile := filepath.Join(base, "regfile")
+				require.NoError(t, os.WriteFile(regfile, []byte("x"), 0o600))
+
+				return filepath.Join(regfile, "sub", "notify.log")
+			},
+			expectErr:  true,
+			verifyFile: func(t *testing.T, path string) {},
+		},
+		{
+			name: "ShouldReturnErrorWhenMkdirAllFails",
+			setup: func(t *testing.T, base string) string {
+				if os.Geteuid() == 0 {
+					t.Skip("running as root bypasses directory permissions")
+				}
+
+				parent := filepath.Join(base, "readonly")
+				require.NoError(t, os.MkdirAll(parent, 0o500))
+
+				t.Cleanup(func() {
+					_ = os.Chmod(parent, 0o700)
+				})
+
+				return filepath.Join(parent, "sub", "notify.log")
+			},
+			expectErr:  true,
+			verifyFile: func(t *testing.T, path string) {},
+		},
+		{
 			name: "ShouldSucceedWhenParentIsDir",
-			setup: func(base string) string {
+			setup: func(t *testing.T, base string) string {
 				parent := filepath.Join(base, "adir")
 				require.NoError(t, os.MkdirAll(parent, 0o755))
 
@@ -54,7 +84,7 @@ func TestFileNotifier_StartupCheck(t *testing.T) {
 		},
 		{
 			name: "ShouldCreateParentDirectoryWhenMissing",
-			setup: func(base string) string {
+			setup: func(t *testing.T, base string) string {
 				return filepath.Join(base, "nested", "dir", "notify.log")
 			},
 			expectErr: false,
@@ -70,7 +100,7 @@ func TestFileNotifier_StartupCheck(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			base := t.TempDir()
-			path := tc.setup(base)
+			path := tc.setup(t, base)
 			n := NewFileNotifier(schema.NotifierFileSystem{Filename: path})
 
 			err := n.StartupCheck()
@@ -90,6 +120,7 @@ func TestFileNotifier_Send(t *testing.T) {
 		name            string
 		appendMode      bool
 		setpathbase     bool
+		setpathstaterr  bool
 		preContent      string
 		subject         string
 		data            any
@@ -123,6 +154,14 @@ func TestFileNotifier_Send(t *testing.T) {
 			data:            map[string]string{"User": "Y"},
 			expectErrSubstr: "failed to open file",
 		},
+		{
+			name:            "ShouldReturnErrorWhenStatFails",
+			appendMode:      false,
+			setpathstaterr:  true,
+			subject:         "X",
+			data:            map[string]string{"User": "Y"},
+			expectErrSubstr: "failed to stat file",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -130,11 +169,16 @@ func TestFileNotifier_Send(t *testing.T) {
 			base := t.TempDir()
 			filePath := filepath.Join(base, "notify.log")
 
-			if tc.setpathbase {
+			switch {
+			case tc.setpathbase:
 				filePath = base
+			case tc.setpathstaterr:
+				regfile := filepath.Join(base, "regfile")
+				require.NoError(t, os.WriteFile(regfile, []byte("x"), 0o600))
+				filePath = filepath.Join(regfile, "sub", "notify.log")
 			}
 
-			if tc.preContent != "" && tc.name != "ShouldReturnErrorWhenOpenFileFails" {
+			if tc.preContent != "" && !tc.setpathbase {
 				require.NoError(t, os.WriteFile(filePath, []byte(tc.preContent), 0o600))
 			}
 
