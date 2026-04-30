@@ -2,7 +2,7 @@
 title: "authelia crypto hash generate sha2crypt"
 description: "Reference for the authelia crypto hash generate sha2crypt command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-12T18:33:16+10:00
 draft: false
 images: []
 weight: 905
@@ -46,14 +46,16 @@ authelia crypto hash generate sha2crypt --help
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
-      --no-confirm                            skip the password confirmation prompt
-      --password string                       manually supply the password rather than using the terminal prompt
-      --random                                uses a randomly generated password
-      --random.characters string              sets the explicit characters for the random string
-      --random.charset string                 sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
-      --random.length int                     sets the character length for the random string (default 72)
+  -c, --config strings                                   configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.filters strings                           list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.template.delimiter.left string    sets the left delimiter for the 'template' filter
+      --config.filters.template.delimiter.right string   sets the right delimiter for the 'template' filter
+      --no-confirm                                       skip the password confirmation prompt
+      --password string                                  manually supply the password rather than using the terminal prompt
+      --random                                           uses a randomly generated password
+      --random.characters string                         sets the explicit characters for the random string
+      --random.charset string                            sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
+      --random.length int                                sets the character length for the random string (default 72)
 ```
 
 ### SEE ALSO
