@@ -1,8 +1,9 @@
 {
   "csp": {
-    "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-${NONCE}'",
-    "development": "default-src 'self' 'unsafe-eval'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'",
-    "nonce": "${NONCE}"
+    "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; img-src 'self' data:${OIDC_CLIENT_LOGO_URIS}; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-${NONCE}'",
+    "development": "default-src 'self' 'unsafe-eval'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; img-src 'self' data:${OIDC_CLIENT_LOGO_URIS}; object-src 'none'; style-src 'self' 'nonce-${NONCE}'",
+    "nonce": "${NONCE}",
+    "oidc_client_logo_uris": "${OIDC_CLIENT_LOGO_URIS}"
   },
   "latest": "4.39.26",
   "support": {

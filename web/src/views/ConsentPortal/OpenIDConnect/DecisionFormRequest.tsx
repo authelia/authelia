@@ -52,7 +52,11 @@ function DecisionFormRequest({ claims, collapsible, onChangeClaims, response }: 
     return (
         <Card className="gap-0 overflow-hidden py-0">
             <CardHeader className="px-4 py-4">
-                <DecisionFormClient client_id={response.client_id} client_description={response.client_description} />
+                <DecisionFormClient
+                    client_id={response.client_id}
+                    client_description={response.client_description}
+                    client_logo_uri={response.client_logo_uri}
+                />
             </CardHeader>
             {collapsible ? (
                 empty ? null : (
