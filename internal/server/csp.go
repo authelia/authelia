@@ -42,12 +42,7 @@ func resolveOIDCConsentLogoURI(ctx *middlewares.AutheliaCtx) string {
 		return ""
 	}
 
-	registered, ok := client.(*oidc.RegisteredClient)
-	if !ok {
-		return ""
-	}
-
-	logo := registered.GetLogoURI()
+	logo := client.GetLogoURI()
 	if logo == nil || logo.Scheme != "https" || logo.Host == "" {
 		return ""
 	}

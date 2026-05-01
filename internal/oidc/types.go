@@ -148,6 +148,7 @@ type Client interface {
 	RefreshFlowScopeClient
 
 	GetName() (name string)
+	GetLogoURI() (logo *url.URL)
 	GetSectorIdentifierURI() (sector string)
 
 	GetClaimsStrategy() (strategy ClaimsStrategy)

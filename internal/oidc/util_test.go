@@ -591,7 +591,7 @@ func TestValidateLogoURIIsImage(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			logoURI, client, cache := tc.setup(t)
 
-			ctx := &testClientContext{client: client}
+			ctx := &testClientContext{Context: context.Background(), client: client}
 
 			err := ValidateLogoURIIsImage(ctx, cache, logoURI)
 

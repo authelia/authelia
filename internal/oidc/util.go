@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -492,6 +493,8 @@ func ValidateSectorIdentifierURI(ctx ClientContext, cache map[string][]string, s
 	}
 }
 
+const probeLogoURIRequestTimeout = 10 * time.Second
+
 // ValidateLogoURIIsImage probes the configured logo_uri value to verify it points at an image resource as required by
 // OpenID Connect Dynamic Client Registration 1.0 section 2. The cache, when supplied, is keyed on the URL string and
 // stores the probe verdict for re-use across multiple clients sharing the same URL.
@@ -514,7 +517,15 @@ func ValidateLogoURIIsImage(ctx ClientContext, cache map[string]error, logoURI *
 }
 
 func probeLogoURIIsImage(ctx ClientContext, key string) error {
-	resp, err := ctx.GetHTTPClient().Get(key)
+	probeCtx, cancel := context.WithTimeout(ctx, probeLogoURIRequestTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(probeCtx, http.MethodGet, key, nil)
+	if err != nil {
+		return fmt.Errorf("error occurred building request to '%s': %w", key, err)
+	}
+
+	resp, err := ctx.GetHTTPClient().Do(req)
 	if err != nil {
 		return fmt.Errorf("error occurred making request to '%s': %w", key, err)
 	}

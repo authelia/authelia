@@ -959,19 +959,21 @@ func validateOIDCClientLogoURI(ctx *ValidateCtx, c int, config *schema.IdentityP
 		valid = false
 	}
 
+	redacted := config.Clients[c].LogoURI.Redacted()
+
 	if config.Clients[c].LogoURI.Fragment != "" {
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURI, config.Clients[c].ID, config.Clients[c].LogoURI.String(), "fragment", "fragment", config.Clients[c].LogoURI.Fragment))
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURI, config.Clients[c].ID, redacted, "fragment", "fragment", config.Clients[c].LogoURI.Fragment))
 
 		valid = false
 	}
 
 	if config.Clients[c].LogoURI.User != nil {
 		if config.Clients[c].LogoURI.User.Username() != "" {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURI, config.Clients[c].ID, config.Clients[c].LogoURI.String(), "username", "username", config.Clients[c].LogoURI.User.Username()))
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURI, config.Clients[c].ID, redacted, "username", "username", config.Clients[c].LogoURI.User.Username()))
 		}
 
-		if password, set := config.Clients[c].LogoURI.User.Password(); set {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURI, config.Clients[c].ID, config.Clients[c].LogoURI.String(), "password", "password", password))
+		if _, set := config.Clients[c].LogoURI.User.Password(); set {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURI, config.Clients[c].ID, redacted, "password", "password", "<redacted>"))
 		}
 
 		valid = false
