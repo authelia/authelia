@@ -27,17 +27,17 @@ const baseContextValue: NotificationsContextValue = {
 
 it("renders without crashing", () => {
     render(
-        <NotificationsContext.Provider value={baseContextValue}>
+        <NotificationsContext value={baseContextValue}>
             <NotificationBar />
-        </NotificationsContext.Provider>,
+        </NotificationsContext>,
     );
 });
 
 it("displays notification message and level correctly", async () => {
     render(
-        <NotificationsContext.Provider value={{ ...baseContextValue, isActive: true, notification: testNotification }}>
+        <NotificationsContext value={{ ...baseContextValue, isActive: true, notification: testNotification }}>
             <NotificationBar />
-        </NotificationsContext.Provider>,
+        </NotificationsContext>,
     );
 
     const alert = screen.getByRole("alert");
@@ -52,18 +52,18 @@ it("displays notification message and level correctly", async () => {
 
 it("retains notification styling during close transition", () => {
     const { rerender } = render(
-        <NotificationsContext.Provider value={{ ...baseContextValue, isActive: true, notification: testNotification }}>
+        <NotificationsContext value={{ ...baseContextValue, isActive: true, notification: testNotification }}>
             <NotificationBar />
-        </NotificationsContext.Provider>,
+        </NotificationsContext>,
     );
 
     expect(screen.getByRole("alert")).toHaveClass("MuiAlert-filledSuccess", { exact: false });
     expect(screen.getByText(testNotification.message)).toBeInTheDocument();
 
     rerender(
-        <NotificationsContext.Provider value={{ ...baseContextValue, isActive: false, notification: null }}>
+        <NotificationsContext value={{ ...baseContextValue, isActive: false, notification: null }}>
             <NotificationBar />
-        </NotificationsContext.Provider>,
+        </NotificationsContext>,
     );
 
     const alert = screen.getByRole("alert");

@@ -19,31 +19,31 @@ const ResetPasswordStep1 = function () {
     const [loading, setLoading] = useState(false);
 
     const [rateLimited, setRateLimited] = useState(false);
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
 
     const { createErrorNotification, createInfoNotification } = useNotifications();
     const navigate = useNavigate();
     const { t: translate } = useTranslation();
 
     useEffect(() => {
-        if (timeoutRateLimit.current === null) return;
+        if (timeoutRateLimitRef.current === null) return;
 
-        return clearTimeout(timeoutRateLimit.current);
+        return clearTimeout(timeoutRateLimitRef.current);
     }, []);
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimit.current) {
-                clearTimeout(timeoutRateLimit.current);
+            if (timeoutRateLimitRef.current) {
+                clearTimeout(timeoutRateLimitRef.current);
             }
 
             setRateLimited(true);
 
             createErrorNotification(translate("You have made too many requests"));
 
-            timeoutRateLimit.current = setTimeout(() => {
+            timeoutRateLimitRef.current = setTimeout(() => {
                 setRateLimited(false);
-                timeoutRateLimit.current = null;
+                timeoutRateLimitRef.current = null;
             }, retryAfter * 1000);
         },
         [createErrorNotification, translate],

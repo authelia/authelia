@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useCallback, useContext, useMemo, useState } from "react";
+import { ReactNode, createContext, use, useCallback, useMemo, useState } from "react";
 
 import type { AlertColor } from "@mui/material";
 
@@ -95,15 +95,15 @@ export default function NotificationsContextProvider(props: Props) {
     );
 
     return (
-        <NotificationsContext.Provider value={value}>
+        <NotificationsContext value={value}>
             <NotificationBar />
             {props.children}
-        </NotificationsContext.Provider>
+        </NotificationsContext>
     );
 }
 
 export function useNotifications(): NotificationsContextValue {
-    const context = useContext(NotificationsContext);
+    const context = use(NotificationsContext);
 
     if (context === null) {
         throw new Error("useNotifications must be used within a NotificationsProvider");

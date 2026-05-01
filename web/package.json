@@ -106,7 +106,7 @@
   "devDependencies": {
     "@commitlint/cli": "20.5.3",
     "@commitlint/config-conventional": "20.5.3",
-    "@eslint/compat": "2.0.5",
+    "@eslint-react/eslint-plugin": "5.6.4",
     "@limegrass/eslint-plugin-import-alias": "1.6.1",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
@@ -127,8 +127,6 @@
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-perfectionist": "5.9.0",
     "eslint-plugin-prettier": "5.5.5",
-    "eslint-plugin-react": "7.37.5",
-    "eslint-plugin-react-hooks": "7.1.1",
     "happy-dom": "20.9.0",
     "lefthook": "2.1.6",
     "prettier": "3.8.3",
