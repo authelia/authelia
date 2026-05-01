@@ -603,6 +603,107 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				"identity_providers: oidc: clients: client 'client-bad-ram': option 'requested_audience_mode' must be one of 'explicit' or 'implicit' but it's configured as 'magic'",
 			},
 		},
+		{
+			name: "ValidLogoURIHTTPSURL",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-https",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("https://example.com/logo.png"),
+				},
+			},
+		},
+		{
+			name: "EmptyLogoURI",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-empty",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL(""),
+				},
+			},
+			test: func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Nil(t, actual[0].LogoURI)
+			},
+		},
+		{
+			name: "InvalidLogoURIHTTPScheme",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-http",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("http://example.com/logo.png"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-http': option 'logo_uri' with value 'http://example.com/logo.png': must have the 'https' scheme but has the 'http' scheme",
+			},
+		},
+		{
+			name: "InvalidLogoURIDataScheme",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-data",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("data:image/png;base64,iVBORw0KGgo="),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-data': option 'logo_uri' with value 'data:image/png;base64,iVBORw0KGgo=': must have the 'https' scheme but has the 'data' scheme",
+			},
+		},
+		{
+			name: "InvalidLogoURINotAbsolute",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-rel",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("/relative/logo.png"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-rel': option 'logo_uri' with value '/relative/logo.png': should be an absolute URI",
+			},
+		},
+		{
+			name: "InvalidLogoURIFragmentAndUserInfo",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-bad",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("https://user:pass@example.com/logo.png#frag"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-bad': option 'logo_uri' with value 'https://user:pass@example.com/logo.png#frag': must not have a fragment but it has a fragment with the value 'frag'",
+				"identity_providers: oidc: clients: client 'client-logo-bad': option 'logo_uri' with value 'https://user:pass@example.com/logo.png#frag': must not have a username but it has a username with the value 'user'",
+				"identity_providers: oidc: clients: client 'client-logo-bad': option 'logo_uri' with value 'https://user:pass@example.com/logo.png#frag': must not have a password but it has a password with the value 'pass'",
+			},
+		},
 	}
 
 	for _, tc := range testCases {

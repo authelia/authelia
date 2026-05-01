@@ -617,6 +617,7 @@ func validateOIDCClients(ctx *ValidateCtx, config *schema.IdentityProvidersOpenI
 	)
 
 	ctx.cacheSectorIdentifierURIs = map[string][]string{}
+	ctx.cacheLogoURIProbes = map[string]error{}
 
 	errDeprecatedFunc := func() { errDeprecated = true }
 
@@ -660,6 +661,7 @@ func validateOIDCClients(ctx *ValidateCtx, config *schema.IdentityProvidersOpenI
 	}
 
 	ctx.cacheSectorIdentifierURIs = nil
+	ctx.cacheLogoURIProbes = nil
 }
 
 //nolint:gocyclo
@@ -723,6 +725,8 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDDClientEncryptionAlgs(c, config, validator)
 
 	validateOIDCClientSectorIdentifier(ctx, c, config, validator, errDeprecatedFunc)
+
+	validateOIDCClientLogoURI(ctx, c, config, validator)
 
 	validateOIDCClientPublicKeys(c, config, validator)
 
@@ -928,6 +932,54 @@ func validateOIDCClientSectorIdentifier(ctx *ValidateCtx, c int, config *schema.
 	if valid {
 		if err := oidc.ValidateSectorIdentifierURI(ctx, ctx.cacheSectorIdentifierURIs, config.Clients[c].SectorIdentifierURI, config.Clients[c].RedirectURIs); err != nil {
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierRedirect, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), err))
+		}
+	}
+}
+
+func validateOIDCClientLogoURI(ctx *ValidateCtx, c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if config.Clients[c].LogoURI == nil {
+		return
+	}
+
+	if config.Clients[c].LogoURI.String() == "" {
+		config.Clients[c].LogoURI = nil
+
+		return
+	}
+
+	valid := true
+
+	if !config.Clients[c].LogoURI.IsAbs() {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURIAbsolute, config.Clients[c].ID, config.Clients[c].LogoURI.String()))
+
+		valid = false
+	} else if config.Clients[c].LogoURI.Scheme != schemeHTTPS {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURIScheme, config.Clients[c].ID, config.Clients[c].LogoURI.String(), config.Clients[c].LogoURI.Scheme))
+
+		valid = false
+	}
+
+	if config.Clients[c].LogoURI.Fragment != "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURI, config.Clients[c].ID, config.Clients[c].LogoURI.String(), "fragment", "fragment", config.Clients[c].LogoURI.Fragment))
+
+		valid = false
+	}
+
+	if config.Clients[c].LogoURI.User != nil {
+		if config.Clients[c].LogoURI.User.Username() != "" {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURI, config.Clients[c].ID, config.Clients[c].LogoURI.String(), "username", "username", config.Clients[c].LogoURI.User.Username()))
+		}
+
+		if password, set := config.Clients[c].LogoURI.User.Password(); set {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURI, config.Clients[c].ID, config.Clients[c].LogoURI.String(), "password", "password", password))
+		}
+
+		valid = false
+	}
+
+	if valid {
+		if err := oidc.ValidateLogoURIIsImage(ctx, ctx.cacheLogoURIProbes, config.Clients[c].LogoURI); err != nil {
+			validator.PushWarning(fmt.Errorf(errFmtOIDCClientLogoURINotImage, config.Clients[c].ID, config.Clients[c].LogoURI.String(), err))
 		}
 	}
 }

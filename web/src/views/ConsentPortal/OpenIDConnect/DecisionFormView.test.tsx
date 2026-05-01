@@ -146,3 +146,59 @@ it("renders consent form with scopes, claims, and pre-configuration when consent
     expect(screen.getByTestId("claims-form")).toBeInTheDocument();
     expect(screen.getByTestId("pre-config-form")).toBeInTheDocument();
 });
+
+it("renders the client logo with src and alt when client_logo_uri is provided", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    vi.mocked(getConsentResponse).mockResolvedValue({
+        audience: [],
+        claims: ["email"],
+        client_description: "Test Client",
+        client_id: "test-client",
+        client_logo_uri: "https://example.com/logo.png",
+        essential_claims: [],
+        pre_configuration: true,
+        require_login: false,
+        scopes: ["openid", "profile"],
+    });
+
+    render(
+        <DecisionFormView
+            state={{ authentication_level: AuthenticationLevel.TwoFactor } as any}
+            userInfo={{ display_name: "Test User", emails: ["test@example.com"], groups: [] } as any}
+        />,
+    );
+
+    const logo = await screen.findByRole("img", { name: "Test Client" });
+
+    expect(logo).toHaveAttribute("id", "openid-consent-client-logo");
+    expect(logo).toHaveAttribute("src", "https://example.com/logo.png");
+});
+
+it("does not render the client logo when client_logo_uri is omitted", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    vi.mocked(getConsentResponse).mockResolvedValue({
+        audience: [],
+        claims: ["email"],
+        client_description: "Test Client",
+        client_id: "test-client",
+        essential_claims: [],
+        pre_configuration: true,
+        require_login: false,
+        scopes: ["openid", "profile"],
+    });
+
+    const { container } = render(
+        <DecisionFormView
+            state={{ authentication_level: AuthenticationLevel.TwoFactor } as any}
+            userInfo={{ display_name: "Test User", emails: ["test@example.com"], groups: [] } as any}
+        />,
+    );
+
+    await waitFor(() => {
+        expect(screen.getByTestId("login-layout")).toBeInTheDocument();
+    });
+
+    expect(container.querySelector("#openid-consent-client-logo")).toBeNull();
+});

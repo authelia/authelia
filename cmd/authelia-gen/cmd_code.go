@@ -68,9 +68,10 @@ func newCodeKeysCmd() *cobra.Command {
 
 func codeServerRunE(cmd *cobra.Command, args []string) (err error) {
 	data := TemplateCSP{
-		PlaceholderNONCE:    codeCSPNonce,
-		TemplateDefault:     buildCSP(codeCSPSelf, codeCSPValuesCommon, codeCSPValuesProduction),
-		TemplateDevelopment: buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon, codeCSPValuesDevelopment),
+		PlaceholderNONCE:              codeCSPNonce,
+		PlaceholderOIDCClientLogoURIs: codeCSPOIDCClientLogoURIs,
+		TemplateDefault:               buildCSP(codeCSPSelf, codeCSPValuesCommon, codeCSPValuesProduction),
+		TemplateDevelopment:           buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon, codeCSPValuesDevelopment),
 	}
 
 	var outputPath string

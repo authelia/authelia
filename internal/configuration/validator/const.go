@@ -291,6 +291,14 @@ const (
 		"'sector_identifier_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
 	errFmtOIDCClientInvalidSectorIdentifierRedirect = errFmtOIDCClientOption +
 		"'sector_identifier_uri' with value '%s': must be a json document that contains all of the 'redirect_uris' for the client but had an error validating it: %w"
+	errFmtOIDCClientInvalidLogoURIAbsolute = errFmtOIDCClientOption +
+		"'logo_uri' with value '%s': should be an absolute URI"
+	errFmtOIDCClientInvalidLogoURIScheme = errFmtOIDCClientOption +
+		"'logo_uri' with value '%s': must have the 'https' scheme but has the '%s' scheme"
+	errFmtOIDCClientInvalidLogoURI = errFmtOIDCClientOption +
+		"'logo_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
+	errFmtOIDCClientLogoURINotImage = errFmtOIDCClientOption +
+		"'logo_uri' with value '%s': failed to validate that the resource is an image as required by the OpenID Connect Dynamic Client Registration 1.0 specification: %w"
 	errFmtOIDCClientInvalidGrantTypeMatch = errFmtOIDCClientOption +
 		"'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but '%s' expects a response type %s such as %s but the response types are %s"
 	errFmtOIDCClientInvalidGrantTypeRefresh = errFmtOIDCClientOption +

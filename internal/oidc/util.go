@@ -3,6 +3,8 @@ package oidc
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime"
 	"net/http"
 	"net/url"
 	"sort"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/valyala/fasthttp"
 	"golang.org/x/text/language"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -487,6 +490,56 @@ func ValidateSectorIdentifierURI(ctx ClientContext, cache map[string][]string, s
 	default:
 		return fmt.Errorf("error checking redirect_uris '%s' against '%s'", utils.StringJoinAnd(invalidRedirectURIs), utils.StringJoinAnd(sectorRedirectURIs))
 	}
+}
+
+// ValidateLogoURIIsImage probes the configured logo_uri value to verify it points at an image resource as required by
+// OpenID Connect Dynamic Client Registration 1.0 section 2. The cache, when supplied, is keyed on the URL string and
+// stores the probe verdict for re-use across multiple clients sharing the same URL.
+func ValidateLogoURIIsImage(ctx ClientContext, cache map[string]error, logoURI *url.URL) (err error) {
+	key := logoURI.String()
+
+	if cache != nil {
+		if cached, ok := cache[key]; ok {
+			return cached
+		}
+	}
+
+	err = probeLogoURIIsImage(ctx, key)
+
+	if cache != nil {
+		cache[key] = err
+	}
+
+	return err
+}
+
+func probeLogoURIIsImage(ctx ClientContext, key string) error {
+	resp, err := ctx.GetHTTPClient().Get(key)
+	if err != nil {
+		return fmt.Errorf("error occurred making request to '%s': %w", key, err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("response status code was '%d'", resp.StatusCode)
+	}
+
+	mediaType, _, _ := mime.ParseMediaType(resp.Header.Get(fasthttp.HeaderContentType))
+	if strings.HasPrefix(mediaType, "image/") {
+		return nil
+	}
+
+	head, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+	if strings.HasPrefix(http.DetectContentType(head), "image/") {
+		return nil
+	}
+
+	if mediaType == "" {
+		return fmt.Errorf("response did not include a Content-Type header and the response body was not recognized as an image")
+	}
+
+	return fmt.Errorf("response Content-Type was '%s' which is not an image", mediaType)
 }
 
 func getSectorIdentifierURICache(ctx ClientContext, cache map[string][]string, sectorURI *url.URL) (redirectURIs []string, err error) {

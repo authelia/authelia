@@ -2129,3 +2129,62 @@ func TestDecoratedUserinfoClient(t *testing.T) {
 		t.Run(tc.name, tc.test)
 	}
 }
+
+func TestNewClient_LogoURI(t *testing.T) {
+	logoHTTPS := mustParseURLLocal(t, "https://example.com/logo.png")
+
+	testCases := []struct {
+		name string
+		logo *url.URL
+		want *url.URL
+	}{
+		{name: "ShouldDefaultToNilWhenUnset", logo: nil, want: nil},
+		{name: "ShouldRoundTripHTTPSURL", logo: logoHTTPS, want: logoHTTPS},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := schema.IdentityProvidersOpenIDConnectClient{LogoURI: tc.logo}
+
+			client := oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
+			registered, ok := client.(*oidc.RegisteredClient)
+			require.True(t, ok)
+
+			assert.Equal(t, tc.want, registered.GetLogoURI())
+			assert.Equal(t, tc.want, registered.LogoURI)
+		})
+	}
+}
+
+func TestRegisteredClient_GetConsentResponseBody_LogoURI(t *testing.T) {
+	logoHTTPS := mustParseURLLocal(t, "https://example.com/logo.png")
+
+	testCases := []struct {
+		name string
+		logo *url.URL
+		want string
+	}{
+		{name: "ShouldOmitWhenNil", logo: nil, want: ""},
+		{name: "ShouldStringifyHTTPSURL", logo: logoHTTPS, want: logoHTTPS.String()},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := &oidc.RegisteredClient{ID: "client-1", Name: "Client 1", LogoURI: tc.logo}
+
+			body := client.GetConsentResponseBody(nil, nil, time.Time{}, false)
+
+			assert.Equal(t, tc.want, body.ClientLogoURI)
+		})
+	}
+}
+
+func mustParseURLLocal(t *testing.T, raw string) *url.URL {
+	t.Helper()
+
+	u, err := url.Parse(raw)
+	require.NoError(t, err)
+
+	return u
+}

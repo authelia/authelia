@@ -62,6 +62,7 @@ type RegisteredClient struct {
 	ClientSecret         *ClientSecretDigest
 	RotatedClientSecrets []*ClientSecretDigest
 	SectorIdentifierURI  *url.URL
+	LogoURI              *url.URL
 	Public               bool
 
 	RequirePushedAuthorizationRequests bool
@@ -301,6 +302,7 @@ type UserDetailer interface {
 type ConsentGetResponseBody struct {
 	ClientID          string   `json:"client_id"`
 	ClientDescription string   `json:"client_description"`
+	ClientLogoURI     string   `json:"client_logo_uri,omitempty"`
 	Scopes            []string `json:"scopes"`
 	Audience          []string `json:"audience"`
 	PreConfiguration  bool     `json:"pre_configuration"`

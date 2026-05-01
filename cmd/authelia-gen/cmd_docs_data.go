@@ -43,9 +43,10 @@ func newDocsDataMiscCmd() *cobra.Command {
 func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 	data := DocsDataMisc{
 		CSP: TemplateCSP{
-			PlaceholderNONCE:    codeCSPNonce,
-			TemplateDefault:     buildCSP(codeCSPSelf, codeCSPValuesCommon, codeCSPValuesProduction),
-			TemplateDevelopment: buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon, codeCSPValuesDevelopment),
+			PlaceholderNONCE:              codeCSPNonce,
+			PlaceholderOIDCClientLogoURIs: codeCSPOIDCClientLogoURIs,
+			TemplateDefault:               buildCSP(codeCSPSelf, codeCSPValuesCommon, codeCSPValuesProduction),
+			TemplateDevelopment:           buildCSP(codeCSPDevelopmentDefaultSrc, codeCSPValuesCommon, codeCSPValuesDevelopment),
 		},
 	}
 

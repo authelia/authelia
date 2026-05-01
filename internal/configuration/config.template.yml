@@ -1384,6 +1384,10 @@ session:
         ## The description to show to users when they end up on the consent screen. Defaults to the ID above.
         # client_name: 'My Application'
 
+        ## URL of an image displayed to End-Users on the consent screen as defined by OpenID Connect Dynamic Client
+        ## Registration 1.0. Must be an absolute https URL pointing to a valid image file.
+        # logo_uri: 'https://example.com/logo.png'
+
         ## The client secret is a shared secret between Authelia and the consumer of this client.
         # yamllint disable-line rule:line-length
         # client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.

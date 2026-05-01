@@ -1,14 +1,15 @@
 {
     "csp": {
-        "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-${NONCE}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
-        "development": "default-src 'self' 'unsafe-eval'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
-        "nonce": "${NONCE}"
+        "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; img-src 'self' data:${OIDC_CLIENT_LOGO_URIS}; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-${NONCE}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
+        "development": "default-src 'self' 'unsafe-eval'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; img-src 'self' data:${OIDC_CLIENT_LOGO_URIS}; object-src 'none'; style-src 'self' 'nonce-${NONCE}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
+        "nonce": "${NONCE}",
+        "oidc_client_logo_uris": "${OIDC_CLIENT_LOGO_URIS}"
     },
     "latest": "4.39.19",
     "support": {
         "traefik": [
-            "v3.6.13",
-            "v2.11.42"
+            "v3.6.15",
+            "v2.11.44"
         ]
     },
     "hashing_algorithms": {

@@ -9,7 +9,6 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/valyala/fasthttp"
@@ -59,14 +58,15 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		}
 
 		nonce := ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
+		oidcClientLogoURIs := resolveOIDCConsentLogoURI(ctx)
 
 		switch {
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(string(ctx.Configuration.Server.Headers.CSPTemplate), placeholderCSPNonce, nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, expandCSPTemplate(string(ctx.Configuration.Server.Headers.CSPTemplate), nonce, oidcClientLogoURIs))
 		case utils.Dev:
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDevelopment, nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, expandCSPTemplate(tmplCSPDevelopment, nonce, oidcClientLogoURIs))
 		default:
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDefault, nonce))
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, expandCSPTemplate(tmplCSPDefault, nonce, oidcClientLogoURIs))
 		}
 
 		var (

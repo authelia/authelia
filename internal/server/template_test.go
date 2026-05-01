@@ -179,6 +179,14 @@ func TestServeTemplatedFile(t *testing.T) {
 			if tc.expectCSP {
 				csp := string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentSecurityPolicy))
 				assert.NotEmpty(t, csp)
+
+				if tc.cspTemplate == "" {
+					assert.Contains(t, csp, "img-src 'self' data:;")
+					assert.NotContains(t, csp, "${OIDC_CLIENT_LOGO_URIS}")
+				} else {
+					assert.NotContains(t, csp, "${OIDC_CLIENT_LOGO_URIS}")
+					assert.NotContains(t, csp, "${NONCE}")
+				}
 			}
 		})
 	}
