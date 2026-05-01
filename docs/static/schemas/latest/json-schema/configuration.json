@@ -1581,6 +1581,12 @@
           "title": "Sector Identifier URI",
           "description": "The Client Sector Identifier URI for Privacy Isolation via Pairwise subject types."
         },
+        "logo_uri": {
+          "type": "string",
+          "format": "uri",
+          "title": "Logo URI",
+          "description": "URL of an image displayed to End-Users on the consent screen as defined by OpenID Connect Dynamic Client Registration 1.0; must be an absolute https URL pointing to a valid image file."
+        },
         "public": {
           "type": "boolean",
           "title": "Public",
@@ -3773,7 +3779,7 @@
           "type": "string",
           "title": "CSP Template",
           "description": "The Content Security Policy template.",
-          "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s'"
+          "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; img-src 'self' data:${OIDC_CLIENT_LOGO_URIS}; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-${NONCE}'"
         }
       },
       "additionalProperties": false,
