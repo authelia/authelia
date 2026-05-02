@@ -3,6 +3,9 @@ package authentication
 import (
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -20,7 +23,21 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 
 	var client LDAPExtendedClient
 
-	if client, err = p.factory.GetClient(); err != nil {
+	for i := 0; i < 19; i++ {
+		if i != 0 {
+			time.Sleep(time.Millisecond * 500)
+		}
+
+		if client, err = p.factory.GetClient(); err == nil {
+			break
+		}
+
+		if !ldap.IsErrorAnyOf(err, ldap.ErrorNetwork) {
+			return err
+		}
+	}
+
+	if err != nil {
 		return err
 	}
 
