@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useRef, useState } from "react";
+import { Fragment, useEffectEvent, useState } from "react";
 
 import { Button, CircularProgress, Divider, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -23,7 +23,7 @@ export interface Props {
     onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
 }
 
-const PasskeyForm = function (props: Props) {
+export default function PasskeyForm(props: Props) {
     const { t: translate } = useTranslation();
 
     const redirectionURL = useQueryParam(RedirectionURL);
@@ -33,34 +33,35 @@ const PasskeyForm = function (props: Props) {
 
     const [loading, setLoading] = useState(false);
 
-    const onSignInErrorCallback = useRef(props.onAuthenticationError).current;
+    const handleSignIn = useEffectEvent(async () => {
+        if (loading) return;
 
-    const handleAuthenticationStart = useCallback(() => {
-        props.onAuthenticationStart();
-        setLoading(true);
-    }, [props]);
+        const startUI = () => {
+            props.onAuthenticationStart();
+            setLoading(true);
+        };
 
-    const handleAuthenticationStop = useCallback(() => {
-        props.onAuthenticationStop();
-        setLoading(false);
-    }, [props]);
+        const stopUI = () => {
+            props.onAuthenticationStop();
+            setLoading(false);
+        };
 
-    const handleSignIn = useCallback(async () => {
-        if (loading) {
-            return;
-        }
+        const fail = (message: string) => {
+            stopUI();
+            props.onAuthenticationError(new Error(translate(message)));
+        };
 
-        handleAuthenticationStart();
+        startUI();
 
         const signal = getSignal();
 
         try {
             const optionsStatus = await getWebAuthnPasskeyOptions(signal);
 
-            if (optionsStatus.status !== 200 || optionsStatus.options == null) {
-                handleAuthenticationStop();
-                onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
+            if (signal.aborted) return;
 
+            if (optionsStatus.status !== 200 || optionsStatus.options == null) {
+                fail("Failed to initiate security key sign in process");
                 return;
             }
 
@@ -69,19 +70,12 @@ const PasskeyForm = function (props: Props) {
             if (signal.aborted) return;
 
             if (result.result !== AssertionResult.Success) {
-                handleAuthenticationStop();
-
-                onSignInErrorCallback(new Error(translate(AssertionResultFailureString(result.result))));
-
+                fail(AssertionResultFailureString(result.result));
                 return;
             }
 
             if (result.response == null) {
-                onSignInErrorCallback(
-                    new Error(translate("The browser did not respond with the expected attestation data")),
-                );
-                handleAuthenticationStop();
-
+                fail("The browser did not respond with the expected attestation data");
                 return;
             }
 
@@ -96,35 +90,20 @@ const PasskeyForm = function (props: Props) {
                 signal,
             );
 
-            handleAuthenticationStop();
+            stopUI();
 
             if (response.data.status === "OK" && response.status === 200) {
                 props.onAuthenticationSuccess(response.data.data ? response.data.data.redirect : undefined);
                 return;
             }
 
-            onSignInErrorCallback(new Error(translate("The server rejected the security key")));
+            props.onAuthenticationError(new Error(translate("The server rejected the security key")));
         } catch (err) {
-            handleAuthenticationStop();
-
             if (axios.isCancel(err)) return;
             console.error(err);
-            onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
+            fail("Failed to initiate security key sign in process");
         }
-    }, [
-        getSignal,
-        loading,
-        handleAuthenticationStart,
-        props,
-        redirectionURL,
-        requestMethod,
-        flowID,
-        flow,
-        subflow,
-        handleAuthenticationStop,
-        onSignInErrorCallback,
-        translate,
-    ]);
+    });
 
     return (
         <Fragment>
@@ -139,7 +118,7 @@ const PasskeyForm = function (props: Props) {
                     variant="contained"
                     color="primary"
                     fullWidth
-                    onClick={handleSignIn}
+                    onClick={() => handleSignIn()}
                     startIcon={<PasskeyIcon />}
                     disabled={props.disabled}
                     endIcon={loading ? <CircularProgress size={20} /> : null}
@@ -149,6 +128,4 @@ const PasskeyForm = function (props: Props) {
             </Grid>
         </Fragment>
     );
-};
-
-export default PasskeyForm;
+}
