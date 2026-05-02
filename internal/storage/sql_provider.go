@@ -445,11 +445,13 @@ func (p *SQLProvider) conn(ctx context.Context) (conn SQLXConnection) {
 func (p *SQLProvider) StartupCheck() (err error) {
 	// TODO: Decide if this is needed, or if it should be configurable.
 	for i := 0; i < 19; i++ {
+		if i != 0 {
+			time.Sleep(time.Millisecond * 500)
+		}
+
 		if err = p.db.Ping(); err == nil {
 			break
 		}
-
-		time.Sleep(time.Millisecond * 500)
 	}
 
 	if err != nil {
