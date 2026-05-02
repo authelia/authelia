@@ -3,7 +3,10 @@ package handlers
 import (
 	"github.com/valyala/fasthttp"
 
+	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/oidc"
+	"net/url"
 )
 
 // OpenIDConnectEndSession handles requests made by resource owners when the relying-party redirects them
@@ -11,8 +14,14 @@ import (
 //
 // OpenID Connect RP-Initiated Logout 1.0 (https://openid.net/specs/openid-connect-rpinitiated-1_0.html)
 func OpenIDConnectEndSession(ctx *middlewares.AutheliaCtx) {
-	var err error
-	if _, err = ctx.IssuerURL(); err != nil {
+	var (
+		tokenString, id, redirect, state string
+
+		issuer *url.URL
+		err    error
+	)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred determining issuer")
 
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
@@ -20,14 +29,87 @@ func OpenIDConnectEndSession(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	/*
-		token := ctx.FormValue("id_token_hint")
-		hint := ctx.FormValue("logout_hint")
-		id := ctx.FormValue(oidc.FormParameterClientID)
-		redirect := ctx.FormValue("post_logout_redirect_uri")
-		state := ctx.FormValue(oidc.FormParameterState)
-	*/
+	tokenString = string(ctx.FormValue(oidc.FormParameterIDTokenHint))
+	id = string(ctx.FormValue(oidc.FormParameterClientID))
+	redirect = string(ctx.FormValue(oidc.FormParameterPostLogoutRedirectURI))
+	state = string(ctx.FormValue(oidc.FormParameterState))
 
+	if len(tokenString) == 0 && len(id) == 0 && len(redirect) > 0 {
+		// TODO: Redirect to error URI.
+
+		return
+	}
+
+	var (
+		token  *jwt.Token
+		claims jwt.MapClaims
+	)
+
+	if len(tokenString) > 0 {
+		if tokenString, _, _, err = ctx.Providers.OpenIDConnect.Strategy.JWT.Decrypt(ctx, tokenString); err != nil {
+			// TODO: Redirect to error URI.
+
+			return
+		}
+
+		if token, err = ctx.Providers.OpenIDConnect.Strategy.JWT.Decode(ctx, tokenString, jwt.WithAllowUnverified()); err != nil {
+			// TODO: Redirect to error URI.
+
+			return
+		}
+
+		opts := []jwt.ClaimValidationOption{
+			jwt.ValidateIssuer(issuer.String()),
+		}
+
+		if len(id) > 0 {
+			opts = append(opts, jwt.ValidateAudienceAll(id))
+		}
+
+		err = token.Claims.Valid(jwt.ValidateIssuer(issuer.String()))
+
+		claims = token.Claims.ToMapClaims()
+
+		var (
+			rawAZP        any
+			clientID, azp string
+			ok            bool
+		)
+
+		if rawAZP, ok = claims[jwt.ClaimAuthorizedParty]; ok {
+			if azp, ok = rawAZP.(string); !ok {
+				// TODO: Redirect to error URI.
+
+				return
+			}
+
+			if len(id) > 0 && id != azp {
+				// TODO: Redirect to error URI.
+
+				return
+			}
+
+			clientID = azp
+		}
+
+		var client oidc.Client
+
+		if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, clientID); err != nil {
+			if len(id) > 0 && id != azp {
+				// TODO: Redirect to error URI.
+
+				return
+			}
+		}
+
+		if token, err = ctx.Providers.OpenIDConnect.Strategy.JWT.Decode(ctx, tokenString, jwt.WithClient(jwt.NewIDTokenClient(client))); err != nil {
+			// TODO: Redirect to error URI.
+
+			return
+		}
+
+		err = token.Valid(jwt.ValidateTypes("JWT"))
+	}
 	/*
 			TODO:
 				1. Find Client ID if token is present.
