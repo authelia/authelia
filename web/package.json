@@ -32,7 +32,7 @@
       "qs": "6.15.1",
       "semver": "7.7.4",
       "vite": "8.0.10",
-      "yaml": "2.8.3"
+      "yaml": "2.8.4"
     },
     "peerDependencyRules": {
       "allowedVersions": {
