@@ -496,8 +496,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
-      security:
-        - authelia_auth: []
     post:
       tags:
         - First Factor
@@ -524,8 +522,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
-      security:
-        - authelia_auth: []
   {{- end }}
   /api/checks/safe-redirection:
     post:
