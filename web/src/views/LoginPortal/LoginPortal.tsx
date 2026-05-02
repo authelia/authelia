@@ -42,11 +42,10 @@ export interface Props {
 const RedirectionErrorMessage =
     "Redirection was determined to be unsafe and aborted ensure the redirection URL is correct";
 
-const LoginPortal = function (props: Props) {
+export default function LoginPortal(props: Props) {
     const location = useLocation();
     const redirectionURL = useQueryParam(RedirectionURL);
     const { createErrorNotification } = useNotifications();
-    const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
     const [broadcastRedirect, setBroadcastRedirect] = useState(false);
     const redirector = useRedirector();
     const { localStorageMethod } = useLocalStorageMethodContext();
@@ -118,7 +117,6 @@ const LoginPortal = function (props: Props) {
 
     const handleAuthenticationNavigation = useCallback(() => {
         if (state!.authentication_level === AuthenticationLevel.Unauthenticated) {
-            setFirstFactorDisabled(false);
             navigate(IndexRoute);
         } else if (state!.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
             if (configuration.available_methods.size === 0) {
@@ -157,7 +155,6 @@ const LoginPortal = function (props: Props) {
         redirectionURL,
         navigate,
         userInfo,
-        setFirstFactorDisabled,
         configuration,
         createErrorNotification,
         redirector,
@@ -193,13 +190,10 @@ const LoginPortal = function (props: Props) {
                 element={
                     <ComponentOrLoading ready={firstFactorReady}>
                         <FirstFactorForm
-                            disabled={firstFactorDisabled}
                             passkeyLogin={props.passkeyLogin}
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
                             resetPasswordCustomURL={props.resetPasswordCustomURL}
-                            onAuthenticationStart={() => setFirstFactorDisabled(true)}
-                            onAuthenticationStop={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}
                             onChannelStateChange={handleChannelStateChange}
                         />
@@ -225,7 +219,7 @@ const LoginPortal = function (props: Props) {
             <Route path={AuthenticatedRoute} element={userInfo ? <AuthenticatedView userInfo={userInfo} /> : null} />
         </Routes>
     );
-};
+}
 
 interface ComponentOrLoadingProps {
     readonly ready: boolean;
@@ -242,5 +236,3 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
         </Fragment>
     );
 }
-
-export default LoginPortal;
