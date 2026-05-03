@@ -18,7 +18,7 @@ seo:
   description: "Step-by-step guide to configuring Jellyfin with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
----dashboard
+---
 
 ## Tested Versions
 
@@ -82,7 +82,7 @@ identity_providers:
 To prepare Jellyfin to utilize Authelia as an [OpenID Connect 1.0] Provider, the [Jellyfin SSO-Auth Plugin], a plugin that is not
 a part of the standard Jellyfin distribution, needs to be installed.
 
-***Add the repository for the SSO-Auth plugin and install the plugin**
+**Add the repository for the SSO-Auth plugin and install the plugin**
 
 1. Visit the [Jellyfin] Administration Dashboard.
 2. Visit the `Plugins` section.
@@ -94,7 +94,7 @@ a part of the standard Jellyfin distribution, needs to be installed.
 6. Click `Save`.
 8. Click `Ok` to confirm the repository installation.
 9. Go Back to  the `Plugins` tab.
-10. Make Sure you have you select __All__ plugins in the  __Other__ Cateegory and Select `SSO-Auth`
+10. Select __All__ plugins and the __Other__ Cateegory, find `SSO-Auth` and select it.
 11. Click `Install`.
 12. Click `Ok` to confirm the plugin installation.
 13. Once installed restart [Jellyfin].
@@ -162,23 +162,19 @@ Windows: %ProgramData%\Jellyfin\Server\plugins\configurations\SSO-Auth.xml or %U
 2. Restart [Jellyfin]
 
 To test if your Jellyfin server properly loaded the SSO-Auth configuration file:
-1. Visit the [Jellyfin] Administartion Dashboard
+1. Visit the [Jellyfin] Administration Dashboard
 2. Visit the `Plugins` Section
 3. Click the `SSO-Auth` plugin.
 4. Click ⚙ Settings button.
 
 If you see **authelia** in __Name of OID Provider__, or it is selectable via the drop down, your plugin configuration file is being processed correctly.
 
-If not dobule check the path and the permissions of the file, on Linux the **jellyfin** user needs to be able to read the file.
+If not double check the path and the permissions of the file, on Linux the **jellyfin** user needs to be able to read the file.
 Linux:
 > sudo chown jellyfin:jellyfin /var/lib/jellyfin/plugins/configurations/SSO-Auth.xml
 
-To further inspect what Jellyfin loaded from your SSO-Auth.xml file click the Load Provider button.
-
-You may continue to adding a Login Button.
-
 #### Web GUI
-To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider via the WebGUI, use the following instructions:
+To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider via the Web GUI, use the following instructions:
 
 1. Visit the [Jellyfin] Administration Dashboard.
 2. Visit the `Plugins` section.
@@ -208,7 +204,7 @@ To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider 
 
 1. Visit the [Jellyfin] Administration Dashboard.
 2. Visit the `Branding` section.
-3. Add the following HTML code into the Login disclaimer section
+3. Add the following HTML code into the `Login disclaimer` section.
 ```html
 <form action="https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/start/authelia">
   <button class="raised block emby-button button-submit">
@@ -216,7 +212,7 @@ To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider 
   </button>
 </form>
 ```
-4. Add the following
+4. Add the following CSS code into the `Custom CSS Code` section.
 ```css
 a.raised.emby-button {
   padding: 0.9em 1em;
