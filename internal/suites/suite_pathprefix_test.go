@@ -37,6 +37,7 @@ func (s *PathPrefixSuite) TestCustomHeaders() {
 func (s *PathPrefixSuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
 }
+
 func (s *PathPrefixSuite) TestChangePasswordScenario() {
 	suite.Run(s.T(), NewChangePasswordScenario())
 }

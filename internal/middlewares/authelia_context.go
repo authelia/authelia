@@ -158,7 +158,7 @@ func (ctx *AutheliaCtx) XForwardedHost() (host []byte) {
 func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 	host = ctx.XForwardedHost()
 
-	if host == nil {
+	if len(host) == 0 {
 		return ctx.Host()
 	}
 
@@ -535,8 +535,13 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 		return nil, ErrMissingXForwardedHost
 	}
 
-	if issuerURL.Scheme != strProtoHTTPS {
+	switch issuerURL.Scheme {
+	case "":
 		return nil, ErrMissingXForwardedProto
+	case strProtoHTTPS:
+		break
+	default:
+		return nil, fmt.Errorf("invalid X-Forwarded-Proto header value '%s'", issuerURL.Scheme)
 	}
 
 	cookie := ctx.GetCookieConfigFromAutheliaURL(issuerURL)
@@ -547,7 +552,7 @@ func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 
 	if cookie.AutheliaURL != nil {
 		return issuerURL, nil
-	} else if utils.HasURIDomainSuffix(issuerURL, cookie.Domain) {
+	} else if !utils.HasURIDomainSuffix(issuerURL, cookie.Domain) {
 		return nil, fmt.Errorf("error occurred discovering the issuer: the hostname '%s' does not match the configured domain '%s'", issuerURL.Hostname(), cookie.Domain)
 	}
 

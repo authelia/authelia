@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.19](https://github.com/authelia/authelia/releases/tag/v4.39.19)
 - [Xen Orchestra]
   - [v5.105](https://xen-orchestra.com/blog/xen-orchestra-5-105/)
 

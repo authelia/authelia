@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# shellcheck source=/dev/null
 . /app/.healthcheck.env
 
 if [ -z "${X_AUTHELIA_HEALTHCHECK}" ]; then

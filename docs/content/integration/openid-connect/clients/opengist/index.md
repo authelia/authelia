@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.19](https://github.com/authelia/authelia/releases/tag/v4.39.19)
 - [Opengist]
   - [v1.12.1](https://github.com/thomiceli/opengist/releases/tag/v1.12.1)
 

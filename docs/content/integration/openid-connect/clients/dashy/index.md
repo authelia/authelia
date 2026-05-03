@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.19](https://github.com/authelia/authelia/releases/tag/v4.39.19)
 - [Dashy]
   - [v3.1.1](https://github.com/Lissy93/dashy/releases/tag/3.1.1)
 

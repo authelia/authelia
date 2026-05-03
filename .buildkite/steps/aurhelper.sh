@@ -9,13 +9,13 @@ cd "${PACKAGE}" || exit
 if [[ "${PACKAGE}" != "authelia-git" ]]; then
   sed -i -e "/^pkgver=/c pkgver=${BUILDKITE_TAG//v/}" \
   -e '/^pkgrel=/c pkgrel=1' PKGBUILD && \
-  docker run --rm -v $PWD:/build authelia/aurpackager bash -c "cd /build && updpkgsums"
+  docker run --rm -v "${PWD}:/build" authelia/aurpackager bash -c "cd /build && updpkgsums"
 else
   sed -i -e "/^pkgver=/c pkgver=${GITTAG}" \
   -e '/^pkgrel=/c pkgrel=1' PKGBUILD
 fi
 
-docker run --rm -v $PWD:/build authelia/aurpackager bash -c "cd /build && makepkg --printsrcinfo >| .SRCINFO" && \
+docker run --rm -v "${PWD}:/build" authelia/aurpackager bash -c "cd /build && makepkg --printsrcinfo >| .SRCINFO" && \
 git add . && \
 if [[ "${PACKAGE}" != "authelia-git" ]]; then
   git commit -m "Update to ${BUILDKITE_TAG}"

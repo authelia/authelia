@@ -19,10 +19,6 @@ vi.mock("@hooks/OpenIDConnect", () => ({
     useUserCode: () => null,
 }));
 
-vi.mock("@hooks/Mounted", () => ({
-    useIsMountedRef: () => ({ current: true }),
-}));
-
 vi.mock("@models/WebAuthn", () => ({
     AssertionResult: { Success: 0 },
     AssertionResultFailureString: () => "failure",

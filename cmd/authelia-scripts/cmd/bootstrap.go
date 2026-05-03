@@ -54,7 +54,7 @@ func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 
 	createTemporaryDirectory()
 
-	if os.Getenv("CI") != "true" {
+	if os.Getenv("CI") != stringTrue {
 		createPNPMDirectory()
 		pnpmInstall()
 	}

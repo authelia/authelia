@@ -1,14 +1,15 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { Box, Button } from "@mui/material";
+import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
 import SuccessIcon from "@components/SuccessIcon";
 import { RedirectionURL } from "@constants/SearchParams";
+import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
-import { useIsMountedRef } from "@hooks/Mounted";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import {
@@ -55,7 +56,7 @@ const PushNotificationMethod = function (props: Props) {
         props.authenticationLevel >= AuthenticationLevel.TwoFactor ? State.Success : State.SignInInProgress,
     );
     const redirectionURL = useQueryParam(RedirectionURL);
-    const mounted = useIsMountedRef();
+    const getSignal = useAbortSignal();
     const [enrollUrl, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
     const [preferredDevice, setPreferredDevice] = useState<{ device?: string; method?: string }>({});
@@ -64,35 +65,36 @@ const PushNotificationMethod = function (props: Props) {
     const signInInitiatedRef = useRef(false);
     const stateRef = useRef<null | State>(null);
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
-    const timeoutSuccess = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutSuccessRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         return () => {
-            if (timeoutRateLimit.current !== null) {
-                clearTimeout(timeoutRateLimit.current);
-                timeoutRateLimit.current = null;
+            if (timeoutRateLimitRef.current !== null) {
+                clearTimeout(timeoutRateLimitRef.current);
+                timeoutRateLimitRef.current = null;
             }
-            if (timeoutSuccess.current !== null) {
-                clearTimeout(timeoutSuccess.current);
-                timeoutSuccess.current = null;
+            if (timeoutSuccessRef.current !== null) {
+                clearTimeout(timeoutSuccessRef.current);
+                timeoutSuccessRef.current = null;
             }
         };
     }, []);
 
     useEffect(() => {
         if (props.authenticationLevel < AuthenticationLevel.TwoFactor) {
-            getPreferredDuoDevice()
+            getPreferredDuoDevice(getSignal())
                 .then((res) => {
                     if (res.preferred_device && res.preferred_method) {
                         setPreferredDevice({ device: res.preferred_device, method: res.preferred_method });
                     }
                 })
                 .catch((err) => {
+                    if (axios.isCancel(err)) return;
                     console.debug("No preferred Duo device found or error fetching:", err);
                 });
         }
-    }, [props.authenticationLevel]);
+    }, [props.authenticationLevel, getSignal]);
 
     const processDevices = useCallback((devices: any[]) => {
         return devices.map((d: { device: any; display_name: any; capabilities: any }) => ({
@@ -105,28 +107,27 @@ const PushNotificationMethod = function (props: Props) {
     const handleSuccess = useCallback(
         (redirect: string | undefined) => {
             setState(State.Success);
-            timeoutSuccess.current = setTimeout(() => {
-                if (!mounted.current) return;
+            timeoutSuccessRef.current = setTimeout(() => {
                 onSignInSuccess(redirect);
-                timeoutSuccess.current = null;
+                timeoutSuccessRef.current = null;
             }, 1500);
         },
-        [mounted, onSignInSuccess],
+        [onSignInSuccess],
     );
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimit.current) {
-                clearTimeout(timeoutRateLimit.current);
+            if (timeoutRateLimitRef.current) {
+                clearTimeout(timeoutRateLimitRef.current);
             }
 
             setState(State.RateLimited);
 
             onSignInError(new Error(translate("You have made too many requests")));
 
-            timeoutRateLimit.current = setTimeout(() => {
+            timeoutRateLimitRef.current = setTimeout(() => {
                 setState(State.Failure);
-                timeoutRateLimit.current = null;
+                timeoutRateLimitRef.current = null;
             }, retryAfter * 1000);
         },
         [onSignInError, translate],
@@ -134,8 +135,7 @@ const PushNotificationMethod = function (props: Props) {
 
     const handleFetchDuoDevices = useCallback(async () => {
         try {
-            const res = await initiateDuoDeviceSelectionProcess();
-            if (!mounted.current) return;
+            const res = await initiateDuoDeviceSelectionProcess(getSignal());
             if (res.preferred_device && res.preferred_method) {
                 setPreferredDevice({ device: res.preferred_device, method: res.preferred_method });
             }
@@ -161,11 +161,11 @@ const PushNotificationMethod = function (props: Props) {
                     break;
             }
         } catch (err) {
-            if (!mounted.current) return;
+            if (axios.isCancel(err)) return;
             console.error(err);
             onSignInError(new Error(translate("There was an issue fetching Duo device(s)")));
         }
-    }, [mounted, onSignInError, translate, props.duoSelfEnrollment, setPreferredDevice, processDevices, state]);
+    }, [getSignal, onSignInError, translate, props.duoSelfEnrollment, processDevices, state]);
 
     const handleSignIn = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -174,8 +174,14 @@ const PushNotificationMethod = function (props: Props) {
 
         try {
             setState(State.SignInInProgress);
-            const res = await completePushNotificationSignIn(redirectionURL, flowID, flow, subflow, userCode);
-            if (!mounted.current) return;
+            const res = await completePushNotificationSignIn(
+                redirectionURL,
+                flowID,
+                flow,
+                subflow,
+                userCode,
+                getSignal(),
+            );
             if (!res) {
                 throw new Error(translate("There was an issue completing sign in process"));
             }
@@ -205,7 +211,7 @@ const PushNotificationMethod = function (props: Props) {
                     handleSuccess(res.data.redirect);
             }
         } catch (err) {
-            if (!mounted.current) return;
+            if (axios.isCancel(err)) return;
             console.error(err);
             onSignInError(new Error(translate("There was an issue completing sign in process")));
             setState(State.Failure);
@@ -218,7 +224,7 @@ const PushNotificationMethod = function (props: Props) {
         flow,
         subflow,
         userCode,
-        mounted,
+        getSignal,
         onSignInError,
         translate,
         handleRateLimited,
@@ -229,16 +235,17 @@ const PushNotificationMethod = function (props: Props) {
     const updateDuoDevice = useCallback(
         async function (device: DuoDevicePostRequest) {
             try {
-                await completeDuoDeviceSelectionProcess(device);
+                await completeDuoDeviceSelectionProcess(device, getSignal());
                 if (!props.registered) {
                     props.onSelectionClick();
                 }
             } catch (err) {
+                if (axios.isCancel(err)) return;
                 console.error(err);
                 onSignInError(new Error(translate("There was an issue updating preferred Duo device")));
             }
         },
-        [onSignInError, props, translate],
+        [getSignal, onSignInError, props, translate],
     );
 
     const handleDuoDeviceSelected = useCallback(

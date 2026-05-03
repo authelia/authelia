@@ -1,4 +1,4 @@
-import { render } from '@react-email/render';
+import { render } from 'react-email';
 import * as React from "react";
 import * as fs from "node:fs";
 

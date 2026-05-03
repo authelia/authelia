@@ -4,9 +4,10 @@ import (
 	"net/url"
 	"time"
 
-	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
+
+	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -24,7 +25,7 @@ func WellKnownOpenIDConfigurationGET(ctx *middlewares.AutheliaCtx) {
 		err    error
 	)
 	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Error occurred determining issuer")
+		ctx.GetLogger().WithError(err).Errorf("OpenID Connect 1.0 Discovery Request could not be processed: %s", oidc.ErrTextEffectiveIssuer)
 
 		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
 

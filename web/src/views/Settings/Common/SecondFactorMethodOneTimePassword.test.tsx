@@ -37,6 +37,7 @@ it("renders OTP dial when config is loaded", () => {
 
 it("renders loading page when config is not available", () => {
     vi.doMock("@hooks/UserInfoTOTPConfiguration", () => ({
+        // eslint-disable-next-line @eslint-react/no-unnecessary-use-prefix
         useUserInfoTOTPConfiguration: () => [undefined, vi.fn(), false, null],
     }));
     // Re-import with doMock requires dynamic import but for simplicity, test the loaded state above

@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/authelia/otp"
 	"go.yaml.in/yaml/v4"
+
+	"github.com/authelia/otp"
 )
 
 type TOTPOptions struct {

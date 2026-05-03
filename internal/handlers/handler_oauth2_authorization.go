@@ -21,12 +21,14 @@ import (
 //nolint:gocyclo
 func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
+		issuer    *url.URL
 		requester oauthelia2.AuthorizeRequester
 		responder oauthelia2.AuthorizeResponder
 		client    oidc.Client
 		policy    oidc.ClientAuthorizationPolicy
 		err       error
 	)
+
 	if requester, err = ctx.Providers.OpenIDConnect.NewAuthorizeRequest(ctx, r); requester == nil {
 		err = oauthelia2.ErrServerError.WithDebug("The requester was nil.")
 
@@ -53,8 +55,16 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' is being processed", requester.GetID(), clientID)
 
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: %s", requester.GetID(), clientID, oidc.ErrTextEffectiveIssuer)
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrEffectiveIssuer)
+
+		return
+	}
+
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, clientID); err != nil {
-		if errors.Is(err, oauthelia2.ErrNotFound) {
+		if errors.Is(err, oauthelia2.ErrNotFound) || errors.Is(err, oauthelia2.ErrInvalidClient) {
 			ctx.GetLogger().Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: client was not found", requester.GetID(), clientID)
 		} else {
 			ctx.GetLogger().Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: failed to find client: %s", requester.GetID(), clientID, oauthelia2.ErrorToDebugRFC6749Error(err))
@@ -78,7 +88,6 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	}
 
 	var (
-		issuer      *url.URL
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession
 		provider    *session.Session
@@ -105,14 +114,6 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		ctx.GetLogger().Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the 'prompt' type of 'none' was requested but the user is not logged in", requester.GetID(), client.GetID(), policy.Name)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrLoginRequired)
-
-		return
-	}
-
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred determining the effective issuer", requester.GetID(), client.GetID(), policy.Name)
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the issuer details."))
 
 		return
 	}
@@ -195,9 +196,9 @@ func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 	var redirectURL *url.URL
 
 	if redirectURL, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' had an error determining issuer.", requester.GetID())
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' could not be processed: %s", requester.GetID(), oidc.ErrTextEffectiveIssuer)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the issuer details."))
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrEffectiveIssuer)
 
 		return
 	}
@@ -207,56 +208,4 @@ func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 	redirectURL.RawQuery = query.Encode()
 
 	http.Redirect(rw, r, redirectURL.String(), http.StatusFound)
-}
-
-// OAuth2PushedAuthorizationRequest handles POST requests to the OAuth 2.0 Pushed Authorization Requests endpoint.
-//
-// RFC9126 https://www.rfc-editor.org/rfc/rfc9126.html
-func OAuth2PushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
-	var (
-		requester oauthelia2.AuthorizeRequester
-		responder oauthelia2.PushedAuthorizeResponder
-		err       error
-	)
-	if requester, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeRequest(ctx, r); err != nil {
-		ctx.GetLogger().Errorf("Pushed Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
-
-		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
-
-		return
-	}
-
-	var client oidc.Client
-
-	clientID := requester.GetClient().GetID()
-
-	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, clientID); err != nil {
-		if errors.Is(err, oauthelia2.ErrNotFound) {
-			ctx.GetLogger().Errorf("Pushed Authorization Request with id '%s' on client with id '%s' could not be processed: client was not found", requester.GetID(), clientID)
-		} else {
-			ctx.GetLogger().Errorf("Pushed Authorization Request with id '%s' on client with id '%s' could not be processed: failed to find client: %+v", requester.GetID(), clientID, err)
-		}
-
-		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
-
-		return
-	}
-
-	if err = client.ValidateResponseModePolicy(requester); err != nil {
-		ctx.GetLogger().Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the Response Modes: %s", requester.GetID(), client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
-
-		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
-
-		return
-	}
-
-	if responder, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeResponse(ctx, requester, oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())); err != nil {
-		ctx.GetLogger().Errorf("Pushed Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
-
-		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
-
-		return
-	}
-
-	ctx.Providers.OpenIDConnect.WritePushedAuthorizeResponse(ctx, rw, requester, responder)
 }

@@ -25,7 +25,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-var browserPaths = []string{"/usr/bin/chromium-browser", "/usr/bin/chromium"}
+var browserPaths = []string{"/usr/bin/chromium-browser", "/usr/bin/chromium", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/Applications/Chromium.app/Contents/MacOS/Chromium"}
 
 func StringToKeys(value string) []input.Key {
 	n := len(value)

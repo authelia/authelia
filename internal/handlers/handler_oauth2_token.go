@@ -29,10 +29,12 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 		return
 	}
 
-	if _, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Error occurred determining issuer")
+	ctx.GetLogger().Debugf("Access Request with id '%s' is being processed", requester.GetID())
 
-		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Error occurred determining issuer"))
+	if _, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Access Request with id '%s' could not be processed: %s", requester.GetID(), oidc.ErrTextEffectiveIssuer)
+
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, oidc.ErrEffectiveIssuer)
 
 		return
 	}

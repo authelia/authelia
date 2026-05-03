@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/valyala/fasthttp"
+
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 	"authelia.com/provider/oauth2/x/errorsx"
-	"github.com/google/uuid"
-	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -30,13 +31,6 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		client    oidc.Client
 		err       error
 	)
-	if _, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Error("Unable to determine issuer URL")
-
-		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
-
-		return
-	}
 
 	if requestID, err = uuid.NewRandom(); err != nil {
 		errorsx.WriteJSONError(rw, r, oauthelia2.ErrServerError)
@@ -45,6 +39,14 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	}
 
 	ctx.GetLogger().Debugf("User Info Request with id '%s' is being processed", requestID)
+
+	if _, err = ctx.IssuerURL(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("User Info Request with id '%s' could not be processed: %s", requestID, oidc.ErrTextEffectiveIssuer)
+
+		errorsx.WriteJSONError(rw, r, oidc.ErrEffectiveIssuer)
+
+		return
+	}
 
 	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(oauth2.SetSkipStatelessIntrospection(r.Context()), oauthelia2.AccessTokenFromRequest(r), oauthelia2.AccessToken, oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())); err != nil {
 		ctx.GetLogger().Errorf("User Info Request with id '%s' failed with error: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))

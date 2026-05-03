@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.18](https://github.com/authelia/authelia/releases/tag/v4.39.18)
+  - [v4.39.19](https://github.com/authelia/authelia/releases/tag/v4.39.19)
 - [Jellyseerr]
   - [development version tag:preview-OIDC](https://github.com/fallenbagel/jellyseerr/releases/tag/preview-OIDC)
 

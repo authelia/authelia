@@ -84,11 +84,20 @@ const (
 	strProtoHTTPS = "https"
 	strProtoHTTP  = "http"
 	strSlash      = "/"
+	localhost     = "127.0.0.1"
 
 	queryArgRedirect    = "rd"
 	queryArgAutheliaURL = "authelia_url"
 	queryArgToken       = "token"
 )
+
+const healthCheckEnv = `# Written by Authelia Process
+X_AUTHELIA_HEALTHCHECK=1
+X_AUTHELIA_HEALTHCHECK_SCHEME=%s
+X_AUTHELIA_HEALTHCHECK_HOST=%s
+X_AUTHELIA_HEALTHCHECK_PORT=%d
+X_AUTHELIA_HEALTHCHECK_PATH=%s
+`
 
 const (
 	UserValueKeyBaseURL int8 = iota

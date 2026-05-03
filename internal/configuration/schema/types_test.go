@@ -20,11 +20,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authelia/jsonschema"
 	"github.com/go-crypt/crypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.yaml.in/yaml/v4"
+
+	"github.com/authelia/jsonschema"
 )
 
 func TestPasswordDigest_MarshalYAML(t *testing.T) {

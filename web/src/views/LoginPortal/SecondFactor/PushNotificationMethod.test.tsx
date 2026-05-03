@@ -20,10 +20,6 @@ vi.mock("@hooks/OpenIDConnect", () => ({
     useUserCode: () => null,
 }));
 
-vi.mock("@hooks/Mounted", () => ({
-    useIsMountedRef: () => ({ current: true }),
-}));
-
 vi.mock("@services/PushNotification", () => ({
     completeDuoDeviceSelectionProcess: vi.fn(),
     completePushNotificationSignIn: vi.fn().mockResolvedValue(null),

@@ -6,10 +6,10 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/google/uuid"
+
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/x/errorsx"
-	"github.com/google/uuid"
-	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -28,14 +28,6 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 		err error
 	)
-	if _, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Error occurred determining issuer")
-
-		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
-
-		return
-	}
-
 	if requester, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeRequest(ctx, r); err != nil {
 		ctx.GetLogger().
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
@@ -49,6 +41,14 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 	log := ctx.GetLogger().WithFields(map[string]any{logging.FieldRequestID: requester.GetID(), logging.FieldClientID: requester.GetClient().GetID(), logging.FieldScope: strings.Join(requester.GetRequestedScopes(), " ")})
 
 	log.Debug("Device Authorization Request is processing the Device Authorization Flow")
+
+	if _, err = ctx.IssuerURL(); err != nil {
+		log.WithError(err).Errorf("Device Authorization Request could not be processed: %s", oidc.ErrTextEffectiveIssuer)
+
+		errorsx.WriteJSONError(rw, r, oidc.ErrEffectiveIssuer)
+
+		return
+	}
 
 	if response, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeResponse(ctx, requester, oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())); err != nil {
 		log.WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).Error("Device Authorization Request had an error while trying to create a response during the Device Authorization Flow")
@@ -89,6 +89,18 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 	log := ctx.GetLogger().WithFields(map[string]any{logging.FieldRequestID: requester.GetID(), logging.FieldClientID: requester.GetClient().GetID()})
 
 	log.Debug("Device Authorization Request is processing the User Authorization Flow")
+
+	var issuer *url.URL
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		log.
+			WithError(err).
+			Errorf("Device Authorization Request could not be processed: %s", oidc.ErrTextEffectiveIssuer)
+
+		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oidc.ErrEffectiveIssuer)
+
+		return
+	}
 
 	if flowID, err = uuid.Parse(requester.GetRequestForm().Get(oidc.FormParameterFlowID)); err != nil {
 		log.
@@ -175,17 +187,6 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		log.Error("Device Authorization Request failed to match the session to the subject during the User Authorization Flow")
 
 		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not match the consent session to the subject."))
-
-		return
-	}
-
-	var issuer *url.URL
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		log.
-			WithError(err).
-			Error("Device Authorization Request failed to obtain the issuer during the User Authorization Flow")
-
-		ctx.Providers.OpenIDConnect.WriteRFC8628UserAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the issuer details."))
 
 		return
 	}

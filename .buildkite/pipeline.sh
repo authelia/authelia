@@ -1,38 +1,41 @@
 #!/usr/bin/env bash
 DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 
-if [[ ${DIVERGED} == 0 ]]; then
-  if [[ ${BUILDKITE_TAG} == "" ]]; then
-    if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
-      BUILD_DUO=$(git diff --name-only HEAD~1 | grep -q ^internal/suites/example/compose/duo-api/Dockerfile && echo true || echo false)
-      BUILD_HAPROXY=$(git diff --name-only HEAD~1 | grep -q ^internal/suites/example/compose/haproxy/Dockerfile && echo true || echo false)
-      BUILD_SAMBA=$(git diff --name-only HEAD~1 | grep -q ^internal/suites/example/compose/samba/Dockerfile && echo true || echo false)
-      CI_BYPASS=$(git diff --name-only HEAD~1 | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}' && echo true || echo false)
-    else
-      BUILD_DUO=$(git diff --name-only $(git merge-base --fork-point origin/master) | grep -q ^internal/suites/example/compose/duo-api/Dockerfile && echo true || echo false)
-      BUILD_HAPROXY=$(git diff --name-only $(git merge-base --fork-point origin/master) | grep -q ^internal/suites/example/compose/haproxy/Dockerfile && echo true || echo false)
-      BUILD_SAMBA=$(git diff --name-only $(git merge-base --fork-point origin/master) | grep -q ^internal/suites/example/compose/samba/Dockerfile && echo true || echo false)
-      CI_BYPASS=$(git diff --name-only $(git merge-base --fork-point origin/master) | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}' && echo true || echo false)
-    fi
+BYPASS_REGEX='/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}'
 
-    if [[ ${CI_BYPASS} == "true" ]]; then
-      buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/bypass
-    fi
-  else
-    BUILD_DUO="false"
-    BUILD_HAPROXY="false"
-    BUILD_SAMBA="false"
-    CI_BYPASS="false"
-  fi
-else
-  BUILD_DUO="false"
-  BUILD_HAPROXY="false"
-  BUILD_SAMBA="false"
-  CI_BYPASS="false"
-fi
+changed() {
+  git diff --name-only "${1}" | grep -q "^${2}"
+}
 
+bypass_check() {
+  git diff --name-only "${1}" | sed -rn "${BYPASS_REGEX}" && echo true || echo false
+}
+
+BUILD_DUO="false"
+BUILD_HAPROXY="false"
+BUILD_SAMBA="false"
+CI_BYPASS="false"
 CI_MERGE_QUEUE="false"
 CI_MERGE_QUEUE_BYPASS="false"
+CI_PRIVATE="false"
+LINT_REPORTER="github-check"
+
+if [[ ${DIVERGED} == 0 ]] && [[ ${BUILDKITE_TAG} == "" ]]; then
+  if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
+    BASE_REF="HEAD~1"
+  else
+    BASE_REF=$(git merge-base --fork-point origin/master)
+  fi
+
+  changed "${BASE_REF}" "internal/suites/example/compose/duo-api/Dockerfile" && BUILD_DUO="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/haproxy/Dockerfile" && BUILD_HAPROXY="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/samba/Dockerfile" && BUILD_SAMBA="true"
+  CI_BYPASS=$(bypass_check "${BASE_REF}")
+
+  if [[ ${CI_BYPASS} == "true" ]]; then
+    buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/bypass
+  fi
+fi
 
 if [[ ${BUILDKITE_PULL_REQUEST_DRAFT} == "true" ]] && [[ ${BUILDKITE_BRANCH} =~ ^(dependabot|renovate) ]]; then
   CI_BYPASS="true"
@@ -42,8 +45,13 @@ fi
 if [[ ${BUILDKITE_BRANCH} =~ ^gh-readonly-queue/.* ]]; then
   CI_BYPASS="true"
   CI_MERGE_QUEUE="true"
-  CI_MERGE_QUEUE_BYPASS=$(git diff --name-only "$(git merge-base origin/master HEAD)" | sed -rn '/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}' && echo true || echo false)
+  CI_MERGE_QUEUE_BYPASS=$(bypass_check "HEAD^..HEAD")
   buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/merge-queue
+fi
+
+if [[ ${BUILDKITE_PIPELINE_SLUG} == "authelia-cve" ]]; then
+  CI_PRIVATE="true"
+  LINT_REPORTER="local"
 fi
 
 cat << EOF
@@ -54,18 +62,15 @@ env:
   CI_BYPASS: ${CI_BYPASS}
   CI_MERGE_QUEUE: ${CI_MERGE_QUEUE}
   CI_MERGE_QUEUE_BYPASS: ${CI_MERGE_QUEUE_BYPASS}
+  CI_PRIVATE: ${CI_PRIVATE}
 
 steps:
   - label: ":service_dog: Linting"
-    command: "lint.sh -reporter=github-check -filter-mode=nofilter -fail-level=error"
+    command: "lint.sh -reporter=${LINT_REPORTER} -filter-mode=nofilter -fail-level=error"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 
-  - label: ":nodejs: Package Validation [docs]"
-    command: "pkgvalidate.sh docs"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/ && build.env("CI_MERGE_QUEUE") != "true"
-
-  - label: ":nodejs: Package Validation [templates]"
-    command: "pkgvalidate.sh templates"
+  - label: ":chrome: External Tests"
+    command: "e2epackages.sh | buildkite-agent pipeline upload"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/ && build.env("CI_MERGE_QUEUE") != "true"
 
   - label: ":hammer_and_wrench: Unit Test"
@@ -218,11 +223,11 @@ cat << EOF
     agents:
       upload: "fast"
     key: "artifacts"
-    if: build.tag != null && build.env("CI_BYPASS") != "true"
+    if: build.tag != null && build.env("CI_BYPASS") != "true" && build.env("CI_PRIVATE") != "true"
 
   - label: ":linux: Deploy AUR"
     command: "aurpackages.sh | buildkite-agent pipeline upload"
-    if: build.tag != null && build.env("CI_BYPASS") != "true"
+    if: build.tag != null && build.env("CI_BYPASS") != "true" && build.env("CI_PRIVATE") != "true"
 
   - label: ":debian: :fedora: :ubuntu: Deploy APT"
     command: "aptdeploy.sh"
@@ -230,5 +235,5 @@ cat << EOF
       - "unit-test"
     agents:
       upload: "fast"
-    if: build.tag != null && build.env("CI_BYPASS") != "true"
+    if: build.tag != null && build.env("CI_BYPASS") != "true" && build.env("CI_PRIVATE") != "true"
 EOF

@@ -39,16 +39,12 @@ func New(config *schema.Configuration, providers middlewares.Providers) (server 
 		Logger:                logging.LoggerPrintf(logrus.DebugLevel),
 	}
 
-	var (
-		connectionScheme = schemeHTTP
-	)
-
 	if listener, err = config.Server.Address.Listener(); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server listener for address '%s': %w", config.Server.Address.String(), err)
 	}
 
 	if config.Server.TLS.Certificate != "" && config.Server.TLS.Key != "" {
-		isTLS, connectionScheme = true, schemeHTTPS
+		isTLS = true
 
 		if err = server.AppendCert(config.Server.TLS.Certificate, config.Server.TLS.Key); err != nil {
 			return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server tls parameters: failed to load certificate '%s' or private key '%s': %w", config.Server.TLS.Certificate, config.Server.TLS.Key, err)
@@ -74,11 +70,6 @@ func New(config *schema.Configuration, providers middlewares.Providers) (server 
 		}
 
 		listener = tls.NewListener(listener, server.TLSConfig.Clone())
-	}
-
-	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Address.Hostname(),
-		config.Server.Address.RouterPath(), config.Server.Address.Port()); err != nil {
-		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server healthcheck metadata: %w", err)
 	}
 
 	paths = []string{"/"}

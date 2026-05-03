@@ -118,14 +118,6 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
     }, [props.open, options, createSuccessNotification, translate, createErrorNotification, handleClose]);
 
     useEffect(() => {
-        if (!props.open || state !== WebAuthnTouchState.Failure || activeStep !== 0) {
-            return;
-        }
-
-        handleClose();
-    }, [props, state, activeStep, handleClose]);
-
-    useEffect(() => {
         (async function () {
             if (!props.open || activeStep !== 0 || options === null) {
                 return;
@@ -219,10 +211,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                                     autoCapitalize="none"
                                     onKeyDown={(ev) => {
                                         if (ev.key === "Enter") {
-                                            (async () => {
-                                                handleNext();
-                                            })();
-
+                                            handleNext();
                                             ev.preventDefault();
                                         }
                                     }}

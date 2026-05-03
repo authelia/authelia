@@ -2,14 +2,24 @@ package middlewares
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
+	config := ctx.GetConfiguration()
+
+	if !config.Server.DisableHealthcheck {
+		if err = writeHealthCheckEnvConfig(config); err != nil {
+			return err
+		}
+	}
+
 	e := &ErrProviderStartupCheck{errors: map[string]error{}}
 
 	var (
@@ -94,6 +104,56 @@ func doStartupCheck(ctx ServiceContext, name string, provider model.StartupCheck
 	if log {
 		ctx.GetLogger().WithFields(map[string]any{logging.FieldProvider: name}).Trace("Startup Check Completed Successfully")
 	}
+}
+
+func writeHealthCheckEnvConfig(config *schema.Configuration) (err error) {
+	scheme := strProtoHTTP
+
+	if config.Server.TLS.Certificate != "" && config.Server.TLS.Key != "" {
+		scheme = strProtoHTTPS
+	}
+
+	host := config.Server.Address.Hostname()
+
+	path := config.Server.Address.RouterPath()
+
+	port := config.Server.Address.Port()
+
+	return writeHealthCheckEnv(scheme, host, path, port)
+}
+
+func writeHealthCheckEnv(scheme, host, path string, port uint16) (err error) {
+	if _, err = os.Stat("/app/healthcheck.sh"); err != nil {
+		return nil
+	}
+
+	if _, err = os.Stat("/app/.healthcheck.env"); err != nil {
+		return nil
+	}
+
+	var file *os.File
+
+	if file, err = os.OpenFile("/app/.healthcheck.env", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755); err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = file.Close()
+	}()
+
+	if host == "0.0.0.0" {
+		host = localhost
+	} else if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+
+	if path == "/" {
+		path = ""
+	}
+
+	_, err = fmt.Fprintf(file, healthCheckEnv, scheme, host, port, path)
+
+	return err
 }
 
 type ErrProviderStartupCheck struct {

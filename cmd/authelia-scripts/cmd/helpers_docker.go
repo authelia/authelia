@@ -41,7 +41,7 @@ func (d *Docker) Login(username, password, registry string) error {
 }
 
 // Manifest push a docker manifest to dockerhub.
-func (d *Docker) Manifest(tags []string) error {
+func (d *Docker) Manifest(image string, tags []string) error {
 	args := []string{"build"}
 
 	for _, tag := range tags {
@@ -88,13 +88,13 @@ func (d *Docker) Manifest(tags []string) error {
 	copy(finalArgs, args)
 
 	finalArgs = append(finalArgs,
-		"--output", "type=image,\"name="+dockerhub+"/"+DockerImageName+","+ghcr+"/"+DockerImageName+"\","+
+		"--output", "type=image,\"name="+dockerhub+"/"+image+","+ghcr+"/"+image+"\","+
 			annotations+"annotation.org.opencontainers.image.base.name=docker.io/"+BaseImageName+":"+indexDigest+
 			",annotation[linux/amd64].org.opencontainers.image.base.digest="+digestAMD64+
 			",annotation[linux/arm/v7].org.opencontainers.image.base.digest="+digestARM+
 			",annotation[linux/arm64].org.opencontainers.image.base.digest="+digestARM64,
 		"--platform", "linux/amd64,linux/arm/v7,linux/arm64",
-		"--provenance", "mode=max,reproducible=true", "--sbom", "true",
+		"--provenance", "mode=max,reproducible=true", "--sbom", stringTrue,
 		"--builder", "buildx", "--push", ".")
 
 	if err = utils.CommandWithStdout("docker", finalArgs...).Run(); err != nil {
@@ -159,4 +159,8 @@ func getManifestIndexDigest(tag string) (digest string, err error) {
 	}
 
 	return digest, nil
+}
+
+func isPrivatePipeline(pipeline string) bool {
+	return utils.IsStringInSlice(pipeline, buildkitePrivatePipelines) || os.Getenv("CI_PRIVATE") == stringTrue
 }

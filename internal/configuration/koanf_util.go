@@ -42,19 +42,55 @@ func koanfGetKeys(ko *koanf.Koanf) (keys []string) {
 }
 
 func koanfRemapKeys(val *schema.StructValidator, ko *koanf.Koanf, ds map[string]Deprecation, dms []MultiKeyMappedDeprecation) (final *koanf.Koanf, err error) {
+	km := ko.KeyMap()
 	keys := ko.All()
 
 	keys = koanfRemapKeysStandard(keys, val, ds)
 	keys = koanfRemapKeysMapped(keys, val, ds)
 	koanfRemapKeysMultiMapped(keys, val, dms)
 
-	final = koanf.New(".")
+	nested := koanfUnflattenWithKeyMap(keys, km, constDelimiter)
 
-	if err = final.Load(confmap.Provider(keys, "."), nil); err != nil {
+	final = koanf.New(constDelimiter)
+
+	if err = final.Load(confmap.Provider(nested, ""), nil); err != nil {
 		return nil, err
 	}
 
 	return final, nil
+}
+
+func koanfUnflattenWithKeyMap(flat map[string]any, km koanf.KeyMap, delim string) map[string]any {
+	out := make(map[string]any)
+
+	for k, v := range flat {
+		parts, ok := km[k]
+		if !ok {
+			parts = strings.Split(k, delim)
+		}
+
+		next := out
+
+		for _, p := range parts[:len(parts)-1] {
+			sub, exists := next[p]
+			if !exists {
+				sub = make(map[string]any)
+				next[p] = sub
+			}
+
+			if n, ok := sub.(map[string]any); ok {
+				next = n
+			} else {
+				n = make(map[string]any)
+				next[p] = n
+				next = n
+			}
+		}
+
+		next[parts[len(parts)-1]] = v
+	}
+
+	return out
 }
 
 func koanfRemapKeysStandard(keys map[string]any, val *schema.StructValidator, ds map[string]Deprecation) (keysFinal map[string]any) {

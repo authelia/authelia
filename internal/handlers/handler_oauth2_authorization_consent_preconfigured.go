@@ -6,8 +6,9 @@ import (
 	"net/url"
 	"strings"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"

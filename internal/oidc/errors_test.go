@@ -8,8 +8,9 @@ import (
 	"net/url"
 	"testing"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/stretchr/testify/assert"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 )
 
 func TestRedirectAuthorizeErrorFieldResponseStrategy(t *testing.T) {
