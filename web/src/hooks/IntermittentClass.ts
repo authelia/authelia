@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function useIntermittentClass(
     classname: string,
@@ -7,32 +7,23 @@ export function useIntermittentClass(
     startMillisecond?: number,
 ) {
     const [currentClass, setCurrentClass] = useState("");
-    const [firstTime, setFirstTime] = useState(true);
+    const firstTimeRef = useRef(true);
 
     useEffect(() => {
         let timeout: NodeJS.Timeout;
 
-        if (firstTime) {
-            if (startMillisecond && startMillisecond > 0) {
-                timeout = setTimeout(() => {
-                    setCurrentClass(classname);
-                    setFirstTime(false);
-                }, startMillisecond);
-            } else {
-                timeout = setTimeout(() => {
-                    setCurrentClass(classname);
-                    setFirstTime(false);
-                }, 0);
-            }
+        if (currentClass === "") {
+            const delay = firstTimeRef.current ? (startMillisecond ?? 0) : inactiveMillisecond;
+            timeout = setTimeout(() => {
+                setCurrentClass(classname);
+                firstTimeRef.current = false;
+            }, delay);
         } else {
-            if (currentClass === "") {
-                timeout = setTimeout(() => setCurrentClass(classname), inactiveMillisecond);
-            } else {
-                timeout = setTimeout(() => setCurrentClass(""), activeMilliseconds);
-            }
+            timeout = setTimeout(() => setCurrentClass(""), activeMilliseconds);
         }
+
         return () => clearTimeout(timeout);
-    }, [currentClass, classname, activeMilliseconds, inactiveMillisecond, startMillisecond, firstTime]);
+    }, [currentClass, classname, activeMilliseconds, inactiveMillisecond, startMillisecond]);
 
     return currentClass;
 }

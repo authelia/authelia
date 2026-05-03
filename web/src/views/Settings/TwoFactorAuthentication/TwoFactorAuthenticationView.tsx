@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -19,9 +19,6 @@ import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/We
 const TwoFactorAuthenticationView = function () {
     const { t: translate } = useTranslation("settings");
 
-    const [refreshState, setRefreshState] = useState(0);
-    const [refreshWebAuthnState, setRefreshWebAuthnState] = useState(0);
-    const [refreshTOTPState, setRefreshTOTPState] = useState(0);
     const { createErrorNotification } = useNotifications();
 
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
@@ -35,13 +32,15 @@ const TwoFactorAuthenticationView = function () {
     const hasWebAuthn = userInfo?.has_webauthn ?? false;
 
     const handleRefreshWebAuthnState = () => {
-        setRefreshState((refreshState) => refreshState + 1);
-        setRefreshWebAuthnState((refreshWebAuthnState) => refreshWebAuthnState + 1);
+        fetchConfiguration();
+        fetchUserInfo();
+        fetchUserWebAuthnCredentials();
     };
 
     const handleRefreshTOTPState = () => {
-        setRefreshState((refreshState) => refreshState + 1);
-        setRefreshTOTPState((refreshTOTPState) => refreshTOTPState + 1);
+        fetchConfiguration();
+        fetchUserInfo();
+        fetchUserTOTPConfig();
     };
 
     const enabledWebAuthn = configuration?.available_methods.has(SecondFactorMethod.WebAuthn);
@@ -50,7 +49,7 @@ const TwoFactorAuthenticationView = function () {
     useEffect(() => {
         fetchConfiguration();
         fetchUserInfo();
-    }, [fetchConfiguration, fetchUserInfo, refreshState]);
+    }, [fetchConfiguration, fetchUserInfo]);
 
     useEffect(() => {
         if (localStorageMethodAvailable && configuration?.available_methods.size === 1) {
@@ -64,7 +63,7 @@ const TwoFactorAuthenticationView = function () {
         }
 
         fetchUserTOTPConfig();
-    }, [enabledTOTP, fetchUserTOTPConfig, hasTOTP, refreshTOTPState]);
+    }, [enabledTOTP, fetchUserTOTPConfig, hasTOTP]);
 
     useEffect(() => {
         if (!enabledWebAuthn) {
@@ -72,7 +71,7 @@ const TwoFactorAuthenticationView = function () {
         }
 
         fetchUserWebAuthnCredentials();
-    }, [enabledWebAuthn, fetchUserWebAuthnCredentials, hasWebAuthn, refreshWebAuthnState]);
+    }, [enabledWebAuthn, fetchUserWebAuthnCredentials, hasWebAuthn]);
 
     useEffect(() => {
         if (fetchConfigurationError) {
