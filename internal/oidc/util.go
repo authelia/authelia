@@ -19,6 +19,8 @@ import (
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/utils"
+	"context"
+	"errors"
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
@@ -649,4 +651,40 @@ func RequesterIsAuthorizeCodeFlow(requester oauthelia2.Requester) (is bool) {
 	}
 
 	return false
+}
+
+func DecodeIDTokenUnverified(ctx context.Context, strategy fjwt.Strategy, client Client, tokenString string) (token *fjwt.Token, decrypted string, err error) {
+	opts := []fjwt.StrategyOpt{}
+
+	if client != nil {
+		opts = append(opts, fjwt.WithClient(fjwt.NewIDTokenClient(client)))
+
+		if tokenString, _, _, err = strategy.Decrypt(ctx, tokenString, opts...); err != nil {
+			return nil, tokenString, oauthelia2.ErrInvalidRequest.WithDebugf("Failed to decrypt the ID Token with error: %s.", err.Error())
+		}
+	} else {
+		opts = append(opts, fjwt.WithAllowUnverified())
+	}
+
+	if token, err = strategy.Decode(ctx, tokenString, opts...); err != nil && !IsExpiredValidationError(err) {
+		return nil, tokenString, oauthelia2.ErrInvalidRequest.WithDebugf("Failed to decode the ID Token with error: %s.", err.Error())
+	}
+
+	claims := &fjwt.IDTokenClaims{}
+
+	claims.FromMapClaims(token.Claims.ToMapClaims())
+
+	token.Claims = claims
+
+	return token, tokenString, nil
+}
+
+func IsExpiredValidationError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var ve *fjwt.ValidationError
+
+	return errors.As(err, &ve) && !ve.Is(fjwt.ValidationErrorExpired)
 }

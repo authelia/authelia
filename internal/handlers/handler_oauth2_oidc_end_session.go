@@ -42,17 +42,27 @@ func OpenIDConnectEndSession(ctx *middlewares.AutheliaCtx) {
 
 	var (
 		token  *jwt.Token
-		claims jwt.MapClaims
+		client oidc.Client
+		claims *jwt.IDTokenClaims
+		ok     bool
 	)
 
+	if len(id) > 0 {
+		if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, id); err != nil {
+			// TODO: Redirect to error URI.
+
+			return
+		}
+	}
+
 	if len(tokenString) > 0 {
-		if tokenString, _, _, err = ctx.Providers.OpenIDConnect.Strategy.JWT.Decrypt(ctx, tokenString); err != nil {
+		if token, tokenString, err = oidc.DecodeIDTokenUnverified(ctx, ctx.Providers.OpenIDConnect.Strategy.JWT, client, tokenString); err != nil {
 			// TODO: Redirect to error URI.
 
 			return
 		}
 
-		if token, err = ctx.Providers.OpenIDConnect.Strategy.JWT.Decode(ctx, tokenString, jwt.WithAllowUnverified()); err != nil {
+		if claims, ok = token.Claims.(*jwt.IDTokenClaims); !ok {
 			// TODO: Redirect to error URI.
 
 			return
@@ -63,36 +73,40 @@ func OpenIDConnectEndSession(ctx *middlewares.AutheliaCtx) {
 		}
 
 		if len(id) > 0 {
-			opts = append(opts, jwt.ValidateAudienceAll(id))
+			opts = append(opts, jwt.ValidateAuthorizedParty(id), jwt.ValidateAudienceAll(id))
 		}
 
-		err = token.Claims.Valid(jwt.ValidateIssuer(issuer.String()))
+		if err = claims.Valid(opts...); err != nil && !oidc.IsExpiredValidationError(err) {
+			// TODO: Redirect to error URI.
 
-		claims = token.Claims.ToMapClaims()
+			return
+		}
 
+		if client == nil {
+			if len(claims.Audience) < 1 {
+				// TODO: Redirect to error URI.
+
+				return
+			}
+
+			id = claims.Audience[0]
+
+			if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, id); err != nil {
+				// TODO: Redirect to error URI.
+
+				return
+			}
+
+			if token, tokenString, err = oidc.DecodeIDTokenUnverified(ctx, ctx.Providers.OpenIDConnect.Strategy.JWT, client, tokenString); err != nil {
+				// TODO: Redirect to error URI.
+
+				return
+			}
+
+		}
 		var (
-			rawAZP        any
 			clientID, azp string
-			ok            bool
 		)
-
-		if rawAZP, ok = claims[jwt.ClaimAuthorizedParty]; ok {
-			if azp, ok = rawAZP.(string); !ok {
-				// TODO: Redirect to error URI.
-
-				return
-			}
-
-			if len(id) > 0 && id != azp {
-				// TODO: Redirect to error URI.
-
-				return
-			}
-
-			clientID = azp
-		}
-
-		var client oidc.Client
 
 		if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, clientID); err != nil {
 			if len(id) > 0 && id != azp {
