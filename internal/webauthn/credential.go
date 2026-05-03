@@ -20,8 +20,13 @@ func VerifyCredential(config *schema.WebAuthn, credential *model.WebAuthnCredent
 		result.MissingStatement = true
 	} else if c != nil && mds != nil {
 		if err = c.Verify(mds); err != nil {
+			result.ErrorMetadataValidation = err
 			result.MetaDataValidationError = true
 		}
+	}
+
+	if credential.AttestationType == "" && c != nil && c.AttestationType != "" {
+		credential.AttestationType = c.AttestationType
 	}
 
 	if config.Filtering.ProhibitBackupEligibility && credential.BackupEligible {
@@ -63,4 +68,6 @@ type VerifyCredentialResult struct {
 	IsProhibitedBackupEligibility bool
 	IsProhibitedAAGUID            bool
 	MetaDataValidationError       bool
+
+	ErrorMetadataValidation error
 }

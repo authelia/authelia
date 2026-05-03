@@ -1361,6 +1361,8 @@ func runStorageUserWebAuthnVerify(ctx context.Context, w io.Writer, store storag
 
 	_, _ = fmt.Fprintln(tw, "ID\tRPID\tKID\tUsername\tAAGUID\tStatement\tBackup\tMDS")
 
+	results := map[int]webauthn.VerifyCredentialResult{}
+
 	for page := 0; true; page++ {
 		if credentials, err = store.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
 			return fmt.Errorf("failed to verify credentials: %w", err)
@@ -1371,7 +1373,11 @@ func runStorageUserWebAuthnVerify(ctx context.Context, w io.Writer, store storag
 		}
 
 		for _, credential := range credentials {
+			attestationType := credential.AttestationType
+
 			result := webauthn.VerifyCredential(&config.WebAuthn, &credential, provider)
+
+			results[credential.ID] = result
 
 			strAAGUID, strStatement, strBackup, strMDS := wordYes, wordYes, wordYes, wordYes
 
@@ -1387,13 +1393,21 @@ func runStorageUserWebAuthnVerify(ctx context.Context, w io.Writer, store storag
 				strBackup = wordNo
 			}
 
-			if result.Malformed {
+			switch {
+			case provider == nil:
+				strMDS = "N/A"
+			case result.Malformed:
 				strMDS = "Malformed"
-			} else if result.MetaDataValidationError {
+			case result.MetaDataValidationError:
 				strMDS = wordNo
 			}
 
 			_, _ = fmt.Fprintf(tw, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", credential.ID, credential.RPID, credential.KID, credential.Username, strAAGUID, strStatement, strBackup, strMDS)
+
+			if attestationType != credential.AttestationType {
+				fmt.Printf("Update %d from %s to %s\n", credential.ID, attestationType, credential.AttestationType)
+				_ = store.UpdateWebAuthnCredentialSignIn(ctx, credential)
+			}
 		}
 
 		if len(credentials) < limit {
@@ -1401,7 +1415,17 @@ func runStorageUserWebAuthnVerify(ctx context.Context, w io.Writer, store storag
 		}
 	}
 
-	return tw.Flush()
+	if err = tw.Flush(); err != nil {
+		return err
+	}
+
+	for id, result := range results {
+		if result.MetaDataValidationError {
+			_, _ = fmt.Fprintf(w, "Metadata Error (Credential ID: %d): %s", id, result.ErrorMetadataValidation)
+		}
+	}
+
+	return nil
 }
 
 // StorageUserWebAuthnDeleteRunE is the RunE for the authelia storage user webauthn delete command.

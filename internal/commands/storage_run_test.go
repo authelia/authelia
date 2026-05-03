@@ -2325,7 +2325,7 @@ func TestNewStorageMigrationRunE(t *testing.T) {
 		{
 			"ShouldErrUpMigrationTargetSameAsCurrent",
 			true,
-			map[string]string{cmdFlagNameTarget: "23"},
+			map[string]string{cmdFlagNameTarget: "24"},
 			"schema migration target version",
 		},
 	}
