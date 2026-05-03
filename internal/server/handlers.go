@@ -534,7 +534,8 @@ func RegisterOpenIDConnectRoutes(ctx context.Context, r *router.Router, config *
 		Build()
 
 	r.OPTIONS(oidc.EndpointPathEndSession, policyCORSEndSession.HandleOnlyOPTIONS)
-	r.GET(oidc.EndpointPathEndSession, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointEndSession), policyCORSEndSession.Middleware(bridge(handlers.OpenIDConnectEndSession))))
+	r.GET(oidc.EndpointPathEndSession, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointEndSession), policyCORSEndSession.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectEndSession)))))
+	r.POST(oidc.EndpointPathEndSession, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointEndSession), policyCORSEndSession.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectEndSession)))))
 }
 
 func handlerMetrics(provider metrics.Provider, path string) fasthttp.RequestHandler {
