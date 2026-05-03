@@ -5,16 +5,19 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // NewPrometheus returns a new Prometheus metrics recorder.
-func NewPrometheus() (provider *Prometheus) {
+func NewPrometheus() (provider *Prometheus, err error) {
 	provider = &Prometheus{}
 
-	provider.register()
+	if err = provider.register(); err != nil {
+		return nil, err
+	}
 
-	return provider
+	return provider, nil
 }
 
 // Prometheus is a middleware for recording prometheus metrics.
@@ -72,8 +75,16 @@ func (r *Prometheus) RecordAuthenticationDuration(success bool, elapsed time.Dur
 	r.authnDuration.WithLabelValues(strconv.FormatBool(success)).Observe(elapsed.Seconds())
 }
 
-func (r *Prometheus) register() {
+func (r *Prometheus) register() (err error) {
 	r.registry = prometheus.NewRegistry()
+
+	if err = r.registry.Register(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{})); err != nil {
+		return err
+	}
+
+	if err = r.registry.Register(collectors.NewGoCollector()); err != nil {
+		return err
+	}
 
 	r.authnDuration = promauto.With(r.registry).NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -149,4 +160,6 @@ func (r *Prometheus) register() {
 		},
 		[]string{"success", "banned", "type"},
 	)
+
+	return nil
 }

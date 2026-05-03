@@ -8,7 +8,7 @@ overrides:
   brace-expansion: 5.0.5
   picomatch: 4.0.4
   semver: 7.7.4
-  yaml: 2.8.3
+  yaml: 2.8.4
   yauzl: 3.3.0
   vite: 8.0.10
 
@@ -82,7 +82,7 @@ importers:
         version: 3.8.3
       vite:
         specifier: 8.0.10
-        version: 8.0.10(esbuild@0.27.3)(yaml@2.8.3)
+        version: 8.0.10(esbuild@0.27.3)(yaml@2.8.4)
     optionalDependencies:
       hugo-extended:
         specifier: 0.161.1
@@ -1946,7 +1946,7 @@ packages:
       sugarss: ^5.0.0
       terser: ^5.16.0
       tsx: ^4.8.1
-      yaml: 2.8.3
+      yaml: 2.8.4
     peerDependenciesMeta:
       '@types/node':
         optional: true
@@ -2002,8 +2002,8 @@ packages:
     resolution: {integrity: sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==}
     engines: {node: '>=18'}
 
-  yaml@2.8.3:
-    resolution: {integrity: sha512-AvbaCLOO2Otw/lW5bmh9d/WEdcDFdQp2Z2ZUH3pX9U2ihyUY0nvLv7J6TrWowklRGPYbB/IuIMfYgxaCPg5Bpg==}
+  yaml@2.8.4:
+    resolution: {integrity: sha512-ml/JPOj9fOQK8RNnWojA67GbZ0ApXAUlN2UQclwv2eVgTgn7O9gg9o7paZWKMp4g0H3nTLtS9LVzhkpOFIKzog==}
     engines: {node: '>= 14.6'}
     hasBin: true
 
@@ -3685,7 +3685,7 @@ snapshots:
   postcss-load-config@5.1.0(postcss@8.5.13):
     dependencies:
       lilconfig: 3.1.2
-      yaml: 2.8.3
+      yaml: 2.8.4
     optionalDependencies:
       postcss: 8.5.13
 
@@ -3962,7 +3962,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite@8.0.10(esbuild@0.27.3)(yaml@2.8.3):
+  vite@8.0.10(esbuild@0.27.3)(yaml@2.8.4):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -3972,7 +3972,7 @@ snapshots:
     optionalDependencies:
       esbuild: 0.27.3
       fsevents: 2.3.3
-      yaml: 2.8.3
+      yaml: 2.8.4
 
   webidl-conversions@3.0.1: {}
 
@@ -4000,7 +4000,7 @@ snapshots:
   yallist@5.0.0:
     optional: true
 
-  yaml@2.8.3: {}
+  yaml@2.8.4: {}
 
   yargs-parser@21.1.1: {}
 
