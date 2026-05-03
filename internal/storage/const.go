@@ -91,6 +91,5 @@ var (
 )
 
 const (
-	na      = "N/A"
-	invalid = "invalid"
+	na = "N/A"
 )

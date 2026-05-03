@@ -730,7 +730,7 @@ func (p *SQLProvider) SaveWebAuthnCredential(ctx context.Context, credential mod
 
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertWebAuthnCredential,
 		credential.CreatedAt, credential.LastUsedAt, credential.RPID, credential.Username, credential.Description,
-		credential.KID, credential.AAGUID, credential.AttestationType, credential.Attachment, credential.Transport,
+		credential.KID, credential.AAGUID, credential.AttestationType, credential.AttestationFormat, credential.Attachment, credential.Transport,
 		credential.SignCount, credential.CloneWarning, credential.Discoverable, credential.Present, credential.Verified,
 		credential.BackupEligible, credential.BackupState, credential.PublicKey, credential.Attestation,
 	); err != nil {
@@ -754,7 +754,7 @@ func (p *SQLProvider) UpdateWebAuthnCredentialDescription(ctx context.Context, u
 // information that should be changed in the event of a successful sign in.
 func (p *SQLProvider) UpdateWebAuthnCredentialSignIn(ctx context.Context, credential model.WebAuthnCredential) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebAuthnCredentialRecordSignIn,
-		credential.RPID, credential.LastUsedAt, credential.SignCount, credential.Discoverable, credential.Present, credential.Verified,
+		credential.RPID, credential.LastUsedAt, credential.AttestationType, credential.SignCount, credential.Discoverable, credential.Present, credential.Verified,
 		credential.BackupEligible, credential.BackupState, credential.CloneWarning, credential.ID,
 	); err != nil {
 		return fmt.Errorf("error updating WebAuthn credentials authentication metadata for id '%x': %w", credential.ID, err)
