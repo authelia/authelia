@@ -1380,8 +1380,6 @@ func runStorageUserWebAuthnVerify(ctx context.Context, w io.Writer, store storag
 		}
 
 		for _, credential := range credentials {
-			attestationType := credential.AttestationType
-
 			result := webauthn.VerifyCredential(&config.WebAuthn, &credential, provider)
 
 			results[credential.ID] = result
@@ -1410,10 +1408,6 @@ func runStorageUserWebAuthnVerify(ctx context.Context, w io.Writer, store storag
 			}
 
 			_, _ = fmt.Fprintf(tw, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", credential.ID, credential.RPID, credential.KID, credential.Username, strAAGUID, strStatement, strBackup, strMDS)
-
-			if attestationType != credential.AttestationType {
-				_ = store.UpdateWebAuthnCredentialSignIn(ctx, credential)
-			}
 		}
 
 		if len(credentials) < limit {

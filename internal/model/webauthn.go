@@ -163,11 +163,9 @@ func (c *WebAuthnCredential) UpdateSignInInfo(config *webauthn.Config, now time.
 	c.LastUsedAt = sql.NullTime{Time: now, Valid: true}
 	c.SignCount, c.CloneWarning = credential.Authenticator.SignCount, credential.Authenticator.CloneWarning
 
-	if c.AttestationType == "" {
-		c.AttestationType = credential.AttestationType
-	}
+	c.UpdateAttestationType(credential)
 
-	if c.RPID != "" {
+	if c.RPID != "" || config == nil {
 		return
 	}
 
@@ -177,6 +175,15 @@ func (c *WebAuthnCredential) UpdateSignInInfo(config *webauthn.Config, now time.
 	default:
 		c.RPID = config.RPID
 	}
+}
+
+// UpdateAttestationType adjusts the AttestationType value to handle legacy configurations.
+func (c *WebAuthnCredential) UpdateAttestationType(credential *webauthn.Credential) {
+	if c.AttestationType != "" {
+		return
+	}
+
+	c.AttestationType = credential.AttestationType
 }
 
 // DataValueLastUsedAt provides LastUsedAt as a *time.Time instead of sql.NullTime.

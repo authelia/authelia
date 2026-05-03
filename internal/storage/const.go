@@ -83,6 +83,7 @@ type ctxKey int
 
 const (
 	ctxKeyTransaction ctxKey = iota
+	ctxKeyConnection
 )
 
 var (

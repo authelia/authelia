@@ -21,6 +21,27 @@ type SQLXConnection interface {
 
 	sqlx.Ext
 	sqlx.ExtContext
+
+	NamedQuery(query string, arg any) (*sqlx.Rows, error)
+	NamedQueryContext(ctx context.Context, query string, arg any) (rows *sqlx.Rows, err error)
+
+	NamedExec(query string, arg any) (result sql.Result, err error)
+	NamedExecContext(ctx context.Context, query string, arg any) (result sql.Result, err error)
+
+	Select(dest any, query string, args ...any) (err error)
+	SelectContext(ctx context.Context, dest any, query string, args ...any) (err error)
+
+	Get(dest any, query string, args ...any) (err error)
+	GetContext(ctx context.Context, dest any, query string, args ...any) (err error)
+
+	MustExec(query string, args ...any) (result sql.Result)
+	MustExecContext(ctx context.Context, query string, args ...any) (result sql.Result)
+
+	Preparex(query string) (statement *sqlx.Stmt, err error)
+	PreparexContext(ctx context.Context, query string) (statement *sqlx.Stmt, err error)
+
+	PrepareNamed(query string) (statement *sqlx.NamedStmt, err error)
+	PrepareNamedContext(ctx context.Context, query string) (statement *sqlx.NamedStmt, err error)
 }
 
 // EncryptionChangeKeyFunc handles encryption key changes for a specific table or tables.
