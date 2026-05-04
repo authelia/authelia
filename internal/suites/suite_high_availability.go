@@ -7,18 +7,18 @@ import (
 var highAvailabilitySuiteName = "HighAvailability"
 
 var haDockerEnvironment = NewDockerEnvironment([]string{
-	"internal/suites/compose.yml",
+	composePathBase,
 	"internal/suites/HighAvailability/compose.yml",
-	"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-	"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-	"internal/suites/example/compose/mariadb/compose.yml",
+	composePathAutheliaBackend,
+	composePathAutheliaFrontend,
+	composePathMariaDB,
 	"internal/suites/example/compose/redis-sentinel/compose.yml",
-	"internal/suites/example/compose/nginx/backend/compose.yml",
-	"internal/suites/example/compose/nginx/portal/compose.yml",
-	"internal/suites/example/compose/smtp/compose.yml",
-	"internal/suites/example/compose/httpbin/compose.yml",
-	"internal/suites/example/compose/ldap/compose.admin.yml", // This is just used for administration, not for testing.
-	"internal/suites/example/compose/ldap/compose.yml",
+	composePathNginxBackend,
+	composePathNginxPortal,
+	composePathSMTP,
+	composePathHTTPBin,
+	composePathLDAPAdmin, // This is just used for administration, not for testing.
+	composePathLDAP,
 })
 
 func init() {

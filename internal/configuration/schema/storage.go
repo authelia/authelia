@@ -78,14 +78,14 @@ var DefaultMySQLStorageConfiguration = StorageMySQL{
 // DefaultPostgreSQLStorageConfiguration represents the default PostgreSQL configuration.
 var DefaultPostgreSQLStorageConfiguration = StoragePostgreSQL{
 	StorageSQL: StorageSQL{
-		Address: &AddressTCP{Address{true, false, -1, 5432, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:5432"}}},
+		Address: &AddressTCP{Address{true, false, -1, 5432, nil, &url.URL{Scheme: AddressSchemeTCP, Host: hostLocalhost5432}}},
 		TLS: &TLS{
 			MinimumVersion: TLSVersion{tls.VersionTLS12},
 		},
 	},
 	Servers: []StoragePostgreSQLServer{
 		{
-			Address: &AddressTCP{Address{true, false, -1, 5432, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:5432"}}},
+			Address: &AddressTCP{Address{true, false, -1, 5432, nil, &url.URL{Scheme: AddressSchemeTCP, Host: hostLocalhost5432}}},
 			TLS: &TLS{
 				MinimumVersion: TLSVersion{tls.VersionTLS12},
 			},

@@ -56,134 +56,134 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	config.Session.Cookies = []schema.SessionCookie{
 		{
 			SessionCookieCommon: schema.SessionCookieCommon{
-				Name:       "authelia_session",
+				Name:       cookieNameAutheliaSession,
 				RememberMe: schema.DefaultSessionConfiguration.RememberMe,
 				Expiration: schema.DefaultSessionConfiguration.Expiration,
 			},
 			Domain:                "example.com",
-			DefaultRedirectionURL: &url.URL{Scheme: "https", Host: "www.example.com"},
-			AutheliaURL:           &url.URL{Scheme: "https", Host: "login.example.com:8080"},
+			DefaultRedirectionURL: &url.URL{Scheme: schemeHTTPS, Host: "www.example.com"},
+			AutheliaURL:           &url.URL{Scheme: schemeHTTPS, Host: "login.example.com:8080"},
 		},
 		{
 			SessionCookieCommon: schema.SessionCookieCommon{
-				Name:       "authelia_session",
+				Name:       cookieNameAutheliaSession,
 				RememberMe: schema.DefaultSessionConfiguration.RememberMe,
 				Expiration: schema.DefaultSessionConfiguration.Expiration,
 			},
 			Domain:                "example2.com",
-			DefaultRedirectionURL: &url.URL{Scheme: "https", Host: "www.example2.com"},
-			AutheliaURL:           &url.URL{Scheme: "https", Host: "auth.example2.com"},
+			DefaultRedirectionURL: &url.URL{Scheme: schemeHTTPS, Host: "www.example2.com"},
+			AutheliaURL:           &url.URL{Scheme: schemeHTTPS, Host: "auth.example2.com"},
 		},
 	}
 
 	config.AuthenticationBackend.RefreshInterval = schema.NewRefreshIntervalDuration(schema.RefreshIntervalDefault)
 	config.AccessControl = schema.AccessControl{
-		DefaultPolicy: "deny",
+		DefaultPolicy: policyDeny,
 		Rules: []schema.AccessControlRule{
 			{
 				Domains: []string{"bypass.example.com"},
-				Policy:  "bypass",
+				Policy:  policyBypass,
 			},
 			{
-				Domains: []string{"bypass-get.example.com"},
-				Policy:  "bypass",
+				Domains: []string{domainBypassGet},
+				Policy:  policyBypass,
 				Methods: []string{fasthttp.MethodGet},
 			},
 			{
-				Domains: []string{"bypass-head.example.com"},
-				Policy:  "bypass",
+				Domains: []string{domainBypassHead},
+				Policy:  policyBypass,
 				Methods: []string{fasthttp.MethodHead},
 			},
 			{
-				Domains: []string{"bypass-options.example.com"},
-				Policy:  "bypass",
+				Domains: []string{domainBypassOptions},
+				Policy:  policyBypass,
 				Methods: []string{fasthttp.MethodOptions},
 			},
 			{
-				Domains: []string{"bypass-trace.example.com"},
-				Policy:  "bypass",
+				Domains: []string{domainBypassTrace},
+				Policy:  policyBypass,
 				Methods: []string{fasthttp.MethodTrace},
 			},
 			{
-				Domains: []string{"bypass-put.example.com"},
-				Policy:  "bypass",
+				Domains: []string{domainBypassPut},
+				Policy:  policyBypass,
 				Methods: []string{fasthttp.MethodPut},
 			},
 			{
-				Domains: []string{"bypass-patch.example.com"},
-				Policy:  "bypass",
+				Domains: []string{domainBypassPatch},
+				Policy:  policyBypass,
 				Methods: []string{fasthttp.MethodPatch},
 			},
 			{
-				Domains: []string{"bypass-post.example.com"},
-				Policy:  "bypass",
+				Domains: []string{domainBypassPost},
+				Policy:  policyBypass,
 				Methods: []string{fasthttp.MethodPost},
 			},
 			{
-				Domains: []string{"bypass-delete.example.com"},
-				Policy:  "bypass",
+				Domains: []string{domainBypassDelete},
+				Policy:  policyBypass,
 				Methods: []string{fasthttp.MethodDelete},
 			},
 			{
-				Domains: []string{"bypass-connect.example.com"},
-				Policy:  "bypass",
+				Domains: []string{domainBypassConnect},
+				Policy:  policyBypass,
 				Methods: []string{fasthttp.MethodConnect},
 			},
 			{
 				Domains: []string{
-					"bypass-get.example.com", "bypass-head.example.com", "bypass-options.example.com",
-					"bypass-trace.example.com", "bypass-put.example.com", "bypass-patch.example.com",
-					"bypass-post.example.com", "bypass-delete.example.com", "bypass-connect.example.com",
+					domainBypassGet, domainBypassHead, domainBypassOptions,
+					domainBypassTrace, domainBypassPut, domainBypassPatch,
+					domainBypassPost, domainBypassDelete, domainBypassConnect,
 				},
-				Policy: "one_factor",
+				Policy: policyOneFactor,
 			},
 			{
 				Domains: []string{"one-factor.example.com"},
-				Policy:  "one_factor",
+				Policy:  policyOneFactor,
 			},
 			{
 				Domains: []string{"two-factor.example.com"},
-				Policy:  "two_factor",
+				Policy:  policyTwoFactor,
 			},
 			{
 				Domains: []string{"deny.example.com"},
-				Policy:  "deny",
+				Policy:  policyDeny,
 			},
 			{
 				Domains:  []string{"admin.example.com"},
-				Policy:   "two_factor",
-				Subjects: [][]string{{"group:admin"}},
+				Policy:   policyTwoFactor,
+				Subjects: [][]string{{subjectGroupAdmin}},
 			},
 			{
 				Domains:  []string{"grafana.example.com"},
-				Policy:   "two_factor",
-				Subjects: [][]string{{"group:grafana"}},
+				Policy:   policyTwoFactor,
+				Subjects: [][]string{{subjectGroupGrafana}},
 			},
 			{
 				Domains: []string{"bypass.example2.com"},
-				Policy:  "bypass",
+				Policy:  policyBypass,
 			},
 			{
 				Domains: []string{"one-factor.example2.com"},
-				Policy:  "one_factor",
+				Policy:  policyOneFactor,
 			},
 			{
 				Domains: []string{"two-factor.example2.com"},
-				Policy:  "two_factor",
+				Policy:  policyTwoFactor,
 			},
 			{
 				Domains: []string{"deny.example2.com"},
-				Policy:  "deny",
+				Policy:  policyDeny,
 			},
 			{
 				Domains:  []string{"admin.example2.com"},
-				Policy:   "two_factor",
-				Subjects: [][]string{{"group:admin"}},
+				Policy:   policyTwoFactor,
+				Subjects: [][]string{{subjectGroupAdmin}},
 			},
 			{
 				Domains:  []string{"grafana.example2.com"},
-				Policy:   "two_factor",
-				Subjects: [][]string{{"group:grafana"}},
+				Policy:   policyTwoFactor,
+				Subjects: [][]string{{subjectGroupGrafana}},
 			},
 		},
 	}
@@ -223,7 +223,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 	request := &fasthttp.RequestCtx{}
 
-	request.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+	request.Request.Header.Set(fasthttp.HeaderXForwardedProto, schemeHTTPS)
 	request.Request.Header.Set(fasthttp.HeaderXForwardedHost, "login.example.com:8080")
 
 	ctx := middlewares.NewAutheliaCtx(request, config, providers)

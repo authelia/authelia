@@ -11,7 +11,7 @@ import (
 
 func newDocsSEOCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "seo",
+		Use:   cmdUseSEO,
 		Short: "Generate doc seo tags",
 		RunE:  rootSubCommandsRunE,
 
@@ -25,7 +25,7 @@ func newDocsSEOCmd() *cobra.Command {
 
 func newDocsSEOOpenIDConnectCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "openid-connect",
+		Use:   cmdUseOpenIDConnect,
 		Short: "Generate doc openid connect integration guide seo tags",
 		RunE:  docsSEOOpenIDConnectRunE,
 
@@ -45,7 +45,7 @@ func docsSEOOpenIDConnectRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	root := filepath.Join(pathDocsContent, "integration", "openid-connect", "clients")
+	root := filepath.Join(pathDocsContent, "integration", cmdUseOpenIDConnect, "clients")
 
 	return filepath.Walk(root, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
@@ -80,7 +80,7 @@ func docsSEOOpenIDConnectRunE(cmd *cobra.Command, args []string) (err error) {
 			seotitle, title, desc string
 		)
 
-		if raw, ok = frontmatter["seo"]; !ok {
+		if raw, ok = frontmatter[cmdUseSEO]; !ok {
 			return fmt.Errorf("error parsing frontmatter for %s: seo is missing", path)
 		}
 

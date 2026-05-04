@@ -10,7 +10,7 @@ import (
 // ValidateTheme validates and update Theme configuration.
 func ValidateTheme(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.Theme == "" {
-		config.Theme = "light"
+		config.Theme = themeNameLight
 	}
 
 	if !utils.IsStringInSlice(config.Theme, validThemeNames) {

@@ -379,9 +379,9 @@ func (ctx *CmdCtx) StorageSchemaEncryptionRotateRunE(cmd *cobra.Command, args []
 	var table string
 
 	switch cmd.Use {
-	case "otc":
+	case cmdUseStorageOTC:
 		table = "one_time_code"
-	case "otp":
+	case cmdUseStorageOTP:
 		table = "totp_history"
 	}
 
@@ -1050,7 +1050,7 @@ func runStorageBansAddIP(ctx context.Context, w io.Writer, store storage.Provide
 
 	ban := &model.BannedIP{
 		IP:     model.NewIP(ip),
-		Source: "cli",
+		Source: sourceCLI,
 	}
 
 	if reason != "" {
@@ -1078,7 +1078,7 @@ func runStorageBansAddUser(ctx context.Context, w io.Writer, store storage.Provi
 	// TODO: Check for existing ban and revoke it?
 	ban := &model.BannedUser{
 		Username: target,
-		Source:   "cli",
+		Source:   sourceCLI,
 	}
 
 	if reason != "" {

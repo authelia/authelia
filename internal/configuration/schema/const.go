@@ -32,8 +32,33 @@ const (
 	// TLSVersion10 is the textual representation of TLS 1.0.
 	TLSVersion10 = "TLS1.0"
 
+	// TLSVersion13Spaced is the textual representation of TLS 1.3 with a space between TLS and the version.
+	TLSVersion13Spaced = "TLS 1.3"
+
+	// TLSVersion12Spaced is the textual representation of TLS 1.2 with a space between TLS and the version.
+	TLSVersion12Spaced = "TLS 1.2"
+
+	// TLSVersion11Spaced is the textual representation of TLS 1.1 with a space between TLS and the version.
+	TLSVersion11Spaced = "TLS 1.1"
+
+	// TLSVersion10Spaced is the textual representation of TLS 1.0 with a space between TLS and the version.
+	TLSVersion10Spaced = "TLS 1.0"
+
 	// SSLVersion30 is the textual representation of SSL 3.0.
 	SSLVersion30 = "SSL3.0"
+
+	scopeOpenID           = "openid"
+	scopeGroups           = "groups"
+	scopeProfile          = "profile"
+	scopeEmail            = "email"
+	responseTypeCode      = "code"
+	responseModeFormPost  = "form_post"
+	signingAlgRS256       = "RS256"
+	signingAlgNone        = "none"
+	addressDefaultPort    = ":0"
+	formatURI             = "uri"
+	hostLocalhost5432     = "localhost:5432"
+	defaultIssuerAuthelia = "Authelia"
 
 	// Version13 is the textual representation of version 1.3.
 	Version13 = "1.3"

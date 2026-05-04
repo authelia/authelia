@@ -40,7 +40,7 @@ func NewStandardLDAPClientFactory(config *schema.AuthenticationBackendLDAP, cert
 	}
 
 	return &StandardLDAPClientFactory{
-		log:    logging.Logger().WithFields(map[string]any{"provider": "standard ldap factory"}),
+		log:    logging.Logger().WithFields(map[string]any{logFieldProvider: "standard ldap factory"}),
 		config: config,
 		tls:    tlsc,
 		opts:   opts,
@@ -105,7 +105,7 @@ func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs 
 	sleep := config.Pooling.Timeout / time.Duration(config.Pooling.Retries)
 
 	return &PooledLDAPClientFactory{
-		log:    logging.Logger().WithFields(map[string]any{"provider": "pooled ldap factory"}),
+		log:    logging.Logger().WithFields(map[string]any{logFieldProvider: "pooled ldap factory"}),
 		config: config,
 		tls:    tlsc,
 		opts:   opts,

@@ -73,13 +73,25 @@ const (
 	keyStoragePostgresPort = "storage.postgres.port"
 )
 
+const (
+	keyTLSKey                            = "tls_key"
+	keyServerTLSKey                      = "server.tls.key"
+	keyLogLevel                          = "log.level"
+	keyLogFilePath                       = "log.file_path"
+	keyAuthBackendDisableResetPassword   = "authentication_backend.disable_reset_password"
+	keyIdentityProvidersOIDCJWKs         = "identity_providers.oidc.jwks"
+	keyJWTSecret                         = "jwt_secret"
+	keyWebAuthnSelectionUserVerification = "webauthn.selection_criteria.user_verification"
+	valuePreferred                       = "preferred"
+)
+
 // IMPORTANT: There is an uppercase copy of this in github.com/authelia/authelia/internal/templates named
 // envSecretSuffixes.
 // Make sure you update these at the same time.
 var (
 	secretSuffix          = []string{"key", "secret", "password", "token", "certificate_chain"}
 	secretExclusionPrefix = []string{"identity_providers.oidc.lifespans."}
-	secretExclusionExact  = []string{"server.tls.key", "authentication_backend.disable_reset_password", "tls_key"}
+	secretExclusionExact  = []string{keyServerTLSKey, keyAuthBackendDisableResetPassword, keyTLSKey}
 )
 
 var (

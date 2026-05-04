@@ -8,15 +8,15 @@ var mysqlSuiteName = "MySQL"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
+		composePathBase,
 		"internal/suites/MySQL/compose.yml",
-		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/compose.yml",
-		"internal/suites/example/compose/nginx/portal/compose.yml",
-		"internal/suites/example/compose/smtp/compose.yml",
+		composePathAutheliaBackend,
+		composePathAutheliaFrontend,
+		composePathNginxBackend,
+		composePathNginxPortal,
+		composePathSMTP,
 		"internal/suites/example/compose/mysql/compose.yml",
-		"internal/suites/example/compose/ldap/compose.yml",
+		composePathLDAP,
 	})
 
 	setup := func(suitePath string) (err error) {

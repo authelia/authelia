@@ -14,3 +14,11 @@ const (
 
 // PossibleMethods is the set of all possible Duo 2FA methods.
 var PossibleMethods = []string{Push} // OTP, Phone, SMS.
+
+const (
+	logFieldMessage       = "message"
+	logFieldMessageDetail = "message_detail"
+	logFieldStatus        = "status"
+	logFieldStatusCode    = "status_code"
+	logFieldUsername      = "username"
+)

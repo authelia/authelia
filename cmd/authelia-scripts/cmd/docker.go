@@ -45,7 +45,7 @@ func newDockerCmd() (cmd *cobra.Command) {
 
 func newDockerBuildCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "build",
+		Use:     cmdUseBuild,
 		Short:   cmdDockerBuildShort,
 		Long:    cmdDockerBuildLong,
 		Example: cmdDockerBuildExample,

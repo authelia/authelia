@@ -22,7 +22,7 @@ func NewAddress(value string) (address *Address, err error) {
 // else without a scheme is the schemeDefault scheme.
 func NewAddressDefault(value, schemeDefault, schemeDefaultPath string) (address *Address, err error) {
 	if len(value) == 0 {
-		return &Address{true, false, -1, 0, nil, &url.URL{Scheme: AddressSchemeTCP, Host: ":0"}}, nil
+		return &Address{true, false, -1, 0, nil, &url.URL{Scheme: AddressSchemeTCP, Host: addressDefaultPort}}, nil
 	}
 
 	var u *url.URL
@@ -135,7 +135,7 @@ type AddressTCP struct {
 func (AddressTCP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    jsonschema.TypeString,
-		Format:  "uri",
+		Format:  formatURI,
 		Pattern: `^((tcp[46]?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?|unix:\/\/\/[^?\n]+(\?(umask=[0-7]{3,4}|path=[a-z]+)(&(umask=[0-7]{3,4}|path=[a-zA-Z0-9.~_-]+))?)?)$`,
 	}
 }
@@ -149,7 +149,7 @@ type AddressUDP struct {
 func (AddressUDP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    jsonschema.TypeString,
-		Format:  "uri",
+		Format:  formatURI,
 		Pattern: `^(udp[46]?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?$`,
 	}
 }
@@ -163,7 +163,7 @@ type AddressLDAP struct {
 func (AddressLDAP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    jsonschema.TypeString,
-		Format:  "uri",
+		Format:  formatURI,
 		Pattern: `^((ldaps?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)?|ldapi:\/\/(\/[^?\n]+)?)$`,
 	}
 }
@@ -177,7 +177,7 @@ type AddressSMTP struct {
 func (AddressSMTP) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    jsonschema.TypeString,
-		Format:  "uri",
+		Format:  formatURI,
 		Pattern: `^((smtp|submissions?):\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)?$`,
 	}
 }
@@ -197,7 +197,7 @@ type Address struct {
 func (Address) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    jsonschema.TypeString,
-		Format:  "uri",
+		Format:  formatURI,
 		Pattern: `^((unix:\/\/)?\/[^?\n]+(\?umask=[0-7]{3,4})?|ldapi:\/\/(\/[^?\n]+)?|(((tcp|udp)(4|6)?|ldaps?|smtp|submissions?):\/\/)?[^:\/]*(:\d+)?(\/.*)?)$`,
 	}
 }

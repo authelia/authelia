@@ -122,6 +122,12 @@ const (
 	GrantTypeDeviceCode        = "urn:ietf:params:oauth:grant-type:device_code"
 )
 
+// Authorization Policy Names.
+const (
+	policyNameOneFactor = "one_factor"
+	policyNameTwoFactor = "two_factor"
+)
+
 // Client Auth Method strings.
 const (
 	ClientAuthMethodClientSecretBasic = "client_secret_basic"

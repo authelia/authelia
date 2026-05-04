@@ -41,15 +41,69 @@ const (
 )
 
 const (
+	suiteNameConfig                  = "config"
+	suiteNameBasic                   = "basic"
+	suiteNameHybrid                  = "hybrid"
+	suiteNameImplicit                = "implicit"
 	suiteNameBasicFormPost           = "basic-form-post"
 	suiteNameHybridFormPost          = "hybrid-form-post"
 	suiteNameImplicitFormPost        = "implicit-form-post"
+	suiteConformanceConfig           = "conformance-config"
 	suiteConformanceBasic            = "conformance-basic"
 	suiteConformanceBasicFormPost    = "conformance-basic-form-post"
 	suiteConformanceImplicit         = "conformance-implicit"
 	suiteConformanceImplicitFormPost = "conformance-implicit-form-post"
 	suiteConformanceHybrid           = "conformance-hybrid"
 	suiteConformanceHybridFormPost   = "conformance-hybrid-form-post"
+
+	suiteFriendlyConfig           = "Config"
+	suiteFriendlyBasic            = "Basic"
+	suiteFriendlyHybrid           = "Hybrid"
+	suiteFriendlyImplicit         = "Implicit"
+	suiteFriendlyBasicFormPost    = "Basic (Form Post)"
+	suiteFriendlyHybridFormPost   = "Hybrid (Form Post)"
+	suiteFriendlyImplicitFormPost = "Implicit (Form Post)"
+
+	suitePlanConfig   = "oidcc-config-certification-test-plan"
+	suitePlanBasic    = "oidcc-basic-certification-test-plan"
+	suitePlanHybrid   = "oidcc-hybrid-certification-test-plan"
+	suitePlanImplicit = "oidcc-implicit-certification-test-plan"
+
+	suiteVariantDiscovery    = "discovery"
+	suiteVariantStaticClient = "static_client"
+
+	suitePublishSummary = "summary"
+
+	scopeAll = "all"
+)
+
+const (
+	cmdUseOIDC        = "oidc"
+	cmdUseConformance = "conformance"
+	cmdUseLocaleMove  = "locale-move [key]"
+
+	cmdUseSEO           = "seo"
+	cmdUseOpenIDConnect = "openid-connect"
+)
+
+const (
+	fipsApproved = "Approved"
+)
+
+const (
+	labelPriorityNameCritical = "Critical"
+	labelPriorityNameHigh     = "High"
+	labelPriorityNameMedium   = "Medium"
+	labelPriorityNameNormal   = "Normal"
+	labelPriorityNameLow      = "Low"
+	labelPriorityNameVeryLow  = "Very Low"
+
+	labelStatusNameNeedsDesign = "Needs Design"
+	labelStatusNameNeedsTriage = "Needs Triage"
+
+	labelTypeNameFeature        = "Feature"
+	labelTypeNameBugUnconfirmed = "Bug: Unconfirmed"
+	labelTypeNameBug            = "Bug"
 )
 
 const (
@@ -70,6 +124,11 @@ const (
 const (
 	pkgConfigSchema = "schema"
 	pkgScriptsGen   = "cmd"
+)
+
+const (
+	binAuthelia        = "authelia"
+	binAutheliaScripts = "authelia-scripts"
 )
 
 const (

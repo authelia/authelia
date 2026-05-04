@@ -8,12 +8,12 @@ var oneFactorOnlySuiteName = "OneFactorOnly"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
+		composePathBase,
 		"internal/suites/OneFactorOnly/compose.yml",
-		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/compose.yml",
-		"internal/suites/example/compose/nginx/portal/compose.yml",
+		composePathAutheliaBackend,
+		composePathAutheliaFrontend,
+		composePathNginxBackend,
+		composePathNginxPortal,
 	})
 
 	setup := func(suitePath string) (err error) {

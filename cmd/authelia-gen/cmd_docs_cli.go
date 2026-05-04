@@ -39,19 +39,19 @@ func docsCLIRunE(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
-	if err = genCLIDoc(commands.NewRootCmd(), filepath.Join(outputPath, "authelia")); err != nil {
+	if err = genCLIDoc(commands.NewRootCmd(), filepath.Join(outputPath, binAuthelia)); err != nil {
 		return err
 	}
 
-	if err = genCLIDocWriteIndex(outputPath, "authelia"); err != nil {
+	if err = genCLIDocWriteIndex(outputPath, binAuthelia); err != nil {
 		return err
 	}
 
-	if err = genCLIDoc(cmdscripts.NewRootCmd(), filepath.Join(outputPath, "authelia-scripts")); err != nil {
+	if err = genCLIDoc(cmdscripts.NewRootCmd(), filepath.Join(outputPath, binAutheliaScripts)); err != nil {
 		return err
 	}
 
-	if err = genCLIDocWriteIndex(outputPath, "authelia-scripts"); err != nil {
+	if err = genCLIDocWriteIndex(outputPath, binAutheliaScripts); err != nil {
 		return err
 	}
 
@@ -125,11 +125,11 @@ func prepend(input string) string {
 
 func genCLIDocCmdToWeight(cmd string) int {
 	switch cmd {
-	case "authelia":
+	case binAuthelia:
 		return 900
-	case "authelia-gen":
+	case cmdUseRoot:
 		return 910
-	case "authelia-scripts":
+	case binAutheliaScripts:
 		return 920
 	default:
 		return 990

@@ -89,6 +89,7 @@ const (
 	t            = "true"
 	testUsername = "john"
 	testPassword = "password"
+	scriptDev    = "dev"
 )
 
 const (
@@ -97,6 +98,35 @@ const (
 	namespaceAuthelia  = "authelia"
 	namespaceDashboard = "kubernetes-dashboard"
 	namespaceKube      = "kube-system"
+)
+
+const (
+	composePathBase             = "internal/suites/compose.yml"
+	composePathAutheliaBackend  = "internal/suites/example/compose/authelia/compose.backend.{}.yml"
+	composePathAutheliaFrontend = "internal/suites/example/compose/authelia/compose.frontend.{}.yml"
+	composePathNginxBackend     = "internal/suites/example/compose/nginx/backend/compose.yml"
+	composePathNginxPortal      = "internal/suites/example/compose/nginx/portal/compose.yml"
+	composePathSMTP             = "internal/suites/example/compose/smtp/compose.yml"
+	composePathHTTPBin          = "internal/suites/example/compose/httpbin/compose.yml"
+	composePathTraefik          = "internal/suites/example/compose/traefik/compose.yml"
+	composePathTraefikV2        = "internal/suites/example/compose/traefik/compose.v2.yml"
+	composePathTraefikV3        = "internal/suites/example/compose/traefik/compose.v3.yml"
+	composePathRedis            = "internal/suites/example/compose/redis/compose.yml"
+	composePathLDAP             = "internal/suites/example/compose/ldap/compose.yml"
+	composePathLDAPAdmin        = "internal/suites/example/compose/ldap/compose.admin.yml"
+	composePathOIDCClient       = "internal/suites/example/compose/oidc-client/compose.yml"
+	composePathMariaDB          = "internal/suites/example/compose/mariadb/compose.yml"
+	composePathHAProxy          = "internal/suites/example/compose/haproxy/compose.yml"
+	composePathEnvoy            = "internal/suites/example/compose/envoy/compose.yml"
+	composePathCaddy            = "internal/suites/example/compose/caddy/compose.yml"
+
+	composePathSuiteCaddy       = "internal/suites/Caddy/compose.yml"
+	composePathSuiteCLI         = "internal/suites/CLI/compose.yml"
+	composePathSuiteEnvoy       = "internal/suites/Envoy/compose.yml"
+	composePathSuiteHAProxy     = "internal/suites/HAProxy/compose.yml"
+	composePathSuiteOIDCTraefik = "internal/suites/OIDCTraefik/compose.yml"
+	composePathSuitePathPrefix  = "internal/suites/PathPrefix/compose.yml"
+	composePathSuiteTraefik     = "internal/suites/Traefik/compose.yml"
 )
 
 var (

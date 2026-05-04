@@ -11,6 +11,12 @@ const (
 )
 
 const (
+	cmdUseStorageOTC = "otc"
+	cmdUseStorageOTP = "otp"
+	sourceCLI        = "cli"
+)
+
+const (
 	fmtCmdAutheliaShort = "authelia %s"
 
 	fmtCmdAutheliaLong = `authelia %s

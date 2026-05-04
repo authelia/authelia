@@ -8,13 +8,13 @@ var activedirectorySuiteName = "ActiveDirectory"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
+		composePathBase,
 		"internal/suites/ActiveDirectory/compose.yml",
-		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/compose.yml",
-		"internal/suites/example/compose/nginx/portal/compose.yml",
-		"internal/suites/example/compose/smtp/compose.yml",
+		composePathAutheliaBackend,
+		composePathAutheliaFrontend,
+		composePathNginxBackend,
+		composePathNginxPortal,
+		composePathSMTP,
 		"internal/suites/example/compose/samba/compose.yml",
 	})
 

@@ -51,7 +51,7 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)
 	nameDelta := userSession.DisplayName != details.DisplayName
 
-	fields := map[string]any{"username": userSession.Username}
+	fields := map[string]any{logFieldUsername: userSession.Username}
 	msg := "User session groups are current"
 
 	if len(groupsAdded) != 0 || len(groupsRemoved) != 0 {
@@ -94,9 +94,9 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx *middlewares.AutheliaC
 	if nameDelta {
 		ctx.Logger.
 			WithFields(map[string]any{
-				"username": userSession.Username,
-				"before":   userSession.DisplayName,
-				"after":    details.DisplayName,
+				logFieldUsername: userSession.Username,
+				"before":         userSession.DisplayName,
+				"after":          details.DisplayName,
 			}).
 			Trace("User session display name updated")
 	} else {

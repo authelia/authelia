@@ -54,6 +54,29 @@ const (
 )
 
 const (
+	KeyUsageNameDigitalSignature = "digital_signature"
+	KeyUsageNameKeyEncipherment  = "key_encipherment"
+	KeyUsageNameDataEncipherment = "data_encipherment"
+	KeyUsageNameKeyAgreement     = "key_agreement"
+	KeyUsageNameCertSign         = "cert_sign"
+	KeyUsageNameCRLSign          = "crl_sign"
+	KeyUsageNameEncipherOnly     = "encipher_only"
+	KeyUsageNameDecipherOnly     = "decipher_only"
+
+	ExtKeyUsageNameAny             = "any"
+	ExtKeyUsageNameServerAuth      = "server_auth"
+	ExtKeyUsageNameClientAuth      = "client_auth"
+	ExtKeyUsageNameCodeSigning     = "code_signing"
+	ExtKeyUsageNameEmailProtection = "email_protection"
+	ExtKeyUsageNameIPSECEndSystem  = "ipsec_end_system"
+	ExtKeyUsageNameIPSECTunnel     = "ipsec_tunnel"
+	ExtKeyUsageNameIPSECUser       = "ipsec_user"
+	ExtKeyUsageNameOCSPSigning     = "ocsp_signing"
+
+	NetworkErrTypeCIDRAddress = "CIDR address"
+)
+
+const (
 	// Hour is an int based representation of the time unit.
 	Hour = time.Minute * 60
 

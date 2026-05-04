@@ -53,8 +53,8 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 	ctx.GetLogger().
 		WithFields(map[string]any{
 			"access_request_id":                       requester.GetID(),
-			"client_id":                               client.GetID(),
-			"subject":                                 session.Subject,
+			oauth2FieldClientID:                       client.GetID(),
+			oauth2FieldSubject:                        session.Subject,
 			"access_token_signed_response_kid":        client.GetAccessTokenSignedResponseKeyID(),
 			"access_token_signed_response_alg":        client.GetAccessTokenSignedResponseAlg(),
 			"access_token_encrypted_response_kid":     client.GetAccessTokenEncryptedResponseKeyID(),
@@ -93,7 +93,7 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	if requester.GetGrantTypes().ExactOne(oidc.GrantTypeClientCredentials) {
 		if err = oidc.HydrateClientCredentialsFlowSessionWithAccessRequest(ctx, client, session); err != nil {
 			ctx.GetLogger().
-				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+				WithFields(map[string]any{oauth2FieldOAuth2AccessRequest: requester.GetID()}).
 				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 				Error("Access Request encountered an error while trying to hydrate the Client Credentials Flow claims")
 
@@ -104,7 +104,7 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		if err = oidc.PopulateClientCredentialsFlowRequester(ctx, ctx.Providers.OpenIDConnect, client, requester); err != nil {
 			ctx.GetLogger().
-				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+				WithFields(map[string]any{oauth2FieldOAuth2AccessRequest: requester.GetID()}).
 				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 				Error("Access Request encountered an error while trying to populate the Client Credentials Flow requester")
 
@@ -117,11 +117,11 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	if client.GetEnableJWTProfileOAuthAccessTokens() {
-		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": requester.GetRequestedScopes()}).Debug("Hydrate JWT Profile Access Token claims")
+		ctx.GetLogger().WithFields(map[string]any{oauth2FieldSubject: session.Subject, oauth2FieldScope: requester.GetRequestedScopes()}).Debug("Hydrate JWT Profile Access Token claims")
 
 		if len(session.Subject) == 0 {
 			ctx.GetLogger().
-				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+				WithFields(map[string]any{oauth2FieldOAuth2AccessRequest: requester.GetID()}).
 				Trace("Access Request JWT Profile Claims Processing Skipped as no subject was provided")
 
 			return false
@@ -131,7 +131,7 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		if detailer, err = oidc.UserDetailerFromSubjectString(ctx, session.Subject); err != nil {
 			ctx.GetLogger().
-				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+				WithFields(map[string]any{oauth2FieldOAuth2AccessRequest: requester.GetID()}).
 				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 				Error("Access Request encountered an error while trying to obtain the detailer to hydrate the JWT Profile Access Token claims")
 
@@ -144,7 +144,7 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		if err = client.GetClaimsStrategy().HydrateAccessTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetRequestedScopes(), nil, nil, detailer, requester.GetRequestedAt(), ctx.GetClock().Now(), nil, extra); err != nil {
 			ctx.GetLogger().
-				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+				WithFields(map[string]any{oauth2FieldOAuth2AccessRequest: requester.GetID()}).
 				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 				Error("Access Request encountered an error while trying to hydrate the JWT Profile Access Token claims")
 

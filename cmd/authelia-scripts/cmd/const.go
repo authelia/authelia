@@ -32,6 +32,27 @@ const (
 )
 
 const (
+	hostIPAuthelia = "192.168.240.50"
+	hostIPPortal   = "192.168.240.100"
+)
+
+const (
+	dockerArgEnv    = "-e"
+	dockerArgVolume = "-v"
+
+	dockerPlatformLinuxAMD64 = "linux/amd64"
+	dockerPlatformLinuxARMv7 = "linux/arm/v7"
+	dockerPlatformLinuxARM64 = "linux/arm64"
+)
+
+const (
+	cmdUseBuild        = "build"
+	cmdUseList         = "list"
+	cmdUseTestSuite    = "test [suite]"
+	logLevelDebugValue = "debug"
+)
+
+const (
 	txtDirectoryTidle = "` directory"
 	txtRunningSuite   = "Running suite ("
 )

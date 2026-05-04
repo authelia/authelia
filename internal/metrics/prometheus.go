@@ -88,77 +88,77 @@ func (r *Prometheus) register() (err error) {
 
 	r.authnDuration = promauto.With(r.registry).NewHistogramVec(
 		prometheus.HistogramOpts{
-			Subsystem: "authelia",
+			Subsystem: subsystemAuthelia,
 			Name:      "authn_duration",
 			Help:      "The time an authentication attempt takes in seconds.",
 			Buckets:   []float64{.0005, .00075, .001, .005, .01, .025, .05, .075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 1, 5, 10, 15, 30, 60},
 		},
-		[]string{"success"},
+		[]string{labelSuccess},
 	)
 
 	r.reqDuration = promauto.With(r.registry).NewHistogramVec(
 		prometheus.HistogramOpts{
-			Subsystem: "authelia",
+			Subsystem: subsystemAuthelia,
 			Name:      "request_duration",
 			Help:      "The time a HTTP request takes to process in seconds.",
 			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20, 30, 40, 50, 60},
 		},
-		[]string{"code"},
+		[]string{labelCode},
 	)
 
 	r.reqDurationOIDC = promauto.With(r.registry).NewHistogramVec(
 		prometheus.HistogramOpts{
-			Subsystem: "authelia",
+			Subsystem: subsystemAuthelia,
 			Name:      "request_duration_openid_connect",
 			Help:      "The time a HTTP request takes to process in seconds for the OpenID Connect 1.0 endpoints.",
 			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20, 30, 40, 50, 60},
 		},
-		[]string{"endpoint", "code"},
+		[]string{"endpoint", labelCode},
 	)
 
 	r.reqCounter = promauto.With(r.registry).NewCounterVec(
 		prometheus.CounterOpts{
-			Subsystem: "authelia",
+			Subsystem: subsystemAuthelia,
 			Name:      "request",
 			Help:      "The number of HTTP requests processed.",
 		},
-		[]string{"code", "method"},
+		[]string{labelCode, "method"},
 	)
 
 	r.authzCounter = promauto.With(r.registry).NewCounterVec(
 		prometheus.CounterOpts{
-			Subsystem: "authelia",
+			Subsystem: subsystemAuthelia,
 			Name:      "authz",
 			Help:      "The number of authz requests processed.",
 		},
-		[]string{"code"},
+		[]string{labelCode},
 	)
 
 	r.authnCounter = promauto.With(r.registry).NewCounterVec(
 		prometheus.CounterOpts{
-			Subsystem: "authelia",
+			Subsystem: subsystemAuthelia,
 			Name:      "authn",
 			Help:      "The number of 1FA authentications processed.",
 		},
-		[]string{"success", "banned"},
+		[]string{labelSuccess, labelBanned},
 	)
 
 	r.authnPasskeyCounter = promauto.With(r.registry).NewCounterVec(
 		prometheus.CounterOpts{
-			Subsystem: "authelia",
+			Subsystem: subsystemAuthelia,
 			Name:      "authn_passkey",
 			Help:      "The number of Passkey authentications processed.",
 		},
-		[]string{"success"},
+		[]string{labelSuccess},
 	)
 
 	r.authn2FACounter = promauto.With(r.registry).NewCounterVec(
 		prometheus.CounterOpts{
-			Subsystem: "authelia",
+			Subsystem: subsystemAuthelia,
 			Name:      "authn_second_factor",
 			Help:      "The number of 2FA authentications processed.",
 		},
-		[]string{"success", "banned", "type"},
+		[]string{labelSuccess, labelBanned, "type"},
 	)
 
 	return nil

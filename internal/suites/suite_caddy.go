@@ -9,25 +9,25 @@ var caddySuiteName = "Caddy"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
-		"internal/suites/Caddy/compose.yml",
-		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/compose.yml",
-		"internal/suites/example/compose/caddy/compose.yml",
-		"internal/suites/example/compose/smtp/compose.yml",
-		"internal/suites/example/compose/httpbin/compose.yml",
+		composePathBase,
+		composePathSuiteCaddy,
+		composePathAutheliaBackend,
+		composePathAutheliaFrontend,
+		composePathNginxBackend,
+		composePathCaddy,
+		composePathSMTP,
+		composePathHTTPBin,
 	})
 
 	if os.Getenv("CI") == t {
 		dockerEnvironment = NewDockerEnvironment([]string{
-			"internal/suites/compose.yml",
-			"internal/suites/Caddy/compose.yml",
-			"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-			"internal/suites/example/compose/nginx/backend/compose.yml",
-			"internal/suites/example/compose/caddy/compose.yml",
-			"internal/suites/example/compose/smtp/compose.yml",
-			"internal/suites/example/compose/httpbin/compose.yml",
+			composePathBase,
+			composePathSuiteCaddy,
+			composePathAutheliaBackend,
+			composePathNginxBackend,
+			composePathCaddy,
+			composePathSMTP,
+			composePathHTTPBin,
 		})
 	}
 

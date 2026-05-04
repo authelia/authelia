@@ -35,7 +35,7 @@ func newMiscCmd() *cobra.Command {
 
 func newMiscOIDCCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "oidc",
+		Use:   cmdUseOIDC,
 		Short: "Generate OpenID Connect 1.0 configurations",
 
 		DisableAutoGenTag: true,
@@ -50,7 +50,7 @@ func newMiscOIDCCmd() *cobra.Command {
 
 func newMiscOIDCConformanceCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "conformance",
+		Use:   cmdUseConformance,
 		Short: "Generate OpenID Connect 1.0 conformance configurations",
 		RunE:  miscOIDCConformanceRunE,
 
@@ -62,9 +62,9 @@ func newMiscOIDCConformanceCmd() *cobra.Command {
 	cmd.Flags().String("url", "https://conformance.example.com", "conformance suite url for conformance plans")
 	cmd.Flags().String("token", "", "conformance api token")
 	cmd.Flags().StringSlice("suites", nil, "names of the plans to generate")
-	cmd.Flags().String("consent", "implicit", "name of the consent mode to use")
+	cmd.Flags().String("consent", suiteNameImplicit, "name of the consent mode to use")
 	cmd.Flags().String("policy", "one_factor", "name of the authorization policy to use")
-	cmd.Flags().String("brand", "authelia", "brand name to use")
+	cmd.Flags().String("brand", binAuthelia, "brand name to use")
 
 	return cmd
 }
@@ -186,13 +186,13 @@ func miscOIDCConformance(version, token, consent, policy, brand string, authelia
 
 func miscOIDCConformanceBuildSuites(version, consent, policy, brand string, suiteURL, autheliaURL *url.URL, suiteNames ...string) (suites []OpenIDConnectConformanceSuite) {
 	builders := []*OpenIDConnectConformanceSuiteBuilder{
-		{brand, "config", "Config", true, version, consent, policy, nil, autheliaURL},
-		{brand, "basic", "Basic", true, version, consent, policy, suiteURL, autheliaURL},
-		{brand, suiteNameBasicFormPost, "Basic (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
-		{brand, "hybrid", "Hybrid", true, version, consent, policy, suiteURL, autheliaURL},
-		{brand, suiteNameHybridFormPost, "Hybrid (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
-		{brand, "implicit", "Implicit", true, version, consent, policy, suiteURL, autheliaURL},
-		{brand, suiteNameImplicitFormPost, "Implicit (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, suiteNameConfig, suiteFriendlyConfig, true, version, consent, policy, nil, autheliaURL},
+		{brand, suiteNameBasic, suiteFriendlyBasic, true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, suiteNameBasicFormPost, suiteFriendlyBasicFormPost, true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, suiteNameHybrid, suiteFriendlyHybrid, true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, suiteNameHybridFormPost, suiteFriendlyHybridFormPost, true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, suiteNameImplicit, suiteFriendlyImplicit, true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, suiteNameImplicitFormPost, suiteFriendlyImplicitFormPost, true, version, consent, policy, suiteURL, autheliaURL},
 	}
 
 	for _, builder := range builders {
@@ -271,7 +271,7 @@ type OpenIDConnectClients struct {
 
 func newMiscLocaleMoveCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "locale-move [key]",
+		Use:   cmdUseLocaleMove,
 		Short: "Move locales between namespaces",
 		Args:  cobra.ExactArgs(1),
 		RunE:  miscLocaleMoveRunE,

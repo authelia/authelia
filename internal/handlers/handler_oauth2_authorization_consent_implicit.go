@@ -74,7 +74,7 @@ func handleOAuth2AuthorizationConsentModeImplicitWithID(ctx *middlewares.Autheli
 
 		return nil, true
 	} else {
-		ctx.GetLogger().WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
+		ctx.GetLogger().WithFields(map[string]any{oauth2FieldRequestedAt: consent.RequestedAt, oauth2FieldAuthenticatedAt: userSession.LastAuthenticatedTime(), oidc.FormParameterPrompt: requester.GetRequestForm().Get(oidc.FormParameterPrompt)}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
 	if !consent.CanGrant(ctx.GetClock().Now()) {
@@ -141,7 +141,7 @@ func handleOAuth2AuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Auth
 
 		return nil, true
 	} else {
-		ctx.GetLogger().WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
+		ctx.GetLogger().WithFields(map[string]any{oauth2FieldRequestedAt: consent.RequestedAt, oauth2FieldAuthenticatedAt: userSession.LastAuthenticatedTime(), oidc.FormParameterPrompt: requester.GetRequestForm().Get(oidc.FormParameterPrompt)}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
 	var requests *oidc.ClaimsRequests

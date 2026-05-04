@@ -7,6 +7,10 @@ import (
 )
 
 const (
+	logFieldProvider = "provider"
+)
+
+const (
 	ldapSupportedLDAPVersionAttribute    = "supportedLDAPVersion"
 	ldapSupportedFeaturesAttribute       = "supportedFeatures"
 	ldapSupportedSASLMechanismsAttribute = "supportedSASLMechanisms"

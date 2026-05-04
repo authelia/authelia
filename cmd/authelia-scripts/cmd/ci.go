@@ -25,7 +25,7 @@ func newCICmd() (cmd *cobra.Command) {
 func cmdCIRun(cmd *cobra.Command, _ []string) {
 	buildkite, _ := cmd.Flags().GetBool("buildkite")
 
-	args := []string{"--log-level", "debug"}
+	args := []string{"--log-level", logLevelDebugValue}
 
 	if buildkite {
 		args = append(args, "--buildkite")

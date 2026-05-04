@@ -142,12 +142,12 @@ const (
 )
 
 var labelPriorityDescriptions = [...]string{
-	"Critical",
-	"High",
-	"Medium",
-	"Normal",
-	"Low",
-	"Very Low",
+	labelPriorityNameCritical,
+	labelPriorityNameHigh,
+	labelPriorityNameMedium,
+	labelPriorityNameNormal,
+	labelPriorityNameLow,
+	labelPriorityNameVeryLow,
 }
 
 func (l labelPriority) String() string {
@@ -166,8 +166,8 @@ const (
 )
 
 var labelStatusDescriptions = [...]string{
-	"Needs Design",
-	"Needs Triage",
+	labelStatusNameNeedsDesign,
+	labelStatusNameNeedsTriage,
 }
 
 func (l labelStatus) String() string {
@@ -187,9 +187,9 @@ const (
 )
 
 var labelTypeDescriptions = [...]string{
-	"Feature",
-	"Bug: Unconfirmed",
-	"Bug",
+	labelTypeNameFeature,
+	labelTypeNameBugUnconfirmed,
+	labelTypeNameBug,
 }
 
 func (l labelType) String() string {

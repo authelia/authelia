@@ -57,13 +57,13 @@ var commitScopesExtra = []NameDescriptionTmpl{
 var commitTypes = []NameDescriptionTmpl{
 	{"build", "Changes that affect the build system or external dependencies", []string{"bundler", "deps", "docker", "go", "npm"}},
 	{"ci", "Changes to our CI configuration files and scripts", []string{"autheliabot", "buildkite", "codecov", "lefthook", "golangci-lint", "renovate", "reviewdog"}},
-	{"docs", "Documentation only changes", nil},
+	{cmdUseDocs, "Documentation only changes", nil},
 	{"feat", "A new feature", nil},
 	{"fix", "A bug fix", nil},
 	{"i18n", "Updating translations or internationalization settings", nil},
 	{"perf", "A code change that improves performance", nil},
 	{"refactor", "A code change that neither fixes a bug nor adds a feature", nil},
-	{"release", "Releasing a new version of Authelia", nil},
+	{cmdUseRelease, "Releasing a new version of Authelia", nil},
 	{"test", "Adding missing tests or correcting existing tests", nil},
 }
 

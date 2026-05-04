@@ -111,9 +111,9 @@ func ConvertDERToPEM(der []byte, blockType PEMBlockType) ([]byte, error) {
 
 	switch blockType {
 	case Certificate:
-		blockTypeStr = "CERTIFICATE"
+		blockTypeStr = BlockTypeCertificate
 	case PrivateKey:
-		blockTypeStr = "PRIVATE KEY"
+		blockTypeStr = BlockTypePKCS8PrivateKey
 	default:
 		return nil, fmt.Errorf("unknown PEM block type %d", blockType)
 	}
@@ -647,21 +647,21 @@ func X509ParseKeyUsage(keyUsages []string, ca bool) (keyUsage x509.KeyUsage) {
 
 	for _, keyUsageString := range keyUsages {
 		switch strings.ToLower(keyUsageString) {
-		case "digitalsignature", "digital_signature":
+		case "digitalsignature", KeyUsageNameDigitalSignature:
 			keyUsage |= x509.KeyUsageDigitalSignature
-		case "keyencipherment", "key_encipherment":
+		case "keyencipherment", KeyUsageNameKeyEncipherment:
 			keyUsage |= x509.KeyUsageKeyEncipherment
-		case "dataencipherment", "data_encipherment":
+		case "dataencipherment", KeyUsageNameDataEncipherment:
 			keyUsage |= x509.KeyUsageDataEncipherment
-		case "keyagreement", "key_agreement":
+		case "keyagreement", KeyUsageNameKeyAgreement:
 			keyUsage |= x509.KeyUsageKeyAgreement
-		case "certsign", "cert_sign", "certificatesign", "certificate_sign":
+		case "certsign", KeyUsageNameCertSign, "certificatesign", "certificate_sign":
 			keyUsage |= x509.KeyUsageCertSign
-		case "crlsign", "crl_sign":
+		case "crlsign", KeyUsageNameCRLSign:
 			keyUsage |= x509.KeyUsageCRLSign
-		case "encipheronly", "encipher_only":
+		case "encipheronly", KeyUsageNameEncipherOnly:
 			keyUsage |= x509.KeyUsageEncipherOnly
-		case "decipheronly", "decipher_only":
+		case "decipheronly", KeyUsageNameDecipherOnly:
 			keyUsage |= x509.KeyUsageDecipherOnly
 		}
 	}
@@ -685,24 +685,24 @@ func X509ParseExtendedKeyUsage(extKeyUsages []string, ca bool) (extKeyUsage []x5
 loop:
 	for _, extKeyUsageString := range extKeyUsages {
 		switch strings.ToLower(extKeyUsageString) {
-		case "any":
+		case ExtKeyUsageNameAny:
 			extKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageAny}
 			break loop
-		case "serverauth", "server_auth":
+		case "serverauth", ExtKeyUsageNameServerAuth:
 			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageServerAuth)
-		case "clientauth", "client_auth":
+		case "clientauth", ExtKeyUsageNameClientAuth:
 			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageClientAuth)
-		case "codesigning", "code_signing":
+		case "codesigning", ExtKeyUsageNameCodeSigning:
 			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageCodeSigning)
-		case "emailprotection", "email_protection":
+		case "emailprotection", ExtKeyUsageNameEmailProtection:
 			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageEmailProtection)
-		case "ipsecendsystem", "ipsec_endsystem", "ipsec_end_system":
+		case "ipsecendsystem", "ipsec_endsystem", ExtKeyUsageNameIPSECEndSystem:
 			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageIPSECEndSystem)
-		case "ipsectunnel", "ipsec_tunnel":
+		case "ipsectunnel", ExtKeyUsageNameIPSECTunnel:
 			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageIPSECTunnel)
-		case "ipsecuser", "ipsec_user":
+		case "ipsecuser", ExtKeyUsageNameIPSECUser:
 			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageIPSECUser)
-		case "ocspsigning", "ocsp_signing":
+		case "ocspsigning", ExtKeyUsageNameOCSPSigning:
 			extKeyUsage = append(extKeyUsage, x509.ExtKeyUsageOCSPSigning)
 		}
 	}

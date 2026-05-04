@@ -224,7 +224,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 			if !credential.Discoverable {
 				credential.Discoverable = true
 
-				ctx.Logger.WithFields(map[string]any{"kid": credential.KID.String(), "rpid": credential.RPID, "aaguid": credential.AAGUID.UUID.String(), "username": credential.Username, "description": credential.Description}).Debug("WebAuthn Credential Passively Upgraded to a Passkey")
+				ctx.Logger.WithFields(map[string]any{"kid": credential.KID.String(), "rpid": credential.RPID, "aaguid": credential.AAGUID.UUID.String(), logFieldUsername: credential.Username, "description": credential.Description}).Debug("WebAuthn Credential Passively Upgraded to a Passkey")
 			}
 
 			ok = true

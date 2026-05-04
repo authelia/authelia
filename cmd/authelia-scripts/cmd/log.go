@@ -8,7 +8,7 @@ var logLevel string
 
 func levelStringToLevel(level string) log.Level {
 	switch level {
-	case "debug":
+	case logLevelDebugValue:
 		return log.DebugLevel
 	case "warning":
 		return log.WarnLevel

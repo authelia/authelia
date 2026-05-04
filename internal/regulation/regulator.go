@@ -83,8 +83,8 @@ func (r *Regulator) handleAttemptPossibleBannedIP(ctx Context, since time.Time) 
 	sqlban := &model.BannedIP{
 		Expires: sql.NullTime{Valid: true, Time: *banexp},
 		IP:      ip,
-		Source:  "regulation",
-		Reason:  sql.NullString{Valid: true, String: "Exceeding Maximum Retries"},
+		Source:  banSourceRegulation,
+		Reason:  sql.NullString{Valid: true, String: banReasonMaximumRetries},
 	}
 
 	if err = r.store.SaveBannedIP(ctx, sqlban); err != nil {
@@ -121,8 +121,8 @@ func (r *Regulator) handleAttemptPossibleBannedUser(ctx Context, since time.Time
 	sqlban := &model.BannedUser{
 		Expires:  sql.NullTime{Valid: true, Time: *banexp},
 		Username: username,
-		Source:   "regulation",
-		Reason:   sql.NullString{Valid: true, String: "Exceeding Maximum Retries"},
+		Source:   banSourceRegulation,
+		Reason:   sql.NullString{Valid: true, String: banReasonMaximumRetries},
 	}
 
 	if err = r.store.SaveBannedUser(ctx, sqlban); err != nil {

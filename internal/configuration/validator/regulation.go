@@ -14,7 +14,7 @@ func ValidateRegulation(config *schema.Configuration, validator *schema.StructVa
 	} else {
 		for _, mode := range config.Regulation.Modes {
 			switch mode {
-			case "ip", "user":
+			case regulationModeIP, regulationModeUser:
 				break
 			default:
 				validator.Push(fmt.Errorf(errFmtRegulationInvalidMode, mode))

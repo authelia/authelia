@@ -168,3 +168,24 @@ var (
 	errUserAnonymous              = errors.New("user is anonymous")
 	errUserIsAlreadyAuthenticated = errors.New("user is already authenticated")
 )
+
+const (
+	logFieldUsername = "username"
+	logFieldHeader   = "header"
+	logFieldScheme   = "scheme"
+	logFieldEmail    = "email"
+	logFieldRevoke   = "Revoke"
+	logFieldID       = "id"
+
+	eventLogMessagePasswordChanged = "Password changed successfully"
+
+	oauth2FieldRequestedAt         = "requested_at"
+	oauth2FieldClientID            = "client_id"
+	oauth2FieldSubject             = "subject"
+	oauth2FieldScope               = "scope"
+	oauth2FieldClaims              = "claims"
+	oauth2FieldSignature           = "signature"
+	oauth2FieldBodyClientID        = "body_client_id"
+	oauth2FieldAuthenticatedAt     = "authenticated_at"
+	oauth2FieldOAuth2AccessRequest = "oauth2_access_request_id"
+)

@@ -212,14 +212,14 @@ func (TLSVersion) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type: jsonschema.TypeString,
 		Enum: []any{
-			"TLS 1.0",
-			"TLS1.0",
-			"TLS 1.1",
-			"TLS1.1",
-			"TLS 1.2",
-			"TLS1.2",
-			"TLS 1.3",
-			"TLS1.3",
+			TLSVersion10Spaced,
+			TLSVersion10,
+			TLSVersion11Spaced,
+			TLSVersion11,
+			TLSVersion12Spaced,
+			TLSVersion12,
+			TLSVersion13Spaced,
+			TLSVersion13,
 		},
 	}
 }

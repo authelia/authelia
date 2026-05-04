@@ -12,4 +12,6 @@ const (
 	serviceTypeServer  = "server"
 	serviceTypeWatcher = "watcher"
 	serviceTypeSignal  = "signal"
+
+	signalNameLogReload = "log-reload"
 )

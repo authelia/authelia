@@ -13,13 +13,13 @@ func init() {
 	_ = os.WriteFile("/tmp/authelia/StandaloneSuite/session", []byte("unsecure_session_secret"), 0600) //nolint:gosec
 
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
+		composePathBase,
 		"internal/suites/Standalone/compose.yml",
-		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/compose.yml",
-		"internal/suites/example/compose/nginx/portal/compose.yml",
-		"internal/suites/example/compose/smtp/compose.yml",
+		composePathAutheliaBackend,
+		composePathAutheliaFrontend,
+		composePathNginxBackend,
+		composePathNginxPortal,
+		composePathSMTP,
 	})
 
 	setup := func(suitePath string) (err error) {

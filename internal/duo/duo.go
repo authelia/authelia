@@ -38,19 +38,19 @@ func (d *Production) Call(ctx middlewares.Context, userSession *session.UserSess
 	switch response.Stat {
 	case "OK":
 		ctx.GetLogger().
-			WithFields(map[string]any{"status": response.Stat, "message": response.Message, "username": userSession.Username}).
+			WithFields(map[string]any{logFieldStatus: response.Stat, logFieldMessage: response.Message, logFieldUsername: userSession.Username}).
 			Trace("Duo Push Auth success response.")
 
 		return &response, nil
 	case "FAIL":
 		ctx.GetLogger().
-			WithFields(map[string]any{"status": response.Stat, "status_code": response.Code, "message": response.Message, "message_detail": response.MessageDetail, "username": userSession.Username}).
+			WithFields(map[string]any{logFieldStatus: response.Stat, logFieldStatusCode: response.Code, logFieldMessage: response.Message, logFieldMessageDetail: response.MessageDetail, logFieldUsername: userSession.Username}).
 			Warn("Duo Push Auth call returned a failure status.")
 
 		return &response, fmt.Errorf("failure status was returned")
 	default:
 		ctx.GetLogger().
-			WithFields(map[string]any{"status": response.Stat, "status_code": response.Code, "message": response.Message, "message_detail": response.MessageDetail, "username": userSession.Username}).
+			WithFields(map[string]any{logFieldStatus: response.Stat, logFieldStatusCode: response.Code, logFieldMessage: response.Message, logFieldMessageDetail: response.MessageDetail, logFieldUsername: userSession.Username}).
 			Warn("Duo Push API call returned an unknown status.")
 
 		return &response, fmt.Errorf("unknown status was returned")

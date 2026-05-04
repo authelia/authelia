@@ -9,25 +9,25 @@ var envoySuiteName = "Envoy"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
-		"internal/suites/Envoy/compose.yml",
-		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/compose.yml",
-		"internal/suites/example/compose/envoy/compose.yml",
-		"internal/suites/example/compose/smtp/compose.yml",
-		"internal/suites/example/compose/httpbin/compose.yml",
+		composePathBase,
+		composePathSuiteEnvoy,
+		composePathAutheliaBackend,
+		composePathAutheliaFrontend,
+		composePathNginxBackend,
+		composePathEnvoy,
+		composePathSMTP,
+		composePathHTTPBin,
 	})
 
 	if os.Getenv("CI") == t {
 		dockerEnvironment = NewDockerEnvironment([]string{
-			"internal/suites/compose.yml",
-			"internal/suites/Envoy/compose.yml",
-			"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-			"internal/suites/example/compose/nginx/backend/compose.yml",
-			"internal/suites/example/compose/envoy/compose.yml",
-			"internal/suites/example/compose/smtp/compose.yml",
-			"internal/suites/example/compose/httpbin/compose.yml",
+			composePathBase,
+			composePathSuiteEnvoy,
+			composePathAutheliaBackend,
+			composePathNginxBackend,
+			composePathEnvoy,
+			composePathSMTP,
+			composePathHTTPBin,
 		})
 	}
 

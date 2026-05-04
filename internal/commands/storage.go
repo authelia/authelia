@@ -212,7 +212,7 @@ func newStorageEncryptRotateHMACCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newStorageEncryptRotateHMACOTCCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "otc",
+		Use:     cmdUseStorageOTC,
 		Short:   cmdAutheliaStorageEncryptionRotateHMACOTCShort,
 		Long:    cmdAutheliaStorageEncryptionRotateHMACOTCLong,
 		Example: cmdAutheliaStorageEncryptionRotateHMACOTCExample,
@@ -229,7 +229,7 @@ func newStorageEncryptRotateHMACOTCCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newStorageEncryptRotateHMACOTPCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "otp",
+		Use:     cmdUseStorageOTP,
 		Short:   cmdAutheliaStorageEncryptionRotateHMACOTPShort,
 		Long:    cmdAutheliaStorageEncryptionRotateHMACOTPLong,
 		Example: cmdAutheliaStorageEncryptionRotateHMACOTPExample,

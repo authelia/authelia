@@ -21,7 +21,7 @@ var defaultTOTPSkew = 1
 
 // DefaultTOTPConfiguration represents default configuration parameters for TOTP generation.
 var DefaultTOTPConfiguration = TOTP{
-	Issuer:            "Authelia",
+	Issuer:            defaultIssuerAuthelia,
 	DefaultAlgorithm:  TOTPAlgorithmSHA1,
 	DefaultDigits:     6,
 	DefaultPeriod:     30,

@@ -14,4 +14,6 @@ const (
 const (
 	userSessionStorerKey = "UserSession"
 	randomSessionChars   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_!#$%^*"
+
+	redisKeyPrefixAutheliaSession = "authelia-session"
 )

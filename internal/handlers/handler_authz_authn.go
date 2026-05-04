@@ -237,7 +237,7 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 
 	if !s.schemes.Has(scheme) {
 		ctx.Logger.
-			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
+			WithFields(map[string]any{logFieldScheme: authn.Header.Authorization.SchemeRaw(), logFieldHeader: string(s.headerAuthorize)}).
 			Debug("Skipping header authorization as the scheme and header combination is unknown to this endpoint configuration")
 
 		return authn, nil
@@ -250,7 +250,7 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 		username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object)
 	default:
 		ctx.Logger.
-			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
+			WithFields(map[string]any{logFieldScheme: authn.Header.Authorization.SchemeRaw(), logFieldHeader: string(s.headerAuthorize)}).
 			Debug("Skipping header authorization as the scheme is unknown to this endpoint configuration")
 
 		return authn, nil
@@ -278,7 +278,7 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 
 		if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
 			if errors.Is(err, authentication.ErrUserNotFound) {
-				ctx.Logger.WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+				ctx.Logger.WithField(logFieldUsername, username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
 				return authn, err
 			}
@@ -419,7 +419,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 
 	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
-			ctx.Logger.WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+			ctx.Logger.WithField(logFieldUsername, username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
 			return authn, err
 		}
@@ -454,13 +454,13 @@ func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.S
 	isAnonymous := userSession.Username == ""
 
 	if isAnonymous && userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) != authentication.NotAuthenticated {
-		ctx.Logger.WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
+		ctx.Logger.WithFields(map[string]any{logFieldUsername: anonymous, "level": userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
 
 		return modified, true
 	}
 
 	if invalid = handleAuthnCookieValidateInactivity(ctx, provider, userSession, isAnonymous); invalid {
-		ctx.Logger.WithField("username", userSession.Username).Info("Session for user not marked as remembered has exceeded configured session inactivity")
+		ctx.Logger.WithField(logFieldUsername, userSession.Username).Info("Session for user not marked as remembered has exceeded configured session inactivity")
 
 		return modified, true
 	}
@@ -470,7 +470,7 @@ func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.S
 	}
 
 	if username := ctx.Request.Header.PeekBytes(headerSessionUsername); username != nil && !strings.EqualFold(string(username), userSession.Username) {
-		ctx.Logger.WithField("username", userSession.Username).Warnf("Session for user does not match the Session-Username header with value '%s' which could be a sign of a cookie hijack", username)
+		ctx.Logger.WithField(logFieldUsername, userSession.Username).Warnf("Session for user does not match the Session-Username header with value '%s' which could be a sign of a cookie hijack", username)
 
 		return modified, true
 	}
@@ -489,7 +489,7 @@ func handleAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, provider 
 		return false
 	}
 
-	ctx.Logger.WithField("username", userSession.Username).Tracef("Inactivity report for user. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", ctx.GetClock().Now().Unix(), userSession.LastActivity, int(provider.Config.Inactivity.Seconds()))
+	ctx.Logger.WithField(logFieldUsername, userSession.Username).Tracef("Inactivity report for user. Current Time: %d, Last Activity: %d, Maximum Inactivity: %d.", ctx.GetClock().Now().Unix(), userSession.LastActivity, int(provider.Config.Inactivity.Seconds()))
 
 	return time.Unix(userSession.LastActivity, 0).Add(provider.Config.Inactivity).Before(ctx.GetClock().Now())
 }
@@ -499,13 +499,13 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 		return false, false
 	}
 
-	ctx.Logger.WithField("username", userSession.Username).Trace("Checking if we need check the authentication backend for an updated profile for user")
+	ctx.Logger.WithField(logFieldUsername, userSession.Username).Trace("Checking if we need check the authentication backend for an updated profile for user")
 
 	if !refresh.Always() && userSession.RefreshTTL.After(ctx.GetClock().Now()) {
 		return false, false
 	}
 
-	ctx.Logger.WithField("username", userSession.Username).Debug("Checking the authentication backend for an updated profile for user")
+	ctx.Logger.WithField(logFieldUsername, userSession.Username).Debug("Checking the authentication backend for an updated profile for user")
 
 	var (
 		details *authentication.UserDetails
@@ -513,12 +513,12 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 	)
 	if details, err = ctx.Providers.UserProvider.GetDetails(userSession.Username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
-			ctx.Logger.WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+			ctx.Logger.WithField(logFieldUsername, userSession.Username).Error("Error occurred while attempting to update user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
 			return false, true
 		}
 
-		ctx.Logger.WithError(err).WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user")
+		ctx.Logger.WithError(err).WithField(logFieldUsername, userSession.Username).Error("Error occurred while attempting to update user details for user")
 
 		return false, false
 	}
@@ -537,12 +537,12 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 	}
 
 	if !diffEmails && !diffGroups && !diffDisplayName {
-		ctx.Logger.WithField("username", userSession.Username).Trace("Updated profile not detected for user")
+		ctx.Logger.WithField(logFieldUsername, userSession.Username).Trace("Updated profile not detected for user")
 
 		return modified, false
 	}
 
-	ctx.Logger.WithField("username", userSession.Username).Debug("Updated profile detected for user")
+	ctx.Logger.WithField(logFieldUsername, userSession.Username).Debug("Updated profile detected for user")
 
 	if ctx.Logger.Level >= logrus.TraceLevel {
 		generateVerifySessionHasUpToDateProfileTraceLogs(ctx, userSession, details)

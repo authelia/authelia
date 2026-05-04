@@ -18,10 +18,10 @@ func ProvisionLoggingSignal(ctx Context) (service Provider, err error) {
 	}
 
 	return &Signal{
-		name:    "log-reload",
+		name:    signalNameLogReload,
 		signals: []os.Signal{syscall.SIGHUP},
 		action:  logging.Reopen,
-		log:     ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "log-reload"}),
+		log:     ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: signalNameLogReload}),
 		notify:  make(chan os.Signal, 1),
 		quit:    make(chan struct{}),
 	}, nil

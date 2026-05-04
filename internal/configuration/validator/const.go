@@ -44,6 +44,47 @@ const (
 	hashBcrypt    = "bcrypt"
 
 	hashScryptVariantYesCrypt = "yescrypt"
+
+	hashArgon2VariantD = "argon2d"
+)
+
+const (
+	postgresSSLModeRequire = "require"
+	themeNameLight         = "light"
+	sameSiteNone           = "none"
+	sameSiteLax            = "lax"
+	sameSiteStrict         = "strict"
+	twoFAMethodTOTP        = "totp"
+	twoFAMethodWebAuthn    = "webauthn"
+	twoFAMethodMobilePush  = "mobile_push"
+	hostnameLocalhost      = "localhost"
+	memberOfPlaceholderRDN = "{memberof:rdn}"
+	memberOfPlaceholderDN  = "{memberof:dn}"
+	regulationModeIP       = "ip"
+	regulationModeUser     = "user"
+)
+
+const (
+	configKeyAuthBackendLDAPSkipVerify           = "authentication_backend.ldap.skip_verify"
+	configKeyAuthBackendLDAPMinimumTLSVersion    = "authentication_backend.ldap.minimum_tls_version"
+	configKeyNotifierSMTPDisableVerifyCert       = "notifier.smtp.disable_verify_cert"
+	configKeyNotifierSMTPTrustedCert             = "notifier.smtp.trusted_cert"
+	configKeyLogsLevel                           = "logs_level"
+	configKeyLogsFilePath                        = "logs_file_path"
+	configKeyLogLevel                            = "log_level"
+	configKeyLogFilePath                         = "log_file_path"
+	configKeyLogFormat                           = "log_format"
+	configKeyHost                                = "host"
+	configKeyPort                                = "port"
+	configKeyTLSKey                              = "tls_key"
+	configKeyTLSCert                             = "tls_cert"
+	configKeyLogDotLevel                         = "log.level"
+	configKeyLogDotFilePath                      = "log.file_path"
+	configKeyGoogleAnalytics                     = "google_analytics"
+	configKeyAuthBackendFilePasswordOptionsAlgo  = "authentication_backend.file.password_options.algorithm"
+	configKeyAuthBackendFilePasswordOptionsIters = "authentication_backend.file.password_options.iterations"
+	configKeyAuthBackendFilePasswordHashingAlgo  = "authentication_backend.file.password_hashing.algorithm"
+	configKeyAuthBackendFileHashingAlgo          = "authentication_backend.file.hashing.algorithm"
 )
 
 // Scheme constants.
@@ -516,18 +557,18 @@ var (
 )
 
 var (
-	validArgon2Variants    = []string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}
+	validArgon2Variants    = []string{hashLegacyArgon2id, "id", "argon2i", "i", hashArgon2VariantD, "d"}
 	validSHA2CryptVariants = []string{schema.SHA256Lower, schema.SHA512Lower}
 	validPBKDF2Variants    = []string{schema.SHA1Lower, schema.SHA224Lower, schema.SHA256Lower, schema.SHA384Lower, schema.SHA512Lower}
 	validBcryptVariants    = []string{"standard", schema.SHA256Lower}
-	validScryptVariants    = []string{"scrypt", "yescrypt"}
+	validScryptVariants    = []string{hashScrypt, hashScryptVariantYesCrypt}
 	validHashAlgorithms    = []string{hashSHA2Crypt, hashPBKDF2, hashScrypt, hashBcrypt, hashArgon2}
 )
 
 var (
-	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
-	validThemeNames                          = []string{"light", "dark", "grey", "oled", auto}
-	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
+	validStoragePostgreSQLSSLModes           = []string{"disable", postgresSSLModeRequire, "verify-ca", "verify-full"}
+	validThemeNames                          = []string{themeNameLight, "dark", "grey", "oled", auto}
+	validSessionSameSiteValues               = []string{sameSiteNone, sameSiteLax, sameSiteStrict}
 	validLogLevels                           = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
 	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}
 	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
@@ -544,7 +585,7 @@ var (
 	validACLRuleOperators   = []string{operatorPresent, operatorAbsent, operatorEqual, operatorNotEqual, operatorPattern, operatorNotPattern}
 )
 
-var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
+var validDefault2FAMethods = []string{twoFAMethodTOTP, twoFAMethodWebAuthn, twoFAMethodMobilePush}
 
 const (
 	attrOIDCKey                         = "key"
@@ -674,38 +715,38 @@ var validUserAttributes = []string{
 }
 
 var replacedKeys = map[string]string{
-	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",
-	"authentication_backend.ldap.minimum_tls_version": "authentication_backend.ldap.tls.minimum_version",
-	"notifier.smtp.disable_verify_cert":               "notifier.smtp.tls.skip_verify",
-	"logs_level":                                      "log.level",
-	"logs_file_path":                                  "log.file_path",
-	"log_level":                                       "log.level",
-	"log_file_path":                                   "log.file_path",
-	"log_format":                                      "log.format",
-	"host":                                            "server.host",
-	"port":                                            "server.port",
-	"tls_key":                                         "server.tls.key",
-	"tls_cert":                                        "server.tls.certificate",
+	configKeyAuthBackendLDAPSkipVerify:        "authentication_backend.ldap.tls.skip_verify",
+	configKeyAuthBackendLDAPMinimumTLSVersion: "authentication_backend.ldap.tls.minimum_version",
+	configKeyNotifierSMTPDisableVerifyCert:    "notifier.smtp.tls.skip_verify",
+	configKeyLogsLevel:                        configKeyLogDotLevel,
+	configKeyLogsFilePath:                     configKeyLogDotFilePath,
+	configKeyLogLevel:                         configKeyLogDotLevel,
+	configKeyLogFilePath:                      configKeyLogDotFilePath,
+	configKeyLogFormat:                        "log.format",
+	configKeyHost:                             "server.host",
+	configKeyPort:                             "server.port",
+	configKeyTLSKey:                           "server.tls.key",
+	configKeyTLSCert:                          "server.tls.certificate",
 }
 
 var specificErrorKeys = map[string]string{
-	"google_analytics": "config key removed: google_analytics - this functionality has been deprecated",
-	"notifier.smtp.trusted_cert": "invalid configuration key 'notifier.smtp.trusted_cert' it has been removed, " +
+	configKeyGoogleAnalytics: "config key removed: google_analytics - this functionality has been deprecated",
+	configKeyNotifierSMTPTrustedCert: "invalid configuration key 'notifier.smtp.trusted_cert' it has been removed, " +
 		"option has been replaced by the global option 'certificates_directory'",
 
-	"authentication_backend.file.password_options.algorithm":   errFilePOptions,
-	"authentication_backend.file.password_options.iterations":  errFilePOptions,
+	configKeyAuthBackendFilePasswordOptionsAlgo:                errFilePOptions,
+	configKeyAuthBackendFilePasswordOptionsIters:               errFilePOptions,
 	"authentication_backend.file.password_options.key_length":  errFilePOptions,
 	"authentication_backend.file.password_options.salt_length": errFilePOptions,
 	"authentication_backend.file.password_options.memory":      errFilePOptions,
 	"authentication_backend.file.password_options.parallelism": errFilePOptions,
-	"authentication_backend.file.password_hashing.algorithm":   errFilePHashing,
+	configKeyAuthBackendFilePasswordHashingAlgo:                errFilePHashing,
 	"authentication_backend.file.password_hashing.iterations":  errFilePHashing,
 	"authentication_backend.file.password_hashing.key_length":  errFilePHashing,
 	"authentication_backend.file.password_hashing.salt_length": errFilePHashing,
 	"authentication_backend.file.password_hashing.memory":      errFilePHashing,
 	"authentication_backend.file.password_hashing.parallelism": errFilePHashing,
-	"authentication_backend.file.hashing.algorithm":            errFileHashing,
+	configKeyAuthBackendFileHashingAlgo:                        errFileHashing,
 	"authentication_backend.file.hashing.iterations":           errFileHashing,
 	"authentication_backend.file.hashing.key_length":           errFileHashing,
 	"authentication_backend.file.hashing.salt_length":          errFileHashing,

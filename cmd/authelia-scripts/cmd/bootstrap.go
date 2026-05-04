@@ -72,34 +72,34 @@ var hostEntries = []HostEntry{
 	{Domain: "local.example.com", IP: "127.0.0.1"},
 
 	// For authelia backend.
-	{Domain: "authelia.example.com", IP: "192.168.240.50"},
+	{Domain: "authelia.example.com", IP: hostIPAuthelia},
 
 	// For common tests.
-	{Domain: "login.example.com", IP: "192.168.240.100"},
-	{Domain: "admin.example.com", IP: "192.168.240.100"},
-	{Domain: "singlefactor.example.com", IP: "192.168.240.100"},
-	{Domain: "deny.example.com", IP: "192.168.240.100"},
-	{Domain: "dev.example.com", IP: "192.168.240.100"},
-	{Domain: "home.example.com", IP: "192.168.240.100"},
-	{Domain: "mx1.mail.example.com", IP: "192.168.240.100"},
-	{Domain: "mx2.mail.example.com", IP: "192.168.240.100"},
-	{Domain: "public.example.com", IP: "192.168.240.100"},
-	{Domain: "secure.example.com", IP: "192.168.240.100"},
-	{Domain: "mail.example.com", IP: "192.168.240.100"},
-	{Domain: "duo.example.com", IP: "192.168.240.100"},
+	{Domain: "login.example.com", IP: hostIPPortal},
+	{Domain: "admin.example.com", IP: hostIPPortal},
+	{Domain: "singlefactor.example.com", IP: hostIPPortal},
+	{Domain: "deny.example.com", IP: hostIPPortal},
+	{Domain: "dev.example.com", IP: hostIPPortal},
+	{Domain: "home.example.com", IP: hostIPPortal},
+	{Domain: "mx1.mail.example.com", IP: hostIPPortal},
+	{Domain: "mx2.mail.example.com", IP: hostIPPortal},
+	{Domain: "public.example.com", IP: hostIPPortal},
+	{Domain: "secure.example.com", IP: hostIPPortal},
+	{Domain: "mail.example.com", IP: hostIPPortal},
+	{Domain: "duo.example.com", IP: hostIPPortal},
 
 	// For HAProxy suite.
-	{Domain: "haproxy.example.com", IP: "192.168.240.100"},
+	{Domain: "haproxy.example.com", IP: hostIPPortal},
 
 	// Kubernetes dashboard.
-	{Domain: "kubernetes.example.com", IP: "192.168.240.100"},
+	{Domain: "kubernetes.example.com", IP: hostIPPortal},
 
 	// OIDC tester app.
-	{Domain: "oidc.example.com", IP: "192.168.240.100"},
-	{Domain: "oidc-public.example.com", IP: "192.168.240.100"},
+	{Domain: "oidc.example.com", IP: hostIPPortal},
+	{Domain: "oidc-public.example.com", IP: hostIPPortal},
 
 	// For Traefik suite.
-	{Domain: "traefik.example.com", IP: "192.168.240.100"},
+	{Domain: "traefik.example.com", IP: hostIPPortal},
 
 	// For testing network ACLs.
 	{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
@@ -117,28 +117,28 @@ var hostEntries = []HostEntry{
 	{Domain: "redis-sentinel-2.example.com", IP: "192.168.240.122"},
 
 	// For multi cookie domain tests.
-	{Domain: "login.example2.com", IP: "192.168.240.100"},
-	{Domain: "admin.example2.com", IP: "192.168.240.100"},
-	{Domain: "singlefactor.example2.com", IP: "192.168.240.100"},
-	{Domain: "dev.example2.com", IP: "192.168.240.100"},
-	{Domain: "home.example2.com", IP: "192.168.240.100"},
-	{Domain: "mx1.mail.example2.com", IP: "192.168.240.100"},
-	{Domain: "mx2.mail.example2.com", IP: "192.168.240.100"},
-	{Domain: "public.example2.com", IP: "192.168.240.100"},
-	{Domain: "secure.example2.com", IP: "192.168.240.100"},
-	{Domain: "mail.example2.com", IP: "192.168.240.100"},
-	{Domain: "duo.example2.com", IP: "192.168.240.100"},
-	{Domain: "login.example3.com", IP: "192.168.240.100"},
-	{Domain: "admin.example3.com", IP: "192.168.240.100"},
-	{Domain: "singlefactor.example3.com", IP: "192.168.240.100"},
-	{Domain: "dev.example3.com", IP: "192.168.240.100"},
-	{Domain: "home.example3.com", IP: "192.168.240.100"},
-	{Domain: "mx1.mail.example3.com", IP: "192.168.240.100"},
-	{Domain: "mx2.mail.example3.com", IP: "192.168.240.100"},
-	{Domain: "public.example3.com", IP: "192.168.240.100"},
-	{Domain: "secure.example3.com", IP: "192.168.240.100"},
-	{Domain: "mail.example3.com", IP: "192.168.240.100"},
-	{Domain: "duo.example3.com", IP: "192.168.240.100"},
+	{Domain: "login.example2.com", IP: hostIPPortal},
+	{Domain: "admin.example2.com", IP: hostIPPortal},
+	{Domain: "singlefactor.example2.com", IP: hostIPPortal},
+	{Domain: "dev.example2.com", IP: hostIPPortal},
+	{Domain: "home.example2.com", IP: hostIPPortal},
+	{Domain: "mx1.mail.example2.com", IP: hostIPPortal},
+	{Domain: "mx2.mail.example2.com", IP: hostIPPortal},
+	{Domain: "public.example2.com", IP: hostIPPortal},
+	{Domain: "secure.example2.com", IP: hostIPPortal},
+	{Domain: "mail.example2.com", IP: hostIPPortal},
+	{Domain: "duo.example2.com", IP: hostIPPortal},
+	{Domain: "login.example3.com", IP: hostIPPortal},
+	{Domain: "admin.example3.com", IP: hostIPPortal},
+	{Domain: "singlefactor.example3.com", IP: hostIPPortal},
+	{Domain: "dev.example3.com", IP: hostIPPortal},
+	{Domain: "home.example3.com", IP: hostIPPortal},
+	{Domain: "mx1.mail.example3.com", IP: hostIPPortal},
+	{Domain: "mx2.mail.example3.com", IP: hostIPPortal},
+	{Domain: "public.example3.com", IP: hostIPPortal},
+	{Domain: "secure.example3.com", IP: hostIPPortal},
+	{Domain: "mail.example3.com", IP: hostIPPortal},
+	{Domain: "duo.example3.com", IP: hostIPPortal},
 }
 
 func runCommand(cmd string, args ...string) {

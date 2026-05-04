@@ -18,7 +18,7 @@ func ParseHostCIDR(s string) (cidr *net.IPNet, err error) {
 	case 0:
 		switch n := net.ParseIP(s); {
 		case n == nil:
-			return nil, &net.ParseError{Type: "CIDR address", Text: s}
+			return nil, &net.ParseError{Type: NetworkErrTypeCIDRAddress, Text: s}
 		case n.To4() == nil:
 			_, cidr, err = net.ParseCIDR(s + "/128")
 		default:
@@ -27,6 +27,6 @@ func ParseHostCIDR(s string) (cidr *net.IPNet, err error) {
 
 		return
 	default:
-		return nil, &net.ParseError{Type: "CIDR address", Text: s}
+		return nil, &net.ParseError{Type: NetworkErrTypeCIDRAddress, Text: s}
 	}
 }

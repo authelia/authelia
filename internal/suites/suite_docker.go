@@ -8,13 +8,13 @@ var dockerSuiteName = "Docker"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
+		composePathBase,
 		"internal/suites/Docker/compose.yml",
 		"internal/suites/example/compose/authelia/compose.backend.dist.yml",
 		"internal/suites/example/compose/authelia/compose.frontend.dist.yml",
-		"internal/suites/example/compose/nginx/backend/compose.yml",
-		"internal/suites/example/compose/nginx/portal/compose.yml",
-		"internal/suites/example/compose/smtp/compose.yml",
+		composePathNginxBackend,
+		composePathNginxPortal,
+		composePathSMTP,
 	})
 
 	setup := func(suitePath string) (err error) {

@@ -53,7 +53,7 @@ type WebAuthnFiltering struct {
 
 // DefaultWebAuthnConfiguration describes the default values for the WebAuthn.
 var DefaultWebAuthnConfiguration = WebAuthn{
-	DisplayName: "Authelia",
+	DisplayName: defaultIssuerAuthelia,
 	Timeout:     time.Second * 60,
 
 	ConveyancePreference: protocol.PreferIndirectAttestation,

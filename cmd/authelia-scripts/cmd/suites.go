@@ -42,7 +42,7 @@ func newSuitesCmd() (cmd *cobra.Command) {
 
 func newSuitesListCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "list",
+		Use:     cmdUseList,
 		Short:   cmdSuitesListShort,
 		Long:    cmdSuitesListLong,
 		Example: cmdSuitesListExample,
@@ -87,7 +87,7 @@ func newSuitesTeardownCmd() (cmd *cobra.Command) {
 
 func newSuitesTestCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "test [suite]",
+		Use:     cmdUseTestSuite,
 		Short:   cmdSuitesTestShort,
 		Long:    cmdSuitesTestLong,
 		Example: cmdSuitesTestExample,

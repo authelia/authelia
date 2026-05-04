@@ -270,7 +270,7 @@ func validateFileAuthenticationBackendPasswordConfigScrypt(config *schema.Authen
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashScrypt, "parallelism", config.Scrypt.Parallelism, scrypt.ParallelismMin))
 	case config.Scrypt.Parallelism > scrypt.ParallelismMax:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashScrypt, "parallelism", config.Scrypt.Parallelism, scrypt.ParallelismMax))
-	case config.Scrypt.Variant == "yescrypt" && config.Scrypt.Parallelism != 1:
+	case config.Scrypt.Variant == hashScryptVariantYesCrypt && config.Scrypt.Parallelism != 1:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionInvalid, hashScrypt, "parallelism", config.Scrypt.Parallelism, 1, "variant", config.Scrypt.Variant))
 	}
 
@@ -568,19 +568,19 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "group_search_mode", utils.StringJoinOr(validLDAPGroupSearchModes), config.LDAP.GroupSearchMode))
 	}
 
-	pMemberOfDN, pMemberOfRDN := strings.Contains(config.LDAP.GroupsFilter, "{memberof:dn}"), strings.Contains(config.LDAP.GroupsFilter, "{memberof:rdn}")
+	pMemberOfDN, pMemberOfRDN := strings.Contains(config.LDAP.GroupsFilter, memberOfPlaceholderDN), strings.Contains(config.LDAP.GroupsFilter, memberOfPlaceholderRDN)
 
 	if config.LDAP.GroupSearchMode == schema.LDAPGroupSearchModeMemberOf {
 		if !pMemberOfDN && !pMemberOfRDN {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholderGroupSearchMode, "groups_filter", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"}), config.LDAP.GroupSearchMode))
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholderGroupSearchMode, "groups_filter", utils.StringJoinOr([]string{memberOfPlaceholderRDN, memberOfPlaceholderDN}), config.LDAP.GroupSearchMode))
 		}
 	}
 
 	if pMemberOfDN && config.LDAP.Attributes.DistinguishedName == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "distinguished_name", utils.StringJoinOr([]string{"{memberof:dn}"})))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "distinguished_name", utils.StringJoinOr([]string{memberOfPlaceholderDN})))
 	}
 
 	if (pMemberOfDN || pMemberOfRDN) && config.LDAP.Attributes.MemberOf == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", utils.StringJoinOr([]string{memberOfPlaceholderRDN, memberOfPlaceholderDN})))
 	}
 }

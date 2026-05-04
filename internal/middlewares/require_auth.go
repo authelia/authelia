@@ -30,7 +30,7 @@ func RequireElevated(next RequestHandler) RequestHandler {
 		if userSession, err = ctx.GetSession(); err != nil {
 			ctx.Logger.WithError(err).Error("Error occurred attempting to lookup user session during an elevation check.")
 
-			if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{FirstFactor: true}}, fasthttp.StatusForbidden); err != nil {
+			if err = ctx.ReplyJSON(OKResponse{Status: statusKO, Data: ElevatedForbiddenResponse{FirstFactor: true}}, fasthttp.StatusForbidden); err != nil {
 				ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
 			}
 
@@ -40,7 +40,7 @@ func RequireElevated(next RequestHandler) RequestHandler {
 		if userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) < authentication.OneFactor {
 			ctx.Logger.Warn("An anonymous user attempted to access an elevated protected endpoint.")
 
-			if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{FirstFactor: true}}, fasthttp.StatusForbidden); err != nil {
+			if err = ctx.ReplyJSON(OKResponse{Status: statusKO, Data: ElevatedForbiddenResponse{FirstFactor: true}}, fasthttp.StatusForbidden); err != nil {
 				ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
 			}
 
@@ -61,7 +61,7 @@ func handleRequireElevatedShouldDoNext(ctx *AutheliaCtx, userSession *session.Us
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
 
 	if ctx.Configuration.IdentityValidation.ElevatedSession.SkipSecondFactor && level >= authentication.TwoFactor {
-		ctx.Logger.WithFields(map[string]any{"user": userSession.Username}).Trace("The user session elevation was not checked as the user has performed second factor authentication and the policy to skip this is enabled.")
+		ctx.Logger.WithFields(map[string]any{ProviderNameUser: userSession.Username}).Trace("The user session elevation was not checked as the user has performed second factor authentication and the policy to skip this is enabled.")
 
 		return true
 	}
@@ -72,7 +72,7 @@ func handleRequireElevatedShouldDoNext(ctx *AutheliaCtx, userSession *session.Us
 		if info, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username); err != nil {
 			ctx.Logger.WithError(err).Error("Error occurred attempting to lookup user information during a elevation check.")
 
-			if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{SecondFactor: true}}, fasthttp.StatusForbidden); err != nil {
+			if err = ctx.ReplyJSON(OKResponse{Status: statusKO, Data: ElevatedForbiddenResponse{SecondFactor: true}}, fasthttp.StatusForbidden); err != nil {
 				ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
 			}
 
@@ -80,9 +80,9 @@ func handleRequireElevatedShouldDoNext(ctx *AutheliaCtx, userSession *session.Us
 		}
 
 		if info.HasTOTP || info.HasWebAuthn || info.HasDuo {
-			ctx.Logger.WithFields(map[string]any{"user": userSession.Username}).Info("The user session elevation was not checked as the user must have also performed second factor authentication.")
+			ctx.Logger.WithFields(map[string]any{ProviderNameUser: userSession.Username}).Info("The user session elevation was not checked as the user must have also performed second factor authentication.")
 
-			if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{SecondFactor: true}}, fasthttp.StatusForbidden); err != nil {
+			if err = ctx.ReplyJSON(OKResponse{Status: statusKO, Data: ElevatedForbiddenResponse{SecondFactor: true}}, fasthttp.StatusForbidden); err != nil {
 				ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
 			}
 
@@ -91,7 +91,7 @@ func handleRequireElevatedShouldDoNext(ctx *AutheliaCtx, userSession *session.Us
 	}
 
 	if userSession.Elevations.User == nil {
-		if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{Elevation: true}}, fasthttp.StatusForbidden); err != nil {
+		if err = ctx.ReplyJSON(OKResponse{Status: statusKO, Data: ElevatedForbiddenResponse{Elevation: true}}, fasthttp.StatusForbidden); err != nil {
 			ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
 		}
 
@@ -109,13 +109,13 @@ func handleRequireElevatedShouldDoNextValidate(ctx *AutheliaCtx, userSession *se
 	if ctx.GetClock().Now().After(userSession.Elevations.User.Expires) {
 		invalid = true
 
-		ctx.Logger.WithFields(map[string]any{"user": userSession.Username, "expired": userSession.Elevations.User.Expires.Unix()}).Info("The user session elevation was expired. It will be destroyed and the users access will be forbidden.")
+		ctx.Logger.WithFields(map[string]any{ProviderNameUser: userSession.Username, "expired": userSession.Elevations.User.Expires.Unix()}).Info("The user session elevation was expired. It will be destroyed and the users access will be forbidden.")
 	}
 
 	if !ctx.RemoteIP().Equal(userSession.Elevations.User.RemoteIP) {
 		invalid = true
 
-		ctx.Logger.WithFields(map[string]any{"user": userSession.Username, "expected_ip": userSession.Elevations.User.RemoteIP.String()}).Warn("The user session elevation did not have a matching IP. It will be destroyed and the users access will be forbidden.")
+		ctx.Logger.WithFields(map[string]any{ProviderNameUser: userSession.Username, "expected_ip": userSession.Elevations.User.RemoteIP.String()}).Warn("The user session elevation did not have a matching IP. It will be destroyed and the users access will be forbidden.")
 	}
 
 	if invalid {
@@ -125,7 +125,7 @@ func handleRequireElevatedShouldDoNextValidate(ctx *AutheliaCtx, userSession *se
 			ctx.Logger.WithError(err).Error("Error occurred trying to save the user session after a policy constraint violation occurred.")
 		}
 
-		if err = ctx.ReplyJSON(OKResponse{Status: "KO", Data: ElevatedForbiddenResponse{Elevation: true}}, fasthttp.StatusForbidden); err != nil {
+		if err = ctx.ReplyJSON(OKResponse{Status: statusKO, Data: ElevatedForbiddenResponse{Elevation: true}}, fasthttp.StatusForbidden); err != nil {
 			ctx.Logger.WithError(err).Error("Error occurred encoding JSON response during an elevation check.")
 		}
 

@@ -196,7 +196,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 
 		return nil, true
 	} else {
-		ctx.GetLogger().WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
+		ctx.GetLogger().WithFields(map[string]any{oauth2FieldRequestedAt: consent.RequestedAt, oauth2FieldAuthenticatedAt: userSession.LastAuthenticatedTime(), oidc.FormParameterPrompt: requester.GetRequestForm().Get(oidc.FormParameterPrompt)}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
 	oidc.ConsentGrant(consent, true, config.GrantedClaims)
@@ -247,7 +247,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 
 	scopes, audience := requester.GetRequestedScopes(), requester.GetRequestedAudience()
 
-	log := ctx.GetLogger().WithFields(map[string]any{"scopes": scopes, "claims": serialized, "audience": audience, "client_id": client.GetID()})
+	log := ctx.GetLogger().WithFields(map[string]any{"scopes": scopes, oauth2FieldClaims: serialized, "audience": audience, oauth2FieldClientID: client.GetID()})
 
 	for rows.Next() {
 		if config, err = rows.Get(); err != nil {

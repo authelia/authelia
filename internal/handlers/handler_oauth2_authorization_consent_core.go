@@ -179,7 +179,7 @@ func handleOAuth2AuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issu
 
 		return nil, true
 	} else {
-		ctx.GetLogger().WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
+		ctx.GetLogger().WithFields(map[string]any{oauth2FieldRequestedAt: consent.RequestedAt, oauth2FieldAuthenticatedAt: userSession.LastAuthenticatedTime(), oidc.FormParameterPrompt: requester.GetRequestForm().Get(oidc.FormParameterPrompt)}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
 	handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
@@ -241,7 +241,7 @@ func handleOAuth2PushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester 
 }
 
 func handleOAuth2AuthorizationConsentPromptLoginRedirect(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client, userSession session.UserSession, rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester, consent *model.OAuth2ConsentSession) {
-	ctx.GetLogger().WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime()}).Debugf("Authorization Request with id '%s' on client with id '%s' is being redirected for reauthentication: prompt type login was requested", requester.GetID(), client.GetID())
+	ctx.GetLogger().WithFields(map[string]any{oauth2FieldRequestedAt: consent.RequestedAt, oauth2FieldAuthenticatedAt: userSession.LastAuthenticatedTime()}).Debugf("Authorization Request with id '%s' on client with id '%s' is being redirected for reauthentication: prompt type login was requested", requester.GetID(), client.GetID())
 
 	handleOAuth2PushedAuthorizeConsent(ctx, requester, r.Form)
 

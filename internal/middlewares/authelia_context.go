@@ -81,7 +81,7 @@ func (ctx *AutheliaCtx) Error(err error, message string) {
 
 // SetJSONError sets the body of the response to an JSON error KO message.
 func (ctx *AutheliaCtx) SetJSONError(message string) {
-	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); err != nil {
+	if err := ctx.ReplyJSON(ErrorResponse{Status: statusKO, Message: message}, 0); err != nil {
 		ctx.Logger.Error(err)
 	}
 }

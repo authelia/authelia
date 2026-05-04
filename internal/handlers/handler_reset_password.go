@@ -190,25 +190,25 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	// Send Notification.
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
-		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": username}).Error("Error occurred retrieving user details")
+		ctx.GetLogger().WithError(err).WithFields(map[string]any{logFieldUsername: username}).Error("Error occurred retrieving user details")
 		ctx.ReplyOK()
 
 		return
 	}
 
 	if len(userInfo.Emails) == 0 {
-		ctx.GetLogger().WithFields(map[string]any{"username": username}).Error("Error occurred retrieving user details: user has no email address configured")
+		ctx.GetLogger().WithFields(map[string]any{logFieldUsername: username}).Error("Error occurred retrieving user details: user has no email address configured")
 		ctx.ReplyOK()
 
 		return
 	}
 
 	data := templates.EmailEventValues{
-		Title:       "Password changed successfully",
+		Title:       eventLogMessagePasswordChanged,
 		DisplayName: userInfo.DisplayName,
 		RemoteIP:    ctx.RemoteIP().String(),
 		Details: map[string]any{
-			"Action": "Password Reset",
+			eventLogKeyAction: "Password Reset",
 		},
 		BodyPrefix: eventEmailActionPasswordModifyPrefix,
 		BodyEvent:  eventEmailActionPasswordReset,
@@ -220,7 +220,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.GetLogger().Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
 		username, addresses[0].String())
 
-	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
+	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], eventLogMessagePasswordChanged, ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
 		ctx.GetLogger().Error(err)
 		ctx.ReplyOK()
 
@@ -257,7 +257,7 @@ func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identi
 var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
 	MailTitle:               "Reset your password",
 	MailButtonContent:       "Reset",
-	MailButtonRevokeContent: "Revoke",
+	MailButtonRevokeContent: logFieldRevoke,
 	TargetEndpoint:          "/reset-password/step2",
 	RevokeEndpoint:          "/revoke/reset-password",
 	ActionClaim:             ActionResetPassword,

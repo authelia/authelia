@@ -41,8 +41,8 @@ func NewMemoryClientStore(config *schema.Configuration) (store *MemoryClientStor
 	}
 
 	policies := map[string]ClientAuthorizationPolicy{
-		"one_factor": {Name: "one_factor", DefaultPolicy: authorization.NewLevel("one_factor")},
-		"two_factor": {Name: "two_factor", DefaultPolicy: authorization.NewLevel("two_factor")},
+		policyNameOneFactor: {Name: policyNameOneFactor, DefaultPolicy: authorization.NewLevel(policyNameOneFactor)},
+		policyNameTwoFactor: {Name: policyNameTwoFactor, DefaultPolicy: authorization.NewLevel(policyNameTwoFactor)},
 	}
 
 	for name, p := range config.IdentityProviders.OIDC.AuthorizationPolicies {

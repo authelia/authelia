@@ -9,29 +9,29 @@ var oidcTraefikSuiteName = "OIDCTraefik"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
-		"internal/suites/OIDCTraefik/compose.yml",
-		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/compose.yml",
-		"internal/suites/example/compose/traefik/compose.yml",
-		"internal/suites/example/compose/traefik/compose.v3.yml",
-		"internal/suites/example/compose/smtp/compose.yml",
-		"internal/suites/example/compose/oidc-client/compose.yml",
-		"internal/suites/example/compose/redis/compose.yml",
+		composePathBase,
+		composePathSuiteOIDCTraefik,
+		composePathAutheliaBackend,
+		composePathAutheliaFrontend,
+		composePathNginxBackend,
+		composePathTraefik,
+		composePathTraefikV3,
+		composePathSMTP,
+		composePathOIDCClient,
+		composePathRedis,
 	})
 
 	if os.Getenv("CI") == t {
 		dockerEnvironment = NewDockerEnvironment([]string{
-			"internal/suites/compose.yml",
-			"internal/suites/OIDCTraefik/compose.yml",
-			"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-			"internal/suites/example/compose/nginx/backend/compose.yml",
-			"internal/suites/example/compose/traefik/compose.yml",
-			"internal/suites/example/compose/traefik/compose.v3.yml",
-			"internal/suites/example/compose/smtp/compose.yml",
-			"internal/suites/example/compose/oidc-client/compose.yml",
-			"internal/suites/example/compose/redis/compose.yml",
+			composePathBase,
+			composePathSuiteOIDCTraefik,
+			composePathAutheliaBackend,
+			composePathNginxBackend,
+			composePathTraefik,
+			composePathTraefikV3,
+			composePathSMTP,
+			composePathOIDCClient,
+			composePathRedis,
 		})
 	}
 

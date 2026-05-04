@@ -8,15 +8,15 @@ var mariadbSuiteName = "MariaDB"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
+		composePathBase,
 		"internal/suites/MariaDB/compose.yml",
-		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/compose.yml",
-		"internal/suites/example/compose/nginx/portal/compose.yml",
-		"internal/suites/example/compose/smtp/compose.yml",
-		"internal/suites/example/compose/mariadb/compose.yml",
-		"internal/suites/example/compose/ldap/compose.yml",
+		composePathAutheliaBackend,
+		composePathAutheliaFrontend,
+		composePathNginxBackend,
+		composePathNginxPortal,
+		composePathSMTP,
+		composePathMariaDB,
+		composePathLDAP,
 	})
 
 	setup := func(suitePath string) (err error) {

@@ -31,4 +31,7 @@ const (
 	fieldBanType    = "ban_type"
 	fieldUsername   = "username"
 	fieldRecordType = "record_type"
+
+	banSourceRegulation     = "regulation"
+	banReasonMaximumRetries = "Exceeding Maximum Retries"
 )

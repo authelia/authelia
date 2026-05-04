@@ -588,7 +588,7 @@ func validateOIDCOptionsCORSAllowedOriginsFromClientRedirectURIs(config *schema.
 	for _, client := range config.Clients {
 		for _, redirectURI := range client.RedirectURIs {
 			uri, err := url.ParseRequestURI(redirectURI)
-			if err != nil || (uri.Scheme != schemeHTTP && uri.Scheme != schemeHTTPS) || uri.Hostname() == "localhost" {
+			if err != nil || (uri.Scheme != schemeHTTP && uri.Scheme != schemeHTTPS) || uri.Hostname() == hostnameLocalhost {
 				continue
 			}
 

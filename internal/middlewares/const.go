@@ -126,6 +126,10 @@ const (
 	ContentTypeApplicationJWT  = "application/jwt; charset=utf-8"
 )
 
+const (
+	statusKO = "KO"
+)
+
 var (
 	protoHTTPS = []byte(strProtoHTTPS)
 	protoHTTP  = []byte(strProtoHTTP)

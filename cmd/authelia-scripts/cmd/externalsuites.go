@@ -49,7 +49,7 @@ func newSuitesExternalCmd() (cmd *cobra.Command) {
 
 func newSuitesExternalListCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "list",
+		Use:     cmdUseList,
 		Short:   cmdSuitesExternalListShort,
 		Long:    cmdSuitesExternalListLong,
 		Example: cmdSuitesExternalListExample,
@@ -64,7 +64,7 @@ func newSuitesExternalListCmd() (cmd *cobra.Command) {
 
 func newSuitesExternalTestCmd() (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "test [suite]",
+		Use:     cmdUseTestSuite,
 		Short:   cmdSuitesExternalTestShort,
 		Long:    cmdSuitesExternalTestLong,
 		Example: cmdSuitesExternalTestExample,

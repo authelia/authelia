@@ -51,7 +51,7 @@ var ReactEmailTemplatesDevServer = DevServerConfig{
 	Name:       "email-templates",
 	ProjectDir: "internal/templates/src",
 	Port:       3000,
-	Script:     "dev",
+	Script:     scriptDev,
 }
 
 // StartDevServer installs the project's dependencies, spawns `pnpm dev`, and blocks until the

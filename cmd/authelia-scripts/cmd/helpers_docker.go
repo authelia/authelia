@@ -15,7 +15,7 @@ type Docker struct{}
 
 // Build build a docker image.
 func (d *Docker) Build(tag, dockerfile, target string, buildMetaData *Build) error {
-	args := []string{"build", "-t", tag, "-f", dockerfile, "--progress=plain", "--pull"}
+	args := []string{cmdUseBuild, "-t", tag, "-f", dockerfile, "--progress=plain", "--pull"}
 
 	for label, value := range buildMetaData.ContainerLabels() {
 		if value == "" {
@@ -42,7 +42,7 @@ func (d *Docker) Login(username, password, registry string) error {
 
 // Manifest push a docker manifest to dockerhub.
 func (d *Docker) Manifest(image string, tags []string) error {
-	args := []string{"build"}
+	args := []string{cmdUseBuild}
 
 	for _, tag := range tags {
 		args = append(args, "-t", tag)
@@ -132,18 +132,18 @@ func getBaseImageDigests(tag string) (amd64, arm, arm64 string, err error) {
 		return "", "", "", err
 	}
 
-	for _, platform := range []string{"linux/amd64", "linux/arm/v7", "linux/arm64"} {
+	for _, platform := range []string{dockerPlatformLinuxAMD64, dockerPlatformLinuxARMv7, dockerPlatformLinuxARM64} {
 		for _, image := range images {
 			if !image.Match(platform) {
 				continue
 			}
 
 			switch platform {
-			case "linux/amd64":
+			case dockerPlatformLinuxAMD64:
 				amd64 = image.Digest
-			case "linux/arm/v7":
+			case dockerPlatformLinuxARMv7:
 				arm = image.Digest
-			case "linux/arm64":
+			case dockerPlatformLinuxARM64:
 				arm64 = image.Digest
 			}
 		}

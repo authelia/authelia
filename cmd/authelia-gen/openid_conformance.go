@@ -48,24 +48,24 @@ func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 	switch name {
 	case suiteConformanceBasic, suiteConformanceBasicFormPost, suiteConformanceHybrid, suiteConformanceHybridFormPost, suiteConformanceImplicit, suiteConformanceImplicitFormPost:
 		variant = &OpenIDConnectConformanceSuitePlanVariant{
-			ServerMetadata:     "discovery",
-			ClientRegistration: "static_client",
+			ServerMetadata:     suiteVariantDiscovery,
+			ClientRegistration: suiteVariantStaticClient,
 		}
 	}
 
 	switch name {
-	case "conformance-config":
-		apiname = "oidcc-config-certification-test-plan"
+	case suiteConformanceConfig:
+		apiname = suitePlanConfig
 	case suiteConformanceBasic:
-		apiname = "oidcc-basic-certification-test-plan"
+		apiname = suitePlanBasic
 	case suiteConformanceBasicFormPost:
 		apiname = "oidcc-formpost-basic-certification-test-plan"
 	case suiteConformanceHybrid:
-		apiname = "oidcc-hybrid-certification-test-plan"
+		apiname = suitePlanHybrid
 	case suiteConformanceHybridFormPost:
 		apiname = "oidcc-formpost-hybrid-certification-test-plan"
 	case suiteConformanceImplicit:
-		apiname = "oidcc-implicit-certification-test-plan"
+		apiname = suitePlanImplicit
 	case suiteConformanceImplicitFormPost:
 		apiname = "oidcc-formpost-implicit-certification-test-plan"
 	}
@@ -76,7 +76,7 @@ func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 			Name:        apiname,
 			Variant:     variant,
 			Alias:       fmt.Sprintf("%s%s", namePrefix, aliasSuffix),
-			Publish:     "summary",
+			Publish:     suitePublishSummary,
 			Description: description,
 			Server: OpenIDConnectConformanceSuitePlanServer{
 				DiscoveryURL: b.autheliaURL.JoinPath(".well-known/openid-configuration").String(),
@@ -116,10 +116,10 @@ func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 	)
 
 	switch b.name {
-	case "implicit", suiteNameImplicitFormPost:
+	case suiteNameImplicit, suiteNameImplicitFormPost:
 		grantTypes = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken}
 		responseTypes = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
-	case "hybrid", suiteNameHybridFormPost:
+	case suiteNameHybrid, suiteNameHybridFormPost:
 		grantTypes = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken}
 		responseTypes = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	default:
@@ -143,7 +143,7 @@ func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 			AuthorizationPolicy:     b.policy,
 			ConsentMode:             b.consent,
 			Public:                  false,
-			Scopes:                  []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile, oidc.ScopeEmail, oidc.ScopePhone, oidc.ScopeAddress, "all"},
+			Scopes:                  []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile, oidc.ScopeEmail, oidc.ScopePhone, oidc.ScopeAddress, scopeAll},
 			ResponseTypes:           responseTypes,
 			GrantTypes:              grantTypes,
 			ResponseModes:           responseModes,
@@ -158,7 +158,7 @@ func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 			AuthorizationPolicy:     b.policy,
 			ConsentMode:             b.consent,
 			Public:                  false,
-			Scopes:                  []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile, oidc.ScopeEmail, oidc.ScopePhone, oidc.ScopeAddress, "all"},
+			Scopes:                  []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile, oidc.ScopeEmail, oidc.ScopePhone, oidc.ScopeAddress, scopeAll},
 			ResponseTypes:           responseTypes,
 			GrantTypes:              grantTypes,
 			ResponseModes:           responseModes,
@@ -173,7 +173,7 @@ func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 			AuthorizationPolicy:     b.policy,
 			ConsentMode:             b.consent,
 			Public:                  false,
-			Scopes:                  []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile, oidc.ScopeEmail, oidc.ScopePhone, oidc.ScopeAddress, "all"},
+			Scopes:                  []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile, oidc.ScopeEmail, oidc.ScopePhone, oidc.ScopeAddress, scopeAll},
 			ResponseTypes:           responseTypes,
 			GrantTypes:              grantTypes,
 			ResponseModes:           responseModes,

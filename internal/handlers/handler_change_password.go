@@ -40,7 +40,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	if err = ctx.ParseBody(&requestBody); err != nil {
 		ctx.GetLogger().WithError(err).
-			WithFields(map[string]any{"username": username}).
+			WithFields(map[string]any{logFieldUsername: username}).
 			Error("Unable to change password for user: unable to parse request body")
 		ctx.SetJSONError(messageUnableToChangePassword)
 		ctx.SetStatusCode(http.StatusBadRequest)
@@ -50,7 +50,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	if err = ctx.Providers.PasswordPolicy.Check(requestBody.NewPassword); err != nil {
 		ctx.GetLogger().WithError(err).
-			WithFields(map[string]any{"username": username}).
+			WithFields(map[string]any{logFieldUsername: username}).
 			Debug("Unable to change password for user as their new password was weak or empty")
 		ctx.SetJSONError(messagePasswordWeak)
 		ctx.SetStatusCode(http.StatusBadRequest)
@@ -62,25 +62,25 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		switch {
 		case errors.Is(err, authentication.ErrIncorrectPassword):
 			ctx.GetLogger().WithError(err).
-				WithFields(map[string]any{"username": username}).
+				WithFields(map[string]any{logFieldUsername: username}).
 				Debug("Unable to change password for user as their old password was incorrect")
 			ctx.SetJSONError(messageIncorrectPassword)
 			ctx.SetStatusCode(http.StatusUnauthorized)
 		case errors.Is(err, authentication.ErrPasswordWeak):
 			ctx.GetLogger().WithError(err).
-				WithFields(map[string]any{"username": username}).
+				WithFields(map[string]any{logFieldUsername: username}).
 				Debug("Unable to change password for user as their new password was weak or empty")
 			ctx.SetJSONError(messagePasswordWeak)
 			ctx.SetStatusCode(http.StatusBadRequest)
 		case errors.Is(err, authentication.ErrAuthenticationFailed):
 			ctx.GetLogger().WithError(err).
-				WithFields(map[string]any{"username": username}).
+				WithFields(map[string]any{logFieldUsername: username}).
 				Error("Unable to change password for user as authentication failed for the user")
 			ctx.SetJSONError(messageOperationFailed)
 			ctx.SetStatusCode(http.StatusUnauthorized)
 		default:
 			ctx.GetLogger().WithError(err).
-				WithFields(map[string]any{"username": username}).
+				WithFields(map[string]any{logFieldUsername: username}).
 				Error("Unable to change password for user for an unknown reason")
 			ctx.SetJSONError(messageOperationFailed)
 			ctx.SetStatusCode(http.StatusInternalServerError)
@@ -90,12 +90,12 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	ctx.GetLogger().
-		WithFields(map[string]any{"username": username}).
+		WithFields(map[string]any{logFieldUsername: username}).
 		Debug("User has changed their password")
 
 	if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 		ctx.GetLogger().WithError(err).
-			WithFields(map[string]any{"username": username}).
+			WithFields(map[string]any{logFieldUsername: username}).
 			Error("Unable to update password change state")
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -111,7 +111,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if len(userInfo.Emails) == 0 {
-		ctx.GetLogger().WithFields(map[string]any{"username": username}).
+		ctx.GetLogger().WithFields(map[string]any{logFieldUsername: username}).
 			Debug("user has no email address configured")
 		ctx.ReplyOK()
 
@@ -119,11 +119,11 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	data := templates.EmailEventValues{
-		Title:       "Password changed successfully",
+		Title:       eventLogMessagePasswordChanged,
 		DisplayName: userInfo.DisplayName,
 		RemoteIP:    ctx.RemoteIP().String(),
 		Details: map[string]any{
-			"Action": "Password Change",
+			eventLogKeyAction: "Password Change",
 		},
 		BodyPrefix: eventEmailActionPasswordModifyPrefix,
 		BodyEvent:  eventEmailActionPasswordChange,
@@ -133,16 +133,16 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	addresses := userInfo.Addresses()
 
 	ctx.GetLogger().WithFields(map[string]any{
-		"username": username,
-		"email":    addresses[0].String(),
+		logFieldUsername: username,
+		logFieldEmail:    addresses[0].String(),
 	}).
 		Debug("Sending an email to inform user that their password has changed.")
 
-	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
+	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], eventLogMessagePasswordChanged, ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
 		ctx.GetLogger().WithError(err).
 			WithFields(map[string]any{
-				"username": username,
-				"email":    addresses[0].String(),
+				logFieldUsername: username,
+				logFieldEmail:    addresses[0].String(),
 			}).
 			Debug("Unable to notify user of password change")
 		ctx.ReplyOK()

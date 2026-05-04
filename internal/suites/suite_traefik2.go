@@ -8,30 +8,30 @@ import (
 var traefik2SuiteName = "Traefik2"
 
 var traefik2DockerEnvironment = NewDockerEnvironment([]string{
-	"internal/suites/compose.yml",
-	"internal/suites/Traefik/compose.yml",
-	"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-	"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-	"internal/suites/example/compose/redis/compose.yml",
-	"internal/suites/example/compose/nginx/backend/compose.yml",
-	"internal/suites/example/compose/traefik/compose.yml",
-	"internal/suites/example/compose/traefik/compose.v2.yml",
-	"internal/suites/example/compose/smtp/compose.yml",
-	"internal/suites/example/compose/httpbin/compose.yml",
+	composePathBase,
+	composePathSuiteTraefik,
+	composePathAutheliaBackend,
+	composePathAutheliaFrontend,
+	composePathRedis,
+	composePathNginxBackend,
+	composePathTraefik,
+	composePathTraefikV2,
+	composePathSMTP,
+	composePathHTTPBin,
 })
 
 func init() {
 	if os.Getenv("CI") == t {
 		traefik2DockerEnvironment = NewDockerEnvironment([]string{
-			"internal/suites/compose.yml",
-			"internal/suites/Traefik/compose.yml",
-			"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-			"internal/suites/example/compose/redis/compose.yml",
-			"internal/suites/example/compose/nginx/backend/compose.yml",
-			"internal/suites/example/compose/traefik/compose.yml",
-			"internal/suites/example/compose/traefik/compose.v2.yml",
-			"internal/suites/example/compose/smtp/compose.yml",
-			"internal/suites/example/compose/httpbin/compose.yml",
+			composePathBase,
+			composePathSuiteTraefik,
+			composePathAutheliaBackend,
+			composePathRedis,
+			composePathNginxBackend,
+			composePathTraefik,
+			composePathTraefikV2,
+			composePathSMTP,
+			composePathHTTPBin,
 		})
 	}
 

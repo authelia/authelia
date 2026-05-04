@@ -79,14 +79,14 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 		response.Expires = int(userSession.Elevations.User.Expires.Sub(ctx.GetClock().Now()).Seconds())
 
 		if userSession.Elevations.User.Expires.Before(ctx.GetClock().Now()) {
-			ctx.Logger.WithFields(map[string]any{"username": userSession.Username, "expired": userSession.Elevations.User.Expires.Unix()}).
+			ctx.Logger.WithFields(map[string]any{logFieldUsername: userSession.Username, "expired": userSession.Elevations.User.Expires.Unix()}).
 				Info("The user session elevation has already expired so it has been destroyed")
 
 			response.Elevated, deleted = false, true
 		}
 
 		if !userSession.Elevations.User.RemoteIP.Equal(ctx.RemoteIP()) {
-			ctx.Logger.WithFields(map[string]any{"username": userSession.Username, "elevation_ip": userSession.Elevations.User.RemoteIP.String()}).
+			ctx.Logger.WithFields(map[string]any{logFieldUsername: userSession.Username, "elevation_ip": userSession.Elevations.User.RemoteIP.String()}).
 				Warn("The user session elevation was created from a different remote IP so it has been destroyed")
 
 			response.Expires, response.Elevated, deleted = 0, false, true
@@ -191,14 +191,14 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	data := templates.EmailIdentityVerificationOTCValues{
 		Title:              "Confirm your identity",
 		RevocationLinkURL:  linkURL.String(),
-		RevocationLinkText: "Revoke",
+		RevocationLinkText: logFieldRevoke,
 		DisplayName:        identity.DisplayName,
 		RemoteIP:           ctx.RemoteIP().String(),
 		Domain:             domain,
 		OneTimeCode:        string(otp.Code),
 	}
 
-	ctx.Logger.WithFields(map[string]any{"signature": signature, "id": otp.PublicID.String(), "username": identity.Username}).
+	ctx.Logger.WithFields(map[string]any{oauth2FieldSignature: signature, logFieldID: otp.PublicID.String(), logFieldUsername: identity.Username}).
 		Debug("Sending an email to user to confirm identity for session elevation")
 
 	if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data); err != nil {

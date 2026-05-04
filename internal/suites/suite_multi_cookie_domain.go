@@ -7,13 +7,13 @@ import (
 var multiCookieDomainSuiteName = "MultiCookieDomain"
 
 var multiCookieDomainDockerEnvironment = NewDockerEnvironment([]string{
-	"internal/suites/compose.yml",
+	composePathBase,
 	"internal/suites/MultiCookieDomain/compose.yml",
-	"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-	"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-	"internal/suites/example/compose/nginx/backend/compose.yml",
-	"internal/suites/example/compose/nginx/portal/compose.yml",
-	"internal/suites/example/compose/smtp/compose.yml",
+	composePathAutheliaBackend,
+	composePathAutheliaFrontend,
+	composePathNginxBackend,
+	composePathNginxPortal,
+	composePathSMTP,
 })
 
 func init() {
