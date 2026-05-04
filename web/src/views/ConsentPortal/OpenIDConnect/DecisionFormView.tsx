@@ -91,13 +91,14 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                     setClaims(r.claims || []);
                 })
                 .catch((err) => {
-                    console.error(`Unable to display consent screen: ${err.message}`);
+                    console.error("Unable to display consent screen:", err);
+                    createErrorNotification(translate("Unable to display the consent screen"));
                     navigate(IndexRoute);
                 });
         } else {
             navigate(IndexRoute);
         }
-    }, [flowID, navigate, props.state.authentication_level, userCode]);
+    }, [flowID, navigate, props.state.authentication_level, userCode, createErrorNotification, translate]);
 
     const focusPassword = useCallback(() => {
         if (passwordRef.current === null) return;

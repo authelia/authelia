@@ -26,11 +26,8 @@ const SignOut = function () {
     const handleRedirection = useCallback(
         (safeRedirect: boolean) => {
             if (redirectionURL && safeRedirect) {
-                console.log("Redirecting to safe target URL: " + redirectionURL);
                 redirector(redirectionURL);
             } else {
-                console.log("Redirecting to index route");
-
                 if (query.has(RedirectionRestoreURL)) {
                     const search = new URLSearchParams();
 
