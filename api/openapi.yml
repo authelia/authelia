@@ -47,9 +47,9 @@ tags:
     description: First Factor Authentication
     externalDocs:
       url: https://www.authelia.com/configuration/first-factor/introduction/
-  {{- if (or .TOTP .WebAuthn .Duo .Passkeys) }}
+  {{- if (or .TOTP .WebAuthn .Duo .Passkeys .RecoveryCodes) }}
   - name: Second Factor
-    description: TOTP, WebAuthn and Duo endpoints
+    description: TOTP, WebAuthn, Duo and Recovery Code endpoints
     externalDocs:
       url: https://www.authelia.com/configuration/second-factor/introduction/
   {{- end }}
@@ -1635,6 +1635,109 @@ paths:
       security:
         - authelia_auth: [ ]
   {{- end }}
+  {{- if .RecoveryCodes }}
+  /api/secondfactor/recovery-codes:
+    get:
+      operationId: getSecondFactorRecoveryCodesStatus
+      tags:
+        - Second Factor
+        - Authentication
+      summary: Recovery Codes Status
+      description: >
+        The recovery codes status endpoint returns the number of recovery codes which remain unused out of the number
+        which were generated in the most recent batch, as well as when that batch was generated and when a code from it
+        was most recently consumed. It never returns the codes themselves.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.RecoveryCodesStatus'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/recovery-codes/generate:
+    post:
+      operationId: postSecondFactorRecoveryCodesGenerate
+      tags:
+        - Second Factor
+        - Authentication
+      summary: Recovery Codes Generation
+      description: >
+        The recovery codes generation endpoint revokes every recovery code the user currently has and generates a fresh
+        batch in their place. The plaintext codes are returned exactly once in this response and are never persisted in
+        a reversible form, so they cannot be retrieved again. This endpoint requires an elevated session.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.RecoveryCodesGenerateResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/recovery-code:
+    post:
+      operationId: postSecondFactorRecoveryCode
+      tags:
+        - Second Factor
+        - Authentication
+      summary: Second Factor Authentication - Recovery Code
+      description: >
+        The recovery code endpoint performs second factor authentication with one of the users recovery codes. The code
+        is consumed on success and cannot be used again. This authentication does not elevate the session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.bodySignRecoveryCodeRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.redirectResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+  {{- end }}
   {{- if .OpenIDConnect }}
   /.well-known/openid-configuration:
     get:
@@ -3070,6 +3173,16 @@ components:
               type: boolean
               examples:
                 - true
+            has_recovery_codes:
+              description: Whether the user has at least one unused recovery code.
+              type: boolean
+              examples:
+                - true
+            low_recovery_codes:
+              description: Whether the user has one or two unused recovery codes remaining.
+              type: boolean
+              examples:
+                - false
     handlers.UserInfo.MethodBody:
       required:
         - 'method'
@@ -3281,6 +3394,99 @@ components:
           type: string
           examples:
             - '123456'
+        targetURL:
+          type: string
+          examples:
+            - 'https://secure.{{ .Domain | default "example.com" }}'
+        flowID:
+          type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
+          examples:
+            - '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+        flow:
+          type: string
+          examples:
+            - 'openid_connect'
+          enum:
+            - 'openid_connect'
+        subflow:
+          description: The name of the subflow if applicable.
+          type: string
+          examples:
+            - 'device_authorization'
+          enum:
+            - 'device_authorization'
+        userCode:
+          description: The user code from the Device Authorization Flow if applicable.
+          type: string
+          examples:
+            - 'XGQWWFMM'
+    {{- end }}
+    {{- if .RecoveryCodes }}
+    handlers.RecoveryCodesStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          examples:
+            - OK
+        data:
+          type: object
+          properties:
+            codes_remaining:
+              description: The number of codes in the most recent batch which have not been consumed.
+              type: integer
+              examples:
+                - 8
+            codes_total:
+              description: The number of codes in the most recent batch.
+              type: integer
+              examples:
+                - 10
+            generated_at:
+              description: The time the most recent batch was generated. Absent when no codes have been generated.
+              type: string
+              format: date-time
+              examples:
+                - '2024-03-14T06:00:14+11:00'
+            last_used_at:
+              description: The time a code from the most recent batch was last consumed. Absent when none have been consumed.
+              type: string
+              format: date-time
+              examples:
+                - '2024-04-02T09:12:44+11:00'
+    handlers.RecoveryCodesGenerateResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          examples:
+            - OK
+        data:
+          type: object
+          properties:
+            codes:
+              description: The plaintext recovery codes. These are returned once and cannot be retrieved again.
+              type: array
+              items:
+                type: string
+              examples:
+                - ['ABCDE-FGHJK', 'LMNPQ-RSTUV']
+            notification_sent:
+              description: Whether the notification informing the user that codes were generated was sent successfully.
+              type: boolean
+              examples:
+                - true
+    handlers.bodySignRecoveryCodeRequest:
+      required:
+        - 'code'
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - 'ABCDE-FGHJK'
         targetURL:
           type: string
           examples:

@@ -310,6 +310,17 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.DELETE("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterDELETE))
 	}
 
+	if !config.RecoveryCodes.Disable {
+		middlewareRateLimitRecoveryCode := middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorRecoveryCode), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
+			Build()
+
+		r.GET("/api/secondfactor/recovery-codes", middleware1FA(handlers.RecoveryCodesStatusGET))
+		r.POST("/api/secondfactor/recovery-codes/generate", middlewareElevated1FA(handlers.RecoveryCodesGenerationPOST))
+		r.POST("/api/secondfactor/recovery-code", middlewareRateLimitRecoveryCode(handlers.RecoveryCodePOST))
+	}
+
 	if !config.WebAuthn.Disable {
 		r.GET("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionGET))
 		r.POST("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionPOST))

@@ -77,12 +77,31 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		userInfo.HasDuo = false
 	}
 
+	populateRecoveryCodesUserInfo(ctx, userSession.Username, &userInfo)
+
 	userInfo.DisplayName = userSession.DisplayName
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred trying to set user info response in body")
 	}
+}
+
+func populateRecoveryCodesUserInfo(ctx *middlewares.AutheliaCtx, username string, info *model.UserInfo) {
+	if ctx.Configuration.RecoveryCodes.Disable {
+		return
+	}
+
+	count, err := ctx.Providers.StorageProvider.CountUnusedRecoveryCodesByUsername(ctx, username)
+	if err != nil {
+		// The flags are purely informational so a count failure leaves them false rather than failing the request.
+		ctx.Logger.WithError(err).Errorf("Error counting unused recovery codes for user '%s'", username)
+
+		return
+	}
+
+	info.HasRecoveryCodes = count > 0
+	info.LowRecoveryCodes = count > 0 && count <= 2
 }
 
 // UserInfoGET get the info related to the user identified by the session.
@@ -107,6 +126,8 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
+
+	populateRecoveryCodesUserInfo(ctx, userSession.Username, &userInfo)
 
 	userInfo.DisplayName = userSession.DisplayName
 

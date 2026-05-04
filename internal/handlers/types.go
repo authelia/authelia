@@ -48,6 +48,15 @@ type bodyRegisterFinishTOTP struct {
 	Token string `json:"token" valid:"required"`
 }
 
+type bodySignRecoveryCodeRequest struct {
+	Code      string `json:"code" valid:"required"`
+	TargetURL string `json:"targetURL"`
+	FlowID    string `json:"flowID"`
+	Flow      string `json:"flow"`
+	SubFlow   string `json:"subflow"`
+	UserCode  string `json:"userCode"`
+}
+
 type bodySignWebAuthnRequest struct {
 	TargetURL string `json:"targetURL"`
 	FlowID    string `json:"flowID"`

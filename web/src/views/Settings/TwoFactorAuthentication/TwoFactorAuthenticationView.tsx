@@ -15,6 +15,7 @@ import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfigu
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
 import { SecondFactorMethod } from "@models/Methods";
 import OneTimePasswordPanel from "@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel";
+import RecoveryCodesPanel from "@views/Settings/TwoFactorAuthentication/RecoveryCodesPanel";
 import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
 import WebAuthnCredentialsDisabledPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsDisabledPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
@@ -162,6 +163,11 @@ const TwoFactorAuthenticationView = function () {
                     ) : (
                         <WebAuthnCredentialsDisabledPanel />
                     )}
+                </div>
+            ) : null}
+            {!renderSecondFactorDisabled() ? (
+                <div className="w-full">
+                    <RecoveryCodesPanel info={userInfo} />
                 </div>
             ) : null}
             {configuration && userInfo ? (

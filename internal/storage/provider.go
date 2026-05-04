@@ -195,6 +195,41 @@ type Provider interface {
 	LoadOneTimeCodeByPublicID(ctx context.Context, id uuid.UUID) (code *model.OneTimeCode, err error)
 
 	/*
+		Implementation for User Recovery Codes.
+	*/
+
+	// SaveRecoveryCode saves a recovery code to the storage provider after computing its HMAC signature from the
+	// transient plaintext on the model. The plaintext is never persisted.
+	SaveRecoveryCode(ctx context.Context, code *model.RecoveryCode) (err error)
+
+	// LoadRecoveryCode loads a recovery code from the storage provider given a username and a user-supplied raw code.
+	// The raw code is normalized and HMAC'd before lookup, so any of the formatting variations the user might enter
+	// match the same row.
+	LoadRecoveryCode(ctx context.Context, username, raw string) (code *model.RecoveryCode, err error)
+
+	// LoadRecoveryCodesByUsername loads all recovery codes for a given username, including consumed and revoked rows.
+	LoadRecoveryCodesByUsername(ctx context.Context, username string) (codes []model.RecoveryCode, err error)
+
+	// ConsumeRecoveryCode marks a recovery code as consumed by stamping the consumption time and remote IP.
+	ConsumeRecoveryCode(ctx context.Context, id int, ip model.NullIP) (err error)
+
+	// RevokeRecoveryCodesByUsername bulk-soft-deletes all unconsumed recovery codes for a username (used on regenerate).
+	RevokeRecoveryCodesByUsername(ctx context.Context, username string, ip model.NullIP) (err error)
+
+	// CountUnusedRecoveryCodesByUsername returns the count of recovery codes for a user that are neither consumed nor revoked.
+	CountUnusedRecoveryCodesByUsername(ctx context.Context, username string) (count int, err error)
+
+	// CountUsersWithRecoveryCodes returns the count of distinct users that have at least one unused recovery code.
+	CountUsersWithRecoveryCodes(ctx context.Context) (count int, err error)
+
+	// CountUsersWithLowRecoveryCodes returns the count of distinct users that have between 1 and 2 unused recovery codes.
+	CountUsersWithLowRecoveryCodes(ctx context.Context) (count int, err error)
+
+	// CountUsersWithDepletedRecoveryCodes returns the count of distinct users that have zero unused recovery codes
+	// but have at least one consumed or revoked code (i.e. they had codes generated and used or replaced them all).
+	CountUsersWithDepletedRecoveryCodes(ctx context.Context) (count int, err error)
+
+	/*
 		Implementation for OAuth2.0 Consent Pre-Configurations.
 	*/
 

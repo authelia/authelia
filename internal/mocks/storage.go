@@ -134,6 +134,80 @@ func (mr *MockStorageMockRecorder) ConsumeOneTimeCode(ctx, code any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeOneTimeCode", reflect.TypeOf((*MockStorage)(nil).ConsumeOneTimeCode), ctx, code)
 }
 
+// ConsumeRecoveryCode mocks base method.
+func (m *MockStorage) ConsumeRecoveryCode(ctx context.Context, id int, ip model.NullIP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsumeRecoveryCode", ctx, id, ip)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ConsumeRecoveryCode indicates an expected call of ConsumeRecoveryCode.
+func (mr *MockStorageMockRecorder) ConsumeRecoveryCode(ctx, id, ip any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeRecoveryCode", reflect.TypeOf((*MockStorage)(nil).ConsumeRecoveryCode), ctx, id, ip)
+}
+
+// CountUnusedRecoveryCodesByUsername mocks base method.
+func (m *MockStorage) CountUnusedRecoveryCodesByUsername(ctx context.Context, username string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountUnusedRecoveryCodesByUsername", ctx, username)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountUnusedRecoveryCodesByUsername indicates an expected call of CountUnusedRecoveryCodesByUsername.
+func (mr *MockStorageMockRecorder) CountUnusedRecoveryCodesByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountUnusedRecoveryCodesByUsername", reflect.TypeOf((*MockStorage)(nil).CountUnusedRecoveryCodesByUsername), ctx, username)
+}
+
+// CountUsersWithDepletedRecoveryCodes mocks base method.
+func (m *MockStorage) CountUsersWithDepletedRecoveryCodes(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountUsersWithDepletedRecoveryCodes", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountUsersWithDepletedRecoveryCodes indicates an expected call of CountUsersWithDepletedRecoveryCodes.
+func (mr *MockStorageMockRecorder) CountUsersWithDepletedRecoveryCodes(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountUsersWithDepletedRecoveryCodes", reflect.TypeOf((*MockStorage)(nil).CountUsersWithDepletedRecoveryCodes), ctx)
+}
+
+// CountUsersWithLowRecoveryCodes mocks base method.
+func (m *MockStorage) CountUsersWithLowRecoveryCodes(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountUsersWithLowRecoveryCodes", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountUsersWithLowRecoveryCodes indicates an expected call of CountUsersWithLowRecoveryCodes.
+func (mr *MockStorageMockRecorder) CountUsersWithLowRecoveryCodes(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountUsersWithLowRecoveryCodes", reflect.TypeOf((*MockStorage)(nil).CountUsersWithLowRecoveryCodes), ctx)
+}
+
+// CountUsersWithRecoveryCodes mocks base method.
+func (m *MockStorage) CountUsersWithRecoveryCodes(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountUsersWithRecoveryCodes", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountUsersWithRecoveryCodes indicates an expected call of CountUsersWithRecoveryCodes.
+func (mr *MockStorageMockRecorder) CountUsersWithRecoveryCodes(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountUsersWithRecoveryCodes", reflect.TypeOf((*MockStorage)(nil).CountUsersWithRecoveryCodes), ctx)
+}
+
 // DeactivateOAuth2DeviceCodeSession mocks base method.
 func (m *MockStorage) DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) error {
 	m.ctrl.T.Helper()
@@ -606,6 +680,36 @@ func (mr *MockStorageMockRecorder) LoadPreferredDuoDevice(ctx, username any) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPreferredDuoDevice", reflect.TypeOf((*MockStorage)(nil).LoadPreferredDuoDevice), ctx, username)
 }
 
+// LoadRecoveryCode mocks base method.
+func (m *MockStorage) LoadRecoveryCode(ctx context.Context, username, raw string) (*model.RecoveryCode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadRecoveryCode", ctx, username, raw)
+	ret0, _ := ret[0].(*model.RecoveryCode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadRecoveryCode indicates an expected call of LoadRecoveryCode.
+func (mr *MockStorageMockRecorder) LoadRecoveryCode(ctx, username, raw any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadRecoveryCode", reflect.TypeOf((*MockStorage)(nil).LoadRecoveryCode), ctx, username, raw)
+}
+
+// LoadRecoveryCodesByUsername mocks base method.
+func (m *MockStorage) LoadRecoveryCodesByUsername(ctx context.Context, username string) ([]model.RecoveryCode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadRecoveryCodesByUsername", ctx, username)
+	ret0, _ := ret[0].([]model.RecoveryCode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadRecoveryCodesByUsername indicates an expected call of LoadRecoveryCodesByUsername.
+func (mr *MockStorageMockRecorder) LoadRecoveryCodesByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadRecoveryCodesByUsername", reflect.TypeOf((*MockStorage)(nil).LoadRecoveryCodesByUsername), ctx, username)
+}
+
 // LoadRegulationRecordsByIP mocks base method.
 func (m *MockStorage) LoadRegulationRecordsByIP(ctx context.Context, ip model.IP, since time.Time, limit int) ([]model.RegulationRecord, error) {
 	m.ctrl.T.Helper()
@@ -914,6 +1018,20 @@ func (mr *MockStorageMockRecorder) RevokeOneTimeCode(ctx, id, ip any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOneTimeCode", reflect.TypeOf((*MockStorage)(nil).RevokeOneTimeCode), ctx, id, ip)
 }
 
+// RevokeRecoveryCodesByUsername mocks base method.
+func (m *MockStorage) RevokeRecoveryCodesByUsername(ctx context.Context, username string, ip model.NullIP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeRecoveryCodesByUsername", ctx, username, ip)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeRecoveryCodesByUsername indicates an expected call of RevokeRecoveryCodesByUsername.
+func (mr *MockStorageMockRecorder) RevokeRecoveryCodesByUsername(ctx, username, ip any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeRecoveryCodesByUsername", reflect.TypeOf((*MockStorage)(nil).RevokeRecoveryCodesByUsername), ctx, username, ip)
+}
+
 // Rollback mocks base method.
 func (m *MockStorage) Rollback(ctx context.Context) error {
 	m.ctrl.T.Helper()
@@ -1138,6 +1256,20 @@ func (m *MockStorage) SavePreferredDuoDevice(ctx context.Context, device model.D
 func (mr *MockStorageMockRecorder) SavePreferredDuoDevice(ctx, device any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePreferredDuoDevice", reflect.TypeOf((*MockStorage)(nil).SavePreferredDuoDevice), ctx, device)
+}
+
+// SaveRecoveryCode mocks base method.
+func (m *MockStorage) SaveRecoveryCode(ctx context.Context, code *model.RecoveryCode) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveRecoveryCode", ctx, code)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveRecoveryCode indicates an expected call of SaveRecoveryCode.
+func (mr *MockStorageMockRecorder) SaveRecoveryCode(ctx, code any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveRecoveryCode", reflect.TypeOf((*MockStorage)(nil).SaveRecoveryCode), ctx, code)
 }
 
 // SaveTOTPConfiguration mocks base method.

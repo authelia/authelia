@@ -209,6 +209,7 @@ func newStorageEncryptRotateHMACCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newStorageEncryptRotateHMACOTPCmd(ctx),
 		newStorageEncryptRotateHMACOTCCmd(ctx),
+		newStorageEncryptRotateHMACRecoveryCodeCmd(ctx),
 	)
 
 	return cmd
@@ -237,6 +238,23 @@ func newStorageEncryptRotateHMACOTPCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageEncryptionRotateHMACOTPShort,
 		Long:    cmdAutheliaStorageEncryptionRotateHMACOTPLong,
 		Example: cmdAutheliaStorageEncryptionRotateHMACOTPExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACRecoveryCodeCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "rc",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACRecoveryCodeExample,
 		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
 		Args:    cobra.NoArgs,
 
@@ -414,7 +432,89 @@ func newStorageUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageUserIdentifiersCmd(ctx),
 		newStorageUserTOTPCmd(ctx),
 		newStorageUserWebAuthnCmd(ctx),
+		newStorageUserRecoveryCodesCmd(ctx),
 	)
+
+	return cmd
+}
+
+func newStorageUserRecoveryCodesCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "recovery-codes",
+		Short: "Manage user second-factor recovery codes",
+		Long:  "Manage user second-factor recovery codes such as listing, generating a new batch, deleting all codes for a user, or showing per-user status.",
+
+		Args: cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageUserRecoveryCodesStatusCmd(ctx),
+		newStorageUserRecoveryCodesListCmd(ctx),
+		newStorageUserRecoveryCodesGenerateCmd(ctx),
+		newStorageUserRecoveryCodesDeleteCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageUserRecoveryCodesStatusCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "status [username]",
+		Short: "Show the recovery codes status for a user",
+		Long:  "Show how many recovery codes a user has unused, consumed, and revoked, along with the most recent generation and consumption timestamps.",
+
+		RunE: ctx.StorageUserRecoveryCodesStatusRunE,
+		Args: cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageUserRecoveryCodesListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "list [username]",
+		Short: "List the recovery code rows for a user",
+		Long:  "List the recovery code rows for a user, including row id, created timestamp, and consumed or revoked status. Plaintext codes are never disclosed by this command.",
+
+		RunE: ctx.StorageUserRecoveryCodesListRunE,
+		Args: cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageUserRecoveryCodesGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "generate [username]",
+		Short: "Generate a new batch of recovery codes for a user",
+		Long:  "Generate a new batch of recovery codes for a user. Any existing codes are revoked. The plaintext codes are printed once to stdout for the operator to deliver to the user.",
+
+		RunE: ctx.StorageUserRecoveryCodesGenerateRunE,
+		Args: cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageUserRecoveryCodesDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:   "delete [username]",
+		Short: "Soft-delete (revoke) all of a user's recovery codes",
+		Long:  "Soft-delete (revoke) all of a user's recovery codes. The user will need to generate a new batch from the Two-Factor Authentication settings page or via the generate subcommand to use recovery codes again.",
+
+		RunE: ctx.StorageUserRecoveryCodesDeleteRunE,
+		Args: cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
+	}
 
 	return cmd
 }

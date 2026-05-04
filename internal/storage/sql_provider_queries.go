@@ -126,6 +126,63 @@ const (
 )
 
 const (
+	queryFmtSelectRecoveryCodeBySignatureAndUsername = `
+		SELECT id, username, signature, created_at, consumed_at, consumed_ip, revoked_at, revoked_ip
+		FROM %s
+		WHERE signature = ? AND username = ?;`
+
+	queryFmtSelectRecoveryCodesByUsername = `
+		SELECT id, username, signature, created_at, consumed_at, consumed_ip, revoked_at, revoked_ip
+		FROM %s
+		WHERE username = ?
+		ORDER BY created_at, id;`
+
+	queryFmtInsertRecoveryCode = `
+		INSERT INTO %s (username, signature, created_at)
+		VALUES (?, ?, ?);`
+
+	queryFmtConsumeRecoveryCode = `
+		UPDATE %s
+		SET consumed_at = ?, consumed_ip = ?
+		WHERE id = ?;`
+
+	queryFmtRevokeRecoveryCodesByUsername = `
+		UPDATE %s
+		SET revoked_at = ?, revoked_ip = ?
+		WHERE username = ? AND consumed_at IS NULL AND revoked_at IS NULL;`
+
+	queryFmtCountUnusedRecoveryCodesByUsername = `
+		SELECT COUNT(*)
+		FROM %s
+		WHERE username = ? AND consumed_at IS NULL AND revoked_at IS NULL;`
+
+	queryFmtCountUsersWithRecoveryCodes = `
+		SELECT COUNT(DISTINCT username)
+		FROM %s
+		WHERE consumed_at IS NULL AND revoked_at IS NULL;`
+
+	queryFmtCountUsersWithLowRecoveryCodes = `
+		SELECT COUNT(*)
+		FROM (
+			SELECT username, COUNT(*) AS unused
+			FROM %s
+			WHERE consumed_at IS NULL AND revoked_at IS NULL
+			GROUP BY username
+			HAVING COUNT(*) BETWEEN 1 AND 2
+		) AS low_users;`
+
+	queryFmtCountUsersWithDepletedRecoveryCodes = `
+		SELECT COUNT(*)
+		FROM (
+			SELECT username
+			FROM %s
+			GROUP BY username
+			HAVING SUM(CASE WHEN consumed_at IS NULL AND revoked_at IS NULL THEN 1 ELSE 0 END) = 0
+				AND SUM(CASE WHEN consumed_at IS NOT NULL OR revoked_at IS NOT NULL THEN 1 ELSE 0 END) >= 1
+		) AS depleted_users;`
+)
+
+const (
 	queryFmtSelectTOTPConfiguration = `
 		SELECT id, created_at, last_used_at, username, issuer, algorithm, digits, period, secret
 		FROM %s
