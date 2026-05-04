@@ -12,10 +12,11 @@ import (
 	"strings"
 	"time"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	goyaml "go.yaml.in/yaml/v4"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"

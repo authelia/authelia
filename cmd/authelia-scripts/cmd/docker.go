@@ -19,6 +19,7 @@ var (
 	ciBranch         = os.Getenv("BUILDKITE_BRANCH")
 	ciPullRequest    = os.Getenv("BUILDKITE_PULL_REQUEST")
 	ciTag            = os.Getenv("BUILDKITE_TAG")
+	ciPipeline       = os.Getenv("BUILDKITE_PIPELINE_SLUG")
 	dockerTags       = regexp.MustCompile(`v(?P<Patch>(?P<Minor>(?P<Major>\d+)\.\d+)\.\d+.*)`)
 	ignoredSuffixes  = regexp.MustCompile("alpha|beta")
 	publicRepo       = regexp.MustCompile(`.*:.*`)
@@ -94,6 +95,8 @@ func cmdDockerBuildRun(_ *cobra.Command, _ []string) {
 func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
 	docker := &Docker{}
 
+	cve := isPrivatePipeline(ciPipeline)
+
 	switch {
 	case ciTag != "":
 		if len(tags) == 4 {
@@ -102,9 +105,9 @@ func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
 			login(docker, ghcr)
 
 			if ignoredSuffixes.MatchString(ciTag) {
-				deployManifest(docker, tags[1])
+				deployManifest(docker, cve, tags[1])
 			} else {
-				deployManifest(docker, tags[1], tags[2], tags[3], "latest")
+				deployManifest(docker, cve, tags[1], tags[2], tags[3], "latest")
 			}
 
 			publishDockerReadme(docker)
@@ -114,15 +117,15 @@ func cmdDockerPushManifestRun(_ *cobra.Command, _ []string) {
 	case ciBranch != masterTag && !publicRepo.MatchString(ciBranch):
 		login(docker, dockerhub)
 		login(docker, ghcr)
-		deployManifest(docker, ciBranch)
+		deployManifest(docker, cve, ciBranch)
 	case ciBranch != masterTag && publicRepo.MatchString(ciBranch):
 		login(docker, dockerhub)
 		login(docker, ghcr)
-		deployManifest(docker, "PR"+ciPullRequest)
+		deployManifest(docker, cve, "PR"+ciPullRequest)
 	case ciBranch == masterTag && ciPullRequest == stringFalse:
 		login(docker, dockerhub)
 		login(docker, ghcr)
-		deployManifest(docker, masterTag)
+		deployManifest(docker, cve, masterTag)
 		publishDockerReadme(docker)
 	default:
 		log.Info("Docker manifest will not be published")
@@ -181,17 +184,23 @@ func login(docker *Docker, registry string) {
 	}
 }
 
-func deployManifest(docker *Docker, tag ...string) {
+func deployManifest(docker *Docker, cve bool, tag ...string) {
 	tags = make([]string, 0, 2*len(tag))
 
 	log.Infof("The following Docker manifest(s) will be deployed on %s and %s", dockerhub, ghcr)
 
-	for _, t := range tag {
-		log.Infof("- %s:%s", DockerImageName, t)
-		tags = append(tags, dockerhub+"/"+DockerImageName+":"+t, ghcr+"/"+DockerImageName+":"+t)
+	image := DockerImageName
+
+	if cve {
+		image += "-cve"
 	}
 
-	if err := docker.Manifest(tags); err != nil {
+	for _, t := range tag {
+		log.Infof("- %s:%s", image, t)
+		tags = append(tags, dockerhub+"/"+image+":"+t, ghcr+"/"+image+":"+t)
+	}
+
+	if err := docker.Manifest(image, tags); err != nil {
 		log.Fatal(err)
 	}
 }

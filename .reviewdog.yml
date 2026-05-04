@@ -5,6 +5,15 @@ runner:
     format: rdjson
     level: error
 
+  goimports-reviser:
+    cmd: >-
+      goimports-reviser -rm-unused -format
+      -excludes '*/node_modules,*/*/*/node_modules'
+      -company-prefixes authelia.com,github.com/authelia ./...
+      ; git diff --no-prefix -- '*.go'
+    format: diff
+    level: error
+
   golangci:
     cmd: golangci-lint run
     errorformat:
@@ -17,6 +26,14 @@ runner:
     cmd: typos --format brief .
     errorformat:
       - '%f:%l:%c: %m'
+    level: error
+
+  shellcheck:
+    cmd: .buildkite/steps/lint.sh shellcheck --format=gcc
+    errorformat:
+      - '%f:%l:%c: %trror: %m'
+      - '%f:%l:%c: %tarning: %m'
+      - '%f:%l:%c: %tote: %m'
     level: error
 
   yamllint:

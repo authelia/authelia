@@ -34,6 +34,7 @@ type DevServerConfig struct {
 	Port          int
 	ReadinessPath string
 	StartTimeout  time.Duration
+	Script        string
 }
 
 // HugoDocsDevServer is the DevServerConfig for the Hugo documentation site at docs/.
@@ -41,6 +42,7 @@ var HugoDocsDevServer = DevServerConfig{
 	Name:       "hugo-docs",
 	ProjectDir: "docs",
 	Port:       1313,
+	Script:     "ci",
 }
 
 // ReactEmailTemplatesDevServer is the DevServerConfig for the react-email template source at
@@ -49,6 +51,7 @@ var ReactEmailTemplatesDevServer = DevServerConfig{
 	Name:       "email-templates",
 	ProjectDir: "internal/templates/src",
 	Port:       3000,
+	Script:     "dev",
 }
 
 // StartDevServer installs the project's dependencies, spawns `pnpm dev`, and blocks until the
@@ -89,7 +92,7 @@ func StartDevServer(ctx context.Context, repoRoot string, cfg DevServerConfig, o
 
 	// Spawn the dev server in its own process group so teardown can signal the whole
 	// pnpm/node/<binary> tree with a single call.
-	cmd := exec.Command("pnpm", "--silent", "-C", projectDir, "dev")
+	cmd := exec.Command("pnpm", "--silent", "-C", projectDir, "run", cfg.Script)
 	cmd.Stdout = stdoutWriter
 	cmd.Stderr = stderrWriter
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}

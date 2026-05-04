@@ -7,8 +7,9 @@ import (
 	"net/url"
 	"strconv"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/valyala/fasthttp"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 )
 
 var (

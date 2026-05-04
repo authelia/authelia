@@ -4,11 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"authelia.com/provider/oauth2/handler/openid"
-	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"authelia.com/provider/oauth2/handler/openid"
+	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"

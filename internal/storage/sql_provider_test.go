@@ -3,11 +3,10 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"net"
 	"path/filepath"
 	"testing"
 	"time"
-
-	"net"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

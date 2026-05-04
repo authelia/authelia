@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
+
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
@@ -17,7 +19,6 @@ import (
 	"authelia.com/provider/oauth2/handler/rfc8628"
 	"authelia.com/provider/oauth2/i18n"
 	"authelia.com/provider/oauth2/token/jwt"
-	"github.com/hashicorp/go-retryablehttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # go run ./cmd/authelia crypto certificate rsa generate --directory='./internal/suites/common/pki/ca' --file.ca-certificate='ca.private.pem' --file.ca-private-key='ca.public.crt' -n 'Authelia Development Standalone Root CA' --not-before='Jan 1 00:00:00 2000' --not-after='Jan 1 00:00:00 2100' -o 'Authelia' --organizational-unit='Development' --ca
 # cp ./internal/suites/common/pki/ca/ca.public.crt ./internal/suites/common/pki/ca.public.crt

@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"authelia.com/provider/oauth2/handler/oauth2"
-	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"authelia.com/provider/oauth2/handler/oauth2"
+	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -486,12 +487,18 @@ type testConfigContext struct {
 	context.Context
 }
 
-func (t *testConfigContext) IssuerURL() (issuerURL *url.URL, err error)   { return nil, nil }
-func (t *testConfigContext) GetClock() clock.Provider                     { return nil }
-func (t *testConfigContext) GetRandom() random.Provider                   { return nil }
-func (t *testConfigContext) GetConfiguration() *schema.Configuration      { return nil }
-func (t *testConfigContext) GetProviderStorage() storage.Provider         { return nil }
+func (t *testConfigContext) IssuerURL() (issuerURL *url.URL, err error) { return nil, nil }
+
+func (t *testConfigContext) GetClock() clock.Provider { return nil }
+
+func (t *testConfigContext) GetRandom() random.Provider { return nil }
+
+func (t *testConfigContext) GetConfiguration() *schema.Configuration { return nil }
+
+func (t *testConfigContext) GetProviderStorage() storage.Provider { return nil }
+
 func (t *testConfigContext) GetUserProvider() authentication.UserProvider { return nil }
+
 func (t *testConfigContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return nil
 }

@@ -19,6 +19,7 @@ const (
 
 const (
 	masterTag    = "master"
+	stringTrue   = "true"
 	stringFalse  = "false"
 	webDirectory = "web"
 )
@@ -33,6 +34,10 @@ const (
 const (
 	txtDirectoryTidle = "` directory"
 	txtRunningSuite   = "Running suite ("
+)
+
+var (
+	buildkitePrivatePipelines = []string{"authelia-cve"}
 )
 
 const fmtLDFLAGSX = "-X 'github.com/authelia/authelia/v4/internal/utils.%s=%s'"
@@ -117,7 +122,7 @@ authelia-scripts suites setup Standalone - sets up the Standalone suite (there a
 
 	cmdSuitesListLong = `List available suites.
 
-Suites can be ran with the authelia-scripts suites test [suite] command.`
+Suites can be run with the authelia-scripts suites test [suite] command.`
 
 	cmdSuitesListExample = `authelia-scripts suites list`
 
@@ -157,7 +162,7 @@ External suites drive a project-local dev server and use the go-rod browser harn
 
 	cmdSuitesExternalListLong = `List available external suites.
 
-External suites can be ran with the authelia-scripts suites external test [suite] command.`
+External suites can be run with the authelia-scripts suites external test [suite] command.`
 
 	cmdSuitesExternalListExample = `authelia-scripts suites external list`
 

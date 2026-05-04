@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/rpadovani/sqlx-v2"
 )
 
 // SQLXConnection is a *sqlx.DB or *sqlx.Tx.

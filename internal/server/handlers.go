@@ -497,6 +497,7 @@ func handlerMetrics(provider metrics.Provider, path string) fasthttp.RequestHand
 	r := router.New()
 
 	registerer := provider.GetRegisterer()
+
 	gatherer := provider.GetGatherer()
 
 	handler := promhttp.HandlerFor(gatherer, promhttp.HandlerOpts{})

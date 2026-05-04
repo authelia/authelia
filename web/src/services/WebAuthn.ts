@@ -87,10 +87,10 @@ function getAssertionResultFromDOMException(
     }
 }
 
-export async function getWebAuthnOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
+export async function getWebAuthnOptions(signal?: AbortSignal): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
-    response = await axios.get<ServiceResponse<CredentialRequest>>(WebAuthnAssertionPath);
+    response = await axios.get<ServiceResponse<CredentialRequest>>(WebAuthnAssertionPath, { signal });
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -140,21 +140,28 @@ export async function postWebAuthnResponse(
     flow?: string,
     subflow?: string,
     userCode?: string,
+    signal?: AbortSignal,
 ) {
-    return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
-        flow,
-        flowID,
-        response,
-        subflow,
-        targetURL,
-        userCode,
-    });
+    return axios.post<ServiceResponse<SignInResponse>>(
+        WebAuthnAssertionPath,
+        {
+            flow,
+            flowID,
+            response,
+            subflow,
+            targetURL,
+            userCode,
+        },
+        { signal },
+    );
 }
 
-export async function getWebAuthnPasskeyOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
+export async function getWebAuthnPasskeyOptions(
+    signal?: AbortSignal,
+): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
-    response = await axios.get<ServiceResponse<CredentialRequest>>(FirstFactorPasskeyPath);
+    response = await axios.get<ServiceResponse<CredentialRequest>>(FirstFactorPasskeyPath, { signal });
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -186,6 +193,7 @@ export async function postWebAuthnPasskeyResponse(
     flowID?: string,
     flow?: string,
     subflow?: string,
+    signal?: AbortSignal,
 ) {
     const data: PostFirstFactorPasskeyBody = {
         flow,
@@ -197,7 +205,7 @@ export async function postWebAuthnPasskeyResponse(
         targetURL,
     };
 
-    return axios.post<ServiceResponse<SignInResponse>>(FirstFactorPasskeyPath, data);
+    return axios.post<ServiceResponse<SignInResponse>>(FirstFactorPasskeyPath, data, { signal });
 }
 
 export async function getWebAuthnRegistrationOptions(

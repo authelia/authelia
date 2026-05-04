@@ -22,10 +22,6 @@ vi.mock("@constants/SearchParams", () => ({
 const mockNavigate = vi.fn();
 const mockCreateError = vi.fn();
 
-vi.mock("@hooks/Mounted", () => ({
-    useIsMountedRef: () => ({ current: true }),
-}));
-
 vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({
         createErrorNotification: mockCreateError,

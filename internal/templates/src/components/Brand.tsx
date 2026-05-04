@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Link, Text } from "@react-email/components";
+import { Link, Text } from "react-email";
 
 export const Brand = () => {
 	return (

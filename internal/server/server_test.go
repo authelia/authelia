@@ -241,6 +241,13 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 }
 
 func TestNewMetrics(t *testing.T) {
+	mustNewPrometheus := func(t *testing.T) metrics.Provider {
+		prometheus, err := metrics.NewPrometheus()
+		require.NoError(t, err)
+
+		return prometheus
+	}
+
 	testCases := []struct {
 		name           string
 		config         *schema.Configuration
@@ -270,7 +277,7 @@ func TestNewMetrics(t *testing.T) {
 				},
 			},
 			middlewares.Providers{
-				Metrics: metrics.NewPrometheus(),
+				Metrics: mustNewPrometheus(t),
 			},
 			true,
 			true,

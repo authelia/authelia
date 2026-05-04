@@ -13,7 +13,7 @@ import {
     Tailwind,
     Button,
     Link,
-} from '@react-email/components';
+} from 'react-email';
 
 import { Brand } from "../components/Brand";
 

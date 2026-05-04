@@ -3,8 +3,9 @@ package totp
 import (
 	"testing"
 
-	"github.com/authelia/otp"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/authelia/otp"
 )
 
 func TestOTPStringToAlgo(t *testing.T) {

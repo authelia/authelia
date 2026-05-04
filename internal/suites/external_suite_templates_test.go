@@ -86,14 +86,19 @@ func (s *TemplatesSuite) templatesURL(path string) string {
 }
 
 // openPreviewFrame returns the inner page of the preview server's srcdoc iframe once
-// react-email has populated it.
-func (s *TemplatesSuite) openPreviewFrame(outer *rod.Page) *rod.Page {
-	iframeEl := s.WaitElementLocatedBySelector(s.T(), outer, "iframe")
+// react-email has rendered the element matching readySelector. Waiting on the final
+// target selector (rather than any body content) avoids descending while react-email
+// is still swapping documents, which would leave the frame handle pointing at a
+// detached DOM and surface as "Node with given id does not belong to the document".
+func (s *TemplatesSuite) openPreviewFrame(outer *rod.Page, readySelector string) *rod.Page {
+	s.WaitElementLocatedBySelector(s.T(), outer, "iframe")
 
-	outer.MustWait(`() => {
+	outer.MustWait(`(sel) => {
 		const f = document.querySelector('iframe');
-		return f && f.contentDocument && f.contentDocument.body && f.contentDocument.body.children.length > 0;
-	}`)
+		return !!(f && f.contentDocument && f.contentDocument.querySelector(sel));
+	}`, readySelector)
+
+	iframeEl := s.WaitElementLocatedBySelector(s.T(), outer, "iframe")
 
 	frame, err := iframeEl.Frame()
 	require.NoError(s.T(), err, "failed to descend into preview iframe")
@@ -132,7 +137,7 @@ func (s *TemplatesSuite) TestIdentityVerificationOTCRenders() {
 
 	outer = outer.Context(ctx)
 
-	frame := s.openPreviewFrame(outer)
+	frame := s.openPreviewFrame(outer, "#one-time-code")
 
 	code := s.WaitElementLocatedByID(s.T(), frame, "one-time-code")
 	require.Contains(s.T(), code.MustText(), "ABC123", "expected one-time code to render the PreviewProps value")
@@ -156,7 +161,7 @@ func (s *TemplatesSuite) TestIdentityVerificationJWTRenders() {
 
 	outer = outer.Context(ctx)
 
-	frame := s.openPreviewFrame(outer)
+	frame := s.openPreviewFrame(outer, "#link")
 
 	s.WaitElementLocatedByID(s.T(), frame, "link")
 	s.WaitElementLocatedByID(s.T(), frame, "link-revoke")
@@ -178,7 +183,7 @@ func (s *TemplatesSuite) TestEventRenders() {
 
 	outer = outer.Context(ctx)
 
-	frame := s.openPreviewFrame(outer)
+	frame := s.openPreviewFrame(outer, "strong")
 
 	body := s.WaitElementLocatedBySelector(s.T(), frame, "body").MustText()
 	for _, needle := range []string{
@@ -221,8 +226,10 @@ html, body, * {
 }
 
 // runTemplateSnapshot renders the template's srcdoc in a clean tab with an embedded font
-// and asserts it against the committed baseline.
-func (s *TemplatesSuite) runTemplateSnapshot(slug, snapshotName string) {
+// and asserts it against the committed baseline. readySelector identifies an element that
+// is only present once react-email has finished populating the preview iframe — waiting on
+// it prevents capturing a partial or empty srcdoc.
+func (s *TemplatesSuite) runTemplateSnapshot(slug, readySelector, snapshotName string) {
 	outer := s.doCreateTab(s.T(), s.templatesURL("/preview/"+slug))
 	defer outer.MustClose()
 
@@ -238,6 +245,13 @@ func (s *TemplatesSuite) runTemplateSnapshot(slug, snapshotName string) {
 
 	outer = outer.Context(ctx)
 	clean = clean.Context(ctx)
+
+	s.WaitElementLocatedBySelector(s.T(), outer, "iframe")
+
+	outer.MustWait(`(sel) => {
+		const f = document.querySelector('iframe');
+		return !!(f && f.contentDocument && f.contentDocument.querySelector(sel));
+	}`, readySelector)
 
 	iframeEl := s.WaitElementLocatedBySelector(s.T(), outer, "iframe")
 
@@ -255,17 +269,17 @@ func (s *TemplatesSuite) runTemplateSnapshot(slug, snapshotName string) {
 
 	screenshot := s.FullPageScreenshot(s.T(), clean)
 
-	AssertVisualSnapshot(s.T(), repoRoot, snapshotName, screenshot, 0)
+	AssertVisualSnapshot(s.T(), repoRoot, snapshotName, screenshot, VisualSnapshotTolerance(0))
 }
 
 func (s *TemplatesSuite) TestIdentityVerificationOTCVisualSnapshot() {
-	s.runTemplateSnapshot("IdentityVerificationOTC", "templates_identity_verification_otc_snapshot.png")
+	s.runTemplateSnapshot("IdentityVerificationOTC", "#one-time-code", "templates_identity_verification_otc_snapshot.png")
 }
 
 func (s *TemplatesSuite) TestIdentityVerificationJWTVisualSnapshot() {
-	s.runTemplateSnapshot("IdentityVerificationJWT", "templates_identity_verification_jwt_snapshot.png")
+	s.runTemplateSnapshot("IdentityVerificationJWT", "#link", "templates_identity_verification_jwt_snapshot.png")
 }
 
 func (s *TemplatesSuite) TestEventVisualSnapshot() {
-	s.runTemplateSnapshot("Event", "templates_event_snapshot.png")
+	s.runTemplateSnapshot("Event", "strong", "templates_event_snapshot.png")
 }
