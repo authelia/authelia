@@ -74,8 +74,16 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, providers.StorageProvider, providers.Templates)
 
 	if config.Telemetry.Metrics.Enabled {
-		if providers.Metrics, err = metrics.NewPrometheus(); err != nil {
+		var prom *metrics.Prometheus
+
+		if prom, err = metrics.NewPrometheus(); err != nil {
 			errs = append(errs, err)
+		} else {
+			if !config.RecoveryCodes.Disable {
+				prom.RegisterRecoveryCodeGauges(providers.StorageProvider)
+			}
+
+			providers.Metrics = prom
 		}
 	}
 

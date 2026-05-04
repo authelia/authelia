@@ -27,6 +27,12 @@ type UserInfo struct {
 
 	// True if a duo device has been configured as the preferred.
 	HasDuo bool `db:"has_duo" json:"has_duo" valid:"required"`
+
+	// True if the user has at least one unused recovery code.
+	HasRecoveryCodes bool `db:"-" json:"has_recovery_codes"`
+
+	// True if the user has 2 or fewer unused recovery codes (used by the frontend to show a low-codes nudge).
+	LowRecoveryCodes bool `db:"-" json:"low_recovery_codes"`
 }
 
 // SetDefaultPreferred2FAMethod configures the default method based on what is configured as available and the users available methods.

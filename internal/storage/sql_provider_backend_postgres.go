@@ -74,6 +74,13 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOneTimeCodeByID = provider.db.Rebind(provider.sqlSelectOneTimeCodeByID)
 	provider.sqlSelectOneTimeCodeByPublicID = provider.db.Rebind(provider.sqlSelectOneTimeCodeByPublicID)
 
+	provider.sqlInsertRecoveryCode = provider.db.Rebind(provider.sqlInsertRecoveryCode)
+	provider.sqlSelectRecoveryCodeBySignatureAndUsername = provider.db.Rebind(provider.sqlSelectRecoveryCodeBySignatureAndUsername)
+	provider.sqlSelectRecoveryCodesByUsername = provider.db.Rebind(provider.sqlSelectRecoveryCodesByUsername)
+	provider.sqlConsumeRecoveryCode = provider.db.Rebind(provider.sqlConsumeRecoveryCode)
+	provider.sqlRevokeRecoveryCodesByUsername = provider.db.Rebind(provider.sqlRevokeRecoveryCodesByUsername)
+	provider.sqlCountUnusedRecoveryCodesByUsername = provider.db.Rebind(provider.sqlCountUnusedRecoveryCodesByUsername)
+
 	provider.sqlSelectTOTPConfig = provider.db.Rebind(provider.sqlSelectTOTPConfig)
 	provider.sqlUpdateTOTPConfigRecordSignIn = provider.db.Rebind(provider.sqlUpdateTOTPConfigRecordSignIn)
 	provider.sqlUpdateTOTPConfigRecordSignInByUsername = provider.db.Rebind(provider.sqlUpdateTOTPConfigRecordSignInByUsername)

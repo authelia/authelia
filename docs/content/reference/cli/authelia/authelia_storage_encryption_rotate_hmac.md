@@ -2,7 +2,7 @@
 title: "authelia storage encryption rotate hmac"
 description: "Reference for the authelia storage encryption rotate hmac command."
 lead: ""
-date: 2026-04-03T20:58:18+11:00
+date: 2026-04-08T13:06:14+00:00
 draft: false
 images: []
 weight: 905
@@ -59,4 +59,5 @@ authelia storage encryption rotate hmac --help
 * [authelia storage encryption rotate](authelia_storage_encryption_rotate.md)	 - Rotate storage encryption values
 * [authelia storage encryption rotate hmac otc](authelia_storage_encryption_rotate_hmac_otc.md)	 - Rotate the OTC HMAC key
 * [authelia storage encryption rotate hmac otp](authelia_storage_encryption_rotate_hmac_otp.md)	 - Rotate the OTP HMAC key
+* [authelia storage encryption rotate hmac rc](authelia_storage_encryption_rotate_hmac_rc.md)	 - Rotate the recovery code HMAC key
 
