@@ -33,8 +33,8 @@ importers:
         specifier: 19.2.5
         version: 19.2.5(react@19.2.5)
       react-email:
-        specifier: 6.0.5
-        version: 6.0.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+        specifier: 6.0.8
+        version: 6.0.8(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       tailwind-merge:
         specifier: 3.5.0
         version: 3.5.0
@@ -49,8 +49,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0
       '@react-email/ui':
-        specifier: 6.0.5
-        version: 6.0.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+        specifier: 6.0.8
+        version: 6.0.8(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@types/node':
         specifier: 25.6.0
         version: 25.6.0
@@ -728,8 +728,8 @@ packages:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
       react-dom: ^18.0 || ^19.0 || ^19.0.0-rc
 
-  '@react-email/ui@6.0.5':
-    resolution: {integrity: sha512-5XvP8CxSJH1CxOCYUEubYFiTaOPjtxJqMBsN69+hHVYHGR9psYgIBnRA2MDDfK5LdoC9r+QovN0ZgBrLd+tduQ==}
+  '@react-email/ui@6.0.8':
+    resolution: {integrity: sha512-IG4uGzgb3FTONfehfsaBOlvaWoxcDFvJujNZMIIHiuVXYizJFy4I9+wyewQuiYTi44RArX7xvTFgGOeyXqj/xQ==}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.17':
     resolution: {integrity: sha512-s70pVGhw4zqGeFnXWvAzJDlvxhlRollagdCCKRgOsgUOH3N1l0LIxf83AtGzmb5SiVM4Hjl5HyarMRfdfj3DaQ==}
@@ -1510,8 +1510,8 @@ packages:
     peerDependencies:
       react: ^19.2.5
 
-  react-email@6.0.5:
-    resolution: {integrity: sha512-uQRqBcd9buZ7tbjvxprVrz1BclNWPXHtGeveZJjV1qtTczZjdWp3KddmanD5nlH1UbqHx32pC0Nh93PoMRbVGw==}
+  react-email@6.0.8:
+    resolution: {integrity: sha512-/kArasUY1ahkrs8z8OG0wz+d7hedV/wUSZ8qaXI2TtB6omUMmMtm//FBHSSdnsEvkUnAZ5LzCyge1h6oQNhpTA==}
     engines: {node: '>=20.0.0'}
     hasBin: true
     peerDependencies:
@@ -2238,7 +2238,7 @@ snapshots:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
 
-  '@react-email/ui@6.0.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
+  '@react-email/ui@6.0.8(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
       esbuild: 0.28.0
       next: 16.2.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -2980,7 +2980,7 @@ snapshots:
       react: 19.2.5
       scheduler: 0.27.0
 
-  react-email@6.0.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
+  react-email@6.0.8(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
     dependencies:
       '@babel/parser': 7.27.0
       '@babel/traverse': 7.29.0
