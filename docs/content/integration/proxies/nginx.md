@@ -258,14 +258,6 @@ server {
         include /config/nginx/snippets/proxy.conf;
         proxy_pass $upstream;
     }
-
-    location = /api/verify {
-        proxy_pass $upstream;
-    }
-
-    location /api/authz/ {
-        proxy_pass $upstream;
-    }
 }
 ```
 
