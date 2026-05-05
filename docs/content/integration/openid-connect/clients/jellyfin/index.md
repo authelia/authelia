@@ -44,6 +44,21 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ## Configuration
 
+The following example uses the [Jellyfin SSO-Auth Plugin] which is assumed to be installed when following this
+section of the guide.
+
+To install the [Jellyfin SSO-Auth Plugin] for [Jellyfin] via the Web GUI:
+
+1. Visit the [Jellyfin] Administration Dashboard.
+2. Visit the `Plugins` section.
+3. Visit the `Repositories` tab.
+4. Click the `+` to add a repository.
+5. Enter the following details:
+   - Repository Name: `Jellyfin SSO-Auth`
+   - Repository URL: `https://raw.githubusercontent.com/9p4/jellyfin-plugin-sso/manifest-release/manifest.json`
+6. Click `Save`.
+7. Click `Ok` to confirm the repository installation.
+
 ### Authelia
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Jellyfin] which will
@@ -79,31 +94,32 @@ identity_providers:
 
 ### Application
 
-To prepare Jellyfin to utilize Authelia as an [OpenID Connect 1.0] Provider, the [Jellyfin SSO-Auth Plugin], a plugin that is not
-a part of the standard Jellyfin distribution, needs to be installed.
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This configuration assumes [Jellyfin](https://jellyfin.org/) administrators are part of the `jellyfin-admins` group, and
+[Jellyfin](https://jellyfin.org/) users are part of the `jellyfin-users` group. Depending on your specific group configuration, you will have
+to adapt the `AdminRoles` and `Roles` nodes respectively. Alternatively you may elect to create a new authorization
+policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the [client authorization policy](./../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
+{{< /callout >}}
 
-**Add the repository for the SSO-Auth plugin and install the plugin**
+To configure the [Jellyfin SSO-Auth Plugin] there are two methods, using the [Configuration File](#configuration-file), or using the
+[Web GUI](#web-gui).
+
+However the following steps must be completed via the UI first regardless of which option you choose:
 
 1. Visit the [Jellyfin] Administration Dashboard.
 2. Visit the `Plugins` section.
-3. Visit the `Repositories` tab.
-4. Click the `+` to add a repository.
-5. Enter the following details:
-   - Repository Name: `Jellyfin SSO-Auth`
-   - Repository URL: `https://raw.githubusercontent.com/9p4/jellyfin-plugin-sso/manifest-release/manifest.json`
-6. Click `Save`.
-8. Click `Ok` to confirm the repository installation.
-9. Go Back to  the `Plugins` tab.
-10. Select __All__ plugins and the __Other__ Cateegory, find `SSO-Auth` and select it.
-11. Click `Install`.
-12. Click `Ok` to confirm the plugin installation.
-13. Once installed restart [Jellyfin].
-
-To configure [Jellyfin's SSO-Auth Plugin] there are two methods, using the [Configuration File](#configuration-file), or using the
-[Web GUI](#web-gui).
+3. Select __All__ plugins and the __Other__ Cateegory, find `SSO-Auth` and select it.
+4. Click `Install`.
+5. Click `Ok` to confirm the plugin installation.
+6. Once installed restart [Jellyfin].
 
 #### Configuration File
-To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider via a configuration file, use the following instructions:
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `SSO-Auth.xml`.
+{{< /callout >}}
+
+To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```xml {title="SSO-Auth.xml"}
 <?xml version="1.0" encoding="utf-8"?>
@@ -174,7 +190,7 @@ Linux:
 > sudo chown jellyfin:jellyfin /var/lib/jellyfin/plugins/configurations/SSO-Auth.xml
 
 #### Web GUI
-To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider via the Web GUI, use the following instructions:
+To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Connect 1.0] Provider via the Web GUI, use the following instructions:
 
 1. Visit the [Jellyfin] Administration Dashboard.
 2. Visit the `Plugins` section.
