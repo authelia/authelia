@@ -11,8 +11,14 @@ func newUsersCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Long:    "Manage users in Authelia. This subcommand has several methods to interact with the Authelia SQL Database. This allows doing several advanced operations that would be difficult normally.",
 		Example: "authelia users --help",
 		PersistentPreRunE: ctx.ChainRunE(
+			ctx.ConfigRequireExplicitRunE,
 			ctx.ConfigStorageCommandLineConfigRunE,
+			ctx.HelperConfigLoadRunE,
+			ctx.ConfigValidateStorageRunE,
+			ctx.ConfigValidateAdministrationRunE,
+			ctx.ConfigValidateUserBackendRunE,
 			ctx.LoadProvidersStorageRunE,
+			ctx.LoadProvidersUserBackendRunE,
 		),
 		Args: cobra.NoArgs,
 
@@ -34,14 +40,17 @@ func newUsersCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newUsersGetCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "get",
+		Use:               "get <username>",
 		Short:             "Get details for a user",
 		Long:              "Get details for a user",
-		Example:           "authelia users get --help",
+		Example:           "authelia users get <username>",
 		Args:              cobra.ExactArgs(1),
 		RunE:              ctx.UsersGetRunE(),
 		DisableAutoGenTag: true,
 	}
+
+	cmd.Flags().StringP(cmdFlagNameFormat, "f", cmdFlagValueFormatTable, "output format, options are 'table' or 'json'")
+	cmd.Flags().StringSlice(cmdFlagNameFields, nil, "fields to display as columns, defaults to the backend's required attributes (excluding password)")
 
 	return cmd
 }
@@ -57,6 +66,9 @@ func newUsersListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
+	cmd.Flags().StringP(cmdFlagNameFormat, "f", cmdFlagValueFormatTable, "output format, options are 'table' or 'json'")
+	cmd.Flags().StringSlice(cmdFlagNameFields, nil, "fields to display as columns, defaults to the backend's required attributes (excluding password)")
+
 	return cmd
 }
 
@@ -65,11 +77,13 @@ func newUsersAddCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Use:               "add",
 		Short:             "Add a user",
 		Long:              "Add a user",
-		Example:           "authelia users add --help",
+		Example:           "authelia users add\nauthelia users add --file user.json\nauthelia users add --file - < user.json",
 		Args:              cobra.NoArgs,
 		RunE:              ctx.UsersAddRunE(),
 		DisableAutoGenTag: true,
 	}
+
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "", "path to a JSON file describing the user, use '-' for stdin")
 
 	return cmd
 }
@@ -90,10 +104,10 @@ func newUsersUpdateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newUsersDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "delete",
+		Use:               "delete <username>",
 		Short:             "Delete a user",
 		Long:              "Delete a user",
-		Example:           "authelia users delete --help",
+		Example:           "authelia users delete <username>",
 		Args:              cobra.ExactArgs(1),
 		RunE:              ctx.UsersDeleteRunE(),
 		DisableAutoGenTag: true,

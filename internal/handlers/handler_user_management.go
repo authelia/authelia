@@ -11,7 +11,6 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/templates"
-
 	"github.com/authelia/authelia/v4/internal/utils"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -578,18 +577,31 @@ func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	//TODO: Delete Opaque User Identifiers, User Preferences, 2FA Devices, Oauth Sessions related to Opaque Ids, Remove User from Backend.
-
 	if err = ctx.Providers.UserProvider.DeleteUser(username); err != nil {
-		ctx.Logger.Error(err, messageUnableToDeleteUser)
+		ctx.Logger.WithError(err).Errorf(messageUnableToDeleteUser+" '%s'", username)
 	}
 
+	if err = ctx.Providers.StorageProvider.DeleteTOTPConfiguration(ctx, username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting TOTP data for user '%s'", username)
+	}
+
+	if err = ctx.Providers.StorageProvider.DeleteWebAuthnCredentialByUsername(ctx, username, ""); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting WebAuthn data for user '%s'", username)
+	}
+
+	if err = ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred deleting Duo data for user '%s'", username)
+	}
+
+	// TODO: add new storage methods for revoking oauth2 sessions and deleting opaque identifiers by username
+
 	if err = ctx.Providers.StorageProvider.DeleteUserByUsername(ctx, username); err != nil {
-		ctx.Logger.WithError(err).Error(messageUnableToDeleteUserMetadata)
+		ctx.Logger.WithError(err).Errorf(messageUnableToDeleteUserMetadata+" for user '%s'", username)
 	}
 
 	ctx.Response.SetStatusCode(fasthttp.StatusOK)
 }
+
 
 func AdminChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	usernameRaw := ctx.UserValue("username")

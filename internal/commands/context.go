@@ -361,6 +361,23 @@ func (ctx *CmdCtx) ConfigValidateSectionPasswordRunE(cmd *cobra.Command, _ []str
 	return fmt.Errorf("errors occurred validating the password configuration: %w", err)
 }
 
+// ConfigRequireExplicitRunE returns an error if a configuration file was not explicitly provided via the --config
+// flag or the AUTHELIA_CONFIG environment variable. This prevents commands from silently running against an empty
+// or default configuration when a fully specified config is required.
+func (ctx *CmdCtx) ConfigRequireExplicitRunE(cmd *cobra.Command, _ []string) (err error) {
+	var result XEnvCLIResult
+
+	if _, result, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
+		return err
+	}
+
+	if result == XEnvCLIResultCLIImplicit {
+		return fmt.Errorf("command requires a configuration file to be explicitly specified via the --%s flag or the %s environment variable", cmdFlagNameConfig, cmdFlagEnvNameConfig)
+	}
+
+	return nil
+}
+
 // ConfigEnsureExistsRunE logs the warnings and errors detected during the validations that have ran.
 func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
