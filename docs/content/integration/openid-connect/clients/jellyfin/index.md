@@ -108,7 +108,7 @@ However the following steps must be completed via the UI first regardless of whi
 
 1. Visit the [Jellyfin] Administration Dashboard.
 2. Visit the `Plugins` section.
-3. Select __All__ plugins and the __Other__ Cateegory, find `SSO-Auth` and select it.
+3. Select __All__ plugins and the __Other__ Category, find `SSO-Auth` and select it.
 4. Click `Install`.
 5. Click `Ok` to confirm the plugin installation.
 6. Once installed restart [Jellyfin].
@@ -194,12 +194,12 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
     - Scheme Override: `https`
 7. All other options may remain unchecked or unconfigured.
 8. Click `Save`.
-9. To log in visit `https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/start/authelia`.
+9. To log in, visit `https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/start/authelia`.
 10. Follow the [Jellyfin SSO-Auth Plugin] documentation on how to create a button on the [Jellyfin] login page.
 
 #### Add a Login Button to Jellyfin
 
-Follow the instructions in the [Jellyfin SSO-Auth] plugin's [README](https://github.com/9p4/jellyfin-plugin-sso#examples)
+The [Jellyfin SSO-Auth Plugin] has example instructions in the [README](https://github.com/9p4/jellyfin-plugin-sso#examples)
 
 ## See Also
 
