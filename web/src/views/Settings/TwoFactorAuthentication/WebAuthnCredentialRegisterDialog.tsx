@@ -211,10 +211,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                                     autoCapitalize="none"
                                     onKeyDown={(ev) => {
                                         if (ev.key === "Enter") {
-                                            (async () => {
-                                                handleNext();
-                                            })();
-
+                                            handleNext();
                                             ev.preventDefault();
                                         }
                                     }}
