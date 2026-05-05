@@ -169,27 +169,8 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
 </PluginConfiguration>
 ```
 
-1. Using the above XML create a file called `SSO-Auth.xml` and place it in the proper directory based on where [Jellyfin]
-is running.
-Linux: /var/lib/jellyfin/plugins/configurations/SSO-Auth.xml
-Docker: /config/plugins/configurations/SSO-Auth.xml (likely via a volume mount)
-Windows: %ProgramData%\Jellyfin\Server\plugins\configurations\SSO-Auth.xml or %UserProfile%\AppData\Local\jellyfin\plugins\configurations\SSO-Auth.xml
-
-2. Restart [Jellyfin]
-
-To test if your Jellyfin server properly loaded the SSO-Auth configuration file:
-1. Visit the [Jellyfin] Administration Dashboard
-2. Visit the `Plugins` Section
-3. Click the `SSO-Auth` plugin.
-4. Click ⚙ Settings button.
-
-If you see **authelia** in __Name of OID Provider__, or it is selectable via the drop down, your plugin configuration file is being processed correctly.
-
-If not double check the path and the permissions of the file, on Linux the **jellyfin** user needs to be able to read the file.
-Linux:
-> sudo chown jellyfin:jellyfin /var/lib/jellyfin/plugins/configurations/SSO-Auth.xml
-
 #### Web GUI
+
 To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Connect 1.0] Provider via the Web GUI, use the following instructions:
 
 1. Visit the [Jellyfin] Administration Dashboard.
@@ -216,29 +197,9 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
 9. To log in visit `https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/start/authelia`.
 10. Follow the [Jellyfin SSO-Auth Plugin] documentation on how to create a button on the [Jellyfin] login page.
 
-#### Add a Login Button
+#### Add a Login Button to Jellyfin
 
-1. Visit the [Jellyfin] Administration Dashboard.
-2. Visit the `Branding` section.
-3. Add the following HTML code into the `Login disclaimer` section.
-```html
-<form action="https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/start/authelia">
-  <button class="raised block emby-button button-submit">
-    https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}
-  </button>
-</form>
-```
-4. Add the following CSS code into the `Custom CSS Code` section.
-```css
-a.raised.emby-button {
-  padding: 0.9em 1em;
-  color: inherit !important;
-}
-
-.disclaimerContainer {
-  display: block;
-}
-```
+Follow the instructions in the [Jellyfin SSO-Auth] plugin's [README](https://github.com/9p4/jellyfin-plugin-sso#examples)
 
 ## See Also
 
