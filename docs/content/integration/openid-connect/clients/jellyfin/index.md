@@ -26,6 +26,8 @@ seo:
   - [v4.39.19](https://github.com/authelia/authelia/releases/tag/v4.39.19)
 - [Jellyfin]
   - [v10.10.7](https://github.com/jellyfin/jellyfin/releases/tag/v10.10.7)
+- [Jellyfin SSO Auth Plugin]
+  - [v4.0.0.3](https://github.com/9p4/jellyfin-plugin-sso/releases/tag/v4.0.0.3)
 
 {{% oidc-common %}}
 
