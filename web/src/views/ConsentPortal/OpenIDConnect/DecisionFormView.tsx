@@ -54,7 +54,7 @@ const DecisionFormView: FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent", "portal"]);
     const theme = useTheme();
 
-    const { createErrorNotification, resetNotification } = useNotifications();
+    const { createErrorNotification } = useNotifications();
     const navigate = useRouterNavigate();
     const redirect = useRedirector();
     const { flow, id: flowID, subflow } = useFlow();
@@ -70,7 +70,6 @@ const DecisionFormView: FC<Props> = (props: Props) => {
     const [showPassword, setShowPassword] = useState(false);
 
     const [response, setResponse] = useState<ConsentGetResponseBody>();
-    const [error, setError] = useState<any>(undefined);
     const [claims, setClaims] = useState<string[]>([]);
     const [preConfigure, setPreConfigure] = useState(false);
 
@@ -91,20 +90,15 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                     setResponse(r);
                     setClaims(r.claims || []);
                 })
-                .catch((error) => {
-                    setError(error);
+                .catch((err) => {
+                    console.error("Unable to display consent screen:", err);
+                    createErrorNotification(translate("Unable to display the consent screen"));
+                    navigate(IndexRoute);
                 });
         } else {
             navigate(IndexRoute);
         }
-    }, [flowID, navigate, props.state.authentication_level, userCode]);
-
-    useEffect(() => {
-        if (error) {
-            navigate(IndexRoute);
-            console.error(`Unable to display consent screen: ${error.message}`);
-        }
-    }, [navigate, resetNotification, createErrorNotification, error]);
+    }, [flowID, navigate, props.state.authentication_level, userCode, createErrorNotification, translate]);
 
     const focusPassword = useCallback(() => {
         if (passwordRef.current === null) return;

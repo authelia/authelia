@@ -1,37 +1,45 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useTimer(timeoutMs: number): [number, () => void, () => void] {
     const Interval = 100;
-    const [startDate, setStartDate] = useState(undefined as Date | undefined);
+    const intervalRef = useRef<null | ReturnType<typeof setInterval>>(null);
+    const timeoutMsRef = useRef(timeoutMs);
     const [percent, setPercent] = useState(0);
 
-    const trigger = useCallback(() => {
-        setPercent(0);
-        setStartDate(new Date());
-    }, [setStartDate, setPercent]);
+    useEffect(() => {
+        timeoutMsRef.current = timeoutMs;
+    }, [timeoutMs]);
 
-    const clear = useCallback(() => {
-        setPercent(0);
-        setStartDate(undefined);
+    const stop = useCallback(() => {
+        if (intervalRef.current !== null) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
     }, []);
 
-    useEffect(() => {
-        if (!startDate) {
-            return;
-        }
-
-        const intervalNode = setInterval(() => {
-            const elapsedMs = startDate ? new Date().getTime() - startDate.getTime() : 0;
-            let p = (elapsedMs / timeoutMs) * 100.0;
+    const trigger = useCallback(() => {
+        stop();
+        setPercent(0);
+        const startDate = new Date();
+        intervalRef.current = setInterval(() => {
+            const elapsedMs = new Date().getTime() - startDate.getTime();
+            let p = (elapsedMs / timeoutMsRef.current) * 100.0;
             if (p >= 100) {
                 p = 100;
-                setStartDate(undefined);
+                stop();
             }
             setPercent(p);
         }, Interval);
+    }, [stop]);
 
-        return () => clearInterval(intervalNode);
-    }, [startDate, setPercent, setStartDate, timeoutMs]);
+    const clear = useCallback(() => {
+        stop();
+        setPercent(0);
+    }, [stop]);
+
+    useEffect(() => {
+        return () => stop();
+    }, [stop]);
 
     return [percent, trigger, clear];
 }

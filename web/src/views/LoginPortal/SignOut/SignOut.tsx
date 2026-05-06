@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 
 import { Typography } from "@mui/material";
 import axios from "axios";
@@ -21,34 +21,32 @@ const SignOut = function () {
     const redirectionURL = useQueryParam(RedirectionURL);
     const redirector = useRedirector();
     const navigate = useRouterNavigate();
-    const [timedOut, setTimedOut] = useState(false);
-    const [safeRedirect, setSafeRedirect] = useState(false);
     const [query] = useSearchParams();
 
-    const handleRedirection = useCallback(() => {
-        if (redirectionURL && safeRedirect) {
-            console.log("Redirecting to safe target URL: " + redirectionURL);
-            redirector(redirectionURL);
-        } else {
-            console.log("Redirecting to index route");
-
-            if (query.has(RedirectionRestoreURL)) {
-                const search = new URLSearchParams();
-
-                for (const [key, value] of query) {
-                    if (key === RedirectionRestoreURL) {
-                        search.set(RedirectionURL, value);
-                    } else {
-                        search.set(key, value);
-                    }
-                }
-
-                navigate(IndexRoute, false, false, false, search);
+    const handleRedirection = useCallback(
+        (safeRedirect: boolean) => {
+            if (redirectionURL && safeRedirect) {
+                redirector(redirectionURL);
             } else {
-                navigate(IndexRoute);
+                if (query.has(RedirectionRestoreURL)) {
+                    const search = new URLSearchParams();
+
+                    for (const [key, value] of query) {
+                        if (key === RedirectionRestoreURL) {
+                            search.set(RedirectionURL, value);
+                        } else {
+                            search.set(key, value);
+                        }
+                    }
+
+                    navigate(IndexRoute, false, false, false, search);
+                } else {
+                    navigate(IndexRoute);
+                }
             }
-        }
-    }, [redirectionURL, safeRedirect, query, redirector, navigate]);
+        },
+        [redirectionURL, query, redirector, navigate],
+    );
 
     useEffect(() => {
         const controller = new AbortController();
@@ -57,11 +55,9 @@ const SignOut = function () {
         (async () => {
             try {
                 const res = await signOut(redirectionURL, controller.signal);
-                if (res?.safeTargetURL) {
-                    setSafeRedirect(true);
-                }
+                const safeRedirect = !!res?.safeTargetURL;
                 timeoutId = setTimeout(() => {
-                    setTimedOut(true);
+                    handleRedirection(safeRedirect);
                 }, 2000);
             } catch (err) {
                 if (axios.isCancel(err)) return;
@@ -76,13 +72,7 @@ const SignOut = function () {
                 clearTimeout(timeoutId);
             }
         };
-    }, [redirectionURL, createErrorNotification, translate]);
-
-    useEffect(() => {
-        if (timedOut) {
-            handleRedirection();
-        }
-    }, [timedOut, handleRedirection]);
+    }, [redirectionURL, createErrorNotification, translate, handleRedirection]);
 
     return (
         <MinimalLayout title={translate("Sign out")}>
