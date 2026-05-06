@@ -12,14 +12,14 @@
   "dependencies": {
     "react": "19.2.5",
     "react-dom": "19.2.5",
-    "react-email": "6.0.5",
+    "react-email": "6.0.8",
     "tailwind-merge": "3.5.0",
     "tailwindcss": "4.2.4",
     "typescript": "6.0.3"
   },
   "devDependencies": {
     "@radix-ui/colors": "3.0.0",
-    "@react-email/ui": "6.0.5",
+    "@react-email/ui": "6.0.8",
     "@types/node": "25.6.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
@@ -40,9 +40,9 @@
       "minimatch": "10.2.5",
       "nanoid": "5.1.11",
       "picomatch": "4.0.4",
-      "postcss": "8.5.13",
+      "postcss": "8.5.14",
       "prismjs": "1.30.0",
-      "rollup": "4.60.2",
+      "rollup": "4.60.3",
       "socket.io-parser": "4.2.6",
       "vite": "8.0.10"
     },
