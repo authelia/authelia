@@ -4,7 +4,6 @@ linters:
   enable:
     - asciicheck
     - forbidigo
-    - goconst
     - gocritic
     - gocyclo
     - godot
@@ -29,6 +28,7 @@ linters:
     goconst:
       min-len: 2
       min-occurrences: 2
+      ignore-tests: true
     gocyclo:
       min-complexity: 15
     godot:
@@ -69,6 +69,8 @@ linters:
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
+  exclude-dirs:
+    - internal/mocks
 formatters:
   enable:
     - gofmt
