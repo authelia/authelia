@@ -23,8 +23,8 @@ importers:
         specifier: 4.6.3
         version: 4.6.3
       '@tabler/icons':
-        specifier: 3.41.1
-        version: 3.41.1
+        specifier: 3.43.0
+        version: 3.43.0
       '@thulite/core':
         specifier: 1.5.9
         version: 1.5.9(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
@@ -989,8 +989,8 @@ packages:
   '@rolldown/pluginutils@1.0.0-rc.17':
     resolution: {integrity: sha512-n8iosDOt6Ig1UhJ2AYqoIhHWh/isz0xpicHTzpKBeotdVsTEcxsSA/i3EVM7gQAj0rU27OLAxCjzlj15IWY7bg==}
 
-  '@tabler/icons@3.41.1':
-    resolution: {integrity: sha512-OaRnVbRmH2nHtFeg+RmMJ/7m2oBIF9XCJAUD5gQnMrpK9f05ydj8MZrAf3NZQqOXyxGN1UBL0D5IKLLEUfr74Q==}
+  '@tabler/icons@3.43.0':
+    resolution: {integrity: sha512-qXwS17Op9jqr3Asvu31fejyw8+OnRDKH7oR8nQXyUgW1pI44ET8OKG9kssy+XIvvAIyej6gZdGmviNUn1VMfPw==}
 
   '@thulite/bootstrap@1.2.3':
     resolution: {integrity: sha512-230kXC1QwBESDP2ye7hlfVs6OHvLFKxlb9NJxjTLzMnE5cDGTjR3Tf+2PQftVERBmItpgXTL559ZE3zo6CKZSw==}
@@ -3068,7 +3068,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.0-rc.17': {}
 
-  '@tabler/icons@3.41.1': {}
+  '@tabler/icons@3.43.0': {}
 
   '@thulite/bootstrap@1.2.3':
     dependencies:
