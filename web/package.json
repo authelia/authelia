@@ -18,7 +18,7 @@
       "@typescript-eslint/typescript-estree": "8.59.2",
       "@typescript-eslint/utils": "8.59.2",
       "body-parser": "2.2.2",
-      "brace-expansion": "5.0.5",
+      "brace-expansion": "5.0.6",
       "esbuild": "0.28.0",
       "express": "5.2.1",
       "flatted": "3.4.2",
