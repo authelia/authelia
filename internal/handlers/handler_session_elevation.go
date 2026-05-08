@@ -15,6 +15,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"context"
+	"time"
 )
 
 // UserSessionElevationGET returns the session elevation status.
@@ -201,14 +203,21 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.WithFields(map[string]any{"signature": signature, "id": otp.PublicID.String(), "username": identity.Username}).
 		Debug("Sending an email to user to confirm identity for session elevation")
 
-	if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred sending the user the notification", userSession.Username)
+	go func() {
+		defer func() {
+			if rec := recover(); rec != nil {
+				ctx.GetLogger().WithError(fmt.Errorf("%+v", rec)).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred sending the user the notification", userSession.Username)
+			}
+		}()
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageOperationFailed)
+		xctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-		return
-	}
+		defer cancel()
+
+		if err = ctx.Providers.Notifier.Send(xctx, identity.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data); err != nil {
+			ctx.GetLogger().WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred sending the user the notification", userSession.Username)
+		}
+	}()
 
 	if err = ctx.SetJSONBody(&bodyPOSTUserSessionElevate{
 		DeleteID: deleteID,

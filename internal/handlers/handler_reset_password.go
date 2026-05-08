@@ -179,7 +179,6 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	ctx.GetLogger().Debugf("Password of user %s has been reset", username)
 
-	// Reset the request.
 	userSession.PasswordResetUsername = nil
 
 	if err = ctx.SaveSession(userSession); err != nil {
@@ -187,7 +186,6 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	// Send Notification.
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
 		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": username}).Error("Error occurred retrieving user details")
