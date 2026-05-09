@@ -477,10 +477,9 @@ func doMarkAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, 
 }
 
 func doMarkAuthenticationAttemptWithRequest(ctx *middlewares.AutheliaCtx, successful bool, ban *regulation.Ban, authType, requestURI, requestMethod string, errAuth error) {
-	// We only Mark if there was no underlying error.
 	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, ban.Value())
 
-	ctx.Providers.Regulator.HandleAttempt(ctx, successful, ban.IsBanned(), ban.Value(), requestURI, requestMethod, authType)
+	ctx.Providers.Regulator.HandleAttempt(ctx, successful, ban, requestURI, requestMethod, authType)
 
 	if successful {
 		ctx.Logger.Debugf("Successful %s authentication attempt made by user '%s'", authType, ban.Value())
