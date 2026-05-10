@@ -12,7 +12,7 @@ apk --no-cache add git gcc musl-dev linux-pam-dev make
 EOF
 
 ARG AUTHELIA_PAM_REPO=https://github.com/authelia/pam.git
-ARG AUTHELIA_PAM_REF=feat-pam
+ARG AUTHELIA_PAM_REF=master
 
 RUN <<EOF
 set -eu
