@@ -5,222 +5,31 @@ ignore:
       name: busybox
       version: 1.37.0
       type: binary
+    reason: |
+      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.37.0
+      so grype still flags it, but the vulnerable code paths have been backported.
   - vulnerability: CVE-2024-58251
     package:
       name: busybox
       version: 1.37.0
       type: binary
+    reason: |
+      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.37.0
+      so grype still flags it, but the vulnerable code paths have been backported.
   - vulnerability: CVE-2025-46394
     package:
       name: busybox
       version: 1.37.0
       type: binary
-  - vulnerability: CVE-2026-32280
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
     reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-32289
-    package:
+      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.37.0
+      so grype still flags it, but the vulnerable code paths have been backported.
+  - package:
       name: stdlib
-      version: go1.26.0
       type: go-module
+      location: "**/lefthook*/**"
     reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-32282
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-27140
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-32288
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-32283
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-32281
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-33810
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-25679
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-27137
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-27138
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-27139
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-27142
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-27144
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-27143
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-39820
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-42499
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-33814
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-33811
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-39836
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-42501
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-39817
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-39826
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-39823
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-39825
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
-  - vulnerability: CVE-2026-39819
-    package:
-      name: stdlib
-      version: go1.26.0
-      type: go-module
-    reason: |
-      Authelia is built with a newer version of go and this only affects a lefthook which is a dev dependency in
-      authelia-public_html.tar.gz that's not actually shipped.
+      Go stdlib embedded in the lefthook prebuilt binaries (npm devDependency). Lefthook is a developer/CI git
+      hook runner only; not shipped in any Authelia runtime artifact. Scoped by source path so this never
+      accidentally hides stdlib findings from Authelia's own binaries.
 ...
