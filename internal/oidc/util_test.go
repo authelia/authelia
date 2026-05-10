@@ -3,6 +3,7 @@ package oidc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -476,4 +477,140 @@ type testClientContext struct {
 
 func (c *testClientContext) GetHTTPClient() *http.Client {
 	return c.client
+}
+
+func TestValidateLogoURIIsImage(t *testing.T) {
+	pngBody := []byte{0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0}
+
+	testCases := []struct {
+		name        string
+		setup       func(t *testing.T) (*url.URL, *http.Client, map[string]error)
+		errContains string
+		expectCache bool
+	}{
+		{
+			"ShouldAcceptImageContentType",
+			func(t *testing.T) (*url.URL, *http.Client, map[string]error) {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "image/png")
+					_, _ = w.Write(pngBody)
+				}))
+
+				t.Cleanup(srv.Close)
+
+				u, _ := url.Parse(srv.URL)
+
+				return u, srv.Client(), map[string]error{}
+			},
+			"",
+			true,
+		},
+		{
+			"ShouldAcceptSniffedImageWhenContentTypeWrong",
+			func(t *testing.T) (*url.URL, *http.Client, map[string]error) {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/octet-stream")
+					_, _ = w.Write(pngBody)
+				}))
+
+				t.Cleanup(srv.Close)
+
+				u, _ := url.Parse(srv.URL)
+
+				return u, srv.Client(), map[string]error{}
+			},
+			"",
+			true,
+		},
+		{
+			"ShouldRejectHTMLContentType",
+			func(t *testing.T) (*url.URL, *http.Client, map[string]error) {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "text/html")
+					_, _ = w.Write([]byte("<html></html>"))
+				}))
+
+				t.Cleanup(srv.Close)
+
+				u, _ := url.Parse(srv.URL)
+
+				return u, srv.Client(), map[string]error{}
+			},
+			"response Content-Type was 'text/html' which is not an image",
+			true,
+		},
+		{
+			"ShouldRejectNon2xxStatus",
+			func(t *testing.T) (*url.URL, *http.Client, map[string]error) {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(http.StatusNotFound)
+				}))
+
+				t.Cleanup(srv.Close)
+
+				u, _ := url.Parse(srv.URL)
+
+				return u, srv.Client(), map[string]error{}
+			},
+			"response status code was '404'",
+			true,
+		},
+		{
+			"ShouldReturnCachedResult",
+			func(t *testing.T) (*url.URL, *http.Client, map[string]error) {
+				u, _ := url.Parse("https://example.com/logo.png")
+
+				return u, &http.Client{}, map[string]error{u.String(): nil}
+			},
+			"",
+			true,
+		},
+		{
+			"ShouldReturnCachedError",
+			func(t *testing.T) (*url.URL, *http.Client, map[string]error) {
+				u, _ := url.Parse("https://example.com/logo.png")
+
+				return u, &http.Client{}, map[string]error{u.String(): fmt.Errorf("response status code was '500'")}
+			},
+			"response status code was '500'",
+			true,
+		},
+		{
+			"ShouldErrOnNetworkFailure",
+			func(t *testing.T) (*url.URL, *http.Client, map[string]error) {
+				u, _ := url.Parse("https://127.0.0.1:1/logo.png")
+
+				return u, &http.Client{Timeout: 50 * time.Millisecond}, map[string]error{}
+			},
+			"error occurred making request",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			logoURI, client, cache := tc.setup(t)
+
+			ctx := &testClientContext{Context: context.Background(), client: client}
+
+			err := ValidateLogoURIIsImage(ctx, cache, logoURI)
+
+			if tc.errContains != "" {
+				assert.ErrorContains(t, err, tc.errContains)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			if tc.expectCache && cache != nil {
+				cached, ok := cache[logoURI.String()]
+				assert.True(t, ok)
+
+				if tc.errContains == "" {
+					assert.NoError(t, cached)
+				} else {
+					assert.ErrorContains(t, cached, tc.errContains)
+				}
+			}
+		})
+	}
 }

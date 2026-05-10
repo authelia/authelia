@@ -73,6 +73,7 @@ const DecisionFormView: FC<Props> = (props: Props) => {
     const [error, setError] = useState<any>(undefined);
     const [claims, setClaims] = useState<string[]>([]);
     const [preConfigure, setPreConfigure] = useState(false);
+    const [logoLoadError, setLogoLoadError] = useState(false);
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
@@ -308,6 +309,25 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <Grid container alignItems={"center"} justifyContent={"center"}>
+                                {response.client_logo_uri && !logoLoadError ? (
+                                    <Grid size={{ xs: 12 }}>
+                                        <Box sx={{ display: "flex", justifyContent: "center" }}>
+                                            <Box
+                                                component={"img"}
+                                                id={"openid-consent-client-logo"}
+                                                src={response.client_logo_uri}
+                                                alt={response.client_description || response.client_id}
+                                                onError={() => setLogoLoadError(true)}
+                                                sx={{
+                                                    height: 96,
+                                                    marginBottom: theme.spacing(1),
+                                                    objectFit: "contain",
+                                                    width: 96,
+                                                }}
+                                            />
+                                        </Box>
+                                    </Grid>
+                                ) : null}
                                 <Grid size={{ xs: 12 }}>
                                     <Box>
                                         <Tooltip

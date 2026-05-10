@@ -39,6 +39,7 @@ identity_providers:
     clients:
       - client_id: 'unique-client-identifier'
         client_name: 'My Application'
+        logo_uri: 'https://{{< sitevar name="domain" nojs="example.com" >}}/logo.png'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         sector_identifier_uri: 'https://{{< sitevar name="domain" nojs="example.com" >}}/sector.json'
         public: false
@@ -149,6 +150,24 @@ Valid Client ID's have the following characteristics:
 {{< confkey type="string" default="*same as id*" required="no" >}}
 
 A friendly name for this client shown in the UI. This defaults to the same as the ID.
+
+### logo_uri
+
+{{< confkey type="string" required="no" >}}
+
+URL of an image displayed alongside the [client_name](#client_name) on the consent screen. Defined by
+[OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata)
+and [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591#section-2). Must be an absolute HTTPS URL pointing to a
+valid image file; the image is fetched directly by the End-User's browser, so the URL must be reachable from the
+End-User's network.
+
+When omitted, no logo is rendered and the consent screen layout is unchanged.
+
+The host of the URL is automatically appended to the `img-src` directive of the
+[Content-Security-Policy](../../miscellaneous/server.md#headers) header served with the consent page for the active
+flow. The host is only appended for the in-flight client; other clients' logo hosts are not exposed. Operators using a
+custom `csp_template` can opt in to the same behavior by including the `${OIDC_CLIENT_LOGO_URIS}` placeholder in their `img-src`
+directive; otherwise the operator is responsible for allow-listing logo hosts in their own policy.
 
 ### client_secret
 

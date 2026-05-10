@@ -23,6 +23,7 @@ interface ConsentPostResponseBody {
 export interface ConsentGetResponseBody {
     client_id: string;
     client_description: string;
+    client_logo_uri?: string;
     scopes: string[];
     audience: string[];
     pre_configuration: boolean;

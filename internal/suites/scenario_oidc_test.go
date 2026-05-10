@@ -97,6 +97,13 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	assert.NoError(s.T(), err)
 
 	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
+
+	logo := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-client-logo")
+	logoSrc, err := logo.Attribute("src")
+	assert.NoError(s.T(), err)
+	assert.NotNil(s.T(), logoSrc)
+	assert.Equal(s.T(), "https://www.authelia.com/images/branding/logo.png", *logoSrc)
+
 	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept").Click("left", 1)
 	assert.NoError(s.T(), err)
 

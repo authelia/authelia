@@ -7,7 +7,8 @@
 package server
 
 const (
-	placeholderCSPNonce = "${NONCE}"
-	tmplCSPDefault      = "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"
-	tmplCSPDevelopment  = "default-src 'self' 'unsafe-eval'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"
+	placeholderCSPNonce              = "${NONCE}"
+	placeholderCSPOIDCClientLogoURIs = "${OIDC_CLIENT_LOGO_URIS}"
+	tmplCSPDefault                   = "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; img-src 'self' data:${OIDC_CLIENT_LOGO_URIS}; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-${NONCE}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"
+	tmplCSPDevelopment               = "default-src 'self' 'unsafe-eval'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; img-src 'self' data:${OIDC_CLIENT_LOGO_URIS}; object-src 'none'; style-src 'self' 'nonce-${NONCE}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"
 )

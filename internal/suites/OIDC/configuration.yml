@@ -77,6 +77,7 @@ identity_providers:
       - client_id: 'oidc-tester-app'
         client_secret: '$pbkdf2-sha512$310000$EniFUo2z8Yjw3op3lrtuyA$xhopyOyffx2TqsQvEhoMSo1sxywIvJV8HZw/zdf62xtyryY/nkNkdcUV82r.xtd5NuyvZo7DPkOlcffM/Wvsmw'  # yamllint disable-line rule:line-length
         authorization_policy: 'two_factor'
+        logo_uri: 'https://www.authelia.com/images/branding/logo.png'
         redirect_uris:
           - 'https://oidc.example.com:8080/oauth2/callback'
       - client_id: 'oidc-tester-app-public'

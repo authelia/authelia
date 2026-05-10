@@ -186,6 +186,7 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].jwks[].use",
 	"identity_providers.oidc.clients[].jwks_uri",
 	"identity_providers.oidc.clients[].lifespan",
+	"identity_providers.oidc.clients[].logo_uri",
 	"identity_providers.oidc.clients[].pkce_challenge_method",
 	"identity_providers.oidc.clients[].pre_configured_consent_duration",
 	"identity_providers.oidc.clients[].public",

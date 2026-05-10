@@ -99,9 +99,10 @@ type DocsDataMiscSupport struct {
 
 // TemplateCSP represents the CSP template vars.
 type TemplateCSP struct {
-	TemplateDefault     string `json:"default"`
-	TemplateDevelopment string `json:"development"`
-	PlaceholderNONCE    string `json:"nonce"`
+	TemplateDefault               string `json:"default"`
+	TemplateDevelopment           string `json:"development"`
+	PlaceholderNONCE              string `json:"nonce"`
+	PlaceholderOIDCClientLogoURIs string `json:"oidc_client_logo_uris"`
 }
 
 // ConfigurationKey is the docs json model for the Authelia configuration keys.
