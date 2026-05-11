@@ -322,7 +322,7 @@ guide.
 
 #### authelia.pam
 
-This scope is consumed by the [pam_authelia](https://github.com/authelia/pam_authelia) PAM module to authenticate Linux
+This scope is consumed by the [pam_authelia](https://github.com/authelia/pam) PAM module to authenticate Linux
 system logins (e.g. SSH, console) against Authelia using the OAuth 2.0 Device Authorization Grant flow. When granted,
 the issued tokens carry the `authelia.pam.username` claim which `pam_authelia` matches against the local Linux username
 to defend against confused-deputy attacks where one Authelia user approves another user's login.
