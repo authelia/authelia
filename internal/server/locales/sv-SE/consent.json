@@ -48,6 +48,7 @@
 	"scopes": {
 		"address": "Få tillgång till din adress",
 		"authelia.bearer.authz": "Få tillgång till skyddade resurser inloggade som du",
+		"authelia.pam": "Autentisera till ett Linux-system som du",
 		"email": "Hantera din e-postadress",
 		"groups": "Få tillgång till ditt gruppmedlemskap",
 		"offline_access": "Uppdatera automatiskt dessa behörigheter utan användarinteraktion",
