@@ -40,6 +40,7 @@
       "js-yaml": "4.1.1",
       "minimatch": "10.2.5",
       "nanoid": "5.1.11",
+      "next": "16.2.6",
       "picomatch": "4.0.4",
       "postcss": "8.5.14",
       "prismjs": "1.30.0",
