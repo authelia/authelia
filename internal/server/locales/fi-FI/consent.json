@@ -48,6 +48,7 @@
 	"scopes": {
 		"address": "Käytä osoitettasi",
 		"authelia.bearer.authz": "Käytä suojattuja resursseja kirjautuneena sisään",
+		"authelia.pam": "Todenna Linux-järjestelmään niin kuin sinä",
 		"email": "Käytä sähköpostiosoitteitasi",
 		"groups": "Käytä ryhmäjäsenyyksiäsi",
 		"offline_access": "Päivitä nämä oikeudet automaattisesti ilman käyttäjän vuorovaikutusta",
