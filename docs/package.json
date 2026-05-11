@@ -57,7 +57,7 @@
       "picomatch": "4.0.4",
       "semver": "7.8.0",
       "vite": "8.0.12",
-      "yaml": "2.8.4",
+      "yaml": "2.9.0",
       "yauzl": "3.3.0"
     },
     "onlyBuiltDependencies": [
