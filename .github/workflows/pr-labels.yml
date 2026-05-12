@@ -111,4 +111,5 @@ jobs:
                 labels: toAdd,
               });
             }
+          # yamllint enable rule:indentation
 ...
