@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
   pull-requests: write
 
 jobs:
@@ -36,6 +37,9 @@ jobs:
               core.setFailed(`PR title does not follow Conventional Commits: ${title}`);
               return;
             }
+
+            const type = match[1];
+            const scope = match[3];
 
             const typeLabelMap = {
               feat:     'type/feature',
@@ -80,9 +84,25 @@ jobs:
               webauthn:       'area/webauthn',
             };
 
-            const typeLabel = typeLabelMap[match[1]];
-            const scopeLabel = match[3] ? scopeLabelMap[match[3]] : undefined;
+            const breakingRe = /BREAKING CHANGE: /;
+            const body = context.payload.pull_request.body || '';
+            let breaking = breakingRe.test(body);
+            if (!breaking) {
+              const commits = await github.paginate(github.rest.pulls.listCommits, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                per_page: 100,
+              });
+              breaking = commits.some((c) => breakingRe.test(c.commit.message));
+            }
+
+            const typeLabel = typeLabelMap[type];
+            const scopeLabel = scope ? scopeLabelMap[scope] : undefined;
             const desired = new Set([typeLabel, scopeLabel].filter(Boolean));
+            if (breaking) {
+              desired.add('type/breaking-change');
+            }
 
             const existing = context.payload.pull_request.labels.map((l) => l.name);
 
@@ -111,5 +131,73 @@ jobs:
                 labels: toAdd,
               });
             }
+
+            if (context.payload.pull_request.milestone) {
+              core.info(`PR already has milestone "${context.payload.pull_request.milestone.title}"; leaving as-is.`);
+              return;
+            }
+
+            let targetTitle = null;
+
+            if (type === 'release') {
+              const rm = title.match(/v\d+\.\d+\.\d+/);
+              if (rm) {
+                targetTitle = rm[0];
+              } else {
+                core.warning(`Release PR title contains no vX.Y.Z version; skipping milestone assignment.`);
+                return;
+              }
+            } else {
+              let latest;
+              try {
+                const { data } = await github.rest.repos.getLatestRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                });
+                latest = data.tag_name;
+              } catch (e) {
+                core.warning(`Could not determine latest release: ${e.message}`);
+                return;
+              }
+              const vm = latest.match(/^v(\d+)\.(\d+)\.(\d+)$/);
+              if (!vm) {
+                core.warning(`Latest release tag is not semver: ${latest}`);
+                return;
+              }
+              const major = parseInt(vm[1], 10);
+              const minor = parseInt(vm[2], 10);
+              const patch = parseInt(vm[3], 10);
+              if (breaking) {
+                targetTitle = `v${major + 1}.0.0`;
+              } else if (type === 'feat') {
+                targetTitle = `v${major}.${minor + 1}.0`;
+              } else {
+                targetTitle = `v${major}.${minor}.${patch + 1}`;
+              }
+            }
+
+            const milestones = await github.paginate(github.rest.issues.listMilestones, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            let milestone = milestones.find((m) => m.title === targetTitle);
+
+            if (!milestone) {
+              const created = await github.rest.issues.createMilestone({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: targetTitle,
+              });
+              milestone = created.data;
+            }
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              milestone: milestone.number,
+            });
           # yamllint enable rule:indentation
 ...
