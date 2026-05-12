@@ -8,7 +8,7 @@ pre-commit:
         MISSING=""
         COUNT=0
 
-        for TOOL in goimports-reviser golangci-lint pnpm shellcheck trufflehog typos yamllint; do
+        for TOOL in goimports-reviser golangci-lint pnpm shellcheck trufflehog typos yamllint zizmor; do
           if ! command -v ${TOOL} >/dev/null 2>&1; then
             if [ "$COUNT" -eq 0 ]; then
               MISSING=${TOOL}
@@ -32,7 +32,7 @@ pre-commit:
         parallel: true
         jobs:
           - name: eslint
-            run: pnpm lint && echo "0 issues."
+            run: pnpm -s lint && echo "0 issues."
             root: "web/"
             glob: "*.{js,jsx,ts,tsx}"
             stage_fixed: true
@@ -66,6 +66,10 @@ pre-commit:
           - name: yamllint
             run: yamllint -f parsable . && echo "0 issues."
             glob: "*.{yml,yaml}"
+
+          - name: zizmor
+            run: zizmor {staged_files} && echo "0 issues."
+            glob: ".github/workflows/*.{yml,yaml}"
 
 commit-msg:
   jobs:
