@@ -1,3 +1,25 @@
 allowBuilds:
   esbuild: true
   sharp: true
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+overrides:
+  "@babel/helpers": 7.29.2
+  "@babel/runtime": 7.29.2
+  "@babel/traverse": 7.29.0
+  ajv: 8.20.0
+  brace-expansion: 5.0.6
+  fast-uri: 3.1.2
+  flatted: 3.4.2
+  glob: 13.0.6
+  js-yaml: 4.1.1
+  minimatch: 10.2.5
+  nanoid: 5.1.11
+  next: 16.2.6
+  picomatch: 4.0.4
+  postcss: 8.5.14
+  prismjs: 1.30.0
+  rollup: 4.60.3
+  socket.io-parser: 4.2.6
+  vite: 8.0.12
