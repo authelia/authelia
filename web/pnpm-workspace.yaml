@@ -34,7 +34,7 @@ overrides:
   yaml: 2.9.0
 peerDependencyRules:
   allowedVersions:
-    "@types/react": 19
-    eslint: 10
-    react: 19
-    react-dom: 19
+    "@types/react": "19"
+    eslint: "10"
+    react: "19"
+    react-dom: "19"
