@@ -20,7 +20,7 @@ overrides:
   picomatch: 4.0.4
   postcss: 8.5.14
   prismjs: 1.30.0
-  rollup: 4.60.3
+  rollup: 4.60.4
   socket.io-parser: 4.2.6
   vite: 8.0.12
 
