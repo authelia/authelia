@@ -27,7 +27,7 @@
     "qrcode.react": "4.2.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "react-i18next": "17.0.7",
+    "react-i18next": "17.0.8",
     "react-router-dom": "7.15.1",
     "react-spinners": "0.17.0",
     "react18-input-otp": "1.1.4",
