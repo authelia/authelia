@@ -15,7 +15,7 @@ pre-commit:
             elif [ "$COUNT" -eq 1 ]; then
               MISSING="${MISSING} and ${TOOL}"
             else
-              MISSING="$(echo "${MISSING}" | sed 's/ and /, /') and ${TOOL}"
+              MISSING="$(echo "${MISSING}" | sed "s/ and /, /") and ${TOOL}"
             fi
             COUNT=$((COUNT + 1))
           fi
