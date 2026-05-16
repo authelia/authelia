@@ -363,9 +363,8 @@ func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, d
 	}
 
 	// TODO: Add additional bind logic here, such as MD5Bind, NTLMBind, NTLMUnauthenticatedBind, etc.
-	//nolint:staticcheck
 	switch {
-	case options.Password == "":
+	case options.Password == "" && options.PermitUnauthenticatedBind:
 		err = client.UnauthenticatedBind(options.Username)
 	default:
 		err = client.Bind(options.Username, options.Password)
