@@ -71,6 +71,14 @@
     ## The CSP Template. Read the docs.
     # csp_template: ''
 
+    ## Trusted proxies configuration. Read the docs.
+    # trusted_proxies:
+      ## Enables removing proxy headers from requests that do not originate from a trusted proxy.
+      # enable: false
+
+      ## The networks trusted as proxies. If enabled and empty no proxy is trusted.
+      # networks: []
+
   ## Server Buffers configuration.
   # buffers:
 

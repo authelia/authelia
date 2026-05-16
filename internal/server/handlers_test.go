@@ -21,7 +21,7 @@ import (
 )
 
 func TestHandleError(t *testing.T) {
-	handler := handleError("server")
+	handler := handleError("server", schema.ServerHeadersTrustedProxies{})
 
 	testCases := []struct {
 		name               string

@@ -63,6 +63,10 @@ func validateServerTLSFileExists(name, path string, validator *schema.StructVali
 
 // ValidateServer checks the server configuration is correct.
 func ValidateServer(config *schema.Configuration, validator *schema.StructValidator) {
+	if len(config.Server.Headers.TrustedProxies.Networks) != 0 && !config.Server.Headers.TrustedProxies.Enable {
+		validator.Push(errors.New(errServerHeadersTrustedProxiesNetworksNotEnabled))
+	}
+
 	ValidateServerAddress(config, validator)
 	ValidateServerTLS(config, validator)
 	validateServerAssets(config, validator)

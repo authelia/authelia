@@ -439,6 +439,8 @@ const (
 	errFmtServerTLSKey              = "server: tls: option 'certificate' must also be accompanied by option 'key'"
 	errFmtServerTLSClientAuthNoAuth = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
+	errServerHeadersTrustedProxiesNetworksNotEnabled = "server: headers: trusted_proxies: option 'networks' must not be configured unless option 'enable' is also enabled"
+
 	errFmtServerAddress = "server: option 'address' with value '%s' is invalid: %w"
 
 	errFmtServerPathNotEndForwardSlash = "server: option 'address' must be a single subpath (i.e. '%s'), but '%s' contains multiple segments"
