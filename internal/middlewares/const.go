@@ -57,6 +57,15 @@ var (
 	headerCrossOriginEmbedderPolicy = []byte("Cross-Origin-Embedder-Policy")
 	headerCrossOriginResourcePolicy = []byte("Cross-Origin-Resource-Policy")
 	headerXDNSPrefetchControl       = []byte("X-DNS-Prefetch-Control")
+
+	headerForwarded = []byte(fasthttp.HeaderForwarded)
+	headerVia       = []byte(fasthttp.HeaderVia)
+)
+
+var (
+	headerPrefixXForwarded = []byte("X-Forwarded-")
+	headerPrefixXOriginal  = []byte("X-Original-")
+	headerPrefixXReal      = []byte("X-Real-")
 )
 
 // Header value strings.

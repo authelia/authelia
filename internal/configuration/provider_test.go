@@ -1947,3 +1947,69 @@ func TestFileSource_LoadErrors(t *testing.T) {
 		assert.Equal(t, "light", source.koanf.Get("theme"))
 	})
 }
+
+func TestShouldLoadTrustedProxies(t *testing.T) {
+	testCases := []struct {
+		name     string
+		source   string
+		enable   bool
+		expected []string
+	}{
+		{
+			"ShouldBeDisabledWhenAbsent",
+			"server:\n  headers: {}\n",
+			false,
+			nil,
+		},
+		{
+			"ShouldBeDisabledWhenNull",
+			"server:\n  headers:\n    trusted_proxies:\n",
+			false,
+			nil,
+		},
+		{
+			"ShouldEnableWithoutNetworks",
+			"server:\n  headers:\n    trusted_proxies:\n      enable: true\n      networks: []\n",
+			true,
+			nil,
+		},
+		{
+			"ShouldDecodeSingle",
+			"server:\n  headers:\n    trusted_proxies:\n      enable: true\n      networks: '192.168.1.10'\n",
+			true,
+			[]string{"192.168.1.10/32"},
+		},
+		{
+			"ShouldDecodeDefinition",
+			"definitions:\n  network:\n    lan: ['10.0.0.0/8']\nserver:\n  headers:\n    trusted_proxies:\n      enable: true\n      networks: ['lan', '192.168.1.10']\n",
+			true,
+			[]string{"10.0.0.0/8", "192.168.1.10/32"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			source := NewBytesSource([]byte(tc.source))
+
+			val := schema.NewStructValidator()
+
+			definitions, err := LoadDefinitions(val, source)
+			require.NoError(t, err)
+
+			config := &schema.Configuration{}
+
+			_, err = LoadAdvanced(val, "", config, definitions, source)
+			require.NoError(t, err)
+			require.Empty(t, val.Errors())
+
+			actual := config.Server.Headers.TrustedProxies
+
+			assert.Equal(t, tc.enable, actual.Enable)
+			assert.Len(t, actual.Networks, len(tc.expected))
+
+			for i, expected := range tc.expected {
+				assert.Equal(t, expected, actual.Networks[i].String())
+			}
+		})
+	}
+}

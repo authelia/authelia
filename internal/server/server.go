@@ -32,7 +32,7 @@ func New(config *schema.Configuration, providers middlewares.Providers) (server 
 	}
 
 	server = &fasthttp.Server{
-		ErrorHandler:          handleError("server"),
+		ErrorHandler:          handleError("server", config.Server.Headers.TrustedProxies),
 		Handler:               handler,
 		NoDefaultServerHeader: true,
 		ReadBufferSize:        config.Server.Buffers.Read,
@@ -95,7 +95,7 @@ func NewMetrics(config *schema.Configuration, providers middlewares.Providers) (
 	}
 
 	server = &fasthttp.Server{
-		ErrorHandler:          handleError("telemetry.metrics"),
+		ErrorHandler:          handleError("telemetry.metrics", config.Server.Headers.TrustedProxies),
 		NoDefaultServerHeader: true,
 		Handler:               handlerMetrics(providers.Metrics, config.Telemetry.Metrics.Address.RouterPath()),
 		ReadBufferSize:        config.Telemetry.Metrics.Buffers.Read,
