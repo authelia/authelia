@@ -21,51 +21,120 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// AuthzContext describes the context implementation that must be used within the Authz concrete implementation.
 type AuthzContext interface {
 	context.Context
 
-	GetLogger() *logrus.Entry
-	GetConfiguration() *schema.Configuration
-	GetClock() clock.Provider
-	GetProviders() middlewares.Providers
-	GetUserProvider() authentication.UserProvider
-	GetRandom() (random random.Provider)
-	GetProviderUserAttributeResolver() expression.UserAttributeResolver
-	GetProviderStorage() storage.Provider
+	// GetLogger should return a relevant *logrus.Entry which can be used to log information for this request.
+	GetLogger() (entry *logrus.Entry)
+
+	// GetConfiguration should return the global configuration.
+	GetConfiguration() (config *schema.Configuration)
+
+	// GetClock should return the clock.Provider.
+	GetClock() (provider clock.Provider)
+
+	// GetProviders should return the middlewares.Providers.
+	GetProviders() (providers middlewares.Providers)
+
+	// GetUserProvider should return a authentication.UserProvider.
+	GetUserProvider() (provider authentication.UserProvider)
+
+	// GetRandom should return a random.Provider.
+	GetRandom() (provider random.Provider)
+
+	// GetProviderUserAttributeResolver should return a expression.UserAttributeResolver.
+	GetProviderUserAttributeResolver() (provider expression.UserAttributeResolver)
+
+	// GetProviderStorage should return a storage.Provider.
+	GetProviderStorage() (provider storage.Provider)
+
+	// GetJWTWithTimeFuncOption should return a jwt.ParserOption.
 	GetJWTWithTimeFuncOption() (option jwt.ParserOption)
 
+	// Method should return the HTTP method used for the request.
 	Method() (method []byte)
+
+	// Host should return the Host of the request.
 	Host() (host []byte)
+
+	// XForwardedMethod should return the X-Forwarded-Method header of the request.
 	XForwardedMethod() (method []byte)
+
+	// XForwardedProto should return the X-Forwarded-Proto header of the request.
 	XForwardedProto() (proto []byte)
+
+	// XForwardedHost should return the X-Forwarded-Host header of the request.
 	XForwardedHost() (host []byte)
+
+	// XForwardedURI should return the X-Forwarded-URI header of the request.
 	XForwardedURI() (uri []byte)
+
+	// XOriginalMethod should return the X-Original-Method header of the request.
 	XOriginalMethod() (method []byte)
-	XOriginalURL() (uri []byte)
+
+	// XOriginalURL should return the X-Original-URL header of the request.
+	XOriginalURL() (url []byte)
+
+	// GetXOriginalURLOrXForwardedURL should return the X-Original-URL header or X-Forwarded-* headers of the request.
 	GetXOriginalURLOrXForwardedURL() (requestURI *url.URL, err error)
-	XAutheliaURL() []byte
-	QueryArgAutheliaURL() []byte
+
+	// XAutheliaURL should return the X-Authelia-URL header of the request.
+	XAutheliaURL() (url []byte)
+
+	// QueryArgAutheliaURL should return the authelia_url query argument from the request.
+	QueryArgAutheliaURL() (url []byte)
+
+	// IssuerURL should return the issuer URL of the request.
 	IssuerURL() (issuerURL *url.URL, err error)
 
+	// GetSessionManagerByTargetURI should return the session manager for the target URL.
 	GetSessionManagerByTargetURI(targetURL *url.URL) (manager session.Manager, err error)
 
+	// GetRequestQueryArgValue should return the request URI of the request.
 	GetRequestQueryArgValue(key []byte) (value []byte)
+
+	// GetRequestHeaderValue returns the value of the header with the given key.
 	GetRequestHeaderValue(key []byte) (value []byte)
+
+	// SetResponseHeaderValue should set the value of the header with the given key.
 	SetResponseHeaderValue(key []byte, value string)
+
+	// SetResponseHeaderValueBytes should set the value of the header with the given key.
 	SetResponseHeaderValueBytes(key, value []byte)
 
+	// AuthzPath should return the path of the authorization request.
 	AuthzPath() (uri []byte)
+
+	// IsXHR should return true if the request is an XHR.
 	IsXHR() (xhr bool)
+
+	// AcceptsMIME should return true if the request accepts the given MIME type.
 	AcceptsMIME(mime string) (ok bool)
 
+	// ReplyStatusCode should reply with the given status code.
 	ReplyStatusCode(statusCode int)
+
+	// ReplyUnauthorized should reply with the Unauthorized status code.
 	ReplyUnauthorized()
+
+	// ReplyForbidden should reply with the Forbidden status code.
 	ReplyForbidden()
+
+	// SpecialRedirect should perform a redirect to the given URI with the given status code and write a HTML body with
+	// the redirect anchor.
 	SpecialRedirect(uri string, statusCode int)
+
+	// SpecialRedirectNoBody should perform a redirect to the given URI with the given status code without a body.
 	SpecialRedirectNoBody(uri string, statusCode int)
 
+	// RecordAuthn should record the authentication of the user.
 	RecordAuthn(success, banned bool, authType string)
+
+	// RemoteIP Should return the remote IP of the request.
 	RemoteIP() net.IP
+
+	// GetSessionProviderByTargetURI should return the session provider for the target URL.
 	GetSessionProviderByTargetURI(targetURL *url.URL) (provider *session.Session, err error)
 }
 

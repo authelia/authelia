@@ -113,10 +113,12 @@ func (p *Session) GetExpiration(ctx *fasthttp.RequestCtx) (time.Duration, error)
 	return store.GetExpiration(), nil
 }
 
+// NewEncapsulatedSession returns a new encapsulated session which contains the request context and the *Session.
 func NewEncapsulatedSession(base *Session, ctx *fasthttp.RequestCtx) *EncapsulatedSession {
 	return &EncapsulatedSession{base: base, ctx: ctx}
 }
 
+// EncapsulatedSession encapsulates a session and a request context.
 type EncapsulatedSession struct {
 	base *Session
 
@@ -158,10 +160,12 @@ func (p *EncapsulatedSession) GetSessionExpiration() (expiration time.Duration, 
 	return p.base.GetExpiration(p.ctx)
 }
 
+// GetSessionConfig returns the session configuration.
 func (p *EncapsulatedSession) GetSessionConfig() (config schema.SessionCookie) {
 	return p.base.Config
 }
 
+// Manager is the interface that wraps the basic methods of a session provider.
 type Manager interface {
 	NewDefaultUserSession() (userSession UserSession)
 	GetSession() (userSession UserSession, err error)
