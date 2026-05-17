@@ -196,8 +196,8 @@ importers:
         specifier: 0.13.0
         version: 0.13.0(eslint@10.4.0(jiti@2.4.1))(meow@13.2.0)(typescript@6.0.3)(vite@8.0.13(@types/node@25.8.0)(jiti@2.4.1)(yaml@2.9.0))
       vite-plugin-istanbul:
-        specifier: 8.0.0
-        version: 8.0.0(vite@8.0.13(@types/node@25.8.0)(jiti@2.4.1)(yaml@2.9.0))
+        specifier: 9.0.0
+        version: 9.0.0(vite@8.0.13(@types/node@25.8.0)(jiti@2.4.1)(yaml@2.9.0))
       vite-plugin-svgr:
         specifier: 5.2.0
         version: 5.2.0(typescript@6.0.3)(vite@8.0.13(@types/node@25.8.0)(jiti@2.4.1)(yaml@2.9.0))
@@ -3612,8 +3612,8 @@ packages:
       vue-tsc:
         optional: true
 
-  vite-plugin-istanbul@8.0.0:
-    resolution: {integrity: sha512-r6L7cg2iwPqNnY/rWFyemWeDTIKRZjekEWS90e2FsTjDYH4UdTS6hvW1nEX1B++PKPCnqCaj5BJTDn5Cy5jYoQ==}
+  vite-plugin-istanbul@9.0.0:
+    resolution: {integrity: sha512-Ia0GYwVAYZMyGM9vZFAb1+xy/s+aFWBO0lWfpuBbl9XyHEm1rVCBtpk+52G2M54t272q9b07CMlwSuew7DNhqQ==}
     peerDependencies:
       vite: 8.0.13
 
@@ -7538,7 +7538,7 @@ snapshots:
       meow: 13.2.0
       typescript: 6.0.3
 
-  vite-plugin-istanbul@8.0.0(vite@8.0.13(@types/node@25.8.0)(jiti@2.4.1)(yaml@2.9.0)):
+  vite-plugin-istanbul@9.0.0(vite@8.0.13(@types/node@25.8.0)(jiti@2.4.1)(yaml@2.9.0)):
     dependencies:
       '@babel/generator': 7.29.1
       '@istanbuljs/load-nyc-config': 1.1.0
