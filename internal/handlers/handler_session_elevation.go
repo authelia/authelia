@@ -269,7 +269,7 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if code, err = ctx.Providers.StorageProvider.LoadOneTimeCode(ctx, userSession.Username, model.OTCIntentUserSessionElevation, bodyJSON.OneTimeCode); err != nil {
+	if code, err = ctx.Providers.StorageProvider.LoadOneTimeCode(ctx, userSession.Username, model.NewIP(ctx.RemoteIP()), model.OTCIntentUserSessionElevation, bodyJSON.OneTimeCode); err != nil {
 		ctx.Logger.WithError(err).
 			Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s': error occurred retrieving the code challenge from the storage backend", userSession.Username)
 
