@@ -1,0 +1,13 @@
+---
+services:
+  authelia-backend:
+    environment:
+      X_AUTHELIA_CONFIG_FILTERS: 'template'
+    volumes:
+      - './PAM/configuration.yml:/config/configuration.yml'
+      - './PAM/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+      - '/tmp:/tmp'
+    user: '${USER_ID}:${GROUP_ID}'
+...

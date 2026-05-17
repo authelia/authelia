@@ -116,6 +116,9 @@ var hostEntries = []HostEntry{
 	{Domain: "redis-sentinel-1.example.com", IP: "192.168.240.121"},
 	{Domain: "redis-sentinel-2.example.com", IP: "192.168.240.122"},
 
+	// For PAM suite.
+	{Domain: "ssh.example.com", IP: "192.168.240.130"},
+
 	// For multi cookie domain tests.
 	{Domain: "login.example2.com", IP: "192.168.240.100"},
 	{Domain: "admin.example2.com", IP: "192.168.240.100"},

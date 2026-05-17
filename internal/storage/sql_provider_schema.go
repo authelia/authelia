@@ -294,6 +294,25 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnectio
 		}
 	}
 
+	var (
+		migrationsSpecial []fSchemaMigration
+		ok                bool
+	)
+
+	if migration.Up {
+		migrationsSpecial, ok = migrationsSpecialUp[migration.Version]
+	} else {
+		migrationsSpecial, ok = migrationsSpecialDown[migration.Version]
+	}
+
+	if ok {
+		for _, special := range migrationsSpecial {
+			if err = special(ctx, conn, p, migration.Before(), migration.After()); err != nil {
+				return err
+			}
+		}
+	}
+
 	if err = p.schemaMigrateFinalize(ctx, conn, migration); err != nil {
 		return err
 	}

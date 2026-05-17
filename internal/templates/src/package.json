@@ -10,45 +10,21 @@
   "author": "Authelia",
   "license": "Apache-2.0",
   "dependencies": {
-    "react": "19.2.5",
-    "react-dom": "19.2.5",
-    "react-email": "6.0.5",
-    "tailwind-merge": "3.5.0",
-    "tailwindcss": "4.2.4",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "react-email": "6.1.4",
+    "tailwind-merge": "3.6.0",
+    "tailwindcss": "4.3.0",
     "typescript": "6.0.3"
   },
   "devDependencies": {
     "@radix-ui/colors": "3.0.0",
-    "@react-email/ui": "6.0.5",
-    "@types/node": "25.6.0",
+    "@react-email/ui": "6.1.4",
+    "@types/node": "25.8.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "eslint": "10.3.0",
-    "tsx": "4.21.0",
-    "vitest": "4.1.5"
-  },
-  "pnpm": {
-    "overrides": {
-      "@babel/helpers": "7.29.2",
-      "@babel/runtime": "7.29.2",
-      "@babel/traverse": "7.29.0",
-      "ajv": "8.20.0",
-      "brace-expansion": "5.0.5",
-      "flatted": "3.4.2",
-      "glob": "13.0.6",
-      "js-yaml": "4.1.1",
-      "minimatch": "10.2.5",
-      "nanoid": "5.1.11",
-      "picomatch": "4.0.4",
-      "postcss": "8.5.13",
-      "prismjs": "1.30.0",
-      "rollup": "4.60.2",
-      "socket.io-parser": "4.2.6",
-      "vite": "8.0.10"
-    },
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp"
-    ]
+    "eslint": "10.4.0",
+    "tsx": "4.22.0",
+    "vitest": "4.1.6"
   }
 }

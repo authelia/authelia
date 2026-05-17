@@ -17,7 +17,7 @@ RUN \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.26.2-bookworm@sha256:47ce5636e9936b2c5cbf708925578ef386b4f8872aec74a67bd13a627d242b19 AS builder-backend
+FROM golang:1.26.3-bookworm@sha256:252599aeb51ad60b83e4d8821802068127c528c707cb7dd7afd93be057c6011c AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -43,7 +43,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:98699169660051e159b769a2e98838cd4acf3486d7f1ef69d01716e928d4df8a
+FROM authelia/base:latest@sha256:8ade42b8e185ec67c0a16ee1dfb30e755d8e17fede16ce48f690d47225bdd722
 
 WORKDIR /app
 

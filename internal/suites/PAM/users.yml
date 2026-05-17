@@ -1,0 +1,16 @@
+---
+users:
+  john:
+    displayname: "John Doe"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+  jane:
+    displayname: "Jane Doe"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
+    email: jane.doe@authelia.com
+    groups:
+      - dev
+...

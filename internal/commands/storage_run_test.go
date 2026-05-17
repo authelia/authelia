@@ -2325,7 +2325,7 @@ func TestNewStorageMigrationRunE(t *testing.T) {
 		{
 			"ShouldErrUpMigrationTargetSameAsCurrent",
 			true,
-			map[string]string{cmdFlagNameTarget: "23"},
+			map[string]string{cmdFlagNameTarget: "24"},
 			"schema migration target version",
 		},
 	}
@@ -2541,20 +2541,30 @@ func TestStorageUserWebAuthnVerifyRunE(t *testing.T) {
 	testCases := []struct {
 		name     string
 		seed     bool
+		flag     bool
 		err      string
 		expected string
 	}{
 		{
 			"ShouldErrNoCredentials",
 			false,
+			true,
 			"no WebAuthn credentials in database",
 			"",
 		},
 		{
 			"ShouldSucceedVerifyCredentials",
 			true,
+			true,
 			"",
 			"WebAuthn Credential Verifications:",
+		},
+		{
+			"ShouldErrorNoFlag",
+			false,
+			false,
+			"flag accessed but not defined: verbose",
+			"",
 		},
 	}
 
@@ -2568,6 +2578,10 @@ func TestStorageUserWebAuthnVerifyRunE(t *testing.T) {
 
 			cmd, buf := newTestCmdWithBuf()
 
+			if tc.flag {
+				cmd.Flags().Bool(cmdFlagNameVerbose, false, "")
+			}
+
 			err := cmdCtx.StorageUserWebAuthnVerifyRunE(cmd, nil)
 
 			if tc.err == "" {
@@ -2577,7 +2591,7 @@ func TestStorageUserWebAuthnVerifyRunE(t *testing.T) {
 				assert.Contains(t, buf.String(), "RPID")
 				assert.Contains(t, buf.String(), "Username")
 			} else {
-				assert.ErrorContains(t, err, tc.err)
+				assert.EqualError(t, err, tc.err)
 			}
 		})
 	}
@@ -2587,17 +2601,20 @@ func TestRunStorageUserWebAuthnVerify(t *testing.T) {
 	testCases := []struct {
 		name     string
 		seed     bool
+		verbose  bool
 		err      string
 		expected []string
 	}{
 		{
 			"ShouldErrNoCredentials",
 			false,
+			false,
 			"no WebAuthn credentials in database",
 			nil,
 		},
 		{
 			"ShouldSucceedVerify",
+			true,
 			true,
 			"",
 			[]string{"WebAuthn Credential Verifications:", "john", "example.com"},
@@ -2614,7 +2631,7 @@ func TestRunStorageUserWebAuthnVerify(t *testing.T) {
 
 			buf := new(bytes.Buffer)
 
-			err := runStorageUserWebAuthnVerify(context.Background(), buf, cmdCtx.providers.StorageProvider, cmdCtx.config)
+			err := runStorageUserWebAuthnVerify(context.Background(), buf, cmdCtx.providers.StorageProvider, cmdCtx.config, tc.verbose)
 
 			if tc.err == "" {
 				assert.NoError(t, err)

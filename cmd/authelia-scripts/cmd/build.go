@@ -80,6 +80,7 @@ func buildAutheliaBinaryCI(xflags []string) {
 		"-e", "BUILDKITE_TAG=" + os.Getenv("BUILDKITE_TAG"),
 		"-e", "GOPATH=/tmp/go",
 		"-e", "GOCACHE=/tmp/go-build",
+		"-e", "GOTOOLCHAIN=auto",
 		"-e", "GPG_PASSWORD=" + os.Getenv("GPG_PASSWORD"),
 		"-e", "GPG_KEY_PATH=" + os.Getenv("GPG_KEY_PATH"),
 		"-e", "HOME=/tmp",

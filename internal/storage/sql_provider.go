@@ -387,6 +387,14 @@ type SQLProviderKeys struct {
 	otpHMAC    []byte
 }
 
+func (p *SQLProvider) conn(ctx context.Context) (conn SQLXConnection) {
+	if c, ok := ctx.Value(ctxKeyConnection).(SQLXConnection); ok && c != nil {
+		return c
+	}
+
+	return p.db
+}
+
 // StartupCheck implements the provider startup check interface.
 func (p *SQLProvider) StartupCheck() (err error) {
 	if p.errOpen != nil {
@@ -730,7 +738,7 @@ func (p *SQLProvider) SaveWebAuthnCredential(ctx context.Context, credential mod
 
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertWebAuthnCredential,
 		credential.CreatedAt, credential.LastUsedAt, credential.RPID, credential.Username, credential.Description,
-		credential.KID, credential.AAGUID, credential.AttestationType, credential.Attachment, credential.Transport,
+		credential.KID, credential.AAGUID, credential.AttestationType, credential.AttestationFormat, credential.Attachment, credential.Transport,
 		credential.SignCount, credential.CloneWarning, credential.Discoverable, credential.Present, credential.Verified,
 		credential.BackupEligible, credential.BackupState, credential.PublicKey, credential.Attestation,
 	); err != nil {
@@ -753,8 +761,8 @@ func (p *SQLProvider) UpdateWebAuthnCredentialDescription(ctx context.Context, u
 // UpdateWebAuthnCredentialSignIn updates a registered WebAuthn credential in the storage provider changing the
 // information that should be changed in the event of a successful sign in.
 func (p *SQLProvider) UpdateWebAuthnCredentialSignIn(ctx context.Context, credential model.WebAuthnCredential) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateWebAuthnCredentialRecordSignIn,
-		credential.RPID, credential.LastUsedAt, credential.SignCount, credential.Discoverable, credential.Present, credential.Verified,
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateWebAuthnCredentialRecordSignIn,
+		credential.RPID, credential.LastUsedAt, credential.AttestationType, credential.SignCount, credential.Discoverable, credential.Present, credential.Verified,
 		credential.BackupEligible, credential.BackupState, credential.CloneWarning, credential.ID,
 	); err != nil {
 		return fmt.Errorf("error updating WebAuthn credentials authentication metadata for id '%x': %w", credential.ID, err)
@@ -796,7 +804,7 @@ func (p *SQLProvider) DeleteWebAuthnCredentialByUsername(ctx context.Context, us
 func (p *SQLProvider) LoadWebAuthnCredentials(ctx context.Context, limit, page int) (credentials []model.WebAuthnCredential, err error) {
 	credentials = make([]model.WebAuthnCredential, 0, limit)
 
-	if err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentials, limit, limit*page); err != nil {
+	if err = p.conn(ctx).SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentials, limit, limit*page); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}

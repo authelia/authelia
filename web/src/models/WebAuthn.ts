@@ -114,6 +114,7 @@ export interface WebAuthnCredential {
     kid: Uint8Array;
     aaguid?: string;
     attestation_type: string;
+    attestation_format: string;
     attachment: string;
     transports: null | string[];
     sign_count: number;

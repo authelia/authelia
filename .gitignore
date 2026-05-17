@@ -40,3 +40,6 @@ internal/suites/testdata/*.actual.png
 
 .graphifyignore
 graphify-out/
+
+# Added by ggshield
+.cache_ggshield
