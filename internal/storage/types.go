@@ -8,6 +8,24 @@ import (
 	"github.com/rpadovani/sqlx-v2"
 )
 
+// SQLXDB represents a *sqlx.DB allowing for mocks.
+type SQLXDB interface {
+	SQLXConnection
+
+	Beginx() (tx SQLXTx, err error)
+	BeginTxx(ctx context.Context, opts *sql.TxOptions) (tx SQLXTx, err error)
+
+	Ping() (err error)
+	Close() (err error)
+}
+
+type SQLXTx interface {
+	SQLXConnection
+
+	Commit() (err error)
+	Rollback() (err error)
+}
+
 // SQLXConnection is a *sqlx.DB or *sqlx.Tx.
 type SQLXConnection interface {
 	sqlx.Execer
@@ -21,6 +39,8 @@ type SQLXConnection interface {
 
 	sqlx.Ext
 	sqlx.ExtContext
+
+	Rebind(query string) (rebound string)
 
 	NamedQuery(query string, arg any) (*sqlx.Rows, error)
 	NamedQueryContext(ctx context.Context, query string, arg any) (rows *sqlx.Rows, err error)
@@ -44,8 +64,20 @@ type SQLXConnection interface {
 	PrepareNamedContext(ctx context.Context, query string) (statement *sqlx.NamedStmt, err error)
 }
 
+type SQLXWrapDB struct {
+	*sqlx.DB
+}
+
+func (db *SQLXWrapDB) Beginx() (tx SQLXTx, err error) {
+	return db.DB.Beginx()
+}
+
+func (db *SQLXWrapDB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (tx SQLXTx, err error) {
+	return db.DB.BeginTxx(ctx, opts)
+}
+
 // EncryptionChangeKeyFunc handles encryption key changes for a specific table or tables.
-type EncryptionChangeKeyFunc func(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error)
+type EncryptionChangeKeyFunc func(ctx context.Context, provider *SQLProvider, tx SQLXTx, key [32]byte) (err error)
 
 // EncryptionCheckKeyFunc handles encryption key checking for a specific table or tables.
 type EncryptionCheckKeyFunc func(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult)

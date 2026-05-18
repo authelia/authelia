@@ -39,7 +39,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 	db, err := sqlx.Open(driverName, dataSourceName)
 
 	provider = SQLProvider{
-		db:         db,
+		db:         &SQLXWrapDB{db},
 		name:       name,
 		driverName: driverName,
 		config:     config,
@@ -198,7 +198,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
-	db *sqlx.DB
+	db SQLXDB
 
 	name       string
 	driverName string
@@ -450,9 +450,9 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 // BeginTX begins a transaction with the storage provider when applicable.
 func (p *SQLProvider) BeginTX(ctx context.Context) (c context.Context, err error) {
-	var tx *sql.Tx
+	var tx SQLXTx
 
-	if tx, err = p.db.Begin(); err != nil {
+	if tx, err = p.db.BeginTxx(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -461,7 +461,7 @@ func (p *SQLProvider) BeginTX(ctx context.Context) (c context.Context, err error
 
 // Commit performs a storage provider commit when applicable.
 func (p *SQLProvider) Commit(ctx context.Context) (err error) {
-	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+	tx, ok := ctx.Value(ctxKeyTransaction).(SQLXTx)
 
 	if !ok {
 		return errors.New("could not retrieve tx")
@@ -472,7 +472,7 @@ func (p *SQLProvider) Commit(ctx context.Context) (err error) {
 
 // Rollback performs a storage provider rollback when applicable.
 func (p *SQLProvider) Rollback(ctx context.Context) (err error) {
-	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+	tx, ok := ctx.Value(ctxKeyTransaction).(SQLXTx)
 
 	if !ok {
 		return errors.New("could not retrieve tx")
