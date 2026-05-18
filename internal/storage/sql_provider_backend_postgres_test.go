@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -256,9 +257,10 @@ func TestDSNPostgreSQLFallbacks(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name    string
-		servers []schema.StoragePostgreSQLServer
-		assert  func(t *testing.T, dsnConfig *pgx.ConnConfig)
+		name     string
+		existing []*pgconn.FallbackConfig
+		servers  []schema.StoragePostgreSQLServer
+		assert   func(t *testing.T, dsnConfig *pgx.ConnConfig)
 	}{
 		{
 			name:    "ShouldHandleEmptyServers",
@@ -374,12 +376,17 @@ func TestDSNPostgreSQLFallbacks(t *testing.T) {
 		},
 		{
 			name: "ShouldOverwriteExistingFallbacks",
+			existing: []*pgconn.FallbackConfig{
+				{Host: "old1.example.com", Port: 1111},
+				{Host: "old2.example.com", Port: 2222},
+			},
 			servers: []schema.StoragePostgreSQLServer{
 				{Address: mkAddress(t, "tcp://db.example.com:5432")},
 			},
 			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
 				require.Len(t, dsnConfig.Fallbacks, 1)
 				assert.Equal(t, "db.example.com", dsnConfig.Fallbacks[0].Host)
+				assert.Equal(t, uint16(5432), dsnConfig.Fallbacks[0].Port)
 			},
 		},
 	}
@@ -390,6 +397,10 @@ func TestDSNPostgreSQLFallbacks(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			dsnConfig, err := pgx.ParseConfig("")
 			require.NoError(t, err)
+
+			if tc.existing != nil {
+				dsnConfig.Fallbacks = tc.existing
+			}
 
 			config := &schema.StoragePostgreSQL{
 				Servers: tc.servers,
