@@ -42,8 +42,6 @@ func isAuthzResult(level authentication.Level, required authorization.Level, rul
 	}
 }
 
-// generateVerifySessionHasUpToDateProfileTraceLogs is used to generate trace logs only when trace logging is enabled.
-// The information calculated in this function is completely useless other than trace for now.
 func generateVerifySessionHasUpToDateProfileTraceLogs(ctx AuthzContext, userSession *session.UserSession,
 	details *authentication.UserDetails) {
 	groupsAdded, groupsRemoved := utils.StringSlicesDelta(userSession.Groups, details.Groups)

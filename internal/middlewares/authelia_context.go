@@ -317,7 +317,7 @@ func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provi
 	return ctx.Providers.SessionProvider.Get(domain)
 }
 
-// GetSessionManagerByTargetURI returns the session manager for the Request's domain.'.
+// GetSessionManagerByTargetURI returns the session manager for the request's domain.
 func (ctx *AutheliaCtx) GetSessionManagerByTargetURI(targetURL *url.URL) (provider session.Manager, err error) {
 	base, err := ctx.GetSessionProviderByTargetURI(targetURL)
 	if err != nil {
