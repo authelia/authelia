@@ -553,6 +553,14 @@ func (s *StoreSuite) TestGetSessions() {
 			EXPECT().
 			LoadOAuth2PARContext(s.ctx, "urn:par").
 			Return(nil, sql.ErrNoRows),
+		s.mock.
+			EXPECT().
+			LoadOAuth2PARContext(s.ctx, "urn:par").
+			Return(nil, fmt.Errorf("connection refused")),
+		s.mock.
+			EXPECT().
+			LoadOAuth2PARContext(s.ctx, "urn:par").
+			Return(&model.OAuth2PARContext{Signature: abc, RequestID: abc, ClientID: "hs256", Session: sessionData, Revoked: true}, nil),
 	)
 
 	var (
@@ -608,7 +616,15 @@ func (s *StoreSuite) TestGetSessions() {
 
 	r, err = s.store.GetPARSession(s.ctx, "urn:par")
 	s.Nil(r)
-	s.EqualError(err, "sql: no rows in result set")
+	s.EqualError(oauthelia2.ErrorToDebugRFC6749Error(err), "Could not find the requested resource(s). The requested PAR session was not found, was expired, or was otherwise invalid.")
+
+	r, err = s.store.GetPARSession(s.ctx, "urn:par")
+	s.Nil(r)
+	s.EqualError(oauthelia2.ErrorToDebugRFC6749Error(err), "The authorization server encountered an unexpected condition that prevented it from fulfilling the request. Error occurred retrieving the PAR session from storage: connection refused")
+
+	r, err = s.store.GetPARSession(s.ctx, "urn:par")
+	s.Nil(r)
+	s.EqualError(oauthelia2.ErrorToDebugRFC6749Error(err), "Could not find the requested resource(s). The requested PAR session was not found, was expired, or was otherwise invalid.")
 }
 
 func (s *StoreSuite) TestIsJWTUsed() {
