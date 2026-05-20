@@ -76,8 +76,8 @@
     "@typescript-eslint/eslint-plugin": "8.59.4",
     "@typescript-eslint/parser": "8.59.4",
     "@vitejs/plugin-react": "6.0.2",
-    "@vitest/coverage-istanbul": "4.1.6",
-    "@vitest/ui": "4.1.6",
+    "@vitest/coverage-istanbul": "4.1.7",
+    "@vitest/ui": "4.1.7",
     "eslint": "10.4.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-formatter-rdjson": "1.0.6",
@@ -94,7 +94,7 @@
     "vite-plugin-checker": "0.13.0",
     "vite-plugin-istanbul": "9.0.0",
     "vite-plugin-svgr": "5.2.0",
-    "vitest": "4.1.6",
+    "vitest": "4.1.7",
     "vitest-preview": "0.0.3"
   }
 }
