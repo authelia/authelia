@@ -70,7 +70,7 @@
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
     "@types/node": "25.9.1",
-    "@types/react": "19.2.14",
+    "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",
     "@types/zxcvbn": "4.4.5",
     "@typescript-eslint/eslint-plugin": "8.59.4",
