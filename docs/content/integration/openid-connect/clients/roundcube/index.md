@@ -67,7 +67,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/oauth/callback/'
+          - 'https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/index.php/login/oauth'
         scopes:
           - 'openid'
           - 'profile'
