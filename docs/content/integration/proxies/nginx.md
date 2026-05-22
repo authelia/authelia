@@ -408,9 +408,9 @@ Generally this variant is the suggested variant.
 ```nginx {title="proxy.conf"}
 ## Headers
 proxy_set_header Host $host;
-proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+proxy_set_header X-Original-URL $scheme://$host$request_uri;
 proxy_set_header X-Forwarded-Proto $scheme;
-proxy_set_header X-Forwarded-Host $http_host;
+proxy_set_header X-Forwarded-Host $host;
 proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
@@ -450,9 +450,9 @@ headers for Authelia to operate.
 ```nginx {title="proxy.conf"}
 ## Headers
 proxy_set_header Host $host;
-proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+proxy_set_header X-Original-URL $scheme://$host$request_uri;
 proxy_set_header X-Forwarded-Proto $scheme;
-proxy_set_header X-Forwarded-Host $http_host;
+proxy_set_header X-Forwarded-Host $host;
 proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
@@ -486,7 +486,7 @@ location /internal/authelia/authz {
     ## Headers
     ## The headers starting with X-* are required.
     proxy_set_header X-Original-Method $request_method;
-    proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+    proxy_set_header X-Original-URL $scheme://$host$request_uri;
     proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header Content-Length "";
     proxy_set_header Connection "";
@@ -542,7 +542,7 @@ error_page 401 =302 $redirection_url;
 
 ## Legacy Method: Set $target_url to the original requested URL.
 ## This requires http_set_misc module, replace 'set_escape_uri' with 'set' if you don't have this module.
-# set_escape_uri $target_url $scheme://$http_host$request_uri;
+# set_escape_uri $target_url $scheme://$host$request_uri;
 
 ## Legacy Method: When there is a 401 response code from the authz endpoint redirect to the portal with the 'rd'
 ## URL parameter set to $target_url. This requires users update '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/' with their external authelia URL.
@@ -574,11 +574,11 @@ location /internal/authelia/authz/basic {
     ## Headers
     ## The headers starting with X-* are required.
     proxy_set_header X-Original-Method $request_method;
-    proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+    proxy_set_header X-Original-URL $scheme://$host$request_uri;
     proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Forwarded-Method $request_method;
     proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Host $http_host;
+    proxy_set_header X-Forwarded-Host $host;
     proxy_set_header X-Forwarded-URI $request_uri;
     proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header Content-Length "";
@@ -680,10 +680,10 @@ endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequ
 auth_request /internal/authelia/authz;
 
 ## Comment this line if you're using nginx without the http_set_misc module.
-set_escape_uri $target_url $scheme://$http_host$request_uri;
+set_escape_uri $target_url $scheme://$host$request_uri;
 
 ## Uncomment this line if you're using NGINX without the http_set_misc module.
-# set $target_url $scheme://$http_host$request_uri;
+# set $target_url $scheme://$host$request_uri;
 
 ## Save the upstream response headers from Authelia to variables.
 auth_request_set $user $upstream_http_remote_user;
@@ -699,6 +699,68 @@ proxy_set_header Remote-Email $email;
 
 ## If the subreqest returns 200 pass to the backend, if the subrequest returns 401 redirect to the portal.
 error_page 401 =302 /internal/authelia/authz/detect?rd=$target_url;
+```
+
+## FAQ
+
+### Why are both the X-Forwarded-* and X-Original-URL headers required?
+
+The `X-Forwarded-*` headers is required for Authelia to function properly itself when you are making requests to the
+portal or API. This means that the `X-Forwarded-*` headers are not essential for anything other than Authelia itself. We
+do however recommend you use them.
+
+The `X-Original-URL` header is required for the `auth_request` directive to work properly. This header was chosen simply
+so that it's natively compatible with the [Kubernetes](#kubernetes) integrations. This means most of the time you do not
+need to include it, only for the `auth_request` directive to work.
+
+### I want to run nginx on a custom port, how do I do that?
+
+If you're using nginx with a custom port i.e. not 443 you will be required to adapt this configuration to handle this.
+Specifically you will need to change the `proxy_set_header X-Forwarded-Host` and `proxy_set_header X-Original-URL`
+directives. The advice is to either replace all instances of `$host` with `$host:{port}` i.e. static configuration or
+create a map.
+
+#### Static Configuration Example
+
+Before:
+
+```nginx
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Original-URL $scheme://$host$request_uri;
+```
+
+After (assuming port 8080):
+
+```nginx
+proxy_set_header X-Forwarded-Host $host:8080;
+proxy_set_header X-Original-URL $scheme://$host:8080$request_uri;
+```
+
+#### Map Example
+
+You need to add this map in the `http {}` block for your configuration.
+
+```nginx
+http {
+    map $http_host $port_suffix {
+        "~:(?<port>\d+)$"  ":$port";
+        default            "";
+    }
+}
+```
+
+Before:
+
+```nginx
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Original-URL $scheme://$host$request_uri;
+```
+
+After (assuming port 8080):
+
+```nginx
+proxy_set_header X-Forwarded-Host $host$port_suffix;
+proxy_set_header X-Original-URL $scheme://$host$port_suffix$request_uri;
 ```
 
 ## Kubernetes
