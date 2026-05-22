@@ -50,7 +50,7 @@ require (
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
 	golang.org/x/crypto v0.52.0
-	golang.org/x/net v0.54.0
+	golang.org/x/net v0.55.0
 	golang.org/x/sync v0.20.0
 	golang.org/x/term v0.43.0
 	golang.org/x/text v0.37.0
@@ -122,7 +122,7 @@ require (
 
 replace (
 	filippo.io/edwards25519 v1.1.0 => filippo.io/edwards25519 v1.2.0
-	golang.org/x/net => golang.org/x/net v0.54.0
+	golang.org/x/net => golang.org/x/net v0.55.0
 )
 
 exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
