@@ -303,3 +303,7 @@ func StringJoinBuild(sep, sepFinal, quote string, items []string) string {
 
 	return b.String()
 }
+
+func StringHasSuffixFold(s, suffix string) bool {
+	return len(s) >= len(suffix) && strings.EqualFold(s[len(s)-len(suffix):], suffix)
+}
