@@ -315,7 +315,7 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.ConsumeIdentityVerification(context.Background(), "jti", model.NullIP{})
 			},
-			expectErr: "error updating identity verification: boom",
+			expectErr: "error consuming identity verification with jti 'jti': boom",
 		},
 		{
 			name: "ShouldReturnErrRevokeIdentityVerification",
@@ -325,7 +325,7 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.RevokeIdentityVerification(context.Background(), "jti", model.NullIP{})
 			},
-			expectErr: "error updating identity verification: boom",
+			expectErr: "error revoking identity verification with jti 'jti': boom",
 		},
 		{
 			name: "ShouldReturnErrSaveOAuth2ConsentSessionGranted",
@@ -345,7 +345,7 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.RevokeOAuth2PARContext(context.Background(), "sig")
 			},
-			expectErr: "error revoking oauth2 pushed authorization request context with signature 'sig': boom",
+			expectErr: "error revoking oauth2 pushed authorization request session with signature 'sig': boom",
 		},
 		{
 			name: "ShouldReturnErrSaveOAuth2BlacklistedJTI",
@@ -1225,7 +1225,7 @@ func TestSQLProviderConsumeRevokeOneTimeCodeRowsAffected(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.ConsumeOneTimeCode(context.Background(), &model.OneTimeCode{Signature: "sig"})
 			},
-			expectErr: "error updating one-time code (consume): boom",
+			expectErr: "error consuming one-time code: boom",
 		},
 		{
 			name: "ShouldErrConsumeWhenRowsAffectedErrors",
@@ -1236,7 +1236,7 @@ func TestSQLProviderConsumeRevokeOneTimeCodeRowsAffected(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.ConsumeOneTimeCode(context.Background(), &model.OneTimeCode{Signature: "sig"})
 			},
-			expectErr: "error updating one-time code (consume): ra-err",
+			expectErr: "error consuming one-time code: ra-err",
 		},
 		{
 			name: "ShouldErrConsumeWhenNoRowsAffected",
@@ -1247,7 +1247,7 @@ func TestSQLProviderConsumeRevokeOneTimeCodeRowsAffected(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.ConsumeOneTimeCode(context.Background(), &model.OneTimeCode{Signature: "sig"})
 			},
-			expectErr: "error updating one-time code (consume): no rows affected",
+			expectErr: "error consuming one-time code: no rows affected",
 		},
 		{
 			name: "ShouldErrConsumeWhenMultipleRowsAffected",
@@ -1258,7 +1258,7 @@ func TestSQLProviderConsumeRevokeOneTimeCodeRowsAffected(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.ConsumeOneTimeCode(context.Background(), &model.OneTimeCode{Signature: "sig"})
 			},
-			expectErr: "error updating one-time code (consume): multiple rows affected",
+			expectErr: "error consuming one-time code: multiple rows affected",
 		},
 		{
 			name: "ShouldSucceedConsumeOneTimeCode",
@@ -1278,7 +1278,7 @@ func TestSQLProviderConsumeRevokeOneTimeCodeRowsAffected(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.RevokeOneTimeCode(context.Background(), uuid.Nil, model.NewIP(net.ParseIP("1.2.3.4")))
 			},
-			expectErr: "error updating one-time code (revoke): boom",
+			expectErr: "error revoking one-time code: boom",
 		},
 		{
 			name: "ShouldErrRevokeWhenNoRowsAffected",
@@ -1289,7 +1289,7 @@ func TestSQLProviderConsumeRevokeOneTimeCodeRowsAffected(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.RevokeOneTimeCode(context.Background(), uuid.Nil, model.NewIP(net.ParseIP("1.2.3.4")))
 			},
-			expectErr: "error updating one-time code (consume): no rows affected",
+			expectErr: "error revoking one-time code: no rows affected",
 		},
 		{
 			name: "ShouldErrRevokeWhenMultipleRowsAffected",
@@ -1300,7 +1300,7 @@ func TestSQLProviderConsumeRevokeOneTimeCodeRowsAffected(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.RevokeOneTimeCode(context.Background(), uuid.Nil, model.NewIP(net.ParseIP("1.2.3.4")))
 			},
-			expectErr: "error updating one-time code (consume): multiple rows affected",
+			expectErr: "error revoking one-time code: multiple rows affected",
 		},
 		{
 			name: "ShouldSucceedRevokeOneTimeCode",
@@ -1434,6 +1434,94 @@ func TestSQLProviderOAuth2SessionByType(t *testing.T) {
 	}
 }
 
+func TestSQLProviderExecRowsAffected(t *testing.T) {
+	testCases := []struct {
+		name      string
+		args      []any
+		invoke    func(p *storage.SQLProvider) error
+		rows      int64
+		rowsErr   error
+		expectErr string
+	}{
+		{
+			name:      "ShouldErrRevokeBannedUserWhenRowsAffectedErrors",
+			args:      []any{gomock.Any(), gomock.Any(), gomock.Any(), 3},
+			invoke:    func(p *storage.SQLProvider) error { return p.RevokeBannedUser(context.Background(), 3, time.Now()) },
+			rowsErr:   errors.New("ra-err"),
+			expectErr: "error revoking banned user with id '3': error occurred determining the number of affected rows: ra-err",
+		},
+		{
+			name:      "ShouldErrRevokeBannedUserWhenNoRowsAffected",
+			args:      []any{gomock.Any(), gomock.Any(), gomock.Any(), 3},
+			invoke:    func(p *storage.SQLProvider) error { return p.RevokeBannedUser(context.Background(), 3, time.Now()) },
+			rows:      0,
+			expectErr: "error revoking banned user with id '3': no rows affected",
+		},
+		{
+			name:      "ShouldErrRevokeBannedUserWhenMultipleRowsAffected",
+			args:      []any{gomock.Any(), gomock.Any(), gomock.Any(), 3},
+			invoke:    func(p *storage.SQLProvider) error { return p.RevokeBannedUser(context.Background(), 3, time.Now()) },
+			rows:      2,
+			expectErr: "error revoking banned user with id '3': multiple rows affected",
+		},
+		{
+			name:   "ShouldSucceedRevokeBannedUser",
+			args:   []any{gomock.Any(), gomock.Any(), gomock.Any(), 3},
+			invoke: func(p *storage.SQLProvider) error { return p.RevokeBannedUser(context.Background(), 3, time.Now()) },
+			rows:   1,
+		},
+		{
+			name:      "ShouldErrRevokeBannedIPWhenRowsAffectedErrors",
+			args:      []any{gomock.Any(), gomock.Any(), gomock.Any(), 5},
+			invoke:    func(p *storage.SQLProvider) error { return p.RevokeBannedIP(context.Background(), 5, time.Now()) },
+			rowsErr:   errors.New("ra-err"),
+			expectErr: "error revoking banned ip with id '5': error occurred determining the number of affected rows: ra-err",
+		},
+		{
+			name:      "ShouldErrRevokeBannedIPWhenNoRowsAffected",
+			args:      []any{gomock.Any(), gomock.Any(), gomock.Any(), 5},
+			invoke:    func(p *storage.SQLProvider) error { return p.RevokeBannedIP(context.Background(), 5, time.Now()) },
+			rows:      0,
+			expectErr: "error revoking banned ip with id '5': no rows affected",
+		},
+		{
+			name:      "ShouldErrRevokeBannedIPWhenMultipleRowsAffected",
+			args:      []any{gomock.Any(), gomock.Any(), gomock.Any(), 5},
+			invoke:    func(p *storage.SQLProvider) error { return p.RevokeBannedIP(context.Background(), 5, time.Now()) },
+			rows:      2,
+			expectErr: "error revoking banned ip with id '5': multiple rows affected",
+		},
+		{
+			name:   "ShouldSucceedRevokeBannedIP",
+			args:   []any{gomock.Any(), gomock.Any(), gomock.Any(), 5},
+			invoke: func(p *storage.SQLProvider) error { return p.RevokeBannedIP(context.Background(), 5, time.Now()) },
+			rows:   1,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			db := mocks.NewMockSQLXDB(ctrl)
+			result := mocks.NewMockSQLResult(ctrl)
+			p := storage.NewSQLProviderForTesting(db)
+
+			result.EXPECT().RowsAffected().Return(tc.rows, tc.rowsErr)
+			db.EXPECT().ExecContext(tc.args[0], tc.args[1], tc.args[2:]...).Return(result, nil)
+
+			err := tc.invoke(p)
+
+			if tc.expectErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.expectErr)
+			}
+		})
+	}
+}
+
 func TestSQLProviderRemainingExecErrors(t *testing.T) {
 	testCases := []struct {
 		name      string
@@ -1519,7 +1607,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.SaveOAuth2DeviceCodeSession(context.Background(), &model.OAuth2DeviceCodeSession{Signature: "sig", RequestID: "req"})
 			},
-			expectErr: "error inserting oauth2 device code session with device code signature 'sig' and user code signature '' for subject '' and request id 'req': boom",
+			expectErr: "error inserting oauth2 device code session with signature 'sig' and user code signature '' for subject '' and request id 'req': boom",
 		},
 		{
 			name: "ShouldReturnErrUpdateOAuth2DeviceCodeSession",
@@ -1534,7 +1622,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.UpdateOAuth2DeviceCodeSession(context.Background(), &model.OAuth2DeviceCodeSession{Signature: "sig", RequestID: "req"})
 			},
-			expectErr: "error updating oauth2 device code session with device code signature 'sig': boom",
+			expectErr: "error updating oauth2 device code session with signature 'sig': boom",
 		},
 		{
 			name: "ShouldReturnErrUpdateOAuth2DeviceCodeSessionData",
@@ -1549,7 +1637,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.UpdateOAuth2DeviceCodeSessionData(context.Background(), &model.OAuth2DeviceCodeSession{Signature: "sig"})
 			},
-			expectErr: "error updating oauth2 device code session data with device code signature 'sig': boom",
+			expectErr: "error updating oauth2 device code session data with signature 'sig': boom",
 		},
 		{
 			name: "ShouldReturnErrDeactivateOAuth2DeviceCodeSession",
@@ -1559,7 +1647,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.DeactivateOAuth2DeviceCodeSession(context.Background(), "sig")
 			},
-			expectErr: "error deactivating oauth2 device code session with device code signature 'sig': boom",
+			expectErr: "error deactivating oauth2 device code session with signature 'sig': boom",
 		},
 		{
 			name: "ShouldReturnErrLoadOAuth2DeviceCodeSession",
@@ -1570,7 +1658,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				_, err := p.LoadOAuth2DeviceCodeSession(context.Background(), "sig")
 				return err
 			},
-			expectErr: "error selecting oauth2 device code session with device code signature 'sig': boom",
+			expectErr: "error selecting oauth2 device code session with signature 'sig': boom",
 		},
 		{
 			name: "ShouldReturnErrLoadOAuth2DeviceCodeSessionByUserCode",
@@ -1971,7 +2059,7 @@ func TestSQLProviderRevokeOneTimeCodeRowsAffectedError(t *testing.T) {
 
 		err := p.RevokeOneTimeCode(context.Background(), uuid.Nil, model.NewIP(net.ParseIP("1.2.3.4")))
 
-		assert.EqualError(t, err, "error updating one-time code (consume): ra-err")
+		assert.EqualError(t, err, "error revoking one-time code: ra-err")
 	})
 }
 
