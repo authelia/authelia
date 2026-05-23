@@ -39,7 +39,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 	db, err := sqlx.Open(driverName, dataSourceName)
 
 	provider = SQLProvider{
-		db:         db,
+		db:         &SQLXWrapDB{db},
 		name:       name,
 		driverName: driverName,
 		config:     config,
@@ -198,7 +198,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
-	db *sqlx.DB
+	db SQLXDB
 
 	name       string
 	driverName string
@@ -450,9 +450,9 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 // BeginTX begins a transaction with the storage provider when applicable.
 func (p *SQLProvider) BeginTX(ctx context.Context) (c context.Context, err error) {
-	var tx *sql.Tx
+	var tx SQLXTx
 
-	if tx, err = p.db.Begin(); err != nil {
+	if tx, err = p.db.BeginTxx(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -461,7 +461,7 @@ func (p *SQLProvider) BeginTX(ctx context.Context) (c context.Context, err error
 
 // Commit performs a storage provider commit when applicable.
 func (p *SQLProvider) Commit(ctx context.Context) (err error) {
-	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+	tx, ok := ctx.Value(ctxKeyTransaction).(SQLXTx)
 
 	if !ok {
 		return errors.New("could not retrieve tx")
@@ -472,7 +472,7 @@ func (p *SQLProvider) Commit(ctx context.Context) (err error) {
 
 // Rollback performs a storage provider rollback when applicable.
 func (p *SQLProvider) Rollback(ctx context.Context) (err error) {
-	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+	tx, ok := ctx.Value(ctxKeyTransaction).(SQLXTx)
 
 	if !ok {
 		return errors.New("could not retrieve tx")
@@ -1016,7 +1016,7 @@ func (p *SQLProvider) LoadIdentityVerification(ctx context.Context, jti string) 
 // SaveOneTimeCode saves a One-Time Code to the storage provider after generating the signature which is returned
 // along with any error.
 func (p *SQLProvider) SaveOneTimeCode(ctx context.Context, code model.OneTimeCode) (signature string, err error) {
-	code.Signature = p.otcHMACSignature([]byte(code.Username), []byte(code.Intent), code.Code)
+	code.Signature = p.otcHMACSignature([]byte(code.Username), code.IssuedIP.IP, []byte(code.Intent), code.Code)
 
 	if code.Code, err = p.encrypt(code.Code); err != nil {
 		return "", fmt.Errorf("error encrypting the one-time code value for user '%s' with signature '%s': %w", code.Username, code.Signature, err)
@@ -1033,27 +1033,55 @@ func (p *SQLProvider) SaveOneTimeCode(ctx context.Context, code model.OneTimeCod
 
 // ConsumeOneTimeCode consumes a one-time code using the signature.
 func (p *SQLProvider) ConsumeOneTimeCode(ctx context.Context, code *model.OneTimeCode) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlConsumeOneTimeCode, code.ConsumedAt, code.ConsumedIP, code.Signature); err != nil {
+	var (
+		result sql.Result
+		rows   int64
+	)
+
+	if result, err = p.db.ExecContext(ctx, p.sqlConsumeOneTimeCode, code.ConsumedAt, code.ConsumedIP, code.Signature); err != nil {
 		return fmt.Errorf("error updating one-time code (consume): %w", err)
 	}
 
-	return nil
+	switch rows, err = result.RowsAffected(); {
+	case err != nil:
+		return fmt.Errorf("error updating one-time code (consume): %w", err)
+	case rows == 0:
+		return fmt.Errorf("error updating one-time code (consume): no rows affected")
+	case rows > 1:
+		return fmt.Errorf("error updating one-time code (consume): multiple rows affected")
+	default:
+		return nil
+	}
 }
 
 // RevokeOneTimeCode revokes a one-time code in the storage provider using the public ID.
 func (p *SQLProvider) RevokeOneTimeCode(ctx context.Context, publicID uuid.UUID, ip model.IP) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlRevokeOneTimeCode, time.Now(), ip, publicID); err != nil {
+	var (
+		result sql.Result
+		rows   int64
+	)
+
+	if result, err = p.db.ExecContext(ctx, p.sqlRevokeOneTimeCode, time.Now(), ip, publicID); err != nil {
 		return fmt.Errorf("error updating one-time code (revoke): %w", err)
 	}
 
-	return nil
+	switch rows, err = result.RowsAffected(); {
+	case err != nil:
+		return fmt.Errorf("error updating one-time code (consume): %w", err)
+	case rows == 0:
+		return fmt.Errorf("error updating one-time code (consume): no rows affected")
+	case rows > 1:
+		return fmt.Errorf("error updating one-time code (consume): multiple rows affected")
+	default:
+		return nil
+	}
 }
 
 // LoadOneTimeCode loads a one-time code from the storage provider given a username, intent, and code.
-func (p *SQLProvider) LoadOneTimeCode(ctx context.Context, username, intent, raw string) (code *model.OneTimeCode, err error) {
+func (p *SQLProvider) LoadOneTimeCode(ctx context.Context, username string, ip model.IP, intent, raw string) (code *model.OneTimeCode, err error) {
 	code = &model.OneTimeCode{}
 
-	signature := p.otcHMACSignature([]byte(username), []byte(intent), []byte(raw))
+	signature := p.otcHMACSignature([]byte(username), ip.IP, []byte(intent), []byte(raw))
 
 	if err = p.db.GetContext(ctx, code, p.sqlSelectOneTimeCode, signature, username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -498,18 +498,18 @@ func (mr *MockStorageMockRecorder) LoadOAuth2Session(ctx, sessionType, signature
 }
 
 // LoadOneTimeCode mocks base method.
-func (m *MockStorage) LoadOneTimeCode(ctx context.Context, username, intent, raw string) (*model.OneTimeCode, error) {
+func (m *MockStorage) LoadOneTimeCode(ctx context.Context, username string, ip model.IP, intent, raw string) (*model.OneTimeCode, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadOneTimeCode", ctx, username, intent, raw)
+	ret := m.ctrl.Call(m, "LoadOneTimeCode", ctx, username, ip, intent, raw)
 	ret0, _ := ret[0].(*model.OneTimeCode)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LoadOneTimeCode indicates an expected call of LoadOneTimeCode.
-func (mr *MockStorageMockRecorder) LoadOneTimeCode(ctx, username, intent, raw any) *gomock.Call {
+func (mr *MockStorageMockRecorder) LoadOneTimeCode(ctx, username, ip, intent, raw any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOneTimeCode", reflect.TypeOf((*MockStorage)(nil).LoadOneTimeCode), ctx, username, intent, raw)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOneTimeCode", reflect.TypeOf((*MockStorage)(nil).LoadOneTimeCode), ctx, username, ip, intent, raw)
 }
 
 // LoadOneTimeCodeByID mocks base method.

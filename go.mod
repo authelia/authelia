@@ -5,7 +5,7 @@ go 1.26.0
 toolchain go1.26.3
 
 require (
-	authelia.com/provider/oauth2 v0.2.24
+	authelia.com/provider/oauth2 v0.2.29
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
@@ -15,13 +15,13 @@ require (
 	github.com/fasthttp/session/v2 v2.5.9
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20260416181348-e7dc79048676
-	github.com/go-crypt/crypt v0.4.14
+	github.com/go-crypt/crypt v0.14.15
 	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/go-ldap/ldap/v3 v3.4.13
 	github.com/go-rod/rod v0.116.2
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
-	github.com/go-webauthn/webauthn v0.17.3
+	github.com/go-webauthn/webauthn v0.17.4
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/cel-go v0.28.1
 	github.com/google/uuid v1.6.0
@@ -49,8 +49,8 @@ require (
 	github.com/wneessen/go-mail v0.7.3
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
-	golang.org/x/crypto v0.51.0
-	golang.org/x/net v0.54.0
+	golang.org/x/crypto v0.52.0
+	golang.org/x/net v0.55.0
 	golang.org/x/sync v0.20.0
 	golang.org/x/term v0.43.0
 	golang.org/x/text v0.37.0
@@ -74,9 +74,9 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
-	github.com/go-crypt/x v0.4.15 // indirect
+	github.com/go-crypt/x v0.4.16 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-webauthn/x v0.2.5 // indirect
+	github.com/go-webauthn/x v0.2.6 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
@@ -113,7 +113,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260311181403-84a4fc48630c // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260311181403-84a4fc48630c // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
@@ -122,7 +122,7 @@ require (
 
 replace (
 	filippo.io/edwards25519 v1.1.0 => filippo.io/edwards25519 v1.2.0
-	golang.org/x/net => golang.org/x/net v0.54.0
+	golang.org/x/net => golang.org/x/net v0.55.0
 )
 
 exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
