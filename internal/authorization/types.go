@@ -60,7 +60,7 @@ func (s Subject) String() string {
 
 // IsAnonymous returns true if the Subject username and groups are empty.
 func (s Subject) IsAnonymous() bool {
-	return s.Username == "" && len(s.Groups) == 0
+	return s.Username == "" && len(s.Groups) == 0 && s.ClientID == ""
 }
 
 // Object represents a protected object for the purposes of ACL matching.
