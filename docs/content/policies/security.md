@@ -32,6 +32,9 @@ decisions are made with security being the priority and we always aim to impleme
    should include this information in their report.
 4. The report and interactions in the report are subject to the [Code of Conduct].
 
+**_Translation:**_ You may use artificial intelligence to perform translation but it must be strictly follow the
+policy around translations which is located in the [Translation Section of the Artificial Intelligence Policy].
+
 ## Coordinated vulnerability disclosure
 
 __Authelia__ follows the [coordinated vulnerability disclosure] model when dealing with security vulnerabilities. This
@@ -80,23 +83,23 @@ The [core team] members are identified in [Matrix] as room admins, and in [Disco
 1. The user privately reports a potential vulnerability.
 2. The report is acknowledged as received.
 3. The report is reviewed to ascertain if additional information is required. If it is required:
-    1. The user is informed that the additional information is required.
-    2. The user privately adds the additional information.
-    3. The process begins at step 3 again, proceeding to step 4 if the additional information provided is sufficient.
+  1. The user is informed that the additional information is required.
+  2. The user privately adds the additional information.
+  3. The process begins at step 3 again, proceeding to step 4 if the additional information provided is sufficient.
 4. The vulnerability is reproduced.
 5. The vulnerability is patched, and if possible the user reporting the bug is given access to a fixed binary, docker
    image, and git patch.
 6. The patch is confirmed to resolve the vulnerability.
 7. The CVE identifier is requested and assigned.
 8. The following steps are completed at the same time:
-    - The [security advisory] is published as an initial public disclosure which includes the impact and brief details of
-      the vulnerability, mitigation instructions, severity, and a brief summary. This disclosure is also published by
-      [MITRE] and [NIST] etc. This initial public disclosure may
-      not include all information:
-        1. That was disclosed during the private disclosure process.
-        2. That is necessary to reproduce the vulnerability.
-    - The patch is swiftly merged into the codebase and a release is cut. The commit includes a clear reference to the
-      CVE identifier.
+  - The [security advisory] is published as an initial public disclosure which includes the impact and brief details of
+    the vulnerability, mitigation instructions, severity, and a brief summary. This disclosure is also published by
+    [MITRE] and [NIST] etc. This initial public disclosure may
+    not include all information:
+    1. That was disclosed during the private disclosure process.
+    2. That is necessary to reproduce the vulnerability.
+  - The patch is swiftly merged into the codebase and a release is cut. The commit includes a clear reference to the
+    CVE identifier.
 9. The [security advisory] is updated with any additional information that was otherwise not disclosed in the
    initial public disclosure roughly 7 days after the release.
 
@@ -128,6 +131,7 @@ willing to make a financial contribution towards this then please feel free to c
 [core team]: ../information/about.md#core-team
 [all contributors]: https://github.com/authelia/authelia/blob/master/README.md#contribute
 [Artificial Intelligence Policy]: ./artificial-intelligence.md
+[Translation Section of the Artificial Intelligence Policy]: ./artificial-intelligence.md#translation
 [Code of Conduct]: ./code-of-conduct
 [Matrix]: ../information/contact.md#matrix
 [Discord]: ../information/contact.md#discord

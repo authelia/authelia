@@ -16,6 +16,9 @@ decisions are made with security being the priority and we always aim to impleme
    should include this information in their report.
 4. The report and interactions in the report are subject to the [Code of Conduct].
 
+**_Translation:**_ You may use artificial intelligence to perform translation but it must be strictly follow the
+policy around translations which is located in the [Translation Section of the Artificial Intelligence Policy].
+
 ## Coordinated vulnerability disclosure
 
 __Authelia__ follows the [coordinated vulnerability disclosure] model when dealing with security vulnerabilities. This
@@ -112,6 +115,7 @@ willing to make a financial contribution towards this then please feel free to c
 [core team]: https://www.authelia.com/information/about/#core-team
 [all contributors]: https://github.com/authelia/authelia/blob/master/README.md#contribute
 [Artificial Intelligence Policy]: https://www.authelia.com/policies/artificial-intelligence/
+[Translations Section of the Artificial Intelligence Policy]: https://www.authelia.com/policies/artificial-intelligence/#translation
 [Code of Conduct]: https://www.authelia.com/policies/code-of-conduct/
 [Matrix]: https://www.authelia.com/information/contact/#matrix
 [Discord]: https://www.authelia.com/information/contact/#discord
