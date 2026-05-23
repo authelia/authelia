@@ -575,7 +575,6 @@ location /internal/authelia/authz/basic {
     ## The headers starting with X-* are required.
     proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Original-URL $scheme://$host$request_uri;
-    proxy_set_header X-Original-Method $request_method;
     proxy_set_header X-Forwarded-Method $request_method;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $host;
@@ -705,7 +704,7 @@ error_page 401 =302 /internal/authelia/authz/detect?rd=$target_url;
 
 ### Why are both the X-Forwarded-* and X-Original-URL headers required?
 
-The `X-Forwarded-*` headers is required for Authelia to function properly itself when you are making requests to the
+The `X-Forwarded-*` headers are required for Authelia to function properly itself when you are making requests to the
 portal or API. This means that the `X-Forwarded-*` headers are not essential for anything other than Authelia itself. We
 do however recommend you use them.
 
