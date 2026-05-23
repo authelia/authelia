@@ -20,7 +20,7 @@ func ProvisionServer(ctx Context) (service Provider, err error) {
 		isTLS    bool
 	)
 
-	switch s, listener, paths, isTLS, err = server.New(ctx.GetConfiguration(), ctx.GetProviders()); {
+	switch s, listener, paths, isTLS, err = server.New(ctx, ctx.GetConfiguration(), ctx.GetProviders()); {
 	case err != nil:
 		return nil, err
 	case s != nil && listener != nil:

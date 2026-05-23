@@ -41,6 +41,7 @@ var (
 	headerPragma                = []byte(fasthttp.HeaderPragma)
 	headerCacheControl          = []byte(fasthttp.HeaderCacheControl)
 	headerContentSecurityPolicy = []byte(fasthttp.HeaderContentSecurityPolicy)
+	headerContentType           = []byte(fasthttp.HeaderContentType)
 
 	headerPermissionsPolicy         = []byte("Permissions-Policy")
 	headerCrossOriginOpenerPolicy   = []byte("Cross-Origin-Opener-Policy")
@@ -139,6 +140,13 @@ var (
 	contentTypeTextHTML        = []byte("text/html; charset=utf-8")
 	contentTypeApplicationJSON = []byte(ContentTypeApplicationJSON)
 	contentTypeApplicationYAML = []byte("application/yaml; charset=utf-8")
+)
+
+// bodyOpenIDConnectRateLimitExceeded is the JSON body returned by HandlerRateLimitOpenIDConnect. OAuth 2.0 has no
+// canonical rate-limit error code; temporarily_unavailable is borrowed from RFC 6749 §4.1.2.1 because its
+// "try again later" semantics align with rate limiting and clients tend to treat it as a retryable condition.
+var (
+	bodyOpenIDConnectRateLimitExceeded = []byte(`{"error":"temporarily_unavailable","error_description":"Too many requests. The endpoint is temporarily unavailable. Try again later."}`)
 )
 
 const (

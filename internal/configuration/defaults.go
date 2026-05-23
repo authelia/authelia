@@ -2,8 +2,11 @@ package configuration
 
 var defaults = map[string]any{
 	"regulation.max_retries": 3,
+	"server.endpoints.rate_limits.openid_connect_introspection.enable":                true,
 	"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable": true,
+	"server.endpoints.rate_limits.openid_connect_revocation.enable":                   true,
 	"server.endpoints.rate_limits.openid_connect_token.enable":                        true,
+	"server.endpoints.rate_limits.openid_connect_userinfo.enable":                     true,
 	"server.endpoints.rate_limits.reset_password_start.enable":                        true,
 	"server.endpoints.rate_limits.reset_password_finish.enable":                       true,
 	"server.endpoints.rate_limits.second_factor_totp.enable":                          true,
