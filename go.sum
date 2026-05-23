@@ -78,10 +78,10 @@ github.com/go-sql-driver/mysql v1.10.0 h1:Q+1LV8DkHJvSYAdR83XzuhDaTykuDx0l6fkXxo
 github.com/go-sql-driver/mysql v1.10.0/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
 github.com/go-viper/mapstructure/v2 v2.5.0 h1:vM5IJoUAy3d7zRSVtIwQgBj7BiWtMPfmPEgAXnvj1Ro=
 github.com/go-viper/mapstructure/v2 v2.5.0/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
-github.com/go-webauthn/webauthn v0.17.3 h1:XHZ0TXV7k8vChcE4TFgPitOPJ5cb7h1dpAeFDS0cjCo=
-github.com/go-webauthn/webauthn v0.17.3/go.mod h1:PlkMgmuL9McCT7dvgBj/Sz/fgs3V6ZID6/KnFkEcPvQ=
-github.com/go-webauthn/x v0.2.5 h1:wEVTfU04XFyPTXGQbKOQwMKhcDWfDAkdsDDBsDaG9yY=
-github.com/go-webauthn/x v0.2.5/go.mod h1:Qna/yJz9rV6lRzwl5BfYbmTJpVGxcBIds3gJtw2tlGg=
+github.com/go-webauthn/webauthn v0.17.4 h1:KFTSz3R2RYDiUn/0cDi3XTJgFenSG74eKTTHlqWhlxk=
+github.com/go-webauthn/webauthn v0.17.4/go.mod h1:pZk63EE/BdztlmyS4Yc+9H5g4a8blNlbtGmdHQHbZX8=
+github.com/go-webauthn/x v0.2.6 h1:TEyDuQAIiEgYpx60nKiBJIX/5nSUC8LxNbH+uf5U9uk=
+github.com/go-webauthn/x v0.2.6/go.mod h1:45bA7YEqyQhRcQJ/TiBb46Ww8yqHBGvgEhQ3WWF0aDo=
 github.com/golang-jwt/jwt/v5 v5.3.1 h1:kYf81DTWFe7t+1VvL7eS+jKFVWaUnK9cB1qbwn63YCY=
 github.com/golang-jwt/jwt/v5 v5.3.1/go.mod h1:fxCRLWMO43lRc8nhHWY6LGqRcf+1gQWArsqaEUEa5bE=
 github.com/google/cel-go v0.28.1 h1:YWIwi77J4xIsYUwAF/iIuS6haffzIHS8yWI8glSbLWM=
