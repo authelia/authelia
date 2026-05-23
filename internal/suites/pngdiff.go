@@ -92,10 +92,7 @@ func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte
 	}
 
 	baseline, err := os.ReadFile(baselinePath)
-	if os.IsNotExist(err) {
-		t.Fatalf("snapshot baseline %s does not exist; re-run with --update-snapshots to create it", baselinePath)
-	}
-
+	require.Falsef(t, os.IsNotExist(err), "snapshot baseline %s does not exist; re-run with --update-snapshots to create it", baselinePath)
 	require.NoError(t, err)
 
 	if bytes.Equal(baseline, screenshot) {
@@ -106,14 +103,11 @@ func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte
 	_ = os.WriteFile(actualPath, screenshot, 0600)
 
 	diff, pixelErr := ComparePNGPixels(baseline, screenshot)
-	if pixelErr != nil {
-		t.Fatalf("snapshot %s decode failed: %v (new snapshot at %s)", baselinePath, pixelErr, actualPath)
-	}
+	require.NoErrorf(t, pixelErr, "snapshot %s decode failed (new snapshot at %s)", baselinePath, actualPath)
 
-	if diff.BaselineBounds != diff.ActualBounds {
-		t.Fatalf("snapshot %s dimensions differ: baseline=%v actual=%v (new snapshot at %s)",
-			baselinePath, diff.BaselineBounds, diff.ActualBounds, actualPath)
-	}
+	require.Equalf(t, diff.BaselineBounds, diff.ActualBounds,
+		"snapshot %s dimensions differ: baseline=%v actual=%v (new snapshot at %s)",
+		baselinePath, diff.BaselineBounds, diff.ActualBounds, actualPath)
 
 	if diff.DifferingPixels == 0 {
 		_ = os.Remove(actualPath)
@@ -129,6 +123,7 @@ func AssertVisualSnapshot(t *testing.T, repoRoot, name string, screenshot []byte
 		return
 	}
 
-	t.Fatalf("snapshot %s differs: %d/%d pixels (%.2f%%, tolerance %.2f%%) (new snapshot at %s); re-run with --update-snapshots to refresh the baseline",
+	require.Failf(t, "snapshot pixel diff exceeds tolerance",
+		"snapshot %s differs: %d/%d pixels (%.2f%%, tolerance %.2f%%) (new snapshot at %s); re-run with --update-snapshots to refresh the baseline",
 		baselinePath, diff.DifferingPixels, diff.TotalPixels, diff.Percentage, tolerancePercentage, actualPath)
 }
