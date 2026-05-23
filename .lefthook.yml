@@ -3,11 +3,7 @@ pre-commit:
   piped: true
   jobs:
     - name: check tools
-      # Script lives in scripts/check-tools.sh — see the script header
-      # for why it's not inline here (lefthook on Windows wraps inline
-      # `run:` blocks in "..." for sh.exe, breaking scripts that use
-      # double quotes).
-      run: scripts/check-tools.sh
+      run: ./check-tools.sh
 
     - name: linters
       group:
