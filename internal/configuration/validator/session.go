@@ -107,7 +107,7 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 	}
 }
 
-// validateSessionDomainName returns error if the domain name is invalid.
+// validateSessionDomainName pushes warnings and errors depending on the domain validity.
 func validateSessionDomainName(i int, config *schema.Session, validator *schema.StructValidator) {
 	var d = config.Cookies[i]
 
@@ -122,6 +122,10 @@ func validateSessionDomainName(i int, config *schema.Session, validator *schema.
 		validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPeriodPrefix, sessionDomainDescriptor(i, d)))
 	case net.ParseIP(d.Domain) != nil:
 		return
+	case strings.Contains(d.Domain, ":"):
+		if host, _, err := net.SplitHostPort(d.Domain); err == nil {
+			validator.PushWarning(fmt.Errorf(errFmtSessionDomainHasPort, sessionDomainDescriptor(i, d), d.Domain, host))
+		}
 	case !strings.Contains(d.Domain, "."):
 		validator.Push(fmt.Errorf(errFmtSessionDomainInvalidDomainNoDots, sessionDomainDescriptor(i, d)))
 		return

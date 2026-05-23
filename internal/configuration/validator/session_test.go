@@ -847,6 +847,13 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 		{"ShouldNotRaiseErrorOnValidIPLocalHost30", "127.0.0.30", nil, nil},
 		{"ShouldNotRaiseErrorOnValidIPClassC40", "192.168.0.40", nil, nil},
 		{"ShouldNotRaiseErrorOnValidIPClassC40", "fe80::", nil, nil},
+		{"ShouldNotRaiseWarningOnValidIPv6WithMultipleColons", "2001:db8::1", nil, nil},
+		{"ShouldNotRaiseWarningOnValidIPv6Loopback", "::1", nil, nil},
+		{
+			"ShouldRaiseWarningOnDomainWithPort", "example.com:8443",
+			[]string{"session: domain config #1 (domain 'example.com:8443'): option 'domain' with value 'example.com:8443' should probably have value 'example.com' as it appears to include a port which is not supported and will likely fail to start and is otherwise unsupported"},
+			[]string{"session: domain config #1 (domain 'example.com:8443'): option 'authelia_url' does not share a cookie scope with domain 'example.com:8443' with a value of 'https://auth.example.com:8443'"},
+		},
 		{"ShouldRaiseErrorOnMissingDomain", "", nil, []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
 		{"ShouldRaiseErrorOnDomainWithInvalidChars", "example!.com", nil, []string{"session: domain config #1 (domain 'example!.com'): option 'domain' does not appear to be a valid cookie domain or an ip address"}},
 		{"ShouldNotRaiseErrorOnSingleLetterDomain", "a.b.c", nil, nil},
