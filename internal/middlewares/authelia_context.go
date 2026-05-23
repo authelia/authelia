@@ -166,7 +166,7 @@ func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 }
 
 // XForwardedURI returns the content of the X-Forwarded-URI header.
-func (ctx *AutheliaCtx) XForwardedURI() (host []byte) {
+func (ctx *AutheliaCtx) XForwardedURI() (uri []byte) {
 	return ctx.Request.Header.PeekBytes(headerXForwardedURI)
 }
 
@@ -182,12 +182,12 @@ func (ctx *AutheliaCtx) GetXForwardedURI() (uri []byte) {
 }
 
 // XOriginalMethod returns the content of the X-Original-Method header.
-func (ctx *AutheliaCtx) XOriginalMethod() []byte {
+func (ctx *AutheliaCtx) XOriginalMethod() (method []byte) {
 	return ctx.Request.Header.PeekBytes(headerXOriginalMethod)
 }
 
 // XOriginalURL returns the content of the X-Original-URL header.
-func (ctx *AutheliaCtx) XOriginalURL() []byte {
+func (ctx *AutheliaCtx) XOriginalURL() (uri []byte) {
 	return ctx.Request.Header.PeekBytes(headerXOriginalURL)
 }
 
@@ -317,6 +317,16 @@ func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provi
 	return ctx.Providers.SessionProvider.Get(domain)
 }
 
+// GetSessionManagerByTargetURI returns the session manager for the request's domain.
+func (ctx *AutheliaCtx) GetSessionManagerByTargetURI(targetURL *url.URL) (provider session.Manager, err error) {
+	base, err := ctx.GetSessionProviderByTargetURI(targetURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return session.NewEncapsulatedSession(base, ctx.RequestCtx), nil
+}
+
 // GetSessionProvider returns the session provider for the Request's domain.
 func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err error) {
 	if ctx.session == nil {
@@ -332,6 +342,24 @@ func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err err
 	}
 
 	return ctx.session, nil
+}
+
+// NewSession returns a new user session.
+func (ctx *AutheliaCtx) NewSession() (userSession session.UserSession) {
+	if provider, err := ctx.GetSessionProvider(); err != nil {
+		return session.NewDefaultUserSession()
+	} else {
+		return provider.NewDefaultUserSession()
+	}
+}
+
+// GetSessionConfig returns the session configuration.
+func (ctx *AutheliaCtx) GetSessionConfig() (config schema.SessionCookie) {
+	if provider, err := ctx.GetSessionProvider(); err != nil {
+		return config
+	} else {
+		return provider.Config
+	}
 }
 
 // GetCookieDomainSessionProvider returns the session provider for the provided domain.
@@ -389,7 +417,7 @@ func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 }
 
 // RegenerateSession regenerates a user session.
-func (ctx *AutheliaCtx) RegenerateSession() error {
+func (ctx *AutheliaCtx) RegenerateSession() (err error) {
 	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to regenerate user session: %s", err)
@@ -399,7 +427,7 @@ func (ctx *AutheliaCtx) RegenerateSession() error {
 }
 
 // DestroySession destroys a user session.
-func (ctx *AutheliaCtx) DestroySession() error {
+func (ctx *AutheliaCtx) DestroySession() (err error) {
 	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to destroy user session: %s", err)
@@ -459,6 +487,31 @@ func (ctx *AutheliaCtx) SetContentTypeApplicationYAML() {
 // SetJSONBody Set json body.
 func (ctx *AutheliaCtx) SetJSONBody(value any) error {
 	return ctx.ReplyJSON(OKResponse{Status: "OK", Data: value}, 0)
+}
+
+// GetRequestQueryArgValue returns the value of the query argument with the given key.
+func (ctx *AutheliaCtx) GetRequestQueryArgValue(key []byte) (value []byte) {
+	return ctx.QueryArgs().PeekBytes(key)
+}
+
+// GetRequestQueryArgValues returns the values of the query argument with the given key.
+func (ctx *AutheliaCtx) GetRequestQueryArgValues(key []byte) (values [][]byte) {
+	return ctx.QueryArgs().PeekMultiBytes(key)
+}
+
+// GetRequestHeaderValue returns the value of the header with the given key.
+func (ctx *AutheliaCtx) GetRequestHeaderValue(key []byte) (value []byte) {
+	return ctx.Request.Header.PeekBytes(key)
+}
+
+// SetResponseHeaderValue sets a response header with the specified key and value.
+func (ctx *AutheliaCtx) SetResponseHeaderValue(key []byte, value string) {
+	ctx.Response.Header.SetBytesK(key, value)
+}
+
+// SetResponseHeaderValueBytes sets a response header with the specified key and value as byte slices.
+func (ctx *AutheliaCtx) SetResponseHeaderValueBytes(key, value []byte) {
+	ctx.Response.Header.SetBytesKV(key, value)
 }
 
 // RemoteIP return the remote IP taking X-Forwarded-For header into account if provided.
@@ -638,6 +691,7 @@ func (ctx *AutheliaCtx) GetClock() (provider clock.Provider) {
 	return ctx.Providers.Clock
 }
 
+// GetJWTWithTimeFuncOption returns a jwt.ParserOption that sets the time function to the current clock's Now function.
 func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
 	return jwt.WithTimeFunc(ctx.GetClock().Now)
 }
@@ -668,18 +722,23 @@ func (ctx *AutheliaCtx) GetProviders() (providers Providers) {
 	return ctx.Providers
 }
 
+// GetUserProvider returns the UserProvider instance used for authentication and user management within the context.
 func (ctx *AutheliaCtx) GetUserProvider() authentication.UserProvider {
 	return ctx.Providers.UserProvider
 }
 
+// GetProviderStorage returns the storage provider associated with the current Authelia context.
 func (ctx *AutheliaCtx) GetProviderStorage() storage.Provider {
 	return ctx.Providers.StorageProvider
 }
 
+// GetProviderUserAttributeResolver returns the UserAttributeResolver provider instance from the Authelia context.
 func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return ctx.Providers.UserAttributeResolver
 }
 
+// GetWebAuthnProvider initializes and returns a WebAuthn provider instance with the configured Relying Party (RP)
+// settings.
 func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) {
 	var (
 		origin *url.URL

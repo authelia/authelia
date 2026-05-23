@@ -174,7 +174,7 @@ type Provider interface {
 	RevokeOneTimeCode(ctx context.Context, id uuid.UUID, ip model.IP) (err error)
 
 	// LoadOneTimeCode loads a one-time code from the storage provider given a username, intent, and code.
-	LoadOneTimeCode(ctx context.Context, username, intent, raw string) (code *model.OneTimeCode, err error)
+	LoadOneTimeCode(ctx context.Context, username string, ip model.IP, intent, raw string) (code *model.OneTimeCode, err error)
 
 	// LoadOneTimeCodeBySignature loads a one-time code from the storage provider given the signature.
 	// This method should NOT be used to validate a One-Time Code, LoadOneTimeCode should be used instead.

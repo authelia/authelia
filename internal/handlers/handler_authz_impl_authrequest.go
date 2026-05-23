@@ -10,7 +10,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func handleAuthzGetObjectAuthRequest(ctx *middlewares.AutheliaCtx) (object authorization.Object, err error) {
+func handleAuthzGetObjectAuthRequest(ctx AuthzContext) (object authorization.Object, err error) {
 	var (
 		targetURL *url.URL
 
@@ -36,8 +36,8 @@ func handleAuthzGetObjectAuthRequest(ctx *middlewares.AutheliaCtx) (object autho
 	return authorization.NewObjectRaw(targetURL, method), nil
 }
 
-func handleAuthzUnauthorizedAuthRequest(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {
-	ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.URL.String(), authn.Method, authn.Username, fasthttp.StatusUnauthorized, redirectionURL)
+func handleAuthzUnauthorizedAuthRequest(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
+	ctx.GetLogger().Infof(logFmtAuthzRedirect, authn.Object.URL.String(), authn.Method, authn.Username, fasthttp.StatusUnauthorized, redirectionURL)
 
 	switch authn.Object.Method {
 	case fasthttp.MethodHead:

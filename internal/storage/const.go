@@ -86,6 +86,11 @@ const (
 	ctxKeyConnection
 )
 
+const (
+	hmacNameOneTimeCode     = "otc"
+	hmacNameOneTimePassword = "otp"
+)
+
 var (
 	reMigration                  = regexp.MustCompile(`^V(?P<Version>\d{4})\.(?P<Name>[^.]+)\.(?P<Direction>(up|down))\.sql$`)
 	rePostgreSQLUnixDomainSocket = regexp.MustCompile(`^\.s\.PGSQL\.(\d+)$`)

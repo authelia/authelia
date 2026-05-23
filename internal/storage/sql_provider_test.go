@@ -943,7 +943,7 @@ func TestSQLProviderOneTimeCode(t *testing.T) {
 	})
 
 	t.Run("ShouldLoadOneTimeCode", func(t *testing.T) {
-		loaded, err := provider.LoadOneTimeCode(ctx, "john", "reset_password", "123456")
+		loaded, err := provider.LoadOneTimeCode(ctx, "john", model.NewIP(net.ParseIP("127.0.0.1")), "reset_password", "123456")
 
 		require.NoError(t, err)
 		require.NotNil(t, loaded)
@@ -1008,7 +1008,7 @@ func TestSQLProviderOneTimeCode(t *testing.T) {
 	})
 
 	t.Run("ShouldReturnNilForUnknownCode", func(t *testing.T) {
-		loaded, err := provider.LoadOneTimeCode(ctx, "nobody", "unknown", "000000")
+		loaded, err := provider.LoadOneTimeCode(ctx, "nobody", model.NewIP(net.ParseIP("192.168.1.1")), "unknown", "000000")
 
 		assert.NoError(t, err)
 		assert.Nil(t, loaded)
