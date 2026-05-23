@@ -255,9 +255,10 @@ func TestShouldWarnSessionValuesWhenPotentiallyInvalid(t *testing.T) {
 	ValidateSession(&config, validator)
 
 	require.Len(t, validator.Warnings(), 1)
-	assert.Len(t, validator.Errors(), 0)
+	require.Len(t, validator.Errors(), 1)
 
 	assert.EqualError(t, validator.Warnings()[0], "session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behavior: you can use this at your own risk but we recommend removing it")
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain '.example.com'): option 'domain' does not appear to be a valid cookie domain or an ip address")
 }
 
 func TestShouldErrorWithoutSessionDomainAutheliaURL(t *testing.T) {
@@ -852,7 +853,10 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 		{
 			"ShouldRaiseWarningOnDomainWithPort", "example.com:8443",
 			[]string{"session: domain config #1 (domain 'example.com:8443'): option 'domain' with value 'example.com:8443' should probably have value 'example.com' as it appears to include a port which is not supported and will likely fail to start and is otherwise unsupported"},
-			[]string{"session: domain config #1 (domain 'example.com:8443'): option 'authelia_url' does not share a cookie scope with domain 'example.com:8443' with a value of 'https://auth.example.com:8443'"},
+			[]string{
+				"session: domain config #1 (domain 'example.com:8443'): option 'domain' does not appear to be a valid cookie domain or an ip address",
+				"session: domain config #1 (domain 'example.com:8443'): option 'authelia_url' does not share a cookie scope with domain 'example.com:8443' with a value of 'https://auth.example.com:8443'",
+			},
 		},
 		{"ShouldRaiseErrorOnMissingDomain", "", nil, []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
 		{"ShouldRaiseErrorOnDomainWithInvalidChars", "example!.com", nil, []string{"session: domain config #1 (domain 'example!.com'): option 'domain' does not appear to be a valid cookie domain or an ip address"}},
@@ -862,7 +866,7 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 		{"ShouldRaiseErrorOnDomainWithoutDots", "localhost", nil, []string{"session: domain config #1 (domain 'localhost'): option 'domain' is not a valid cookie domain: must have at least a single period or be an ip address"}},
 		{"ShouldRaiseErrorOnPublicDomainDuckDNS", "duckdns.org", nil, []string{"session: domain config #1 (domain 'duckdns.org'): option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"}},
 		{"ShouldNotRaiseErrorOnSuffixOfPublicDomainDuckDNS", "example.duckdns.org", nil, nil},
-		{"ShouldRaiseWarningOnDomainWithLeadingDot", ".example.com", []string{"session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behavior: you can use this at your own risk but we recommend removing it"}, nil},
+		{"ShouldRaiseWarningOnDomainWithLeadingDot", ".example.com", []string{"session: domain config #1 (domain '.example.com'): option 'domain' has a prefix of '.' which is not supported or intended behavior: you can use this at your own risk but we recommend removing it"}, []string{"session: domain config #1 (domain '.example.com'): option 'domain' does not appear to be a valid cookie domain or an ip address"}},
 		{"ShouldRaiseErrorOnDomainWithLeadingStarDot", "*.example.com", nil, []string{"session: domain config #1 (domain '*.example.com'): option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '*.example.com'"}},
 		{"ShouldRaiseErrorOnDomainNotSet", "", nil, []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
 	}
