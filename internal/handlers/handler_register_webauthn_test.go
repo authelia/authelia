@@ -357,9 +357,7 @@ func TestWebAuthnRegistrationDELETE(t *testing.T) {
 func TestWebAuthnRegistrationPOST(t *testing.T) {
 	decode := func(in string) []byte {
 		value, err := base64.StdEncoding.DecodeString(in)
-		if err != nil {
-			t.Fatal("Failed to decode base64 string:", err)
-		}
+		require.NoError(t, err)
 
 		return value
 	}
