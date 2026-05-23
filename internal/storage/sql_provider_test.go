@@ -669,6 +669,7 @@ func TestSQLProviderOAuth2Session(t *testing.T) {
 		s.Signature = "sig-deact-req"
 		s.RequestID = "req-deact"
 		s.ChallengeID = model.MustNullUUID(model.NewRandomNullUUID())
+		s.Active = true
 
 		require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAuthorizeCode, s))
 		require.NoError(t, provider.DeactivateOAuth2SessionByRequestID(ctx, OAuth2SessionTypeAuthorizeCode, "req-deact"))
