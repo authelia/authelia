@@ -27,3 +27,42 @@ The following outlines the specific requirements we have for testing the Autheli
 - It's strongly encouraged for features that contributors create have as much testing as is reasonable i.e. any line
   that can be tested should be tested, if the line can't be tested generally this is an indication a refactor may be
   required
+
+## Testing Methodology and Frequency
+
+We run tests across multiple frameworks and platforms, and employ both SAST and DAST tooling to detect known security
+issues in the code. The rationale for this approach is that, while using multiple tools may increase noise, it improves
+confidence by providing more data on which to base our judgment.
+
+|                                          Tool                                          |                  Purpose                   |                                                              Notes                                                               |
+|:--------------------------------------------------------------------------------------:|:------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------:|
+|                         [Go Test](https://pkg.go.dev/testing)                          | Coverage, Static and Dynamic Code Analysis | Analysis of Go Code, Executed with `go test -cover`, `go test -race`, and `go test -fuzz` before and on every commit to `master` |
+| [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) | Coverage, Static and Dynamic Code Analysis |                                  Analysis of React Code before and on every commit to `master`                                   |
+|                        [SonarQube](https://www.sonarqube.org/)                         |            Static Code Analysis            |                                   Analysis of All Code before and on every commit to `master`                                    |
+|                          [CodeQL](https://codeql.github.com/)                          |            Static Code Analysis            |                          Analysis of All Code before and on every commit to `master`, and on a schedule                          |
+|                             [Codecov](https://codecov.io/)                             |            Coverage Statistics             |                         Produces Statistics for Go and TypeScript before and on every commit to `master`                         |
+|                       [Grype](https://github.com/anchore/grype)                        |          Vulnerability Management          |                                    SBOM Scanning Only before and on every commit to `master`                                     |
+|                          [Renovate](https://renovatebot.com/)                          |  Vulnerability and Dependency Management   |                                                          On a schedule                                                           |
+|                      [golangci-Lint](https://golangci-lint.run/)                       |            Static Code Analysis            |                                    Analysis of Go Code before and on every commit to `master`                                    |
+|                      [GitGuardian](https://www.gitguardian.com/)                       |             Secrets Management             |                                    Analysis of Secrets before and on every commit to `master`                                    |
+|                       [Code Rabbit](https://www.coderabbit.ai/)                        |      Quality and Security Assessment       |                                Analysis of General Pull Requests before every commit to `master`                                 |
+|              [OpenSSF Scorecard](https://openssf.org/projects/scorecard/)              |       Security Practices Assessment        |                                            Automated on every new commit to `master`                                             |
+|      [OpenSSF Best Practices](https://openssf.org/projects/best-practices-badge/)      |       Security Practices Assessment        |                                   Manual Assessment for Security Practice Posture Improvements                                   |
+|        [StepSecurity Harden-Runner](https://docs.stepsecurity.io/harden-runner)        |             CI Agent Security              |                                       As Part of any Job Running in GitHub CI Job Runners                                        |
+|                     [zizmor](https://github.com/zizmorcore/zizmor)                     |     GitHub Action Static Code Analysis     |                                           Prevents Security Issues with GitHub Actions                                           |
+
+## Linting
+
+In addition to the above SAST and DAST tools we also implement several linters which ensure code quality and
+consistency. These linters generally run via [lefthook](https://lefthook.dev/) which is installed as a git hook.
+
+|                               Tool                                |           Area            |                  Purpose                   |
+|:-----------------------------------------------------------------:|:-------------------------:|:------------------------------------------:|
+|            [golangci-Lint](https://golangci-lint.run/)            |            Go             |  Code Quality and Consistency of Go Code   |
+| [goimports-reviser](https://github.com/incu6us/goimports-reviser) |            Go             |          Import Order Consistency          |
+|                              ESLint                               | JavaScript and TypeScript | Code Quality and Consistency of JS/TS Code |
+|       [ShellCheck](https://github.com/koalaman/shellcheck)        |        Shell Files        |        Code Quality and Consistency        |
+|        [yamllint](https://github.com/adrienverge/yamllint)        |        YAML Files         |         Consistent YAML Formatting         |
+|             [commitlint](https://commitlint.js.org/)              |            Git            |     Ensure Conformant Commit Messages      |
+|    [TruffleHog](https://github.com/trufflesecurity/trufflehog)    |            All            |     Preventing Secret Commit Accidents     |
+|            [typos](https://github.com/crate-ci/typos)             |            All            |   Preventing Spelling and General Typos    |
