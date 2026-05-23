@@ -23,4 +23,4 @@ overrides:
   rollup: 4.60.4
   socket.io-parser: 4.2.6
   vite: 8.0.13
-  ws: 8.20.1
+  ws: 8.21.0
