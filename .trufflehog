@@ -11,3 +11,4 @@
 ^internal\/suites\/.*\/configuration\.yml$
 ^internal\/suites\/common\/pki\/.*\.pem$
 ^.*_test\.go$
+^web\/pnpm-lock\.yaml$
