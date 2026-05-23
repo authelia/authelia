@@ -238,6 +238,24 @@ const siteVariablesConfigure = () => {
     document.getElementById("site-const-authelia-url").value = `https://${valueSubdomain}.${valueDomain}/`;
   };
 
+  const onBeforeInputSubDomain = (event) => {
+    if (event.data && !/^[a-zA-Z0-9-]+$/.test(event.data)) {
+      event.preventDefault();
+    }
+  };
+
+  const onBeforeInputHostname = (event) => {
+    if (event.data && !/^[a-zA-Z0-9.-]+$/.test(event.data)) {
+      event.preventDefault();
+    }
+  };
+
+  const onBeforeInputPort = (event) => {
+    if (event.data && !/^[0-9]+$/.test(event.data)) {
+      event.preventDefault();
+    }
+  };
+
   const onChangeAutheliaListener = () => {
     const checked = document.getElementById(siteVariableName("tls")).checked;
     const valueHost = document.getElementById(siteVariableName("host")).value.trim();
@@ -286,12 +304,16 @@ const siteVariablesConfigure = () => {
 
   document.getElementById(siteVariableName("domain")).addEventListener("change", onChangeAutheliaDomain);
   document.getElementById(siteVariableName("domain")).addEventListener("keyup", onChangeAutheliaDomain);
+  document.getElementById(siteVariableName("domain")).addEventListener("beforeinput", onBeforeInputHostname);
   document.getElementById(siteVariableName("subdomain-authelia")).addEventListener("change", onChangeAutheliaDomain);
   document.getElementById(siteVariableName("subdomain-authelia")).addEventListener("keyup", onChangeAutheliaDomain);
+  document.getElementById(siteVariableName("subdomain-authelia")).addEventListener("beforeinput", onBeforeInputSubDomain);
   document.getElementById(siteVariableName("host")).addEventListener("change", onChangeAutheliaListener);
+  document.getElementById(siteVariableName("host")).addEventListener("beforeinput", onBeforeInputHostname);
   document.getElementById(siteVariableName("host")).addEventListener("keyup", onChangeAutheliaListener);
   document.getElementById(siteVariableName("port")).addEventListener("change", onChangeAutheliaListener);
   document.getElementById(siteVariableName("port")).addEventListener("keyup", onChangeAutheliaListener);
+  document.getElementById(siteVariableName("port")).addEventListener("beforeinput", onBeforeInputPort);
   document.getElementById(siteVariableName("tls")).addEventListener("change", onChangeAutheliaListener);
 };
 
