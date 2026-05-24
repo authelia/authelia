@@ -5,6 +5,8 @@ import (
 	"crypto/x509"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -240,6 +242,173 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			provider := NewPostgreSQLProvider(tc.have, x509.NewCertPool())
 
 			assert.NotNil(t, provider)
+		})
+	}
+}
+
+func TestDSNPostgreSQLFallbacks(t *testing.T) {
+	mkAddress := func(t *testing.T, raw string) *schema.AddressTCP {
+		t.Helper()
+
+		address, err := schema.NewAddress(raw)
+		require.NoError(t, err)
+
+		return &schema.AddressTCP{Address: *address}
+	}
+
+	testCases := []struct {
+		name     string
+		existing []*pgconn.FallbackConfig
+		servers  []schema.StoragePostgreSQLServer
+		assert   func(t *testing.T, dsnConfig *pgx.ConnConfig)
+	}{
+		{
+			name:    "ShouldHandleEmptyServers",
+			servers: []schema.StoragePostgreSQLServer{},
+			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
+				assert.NotNil(t, dsnConfig.Fallbacks)
+				assert.Empty(t, dsnConfig.Fallbacks)
+			},
+		},
+		{
+			name: "ShouldHandleSingleTCPServer",
+			servers: []schema.StoragePostgreSQLServer{
+				{Address: mkAddress(t, "tcp://db1.example.com:5432")},
+			},
+			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
+				require.Len(t, dsnConfig.Fallbacks, 1)
+				assert.Equal(t, "db1.example.com", dsnConfig.Fallbacks[0].Host)
+				assert.Equal(t, uint16(5432), dsnConfig.Fallbacks[0].Port)
+				assert.Nil(t, dsnConfig.Fallbacks[0].TLSConfig)
+			},
+		},
+		{
+			name: "ShouldHandleMultipleTCPServers",
+			servers: []schema.StoragePostgreSQLServer{
+				{Address: mkAddress(t, "tcp://db1.example.com:5432")},
+				{Address: mkAddress(t, "tcp://db2.example.com:6543")},
+				{Address: mkAddress(t, "tcp://db3.example.com:7654")},
+			},
+			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
+				require.Len(t, dsnConfig.Fallbacks, 3)
+				assert.Equal(t, "db1.example.com", dsnConfig.Fallbacks[0].Host)
+				assert.Equal(t, uint16(5432), dsnConfig.Fallbacks[0].Port)
+				assert.Equal(t, "db2.example.com", dsnConfig.Fallbacks[1].Host)
+				assert.Equal(t, uint16(6543), dsnConfig.Fallbacks[1].Port)
+				assert.Equal(t, "db3.example.com", dsnConfig.Fallbacks[2].Host)
+				assert.Equal(t, uint16(7654), dsnConfig.Fallbacks[2].Port)
+			},
+		},
+		{
+			name: "ShouldHandleTCPServerWithTLS",
+			servers: []schema.StoragePostgreSQLServer{
+				{
+					Address: mkAddress(t, "tcp://db1.example.com:5432"),
+					TLS: &schema.TLS{
+						MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+						MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+					},
+				},
+			},
+			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
+				require.Len(t, dsnConfig.Fallbacks, 1)
+				require.NotNil(t, dsnConfig.Fallbacks[0].TLSConfig)
+				assert.Equal(t, uint16(tls.VersionTLS12), dsnConfig.Fallbacks[0].TLSConfig.MinVersion)
+				assert.Equal(t, uint16(tls.VersionTLS13), dsnConfig.Fallbacks[0].TLSConfig.MaxVersion)
+			},
+		},
+		{
+			name: "ShouldDefaultPortToFiveFourThreeTwoWhenZeroAndTCP",
+			servers: []schema.StoragePostgreSQLServer{
+				{Address: mkAddress(t, "tcp://db.example.com")},
+			},
+			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
+				require.Len(t, dsnConfig.Fallbacks, 1)
+				assert.Equal(t, "db.example.com", dsnConfig.Fallbacks[0].Host)
+				assert.Equal(t, uint16(5432), dsnConfig.Fallbacks[0].Port)
+			},
+		},
+		{
+			name: "ShouldHandleUnixSocketServer",
+			servers: []schema.StoragePostgreSQLServer{
+				{Address: mkAddress(t, "unix:///var/run/postgresql")},
+			},
+			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
+				require.Len(t, dsnConfig.Fallbacks, 1)
+				assert.Equal(t, "/var/run/postgresql", dsnConfig.Fallbacks[0].Host)
+				assert.Equal(t, uint16(5432), dsnConfig.Fallbacks[0].Port)
+			},
+		},
+		{
+			name: "ShouldHandleUnixSocketServerWithAbsolutePort",
+			servers: []schema.StoragePostgreSQLServer{
+				{Address: mkAddress(t, "unix:///tmp/.s.PGSQL.25432")},
+			},
+			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
+				require.Len(t, dsnConfig.Fallbacks, 1)
+				assert.Equal(t, "/tmp", dsnConfig.Fallbacks[0].Host)
+				assert.Equal(t, uint16(25432), dsnConfig.Fallbacks[0].Port)
+			},
+		},
+		{
+			name: "ShouldHandleMixedTCPAndUnixSocketServers",
+			servers: []schema.StoragePostgreSQLServer{
+				{Address: mkAddress(t, "tcp://db.example.com:6543")},
+				{Address: mkAddress(t, "unix:///var/run/postgresql")},
+			},
+			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
+				require.Len(t, dsnConfig.Fallbacks, 2)
+				assert.Equal(t, "db.example.com", dsnConfig.Fallbacks[0].Host)
+				assert.Equal(t, uint16(6543), dsnConfig.Fallbacks[0].Port)
+				assert.Equal(t, "/var/run/postgresql", dsnConfig.Fallbacks[1].Host)
+				assert.Equal(t, uint16(5432), dsnConfig.Fallbacks[1].Port)
+			},
+		},
+		{
+			name: "ShouldHandleServerWithoutTLS",
+			servers: []schema.StoragePostgreSQLServer{
+				{Address: mkAddress(t, "tcp://db.example.com:5432")},
+			},
+			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
+				require.Len(t, dsnConfig.Fallbacks, 1)
+				assert.Nil(t, dsnConfig.Fallbacks[0].TLSConfig)
+			},
+		},
+		{
+			name: "ShouldOverwriteExistingFallbacks",
+			existing: []*pgconn.FallbackConfig{
+				{Host: "old1.example.com", Port: 1111},
+				{Host: "old2.example.com", Port: 2222},
+			},
+			servers: []schema.StoragePostgreSQLServer{
+				{Address: mkAddress(t, "tcp://db.example.com:5432")},
+			},
+			assert: func(t *testing.T, dsnConfig *pgx.ConnConfig) {
+				require.Len(t, dsnConfig.Fallbacks, 1)
+				assert.Equal(t, "db.example.com", dsnConfig.Fallbacks[0].Host)
+				assert.Equal(t, uint16(5432), dsnConfig.Fallbacks[0].Port)
+			},
+		},
+	}
+
+	t.Parallel()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dsnConfig, err := pgx.ParseConfig("")
+			require.NoError(t, err)
+
+			if tc.existing != nil {
+				dsnConfig.Fallbacks = tc.existing
+			}
+
+			config := &schema.StoragePostgreSQL{
+				Servers: tc.servers,
+			}
+
+			dsnPostgreSQLFallbacks(config, x509.NewCertPool(), dsnConfig)
+
+			tc.assert(t, dsnConfig)
 		})
 	}
 }

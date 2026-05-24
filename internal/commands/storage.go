@@ -587,6 +587,8 @@ func newStorageUserWebAuthnVerifyCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
+	cmd.Flags().Bool(cmdFlagNameVerbose, false, "enables verbose output")
+
 	return cmd
 }
 

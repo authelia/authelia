@@ -230,7 +230,9 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 		authz := handlers.NewAuthzBuilder().WithConfig(config).WithEndpointConfig(endpoint).Build()
 
-		handlerAuthz := middlewares.Wrap(metricsVRMW, bridge(authz.Handler))
+		handlerAuthz := middlewares.Wrap(metricsVRMW, bridge(func(ctx *middlewares.AutheliaCtx) {
+			authz.Handler(ctx)
+		}))
 
 		switch name {
 		case "legacy":
@@ -497,6 +499,7 @@ func handlerMetrics(provider metrics.Provider, path string) fasthttp.RequestHand
 	r := router.New()
 
 	registerer := provider.GetRegisterer()
+
 	gatherer := provider.GetGatherer()
 
 	handler := promhttp.HandlerFor(gatherer, promhttp.HandlerOpts{})

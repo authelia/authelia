@@ -1355,7 +1355,11 @@ func TestAutheliaCtx_RecordAuthn(t *testing.T) {
 		ctx.RecordAuthn(true, true, "password")
 	})
 
-	ctx.Providers.Metrics = metrics.NewPrometheus()
+	var err error
+
+	ctx.Providers.Metrics, err = metrics.NewPrometheus()
+
+	require.NoError(t, err)
 
 	assert.NotPanics(t, func() {
 		ctx.RecordAuthn(true, true, "password")

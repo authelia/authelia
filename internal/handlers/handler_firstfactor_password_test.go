@@ -186,15 +186,88 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	attempt := model.AuthenticationAttempt{Time: s.mock.Clock.Now(), Type: regulation.AuthType1FA, RemoteIP: model.NewNullIPFromString("0.0.0.0")}
 
-	s.mock.UserProviderMock.
-		EXPECT().
-		GetDetails(gomock.Eq(testValue)).
-		Return(nil, fmt.Errorf("failed"))
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testValue)).
+			Return(nil, fmt.Errorf("failed")),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(attempt)).
+			Return(nil),
+	)
 
-	s.mock.StorageMock.
-		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(attempt)).
-		Return(nil)
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred getting details for user with username input 'test' which usually indicates they do not exist", "failed")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+}
+
+func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFailAndGetIPFail() {
+	attempt := model.AuthenticationAttempt{Time: s.mock.Clock.Now(), Type: regulation.AuthType1FA, RemoteIP: model.NewNullIPFromString("0.0.0.0")}
+
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testValue)).
+			Return(nil, fmt.Errorf("failed")),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, fmt.Errorf("failed")),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(attempt)).
+			Return(nil),
+	)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred getting details for user with username input 'test' which usually indicates they do not exist", "failed")
+	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+}
+
+func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFailAndGetIPBanned() {
+	attempt := model.AuthenticationAttempt{Time: s.mock.Clock.Now(), Type: regulation.AuthType1FA, RemoteIP: model.NewNullIPFromString("0.0.0.0"), Banned: true}
+
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testValue)).
+			Return(nil, fmt.Errorf("failed")),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return([]model.BannedIP{
+			{
+				ID:      1,
+				Time:    time.Time{},
+				Expires: sql.NullTime{},
+				Expired: sql.NullTime{},
+				Revoked: false,
+				IP:      model.IP{IP: s.mock.Ctx.RemoteIP()},
+				Source:  "regulation",
+				Reason:  sql.NullString{},
+			},
+		}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(attempt)).
+			Return(nil),
+	)
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",

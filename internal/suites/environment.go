@@ -2,6 +2,7 @@ package suites
 
 import (
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -9,6 +10,9 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+// suitesWithoutFrontend matches suite names that do not include the authelia-frontend service.
+var suitesWithoutFrontend = regexp.MustCompile(`^CLI$`)
 
 func waitUntilServiceLogDetected(
 	interval time.Duration,
@@ -83,7 +87,7 @@ func waitUntilServiceLog(dockerEnvironment *DockerEnvironment, service, log stri
 }
 
 func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment, suite string) error {
-	if os.Getenv("CI") != t && suite != "CLI" {
+	if os.Getenv("CI") != t && !suitesWithoutFrontend.MatchString(suite) {
 		log.Info("Waiting for Authelia (Frontend) to be ready...")
 
 		if err := waitUntilAutheliaFrontendIsReady(dockerEnvironment); err != nil {

@@ -122,20 +122,26 @@ Browsers have rules regarding which cookie domains a website can write. In parti
 [Public Suffix List](https://publicsuffix.org/list/) usually contains domains which are not permitted.
 {{< /callout >}}
 
-The domain the session cookie is assigned to protect. This must be the same as the domain Authelia is served on or the
-root of the domain, and consequently if the [authelia_url](#authelia_url) is configured must be able to read and write
-cookies for this domain.
+The domain the session cookie is assigned to protect.
+
+This value:
+
+1. Must be standard use domain i.e. the hostname portion of a URL (exclude the port) which a globally trusted
+   Certificate Authority is willing to issue X.509 Certificates for (the use of TLS is a strict requirement).
+2. Must either be a valid suffix of or exactly match the hostname portion of the [authelia_url](#authelia_url).
+3. Must include at least one domain segment i.e. period.
+4. Must not exactly match a public suffix domain i.e. a domain on the [Public Suffix List] like `duckdns.org` and should
+   instead be something like `example.duckdns.org` as browsers will refuse to set cookies at all for these domains.
+   Consequently, if you have `example.duckdns.org` and `example-auth.duckdns.org` you cannot share cookies between these
+   domains.
+5. Must not be a special use domain like `localhost` as browsers do not allow sites to set the cookies Authelia
+   requires to operate properly for these domains.
 
 For example if Authelia is accessible via the URL
-`https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` the domain should be either
-`{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` or `{{< sitevar name="domain" nojs="example.com" >}}`.
-
-The value must not match a domain on the [Public Suffix List] as browsers do not allow
-websites to write cookies for these domains. This includes most Dynamic DNS services such as `duckdns.org`. You should
-use your domain instead of `duckdns.org` for this value, for example `example.duckdns.org`.
-
-Consequently, if you have `example.duckdns.org` and `example-auth.duckdns.org` you cannot share cookies between these
-domains.
+`https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` the
+domain should be either
+`{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` or
+`{{< sitevar name="domain" nojs="example.com" >}}`.
 
 [Public Suffix List]: https://publicsuffix.org/list/
 

@@ -1,0 +1,15 @@
+---
+services:
+  pam:
+    build:
+      context: '../..'
+      dockerfile: 'internal/suites/example/compose/pam/Dockerfile'
+    volumes:
+      - './common/pki/ca/ca.public.crt:/etc/ssl/certs/authelia-ca.crt'
+    environment:
+      AUTHELIA_URL: 'https://login.example.com:8080'
+      CA_CERT: '/etc/ssl/certs/authelia-ca.crt'
+    networks:
+      authelianet:
+        ipv4_address: 192.168.240.130
+...

@@ -47,9 +47,11 @@ const CredentialItem = function (props: Props) {
                                 >
                                     {props.description}
                                 </Typography>
-                                <Typography display={{ sm: "inline", xs: "none" }} variant={"body2"} px={2}>
-                                    {props.qualifier}
-                                </Typography>
+                                {props.qualifier != "" ? (
+                                    <Typography display={{ sm: "inline", xs: "none" }} variant={"body2"} px={2}>
+                                        {props.qualifier}
+                                    </Typography>
+                                ) : null}
                             </Stack>
                             <Typography variant={"caption"} display={{ sm: "block", xs: "none" }}>
                                 {`${translate("Added")} ${timeSinceAdded}`}

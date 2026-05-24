@@ -13,3 +13,5 @@ export const ScopePhone: string = "phone";
 export const ScopeAddress: string = "address";
 
 export const ScopeAutheliaBearerAuthz: string = "authelia.bearer.authz";
+
+export const ScopeAutheliaPAM: string = "authelia.pam";

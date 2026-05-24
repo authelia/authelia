@@ -83,6 +83,12 @@ type ctxKey int
 
 const (
 	ctxKeyTransaction ctxKey = iota
+	ctxKeyConnection
+)
+
+const (
+	hmacNameOneTimeCode     = "otc"
+	hmacNameOneTimePassword = "otp"
 )
 
 var (
@@ -91,6 +97,5 @@ var (
 )
 
 const (
-	na      = "N/A"
-	invalid = "invalid"
+	na = "N/A"
 )

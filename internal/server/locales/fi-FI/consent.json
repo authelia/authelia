@@ -43,7 +43,7 @@
 		"sub": "Unique Identifier",
 		"updated_at": "Profiilin Päivityksen Aika",
 		"website": "Sivuston URL",
-		"zoneinfo": "Timezone"
+		"zoneinfo": "Aikavyöhyke"
 	},
 	"scopes": {
 		"address": "Käytä osoitettasi",

@@ -68,24 +68,10 @@ likelihood action will be taken against all parties still involved as to avoid
 taking any particular stance on any non-technical disagreement. The actions
 taken will be as described in this code of conduct.
 
-### Generative AI
+### Artificial Intelligence Policy
 
-There is an emerging convenience of Generative AI that's becoming very
-popular. It's quite apparent that Generative AI is an amazing tool that is
-very useful in saving precious time. While we're welcoming of the
-technology we have the expectation of ourselves that we clearly communicate
-where and how we're using it.
-
-The rational behind this is that it's quite clear Generative AI can make some
-serious and critical mistakes which may or may not be clear when considered
-rationally. The issue is that it's very good at getting most things to appear
-correct, and it's very easy to miss a serious and critical mistake when you're
-not considering the fact something was produced via Generative AI.
-
-This is based on professionalism that we also expect from every user in the
-community. This does not solely apply to the obvious elements such as pull requests;
-but also applies to the creation of feature requests, bug reports, discussions,
-and general communication within the community.
+We publish an [Artificial Intelligence Policy] which augments this Code of Conduct. These guidelines should be
+considered enforced under this Code of Conduct.
 
 ## Enforcement Responsibilities
 
@@ -172,8 +158,9 @@ https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
 Community Impact Guidelines were inspired by [Mozilla's code of conduct
 enforcement ladder](https://github.com/mozilla/diversity).
 
-[homepage]: https://www.contributor-covenant.org
-
 For answers to common questions about this code of conduct, see the FAQ at
 https://www.contributor-covenant.org/faq. Translations are available at
 https://www.contributor-covenant.org/translations.
+
+[homepage]: https://www.contributor-covenant.org
+[Artificial Intelligence Policy]: https://www.authelia.com/policies/artificial-intelligence/

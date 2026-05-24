@@ -64,7 +64,15 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                             />
                             <PropertyText
                                 name={translate("Attestation Type")}
-                                value={props.credential.attestation_type}
+                                value={
+                                    props.credential.attestation_type == ""
+                                        ? translate("Unknown")
+                                        : props.credential.attestation_type
+                                }
+                            />
+                            <PropertyText
+                                name={translate("Attestation Format")}
+                                value={props.credential.attestation_format}
                             />
                             <PropertyText
                                 name={translate("Attachment")}
@@ -78,19 +86,17 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                                 name={translate("User Verified")}
                                 value={props.credential.verified ? translate("Yes") : translate("No")}
                             />
-                            {(() => {
-                                let backupStateValue: string;
-
-                                if (!props.credential.backup_eligible) {
-                                    backupStateValue = translate("Not Eligible");
-                                } else if (props.credential.backup_state) {
-                                    backupStateValue = translate("Backed Up");
-                                } else {
-                                    backupStateValue = translate("Eligible");
+                            <PropertyText
+                                name={translate("Backup State")}
+                                value={
+                                    !props.credential.backup_eligible
+                                        ? translate("Not Eligible")
+                                        : props.credential.backup_state
+                                          ? translate("Backed Up")
+                                          : translate("Eligible")
                                 }
+                            />
 
-                                return <PropertyText name={translate("Backup State")} value={backupStateValue} />;
-                            })()}
                             <PropertyText
                                 name={translate("Transports")}
                                 value={

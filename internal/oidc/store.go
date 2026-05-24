@@ -360,7 +360,15 @@ func (s *Store) GetPARSession(ctx context.Context, requestURI string) (request o
 	var par *model.OAuth2PARContext
 
 	if par, err = s.provider.LoadOAuth2PARContext(ctx, requestURI); err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, oauthelia2.ErrNotFound.WithHint("The requested PAR session was not found, was expired, or was otherwise invalid.")
+		}
+
+		return nil, oauthelia2.ErrServerError.WithWrap(err).WithHintf("Error occurred retrieving the PAR session from storage: %v", err)
+	}
+
+	if par.Revoked {
+		return nil, oauthelia2.ErrNotFound.WithHint("The requested PAR session was not found, was expired, or was otherwise invalid.")
 	}
 
 	return par.ToAuthorizeRequest(ctx, NewSession(), s)

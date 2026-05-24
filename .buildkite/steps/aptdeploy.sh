@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 APT_CONF_ROOT="./apt/conf"
 APT_DB_ROOT="./apt/db"
@@ -35,8 +36,10 @@ for DIST in "${APT_DISTS[@]}"; do
   gpg --batch --pinentry-mode loopback -u security@authelia.com --passphrase "${GPG_PASSWORD}" --clearsign -o "${APT_REPO_ROOT}/dists/${DIST}/InRelease" "${APT_REPO_ROOT}/dists/${DIST}/Release"
 done
 
-cd apt || exit
+cd apt || exit 1
 git add -A
-GIT_AUTHOR_NAME="autheliabot" GIT_AUTHOR_EMAIL="autheliabot@users.noreply.github.com" GIT_COMMITTER_NAME="autheliabot" GIT_COMMITTER_EMAIL="autheliabot@users.noreply.github.com" \
-git commit -m "release: authelia ${BUILDKITE_TAG}"
+GIT_AUTHOR_NAME="autheliabot" GIT_AUTHOR_EMAIL="autheliabot@users.noreply.github.com" \
+GIT_COMMITTER_NAME="autheliabot" GIT_COMMITTER_EMAIL="autheliabot@users.noreply.github.com" \
+  git -c user.signingkey=security@authelia.com commit -S -m "release: authelia ${BUILDKITE_TAG}"
+git verify-commit HEAD
 git push

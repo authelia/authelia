@@ -12,16 +12,16 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
+	"github.com/rpadovani/sqlx-v2"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name string) (err error) {
-	var tx *sqlx.Tx
+	var tx SQLXTx
 
 	switch name {
-	case "otc":
+	case hmacNameOneTimeCode:
 		if tx, err = p.db.Beginx(); err != nil {
 			return fmt.Errorf("error beginning transaction to rotate hmac key: %w", err)
 		}
@@ -45,7 +45,7 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 		if err = tx.Commit(); err != nil {
 			return fmt.Errorf("error committing transaction to rotate hmac key: %w", err)
 		}
-	case "otp":
+	case hmacNameOneTimePassword:
 		if tx, err = p.db.Beginx(); err != nil {
 			return fmt.Errorf("error beginning transaction to rotate hmac key: %w", err)
 		}
@@ -175,7 +175,7 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 	return result, nil
 }
 
-func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProvider, tx SQLXTx, key [32]byte) (err error) {
 	var count int
 
 	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableOneTimeCode)); err != nil {
@@ -215,7 +215,7 @@ func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProv
 	return nil
 }
 
-func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, tx SQLXTx, key [32]byte) (err error) {
 	var count int
 
 	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableTOTPConfigurations)); err != nil {
@@ -255,7 +255,7 @@ func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, t
 	return nil
 }
 
-func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvider, tx SQLXTx, key [32]byte) (err error) {
 	var count int
 
 	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableWebAuthnCredentials)); err != nil {
@@ -305,7 +305,7 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 	return nil
 }
 
-func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvider, tx SQLXTx, key [32]byte) (err error) {
 	var caches []encCachedData
 
 	if err = tx.SelectContext(ctx, &caches, tx.Rebind(fmt.Sprintf(queryFmtSelectCachedDataValueEncrypted, tableCachedData)), true); err != nil {
@@ -340,7 +340,7 @@ func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvi
 }
 
 func schemaEncryptionChangeKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType) EncryptionChangeKeyFunc {
-	return func(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+	return func(ctx context.Context, provider *SQLProvider, tx SQLXTx, key [32]byte) (err error) {
 		var count int
 
 		if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, typeOAuth2Session.Table())); err != nil {
@@ -377,7 +377,7 @@ func schemaEncryptionChangeKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType)
 	}
 }
 
-func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvider, tx SQLXTx, key [32]byte) (err error) {
 	var count int
 
 	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableEncryption)); err != nil {
@@ -632,11 +632,11 @@ func (p *SQLProvider) otpHMACSignature(values ...[]byte) string {
 }
 
 func (p *SQLProvider) getHMACOneTimeCode(ctx context.Context) (key []byte, err error) {
-	return p.getHMACKey(ctx, "otc", sha512.BlockSize)
+	return p.getHMACKey(ctx, hmacNameOneTimeCode, sha512.BlockSize)
 }
 
 func (p *SQLProvider) getHMACOneTimePassword(ctx context.Context) (key []byte, err error) {
-	return p.getHMACKey(ctx, "otp", sha256.BlockSize)
+	return p.getHMACKey(ctx, hmacNameOneTimePassword, sha256.BlockSize)
 }
 
 func (p *SQLProvider) setCrypographyKey(ctx context.Context, conn SQLXConnection, typ string, name string, size int) (key []byte, err error) {
