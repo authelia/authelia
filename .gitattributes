@@ -31,5 +31,4 @@ examples/templates/notifications/*.tmpl text eol=crlf
 examples/templates/notifications/*.html text eol=crlf
 
 # shellcheck rejects literal carriage returns in its config (SC1017).
-# Force LF so Windows checkouts don't break the pre-commit hook.
 .shellcheckrc text eol=lf
