@@ -336,29 +336,35 @@ Examples (assuming your Authelia Root URL is `https://{{< sitevar name="subdomai
 
 ```yaml {title="compose.yml"}
 services:
-  application:
+  application-service:
     ## Mandatory that the application is on the same network as the proxy.
     networks:
-      proxy: {}
+      proxy-network: {}
   proxy:
     networks:
       ## Mandatory that the proxy is on the same network as the application, and that it has this alias.
-      proxy:
+      proxy-network:
         aliases:
           - '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
-  authelia:
+  authelia-service:
     networks:
-      proxy: {}
+      proxy-network: {}
 networks:
-  proxy:
+  proxy-network:
     ## An external network can be created manually and shared between multiple compose files. This is NOT mandatory.
     external: true
-    name: 'proxy-net'
+    name: 'proxy-network'
 ```
 
 ```console
-docker run -d --name proxy --network proxy --network-alias {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} <other proxy arguments>
-docker run -d --name application --network proxy <other application arguments>
+docker run -d --name proxy-service --network proxy-network --network-alias {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} <other proxy arguments>
+docker run -d --name application-service --network proxy-network <other application arguments>
+```
+
+###### Create a network for this example
+
+```console
+docker network create proxy-network
 ```
 
 [Endpoint]: ./introduction.md#discoverable-endpoints

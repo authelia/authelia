@@ -39,7 +39,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 	db, err := sqlx.Open(driverName, dataSourceName)
 
 	provider = SQLProvider{
-		db:         db,
+		db:         &SQLXWrapDB{db},
 		name:       name,
 		driverName: driverName,
 		config:     config,
@@ -198,7 +198,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 // SQLProvider is a storage provider persisting data in a SQL database.
 type SQLProvider struct {
-	db *sqlx.DB
+	db SQLXDB
 
 	name       string
 	driverName string
@@ -450,9 +450,9 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 // BeginTX begins a transaction with the storage provider when applicable.
 func (p *SQLProvider) BeginTX(ctx context.Context) (c context.Context, err error) {
-	var tx *sql.Tx
+	var tx SQLXTx
 
-	if tx, err = p.db.Begin(); err != nil {
+	if tx, err = p.db.BeginTxx(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -461,7 +461,7 @@ func (p *SQLProvider) BeginTX(ctx context.Context) (c context.Context, err error
 
 // Commit performs a storage provider commit when applicable.
 func (p *SQLProvider) Commit(ctx context.Context) (err error) {
-	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+	tx, ok := ctx.Value(ctxKeyTransaction).(SQLXTx)
 
 	if !ok {
 		return errors.New("could not retrieve tx")
@@ -472,7 +472,7 @@ func (p *SQLProvider) Commit(ctx context.Context) (err error) {
 
 // Rollback performs a storage provider rollback when applicable.
 func (p *SQLProvider) Rollback(ctx context.Context) (err error) {
-	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+	tx, ok := ctx.Value(ctxKeyTransaction).(SQLXTx)
 
 	if !ok {
 		return errors.New("could not retrieve tx")
@@ -963,7 +963,7 @@ func (p *SQLProvider) SaveIdentityVerification(ctx context.Context, verification
 // ConsumeIdentityVerification marks an identity verification record in the storage provider as consumed.
 func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti string, ip model.NullIP) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlConsumeIdentityVerification, time.Now(), ip, jti); err != nil {
-		return fmt.Errorf("error updating identity verification: %w", err)
+		return fmt.Errorf("error consuming identity verification with jti '%s': %w", jti, err)
 	}
 
 	return nil
@@ -972,7 +972,7 @@ func (p *SQLProvider) ConsumeIdentityVerification(ctx context.Context, jti strin
 // RevokeIdentityVerification marks an identity verification record in the storage provider as revoked.
 func (p *SQLProvider) RevokeIdentityVerification(ctx context.Context, jti string, ip model.NullIP) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlRevokeIdentityVerification, time.Now(), ip, jti); err != nil {
-		return fmt.Errorf("error updating identity verification: %w", err)
+		return fmt.Errorf("error revoking identity verification with jti '%s': %w", jti, err)
 	}
 
 	return nil
@@ -1016,7 +1016,7 @@ func (p *SQLProvider) LoadIdentityVerification(ctx context.Context, jti string) 
 // SaveOneTimeCode saves a One-Time Code to the storage provider after generating the signature which is returned
 // along with any error.
 func (p *SQLProvider) SaveOneTimeCode(ctx context.Context, code model.OneTimeCode) (signature string, err error) {
-	code.Signature = p.otcHMACSignature([]byte(code.Username), []byte(code.Intent), code.Code)
+	code.Signature = p.otcHMACSignature([]byte(code.Username), code.IssuedIP.IP, []byte(code.Intent), code.Code)
 
 	if code.Code, err = p.encrypt(code.Code); err != nil {
 		return "", fmt.Errorf("error encrypting the one-time code value for user '%s' with signature '%s': %w", code.Username, code.Signature, err)
@@ -1033,27 +1033,55 @@ func (p *SQLProvider) SaveOneTimeCode(ctx context.Context, code model.OneTimeCod
 
 // ConsumeOneTimeCode consumes a one-time code using the signature.
 func (p *SQLProvider) ConsumeOneTimeCode(ctx context.Context, code *model.OneTimeCode) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlConsumeOneTimeCode, code.ConsumedAt, code.ConsumedIP, code.Signature); err != nil {
-		return fmt.Errorf("error updating one-time code (consume): %w", err)
+	var (
+		result sql.Result
+		rows   int64
+	)
+
+	if result, err = p.db.ExecContext(ctx, p.sqlConsumeOneTimeCode, code.ConsumedAt, code.ConsumedIP, code.Signature); err != nil {
+		return fmt.Errorf("error consuming one-time code: %w", err)
 	}
 
-	return nil
+	switch rows, err = result.RowsAffected(); {
+	case err != nil:
+		return fmt.Errorf("error consuming one-time code: %w", err)
+	case rows == 0:
+		return fmt.Errorf("error consuming one-time code: no rows affected")
+	case rows > 1:
+		return fmt.Errorf("error consuming one-time code: multiple rows affected")
+	default:
+		return nil
+	}
 }
 
 // RevokeOneTimeCode revokes a one-time code in the storage provider using the public ID.
 func (p *SQLProvider) RevokeOneTimeCode(ctx context.Context, publicID uuid.UUID, ip model.IP) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlRevokeOneTimeCode, time.Now(), ip, publicID); err != nil {
-		return fmt.Errorf("error updating one-time code (revoke): %w", err)
+	var (
+		result sql.Result
+		rows   int64
+	)
+
+	if result, err = p.db.ExecContext(ctx, p.sqlRevokeOneTimeCode, time.Now(), ip, publicID); err != nil {
+		return fmt.Errorf("error revoking one-time code: %w", err)
 	}
 
-	return nil
+	switch rows, err = result.RowsAffected(); {
+	case err != nil:
+		return fmt.Errorf("error revoking one-time code: %w", err)
+	case rows == 0:
+		return fmt.Errorf("error revoking one-time code: no rows affected")
+	case rows > 1:
+		return fmt.Errorf("error revoking one-time code: multiple rows affected")
+	default:
+		return nil
+	}
 }
 
 // LoadOneTimeCode loads a one-time code from the storage provider given a username, intent, and code.
-func (p *SQLProvider) LoadOneTimeCode(ctx context.Context, username, intent, raw string) (code *model.OneTimeCode, err error) {
+func (p *SQLProvider) LoadOneTimeCode(ctx context.Context, username string, ip model.IP, intent, raw string) (code *model.OneTimeCode, err error) {
 	code = &model.OneTimeCode{}
 
-	signature := p.otcHMACSignature([]byte(username), []byte(intent), []byte(raw))
+	signature := p.otcHMACSignature([]byte(username), ip.IP, []byte(intent), []byte(raw))
 
 	if err = p.db.GetContext(ctx, code, p.sqlSelectOneTimeCode, signature, username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -1332,7 +1360,7 @@ func (p *SQLProvider) DeactivateOAuth2SessionByRequestID(ctx context.Context, se
 	case OAuth2SessionTypeAccessToken:
 		query = p.sqlDeactivateOAuth2AccessTokenSessionByRequestID
 	case OAuth2SessionTypeAuthorizeCode:
-		query = p.sqlDeactivateOAuth2AuthorizeCodeSession
+		query = p.sqlDeactivateOAuth2AuthorizeCodeSessionByRequestID
 	case OAuth2SessionTypeOpenIDConnect:
 		query = p.sqlDeactivateOAuth2OpenIDConnectSessionByRequestID
 	case OAuth2SessionTypePKCEChallenge:
@@ -1387,14 +1415,13 @@ func (p *SQLProvider) SaveOAuth2DeviceCodeSession(ctx context.Context, session *
 		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
 	}
 
-	_, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2DeviceCodeSession,
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2DeviceCodeSession,
 		session.ChallengeID, session.RequestID, session.ClientID, session.Signature, session.UserCodeSignature,
 		session.Status, session.Subject, session.RequestedAt, session.CheckedAt,
 		session.RequestedScopes, session.GrantedScopes,
 		session.RequestedAudience, session.GrantedAudience,
-		session.Active, session.Revoked, session.Form, session.Session)
-	if err != nil {
-		return fmt.Errorf("error inserting oauth2 device code session with device code signature '%s' and user code signature '%s' for subject '%s' and request id '%s': %w", session.Signature, session.UserCodeSignature, session.Subject.String, session.RequestID, err)
+		session.Active, session.Revoked, session.Form, session.Session); err != nil {
+		return fmt.Errorf("error inserting oauth2 device code session with signature '%s' and user code signature '%s' for subject '%s' and request id '%s': %w", session.Signature, session.UserCodeSignature, session.Subject.String, session.RequestID, err)
 	}
 
 	return nil
@@ -1405,12 +1432,11 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, session
 		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
 	}
 
-	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSession,
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSession,
 		session.ChallengeID, session.RequestID, session.ClientID, session.Status, session.Subject, session.RequestedAt,
 		session.CheckedAt, session.RequestedScopes, session.RequestedAudience, session.GrantedScopes, session.GrantedAudience,
-		session.Active, session.Revoked, session.Form, session.Session, session.Signature)
-	if err != nil {
-		return fmt.Errorf("error updating oauth2 device code session with device code signature '%s': %w", session.Signature, err)
+		session.Active, session.Revoked, session.Form, session.Session, session.Signature); err != nil {
+		return fmt.Errorf("error updating oauth2 device code session with signature '%s': %w", session.Signature, err)
 	}
 
 	return nil
@@ -1421,21 +1447,19 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, ses
 		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
 	}
 
-	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSessionData,
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSessionData,
 		session.ChallengeID, session.ClientID, session.Status, session.Subject,
 		session.RequestedScopes, session.RequestedAudience, session.GrantedScopes, session.GrantedAudience,
-		session.Form, session.Session, session.Signature)
-	if err != nil {
-		return fmt.Errorf("error updating oauth2 device code session data with device code signature '%s': %w", session.Signature, err)
+		session.Form, session.Session, session.Signature); err != nil {
+		return fmt.Errorf("error updating oauth2 device code session data with signature '%s': %w", session.Signature, err)
 	}
 
 	return nil
 }
 
 func (p *SQLProvider) DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error) {
-	_, err = p.db.ExecContext(ctx, p.sqlDeactivateOAuth2DeviceCodeSession, signature)
-	if err != nil {
-		return fmt.Errorf("error deactivating oauth2 device code session with device code signature '%s': %w", signature, err)
+	if _, err = p.db.ExecContext(ctx, p.sqlDeactivateOAuth2DeviceCodeSession, signature); err != nil {
+		return fmt.Errorf("error deactivating oauth2 device code session with signature '%s': %w", signature, err)
 	}
 
 	return nil
@@ -1445,11 +1469,11 @@ func (p *SQLProvider) LoadOAuth2DeviceCodeSession(ctx context.Context, signature
 	session = &model.OAuth2DeviceCodeSession{}
 
 	if err = p.db.GetContext(ctx, session, p.sqlSelectOAuth2DeviceCodeSession, signature); err != nil {
-		return nil, fmt.Errorf("error selecting oauth2 device code session with device code signature '%s': %w", signature, err)
+		return nil, fmt.Errorf("error selecting oauth2 device code session with signature '%s': %w", signature, err)
 	}
 
 	if session.Session, err = p.decrypt(session.Session); err != nil {
-		return nil, fmt.Errorf("error decrypting the oauth2 device code session data with device code signature '%s' for subject '%s' and request id '%s': %w", signature, session.Subject.String, session.RequestID, err)
+		return nil, fmt.Errorf("error decrypting the oauth2 device code session data with signature '%s' for subject '%s' and request id '%s': %w", signature, session.Subject.String, session.RequestID, err)
 	}
 
 	return session, nil
@@ -1502,7 +1526,7 @@ func (p *SQLProvider) LoadOAuth2PARContext(ctx context.Context, signature string
 // RevokeOAuth2PARContext marks an OAuth2.0 PAR context as revoked in the storage provider.
 func (p *SQLProvider) RevokeOAuth2PARContext(ctx context.Context, signature string) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlRevokeOAuth2PARContext, signature); err != nil {
-		return fmt.Errorf("error revoking oauth2 pushed authorization request context with signature '%s': %w", signature, err)
+		return fmt.Errorf("error revoking oauth2 pushed authorization request session with signature '%s': %w", signature, err)
 	}
 
 	return nil
@@ -1629,11 +1653,25 @@ func (p *SQLProvider) LoadBannedUsers(ctx context.Context, limit, page int) (ban
 }
 
 func (p *SQLProvider) RevokeBannedUser(ctx context.Context, id int, expired time.Time) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlRevokeBannedUser, expired, id); err != nil {
+	var (
+		result sql.Result
+		rows   int64
+	)
+
+	if result, err = p.db.ExecContext(ctx, p.sqlRevokeBannedUser, expired, id); err != nil {
 		return fmt.Errorf("error revoking banned user with id '%d': %w", id, err)
 	}
 
-	return nil
+	switch rows, err = result.RowsAffected(); {
+	case err != nil:
+		return fmt.Errorf("error revoking banned user with id '%d': error occurred determining the number of affected rows: %w", id, err)
+	case rows == 0:
+		return fmt.Errorf("error revoking banned user with id '%d': no rows affected", id)
+	case rows > 1:
+		return fmt.Errorf("error revoking banned user with id '%d': multiple rows affected", id)
+	default:
+		return nil
+	}
 }
 
 func (p *SQLProvider) LoadRegulationRecordsByIP(ctx context.Context, ip model.IP, since time.Time, limit int) (records []model.RegulationRecord, err error) {
@@ -1707,11 +1745,25 @@ func (p *SQLProvider) LoadBannedIPs(ctx context.Context, limit, page int) (bans 
 }
 
 func (p *SQLProvider) RevokeBannedIP(ctx context.Context, id int, expired time.Time) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlRevokeBannedIP, expired, id); err != nil {
+	var (
+		result sql.Result
+		rows   int64
+	)
+
+	if result, err = p.db.ExecContext(ctx, p.sqlRevokeBannedIP, expired, id); err != nil {
 		return fmt.Errorf("error revoking banned ip with id '%d': %w", id, err)
 	}
 
-	return nil
+	switch rows, err = result.RowsAffected(); {
+	case err != nil:
+		return fmt.Errorf("error revoking banned ip with id '%d': error occurred determining the number of affected rows: %w", id, err)
+	case rows == 0:
+		return fmt.Errorf("error revoking banned ip with id '%d': no rows affected", id)
+	case rows > 1:
+		return fmt.Errorf("error revoking banned ip with id '%d': multiple rows affected", id)
+	default:
+		return nil
+	}
 }
 
 func (p *SQLProvider) SaveCachedData(ctx context.Context, data model.CachedData) (err error) {

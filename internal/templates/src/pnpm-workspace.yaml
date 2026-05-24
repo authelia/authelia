@@ -18,8 +18,9 @@ overrides:
   nanoid: 5.1.11
   next: 16.2.6
   picomatch: 4.0.4
-  postcss: 8.5.14
+  postcss: 8.5.15
   prismjs: 1.30.0
   rollup: 4.60.4
   socket.io-parser: 4.2.6
-  vite: 8.0.13
+  vite: 8.0.14
+  ws: 8.21.0

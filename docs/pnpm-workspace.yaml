@@ -2,11 +2,12 @@ allowBuilds:
   hugo-extended: true
 onlyBuiltDependencies:
   - hugo-extended
+preferSymlinkedExecutables: true
 overrides:
   "@babel/plugin-transform-modules-systemjs": 7.29.4
   brace-expansion: 5.0.6
   picomatch: 4.0.4
-  semver: 7.8.0
-  vite: 8.0.13
+  semver: 7.8.1
+  vite: 8.0.14
   yaml: 2.9.0
-  yauzl: 3.3.0
+  yauzl: 3.3.1

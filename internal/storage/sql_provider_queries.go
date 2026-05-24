@@ -104,12 +104,12 @@ const (
 	queryFmtConsumeOTC = `
 		UPDATE %s
 		SET consumed = ?, consumed_ip = ?
-		WHERE signature = ?;`
+		WHERE signature = ? AND consumed IS NULL AND revoked IS NULL;`
 
 	queryFmtRevokeOTC = `
 		UPDATE %s
 		SET revoked = ?, revoked_ip = ?
-		WHERE public_id = ?;`
+		WHERE public_id = ? AND consumed IS NULL AND revoked IS NULL;`
 
 	queryFmtSelectOTCEncryptedData = `
 		SELECT id, code

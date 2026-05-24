@@ -84,6 +84,11 @@ var OAuth2UserClientAClient = Subject{
 	IP:       net.ParseIP("127.0.0.1"),
 }
 
+var OAuth2UserClientBClient = Subject{
+	ClientID: "b_client",
+	IP:       net.ParseIP("127.0.0.1"),
+}
+
 var UserWithGroups = Subject{
 	Username: "john",
 	Groups:   []string{"dev", "admins"},
@@ -356,6 +361,11 @@ func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 			Subjects: [][]string{{"oauth2:client:a_client"}},
 		}).
 		WithRule(schema.AccessControlRule{
+			Domains:  []string{"oauth.example2.com"},
+			Policy:   oneFactor,
+			Subjects: [][]string{{"oauth2:client:a_client"}},
+		}).
+		WithRule(schema.AccessControlRule{
 			Domains: []string{"*.example.com"},
 			Policy:  twoFactor,
 		}).
@@ -367,7 +377,9 @@ func (s *AuthorizerSuite) TestShouldCheckRulePrecedence() {
 	tester.CheckAuthorizations(s.T(), Bob, "https://public.example.com/", fasthttp.MethodGet, Bypass)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public.example.com/", fasthttp.MethodGet, Bypass)
 	tester.CheckAuthorizations(s.T(), OAuth2UserClientAClient, "https://public.example.com/", fasthttp.MethodGet, Bypass)
-	tester.CheckAuthorizations(s.T(), OAuth2UserClientAClient, "https://protected.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), OAuth2UserClientBClient, "https://protected.example.com/", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), OAuth2UserClientAClient, "https://oauth.example2.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), OAuth2UserClientBClient, "https://oauth.example2.com/", fasthttp.MethodGet, Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {

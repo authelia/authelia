@@ -7,11 +7,18 @@ package mocks
 //go:generate mockgen -package mocks -destination notifier.go -mock_names Notifier=MockNotifier github.com/authelia/authelia/v4/internal/notification Notifier
 //go:generate mockgen -package mocks -destination totp.go -mock_names Provider=MockTOTP github.com/authelia/authelia/v4/internal/totp Provider
 //go:generate mockgen -package mocks -destination storage.go -mock_names Provider=MockStorage github.com/authelia/authelia/v4/internal/storage Provider
+//go:generate mockgen -package mocks -destination storage_sqlxdb.go -mock_names SQLXDB=MockSQLXDB github.com/authelia/authelia/v4/internal/storage SQLXDB
+//go:generate mockgen -package mocks -destination storage_sqlxtx.go -mock_names SQLXTx=MockSQLXTx github.com/authelia/authelia/v4/internal/storage SQLXTx
+//go:generate mockgen -package mocks -destination storage_sqlxconnection.go -mock_names SQLXConnection=MockSQLXConnection github.com/authelia/authelia/v4/internal/storage SQLXConnection
 //go:generate mockgen -package mocks -destination duo_api.go -mock_names Provider=MockDuoProvider github.com/authelia/authelia/v4/internal/duo Provider
 //go:generate mockgen -package mocks -destination duo_base_api.go -mock_names BaseProvider=MockDuoBaseProvider github.com/authelia/authelia/v4/internal/duo BaseProvider
 //go:generate mockgen -package mocks -destination random.go -mock_names Provider=MockRandom github.com/authelia/authelia/v4/internal/random Provider
 
 // External Mocks.
+
+// Mocks for database/sql.
+
+//go:generate mockgen -package mocks -destination sql_result.go -mock_names Result=MockSQLResult database/sql Result
 
 // Mocks for authelia.com/provider/oauth2.
 //go:generate mockgen -package mocks -destination oauth2_client_credentials_grant_storage.go -mock_names Provider=MockClientCredentialsGrantStorage authelia.com/provider/oauth2/handler/oauth2 ClientCredentialsGrantStorage

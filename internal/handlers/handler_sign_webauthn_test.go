@@ -22,15 +22,6 @@ import (
 )
 
 func TestWebAuthnAssertionGET(t *testing.T) {
-	decode := func(in string) []byte {
-		value, err := base64.StdEncoding.DecodeString(in)
-		if err != nil {
-			t.Fatal("Failed to decode base64 string:", err)
-		}
-
-		return value
-	}
-
 	testCases := []struct {
 		name             string
 		config           *schema.WebAuthn
@@ -59,7 +50,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 					RPID:            "login.example.com",
 					Username:        testUsername,
 					Description:     "test",
-					KID:             model.NewBase64(decode("rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
+					KID:             model.NewBase64(tDecodeBase64StringStdEncoding(t, "rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
 					AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708")), Valid: true},
 					AttestationType: "packed",
 					Attachment:      "cross-platform",
@@ -225,15 +216,6 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 		dataReqBadRPIDHash = fmt.Sprintf(dataReqFmt, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientJSON, "http://example.com"))))
 	)
 
-	decode := func(in string) []byte {
-		value, err := base64.StdEncoding.DecodeString(in)
-		if err != nil {
-			t.Fatal("Failed to decode base64 string:", err)
-		}
-
-		return value
-	}
-
 	testCases := []struct {
 		name           string
 		config         *schema.WebAuthn
@@ -256,7 +238,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 					},
@@ -271,7 +253,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					RPID:            "login.example.com",
 					Username:        testUsername,
 					Description:     "test",
-					KID:             model.NewBase64(decode("rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
+					KID:             model.NewBase64(tDecodeBase64StringStdEncoding(t, "rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
 					AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708")), Valid: true},
 					AttestationType: "packed",
 					Attachment:      "cross-platform",
@@ -290,7 +272,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
@@ -329,7 +311,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 					},
@@ -344,7 +326,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					RPID:            "login.example.com",
 					Username:        testUsername,
 					Description:     "test",
-					KID:             model.NewBase64(decode("rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
+					KID:             model.NewBase64(tDecodeBase64StringStdEncoding(t, "rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
 					AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708")), Valid: true},
 					AttestationType: "packed",
 					Attachment:      "cross-platform",
@@ -363,7 +345,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
@@ -400,7 +382,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 					},
@@ -415,7 +397,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					RPID:            "login.example.com",
 					Username:        testUsername,
 					Description:     "test",
-					KID:             model.NewBase64(decode("rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
+					KID:             model.NewBase64(tDecodeBase64StringStdEncoding(t, "rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
 					AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708")), Valid: true},
 					AttestationType: "packed",
 					Attachment:      "cross-platform",
@@ -434,7 +416,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
@@ -471,7 +453,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 					},
@@ -486,7 +468,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					RPID:            "login.example.com",
 					Username:        testUsername,
 					Description:     "test",
-					KID:             model.NewBase64(decode("rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
+					KID:             model.NewBase64(tDecodeBase64StringStdEncoding(t, "rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
 					AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708")), Valid: true},
 					AttestationType: "packed",
 					Attachment:      "cross-platform",
@@ -505,7 +487,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
@@ -542,7 +524,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 					},
@@ -557,7 +539,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					RPID:            "login.example.com",
 					Username:        testUsername,
 					Description:     "test",
-					KID:             model.NewBase64(decode("rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
+					KID:             model.NewBase64(tDecodeBase64StringStdEncoding(t, "rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
 					AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708")), Valid: true},
 					AttestationType: "packed",
 					Attachment:      "cross-platform",
@@ -576,7 +558,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
@@ -609,7 +591,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 					},
@@ -640,7 +622,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 					},
@@ -670,7 +652,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 					},
@@ -747,7 +729,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 					},
@@ -759,7 +741,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
-						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
+						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
 					mock.StorageMock.
 						EXPECT().
 						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
@@ -786,7 +768,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						UserID:           tDecodeBase64StringStdEncoding(t, "OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 					},
@@ -840,6 +822,15 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			}
 		})
 	}
+}
+
+func tDecodeBase64StringStdEncoding(t *testing.T, in string) []byte {
+	t.Helper()
+
+	value, err := base64.StdEncoding.DecodeString(in)
+	require.NoError(t, err)
+
+	return value
 }
 
 //nolint:godot
