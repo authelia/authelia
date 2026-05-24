@@ -6,6 +6,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,6 +18,8 @@ import (
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/knadh/koanf/v2"
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -483,6 +486,57 @@ func TestShouldReadFilesWithFilters(t *testing.T) {
 			assert.Fail(t, "Unexpected File", "The file with path %s is not expected.", file.Path)
 		}
 	}
+}
+
+func TestShouldReadFilesDirectoryWithMixedFormats(t *testing.T) {
+	source := NewFileSource("./test_resources/config-dir/mixed")
+
+	files, err := source.ReadFiles()
+	require.NoError(t, err)
+
+	require.Len(t, files, 4)
+
+	paths := make([]string, len(files))
+	for i, file := range files {
+		paths[i] = file.Path
+	}
+
+	assert.ElementsMatch(t, []string{
+		"test_resources/config-dir/mixed/a.yml",
+		"test_resources/config-dir/mixed/b.yaml",
+		"test_resources/config-dir/mixed/c.json",
+		"test_resources/config-dir/mixed/d.toml",
+	}, paths)
+
+	for _, file := range files {
+		switch file.Path {
+		case "test_resources/config-dir/mixed/a.yml":
+			assert.Contains(t, string(file.Data), "theme: 'light'")
+		case "test_resources/config-dir/mixed/b.yaml":
+			assert.Contains(t, string(file.Data), "default_2fa_method: 'totp'")
+		case "test_resources/config-dir/mixed/c.json":
+			assert.Contains(t, string(file.Data), `"level": "info"`)
+		case "test_resources/config-dir/mixed/d.toml":
+			assert.Contains(t, string(file.Data), `address = "tcp://0.0.0.0:9091/"`)
+		default:
+			assert.Fail(t, "Unexpected File", "The file with path %s is not expected.", file.Path)
+		}
+	}
+}
+
+func TestShouldLoadDirectoryWithMixedFormats(t *testing.T) {
+	val := schema.NewStructValidator()
+
+	source := NewFileSource("./test_resources/config-dir/mixed")
+
+	require.NoError(t, source.Load(val))
+
+	ko := source.koanf
+
+	assert.Equal(t, "light", ko.Get("theme"))
+	assert.Equal(t, "totp", ko.Get("default_2fa_method"))
+	assert.Equal(t, "info", ko.Get("log.level"))
+	assert.Equal(t, "tcp://0.0.0.0:9091/", ko.Get("server.address"))
 }
 
 func TestShouldHandleNoAddressMySQLWithHostEnv(t *testing.T) {
@@ -1551,3 +1605,270 @@ func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) string {
 const (
 	pathCrypto = "./test_resources/crypto/%s.%s"
 )
+
+func TestSourceNames(t *testing.T) {
+	assert.Equal(t, "file path(/tmp/foo)", (&FileSource{path: "/tmp/foo"}).Name())
+	assert.Equal(t, "bytes data(hello)", NewBytesSource([]byte("hello")).Name())
+	assert.Equal(t, "environment", NewEnvironmentSource("AUTHELIA_", "_").Name())
+	assert.Equal(t, "secrets", NewSecretsSource("AUTHELIA_", "_").Name())
+	assert.Equal(t, "command-line", (&CommandLineSource{}).Name())
+	assert.Equal(t, "map", NewMapSource(nil).Name())
+}
+
+func TestFileSource_GetBytesFilterNames(t *testing.T) {
+	t.Run("ShouldReturnEmptyWhenNoFilters", func(t *testing.T) {
+		source := NewFileSource("./test_resources/config.yml")
+
+		assert.Empty(t, source.GetBytesFilterNames())
+	})
+
+	t.Run("ShouldReturnConfiguredFilterNames", func(t *testing.T) {
+		source := NewFilteredFileSource("./test_resources/config.yml", NewExpandEnvFileFilter(), NewTemplateFileFilter())
+
+		assert.Equal(t, []string{filterExpandEnv, filterTemplate}, source.GetBytesFilterNames())
+	})
+}
+
+func TestBytesSource_Read(t *testing.T) {
+	source := NewBytesSource([]byte("anything"))
+
+	m, err := source.Read()
+
+	assert.Nil(t, m)
+	assert.EqualError(t, err, "filtered bytes provider does not support this method")
+}
+
+func TestBytesSource_ReadBytes(t *testing.T) {
+	t.Run("ShouldReturnRawWhenNoFilters", func(t *testing.T) {
+		source := NewBytesSource([]byte("hello"))
+
+		data, err := source.ReadBytes()
+
+		require.NoError(t, err)
+		assert.Equal(t, []byte("hello"), data)
+	})
+
+	t.Run("ShouldApplyFiltersInOrder", func(t *testing.T) {
+		t.Setenv("AUTHELIA_TEST_BYTES_FILTER_ENV", "expanded-value")
+
+		source := NewBytesSource([]byte("value: '${AUTHELIA_TEST_BYTES_FILTER_ENV}'\n"))
+		source.filters = []BytesFilter{NewExpandEnvFileFilter()}
+
+		data, err := source.ReadBytes()
+
+		require.NoError(t, err)
+		assert.Equal(t, "value: 'expanded-value'\n", string(data))
+	})
+
+	t.Run("ShouldReturnFilterError", func(t *testing.T) {
+		source := NewBytesSource([]byte("{{ if }}"))
+		source.filters = []BytesFilter{NewTemplateFileFilter()}
+
+		data, err := source.ReadBytes()
+
+		assert.Nil(t, data)
+		assert.Error(t, err)
+	})
+}
+
+func TestNewDefaultsSource(t *testing.T) {
+	source := NewDefaultsSource()
+
+	require.NotNil(t, source)
+	assert.Equal(t, "map", source.Name())
+}
+
+func TestNewDefaultSourcesAdditionalSources(t *testing.T) {
+	extra := NewBytesSource([]byte("theme: 'light'\n"))
+
+	t.Run("NewDefaultSourcesIncludesAdditional", func(t *testing.T) {
+		sources := NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter, extra)
+
+		assert.Contains(t, sources, Source(extra))
+	})
+
+	t.Run("NewDefaultSourcesFilteredIncludesAdditional", func(t *testing.T) {
+		sources := NewDefaultSourcesFiltered([]string{"./test_resources/config.yml"}, nil, DefaultEnvPrefix, DefaultEnvDelimiter, extra)
+
+		assert.Contains(t, sources, Source(extra))
+	})
+
+	t.Run("NewDefaultSourcesWithDefaultsIncludesDefaults", func(t *testing.T) {
+		base := NewBytesSource([]byte("default_2fa_method: 'totp'\n"))
+
+		sources := NewDefaultSourcesWithDefaults([]string{"./test_resources/config.yml"}, nil, DefaultEnvPrefix, DefaultEnvDelimiter, []Source{base}, extra)
+
+		assert.Contains(t, sources, Source(base))
+		assert.Contains(t, sources, Source(extra))
+	})
+
+	t.Run("NewDefaultSourcesWithDefaultsWithFiltersIncludesBoth", func(t *testing.T) {
+		base := NewBytesSource([]byte("default_2fa_method: 'totp'\n"))
+
+		sources := NewDefaultSourcesWithDefaults([]string{"./test_resources/config.yml"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter, []Source{base}, extra)
+
+		assert.Contains(t, sources, Source(base))
+		assert.Contains(t, sources, Source(extra))
+	})
+}
+
+func TestCommandLineSource(t *testing.T) {
+	t.Run("ShouldLoadWithMapping", func(t *testing.T) {
+		flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+		flags.String("theme", "", "")
+		require.NoError(t, flags.Set("theme", "dark"))
+
+		source := NewCommandLineSourceWithMapping(flags, map[string]string{"theme": "theme"}, false, false)
+
+		require.NotNil(t, source)
+		assert.Equal(t, "command-line", source.Name())
+
+		val := schema.NewStructValidator()
+
+		require.NoError(t, source.Load(val))
+
+		ko := koanf.New(constDelimiter)
+		require.NoError(t, source.Merge(ko, val))
+
+		assert.Equal(t, "dark", ko.Get("theme"))
+	})
+
+	t.Run("ShouldLoadWithoutCallback", func(t *testing.T) {
+		flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+		flags.String("theme", "", "")
+		require.NoError(t, flags.Set("theme", "dark"))
+
+		source := &CommandLineSource{
+			koanf: koanf.New(constDelimiter),
+			flags: flags,
+		}
+
+		require.NoError(t, source.Load(schema.NewStructValidator()))
+
+		assert.Equal(t, "dark", source.koanf.Get("theme"))
+	})
+}
+
+func TestFileSource_ReadFilesErrors(t *testing.T) {
+	t.Run("ShouldErrorOnEmptyPath", func(t *testing.T) {
+		source := &FileSource{}
+
+		files, err := source.ReadFiles()
+
+		assert.Nil(t, files)
+		assert.EqualError(t, err, "invalid file path source configuration")
+	})
+
+	t.Run("ShouldErrorOnNonExistentPath", func(t *testing.T) {
+		source := NewFileSource("./test_resources/this-path-does-not-exist.yml")
+
+		files, err := source.ReadFiles()
+
+		assert.Nil(t, files)
+		require.Error(t, err)
+		assert.True(t, os.IsNotExist(err))
+	})
+
+	t.Run("ShouldErrorWhenReadFileFails", func(t *testing.T) {
+		if os.Geteuid() == 0 {
+			t.Skip("test does not work as root")
+		}
+
+		dir := t.TempDir()
+		path := filepath.Join(dir, "config.yml")
+
+		require.NoError(t, os.WriteFile(path, []byte("theme: light\n"), 0000))
+
+		source := NewFileSource(path)
+
+		files, err := source.ReadFiles()
+
+		assert.Nil(t, files)
+		require.Error(t, err)
+		assert.True(t, errors.Is(err, os.ErrPermission))
+	})
+
+	t.Run("ShouldErrorOnNonExistentDirectoryWhenReading", func(t *testing.T) {
+		source := &FileSource{path: "./test_resources/this-directory-does-not-exist"}
+
+		files, err := source.readFilesDirectory(source.path)
+
+		assert.Nil(t, files)
+		require.Error(t, err)
+	})
+
+	t.Run("ShouldSkipSubdirectoriesAndUnsupportedExtensions", func(t *testing.T) {
+		dir := t.TempDir()
+		require.NoError(t, os.Mkdir(filepath.Join(dir, "subdir"), 0700))
+		require.NoError(t, os.WriteFile(filepath.Join(dir, "ignored.txt"), []byte("ignore"), 0600))
+		require.NoError(t, os.WriteFile(filepath.Join(dir, "a.yml"), []byte("theme: light\n"), 0600))
+
+		source := NewFileSource(dir)
+
+		files, err := source.ReadFiles()
+
+		require.NoError(t, err)
+		require.Len(t, files, 1)
+		assert.Equal(t, filepath.Join(dir, "a.yml"), files[0].Path)
+	})
+
+	t.Run("ShouldErrorWhenDirectoryEntryUnreadable", func(t *testing.T) {
+		if os.Geteuid() == 0 {
+			t.Skip("test does not work as root")
+		}
+
+		dir := t.TempDir()
+		path := filepath.Join(dir, "broken.yml")
+
+		require.NoError(t, os.WriteFile(path, []byte("theme: light\n"), 0000))
+
+		source := NewFileSource(dir)
+
+		files, err := source.ReadFiles()
+
+		assert.Nil(t, files)
+		require.Error(t, err)
+		assert.True(t, errors.Is(err, os.ErrPermission))
+	})
+}
+
+func TestFileSource_LoadErrors(t *testing.T) {
+	t.Run("ShouldErrorOnMalformedTOML", func(t *testing.T) {
+		dir := t.TempDir()
+		path := filepath.Join(dir, "bad.toml")
+
+		require.NoError(t, os.WriteFile(path, []byte("[unclosed\n"), 0600))
+
+		source := NewFileSource(path)
+
+		err := source.Load(schema.NewStructValidator())
+
+		require.Error(t, err)
+	})
+
+	t.Run("ShouldErrorOnMalformedJSON", func(t *testing.T) {
+		dir := t.TempDir()
+		path := filepath.Join(dir, "bad.json")
+
+		require.NoError(t, os.WriteFile(path, []byte("{not-json"), 0600))
+
+		source := NewFileSource(path)
+
+		err := source.Load(schema.NewStructValidator())
+
+		require.Error(t, err)
+	})
+
+	t.Run("ShouldFallBackToYAMLForUnknownExtension", func(t *testing.T) {
+		dir := t.TempDir()
+		path := filepath.Join(dir, "config.cfg")
+
+		require.NoError(t, os.WriteFile(path, []byte("theme: light\n"), 0600))
+
+		source := NewFileSource(path)
+
+		require.NoError(t, source.Load(schema.NewStructValidator()))
+
+		assert.Equal(t, "light", source.koanf.Get("theme"))
+	})
+}

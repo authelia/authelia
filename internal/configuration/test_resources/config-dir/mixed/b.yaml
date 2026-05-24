@@ -1,0 +1,4 @@
+# yamllint disable-file
+---
+default_2fa_method: 'totp'
+...

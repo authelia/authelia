@@ -68,7 +68,7 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 
 		ns := strings.Replace(nameLower, ext, "", 1)
 
-		if ext != extJSON {
+		if ext != ExtJSON {
 			return nil
 		}
 

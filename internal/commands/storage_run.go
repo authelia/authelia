@@ -21,7 +21,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
@@ -1163,19 +1162,7 @@ func runStorageUserWebAuthnExport(ctx context.Context, w io.Writer, store storag
 		return fmt.Errorf("no data to export")
 	}
 
-	var f *os.File
-
-	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
-		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
-	}
-
-	defer func() {
-		if err := f.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	if err = exportYAMLWithJSONSchema(f, "export.webauthn", export); err != nil {
+	if err = exportFile(filename, export, "export.webauthn"); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
@@ -1218,7 +1205,7 @@ func runStorageUserWebAuthnImport(ctx context.Context, w io.Writer, store storag
 
 	export := &model.WebAuthnCredentialExport{}
 
-	if err = yaml.Unmarshal(data, export); err != nil {
+	if err = importFile(filename, data, export); err != nil {
 		return err
 	}
 
@@ -1660,19 +1647,7 @@ func runStorageUserTOTPExport(ctx context.Context, w io.Writer, store storage.Pr
 		return fmt.Errorf("no data to export")
 	}
 
-	var f *os.File
-
-	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
-		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
-	}
-
-	defer func() {
-		if err := f.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	if err = exportYAMLWithJSONSchema(f, "export.totp", export); err != nil {
+	if err = exportFile(filename, export, "export.totp"); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
@@ -1715,7 +1690,7 @@ func runStorageUserTOTPImport(ctx context.Context, w io.Writer, store storage.Pr
 
 	export := &model.TOTPConfigurationExport{}
 
-	if err = yaml.Unmarshal(data, export); err != nil {
+	if err = importFile(filename, data, export); err != nil {
 		return err
 	}
 
@@ -1968,19 +1943,7 @@ func runStorageUserIdentifiersExport(ctx context.Context, w io.Writer, store sto
 		return fmt.Errorf("no data to export")
 	}
 
-	var f *os.File
-
-	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
-		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
-	}
-
-	defer func() {
-		if err := f.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	if err = exportYAMLWithJSONSchema(f, "export.identifiers", export); err != nil {
+	if err = exportFile(filename, export, "export.identifiers"); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
@@ -2024,7 +1987,7 @@ func runStorageUserIdentifiersImport(ctx context.Context, w io.Writer, store sto
 
 	export := &model.UserOpaqueIdentifiersExport{}
 
-	if err = yaml.Unmarshal(data, export); err != nil {
+	if err = importFile(filename, data, export); err != nil {
 		return err
 	}
 
