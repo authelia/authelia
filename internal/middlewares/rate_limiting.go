@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"context"
+	"math"
 	"net/http"
 	"strconv"
 	"sync"
@@ -135,7 +136,7 @@ func HandlerRateLimitAPI(ctx *AutheliaCtx, retryAfter time.Duration) {
 func HandlerRateLimitOpenIDConnect(ctx *AutheliaCtx, retryAfter time.Duration) {
 	ctx.SetStatusCode(fasthttp.StatusTooManyRequests)
 
-	ctx.Response.Header.SetBytesK(headerRetryAfter, strconv.Itoa(int(retryAfter.Seconds())))
+	ctx.Response.Header.SetBytesK(headerRetryAfter, strconv.Itoa(int(math.Ceil(retryAfter.Seconds()))))
 	ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueNoStore)
 	ctx.Response.Header.SetBytesKV(headerPragma, headerValueNoCache)
 	ctx.Response.Header.SetBytesKV(headerContentType, contentTypeApplicationJSON)
