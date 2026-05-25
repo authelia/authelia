@@ -579,8 +579,8 @@ func (ctx *AutheliaCtx) GetOrigin() (origin *url.URL, err error) {
 // IssuerURL returns the expected Issuer.
 func (ctx *AutheliaCtx) IssuerURL() (issuerURL *url.URL, err error) {
 	issuerURL = &url.URL{
-		Scheme: string(ctx.XForwardedProto()),
-		Host:   string(ctx.GetXForwardedHost()),
+		Scheme: strings.ToLower(string(ctx.XForwardedProto())),
+		Host:   strings.ToLower(string(ctx.GetXForwardedHost())),
 		Path:   ctx.BasePath(),
 	}
 
