@@ -41,9 +41,11 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	ctx.GetLogger().Debugf("User Info Request with id '%s' is being processed", requestID)
 
 	if _, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("User Info Request with id '%s' could not be processed: %s", requestID, oidc.ErrTextEffectiveIssuer)
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
 
-		errorsx.WriteJSONError(rw, r, oidc.ErrEffectiveIssuer)
+		ctx.GetLogger().WithError(err).Errorf("User Info Request with id '%s' could not be processed: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		errorsx.WriteJSONError(rw, r, rfc)
 
 		return
 	}

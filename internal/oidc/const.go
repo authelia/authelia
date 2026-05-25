@@ -435,13 +435,12 @@ const (
 	fieldRFC6750Scope            = valueScope
 )
 
-const ErrTextEffectiveIssuer = "error occurred determining the effective issuer for the given request"
-
 var (
 	ErrEffectiveIssuer = &oauthelia2.RFC6749Error{
-		ErrorField:       "server_error",
-		DescriptionField: "The authorization server encountered an unexpected condition that prevented it from fulfilling the request.",
-		HintField:        "Error occurred determining the effective issuer for this request. Either the server has not been setup to handle these requests, or a failure occurred looking up details for this request.",
-		CodeField:        http.StatusInternalServerError,
+		ErrorField:       "invalid_request",
+		DescriptionField: "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed.",
+		HintField:        "Make sure that the various parameters are correct, be aware of case sensitivity and trim your parameters. Make sure that the client you are using has exactly whitelisted the redirect_uri you specified.",
+		DebugField:       "Error occurred determining the effective issuer for this request. Either the server has not been setup to handle these requests, or a failure occurred looking up details for this request.",
+		CodeField:        http.StatusBadRequest,
 	}
 )

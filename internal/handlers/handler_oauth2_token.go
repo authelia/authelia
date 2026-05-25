@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"net/url"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
@@ -14,10 +15,21 @@ import (
 // https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
+		issuer    *url.URL
 		requester oauthelia2.AccessRequester
 		responder oauthelia2.AccessResponder
 		err       error
 	)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
+
+		ctx.GetLogger().WithError(err).Errorf("Access Request could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, rfc)
+
+		return
+	}
 
 	session := oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())
 
@@ -29,15 +41,17 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 		return
 	}
 
-	ctx.GetLogger().Debugf("Access Request with id '%s' is being processed", requester.GetID())
+	if session.Claims != nil && session.Claims.Issuer != "" && session.Claims.Issuer != issuer.String() {
+		err = oauthelia2.ErrInvalidRequest.WithDebug("The authorization request and the access request occurred at endpoints where the effective issuer did not match.")
 
-	if _, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Access Request with id '%s' could not be processed: %s", requester.GetID(), oidc.ErrTextEffectiveIssuer)
+		ctx.GetLogger().WithError(err).Errorf("Access Request with id '%s' could not be processed: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
-		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, oidc.ErrEffectiveIssuer)
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
 		return
 	}
+
+	ctx.GetLogger().Debugf("Access Request with id '%s' is being processed", requester.GetID())
 
 	client, ok := requester.GetClient().(oidc.Client)
 	if !ok {

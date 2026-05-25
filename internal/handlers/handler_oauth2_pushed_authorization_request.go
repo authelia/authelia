@@ -20,6 +20,16 @@ func OAuth2PushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw http.Resp
 		err       error
 	)
 
+	if _, err = ctx.IssuerURL(); err != nil {
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
+
+		ctx.GetLogger().WithError(err).Errorf("Pushed Authorization Request could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, rfc)
+
+		return
+	}
+
 	if requester, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeRequest(ctx, r); err != nil {
 		ctx.GetLogger().Errorf("Pushed Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
@@ -29,14 +39,6 @@ func OAuth2PushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw http.Resp
 	}
 
 	ctx.GetLogger().Debugf("Pushed Authorization Request with id '%s' is being processed", requester.GetID())
-
-	if _, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Pushed Authorization Request with id '%s' could not be processed: %s", requester.GetID(), oidc.ErrTextEffectiveIssuer)
-
-		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, oidc.ErrEffectiveIssuer)
-
-		return
-	}
 
 	var client oidc.Client
 
