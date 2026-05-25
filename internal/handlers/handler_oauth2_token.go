@@ -41,8 +41,8 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 		return
 	}
 
-	if session.Claims != nil && session.Claims.Issuer != "" && session.Claims.Issuer != issuer.String() {
-		err = oauthelia2.ErrInvalidRequest.WithDebug("The authorization request and the access request occurred at endpoints where the effective issuer did not match.")
+	if !session.ValidIssuer(issuer) {
+		err = oauthelia2.ErrInvalidRequest.WithDebug("The original request and the access request occurred at endpoints where the effective issuer did not match.")
 
 		ctx.GetLogger().WithError(err).Errorf("Access Request with id '%s' could not be processed: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,6 +26,7 @@ import (
 //nolint:gocyclo
 func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
+		issuer    *url.URL
 		requestID uuid.UUID
 		tokenType oauthelia2.TokenType
 		requester oauthelia2.AccessRequester
@@ -40,7 +42,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	ctx.GetLogger().Debugf("User Info Request with id '%s' is being processed", requestID)
 
-	if _, err = ctx.IssuerURL(); err != nil {
+	if issuer, err = ctx.IssuerURL(); err != nil {
 		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
 
 		ctx.GetLogger().WithError(err).Errorf("User Info Request with id '%s' could not be processed: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(rfc))
@@ -110,6 +112,16 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	switch session := requester.GetSession().(type) {
 	case *oidc.Session:
+		if !session.ValidIssuer(issuer) {
+			err = oauthelia2.ErrInvalidRequest.WithDebug("The original request and the userinfo request occurred at endpoints where the origin or effective issuer did not match.")
+
+			ctx.GetLogger().Errorf("User Info Request with id '%s' could not be processed: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))
+
+			errorsx.WriteRFC6750Error(rw, err, nil)
+
+			return
+		}
+
 		original = session.IDTokenClaims().ToMap()
 		requests = session.ClaimRequests.GetUserInfoRequests()
 		requested = session.GetRequestedAt()

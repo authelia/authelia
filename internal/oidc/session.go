@@ -63,6 +63,13 @@ type Session struct {
 	Extra                 map[string]any  `json:"extra"`
 }
 
+// ValidIssuer returns true if the issuer is valid for this session, false otherwise.
+//
+// The issuer is valid if the session has no issuer or if the issuer matches the issuer in the session.
+func (s *Session) ValidIssuer(issuer *url.URL) bool {
+	return s == nil || s.DefaultSession == nil || s.Claims == nil || s.Claims.Issuer == "" || s.Claims.Issuer == issuer.String()
+}
+
 // GetJWTHeader returns the *jwt.Headers for the OAuth 2.0 JWT Profile Access Token.
 func (s *Session) GetJWTHeader() (headers *jwt.Headers) {
 	headers = &jwt.Headers{

@@ -1,6 +1,7 @@
 package oidc_test
 
 import (
+	"net/url"
 	"testing"
 	"time"
 
@@ -26,6 +27,72 @@ func TestOpenIDSession(t *testing.T) {
 	session = nil
 
 	assert.Nil(t, session.Clone())
+}
+
+func TestSession_ValidIssuer(t *testing.T) {
+	issuer := &url.URL{Scheme: "https", Host: "auth.example.com"}
+
+	testCases := []struct {
+		name     string
+		have     *oidc.Session
+		issuer   *url.URL
+		expected bool
+	}{
+		{
+			"ShouldReturnTrueWhenSessionNil",
+			nil,
+			issuer,
+			true,
+		},
+		{
+			"ShouldReturnTrueWhenDefaultSessionNil",
+			&oidc.Session{},
+			issuer,
+			true,
+		},
+		{
+			"ShouldReturnTrueWhenClaimsNil",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{}},
+			issuer,
+			true,
+		},
+		{
+			"ShouldReturnTrueWhenClaimsIssuerEmpty",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{}}},
+			issuer,
+			true,
+		},
+		{
+			"ShouldReturnTrueWhenClaimsIssuerMatches",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{Issuer: "https://auth.example.com"}}},
+			issuer,
+			true,
+		},
+		{
+			"ShouldReturnFalseWhenClaimsIssuerMismatches",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{Issuer: "https://other.example.com"}}},
+			issuer,
+			false,
+		},
+		{
+			"ShouldReturnFalseWhenClaimsIssuerTrailingSlashDiffers",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{Issuer: "https://auth.example.com/"}}},
+			issuer,
+			false,
+		},
+		{
+			"ShouldReturnFalseWhenClaimsIssuerSchemeDiffers",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{Issuer: "http://auth.example.com"}}},
+			issuer,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.ValidIssuer(tc.issuer))
+		})
+	}
 }
 
 func TestOpenIDSession_GetExtraClaims(t *testing.T) {
