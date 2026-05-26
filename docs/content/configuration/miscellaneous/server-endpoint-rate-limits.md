@@ -227,20 +227,20 @@ See [Common Options](#common-options) for the individual options for this sectio
 ### openid_connect_userinfo
 
 Configures the rate limiter which applies to the
-[OpenID Connect 1.0 UserInfo Endpoint](../../integration/openid-connect/introduction.md#well-known-discovery-endpoints).
+[OpenID Connect 1.0 UserInfo Endpoint](../../integration/openid-connect/introduction.md#discoverable-endpoints).
 
 See [Common Options](#common-options) for the individual options for this section.
 
 ### openid_connect_introspection
 
 Configures the rate limiter which applies to the
-[OpenID Connect 1.0 Introspection Endpoint](../../integration/openid-connect/introduction.md#well-known-discovery-endpoints).
+[OpenID Connect 1.0 Introspection Endpoint](../../integration/openid-connect/introduction.md#discoverable-endpoints).
 
 See [Common Options](#common-options) for the individual options for this section.
 
 ### openid_connect_revocation
 
 Configures the rate limiter which applies to the
-[OpenID Connect 1.0 Revocation Endpoint](../../integration/openid-connect/introduction.md#well-known-discovery-endpoints).
+[OpenID Connect 1.0 Revocation Endpoint](../../integration/openid-connect/introduction.md#discoverable-endpoints).
 
 See [Common Options](#common-options) for the individual options for this section.
