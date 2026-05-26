@@ -304,6 +304,14 @@ func StringJoinBuild(sep, sepFinal, quote string, items []string) string {
 	return b.String()
 }
 
+// StringHasSuffixFold checks if a string s ends with a suffix without consideration to case. The suffix logic is taken
+// from strings.HasSuffix() to ensure correctness.
 func StringHasSuffixFold(s, suffix string) bool {
 	return len(s) >= len(suffix) && strings.EqualFold(s[len(s)-len(suffix):], suffix)
+}
+
+// StringHasPrefixFold checks if a string s starts with a prefix without consideration to case. The prefix logic is
+// taken from strings.HasPrefix() to ensure correctness.
+func StringHasPrefixFold(s, prefix string) bool {
+	return len(s) >= len(prefix) && strings.EqualFold(s[:len(prefix)], prefix)
 }
