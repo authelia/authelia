@@ -67,6 +67,10 @@ type Session struct {
 //
 // The issuer is valid if the session has no issuer or if the issuer matches the issuer in the session.
 func (s *Session) ValidIssuer(issuer *url.URL) bool {
+	if issuer == nil {
+		return false
+	}
+
 	return s == nil || s.DefaultSession == nil || s.Claims == nil || s.Claims.Issuer == "" || s.Claims.Issuer == issuer.String()
 }
 

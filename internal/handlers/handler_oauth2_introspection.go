@@ -49,7 +49,9 @@ func OAuth2IntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 		return
 	}
 
-	if requester := responder.GetAccessRequester(); requester != nil {
+	requester := responder.GetAccessRequester()
+
+	if requester != nil {
 		if s := requester.GetSession(); s != nil {
 			if session, ok := s.(*oidc.Session); ok {
 				if !session.ValidIssuer(issuer) {
@@ -63,9 +65,11 @@ func OAuth2IntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 				}
 			}
 		}
-	}
 
-	ctx.GetLogger().Tracef("Introspection Request with id '%s' yielded a %s (active: %t) requested at %s created with request id '%s' on client with id '%s'", requestID, responder.GetTokenUse(), responder.IsActive(), responder.GetAccessRequester().GetRequestedAt().String(), responder.GetAccessRequester().GetID(), responder.GetAccessRequester().GetClient().GetID())
+		ctx.GetLogger().Tracef("Introspection Request with id '%s' yielded a %s (active: %t) requested at %s created with request id '%s' on client with id '%s'", requestID, responder.GetTokenUse(), responder.IsActive(), requester.GetRequestedAt().String(), requester.GetID(), requester.GetClient().GetID())
+	} else {
+		ctx.GetLogger().Tracef("Introspection Request with id '%s' yielded a %s (active: %t)", requestID, responder.GetTokenUse(), responder.IsActive())
+	}
 
 	ctx.Providers.OpenIDConnect.WriteIntrospectionResponse(ctx, rw, responder)
 }

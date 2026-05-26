@@ -86,6 +86,18 @@ func TestSession_ValidIssuer(t *testing.T) {
 			issuer,
 			false,
 		},
+		{
+			"ShouldReturnFalseWhenIssuerNil",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{Issuer: "https://auth.example.com"}}},
+			nil,
+			false,
+		},
+		{
+			"ShouldReturnFalseWhenIssuerNilAndClaimsIssuerEmpty",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{}}},
+			nil,
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
