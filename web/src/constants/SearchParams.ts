@@ -18,6 +18,10 @@ export const UserCode: string = "user_code";
 
 export const Decision: string = "decision";
 
+export const Confirm: string = "confirm";
+
+export const State: string = "state";
+
 export const Error: string = "error";
 
 export const ErrorDescription: string = "error_description";

@@ -288,6 +288,16 @@ func (ctx *AutheliaCtx) IsSafeRedirectionTargetURI(targetURI *url.URL) bool {
 		return false
 	}
 
+	if ctx.Configuration.IdentityProviders.OIDC != nil {
+		for _, client := range ctx.Configuration.IdentityProviders.OIDC.Clients {
+			for _, redirectURI := range client.PostLogoutRedirectURIs {
+				if targetURI.String() == redirectURI {
+					return true
+				}
+			}
+		}
+	}
+
 	if !utils.IsURISecure(targetURI) {
 		return false
 	}
