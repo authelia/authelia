@@ -332,6 +332,8 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationFreeIPA = Authent
 	Attributes: AuthenticationBackendLDAPAttributes{
 		Username:    ldapAttrUserID,
 		DisplayName: ldapAttrDisplayName,
+		FamilyName:  ldapAttrSurname,
+		GivenName:   ldapAttrGivenName,
 		Mail:        ldapAttrMail,
 		MemberOf:    ldapAttrMemberOf,
 		GroupName:   ldapAttrCommonName,

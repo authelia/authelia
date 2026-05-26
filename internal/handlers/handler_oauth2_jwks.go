@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 
-	"github.com/valyala/fasthttp"
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -13,9 +13,11 @@ import (
 func OAuth2JSONWebKeySetGET(ctx *middlewares.AutheliaCtx) {
 	var err error
 	if _, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("JSON Web Key Set Request could not be processed: %s", oidc.ErrTextEffectiveIssuer)
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
 
-		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
+		ctx.GetLogger().WithError(err).Errorf("JSON Web Key Set Request could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		ctx.ReplyStatusCode(rfc.StatusCode())
 
 		return
 	}

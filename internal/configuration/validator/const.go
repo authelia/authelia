@@ -394,6 +394,7 @@ const (
 	errFmtSessionDomainSameSite                          = "session: domain config %s: option 'same_site' must be one of %s but it's configured as '%s'"
 	errFmtSessionDomainOptionRequired                    = "session: domain config %s: option '%s' is required"
 	errFmtSessionDomainHasPeriodPrefix                   = "session: domain config %s: option 'domain' has a prefix of '.' which is not supported or intended behavior: you can use this at your own risk but we recommend removing it"
+	errFmtSessionDomainHasPort                           = "session: domain config %s: option 'domain' with value '%s' should probably have value '%s' as it appears to include a port which is not supported and will likely fail to start and is otherwise unsupported"
 	errFmtSessionDomainDuplicate                         = "session: domain config %s: option 'domain' is a duplicate value for another configured session domain"
 	errFmtSessionDomainDuplicateCookieScope              = "session: domain config %s: option 'domain' shares the same cookie domain scope as another configured session domain"
 	errFmtSessionDomainURLNotAbsolute                    = "session: domain config %s: option '%s' is not absolute with a value of '%s'"

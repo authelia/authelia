@@ -48,6 +48,7 @@
 	"scopes": {
 		"address": "Přístup k vaší adrese",
 		"authelia.bearer.authz": "Přístup k chráněným surovinám přihlášeným jako vy",
+		"authelia.pam": "Ověřte si systém Linuxu jako vy",
 		"email": "Přístup k vašim e-mailovým adresám",
 		"groups": "Přístup k Vašemu členství ve skupině",
 		"offline_access": "Automaticky obnovit tato oprávnění bez interakce uživatele",
