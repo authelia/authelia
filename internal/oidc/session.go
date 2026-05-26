@@ -75,6 +75,8 @@ type Session struct {
 	AllowedTopLevelClaims []string        `json:"allowed_top_level_claims"`
 	ClaimRequests         *ClaimsRequests `json:"claim_requests,omitempty"`
 	GrantedClaims         []string        `json:"granted_claims,omitempty"`
+	ActorToken            map[string]any  `json:"-"`
+	SubjectToken          map[string]any  `json:"-"`
 	Extra                 map[string]any  `json:"extra"`
 }
 
@@ -146,8 +148,8 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 		amr     bool
 	)
 
-	for _, cl := range s.AllowedTopLevelClaims {
-		switch cl {
+	for _, claim := range s.AllowedTopLevelClaims {
+		switch claim {
 		case ClaimJWTID, ClaimIssuer, ClaimSubject, ClaimAudience, ClaimExpirationTime, ClaimNotBefore, ClaimIssuedAt, ClaimClientIdentifier, ClaimScopeNonStandard, ClaimExtra:
 			continue
 		case ClaimAuthenticationMethodsReference:
@@ -156,7 +158,7 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 			continue
 		}
 
-		allowed = append(allowed, cl)
+		allowed = append(allowed, claim)
 	}
 
 	claims := &jwt.JWTClaims{
@@ -174,8 +176,8 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 
 	if s.DefaultSession != nil && s.Claims != nil {
 		for _, allowedClaim := range allowed {
-			if cl, ok := s.Claims.Extra[allowedClaim]; ok {
-				claims.Extra[allowedClaim] = cl
+			if value, ok := s.Claims.Extra[allowedClaim]; ok {
+				claims.Extra[allowedClaim] = value
 			}
 		}
 
@@ -331,6 +333,60 @@ func cloneClaimRequests(requests map[string]*ClaimRequest) (clone map[string]*Cl
 	}
 
 	return clone
+}
+
+// SetActorToken sets the actor token claims associated with an RFC8693 token exchange.
+func (s *Session) SetActorToken(token map[string]any) {
+	s.ActorToken = token
+}
+
+// GetActorToken returns the actor token claims associated with an RFC8693 token exchange.
+func (s *Session) GetActorToken() map[string]any {
+	return s.ActorToken
+}
+
+// SetSubjectToken sets the subject token claims associated with an RFC8693 token exchange.
+func (s *Session) SetSubjectToken(token map[string]any) {
+	s.SubjectToken = token
+}
+
+// GetSubjectToken returns the subject token claims associated with an RFC8693 token exchange.
+func (s *Session) GetSubjectToken() map[string]any {
+	return s.SubjectToken
+}
+
+// SetClaimActor records the RFC8693 Section 4.1 'act' claim describing the actor in a delegation flow.
+func (s *Session) SetClaimActor(act map[string]any) {
+	if s.Extra == nil {
+		s.Extra = map[string]any{}
+	}
+
+	s.Extra[ClaimActor] = act
+
+	if s.DefaultSession == nil {
+		return
+	}
+
+	if s.Claims == nil {
+		s.Claims = &jwt.IDTokenClaims{}
+	}
+
+	if s.Claims.Extra == nil {
+		s.Claims.Extra = map[string]any{}
+	}
+
+	s.Claims.Extra[ClaimActor] = act
+}
+
+// AccessTokenClaimsMap returns the access token claims as a map.
+func (s *Session) AccessTokenClaimsMap() map[string]any {
+	claims := s.GetJWTClaims().ToMapClaims()
+
+	for key, value := range s.Extra {
+		claims[key] = value
+	}
+
+	return claims
 }
 
 // ConsentGrantImplicit that handles the implicit consent flow assigning the subject and responded at values then

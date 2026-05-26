@@ -1105,3 +1105,24 @@ func (s *StoreSuite) TestSerializationFailureMappingShouldNotAffectOtherErrors()
 	assert.EqualError(s.T(), err, "deactivate error")
 	assert.NotErrorIs(s.T(), err, oauthelia2.ErrSerializationFailure)
 }
+
+func TestStoreTokenExchangeCustomJWTUnsupported(t *testing.T) {
+	store := &oidc.Store{}
+
+	err := store.SetTokenExchangeCustomJWT(context.TODO(), "jti", time.Now().Add(time.Hour))
+
+	require.Error(t, err)
+	assert.ErrorIs(t, err, oauthelia2.ErrInvalidRequest)
+	assert.Contains(t, oauthelia2.ErrorToRFC6749Error(err).HintField, oidc.TokenTypeJWT)
+}
+
+func TestStoreGetSubjectForTokenExchangeUnsupported(t *testing.T) {
+	store := &oidc.Store{}
+
+	subject, err := store.GetSubjectForTokenExchange(context.TODO(), nil, map[string]any{})
+
+	assert.Empty(t, subject)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, oauthelia2.ErrInvalidRequest)
+	assert.Contains(t, oauthelia2.ErrorToRFC6749Error(err).HintField, oidc.TokenTypeJWT)
+}

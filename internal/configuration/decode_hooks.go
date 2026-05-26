@@ -47,6 +47,7 @@ func DecodeHooksComposeAll(definitions *schema.Definitions) mapstructure.DecodeH
 		StringToLanguageTagHookFunc(),
 		StringToIPNetworksHookFunc(definitions.Network),
 		StringToUUIDHookFunc(),
+		StringToTokenExchangePolicyHookFunc(),
 		ToTimeDurationHookFunc(),
 		ToRefreshIntervalDurationHookFunc(),
 	)
@@ -962,6 +963,25 @@ func StringToUUIDHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		return result, nil
+	}
+}
+
+// StringToTokenExchangePolicyHookFunc converts a string into a
+// [schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy], permitting the bare client identifier shorthand
+// in the 'subject_token_clients_supported' option.
+func StringToTokenExchangePolicyHookFunc() mapstructure.DecodeHookFuncType {
+	expectedType := reflect.TypeOf(schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{})
+
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		if t != expectedType {
+			return data, nil
+		}
+
+		return schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy{ClientID: data.(string)}, nil
 	}
 }
 
