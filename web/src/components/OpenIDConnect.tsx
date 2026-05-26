@@ -8,11 +8,13 @@ import {
     LockOpen,
     PhoneAndroid,
     Policy,
+    Terminal,
 } from "@mui/icons-material";
 
 import {
     ScopeAddress,
     ScopeAutheliaBearerAuthz,
+    ScopeAutheliaPAM,
     ScopeEmail,
     ScopeGroups,
     ScopeOfflineAccess,
@@ -39,6 +41,8 @@ export function ScopeAvatar(scope: string) {
             return <Home />;
         case ScopeAutheliaBearerAuthz:
             return <LockOpen />;
+        case ScopeAutheliaPAM:
+            return <Terminal />;
         default:
             return <Policy />;
     }
@@ -62,6 +66,8 @@ export function ScopeDescription(scope: string): string {
             return "Access your address";
         case ScopeAutheliaBearerAuthz:
             return "Access protected resources logged in as you";
+        case ScopeAutheliaPAM:
+            return "Authenticate to a Linux system as you";
         default:
             return scope;
     }

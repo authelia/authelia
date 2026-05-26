@@ -31,7 +31,7 @@ if [[ -n "${IMAGE}" ]]; then
   "${grypeCmd[@]}" "${IMAGE}"
 fi
 
-for file in *.spdx.json; do
-  echo "--- :grype: Scanning ${file/.spdx.json}"
+for file in *.cdx.json; do
+  echo "--- :grype: Scanning ${file/.cdx.json}"
   "${grypeCmd[@]}" "${file}"
 done

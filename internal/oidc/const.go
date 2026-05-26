@@ -19,6 +19,7 @@ const (
 	ScopeGroups        = "groups"
 
 	ScopeAutheliaBearerAuthz = "authelia.bearer.authz"
+	ScopeAutheliaPAM         = "authelia.pam"
 )
 
 const (

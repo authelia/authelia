@@ -64,7 +64,15 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                             />
                             <PropertyText
                                 name={translate("Attestation Type")}
-                                value={props.credential.attestation_type}
+                                value={
+                                    props.credential.attestation_type == ""
+                                        ? translate("Unknown")
+                                        : props.credential.attestation_type
+                                }
+                            />
+                            <PropertyText
+                                name={translate("Attestation Format")}
+                                value={props.credential.attestation_format}
                             />
                             <PropertyText
                                 name={translate("Attachment")}

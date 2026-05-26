@@ -1,0 +1,226 @@
+---
+name: PR Labels
+
+on:
+  pull_request_target:  # zizmor: ignore[dangerous-triggers]
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  label:
+    name: Apply Labels
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Parse PR title and apply labels
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
+        with:
+          # yamllint disable rule:indentation
+          script: |
+            const title = context.payload.pull_request.title;
+            const re = /^(build|ci|docs|feat|fix|i18n|perf|refactor|release|revert|test)(\(([a-z0-9-]+)\))?!?: /;
+            const match = title.match(re);
+
+            if (!match) {
+              core.setFailed(`PR title does not follow Conventional Commits: ${title}`);
+              return;
+            }
+
+            const type = match[1];
+            const scope = match[3];
+
+            const typeLabelMap = {
+              feat:     'type/feature',
+              fix:      'type/bug',
+              perf:     'type/performance',
+              refactor: 'type/refactor',
+              docs:     'type/docs',
+              i18n:     'type/i18n',
+              build:    'type/build',
+              ci:       'type/ci',
+              test:     'type/test',
+              release:  'type/release',
+              revert:   'type/revert',
+            };
+
+            const scopeLabelMap = {
+              api:            'area/server',
+              authentication: 'area/identity',
+              authorization:  'area/authorization',
+              buildkite:      'area/buildkite',
+              cmd:            'area/cli',
+              commands:       'area/cli',
+              configuration:  'area/config',
+              duo:            'area/duo',
+              expression:     'area/expression',
+              handlers:       'area/server',
+              logging:        'area/logs',
+              metrics:        'area/metrics',
+              middlewares:    'area/server',
+              notification:   'area/email',
+              ntp:            'area/ntp',
+              oidc:           'area/openid-connect',
+              regulation:     'area/regulation',
+              server:         'area/server',
+              service:        'area/service',
+              session:        'area/session',
+              storage:        'area/storage',
+              suites:         'area/suites',
+              totp:           'area/totp',
+              utils:          'area/utils',
+              web:            'area/ui',
+              webauthn:       'area/webauthn',
+            };
+
+            const breakingRe = /BREAKING CHANGE: /;
+            const body = context.payload.pull_request.body || '';
+            let breaking = breakingRe.test(body);
+            if (!breaking) {
+              const commits = await github.paginate(github.rest.pulls.listCommits, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                per_page: 100,
+              });
+              breaking = commits.some((c) => breakingRe.test(c.commit.message));
+            }
+
+            const typeLabel = typeLabelMap[type];
+            const scopeLabel = scope ? scopeLabelMap[scope] : undefined;
+            const desired = new Set([typeLabel, scopeLabel].filter(Boolean));
+            if (breaking) {
+              desired.add('type/breaking-change');
+            }
+
+            const existing = context.payload.pull_request.labels.map((l) => l.name);
+
+            for (const name of existing) {
+              if ((name.startsWith('type/') || name.startsWith('area/')) && !desired.has(name)) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name,
+                });
+              }
+            }
+
+            const toAdd = [...desired].filter((name) => !existing.includes(name));
+
+            if (context.payload.action === 'opened' && !existing.includes('status/needs-review')) {
+              toAdd.push('status/needs-review');
+            }
+
+            if (toAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: toAdd,
+              });
+            }
+
+            let targetTitle = null;
+
+            if (type === 'release') {
+              const rm = title.match(/v\d+\.\d+\.\d+/);
+              if (rm) {
+                targetTitle = rm[0];
+              } else {
+                core.warning(`Release PR title contains no vX.Y.Z version; skipping milestone assignment.`);
+                return;
+              }
+            } else {
+              let latest;
+              try {
+                const { data } = await github.rest.repos.getLatestRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                });
+                latest = data.tag_name;
+              } catch (e) {
+                core.warning(`Could not determine latest release: ${e.message}`);
+                return;
+              }
+              const vm = latest.match(/^v(\d+)\.(\d+)\.(\d+)$/);
+              if (!vm) {
+                core.warning(`Latest release tag is not semver: ${latest}`);
+                return;
+              }
+              const major = parseInt(vm[1], 10);
+              const minor = parseInt(vm[2], 10);
+              const patch = parseInt(vm[3], 10);
+              if (breaking) {
+                targetTitle = `v${major + 1}.0.0`;
+              } else if (type === 'feat') {
+                targetTitle = `v${major}.${minor + 1}.0`;
+              } else {
+                targetTitle = `v${major}.${minor}.${patch + 1}`;
+              }
+            }
+
+            const currentMilestone = context.payload.pull_request.milestone;
+
+            if (currentMilestone) {
+              if (currentMilestone.title === targetTitle) {
+                core.info(`PR milestone "${currentMilestone.title}" already matches computed target; nothing to do.`);
+                return;
+              }
+
+              const events = await github.paginate(github.rest.issues.listEvents, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100,
+              });
+              const lastMilestoned = events
+                .filter((e) => e.event === 'milestoned' && e.milestone && e.milestone.title === currentMilestone.title)
+                .pop();
+              const setter = lastMilestoned && lastMilestoned.actor ? lastMilestoned.actor.login : null;
+              if (setter !== 'github-actions[bot]') {
+                core.info(`PR milestone "${currentMilestone.title}" was set by ${setter || 'unknown'}; leaving as-is.`);
+                return;
+              }
+              core.info(
+                `PR milestone "${currentMilestone.title}" was set by github-actions[bot]; ` +
+                  `recomputing to "${targetTitle}".`,
+              );
+            }
+
+            const milestones = await github.paginate(github.rest.issues.listMilestones, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            let milestone = milestones.find((m) => m.title === targetTitle);
+
+            if (!milestone) {
+              const created = await github.rest.issues.createMilestone({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: targetTitle,
+              });
+              milestone = created.data;
+            }
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              milestone: milestone.number,
+            });
+          # yamllint enable rule:indentation
+...

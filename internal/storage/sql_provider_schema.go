@@ -185,7 +185,7 @@ func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (mi
 // SchemaMigrate migrates from the storage provider's current schema version to the provided schema version.
 func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (err error) {
 	var (
-		tx   *sqlx.Tx
+		tx   SQLXTx
 		conn SQLXConnection
 	)
 
@@ -294,6 +294,25 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnectio
 		}
 	}
 
+	var (
+		migrationsSpecial []fSchemaMigration
+		ok                bool
+	)
+
+	if migration.Up {
+		migrationsSpecial, ok = migrationsSpecialUp[migration.Version]
+	} else {
+		migrationsSpecial, ok = migrationsSpecialDown[migration.Version]
+	}
+
+	if ok {
+		for _, special := range migrationsSpecial {
+			if err = special(ctx, conn, p, migration.Before(), migration.After()); err != nil {
+				return err
+			}
+		}
+	}
+
 	if err = p.schemaMigrateFinalize(ctx, conn, migration); err != nil {
 		return err
 	}
@@ -317,14 +336,14 @@ func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, conn SQLXConnec
 
 func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, conn SQLXConnection, prior, after int, merr error) (err error) {
 	switch tx := conn.(type) {
-	case *sqlx.Tx:
+	case SQLXTx:
 		return p.schemaMigrateRollbackWithTx(ctx, tx, merr)
 	default:
 		return p.schemaMigrateRollbackWithoutTx(ctx, prior, after, merr)
 	}
 }
 
-func (p *SQLProvider) schemaMigrateRollbackWithTx(_ context.Context, tx *sqlx.Tx, merr error) (err error) {
+func (p *SQLProvider) schemaMigrateRollbackWithTx(_ context.Context, tx SQLXTx, merr error) (err error) {
 	if err = tx.Rollback(); err != nil {
 		return fmt.Errorf("error applying rollback %+v. rollback caused by: %w", err, merr)
 	}

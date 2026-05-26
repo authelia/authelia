@@ -20,7 +20,7 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 
 	var client LDAPExtendedClient
 
-	if client, err = p.factory.GetClient(); err != nil {
+	if client, err = p.factory.GetClient(WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); err != nil {
 		return err
 	}
 

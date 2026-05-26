@@ -169,12 +169,12 @@ func TestWebAuthnUser(t *testing.T) {
 
 func TestWebAuthnCredential(t *testing.T) {
 	testCases := []struct {
-		name          string
-		have          *model.WebAuthnCredential
-		config        *webauthn.Config
-		now           time.Time
-		authenticator webauthn.Authenticator
-		expected      *model.WebAuthnCredential
+		name       string
+		have       *model.WebAuthnCredential
+		config     *webauthn.Config
+		now        time.Time
+		credential *webauthn.Credential
+		expected   *model.WebAuthnCredential
 	}{
 		{
 			name: "ShouldUpdate",
@@ -185,9 +185,9 @@ func TestWebAuthnCredential(t *testing.T) {
 				RPID:       "",
 				LastUsedAt: sql.NullTime{Time: time.Unix(0, 0), Valid: true},
 			},
-			config:        &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
-			now:           time.Unix(10, 0),
-			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false},
+			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			now:        time.Unix(10, 0),
+			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false}},
 			expected: &model.WebAuthnCredential{
 				KID:        model.NewBase64([]byte{}),
 				PublicKey:  []byte{},
@@ -206,9 +206,9 @@ func TestWebAuthnCredential(t *testing.T) {
 				LastUsedAt:      sql.NullTime{Time: time.Unix(0, 0), Valid: true},
 				AttestationType: "fido-u2f",
 			},
-			config:        &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
-			now:           time.Unix(10, 0),
-			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false},
+			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			now:        time.Unix(10, 0),
+			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false}},
 			expected: &model.WebAuthnCredential{
 				KID:             model.NewBase64([]byte{}),
 				PublicKey:       []byte{},
@@ -228,9 +228,9 @@ func TestWebAuthnCredential(t *testing.T) {
 				AttestationType: "fido-u2f",
 				RPID:            "another.example.com",
 			},
-			config:        &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
-			now:           time.Unix(10, 0),
-			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false},
+			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			now:        time.Unix(10, 0),
+			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: false}},
 			expected: &model.WebAuthnCredential{
 				KID:             model.NewBase64([]byte{}),
 				PublicKey:       []byte{},
@@ -250,9 +250,9 @@ func TestWebAuthnCredential(t *testing.T) {
 				AttestationType: "fido-u2f",
 				RPID:            "another.example.com",
 			},
-			config:        &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
-			now:           time.Unix(10, 0),
-			authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: true},
+			config:     &webauthn.Config{RPID: "https://example.com", RPOrigins: []string{"org.example.com"}},
+			now:        time.Unix(10, 0),
+			credential: &webauthn.Credential{Authenticator: webauthn.Authenticator{SignCount: 2, CloneWarning: true}},
 			expected: &model.WebAuthnCredential{
 				KID:             model.NewBase64([]byte{}),
 				PublicKey:       []byte{},
@@ -267,7 +267,7 @@ func TestWebAuthnCredential(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			tc.have.UpdateSignInInfo(tc.config, tc.now, tc.authenticator)
+			tc.have.UpdateSignInInfo(tc.config, tc.now, tc.credential)
 
 			assert.Equal(t, tc.expected, tc.have)
 
@@ -509,7 +509,7 @@ func TestNewWebAuthnCredential(t *testing.T) {
 				Transport:   "nfc,usb",
 				CreatedAt:   mock.Clock.Now(),
 				AAGUID:      uuid.NullUUID{UUID: uuid.Must(uuid.Parse("b4e159da-a52b-4690-81dd-08972950db5f")), Valid: true},
-				Attestation: []byte(`{"clientDataJSON":null,"clientDataHash":null,"authenticatorData":null,"publicKeyAlgorithm":0,"object":null}`),
+				Attestation: []byte(`{}`),
 			},
 		},
 	}

@@ -899,6 +899,7 @@ var (
 const (
 	identifierServiceOpenIDConnect = "openid"
 	invalid                        = "invalid"
+	na                             = "N/A"
 )
 
 var (

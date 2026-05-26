@@ -440,16 +440,15 @@ func TestShouldReturnCheckServerSearchErrorPooled(t *testing.T) {
 	gomock.InOrder(
 		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil),
 		mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
-		NewRootDSESearchRequest(mockClient, nil),
-		clientBind,
-		mockClient.EXPECT().IsClosing().Return(false),
 		searchOIDs,
+		clientBind,
 		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClientSecond, nil),
 		mockClientSecond.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
 		mockClientSecond.EXPECT().Search(gomock.Any()).Return(&ldap.SearchResult{}, nil),
 		clientBindSecond,
-		mockClientSecond.EXPECT().IsClosing().Return(false),
 		mockClientSecond.EXPECT().Close().Return(nil),
+		mockClient.EXPECT().IsClosing().Return(false),
+		mockClient.EXPECT().Close().Return(nil),
 	)
 
 	assert.NoError(t, provider.StartupCheck())
@@ -529,30 +528,20 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
 		Return(nil)
 
-	search := NewExtendedSearchRequestMatcher("(objectClass=*)", "",
-		ldap.ScopeBaseObject, ldap.NeverDerefAliases, false,
-		[]string{
-			ldapObjectClassAttribute,
-			ldapSupportedLDAPVersionAttribute,
-			ldapSupportedExtensionAttribute,
-			ldapSupportedControlAttribute,
-			ldapSupportedFeaturesAttribute,
-			ldapSupportedSASLMechanismsAttribute,
-			ldapVendorNameAttribute,
-			ldapVendorVersionAttribute,
-			ldapDomainFunctionalityAttribute,
-			ldapForestFunctionalityAttribute,
-		})
+	clientBindSecond := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
 
 	gomock.InOrder(
 		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil),
 		mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
-		NewRootDSESearchRequest(mockClient, nil),
+		NewRootDSESearchRequest(mockClient, fmt.Errorf("failed")),
 		clientBind,
-		mockClient.EXPECT().IsClosing().Return(false),
-		mockClient.EXPECT().
-			Search(search).
-			Return(&ldap.SearchResult{Entries: []*ldap.Entry{{}}}, nil),
+		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil),
+		mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
+		NewRootDSESearchRequest(mockClient, fmt.Errorf("failed")),
+		clientBindSecond,
+		mockClient.EXPECT().Close().Return(nil),
 		mockClient.EXPECT().IsClosing().Return(false),
 		mockClient.EXPECT().Close().Return(nil),
 	)
@@ -2091,9 +2080,10 @@ func TestShouldUnauthenticatedBind(t *testing.T) {
 	defer ctrl.Finish()
 
 	config := &schema.AuthenticationBackendLDAP{
-		Address:  testLDAPAddress,
-		User:     "cn=admin,dc=example,dc=com",
-		Password: "",
+		Address:                   testLDAPAddress,
+		User:                      "cn=admin,dc=example,dc=com",
+		Password:                  "",
+		PermitUnauthenticatedBind: true,
 		Attributes: schema.AuthenticationBackendLDAPAttributes{
 			Username:    "uid",
 			DisplayName: "displayName",

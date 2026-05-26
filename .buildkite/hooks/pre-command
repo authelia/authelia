@@ -32,12 +32,12 @@ if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
     BUILD_ID=$(echo "${PR_BUILD}" | jq -r 'first | .id')
 
     if [[ -n "${BUILD_ID}" && "${BUILD_ID}" != "null" ]]; then
-      buildkite-agent artifact download "*.spdx.json" . --build "${BUILD_ID}"
+      buildkite-agent artifact download "*.cdx.json" . --build "${BUILD_ID}"
     else
       echo "--- :warning: Could not find a passed build for PR#${PR_NUMBER}"
     fi
   else
-    buildkite-agent artifact download "*.spdx.json" .
+    buildkite-agent artifact download "*.cdx.json" .
   fi
 fi
 

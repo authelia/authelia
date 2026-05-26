@@ -64,6 +64,7 @@ extend-exclude = [
     "*.crt",
     "*.crl",
     "*.csr",
+	"docs/hugo_stats.json",
     "docs/static/schemas/",
     "docs/static/keys/",
     "**/locales/*/",
