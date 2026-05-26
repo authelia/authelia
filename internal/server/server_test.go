@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/elliptic"
 	"crypto/tls"
 	"crypto/x509"
@@ -435,7 +436,7 @@ func NewTLSServerContext(configuration schema.Configuration) (serverContext *TLS
 		return nil, err
 	}
 
-	s, listener, _, _, err := New(&configuration, providers)
+	s, listener, _, _, err := New(context.Background(), &configuration, providers)
 	if err != nil {
 		return nil, err
 	}

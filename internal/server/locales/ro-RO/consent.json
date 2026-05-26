@@ -48,6 +48,7 @@
 	"scopes": {
 		"address": "Accesează-ți adresa",
 		"authelia.bearer.authz": "Accesează resursele protejate conectate când ești tu",
+		"authelia.pam": "Autentifică-te cu un sistem Linux în timp ce tu",
 		"email": "Accesează-ți adresele de e-mail",
 		"groups": "Accesează membrii grupului tău",
 		"offline_access": "Împrospătează automat aceste permisiuni fără interacțiunea utilizatorului",
