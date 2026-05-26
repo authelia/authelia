@@ -16,6 +16,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -48,7 +50,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsDeny() {
 				t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
 					expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -94,7 +96,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsOverrideAutheliaURLDeny() {
 				t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
 					expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -138,7 +140,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLBypassSta
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -170,7 +172,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsMissingAutheliaURLOneFactor
 				s.RequireParseRequestURI("https://one-factor.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -200,7 +202,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsRDAutheliaURLOneFactorStatu
 				s.RequireParseRequestURI("https://one-factor.example.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -247,7 +249,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 						t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
 							expected := s.RequireParseRequestURI(pairURI.AutheliaURI.String())
 
-							authz := s.Builder().Build()
+							authz := s.BuildWithDelayer()
 
 							mock := mocks.NewMockAutheliaCtx(t)
 
@@ -294,7 +296,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -319,7 +321,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 func (s *LegacyAuthzSuite) TestShouldHandleMissingHostDeny() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
-			authz := s.Builder().Build()
+			authz := s.BuildWithDelayer()
 
 			mock := mocks.NewMockAutheliaCtx(t)
 
@@ -349,7 +351,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllow() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -377,7 +379,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 			for _, methodACL := range testRequestMethods {
 				targetURI := s.RequireParseRequestURI(fmt.Sprintf("https://bypass-%s.example.com", strings.ToLower(methodACL)))
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -429,7 +431,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 
@@ -452,27 +454,49 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 }
 
 func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() { // TestShouldVerifyAuthBasicArgOk.
-	authz := s.Builder().Build()
+	authz := s.BuildWithDelayer()
 
 	mock := mocks.NewMockAutheliaCtx(s.T())
 
 	defer mock.Close()
 
+	setUpMockClock(mock)
+
 	mock.Ctx.QueryArgs().Add("auth", "basic")
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 	mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
 
-	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().
-			CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
-			Return(true, nil),
+	attempt := model.AuthenticationAttempt{
+		Time:          mock.Ctx.Providers.Clock.Now(),
+		Successful:    true,
+		Banned:        false,
+		Username:      "john",
+		Type:          regulation.AuthType1FA,
+		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
+		RequestURI:    "https://one-factor.example.com",
+		RequestMethod: fasthttp.MethodGet,
+	}
 
+	gomock.InOrder(
 		mock.UserProviderMock.EXPECT().
 			GetDetails(gomock.Eq("john")).
 			Return(&authentication.UserDetails{
-				Emails: []string{"john@example.com"},
-				Groups: []string{"dev", "admins"},
+				Username: "john",
+				Emails:   []string{"john@example.com"},
+				Groups:   []string{"dev", "admins"},
 			}, nil),
+		mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+		mock.StorageMock.
+			EXPECT().
+			LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
+		mock.UserProviderMock.EXPECT().
+			CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+			Return(true, nil),
+		mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 	)
 
 	authz.Handler(mock.Ctx)
@@ -502,13 +526,64 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 			},
 		},
 		{
-			"IncorrectPassword", // TestShouldVerifyAuthBasicArgFailingWrongPassword.
+			"UnsupportedScheme",
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Bearer some-token")
+			},
+		},
+		{
+			"UserNotFound",
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 				mock.UserProviderMock.EXPECT().
-					CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
-					Return(false, fmt.Errorf("generic error"))
+					GetDetails(gomock.Eq("john")).
+					Return(nil, authentication.ErrUserNotFound)
+			},
+		},
+		{
+			"GetDetailsError",
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+				mock.UserProviderMock.EXPECT().
+					GetDetails(gomock.Eq("john")).
+					Return(nil, fmt.Errorf("backend unreachable"))
+			},
+		},
+		{
+			"IncorrectPassword", // TestShouldVerifyAuthBasicArgFailingWrongPassword.
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+				attempt := model.AuthenticationAttempt{
+					Time:          mock.Ctx.Providers.Clock.Now(),
+					Successful:    false,
+					Banned:        false,
+					Username:      "john",
+					Type:          regulation.AuthType1FA,
+					RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
+					RequestURI:    "https://one-factor.example.com",
+					RequestMethod: fasthttp.MethodGet,
+				}
+
+				gomock.InOrder(
+					mock.UserProviderMock.EXPECT().
+						GetDetails(gomock.Eq("john")).
+						Return(&authentication.UserDetails{Username: "john"}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
+					mock.UserProviderMock.EXPECT().
+						CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+						Return(false, fmt.Errorf("generic error")),
+					mock.StorageMock.
+						EXPECT().
+						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
+				)
 			},
 		},
 		{
@@ -517,29 +592,51 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com/")
 
-				gomock.InOrder(
-					mock.UserProviderMock.EXPECT().
-						CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
-						Return(true, nil),
+				attempt := model.AuthenticationAttempt{
+					Time:          mock.Ctx.Providers.Clock.Now(),
+					Successful:    true,
+					Banned:        false,
+					Username:      "john",
+					Type:          regulation.AuthType1FA,
+					RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
+					RequestURI:    "https://admin.example.com/",
+					RequestMethod: fasthttp.MethodGet,
+				}
 
+				gomock.InOrder(
 					mock.UserProviderMock.EXPECT().
 						GetDetails(gomock.Eq("john")).
 						Return(&authentication.UserDetails{
-							Emails: []string{"john@example.com"},
-							Groups: []string{"dev", "admin"},
+							Username: "john",
+							Emails:   []string{"john@example.com"},
+							Groups:   []string{"dev", "admin"},
 						}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
+					mock.UserProviderMock.EXPECT().
+						CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+						Return(true, nil),
+					mock.StorageMock.
+						EXPECT().
+						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 				)
 			},
 		},
 	}
 
-	authz := s.Builder().Build()
+	authz := s.BuildWithDelayer()
 
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 
 			defer mock.Close()
+
+			setUpMockClock(mock)
 
 			mock.Ctx.QueryArgs().Add("auth", "basic")
 			mock.Ctx.Request.Header.Set("X-Original-URL", "https://one-factor.example.com")
@@ -579,7 +676,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleInvalidURLForCVE202132637() {
 		s.T().Run(tc.name, func(t *testing.T) {
 			for _, method := range testRequestMethods {
 				t.Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
-					authz := s.Builder().Build()
+					authz := s.BuildWithDelayer()
 
 					mock := mocks.NewMockAutheliaCtx(t)
 

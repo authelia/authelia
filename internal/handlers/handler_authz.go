@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
@@ -130,6 +131,9 @@ type AuthzContext interface {
 
 	// RecordAuthn should record the authentication of the user.
 	RecordAuthn(success, banned bool, authType string)
+
+	// RecordAuthenticationDuration should record the time taken by the user to perform an authentication attempt.
+	RecordAuthenticationDuration(success bool, elapsed time.Duration)
 
 	// RemoteIP Should return the remote IP of the request.
 	RemoteIP() net.IP
