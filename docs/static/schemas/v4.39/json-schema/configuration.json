@@ -3411,6 +3411,21 @@
           "$ref": "#/$defs/ServerEndpointRateLimit",
           "title": "OpenID Connect Pushed Authorization Request",
           "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Pushed Authorization Request Endpoint."
+        },
+        "openid_connect_userinfo": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect UserInfo",
+          "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 UserInfo Endpoint."
+        },
+        "openid_connect_introspection": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect Introspection",
+          "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Introspection Endpoint."
+        },
+        "openid_connect_revocation": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect Revocation",
+          "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."
         }
       },
       "additionalProperties": false,

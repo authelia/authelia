@@ -64,6 +64,9 @@ type ServerEndpointRateLimits struct {
 	SessionElevationFinish                  ServerEndpointRateLimit `koanf:"session_elevation_finish" yaml:"session_elevation_finish,omitempty" toml:"session_elevation_finish,omitempty" json:"session_elevation_finish,omitempty" jsonschema:"title=Session Elevation Finish" jsonschema_description:"Configures the rate limiter which applies to the Elevated Session endpoint which consumes the code for the elevated session flow."`
 	OpenIDConnectToken                      ServerEndpointRateLimit `koanf:"openid_connect_token" yaml:"openid_connect_token,omitempty" toml:"openid_connect_token,omitempty" json:"openid_connect_token,omitempty" jsonschema:"title=OpenID Connect Token" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Token Endpoint."`
 	OpenIDConnectPushedAuthorizationRequest ServerEndpointRateLimit `koanf:"openid_connect_pushed_authorization_request" yaml:"openid_connect_pushed_authorization_request,omitempty" toml:"openid_connect_pushed_authorization_request,omitempty" json:"openid_connect_pushed_authorization_request,omitempty" jsonschema:"title=OpenID Connect Pushed Authorization Request" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Pushed Authorization Request Endpoint."`
+	OpenIDConnectUserInfo                   ServerEndpointRateLimit `koanf:"openid_connect_userinfo" yaml:"openid_connect_userinfo,omitempty" toml:"openid_connect_userinfo,omitempty" json:"openid_connect_userinfo,omitempty" jsonschema:"title=OpenID Connect UserInfo" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 UserInfo Endpoint."`
+	OpenIDConnectIntrospection              ServerEndpointRateLimit `koanf:"openid_connect_introspection" yaml:"openid_connect_introspection,omitempty" toml:"openid_connect_introspection,omitempty" json:"openid_connect_introspection,omitempty" jsonschema:"title=OpenID Connect Introspection" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Introspection Endpoint."`
+	OpenIDConnectRevocation                 ServerEndpointRateLimit `koanf:"openid_connect_revocation" yaml:"openid_connect_revocation,omitempty" toml:"openid_connect_revocation,omitempty" json:"openid_connect_revocation,omitempty" jsonschema:"title=OpenID Connect Revocation" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."`
 }
 
 type ServerEndpointRateLimit struct {
@@ -188,6 +191,30 @@ var DefaultServerConfiguration = Server{
 				},
 			},
 			OpenIDConnectPushedAuthorizationRequest: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 30},
+					{Period: 2 * time.Minute, Requests: 40},
+					{Period: 10 * time.Minute, Requests: 50},
+					{Period: time.Hour, Requests: 100},
+				},
+			},
+			OpenIDConnectUserInfo: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 30},
+					{Period: 2 * time.Minute, Requests: 40},
+					{Period: 10 * time.Minute, Requests: 50},
+					{Period: time.Hour, Requests: 100},
+				},
+			},
+			OpenIDConnectIntrospection: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 30},
+					{Period: 2 * time.Minute, Requests: 40},
+					{Period: 10 * time.Minute, Requests: 50},
+					{Period: time.Hour, Requests: 100},
+				},
+			},
+			OpenIDConnectRevocation: ServerEndpointRateLimit{
 				Buckets: []ServerEndpointRateLimitBucket{
 					{Period: 1 * time.Minute, Requests: 30},
 					{Period: 2 * time.Minute, Requests: 40},
