@@ -145,9 +145,7 @@ func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURLDelayFunc()
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	delayFunc := func(ctx *middlewares.AutheliaCtx, requestTime time.Time, successful *bool) {}
-
-	SecondFactorPasswordPOST(delayFunc)(s.mock.Ctx)
+	SecondFactorPasswordPOST(middlewares.NewTimingAttackDelay(10, time.Millisecond))(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: testRedirectionURLString,
