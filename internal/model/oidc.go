@@ -410,6 +410,10 @@ func (s *OAuth2Session) SetSubject(subject string) {
 
 // ToRequest converts an OAuth2Session into a oauthelia2.Request given a oauthelia2.Session and oauthelia2.Storage.
 func (s *OAuth2Session) ToRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.Request, err error) {
+	if s == nil {
+		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a Request: the OAuth 2.0 Session is nil")
+	}
+
 	sessionData := s.Session
 
 	if session != nil {

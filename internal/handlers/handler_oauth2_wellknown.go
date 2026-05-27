@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
 
+	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -24,10 +25,13 @@ func WellKnownOAuthAuthorizationServerGET(ctx *middlewares.AutheliaCtx) {
 		issuer *url.URL
 		err    error
 	)
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("OAuth 2.0 Discovery Request could not be processed: %s", oidc.ErrTextEffectiveIssuer)
 
-		ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
+
+		ctx.GetLogger().WithError(err).Errorf("OAuth 2.0 Discovery Request could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		ctx.ReplyStatusCode(rfc.StatusCode())
 
 		return
 	}

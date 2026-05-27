@@ -390,6 +390,13 @@ func TestOAuth2Session_ToRequest(t *testing.T) {
 		err      string
 	}{
 		{
+			"ShouldErrorOnNilReceiver",
+			nil,
+			nil,
+			nil,
+			"error occurred while mapping OAuth 2.0 Session back to a Request: the OAuth 2.0 Session is nil",
+		},
+		{
 			"ShouldErrorInvalidJSONData",
 			nil,
 			&model.OAuth2Session{},

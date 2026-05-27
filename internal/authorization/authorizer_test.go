@@ -197,6 +197,27 @@ func (s *AuthorizerSuite) TestShouldCheckMultipleDomainRule() {
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://private.other.com/", fasthttp.MethodGet, Denied)
 }
 
+func (s *AuthorizerSuite) TestShouldCheckWildcardDomainRulePrecedenceIsCaseInsensitive() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy(deny).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"*.admin.example5.com"},
+			Policy:  twoFactor,
+		}).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"*.example5.com"},
+			Policy:  bypass,
+		}).
+		Build()
+
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://secure.admin.example5.com/", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://secure.ADMIN.example5.com/", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://secure.Admin.example5.com/", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://SECURE.ADMIN.EXAMPLE5.COM/", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.example5.com/", fasthttp.MethodGet, Bypass)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://public.EXAMPLE5.com/", fasthttp.MethodGet, Bypass)
+}
+
 func (s *AuthorizerSuite) TestShouldCheckFactorsPolicy() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).

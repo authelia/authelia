@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/url"
@@ -19,6 +18,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -43,6 +43,7 @@ func NewHeaderAuthorizationAuthnStrategy(schemaBasicCacheLifeSpan time.Duration,
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusUnauthorized,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		delay:              middlewares.NewTimingAttackDelay(50, time.Second*2).SetSuccessDelay(false).SetRecord(true).SetMinimumDelayDuration(time.Second * 2),
 		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
@@ -57,6 +58,7 @@ func NewHeaderProxyAuthorizationAuthnStrategy(schemaBasicCacheLifeSpan time.Dura
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusProxyAuthRequired,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		delay:              middlewares.NewTimingAttackDelay(50, time.Second*2).SetSuccessDelay(false).SetRecord(true).SetMinimumDelayDuration(time.Second * 2),
 		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
@@ -72,13 +74,16 @@ func NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(schemaBasicCacheLifeSpa
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusUnauthorized,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		delay:              middlewares.NewTimingAttackDelay(50, time.Second*2).SetSuccessDelay(false).SetRecord(true).SetMinimumDelayDuration(time.Second * 2),
 		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
 
 // NewHeaderLegacyAuthnStrategy creates a new HeaderLegacyAuthnStrategy.
 func NewHeaderLegacyAuthnStrategy() *HeaderLegacyAuthnStrategy {
-	return &HeaderLegacyAuthnStrategy{}
+	return &HeaderLegacyAuthnStrategy{
+		delay: middlewares.NewTimingAttackDelay(50, time.Second*2).SetSuccessDelay(false).SetRecord(true).SetMinimumDelayDuration(time.Second * 2),
+	}
 }
 
 // CookieSessionAuthnStrategy is a session cookie AuthnStrategy.
@@ -169,6 +174,7 @@ type HeaderAuthnStrategy struct {
 	statusAuthenticate int
 	schemes            model.AuthorizationSchemes
 
+	delay middlewares.Delayer
 	basic BasicAuthHandler
 }
 
@@ -186,7 +192,7 @@ func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 
 // DefaultBasicAuthHandler is a BasicAuthHandler that just checks the username and password directly.
 func DefaultBasicAuthHandler(ctx AuthzContext, authorization *model.Authorization) (valid, cached bool, err error) {
-	valid, err = ctx.GetProviders().UserProvider.CheckUserPassword(authorization.Basic())
+	valid, err = ctx.GetUserProvider().CheckUserPassword(authorization.Basic())
 
 	return valid, false, err
 }
@@ -226,7 +232,7 @@ func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *a
 	authn.Header.Authorization = authz
 
 	var (
-		username, clientID string
+		clientID string
 
 		ccs   bool
 		level authentication.Level
@@ -242,11 +248,13 @@ func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *a
 		return authn, nil
 	}
 
+	var details *authentication.UserDetails
+
 	switch scheme {
 	case model.AuthorizationSchemeBasic:
-		username, level, err = s.handleGetBasic(ctx, authn, object)
+		details, level, err = handleGetBasic(ctx, s.delay, authn, object, s.headerAuthorize, s.basic)
 	case model.AuthorizationSchemeBearer:
-		username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object)
+		details, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object)
 	default:
 		ctx.GetLogger().
 			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
@@ -270,21 +278,11 @@ func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *a
 		}
 
 		authn.ClientID = clientID
-	case len(username) == 0:
+	case details == nil:
+		return authn, fmt.Errorf("failed to determine user identity from the %s header", s.headerAuthorize)
+	case len(details.Username) == 0:
 		return authn, fmt.Errorf("failed to determine username from the %s header", s.headerAuthorize)
 	default:
-		var details *authentication.UserDetails
-
-		if details, err = ctx.GetProviders().UserProvider.GetDetails(username); err != nil {
-			if errors.Is(err, authentication.ErrUserNotFound) {
-				ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
-
-				return authn, err
-			}
-
-			return authn, fmt.Errorf("unable to retrieve details for user '%s': %w", username, err)
-		}
-
 		authn.Username = friendlyUsername(details.Username)
 		authn.Details = *details
 	}
@@ -292,52 +290,6 @@ func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *a
 	authn.Level = level
 
 	return authn, nil
-}
-
-func (s *HeaderAuthnStrategy) handleGetBasic(ctx AuthzContext, authn *Authn, object *authorization.Object) (username string, level authentication.Level, err error) {
-	var (
-		ban     regulation.BanType
-		value   string
-		expires *time.Time
-	)
-
-	username = authn.Header.Authorization.BasicUsername()
-
-	if ban, value, expires, err = ctx.GetProviders().Regulator.BanCheck(ctx, username); err != nil {
-		if errors.Is(err, regulation.ErrUserIsBanned) {
-			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, object.String(), object.Method, nil)
-
-			return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
-		}
-
-		ctx.GetLogger().WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, username)
-
-		return "", authentication.NotAuthenticated, fmt.Errorf("failed to check the regulation status of user '%s' during an attempt to authenticate using the %s header: %w", username, s.headerAuthorize, err)
-	}
-
-	var valid, cached bool
-
-	if valid, cached, err = s.basic(ctx, authn.Header.Authorization); err != nil {
-		if isRegulatorSkippedErr(err) {
-			ctx.GetLogger().WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, authn.Header.Authorization.BasicUsername())
-		} else {
-			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
-		}
-
-		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
-	}
-
-	if !valid {
-		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
-
-		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header valid for user '%s': the username and password do not match", s.headerAuthorize, username)
-	}
-
-	if !cached {
-		doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
-	}
-
-	return username, authentication.OneFactor, nil
 }
 
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
@@ -364,13 +316,14 @@ func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *Authn,
 }
 
 // HeaderLegacyAuthnStrategy is a legacy header AuthnStrategy which can be switched based on the query parameters.
-type HeaderLegacyAuthnStrategy struct{}
+type HeaderLegacyAuthnStrategy struct {
+	delay middlewares.Delayer
+}
 
 // Get returns the Authn information for this AuthnStrategy.
-func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, _ *authorization.Object) (authn *Authn, err error) {
+func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *authorization.Object) (authn *Authn, err error) {
 	var (
-		username, password string
-		value, header      []byte
+		value, header []byte
 	)
 
 	authn = &Authn{
@@ -386,49 +339,59 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, _ *
 		header = headerProxyAuthorization
 	}
 
-	value = ctx.GetRequestHeaderValue(header)
+	if value = ctx.GetRequestHeaderValue(header); len(value) == 0 {
+		if authn.Type == AuthnTypeAuthorization {
+			return authn, fmt.Errorf("header %s expected", headerAuthorization)
+		}
 
-	switch {
-	case value == nil && authn.Type == AuthnTypeAuthorization:
-		return authn, fmt.Errorf("header %s expected", headerAuthorization)
-	case value == nil:
 		return authn, nil
 	}
 
-	if username, password, err = headerAuthorizationParse(value); err != nil {
+	authz := model.NewAuthorization()
+
+	if err = authz.ParseBytes(value); err != nil {
 		return authn, fmt.Errorf("failed to parse content of %s header: %w", header, err)
 	}
 
-	if username == "" || password == "" {
-		return authn, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", header, username, err)
+	authn.Header.Authorization = authz
+
+	scheme := authn.Header.Authorization.Scheme()
+
+	switch scheme {
+	case model.AuthorizationSchemeBasic:
+		break
+	default:
+		ctx.GetLogger().
+			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(header)}).
+			Debug("Skipping header authorization as the scheme is unknown to this endpoint configuration")
+
+		return authn, fmt.Errorf("header is malformed: unsupported scheme '%s': supported schemes '%s'", scheme, strings.ToTitle(headerAuthorizationSchemeBasic))
 	}
 
 	var (
-		valid   bool
 		details *authentication.UserDetails
+		level   authentication.Level
 	)
 
-	if valid, err = ctx.GetProviders().UserProvider.CheckUserPassword(username, password); err != nil {
-		return authn, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", header, username, err)
-	}
+	validate := func(ctx AuthzContext, authz *model.Authorization) (valid, cached bool, err error) {
+		username, password := authn.Header.Authorization.Basic()
 
-	if !valid {
-		return authn, fmt.Errorf("validated parsed credentials of %s header but they are not valid for user '%s': %w", header, username, err)
-	}
-
-	if details, err = ctx.GetProviders().UserProvider.GetDetails(username); err != nil {
-		if errors.Is(err, authentication.ErrUserNotFound) {
-			ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
-
-			return authn, err
+		if username == "" || password == "" {
+			return false, false, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s'", header, username)
 		}
 
-		return authn, fmt.Errorf("unable to retrieve details for user '%s': %w", username, err)
+		valid, err = ctx.GetUserProvider().CheckUserPassword(username, password)
+
+		return valid, false, err
+	}
+
+	if details, level, err = handleGetBasic(ctx, s.delay, authn, object, header, validate); err != nil {
+		return authn, fmt.Errorf("failed to validate %s header with %s scheme: %w", header, scheme, err)
 	}
 
 	authn.Username = friendlyUsername(details.Username)
 	authn.Details = *details
-	authn.Level = authentication.OneFactor
+	authn.Level = level
 
 	return authn, nil
 }
@@ -446,6 +409,63 @@ func (s *HeaderLegacyAuthnStrategy) HeaderStrategy() (header bool) {
 // HandleUnauthorized is the Unauthorized handler for the Legacy header AuthnStrategy.
 func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *Authn, _ *url.URL) {
 	handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
+}
+
+func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn, object *authorization.Object, header []byte, validate BasicAuthHandler) (details *authentication.UserDetails, level authentication.Level, err error) {
+	var (
+		ban           regulation.BanType
+		value         string
+		expires       *time.Time
+		valid, cached bool
+	)
+
+	started := ctx.GetClock().Now()
+
+	defer delayer.CachedDelay(ctx, started, &cached, &valid)
+
+	username := authn.Header.Authorization.BasicUsername()
+
+	if details, err = ctx.GetUserProvider().GetDetails(username); err != nil {
+		if errors.Is(err, authentication.ErrUserNotFound) {
+			ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+		}
+
+		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to retrieve user details for user %s: %w", username, err)
+	}
+
+	if ban, value, expires, err = ctx.GetProviders().Regulator.BanCheck(ctx, details.Username); err != nil {
+		if errors.Is(err, regulation.ErrUserIsBanned) {
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, object.String(), object.Method, nil)
+
+			return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", details.Username, header, err)
+		}
+
+		ctx.GetLogger().WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, details.Username)
+
+		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to check the regulation status of user '%s' during an attempt to authenticate using the %s header: %w", details.Username, header, err)
+	}
+
+	if valid, cached, err = validate(ctx, authn.Header.Authorization); err != nil {
+		if isRegulatorSkippedErr(err) {
+			ctx.GetLogger().WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, authn.Header.Authorization.BasicUsername())
+		} else {
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+		}
+
+		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", details.Username, header, err)
+	}
+
+	if !valid {
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
+
+		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header valid for user '%s': the username and password do not match", header, details.Username)
+	}
+
+	if !cached {
+		doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
+	}
+
+	return details, authentication.OneFactor, nil
 }
 
 func handleAuthnCookieValidate(ctx AuthzContext, manager session.Manager, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
@@ -512,7 +532,7 @@ func handleSessionValidateRefresh(ctx AuthzContext, userSession *session.UserSes
 		details *authentication.UserDetails
 		err     error
 	)
-	if details, err = ctx.GetProviders().UserProvider.GetDetails(userSession.Username); err != nil {
+	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
 			ctx.GetLogger().WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
@@ -554,7 +574,7 @@ func handleSessionValidateRefresh(ctx AuthzContext, userSession *session.UserSes
 	return true, false
 }
 
-func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
+func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *authorization.Object) (details *authentication.UserDetails, clientID string, ccs bool, level authentication.Level, err error) {
 	var at bool
 
 	if at, err = oidc.IsAccessToken(ctx, authn.Header.Authorization.Value()); !at {
@@ -564,10 +584,35 @@ func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *
 			ctx.GetLogger().Debug("The bearer token does not appear to be a relevant access token")
 		}
 
-		return "", "", false, authentication.NotAuthenticated, errTokenIntent
+		return nil, "", false, authentication.NotAuthenticated, errTokenIntent
 	}
 
-	return handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.GetProviders().OpenIDConnect, authn, object)
+	var username string
+
+	if username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.GetProviders().OpenIDConnect, authn, object); err != nil {
+		return nil, "", false, authentication.NotAuthenticated, err
+	}
+
+	return handleVerifyGETAuthorizationBearerResolveUser(ctx, username, clientID, ccs, level)
+}
+
+// handleVerifyGETAuthorizationBearerResolveUser turns the result of bearer-token introspection into the final return
+// values for handleVerifyGETAuthorizationBearer. For client-credentials grants (ccs=true) there is no associated user
+// so GetDetails is skipped and the clientID is propagated; for user-bound tokens GetDetails canonicalises the username.
+func handleVerifyGETAuthorizationBearerResolveUser(ctx AuthzContext, username, clientID string, ccs bool, level authentication.Level) (details *authentication.UserDetails, clientIDOut string, ccsOut bool, levelOut authentication.Level, err error) {
+	if ccs {
+		return nil, clientID, ccs, level, nil
+	}
+
+	if details, err = ctx.GetUserProvider().GetDetails(username); err != nil {
+		if errors.Is(err, authentication.ErrUserNotFound) {
+			ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+		}
+
+		return nil, "", false, authentication.NotAuthenticated, fmt.Errorf("failed to retrieve user details for user %s: %w", username, err)
+	}
+
+	return details, clientID, ccs, level, nil
 }
 
 func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
@@ -638,46 +683,4 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 	}
 
 	return osession.Username, "", false, level, nil
-}
-
-func headerAuthorizationParse(value []byte) (username, password string, err error) {
-	if bytes.Equal(value, qryValueEmpty) {
-		return "", "", fmt.Errorf("header is malformed: empty value")
-	}
-
-	parts := strings.SplitN(string(value), " ", 2)
-
-	if len(parts) != 2 {
-		return "", "", fmt.Errorf("header is malformed: does not appear to have a scheme")
-	}
-
-	scheme := strings.ToLower(parts[0])
-
-	switch scheme {
-	case headerAuthorizationSchemeBasic:
-		if username, password, err = headerAuthorizationParseBasic(parts[1]); err != nil {
-			return username, password, fmt.Errorf("header is malformed: %w", err)
-		}
-
-		return username, password, nil
-	default:
-		return "", "", fmt.Errorf("header is malformed: unsupported scheme '%s': supported schemes '%s'", parts[0], strings.ToTitle(headerAuthorizationSchemeBasic))
-	}
-}
-
-func headerAuthorizationParseBasic(value string) (username, password string, err error) {
-	var content []byte
-
-	if content, err = base64.StdEncoding.DecodeString(value); err != nil {
-		return "", "", fmt.Errorf("could not decode credentials: %w", err)
-	}
-
-	strContent := string(content)
-	s := strings.IndexByte(strContent, ':')
-
-	if s < 1 {
-		return "", "", fmt.Errorf("format of header must be <user>:<password> but either doesn't have a colon or username")
-	}
-
-	return strContent[:s], strContent[s+1:], nil
 }

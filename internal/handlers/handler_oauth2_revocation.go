@@ -29,9 +29,11 @@ func OAuth2RevocationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, 
 	ctx.GetLogger().Debugf("Revocation Request with id '%s' is being processed", requestID)
 
 	if _, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Revocation Request with id '%s' could not be processed: %s", requestID, oidc.ErrTextEffectiveIssuer)
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
 
-		ctx.Providers.OpenIDConnect.WriteRevocationResponse(ctx, rw, oidc.ErrEffectiveIssuer)
+		ctx.GetLogger().WithError(err).Errorf("Revocation Request with id '%s' could not be processed: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		ctx.Providers.OpenIDConnect.WriteRevocationResponse(ctx, rw, rfc)
 
 		return
 	}

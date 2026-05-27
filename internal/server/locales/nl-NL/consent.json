@@ -48,6 +48,7 @@
 	"scopes": {
 		"address": "Toegang tot uw adres",
 		"authelia.bearer.authz": "Toegang tot beschermde bronnen aangemeld als u",
+		"authelia.pam": "Authenticeer naar een Linux-systeem als u",
 		"email": "Toegang tot je e-mailadressen",
 		"groups": "Toegang tot groepslidmaatschappen",
 		"offline_access": "Vernieuw deze machtigingen automatisch zonder gebruikersinteractie",

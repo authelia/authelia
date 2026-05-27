@@ -60,7 +60,6 @@ var (
 
 var (
 	qryValueBasic = []byte("basic")
-	qryValueEmpty = []byte("")
 )
 
 const (

@@ -16,11 +16,13 @@ import (
 func TestTimingAttackDelayAverages(t *testing.T) {
 	execDuration := time.Millisecond * 500
 	oneSecond := time.Millisecond * 1000
-	durations := []time.Duration{oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond, oneSecond}
-	cursor := 0
-	mutex := &sync.Mutex{}
-	avgExecDuration := movingAverageIteration(execDuration, 10, false, &cursor, &durations, mutex)
-	assert.Equal(t, avgExecDuration, float64(1000))
+	d := &TimingAttackDelay{
+		history:                   10,
+		mutex:                     &sync.Mutex{},
+		execDurationMovingAverage: []int64{oneSecond.Milliseconds(), oneSecond.Milliseconds(), oneSecond.Milliseconds(), oneSecond.Milliseconds(), oneSecond.Milliseconds(), oneSecond.Milliseconds(), oneSecond.Milliseconds(), oneSecond.Milliseconds(), oneSecond.Milliseconds(), oneSecond.Milliseconds()},
+	}
+	_, avgExecDuration := d.movingAverageIteration(time.Now().Add(-execDuration), false, false)
+	assert.InDelta(t, float64(1000), avgExecDuration, 1)
 
 	execDurations := []time.Duration{
 		time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500, time.Millisecond * 500,
@@ -32,8 +34,8 @@ func TestTimingAttackDelayAverages(t *testing.T) {
 
 	// Execute at 500ms for 12 requests.
 	for _, execDuration = range execDurations {
-		avgExecDuration = movingAverageIteration(execDuration, 10, true, &cursor, &durations, mutex)
-		assert.Equal(t, avgExecDuration, current)
+		_, avgExecDuration = d.movingAverageIteration(time.Now().Add(-execDuration), false, true)
+		assert.InDelta(t, current, avgExecDuration, 1)
 
 		// Should not dip below 500, and should decrease in value by 50 each iteration.
 		if current > 500 {
@@ -56,7 +58,7 @@ func TestTimingAttackDelayCalculations(t *testing.T) {
 	}
 
 	for i := 0; i < 100; i++ {
-		delay := calculateActualDelay(ctx, execDuration, avgExecDurationMs, 250, 85, false)
+		delay := calculateActualDelay(ctx, execDuration, avgExecDurationMs, 250, 85, true, false)
 		assert.True(t, delay >= expectedMinimumDelayMs)
 		assert.True(t, delay <= expectedMinimumDelayMs+float64(85))
 	}
@@ -66,7 +68,7 @@ func TestTimingAttackDelayCalculations(t *testing.T) {
 	expectedMinimumDelayMs = 250 - float64(execDuration.Milliseconds())
 
 	for i := 0; i < 100; i++ {
-		delay := calculateActualDelay(ctx, execDuration, avgExecDurationMs, 250, 85, false)
+		delay := calculateActualDelay(ctx, execDuration, avgExecDurationMs, 250, 85, true, false)
 		assert.True(t, delay >= expectedMinimumDelayMs)
 		assert.True(t, delay <= expectedMinimumDelayMs+float64(250))
 	}
