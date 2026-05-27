@@ -70,7 +70,53 @@ You can view our published conformance tests at [Certified OpenID Providers & Pr
 The elements we support are Core, Discovery, and the Form Post Response Mode; as well as all the underpinnings except
 WebFinger. This leaves Dynamic Client Registration and Session Management as obvious goals which are both planned.
 
+## Request Subset Rules
+
+There are a number of unique situations which may result in certain flows resulting in more or less `scope` or `audience`
+then they are intended.
+
+In particular the common issues are that during the Refresh Flow if the `scope` is widened to more scopes than
+originally granted by the user, or during the Refresh Flow if the client is no longer allowed to request the same
+scopes.
+
+To this end we implement the same strategies for the `scope`, `resource`, and `audience` parameters. i.e. the requested
+scopes and audience of the [Access Token]:
+
+1. If the grant type had a previous interaction which requested scopes or audiences, the scopes and audiences granted
+   regardless of the scopes and audiences the client is permitted to obtain are the maximum scopes and audiences
+   allowed (they may request less, not more). The [Authorization Code Flow] is a prime example of this i.e. if either of
+   these parameters were used then the request to the token endpoint cannot exceed those.
+2. If the client does not currently have the scopes or audiences requested, regardless of what they were previously
+   granted, they are not allowed to request more than their currently allowed scopes and audiences.
+
 ## Audiences
+
+This section describes the audience strategy of Authelia.
+
+### Implementation
+
+Authelia supports three key audience issuance modes.
+
+1. Using the `audience` parameter in the authorization request (at the authorization endpoint) or in the access request
+   (at the token endpoint). This allows for opaque and arbitrary audiences.
+2. Using the `resource` parameter in the authorization request (at the authorization endpoint) or in the access request
+   (at the token endpoint). This allows for audiences that are absolute URIs, which allows for special matching
+   behaviors.
+3. Implicitly granting all audiences when neither the `audience` or `resource` parameters are used (by policy only).
+
+Both the `audience` and `resource` parameters can be used together. The matching strategy for the `audience` parameter
+only allows for exact matches.
+
+The matching strategy for the `resource` parameter however allows for exact matches and also
+allows for special matching behaviors, specifically they can request a suffix of an allowed audience if the client is
+allowed to request the `https://example.com/example` they can request the `https://example.com/example` or
+`https://example.com/example/admin` audience using the resource parameter, but cannot request the
+`https://example.com/notexample/admin/users` audience.
+
+Please note that this only applies to absolute URLs and both the `audience` allowed to the client and the `resource`
+requested by the client must be absolute URLs, otherwise they are skipped and will eventually result in an error.
+
+### Access Token Audience vs ID Token Audience
 
 When it comes to [OpenID Connect 1.0] there are effectively two types of audiences. There is the audience embedded in
 the [ID Token] which should always include the requesting clients identifier and audience of the [Access Token] and
@@ -521,7 +567,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                                          OAuth 2.0 for Browser-Based Apps                                          |   Complete    |    [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps)    |
 |                                  SD-JWT-based Verifiable Credentials (SD-JWT VC)                                   |     None      |        [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc)         |
 |                                       Selective Disclosure for JWTs (SD-JWT)                                       |     None      | [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-selective-disclosure-jwt) |
-|                                         Resource Indicators for OAuth 2.0                                          |     None      |                                           [RFC8707]                                           |
+|                                         Resource Indicators for OAuth 2.0                                          |   Complete    |                                           [RFC8707]                                           |
 |                                             [OAuth 2.0 Bearer Tokens]                                              |   Complete    |                                           [RFC6750]                                           |
 |                 [OAuth 2.0 Assertion Framework for Client Authentication and Authorization Grants]                 |   Complete    |                                           [RFC7521]                                           |
 |                                            [OAuth 2.0 Private Key JWT]                                             |   Complete    |                                           [RFC7521]                                           |
