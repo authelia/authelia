@@ -7,10 +7,10 @@ onlyBuiltDependencies:
   - lefthook
   - unrs-resolver
 overrides:
-  "@babel/core": 7.29.0
-  "@babel/helpers": 7.29.2
-  "@babel/runtime": 7.29.2
-  "@babel/traverse": 7.29.0
+  "@babel/core": 7.29.7
+  "@babel/helpers": 7.29.7
+  "@babel/runtime": 7.29.7
+  "@babel/traverse": 7.29.7
   "@typescript-eslint/eslint-plugin": 8.59.4
   "@typescript-eslint/parser": 8.59.4
   "@typescript-eslint/typescript-estree": 8.59.4
