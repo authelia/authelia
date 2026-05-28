@@ -249,13 +249,14 @@ These URIs must have the `https` scheme.
 
 {{< confkey type="list(string)" required="no" >}}
 
-A whitelist of audiences this client is allowed to request. These audiences were previously automatically granted to all
-access requests unless specifically requested otherwise. The current behavior is only those requested by the client in
-the `audience` parameter are granted. This behavior can be tuned using the
-[requested_audience_mode](#requested_audience_mode).
+A whitelist of audiences this client is allowed to request and be granted.
 
-This value does not generally affect the minted ID Tokens as they are always issued with the client identifier being the
-audience unless the [claims policy](#claims_policy) changes this behavior.
+The audience can be requested by the client specifically or can be implicitly granted. This behavior can be tuned using
+the [requested_audience_mode](#requested_audience_mode).
+
+This value should not generally affect the minted ID Tokens as the audience specifically applies to Access Tokens, and
+ID Tokens are always meant to be minted with the client identifier being the audience. You can tune this behavior using
+the [claims policy](#claims_policy).
 
 ### scopes
 
@@ -380,10 +381,10 @@ Controls the effective audience the client has requested. The following table de
 behavior. This value does not affect the issued ID Tokens as they are always issued with the client identifier being
 the audience.
 
-|  Value   |                                                   Description                                                    |
-|:--------:|:----------------------------------------------------------------------------------------------------------------:|
-| explicit |     Requires the client explicitly requests an audiences for an audience to be included in the issued tokens     |
-| implicit | Assumes if the client is requesting all audiences it is permitted to request if the audience parameter is absent |
+|  Value   |                                                           Description                                                           |
+|:--------:|:-------------------------------------------------------------------------------------------------------------------------------:|
+| explicit |            Requires the client explicitly requests an audiences for an audience to be included in the issued tokens             |
+| implicit | Assumes if the client is requesting all audiences it is permitted to request if the audience and resource parameters are absent |
 
 ### consent_mode
 
