@@ -535,6 +535,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                                        [OAuth 2.0 Multiple Response Types]                                         |   Certified   |                                              N/A                                              |
 |                                        [OAuth 2.0 Form Post Response Mode]                                         |   Certified   |                                              N/A                                              |
 |                                  [OpenID Connect Dynamic Client Registration 1.0]                                  |     None      |                                              N/A                                              |
+|                                [OpenID Connect Relying Party Metadata Choices 1.0]                                 |     None      |                                              N/A                                              |
 |                                      [OpenID Connect RP-Initiated Logout 1.0]                                      |     None      |                                              N/A                                              |
 |                                      [OpenID Connect Session Management 1.0]                                       |     None      |                                              N/A                                              |
 |                                     [OpenID Connect Front-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
@@ -542,9 +543,9 @@ either implemented, have our eye on, or are refusing to implement.
 |                                       [OpenID Connect 1.0 User Registration]                                       |     None      |                                              N/A                                              |
 |                [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] (CIBA)                 |     None      |                                              N/A                                              |
 |                                    [OpenID Shared Signals Framework 1.0] (SSF)                                     |     None      |                                              N/A                                              |
+|                                     [CAEP Interoperability Profile 1.0] (SSF)                                      |     None      |                                              N/A                                              |
 |                           [OpenID Continuous Access Evaluation Profile 1.0] (CAEP - SSF)                           |     None      |                                              N/A                                              |
 |                                    [OpenID Connect for Identity Assurance 1.0]                                     |     None      |                                              N/A                                              |
-|                                     [CAEP Interoperability Profile 1.0] (SSF)                                      |     None      |                                              N/A                                              |
 |                                             [Proof Key Code Exchange]                                              | Certified[^3] |         [RFC7636], [OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/pkce/)         |
 |                                                  [OAuth 2.0 Core]                                                  | Certified[^3] |                                           [RFC6749]                                           |
 |                                            [OAuth 2.0 Token Revocation]                                            |   Complete    |                                           [RFC7009]                                           |
@@ -656,6 +657,7 @@ either implemented, have our eye on, or are refusing to implement.
 [OpenID Connect Core 1.0]: https://openid.net/specs/openid-connect-core-1_0.html
 [OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OpenID Connect Dynamic Client Registration 1.0]: https://openid.net/specs/openid-connect-registration-1_0.html
+[OpenID Connect Relying Party Metadata Choices 1.0]: https://openid.net/specs/openid-connect-rp-metadata-choices-1_0-final.html
 [OpenID Connect RP-Initiated Logout 1.0]: https://openid.net/specs/openid-connect-rpinitiated-1_0.html
 [OpenID Connect Session Management 1.0]: https://openid.net/specs/openid-connect-session-1_0.html
 [OpenID Connect Front-Channel Logout 1.0]: https://openid.net/specs/openid-connect-frontchannel-1_0.html
