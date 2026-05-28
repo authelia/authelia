@@ -305,14 +305,18 @@ The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant t
 field is both the required value for the `grant_type` parameter in the access / token request and the
 [grant_types](../../configuration/identity-providers/openid-connect/clients.md#grant_types) client configuration option.
 
-|                   Grant Type                    | Supported |                     Value                      |                                                         Notes                                                         |
-|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
-|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                                                       |
-| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   |              This Grant Type has been deprecated as it's highly insecure and should not normally be used              |
-|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
-|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |                          This Grant Type has been deprecated and should not normally be used                          |
-|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
-|             [OAuth 2.0 Device Code]             |    Yes    | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                                       |
+|                                  Grant Type                                  | Supported |                       Value                       |                                                         Notes                                                         |
+|:----------------------------------------------------------------------------:|:---------:|:-------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
+|                        [OAuth 2.0 Authorization Code]                        |    Yes    |               `authorization_code`                |                                                                                                                       |
+|               [OAuth 2.0 Resource Owner Password Credentials]                |    No     |                    `password`                     |              This Grant Type has been deprecated as it's highly insecure and should not normally be used              |
+|                        [OAuth 2.0 Client Credentials]                        |    Yes    |               `client_credentials`                | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
+|                             [OAuth 2.0 Implicit]                             |    Yes    |                    `implicit`                     |                          This Grant Type has been deprecated and should not normally be used                          |
+|                          [OAuth 2.0 Refresh Token]                           |    Yes    |                  `refresh_token`                  |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
+|                           [OAuth 2.0 Device Code]                            |    Yes    |  `urn:ietf:params:oauth:grant-type:device_code`   |                                                                                                                       |
+|                          [OAuth 2.0 Token Exchange]                          |    No     | `urn:ietf:params:oauth:grant-type:token-exchange` |                                                        Planned                                                        |
+|                 [SAML 2.0 Profile for Authorization Grants]                  |    No     |  `urn:ietf:params:oauth:grant-type:saml2-bearer`  |                                                        Planned                                                        |
+|               [OAuth 2.0 JWT Profile for Authorization Grants]               |    No     |   `urn:ietf:params:oauth:grant-type:jwt-bearer`   |                                                        Planned                                                        |
+| [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] |    No     |        `urn:openid:params:grant-type:ciba`        |                                                        Planned                                                        |
 
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
 [OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
@@ -320,6 +324,8 @@ field is both the required value for the `grant_type` parameter in the access / 
 [OAuth 2.0 Client Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
 [OAuth 2.0 Refresh Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
 [OAuth 2.0 Device Code]: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+[SAML 2.0 Profile for Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7522
+[OAuth 2.0 JWT Profile for Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7523
 
 ### Client Authentication Method
 
@@ -562,7 +568,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                           [OAuth 2.0 Device Flow / OAuth 2.0 Device Authorization Grant]                           |   Complete    |                                           [RFC8628]                                           |
 |                                     [OAuth 2.0 JWT Profile for Access Tokens]                                      |   Complete    |                                           [RFC9068]                                           |
 |                                      [OAuth 2.0 Rich Authorization Requests]                                       |     None      |                                           [RFC9396]                                           |
-|                      OAuth 2.0 JWT Profile for Client Authentication and Authorization Grants                      |   Complete    |                                           [RFC7523]                                           |
+|                      OAuth 2.0 JWT Profile for Client Authentication and Authorization Grants                      |    Partial    |                                           [RFC7523]                                           |
 |                                OAuth 2.0 Step-up Authentication Challenge Protocol                                 |     None      |                                           [RFC9470]                                           |
 |                                          OAuth 2.0 for Browser-Based Apps                                          |   Complete    |    [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps)    |
 |                                  SD-JWT-based Verifiable Credentials (SD-JWT VC)                                   |     None      |        [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc)         |
