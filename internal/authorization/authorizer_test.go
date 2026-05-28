@@ -175,6 +175,22 @@ func (s *AuthorizerSuite) TestShouldCheckDynamicDomainRules() {
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev.example.com/", fasthttp.MethodGet, OneFactor)
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins.example.com/", fasthttp.MethodGet, OneFactor)
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://othergroup.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://JOHN.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://John.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.EXAMPLE.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://DEV.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://Admins.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev.EXAMPLE.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.example.co/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://bob.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://BOB.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://john.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://dev.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://admins.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://john.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://dev.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://example.com/", fasthttp.MethodGet, Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckMultipleDomainRule() {

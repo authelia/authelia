@@ -1,7 +1,6 @@
 package authorization
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -64,20 +63,23 @@ func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (mat
 	switch {
 	case m.Wildcard:
 		return utils.StringHasSuffixFold(domain, m.Name)
-	case m.UserWildcard:
-		if subject.IsAnonymous() && utils.StringHasSuffixFold(domain, m.Name) {
-			return len(domain) > len(m.Name)
+	case m.UserWildcard, m.GroupWildcard:
+		if !utils.StringHasSuffixFold(domain, m.Name) {
+			return false
 		}
 
-		return domain == fmt.Sprintf("%s%s", subject.Username, m.Name)
-	case m.GroupWildcard:
-		if subject.IsAnonymous() && utils.StringHasSuffixFold(domain, m.Name) {
+		if subject.IsAnonymous() {
 			return len(domain) > len(m.Name)
 		}
 
 		i := strings.Index(domain, ".")
 
-		return domain[i:] == m.Name && utils.IsStringInSliceFold(domain[:i], subject.Groups)
+		switch {
+		case m.GroupWildcard:
+			return utils.IsStringInSliceFold(domain[:i], subject.Groups)
+		default:
+			return strings.EqualFold(domain[:i], subject.Username)
+		}
 	default:
 		return strings.EqualFold(domain, m.Name)
 	}
