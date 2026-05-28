@@ -226,6 +226,7 @@ func (s *OIDCScenario) TestShouldIssueDeviceAuthorizationBearerToken() {
 
 	data := url.Values{}
 	data.Set("client_id", clientID)
+	data.Set("client_secret", clientSecret)
 	data.Set("scope", scope)
 
 	deviceResp, err := c.PostForm(deviceAuthEndpoint, data)
