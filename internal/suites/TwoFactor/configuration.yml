@@ -116,7 +116,7 @@ webauthn:
     discoverability: 'required'
     user_verification: 'preferred'
   metadata:
-    enabled: true
+    enabled: false
     validate_trust_anchor: true
     validate_entry: false
     validate_entry_permit_zero_aaguid: true

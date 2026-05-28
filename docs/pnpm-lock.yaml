@@ -86,8 +86,8 @@ importers:
         version: 8.0.14(yaml@2.9.0)
     optionalDependencies:
       hugo-extended:
-        specifier: 0.161.1
-        version: 0.161.1
+        specifier: 0.162.0
+        version: 0.162.0
 
 packages:
 
@@ -1174,8 +1174,8 @@ packages:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
 
-  hugo-extended@0.161.1:
-    resolution: {integrity: sha512-kFpyOR7Kn6GmzFDevruc5uvUDV5k1424iyYOoclFh5mcAJCJtMJ0ymLw+oul9vany6aYyN9vwRIkr1hSIluTlw==}
+  hugo-extended@0.162.0:
+    resolution: {integrity: sha512-wn02alVlq3BQ90K67qQqtnqtwCZjdjCZWRvK8/7LQ5yuj2vT0saQAzCJLT0PhHEud4shxCyuUGyR7Sb300J32g==}
     engines: {node: '>=18.17'}
     hasBin: true
 
@@ -1680,8 +1680,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  tar@7.5.13:
-    resolution: {integrity: sha512-tOG/7GyXpFevhXVh8jOPJrmtRpOTsYqUIkVdVooZYJS/z8WhfQUX8RJILmeuJNinGAMSu1veBr4asSHFt5/hng==}
+  tar@7.5.15:
+    resolution: {integrity: sha512-dzGK0boVlC4W5QFuQN1EFSl3bIDYsk7Tj40U6eIBnK2k/8ml7TZ5agbI5j5+qnoVcAA+rNtBml8SEiLxZpNqRQ==}
     engines: {node: '>=18'}
 
   term-size@2.2.1:
@@ -3162,10 +3162,10 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  hugo-extended@0.161.1:
+  hugo-extended@0.162.0:
     dependencies:
       adm-zip: 0.5.17
-      tar: 7.5.13
+      tar: 7.5.15
     optional: true
 
   human-id@4.1.3: {}
@@ -3612,7 +3612,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  tar@7.5.13:
+  tar@7.5.15:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
