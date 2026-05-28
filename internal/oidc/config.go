@@ -158,6 +158,7 @@ type StrategyConfig struct {
 	Core                        oauth2.CoreStrategy
 	OpenID                      openid.OpenIDConnectTokenStrategy
 	Audience                    oauthelia2.AudienceMatchingStrategy
+	Resource                    oauthelia2.ResourceMatchingStrategy
 	Scope                       oauthelia2.ScopeStrategy
 	JWT                         jwt.Strategy
 	JWKSFetcher                 jwt.JWKSFetcherStrategy
@@ -697,6 +698,15 @@ func (c *Config) GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.A
 	}
 
 	return c.Strategy.Audience
+}
+
+// GetResourceStrategy returns the audience strategy.
+func (c *Config) GetResourceStrategy(ctx context.Context) (strategy oauthelia2.ResourceMatchingStrategy) {
+	if c.Strategy.Resource == nil {
+		c.Strategy.Resource = oauthelia2.DefaultResourceMatchingStrategy
+	}
+
+	return c.Strategy.Resource
 }
 
 func (c *Config) GetClientCredentialsFlowImplicitGrantRequested(ctx context.Context) (implicit bool) {
