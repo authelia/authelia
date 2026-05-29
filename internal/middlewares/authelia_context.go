@@ -275,7 +275,7 @@ func (ctx *AutheliaCtx) GetCookieConfigFromAutheliaURL(autheliaURL *url.URL) (co
 			continue
 		}
 
-		if autheliaURL.Host == cookie.AutheliaURL.Host {
+		if utils.URLHost(autheliaURL) == utils.URLHost(cookie.AutheliaURL) {
 			return cookie
 		}
 	}

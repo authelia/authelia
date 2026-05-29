@@ -23,6 +23,15 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
+func mustParseURL(rawURL string) *url.URL {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		panic(err)
+	}
+
+	return parsedURL
+}
+
 func TestNewRequestLogger(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 
@@ -493,6 +502,44 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 				"X-Forwarded-URI":              "/abc",
 			},
 			"https://login.example.com:8080",
+			"",
+		},
+		{
+			"ShouldHandleDuplicateDomainDifferentAutheliaURLPort",
+			&schema.Session{
+				Cookies: []schema.SessionCookie{
+					{
+						Domain:      "example.com",
+						AutheliaURL: mustParseURL("https://login.example.com"),
+					},
+					{
+						Domain:      "example.com",
+						AutheliaURL: mustParseURL("https://login.example.com:8443"),
+					},
+				},
+			},
+			map[string]any{
+				fasthttp.HeaderXForwardedProto: "https",
+				fasthttp.HeaderXForwardedHost:  "login.example.com:8443",
+			},
+			"https://login.example.com:8443",
+			"",
+		},
+		{
+			"ShouldHandleEquivalentDefaultPortAutheliaURL",
+			&schema.Session{
+				Cookies: []schema.SessionCookie{
+					{
+						Domain:      "example.com",
+						AutheliaURL: mustParseURL("https://login.example.com"),
+					},
+				},
+			},
+			map[string]any{
+				fasthttp.HeaderXForwardedProto: "https",
+				fasthttp.HeaderXForwardedHost:  "login.example.com:443",
+			},
+			"https://login.example.com:443",
 			"",
 		},
 		{
