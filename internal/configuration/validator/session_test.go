@@ -721,14 +721,40 @@ func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {
 	})
 	config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
 		Domain:      exampleDotCom,
-		AutheliaURL: MustParseURL("https://login.example.com"),
+		AutheliaURL: MustParseURL("https://auth.example.com"),
 	})
 
 	ValidateSession(&config, validator)
 	assert.False(t, validator.HasWarnings())
-	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #3 (domain 'example.com'): option 'domain' is a duplicate value for another configured session domain")
+}
+
+func TestShouldAllowDuplicatedDomainNameWithDifferentAutheliaURLHosts(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
+		Domain:      exampleDotCom,
+		AutheliaURL: MustParseURL("https://auth.example.com:8443"),
+	})
+
+	ValidateSession(&config, validator)
+	assert.False(t, validator.HasWarnings())
+	assert.False(t, validator.HasErrors())
+}
+
+func TestShouldRaiseErrorWhenDuplicatedDomainNameHasEquivalentDefaultPortAutheliaURL(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
+		Domain:      exampleDotCom,
+		AutheliaURL: MustParseURL("https://auth.example.com:443"),
+	})
+
+	ValidateSession(&config, validator)
+	assert.False(t, validator.HasWarnings())
+	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "session: domain config #2 (domain 'example.com'): option 'domain' is a duplicate value for another configured session domain")
-	assert.EqualError(t, validator.Errors()[1], "session: domain config #3 (domain 'example.com'): option 'domain' is a duplicate value for another configured session domain")
 }
 
 func TestShouldRaiseErrorWhenHaveNonAbsAutheliaURL(t *testing.T) {
@@ -831,9 +857,8 @@ func TestShouldRaiseErrorWhenSubdomainConflicts(t *testing.T) {
 
 	ValidateSession(&config, validator)
 	assert.False(t, validator.HasWarnings())
-	require.Len(t, validator.Errors(), 2)
-	assert.EqualError(t, validator.Errors()[0], "session: domain config #2 (domain 'example.com'): option 'domain' is a duplicate value for another configured session domain")
-	assert.EqualError(t, validator.Errors()[1], "session: domain config #3 (domain 'internal.example.com'): option 'domain' shares the same cookie domain scope as another configured session domain")
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], "session: domain config #3 (domain 'internal.example.com'): option 'domain' shares the same cookie domain scope as another configured session domain")
 }
 
 func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {

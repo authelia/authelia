@@ -86,7 +86,7 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "cookies"))
 	}
 
-	domains := make([]string, 0, len(config.Cookies))
+	domains := make([]schema.SessionCookie, 0, len(config.Cookies))
 
 	for i, d := range config.Cookies {
 		validateSessionDomainName(i, config, validator)
@@ -103,7 +103,7 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 
 		validateSessionSameSite(i, config, validator)
 
-		domains = append(domains, d.Domain)
+		domains = append(domains, d)
 	}
 }
 
@@ -160,15 +160,32 @@ func validateSessionExpiration(i int, config *schema.Session) {
 }
 
 // validateSessionUniqueCookieDomain Check the current domains do not share a root domain with previous domains.
-func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []string, validator *schema.StructValidator) {
+func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []schema.SessionCookie, validator *schema.StructValidator) {
 	var d = config.Cookies[i]
-	if utils.IsStringInSliceF(d.Domain, domains, utils.HasDomainSuffix) {
-		if utils.IsStringInSlice(d.Domain, domains) {
-			validator.Push(fmt.Errorf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(i, d)))
-		} else {
-			validator.Push(fmt.Errorf(errFmtSessionDomainDuplicateCookieScope, sessionDomainDescriptor(i, d)))
+
+	for _, domain := range domains {
+		if !utils.HasDomainSuffix(d.Domain, domain.Domain) {
+			continue
 		}
+
+		if strings.EqualFold(d.Domain, domain.Domain) {
+			if sessionCookieAutheliaHost(d) == "" || sessionCookieAutheliaHost(domain) == "" || sessionCookieAutheliaHost(d) == sessionCookieAutheliaHost(domain) {
+				validator.Push(fmt.Errorf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(i, d)))
+
+				return
+			}
+
+			continue
+		}
+
+		validator.Push(fmt.Errorf(errFmtSessionDomainDuplicateCookieScope, sessionDomainDescriptor(i, d)))
+
+		return
 	}
+}
+
+func sessionCookieAutheliaHost(cookie schema.SessionCookie) string {
+	return utils.URLHost(cookie.AutheliaURL)
 }
 
 // validateSessionCookiesURLs validates the AutheliaURL and DefaultRedirectionURL.

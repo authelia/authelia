@@ -36,6 +36,10 @@ func NewProvider(config schema.Session, certPool *x509.CertPool) *Provider {
 	)
 
 	for _, dconfig := range config.Cookies {
+		if _, ok := provider.sessions[dconfig.Domain]; ok {
+			continue
+		}
+
 		if _, holder, err = NewProviderConfigAndSession(dconfig, name, s, p); err != nil {
 			provider.errStartup = fmt.Errorf("error initializing session for domain '%s': %w", dconfig.Domain, err)
 

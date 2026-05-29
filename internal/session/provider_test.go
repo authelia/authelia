@@ -2,6 +2,7 @@ package session
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 	"time"
 
@@ -12,6 +13,15 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
+
+func mustParseURL(rawURL string) *url.URL {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		panic(err)
+	}
+
+	return parsedURL
+}
 
 func newTestSession() (*Session, error) {
 	config := schema.Session{}
@@ -377,6 +387,38 @@ func TestStartupCheckShouldSucceedForMemoryBackendWithMultipleDomains(t *testing
 
 	assert.NoError(t, provider.StartupCheck())
 	assert.Len(t, provider.sessions, 2)
+}
+
+func TestStartupCheckShouldShareMemoryBackendWithDuplicateCookieDomains(t *testing.T) {
+	config := schema.Session{}
+	config.Cookies = []schema.SessionCookie{
+		{
+			SessionCookieCommon: schema.SessionCookieCommon{
+				Name:       testName,
+				Expiration: testExpiration,
+			},
+			Domain:      testDomain,
+			AutheliaURL: mustParseURL("https://auth.example.com"),
+		},
+		{
+			SessionCookieCommon: schema.SessionCookieCommon{
+				Name:       testName,
+				Expiration: testExpiration,
+			},
+			Domain:      testDomain,
+			AutheliaURL: mustParseURL("https://auth.example.com:8443"),
+		},
+	}
+
+	provider := NewProvider(config, nil)
+
+	assert.NoError(t, provider.StartupCheck())
+	assert.Len(t, provider.sessions, 1)
+
+	domainSession, err := provider.Get(testDomain)
+	assert.NoError(t, err)
+	assert.Equal(t, testDomain, domainSession.Config.Domain)
+	assert.Equal(t, "auth.example.com", domainSession.Config.AutheliaURL.Host)
 }
 
 func TestStartupCheckShouldSurfaceConstructionError(t *testing.T) {
