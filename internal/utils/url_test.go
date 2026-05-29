@@ -66,6 +66,14 @@ func TestHasURIDomainSuffix(t *testing.T) {
 	assert.False(t, HasURIDomainSuffix(&url.URL{Scheme: "https", Host: "auth.xexample.com"}, "example.com"))
 }
 
+func TestURLHost(t *testing.T) {
+	assert.Equal(t, "example.com", URLHost(&url.URL{Scheme: "https", Host: "Example.COM"}))
+	assert.Equal(t, "example.com", URLHost(&url.URL{Scheme: "https", Host: "example.com:443"}))
+	assert.Equal(t, "example.com:8443", URLHost(&url.URL{Scheme: "https", Host: "example.com:8443"}))
+	assert.Equal(t, "[2001:db8::1]:8443", URLHost(&url.URL{Scheme: "https", Host: "[2001:db8::1]:8443"}))
+	assert.Equal(t, "", URLHost(nil))
+}
+
 func TestHasDomainSuffix(t *testing.T) {
 	testCases := []struct {
 		Name         string

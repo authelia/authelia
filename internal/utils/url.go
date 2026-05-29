@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"net"
 	"net/url"
 	"path"
 	"strings"
@@ -50,6 +51,34 @@ func IsURISecure(uri *url.URL) bool {
 // suffix prefixed with a period.
 func HasURIDomainSuffix(uri *url.URL, domainSuffix string) bool {
 	return HasDomainSuffix(uri.Hostname(), domainSuffix)
+}
+
+// URLHost returns a normalized host value for comparison. It normalizes host case and treats default scheme ports as
+// equivalent to an omitted port.
+func URLHost(uri *url.URL) string {
+	if uri == nil {
+		return ""
+	}
+
+	hostname := strings.ToLower(uri.Hostname())
+	port := uri.Port()
+
+	switch strings.ToLower(uri.Scheme) {
+	case https, wss:
+		if port == "443" {
+			port = ""
+		}
+	case "http", "ws":
+		if port == "80" {
+			port = ""
+		}
+	}
+
+	if port == "" {
+		return hostname
+	}
+
+	return net.JoinHostPort(hostname, port)
 }
 
 // HasDomainSuffix returns true if the URI hostname is equal to the domain or if it has a suffix of the domain
