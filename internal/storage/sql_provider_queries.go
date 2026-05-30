@@ -451,7 +451,7 @@ const (
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, granted_claims, preconfiguration)
 		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtUpdateOAuth2ConsentSessionResponse = `
+	queryFmtUpdateOAuth2ConsentSessionResponseByID = `
 		UPDATE %s
 		SET
 			subject = ?,
@@ -463,10 +463,22 @@ const (
 			preconfiguration = ?
 		WHERE id = ? AND responded_at IS NULL;`
 
+	queryFmtUpdateOAuth2ConsentSessionResponseByChallengeID = `
+		UPDATE %s
+		SET
+			subject = ?,
+			responded_at = ?,
+			authorized = ?,
+			granted_scopes = ?,
+			granted_audience = ?,
+			granted_claims = ?,
+			preconfiguration = ?
+		WHERE challenge_id = ? AND responded_at IS NULL;`
+
 	queryFmtUpdateOAuth2ConsentSessionGranted = `
 		UPDATE %s
 		SET granted = TRUE
-		WHERE id = ? AND responded_at IS NOT NULL;`
+		WHERE id = ? AND responded_at IS NOT NULL AND granted = FALSE;`
 
 	queryFmtSelectOAuth2Session = `
 		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
@@ -484,22 +496,22 @@ const (
 	queryFmtRevokeOAuth2Session = `
 		UPDATE %s
 		SET revoked = TRUE
-		WHERE signature = ?;`
+		WHERE signature = ? AND revoked = FALSE;`
 
 	queryFmtRevokeOAuth2SessionByRequestID = `
 		UPDATE %s
 		SET revoked = TRUE
-		WHERE request_id = ?;`
+		WHERE request_id = ? AND revoked = FALSE;`
 
 	queryFmtDeactivateOAuth2Session = `
 		UPDATE %s
 		SET active = FALSE
-		WHERE signature = ?;`
+		WHERE signature = ? AND active = TRUE;`
 
 	queryFmtDeactivateOAuth2SessionByRequestID = `
 		UPDATE %s
 		SET active = FALSE
-		WHERE request_id = ?;`
+		WHERE request_id = ? AND active = TRUE;`
 
 	queryFmtSelectOAuth2DeviceCodeSession = `
 		SELECT id, challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
@@ -539,7 +551,7 @@ const (
 			revoked = ?,
 			form_data = ?,
 			session_data = ?
-		WHERE signature = ?;`
+		WHERE signature = ? AND revoked = FALSE;`
 
 	queryFmtUpdateOAuth2DeviceCodeSessionData = `
 		UPDATE %s
