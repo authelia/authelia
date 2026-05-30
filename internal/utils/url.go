@@ -111,7 +111,7 @@ func EqualURLs(first, second *url.URL) bool {
 		return false
 	}
 
-	if !strings.EqualFold(first.Host, second.Host) {
+	if URLHost(first) != URLHost(second) {
 		return false
 	}
 

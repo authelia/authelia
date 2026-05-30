@@ -111,6 +111,9 @@ func TestEqualURLs(t *testing.T) {
 
 	assert.True(t, EqualURLs(MustParseURL(url.Parse("https://google.com")), MustParseURL(url.Parse("https://google.com"))))
 	assert.True(t, EqualURLs(MustParseURL(url.Parse("https://google.com")), MustParseURL(url.Parse("https://Google.com"))))
+	assert.True(t, EqualURLs(MustParseURL(url.Parse("https://google.com")), MustParseURL(url.Parse("https://google.com:443"))))
+	assert.True(t, EqualURLs(MustParseURL(url.Parse("http://google.com")), MustParseURL(url.Parse("http://google.com:80"))))
+	assert.False(t, EqualURLs(MustParseURL(url.Parse("https://google.com")), MustParseURL(url.Parse("https://google.com:8443"))))
 	assert.True(t, EqualURLs(MustParseURL(url.Parse("https://google.com/abc")), MustParseURL(url.Parse("https://Google.com/abc"))))
 	assert.False(t, EqualURLs(MustParseURL(url.Parse("https://google.com/abc")), MustParseURL(url.Parse("https://Google.com/ABC"))))
 	assert.False(t, EqualURLs(MustParseURL(url.Parse("https://google.com/abc?abc=1")), MustParseURL(url.Parse("https://Google.com/abc"))))
