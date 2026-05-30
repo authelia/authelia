@@ -88,10 +88,8 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 
 	domains := make([]schema.SessionCookie, 0, len(config.Cookies))
 
-	for i, d := range config.Cookies {
+	for i := range config.Cookies {
 		validateSessionDomainName(i, config, validator)
-
-		validateSessionUniqueCookieDomain(i, config, domains, validator)
 
 		validateSessionCookieName(i, config)
 
@@ -103,7 +101,9 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 
 		validateSessionSameSite(i, config, validator)
 
-		domains = append(domains, d)
+		validateSessionUniqueCookieDomain(i, config, domains, validator)
+
+		domains = append(domains, config.Cookies[i])
 	}
 }
 
@@ -164,12 +164,18 @@ func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []
 	var d = config.Cookies[i]
 
 	for _, domain := range domains {
-		if !utils.HasDomainSuffix(d.Domain, domain.Domain) {
+		if !utils.HasDomainSuffix(d.Domain, domain.Domain) && !utils.HasDomainSuffix(domain.Domain, d.Domain) {
 			continue
 		}
 
 		if strings.EqualFold(d.Domain, domain.Domain) {
 			if sessionCookieAutheliaHost(d) == "" || sessionCookieAutheliaHost(domain) == "" || sessionCookieAutheliaHost(d) == sessionCookieAutheliaHost(domain) {
+				validator.Push(fmt.Errorf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(i, d)))
+
+				return
+			}
+
+			if !sessionCookieSameDomainConfigEqual(d, domain) {
 				validator.Push(fmt.Errorf(errFmtSessionDomainDuplicate, sessionDomainDescriptor(i, d)))
 
 				return
@@ -186,6 +192,16 @@ func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []
 
 func sessionCookieAutheliaHost(cookie schema.SessionCookie) string {
 	return utils.URLHost(cookie.AutheliaURL)
+}
+
+func sessionCookieSameDomainConfigEqual(first, second schema.SessionCookie) bool {
+	return first.Name == second.Name &&
+		first.SameSite == second.SameSite &&
+		first.Expiration == second.Expiration &&
+		first.Inactivity == second.Inactivity &&
+		first.RememberMe == second.RememberMe &&
+		first.DisableRememberMe == second.DisableRememberMe &&
+		utils.EqualURLs(first.DefaultRedirectionURL, second.DefaultRedirectionURL)
 }
 
 // validateSessionCookiesURLs validates the AutheliaURL and DefaultRedirectionURL.
