@@ -252,6 +252,7 @@ To configure [Nextcloud] and the [Nextcloud OpenID Connect user backend app] to 
 ``` php
 'user_oidc' => [
   'default_token_endpoint_auth_method' => 'client_secret_post',
+  'enrich_login_id_token_with_userinfo' => true,
 ]
 ```
 
