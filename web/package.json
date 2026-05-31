@@ -87,7 +87,7 @@
     "eslint-plugin-perfectionist": "5.9.0",
     "eslint-plugin-prettier": "5.5.6",
     "happy-dom": "20.9.0",
-    "lefthook": "2.1.8",
+    "lefthook": "2.1.9",
     "prettier": "3.8.3",
     "typescript": "6.0.3",
     "vite": "8.0.14",
