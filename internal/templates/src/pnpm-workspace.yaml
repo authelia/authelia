@@ -22,5 +22,5 @@ overrides:
   prismjs: 1.30.0
   rollup: 4.61.0
   socket.io-parser: 4.2.6
-  vite: 8.0.15
+  vite: 8.0.16
   ws: 8.21.0
