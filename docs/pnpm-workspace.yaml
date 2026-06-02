@@ -8,6 +8,6 @@ overrides:
   brace-expansion: 5.0.6
   picomatch: 4.0.4
   semver: 7.8.1
-  vite: 8.0.14
+  vite: 8.0.15
   yaml: 2.9.0
   yauzl: 3.3.2
