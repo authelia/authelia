@@ -1,7 +1,7 @@
 ---
 services:
   httpbin:
-    image: mccutchen/go-httpbin:2.23.0
+    image: mccutchen/go-httpbin:2.23.1
     networks:
       authelianet: {}
     labels:
