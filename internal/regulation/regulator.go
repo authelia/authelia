@@ -2,6 +2,7 @@ package regulation
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -29,6 +30,8 @@ func (r *Regulator) HandleAttempt(ctx Context, successful bool, ban *Ban, reques
 
 	banned := ban.IsBanned()
 	username := ban.Value()
+
+	ctx.RecordAuthn(successful, banned, strings.ToLower(authType))
 
 	attempt := model.AuthenticationAttempt{
 		Time:          r.clock.Now(),
