@@ -9,6 +9,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"strings"
 )
 
 // NewRegulator create a regulator instance.
@@ -29,6 +30,8 @@ func (r *Regulator) HandleAttempt(ctx Context, successful bool, ban *Ban, reques
 
 	banned := ban.IsBanned()
 	username := ban.Value()
+
+	ctx.RecordAuthn(successful, banned, strings.ToLower(authType))
 
 	attempt := model.AuthenticationAttempt{
 		Time:          r.clock.Now(),
