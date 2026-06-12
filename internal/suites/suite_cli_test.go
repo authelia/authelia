@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 	"go.yaml.in/yaml/v4"
@@ -1482,6 +1485,128 @@ func (s *CLISuite) TestDebugTLS() {
 	s.NoError(err)
 
 	s.Contains(output, "General Information:\n\tFailure: Did not receive a TLS handshake from secure.example.com:8081")
+}
+
+func (s *CLISuite) TestShouldDeliverSequentialNotificationsToFIFO() {
+	type readResult struct {
+		data []byte
+		err  error
+	}
+
+	for _, subject := range []string{"fifo-sequential-one", "fifo-sequential-two", "fifo-sequential-three"} {
+		s.Run(subject, func() {
+			got := make(chan readResult, 1)
+
+			go func() {
+				f, err := os.OpenFile(cliSuiteFIFOPath, os.O_RDONLY, 0)
+				if err != nil {
+					got <- readResult{nil, err}
+
+					return
+				}
+
+				defer f.Close()
+
+				b, err := io.ReadAll(f)
+				got <- readResult{b, err}
+			}()
+
+			output, err := s.Exec("authelia-backend", []string{
+				"authelia", "debug", "notification",
+				"--config", "/config/configuration.yml",
+				"--recipient", "john.doe@authelia.com",
+				"--subject", subject,
+			})
+			s.Require().NoError(err, output)
+			s.Contains(output, "Notification sent successfully")
+
+			select {
+			case r := <-got:
+				s.Require().NoError(r.err)
+
+				content := string(r.data)
+				s.Contains(content, fmt.Sprintf("Subject: %s", subject))
+				s.Contains(content, "john.doe@authelia.com")
+				s.Contains(content, "test notification from")
+			case <-time.After(15 * time.Second):
+				s.Fail("FIFO reader timed out; notifier did not write to the pipe")
+			}
+		})
+	}
+}
+
+func (s *CLISuite) TestShouldDeliverConcurrentNotificationsToFIFO() {
+	f, err := os.OpenFile(cliSuiteFIFOPath, os.O_RDWR, 0)
+	s.Require().NoError(err)
+
+	defer f.Close()
+
+	subjects := []string{"fifo-concurrent-one", "fifo-concurrent-two"}
+
+	type readResult struct {
+		data []byte
+		err  error
+	}
+
+	got := make(chan readResult, 1)
+
+	go func() {
+		var buf bytes.Buffer
+
+		chunk := make([]byte, 4096)
+
+		for {
+			n, err := f.Read(chunk)
+			if n > 0 {
+				buf.Write(chunk[:n])
+			}
+
+			if err != nil && err != io.EOF {
+				got <- readResult{buf.Bytes(), err}
+
+				return
+			}
+
+			data := buf.Bytes()
+			if bytes.Contains(data, []byte(subjects[0])) && bytes.Contains(data, []byte(subjects[1])) {
+				got <- readResult{data, nil}
+
+				return
+			}
+		}
+	}()
+
+	var wg sync.WaitGroup
+
+	for _, subject := range subjects {
+		wg.Add(1)
+
+		go func(subject string) {
+			defer wg.Done()
+
+			output, err := s.Exec("authelia-backend", []string{
+				"authelia", "debug", "notification",
+				"--config", "/config/configuration.yml",
+				"--recipient", "john.doe@authelia.com",
+				"--subject", subject,
+			})
+			s.NoError(err, output)
+			s.Contains(output, "Notification sent successfully")
+		}(subject)
+	}
+
+	wg.Wait()
+
+	select {
+	case r := <-got:
+		s.Require().NoError(r.err)
+
+		content := string(r.data)
+		s.Contains(content, fmt.Sprintf("Subject: %s", subjects[0]))
+		s.Contains(content, fmt.Sprintf("Subject: %s", subjects[1]))
+	case <-time.After(15 * time.Second):
+		s.Fail("FIFO reader timed out for concurrent notifications")
+	}
 }
 
 func TestCLISuite(t *testing.T) {
