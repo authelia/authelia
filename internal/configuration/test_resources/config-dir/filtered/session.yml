@@ -5,7 +5,7 @@ session:
   inactivity: '5 minutes'
   domain: '{{ env "ROOT_DOMAIN" }}'
   redis:
-    host: '${SERVICES_SERVER}'
+    host: '{{ env "SERVICES_SERVER" }}'
     port: 6379
     high_availability:
       sentinel_name: 'test'
