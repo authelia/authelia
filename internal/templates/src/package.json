@@ -21,7 +21,7 @@
     "@radix-ui/colors": "3.0.0",
     "@react-email/ui": "6.5.0",
     "@types/node": "25.9.3",
-    "@types/react": "19.2.16",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "eslint": "10.4.1",
     "tsx": "4.22.4",
