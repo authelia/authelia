@@ -10,6 +10,7 @@ overrides:
   "@babel/traverse": 7.29.7
   ajv: 8.20.0
   brace-expansion: 5.0.6
+  esbuild: 0.28.1
   fast-uri: 3.1.2
   flatted: 3.4.2
   glob: 13.0.6
