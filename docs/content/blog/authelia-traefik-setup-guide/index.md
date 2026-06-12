@@ -1,6 +1,6 @@
 ---
 title: "Authelia + Traefik Setup Guide"
-description: "A temporary guide for setting up Authelia with Traefik while the official Getting Started documentation is being improved."
+description: "A setup guide for configuring Authelia with the Traefik reverse proxy providing an opinionated and fully supported deployment approach for administrators."
 summary: "In this guide we will walk through setting up Authelia with Traefik as the reverse proxy. This guide aims to provide an opinionated way to setup Authelia that is fully supported by the Authelia team."
 date: 2025-01-03T13:31:09+11:00
 draft: false

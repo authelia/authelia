@@ -1,6 +1,6 @@
 ---
 title: "Frequently Asked Questions"
-description: "This guide shows a list of other frequently asked question documents as well as some general ones"
+description: "A reference index of frequently asked question documents for Authelia covering topics such as Docker, proxies, Kubernetes, identity providers, and more."
 summary: "This guide shows a list of other frequently asked question documents as well as some general ones."
 date: 2024-03-14T06:00:14+11:00
 draft: false

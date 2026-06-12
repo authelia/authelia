@@ -1,6 +1,6 @@
 ---
 title: "Second Factor"
-description: "Configuring Authelia Second Factor Authentication."
+description: "An introduction to configuring Authelia second factor authentication with available methods including Time-based One-Time Passwords, WebAuthn, and Duo Push."
 summary: "Authelia provides a number of 2FA methods. This section describes these methods."
 date: 2024-03-14T06:00:14+11:00
 draft: false

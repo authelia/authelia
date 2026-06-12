@@ -1,6 +1,6 @@
 ---
 title: "LDAP"
-description: "Configuring LDAP"
+description: "Configuring the Authelia LDAP first factor authentication provider including server connection, TLS settings, user and group search filters, and attributes."
 summary: "Authelia supports an LDAP server based first factor user provider. This section describes configuring this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

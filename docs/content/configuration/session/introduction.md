@@ -1,6 +1,6 @@
 ---
 title: "Session"
-description: "Session Configuration"
+description: "Configuring the Authelia session cookies including the secret, cookie name, domain settings, expiration, inactivity timeout, and remember me duration."
 summary: "Configuring the Session / Cookie settings."
 date: 2024-03-14T06:00:14+11:00
 draft: false

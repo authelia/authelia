@@ -1,6 +1,6 @@
 ---
 title: "Testing"
-description: "A description of testing procedures for Authelia"
+description: "A reference guide on the Authelia testing procedures including unit, integration, and end-to-end testing, continuous integration, and test coverage goals."
 summary: "This section contains reference documentation for Authelia."
 date: 2025-10-05T22:48:56+00:00
 draft: false

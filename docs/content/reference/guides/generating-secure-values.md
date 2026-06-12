@@ -1,6 +1,6 @@
 ---
 title: "Generating Secure Values"
-description: "A reference guide on generating secure values such as password hashes, password strings, and cryptography keys"
+description: "A reference guide on generating secure values such as random password hashes, random alphanumeric strings, and cryptographic keys for use with Authelia."
 summary: "This section contains reference documentation for generating secure values such as password hashes, password strings, and cryptography keys."
 date: 2024-03-14T06:00:14+11:00
 draft: false

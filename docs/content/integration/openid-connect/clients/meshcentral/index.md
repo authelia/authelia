@@ -1,6 +1,6 @@
 ---
 title: "MeshCentral"
-description: "Integrating MeshCentral with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating MeshCentral with the Authelia OpenID Connect 1.0 Provider with example configuration for single sign-on (SSO) and available options."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false

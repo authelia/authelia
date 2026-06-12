@@ -1,6 +1,6 @@
 ---
 title: "Apache Guacamole"
-description: "Integrating Apache Guacamole with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Apache Guacamole with the Authelia OpenID Connect 1.0 Provider including tested configuration examples and available options for SSO."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

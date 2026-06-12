@@ -1,6 +1,6 @@
 ---
 title: "Security"
-description: "An overview introduction into Authelia's security features."
+description: "An introduction to Authelia's security practices including coordinated vulnerability disclosure and the security-by-design approach taken by the team."
 summary: "An overview introduction into Authelia's security features."
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "OpenID Connect 1.0 Claims"
-description: "An introduction into utilizing the Authelia OpenID Connect 1.0 Claims functionality"
+description: "A reference guide for the Authelia OpenID Connect 1.0 Claims functionality including scope definitions, custom claims, claim parameters, and token content info."
 summary: "An introduction into utilizing the Authelia OpenID Connect 1.0 Claims functionality."
 date: 2025-02-22T08:20:34+00:00
 draft: false

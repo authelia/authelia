@@ -1,6 +1,6 @@
 ---
 title: "Express.js"
-description: "Integrating Express.js with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Express.js with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2024-04-18T11:00:43+10:00
 draft: false

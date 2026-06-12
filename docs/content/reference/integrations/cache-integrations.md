@@ -1,6 +1,6 @@
 ---
 title: "Cache Integrations"
-description: "A cache integration reference guide"
+description: "A reference guide on supported cache integrations for Authelia including Redis Standalone and Redis Sentinel high availability configurations with version info."
 summary: "This section contains a cache integration reference guide for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

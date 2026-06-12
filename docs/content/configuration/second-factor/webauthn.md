@@ -1,6 +1,6 @@
 ---
 title: "WebAuthn"
-description: "Configuring the WebAuthn Second Factor Method."
+description: "Configuring the Authelia WebAuthn second factor method including passkey login, attestation preferences, device filtering, and FIDO2 metadata service."
 summary: "WebAuthn is the modern browser security key specification that Authelia supports. This section describes configuring it."
 date: 2024-03-14T06:00:14+11:00
 draft: false

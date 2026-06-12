@@ -1,6 +1,6 @@
 ---
 title: "Security Key and Passkeys"
-description: "Authelia utilizes WebAuthn Credentials as one of it's second factor authentication methods and a passwordless login method via Passkeys."
+description: "An overview of Authelia's WebAuthn security key and Passkey support for second factor authentication and passwordless login using FIDO2 compatible devices."
 summary: "Authelia utilizes WebAuthn Credentials as one of it's second factor authentication methods and a passwordless login method via Passkeys."
 date: 2024-03-14T06:00:14+11:00
 draft: false

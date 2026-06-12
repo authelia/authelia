@@ -1,6 +1,6 @@
 ---
 title: "Migrations"
-description: "Storage Migrations"
+description: "Reference documentation for Authelia storage schema migrations including the schema version history, automatic upgrades, and manual downgrade procedures."
 summary: "A migration ."
 date: 2024-03-14T06:00:14+11:00
 draft: false

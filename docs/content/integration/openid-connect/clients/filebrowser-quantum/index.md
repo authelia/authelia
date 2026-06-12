@@ -1,6 +1,6 @@
 ---
 title: "FileBrowser Quantum"
-description: "Integrating FileBrowser Quantum with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating FileBrowser Quantum with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and options."
 summary: ""
 date: 2025-07-14T23:37:32+10:00
 draft: false

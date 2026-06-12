@@ -1,6 +1,6 @@
 ---
 title: "Time-based OTP Applications"
-description: "A Time-based OTP Application integration reference guide"
+description: "A reference guide on Time-based One-Time Password application compatibility with Authelia including a support matrix for various TOTP algorithm settings."
 summary: "This section contains a Time-based OTP Application integration reference guide for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

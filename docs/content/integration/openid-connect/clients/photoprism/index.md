@@ -1,6 +1,6 @@
 ---
 title: "PhotoPrism"
-description: "Integrating PhotoPrism with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating PhotoPrism with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-10-09T07:24:14+11:00
 draft: false

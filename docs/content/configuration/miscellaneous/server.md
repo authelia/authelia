@@ -1,6 +1,6 @@
 ---
 title: "Server"
-description: "Configuring the Server Settings."
+description: "Configuring the Authelia internal web server including the listen address, TLS certificates, security headers, buffer sizes, timeouts, and endpoint settings."
 summary: "Authelia runs an internal web server. This section describes how to configure and tune this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

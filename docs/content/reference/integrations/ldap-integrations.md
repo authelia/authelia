@@ -1,6 +1,6 @@
 ---
 title: "LDAP Integrations"
-description: "A LDAP integration reference guide"
+description: "A reference guide on LDAP integration requirements for Authelia including RootDSE anonymous discovery, supported attributes, and security considerations."
 summary: "This section contains a LDAP integration reference guide for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

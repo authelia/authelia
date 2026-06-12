@@ -1,6 +1,6 @@
 ---
 title: "Proxy Authorization"
-description: "A reference guide on Proxy Authorization implementations"
+description: "A reference guide on Authelia proxy authorization endpoints including ForwardAuth, ExtAuthz, AuthRequest, and Legacy implementations and their strategies."
 summary: "This section contains reference guide on Proxy Authorization implementations Authelia supports."
 date: 2024-03-14T06:00:14+11:00
 draft: false

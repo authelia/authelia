@@ -1,6 +1,6 @@
 ---
 title: "Metrics"
-description: "Configuring the Metrics Telemetry settings"
+description: "Configuring the Authelia Prometheus metrics exporter including the listen address, buffer sizes, read and write timeouts, and enabling the metrics endpoint."
 summary: "Configuring the Metrics Telemetry settings."
 date: 2024-03-14T06:00:14+11:00
 draft: false

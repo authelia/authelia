@@ -1,6 +1,6 @@
 ---
 title: "Rocket.Chat"
-description: "Integrating Rocket.Chat with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Rocket.Chat with the Authelia OpenID Connect 1.0 Provider including configuration examples, tested versions, and available option info."
 summary: ""
 date: 2024-09-28T23:18:03+10:00
 draft: false

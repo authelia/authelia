@@ -1,6 +1,6 @@
 ---
 title: "User Attributes"
-description: "User Attributes Definitions Configuration"
+description: "Configuring the Authelia user attribute definitions which allow defining custom user attributes using CEL expressions for use in OpenID Connect 1.0 claims."
 summary: "Authelia allows configuring reusable user attribute definitions."
 date: 2025-02-22T06:40:08+00:00
 draft: false

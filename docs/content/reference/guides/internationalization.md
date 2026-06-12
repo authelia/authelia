@@ -1,6 +1,6 @@
 ---
 title: "Internationalization"
-description: "A collection of internationalization reference information"
+description: "A reference guide on internationalization in Authelia including supported locales for the web portal and how users can contribute translations via the platform."
 summary: "This section contains internationalization references for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

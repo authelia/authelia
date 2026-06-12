@@ -1,6 +1,6 @@
 ---
 title: "Server Asset Overrides"
-description: "A reference guide on overriding server assets"
+description: "A reference guide on overriding Authelia server assets including the favicon, logo, and internationalization locale files using the asset_path option."
 summary: "This section contains reference documentation for Authelia's server asset override capabilities."
 date: 2024-03-14T06:00:14+11:00
 draft: false

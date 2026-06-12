@@ -1,6 +1,6 @@
 ---
 title: "Systemd"
-description: "A reference guide on systemd"
+description: "A reference guide on Authelia systemd unit configuration including instructions for overriding the default unit settings, file path definitions, and options."
 summary: "This section contains reference documentation for Authelia's systemd units."
 date: 2025-03-16T21:03:35+11:00
 draft: false

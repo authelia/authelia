@@ -1,6 +1,6 @@
 ---
 title: "Regulation"
-description: "Regulation of failed attempts is an important function of an IAM system."
+description: "An overview of Authelia's regulation feature which protects against brute-force attacks by temporarily banning users after repeated failed login authentication."
 summary: "Regulation of failed attempts is an important function of an IAM system."
 date: 2024-03-14T06:00:14+11:00
 draft: false
