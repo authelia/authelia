@@ -42,8 +42,8 @@ importers:
         specifier: 3.6.0
         version: 3.6.0
       tailwindcss:
-        specifier: 4.3.0
-        version: 4.3.0
+        specifier: 4.3.1
+        version: 4.3.1
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -1451,6 +1451,9 @@ packages:
   tailwindcss@4.3.0:
     resolution: {integrity: sha512-y6nxMGB1nMW9R6k96e5gdIFzcfL/gTJRNaqGes1YvkLnPVXzWgbqFF2yLC0T8G774n24cx3Pe8XrKoniCOAH+Q==}
 
+  tailwindcss@4.3.1:
+    resolution: {integrity: sha512-hk+TB1m+K8CYNrP6rjQaq/Y+4Zylwpa87mLYBKCunwnnQ9p+fHb7kmSfGqyEJoxF/O6CDyABWVFEafNSYKll+Q==}
+
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
 
@@ -2837,6 +2840,8 @@ snapshots:
   tailwind-merge@3.6.0: {}
 
   tailwindcss@4.3.0: {}
+
+  tailwindcss@4.3.1: {}
 
   tinybench@2.9.0: {}
 
