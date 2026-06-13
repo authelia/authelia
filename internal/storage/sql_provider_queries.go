@@ -620,3 +620,29 @@ const (
 		SELECT id, service, sector_id, username, identifier
 		FROM %s;`
 )
+
+const (
+	queryFmtSelectAuthenticationLogsStats = `
+		SELECT
+		COUNT(*) as total,
+		SUM(CASE WHEN successful = true THEN 1 ELSE 0 END) as success_count,
+		SUM(CASE WHEN successful = false THEN 1 ELSE 0 END) as failure_count,
+		SUM(CASE WHEN banned = true THEN 1 ELSE 0 END) as banned_count,
+		MIN(time) as oldest,
+		MAX(time) as newest
+		FROM %s;`
+
+	queryFmtSelectTotalMinMaxAuthenticationLogs = `
+		SELECT
+		COUNT(*) as total,
+		MIN(id) as min,
+		MAX(id) as max
+		FROM %s
+		WHERE time < ?;`
+
+	queryFmtDeleteAuthenticationLogsWithTime = `
+		DELETE FROM %s
+		WHERE time < ?
+		    AND id >= ?
+		    AND id < ?;`
+)
