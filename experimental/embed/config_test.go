@@ -198,11 +198,11 @@ func TestNewConfiguration(t *testing.T) {
 }
 
 func TestNewNamedConfigFileFilters(t *testing.T) {
-	filters, err := NewNamedConfigFileFilters("abc")
+	filters, err := NewNamedConfigFileFilters(nil, "abc")
 	assert.Nil(t, filters)
 	assert.EqualError(t, err, "error occurred loading filters: invalid filter named 'abc'")
 
-	filters, err = NewNamedConfigFileFilters("template")
+	filters, err = NewNamedConfigFileFilters(nil, "template")
 	assert.NotNil(t, filters)
 	assert.NoError(t, err)
 }

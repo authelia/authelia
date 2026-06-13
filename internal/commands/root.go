@@ -41,6 +41,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 
 	cmd.PersistentFlags().StringSliceP(cmdFlagNameConfig, "c", []string{"configuration.yml"}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
 	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
+	cmd.PersistentFlags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "file paths of values files (.yml, .yaml, .json, .toml) to utilize with configuration file filters; files are loaded in order with later files deep-merged on top, for more information run 'authelia -h authelia filters'")
 
 	cmd.AddCommand(
 		newAccessControlCommand(ctx),
