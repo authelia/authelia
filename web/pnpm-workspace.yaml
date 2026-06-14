@@ -19,7 +19,7 @@ overrides:
   brace-expansion: 5.0.6
   esbuild: 0.28.1
   express: 5.2.1
-  fast-uri: 3.1.2
+  fast-uri: 4.0.0
   flatted: 3.4.2
   follow-redirects: 1.16.0
   glob: 13.0.6
