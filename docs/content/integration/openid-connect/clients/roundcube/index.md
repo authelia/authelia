@@ -25,9 +25,9 @@ seo:
 - [Authelia]
   - [4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Roundcube]
-  - [v1.6.5](https://github.com/roundcube/roundcubemail/releases/tag/1.6.4)
+  - [v1.7.1](https://github.com/roundcube/roundcubemail/releases/tag/1.7.1)
 - [Dovecot]
-  - [v2.3.20](https://dovecot.org/doc/NEWS)
+  - [v2.4.4](https://dovecot.org/doc/NEWS)
 - [Postfix]
   - [v3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
 
@@ -67,7 +67,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/oauth/callback/'
+          - 'https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/index.php/login/oauth'
         scopes:
           - 'openid'
           - 'profile'
@@ -105,7 +105,7 @@ $config['oauth_client_secret'] = 'insecure_secret';
 $config['oauth_auth_uri'] = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization';
 $config['oauth_token_uri'] = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token';
 $config['oauth_identity_uri'] = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo';
-$config['oauth_identity_fields'] = ['email'];
+$config['oauth_identity_fields'] = ['preferred_username'];
 $config['oauth_scope'] = 'email openid profile';
 // Optionally, skip Roundcube's login page
 // $config['oauth_login_redirect'] = true;
@@ -135,13 +135,32 @@ Generally the configuration file is named `/etc/dovecot/dovecot.conf` or is one 
 `/etc/dovecot/conf.d/`.
 {{< /callout >}}
 
-```ext {title="/etc/dovecot/dovecot.conf"}
-auth_mechanisms = $auth_mechanisms oauthbearer xoauth2
+```ext {title="/etc/dovecot/conf.d/auth.conf"}
 
-passdb {
-  args = /etc/dovecot/dovecot-oauth2.conf.ext
-  driver = oauth2
-  mechanisms = xoauth2 oauthbearer
+auth_mechanisms {
+  oauthbearer = yes
+  xoauth2 = yes
+}
+
+oauth2 {
+  introspection_mode = post
+  introspection_url = https://roundcube:insecure_secret@auth.example.com/api/oidc/introspection
+  username_attribute = username
+  
+  active_attribute = active
+  active_value = true
+
+  ssl_client_ca_file = /etc/ssl/certs/ca-certificates.crt
+}
+
+passdb local_users {
+  driver = passwd-file
+  passwd_file_path = /etc/dovecot/users/users.passwd
+}
+
+userdb local_users {
+  driver = passwd-file
+  passwd_file_path = /etc/dovecot/users/users.passwd
 }
 
 # Optional for Postfix SASL on smtpd/submission
