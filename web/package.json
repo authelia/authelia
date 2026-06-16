@@ -84,7 +84,7 @@
     "eslint-formatter-visualstudio": "9.0.1",
     "eslint-import-resolver-typescript": "4.4.5",
     "eslint-plugin-import": "2.32.0",
-    "eslint-plugin-perfectionist": "5.9.0",
+    "eslint-plugin-perfectionist": "5.9.1",
     "eslint-plugin-prettier": "5.5.6",
     "happy-dom": "20.10.3",
     "lefthook": "2.1.9",
