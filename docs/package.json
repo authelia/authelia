@@ -39,7 +39,7 @@
     "vite": "8.0.16"
   },
   "optionalDependencies": {
-    "hugo-extended": "0.163.1"
+    "hugo-extended": "0.163.2"
   },
   "engines": {
     "node": ">=24.13.0",
