@@ -25,6 +25,6 @@
     "@types/react-dom": "19.2.3",
     "eslint": "10.5.0",
     "tsx": "4.22.4",
-    "vitest": "4.1.8"
+    "vitest": "4.1.9"
   }
 }
