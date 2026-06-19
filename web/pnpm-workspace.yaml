@@ -22,6 +22,7 @@ overrides:
   fast-uri: 4.0.0
   flatted: 3.4.2
   follow-redirects: 1.16.0
+  form-data: 4.0.6
   glob: 13.0.6
   import-meta-resolve: 4.2.0
   js-yaml: 4.2.0
