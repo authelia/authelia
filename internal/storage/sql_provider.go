@@ -1584,9 +1584,15 @@ func (p *SQLProvider) UpdateOAuth2PushedAuthorizationSession(ctx context.Context
 		return fmt.Errorf("error encrypting oauth2 pushed authorization request session data with id '%d' and signature '%s' and request id '%s': %w", par.ID, par.Signature, par.RequestID, err)
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2PARContext,
+	var result sql.Result
+
+	if result, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2PARContext,
 		par.Signature, par.RequestID, par.ClientID, par.RequestedAt, par.Scopes, par.Audience, par.HandledResponseTypes,
 		par.ResponseMode, par.DefaultResponseMode, par.Revoked, par.Form, par.Session, par.ID); err != nil {
+		return fmt.Errorf("error updating oauth2 pushed authorization request session data with id '%d' and signature '%s' and request id '%s': %w", par.ID, par.Signature, par.RequestID, err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
 		return fmt.Errorf("error updating oauth2 pushed authorization request session data with id '%d' and signature '%s' and request id '%s': %w", par.ID, par.Signature, par.RequestID, err)
 	}
 
