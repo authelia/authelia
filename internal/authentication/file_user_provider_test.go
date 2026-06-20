@@ -556,7 +556,7 @@ func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: yaml: line 4, column 6: mapping values are not allowed in this context")
+		assert.EqualError(t, provider.StartupCheck(), "error reading the authentication database: could not parse the YAML database: go-yaml load error in scanner at L4.C6: mapping values are not allowed in this context")
 	})
 }
 
