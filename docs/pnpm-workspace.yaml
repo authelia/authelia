@@ -9,7 +9,7 @@ overrides:
   brace-expansion: 5.0.6
   js-yaml: 4.2.0
   picomatch: 4.0.4
-  semver: 7.8.4
+  semver: 7.8.5
   tar: 7.5.16
   vite: 8.0.16
   yaml: 2.9.0
