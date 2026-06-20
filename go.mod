@@ -33,7 +33,7 @@ require (
 	github.com/knadh/koanf/providers/posflag v1.0.1
 	github.com/knadh/koanf/providers/rawbytes v1.0.0
 	github.com/knadh/koanf/v2 v2.3.5
-	github.com/mattn/go-sqlite3 v1.14.45
+	github.com/mattn/go-sqlite3 v1.14.46
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.1
 	github.com/prometheus/client_golang v1.23.2
@@ -48,12 +48,12 @@ require (
 	github.com/weppos/publicsuffix-go v0.50.3
 	github.com/wneessen/go-mail v0.7.3
 	go.uber.org/mock v0.6.0
-	go.yaml.in/yaml/v4 v4.0.0-rc.4
-	golang.org/x/crypto v0.52.0
-	golang.org/x/net v0.55.0
-	golang.org/x/sync v0.20.0
-	golang.org/x/term v0.43.0
-	golang.org/x/text v0.37.0
+	go.yaml.in/yaml/v4 v4.0.0-rc.6
+	golang.org/x/crypto v0.53.0
+	golang.org/x/net v0.56.0
+	golang.org/x/sync v0.21.0
+	golang.org/x/term v0.44.0
+	golang.org/x/text v0.38.0
 	golang.org/x/time v0.15.0
 )
 
@@ -113,7 +113,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260311181403-84a4fc48630c // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260311181403-84a4fc48630c // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
@@ -122,7 +122,7 @@ require (
 
 replace (
 	filippo.io/edwards25519 v1.1.0 => filippo.io/edwards25519 v1.2.0
-	golang.org/x/net => golang.org/x/net v0.55.0
+	golang.org/x/net => golang.org/x/net v0.56.0
 )
 
 exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
