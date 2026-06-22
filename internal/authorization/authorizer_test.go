@@ -188,28 +188,56 @@ func (s *AuthorizerSuite) TestShouldCheckDynamicDomainRules() {
 	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://john.example.com/", fasthttp.MethodGet, Denied)
 	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://dev.example.com/", fasthttp.MethodGet, Denied)
 	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://admins.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.dev.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.attacker.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins.attacker.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev.sub.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://bob.sub.example.com/", fasthttp.MethodGet, Denied)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://john.example.com/", fasthttp.MethodGet, OneFactor)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://dev.example.com/", fasthttp.MethodGet, OneFactor)
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://example.com/", fasthttp.MethodGet, Denied)
 }
 
-func (s *AuthorizerSuite) TestShouldCheckDynamicDomainRulesWithoutSeparator() {
+func (s *AuthorizerSuite) TestShouldNotMatchDynamicDomainRuleWithoutDotSeparator() {
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
 		WithRule(schema.AccessControlRule{
-			Domains: []string{"{user}"},
+			Domains: []string{"{user}-example.example.com"},
 			Policy:  oneFactor,
 		}).
 		WithRule(schema.AccessControlRule{
-			Domains: []string{"{group}"},
+			Domains: []string{"{group}-example.example.com"},
 			Policy:  oneFactor,
 		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://localhost/", fasthttp.MethodGet, Denied)
-	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://localhost/", fasthttp.MethodGet, Denied)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.example.com/", fasthttp.MethodGet, OneFactor)
-	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john-example.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev-example.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins-example.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://bob-example.example.com/", fasthttp.MethodGet, Denied)
+}
+
+func (s *AuthorizerSuite) TestShouldNotMatchDynamicDomainRuleWithDottedUserOrGroup() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy(deny).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"{user}.example.com"},
+			Policy:  oneFactor,
+		}).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"{group}.example.com"},
+			Policy:  oneFactor,
+		}).
+		Build()
+
+	UserWithDottedName := Subject{Username: "john.doe", Groups: []string{}, IP: net.ParseIP("10.0.0.8")}
+	UserWithDottedGroup := Subject{Username: "jane", Groups: []string{"dev.team"}, IP: net.ParseIP("10.0.0.8")}
+
+	tester.CheckAuthorizations(s.T(), UserWithDottedName, "https://john.doe.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithDottedName, "https://john.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithDottedGroup, "https://dev.team.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithDottedGroup, "https://dev.example.com/", fasthttp.MethodGet, Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckMultipleDomainRule() {
