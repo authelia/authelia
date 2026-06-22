@@ -1075,6 +1075,234 @@ func TestStringToRegexpFuncPointers(t *testing.T) {
 	}
 }
 
+func TestStringToRegexpCIFunc(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		have     any
+		want     any
+		err      string
+		decode   bool
+		wantGrps []string
+	}{
+		{
+			desc:   "ShouldNotDecodeRegexpWithOpenParenthesis",
+			have:   "hello(test one two",
+			want:   schema.RegexpCI{},
+			err:    "could not decode '(?i)hello(test one two' to a regexp.Regexp: error parsing regexp: missing closing ): `(?i)hello(test one two`",
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeValidRegexAndPrependCaseInsensitive",
+			have:   "^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			desc:     "ShouldDecodeValidRegexWithGroupNames",
+			have:     "^(?P<area>api|admin)(one|two)$",
+			want:     schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(?P<area>api|admin)(one|two)$`)},
+			decode:   true,
+			wantGrps: []string{"area"},
+		},
+		{
+			desc:   "ShouldNotPrependWhenAlreadyCaseInsensitive",
+			have:   "(?i)^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotPrependWhenExplicitlyCaseSensitive",
+			have:   "(?-i)^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?-i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeFromInt32",
+			have:   int32(20),
+			want:   schema.RegexpCI{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeFromBool",
+			have:   false,
+			want:   schema.RegexpCI{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeToBool",
+			have:   "^(?P<area>api|admin)(one|two)$",
+			want:   testTrue,
+			decode: false,
+		},
+		{
+			desc:   "ShouldErrOnDecodeEmptyString",
+			have:   "",
+			want:   schema.RegexpCI{},
+			err:    "could not decode an empty value to a regexp.Regexp: must have a non-empty value",
+			decode: true,
+		},
+	}
+
+	hook := configuration.StringToRegexpHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+
+				var names []string
+
+				pattern := result.(schema.RegexpCI)
+				for _, name := range pattern.SubexpNames() {
+					if name != "" {
+						names = append(names, name)
+					}
+				}
+
+				if len(tc.wantGrps) != 0 {
+					t.Run("MustHaveAllExpectedSubexpGroupNames", func(t *testing.T) {
+						for _, name := range tc.wantGrps {
+							assert.Contains(t, names, name)
+						}
+					})
+					t.Run("MustNotHaveUnexpectedSubexpGroupNames", func(t *testing.T) {
+						for _, name := range names {
+							assert.Contains(t, tc.wantGrps, name)
+						}
+					})
+				} else {
+					t.Run("MustHaveNoSubexpGroupNames", func(t *testing.T) {
+						assert.Len(t, names, 0)
+					})
+				}
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestStringToRegexpCIFuncPointers(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		have     any
+		want     any
+		err      string
+		decode   bool
+		wantGrps []string
+	}{
+		{
+			desc:   "ShouldNotDecodeRegexpWithOpenParenthesis",
+			have:   "hello(test one two",
+			want:   &schema.RegexpCI{},
+			err:    "could not decode '(?i)hello(test one two' to a *regexp.Regexp: error parsing regexp: missing closing ): `(?i)hello(test one two`",
+			decode: true,
+		},
+		{
+			desc:   "ShouldDecodeValidRegexAndPrependCaseInsensitive",
+			have:   "^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			desc:     "ShouldDecodeValidRegexWithGroupNames",
+			have:     "^(?P<area>api|admin)(one|two)$",
+			want:     &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(?P<area>api|admin)(one|two)$`)},
+			decode:   true,
+			wantGrps: []string{"area"},
+		},
+		{
+			desc:   "ShouldNotPrependWhenAlreadyCaseInsensitive",
+			have:   "(?i)^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotPrependWhenExplicitlyCaseSensitive",
+			have:   "(?-i)^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?-i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			desc:   "ShouldNotDecodeFromInt32",
+			have:   int32(20),
+			want:   &schema.RegexpCI{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldNotDecodeFromBool",
+			have:   false,
+			want:   &schema.RegexpCI{},
+			decode: false,
+		},
+		{
+			desc:   "ShouldDecodeEmptyStringToNil",
+			have:   "",
+			want:   (*schema.RegexpCI)(nil),
+			decode: true,
+		},
+	}
+
+	hook := configuration.StringToRegexpHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+
+				pattern := result.(*schema.RegexpCI)
+
+				if tc.want == (*schema.RegexpCI)(nil) {
+					assert.Nil(t, pattern)
+				} else {
+					var names []string
+
+					for _, name := range pattern.SubexpNames() {
+						if name != "" {
+							names = append(names, name)
+						}
+					}
+
+					if len(tc.wantGrps) != 0 {
+						t.Run("MustHaveAllExpectedSubexpGroupNames", func(t *testing.T) {
+							for _, name := range tc.wantGrps {
+								assert.Contains(t, names, name)
+							}
+						})
+						t.Run("MustNotHaveUnexpectedSubexpGroupNames", func(t *testing.T) {
+							for _, name := range names {
+								assert.Contains(t, tc.wantGrps, name)
+							}
+						})
+					} else {
+						t.Run("MustHaveNoSubexpGroupNames", func(t *testing.T) {
+							assert.Len(t, names, 0)
+						})
+					}
+				}
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
 func TestStringToAddressHookFunc(t *testing.T) {
 	testCases := []struct {
 		name     string

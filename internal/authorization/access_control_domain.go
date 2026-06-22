@@ -1,6 +1,7 @@
 package authorization
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -16,25 +17,27 @@ func NewAccessControlDomain(domain string) (subjects bool, rule AccessControlDom
 	case strings.HasPrefix(domain, "*."):
 		m.Wildcard = true
 		m.Name = domain[1:]
-	case strings.HasPrefix(domain, "{user}"):
-		m.UserWildcard = true
-		m.Name = domain[6:]
-	case strings.HasPrefix(domain, "{group}"):
-		m.GroupWildcard = true
-		m.Name = domain[7:]
+	case strings.HasPrefix(domain, "{user}."):
+		p := regexp.MustCompile(fmt.Sprintf(`(?i)^(?P<User>[a-z0-9-]+)%s$`, strings.ReplaceAll(domain[6:], `.`, `\.`)))
+
+		return NewAccessControlDomainRegex(*p)
+	case strings.HasPrefix(domain, "{group}."):
+		p := regexp.MustCompile(fmt.Sprintf(`(?i)^(?P<Group>[a-z0-9-]+)%s$`, strings.ReplaceAll(domain[7:], `.`, `\.`)))
+
+		return NewAccessControlDomainRegex(*p)
 	default:
 		m.Name = domain
 	}
 
-	return m.UserWildcard || m.GroupWildcard, AccessControlDomain{m}
+	return false, AccessControlDomain{m}
 }
 
 // NewAccessControlDomainRegex creates a new SubjectObjectMatcher that matches the domain either in a basic way or
 // dynamic User/Group subexpression group way.
-func NewAccessControlDomainRegex(pattern regexp.Regexp) (subjects bool, rule AccessControlDomain) {
+func NewAccessControlDomainRegex(p regexp.Regexp) (subjects bool, rule AccessControlDomain) {
 	var iuser, igroup = -1, -1
 
-	for i, group := range pattern.SubexpNames() {
+	for i, group := range p.SubexpNames() {
 		switch group {
 		case subexpNameUser:
 			iuser = i
@@ -44,18 +47,16 @@ func NewAccessControlDomainRegex(pattern regexp.Regexp) (subjects bool, rule Acc
 	}
 
 	if iuser != -1 || igroup != -1 {
-		return true, AccessControlDomain{RegexpGroupStringSubjectMatcher{pattern, iuser, igroup}}
+		return true, AccessControlDomain{RegexpGroupStringSubjectMatcher{p, iuser, igroup}}
 	}
 
-	return false, AccessControlDomain{RegexpStringSubjectMatcher{pattern}}
+	return false, AccessControlDomain{RegexpStringSubjectMatcher{p}}
 }
 
 // AccessControlDomainMatcher is the basic domain matcher.
 type AccessControlDomainMatcher struct {
-	Name          string
-	Wildcard      bool
-	UserWildcard  bool
-	GroupWildcard bool
+	Name     string
+	Wildcard bool
 }
 
 // IsMatch returns true if this rule matches.
@@ -63,25 +64,6 @@ func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (mat
 	switch {
 	case m.Wildcard:
 		return utils.StringHasSuffixFold(domain, m.Name)
-	case m.UserWildcard, m.GroupWildcard:
-		if m.Name == "" || !utils.StringHasSuffixFold(domain, m.Name) {
-			return false
-		}
-
-		if subject.IsAnonymous() {
-			return len(domain) > len(m.Name)
-		}
-
-		i := strings.Index(domain, ".")
-
-		switch {
-		case i == -1:
-			return false
-		case m.GroupWildcard:
-			return utils.IsStringInSliceFold(domain[:i], subject.Groups) && strings.EqualFold(domain[i:], m.Name)
-		default:
-			return strings.EqualFold(domain[:i], subject.Username) && strings.EqualFold(domain[i:], m.Name)
-		}
 	default:
 		return strings.EqualFold(domain, m.Name)
 	}

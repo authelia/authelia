@@ -584,6 +584,7 @@ func TestJSONSchema(t *testing.T) {
 		&AccessControlRuleDomains{},
 		&AccessControlRuleMethods{},
 		&AccessControlRuleRegex{},
+		&AccessControlRuleRegexCI{},
 		&AccessControlRuleSubjects{},
 		&IdentityProvidersOpenIDConnectClientURIs{},
 	}
@@ -591,6 +592,45 @@ func TestJSONSchema(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(reflect.TypeOf(tc).String(), func(t *testing.T) {
 			assert.NotNil(t, tc.JSONSchema())
+		})
+	}
+}
+
+func TestAccessControlRuleRegexCIToRegexp(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     AccessControlRuleRegexCI
+		expected []regexp.Regexp
+	}{
+		{
+			"ShouldConvertEmpty",
+			AccessControlRuleRegexCI{},
+			[]regexp.Regexp{},
+		},
+		{
+			"ShouldConvertSingle",
+			AccessControlRuleRegexCI{{*regexp.MustCompile(`(?i)^abc\.example\.com$`)}},
+			[]regexp.Regexp{*regexp.MustCompile(`(?i)^abc\.example\.com$`)},
+		},
+		{
+			"ShouldConvertMultiplePreservingOrder",
+			AccessControlRuleRegexCI{
+				{*regexp.MustCompile(`(?i)^abc\.example\.com$`)},
+				{*regexp.MustCompile(`(?i)^def\.example\.com$`)},
+			},
+			[]regexp.Regexp{
+				*regexp.MustCompile(`(?i)^abc\.example\.com$`),
+				*regexp.MustCompile(`(?i)^def\.example\.com$`),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.have.ToRegexp()
+
+			require.Len(t, result, len(tc.expected))
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }

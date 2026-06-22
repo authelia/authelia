@@ -30,7 +30,7 @@ func NewAccessControlRule(pos int, rule schema.AccessControlRule) *AccessControl
 	}
 
 	ruleAddDomain(rule.Domains, r)
-	ruleAddDomainRegex(rule.DomainsRegex, r)
+	ruleAddDomainRegex(rule.DomainsRegex.ToRegexp(), r)
 	ruleAddResources(rule.Resources, r)
 
 	return r

@@ -44,7 +44,7 @@ func (suite *AccessControl) TestShouldValidateEitherDomainsOrDomainsRegex() {
 			Policy:  "bypass",
 		},
 		{
-			DomainsRegex: []regexp.Regexp{*domainsRegex},
+			DomainsRegex: []schema.RegexpCI{{Regexp: *domainsRegex}},
 			Policy:       "bypass",
 		},
 		{
@@ -298,7 +298,7 @@ func (suite *AccessControl) TestShouldValidateBasicSubject() {
 func (suite *AccessControl) TestShouldRaiseErrorBypassWithSubjectDomainRegexGroup() {
 	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
-			DomainsRegex: MustCompileRegexps([]string{`^(?P<User>\w+)\.example\.com$`}),
+			DomainsRegex: MustCompileRegexps([]string{`(?i)^(?P<User>\w+)\.example\.com$`}),
 			Policy:       "bypass",
 		},
 	}
@@ -458,11 +458,11 @@ func TestAccessControl(t *testing.T) {
 	suite.Run(t, new(AccessControl))
 }
 
-func MustCompileRegexps(exps []string) (regexps []regexp.Regexp) {
-	regexps = make([]regexp.Regexp, len(exps))
+func MustCompileRegexps(exps []string) (regexps []schema.RegexpCI) {
+	regexps = make([]schema.RegexpCI, len(exps))
 
 	for i, exp := range exps {
-		regexps[i] = *regexp.MustCompile(exp)
+		regexps[i] = schema.RegexpCI{Regexp: *regexp.MustCompile(exp)}
 	}
 
 	return regexps
