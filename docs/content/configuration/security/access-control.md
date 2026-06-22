@@ -37,7 +37,7 @@ access_control:
   default_policy: 'deny'
   rules:
   - domain: 'private.{{< sitevar name="domain" nojs="example.com" >}}'
-    domain_regex: '^(\d+\-)?priv-img\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
+    domain_regex: '(?i)^(\d+\-)?priv-img\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
     policy: 'one_factor'
     networks:
     - 'internal'
@@ -122,14 +122,11 @@ Rules may start with a few different wildcards:
 * The standard wildcard is `*.`, which when in front of a domain means that any subdomain is effectively a match. For
   example `*.{{< sitevar name="domain" nojs="example.com" >}}` would match `abc.{{< sitevar name="domain" nojs="example.com" >}}` and `secure.{{< sitevar name="domain" nojs="example.com" >}}`.
   When using a wildcard like this the string __must__ be quoted like `'*.{{< sitevar name="domain" nojs="example.com" >}}'`.
-* The user wildcard is `{user}.`, which when in front of a domain dynamically matches the username of the user. For
-  example `{user}.{{< sitevar name="domain" nojs="example.com" >}}` would match `fred.{{< sitevar name="domain" nojs="example.com" >}}` if the user logged in was named
-  `fred`. *__Warning:__ this is officially deprecated as the [domain_regex] criteria completely replaces the
-  functionality in a much more useful way. It is strongly recommended you do not use this as it will be removed in a
-  future version, most likely v5.0.0.*
-* The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
-  group in that location. For example `{group}.{{< sitevar name="domain" nojs="example.com" >}}` would match `admins.{{< sitevar name="domain" nojs="example.com" >}}` if the user logged in was
-  in the following groups `admins,users,people` because `admins` is in the list.
+* There previously were user and group wildcards (`{user}.` and `{group}.`) which are officially deprecated as the
+  [domain_regex] criteria completely replaces the functionality in a much more useful way. For backwards compatibility
+  these old wildcards remain functional as they're automatically translated into the equivalent [domain_regex]; only
+  specific invalid combinations (such as a `bypass` policy used together with one of these wildcards) are rejected during
+  validation. It's strongly recommended to migrate to [domain_regex] instead.
 
 Domains in this section must be the domain configured in the [session](../session/introduction.md#domain) configuration
 or subdomains of that domain. This is because a website can only write cookies for a domain it is part of. It is
@@ -174,7 +171,7 @@ either `apple.{{< sitevar name="domain" nojs="example.com" >}}`, `pub-data.{{< s
 access_control:
   rules:
   - domain: 'apple.{{< sitevar name="domain" nojs="example.com" >}}'
-    domain_regex: '^(pub|img)-data\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
+    domain_regex: '(?i)^(pub|img)-data\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
     policy: bypass
 ```
 
@@ -189,6 +186,10 @@ If you intend to use this criteria with a bypass rule please read [Rule Matching
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 To utilize regex you must escape it properly. See
 [regular expressions](../prologue/common.md#regular-expressions) for more information.
+{{< /callout >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This rule type automatically prepends the `(?i)` modifier to the regex pattern. To disable this add `(?-i)`.
 {{< /callout >}}
 
 *__Required:__ This criteria and/or the [domain] criteria are required.*
@@ -212,8 +213,8 @@ request is made to `user-fred.{{< sitevar name="domain" nojs="example.com" >}}` 
 access_control:
   rules:
   - domain_regex:
-    - '^user-(?P<User>\w+)\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
-    - '^group-(?P<Group>\w+)\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
+    - '(?i)^user-(?P<User>\w+)\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
+    - '(?i)^group-(?P<Group>\w+)\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
     policy: 'one_factor'
 ```
 
@@ -224,7 +225,7 @@ access_control:
 access_control:
   rules:
   - domain: 'protected.{{< sitevar name="domain" nojs="example.com" >}}'
-    domain_regex: '^(img|data)-private\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}'
+    domain_regex: '(?i)^(img|data)-private\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}'
     policy: 'one_factor'
 ```
 

@@ -257,13 +257,13 @@ no quotes or double quotes.
 Good Example:
 
 ```yaml {title="configuration.yml"}
-domain_regex: '^(admin|secure)\.example\.com$'
+domain_regex: '(?i)^(admin|secure)\.example\.com$'
 ```
 
 Bad Example:
 
 ```yaml {title="configuration.yml"}
-domain_regex: "^(admin|secure)\.example\.com$"
+domain_regex: "(?i)^(admin|secure)\.example\.com$"
 ```
 
 ### Network
