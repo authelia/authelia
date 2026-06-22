@@ -114,6 +114,146 @@ func TestAccessControlDomain_IsMatch(t *testing.T) {
 			Subject{},
 			false,
 		},
+		{
+			"ShouldMatchUserWildcardForAuthenticatedUser",
+			&AccessControlDomainMatcher{
+				Name:         ".domain.com",
+				UserWildcard: true,
+			},
+			"john.domain.com",
+			Subject{Username: "john"},
+			true,
+		},
+		{
+			"ShouldNotMatchUserWildcardForDifferentUser",
+			&AccessControlDomainMatcher{
+				Name:         ".domain.com",
+				UserWildcard: true,
+			},
+			"john.domain.com",
+			Subject{Username: "bob"},
+			false,
+		},
+		{
+			"ShouldNotMatchUserWildcardWithExtraLabel",
+			&AccessControlDomainMatcher{
+				Name:         ".domain.com",
+				UserWildcard: true,
+			},
+			"john.sub.domain.com",
+			Subject{Username: "john"},
+			false,
+		},
+		{
+			"ShouldMatchGroupWildcardForGroupMember",
+			&AccessControlDomainMatcher{
+				Name:          ".domain.com",
+				GroupWildcard: true,
+			},
+			"admins.domain.com",
+			Subject{Groups: []string{"admins"}},
+			true,
+		},
+		{
+			"ShouldNotMatchGroupWildcardForNonMember",
+			&AccessControlDomainMatcher{
+				Name:          ".domain.com",
+				GroupWildcard: true,
+			},
+			"users.domain.com",
+			Subject{Groups: []string{"admins"}},
+			false,
+		},
+		{
+			"ShouldNotMatchGroupWildcardWithExtraLabel",
+			&AccessControlDomainMatcher{
+				Name:          ".domain.com",
+				GroupWildcard: true,
+			},
+			"admins.sub.domain.com",
+			Subject{Groups: []string{"admins"}},
+			false,
+		},
+		{
+			"ShouldNotMatchUserWildcardWhenDomainHasNoSeparator",
+			&AccessControlDomainMatcher{
+				Name:         "abc",
+				UserWildcard: true,
+			},
+			"johnabc",
+			Subject{Username: "john"},
+			false,
+		},
+		{
+			"ShouldNotMatchGroupWildcardWhenDomainHasNoSeparator",
+			&AccessControlDomainMatcher{
+				Name:          "abc",
+				GroupWildcard: true,
+			},
+			"adminsabc",
+			Subject{Groups: []string{"admins"}},
+			false,
+		},
+		{
+			"ShouldNotMatchUserWildcardWithEmptyName",
+			&AccessControlDomainMatcher{
+				Name:         "",
+				UserWildcard: true,
+			},
+			"john.domain.com",
+			Subject{Username: "john"},
+			false,
+		},
+		{
+			"ShouldNotMatchGroupWildcardWithEmptyName",
+			&AccessControlDomainMatcher{
+				Name:          "",
+				GroupWildcard: true,
+			},
+			"admins.domain.com",
+			Subject{Groups: []string{"admins"}},
+			false,
+		},
+		{
+			"ShouldNotMatchUserWildcardWithoutDotSeparator",
+			&AccessControlDomainMatcher{
+				Name:         "-example.domain.com",
+				UserWildcard: true,
+			},
+			"john-example.domain.com",
+			Subject{Username: "john"},
+			false,
+		},
+		{
+			"ShouldNotMatchGroupWildcardWithoutDotSeparator",
+			&AccessControlDomainMatcher{
+				Name:          "-example.domain.com",
+				GroupWildcard: true,
+			},
+			"admins-example.domain.com",
+			Subject{Groups: []string{"admins"}},
+			false,
+		},
+		{
+			"ShouldNotMatchUserWildcardWithDottedUsername",
+			&AccessControlDomainMatcher{
+				Name:         ".domain.com",
+				UserWildcard: true,
+			},
+			"john.doe.domain.com",
+			Subject{Username: "john.doe"},
+			false,
+		},
+		{
+			"ShouldNotMatchGroupWildcardWithDottedGroup",
+			&AccessControlDomainMatcher{
+				Name:          ".domain.com",
+				GroupWildcard: true,
+			},
+			"dev.team.domain.com",
+			Subject{Groups: []string{"dev.team"}},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {

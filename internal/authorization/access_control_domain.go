@@ -64,7 +64,7 @@ func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (mat
 	case m.Wildcard:
 		return utils.StringHasSuffixFold(domain, m.Name)
 	case m.UserWildcard, m.GroupWildcard:
-		if !utils.StringHasSuffixFold(domain, m.Name) {
+		if m.Name == "" || !utils.StringHasSuffixFold(domain, m.Name) {
 			return false
 		}
 
@@ -78,9 +78,9 @@ func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (mat
 		case i == -1:
 			return false
 		case m.GroupWildcard:
-			return utils.IsStringInSliceFold(domain[:i], subject.Groups)
+			return utils.IsStringInSliceFold(domain[:i], subject.Groups) && strings.EqualFold(domain[i:], m.Name)
 		default:
-			return strings.EqualFold(domain[:i], subject.Username)
+			return strings.EqualFold(domain[:i], subject.Username) && strings.EqualFold(domain[i:], m.Name)
 		}
 	default:
 		return strings.EqualFold(domain, m.Name)
