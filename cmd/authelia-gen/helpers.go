@@ -88,6 +88,7 @@ func buildCSP(defaultSrc string, ruleSets ...[]CSPValue) string {
 var decodedTypes = []reflect.Type{
 	reflect.TypeOf(mail.Address{}),
 	reflect.TypeOf(regexp.Regexp{}),
+	reflect.TypeOf(schema.RegexpCI{}),
 	reflect.TypeOf(url.URL{}),
 	reflect.TypeOf(time.Duration(0)),
 	reflect.TypeOf(schema.Address{}),

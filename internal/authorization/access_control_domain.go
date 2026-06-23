@@ -17,11 +17,11 @@ func NewAccessControlDomain(domain string) (subjects bool, rule AccessControlDom
 	case strings.HasPrefix(domain, "*."):
 		m.Wildcard = true
 		m.Name = domain[1:]
-	case strings.HasPrefix(domain, "{user}."):
+	case strings.HasPrefix(domain, "{user}"):
 		p := regexp.MustCompile(fmt.Sprintf(`(?i)^(?P<User>[a-z0-9-]+)%s$`, strings.ReplaceAll(domain[6:], `.`, `\.`)))
 
 		return NewAccessControlDomainRegex(*p)
-	case strings.HasPrefix(domain, "{group}."):
+	case strings.HasPrefix(domain, "{group}"):
 		p := regexp.MustCompile(fmt.Sprintf(`(?i)^(?P<Group>[a-z0-9-]+)%s$`, strings.ReplaceAll(domain[7:], `.`, `\.`)))
 
 		return NewAccessControlDomainRegex(*p)
