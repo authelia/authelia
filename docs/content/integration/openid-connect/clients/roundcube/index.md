@@ -105,7 +105,7 @@ $config['oauth_client_secret'] = 'insecure_secret';
 $config['oauth_auth_uri'] = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization';
 $config['oauth_token_uri'] = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token';
 $config['oauth_identity_uri'] = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo';
-$config['oauth_identity_fields'] = ['preferred_username'];
+$config['oauth_identity_fields'] = ['email'];
 $config['oauth_scope'] = 'email openid profile';
 // Optionally, skip Roundcube's login page
 // $config['oauth_login_redirect'] = true;
