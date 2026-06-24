@@ -1,6 +1,6 @@
 ---
 title: "Environment"
-description: "How to configure your development environment."
+description: "A guide to configuring the Authelia development environment including prerequisites for Go, Node.js, Docker, and the development context bootstrap process."
 summary: "This section covers the environment we recommend for development."
 date: 2024-03-14T06:00:14+11:00
 draft: false

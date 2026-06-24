@@ -1,6 +1,6 @@
 ---
 title: "Dashboard / Control Panel for Users"
-description: "Authelia User Dashboard."
+description: "The Authelia roadmap item for a user dashboard and control panel allowing users to self-manage their credentials, devices, sessions, and security preferences."
 summary: "A dashboard or control panel for users to adjust their settings is easily one of the most impactful features we can implement."
 date: 2024-03-14T06:00:14+11:00
 draft: false

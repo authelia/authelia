@@ -1,6 +1,6 @@
 ---
 title: "Secrets"
-description: "A guide to using secrets when integrating Authelia with Kubernetes."
+description: "A guide to creating and using Kubernetes secrets for integrating Authelia with Kubernetes including example secret definitions, usage patterns, and mount paths."
 summary: "A guide to using secrets when integrating Authelia with Kubernetes."
 date: 2024-03-14T06:00:14+11:00
 draft: false

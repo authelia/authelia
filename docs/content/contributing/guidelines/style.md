@@ -1,6 +1,6 @@
 ---
 title: "Style"
-description: "Authelia Development Style Guidelines"
+description: "Authelia development style guidelines covering line length, error strings, configuration documentation layout, and storage migration naming convention details."
 summary: "This section covers the style guidelines we use for development."
 date: 2024-03-14T06:00:14+11:00
 draft: false

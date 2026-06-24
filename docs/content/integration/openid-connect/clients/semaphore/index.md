@@ -1,6 +1,6 @@
 ---
 title: "Semaphore"
-description: "Integrating Semaphore with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Semaphore with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-04-26T11:03:16+00:00
 draft: false

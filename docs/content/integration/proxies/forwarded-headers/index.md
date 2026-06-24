@@ -1,6 +1,6 @@
 ---
 title: "Forwarded Headers"
-description: "An introduction into the importance of forwarded headers coming from trusted sources"
+description: "An introduction into the importance of forwarded headers coming from trusted sources and configuring reverse proxies to ensure header integrity and security."
 summary: "An introduction into the importance of forwarded headers coming from trusted sources."
 date: 2024-03-17T20:37:08+11:00
 draft: false

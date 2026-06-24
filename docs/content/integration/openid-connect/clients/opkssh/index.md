@@ -1,6 +1,6 @@
 ---
 title: "opkssh"
-description: "Integrating OpenPubkey SSH with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating OpenPubkey SSH (opkssh) with the Authelia OpenID Connect 1.0 Provider including configuration examples for enabling single sign-on (SSO)."
 summary: ""
 date: 2025-04-04T10:36:34+00:00
 draft: false

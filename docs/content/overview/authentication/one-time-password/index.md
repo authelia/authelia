@@ -1,6 +1,6 @@
 ---
 title: "One Time Password"
-description: "Authelia utilizes Time-based One-Time Passwords as one of it's second factor authentication methods."
+description: "An overview of Authelia's Time-based One-Time Password second factor authentication method using apps like Google Authenticator for TOTP code generation."
 summary: "Authelia utilizes Time-based One-Time Passwords as one of it's second factor authentication methods."
 date: 2024-03-14T06:00:14+11:00
 draft: false
