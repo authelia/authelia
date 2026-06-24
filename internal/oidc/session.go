@@ -92,6 +92,8 @@ func (s *Session) GetJWTHeader() (headers *jwt.Headers) {
 }
 
 // GetJWTClaims returns the jwt.JWTClaimsContainer for the OAuth 2.0 JWT Profile Access Tokens.
+//
+//nolint:gocyclo
 func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 	//nolint:prealloc
 	var (
@@ -141,6 +143,10 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 
 	if len(s.ClientID) != 0 {
 		claims.Extra[ClaimClientIdentifier] = s.ClientID
+	}
+
+	if s.ClientCredentials && len(claims.Subject) == 0 && len(s.ClientID) != 0 {
+		claims.Subject = s.ClientID
 	}
 
 	return claims
