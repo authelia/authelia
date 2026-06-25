@@ -28,7 +28,7 @@
     "@changesets/changelog-github": "0.7.0",
     "@changesets/cli": "2.31.0",
     "@fullhuman/postcss-purgecss": "8.0.0",
-    "autoprefixer": "10.5.0",
+    "autoprefixer": "10.5.1",
     "basiclightbox": "5.0.4",
     "bootstrap": "5.3.8",
     "clipboard": "2.0.11",
@@ -36,16 +36,16 @@
     "postcss": "8.5.15",
     "postcss-cli": "11.0.1",
     "prettier": "3.8.4",
-    "vite": "8.0.16"
+    "vite": "8.1.0"
   },
   "optionalDependencies": {
-    "hugo-extended": "0.163.2"
+    "hugo-extended": "0.163.3"
   },
   "engines": {
     "node": ">=24.13.0",
     "pnpm": "11"
   },
-  "packageManager": "pnpm@11.8.0",
+  "packageManager": "pnpm@11.9.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
