@@ -26,5 +26,10 @@
     "eslint": "10.5.0",
     "tsx": "4.22.4",
     "vitest": "4.1.9"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.28.1"
+    }
   }
 }
