@@ -10,7 +10,7 @@ overrides:
   js-yaml: 5.1.0
   picomatch: 4.0.4
   semver: 7.8.5
-  tar: 7.5.16
+  tar: 7.5.17
   vite: 8.1.0
   yaml: 2.9.0
   yauzl: 3.4.0
