@@ -29,7 +29,7 @@ overrides:
   minimatch: 10.2.5
   path-to-regexp: 8.4.2
   picomatch: 4.0.4
-  qs: 6.15.2
+  qs: 6.15.3
   semver: 7.8.5
   vite: 8.1.0
   ws: 8.21.0
