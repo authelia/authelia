@@ -729,6 +729,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 			cmd := &cobra.Command{}
 			cmd.Flags().StringSlice(cmdFlagNameConfig, []string{}, "")
 			cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
+			cmd.Flags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "")
 
 			for k, v := range tc.env {
 				t.Setenv(k, v)
@@ -757,6 +758,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		cmd := &cobra.Command{}
 		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
 		cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "")
 
 		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, configFile))
 
