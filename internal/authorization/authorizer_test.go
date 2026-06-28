@@ -740,21 +740,21 @@ func (s *AuthorizerSuite) TestShouldCheckResourceSubjectMatching() {
 
 	ruleMatcher00, ok := tester.rules[0].Resources[0].Matcher.(RegexpGroupStringSubjectMatcher)
 	s.Require().True(ok)
-	s.Assert().Equal("(?i)^/(?P<User>[a-zA-Z0-9]+)/personal(/|/.*)?$", ruleMatcher00.String())
+	s.Assert().Equal("^/(?P<User>[a-zA-Z0-9]+)/personal(/|/.*)?$", ruleMatcher00.String())
 
 	ruleMatcher01, ok := tester.rules[0].Resources[1].Matcher.(RegexpGroupStringSubjectMatcher)
 	s.Require().True(ok)
-	s.Assert().Equal("(?i)^/(?P<Group>[a-zA-Z0-9]+)/group(/|/.*)?$", ruleMatcher01.String())
+	s.Assert().Equal("^/(?P<Group>[a-zA-Z0-9]+)/group(/|/.*)?$", ruleMatcher01.String())
 
 	s.Require().Len(tester.rules[1].Resources, 2)
 
 	ruleMatcher10, ok := tester.rules[1].Resources[0].Matcher.(RegexpStringSubjectMatcher)
 	s.Require().True(ok)
-	s.Assert().Equal("(?i)^/([a-zA-Z0-9]+)/personal(/|/.*)?$", ruleMatcher10.String())
+	s.Assert().Equal("^/([a-zA-Z0-9]+)/personal(/|/.*)?$", ruleMatcher10.String())
 
 	ruleMatcher11, ok := tester.rules[1].Resources[1].Matcher.(RegexpStringSubjectMatcher)
 	s.Require().True(ok)
-	s.Assert().Equal("(?i)^/([a-zA-Z0-9]+)/group(/|/.*)?$", ruleMatcher11.String())
+	s.Assert().Equal("^/([a-zA-Z0-9]+)/group(/|/.*)?$", ruleMatcher11.String())
 }
 
 func (s *AuthorizerSuite) TestShouldCheckUserMatching() {

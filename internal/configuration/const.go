@@ -84,7 +84,7 @@ var (
 )
 
 var (
-	reHasFlagI = regexp.MustCompile(`^\(\?(?:[imsU]*i[imsU]*(?:-[imsU]+)?|[imsU]*-[imsU]*i[imsU]*)\)`)
+	rePatternFLags = regexp.MustCompile(`^\((?P<Pattern>\?[imsU-]+\))`)
 )
 
 var (
