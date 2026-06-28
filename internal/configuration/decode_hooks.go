@@ -343,8 +343,8 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 		var result *regexp.Regexp
 
 		if dataStr != "" {
-			if isCI && !reHasFlagI.MatchString(dataStr) {
-				dataStr = "(?i)" + dataStr
+			if isCI {
+				dataStr = injectCIFlag(dataStr)
 			}
 
 			if result, err = regexp.Compile(dataStr); err != nil {
@@ -374,6 +374,24 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 
 		return *result, nil
 	}
+}
+
+func injectCIFlag(dataStr string) string {
+	matches := rePatternFLags.FindStringSubmatch(dataStr)
+
+	if len(matches) == 0 {
+		return "(?i)" + dataStr
+	}
+
+	value := matches[len(matches)-1]
+
+	if strings.Contains(value, "i") {
+		return dataStr
+	}
+
+	after := strings.Replace(value, "?", "?i", 1)
+
+	return strings.Replace(dataStr, value, after, 1)
 }
 
 // StringToAddressHookFunc decodes a string into an Address or *Address.
