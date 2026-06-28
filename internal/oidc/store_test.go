@@ -314,7 +314,7 @@ func (s *StoreSuite) TestCreateSessions() {
 			Return(nil),
 		s.mock.
 			EXPECT().
-			SaveOAuth2PARContext(s.ctx, model.OAuth2PARContext{Signature: abc, RequestID: abc, ClientID: "example", Session: sessionData}).
+			SaveOAuth2PushedAuthorizationSession(s.ctx, model.OAuth2PushedAuthorizationSession{Signature: abc, RequestID: abc, ClientID: "example", Session: sessionData}).
 			Return(nil),
 	)
 
@@ -473,11 +473,11 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(fmt.Errorf("not found")),
 		s.mock.
 			EXPECT().
-			RevokeOAuth2PARContext(s.ctx, "urn:par1").
+			RevokeOAuth2PushedAuthorizationSession(s.ctx, "urn:par1").
 			Return(nil),
 		s.mock.
 			EXPECT().
-			RevokeOAuth2PARContext(s.ctx, "urn:par2").
+			RevokeOAuth2PushedAuthorizationSession(s.ctx, "urn:par2").
 			Return(fmt.Errorf("not found")),
 	)
 
@@ -547,20 +547,20 @@ func (s *StoreSuite) TestGetSessions() {
 			Return(&model.OAuth2Session{ClientID: "hs256", Session: sessionData, Active: true}, nil),
 		s.mock.
 			EXPECT().
-			LoadOAuth2PARContext(s.ctx, "urn:par").
-			Return(&model.OAuth2PARContext{Signature: abc, RequestID: abc, ClientID: "hs256", Session: sessionData}, nil),
+			LoadOAuth2PushedAuthorizationSession(s.ctx, "urn:par").
+			Return(&model.OAuth2PushedAuthorizationSession{Signature: abc, RequestID: abc, ClientID: "hs256", Session: sessionData}, nil),
 		s.mock.
 			EXPECT().
-			LoadOAuth2PARContext(s.ctx, "urn:par").
+			LoadOAuth2PushedAuthorizationSession(s.ctx, "urn:par").
 			Return(nil, sql.ErrNoRows),
 		s.mock.
 			EXPECT().
-			LoadOAuth2PARContext(s.ctx, "urn:par").
+			LoadOAuth2PushedAuthorizationSession(s.ctx, "urn:par").
 			Return(nil, fmt.Errorf("connection refused")),
 		s.mock.
 			EXPECT().
-			LoadOAuth2PARContext(s.ctx, "urn:par").
-			Return(&model.OAuth2PARContext{Signature: abc, RequestID: abc, ClientID: "hs256", Session: sessionData, Revoked: true}, nil),
+			LoadOAuth2PushedAuthorizationSession(s.ctx, "urn:par").
+			Return(&model.OAuth2PushedAuthorizationSession{Signature: abc, RequestID: abc, ClientID: "hs256", Session: sessionData, Revoked: true}, nil),
 	)
 
 	var (
@@ -814,7 +814,7 @@ func (s *StoreSuite) TestGetDeviceCodeSession() {
 
 func (s *StoreSuite) TestInvalidateDeviceCodeSession() {
 	s.T().Run("ShouldSucceed", func(t *testing.T) {
-		s.mock.EXPECT().DeactivateOAuth2DeviceCodeSession(s.ctx, abc).Return(nil)
+		s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, abc).Return(nil)
 
 		err := s.store.InvalidateDeviceCodeSession(s.ctx, abc)
 
@@ -822,7 +822,7 @@ func (s *StoreSuite) TestInvalidateDeviceCodeSession() {
 	})
 
 	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
-		s.mock.EXPECT().DeactivateOAuth2DeviceCodeSession(s.ctx, abc).Return(fmt.Errorf("deactivate error"))
+		s.mock.EXPECT().DeactivateOAuth2Session(s.ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, abc).Return(fmt.Errorf("deactivate error"))
 
 		err := s.store.InvalidateDeviceCodeSession(s.ctx, abc)
 

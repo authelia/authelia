@@ -343,7 +343,7 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig").Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				return p.RevokeOAuth2PARContext(context.Background(), "sig")
+				return p.RevokeOAuth2PushedAuthorizationSession(context.Background(), "sig")
 			},
 			expectErr: "error revoking oauth2 pushed authorization request session with signature 'sig': boom",
 		},
@@ -773,10 +773,10 @@ func TestSQLProviderLoadErrors(t *testing.T) {
 				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "sig").Return(errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				_, err := p.LoadOAuth2PARContext(context.Background(), "sig")
+				_, err := p.LoadOAuth2PushedAuthorizationSession(context.Background(), "sig")
 				return err
 			},
-			expectErr: "error selecting oauth2 pushed authorization request context with signature 'sig': boom",
+			expectErr: "error selecting oauth2 pushed authorization request session with signature 'sig': boom",
 		},
 		{
 			name: "ShouldReturnErrLoadOAuth2BlacklistedJTI",
@@ -1204,9 +1204,9 @@ func TestSQLProviderUpdateOAuth2PARContextZeroID(t *testing.T) {
 		db := mocks.NewMockSQLXDB(ctrl)
 		p := storage.NewSQLProviderForTesting(db)
 
-		err := p.UpdateOAuth2PARContext(context.Background(), model.OAuth2PARContext{Signature: "sig", RequestID: "req"})
+		err := p.UpdateOAuth2PushedAuthorizationSession(context.Background(), model.OAuth2PushedAuthorizationSession{Signature: "sig", RequestID: "req"})
 
-		assert.EqualError(t, err, "error updating oauth2 pushed authorization request context data with signature 'sig' and request id 'req': the id was a zero value")
+		assert.EqualError(t, err, "error updating oauth2 pushed authorization request session data with signature 'sig' and request id 'req': the id was a zero value")
 	})
 }
 
@@ -1236,7 +1236,7 @@ func TestSQLProviderConsumeRevokeOneTimeCodeRowsAffected(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.ConsumeOneTimeCode(context.Background(), &model.OneTimeCode{Signature: "sig"})
 			},
-			expectErr: "error consuming one-time code: ra-err",
+			expectErr: "error consuming one-time code: error occurred determining the number of affected rows: ra-err",
 		},
 		{
 			name: "ShouldErrConsumeWhenNoRowsAffected",
@@ -1574,9 +1574,9 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				return p.SaveOAuth2PARContext(context.Background(), model.OAuth2PARContext{Signature: "sig", RequestID: "req"})
+				return p.SaveOAuth2PushedAuthorizationSession(context.Background(), model.OAuth2PushedAuthorizationSession{Signature: "sig", RequestID: "req"})
 			},
-			expectErr: "error inserting oauth2 pushed authorization request context data for with signature 'sig' and request id 'req': boom",
+			expectErr: "error inserting oauth2 pushed authorization request session data for with signature 'sig' and request id 'req': boom",
 		},
 		{
 			name: "ShouldReturnErrUpdateOAuth2PARContext",
@@ -1588,9 +1588,9 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				return p.UpdateOAuth2PARContext(context.Background(), model.OAuth2PARContext{ID: 9, Signature: "sig", RequestID: "req"})
+				return p.UpdateOAuth2PushedAuthorizationSession(context.Background(), model.OAuth2PushedAuthorizationSession{ID: 9, Signature: "sig", RequestID: "req"})
 			},
-			expectErr: "error updating oauth2 pushed authorization request context data with id '9' and signature 'sig' and request id 'req': boom",
+			expectErr: "error updating oauth2 pushed authorization request session data with id '9' and signature 'sig' and request id 'req': boom",
 		},
 		{
 			name: "ShouldReturnErrSaveOAuth2DeviceCodeSession",
@@ -2059,7 +2059,7 @@ func TestSQLProviderRevokeOneTimeCodeRowsAffectedError(t *testing.T) {
 
 		err := p.RevokeOneTimeCode(context.Background(), uuid.Nil, model.NewIP(net.ParseIP("1.2.3.4")))
 
-		assert.EqualError(t, err, "error revoking one-time code: ra-err")
+		assert.EqualError(t, err, "error revoking one-time code: error occurred determining the number of affected rows: ra-err")
 	})
 }
 

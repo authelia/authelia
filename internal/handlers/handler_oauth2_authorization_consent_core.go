@@ -224,7 +224,7 @@ func handleOAuth2PushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester 
 		return
 	}
 
-	par, err := ctx.Providers.StorageProvider.LoadOAuth2PARContext(ctx, form.Get(oidc.FormParameterRequestURI))
+	par, err := ctx.Providers.StorageProvider.LoadOAuth2PushedAuthorizationSession(ctx, form.Get(oidc.FormParameterRequestURI))
 	if err != nil {
 		ctx.GetLogger().WithError(err).Warnf("Authorization Request with id '%s' on client with id '%s' encountered a storage error while trying to make the Pushed Authorize Request session available for consent", requester.GetID(), requester.GetClient().GetID())
 
@@ -233,7 +233,7 @@ func handleOAuth2PushedAuthorizeConsent(ctx *middlewares.AutheliaCtx, requester 
 
 	par.Revoked = false
 
-	if err = ctx.Providers.StorageProvider.UpdateOAuth2PARContext(ctx, *par); err != nil {
+	if err = ctx.Providers.StorageProvider.UpdateOAuth2PushedAuthorizationSession(ctx, *par); err != nil {
 		ctx.GetLogger().WithError(err).Warnf("Authorization Request with id '%s' on client with id '%s' encountered a storage error while trying to make the Pushed Authorize Request session available for consent", requester.GetID(), requester.GetClient().GetID())
 
 		return
