@@ -78,16 +78,15 @@ To configure [Wallos] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-**Important Note:**
-[Wallos v4.9.6](https://github.com/ellite/Wallos/releases/tag/v4.9.6) added a new security setting which may break existing OIDC login or prevent setting the Token URL / User Info URL.
-To resolve this, scroll down to Security Settings in the Admin panel and enter `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`.
-
 To configure [Wallos] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Login to [Wallos] using the admin account.
-2. Navigate to the Admin panel and scroll down to OIDC Settings.
-3. Click `Enable OIDC/OAuth`.
-4. Configure the following options:
+2. Navigate to the Admin panel.
+3. Scroll down to Security Settings.
+4. Enter `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` in the form and click `Save`.
+4. Scroll up to OIDC Settings.
+5. Click `Enable OIDC/OAuth`.
+6. Configure the following options:
     - Provider Name: `Authelia`.
     - Client ID: `wallos`.
     - Client Secret: `insecure_secret`.
@@ -98,7 +97,7 @@ To configure [Wallos] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
     - (Optional) Logout URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout`.
     - (Default) User Identifier Field: `sub`.
     - (Default) Scopes: `openid email profile`.
-5. Press `Save` at the bottom.
+7. Press `Save` at the bottom.
 
 ## See Also
 
