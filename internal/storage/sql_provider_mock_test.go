@@ -2203,7 +2203,7 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialByIDDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), 7).DoAndReturn(
@@ -2245,7 +2245,7 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialsDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), 10, 0).DoAndReturn(
@@ -2284,7 +2284,7 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialsByUsernameDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), "example.com", "john", false).DoAndReturn(
@@ -2323,7 +2323,7 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnPasskeyCredentialsByUsernameDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), "example.com", "john", true).DoAndReturn(
@@ -2405,6 +2405,6 @@ func TestSQLProviderStartupCheckOpenErr(t *testing.T) {
 	})
 }
 
-func encryptForTesting(clearText []byte) ([]byte, error) {
-	return storage.NewSQLProviderForTesting(nil).Encrypt(clearText)
+func encryptForTesting(clearText, aad []byte) ([]byte, error) {
+	return storage.NewSQLProviderForTesting(nil).Encrypt(clearText, aad)
 }
