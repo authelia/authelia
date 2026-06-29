@@ -65,7 +65,7 @@
   "devDependencies": {
     "@commitlint/cli": "21.1.0",
     "@commitlint/config-conventional": "21.1.0",
-    "@eslint-react/eslint-plugin": "5.9.5",
+    "@eslint-react/eslint-plugin": "5.10.0",
     "@limegrass/eslint-plugin-import-alias": "1.6.1",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
