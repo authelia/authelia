@@ -9,15 +9,18 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
-type fSchemaMigration func(ctx context.Context, conn SQLXConnection, provider *SQLProvider, prior, target int) (err error)
+type fSchemaMigration func(ctx context.Context, conn SQLXConnection, provider *SQLProvider, prior, before, after int) (err error)
 
 var migrationsSpecialUp = map[int][]fSchemaMigration{
 	24: {migrationSpecialUp24},
+	25: {migrationSpecialUp25},
 }
 
-var migrationsSpecialDown = map[int][]fSchemaMigration{}
+var migrationsSpecialDown = map[int][]fSchemaMigration{
+	25: {migrationSpecialDown25},
+}
 
-func migrationSpecialUp24(ctx context.Context, conn SQLXConnection, provider *SQLProvider, prior, target int) (err error) {
+func migrationSpecialUp24(ctx context.Context, conn SQLXConnection, provider *SQLProvider, prior, before, after int) (err error) {
 	var (
 		credentials []model.WebAuthnCredential
 		credential  *webauthn.Credential
@@ -57,6 +60,22 @@ func migrationSpecialUp24(ctx context.Context, conn SQLXConnection, provider *SQ
 		if len(credentials) < limit {
 			break
 		}
+	}
+
+	return nil
+}
+
+func migrationSpecialDown25(ctx context.Context, conn SQLXConnection, provider *SQLProvider, prior, before, after int) (err error) {
+	if err = provider.SchemaEncryptionChangeKeyAdvanced(ctx, conn, provider.keys.encryption, false, true, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func migrationSpecialUp25(ctx context.Context, conn SQLXConnection, provider *SQLProvider, prior, before, after int) (err error) {
+	if err = provider.SchemaEncryptionChangeKeyAdvanced(ctx, conn, provider.keys.encryption, prior == 0, false, true); err != nil {
+		return err
 	}
 
 	return nil

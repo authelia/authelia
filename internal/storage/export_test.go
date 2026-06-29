@@ -40,6 +40,6 @@ func (p *SQLProvider) WithOpenErr(err error) *SQLProvider {
 }
 
 // Encrypt exposes (*SQLProvider).encrypt for tests in storage_test.
-func (p *SQLProvider) Encrypt(clearText []byte) ([]byte, error) {
-	return p.encrypt(clearText)
+func (p *SQLProvider) Encrypt(clearText, aad []byte) ([]byte, error) {
+	return p.encrypt(clearText, aad)
 }

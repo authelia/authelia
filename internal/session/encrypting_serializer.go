@@ -37,7 +37,7 @@ func (e *EncryptingSerializer) Encode(src session.Dict) (data []byte, err error)
 		return nil, fmt.Errorf("unable to marshal session: %v", err)
 	}
 
-	if data, err = utils.Encrypt(dst, &e.key); err != nil {
+	if data, err = utils.Encrypt(dst, nil, &e.key); err != nil {
 		return nil, fmt.Errorf("unable to encrypt session: %v", err)
 	}
 
@@ -56,7 +56,7 @@ func (e *EncryptingSerializer) Decode(dst *session.Dict, src []byte) (err error)
 
 	var data []byte
 
-	if data, err = utils.Decrypt(src, &e.key); err != nil {
+	if data, err = utils.Decrypt(src, nil, &e.key); err != nil {
 		return fmt.Errorf("unable to decrypt session: %s", err)
 	}
 
