@@ -150,6 +150,8 @@ or intermediate certificates. If no item is provided mutual TLS is disabled.
 
 ### headers
 
+#### csp_template
+
 {{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
 This header is a security critical header which protects you from malicious parties and should almost never be
 configured. This is an advanced option to customize, and at minimum you should do sufficient research about how browsers
