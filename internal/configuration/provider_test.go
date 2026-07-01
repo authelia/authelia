@@ -1236,7 +1236,7 @@ func TestShouldErrOnParseInvalidRegex(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshaling configuration: decoding failed due to the following error(s):\n\n'access_control.rules[0].domain_regex[0]' could not decode '^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshaling configuration: decoding failed due to the following error(s):\n\n'access_control.rules[0].domain_regex[0]' could not decode '(?i)^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
 }
 
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {

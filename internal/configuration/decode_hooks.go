@@ -302,7 +302,10 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 }
 
 // StringToRegexpHookFunc decodes a string into a *regexp.Regexp or regexp.Regexp.
+//
+//nolint:gocyclo
 func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
+	expectedTypeCI := reflect.TypeOf(schema.RegexpCI{})
 	expectedType := reflect.TypeOf(regexp.Regexp{})
 
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
@@ -319,10 +322,20 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 			prefixType = "*"
 		}
 
+		isCI := false
+
 		if ptr && t.Elem() != expectedType {
-			return data, nil
+			if t.Elem() != expectedTypeCI {
+				return data, nil
+			}
+
+			isCI = true
 		} else if !ptr && t != expectedType {
-			return data, nil
+			if t != expectedTypeCI {
+				return data, nil
+			}
+
+			isCI = true
 		}
 
 		dataStr := data.(string)
@@ -330,12 +343,24 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 		var result *regexp.Regexp
 
 		if dataStr != "" {
+			if isCI {
+				dataStr = injectCIFlag(dataStr)
+			}
+
 			if result, err = regexp.Compile(dataStr); err != nil {
 				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
 			}
 		}
 
 		if ptr {
+			if isCI {
+				if result == nil {
+					return (*schema.RegexpCI)(nil), nil
+				}
+
+				return &schema.RegexpCI{Regexp: *result}, nil
+			}
+
 			return result, nil
 		}
 
@@ -343,8 +368,30 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseEmptyValue, prefixType, expectedType, errDecodeNonPtrMustHaveValue)
 		}
 
+		if isCI {
+			return schema.RegexpCI{Regexp: *result}, nil
+		}
+
 		return *result, nil
 	}
+}
+
+func injectCIFlag(dataStr string) string {
+	matches := rePatternFLags.FindStringSubmatch(dataStr)
+
+	if len(matches) == 0 {
+		return "(?i)" + dataStr
+	}
+
+	value := matches[len(matches)-1]
+
+	if strings.Contains(value, "i") {
+		return dataStr
+	}
+
+	after := strings.Replace(value, "?", "?i", 1)
+
+	return strings.Replace(dataStr, value, after, 1)
 }
 
 // StringToAddressHookFunc decodes a string into an Address or *Address.
