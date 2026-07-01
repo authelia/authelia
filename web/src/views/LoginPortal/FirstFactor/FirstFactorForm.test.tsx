@@ -16,6 +16,7 @@ vi.mock("broadcast-channel", () => {
         addEventListener = vi.fn();
         removeEventListener = vi.fn();
         postMessage = vi.fn();
+        close = vi.fn();
     }
     return { BroadcastChannel: MockBroadcastChannel };
 });
@@ -52,6 +53,10 @@ vi.mock("@services/Password", () => ({
 
 vi.mock("@views/LoginPortal/FirstFactor/PasskeyForm", () => ({
     default: () => <div data-testid="passkey-form" />,
+}));
+
+vi.mock("@simplewebauthn/browser", () => ({
+    browserSupportsWebAuthn: () => true,
 }));
 
 const defaultProps = {
