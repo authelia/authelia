@@ -560,7 +560,7 @@ This subcommand allows debugging the filtered YAML files with any of the availab
 command needs to be executed with the same environment variables and working path as when normally running Authelia to
 be useful.`
 
-	cmdAutheliaConfigTemplateExample = `authelia config template --config.experimental.filters=template --config=config.yml`
+	cmdAutheliaConfigTemplateExample = `authelia config template --config.filters=template --config=config.yml`
 
 	cmdAutheliaConfigValidateShort = "Check a configuration against the internal configuration validation mechanisms"
 
@@ -809,8 +809,14 @@ const (
 	cmdFlagNameConfig    = "config"
 	cmdFlagEnvNameConfig = "X_AUTHELIA_CONFIG"
 
-	cmdFlagNameConfigExpFilters = "config.experimental.filters"
+	cmdFlagNameConfigFilters    = "config.filters"
 	cmdFlagEnvNameConfigFilters = "X_AUTHELIA_CONFIG_FILTERS"
+
+	cmdFlagNameConfigFiltersTemplateDelimiterLeft    = "config.filters.template.delimiter.left"
+	cmdFlagEnvNameConfigFiltersTemplateLeftDelimiter = "X_AUTHELIA_CONFIG_FILTERS_TEMPLATE_DELIMITER_LEFT"
+
+	cmdFlagNameConfigFiltersTemplateDelimiterRight    = "config.filters.template.delimiter.right"
+	cmdFlagEnvNameConfigFiltersTemplateRightDelimiter = "X_AUTHELIA_CONFIG_FILTERS_TEMPLATE_DELIMITER_RIGHT"
 
 	cmdFlagNameCharSet     = "charset"
 	cmdFlagValueCharSet    = "alphanumeric"
@@ -909,7 +915,7 @@ var (
 const (
 	helpTopicConfigFilters = `Configuration Filters are a system for templating configuration files.
 
-Using the --config.experimental.filters flag users can define multiple filters to apply to all configuration files that
+Using the --config.filters flag users can define multiple filters to apply to all configuration files that
 are loaded by Authelia. These filters are applied after loading the file data from the filesystem, but before they are
 parsed by the relevant file format parser.
 
@@ -923,13 +929,7 @@ The following filters are available:
 		This filter uses the go template system to filter the file. In addition to the standard functions, several
 		custom functions exist to facilitate this process.
 
-		For a full list of functions see: https://www.authelia.com/reference/guides/templating/#functions
-
-	expand-env:
-
-		DEPRECATED: This filter expands environment variables in place where specified in the configuration. For example
-        the string ${DOMAIN_NAME} will be replaced with the value from the DOMAIN_NAME environment variable or an empty
-		string.`
+		For a full list of functions see: https://www.authelia.com/reference/guides/templating/#functions`
 
 	helpTopicConfig = `Configuration can be specified in multiple layers where each layer is a different source from
 the last. The layers are loaded in the order below where each layer potentially overrides the individual settings from

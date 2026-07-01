@@ -220,6 +220,9 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 	var (
 		filterNames []string
 		result      XEnvCLIResult
+
+		filterTemplateLeftDelim  string
+		filterTemplateRightDelim string
 	)
 
 	if configs, result, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfig, cmdFlagNameConfig); err != nil {
@@ -230,12 +233,20 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 		return nil, nil, err
 	}
 
-	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigFilters, cmdFlagNameConfigExpFilters); err != nil {
+	if filterNames, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigFilters, cmdFlagNameConfigFilters); err != nil {
 		return nil, nil, err
 	}
 
-	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
-		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
+	if filterTemplateLeftDelim, _, err = loadXEnvCLIStringValue(cmd, cmdFlagEnvNameConfigFiltersTemplateLeftDelimiter, cmdFlagNameConfigFiltersTemplateDelimiterLeft); err != nil {
+		return nil, nil, err
+	}
+
+	if filterTemplateRightDelim, _, err = loadXEnvCLIStringValue(cmd, cmdFlagEnvNameConfigFiltersTemplateRightDelimiter, cmdFlagNameConfigFiltersTemplateDelimiterRight); err != nil {
+		return nil, nil, err
+	}
+
+	if filters, err = configuration.NewFileFilters(filterNames, filterTemplateLeftDelim, filterTemplateRightDelim); err != nil {
+		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigFilters, err)
 	}
 
 	return
@@ -295,6 +306,32 @@ func loadXNormalizedPaths(paths []string, result XEnvCLIResult) ([]string, error
 	}
 
 	return configs, nil
+}
+
+func loadXEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value string, result XEnvCLIResult, err error) {
+	if cmd.Flags().Changed(flagName) {
+		value, err = cmd.Flags().GetString(flagName)
+
+		return value, XEnvCLIResultCLIExplicit, err
+	}
+
+	var (
+		env string
+		ok  bool
+	)
+
+	if envKey != "" {
+		env, ok = os.LookupEnv(envKey)
+	}
+
+	switch {
+	case ok && env != "":
+		return env, XEnvCLIResultEnvironment, nil
+	default:
+		value, err = cmd.Flags().GetString(flagName)
+
+		return value, XEnvCLIResultCLIImplicit, err
+	}
 }
 
 func loadXEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, result XEnvCLIResult, err error) {
