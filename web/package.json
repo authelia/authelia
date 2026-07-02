@@ -88,7 +88,7 @@
     "eslint-plugin-prettier": "5.5.6",
     "happy-dom": "20.10.6",
     "lefthook": "2.1.9",
-    "prettier": "3.9.1",
+    "prettier": "3.9.4",
     "typescript": "6.0.3",
     "vite": "8.1.2",
     "vite-plugin-checker": "0.14.4",
