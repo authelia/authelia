@@ -31,7 +31,7 @@ overrides:
   picomatch: 4.0.4
   qs: 6.15.3
   semver: 7.8.5
-  vite: 8.1.0
+  vite: 8.1.2
   ws: 8.21.0
   yaml: 2.9.0
 peerDependencyRules:
