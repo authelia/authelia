@@ -25,7 +25,7 @@ overrides:
   form-data: 4.0.6
   glob: 13.0.6
   import-meta-resolve: 4.2.0
-  js-yaml: 5.2.0
+  js-yaml: 5.2.1
   minimatch: 10.2.5
   path-to-regexp: 8.4.2
   picomatch: 4.0.4
