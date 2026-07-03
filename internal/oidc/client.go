@@ -727,6 +727,29 @@ func (c *RegisteredClient) GetRequestedAudienceImplicit() (implicit bool) {
 	return c.RequestedAudienceMode == ClientRequestedAudienceModeImplicit
 }
 
+// GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType returns true if this client should allow an empty
+// type value for JWT-Secured Authorization Requests.
+func (c *RegisteredClient) GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType() (allow bool) {
+	return false
+}
+
+// GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowTypes returns a list of allowed JWT types for JWT-Secured
+// Authorization Requests.
+func (c *RegisteredClient) GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowTypes() (types []string) {
+	return []string{jwt.JSONWebTokenTypeJWTSecuredAuthorizationRequest}
+}
+
+// GetClientAssertionJWTValidationHeaderAllowEmptyType returns true if this client should allow an empty type value for
+// Client Assertions.
+func (c *RegisteredClient) GetClientAssertionJWTValidationHeaderAllowEmptyType() (allow bool) {
+	return false
+}
+
+// GetClientAssertionJWTValidationHeaderAllowTypes returns a list of allowed JWT types for Client Assertions.
+func (c *RegisteredClient) GetClientAssertionJWTValidationHeaderAllowTypes() (types []string) {
+	return []string{jwt.JSONWebTokenTypeClientAuthentication}
+}
+
 // GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
 // value. This implements the oauthelia2.ClientWithCustomTokenLifespans interface.
 func (c *RegisteredClient) GetEffectiveLifespan(gt oauthelia2.GrantType, tt oauthelia2.TokenType, fallback time.Duration) time.Duration {
