@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -75,6 +76,36 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 			assert.Len(t, migrations, ver-1)
 		})
 	}
+}
+
+func TestSchemaMigrateUpShouldMigrateWithoutStartupCheck(t *testing.T) {
+	provider := newTestSQLiteProviderWithEncryption(t)
+
+	ctx := context.Background()
+
+	require.NoError(t, provider.SchemaMigrate(ctx, true, SchemaLatest))
+
+	version, err := provider.SchemaVersion(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, LatestVersion, version)
+
+	assert.ErrorIs(t, provider.SchemaMigrate(ctx, true, SchemaLatest), ErrSchemaAlreadyUpToDate)
+
+	history, err := provider.SchemaMigrationHistory(ctx)
+	require.NoError(t, err)
+	assert.Len(t, history, LatestVersion)
+
+	up, err := provider.SchemaMigrationsUp(ctx, 0)
+	require.NoError(t, err)
+	assert.Empty(t, up)
+
+	down, err := provider.SchemaMigrationsDown(ctx, 0)
+	require.NoError(t, err)
+	assert.Len(t, down, LatestVersion)
+
+	result, err := provider.SchemaEncryptionCheckKey(ctx, false)
+	require.NoError(t, err)
+	assert.True(t, result.Success())
 }
 
 func TestMigrationShouldReturnErrorOnSame(t *testing.T) {

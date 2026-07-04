@@ -233,6 +233,44 @@ func TestSchemaEncryptionUpgradeFromLegacyKey(t *testing.T) {
 	}
 }
 
+func TestStorageUserTOTPShouldRoundTripWithoutStartupCheck(t *testing.T) {
+	config := &schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	migrator := NewSQLiteProvider(config)
+	require.NoError(t, migrator.SchemaMigrate(ctx, true, SchemaLatest))
+	require.NoError(t, migrator.Close())
+
+	provider := NewSQLiteProvider(config)
+
+	require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+		CreatedAt: time.Now().Truncate(time.Second),
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    []byte("JBSWY3DPEHPK3PXP"),
+	}))
+
+	loaded, err := provider.LoadTOTPConfiguration(ctx, "john")
+	require.NoError(t, err)
+	assert.Equal(t, []byte("JBSWY3DPEHPK3PXP"), loaded.Secret)
+
+	configs, err := provider.LoadTOTPConfigurations(ctx, 10, 0)
+	require.NoError(t, err)
+	require.Len(t, configs, 1)
+	assert.Equal(t, []byte("JBSWY3DPEHPK3PXP"), configs[0].Secret)
+}
+
 func newTestSQLiteProviderWithEncryption(t *testing.T) *SQLiteProvider {
 	t.Helper()
 

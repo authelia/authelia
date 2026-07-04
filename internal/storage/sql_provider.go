@@ -191,6 +191,11 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlFmtRenameTable: queryFmtRenameTable,
 	}
 
+	// Derive the storage encryption key at construction so the provider is usable by CLI commands that operate on it
+	// without invoking StartupCheck (migrate, user totp, etc.). A derivation error here (e.g. an empty key) is
+	// surfaced by StartupCheck and prevented for CLI commands by storage configuration validation.
+	_ = provider.deriveEncryptionKey()
+
 	return provider
 }
 
@@ -394,6 +399,21 @@ func (p *SQLProvider) conn(ctx context.Context) (conn SQLXConnection) {
 	return p.db
 }
 
+// deriveEncryptionKey derives the storage encryption key from the configured key using HKDF and caches it. It is
+// idempotent: it is called best-effort by the constructor so the provider is immediately usable by CLI storage commands
+// that never invoke StartupCheck, and again by StartupCheck which surfaces any derivation error.
+func (p *SQLProvider) deriveEncryptionKey() (err error) {
+	if p.keys.encryption != nil {
+		return nil
+	}
+
+	if p.keys.encryption, err = utils.DeriveCryptographicKey([]byte(p.config.Storage.EncryptionKey), hkdfKeyInfo, sha256.New); err != nil {
+		return fmt.Errorf("error occurred deriving encryption key: %w", err)
+	}
+
+	return nil
+}
+
 // StartupCheck implements the provider startup check interface.
 func (p *SQLProvider) StartupCheck() (err error) {
 	if p.errOpen != nil {
@@ -413,8 +433,8 @@ func (p *SQLProvider) StartupCheck() (err error) {
 		return fmt.Errorf("error pinging database: %w", err)
 	}
 
-	if p.keys.encryption, err = utils.DeriveCryptographicKey([]byte(p.config.Storage.EncryptionKey), hkdfKeyInfo, sha256.New); err != nil {
-		return fmt.Errorf("error occurred deriving encryption key: %w", err)
+	if err = p.deriveEncryptionKey(); err != nil {
+		return err
 	}
 
 	p.log.Infof("Storage schema is being checked for updates")

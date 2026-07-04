@@ -18,59 +18,45 @@ import (
 )
 
 func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name string) (err error) {
-	var tx SQLXTx
+	var (
+		size  int
+		table string
+		desc  string
+	)
 
 	switch name {
 	case hmacNameOneTimeCode:
-		if tx, err = p.db.Beginx(); err != nil {
-			return fmt.Errorf("error beginning transaction to rotate hmac key: %w", err)
-		}
-
-		if _, err = p.setCrypographyKey(ctx, tx, keyTypeCryptographyHMAC, name, sha512.BlockSize); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
-			}
-
-			return fmt.Errorf("error setting the hmac key: %w", err)
-		}
-
-		if err = p.truncate(ctx, tx, tableOneTimeCode); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
-			}
-
-			return fmt.Errorf("error truncating one time-codes: %w", err)
-		}
-
-		if err = tx.Commit(); err != nil {
-			return fmt.Errorf("error committing transaction to rotate hmac key: %w", err)
-		}
+		size, table, desc = sha512.BlockSize, tableOneTimeCode, "one time-codes"
 	case hmacNameOneTimePassword:
-		if tx, err = p.db.Beginx(); err != nil {
-			return fmt.Errorf("error beginning transaction to rotate hmac key: %w", err)
-		}
-
-		if _, err = p.setCrypographyKey(ctx, tx, keyTypeCryptographyHMAC, name, sha256.BlockSize); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
-			}
-
-			return fmt.Errorf("error setting the hmac key: %w", err)
-		}
-
-		if err = p.truncate(ctx, tx, tableTOTPHistory); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
-			}
-
-			return fmt.Errorf("error truncating totp history: %w", err)
-		}
-
-		if err = tx.Commit(); err != nil {
-			return fmt.Errorf("error committing transaction to rotate hmac key: %w", err)
-		}
+		size, table, desc = sha256.BlockSize, tableTOTPHistory, "totp history"
 	default:
 		return fmt.Errorf("unknown key name '%s'", name)
+	}
+
+	var tx SQLXTx
+
+	if tx, err = p.db.Beginx(); err != nil {
+		return fmt.Errorf("error beginning transaction to rotate hmac key: %w", err)
+	}
+
+	if _, err = p.setCrypographyKey(ctx, tx, keyTypeCryptographyHMAC, name, size); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+		}
+
+		return fmt.Errorf("error setting the hmac key: %w", err)
+	}
+
+	if err = p.truncate(ctx, tx, table); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+		}
+
+		return fmt.Errorf("error truncating %s: %w", desc, err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("error committing transaction to rotate hmac key: %w", err)
 	}
 
 	return nil
