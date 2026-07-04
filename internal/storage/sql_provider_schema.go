@@ -258,7 +258,7 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, conn SQLXConnection, pr
 			}
 		}
 
-		if err = p.schemaMigrateApply(ctx, conn, migration, prior); err != nil {
+		if err = p.schemaMigrateApply(ctx, conn, migration, prior, target); err != nil {
 			return p.schemaMigrateRollback(ctx, conn, prior, migration.After(), err)
 		}
 	}
@@ -280,7 +280,7 @@ func (p *SQLProvider) schemaMigrateLock(ctx context.Context, conn SQLXConnection
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnection, migration model.SchemaMigration, prior int) (err error) {
+func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnection, migration model.SchemaMigration, prior, target int) (err error) {
 	if migration.NotEmpty() {
 		if _, err = conn.ExecContext(ctx, migration.Query); err != nil {
 			return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
@@ -307,7 +307,7 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnectio
 
 	if ok {
 		for _, special := range migrationsSpecial {
-			if err = special(ctx, conn, p, prior, migration.Before(), migration.After()); err != nil {
+			if err = special(ctx, conn, p, prior, migration.Before(), migration.After(), target); err != nil {
 				return err
 			}
 		}
@@ -358,7 +358,7 @@ func (p *SQLProvider) schemaMigrateRollbackWithoutTx(ctx context.Context, prior,
 	}
 
 	for _, migration := range migrations {
-		if err = p.schemaMigrateApply(ctx, p.db, migration, prior); err != nil {
+		if err = p.schemaMigrateApply(ctx, p.db, migration, prior, prior); err != nil {
 			return fmt.Errorf("error applying migration version %d to version %d for rollback: %+v. rollback caused by: %w", migration.Before(), migration.After(), err, merr)
 		}
 	}

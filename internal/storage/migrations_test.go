@@ -2,11 +2,14 @@ package storage
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
@@ -106,6 +109,74 @@ func TestSchemaMigrateUpShouldMigrateWithoutStartupCheck(t *testing.T) {
 	result, err := provider.SchemaEncryptionCheckKey(ctx, false)
 	require.NoError(t, err)
 	assert.True(t, result.Success())
+}
+
+func TestSchemaMigrateDownShouldMigrateWithoutStartupCheck(t *testing.T) {
+	config := &schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	migrator, err := NewSQLiteProvider(config)
+	require.NoError(t, err)
+	require.NoError(t, migrator.StartupCheck())
+
+	require.NoError(t, migrator.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+		CreatedAt: time.Now().Truncate(time.Second),
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    []byte("JBSWY3DPEHPK3PXP"),
+	}))
+	require.NoError(t, migrator.Close())
+
+	provider, err := NewSQLiteProvider(config)
+	require.NoError(t, err)
+
+	require.NoError(t, provider.SchemaMigrate(ctx, false, 0))
+}
+
+func TestSchemaMigrateDownToZeroShouldSucceedWithStaleEncryptionKey(t *testing.T) {
+	config := &schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	migrator, err := NewSQLiteProvider(config)
+	require.NoError(t, err)
+	require.NoError(t, migrator.StartupCheck())
+
+	require.NoError(t, migrator.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+		CreatedAt: time.Now().Truncate(time.Second),
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    []byte("JBSWY3DPEHPK3PXP"),
+	}))
+
+	require.NoError(t, migrator.SchemaEncryptionChangeKey(ctx, "authelia-new-test-key-not-a-secret-authelia-new-key"))
+	require.NoError(t, migrator.Close())
+
+	provider, err := NewSQLiteProvider(config)
+	require.NoError(t, err)
+
+	require.NoError(t, provider.SchemaMigrate(ctx, false, 0))
 }
 
 func TestMigrationShouldReturnErrorOnSame(t *testing.T) {
