@@ -7,6 +7,7 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 type fSchemaMigration func(ctx context.Context, conn SQLXConnection, provider *SQLProvider, prior, before, after int) (err error)
@@ -66,17 +67,29 @@ func migrationSpecialUp24(ctx context.Context, conn SQLXConnection, provider *SQ
 }
 
 func migrationSpecialDown25(ctx context.Context, conn SQLXConnection, provider *SQLProvider, prior, before, after int) (err error) {
-	if err = provider.SchemaEncryptionChangeKeyAdvanced(ctx, conn, provider.keys.encryption, false, true, false); err != nil {
+	encryptKey := utils.DeriveLegacyCryptographicKey([]byte(provider.config.Storage.EncryptionKey))
+
+	if err = provider.SchemaEncryptionChangeKeyAdvanced(ctx, conn, encryptKey, false, true, false); err != nil {
 		return err
 	}
+
+	provider.keys.encryption = encryptKey
 
 	return nil
 }
 
 func migrationSpecialUp25(ctx context.Context, conn SQLXConnection, provider *SQLProvider, prior, before, after int) (err error) {
-	if err = provider.SchemaEncryptionChangeKeyAdvanced(ctx, conn, provider.keys.encryption, prior == 0, false, true); err != nil {
+	encryptKey := provider.keys.encryption
+
+	if prior != 0 {
+		provider.keys.encryption = utils.DeriveLegacyCryptographicKey([]byte(provider.config.Storage.EncryptionKey))
+	}
+
+	if err = provider.SchemaEncryptionChangeKeyAdvanced(ctx, conn, encryptKey, prior == 0, false, true); err != nil {
 		return err
 	}
+
+	provider.keys.encryption = encryptKey
 
 	return nil
 }

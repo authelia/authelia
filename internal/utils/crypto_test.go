@@ -1329,3 +1329,68 @@ func TestParsePEMBlockUnknownTypes(t *testing.T) {
 		})
 	}
 }
+
+func TestShouldEncryptAndDecriptUsingAES(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+	secret := "the secret"
+
+	encryptedSecret, err := Encrypt([]byte(secret), []byte("test"), key)
+	assert.NoError(t, err, "")
+
+	decryptedSecret, err := Decrypt(encryptedSecret, []byte("test"), key)
+
+	assert.NoError(t, err, "")
+	assert.Equal(t, secret, string(decryptedSecret))
+}
+
+func TestShouldFailDecryptOnInvalidKey(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+	secret := "the secret"
+
+	encryptedSecret, err := Encrypt([]byte(secret), []byte("test"), key)
+	assert.NoError(t, err, "")
+
+	key = DeriveLegacyCryptographicKey([]byte("the key 2"))
+
+	_, err = Decrypt(encryptedSecret, []byte("test"), key)
+
+	assert.Error(t, err, "message authentication failed")
+}
+
+func TestDecrypt(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+
+	testCases := []struct {
+		name       string
+		ciphertext []byte
+		err        string
+	}{
+		{
+			"ShouldReturnErrorForTooShortCiphertext",
+			[]byte("abc123"),
+			"malformed ciphertext",
+		},
+		{
+			"ShouldReturnErrorForEmptyCiphertext",
+			[]byte{},
+			"malformed ciphertext",
+		},
+		{
+			"ShouldReturnErrorForNilCiphertext",
+			nil,
+			"malformed ciphertext",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := Decrypt(tc.ciphertext, []byte("test"), key)
+
+			if len(tc.err) != 0 {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

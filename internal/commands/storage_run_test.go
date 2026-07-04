@@ -88,6 +88,8 @@ func TestCmdCtx_StorageBansList(t *testing.T) {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
+			//gitleaks:allow // This is not an actual secret.
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(dir, "db.sqlite3"),
 			},
@@ -2358,16 +2360,16 @@ func TestNewStorageMigrationRunE(t *testing.T) {
 func TestStorageSchemaInfoRunE(t *testing.T) {
 	testCases := []struct {
 		name           string
-		useEncryption  bool
+		useHelper      bool
 		expectedFields []string
 	}{
 		{
-			"ShouldShowSchemaInfoWithEncryption",
+			"ShouldShowSchemaInfoWithHelper",
 			true,
 			[]string{"Schema Version:", "Schema Upgrade Available: no", "Schema Tables:", "Schema Encryption Key: valid"},
 		},
 		{
-			"ShouldShowSchemaInfoWithoutEncryption",
+			"ShouldShowSchemaInfoWithInlineProvider",
 			false,
 			[]string{"Schema Version:", "Schema Upgrade Available: no", "Schema Tables:", "Schema Encryption Key:"},
 		},
@@ -2377,7 +2379,7 @@ func TestStorageSchemaInfoRunE(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var cmdCtx *CmdCtx
 
-			if tc.useEncryption {
+			if tc.useHelper {
 				cmdCtx = newTestCmdCtx(t)
 			} else {
 				cmdCtx = NewCmdCtx()
@@ -2385,6 +2387,8 @@ func TestStorageSchemaInfoRunE(t *testing.T) {
 				dir := t.TempDir()
 
 				cmdCtx.config.Storage = schema.Storage{
+					//gitleaks:allow // This is not an actual secret.
+					EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 					Local: &schema.StorageLocal{
 						Path: filepath.Join(dir, "db.sqlite3"),
 					},
@@ -3355,6 +3359,8 @@ func newTestSQLiteStore(t *testing.T) storage.Provider {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
+			//gitleaks:allow // This is not an actual secret.
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(dir, "db.sqlite3"),
 			},

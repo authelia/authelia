@@ -2,11 +2,14 @@ package utils
 
 import (
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -15,6 +18,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"hash"
 	"io"
 	"math/big"
 	"net"
@@ -22,6 +26,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/hkdf"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -790,4 +796,78 @@ func UnsafeGetIntermediatesFromPeerCertificates(certs []*x509.Certificate, roots
 	}
 
 	return opts.Intermediates
+}
+
+// Encrypt encrypts data using 256-bit AES-GCM.  This both hides the content of
+// the data and provides a check that it hasn't been altered. Output takes the
+// form nonce|ciphertext|tag where '|' indicates concatenation.
+func Encrypt(plaintext, aad []byte, key []byte) (ciphertext []byte, err error) {
+	var (
+		block cipher.Block
+		gcm   cipher.AEAD
+	)
+
+	if block, err = aes.NewCipher(key); err != nil {
+		return nil, err
+	}
+
+	if gcm, err = cipher.NewGCM(block); err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	return gcm.Seal(nonce, nonce, plaintext, aad), nil
+}
+
+// Decrypt decrypts data using 256-bit AES-GCM.  This both hides the content of
+// the data and provides a check that it hasn't been altered. Expects input
+// form nonce|ciphertext|tag where '|' indicates concatenation.
+func Decrypt(ciphertext, aad []byte, key []byte) (plaintext []byte, err error) {
+	var (
+		block cipher.Block
+		gcm   cipher.AEAD
+	)
+
+	if block, err = aes.NewCipher(key); err != nil {
+		return nil, err
+	}
+
+	if gcm, err = cipher.NewGCM(block); err != nil {
+		return nil, err
+	}
+
+	if len(ciphertext) < gcm.NonceSize() {
+		return nil, errors.New("malformed ciphertext")
+	}
+
+	return gcm.Open(nil, ciphertext[:gcm.NonceSize()], ciphertext[gcm.NonceSize():], aad)
+}
+
+// DeriveCryptographicKey is the new derivation function to add entropy to user generated keys.
+func DeriveCryptographicKey(raw []byte, info string, hash func() hash.Hash) (key []byte, err error) {
+	if len(raw) == 0 {
+		return nil, errors.New("error deriving cryptographic key: value is empty")
+	}
+
+	key = make([]byte, hash().Size())
+
+	reader := hkdf.New(hash, raw, nil, []byte(info))
+
+	if _, err = io.ReadFull(reader, key); err != nil {
+		return nil, fmt.Errorf("error occurred reading hkdf: %w", err)
+	}
+
+	return key, err
+}
+
+// DeriveLegacyCryptographicKey is the derivation function used with the old style SHA256 key deriviations.
+func DeriveLegacyCryptographicKey(raw []byte) (key []byte) {
+	sum := sha256.Sum256(raw)
+
+	return sum[:]
 }

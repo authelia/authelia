@@ -77,7 +77,7 @@ func (db *SQLXWrapDB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (tx SQL
 }
 
 // EncryptionChangeKeyFunc handles encryption key changes for a specific table or tables.
-type EncryptionChangeKeyFunc func(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init, useDecryptAAD, useEncryptAAD bool, key [32]byte) (err error)
+type EncryptionChangeKeyFunc func(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init, useDecryptAAD, useEncryptAAD bool, key []byte) (err error)
 
 // EncryptionCheckKeyFunc handles encryption key checking for a specific table or tables.
 type EncryptionCheckKeyFunc func(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult)
@@ -216,6 +216,15 @@ func (s OAuth2SessionType) String() string {
 		return "refresh token"
 	default:
 		return "invalid"
+	}
+}
+
+func (s OAuth2SessionType) AAD() string {
+	switch s {
+	case OAuth2SessionTypePAR:
+		return tableAADPushedAuthorizationRequestSession
+	default:
+		return s.Table()
 	}
 }
 

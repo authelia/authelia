@@ -1219,6 +1219,7 @@ func newTestSQLiteProvider(t *testing.T) *SQLiteProvider {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
 			},

@@ -2,15 +2,18 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestSchemaEncryptionCheckKey(t *testing.T) {
@@ -170,6 +173,62 @@ func TestSchemaEncryptionCheckKeyVersionUnsupported(t *testing.T) {
 			_, err := provider.SchemaEncryptionCheckKey(context.Background(), false)
 
 			assert.ErrorIs(t, err, ErrSchemaEncryptionVersionUnsupported)
+		})
+	}
+}
+
+func TestSchemaEncryptionUpgradeFromLegacyKey(t *testing.T) {
+	testCases := []struct {
+		name     string
+		seedTOTP bool
+	}{
+		{"ShouldUpgradeCheckValueOnly", false},
+		{"ShouldUpgradeCheckValueAndData", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+
+			legacyKey := utils.DeriveLegacyCryptographicKey([]byte(provider.config.Storage.EncryptionKey))
+			provider.keys.encryption = legacyKey
+
+			ctx := context.Background()
+
+			require.NoError(t, provider.SchemaMigrate(ctx, true, schemaVersionEncryptionKeyDerivation-1))
+
+			checkValue, err := utils.Encrypt([]byte(uuid.Must(uuid.NewRandom()).String()), nil, legacyKey)
+			require.NoError(t, err)
+
+			_, err = provider.db.ExecContext(ctx, provider.sqlUpsertEncryptionValue, encryptionNameCheck, checkValue)
+			require.NoError(t, err)
+
+			if tc.seedTOTP {
+				secret, err := utils.Encrypt([]byte("JBSWY3DPEHPK3PXP"), nil, legacyKey)
+				require.NoError(t, err)
+
+				_, err = provider.db.ExecContext(ctx, provider.sqlUpsertTOTPConfig,
+					time.Now().Truncate(time.Second), sql.NullTime{},
+					"john", "Authelia",
+					"SHA1", 6, 30, secret)
+				require.NoError(t, err)
+			}
+
+			require.NoError(t, provider.StartupCheck())
+
+			version, err := provider.SchemaVersion(ctx)
+			require.NoError(t, err)
+			assert.GreaterOrEqual(t, version, schemaVersionEncryptionKeyDerivation)
+
+			result, err := provider.SchemaEncryptionCheckKey(ctx, true)
+			require.NoError(t, err)
+			assert.True(t, result.Success())
+
+			if tc.seedTOTP {
+				config, err := provider.LoadTOTPConfiguration(ctx, "john")
+				require.NoError(t, err)
+				assert.Equal(t, []byte("JBSWY3DPEHPK3PXP"), config.Secret)
+			}
 		})
 	}
 }
