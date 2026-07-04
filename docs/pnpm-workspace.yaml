@@ -8,7 +8,7 @@ overrides:
   "@babel/plugin-transform-modules-systemjs": 7.29.7
   brace-expansion: 5.0.7
   js-yaml: 5.2.1
-  picomatch: 4.0.4
+  picomatch: 4.0.5
   semver: 7.8.5
   tar: 7.5.19
   vite: 8.1.3

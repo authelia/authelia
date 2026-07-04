@@ -28,7 +28,7 @@ overrides:
   js-yaml: 5.2.1
   minimatch: 10.2.5
   path-to-regexp: 8.4.2
-  picomatch: 4.0.4
+  picomatch: 4.0.5
   qs: 6.15.3
   semver: 7.8.5
   vite: 8.1.3
