@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -2391,17 +2392,17 @@ func TestSQLProviderSaveWebAuthnCredentialAttestation(t *testing.T) {
 	})
 }
 
-func TestSQLProviderStartupCheckOpenErr(t *testing.T) {
+func TestNewSQLProviderShouldReturnOpenError(t *testing.T) {
 	t.Run("ShouldReturnErrorWhenDBOpenFailed", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
+		config := &schema.Configuration{
+			Storage: schema.Storage{
+				EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			},
+		}
 
-		db := mocks.NewMockSQLXDB(ctrl)
-		p := storage.NewSQLProviderForTesting(db).WithOpenErr(errors.New("dsn invalid"))
+		_, err := storage.NewSQLProvider(config, "test", "not-a-real-driver", "dsn")
 
-		err := p.StartupCheck()
-
-		assert.EqualError(t, err, "error opening database: dsn invalid")
+		assert.EqualError(t, err, `error opening database: sql: unknown driver "not-a-real-driver" (forgotten import?)`)
 	})
 }
 

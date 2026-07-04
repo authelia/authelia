@@ -277,7 +277,9 @@ func (s *PAMSuite) seedUserTOTP(username string) {
 	s.Require().NoError(err, "failed to seed TOTP for %s: %s", username, output)
 
 	ctx := context.Background()
-	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+
+	provider, err := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	s.Require().NoError(err)
 	s.Require().NoError(provider.SavePreferred2FAMethod(ctx, username, "totp"))
 
 	s.SetOneTimePassword(username, RodSuiteCredentialOneTimePassword{

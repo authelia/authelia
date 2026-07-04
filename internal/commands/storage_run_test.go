@@ -96,7 +96,8 @@ func TestCmdCtx_StorageBansList(t *testing.T) {
 		},
 	}
 
-	store := storage.NewProvider(config, nil)
+	store, err := storage.NewProvider(config, nil)
+	require.NoError(t, err)
 
 	require.NoError(t, store.StartupCheck())
 
@@ -2394,7 +2395,10 @@ func TestStorageSchemaInfoRunE(t *testing.T) {
 					},
 				}
 
-				cmdCtx.providers.StorageProvider = storage.NewProvider(cmdCtx.config, nil)
+				var err error
+
+				cmdCtx.providers.StorageProvider, err = storage.NewProvider(cmdCtx.config, nil)
+				require.NoError(t, err)
 
 				require.NoError(t, cmdCtx.providers.StorageProvider.StartupCheck())
 			}
@@ -3367,7 +3371,8 @@ func newTestSQLiteStore(t *testing.T) storage.Provider {
 		},
 	}
 
-	store := storage.NewProvider(config, nil)
+	store, err := storage.NewProvider(config, nil)
+	require.NoError(t, err)
 
 	require.NoError(t, store.StartupCheck())
 
@@ -3389,7 +3394,8 @@ func newTestSQLiteStoreWithEncryptionKey(t *testing.T) storage.Provider {
 		},
 	}
 
-	store := storage.NewProvider(config, nil)
+	store, err := storage.NewProvider(config, nil)
+	require.NoError(t, err)
 
 	require.NoError(t, store.StartupCheck())
 
@@ -3413,7 +3419,10 @@ func newTestCmdCtx(t *testing.T) *CmdCtx {
 
 	ctx.config.TOTP = schema.DefaultTOTPConfiguration
 
-	ctx.providers.StorageProvider = storage.NewProvider(ctx.config, nil)
+	var err error
+
+	ctx.providers.StorageProvider, err = storage.NewProvider(ctx.config, nil)
+	require.NoError(t, err)
 
 	require.NoError(t, ctx.providers.StorageProvider.StartupCheck())
 

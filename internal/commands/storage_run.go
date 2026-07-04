@@ -55,7 +55,9 @@ func (ctx *CmdCtx) LoadProvidersStorageRunE(cmd *cobra.Command, args []string) (
 
 		return err
 	default:
-		ctx.providers.StorageProvider = getStorageProvider(ctx)
+		if ctx.providers.StorageProvider, err = getStorageProvider(ctx); err != nil {
+			return err
+		}
 
 		return nil
 	}

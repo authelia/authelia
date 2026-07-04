@@ -36,12 +36,6 @@ func (p *SQLProvider) Conn(ctx context.Context) SQLXConnection {
 	return p.conn(ctx)
 }
 
-// WithOpenErr sets the errOpen field on the SQLProvider for tests in storage_test.
-func (p *SQLProvider) WithOpenErr(err error) *SQLProvider {
-	p.errOpen = err
-	return p
-}
-
 // Encrypt exposes (*SQLProvider).encrypt for tests in storage_test.
 func (p *SQLProvider) Encrypt(clearText, aad []byte) ([]byte, error) {
 	return utils.Encrypt(clearText, aad, p.keys.encryption)

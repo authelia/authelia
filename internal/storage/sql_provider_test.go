@@ -26,7 +26,8 @@ func TestNewProvider(t *testing.T) {
 			"ShouldReturnSQLiteProvider",
 			&schema.Configuration{
 				Storage: schema.Storage{
-					Local: &schema.StorageLocal{Path: filepath.Join(t.TempDir(), "db.sqlite3")},
+					EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+					Local:         &schema.StorageLocal{Path: filepath.Join(t.TempDir(), "db.sqlite3")},
 				},
 			},
 			false,
@@ -40,7 +41,9 @@ func TestNewProvider(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			provider := NewProvider(tc.config, nil)
+			provider, err := NewProvider(tc.config, nil)
+
+			assert.NoError(t, err)
 
 			if tc.expectNl {
 				assert.Nil(t, provider)
@@ -1226,8 +1229,9 @@ func newTestSQLiteProvider(t *testing.T) *SQLiteProvider {
 		},
 	}
 
-	provider := NewSQLiteProvider(config)
+	provider, err := NewSQLiteProvider(config)
 
+	require.NoError(t, err)
 	require.NotNil(t, provider)
 
 	return provider

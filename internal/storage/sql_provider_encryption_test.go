@@ -167,10 +167,12 @@ func TestSchemaEncryptionCheckKeyVersionUnsupported(t *testing.T) {
 				},
 			}
 
-			provider := NewSQLiteProvider(config)
+			provider, err := NewSQLiteProvider(config)
+
+			require.NoError(t, err)
 			require.NotNil(t, provider)
 
-			_, err := provider.SchemaEncryptionCheckKey(context.Background(), false)
+			_, err = provider.SchemaEncryptionCheckKey(context.Background(), false)
 
 			assert.ErrorIs(t, err, ErrSchemaEncryptionVersionUnsupported)
 		})
@@ -245,11 +247,13 @@ func TestStorageUserTOTPShouldRoundTripWithoutStartupCheck(t *testing.T) {
 
 	ctx := context.Background()
 
-	migrator := NewSQLiteProvider(config)
+	migrator, err := NewSQLiteProvider(config)
+	require.NoError(t, err)
 	require.NoError(t, migrator.SchemaMigrate(ctx, true, SchemaLatest))
 	require.NoError(t, migrator.Close())
 
-	provider := NewSQLiteProvider(config)
+	provider, err := NewSQLiteProvider(config)
+	require.NoError(t, err)
 
 	require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
 		CreatedAt: time.Now().Truncate(time.Second),
@@ -283,8 +287,9 @@ func newTestSQLiteProviderWithEncryption(t *testing.T) *SQLiteProvider {
 		},
 	}
 
-	provider := NewSQLiteProvider(config)
+	provider, err := NewSQLiteProvider(config)
 
+	require.NoError(t, err)
 	require.NotNil(t, provider)
 
 	return provider

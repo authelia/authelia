@@ -15,15 +15,21 @@ type SQLiteProvider struct {
 }
 
 // NewSQLiteProvider constructs a SQLite provider.
-func NewSQLiteProvider(config *schema.Configuration) (provider *SQLiteProvider) {
+func NewSQLiteProvider(config *schema.Configuration) (provider *SQLiteProvider, err error) {
+	var p SQLProvider
+
+	if p, err = NewSQLProvider(config, providerSQLite, "sqlite3e", config.Storage.Local.Path); err != nil {
+		return nil, err
+	}
+
 	provider = &SQLiteProvider{
-		SQLProvider: NewSQLProvider(config, providerSQLite, "sqlite3e", config.Storage.Local.Path),
+		SQLProvider: p,
 	}
 
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = querySQLiteSelectExistingTables
 
-	return provider
+	return provider, nil
 }
 
 func sqlite3BLOBToTEXTBase64(data []byte) (b64 string) {

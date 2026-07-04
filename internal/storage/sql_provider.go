@@ -22,7 +22,7 @@ import (
 )
 
 // NewProvider dynamically initializes a storage.Provider given a *schema.Configuration and *x509.CertPool.
-func NewProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider Provider) {
+func NewProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider Provider, err error) {
 	switch {
 	case config.Storage.PostgreSQL != nil:
 		return NewPostgreSQLProvider(config, caCertPool)
@@ -31,20 +31,33 @@ func NewProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provi
 	case config.Storage.Local != nil:
 		return NewSQLiteProvider(config)
 	default:
-		return nil
+		return nil, nil
 	}
 }
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
-func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceName string) (provider SQLProvider) {
-	db, err := sqlx.Open(driverName, dataSourceName)
+func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceName string) (provider SQLProvider, err error) {
+	var (
+		db         *sqlx.DB
+		encryption []byte
+	)
+
+	if db, err = sqlx.Open(driverName, dataSourceName); err != nil {
+		return provider, fmt.Errorf("error opening database: %w", err)
+	}
+
+	if encryption, err = utils.DeriveCryptographicKey([]byte(config.Storage.EncryptionKey), hkdfKeyInfo, sha256.New); err != nil {
+		return provider, fmt.Errorf("error occurred deriving encryption key: %w", err)
+	}
 
 	provider = SQLProvider{
 		db:         &SQLXWrapDB{db},
 		name:       name,
 		driverName: driverName,
 		config:     config,
-		errOpen:    err,
+		keys: SQLProviderKeys{
+			encryption: encryption,
+		},
 
 		log: logging.Logger(),
 
@@ -191,12 +204,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlFmtRenameTable: queryFmtRenameTable,
 	}
 
-	// Derive the storage encryption key at construction so the provider is usable by CLI commands that operate on it
-	// without invoking StartupCheck (migrate, user totp, etc.). A derivation error here (e.g. an empty key) is
-	// surfaced by StartupCheck and prevented for CLI commands by storage configuration validation.
-	_ = provider.deriveEncryptionKey()
-
-	return provider
+	return provider, nil
 }
 
 // SQLProvider is a storage provider persisting data in a SQL database.
@@ -207,7 +215,6 @@ type SQLProvider struct {
 	driverName string
 	schema     string
 	config     *schema.Configuration
-	errOpen    error
 
 	keys SQLProviderKeys
 
@@ -399,27 +406,8 @@ func (p *SQLProvider) conn(ctx context.Context) (conn SQLXConnection) {
 	return p.db
 }
 
-// deriveEncryptionKey derives the storage encryption key from the configured key using HKDF and caches it. It is
-// idempotent: it is called best-effort by the constructor so the provider is immediately usable by CLI storage commands
-// that never invoke StartupCheck, and again by StartupCheck which surfaces any derivation error.
-func (p *SQLProvider) deriveEncryptionKey() (err error) {
-	if p.keys.encryption != nil {
-		return nil
-	}
-
-	if p.keys.encryption, err = utils.DeriveCryptographicKey([]byte(p.config.Storage.EncryptionKey), hkdfKeyInfo, sha256.New); err != nil {
-		return fmt.Errorf("error occurred deriving encryption key: %w", err)
-	}
-
-	return nil
-}
-
 // StartupCheck implements the provider startup check interface.
 func (p *SQLProvider) StartupCheck() (err error) {
-	if p.errOpen != nil {
-		return fmt.Errorf("error opening database: %w", p.errOpen)
-	}
-
 	// TODO: Decide if this is needed, or if it should be configurable.
 	for i := 0; i < 19; i++ {
 		if err = p.db.Ping(); err == nil {
@@ -431,10 +419,6 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	if err != nil {
 		return fmt.Errorf("error pinging database: %w", err)
-	}
-
-	if err = p.deriveEncryptionKey(); err != nil {
-		return err
 	}
 
 	p.log.Infof("Storage schema is being checked for updates")
