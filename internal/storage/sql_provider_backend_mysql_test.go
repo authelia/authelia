@@ -56,8 +56,9 @@ func TestNewMySQLProvider(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			provider, _ := NewMySQLProvider(tc.have, nil)
+			provider, err := NewMySQLProvider(tc.have, nil)
 
+			require.NoError(t, err)
 			assert.NotNil(t, provider)
 		})
 	}

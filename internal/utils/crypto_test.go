@@ -1354,7 +1354,7 @@ func TestShouldFailDecryptOnInvalidKey(t *testing.T) {
 
 	_, err = Decrypt(encryptedSecret, []byte("test"), key)
 
-	assert.Error(t, err, "message authentication failed")
+	assert.EqualError(t, err, "cipher: message authentication failed")
 }
 
 func TestDecrypt(t *testing.T) {

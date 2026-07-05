@@ -594,7 +594,7 @@ func (p *SQLProvider) LoadUserOpaqueIdentifierBySignature(ctx context.Context, s
 
 // SaveTOTPConfiguration save a TOTP configuration of a given user in the storage provider.
 func (p *SQLProvider) SaveTOTPConfiguration(ctx context.Context, config model.TOTPConfiguration) (err error) {
-	if config.Secret, err = utils.Encrypt(config.Secret, getAAD(tableTOTPConfigurations, "secret"), p.keys.encryption); err != nil {
+	if config.Secret, err = utils.Encrypt(config.Secret, getAAD(tableTOTPConfigurations, columnSecret), p.keys.encryption); err != nil {
 		return fmt.Errorf("error encrypting TOTP configuration secret for user '%s': %w", config.Username, err)
 	}
 
@@ -638,7 +638,7 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 		return nil, fmt.Errorf("error selecting TOTP configuration for user '%s': %w", username, err)
 	}
 
-	if config.Secret, err = utils.Decrypt(config.Secret, getAAD(tableTOTPConfigurations, "secret"), p.keys.encryption); err != nil {
+	if config.Secret, err = utils.Decrypt(config.Secret, getAAD(tableTOTPConfigurations, columnSecret), p.keys.encryption); err != nil {
 		return nil, fmt.Errorf("error decrypting TOTP secret for user '%s': %w", username, err)
 	}
 
@@ -682,7 +682,7 @@ func (p *SQLProvider) LoadTOTPConfigurations(ctx context.Context, limit, page in
 	}
 
 	for i, c := range configs {
-		if configs[i].Secret, err = utils.Decrypt(c.Secret, getAAD(tableTOTPConfigurations, "secret"), p.keys.encryption); err != nil {
+		if configs[i].Secret, err = utils.Decrypt(c.Secret, getAAD(tableTOTPConfigurations, columnSecret), p.keys.encryption); err != nil {
 			return nil, fmt.Errorf("error decrypting TOTP configuration for user '%s': %w", c.Username, err)
 		}
 	}
@@ -1025,7 +1025,7 @@ func (p *SQLProvider) LoadIdentityVerification(ctx context.Context, jti string) 
 func (p *SQLProvider) SaveOneTimeCode(ctx context.Context, code model.OneTimeCode) (signature string, err error) {
 	code.Signature = p.otcHMACSignature([]byte(code.Username), code.IssuedIP.IP, []byte(code.Intent), code.Code)
 
-	if code.Code, err = utils.Encrypt(code.Code, getAAD(tableOneTimeCode, "code"), p.keys.encryption); err != nil {
+	if code.Code, err = utils.Encrypt(code.Code, getAAD(tableOneTimeCode, columnCode), p.keys.encryption); err != nil {
 		return "", fmt.Errorf("error encrypting the one-time code value for user '%s' with signature '%s': %w", code.Username, code.Signature, err)
 	}
 
@@ -1082,7 +1082,7 @@ func (p *SQLProvider) LoadOneTimeCode(ctx context.Context, username string, ip m
 		return nil, fmt.Errorf("error selecting one-time code: %w", err)
 	}
 
-	if code.Code, err = utils.Decrypt(code.Code, getAAD(tableOneTimeCode, "code"), p.keys.encryption); err != nil {
+	if code.Code, err = utils.Decrypt(code.Code, getAAD(tableOneTimeCode, columnCode), p.keys.encryption); err != nil {
 		return nil, fmt.Errorf("error decrypting the one-time code value for user '%s' with signature '%s': %w", code.Username, code.Signature, err)
 	}
 
@@ -1102,7 +1102,7 @@ func (p *SQLProvider) LoadOneTimeCodeBySignature(ctx context.Context, signature 
 		return nil, fmt.Errorf("error selecting one-time code: %w", err)
 	}
 
-	if code.Code, err = utils.Decrypt(code.Code, getAAD(tableOneTimeCode, "code"), p.keys.encryption); err != nil {
+	if code.Code, err = utils.Decrypt(code.Code, getAAD(tableOneTimeCode, columnCode), p.keys.encryption); err != nil {
 		return nil, fmt.Errorf("error decrypting the one-time code value for user '%s' with signature '%s': %w", code.Username, code.Signature, err)
 	}
 
@@ -1585,7 +1585,7 @@ func (p *SQLProvider) UpdateOAuth2PushedAuthorizationSession(ctx context.Context
 		return fmt.Errorf("error updating oauth2 pushed authorization request session data with signature '%s' and request id '%s': the id was a zero value", par.Signature, par.RequestID)
 	}
 
-	if par.Session, err = utils.Encrypt(par.Session, getAAD(OAuth2SessionTypePAR.AAD(), "session_data"), p.keys.encryption); err != nil {
+	if par.Session, err = utils.Encrypt(par.Session, getAAD(OAuth2SessionTypePAR.AAD(), columnSessionData), p.keys.encryption); err != nil {
 		return fmt.Errorf("error encrypting oauth2 pushed authorization request session data with id '%d' and signature '%s' and request id '%s': %w", par.ID, par.Signature, par.RequestID, err)
 	}
 
@@ -1805,7 +1805,7 @@ func (p *SQLProvider) RevokeBannedIP(ctx context.Context, id int, expired time.T
 
 func (p *SQLProvider) SaveCachedData(ctx context.Context, data model.CachedData) (err error) {
 	if data.Encrypted {
-		if data.Value, err = utils.Encrypt(data.Value, getAAD(tableCachedData, "value"), p.keys.encryption); err != nil {
+		if data.Value, err = utils.Encrypt(data.Value, getAAD(tableCachedData, columnValue), p.keys.encryption); err != nil {
 			return fmt.Errorf("error encrypting cached data name '%s': %w", data.Name, err)
 		}
 	}
@@ -1829,7 +1829,7 @@ func (p *SQLProvider) LoadCachedData(ctx context.Context, name string) (data *mo
 	}
 
 	if data.Encrypted {
-		if data.Value, err = utils.Decrypt(data.Value, getAAD(tableCachedData, "value"), p.keys.encryption); err != nil {
+		if data.Value, err = utils.Decrypt(data.Value, getAAD(tableCachedData, columnValue), p.keys.encryption); err != nil {
 			return nil, fmt.Errorf("error decrypting cached data with name '%s': %w", name, err)
 		}
 	}

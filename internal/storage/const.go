@@ -41,6 +41,9 @@ const (
 
 const (
 	columnSessionData = "session_data"
+	columnValue       = "value"
+	columnCode        = "code"
+	columnSecret      = "secret"
 )
 
 const (

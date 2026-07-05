@@ -3382,24 +3382,7 @@ func newTestSQLiteStore(t *testing.T) storage.Provider {
 func newTestSQLiteStoreWithEncryptionKey(t *testing.T) storage.Provider {
 	t.Helper()
 
-	dir := t.TempDir()
-
-	config := &schema.Configuration{
-		Storage: schema.Storage{
-			//gitleaks:allow // This is not an actual secret.
-			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
-			Local: &schema.StorageLocal{
-				Path: filepath.Join(dir, "db.sqlite3"),
-			},
-		},
-	}
-
-	store, err := storage.NewProvider(config, nil)
-	require.NoError(t, err)
-
-	require.NoError(t, store.StartupCheck())
-
-	return store
+	return newTestSQLiteStore(t)
 }
 
 func newTestCmdCtx(t *testing.T) *CmdCtx {

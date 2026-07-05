@@ -193,7 +193,6 @@ func TestSchemaEncryptionUpgradeFromLegacyKey(t *testing.T) {
 			provider := newTestSQLiteProviderWithEncryption(t)
 
 			legacyKey := utils.DeriveLegacyCryptographicKey([]byte(provider.config.Storage.EncryptionKey))
-			provider.keys.encryption = legacyKey
 
 			ctx := context.Background()
 

@@ -30,8 +30,9 @@ func TestNewSQLiteProvider(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			provider, _ := NewSQLiteProvider(tc.have)
+			provider, err := NewSQLiteProvider(tc.have)
 
+			assert.NoError(t, err)
 			assert.NotNil(t, provider)
 		})
 	}

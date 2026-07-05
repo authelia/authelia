@@ -204,11 +204,11 @@ func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProv
 	var decryptAAD, encryptAAD []byte
 
 	if useDecryptAAD {
-		decryptAAD = getAAD(tableOneTimeCode, "code")
+		decryptAAD = getAAD(tableOneTimeCode, columnCode)
 	}
 
 	if useEncryptAAD {
-		encryptAAD = getAAD(tableOneTimeCode, "code")
+		encryptAAD = getAAD(tableOneTimeCode, columnCode)
 	}
 
 	for _, c := range configs {
@@ -254,11 +254,11 @@ func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, c
 	var decryptAAD, encryptAAD []byte
 
 	if useDecryptAAD {
-		decryptAAD = getAAD(tableTOTPConfigurations, "secret")
+		decryptAAD = getAAD(tableTOTPConfigurations, columnSecret)
 	}
 
 	if useEncryptAAD {
-		encryptAAD = getAAD(tableTOTPConfigurations, "secret")
+		encryptAAD = getAAD(tableTOTPConfigurations, columnSecret)
 	}
 
 	for _, c := range configs {
@@ -356,11 +356,11 @@ func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvi
 	var decryptAAD, encryptAAD []byte
 
 	if useDecryptAAD {
-		decryptAAD = getAAD(tableCachedData, "value")
+		decryptAAD = getAAD(tableCachedData, columnValue)
 	}
 
 	if useEncryptAAD {
-		encryptAAD = getAAD(tableCachedData, "value")
+		encryptAAD = getAAD(tableCachedData, columnValue)
 	}
 
 	for _, d := range caches {
@@ -458,11 +458,11 @@ func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvi
 	var decryptAAD, encryptAAD []byte
 
 	if useDecryptAAD || init {
-		decryptAAD = getAAD(tableEncryption, "value")
+		decryptAAD = getAAD(tableEncryption, columnValue)
 	}
 
 	if useEncryptAAD {
-		encryptAAD = getAAD(tableEncryption, "value")
+		encryptAAD = getAAD(tableEncryption, columnValue)
 	}
 
 	for _, c := range configs {
@@ -502,7 +502,7 @@ func schemaEncryptionCheckKeyOneTimeCode(ctx context.Context, provider *SQLProvi
 			return tableOneTimeCode, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning one time-code to struct: %w", err)}
 		}
 
-		if _, err = utils.Decrypt(config.Code, getAAD(tableOneTimeCode, "code"), provider.keys.encryption); err != nil {
+		if _, err = utils.Decrypt(config.Code, getAAD(tableOneTimeCode, columnCode), provider.keys.encryption); err != nil {
 			result.Invalid++
 		}
 	}
@@ -532,7 +532,7 @@ func schemaEncryptionCheckKeyTOTP(ctx context.Context, provider *SQLProvider) (t
 			return tableTOTPConfigurations, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning TOTP configuration to struct: %w", err)}
 		}
 
-		if _, err = utils.Decrypt(config.Secret, getAAD(tableTOTPConfigurations, "secret"), provider.keys.encryption); err != nil {
+		if _, err = utils.Decrypt(config.Secret, getAAD(tableTOTPConfigurations, columnSecret), provider.keys.encryption); err != nil {
 			result.Invalid++
 		}
 	}
@@ -596,7 +596,7 @@ func schemaEncryptionCheckKeyCachedData(ctx context.Context, provider *SQLProvid
 			return tableCachedData, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning cached data to struct: %w", err)}
 		}
 
-		if _, err = utils.Decrypt(cache.Value, getAAD(tableCachedData, "value"), provider.keys.encryption); err != nil {
+		if _, err = utils.Decrypt(cache.Value, getAAD(tableCachedData, columnValue), provider.keys.encryption); err != nil {
 			result.Invalid++
 		}
 	}
@@ -658,7 +658,7 @@ func schemaEncryptionCheckKeyEncryption(ctx context.Context, provider *SQLProvid
 			return tableEncryption, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning encryption value to struct: %w", err)}
 		}
 
-		if _, err = utils.Decrypt(config.Value, getAAD(tableEncryption, "value"), provider.keys.encryption); err != nil {
+		if _, err = utils.Decrypt(config.Value, getAAD(tableEncryption, columnValue), provider.keys.encryption); err != nil {
 			result.Invalid++
 		}
 	}
@@ -738,7 +738,7 @@ func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (ke
 // (schemaVersionEncryptionKeyDerivation) store the value using the legacy SHA256 key without AAD, so validating them
 // with the derived key would incorrectly fail prior to the upgrade migration running.
 func (p *SQLProvider) checkEncryptionCheckValue(ctx context.Context, version int) (err error) {
-	key, aad := p.keys.encryption, getAAD(tableEncryption, "value")
+	key, aad := p.keys.encryption, getAAD(tableEncryption, columnValue)
 
 	if version < schemaVersionEncryptionKeyDerivation {
 		key, aad = utils.DeriveLegacyCryptographicKey([]byte(p.config.Storage.EncryptionKey)), nil
@@ -764,7 +764,7 @@ func (p *SQLProvider) getEncryptionValue(ctx context.Context, name string) (valu
 		return nil, err
 	}
 
-	if value, err = utils.Decrypt(encryptedValue, getAAD(tableEncryption, "value"), p.keys.encryption); err != nil {
+	if value, err = utils.Decrypt(encryptedValue, getAAD(tableEncryption, columnValue), p.keys.encryption); err != nil {
 		return nil, err
 	}
 
@@ -772,7 +772,7 @@ func (p *SQLProvider) getEncryptionValue(ctx context.Context, name string) (valu
 }
 
 func (p *SQLProvider) setEncryptionValue(ctx context.Context, conn SQLXConnection, name string, value []byte) (err error) {
-	if value, err = utils.Encrypt(value, getAAD(tableEncryption, "value"), p.keys.encryption); err != nil {
+	if value, err = utils.Encrypt(value, getAAD(tableEncryption, columnValue), p.keys.encryption); err != nil {
 		return err
 	}
 
@@ -789,7 +789,7 @@ func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, conn SQLXC
 		return err
 	}
 
-	value, err := utils.Encrypt([]byte(valueClearText.String()), getAAD(tableEncryption, "value"), key)
+	value, err := utils.Encrypt([]byte(valueClearText.String()), getAAD(tableEncryption, columnValue), key)
 	if err != nil {
 		return err
 	}
