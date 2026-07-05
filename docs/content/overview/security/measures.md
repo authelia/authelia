@@ -209,14 +209,23 @@ policy by changing refresh_interval, however we believe that 5 minutes is a fair
 
 **Measure Types:** In-built
 
-We use encryption and HMAC signatures to protect vulnerable data stored in the database. It is strongly advised you do
-not give the storage encryption key to anyone. In the instance of a database installation that multiple users have
-access to, you should aim to ensure that users who have access to the database do not also have access to the encryption
-key.
+We use encryption and HMAC signatures to protect sensitive data stored in the database as a hardening measure. It is
+strongly advised you do not give the storage encryption key to anyone. In the instance of a database installation that
+multiple users have access to, you should aim to ensure that users who have access to the database do not also have
+access to the encryption key.
 
-The encrypted data in the database is as follows:
+All of the data is encrypted using the user provided encryption key after passing it through the HMAC-based Extract and
+Expand Key Derivation Function (HKDF) as defined by [RFC5869](https://datatracker.ietf.org/doc/html/rfc5869), with the
+context and application specific information value of `authelia:kdf:storage:encryption_key:v1`. This is done to
+ensure the key is exactly the right length without losing any entropy from the input.
 
-|               Table               |    Column    |                                 AAD                                 |                                                Rationale                                                 |
+We use column specific additional authenticated data to harden against swapping data from one table or column into
+another. While at this time there is no known benefit to doing this that does not mean there is no benefit or will not
+be one in the future.
+
+The encrypted data in the database with the various AAD's used is as follows:
+
+|               Table               |    Column    |                 Additional Authenticated Data (AAD)                 |                                                Rationale                                                 |
 |:---------------------------------:|:------------:|:-------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------:|
 |            encryption             |    value     |                 `authelia:storage:encryption:value`                 |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
 |            cached_data            |    value     |                `authelia:storage:cached_data:value`                 |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
@@ -248,7 +257,7 @@ for this purpose prevent this attack vector.
 
 ### Bad Actors
 
-A bad actor who has the SQL password and access to the database can theoretically change another users credential, this
+A bad actor who has access to the database can theoretically change values in the database, this
 theoretically bypasses authentication. Columns encrypted for this purpose prevent this attack vector.
 
 A bad actor may also be able to use data in the database to bypass 2FA silently depending on the credentials. In the

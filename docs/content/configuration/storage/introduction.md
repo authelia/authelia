@@ -47,13 +47,8 @@ While the minimum length is 20 characters, it's __strongly recommended__ this is
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string)
 with 64 or more characters.
 
-To ensure safe entropy and the specific length of bits needed for the encryption algorithm without loss to the input
-entropy, the encryption key is passed through a HMAC-based Extract and Expand Key Derivation Function (HKDF) as defined
-by [RFC5869](https://datatracker.ietf.org/doc/html/rfc5869).
-
 The key is used to perform application level column specific encryption and decryption of data on sensitive values
-within the database using the AES-256 GCM algorithm with a random nonce per row and and column, and a column specific
-AAD value.
+within the database.
 
 See [security measures](../../overview/security/measures.md#protection-against-storage-exfiltration-and-manipulation)
 for more information.

@@ -100,7 +100,7 @@ const (
 )
 
 const (
-	hkdfKeyInfo = "authelia:storage:encryption_key:v1"
+	hkdfKeyInfo = "authelia:kdf:storage:encryption_key:v1"
 
 	// schemaVersionEncryptionKeyDerivation is the schema version at which HKDF key derivation and GCM AAD were
 	// introduced. Databases below this version store encrypted values using the legacy SHA256 key without AAD.
