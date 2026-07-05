@@ -89,6 +89,7 @@ type encOAuth2Session struct {
 
 type encWebAuthnCredential struct {
 	ID          int    `db:"id"`
+	RPID        string `db:"rpid"`
 	PublicKey   []byte `db:"public_key"`
 	Attestation []byte `db:"attestation"`
 }

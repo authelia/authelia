@@ -225,21 +225,33 @@ be one in the future.
 
 The encrypted data in the database with the various AAD's used is as follows:
 
-|               Table               |    Column    |                 Additional Authenticated Data (AAD)                 |                                                Rationale                                                 |
-|:---------------------------------:|:------------:|:-------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------:|
-|            encryption             |    value     |                 `authelia:storage:encryption:value`                 |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
-|            cached_data            |    value     |                `authelia:storage:cached_data:value`                 |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
-|           one_time_code           |     code     |                `authelia:storage:one_time_code:code`                |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
-|        totp_configurations        |    secret    |            `authelia:storage:totp_configurations:secret`            |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
-|       webauthn_credentials        |  public_key  |         `authelia:storage:webauthn_credentials:public_key`          |                      Prevents [Bad Actors](#bad-actors) from compromising security                       |
-|       webauthn_credentials        | attestation  |         `authelia:storage:webauthn_credentials:attestation`         |                      Prevents [Bad Actors](#bad-actors) from compromising security                       |
-| oauth2_authorization_code_session | session_data |  `authelia:storage:oauth2_authorization_code_session:session_data`  |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
-|    oauth2_device_code_session     | session_data |     `authelia:storage:oauth2_device_code_session:session_data`      |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
-|    oauth2_access_token_session    | session_data |     `authelia:storage:oauth2_access_token_session:session_data`     |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
-|   oauth2_refresh_token_session    | session_data |    `authelia:storage:oauth2_refresh_token_session:session_data`     |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
-|    oauth2_pkce_request_session    | session_data |     `authelia:storage:oauth2_pkce_request_session:session_data`     |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
-|   oauth2_openid_connect_session   | session_data |    `authelia:storage:oauth2_openid_connect_session:session_data`    |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
-|        oauth2_par_context         | session_data | `authelia:storage:oauth2_pushed_authorization_session:session_data` |  Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security  |
+|               Table               |    Column    |                 Additional Authenticated Data (AAD)                 |                                               Rationale                                                |
+|:---------------------------------:|:------------:|:-------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------:|
+|            encryption             |    value     |                 `authelia:storage:encryption:value`                 | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|            cached_data            |    value     |                `authelia:storage:cached_data:value`                 | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|           one_time_code           |     code     |                `authelia:storage:one_time_code:code`                | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|        totp_configurations        |    secret    |            `authelia:storage:totp_configurations:secret`            | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|       webauthn_credentials        |  public_key  |      `authelia:storage:webauthn_credentials:<rpid>:public_key`      |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+|       webauthn_credentials        | attestation  |     `authelia:storage:webauthn_credentials:<rpid>:attestation`      |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+| oauth2_authorization_code_session | session_data |  `authelia:storage:oauth2_authorization_code_session:session_data`  | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_device_code_session     | session_data |     `authelia:storage:oauth2_device_code_session:session_data`      | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_access_token_session    | session_data |     `authelia:storage:oauth2_access_token_session:session_data`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|   oauth2_refresh_token_session    | session_data |    `authelia:storage:oauth2_refresh_token_session:session_data`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_pkce_request_session    | session_data |     `authelia:storage:oauth2_pkce_request_session:session_data`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|   oauth2_openid_connect_session   | session_data |    `authelia:storage:oauth2_openid_connect_session:session_data`    | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|        oauth2_par_context         | session_data | `authelia:storage:oauth2_pushed_authorization_session:session_data` | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+
+You will note that the pattern for the additional authenticated data is the same for all tables and columns with a few
+exceptions. The format is `authelia:storage:<table>:<column>` for basically every table and column combination.
+
+The first exception is the `webauthn_credentials` table where the additional authenticated data is different for each domain,
+specifically the `rpid` column is included in the additional authenticated data. If the `rpid` value is `example.com`
+then the `<rpid>` placeholder will be replaced with `example.com` and become
+`authelia:storage:webauthn_credentials:example.com:public_key` for example. This exception is likely to follow for the
+`oauth2_*` tables and the `one_time_code` table in the near future, and `totp_configurations` in v5.
+
+The second exception is the `oauth2_par_context` table where the table name is replaced with
+`oauth2_pushed_authorization_session` which is the name the table will be renamed to in the future.
 
 The HMAC signatures stored in the database use the encrypted key stored in the `encryption` table where the `name`
 column matches the table below. We both ensure the keys are encrypted and use unique keys for each purpose to ensure

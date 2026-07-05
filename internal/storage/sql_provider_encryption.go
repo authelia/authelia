@@ -303,17 +303,17 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 
 	var publickeyDecryptAAD, publickeyEncryptAAD, attestationDecryptAAD, attestationEncryptAAD []byte
 
-	if useDecryptAAD {
-		publickeyDecryptAAD = getAAD(tableWebAuthnCredentials, "public_key")
-		attestationDecryptAAD = getAAD(tableWebAuthnCredentials, "attestation")
-	}
-
-	if useEncryptAAD {
-		publickeyEncryptAAD = getAAD(tableWebAuthnCredentials, "public_key")
-		attestationEncryptAAD = getAAD(tableWebAuthnCredentials, "attestation")
-	}
-
 	for _, d := range credentials {
+		if useDecryptAAD {
+			publickeyDecryptAAD = getIssuerAAD(tableWebAuthnCredentials, "public_key", d.RPID)
+			attestationDecryptAAD = getIssuerAAD(tableWebAuthnCredentials, "attestation", d.RPID)
+		}
+
+		if useEncryptAAD {
+			publickeyEncryptAAD = getIssuerAAD(tableWebAuthnCredentials, "public_key", d.RPID)
+			attestationEncryptAAD = getIssuerAAD(tableWebAuthnCredentials, "attestation", d.RPID)
+		}
+
 		if d.PublicKey, err = utils.Decrypt(d.PublicKey, publickeyDecryptAAD, provider.keys.encryption); err != nil {
 			return fmt.Errorf("error decrypting WebAuthn credential public key with id '%d': %w", d.ID, err)
 		}
@@ -562,10 +562,10 @@ func schemaEncryptionCheckKeyWebAuthn(ctx context.Context, provider *SQLProvider
 			return tableWebAuthnCredentials, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning WebAuthn credential to struct: %w", err)}
 		}
 
-		if _, err = utils.Decrypt(credential.PublicKey, getAAD(tableWebAuthnCredentials, "public_key"), provider.keys.encryption); err != nil {
+		if _, err = utils.Decrypt(credential.PublicKey, getIssuerAAD(tableWebAuthnCredentials, "public_key", credential.RPID), provider.keys.encryption); err != nil {
 			result.Invalid++
 		} else if credential.Attestation != nil {
-			if _, err = utils.Decrypt(credential.Attestation, getAAD(tableWebAuthnCredentials, "attestation"), provider.keys.encryption); err != nil {
+			if _, err = utils.Decrypt(credential.Attestation, getIssuerAAD(tableWebAuthnCredentials, "attestation", credential.RPID), provider.keys.encryption); err != nil {
 				result.Invalid++
 			}
 		}
@@ -801,4 +801,9 @@ func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, conn SQLXC
 
 func getAAD(table, column string) []byte {
 	return []byte(fmt.Sprintf("authelia:storage:%s:%s", table, column))
+}
+
+//nolint:unparam
+func getIssuerAAD(table, column, issuer string) []byte {
+	return []byte(fmt.Sprintf("authelia:storage:%s:%s:%s", table, issuer, column))
 }
