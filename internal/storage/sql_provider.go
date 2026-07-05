@@ -42,12 +42,12 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		encryption []byte
 	)
 
-	if db, err = sqlx.Open(driverName, dataSourceName); err != nil {
-		return provider, fmt.Errorf("error opening database: %w", err)
-	}
-
 	if encryption, err = utils.DeriveCryptographicKey([]byte(config.Storage.EncryptionKey), hkdfKeyInfo, sha256.New); err != nil {
 		return provider, fmt.Errorf("error occurred deriving encryption key: %w", err)
+	}
+
+	if db, err = sqlx.Open(driverName, dataSourceName); err != nil {
+		return provider, fmt.Errorf("error opening database: %w", err)
 	}
 
 	provider = SQLProvider{

@@ -208,7 +208,7 @@ func TestRunStorageSchemaInfo(t *testing.T) {
 	})
 
 	t.Run("ShouldShowValidEncryptionKey", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		buf := new(bytes.Buffer)
 
@@ -295,7 +295,7 @@ func TestRunStorageSchemaEncryptionCheckKey(t *testing.T) {
 	}
 
 	t.Run("ShouldSucceedWithEncryptionNonVerbose", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		buf := new(bytes.Buffer)
 
@@ -306,7 +306,7 @@ func TestRunStorageSchemaEncryptionCheckKey(t *testing.T) {
 	})
 
 	t.Run("ShouldSucceedWithEncryptionVerbose", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		buf := new(bytes.Buffer)
 
@@ -345,7 +345,7 @@ func TestRunStorageSchemaEncryptionChangeKey(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			buf := new(bytes.Buffer)
 
@@ -383,7 +383,7 @@ func TestRunStorageMigration(t *testing.T) {
 	})
 
 	t.Run("ShouldSucceedDownMigrationWithDestroy", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		buf := new(bytes.Buffer)
 
@@ -416,7 +416,7 @@ func TestRunStorageUserWebAuthnListAll(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
@@ -462,7 +462,7 @@ func TestRunStorageUserWebAuthnList(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
@@ -531,7 +531,7 @@ func TestRunStorageUserWebAuthnDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
@@ -574,7 +574,7 @@ func TestRunStorageUserWebAuthnExport(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
@@ -599,7 +599,7 @@ func TestRunStorageUserWebAuthnExport(t *testing.T) {
 	}
 
 	t.Run("ShouldSucceedExportImportRoundTrip", func(t *testing.T) {
-		store1 := newTestSQLiteStoreWithEncryptionKey(t)
+		store1 := newTestSQLiteStore(t)
 
 		seedWebAuthnCredential(t, context.Background(), store1, "john", "key-1", []byte("kid-1"))
 		seedWebAuthnCredential(t, context.Background(), store1, "harry", "key-2", []byte("kid-2"))
@@ -610,7 +610,7 @@ func TestRunStorageUserWebAuthnExport(t *testing.T) {
 		require.NoError(t, runStorageUserWebAuthnExport(context.Background(), exportBuf, store1, exportFile))
 		assert.Contains(t, exportBuf.String(), "Successfully exported 2 WebAuthn credentials")
 
-		store2 := newTestSQLiteStoreWithEncryptionKey(t)
+		store2 := newTestSQLiteStore(t)
 
 		importBuf := new(bytes.Buffer)
 
@@ -690,7 +690,7 @@ func TestRunStorageUserWebAuthnImport(t *testing.T) {
 	}
 
 	t.Run("ShouldSucceedImportRoundTrip", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
 
@@ -700,7 +700,7 @@ func TestRunStorageUserWebAuthnImport(t *testing.T) {
 
 		require.NoError(t, runStorageUserWebAuthnExport(context.Background(), buf, store, exportFile))
 
-		store2 := newTestSQLiteStoreWithEncryptionKey(t)
+		store2 := newTestSQLiteStore(t)
 
 		buf.Reset()
 
@@ -731,7 +731,7 @@ func TestRunStorageUserTOTPExportURI(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedTOTPConfig(t, context.Background(), store, "john")
@@ -787,7 +787,7 @@ func TestRunStorageUserTOTPExportCSV(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedTOTPConfig(t, context.Background(), store, "john")
@@ -835,7 +835,7 @@ func TestRunStorageUserTOTPExport(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedTOTPConfig(t, context.Background(), store, "john")
@@ -907,7 +907,7 @@ func TestRunStorageUserTOTPImport(t *testing.T) {
 	}
 
 	t.Run("ShouldSucceedImportRoundTrip", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		seedTOTPConfig(t, context.Background(), store, "john")
 
@@ -917,7 +917,7 @@ func TestRunStorageUserTOTPImport(t *testing.T) {
 
 		require.NoError(t, runStorageUserTOTPExport(context.Background(), buf, store, exportFile))
 
-		store2 := newTestSQLiteStoreWithEncryptionKey(t)
+		store2 := newTestSQLiteStore(t)
 
 		buf.Reset()
 
@@ -3377,12 +3377,6 @@ func newTestSQLiteStore(t *testing.T) storage.Provider {
 	require.NoError(t, store.StartupCheck())
 
 	return store
-}
-
-func newTestSQLiteStoreWithEncryptionKey(t *testing.T) storage.Provider {
-	t.Helper()
-
-	return newTestSQLiteStore(t)
 }
 
 func newTestCmdCtx(t *testing.T) *CmdCtx {
