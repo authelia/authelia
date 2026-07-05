@@ -2204,13 +2204,14 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialByIDDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), 7).DoAndReturn(
 					func(_ context.Context, dest any, _ string, _ ...any) error {
 						c := dest.(*model.WebAuthnCredential)
 						c.ID = 7
+						c.RPID = "example.com"
 						c.Username = "john"
 						c.PublicKey = validPK
 						c.Attestation = invalidCipher
@@ -2246,13 +2247,13 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialsDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), 10, 0).DoAndReturn(
 					func(_ context.Context, dest any, _ string, _ ...any) error {
 						creds := dest.(*[]model.WebAuthnCredential)
-						*creds = []model.WebAuthnCredential{{ID: 9, Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
+						*creds = []model.WebAuthnCredential{{ID: 9, RPID: "example.com", Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
 
 						return nil
 					},
@@ -2285,13 +2286,13 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialsByUsernameDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), "example.com", "john", false).DoAndReturn(
 					func(_ context.Context, dest any, _ string, _ ...any) error {
 						creds := dest.(*[]model.WebAuthnCredential)
-						*creds = []model.WebAuthnCredential{{ID: 9, Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
+						*creds = []model.WebAuthnCredential{{ID: 9, RPID: "example.com", Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
 
 						return nil
 					},
@@ -2324,13 +2325,13 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnPasskeyCredentialsByUsernameDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), "example.com", "john", true).DoAndReturn(
 					func(_ context.Context, dest any, _ string, _ ...any) error {
 						creds := dest.(*[]model.WebAuthnCredential)
-						*creds = []model.WebAuthnCredential{{ID: 9, Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
+						*creds = []model.WebAuthnCredential{{ID: 9, RPID: "example.com", Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
 
 						return nil
 					},
