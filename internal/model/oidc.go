@@ -162,8 +162,8 @@ func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester
 	}, nil
 }
 
-// NewOAuth2PARContext creates a new Pushed Authorization Request Context as a OAuth2PARContext.
-func NewOAuth2PARContext(contextID string, r oauthelia2.AuthorizeRequester) (context *OAuth2PARContext, err error) {
+// NewOAuth2PushedAuthorizationSession creates a new Pushed Authorization Request Context as a OAuth2PushedAuthorizationSession.
+func NewOAuth2PushedAuthorizationSession(contextID string, r oauthelia2.AuthorizeRequester) (context *OAuth2PushedAuthorizationSession, err error) {
 	var (
 		s       OpenIDSession
 		ok      bool
@@ -185,7 +185,7 @@ func NewOAuth2PARContext(contextID string, r oauthelia2.AuthorizeRequester) (con
 		handled = StringSlicePipeDelimited(req.HandledResponseTypes)
 	}
 
-	return &OAuth2PARContext{
+	return &OAuth2PushedAuthorizationSession{
 		Signature:            contextID,
 		RequestID:            r.GetID(),
 		ClientID:             r.GetClient().GetID(),
@@ -534,8 +534,8 @@ func (s *OAuth2DeviceCodeSession) ToRequest(ctx context.Context, session oauthel
 	return request, nil
 }
 
-// OAuth2PARContext holds relevant information about a Pushed Authorization Request in order to process the authorization.
-type OAuth2PARContext struct {
+// OAuth2PushedAuthorizationSession holds relevant information about a Pushed Authorization Request in order to process the authorization.
+type OAuth2PushedAuthorizationSession struct {
 	ID                   int                      `db:"id"`
 	Signature            string                   `db:"signature"`
 	RequestID            string                   `db:"request_id"`
@@ -551,7 +551,7 @@ type OAuth2PARContext struct {
 	Session              []byte                   `db:"session_data"`
 }
 
-func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.AuthorizeRequest, err error) {
+func (par *OAuth2PushedAuthorizationSession) ToAuthorizeRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.AuthorizeRequest, err error) {
 	if session != nil {
 		if err = json.Unmarshal(par.Session, session); err != nil {
 			return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to unmarshal the JSON session data: %w", err)

@@ -11,27 +11,27 @@ overrides:
   "@babel/helpers": 7.29.7
   "@babel/runtime": 7.29.7
   "@babel/traverse": 7.29.7
-  "@typescript-eslint/eslint-plugin": 8.61.1
-  "@typescript-eslint/parser": 8.61.1
-  "@typescript-eslint/typescript-estree": 8.61.1
-  "@typescript-eslint/utils": 8.61.1
+  "@typescript-eslint/eslint-plugin": 8.62.1
+  "@typescript-eslint/parser": 8.62.1
+  "@typescript-eslint/typescript-estree": 8.62.1
+  "@typescript-eslint/utils": 8.62.1
   body-parser: 2.3.0
-  brace-expansion: 5.0.6
+  brace-expansion: 5.0.7
   esbuild: 0.28.1
   express: 5.2.1
-  fast-uri: 4.0.0
+  fast-uri: 4.1.0
   flatted: 3.4.2
   follow-redirects: 1.16.0
   form-data: 4.0.6
   glob: 13.0.6
   import-meta-resolve: 4.2.0
-  js-yaml: 4.2.0
+  js-yaml: 5.2.1
   minimatch: 10.2.5
   path-to-regexp: 8.4.2
-  picomatch: 4.0.4
-  qs: 6.15.2
-  semver: 7.8.4
-  vite: 8.0.16
+  picomatch: 4.0.5
+  qs: 6.15.3
+  semver: 7.8.5
+  vite: 8.1.3
   ws: 8.21.0
   yaml: 2.9.0
 peerDependencyRules:

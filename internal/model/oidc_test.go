@@ -171,14 +171,14 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 	testCases := []struct {
 		name     string
 		setup    func(mock *mocks.MockOAuth2Storage)
-		have     *model.OAuth2PARContext
+		have     *model.OAuth2PushedAuthorizationSession
 		expected *oauthelia2.AuthorizeRequest
 		err      string
 	}{
 		{
 			"ShouldErrorInvalidJSONData",
 			nil,
-			&model.OAuth2PARContext{},
+			&model.OAuth2PushedAuthorizationSession{},
 			&oauthelia2.AuthorizeRequest{},
 			"error occurred while mapping PAR context back to an Authorize Request while trying to unmarshal the JSON session data: unexpected end of JSON input",
 		},
@@ -187,7 +187,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(nil, oauthelia2.ErrNotFound)
 			},
-			&model.OAuth2PARContext{
+			&model.OAuth2PushedAuthorizationSession{
 				ClientID: parclientid,
 				Session:  []byte("{}"),
 			},
@@ -199,7 +199,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
-			&model.OAuth2PARContext{
+			&model.OAuth2PushedAuthorizationSession{
 				ID:        1,
 				Signature: fmt.Sprintf("%sexample", oidc.RedirectURIPrefixPushedAuthorizationRequestURN),
 				RequestID: requestid,
@@ -215,7 +215,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
-			&model.OAuth2PARContext{
+			&model.OAuth2PushedAuthorizationSession{
 				ID:        1,
 				Signature: fmt.Sprintf("%sexample", oidc.RedirectURIPrefixPushedAuthorizationRequestURN),
 				RequestID: requestid,
@@ -231,7 +231,7 @@ func TestOAuth2PARContext_ToAuthorizeRequest(t *testing.T) {
 			func(mock *mocks.MockOAuth2Storage) {
 				mock.EXPECT().GetClient(context.TODO(), parclientid).Return(&oidc.RegisteredClient{ID: parclientid}, nil)
 			},
-			&model.OAuth2PARContext{
+			&model.OAuth2PushedAuthorizationSession{
 				ID:          1,
 				Signature:   fmt.Sprintf("%sexample", oidc.RedirectURIPrefixPushedAuthorizationRequestURN),
 				RequestID:   requestid,
@@ -304,7 +304,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 		name     string
 		have     oauthelia2.AuthorizeRequester
 		id       string
-		expected *model.OAuth2PARContext
+		expected *model.OAuth2PushedAuthorizationSession
 		err      string
 	}{
 		{
@@ -324,7 +324,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 				},
 			},
 			"123",
-			&model.OAuth2PARContext{
+			&model.OAuth2PushedAuthorizationSession{
 				Signature:            "123",
 				RequestID:            "a-id",
 				ClientID:             "a-client",
@@ -363,7 +363,7 @@ func TestNewOAuth2PARContext(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, err := model.NewOAuth2PARContext(tc.id, tc.have)
+			actual, err := model.NewOAuth2PushedAuthorizationSession(tc.id, tc.have)
 
 			if tc.err == "" {
 				assert.NoError(t, err)

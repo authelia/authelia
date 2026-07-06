@@ -166,7 +166,15 @@ func (s *Store) CreateAuthorizeCodeSession(ctx context.Context, code string, req
 // ErrInvalidatedAuthorizeCode error.
 // This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *Store) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
-	return s.provider.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeAuthorizeCode, code)
+	if err = s.provider.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeAuthorizeCode, code); err == nil {
+		return nil
+	}
+
+	if errors.Is(err, storage.ErrNoRowsAffected) {
+		return oauthelia2.ErrInvalidatedAuthorizeCode
+	}
+
+	return err
 }
 
 // GetAuthorizeCodeSession hydrates the session based on the given code and returns the authorization request.
@@ -317,7 +325,7 @@ func (s *Store) GetDeviceCodeSession(ctx context.Context, signature string, sess
 }
 
 func (s *Store) InvalidateDeviceCodeSession(ctx context.Context, signature string) (err error) {
-	return s.provider.DeactivateOAuth2DeviceCodeSession(ctx, signature)
+	return s.provider.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, signature)
 }
 
 func (s *Store) GetDeviceCodeSessionByUserCode(ctx context.Context, signature string, session oauthelia2.Session) (request oauthelia2.DeviceAuthorizeRequester, err error) {
@@ -345,21 +353,21 @@ func (s *Store) GetDeviceCodeSessionByUserCode(ctx context.Context, signature st
 // CreatePARSession stores the pushed authorization request context. The requestURI is used to derive the key.
 // This implements a portion of oauthelia2.PARStorage.
 func (s *Store) CreatePARSession(ctx context.Context, requestURI string, request oauthelia2.AuthorizeRequester) (err error) {
-	var par *model.OAuth2PARContext
+	var par *model.OAuth2PushedAuthorizationSession
 
-	if par, err = model.NewOAuth2PARContext(requestURI, request); err != nil {
+	if par, err = model.NewOAuth2PushedAuthorizationSession(requestURI, request); err != nil {
 		return err
 	}
 
-	return s.provider.SaveOAuth2PARContext(ctx, *par)
+	return s.provider.SaveOAuth2PushedAuthorizationSession(ctx, *par)
 }
 
 // GetPARSession gets the push authorization request context. The caller is expected to merge the AuthorizeRequest.
 // This implements a portion of oauthelia2.PARStorage.
 func (s *Store) GetPARSession(ctx context.Context, requestURI string) (request oauthelia2.AuthorizeRequester, err error) {
-	var par *model.OAuth2PARContext
+	var par *model.OAuth2PushedAuthorizationSession
 
-	if par, err = s.provider.LoadOAuth2PARContext(ctx, requestURI); err != nil {
+	if par, err = s.provider.LoadOAuth2PushedAuthorizationSession(ctx, requestURI); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, oauthelia2.ErrNotFound.WithHint("The requested PAR session was not found, was expired, or was otherwise invalid.")
 		}
@@ -377,7 +385,7 @@ func (s *Store) GetPARSession(ctx context.Context, requestURI string) (request o
 // DeletePARSession deletes the context.
 // This implements a portion of oauthelia2.PARStorage.
 func (s *Store) DeletePARSession(ctx context.Context, requestURI string) (err error) {
-	return s.provider.RevokeOAuth2PARContext(ctx, requestURI)
+	return s.provider.RevokeOAuth2PushedAuthorizationSession(ctx, requestURI)
 }
 
 // IsJWTUsed implements an interface required for RFC7523.
