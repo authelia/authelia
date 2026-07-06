@@ -3,6 +3,8 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"net"
 	"path/filepath"
 	"testing"
 	"time"
@@ -272,6 +274,206 @@ func TestStorageUserTOTPShouldRoundTripWithoutStartupCheck(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, configs, 1)
 	assert.Equal(t, []byte("JBSWY3DPEHPK3PXP"), configs[0].Secret)
+}
+
+func TestSchemaEncryptionChangeKeyWithAllData(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "db.sqlite3")
+
+	const (
+		oldKey = "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret"
+		newKey = "authelia-new-test-key-not-a-secret-authelia-new-key-value-ok"
+	)
+
+	newProvider := func(key string) *SQLiteProvider {
+		config := &schema.Configuration{
+			Storage: schema.Storage{
+				EncryptionKey: key,
+				Local:         &schema.StorageLocal{Path: path},
+			},
+		}
+
+		provider, err := NewSQLiteProvider(config)
+		require.NoError(t, err)
+		require.NotNil(t, provider)
+
+		return provider
+	}
+
+	ctx := context.Background()
+
+	provider := newProvider(oldKey)
+	require.NoError(t, provider.StartupCheck())
+
+	require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+		CreatedAt: time.Now().Truncate(time.Second),
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    []byte("JBSWY3DPEHPK3PXP"),
+	}))
+
+	require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+		CreatedAt:       time.Now().Truncate(time.Second),
+		RPID:            "example.com",
+		Username:        "john",
+		Description:     "my-key",
+		KID:             model.NewBase64([]byte("kid-1")),
+		AttestationType: "none",
+		Attachment:      "cross-platform",
+		PublicKey:       []byte("fake-public-key"),
+		Attestation:     []byte("fake-attestation"),
+	}))
+
+	_, err := provider.SaveOneTimeCode(ctx, model.OneTimeCode{
+		PublicID:  uuid.Must(uuid.NewRandom()),
+		IssuedAt:  time.Now().Truncate(time.Second),
+		IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+		ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+		Username:  "john",
+		Intent:    "reset_password",
+		Code:      []byte("123456"),
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, model.OAuth2Session{
+		ChallengeID:     model.MustNullUUID(model.NewRandomNullUUID()),
+		RequestID:       "req-123",
+		ClientID:        "test-client",
+		Signature:       "sig-123",
+		Subject:         sql.NullString{Valid: true, String: "john"},
+		Active:          true,
+		RequestedScopes: model.StringSlicePipeDelimited{"openid"},
+		GrantedScopes:   model.StringSlicePipeDelimited{"openid"},
+		Session:         []byte(`{"access":"token"}`),
+	}))
+
+	require.NoError(t, provider.SaveOAuth2DeviceCodeSession(ctx, &model.OAuth2DeviceCodeSession{
+		Signature:         "dev-sig-123",
+		RequestID:         "dev-req-123",
+		ClientID:          "test-client",
+		UserCodeSignature: "user-code-123",
+		Active:            true,
+		RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+		GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+		Session:           []byte(`{"device":"code"}`),
+		RequestedAt:       time.Now().Truncate(time.Second),
+	}))
+
+	require.NoError(t, provider.SaveOAuth2PushedAuthorizationSession(ctx, model.OAuth2PushedAuthorizationSession{
+		Signature:   "par-sig-123",
+		RequestID:   "par-req-123",
+		ClientID:    "test-client",
+		RequestedAt: time.Now().Truncate(time.Second),
+		Session:     []byte(`{"par":"session"}`),
+	}))
+
+	require.NoError(t, provider.SaveCachedData(ctx, model.CachedData{
+		Name:      "cache-key",
+		Value:     []byte("cache-value"),
+		Encrypted: true,
+	}))
+
+	require.NoError(t, provider.SchemaEncryptionChangeKey(ctx, newKey))
+	require.NoError(t, provider.Close())
+
+	provider = newProvider(newKey)
+	require.NoError(t, provider.StartupCheck())
+
+	result, err := provider.SchemaEncryptionCheckKey(ctx, true)
+	require.NoError(t, err)
+	assert.True(t, result.Success())
+
+	totp, err := provider.LoadTOTPConfiguration(ctx, "john")
+	require.NoError(t, err)
+	assert.Equal(t, []byte("JBSWY3DPEHPK3PXP"), totp.Secret)
+
+	credentials, err := provider.LoadWebAuthnCredentialsByUsername(ctx, "example.com", "john")
+	require.NoError(t, err)
+	require.Len(t, credentials, 1)
+	assert.Equal(t, []byte("fake-public-key"), credentials[0].PublicKey)
+	assert.Equal(t, []byte("fake-attestation"), credentials[0].Attestation)
+
+	code, err := provider.LoadOneTimeCode(ctx, "john", model.NewIP(net.ParseIP("127.0.0.1")), "reset_password", "123456")
+	require.NoError(t, err)
+	assert.Equal(t, []byte("123456"), code.Code)
+
+	session, err := provider.LoadOAuth2Session(ctx, OAuth2SessionTypeAccessToken, "sig-123")
+	require.NoError(t, err)
+	assert.Equal(t, []byte(`{"access":"token"}`), session.Session)
+
+	device, err := provider.LoadOAuth2DeviceCodeSession(ctx, "dev-sig-123")
+	require.NoError(t, err)
+	assert.Equal(t, []byte(`{"device":"code"}`), device.Session)
+
+	par, err := provider.LoadOAuth2PushedAuthorizationSession(ctx, "par-sig-123")
+	require.NoError(t, err)
+	assert.Equal(t, []byte(`{"par":"session"}`), par.Session)
+
+	cached, err := provider.LoadCachedData(ctx, "cache-key")
+	require.NoError(t, err)
+	assert.Equal(t, []byte("cache-value"), cached.Value)
+
+	require.NoError(t, provider.Close())
+}
+
+func TestSchemaEncryptionCheckKeyWithInvalidData(t *testing.T) {
+	testCases := []struct {
+		name    string
+		table   string
+		column  string
+		corrupt func(t *testing.T, provider *SQLiteProvider, ctx context.Context)
+	}{
+		{
+			name:   "ShouldReportInvalidTOTPSecret",
+			table:  tableTOTPConfigurations,
+			column: columnSecret,
+			corrupt: func(t *testing.T, provider *SQLiteProvider, ctx context.Context) {
+				require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+					CreatedAt: time.Now().Truncate(time.Second),
+					Username:  "john",
+					Issuer:    "Authelia",
+					Algorithm: "SHA1",
+					Digits:    6,
+					Period:    30,
+					Secret:    []byte("JBSWY3DPEHPK3PXP"),
+				}))
+			},
+		},
+		{
+			name:   "ShouldReportInvalidCachedDataValue",
+			table:  tableCachedData,
+			column: columnValue,
+			corrupt: func(t *testing.T, provider *SQLiteProvider, ctx context.Context) {
+				require.NoError(t, provider.SaveCachedData(ctx, model.CachedData{
+					Name:      "cache-key",
+					Value:     []byte("cache-value"),
+					Encrypted: true,
+				}))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			tc.corrupt(t, provider, ctx)
+
+			_, err := provider.db.ExecContext(ctx, fmt.Sprintf("UPDATE %s SET %s = ?", tc.table, tc.column), []byte("this-is-not-valid-ciphertext"))
+			require.NoError(t, err)
+
+			result, err := provider.SchemaEncryptionCheckKey(ctx, true)
+			require.NoError(t, err)
+
+			assert.False(t, result.Success())
+			assert.NotZero(t, result.Tables[tc.table].Invalid)
+		})
+	}
 }
 
 func newTestSQLiteProviderWithEncryption(t *testing.T) *SQLiteProvider {

@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 const (
@@ -177,6 +179,40 @@ func TestSchemaMigrateDownToZeroShouldSucceedWithStaleEncryptionKey(t *testing.T
 	require.NoError(t, err)
 
 	require.NoError(t, provider.SchemaMigrate(ctx, false, 0))
+}
+
+func TestSchemaMigrateDownToPriorVersionShouldReEncryptToLegacyKey(t *testing.T) {
+	provider := newTestSQLiteProviderWithEncryption(t)
+
+	ctx := context.Background()
+
+	require.NoError(t, provider.StartupCheck())
+
+	require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+		CreatedAt: time.Now().Truncate(time.Second),
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    []byte("JBSWY3DPEHPK3PXP"),
+	}))
+
+	require.NoError(t, provider.SchemaMigrate(ctx, false, schemaVersionEncryptionKeyDerivation-1))
+
+	version, err := provider.SchemaVersion(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, schemaVersionEncryptionKeyDerivation-1, version)
+
+	legacyKey := utils.DeriveLegacyCryptographicKey([]byte(provider.config.Storage.EncryptionKey))
+
+	var secret []byte
+
+	require.NoError(t, provider.db.GetContext(ctx, &secret, fmt.Sprintf("SELECT %s FROM %s WHERE username = ?", columnSecret, tableTOTPConfigurations), "john"))
+
+	decrypted, err := utils.Decrypt(secret, nil, legacyKey)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("JBSWY3DPEHPK3PXP"), decrypted)
 }
 
 func TestMigrationShouldReturnErrorOnSame(t *testing.T) {
