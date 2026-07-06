@@ -100,6 +100,11 @@ func TestSchemaEncryptionChangeKey(t *testing.T) {
 			"authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			"error changing the storage encryption key: the old key and the new key are the same",
 		},
+		{
+			"ShouldErrEmptyKey",
+			"",
+			"error deriving cryptographic key: value is empty",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -147,6 +152,66 @@ func TestSchemaEncryptionChangeKeyWithData(t *testing.T) {
 			err := provider.SchemaEncryptionChangeKey(ctx, "authelia-new-test-key-not-a-secret-authelia-new-key")
 
 			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestSchemaEncryptionChangeKeyShouldRollbackOnCorruptData(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{"ShouldRollbackWhenTOTPSecretCannotBeDecrypted"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+				CreatedAt: time.Now().Truncate(time.Second),
+				Username:  "john",
+				Issuer:    "Authelia",
+				Algorithm: "SHA1",
+				Digits:    6,
+				Period:    30,
+				Secret:    []byte("JBSWY3DPEHPK3PXP"),
+			}))
+
+			_, err := provider.db.ExecContext(ctx, fmt.Sprintf("UPDATE %s SET %s = ?", tableTOTPConfigurations, columnSecret), []byte("this-is-not-valid-ciphertext"))
+			require.NoError(t, err)
+
+			err = provider.SchemaEncryptionChangeKey(ctx, "authelia-new-test-key-not-a-secret-authelia-new-key")
+			assert.EqualError(t, err, "error changing the storage encryption key: error decrypting TOTP configuration secret with id '1': cipher: message authentication failed")
+
+			var secret []byte
+
+			require.NoError(t, provider.db.GetContext(ctx, &secret, fmt.Sprintf("SELECT %s FROM %s WHERE username = ?", columnSecret, tableTOTPConfigurations), "john"))
+			assert.Equal(t, []byte("this-is-not-valid-ciphertext"), secret)
+		})
+	}
+}
+
+func TestSchemaEncryptionChangeKeyShouldSkipEmptyCachedData(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{"ShouldSkipCachedDataRowWithEmptyValue"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			_, err := provider.db.ExecContext(ctx, provider.sqlUpsertCachedData, "empty-cache", time.Now(), true, []byte{})
+			require.NoError(t, err)
+
+			require.NoError(t, provider.SchemaEncryptionChangeKey(ctx, "authelia-new-test-key-not-a-secret-authelia-new-key"))
 		})
 	}
 }
@@ -453,6 +518,59 @@ func TestSchemaEncryptionCheckKeyWithInvalidData(t *testing.T) {
 				}))
 			},
 		},
+		{
+			name:   "ShouldReportInvalidOneTimeCode",
+			table:  tableOneTimeCode,
+			column: columnCode,
+			corrupt: func(t *testing.T, provider *SQLiteProvider, ctx context.Context) {
+				_, err := provider.SaveOneTimeCode(ctx, model.OneTimeCode{
+					PublicID:  uuid.Must(uuid.NewRandom()),
+					IssuedAt:  time.Now().Truncate(time.Second),
+					IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+					ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+					Username:  "john",
+					Intent:    "reset_password",
+					Code:      []byte("123456"),
+				})
+				require.NoError(t, err)
+			},
+		},
+		{
+			name:   "ShouldReportInvalidWebAuthnPublicKey",
+			table:  tableWebAuthnCredentials,
+			column: "public_key",
+			corrupt: func(t *testing.T, provider *SQLiteProvider, ctx context.Context) {
+				require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+					CreatedAt:       time.Now().Truncate(time.Second),
+					RPID:            "example.com",
+					Username:        "john",
+					Description:     "my-key",
+					KID:             model.NewBase64([]byte("kid-1")),
+					AttestationType: "none",
+					Attachment:      "cross-platform",
+					PublicKey:       []byte("fake-public-key"),
+					Attestation:     []byte("fake-attestation"),
+				}))
+			},
+		},
+		{
+			name:   "ShouldReportInvalidOAuth2SessionData",
+			table:  tableOAuth2AccessTokenSession,
+			column: columnSessionData,
+			corrupt: func(t *testing.T, provider *SQLiteProvider, ctx context.Context) {
+				require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, model.OAuth2Session{
+					ChallengeID:     model.MustNullUUID(model.NewRandomNullUUID()),
+					RequestID:       "req-123",
+					ClientID:        "test-client",
+					Signature:       "sig-123",
+					Subject:         sql.NullString{Valid: true, String: "john"},
+					Active:          true,
+					RequestedScopes: model.StringSlicePipeDelimited{"openid"},
+					GrantedScopes:   model.StringSlicePipeDelimited{"openid"},
+					Session:         []byte(`{"access":"token"}`),
+				}))
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -472,6 +590,38 @@ func TestSchemaEncryptionCheckKeyWithInvalidData(t *testing.T) {
 
 			assert.False(t, result.Success())
 			assert.NotZero(t, result.Tables[tc.table].Invalid)
+		})
+	}
+}
+
+func TestSchemaEncryptionCheckKeyShouldReportTableQueryErrors(t *testing.T) {
+	testCases := []struct {
+		name  string
+		table string
+	}{
+		{"ShouldReportOneTimeCodeQueryError", tableOneTimeCode},
+		{"ShouldReportTOTPQueryError", tableTOTPConfigurations},
+		{"ShouldReportWebAuthnQueryError", tableWebAuthnCredentials},
+		{"ShouldReportCachedDataQueryError", tableCachedData},
+		{"ShouldReportOAuth2SessionQueryError", tableOAuth2AccessTokenSession},
+		{"ShouldReportEncryptionQueryError", tableEncryption},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			_, err := provider.db.ExecContext(ctx, fmt.Sprintf("DROP TABLE %s", tc.table))
+			require.NoError(t, err)
+
+			result, err := provider.SchemaEncryptionCheckKey(ctx, true)
+			require.NoError(t, err)
+
+			assert.False(t, result.Success())
+			assert.Error(t, result.Tables[tc.table].Error)
 		})
 	}
 }

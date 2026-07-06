@@ -31,6 +31,19 @@ func NewSQLProviderForTesting(db SQLXDB) *SQLProvider {
 	}
 }
 
+// NewSQLProviderForTestingWithKey constructs an SQLProvider with the supplied db and encryption key. It's used by
+// tests that need to exercise the encryption failure paths by supplying an invalid key.
+func NewSQLProviderForTestingWithKey(db SQLXDB, key []byte) *SQLProvider {
+	return &SQLProvider{
+		db:   db,
+		name: providerSQLite,
+		log:  logging.Logger(),
+		keys: SQLProviderKeys{
+			encryption: key,
+		},
+	}
+}
+
 // Conn exposes (*SQLProvider).conn for tests in storage_test.
 func (p *SQLProvider) Conn(ctx context.Context) SQLXConnection {
 	return p.conn(ctx)

@@ -215,6 +215,69 @@ func TestSchemaMigrateDownToPriorVersionShouldReEncryptToLegacyKey(t *testing.T)
 	assert.Equal(t, []byte("JBSWY3DPEHPK3PXP"), decrypted)
 }
 
+func TestMigrationSpecialUp24(t *testing.T) {
+	testCases := []struct {
+		name string
+		seed func(t *testing.T, provider *SQLiteProvider, ctx context.Context)
+	}{
+		{
+			name: "ShouldReturnEarlyWithNoCredentials",
+			seed: nil,
+		},
+		{
+			name: "ShouldProcessCredentials",
+			seed: func(t *testing.T, provider *SQLiteProvider, ctx context.Context) {
+				require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+					CreatedAt:   time.Now().Truncate(time.Second),
+					RPID:        "example.com",
+					Username:    "john",
+					Description: "bad-attestation",
+					KID:         model.NewBase64([]byte("kid-bad")),
+					Attachment:  "cross-platform",
+					PublicKey:   []byte("fake-public-key"),
+					Attestation: []byte("not-json"),
+				}))
+
+				require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+					CreatedAt:   time.Now().Truncate(time.Second),
+					RPID:        "example.com",
+					Username:    "john",
+					Description: "empty-attestation",
+					KID:         model.NewBase64([]byte("kid-empty")),
+					Attachment:  "cross-platform",
+					PublicKey:   []byte("fake-public-key"),
+				}))
+
+				require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+					CreatedAt:       time.Now().Truncate(time.Second),
+					RPID:            "example.com",
+					Username:        "john",
+					Description:     "typed",
+					KID:             model.NewBase64([]byte("kid-typed")),
+					AttestationType: "none",
+					Attachment:      "cross-platform",
+					PublicKey:       []byte("fake-public-key"),
+				}))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			if tc.seed != nil {
+				tc.seed(t, provider, ctx)
+			}
+
+			require.NoError(t, migrationSpecialUp24(ctx, provider.db, &provider.SQLProvider, 0, 0, 0, 0))
+		})
+	}
+}
+
 func TestMigrationShouldReturnErrorOnSame(t *testing.T) {
 	migrations, err := loadMigrations(providerPostgres, 1, 1)
 
