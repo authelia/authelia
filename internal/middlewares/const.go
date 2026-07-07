@@ -104,6 +104,7 @@ const (
 	UserValueKeyBaseURL int8 = iota
 	UserValueKeyOpenIDConnectResponseModeFormPost
 	UserValueKeyRawURI
+	UserValueRateLimitExempt
 )
 
 const (

@@ -71,5 +71,9 @@ func OAuth2IntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 		ctx.GetLogger().Tracef("Introspection Request with id '%s' yielded a %s (active: %t)", requestID, responder.GetTokenUse(), responder.IsActive())
 	}
 
+	if responder.IsActive() {
+		ctx.SetUserValue(middlewares.UserValueRateLimitExempt, true)
+	}
+
 	ctx.Providers.OpenIDConnect.WriteIntrospectionResponse(ctx, rw, responder)
 }
