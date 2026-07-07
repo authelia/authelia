@@ -172,7 +172,6 @@ func NewRateLimiter(opts ...RateLimiterOption) AutheliaMiddleware {
 
 	handler := options.Handler
 	exemptStatusCodes := options.ExemptStatusCodes
-	disableExemption := len(exemptStatusCodes) == 0
 
 	ctx := options.Ctx
 	if ctx == nil {
@@ -187,7 +186,7 @@ func NewRateLimiter(opts ...RateLimiterOption) AutheliaMiddleware {
 	go runRateLimitGC(ctx, buckets, gcInterval)
 
 	return func(next RequestHandler) RequestHandler {
-		return newRateLimiterHandler(next, buckets, handler, exemptStatusCodes, disableExemption)
+		return newRateLimiterHandler(next, buckets, handler, exemptStatusCodes)
 	}
 }
 
@@ -208,16 +207,13 @@ func runRateLimitGC(ctx context.Context, buckets []RateLimitBucket, interval tim
 	}
 }
 
-func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handler RateLimitRequestHandler, exemptStatusCodes []int, disableExemption bool) RequestHandler {
-	return func(ctx *AutheliaCtx) {
-		var (
-			retryAfter   time.Duration
-			reservations []*rate.Reservation
-		)
+func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handler RateLimitRequestHandler, exemptStatusCodes []int) RequestHandler {
+	isRateLimitExempt := newIsRateLimitExempt(exemptStatusCodes)
 
-		if !disableExemption {
-			reservations = make([]*rate.Reservation, 0, len(buckets))
-		}
+	return func(ctx *AutheliaCtx) {
+		var retryAfter time.Duration
+
+		reservations := make([]*rate.Reservation, 0, len(buckets))
 
 		now := time.Now().UTC()
 
@@ -238,9 +234,7 @@ func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handl
 				continue
 			}
 
-			if !disableExemption {
-				reservations = append(reservations, reservation)
-			}
+			reservations = append(reservations, reservation)
 		}
 
 		if retryAfter > 0 {
@@ -251,15 +245,23 @@ func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handl
 
 		next(ctx)
 
-		if disableExemption {
-			return
-		}
-
-		if isStatusCodeExempt(ctx.Response.StatusCode(), exemptStatusCodes) {
+		if isRateLimitExempt(ctx) {
 			for _, r := range reservations {
 				r.CancelAt(now)
 			}
 		}
+	}
+}
+
+func newIsRateLimitExempt(exemptStatusCodes []int) func(ctx *AutheliaCtx) bool {
+	return func(ctx *AutheliaCtx) bool {
+		var exempt bool
+
+		if value := ctx.Value(UserValueRateLimitExempt); value != nil {
+			exempt, _ = value.(bool)
+		}
+
+		return exempt || isStatusCodeExempt(ctx.Response.StatusCode(), exemptStatusCodes)
 	}
 }
 

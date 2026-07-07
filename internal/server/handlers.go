@@ -501,7 +501,6 @@ func RegisterOpenIDConnectRoutes(ctx context.Context, r *router.Router, config *
 
 	rateLimitIntrospection := middlewares.NewRateLimiter(
 		middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.OpenIDConnectIntrospection),
-		middlewares.WithRateLimitExemptStatusCodes(fasthttp.StatusOK),
 		middlewares.WithRateLimitErrorHandler(middlewares.HandlerRateLimitOpenIDConnect),
 		middlewares.WithRateLimitContext(ctx),
 	)

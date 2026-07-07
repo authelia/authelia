@@ -485,6 +485,143 @@ func TestNewRateLimiterExemptStatusCodes(t *testing.T) {
 	}
 }
 
+func TestNewRateLimiterUserValueExempt(t *testing.T) {
+	testCases := []struct {
+		Name             string
+		ExemptStatuses   []int
+		BucketRequests   int
+		ExemptRequests   []bool
+		ExpectedStatuses []int
+	}{
+		{
+			Name:             "ShouldNotConsumeTokensForExemptUserValueWithoutExemptStatusCodes",
+			ExemptStatuses:   nil,
+			BucketRequests:   2,
+			ExemptRequests:   []bool{true, true, true, true},
+			ExpectedStatuses: []int{fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusOK},
+		},
+		{
+			Name:             "ShouldConsumeTokensForNonExemptUserValueWithoutExemptStatusCodes",
+			ExemptStatuses:   nil,
+			BucketRequests:   2,
+			ExemptRequests:   []bool{false, false, false},
+			ExpectedStatuses: []int{fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusTooManyRequests},
+		},
+		{
+			Name:             "ShouldMixExemptAndNonExemptUserValues",
+			ExemptStatuses:   nil,
+			BucketRequests:   2,
+			ExemptRequests:   []bool{true, false, true, false, false},
+			ExpectedStatuses: []int{fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusTooManyRequests},
+		},
+		{
+			Name:             "ShouldEnforceLimitForExemptUserValueWhenBucketAlreadyFull",
+			ExemptStatuses:   nil,
+			BucketRequests:   1,
+			ExemptRequests:   []bool{false, true},
+			ExpectedStatuses: []int{fasthttp.StatusOK, fasthttp.StatusTooManyRequests},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			var exempt bool
+
+			middleware := NewRateLimiter(
+				WithRateLimitBuckets(RateLimitBucketConfig{
+					Period:   time.Minute,
+					Requests: tc.BucketRequests,
+				}),
+				WithRateLimitExemptStatusCodes(tc.ExemptStatuses...),
+				WithRateLimitContext(t.Context()),
+			)
+
+			handler := middleware(func(ctx *AutheliaCtx) {
+				ctx.SetStatusCode(fasthttp.StatusOK)
+
+				if exempt {
+					ctx.SetUserValue(UserValueRateLimitExempt, true)
+				}
+			})
+
+			for i, expected := range tc.ExpectedStatuses {
+				exempt = tc.ExemptRequests[i]
+				ctx := newTestAutheliaCtx("10.0.0.1")
+				handler(ctx)
+				assert.Equal(t, expected, ctx.Response.StatusCode(), "request %d", i+1)
+			}
+		})
+	}
+}
+
+func TestNewIsRateLimitExempt(t *testing.T) {
+	testCases := []struct {
+		Name              string
+		ExemptStatusCodes []int
+		UserValue         any
+		StatusCode        int
+		Expected          bool
+	}{
+		{
+			Name:              "ShouldReturnFalseWhenNoUserValueAndStatusNotExempt",
+			ExemptStatusCodes: []int{fasthttp.StatusOK},
+			UserValue:         nil,
+			StatusCode:        fasthttp.StatusUnauthorized,
+			Expected:          false,
+		},
+		{
+			Name:              "ShouldReturnTrueWhenStatusExempt",
+			ExemptStatusCodes: []int{fasthttp.StatusOK},
+			UserValue:         nil,
+			StatusCode:        fasthttp.StatusOK,
+			Expected:          true,
+		},
+		{
+			Name:              "ShouldReturnTrueWhenUserValueTrue",
+			ExemptStatusCodes: nil,
+			UserValue:         true,
+			StatusCode:        fasthttp.StatusUnauthorized,
+			Expected:          true,
+		},
+		{
+			Name:              "ShouldReturnFalseWhenUserValueFalse",
+			ExemptStatusCodes: nil,
+			UserValue:         false,
+			StatusCode:        fasthttp.StatusUnauthorized,
+			Expected:          false,
+		},
+		{
+			Name:              "ShouldIgnoreNonBoolUserValue",
+			ExemptStatusCodes: nil,
+			UserValue:         "true",
+			StatusCode:        fasthttp.StatusUnauthorized,
+			Expected:          false,
+		},
+		{
+			Name:              "ShouldReturnTrueWhenUserValueTrueAndStatusExempt",
+			ExemptStatusCodes: []int{fasthttp.StatusOK},
+			UserValue:         true,
+			StatusCode:        fasthttp.StatusOK,
+			Expected:          true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			isRateLimitExempt := newIsRateLimitExempt(tc.ExemptStatusCodes)
+
+			ctx := newTestAutheliaCtx("10.0.0.1")
+			ctx.Response.SetStatusCode(tc.StatusCode)
+
+			if tc.UserValue != nil {
+				ctx.SetUserValue(UserValueRateLimitExempt, tc.UserValue)
+			}
+
+			assert.Equal(t, tc.Expected, isRateLimitExempt(ctx))
+		})
+	}
+}
+
 func TestHandlerRateLimitAPI(t *testing.T) {
 	ctx := newTestAutheliaCtx("192.168.1.1")
 
