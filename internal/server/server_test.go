@@ -425,7 +425,7 @@ func NewTLSServerContext(configuration schema.Configuration) (serverContext *TLS
 		return nil, err
 	}
 
-	s, listener, _, _, err := New(context.Background(), &configuration, providers)
+	s, listener, _, _, err := New(&configuration, providers)
 	if err != nil {
 		return nil, err
 	}

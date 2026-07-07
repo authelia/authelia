@@ -4,6 +4,7 @@ import (
 	"context"
 	"math"
 	"net/http"
+	"slices"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -15,10 +16,98 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+// NewRateLimiter takes functional options and crafts a RateLimiter out of it.
+func NewRateLimiter(opts ...RateLimiterOption) (limiter *RateLimiter) {
+	options := &RateLimiterOptions{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	if options.disabled {
+		return &RateLimiter{}
+	}
+
+	if options.NewBucket == nil {
+		options.NewBucket = NewIPRateLimitBucket
+	}
+
+	if options.Handler == nil {
+		options.Handler = HandlerRateLimitAPI
+	}
+
+	buckets := make([]RateLimitBucket, len(options.Buckets))
+
+	var frequency time.Duration
+
+	for i, b := range options.Buckets {
+		buckets[i] = options.NewBucket(b)
+
+		if b.Period > 0 && (frequency == 0 || b.Period < frequency) {
+			frequency = b.Period
+		}
+	}
+
+	limiter = &RateLimiter{
+		buckets:           buckets,
+		frequency:         frequency,
+		handler:           options.Handler,
+		exemptStatusCodes: options.ExemptStatusCodes,
+	}
+
+	options.Collector.Register(limiter)
+
+	return limiter
+}
+
+// RateLimiter is a collection of RateLimitBucket which produces the middleware that enforces them and which performs
+// the garbage collection of the buckets themselves.
+type RateLimiter struct {
+	buckets           []RateLimitBucket
+	frequency         time.Duration
+	handler           RateLimitRequestHandler
+	exemptStatusCodes []int
+}
+
+// Middleware returns the AutheliaMiddleware which enforces the buckets of this RateLimiter. A RateLimiter without any
+// configured buckets returns a passthrough middleware.
+func (l *RateLimiter) Middleware() AutheliaMiddleware {
+	if len(l.buckets) == 0 {
+		return func(next RequestHandler) RequestHandler { return next }
+	}
+
+	return func(next RequestHandler) RequestHandler {
+		return newRateLimiterHandler(next, l.buckets, l.handler, l.exemptStatusCodes)
+	}
+}
+
+// GarbageCollectionFrequency returns the frequency at which the garbage collection of the buckets is performed. This
+// implements the service.GarbageCollector interface.
+func (l *RateLimiter) GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration) {
+	return l.frequency
+}
+
+// GarbageCollection performs the garbage collection process of the buckets. This implements the
+// service.GarbageCollector interface.
+func (l *RateLimiter) GarbageCollection(ctx context.Context) (err error) {
+	for _, bucket := range l.buckets {
+		if err = ctx.Err(); err != nil {
+			return err
+		}
+
+		bucket.GarbageCollection()
+	}
+
+	return nil
+}
+
 // RateLimitBucket describes an implementation of a bucket which can be leveraged for rate limiting.
 type RateLimitBucket interface {
-	FetchCtx(ctx *AutheliaCtx) (limiter *RateLimiter)
-	GC()
+	// FetchCtx fetches the *BucketLimiter given the *AutheliaCtx.
+	FetchCtx(ctx *AutheliaCtx) (limiter *BucketLimiter)
+
+	// GarbageCollection garbage collects the buckets that are no longer being used.
+	GarbageCollection()
 }
 
 // The RateLimitBucketConfig describes a limit (number of seconds), and a burst (number of events) that can occur for a
@@ -28,25 +117,19 @@ type RateLimitBucketConfig struct {
 	Requests int
 }
 
-// NewIPRateLimit given a series of RateLimitBucketConfig items produces an AutheliaMiddleware which handles requests
-// based on the IPRateLimitBucket. Responses whose status code is present in exemptStatusCodes do not increment the
-// rate limit. Regardless of the response status code, the rate limit is enforced when a bucket is already full.
-func NewIPRateLimit(exemptStatusCodes []int, bs ...RateLimitBucketConfig) AutheliaMiddleware {
-	return NewRateLimiter(WithRateLimitBuckets(bs...), WithRateLimitExemptStatusCodes(exemptStatusCodes...))
-}
-
 type NewRateLimiterFunc func(bucket RateLimitBucketConfig) RateLimitBucket
 
 type RateLimitRequestHandler = func(ctx *AutheliaCtx, retryAfter time.Duration)
 
-// RateLimiterOptions holds the configurable values for a NewRateLimiter middleware.
+// RateLimiterOptions holds the configurable values for a NewRateLimiter.
 type RateLimiterOptions struct {
+	disabled bool
+
 	NewBucket         NewRateLimiterFunc
 	Handler           RateLimitRequestHandler
 	Buckets           []RateLimitBucketConfig
 	ExemptStatusCodes []int
-	Ctx               context.Context
-	GCInterval        time.Duration
+	Collector         *GarbageCollector
 }
 
 // RateLimiterOption configures a NewRateLimiter middleware.
@@ -92,32 +175,23 @@ func WithRateLimitExemptStatusCodes(codes ...int) RateLimiterOption {
 func WithRateLimitConfig(config schema.ServerEndpointRateLimit) RateLimiterOption {
 	return func(options *RateLimiterOptions) {
 		if !config.Enable {
+			options.disabled = true
 			options.Buckets = nil
 
 			return
 		}
 
+		options.disabled = false
+
 		options.Buckets = NewRateLimitBucketsConfig(config)
 	}
 }
 
-// WithRateLimitContext binds the rate limiter's GC goroutine to a context. When the context is cancelled the GC ticker
-// is stopped and the goroutine exits. If unset the GC goroutine runs for the lifetime of the process.
-func WithRateLimitContext(ctx context.Context) RateLimiterOption {
+// WithRateLimitCollector registers the rate limiter buckets with a *GarbageCollector which is responsible for
+// scheduling their garbage collection. If unset the buckets are never garbage collected.
+func WithRateLimitCollector(collector *GarbageCollector) RateLimiterOption {
 	return func(options *RateLimiterOptions) {
-		options.Ctx = ctx
-	}
-}
-
-// WithRateLimitGCInterval sets the interval between rate limiter GC ticks. Non-positive values are ignored. Defaults to
-// 30 minutes.
-func WithRateLimitGCInterval(interval time.Duration) RateLimiterOption {
-	return func(options *RateLimiterOptions) {
-		if interval <= 0 {
-			return
-		}
-
-		options.GCInterval = interval
+		options.Collector = collector
 	}
 }
 
@@ -144,80 +218,20 @@ func HandlerRateLimitOpenIDConnect(ctx *AutheliaCtx, retryAfter time.Duration) {
 	ctx.Response.SetBodyRaw(bodyOpenIDConnectRateLimitExceeded)
 }
 
-// NewRateLimiter takes functional options and crafts a RateLimiter middleware out of it.
-func NewRateLimiter(opts ...RateLimiterOption) AutheliaMiddleware {
-	options := &RateLimiterOptions{}
+// newRateLimiterHandler returns the RequestHandler which enforces the given buckets. A request which exceeds any bucket
+// is logged exactly once regardless of how many buckets it exceeded, as rejected requests are by nature the high volume
+// case and a log line per bucket amplifies the volume of an attack. The bucket which is logged is the one which
+// determined the retry after duration i.e. the bucket the client has to wait the longest for.
+func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handler RateLimitRequestHandler, exemptStatusCodes []int) RequestHandler {
+	isRateLimitExempt := newIsRateLimitExempt(exemptStatusCodes)
 
-	for _, opt := range opts {
-		opt(options)
-	}
-
-	if options.NewBucket == nil {
-		options.NewBucket = NewIPRateLimitBucket
-	}
-
-	if options.Handler == nil {
-		options.Handler = HandlerRateLimitAPI
-	}
-
-	if len(options.Buckets) == 0 {
-		return func(next RequestHandler) RequestHandler { return next }
-	}
-
-	buckets := make([]RateLimitBucket, len(options.Buckets))
-
-	for i, b := range options.Buckets {
-		buckets[i] = options.NewBucket(b)
-	}
-
-	handler := options.Handler
-	exemptStatusCodes := options.ExemptStatusCodes
-	disableExemption := len(exemptStatusCodes) == 0
-
-	ctx := options.Ctx
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
-	gcInterval := options.GCInterval
-	if gcInterval <= 0 {
-		gcInterval = time.Minute * 30
-	}
-
-	go runRateLimitGC(ctx, buckets, gcInterval)
-
-	return func(next RequestHandler) RequestHandler {
-		return newRateLimiterHandler(next, buckets, handler, exemptStatusCodes, disableExemption)
-	}
-}
-
-func runRateLimitGC(ctx context.Context, buckets []RateLimitBucket, interval time.Duration) {
-	ticker := time.NewTicker(interval)
-
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			for _, bucket := range buckets {
-				bucket.GC()
-			}
-		}
-	}
-}
-
-func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handler RateLimitRequestHandler, exemptStatusCodes []int, disableExemption bool) RequestHandler {
 	return func(ctx *AutheliaCtx) {
 		var (
-			retryAfter   time.Duration
-			reservations []*rate.Reservation
+			retryAfter       time.Duration
+			retryAfterBucket int
 		)
 
-		if !disableExemption {
-			reservations = make([]*rate.Reservation, 0, len(buckets))
-		}
+		reservations := make([]*rate.Reservation, 0, len(buckets))
 
 		now := time.Now().UTC()
 
@@ -227,10 +241,8 @@ func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handl
 			delay := reservation.DelayFrom(now)
 
 			if delay > 0 {
-				ctx.GetLogger().WithFields(map[string]any{"bucket": i + 1, "delay": delay.Seconds()}).Warn("Rate Limit Exceeded")
-
 				if delay > retryAfter {
-					retryAfter = delay
+					retryAfter, retryAfterBucket = delay, i+1
 				}
 
 				reservation.CancelAt(now)
@@ -238,12 +250,12 @@ func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handl
 				continue
 			}
 
-			if !disableExemption {
-				reservations = append(reservations, reservation)
-			}
+			reservations = append(reservations, reservation)
 		}
 
 		if retryAfter > 0 {
+			ctx.GetLogger().WithFields(map[string]any{"bucket": retryAfterBucket, "delay": retryAfter.Seconds()}).Warn("Rate Limit Exceeded")
+
 			handler(ctx, retryAfter)
 
 			return
@@ -251,11 +263,7 @@ func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handl
 
 		next(ctx)
 
-		if disableExemption {
-			return
-		}
-
-		if isStatusCodeExempt(ctx.Response.StatusCode(), exemptStatusCodes) {
+		if isRateLimitExempt(ctx) {
 			for _, r := range reservations {
 				r.CancelAt(now)
 			}
@@ -263,30 +271,32 @@ func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handl
 	}
 }
 
-func isStatusCodeExempt(status int, exemptStatusCodes []int) bool {
-	for _, code := range exemptStatusCodes {
-		if code == status {
-			return true
-		}
-	}
+func newIsRateLimitExempt(exemptStatusCodes []int) func(ctx *AutheliaCtx) bool {
+	return func(ctx *AutheliaCtx) bool {
+		var exempt bool
 
-	return false
+		if value := ctx.Value(UserValueRateLimitExempt); value != nil {
+			exempt, _ = value.(bool)
+		}
+
+		return exempt || slices.Contains(exemptStatusCodes, ctx.Response.StatusCode())
+	}
 }
 
 // NewIPRateLimitBucket returns a IPRateLimitBucket given a RateLimitBucketConfig.
 func NewIPRateLimitBucket(bucket RateLimitBucketConfig) (limiter RateLimitBucket) {
 	return &IPRateLimitBucket{
-		bucket: make(map[string]*RateLimiter),
+		bucket: make(map[string]*BucketLimiter),
 		p:      bucket.Period,
 		r:      rate.Every(bucket.Period),
 		b:      bucket.Requests,
 	}
 }
 
-// RateLimiter is a struct which holds the important information related to a specific rate limit instance. The
+// BucketLimiter is a struct which holds the important information related to a specific rate limit instance. The
 // updated field stores the UnixNano of the most recent Fetch and is accessed atomically so the request hot path only
 // needs to take an RLock on the parent bucket.
-type RateLimiter struct {
+type BucketLimiter struct {
 	*rate.Limiter
 
 	updated atomic.Int64
@@ -294,16 +304,16 @@ type RateLimiter struct {
 
 // IPRateLimitBucket is a RateLimitBucket which limits requests based on each of the buckets delimited by IP.
 type IPRateLimitBucket struct {
-	bucket map[string]*RateLimiter
+	bucket map[string]*BucketLimiter
 	mu     sync.RWMutex
 	p      time.Duration
 	r      rate.Limit
 	b      int
 }
 
-// Fetch the *RateLimiter for the specific key from the dict. The common path where the limiter already exists takes
+// Fetch the *BucketLimiter for the specific key from the dict. The common path where the limiter already exists takes
 // only an RLock and refreshes the timestamp atomically; the write lock is reserved for first-time limiter creation.
-func (l *IPRateLimitBucket) Fetch(key string) (limiter *RateLimiter) {
+func (l *IPRateLimitBucket) Fetch(key string) (limiter *BucketLimiter) {
 	now := time.Now().UTC().UnixNano()
 
 	l.mu.RLock()
@@ -333,30 +343,31 @@ func (l *IPRateLimitBucket) Fetch(key string) (limiter *RateLimiter) {
 	return limiter
 }
 
-// GC the rate limit bucket.
-func (l *IPRateLimitBucket) GC() {
-	threshold := time.Now().UTC().Add(-l.p).UnixNano()
+// GarbageCollection garbage collects the buckets that are no longer being used.
+func (l *IPRateLimitBucket) GarbageCollection() {
+	now := time.Now().UTC()
+	threshold := now.Add(-l.p).UnixNano()
 
 	l.mu.Lock()
 
 	defer l.mu.Unlock()
 
 	for k, limiter := range l.bucket {
-		if limiter.updated.Load() < threshold {
+		if limiter.updated.Load() < threshold && limiter.TokensAt(now) >= float64(l.b) {
 			delete(l.bucket, k)
 		}
 	}
 }
 
-// FetchCtx fetches the *RateLimiter given the *AutheliaCtx.
-func (l *IPRateLimitBucket) FetchCtx(ctx *AutheliaCtx) (limiter *RateLimiter) {
+// FetchCtx fetches the *BucketLimiter given the *AutheliaCtx.
+func (l *IPRateLimitBucket) FetchCtx(ctx *AutheliaCtx) (limiter *BucketLimiter) {
 	return l.Fetch(ctx.RemoteIP().String())
 }
 
-// new constructs and inserts a new RateLimiter for the given key. The caller must hold l.mu as a write lock and is
+// new constructs and inserts a new BucketLimiter for the given key. The caller must hold l.mu as a write lock and is
 // responsible for storing the initial value of updated.
-func (l *IPRateLimitBucket) new(ip string) (limiter *RateLimiter) {
-	limiter = &RateLimiter{Limiter: rate.NewLimiter(l.r, l.b)}
+func (l *IPRateLimitBucket) new(ip string) (limiter *BucketLimiter) {
+	limiter = &BucketLimiter{Limiter: rate.NewLimiter(l.r, l.b)}
 
 	l.bucket[ip] = limiter
 
