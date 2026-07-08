@@ -219,6 +219,7 @@ const (
 func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []configuration.BytesFilter, err error) {
 	var (
 		filterNames []string
+		valuesFiles []string
 		result      XEnvCLIResult
 	)
 
@@ -234,7 +235,11 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 		return nil, nil, err
 	}
 
-	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
+	if valuesFiles, _, err = loadXEnvCLIStringSliceValue(cmd, cmdFlagEnvNameConfigFiltersValues, cmdFlagNameConfigFiltersValues); err != nil {
+		return nil, nil, err
+	}
+
+	if filters, err = configuration.NewFileFilters(valuesFiles, filterNames...); err != nil {
 		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
 	}
 

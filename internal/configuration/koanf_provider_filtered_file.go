@@ -3,6 +3,7 @@ package configuration
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -10,10 +11,13 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/pelletier/go-toml/v2"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // FilteredFile implements a koanf.Provider.
@@ -85,9 +89,17 @@ func (f *ExpandEnvBytesFilter) Filter(in []byte) (out []byte, err error) {
 	return out, nil
 }
 
+// TemplateBytesFilterValues holds the values provided to the templates filter.
+type TemplateBytesFilterValues struct {
+	Values   map[string]any
+	Authelia map[string]any
+}
+
+// TemplateBytesFilter is a templates bytes filter, it allows filtering bytes through the go template engine.
 type TemplateBytesFilter struct {
-	t   *template.Template
-	log *logrus.Entry
+	t    *template.Template
+	log  *logrus.Entry
+	data TemplateBytesFilterValues
 }
 
 func (f *TemplateBytesFilter) Name() (name string) {
@@ -105,7 +117,7 @@ func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
 
 	buf := &bytes.Buffer{}
 
-	if err = f.t.Execute(buf, nil); err != nil {
+	if err = f.t.Execute(buf, f.data); err != nil {
 		return nil, err
 	}
 
@@ -124,13 +136,20 @@ func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
 func NewFileFiltersDefault() []BytesFilter {
 	return []BytesFilter{
 		NewExpandEnvFileFilter(),
-		NewTemplateFileFilter(),
+		NewTemplateFileFilter(nil),
 	}
 }
 
-// NewFileFilters returns a list of BytesFilter provided they are valid.
-func NewFileFilters(names []string) (filters []BytesFilter, err error) {
+// NewFileFilters returns a list of BytesFilter provided they are valid. Each path in valuesFiles is loaded in order and
+// deep-merged over the previously-loaded values so that later files override earlier ones.
+func NewFileFilters(valuesFiles []string, names ...string) (filters []BytesFilter, err error) {
 	filters = make([]BytesFilter, len(names))
+
+	var values map[string]any
+
+	if values, err = loadValuesFiles(valuesFiles); err != nil {
+		return nil, err
+	}
 
 	filterMap := map[string]int{}
 
@@ -139,7 +158,7 @@ func NewFileFilters(names []string) (filters []BytesFilter, err error) {
 
 		switch name {
 		case filterTemplate:
-			filters[i] = NewTemplateFileFilter()
+			filters[i] = NewTemplateFileFilter(values)
 		case filterExpandEnv:
 			filters[i] = NewExpandEnvFileFilter()
 		default:
@@ -148,12 +167,93 @@ func NewFileFilters(names []string) (filters []BytesFilter, err error) {
 
 		if _, ok := filterMap[name]; ok {
 			return nil, fmt.Errorf("duplicate filter named '%s'", name)
-		} else {
-			filterMap[name] = 1
 		}
+
+		filterMap[name] = 1
 	}
 
 	return filters, nil
+}
+
+// loadValuesFiles loads each file in order and deep-merges them onto a single values map. Later files override earlier
+// ones at every level. An empty or nil slice returns nil values.
+func loadValuesFiles(paths []string) (values map[string]any, err error) {
+	if len(paths) == 0 {
+		return nil, nil
+	}
+
+	values = map[string]any{}
+
+	for _, path := range paths {
+		var loaded map[string]any
+
+		if loaded, err = loadValuesFile(path); err != nil {
+			return nil, err
+		}
+
+		mergeValues(values, loaded)
+	}
+
+	return values, nil
+}
+
+// loadValuesFile reads and parses a values file. The format is selected from the file extension: .yml/.yaml for YAML,
+// .json for JSON, .toml for TOML. An empty path returns nil values; an unsupported extension returns an error.
+func loadValuesFile(path string) (values map[string]any, err error) {
+	if path == "" {
+		return nil, nil
+	}
+
+	var data []byte
+
+	if data, err = os.ReadFile(path); err != nil {
+		return nil, fmt.Errorf("error reading values file: %w", err)
+	}
+
+	values = map[string]any{}
+
+	ext := strings.ToLower(filepath.Ext(path))
+
+	switch ext {
+	case extYML, extYAML:
+		err = yaml.Unmarshal(data, &values)
+	case extJSON:
+		err = json.Unmarshal(data, &values)
+	case extTOML:
+		err = toml.Unmarshal(data, &values)
+	default:
+		return nil, fmt.Errorf("error parsing values file: unsupported extension '%s': must be one of '.yml', '.yaml', '.json', or '.toml'", ext)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("error parsing values file: %w", err)
+	}
+
+	return values, nil
+}
+
+// mergeValues deep-merges src into dst. When both values for a key are themselves maps, they are recursively merged;
+// otherwise the src value replaces the dst value. dst is mutated in place.
+func mergeValues(dst, src map[string]any) {
+	for k, sv := range src {
+		dv, ok := dst[k]
+		if !ok {
+			dst[k] = sv
+
+			continue
+		}
+
+		dmap, dok := dv.(map[string]any)
+		smap, sok := sv.(map[string]any)
+
+		if dok && sok {
+			mergeValues(dmap, smap)
+
+			continue
+		}
+
+		dst[k] = sv
+	}
 }
 
 // NewExpandEnvFileFilter returns a new BytesFilter which passes the bytes through os.Expand using special env vars.
@@ -164,9 +264,30 @@ func NewExpandEnvFileFilter() BytesFilter {
 }
 
 // NewTemplateFileFilter returns a new BytesFilter which passes the bytes through text/template.
-func NewTemplateFileFilter() BytesFilter {
+func NewTemplateFileFilter(values map[string]any) BytesFilter {
+	data := TemplateBytesFilterValues{
+		Values:   values,
+		Authelia: map[string]any{},
+	}
+
+	if data.Values == nil {
+		data.Values = map[string]any{}
+	}
+
+	data.Authelia["Version"] = utils.Version()
+	data.Authelia["Build"] = map[string]any{
+		"Tag":    utils.BuildTag,
+		"State":  utils.BuildState,
+		"Extra":  utils.BuildExtra,
+		"Date":   utils.BuildDate,
+		"Commit": utils.BuildCommit,
+		"Branch": utils.BuildBranch,
+		"Number": utils.BuildNumber,
+	}
+
 	return &TemplateBytesFilter{
-		log: logging.Logger().WithFields(map[string]any{filterField: filterTemplate}),
-		t:   template.New("config.template").Funcs(templates.FuncMap()),
+		log:  logging.Logger().WithFields(map[string]any{filterField: filterTemplate}),
+		t:    template.New("config.template").Funcs(templates.FuncMap()),
+		data: data,
 	}
 }
