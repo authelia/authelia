@@ -1,7 +1,7 @@
 ---
 services:
   smtp:
-    image: 'axllent/mailpit:v1.30.3'
+    image: 'axllent/mailpit:v1.30.4'
     volumes:
       - './common/pki:/pki'
     environment:
