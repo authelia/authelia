@@ -90,7 +90,17 @@ identity_providers:
         grant_types:
           - 'urn:ietf:params:oauth:grant-type:device_code'
         token_endpoint_auth_method: 'client_secret_post'
-
+      - client_id: 'client-credentials-opaque'
+        client_secret: '$pbkdf2-sha512$310000$EniFUo2z8Yjw3op3lrtuyA$xhopyOyffx2TqsQvEhoMSo1sxywIvJV8HZw/zdf62xtyryY/nkNkdcUV82r.xtd5NuyvZo7DPkOlcffM/Wvsmw'  # yamllint disable-line rule:line-length
+        grant_types:
+          - 'client_credentials'
+        token_endpoint_auth_method: 'client_secret_post'
+      - client_id: 'client-credentials-jwt'
+        client_secret: '$pbkdf2-sha512$310000$EniFUo2z8Yjw3op3lrtuyA$xhopyOyffx2TqsQvEhoMSo1sxywIvJV8HZw/zdf62xtyryY/nkNkdcUV82r.xtd5NuyvZo7DPkOlcffM/Wvsmw'  # yamllint disable-line rule:line-length
+        grant_types:
+          - 'client_credentials'
+        token_endpoint_auth_method: 'client_secret_post'
+        access_token_signed_response_alg: 'RS256'
 access_control:
   default_policy: 'deny'
   rules:

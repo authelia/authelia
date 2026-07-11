@@ -114,9 +114,9 @@ func TestOpenIDSession_GetExtraClaims(t *testing.T) {
 		expected map[string]any
 	}{
 		{
-			"ShouldReturnNil",
+			"ShouldReturnEmptyMap",
 			&oidc.Session{},
-			nil,
+			map[string]any{},
 		},
 		{
 			"ShouldReturnExtra",
