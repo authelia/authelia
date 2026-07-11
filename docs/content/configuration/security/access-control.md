@@ -36,32 +36,32 @@ Some of the values within this page can automatically be replaced with documenta
 access_control:
   default_policy: 'deny'
   rules:
-  - domain: 'private.{{< sitevar name="domain" nojs="example.com" >}}'
-    domain_regex: '(?i)^(\d+\-)?priv-img\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
-    policy: 'one_factor'
-    networks:
-    - 'internal'
-    - '1.1.1.1'
-    subject:
-    - ['user:adam']
-    - ['user:fred']
-    - ['group:admins']
-    methods:
-    - 'GET'
-    - 'HEAD'
-    resources:
-    - '^/api.*'
-    query:
-    - - operator: 'present'
-        key: 'secure'
-      - operator: 'absent'
-        key: 'insecure'
-    - - operator: 'pattern'
-        key: 'token'
-        value: '^(abc123|zyx789)$'
-      - operator: 'not pattern'
-        key: 'random'
-        value: '^(1|2)$'
+    - domain: 'private.{{< sitevar name="domain" nojs="example.com" >}}'
+      domain_regex: '(?i)^(\d+\-)?priv-img\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
+      policy: 'one_factor'
+      networks:
+        - 'internal'
+        - '1.1.1.1'
+      subject:
+        - ['user:adam']
+        - ['user:fred']
+        - ['group:admins']
+      methods:
+        - 'GET'
+        - 'HEAD'
+      resources:
+        - '/api([/?].*)?$'
+      query:
+        - - operator: 'present'
+            key: 'secure'
+          - operator: 'absent'
+            key: 'insecure'
+        - - operator: 'pattern'
+            key: 'token'
+            value: '^(abc123|zyx789)$'
+          - operator: 'not pattern'
+            key: 'random'
+            value: '^(1|2)$'
 ```
 
 ## Options
@@ -143,11 +143,11 @@ different ways.*
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: '*.{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'bypass'
-  - domain:
-    - '*.{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'bypass'
+    - domain: '*.{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'bypass'
+    - domain:
+        - '*.{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'bypass'
 ```
 
 *Multiple domains matched. These rules will match either `apple.{{< sitevar name="domain" nojs="example.com" >}}` or `banana.{{< sitevar name="domain" nojs="example.com" >}}`. All rules in this
@@ -156,12 +156,12 @@ list are effectively the same rule just expressed in different ways.*
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: ['apple.{{< sitevar name="domain" nojs="example.com" >}}', 'banana.{{< sitevar name="domain" nojs="example.com" >}}']
-    policy: 'bypass'
-  - domain:
-    - 'apple.{{< sitevar name="domain" nojs="example.com" >}}'
-    - 'banana.{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'bypass'
+    - domain: ['apple.{{< sitevar name="domain" nojs="example.com" >}}', 'banana.{{< sitevar name="domain" nojs="example.com" >}}']
+      policy: 'bypass'
+    - domain:
+        - 'apple.{{< sitevar name="domain" nojs="example.com" >}}'
+        - 'banana.{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'bypass'
 ```
 
 *Multiple domains matched either via a static domain or via a [domain_regex]. This rule will match
@@ -170,9 +170,9 @@ either `apple.{{< sitevar name="domain" nojs="example.com" >}}`, `pub-data.{{< s
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: 'apple.{{< sitevar name="domain" nojs="example.com" >}}'
-    domain_regex: '(?i)^(pub|img)-data\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
-    policy: bypass
+    - domain: 'apple.{{< sitevar name="domain" nojs="example.com" >}}'
+      domain_regex: '(?i)^(pub|img)-data\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
+      policy: 'bypass'
 ```
 
 #### domain_regex
@@ -212,10 +212,10 @@ request is made to `user-fred.{{< sitevar name="domain" nojs="example.com" >}}` 
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain_regex:
-    - '(?i)^user-(?P<User>\w+)\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
-    - '(?i)^group-(?P<Group>\w+)\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
-    policy: 'one_factor'
+    - domain_regex:
+        - '(?i)^user-(?P<User>\w+)\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
+        - '(?i)^group-(?P<Group>\w+)\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
+      policy: 'one_factor'
 ```
 
 *Multiple domains example, one with a static domain and one with a regex domain. This will match requests to
@@ -224,9 +224,9 @@ access_control:
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: 'protected.{{< sitevar name="domain" nojs="example.com" >}}'
-    domain_regex: '(?i)^(img|data)-private\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}'
-    policy: 'one_factor'
+    - domain: 'protected.{{< sitevar name="domain" nojs="example.com" >}}'
+      domain_regex: '(?i)^(img|data)-private\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}'
+      policy: 'one_factor'
 ```
 
 #### policy
@@ -273,18 +273,18 @@ ways.*
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'two_factor'
-    subject:
-    - 'user:john'
-    - ['group:admin', 'group:app-name']
-    - 'group:super-admin'
-  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'two_factor'
-    subject:
-    - ['user:john']
-    - ['group:admin', 'group:app-name']
-    - ['group:super-admin']
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'two_factor'
+      subject:
+        - 'user:john'
+        - ['group:admin', 'group:app-name']
+        - 'group:super-admin'
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'two_factor'
+      subject:
+        - ['user:john']
+        - ['group:admin', 'group:app-name']
+        - ['group:super-admin']
 ```
 
 *Matches when the user is in the `super-admin` group. All rules in this list are effectively the same rule just
@@ -293,17 +293,17 @@ expressed in different ways.*
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'one_factor'
-    subject: 'group:super-admin'
-  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'one_factor'
-    subject:
-    - 'group:super-admin'
-  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'one_factor'
-    subject:
-    - ['group:super-admin']
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'one_factor'
+      subject: 'group:super-admin'
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'one_factor'
+      subject:
+        - 'group:super-admin'
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'one_factor'
+      subject:
+        - ['group:super-admin']
 ```
 
 #### methods
@@ -338,10 +338,10 @@ relevant methods are listed in this table:
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'bypass'
-    methods:
-    - 'OPTIONS'
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'bypass'
+      methods:
+        - 'OPTIONS'
 ```
 
 #### networks
@@ -383,20 +383,20 @@ definitions:
 access_control:
   default_policy: 'two_factor'
   rules:
-  - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'one_factor'
-    networks:
-    - '10.0.0.0/8'
-    - '172.16.0.0/12'
-    - '192.168.0.0/18'
-    - '112.134.145.167/32'
-  - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'one_factor'
-    networks:
-    - 'internal'
-    - '112.134.145.167/32'
-  - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'two_factor'
+    - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'one_factor'
+      networks:
+        - '10.0.0.0/8'
+        - '172.16.0.0/12'
+        - '192.168.0.0/18'
+        - '112.134.145.167/32'
+    - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'one_factor'
+      networks:
+        - 'internal'
+        - '112.134.145.167/32'
+    - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'two_factor'
 ```
 
 #### resources
@@ -408,31 +408,49 @@ To utilize regex you must escape it properly. See
 [regular expressions](../prologue/common.md#regular-expressions) for more information.
 {{< /callout >}}
 
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This rule treats the path as case-sensitive as per the HTTP specification. It is important that you validate that the
+proxy and the application handle the path case-sensitively too. See the [Case Sensitivity](#case-sensitivity) section
+for more information.
+{{< /callout >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Requested URL's are normalized as per the HTTP specification, and repeated slashes are collapsed to a single slash. This
+ensures the most compatible match with as many proxies and applications as possible. The normalization is important to
+ensure that the path is matched correctly and that an attacker cannot use path segments or other normalizations nuances
+to skip a rule. You should carefully evaluate the impact of this normalization on your proxy and application and should
+there be a meaningful deviation you should report this to the respective application owners.
+
+In the future we will allow customization of the normalization rules for specific authorization endpoints. This will
+allow you to configure the normalization rules to match your application's requirements, allowing you to configure
+a specific normalization for specific applications at the proxy by selecting the authorization endpoint.
+{{< /callout >}}
+
 This criteria matches the path and query of the request using regular expressions. The rule is expressed as a list of
 strings. If any one of the regular expressions in the list matches the request it's considered a match. A useful tool
 for debugging these regular expressions is called [Regex 101](https://regex101.com/) (ensure you pick the `Golang`
 option).
 
-In addition to standard regex patterns this criteria can match some [Named Regex Groups](#named-regex-groups).
+Users should familiarize themselves with the various considerations of [Regular Expressions](#regular-expressions)
+before configuring this criteria.
 
-It's important when configuring resource rules that you enclose them in quotes otherwise you may run into some issues
-with escaping the expressions. Failure to do so may prevent Authelia from starting. It's technically optional but will
-likely save you a lot of time if you do it for all resource rules.
+In addition to standard regular expression patterns this criteria can match some [Named Regex Groups](#named-regex-groups).
 
 [resources]: #resources
 
 ##### Examples
 
-*Applies the [bypass](#bypass) policy when the domain is `app.{{< sitevar name="domain" nojs="example.com" >}}` and the url is `/api`, or starts with either
-`/api/` or `/api?`.*
+*Applies the [bypass](#bypass) policy when the domain is `app.{{< sitevar name="domain" nojs="example.com" >}}` and the
+URL is `/api`, or starts with either `/api/` or `/api?`, we recommend using the `([/?].*)?$` suffix to match the
+trailing slash as well as the query string rather than just using `.*` as this can allow unintended paths to match.*
 
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: 'app.{{< sitevar name="domain" nojs="example.com" >}}'
-    policy: 'bypass'
-    resources:
-    - '^/api([/?].*)?$'
+    - domain: 'app.{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'bypass'
+      resources:
+        - '^/api([/?].*)?$'
 ```
 
 #### query
@@ -478,16 +496,16 @@ access_control:
     - domain: 'app.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: 'bypass'
       query:
-      - - operator: 'present'
-          key: 'secure'
-        - operator: 'absent'
-          key: 'insecure'
-      - - operator: 'pattern'
-          key: 'token'
-          value: '^(abc123|zyx789)$'
-        - operator: 'not pattern'
-          key: 'random'
-          value: '^(1|2)$'
+        - - operator: 'present'
+            key: 'secure'
+          - operator: 'absent'
+            key: 'insecure'
+        - - operator: 'pattern'
+            key: 'token'
+            value: '^(abc123|zyx789)$'
+          - operator: 'not pattern'
+            key: 'random'
+            value: '^(1|2)$'
 ```
 
 ## Policies
@@ -579,7 +597,122 @@ identical rules, and one of them has a subject based reliant criteria, and the o
 
 [Rule Matching Concept 2]: #rule-matching-concept-2-subject-criteria-requires-authentication
 
-## Named Regex Groups
+## Regular Expressions
+
+There are several important concepts to understand when it comes to regular expressions.
+
+### Test Your Rules
+
+It's important that you test your rules thoroughly before deploying them to production. It's recommended to use
+[Regex 101](https://regex101.com/) to test your regular expressions, and to get advice about the specific way the rule
+could be abused prior to using it.
+
+### Escaping Special Characters
+
+Regular Expressions use the `\` character to escape special characters or use special meta characters. It's important
+that several characters are escaped when used to match literal strings. The most common special characters users should
+make sure to escape are the period `.`, the asterisk `*`, the addition `+`, and the question mark `?`.
+
+### Case Sensitivity
+
+By default Authelia uses case-insensitive regular expressions in appropriate locations. This is different from the default
+behavior of the Go standard library which is case-sensitive. This is achieved by appending a `(?i)` to the beginning of
+the regular expression before parsing it. You can negate this behavior by adding `(?-i)` to the beginning of any regular
+expression which explicitly disables case insensitivity.
+
+The main area affected by this is currently:
+
+* The [domain_regex](#domain_regex) criteria
+
+The rationale behind this is that it hardens the security of the system by preventing users from incorrectly forming the
+regular expression to match against.
+
+We do not currently use case-insensitive regular expressions in the [resources](#resources) criteria and we're unlikely
+to. This decision was reviewed in 2026 as part of a defense-in-depth analysis and we believe it was the correct decision.
+
+It should be noted that [RFC9110](https://www.rfc-editor.org/rfc/rfc9110.html#section-4.2.3) clearly states that only
+the scheme and host components are case-insensitive and that every other component is case-sensitive. This is also
+reflected in the [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.2.1) which mirrors this sentiment more softly but still explicitly states that the path
+component is case-sensitive.
+
+All regular expressions in Authelia can be modified to be case-insensitive by adding the `(?i)` to the beginning of the
+regular expression and can be modified to be case-sensitive by adding the `(?-i)` to the beginning of the regular
+expression. You can also adjust certain parts of the regular expression to match case-insensitively or case-sensitively
+depending on your needs. Below is a table of examples of how to modify the case-sensitivity of a regular expression.
+
+
+|       Description        |      Case-Sensitive       |      Case-Insensitive      |
+|:------------------------:|:-------------------------:|:--------------------------:|
+| Adjust the whole pattern |   `(?i)^/api([/?].*)?$`   |   `(?-i)^/api([/?].*)?$`   |
+| Adjust a single segment  |  `^/(?i:api)([/?].*)?$`   |  `^/(?-i:api)([/?].*)?$`   |
+| Adjust multiple segments | `^/(?i:api/v1)([/?].*)?$` | `^/(?-i:api/v1)([/?].*)?$` |
+
+#### Case Validation
+
+While this decision is backed by the defense-in-depth analysis and the appropriate specifications, it is critically
+important to note that a proxy or application may not respect the fact the path component is case-sensitive. As such
+it's important to ensure that you test this and adjust the regular expressions accordingly.
+
+For example if you have configured the `^/api([/?].*)?$` resources regular expression then you should validate that the
+backend does not return a valid when you request a resource with a capitalized path i.e. `/API/example`.
+
+Example configuration for testing (not to be used in production):
+
+```yaml
+access_control:
+  rules:
+    - domain: 'app.example.com'
+      policy: 'one_factor'
+      resources:
+        - '^/api([/?].*)?$'
+    - domain: 'app.example.com'
+      policy: 'bypass'
+```
+
+Perform the check with credentials and the valid path:
+
+```bash
+curl -s -i -u "username:password" https://app.example.com/api/example
+```
+
+Output example below. Note the 200 status code indicating a successful response, and the body after the other headers.
+
+```
+HTTP/2 200
+content-type: application/json; charset=utf-8
+content-length: 15
+
+{"status":"OK"}
+```
+
+Perform the check without credentials and the valid path:
+
+```bash
+curl -s -i https://app.example.com/api/example
+```
+
+Output example below. Note the 403 status code indicating a failed response. This may also be a 30x redirect depending
+on the configuration.
+
+```
+HTTP/2 403
+content-type: text/plain; charset=utf-8
+content-length: 13
+
+403 Forbidden
+```
+
+Perform the check without credentials and the invalid path:
+
+```bash
+curl -s -i https://app.example.com/API/example
+```
+
+At this point you should see a 404 in most situations. If you see a 200, validate the body of the response does not
+match the response with the username and password above. If you see the same response then you need to adjust the
+regular expression to match the path case-insensitively.
+
+### Named Regex Groups
 
 Some criteria allow matching named regex groups. These are the groups we accept:
 
@@ -656,13 +789,13 @@ access_control:
 
     - domain: 'dev.{{< sitevar name="domain" nojs="example.com" >}}'
       resources:
-      - '^/groups/dev/.*$'
+      - '^/groups/dev([/?].*)?$'
       subject: 'group:dev'
       policy: 'two_factor'
 
     - domain: 'dev.{{< sitevar name="domain" nojs="example.com" >}}'
       resources:
-      - '^/users/john/.*$'
+      - '^/users/john([/?].*)?$'
       subject:
       - ['group:dev', 'user:john']
       - 'group:admins'

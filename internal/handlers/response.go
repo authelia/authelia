@@ -40,9 +40,9 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 		return
 	}
 
-	var targetURL *url.URL
+	var object *authorization.Object
 
-	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
+	if object, err = authorization.NewObjectMethodURL([]byte(requestMethod), []byte(targetURI)); err != nil {
 		ctx.Error(fmt.Errorf("unable to parse target URL %s: %w", targetURI, err), messageAuthenticationFailed)
 
 		return
@@ -54,7 +54,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 			Groups:   groups,
 			IP:       ctx.RemoteIP(),
 		},
-		authorization.NewObject(targetURL, requestMethod))
+		*object)
 
 	ctx.Logger.Debugf("Required level for the URL %s is %s", targetURI, requiredLevel)
 
@@ -65,7 +65,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 		return
 	}
 
-	if !ctx.IsSafeRedirectionTargetURI(targetURL) {
+	if !ctx.IsSafeRedirectionTargetURI(object.URL) {
 		ctx.Logger.Debugf("Redirection URL %s is not safe", targetURI)
 
 		defaultRedirectionURL := ctx.GetDefaultRedirectionURL()

@@ -34,9 +34,10 @@ func NewAuthorizerTester(config schema.AccessControl) *AuthorizerTester {
 }
 
 func (s *AuthorizerTester) CheckAuthorizations(t *testing.T, subject Subject, requestURI, method string, expectedLevel Level) {
-	targetURL, _ := url.ParseRequestURI(requestURI)
+	requestedObject, err := NewObjectMethodURL([]byte(method), []byte(requestURI))
+	require.NoError(t, err)
 
-	object := NewObject(targetURL, method)
+	object := *requestedObject
 
 	_, level := s.GetRequiredLevel(subject, object)
 
@@ -583,39 +584,25 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 }
 
 func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
-	createSliceRegexRule := func(t *testing.T, rules []string) []schema.RegexpCI {
-		result, err := stringSliceToRegexpSlice(rules)
-
-		require.NoError(t, err)
-
-		items := make([]schema.RegexpCI, len(result))
-
-		for i, item := range result {
-			items[i] = schema.RegexpCI{Regexp: item}
-		}
-
-		return items
-	}
-
 	tester := NewAuthorizerBuilder().
 		WithRule(schema.AccessControlRule{
-			DomainsRegex: createSliceRegexRule(s.T(), []string{`(?i)^.*\.example.com$`}),
+			DomainsRegex: createSliceRegexCIRule(s.T(), []string{`(?i)^.*\.example.com$`}),
 			Policy:       bypass,
 		}).
 		WithRule(schema.AccessControlRule{
-			DomainsRegex: createSliceRegexRule(s.T(), []string{`(?i)^.*\.example2.com$`}),
+			DomainsRegex: createSliceRegexCIRule(s.T(), []string{`(?i)^.*\.example2.com$`}),
 			Policy:       oneFactor,
 		}).
 		WithRule(schema.AccessControlRule{
-			DomainsRegex: createSliceRegexRule(s.T(), []string{`(?i)^(?P<User>[a-zA-Z0-9]+)\.regex.com$`}),
+			DomainsRegex: createSliceRegexCIRule(s.T(), []string{`(?i)^(?P<User>[a-zA-Z0-9]+)\.regex.com$`}),
 			Policy:       oneFactor,
 		}).
 		WithRule(schema.AccessControlRule{
-			DomainsRegex: createSliceRegexRule(s.T(), []string{`(?i)^group-(?P<Group>[a-zA-Z0-9]+)\.regex.com$`}),
+			DomainsRegex: createSliceRegexCIRule(s.T(), []string{`(?i)^group-(?P<Group>[a-zA-Z0-9]+)\.regex.com$`}),
 			Policy:       twoFactor,
 		}).
 		WithRule(schema.AccessControlRule{
-			DomainsRegex: createSliceRegexRule(s.T(), []string{`(?i)^.*\.(one|two).com$`}),
+			DomainsRegex: createSliceRegexCIRule(s.T(), []string{`(?i)^.*\.(one|two).com$`}),
 			Policy:       twoFactor,
 		}).
 		Build()
@@ -670,14 +657,6 @@ func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
 }
 
 func (s *AuthorizerSuite) TestShouldCheckResourceSubjectMatching() {
-	createSliceRegexRule := func(t *testing.T, rules []string) []regexp.Regexp {
-		result, err := stringSliceToRegexpSlice(rules)
-
-		require.NoError(t, err)
-
-		return result
-	}
-
 	tester := NewAuthorizerBuilder().
 		WithRule(schema.AccessControlRule{
 			Domains:   []string{"id.example.com"},
@@ -908,14 +887,6 @@ func (s *AuthorizerSuite) TestShouldCheckMethodMatching() {
 }
 
 func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
-	createSliceRegexRule := func(t *testing.T, rules []string) []regexp.Regexp {
-		result, err := stringSliceToRegexpSlice(rules)
-
-		require.NoError(t, err)
-
-		return result
-	}
-
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
 		WithRule(schema.AccessControlRule{
@@ -943,36 +914,116 @@ func (s *AuthorizerSuite) TestShouldCheckResourceMatching() {
 			Policy:    twoFactor,
 			Resources: createSliceRegexRule(s.T(), []string{"^/an/exact/path/$"}),
 		}).
+		WithRule(schema.AccessControlRule{
+			Domains:   []string{"resource.example.com"},
+			Policy:    oneFactor,
+			Resources: createSliceRegexRule(s.T(), []string{"^/user/(?P<User>[a-zA-Z0-9]+)/.*$"}),
+		}).
+		WithRule(schema.AccessControlRule{
+			Domains:   []string{"resource.example.com"},
+			Policy:    twoFactor,
+			Resources: createSliceRegexRule(s.T(), []string{"^/group/(?P<Group>[a-zA-Z0-9]+)/.*$"}),
+		}).
 		Build()
 
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/", fasthttp.MethodGet, Bypass)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/abc", fasthttp.MethodGet, Bypass)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/", fasthttp.MethodGet, Bypass)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/one_factor/abc", fasthttp.MethodGet, OneFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/xyz/embedded/abc", fasthttp.MethodGet, Bypass)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/case/abc", fasthttp.MethodGet, Bypass)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/case/ABC", fasthttp.MethodGet, Denied)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/an/exact/path/", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..//a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..%2f/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..%2fa/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..%2F/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/..%2Fa/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e//a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e%2f/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e%2fa/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e%2F/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2e%2e%2Fa/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E//a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2f/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2fa/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2F/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2Fa/longer/rule/abc", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), John, "https://resource.example.com/bypass/%2E%2E%2Fan/exact/path/", fasthttp.MethodGet, TwoFactor)
+	testCases := []struct {
+		name     string
+		subject  Subject
+		have     string
+		method   string
+		expected Level
+	}{
+		{"ShouldBypassRoot", John, "https://resource.example.com/", fasthttp.MethodGet, Bypass},
+		{"ShouldBypassWildcard", John, "https://resource.example.com/bypass/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldBypassWildcardTrailingSlash", John, "https://resource.example.com/bypass/", fasthttp.MethodGet, Bypass},
+		{"ShouldRequireOneFactor", John, "https://resource.example.com/one_factor/abc", fasthttp.MethodGet, OneFactor},
+		{"ShouldBypassEmbeddedResource", John, "https://resource.example.com/xyz/embedded/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldRequireTwoFactorLongerRule", John, "https://resource.example.com/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldBypassLowercaseCharacterClass", John, "https://resource.example.com/case/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldDenyUppercaseCharacterClass", John, "https://resource.example.com/case/ABC", fasthttp.MethodGet, Denied},
+		{"ShouldNotMatchBypassUppercasePathPrefix", John, "https://resource.example.com/BYPASS/abc", fasthttp.MethodGet, Denied},
+		{"ShouldNotMatchBypassMixedCasePathPrefix", John, "https://resource.example.com/Bypass/abc", fasthttp.MethodGet, Denied},
+		{"ShouldNotMatchOneFactorUppercasePathPrefix", John, "https://resource.example.com/ONE_FACTOR/abc", fasthttp.MethodGet, Denied},
+		{"ShouldNotMatchLongerRuleMixedCasePathPrefix", John, "https://resource.example.com/a/Longer/Rule/abc", fasthttp.MethodGet, Denied},
+		{"ShouldNotMatchExactPathUppercase", John, "https://resource.example.com/AN/EXACT/PATH/", fasthttp.MethodGet, Denied},
+		{"ShouldNotMatchExactPathMixedCase", John, "https://resource.example.com/an/Exact/path/", fasthttp.MethodGet, Denied},
+		{"ShouldRequireTwoFactorExactPath", John, "https://resource.example.com/an/exact/path/", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveLiteralDotDot", John, "https://resource.example.com/bypass/../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveLiteralDotDotDoubleSlash", John, "https://resource.example.com/bypass/..//a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveDotDotEncodedSlashLower", John, "https://resource.example.com/bypass/..%2f/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveDotDotEncodedSlashLowerNoSeparator", John, "https://resource.example.com/bypass/..%2fa/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveDotDotEncodedSlashUpper", John, "https://resource.example.com/bypass/..%2F/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveDotDotEncodedSlashUpperNoSeparator", John, "https://resource.example.com/bypass/..%2Fa/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveEncodedDotDotLower", John, "https://resource.example.com/bypass/%2e%2e/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveEncodedDotDotLowerDoubleSlash", John, "https://resource.example.com/bypass/%2e%2e//a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveEncodedDotDotLowerEncodedSlashLower", John, "https://resource.example.com/bypass/%2e%2e%2f/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveEncodedDotDotLowerEncodedSlashLowerNoSeparator", John, "https://resource.example.com/bypass/%2e%2e%2fa/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveEncodedDotDotLowerEncodedSlashUpper", John, "https://resource.example.com/bypass/%2e%2e%2F/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveEncodedDotDotLowerEncodedSlashUpperNoSeparator", John, "https://resource.example.com/bypass/%2e%2e%2Fa/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveEncodedDotDotUpper", John, "https://resource.example.com/bypass/%2E%2E/a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveEncodedDotDotUpperDoubleSlash", John, "https://resource.example.com/bypass/%2E%2E//a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveEncodedDotDotUpperEncodedSlashLower", John, "https://resource.example.com/bypass/%2E%2E%2f/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveEncodedDotDotUpperEncodedSlashLowerNoSeparator", John, "https://resource.example.com/bypass/%2E%2E%2fa/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveEncodedDotDotUpperEncodedSlashUpper", John, "https://resource.example.com/bypass/%2E%2E%2F/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveEncodedDotDotUpperEncodedSlashUpperNoSeparator", John, "https://resource.example.com/bypass/%2E%2E%2Fa/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveEncodedDotDotUpperEncodedSlashUpperToExactPath", John, "https://resource.example.com/bypass/%2E%2E%2Fan/exact/path/", fasthttp.MethodGet, Bypass},
+		{"ShouldMergeSlashesRoot", John, "https://resource.example.com//", fasthttp.MethodGet, Bypass},
+		{"ShouldMergeSlashesLeadingBypass", John, "https://resource.example.com//bypass/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldMergeSlashesWithinBypass", John, "https://resource.example.com/bypass//abc", fasthttp.MethodGet, Bypass},
+		{"ShouldMergeSlashesMultipleWithinBypass", John, "https://resource.example.com/bypass///abc", fasthttp.MethodGet, Bypass},
+		{"ShouldMergeSlashesWithinOneFactor", John, "https://resource.example.com/one_factor//abc", fasthttp.MethodGet, OneFactor},
+		{"ShouldMergeSlashesTrailingExactPath", John, "https://resource.example.com/an/exact/path//", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveSingleDot", John, "https://resource.example.com/bypass/./abc", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveSingleDotOneFactor", John, "https://resource.example.com/one_factor/./abc", fasthttp.MethodGet, OneFactor},
+		{"ShouldResolveEncodedSingleDotLower", John, "https://resource.example.com/one_factor/%2e/abc", fasthttp.MethodGet, OneFactor},
+		{"ShouldResolveEncodedSingleDotUpper", John, "https://resource.example.com/one_factor/%2E/abc", fasthttp.MethodGet, OneFactor},
+		{"ShouldResolveTrailingSingleDot", John, "https://resource.example.com/one_factor/abc/.", fasthttp.MethodGet, OneFactor},
+		{"ShouldResolveDotDotToRoot", John, "https://resource.example.com/bypass/..", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveDotDotAboveRoot", John, "https://resource.example.com/../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldResolveMultipleDotDotAboveRoot", John, "https://resource.example.com/../../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldTreatEncodedSlashAsLiteralWithinBypass", John, "https://resource.example.com/bypass/a%2Fb", fasthttp.MethodGet, Bypass},
+		{"ShouldNotMatchOneFactorWithEncodedSlashSeparator", John, "https://resource.example.com/one_factor%2Fabc", fasthttp.MethodGet, Denied},
+		{"ShouldNotMatchLongerRuleWithEncodedSlashSeparator", John, "https://resource.example.com/a/longer/rule%2Fabc", fasthttp.MethodGet, Denied},
+		{"ShouldMatchUserResourceForOwnUsername", John, "https://resource.example.com/user/john/profile", fasthttp.MethodGet, OneFactor},
+		{"ShouldMatchUserResourceForOwnUsernameBob", Bob, "https://resource.example.com/user/bob/profile", fasthttp.MethodGet, OneFactor},
+		{"ShouldNotMatchUserResourceForOtherUsername", John, "https://resource.example.com/user/bob/profile", fasthttp.MethodGet, Denied},
+		{"ShouldMatchUserResourceForMixedCaseUsername", John, "https://resource.example.com/user/John/profile", fasthttp.MethodGet, OneFactor},
+		{"ShouldMatchUserResourceForUppercaseUsername", John, "https://resource.example.com/user/JOHN/profile", fasthttp.MethodGet, OneFactor},
+		{"ShouldMatchUserResourceForAnonymous", AnonymousUser, "https://resource.example.com/user/anybody/profile", fasthttp.MethodGet, OneFactor},
+		{"ShouldNotMatchUserResourceMissingTrailingSegment", John, "https://resource.example.com/user/john", fasthttp.MethodGet, Denied},
+		{"ShouldMatchGroupResourceForMemberGroup", John, "https://resource.example.com/group/dev/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldMatchGroupResourceForSecondMemberGroup", John, "https://resource.example.com/group/admins/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldNotMatchGroupResourceForNonMemberGroup", John, "https://resource.example.com/group/other/abc", fasthttp.MethodGet, Denied},
+		{"ShouldNotMatchGroupResourceForUserWithoutGroups", Bob, "https://resource.example.com/group/dev/abc", fasthttp.MethodGet, Denied},
+		{"ShouldMatchGroupResourceForMixedCaseGroup", John, "https://resource.example.com/group/Dev/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldMatchGroupResourceForUppercaseGroup", John, "https://resource.example.com/group/ADMINS/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldMatchGroupResourceForAnonymous", AnonymousUser, "https://resource.example.com/group/dev/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldNotTraverseWithDoubleEncodedDotDot", John, "https://resource.example.com/bypass/%252e%252e/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldNotTraverseWithOverlongEncodedDotDot", John, "https://resource.example.com/bypass/%c0%ae%c0%ae/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldNotTraverseWithEncodedBackslashSeparator", John, "https://resource.example.com/bypass/..%5c/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldNotTraverseWithLiteralBackslashSeparator", John, "https://resource.example.com/bypass/..\\/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldNotTraverseWithEncodedDotDotEncodedBackslash", John, "https://resource.example.com/bypass/%2e%2e%5c/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldNotTraverseWithNullByte", John, "https://resource.example.com/bypass/%00/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldNotTraverseWithSemicolonParameter", John, "https://resource.example.com/bypass/..;/a/longer/rule/abc", fasthttp.MethodGet, Bypass},
+		{"ShouldNotTraverseWithChainedEncodedSlashes", John, "https://resource.example.com/bypass/..%2f..%2f..%2fone_factor/x", fasthttp.MethodGet, Bypass},
+		{"ShouldResolveDotDotRegardlessOfPrefixCase", John, "https://resource.example.com/BYPASS/../a/longer/rule/abc", fasthttp.MethodGet, TwoFactor},
+		{"ShouldMatchOneFactorWithQueryString", John, "https://resource.example.com/one_factor/abc?foo=bar", fasthttp.MethodGet, OneFactor},
+		{"ShouldNotMatchExactPathWithQueryString", John, "https://resource.example.com/an/exact/path/?foo=bar", fasthttp.MethodGet, Denied},
+		{"ShouldBypassOneFactorPathContainingUnanchoredEmbedded", John, "https://resource.example.com/one_factor/embedded/secret", fasthttp.MethodGet, Bypass},
+		{"ShouldMatchOneFactorWithEncodedUnreservedPrefix", John, "https://resource.example.com/%6fne_factor/abc", fasthttp.MethodGet, OneFactor},
+		{"ShouldMatchOneFactorWithEncodedUnreservedSegment", John, "https://resource.example.com/one_factor/%61%62%63", fasthttp.MethodGet, OneFactor},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			requestedObject, err := NewObjectMethodURL([]byte(tc.method), []byte(tc.have))
+			require.NoError(t, err)
+
+			_, level := tester.GetRequiredLevel(tc.subject, *requestedObject)
+
+			assert.Equal(t, tc.expected, level)
+		})
+	}
 }
 
 // This test assures that rules without domains (not allowed by schema validator at this time) will pass validation correctly.
@@ -1010,14 +1061,6 @@ func (s *AuthorizerSuite) TestShouldMatchAnyDomainIfBlank() {
 }
 
 func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
-	createSliceRegexRule := func(t *testing.T, rules []string) []regexp.Regexp {
-		result, err := stringSliceToRegexpSlice(rules)
-
-		require.NoError(t, err)
-
-		return result
-	}
-
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
 		WithRule(schema.AccessControlRule{
@@ -1248,4 +1291,26 @@ func TestAuthorizerIsSecondFactorEnabledRuleWithOIDC(t *testing.T) {
 	config.AccessControl.DefaultPolicy = twoFactor
 	authorizer = NewAuthorizer(config)
 	assert.True(t, authorizer.IsSecondFactorEnabled())
+}
+
+func createSliceRegexCIRule(t *testing.T, rules []string) []schema.RegexpCI {
+	result, err := stringSliceToRegexpSlice(rules)
+
+	require.NoError(t, err)
+
+	items := make([]schema.RegexpCI, len(result))
+
+	for i, item := range result {
+		items[i] = schema.RegexpCI{Regexp: item}
+	}
+
+	return items
+}
+
+func createSliceRegexRule(t *testing.T, rules []string) []regexp.Regexp {
+	result, err := stringSliceToRegexpSlice(rules)
+
+	require.NoError(t, err)
+
+	return result
 }

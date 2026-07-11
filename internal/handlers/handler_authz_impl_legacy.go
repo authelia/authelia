@@ -11,23 +11,19 @@ import (
 
 func handleAuthzGetObjectLegacy(ctx AuthzContext) (object authorization.Object, err error) {
 	var (
-		targetURL *url.URL
-		method    []byte
+		method          []byte
+		requestedObject *authorization.Object
 	)
-
-	if targetURL, err = ctx.GetXOriginalURLOrXForwardedURL(); err != nil {
-		return object, fmt.Errorf("failed to get target URL: %w", err)
-	}
 
 	if method = ctx.XForwardedMethod(); len(method) == 0 {
 		method = ctx.Method()
 	}
 
-	if hasInvalidMethodCharacters(method) {
-		return object, fmt.Errorf("header 'X-Forwarded-Method' with value '%s' has invalid characters", method)
+	if requestedObject, err = authorization.NewObjectMethodURLOrSchemeHostPath(method, ctx.XOriginalURL(), ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()); err != nil {
+		return object, fmt.Errorf("failed to parse start line value 'Method': %w", err)
 	}
 
-	return authorization.NewObjectRaw(targetURL, method), nil
+	return *requestedObject, nil
 }
 
 func handleAuthzUnauthorizedLegacy(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {

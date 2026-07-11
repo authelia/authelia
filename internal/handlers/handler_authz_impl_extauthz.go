@@ -10,26 +10,15 @@ import (
 )
 
 func handleAuthzGetObjectExtAuthz(ctx AuthzContext) (object authorization.Object, err error) {
-	protocol, host, uri := ctx.XForwardedProto(), ctx.Host(), ctx.AuthzPath()
+	var requestedObject *authorization.Object
 
-	var (
-		targetURL *url.URL
-		method    []byte
-	)
+	host := ctx.Host()
 
-	if targetURL, err = getRequestURIFromForwardedHeaders(protocol, host, uri); err != nil {
-		return object, fmt.Errorf("failed to get target URL: %w", err)
+	if requestedObject, err = authorization.NewObjectMethodSchemeHostPath(ctx.Method(), ctx.XForwardedProto(), host, ctx.AuthzPath()); err != nil {
+		return object, fmt.Errorf("failed to parse start line value 'Method': %w", err)
 	}
 
-	if method = ctx.Method(); len(method) == 0 {
-		return object, fmt.Errorf("start line value 'Method' is empty")
-	}
-
-	if hasInvalidMethodCharacters(method) {
-		return object, fmt.Errorf("start line value 'Method' with value '%s' has invalid characters", method)
-	}
-
-	return authorization.NewObjectRaw(targetURL, method), nil
+	return *requestedObject, nil
 }
 
 func handleAuthzUnauthorizedExtAuthz(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {

@@ -81,6 +81,60 @@ func (o Object) String() string {
 	return o.URL.String()
 }
 
+func NewObjectMethodURLOrSchemeHostPath(rawMethod, rawURL, rawScheme, rawHost, rawPath []byte) (object *Object, err error) {
+	if len(rawURL) > 0 {
+		return NewObjectMethodURL(rawMethod, rawURL)
+	}
+
+	return NewObjectMethodSchemeHostPath(rawMethod, rawScheme, rawHost, rawPath)
+}
+
+func NewObjectMethodSchemeHostPath(rawMethod, rawScheme, rawHost, rawPath []byte) (object *Object, err error) {
+	if len(rawScheme) == 0 {
+		return nil, fmt.Errorf("missing scheme value")
+	}
+
+	if len(rawHost) == 0 {
+		return nil, fmt.Errorf("missing host value")
+	}
+
+	rawURL := utils.BytesJoin(rawScheme, sepSchemeHost, rawHost, rawPath)
+
+	return NewObjectMethodURL(rawMethod, rawURL)
+}
+
+func NewObjectMethodURL(rawMethod, rawURL []byte) (object *Object, err error) {
+	var objectURL *url.URL
+
+	if len(rawMethod) == 0 {
+		return nil, fmt.Errorf("missing method value")
+	}
+
+	if hasInvalidMethodCharacters(rawMethod) {
+		return nil, fmt.Errorf("method header with value '%s' has invalid characters", rawMethod)
+	}
+
+	method := string(rawMethod)
+
+	if objectURL, err = utils.ParseNormalizedRequestURI(string(rawURL)); err != nil {
+		return nil, fmt.Errorf("error occurred parsing object url: %w", err)
+	}
+
+	o := NewObject(objectURL, method)
+
+	return &o, nil
+}
+
+func hasInvalidMethodCharacters(v []byte) bool {
+	for _, c := range v {
+		if c < 0x41 || c > 0x5A {
+			return true
+		}
+	}
+
+	return false
+}
+
 // NewObjectRaw creates a new Object type from a URL and a method header.
 func NewObjectRaw(targetURL *url.URL, method []byte) (object Object) {
 	return NewObject(targetURL, string(method))
@@ -88,10 +142,13 @@ func NewObjectRaw(targetURL *url.URL, method []byte) (object Object) {
 
 // NewObject creates a new Object type from a URL and a method header.
 func NewObject(targetURL *url.URL, method string) (object Object) {
+	targetURL.Scheme = strings.ToLower(targetURL.Scheme)
+	targetURL.Host = strings.ToLower(targetURL.Host)
+
 	return Object{
 		URL:    targetURL,
 		Domain: targetURL.Hostname(),
-		Path:   utils.URLPathFullClean(targetURL),
+		Path:   utils.PathWithQueryFromURI(targetURL),
 		Method: method,
 	}
 }

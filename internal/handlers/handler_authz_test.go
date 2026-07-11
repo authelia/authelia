@@ -228,7 +228,7 @@ func (s *AuthzSuite) TestShouldApplyDefaultPolicy() {
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://test.example.com",
+		RequestURI:    "https://test.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -328,7 +328,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://bypass.example.com",
+		RequestURI:    "https://bypass.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -483,7 +483,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCache
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://one-factor.example.com",
+		RequestURI:    "https://one-factor.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -583,7 +583,7 @@ func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached(
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://one-factor.example.com",
+		RequestURI:    "https://one-factor.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -685,7 +685,7 @@ func (s *AuthzSuite) TestShouldRejectBannedUserUsingBasicScheme() {
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://one-factor.example.com",
+		RequestURI:    "https://one-factor.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -746,7 +746,7 @@ func (s *AuthzSuite) TestShouldRejectBannedIPUsingBasicScheme() {
 		Username:      model.NewIP(mock.Ctx.RemoteIP()).String(),
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://one-factor.example.com",
+		RequestURI:    "https://one-factor.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -804,7 +804,7 @@ func (s *AuthzSuite) TestShouldRejectBannedCanonicalUserUsingBasicScheme() {
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://one-factor.example.com",
+		RequestURI:    "https://one-factor.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -1269,7 +1269,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://one-factor.example.com",
+		RequestURI:    "https://one-factor.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -1322,7 +1322,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://one-factor.example.com",
+		RequestURI:    "https://one-factor.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -1469,7 +1469,7 @@ func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
 				Username:      "john",
 				Type:          regulation.AuthType1FA,
 				RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-				RequestURI:    "https://one-factor.example.com",
+				RequestURI:    "https://one-factor.example.com/",
 				RequestMethod: fasthttp.MethodGet,
 			}
 
@@ -1532,7 +1532,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://two-factor.example.com",
+		RequestURI:    "https://two-factor.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -1600,7 +1600,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfDenyDomain() {
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://deny.example.com",
+		RequestURI:    "https://deny.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -1632,7 +1632,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 		s.T().Skip()
 	}
 
-	builder := NewAuthzBuilder().WithImplementationLegacy()
+	builder := s.Builder()
 
 	header := NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic")
 	header.delay = middlewares.NewTimingAttackDelay(1, time.Millisecond).SetMinimumDelay(10).SetRecord(false)
@@ -1679,13 +1679,8 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 			Username:      "john",
 			Type:          regulation.AuthType1FA,
 			RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-			RequestURI:    "https://one-factor.example.com",
+			RequestURI:    "https://one-factor.example.com/",
 			RequestMethod: fasthttp.MethodGet,
-		}
-
-		switch s.implementation {
-		case AuthzImplExtAuthz, AuthzImplForwardAuth:
-			attempt.RequestURI += "/"
 		}
 
 		mock.StorageMock.
@@ -1717,9 +1712,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithoutHeaderNoCookie() {
 		s.T().Skip()
 	}
 
-	// Equivalent of TestShouldVerifyAuthBasicArgFailingNoHeader.
-
-	builder := NewAuthzBuilder().WithImplementationLegacy()
+	builder := s.Builder()
 
 	header := NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic")
 	header.delay = middlewares.NewTimingAttackDelay(1, time.Millisecond).SetMinimumDelay(10).SetRecord(false)
@@ -1754,9 +1747,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithEmptyAuthorizationHeader() {
 		s.T().Skip()
 	}
 
-	// Equivalent of TestShouldVerifyAuthBasicArgFailingEmptyHeader.
-
-	builder := NewAuthzBuilder().WithImplementationLegacy()
+	builder := s.Builder()
 
 	header := NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic")
 	header.delay = middlewares.NewTimingAttackDelay(1, time.Millisecond).SetMinimumDelay(10).SetRecord(false)
@@ -1793,7 +1784,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 		s.T().Skip()
 	}
 
-	builder := NewAuthzBuilder().WithImplementationLegacy()
+	builder := s.Builder()
 
 	header := NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic")
 	header.delay = middlewares.NewTimingAttackDelay(1, time.Millisecond).SetMinimumDelay(10).SetRecord(false)
@@ -1843,13 +1834,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 			Username:      "john",
 			Type:          regulation.AuthType1FA,
 			RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-			RequestURI:    "https://one-factor.example.com",
+			RequestURI:    "https://one-factor.example.com/",
 			RequestMethod: fasthttp.MethodGet,
-		}
-
-		switch s.implementation {
-		case AuthzImplExtAuthz, AuthzImplForwardAuth:
-			attempt.RequestURI += "/"
 		}
 
 		mock.StorageMock.
@@ -2512,7 +2498,7 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
-	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
+	targetURI := s.RequireParseRequestURI("https://one-factor.example.com/")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
@@ -2607,7 +2593,7 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel(false))
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 
-	targetURI = s.RequireParseRequestURI("https://two-factor.example.com")
+	targetURI = s.RequireParseRequestURI("https://two-factor.example.com/")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
@@ -2654,7 +2640,7 @@ func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
 
-	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com/")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
