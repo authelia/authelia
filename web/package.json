@@ -14,7 +14,7 @@
     "@fortawesome/fontawesome-svg-core": "7.3.0",
     "@fortawesome/free-regular-svg-icons": "7.3.0",
     "@fortawesome/free-solid-svg-icons": "7.3.0",
-    "@fortawesome/react-fontawesome": "3.3.1",
+    "@fortawesome/react-fontawesome": "3.4.0",
     "@mui/icons-material": "7.3.11",
     "@mui/material": "7.3.11",
     "@simplewebauthn/browser": "13.3.0",
