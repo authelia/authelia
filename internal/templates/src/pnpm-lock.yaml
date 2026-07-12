@@ -64,8 +64,8 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.17)
       eslint:
-        specifier: 10.6.0
-        version: 10.6.0(jiti@2.4.2)
+        specifier: 10.7.0
+        version: 10.7.0(jiti@2.4.2)
       tsx:
         specifier: 4.23.0
         version: 4.23.0
@@ -934,8 +934,8 @@ packages:
     resolution: {integrity: sha512-tD40eHxA35h0PEIZNeIjkHoDR4YjjJp34biM0mDvplBe//mB+IHCqHDGV7pxF+7MklTvighcCPPZC7ynWyjdTA==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  eslint@10.6.0:
-    resolution: {integrity: sha512-6lVbcqSodALYo+4ELD0heG6lFiFxnLMuLkiMi2qV8LMp54N8tE8FT1GMH+ev4Ti00nFjNze2+Su6DsV5OQW3Dg==}
+  eslint@10.7.0:
+    resolution: {integrity: sha512-GVTD7s1vdIl6UYvAfriOPeY1Df8LIZjfofLvHwde+erDHGGuHyuM6xoxRxmHiebhYuD2p1vN4wWh0XzPARSGDQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
     hasBin: true
     peerDependencies:
@@ -1767,9 +1767,9 @@ snapshots:
   '@esbuild/win32-x64@0.28.0':
     optional: true
 
-  '@eslint-community/eslint-utils@4.8.0(eslint@10.6.0(jiti@2.4.2))':
+  '@eslint-community/eslint-utils@4.8.0(eslint@10.7.0(jiti@2.4.2))':
     dependencies:
-      eslint: 10.6.0(jiti@2.4.2)
+      eslint: 10.7.0(jiti@2.4.2)
       eslint-visitor-keys: 3.4.3
 
   '@eslint-community/regexpp@4.12.2': {}
@@ -2313,9 +2313,9 @@ snapshots:
 
   eslint-visitor-keys@5.0.1: {}
 
-  eslint@10.6.0(jiti@2.4.2):
+  eslint@10.7.0(jiti@2.4.2):
     dependencies:
-      '@eslint-community/eslint-utils': 4.8.0(eslint@10.6.0(jiti@2.4.2))
+      '@eslint-community/eslint-utils': 4.8.0(eslint@10.7.0(jiti@2.4.2))
       '@eslint-community/regexpp': 4.12.2
       '@eslint/config-array': 0.23.5
       '@eslint/config-helpers': 0.6.0
