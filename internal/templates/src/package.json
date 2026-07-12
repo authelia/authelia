@@ -15,7 +15,7 @@
     "react-email": "6.6.9",
     "tailwind-merge": "3.6.0",
     "tailwindcss": "4.3.2",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   },
   "devDependencies": {
     "@radix-ui/colors": "3.0.0",
