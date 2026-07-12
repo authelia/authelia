@@ -752,7 +752,7 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) 
 	config := &webauthn.Config{
 		RPID:                  origin.Hostname(),
 		RPDisplayName:         ctx.Configuration.WebAuthn.DisplayName,
-		RPOrigins:             []string{origin.String()},
+		RPOrigins:             append([]string{origin.String()}, ctx.Configuration.WebAuthn.AdditionalOrigins...),
 		AttestationPreference: ctx.Configuration.WebAuthn.ConveyancePreference,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
 			AuthenticatorAttachment: ctx.Configuration.WebAuthn.SelectionCriteria.Attachment,

@@ -27,6 +27,7 @@ webauthn:
   enable_passkey_login: false
   display_name: 'Authelia'
   attestation_conveyance_preference: 'indirect'
+  additional_origins: []
   timeout: '60 seconds'
   filtering:
     permitted_aaguids: []
@@ -127,6 +128,24 @@ Available Options:
 |   none   |                                           The client will be instructed not to perform conveyancing                                           |
 | indirect | The client will be instructed to perform conveyancing but the client can choose how to do this including using a third party anonymization CA |
 |  direct  |           The client will be instructed to perform conveyancing with an attestation statement directly signed by the authenticator            |
+
+### additional_origins
+
+{{< confkey type="list(string)" required="no" >}}
+
+{{< callout context="caution" title="Security Note" icon="outline/alert-triangle" >}}
+Every origin in this list is fully trusted to perform WebAuthn ceremonies. Only add origins you control such as the
+facet origin derived from your own application's signing certificate.
+{{< /callout >}}
+
+A list of additional origins which are considered valid during WebAuthn ceremony validation in addition to the
+automatically determined portal origin. Each value is compared verbatim against the origin recorded in the signed
+client data of the ceremony.
+
+This is primarily useful for native applications which perform WebAuthn ceremonies against Authelia and stamp the
+assertion with an application facet origin instead of a web origin. For example Android applications utilizing the
+Credential Manager API or a WebView produce origins in the format
+`android:apk-key-hash:<base64url-encoded-sha256-hash-of-apk-signing-certificate>`.
 
 ### timeout
 

@@ -18,6 +18,8 @@ type WebAuthn struct {
 
 	ConveyancePreference protocol.ConveyancePreference `koanf:"attestation_conveyance_preference" yaml:"attestation_conveyance_preference,omitempty" toml:"attestation_conveyance_preference,omitempty" json:"attestation_conveyance_preference,omitempty" jsonschema:"default=indirect,enum=none,enum=indirect,enum=direct,title=Conveyance Preference" jsonschema_description:"The default conveyance preference for all WebAuthn credentials."`
 
+	AdditionalOrigins []string `koanf:"additional_origins" yaml:"additional_origins,omitempty" toml:"additional_origins,omitempty" json:"additional_origins,omitempty" jsonschema:"title=Additional Origins" jsonschema_description:"List of additional origins to consider valid during WebAuthn ceremony validation. Useful for native application facet origins such as those prefixed with android:apk-key-hash: which are matched verbatim."`
+
 	Timeout time.Duration `koanf:"timeout" yaml:"timeout,omitempty" toml:"timeout,omitempty" json:"timeout,omitempty" jsonschema:"default=60 seconds,title=Timeout" jsonschema_description:"The default timeout for all WebAuthn ceremonies."`
 
 	Filtering         WebAuthnFiltering         `koanf:"filtering" yaml:"filtering,omitempty" toml:"filtering,omitempty" json:"filtering,omitempty" jsonschema:"title=Filtering" jsonschema_description:"WebAuthn Authenticator filtering settings."`

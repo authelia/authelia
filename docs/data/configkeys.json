@@ -1260,6 +1260,11 @@
         "env": "AUTHELIA_TOTP_SKEW"
     },
     {
+        "path": "webauthn.additional_origins",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_ADDITIONAL_ORIGINS"
+    },
+    {
         "path": "webauthn.attestation_conveyance_preference",
         "secret": false,
         "env": "AUTHELIA_WEBAUTHN_ATTESTATION_CONVEYANCE_PREFERENCE"

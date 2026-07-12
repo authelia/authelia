@@ -242,6 +242,11 @@
   ## Options are none, indirect, direct.
   # attestation_conveyance_preference: 'indirect'
 
+  ## A list of additional origins considered valid during WebAuthn ceremony validation in addition to the automatically
+  ## determined portal origin. Useful for native application facet origins such as those prefixed with
+  ## android:apk-key-hash: which are matched verbatim.
+  # additional_origins: []
+
   ## The interaction timeout for WebAuthn dialogues in the duration common syntax.
   # timeout: '60 seconds'
 
