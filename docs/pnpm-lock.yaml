@@ -59,10 +59,10 @@ importers:
         version: 2.31.0
       '@fullhuman/postcss-purgecss':
         specifier: 8.0.0
-        version: 8.0.0(postcss@8.5.16)
+        version: 8.0.0(postcss@8.5.17)
       autoprefixer:
         specifier: 10.5.2
-        version: 10.5.2(postcss@8.5.16)
+        version: 10.5.2(postcss@8.5.17)
       basiclightbox:
         specifier: 5.0.4
         version: 5.0.4
@@ -76,11 +76,11 @@ importers:
         specifier: 0.8.212
         version: 0.8.212
       postcss:
-        specifier: 8.5.16
-        version: 8.5.16
+        specifier: 8.5.17
+        version: 8.5.17
       postcss-cli:
         specifier: 11.0.1
-        version: 11.0.1(postcss@8.5.16)
+        version: 11.0.1(postcss@8.5.17)
       prettier:
         specifier: 3.9.5
         version: 3.9.5
@@ -1492,8 +1492,8 @@ packages:
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
-  postcss@8.5.16:
-    resolution: {integrity: sha512-vuwillviilfKZsg0VGj5R/YwwcHx4SLsIOI/7K6mQkWx+l5cUHTjj5g0AasTBcyXsbfTgrwsUNmVUb5xVwyPwg==}
+  postcss@8.5.17:
+    resolution: {integrity: sha512-J7EF+8X+CzRPaJPOv9Ck2wNWJvGnnl3PcNPAdGg6GTLjyVpyQ0yATMSXRFRV01BviT/9Gwuc3rjEyJbDJG9a4w==}
     engines: {node: ^10 || ^12 || >=14}
 
   prettier@2.8.8:
@@ -2662,9 +2662,9 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@fullhuman/postcss-purgecss@8.0.0(postcss@8.5.16)':
+  '@fullhuman/postcss-purgecss@8.0.0(postcss@8.5.17)':
     dependencies:
-      postcss: 8.5.16
+      postcss: 8.5.17
       purgecss: 8.0.0
 
   '@inquirer/external-editor@1.0.3':
@@ -2801,12 +2801,12 @@ snapshots:
       '@babel/cli': 7.29.7(@babel/core@7.29.7)
       '@babel/core': 7.29.7
       '@babel/preset-env': 7.29.7(@babel/core@7.29.7)
-      '@fullhuman/postcss-purgecss': 8.0.0(postcss@8.5.16)
-      autoprefixer: 10.5.2(postcss@8.5.16)
+      '@fullhuman/postcss-purgecss': 8.0.0(postcss@8.5.17)
+      autoprefixer: 10.5.2(postcss@8.5.17)
       lazysizes: 5.3.2
       modern-css-reset: 1.4.0
-      postcss: 8.5.16
-      postcss-cli: 11.0.1(postcss@8.5.16)
+      postcss: 8.5.17
+      postcss-cli: 11.0.1(postcss@8.5.17)
       quicklink: 3.0.1
     transitivePeerDependencies:
       - jiti
@@ -2855,13 +2855,13 @@ snapshots:
 
   array-union@2.1.0: {}
 
-  autoprefixer@10.5.2(postcss@8.5.16):
+  autoprefixer@10.5.2(postcss@8.5.17):
     dependencies:
       browserslist: 4.28.4
       caniuse-lite: 1.0.30001799
       fraction.js: 5.3.4
       picocolors: 1.1.1
-      postcss: 8.5.16
+      postcss: 8.5.17
       postcss-value-parser: 4.2.0
 
   babel-plugin-polyfill-corejs2@0.4.17(@babel/core@7.29.7):
@@ -3322,15 +3322,15 @@ snapshots:
 
   pify@4.0.1: {}
 
-  postcss-cli@11.0.1(postcss@8.5.16):
+  postcss-cli@11.0.1(postcss@8.5.17):
     dependencies:
       chokidar: 3.6.0
       dependency-graph: 1.0.0
       fs-extra: 11.3.5
       picocolors: 1.1.1
-      postcss: 8.5.16
-      postcss-load-config: 5.1.0(postcss@8.5.16)
-      postcss-reporter: 7.1.0(postcss@8.5.16)
+      postcss: 8.5.17
+      postcss-load-config: 5.1.0(postcss@8.5.17)
+      postcss-reporter: 7.1.0(postcss@8.5.17)
       pretty-hrtime: 1.0.3
       read-cache: 1.0.0
       slash: 5.1.0
@@ -3340,17 +3340,17 @@ snapshots:
       - jiti
       - tsx
 
-  postcss-load-config@5.1.0(postcss@8.5.16):
+  postcss-load-config@5.1.0(postcss@8.5.17):
     dependencies:
       lilconfig: 3.1.3
       yaml: 2.9.0
     optionalDependencies:
-      postcss: 8.5.16
+      postcss: 8.5.17
 
-  postcss-reporter@7.1.0(postcss@8.5.16):
+  postcss-reporter@7.1.0(postcss@8.5.17):
     dependencies:
       picocolors: 1.1.1
-      postcss: 8.5.16
+      postcss: 8.5.17
       thenby: 1.4.1
 
   postcss-selector-parser@7.1.4:
@@ -3360,7 +3360,7 @@ snapshots:
 
   postcss-value-parser@4.2.0: {}
 
-  postcss@8.5.16:
+  postcss@8.5.17:
     dependencies:
       nanoid: 3.3.12
       picocolors: 1.1.1
@@ -3376,7 +3376,7 @@ snapshots:
     dependencies:
       commander: 12.1.0
       fast-glob: 3.3.3
-      postcss: 8.5.16
+      postcss: 8.5.17
       postcss-selector-parser: 7.1.4
 
   quansync@0.2.11: {}
@@ -3577,7 +3577,7 @@ snapshots:
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.5
-      postcss: 8.5.16
+      postcss: 8.5.17
       rolldown: 1.1.5
       tinyglobby: 0.2.17
     optionalDependencies:
