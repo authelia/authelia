@@ -73,11 +73,11 @@ achieve a secure result. Please see the [Cloudflare] documentation on
 11. Click `Deploy`.
 
 {{< figure
-src="cloudflare_1.png"
+src="cloudflare.png"
 alt="Image of Cloudflare dashboard with steps 1 to 4 labeled"
 width="736"
-caption="Steps 1 - 4: Create New Request Header Transform Rule"
-title="Steps 1 - 4: Create New Request Header Transform Rule" >}}
+caption="Steps 1 - 4: Ensure Remove visitor IP headers setting is enabled."
+title="Steps 1 - 4: Ensure Remove visitor IP headers setting is enabled." >}}
 
 #### Criteria
 
