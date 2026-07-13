@@ -79,20 +79,6 @@ width="736"
 caption="Steps 1 - 4: Create New Request Header Transform Rule"
 title="Steps 1 - 4: Create New Request Header Transform Rule" >}}
 
-{{< figure
-src="cloudflare_2.png"
-alt="Image of Cloudflare dashboard with steps 5 to 11 labeled for Option 1"
-width="736"
-caption="Steps 5 - 11 Option 1: Always Remove Headers"
-title="Steps 5 - 11 Option 1: Always Remove Headers" >}}
-
-{{< figure
-src="cloudflare_3.png"
-alt="Image of Cloudflare dashboard with steps 5 to 11 labeled for Option 2"
-width="736"
-caption="Steps 5 - 11 Option 2: Remove When Not From Trusted Source"
-title="Steps 5 - 11 Option 2: Remove When Not From Trusted Source" >}}
-
 #### Criteria
 
 This table describes the criteria needed to achieve a desired result. Only one of these options should be chosen. You
