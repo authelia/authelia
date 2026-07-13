@@ -58,19 +58,9 @@ achieve a secure result. Please see the [Cloudflare] documentation on
 #### Steps
 
 1. On the left sidebar, click `Rules`.
-2. Click `Transform Rules`.
-3. On the right, click `Modify Request Header` tab.
-4. Click `Create rule`.
-5. Set the `Rule name` to something appropriate like `Remove X-Forwarded-For Header`.
-6. Set the `Field` option in the `When incoming requests match` section to an appropriate value (see criteria table
-   below).
-7. Set the `Operator` option in the `When incoming requests match` section to an appropriate value (see criteria table
-   below).
-8. Set the `Value` option in the `When incoming requests match` section to an appropriate value (see criteria table
-   below).
-9. Set the `Then` section dropdown to `Remove`.
-10. Set the `Then` section `Header name` to `X-Forwarded-For`.
-11. Click `Deploy`.
+2. Click `Settings`.
+3. On the top, ensure `Managed Transforms` tab is selected.
+4. Toggle `Remove visitor IP headers`.
 
 {{< figure
 src="cloudflare.png"
