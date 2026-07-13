@@ -27,8 +27,6 @@ seo:
 - [Grafana]
   - [v13.1.0](https://github.com/grafana/grafana/releases/tag/v13.1.0)
 
-{{% oidc-common bugs="claims-hydration" %}}
-
 ### Assumptions
 
 This example makes the following assumptions:
