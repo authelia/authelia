@@ -50,10 +50,10 @@ These same rules apply to any off-site hosted proxy or load balancing solution t
 to it. This means a client can forge their remote IP address with the most widely accepted remote IP header out of the
 box.
 
-It is therefore important you configure [Cloudflare] to remove this IP address. *__Please Note:__ This is by no means an
-exhaustive guide on using [Cloudflare] transform rules, however it's enough to configure a couple rules which should
+[Cloudflare] now enabled this setting by default, however it is still recommended to check and ensure that the settings is enabled.*__Please Note:__ This is by no means an
+exhaustive guide on using [Cloudflare] managed transforms, however it's enough to configure a couple rules which should
 achieve a secure result. Please see the [Cloudflare] documentation on
-[Managed Transforms](https://developers.cloudflare.com/rules/transform/managed-transforms/?preferred-color-scheme=dark) for more information._
+[managed transforms](https://developers.cloudflare.com/rules/transform/managed-transforms/?preferred-color-scheme=dark) for more information._
 
 #### Steps
 
