@@ -97,7 +97,7 @@ title="Steps 1 - 3: Image of Cloudflare dashboard with steps 1 to 3 labeled for 
 
 {{< figure
 src="cloudflare3.png"
-alt="Image of Cloudflare dashboard with steps 3 to 10 labeled"
+alt="Image of Cloudflare dashboard with steps 4 to 10 labeled"
 width="736"
 caption="Steps 4 - 10: Image of Cloudflare dashboard with steps 4 to 10 labeled for method 2"
 title="Steps 4 - 10: Image of Cloudflare dashboard with steps 4 to 10 labeled for method 2" >}}
