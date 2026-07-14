@@ -69,7 +69,7 @@ width="736"
 caption="Steps 1 - 4: Ensure Remove visitor IP headers setting is enabled."
 title="Steps 1 - 4: Ensure Remove visitor IP headers setting is enabled." >}}
 
-*__Please Note:__ This settings removes the header from include the client IP entirely, regardless if it's a trusted source. If you want to allow certain IPs to add to this header, you will need to create a Transform Rule under Overview.
+*__Please Note:__ This setting removes the client IP from the header entirely, regardless of if it originates from a trusted source. If you wish to allow certain IPs to be included in this header, you will need to create a Transform Rule under Overview.
 
 #### Criteria
 
