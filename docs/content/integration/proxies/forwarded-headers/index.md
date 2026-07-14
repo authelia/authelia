@@ -50,12 +50,12 @@ These same rules apply to any off-site hosted proxy or load balancing solution t
 to it. This means a client can forge their remote IP address with the most widely accepted remote IP header out of the
 box.
 
-### Removing Client IPs from X-Forwarded-For Header
+### Remove Client IPs from X-Forwarded-For Header
 
 [Cloudflare] has managed rules with one of them removing client IPs from the X-Forwarded-For header. *__Please Note:__ This is by no means an
 exhaustive guide on using [Cloudflare] managed transforms, however it's enough to configure this rule which should
 achieve a secure result. Please see the [Cloudflare] documentation on
-[managed transforms](https://developers.cloudflare.com/rules/transform/managed-transforms/?preferred-color-scheme=dark) for more information._
+[managed transforms](https://developers.cloudflare.com/rules/transform/managed-transforms/) for more information._
 
 #### Method 1 Steps
 
@@ -71,9 +71,9 @@ width="736"
 caption="Steps 1 - 4: Image of Cloudflare dashboard with steps 1 to 4 labeled for method 1"
 title="Steps 1 - 4: Image of Cloudflare dashboard with steps 1 to 4 labeled for method 1" >}}
 
-### Allowing Trusted IPs to Add X-Forwarded-For Header
+### Allow Trusted IPs to Add Client IPs to X-Forwarded-For Header
 
-The Managed Transforms option removes visitor IP values from the X-Forwarded-For header regardless of if it originates from a trusted source. If you wish to allow certain IPs to be included in this header, you will need to create a Transform Rule under Overview. *Please Note: This is by no means an exhaustive guide on using Cloudflare transform rules, however it's enough to configure this rule which should achieve a secure result. Please refer to the Cloudflare documentation on [transform rules](https://developers.cloudflare.com/rules/transform/?preferred-color-scheme=dark) for more information._
+The Managed Transforms option removes visitor IP values from the X-Forwarded-For header regardless of if it originates from a trusted source. If you wish to allow certain IPs to be included in this header, you will need to create a Transform Rule under Overview. *Please Note: This is by no means an exhaustive guide on using Cloudflare transform rules, however it's enough to configure this rule which should achieve a secure result. Please refer to the Cloudflare documentation on [transform rules](https://developers.cloudflare.com/rules/transform/) for more information._
 
 #### Method 2 Steps
 
