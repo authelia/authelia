@@ -73,7 +73,7 @@ title="Steps 1 - 4: Image of Cloudflare dashboard with steps 1 to 4 labeled for 
 
 ### Allowing Trusted IPs to Add X-Forwarded-For Header
 
-The Managed Transforms option removes the client X-Forwarded-For header regardless of if it originates from a trusted source. If you wish to allow certain IPs to be included in this header, you will need to create a Transform Rule under Overview. *Please Note: This is by no means an exhaustive guide on using Cloudflare transform rules, however it's enough to configure a couple rules which should achieve a secure result. Please see the Cloudflare documentation on [transform rules](https://developers.cloudflare.com/rules/transform/?preferred-color-scheme=dark) for more information._
+The Managed Transforms option removes the client X-Forwarded-For header regardless of if it originates from a trusted source. If you wish to allow certain IPs to be included in this header, you will need to create a Transform Rule under Overview. *Please Note: This is by no means an exhaustive guide on using Cloudflare transform rules, however it's enough to configure a couple of rules which should achieve a secure result. Please refer to the Cloudflare documentation on [transform rules](https://developers.cloudflare.com/rules/transform/?preferred-color-scheme=dark) for more information.
 
 #### Method 2 Steps
 
