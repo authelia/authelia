@@ -50,7 +50,7 @@ These same rules apply to any off-site hosted proxy or load balancing solution t
 to it. This means a client can forge their remote IP address with the most widely accepted remote IP header out of the
 box.
 
-### Removing X-Forwarded-For Header Entirely
+### Removing Client IPs from X-Forwarded-For Header
 
 [Cloudflare] has managed rules with one of them removing client IPs from the X-Forwarded-For header. *__Please Note:__ This is by no means an
 exhaustive guide on using [Cloudflare] managed transforms, however it's enough to configure this rule which should
