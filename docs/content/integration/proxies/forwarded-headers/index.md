@@ -21,7 +21,7 @@ they come directly from clients and not from proxies in your trusted environment
 Some proxies require users explicitly configure the proxy to trust another proxy, however some implicitly trust all
 headers regardless of the source so you will have to manually configure them.
 
-## Network Rules
+# Network Rules
 
 In particular this is important for [Access Control Rules](../../../configuration/security/access-control.md#rules) as
 the [network criteria](../../../configuration/security/access-control.md#networks) relies on the [X-Forwarded-For]
@@ -30,7 +30,7 @@ header. This header is expected to have a true representation of the client's ac
 If this is not removed from non-trusted proxies a user could theoretically hijack any rule that contains this criteria
 to potentially skip an authentication criteria depending on how it is configured.
 
-## Cloud Proxies
+# Cloud Proxies
 
 In addition to configuring your own proxies to remove this header from untrusted sources, when using a cloud proxy like
 [Cloudflare](#cloudflare) you must ensure they do this or you configure a rule to do it. We aim to have documentation
@@ -44,13 +44,13 @@ IP address in both logging and access control.
 
 These same rules apply to any off-site hosted proxy or load balancing solution that alters the source IP address.
 
-### Cloudflare
+## Cloudflare
 
 [Cloudflare] adds the [X-Forwarded-For] header if it does not exist, and if it does exist it will just append another IP
 to it. This means a client can forge their remote IP address with the most widely accepted remote IP header out of the
 box.
 
-#### Removing X-Forwarded-For Header Entirely
+### Removing X-Forwarded-For Header Entirely
 
 [Cloudflare] now has this setting enabled by default, however it is still recommended to check and ensure that the settings is enabled.*__Please Note:__ This is by no means an
 exhaustive guide on using [Cloudflare] managed transforms, however it's enough to configure a couple rules which should
@@ -71,7 +71,7 @@ width="736"
 caption="Steps 1 - 4: Image of Cloudflare dashboard with steps 1 to 4 labeled for method 1"
 title="Steps 1 - 4: Image of Cloudflare dashboard with steps 1 to 4 labeled for method 1" >}}
 
-#### Allowing Trusted IPs to Add X-Forwarded-For Header
+### Allowing Trusted IPs to Add X-Forwarded-For Header
 
 The Managed Transforms option removes the client X-Forwarded-For header regardless of if it originates from a trusted source. If you wish to allow certain IPs to be included in this header, you will need to create a Transform Rule under Overview. *Please Note: This is by no means an exhaustive guide on using Cloudflare transform rules, however it's enough to configure a couple rules which should achieve a secure result. Please see the Cloudflare documentation on [transform rules](https://developers.cloudflare.com/rules/transform/?preferred-color-scheme=dark) for more information._
 
