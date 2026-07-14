@@ -53,7 +53,7 @@ box.
 It is therefore important you configure [Cloudflare] to remove this IP address. *__Please Note:__ This is by no means an
 exhaustive guide on using [Cloudflare] transform rules, however it's enough to configure a couple rules which should
 achieve a secure result. Please see the [Cloudflare] documentation on
-[transform rules](https://developers.cloudflare.com/rules/transform/) for more information._
+[Managed Transforms](https://developers.cloudflare.com/rules/transform/managed-transforms/?preferred-color-scheme=dark) for more information._
 
 #### Steps
 
