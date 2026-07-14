@@ -71,6 +71,34 @@ title="Steps 1 - 4: Ensure Remove visitor IP headers setting is enabled." >}}
 
 *__Please Note:__ This setting removes the client IP from the header entirely, regardless of if it originates from a trusted source. If you wish to allow certain IPs to be included in this header, you will need to create a Transform Rule under Overview.
 
+
+#### Steps
+
+1. On the left sidebar, click `Rules`.
+2. Click `Overview`.
+3. Scroll down to `Request Header Transform Rules` and click `Create rule`.
+4. Set the `Rule name` to something appropriate like `Remove X-Forwarded-For Header`.
+5. Set the `Field` option in the `When incoming requests match` section to `IP Source Address`.
+6. Set the `Operator` option in the `When incoming requests match` section to `does not equal`.
+7. Set the `Value` option in the `When incoming requests match` section to any of the IP addresses you trust.
+8. Set the `Then` section dropdown to `Remove`.
+9. Set the `Then` section Header name to `X-Forwarded-For`.
+10. Click `Deploy`.
+
+{{< figure
+src="cloudflare2.png"
+alt="Image of Cloudflare dashboard with steps 1 to 3 labeled"
+width="736"
+caption="Steps 1 - 3: Image of Cloudflare dashboard with steps 1 to 3 labeled"
+title="Steps 1 - 3: Image of Cloudflare dashboard with steps 1 to 3 labeled" >}}
+
+{{< figure
+src="cloudflare3.png"
+alt="Image of Cloudflare dashboard with steps 3 to 10 labeled"
+width="736"
+caption="Steps 4 - 10: Image of Cloudflare dashboard with steps 4 to 10 labeled"
+title="Steps 4 - 10: Image of Cloudflare dashboard with steps 4 to 10 labeled" >}}
+
 #### Criteria
 
 This table describes the criteria needed to achieve a desired result. Only one of these options should be chosen. You
