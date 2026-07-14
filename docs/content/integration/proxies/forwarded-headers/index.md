@@ -59,10 +59,7 @@ achieve a secure result. Please see the [Cloudflare] documentation on
 
 ##### Method 1 Steps
 
-1. On the left sidebar, click `Rules`.
-2. Click `Settings`.
-3. On the top, ensure `Managed Transforms` tab is selected.
-4. Toggle `Remove visitor IP headers`.
+`Rules → Overview → Create rule → Request Header Transform Rule`
 
 {{< figure
 src="cloudflare.png"
