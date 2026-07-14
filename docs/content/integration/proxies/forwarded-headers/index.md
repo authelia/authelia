@@ -102,6 +102,7 @@ width="736"
 caption="Steps 4 - 10: Image of Cloudflare dashboard with steps 4 to 10 labeled for method 2"
 title="Steps 4 - 10: Image of Cloudflare dashboard with steps 4 to 10 labeled for method 2" >}}
 
+
 Cloudflare publishes its IP address ranges publicly at the easy to remember address
 [https://www.cloudflare.com/ips/](https://www.cloudflare.com/ips/). You should use this with the trusted proxies section
 of your relevant proxy to ensure it's trusted if you intend to use Cloudflare.
