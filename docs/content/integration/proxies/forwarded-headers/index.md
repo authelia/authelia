@@ -52,7 +52,7 @@ box.
 
 ### Removing X-Forwarded-For Header Entirely
 
-[Cloudflare] now has this setting enabled by default, however it is still recommended to check and ensure that the settings is enabled.*__Please Note:__ This is by no means an
+[Cloudflare] has managed rules with one of them removing client IPs from the X-Forwarded-For header. *__Please Note:__ This is by no means an
 exhaustive guide on using [Cloudflare] managed transforms, however it's enough to configure this rule which should
 achieve a secure result. Please see the [Cloudflare] documentation on
 [managed transforms](https://developers.cloudflare.com/rules/transform/managed-transforms/?preferred-color-scheme=dark) for more information._
