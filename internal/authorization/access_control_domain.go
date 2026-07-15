@@ -76,6 +76,9 @@ func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (mat
 		}
 
 		i := strings.Index(domain, ".")
+		if i < 0 {
+			return false
+		}
 
 		return domain[i:] == m.Name && utils.IsStringInSliceFold(domain[:i], subject.Groups)
 	default:

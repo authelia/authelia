@@ -114,6 +114,26 @@ func TestAccessControlDomain_IsMatch(t *testing.T) {
 			Subject{},
 			false,
 		},
+		{
+			"ShouldNotMatchSingleLabelDomainWithGroupWildcard",
+			&AccessControlDomainMatcher{
+				Name:          "-group.domain.com",
+				GroupWildcard: true,
+			},
+			"localhost",
+			Subject{Username: "john", Groups: []string{"a-group"}},
+			false,
+		},
+		{
+			"ShouldNotMatchSingleLabelDomainWithGroupWildcardAnonymous",
+			&AccessControlDomainMatcher{
+				Name:          "-group.domain.com",
+				GroupWildcard: true,
+			},
+			"localhost",
+			Subject{},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
