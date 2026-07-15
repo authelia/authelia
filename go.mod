@@ -33,7 +33,7 @@ require (
 	github.com/knadh/koanf/providers/posflag v1.0.1
 	github.com/knadh/koanf/providers/rawbytes v1.0.0
 	github.com/knadh/koanf/v2 v2.3.5
-	github.com/mattn/go-sqlite3 v1.14.47
+	github.com/mattn/go-sqlite3 v1.14.48
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.1
 	github.com/prometheus/client_golang v1.23.2
@@ -46,11 +46,11 @@ require (
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.72.0
 	github.com/weppos/publicsuffix-go v0.50.3
-	github.com/wneessen/go-mail v0.7.3
+	github.com/wneessen/go-mail v0.8.1
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.6
 	golang.org/x/crypto v0.54.0
-	golang.org/x/net v0.56.0
+	golang.org/x/net v0.57.0
 	golang.org/x/sync v0.22.0
 	golang.org/x/term v0.45.0
 	golang.org/x/text v0.40.0
@@ -122,7 +122,7 @@ require (
 
 replace (
 	filippo.io/edwards25519 v1.1.0 => filippo.io/edwards25519 v1.2.0
-	golang.org/x/net => golang.org/x/net v0.56.0
+	golang.org/x/net => golang.org/x/net v0.57.0
 )
 
 exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
