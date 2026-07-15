@@ -56,10 +56,6 @@ type FileUserDatabase struct {
 
 // Save the database to disk.
 func (m *FileUserDatabase) Save() (err error) {
-	m.RLock()
-
-	defer m.RUnlock()
-
 	if err = m.ToDatabaseModel().Write(m.Path); err != nil {
 		return err
 	}
