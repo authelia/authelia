@@ -5,7 +5,9 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/go-crypt/crypt"
 	"github.com/stretchr/testify/assert"
@@ -963,5 +965,52 @@ func TestDatabaseModelExtended(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestFileUserDatabaseSaveWithConcurrentWriter(t *testing.T) {
+	digest, err := crypt.Decode("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng")
+	require.NoError(t, err)
+
+	database := NewFileUserDatabase(filepath.Join(t.TempDir(), "users.yml"), false, false, nil)
+
+	details := &FileUserDatabaseUserDetails{
+		Username:    "john",
+		Password:    schema.NewPasswordDigest(digest),
+		DisplayName: "John",
+	}
+
+	database.SetUserDetails("john", details)
+
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+
+		wg := &sync.WaitGroup{}
+
+		for i := 0; i < 10000; i++ {
+			wg.Add(2)
+
+			go func() {
+				defer wg.Done()
+
+				assert.NoError(t, database.Save())
+			}()
+
+			go func() {
+				defer wg.Done()
+
+				database.SetUserDetails("john", details)
+			}()
+
+			wg.Wait()
+		}
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(time.Minute):
+		t.Fatal("deadlock: Save is wedged on a recursive read lock behind a pending writer")
 	}
 }
