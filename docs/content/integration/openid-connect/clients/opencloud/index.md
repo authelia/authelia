@@ -321,7 +321,7 @@ directives:
     - 'https://${EURO_OFFICE_DOMAIN|euro-office.opencloud.test}${TRAEFIK_PORT_HTTPS}/'
     # This is needed for the external-sites web extension when embedding sites
     - 'https://docs.opencloud.eu'
-    - "https://auth.enigcore.dpdns.org"
+    - "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
 
   img-src:
     - '''self'''
