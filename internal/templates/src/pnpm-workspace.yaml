@@ -21,6 +21,6 @@ overrides:
   postcss: 8.5.19
   prismjs: 1.30.0
   rollup: 4.62.2
-  socket.io-parser: 4.2.6
+  socket.io-parser: 4.2.7
   vite: 8.1.5
   ws: 8.21.0
