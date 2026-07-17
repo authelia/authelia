@@ -12,7 +12,7 @@ overrides:
   picomatch: 4.0.5
   semver: 7.8.5
   tar: 7.5.20
-  vite: 8.1.4
+  vite: 8.1.5
   yaml: 2.9.0
   yauzl: 3.4.0
 
@@ -85,8 +85,8 @@ importers:
         specifier: 3.9.5
         version: 3.9.5
       vite:
-        specifier: 8.1.4
-        version: 8.1.4(yaml@2.9.0)
+        specifier: 8.1.5
+        version: 8.1.5(yaml@2.9.0)
     optionalDependencies:
       hugo-extended:
         specifier: 0.164.0
@@ -1740,8 +1740,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  vite@8.1.4:
-    resolution: {integrity: sha512-bTT9PsdWO+MQMNG9ZXIP/qM9wGh37DFxTV/sPq9cFpHr3w4jkgef032PkAL9jAqhk3Nz8NQw3O8n6/xFkqO4QQ==}
+  vite@8.1.5:
+    resolution: {integrity: sha512-7ULLwsCdYx/nRyrpiEwvqb5TFHrMVZyBt+rg/OAXT7rgj/z+DtTDyKFeLAdDkubDVDKD8jOsndmy7m55XcfUsw==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -3615,7 +3615,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite@8.1.4(yaml@2.9.0):
+  vite@8.1.5(yaml@2.9.0):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.5

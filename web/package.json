@@ -90,7 +90,7 @@
     "lefthook": "2.1.10",
     "prettier": "3.9.5",
     "typescript": "6.0.3",
-    "vite": "8.1.4",
+    "vite": "8.1.5",
     "vite-plugin-checker": "0.14.4",
     "vite-plugin-istanbul": "9.0.1",
     "vite-plugin-svgr": "5.2.0",
