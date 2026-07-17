@@ -124,9 +124,9 @@ identity_providers:
           - 'profile'
           - 'email'
         redirect_uris:
-          - 'https://oc.enigcore.dpdns.org/'
-          - 'https://oc.enigcore.dpdns.org/oidc-callback.html'
-          - 'https://oc.enigcore.dpdns.org/oidc-silent-redirect.html'
+          - 'https://opencloud.example.com/'
+          - 'https://opencloud.example.com/oidc-callback.html'
+          - 'https://opencloud.example.com/oidc-silent-redirect.html'
         response_types:
           - 'code'
         grant_types:
@@ -371,7 +371,6 @@ role_assignment:
           - role_name: user-light
             claim_value: myGuestRole
 ```
-Refer to [csp.yaml](https://github.com/opencloud-eu/opencloud-compose/blob/main/config/opencloud/csp.yaml)
 
 ## See Also
 
