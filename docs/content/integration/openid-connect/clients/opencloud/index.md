@@ -163,6 +163,7 @@ identity_providers:
       - client_id: 'OpenCloudDesktop'
         client_name: 'openCloud (Desktop Client)'
         public: true
+        lifespan: 'openCloud'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -187,6 +188,7 @@ identity_providers:
       - client_id: 'OpenCloudIOS'
         client_name: 'openCloud (iOS)'
         public: true
+        lifespan: 'openCloud'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
