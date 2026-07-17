@@ -11,6 +11,6 @@ overrides:
   picomatch: 4.0.5
   semver: 7.8.5
   tar: 7.5.20
-  vite: 8.1.4
+  vite: 8.1.5
   yaml: 2.9.0
   yauzl: 3.4.0
