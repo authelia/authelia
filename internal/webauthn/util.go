@@ -92,22 +92,22 @@ func FormatError(err error) error {
 	return err
 }
 
-// GetRelatedOriginConfigByRPID returns a *schema.WebAuthnRelatedOrigin provided it can match it to a rpid.
-func GetRelatedOriginConfigByRPID(config schema.WebAuthn, rpid string) (ro *schema.WebAuthnRelatedOrigin) {
-	if value, ok := config.RelatedOrigins[strings.ToLower(rpid)]; ok {
+// GetRelatedOriginConfigByRPID returns a *schema.WebAuthnRelyingParty provided it can match it to a rpid.
+func GetRelatedOriginConfigByRPID(config schema.WebAuthn, rpid string) (ro *schema.WebAuthnRelyingParty) {
+	if value, ok := config.RelyingParties[strings.ToLower(rpid)]; ok {
 		return &value
 	}
 
 	return nil
 }
 
-// GetRelatedOriginConfigByOrigin returns a *schema.WebAuthnRelatedOrigin provided it can match it to an origin string.
-func GetRelatedOriginConfigByOrigin(config schema.WebAuthn, origin *url.URL) (relyingPartyID string, ro *schema.WebAuthnRelatedOrigin) {
+// GetRelatedOriginConfigByOrigin returns a *schema.WebAuthnRelyingParty provided it can match it to an origin string.
+func GetRelatedOriginConfigByOrigin(config schema.WebAuthn, origin *url.URL) (relyingPartyID string, ro *schema.WebAuthnRelyingParty) {
 	if origin == nil {
 		return "", nil
 	}
 
-	for rpid, r := range config.RelatedOrigins {
+	for rpid, r := range config.RelyingParties {
 		ro = &r
 
 		for _, o := range ro.Origins {

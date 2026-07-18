@@ -317,10 +317,13 @@ const (
 
 // WebAuthn Error constants.
 const (
-	errFmtWebAuthnConveyancePreference                   = "webauthn: option 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnSelectionCriteria                      = "webauthn: selection_criteria: option '%s' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnPasskeyDiscoverability                 = "webauthn: selection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
-	errFmtWebAuthnFiltering                              = "webauthn: filtering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values"
+	errFmtWebAuthnConveyancePreference                   = "webauthn: %soption 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnSelectionCriteria                      = "webauthn: %sselection_criteria: option '%s' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnPasskeyDiscoverability                 = "webauthn: %sselection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
+	errFmtWebAuthnFiltering                              = "webauthn: %sfiltering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values"
+	errFmtWebAuthnRelyingPartyPrefix                     = "relying_parties: %s: "
+	errFmtWebAuthnRelyingPartyOpaqueOriginEmpty          = "webauthn: %soption 'opaque_origins' item #%d is empty but it must have a value"
+	errFmtWebAuthnRelyingPartyOpaqueOriginScheme         = "webauthn: %soption 'opaque_origins' item #%d has value '%s' but opaque origins must not have the '%s' scheme prefix"
 	errFmtWebAuthnBoolean                                = "webauthn: option '%s' is %t but it must be %t when '%s' is %t"
 	errFmtWebAuthnMetadataString                         = "webauthn: metadata: option '%s' is '%s' but it must be %s"
 	errFmtWebAuthnRelatedOriginsOptionEmpty              = "webauthn: related_origins: %s: option '%s' is empty but it must have a value"
@@ -541,6 +544,7 @@ var (
 	validWebAuthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
 	validWebAuthnAttachment                  = []string{string(protocol.Platform), string(protocol.CrossPlatform)}
 	validWebAuthnDiscoverability             = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
+	invalidWebAuthnOpaqueOriginSchemes       = []string{schemeHTTP + "://", schemeHTTPS + "://"}
 	validRFC7231HTTPMethodVerbs              = []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodPost, fasthttp.MethodPut, fasthttp.MethodPatch, fasthttp.MethodDelete, fasthttp.MethodTrace, fasthttp.MethodConnect, fasthttp.MethodOptions}
 	validRFC4918HTTPMethodVerbs              = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 )

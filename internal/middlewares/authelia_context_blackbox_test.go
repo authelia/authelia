@@ -1365,12 +1365,12 @@ func TestAutheliaCtx_GetWebAuthnProvider(t *testing.T) {
 func TestAutheliaCtx_GetWebAuthnProviderWithRelatedOrigins(t *testing.T) {
 	testCases := []struct {
 		name           string
-		relatedOrigins map[string]schema.WebAuthnRelatedOrigin
+		relatedOrigins map[string]schema.WebAuthnRelyingParty
 		expectedErr    string
 	}{
 		{
 			"ShouldSucceedWithMatchingRelatedOrigin",
-			map[string]schema.WebAuthnRelatedOrigin{
+			map[string]schema.WebAuthnRelyingParty{
 				"login.example.com": {
 					Origins: []*url.URL{
 						{Scheme: "https", Host: "login.example.com"},
@@ -1382,7 +1382,7 @@ func TestAutheliaCtx_GetWebAuthnProviderWithRelatedOrigins(t *testing.T) {
 		},
 		{
 			"ShouldFailWithNoMatchingRelatedOrigin",
-			map[string]schema.WebAuthnRelatedOrigin{
+			map[string]schema.WebAuthnRelyingParty{
 				"other.com": {
 					Origins: []*url.URL{
 						{Scheme: "http", Host: "other.com"},
@@ -1398,7 +1398,7 @@ func TestAutheliaCtx_GetWebAuthnProviderWithRelatedOrigins(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 			defer mock.Close()
 
-			mock.Ctx.Configuration.WebAuthn.RelatedOrigins = tc.relatedOrigins
+			mock.Ctx.Configuration.WebAuthn.RelyingParties = tc.relatedOrigins
 
 			provider, err := mock.Ctx.GetWebAuthnProvider()
 

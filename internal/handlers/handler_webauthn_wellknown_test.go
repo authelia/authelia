@@ -35,7 +35,7 @@ func TestWebAuthnWellKnownGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				t.Helper()
 
-				mock.Ctx.Configuration.WebAuthn.RelatedOrigins = nil
+				mock.Ctx.Configuration.WebAuthn.RelyingParties = nil
 			},
 			fasthttp.StatusNotFound,
 			"",
@@ -46,7 +46,7 @@ func TestWebAuthnWellKnownGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				t.Helper()
 
-				mock.Ctx.Configuration.WebAuthn.RelatedOrigins = map[string]schema.WebAuthnRelatedOrigin{}
+				mock.Ctx.Configuration.WebAuthn.RelyingParties = map[string]schema.WebAuthnRelyingParty{}
 			},
 			fasthttp.StatusNotFound,
 			"",
@@ -57,7 +57,7 @@ func TestWebAuthnWellKnownGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				t.Helper()
 
-				mock.Ctx.Configuration.WebAuthn.RelatedOrigins = map[string]schema.WebAuthnRelatedOrigin{
+				mock.Ctx.Configuration.WebAuthn.RelyingParties = map[string]schema.WebAuthnRelyingParty{
 					"other.com": {
 						Origins: []*url.URL{
 							{Scheme: "http", Host: "other.com"},
@@ -74,7 +74,7 @@ func TestWebAuthnWellKnownGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				t.Helper()
 
-				mock.Ctx.Configuration.WebAuthn.RelatedOrigins = map[string]schema.WebAuthnRelatedOrigin{
+				mock.Ctx.Configuration.WebAuthn.RelyingParties = map[string]schema.WebAuthnRelyingParty{
 					"example.com": {
 						Origins: []*url.URL{
 							{Scheme: "https", Host: "example.com"},
@@ -91,7 +91,7 @@ func TestWebAuthnWellKnownGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				t.Helper()
 
-				mock.Ctx.Configuration.WebAuthn.RelatedOrigins = map[string]schema.WebAuthnRelatedOrigin{
+				mock.Ctx.Configuration.WebAuthn.RelyingParties = map[string]schema.WebAuthnRelyingParty{
 					"login.example.com": {
 						Origins: []*url.URL{
 							{Scheme: "https", Host: "login.example.com"},
@@ -109,7 +109,7 @@ func TestWebAuthnWellKnownGET(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				t.Helper()
 
-				mock.Ctx.Configuration.WebAuthn.RelatedOrigins = map[string]schema.WebAuthnRelatedOrigin{
+				mock.Ctx.Configuration.WebAuthn.RelyingParties = map[string]schema.WebAuthnRelyingParty{
 					"example.com": {
 						Origins: []*url.URL{
 							{Scheme: "https", Host: "login.example.com"},

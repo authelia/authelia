@@ -10,19 +10,19 @@ import (
 func TestWebAuthnRelatedOriginStringOrigins(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     WebAuthnRelatedOrigin
+		have     WebAuthnRelyingParty
 		expected []string
 	}{
 		{
 			"ShouldReturnEmptySlice",
-			WebAuthnRelatedOrigin{
+			WebAuthnRelyingParty{
 				Origins: []*url.URL{},
 			},
 			[]string{},
 		},
 		{
 			"ShouldReturnOrigins",
-			WebAuthnRelatedOrigin{
+			WebAuthnRelyingParty{
 				Origins: []*url.URL{
 					{Scheme: "https", Host: "example.com"},
 					{Scheme: "https", Host: "auth.example.com"},
@@ -32,7 +32,7 @@ func TestWebAuthnRelatedOriginStringOrigins(t *testing.T) {
 		},
 		{
 			"ShouldHandleNilOriginEntry",
-			WebAuthnRelatedOrigin{
+			WebAuthnRelyingParty{
 				Origins: []*url.URL{
 					{Scheme: "https", Host: "example.com"},
 					nil,

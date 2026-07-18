@@ -28,11 +28,16 @@ webauthn:
   display_name: 'Authelia'
   attestation_conveyance_preference: 'indirect'
   timeout: '60 seconds'
-  related_origins:
+  relying_parties:
     example.com:
+      display_name: 'Authelia'
+      attestation_conveyance_preference: 'indirect'
+      timeout: '60 seconds'
       origins:
         - 'https://example.com'
         - 'https://example2.com'
+      opaque_origins:
+        - 'android:apk-key-hash:-IfWtPXXRFX9gAijCaxCw-f8tty8Azji56EQwBGYuj4'
   filtering:
     permitted_aaguids: []
     prohibited_aaguids: []
@@ -139,27 +144,40 @@ Available Options:
 
 This adjusts the requested timeout for a WebAuthn interaction.
 
-### related_origins
+### relying_parties
 
 {{< confkey type="dictionary(object)" required="no" >}}
 
-The related origins config allows configuration of cross-domain WebAuthn Credentials within Authelia which have the same
-Authelia database. The key of the dictionary is the relying party id.
+The relying parties config allows configuration of cross-domain WebAuthn Credentials within Authelia which have the same
+Authelia database. The key of the dictionary is the relying party identifier. This allows credentials to be shared
+between domains, and allows each relying party to be customized in a few ways.
 
-It's a list of objects which currently contains list of `origins`. The relying party id (dictionary key) must be the
-hostname portion of one of the origins, and all relying party id's must be lowercase strings. This groups all of these
-origins into a single logical instance.
+It's a list of objects which primarily contains a list of `origins`. The relying party identifier (dictionary key) must
+be the hostname portion of one of the origins, and all relying party identifiers's must be lowercase strings. This
+groups all of these origins into a single logical relying party.
 
 If you configure this then any origin that is not listed in one of the related origin configurations will not have
-the ability to use WebAuthn or Passkeys.
+the ability to use WebAuthn including Passkeys.
+
+In addition to [origins](#origins) and [opaque_origins](#opaque_origins), each relying party accepts the
+[display_name](#display_name), [attestation_conveyance_preference](#attestation_conveyance_preference),
+[timeout](#timeout), [filtering](#filtering), and [selection_criteria](#selection_criteria) options. Any of these
+options which is not configured for a relying party defaults to the value configured at the `webauthn` level.
 
 #### origins
 
 {{< confkey type="list(string)" syntax="url" required="yes" >}}
 
-A list of trusted origins for this related origin. Each of these values must be the origin portion of one of the
+A list of trusted origins for this relying party. Each of these values must be the origin portion of one of the
 `authelia_url` values in the session cookies section of the config, and must not be duplicated across any of the other
-related origins.
+relying parties.
+
+#### opaque_origins
+
+{{< confkey type="list(string)" required="no" >}}
+
+A list of origins which do not start with `http://` or `https://` which are also included in the allowed origins
+for this relying party.
 
 ### filtering
 

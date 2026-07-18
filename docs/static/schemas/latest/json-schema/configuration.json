@@ -4364,30 +4364,6 @@
     },
     "WebAuthn": {
       "properties": {
-        "disable": {
-          "type": "boolean",
-          "title": "Disable",
-          "description": "Disables the WebAuthn 2FA functionality.",
-          "default": false
-        },
-        "enable_passkey_login": {
-          "type": "boolean",
-          "title": "Enable Passkey Logins",
-          "description": "Allows users to sign in via Passkeys.",
-          "default": false
-        },
-        "experimental_enable_passkey_uv_two_factors": {
-          "type": "boolean",
-          "title": "Experimental: Enable User Verified Passkey Second Factor",
-          "description": "This option is experimental and WILL be removed. When true this will consider a Passkey login where the WebAuthn user verification requirement is met as being a single event 2FA login.",
-          "default": false
-        },
-        "experimental_enable_passkey_upgrade": {
-          "type": "boolean",
-          "title": "Experimental: Enable User Verified Passkey Second Factor",
-          "description": "When true this will attempt to automatically upgrade a WebAuthn credential to a Passkey when the browser or authenticator does not report a newly registered WebAuthn credential to be a Passkey.",
-          "default": false
-        },
         "display_name": {
           "type": "string",
           "title": "Display Name",
@@ -4429,10 +4405,44 @@
           "title": "Selection Criteria",
           "description": "WebAuthn Authenticator selection criteria settings."
         },
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables the WebAuthn 2FA functionality.",
+          "default": false
+        },
+        "enable_passkey_login": {
+          "type": "boolean",
+          "title": "Enable Passkey Logins",
+          "description": "Allows users to sign in via Passkeys.",
+          "default": false
+        },
+        "experimental_enable_passkey_uv_two_factors": {
+          "type": "boolean",
+          "title": "Experimental: Enable User Verified Passkey Second Factor",
+          "description": "This option is experimental and WILL be removed. When true this will consider a Passkey login where the WebAuthn user verification requirement is met as being a single event 2FA login.",
+          "default": false
+        },
+        "experimental_enable_passkey_upgrade": {
+          "type": "boolean",
+          "title": "Experimental: Enable User Verified Passkey Second Factor",
+          "description": "When true this will attempt to automatically upgrade a WebAuthn credential to a Passkey when the browser or authenticator does not report a newly registered WebAuthn credential to be a Passkey.",
+          "default": false
+        },
         "metadata": {
           "$ref": "#/$defs/WebAuthnMetadata",
           "title": "Metadata",
           "description": "WebAuthn Metadata Service settings."
+        },
+        "relying_parties": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/WebAuthnRelyingParty"
+            }
+          },
+          "type": "object",
+          "title": "Relying Parties",
+          "description": "WebAuthn Relying Parties allows customizing some aspects of each relying party."
         }
       },
       "additionalProperties": false,
@@ -4558,6 +4568,70 @@
           "type": "array",
           "title": "Validate Status (Prohibited Statuses)",
           "description": "WebAuthn Authenticator status validation can prohibit certain statuses. Generally this is discouraged as the defaults are safe."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "WebAuthnRelyingParty": {
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "title": "Display Name",
+          "description": "The display name attribute for the WebAuthn relying party.",
+          "default": "Authelia"
+        },
+        "attestation_conveyance_preference": {
+          "type": "string",
+          "enum": [
+            "none",
+            "indirect",
+            "direct"
+          ],
+          "title": "Conveyance Preference",
+          "description": "The default conveyance preference for all WebAuthn credentials.",
+          "default": "indirect"
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The default timeout for all WebAuthn ceremonies."
+        },
+        "filtering": {
+          "$ref": "#/$defs/WebAuthnFiltering",
+          "title": "Filtering",
+          "description": "WebAuthn Authenticator filtering settings."
+        },
+        "selection_criteria": {
+          "$ref": "#/$defs/WebAuthnSelectionCriteria",
+          "title": "Selection Criteria",
+          "description": "WebAuthn Authenticator selection criteria settings."
+        },
+        "origins": {
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": "array",
+          "title": "Origins",
+          "description": "The list of allowed origins for the WebAuthn relying party."
+        },
+        "opaque_origins": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Opaque Origins",
+          "description": "The list of additional allowed origins for the WebAuthn relying party."
         }
       },
       "additionalProperties": false,

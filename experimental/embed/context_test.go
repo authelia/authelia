@@ -21,7 +21,7 @@ func TestContext(t *testing.T) {
 	assert.Nil(t, providers.Notifier)
 	assert.Nil(t, providers.UserProvider)
 	assert.Nil(t, providers.SessionProvider)
-	assert.Nil(t, providers.MetaDataService)
+	assert.Nil(t, providers.WebAuthnMetaData)
 	assert.Nil(t, providers.Metrics)
 	assert.Nil(t, providers.Templates)
 	assert.Nil(t, providers.Random)

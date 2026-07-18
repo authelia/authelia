@@ -130,37 +130,37 @@ func TestValidateCredentialAllowed(t *testing.T) {
 		},
 		{
 			"ShouldNotProhibitBackupEligibilityFalse",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: true}},
+			&schema.WebAuthn{WebAuthnBase: schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: true}}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"",
 		},
 		{
 			"ShouldProhibitBackupEligibilityTrue",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: true}},
+			&schema.WebAuthn{WebAuthnBase: schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitBackupEligibility: true}}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))), BackupEligible: true},
 			"error checking webauthn credential: filters have been configured which prohibit credentials that are backup eligible",
 		},
 		{
 			"ShouldAllowPermittedAAGUIDs",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{PermittedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))}}},
+			&schema.WebAuthn{WebAuthnBase: schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{PermittedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))}}}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"",
 		},
 		{
 			"ShouldNotAllowUnallowedAAGUID",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{PermittedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af5"))}}},
+			&schema.WebAuthn{WebAuthnBase: schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{PermittedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af5"))}}}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"error checking webauthn credential: filters have been configured which explicitly require only permitted AAGUID's be used and '7a5d62c8-1164-41a5-807c-af16cccb8af4' is not permitted",
 		},
 		{
 			"ShouldAllowNotProhibitedAAGUID",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af5"))}}},
+			&schema.WebAuthn{WebAuthnBase: schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af5"))}}}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"",
 		},
 		{
 			"Should",
-			&schema.WebAuthn{Filtering: schema.WebAuthnFiltering{ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))}}},
+			&schema.WebAuthn{WebAuthnBase: schema.WebAuthnBase{Filtering: schema.WebAuthnFiltering{ProhibitedAAGUIDs: []uuid.UUID{uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4"))}}}},
 			&model.WebAuthnCredential{AAGUID: model.NullUUID(uuid.Must(uuid.Parse("7a5d62c8-1164-41a5-807c-af16cccb8af4")))},
 			"error checking webauthn credential: filters have been configured which prohibit the AAGUID '7a5d62c8-1164-41a5-807c-af16cccb8af4' from registration",
 		},
@@ -195,7 +195,7 @@ func TestGetRelatedOriginConfigByRPID(t *testing.T) {
 		{
 			"ShouldReturnNilWhenNotFound",
 			schema.WebAuthn{
-				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"other.com": {Origins: []*url.URL{MustParseURL("https://other.com")}},
 				},
 			},
@@ -205,7 +205,7 @@ func TestGetRelatedOriginConfigByRPID(t *testing.T) {
 		{
 			"ShouldReturnMatchWhenFound",
 			schema.WebAuthn{
-				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
 				},
 			},
@@ -215,7 +215,7 @@ func TestGetRelatedOriginConfigByRPID(t *testing.T) {
 		{
 			"ShouldReturnMatchCaseInsensitive",
 			schema.WebAuthn{
-				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
 				},
 			},
@@ -248,7 +248,7 @@ func TestGetRelatedOriginConfigByOrigin(t *testing.T) {
 		{
 			"ShouldReturnNilForNilOrigin",
 			schema.WebAuthn{
-				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
 				},
 			},
@@ -266,7 +266,7 @@ func TestGetRelatedOriginConfigByOrigin(t *testing.T) {
 		{
 			"ShouldReturnNilWhenOriginNotFound",
 			schema.WebAuthn{
-				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"other.com": {Origins: []*url.URL{MustParseURL("https://other.com")}},
 				},
 			},
@@ -277,7 +277,7 @@ func TestGetRelatedOriginConfigByOrigin(t *testing.T) {
 		{
 			"ShouldMatchOrigin",
 			schema.WebAuthn{
-				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com"), MustParseURL("https://auth.example.com")}},
 				},
 			},
@@ -288,7 +288,7 @@ func TestGetRelatedOriginConfigByOrigin(t *testing.T) {
 		{
 			"ShouldMatchOriginCaseInsensitive",
 			schema.WebAuthn{
-				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
 				},
 			},
@@ -299,7 +299,7 @@ func TestGetRelatedOriginConfigByOrigin(t *testing.T) {
 		{
 			"ShouldNotMatchWhenSchemeDiffers",
 			schema.WebAuthn{
-				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
 				},
 			},
@@ -310,7 +310,7 @@ func TestGetRelatedOriginConfigByOrigin(t *testing.T) {
 		{
 			"ShouldNotMatchWhenOriginHasPath",
 			schema.WebAuthn{
-				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com")}},
 				},
 			},
@@ -321,7 +321,7 @@ func TestGetRelatedOriginConfigByOrigin(t *testing.T) {
 		{
 			"ShouldNotMatchWhenConfigOriginHasPath",
 			schema.WebAuthn{
-				RelatedOrigins: map[string]schema.WebAuthnRelatedOrigin{
+				RelyingParties: map[string]schema.WebAuthnRelyingParty{
 					"example.com": {Origins: []*url.URL{MustParseURL("https://example.com/path")}},
 				},
 			},
