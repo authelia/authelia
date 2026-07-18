@@ -132,7 +132,7 @@ func (s *OIDCClientCredentialsScenario) TestShouldIssueClientCredentialsBearerTo
 	data.Set("token", accessToken)
 
 	resp, err = s.client.PostForm(s.strDiscovery("introspection_endpoint"), data)
-	assert.NoError(s.T(), err)
+	require.NoError(s.T(), err)
 	assert.Equal(s.T(), http.StatusOK, resp.StatusCode)
 
 	body, err = io.ReadAll(resp.Body)
@@ -225,7 +225,7 @@ func (s *OIDCClientCredentialsScenario) TestShouldIssueClientCredentialsJWTAcces
 	data.Set("token", accessToken)
 
 	resp, err = s.client.PostForm(s.strDiscovery("introspection_endpoint"), data)
-	assert.NoError(s.T(), err)
+	require.NoError(s.T(), err)
 	assert.Equal(s.T(), http.StatusOK, resp.StatusCode)
 
 	body, err = io.ReadAll(resp.Body)
