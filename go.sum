@@ -60,8 +60,8 @@ github.com/fsnotify/fsnotify v1.10.1 h1:b0/UzAf9yR5rhf3RPm9gf3ehBPpf0oZKIjtpKrx5
 github.com/fsnotify/fsnotify v1.10.1/go.mod h1:TLheqan6HD6GBK6PrDWyDPBaEV8LspOxvPSjC+bVfgo=
 github.com/fxamacker/cbor/v2 v2.9.2 h1:X4Ksno9+x3cz0TZv69ec1hxP/+tymuR8PXQJyDwfh78=
 github.com/fxamacker/cbor/v2 v2.9.2/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
-github.com/go-asn1-ber/asn1-ber v1.5.8-0.20260416181348-e7dc79048676 h1:/8x2r8Tu++vpNYlO8ACB3cdwoFYDGGxkOSOLLHN9E2o=
-github.com/go-asn1-ber/asn1-ber v1.5.8-0.20260416181348-e7dc79048676/go.mod h1:hEBeB/ic+5LoWskz+yKT7vGhhPYkProFKoKdwZRWMe0=
+github.com/go-asn1-ber/asn1-ber v1.5.8 h1:H9AZkK22UOmfX8J84ubyaZxKJZ3FMHVwn8swoMML7iQ=
+github.com/go-asn1-ber/asn1-ber v1.5.8/go.mod h1:hEBeB/ic+5LoWskz+yKT7vGhhPYkProFKoKdwZRWMe0=
 github.com/go-crypt/crypt v0.14.15 h1:q1i5OMpL05r935IxWmXgpDAVF0nvi4SMoHhGXLBQUEQ=
 github.com/go-crypt/crypt v0.14.15/go.mod h1:0n/to1VqIZPENj2yEUa/sLLYYnmupma6cp+QMX4zfF0=
 github.com/go-crypt/x v0.4.16 h1:WXdY28H/0MsXnH+gwerxuCcvBTJPkBG90u6oS4gIPZI=
