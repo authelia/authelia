@@ -251,6 +251,7 @@ paths:
         permissions to access a specified resource with the Envoy proxy.
       parameters:
         - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/forwardedProtoParam'
         - $ref: '#/components/parameters/forwardedHostParam'
         - $ref: '#/components/parameters/forwardedURIParam'
         - $ref: '#/components/parameters/forwardedForParam'
@@ -327,6 +328,7 @@ paths:
         permissions to access a specified resource with the Traefik, Caddy, or Skipper proxies.
       parameters:
         - $ref: '#/components/parameters/forwardedMethodParam'
+        - $ref: '#/components/parameters/forwardedProtoParam'
         - $ref: '#/components/parameters/forwardedHostParam'
         - $ref: '#/components/parameters/forwardedURIParam'
         - $ref: '#/components/parameters/forwardedForParam'
@@ -2671,15 +2673,6 @@ components:
             default_redirection_url:
               type: string
               example: 'https://home.{{ .Domain | default "example.com" }}'
-    middlewares.ErrorResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: KO
-        message:
-          type: string
-          example: Authentication failed, please retry later.
     middlewares.IdentityVerificationFinishBody:
       required:
         - 'token'
@@ -2937,21 +2930,6 @@ components:
           description: The user code from the Device Authorization Flow if applicable.
           type: string
           example: 'XGQWWFMM'
-    handlers.TOTPKeyResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: OK
-        data:
-          type: object
-          properties:
-            base32_secret:
-              type: string
-              example: 5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q
-            otpauth_url:
-              type: string
-              example: 'otpauth://totp/{{ .Domain | default "example.com" }}:john?algorithm=SHA1&digits=6&issuer=auth.{{ .Domain | default "example.com" }}&period=30&secret=5ZH7Y5CTFWOXN7EOLGBMMXADRNQFHVUDZSYKCN5HMFAIRSLAWY3Q'
     {{- end }}
     {{- if .WebAuthn }}
     webauthn.WellKnownRelatedOrigins:
@@ -2978,7 +2956,7 @@ components:
       properties:
         rawId:
           type: string
-          format: byte
+          contentEncoding: base64url
         id:
           type: string
         type:
@@ -2988,7 +2966,7 @@ components:
       properties:
         clientDataJSON:
           type: string
-          format: byte
+          contentEncoding: base64url
     webauthn.CredentialAttestationResponse:
       type: object
       properties:
@@ -3009,7 +2987,7 @@ components:
                       properties:
                         attestationObject:
                           type: string
-                          format: byte
+                          contentEncoding: base64url
         description:
           type: string
     webauthn.PasskeyCredentialAssertionResponse:
@@ -3039,10 +3017,10 @@ components:
                   properties:
                     authenticatorData:
                       type: string
-                      format: byte
+                      contentEncoding: base64url
                     clientDataJSON:
                       type: string
-                      format: byte
+                      contentEncoding: base64url
                     clientExtensionResults:
                       type: object
                       properties:
@@ -3051,10 +3029,10 @@ components:
                           example: false
                     signature:
                       type: string
-                      format: byte
+                      contentEncoding: base64url
                     userHandle:
                       type: string
-                      format: byte
+                      contentEncoding: base64url
                     flowID:
                       type: string
                       format: uuid
@@ -3109,7 +3087,7 @@ components:
                   properties:
                     challenge:
                       type: string
-                      format: byte
+                      contentEncoding: base64url
                     pubKeyCredParams:
                       type: array
                       items:
@@ -3179,11 +3157,11 @@ components:
       properties:
         transports:
           type: array
+          example:
+            - 'usb'
+            - 'nfc'
           items:
             type: string
-            example:
-              - 'usb'
-              - 'nfc'
             enum:
               - 'usb'
               - 'nfc'
@@ -3240,7 +3218,7 @@ components:
           properties:
             id:
               type: string
-              format: byte
+              contentEncoding: base64url
             type:
               type: string
               example: public-key
@@ -3296,7 +3274,7 @@ components:
               type: array
               items:
                 type: string
-                format: byte
+                contentEncoding: base64url
             credProps:
               type: object
               properties:
@@ -3442,7 +3420,7 @@ components:
             - 'address'
             - 'updated_at'
           items:
-            $ref: '#/components/schemas/openid.implementation.Claims.Array'
+            $ref: '#/components/schemas/openid.implementation.Claims.Name'
         code_challenge_methods_supported:
           description: >
             JSON array containing a list of PKCE [RFC7636] code challenge methods supported by this authorization
@@ -3453,7 +3431,7 @@ components:
           type: array
           example:
             - 'S256'
-            - 'none'
+            - 'plain'
           items:
             $ref: '#/components/schemas/openid.spec.CodeChallengeMethod'
         grant_types_supported:
@@ -3523,7 +3501,6 @@ components:
             - 'ES256'
             - 'ES384'
             - 'ES512'
-            - 'none'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         issuer:
@@ -3736,7 +3713,6 @@ components:
             - 'ES256'
             - 'ES384'
             - 'ES512'
-            - 'none'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         ui_locales_supported:
@@ -3863,7 +3839,7 @@ components:
             - 'address'
             - 'updated_at'
           items:
-            $ref: '#/components/schemas/openid.implementation.Claims.Array'
+            $ref: '#/components/schemas/openid.implementation.Claims.Name'
         prompt_values_supported:
           description: >
             OPTIONAL. JSON array containing the list of prompt values that this OP supports.
@@ -4038,7 +4014,6 @@ components:
             - 'ES256'
             - 'ES384'
             - 'ES512'
-            - 'none'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         issuer:
@@ -4603,44 +4578,43 @@ components:
         jti:
           type: string
           description: 'OPTIONAL. String identifier for the token, as defined in JWT [RFC7519].'
-    openid.implementation.Claims.Array:
-      type: array
-      items:
-        type: string
-        enum:
-          - 'amr'
-          - 'aud'
-          - 'azp'
-          - 'client_id'
-          - 'exp'
-          - 'iat'
-          - 'iss'
-          - 'jti'
-          - 'rat'
-          - 'auth_time'
-          - 'nonce'
-          - 'groups'
-          - 'sub'
-          - 'name'
-          - 'given_name'
-          - 'family_name'
-          - 'middle_name'
-          - 'nickname'
-          - 'preferred_username'
-          - 'profile'
-          - 'picture'
-          - 'website'
-          - 'email'
-          - 'email_verified'
-          - 'alt_emails'
-          - 'gender'
-          - 'birthdate'
-          - 'zoneinfo'
-          - 'locale'
-          - 'phone_number'
-          - 'phone_number_verified'
-          - 'address'
-          - 'updated_at'
+    openid.implementation.Claims.Name:
+      description: The name of an OpenID Connect 1.0 Claim.
+      type: string
+      enum:
+        - 'amr'
+        - 'aud'
+        - 'azp'
+        - 'client_id'
+        - 'exp'
+        - 'iat'
+        - 'iss'
+        - 'jti'
+        - 'rat'
+        - 'auth_time'
+        - 'nonce'
+        - 'groups'
+        - 'sub'
+        - 'name'
+        - 'given_name'
+        - 'family_name'
+        - 'middle_name'
+        - 'nickname'
+        - 'preferred_username'
+        - 'profile'
+        - 'picture'
+        - 'website'
+        - 'email'
+        - 'email_verified'
+        - 'alt_emails'
+        - 'gender'
+        - 'birthdate'
+        - 'zoneinfo'
+        - 'locale'
+        - 'phone_number'
+        - 'phone_number_verified'
+        - 'address'
+        - 'updated_at'
     openid.implementation.Claims.Object:
       description: OpenID Connect 1.0 User Claims.
       type: object
@@ -4968,7 +4942,6 @@ components:
         - type: object
           required:
             - 'grant_type'
-            - 'refresh_token'
           properties:
             grant_type:
               description: Value MUST be set to "client_credentials".
@@ -5254,10 +5227,10 @@ components:
         - 'code'
         - 'id_token'
         - 'token'
-        - "code token"
-        - "code id_token"
-        - "token id_token"
-        - "code id_token token"
+        - 'code token'
+        - 'code id_token'
+        - 'id_token token'
+        - 'code id_token token'
         - 'none'
       example: 'code'
       type: string
@@ -5437,7 +5410,7 @@ components:
             OPTIONAL.
           type: array
           items:
-            format: byte
+            contentEncoding: base64
             type: string
         x5t:
           description: >
@@ -5447,7 +5420,7 @@ components:
             thumbprints are also sometimes known as certificate fingerprints.
             The key in the certificate MUST match the public key represented by
             other members of the JWK. Use of this member is OPTIONAL.
-          format: byte
+          contentEncoding: base64url
           type: string
         x5t#S256:
           description: >
@@ -5457,7 +5430,7 @@ components:
             thumbprints are also sometimes known as certificate fingerprints.
             The key in the certificate MUST match the public key represented by
             other members of the JWK. Use of this member is OPTIONAL.
-          format: byte
+          contentEncoding: base64url
           type: string
     jose.spec.JWK.RSA:
       description: RSA Public Key in JSON Web Key format as defined by RFC7517 and RFC7518.
@@ -5493,13 +5466,13 @@ components:
                 RSA Public Key: The "n" (modulus) parameter contains the modulus value for the RSA public key. It is
                 represented as a Base64urlUInt-encoded value.
               type: string
-              format: byte
+              contentEncoding: base64url
             e:
               description: >
                 RSA Public Key: The "e" (exponent) parameter contains the exponent value for the RSA public key.
                 It is represented as a Base64urlUInt-encoded value.
               type: string
-              format: byte
+              contentEncoding: base64url
     jose.spec.JWK.RSA.Private:
       description: RSA Private Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
@@ -5514,19 +5487,19 @@ components:
                 RSA Private Key: The "d" (private exponent) parameter contains the private exponent value for the RSA
                 private key. It is represented as a Base64urlUInt-encoded value.
               type: string
-              format: byte
+              contentEncoding: base64url
             p:
               description: >
                 RSA Private Key: The "p" (first prime factor) parameter contains the first prime factor.
                 It is represented as a Base64urlUInt-encoded value.
               type: string
-              format: byte
+              contentEncoding: base64url
             q:
               description: >
                 RSA Private Key: The "q" (second prime factor) parameter contains the second prime factor. It is
                 represented as a Base64urlUInt-encoded value.
               type: string
-              format: byte
+              contentEncoding: base64url
             dp:
               description: >
                 RSA Private Key: The "dp" (first factor CRT exponent) parameter contains the Chinese Remainder Theorem
@@ -5542,7 +5515,7 @@ components:
                 RSA Private Key: The "qi" (first CRT coefficient) parameter contains the CRT coefficient of the second
                 factor. It is represented as a Base64urlUInt-encoded value.
               type: string
-              format: byte
+              contentEncoding: base64url
             oth:
               description: >
                 The "oth" (other primes info) parameter contains an array of
@@ -5561,21 +5534,21 @@ components:
                       represents the value of a subsequent prime factor. It is represented
                       as a Base64urlUInt-encoded value.
                     type: string
-                    format: byte
+                    contentEncoding: base64url
                   d:
                     description: >
                       The "d" (factor CRT exponent) parameter within an "oth" array member
                       represents the CRT exponent of the corresponding prime factor. It is
                       represented as a Base64urlUInt-encoded value.
                     type: string
-                    format: byte
+                    contentEncoding: base64url
                   t:
                     description: >
                       The "t" (factor CRT coefficient) parameter within an "oth" array
                       member represents the CRT coefficient of the corresponding prime
                       factor. It is represented as a Base64urlUInt-encoded value.
                     type: string
-                    format: byte
+                    contentEncoding: base64url
     jose.spec.JWK.EC:
       description: Elliptic Curve Public Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
@@ -5608,14 +5581,14 @@ components:
                 It is represented as the base64url encoding of the octet string representation of the coordinate, as
                 defined in Section 2.3.5 of SEC1 [SEC1].
               type: string
-              format: byte
+              contentEncoding: base64url
             y:
               description: >
                 EC Public Key: The y coordinate parameter contains the y coordinate for the Elliptic Curve point.
                 It is represented as the base64url encoding of the octet string representation of the coordinate, as
                 defined in Section 2.3.5 of SEC1 [SEC1].
               type: string
-              format: byte
+              contentEncoding: base64url
             crv:
               description: >
                 The curve parameter identifies the cryptographic curve used with the key. Curve
@@ -5647,7 +5620,7 @@ components:
                 as defined in Section 2.3.7 of SEC1 [SEC1]. The length of this octet string MUST be
                 ceiling(log-base-2(n)/8) octets (where n is the order of the curve).
               type: string
-              format: byte
+              contentEncoding: base64url
     jose.spec.JWK.Symmetric:
       description: Symmetric Key in JSON Web Key format as defined by RFC7517 and RFC7518.
       allOf:
@@ -5670,7 +5643,7 @@ components:
                 other single-valued) key. It is represented as the base64url
                 encoding of the octet sequence containing the key value.
               type: string
-              format: byte
+              contentEncoding: base64url
     jose.spec.JWK:
       type: string
       anyOf:
