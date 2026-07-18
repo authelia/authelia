@@ -88,13 +88,16 @@ func TestCmdCtx_StorageBansList(t *testing.T) {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
+			//gitleaks:allow // This is not an actual secret.
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(dir, "db.sqlite3"),
 			},
 		},
 	}
 
-	store := storage.NewProvider(config, nil)
+	store, err := storage.NewProvider(config, nil)
+	require.NoError(t, err)
 
 	require.NoError(t, store.StartupCheck())
 
@@ -205,7 +208,7 @@ func TestRunStorageSchemaInfo(t *testing.T) {
 	})
 
 	t.Run("ShouldShowValidEncryptionKey", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		buf := new(bytes.Buffer)
 
@@ -292,7 +295,7 @@ func TestRunStorageSchemaEncryptionCheckKey(t *testing.T) {
 	}
 
 	t.Run("ShouldSucceedWithEncryptionNonVerbose", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		buf := new(bytes.Buffer)
 
@@ -303,7 +306,7 @@ func TestRunStorageSchemaEncryptionCheckKey(t *testing.T) {
 	})
 
 	t.Run("ShouldSucceedWithEncryptionVerbose", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		buf := new(bytes.Buffer)
 
@@ -342,7 +345,7 @@ func TestRunStorageSchemaEncryptionChangeKey(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			buf := new(bytes.Buffer)
 
@@ -380,7 +383,7 @@ func TestRunStorageMigration(t *testing.T) {
 	})
 
 	t.Run("ShouldSucceedDownMigrationWithDestroy", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		buf := new(bytes.Buffer)
 
@@ -413,7 +416,7 @@ func TestRunStorageUserWebAuthnListAll(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
@@ -459,7 +462,7 @@ func TestRunStorageUserWebAuthnList(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
@@ -528,7 +531,7 @@ func TestRunStorageUserWebAuthnDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
@@ -571,7 +574,7 @@ func TestRunStorageUserWebAuthnExport(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
@@ -596,7 +599,7 @@ func TestRunStorageUserWebAuthnExport(t *testing.T) {
 	}
 
 	t.Run("ShouldSucceedExportImportRoundTrip", func(t *testing.T) {
-		store1 := newTestSQLiteStoreWithEncryptionKey(t)
+		store1 := newTestSQLiteStore(t)
 
 		seedWebAuthnCredential(t, context.Background(), store1, "john", "key-1", []byte("kid-1"))
 		seedWebAuthnCredential(t, context.Background(), store1, "harry", "key-2", []byte("kid-2"))
@@ -607,7 +610,7 @@ func TestRunStorageUserWebAuthnExport(t *testing.T) {
 		require.NoError(t, runStorageUserWebAuthnExport(context.Background(), exportBuf, store1, exportFile))
 		assert.Contains(t, exportBuf.String(), "Successfully exported 2 WebAuthn credentials")
 
-		store2 := newTestSQLiteStoreWithEncryptionKey(t)
+		store2 := newTestSQLiteStore(t)
 
 		importBuf := new(bytes.Buffer)
 
@@ -687,7 +690,7 @@ func TestRunStorageUserWebAuthnImport(t *testing.T) {
 	}
 
 	t.Run("ShouldSucceedImportRoundTrip", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		seedWebAuthnCredential(t, context.Background(), store, "john", "my-key", []byte("kid-1"))
 
@@ -697,7 +700,7 @@ func TestRunStorageUserWebAuthnImport(t *testing.T) {
 
 		require.NoError(t, runStorageUserWebAuthnExport(context.Background(), buf, store, exportFile))
 
-		store2 := newTestSQLiteStoreWithEncryptionKey(t)
+		store2 := newTestSQLiteStore(t)
 
 		buf.Reset()
 
@@ -728,7 +731,7 @@ func TestRunStorageUserTOTPExportURI(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedTOTPConfig(t, context.Background(), store, "john")
@@ -784,7 +787,7 @@ func TestRunStorageUserTOTPExportCSV(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedTOTPConfig(t, context.Background(), store, "john")
@@ -832,7 +835,7 @@ func TestRunStorageUserTOTPExport(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := newTestSQLiteStoreWithEncryptionKey(t)
+			store := newTestSQLiteStore(t)
 
 			if tc.seed {
 				seedTOTPConfig(t, context.Background(), store, "john")
@@ -904,7 +907,7 @@ func TestRunStorageUserTOTPImport(t *testing.T) {
 	}
 
 	t.Run("ShouldSucceedImportRoundTrip", func(t *testing.T) {
-		store := newTestSQLiteStoreWithEncryptionKey(t)
+		store := newTestSQLiteStore(t)
 
 		seedTOTPConfig(t, context.Background(), store, "john")
 
@@ -914,7 +917,7 @@ func TestRunStorageUserTOTPImport(t *testing.T) {
 
 		require.NoError(t, runStorageUserTOTPExport(context.Background(), buf, store, exportFile))
 
-		store2 := newTestSQLiteStoreWithEncryptionKey(t)
+		store2 := newTestSQLiteStore(t)
 
 		buf.Reset()
 
@@ -2325,7 +2328,7 @@ func TestNewStorageMigrationRunE(t *testing.T) {
 		{
 			"ShouldErrUpMigrationTargetSameAsCurrent",
 			true,
-			map[string]string{cmdFlagNameTarget: "24"},
+			map[string]string{cmdFlagNameTarget: "25"},
 			"schema migration target version",
 		},
 	}
@@ -2358,16 +2361,16 @@ func TestNewStorageMigrationRunE(t *testing.T) {
 func TestStorageSchemaInfoRunE(t *testing.T) {
 	testCases := []struct {
 		name           string
-		useEncryption  bool
+		useHelper      bool
 		expectedFields []string
 	}{
 		{
-			"ShouldShowSchemaInfoWithEncryption",
+			"ShouldShowSchemaInfoWithHelper",
 			true,
 			[]string{"Schema Version:", "Schema Upgrade Available: no", "Schema Tables:", "Schema Encryption Key: valid"},
 		},
 		{
-			"ShouldShowSchemaInfoWithoutEncryption",
+			"ShouldShowSchemaInfoWithInlineProvider",
 			false,
 			[]string{"Schema Version:", "Schema Upgrade Available: no", "Schema Tables:", "Schema Encryption Key:"},
 		},
@@ -2377,7 +2380,7 @@ func TestStorageSchemaInfoRunE(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var cmdCtx *CmdCtx
 
-			if tc.useEncryption {
+			if tc.useHelper {
 				cmdCtx = newTestCmdCtx(t)
 			} else {
 				cmdCtx = NewCmdCtx()
@@ -2385,12 +2388,17 @@ func TestStorageSchemaInfoRunE(t *testing.T) {
 				dir := t.TempDir()
 
 				cmdCtx.config.Storage = schema.Storage{
+					//gitleaks:allow // This is not an actual secret.
+					EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 					Local: &schema.StorageLocal{
 						Path: filepath.Join(dir, "db.sqlite3"),
 					},
 				}
 
-				cmdCtx.providers.StorageProvider = storage.NewProvider(cmdCtx.config, nil)
+				var err error
+
+				cmdCtx.providers.StorageProvider, err = storage.NewProvider(cmdCtx.config, nil)
+				require.NoError(t, err)
 
 				require.NoError(t, cmdCtx.providers.StorageProvider.StartupCheck())
 			}
@@ -3355,26 +3363,6 @@ func newTestSQLiteStore(t *testing.T) storage.Provider {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
-			Local: &schema.StorageLocal{
-				Path: filepath.Join(dir, "db.sqlite3"),
-			},
-		},
-	}
-
-	store := storage.NewProvider(config, nil)
-
-	require.NoError(t, store.StartupCheck())
-
-	return store
-}
-
-func newTestSQLiteStoreWithEncryptionKey(t *testing.T) storage.Provider {
-	t.Helper()
-
-	dir := t.TempDir()
-
-	config := &schema.Configuration{
-		Storage: schema.Storage{
 			//gitleaks:allow // This is not an actual secret.
 			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
@@ -3383,7 +3371,8 @@ func newTestSQLiteStoreWithEncryptionKey(t *testing.T) storage.Provider {
 		},
 	}
 
-	store := storage.NewProvider(config, nil)
+	store, err := storage.NewProvider(config, nil)
+	require.NoError(t, err)
 
 	require.NoError(t, store.StartupCheck())
 
@@ -3407,7 +3396,10 @@ func newTestCmdCtx(t *testing.T) *CmdCtx {
 
 	ctx.config.TOTP = schema.DefaultTOTPConfiguration
 
-	ctx.providers.StorageProvider = storage.NewProvider(ctx.config, nil)
+	var err error
+
+	ctx.providers.StorageProvider, err = storage.NewProvider(ctx.config, nil)
+	require.NoError(t, err)
 
 	require.NoError(t, ctx.providers.StorageProvider.StartupCheck())
 

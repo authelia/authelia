@@ -36,6 +36,17 @@ const (
 )
 
 const (
+	tableAADPushedAuthorizationRequestSession = "oauth2_pushed_authorization_session"
+)
+
+const (
+	columnSessionData = "session_data"
+	columnValue       = "value"
+	columnCode        = "code"
+	columnSecret      = "secret"
+)
+
+const (
 	encryptionNameCheck = "check"
 )
 
@@ -89,6 +100,14 @@ const (
 const (
 	hmacNameOneTimeCode     = "otc"
 	hmacNameOneTimePassword = "otp"
+)
+
+const (
+	hkdfKeyInfo = "authelia:kdf:storage:encryption_key:v1"
+
+	// schemaVersionEncryptionKeyDerivation is the schema version at which HKDF key derivation and GCM AAD were
+	// introduced. Databases below this version store encrypted values using the legacy SHA256 key without AAD.
+	schemaVersionEncryptionKeyDerivation = 25
 )
 
 var (
