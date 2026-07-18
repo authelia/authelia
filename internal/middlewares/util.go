@@ -52,7 +52,7 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 		errs = append(errs, err)
 	}
 
-	if providers.MetaDataService, err = webauthn.NewMetaDataProvider(config, providers.StorageProvider); err != nil {
+	if providers.WebAuthnMetaData, err = webauthn.NewMetaDataProvider(config, providers.StorageProvider); err != nil {
 		errs = append(errs, err)
 	}
 

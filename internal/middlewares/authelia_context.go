@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -26,6 +24,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // NewRequestLogger create a new request logger for the given request.
@@ -62,7 +61,7 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 		methods = append(methods, model.SecondFactorMethodTOTP)
 	}
 
-	if !ctx.Configuration.WebAuthn.Disable {
+	if _, err := ctx.GetWebAuthnProvider(); err == nil {
 		methods = append(methods, model.SecondFactorMethodWebAuthn)
 	}
 
@@ -738,59 +737,21 @@ func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttrib
 	return ctx.Providers.UserAttributeResolver
 }
 
+func (ctx *AutheliaCtx) GetWebAuthnMetaDataProvider() webauthn.MetaDataProvider {
+	return ctx.Providers.WebAuthnMetaData
+}
+
 // GetWebAuthnProvider initializes and returns a WebAuthn provider instance with the configured Relying Party (RP)
 // settings.
-func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) {
-	var (
-		origin *url.URL
-	)
-
-	if origin, err = ctx.GetOrigin(); err != nil {
+func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.Provider, err error) {
+	provider, err := webauthn.NewProvider(ctx)
+	if err != nil {
 		return nil, err
 	}
 
-	config := &webauthn.Config{
-		RPID:                  origin.Hostname(),
-		RPDisplayName:         ctx.Configuration.WebAuthn.DisplayName,
-		RPOrigins:             []string{origin.String()},
-		AttestationPreference: ctx.Configuration.WebAuthn.ConveyancePreference,
-		AuthenticatorSelection: protocol.AuthenticatorSelection{
-			AuthenticatorAttachment: ctx.Configuration.WebAuthn.SelectionCriteria.Attachment,
-			ResidentKey:             ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability,
-			UserVerification:        ctx.Configuration.WebAuthn.SelectionCriteria.UserVerification,
-		},
-		Debug:                false,
-		EncodeUserIDAsString: false,
-		Timeouts: webauthn.TimeoutsConfig{
-			Login: webauthn.TimeoutConfig{
-				Enforce:    true,
-				Timeout:    ctx.Configuration.WebAuthn.Timeout,
-				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
-			},
-			Registration: webauthn.TimeoutConfig{
-				Enforce:    true,
-				Timeout:    ctx.Configuration.WebAuthn.Timeout,
-				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
-			},
-		},
-		MDS: ctx.Providers.MetaDataService,
-	}
+	ctx.GetLogger().Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", provider.WebAuthn.Config.RPID, strings.Join(provider.WebAuthn.Config.RPOrigins, ", "))
 
-	switch ctx.Configuration.WebAuthn.SelectionCriteria.Attachment {
-	case protocol.Platform, protocol.CrossPlatform:
-		config.AuthenticatorSelection.AuthenticatorAttachment = ctx.Configuration.WebAuthn.SelectionCriteria.Attachment
-	}
-
-	switch ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability {
-	case protocol.ResidentKeyRequirementRequired:
-		config.AuthenticatorSelection.RequireResidentKey = protocol.ResidentKeyRequired()
-	case protocol.ResidentKeyRequirementPreferred, protocol.ResidentKeyRequirementDiscouraged:
-		config.AuthenticatorSelection.RequireResidentKey = protocol.ResidentKeyNotRequired()
-	}
-
-	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
-
-	return webauthn.New(config)
+	return provider, nil
 }
 
 func (ctx *AutheliaCtx) RecordAuthenticationDuration(success bool, elapsed time.Duration) {

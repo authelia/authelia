@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/go-webauthn/webauthn/metadata"
@@ -10,19 +11,29 @@ import (
 
 // WebAuthn represents the webauthn config.
 type WebAuthn struct {
-	Disable              bool   `koanf:"disable" yaml:"disable" toml:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the WebAuthn 2FA functionality."`
-	EnablePasskeyLogin   bool   `koanf:"enable_passkey_login" yaml:"enable_passkey_login" toml:"enable_passkey_login" json:"enable_passkey_login" jsonschema:"default=false,title=Enable Passkey Logins" jsonschema_description:"Allows users to sign in via Passkeys."`
-	EnablePasskey2FA     bool   `koanf:"experimental_enable_passkey_uv_two_factors" yaml:"experimental_enable_passkey_uv_two_factors" toml:"experimental_enable_passkey_uv_two_factors" json:"experimental_enable_passkey_uv_two_factors" jsonschema:"default=false,title=Experimental: Enable User Verified Passkey Second Factor" jsonschema_description:"This option is experimental and WILL be removed. When true this will consider a Passkey login where the WebAuthn user verification requirement is met as being a single event 2FA login."`
-	EnablePasskeyUpgrade bool   `koanf:"experimental_enable_passkey_upgrade" yaml:"experimental_enable_passkey_upgrade" toml:"experimental_enable_passkey_upgrade" json:"experimental_enable_passkey_upgrade" jsonschema:"default=false,title=Experimental: Enable User Verified Passkey Second Factor" jsonschema_description:"When true this will attempt to automatically upgrade a WebAuthn credential to a Passkey when the browser or authenticator does not report a newly registered WebAuthn credential to be a Passkey."`
-	DisplayName          string `koanf:"display_name" yaml:"display_name,omitempty" toml:"display_name,omitempty" json:"display_name,omitempty" jsonschema:"default=Authelia,title=Display Name" jsonschema_description:"The display name attribute for the WebAuthn relying party."`
+	WebAuthnBase `koanf:",squash"`
+
+	Disable              bool             `koanf:"disable" yaml:"disable" toml:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the WebAuthn 2FA functionality."`
+	EnablePasskeyLogin   bool             `koanf:"enable_passkey_login" yaml:"enable_passkey_login" toml:"enable_passkey_login" json:"enable_passkey_login" jsonschema:"default=false,title=Enable Passkey Logins" jsonschema_description:"Allows users to sign in via Passkeys."`
+	EnablePasskey2FA     bool             `koanf:"experimental_enable_passkey_uv_two_factors" yaml:"experimental_enable_passkey_uv_two_factors" toml:"experimental_enable_passkey_uv_two_factors" json:"experimental_enable_passkey_uv_two_factors" jsonschema:"default=false,title=Experimental: Enable User Verified Passkey Second Factor" jsonschema_description:"This option is experimental and WILL be removed. When true this will consider a Passkey login where the WebAuthn user verification requirement is met as being a single event 2FA login."`
+	EnablePasskeyUpgrade bool             `koanf:"experimental_enable_passkey_upgrade" yaml:"experimental_enable_passkey_upgrade" toml:"experimental_enable_passkey_upgrade" json:"experimental_enable_passkey_upgrade" jsonschema:"default=false,title=Experimental: Enable User Verified Passkey Second Factor" jsonschema_description:"When true this will attempt to automatically upgrade a WebAuthn credential to a Passkey when the browser or authenticator does not report a newly registered WebAuthn credential to be a Passkey."`
+	Metadata             WebAuthnMetadata `koanf:"metadata" yaml:"metadata,omitempty" toml:"metadata,omitempty" json:"metadata,omitempty" jsonschema:"title=Metadata" jsonschema_description:"WebAuthn Metadata Service settings."`
+
+	RelyingParties map[string]WebAuthnRelyingParty `koanf:"relying_parties" yaml:"relying_parties" toml:"relying_parties" json:"relying_parties" jsonschema:"title=Relying Parties" jsonschema_description:"WebAuthn Relying Parties allows customizing some aspects of each relying party."`
+}
+
+// WebAuthnBase represents the common configuration options between the global WebAuthn configuration and
+// the individual WebAuthnRelyingParty configurations.
+type WebAuthnBase struct {
+	DisplayName string `koanf:"display_name" yaml:"display_name,omitempty" toml:"display_name,omitempty" json:"display_name,omitempty" jsonschema:"default=Authelia,title=Display Name" jsonschema_description:"The display name attribute for the WebAuthn relying party."`
 
 	ConveyancePreference protocol.ConveyancePreference `koanf:"attestation_conveyance_preference" yaml:"attestation_conveyance_preference,omitempty" toml:"attestation_conveyance_preference,omitempty" json:"attestation_conveyance_preference,omitempty" jsonschema:"default=indirect,enum=none,enum=indirect,enum=direct,title=Conveyance Preference" jsonschema_description:"The default conveyance preference for all WebAuthn credentials."`
 
 	Timeout time.Duration `koanf:"timeout" yaml:"timeout,omitempty" toml:"timeout,omitempty" json:"timeout,omitempty" jsonschema:"default=60 seconds,title=Timeout" jsonschema_description:"The default timeout for all WebAuthn ceremonies."`
 
-	Filtering         WebAuthnFiltering         `koanf:"filtering" yaml:"filtering,omitempty" toml:"filtering,omitempty" json:"filtering,omitempty" jsonschema:"title=Filtering" jsonschema_description:"WebAuthn Authenticator filtering settings."`
+	Filtering WebAuthnFiltering `koanf:"filtering" yaml:"filtering,omitempty" toml:"filtering,omitempty" json:"filtering,omitempty" jsonschema:"title=Filtering" jsonschema_description:"WebAuthn Authenticator filtering settings."`
+
 	SelectionCriteria WebAuthnSelectionCriteria `koanf:"selection_criteria" yaml:"selection_criteria,omitempty" toml:"selection_criteria,omitempty" json:"selection_criteria,omitempty" jsonschema:"title=Selection Criteria" jsonschema_description:"WebAuthn Authenticator selection criteria settings."`
-	Metadata          WebAuthnMetadata          `koanf:"metadata" yaml:"metadata,omitempty" toml:"metadata,omitempty" json:"metadata,omitempty" jsonschema:"title=Metadata" jsonschema_description:"WebAuthn Metadata Service settings."`
 }
 
 type WebAuthnMetadata struct {
@@ -51,12 +62,34 @@ type WebAuthnFiltering struct {
 	ProhibitedAAGUIDs         []uuid.UUID `koanf:"prohibited_aaguids" yaml:"prohibited_aaguids,omitempty" toml:"prohibited_aaguids,omitempty" json:"prohibited_aaguids,omitempty" jsonschema:"title=Prohibited AAGUIDs" jsonschema_description:"List of prohibited WebAuthn AAGUIDs. Authenticators with these AAGUIDs cannot be registered."`
 }
 
+type WebAuthnRelyingParty struct {
+	WebAuthnBase `koanf:",squash"`
+
+	Origins       []*url.URL `koanf:"origins" yaml:"origins,omitempty" toml:"origins,omitempty" json:"origins,omitempty" jsonschema:"title=Origins" jsonschema_description:"The list of allowed origins for the WebAuthn relying party."`
+	OpaqueOrigins []string   `koanf:"opaque_origins" yaml:"opaque_origins,omitempty" toml:"opaque_origins,omitempty" json:"opaque_origins,omitempty" jsonschema:"title=Opaque Origins" jsonschema_description:"The list of additional allowed origins for the WebAuthn relying party."`
+}
+
+func (w *WebAuthnRelyingParty) StringOrigins() []string {
+	origins := make([]string, len(w.Origins))
+
+	for i, origin := range w.Origins {
+		if origin == nil {
+			continue
+		}
+
+		origins[i] = origin.String()
+	}
+
+	return origins
+}
+
 // DefaultWebAuthnConfiguration describes the default values for the WebAuthn.
 var DefaultWebAuthnConfiguration = WebAuthn{
-	DisplayName: "Authelia",
-	Timeout:     time.Second * 60,
-
-	ConveyancePreference: protocol.PreferIndirectAttestation,
+	WebAuthnBase: WebAuthnBase{
+		DisplayName:          "Authelia",
+		Timeout:              time.Second * 60,
+		ConveyancePreference: protocol.PreferIndirectAttestation,
+	},
 	Metadata: WebAuthnMetadata{
 		Enabled:                       false,
 		ValidateTrustAnchor:           true,

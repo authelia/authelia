@@ -34,9 +34,11 @@ func TestVerifyCredential(t *testing.T) {
 		{
 			name: "ShouldVerifyProhibitedAAGUID",
 			config: &schema.WebAuthn{
-				Filtering: schema.WebAuthnFiltering{
-					ProhibitedAAGUIDs: []uuid.UUID{
-						uuid.MustParse("e87c6826-9e40-4a69-a68a-523d45a10941"),
+				WebAuthnBase: schema.WebAuthnBase{
+					Filtering: schema.WebAuthnFiltering{
+						ProhibitedAAGUIDs: []uuid.UUID{
+							uuid.MustParse("e87c6826-9e40-4a69-a68a-523d45a10941"),
+						},
 					},
 				},
 			},
@@ -48,9 +50,11 @@ func TestVerifyCredential(t *testing.T) {
 		{
 			name: "ShouldVerifyNotPermittedAAGUID",
 			config: &schema.WebAuthn{
-				Filtering: schema.WebAuthnFiltering{
-					PermittedAAGUIDs: []uuid.UUID{
-						uuid.MustParse("e87c6826-9e40-4a69-a68a-523d45a10942"),
+				WebAuthnBase: schema.WebAuthnBase{
+					Filtering: schema.WebAuthnFiltering{
+						PermittedAAGUIDs: []uuid.UUID{
+							uuid.MustParse("e87c6826-9e40-4a69-a68a-523d45a10942"),
+						},
 					},
 				},
 			},
@@ -62,10 +66,12 @@ func TestVerifyCredential(t *testing.T) {
 		{
 			name: "ShouldVerifyBackupEligible",
 			config: &schema.WebAuthn{
-				Filtering: schema.WebAuthnFiltering{
-					ProhibitBackupEligibility: true,
-					PermittedAAGUIDs: []uuid.UUID{
-						uuid.MustParse("e87c6826-9e40-4a69-a68a-523d45a10941"),
+				WebAuthnBase: schema.WebAuthnBase{
+					Filtering: schema.WebAuthnFiltering{
+						ProhibitBackupEligibility: true,
+						PermittedAAGUIDs: []uuid.UUID{
+							uuid.MustParse("e87c6826-9e40-4a69-a68a-523d45a10941"),
+						},
 					},
 				},
 			},
