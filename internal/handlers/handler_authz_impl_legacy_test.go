@@ -554,17 +554,9 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-				gomock.InOrder(
-					mock.UserProviderMock.EXPECT().
-						GetDetails(gomock.Eq("john")).
-						Return(nil, fmt.Errorf("backend unreachable")),
-					mock.StorageMock.
-						EXPECT().
-						LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
-					mock.StorageMock.
-						EXPECT().
-						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, "https://one-factor.example.com"))).Return(nil),
-				)
+				mock.UserProviderMock.EXPECT().
+					GetDetails(gomock.Eq("john")).
+					Return(nil, fmt.Errorf("backend unreachable"))
 			},
 		},
 		{

@@ -417,18 +417,20 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header: the username or password was empty", header)
 	}
 
-	if details, err = ctx.GetUserProvider().GetDetails(username); err != nil || details == nil {
-		if err == nil {
-			err = authentication.ErrUserNotFound
-		}
-
-		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, object.String(), object.Method, err)
-
+	if details, err = ctx.GetUserProvider().GetDetails(username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, object.String(), object.Method, err)
+
 			ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 		}
 
 		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to retrieve user details for user %s: %w", username, err)
+	} else if details == nil {
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, object.String(), object.Method, err)
+
+		ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+
+		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to retrieve user details for user %s: no user details were returned", username)
 	}
 
 	if ban, value, expires, err = ctx.GetProviders().Regulator.BanCheck(ctx, details.Username); err != nil {

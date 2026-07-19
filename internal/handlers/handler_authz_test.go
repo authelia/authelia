@@ -387,17 +387,9 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
-			Return(nil, fmt.Errorf("generic failure")),
-		mock.StorageMock.
-			EXPECT().
-			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
-		mock.StorageMock.
-			EXPECT().
-			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, targetURI.String()))).Return(nil),
-	)
+	mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq("john")).
+		Return(nil, fmt.Errorf("generic failure"))
 
 	authz.Handler(mock.Ctx)
 
@@ -597,17 +589,9 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
-			Return(nil, fmt.Errorf("generic failure")),
-		mock.StorageMock.
-			EXPECT().
-			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
-		mock.StorageMock.
-			EXPECT().
-			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, targetURI.String()))).Return(nil),
-	)
+	mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq("john")).
+		Return(nil, fmt.Errorf("generic failure"))
 
 	authz.Handler(mock.Ctx)
 
@@ -629,17 +613,9 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
-			Return(nil, fmt.Errorf("generic failure")),
-		mock.StorageMock.
-			EXPECT().
-			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
-		mock.StorageMock.
-			EXPECT().
-			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, targetURI.String()))).Return(nil),
-	)
+	mock.UserProviderMock.EXPECT().
+		GetDetails(gomock.Eq("john")).
+		Return(nil, fmt.Errorf("generic failure"))
 
 	authz.Handler(mock.Ctx)
 
@@ -1096,17 +1072,9 @@ func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBasicScheme
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	gomock.InOrder(
-		mock.UserProviderMock.
-			EXPECT().
-			GetDetails(gomock.Eq("john")).Return(nil, fmt.Errorf("generic failure")),
-		mock.StorageMock.
-			EXPECT().
-			LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
-		mock.StorageMock.
-			EXPECT().
-			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, targetURI.String()))).Return(nil),
-	)
+	mock.UserProviderMock.
+		EXPECT().
+		GetDetails(gomock.Eq("john")).Return(nil, fmt.Errorf("generic failure"))
 
 	authz.Handler(mock.Ctx)
 
