@@ -166,13 +166,25 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 
 // GetClient opens new client using the pool.
 func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (conn LDAPExtendedClient, err error) {
-	if len(opts) != 0 {
+	if unpooled, options := f.poolOptions(opts...); unpooled {
 		f.log.Trace("Dialing new unpooled client")
 
-		return ldapDialBind(f.log, f.config, f.dialer, f.tls, f.opts, opts...)
+		return ldapDialBindOpts(f.log, f.config, f.dialer, f.tls, f.opts, options)
 	}
 
 	return f.acquire(context.Background())
+}
+
+func (f *PooledLDAPClientFactory) poolOptions(opts ...LDAPClientFactoryOption) (unpooled bool, options *LDAPClientFactoryOptions) {
+	if len(opts) == 0 {
+		return false, &LDAPClientFactoryOptions{}
+	}
+
+	options = ldapClientFactoryOptions(f.config, opts...)
+
+	unpooled = options.Address != f.config.Address.String() || options.Username != f.config.User || options.Password != f.config.Password
+
+	return unpooled, options
 }
 
 // The dial function dials a new LDAPClient and wraps it as a PooledLDAPClient client.
@@ -252,13 +264,24 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *PooledLD
 
 			client.log.Trace("Client is closing or invalid")
 
-			if client, err = f.dial(); err == nil {
-				client.log.Trace("New client acquired")
+			if err = client.Close(); err != nil {
+				client.log.WithError(err).Trace("Error occurred closing unhealthy client")
+			}
 
-				return client, nil
+			var redialed *PooledLDAPClient
+
+			if redialed, err = f.dial(); err == nil {
+				redialed.log.Trace("New client acquired")
+
+				return redialed, nil
 			}
 
 			f.log.WithError(err).Trace("Error acquiring new client")
+
+			select {
+			case f.pool <- client:
+			default:
+			}
 
 			time.Sleep(f.sleep)
 		}
@@ -326,8 +349,8 @@ func (c *PooledLDAPClient) healthy() bool {
 	return true
 }
 
-func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, dialer LDAPClientDialer, tls *tls.Config, dialOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client LDAPExtendedClient, err error) {
-	options := &LDAPClientFactoryOptions{
+func ldapClientFactoryOptions(config *schema.AuthenticationBackendLDAP, opts ...LDAPClientFactoryOption) (options *LDAPClientFactoryOptions) {
+	options = &LDAPClientFactoryOptions{
 		Address:  config.Address.String(),
 		Username: config.User,
 		Password: config.Password,
@@ -337,6 +360,16 @@ func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, d
 		opt(options)
 	}
 
+	return options
+}
+
+func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, dialer LDAPClientDialer, tls *tls.Config, dialOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client LDAPExtendedClient, err error) {
+	options := ldapClientFactoryOptions(config, opts...)
+
+	return ldapDialBindOpts(log, config, dialer, tls, dialOpts, options)
+}
+
+func ldapDialBindOpts(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, dialer LDAPClientDialer, tls *tls.Config, dialOpts []ldap.DialOpt, options *LDAPClientFactoryOptions) (client LDAPExtendedClient, err error) {
 	var base LDAPBaseClient
 	if base, err = dialer.DialURL(options.Address, dialOpts...); err != nil {
 		return nil, fmt.Errorf("error occurred dialing address: %w", err)
