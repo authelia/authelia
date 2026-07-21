@@ -27,7 +27,7 @@ seo:
 - [Roundcube]
   - [v1.7.1](https://github.com/roundcube/roundcubemail/releases/tag/1.7.1)
 - [Dovecot]
-  - [v2.4.4](https://dovecot.org/doc/NEWS)
+  - [v2.4.4](https://github.com/dovecot/core/releases/tag/2.4.4)
 - [Postfix]
   - [v3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
 
