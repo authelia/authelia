@@ -46,7 +46,7 @@ Some of the values presented in this guide can automatically be replaced with do
 ### Important Notes
 
 This implementation has several facets which must be configured as a security precaution. It's advised people read the
-[OAuth 2.0 Bearer Token Usage](../oauth-2.0-bearer-token-usage.md) integration guide in addition to this guide to
+[OAuth 2.0 Bearer Token Usage](../../oauth-2.0-bearer-token-usage.md) integration guide in addition to this guide to
 properly understand this process.
 
 For example this guide has a requirement to adapt a fairly new and special section of Authelia. It's important to take

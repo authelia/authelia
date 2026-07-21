@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.19](https://github.com/authelia/authelia/releases/tag/v4.39.19)
+  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
 - [FileBrowser Quantum]
   - [v0.7.18-beta](https://github.com/gtsteffaniak/filebrowser/releases/tag/v0.7.18-beta)
 

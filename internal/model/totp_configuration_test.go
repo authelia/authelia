@@ -197,12 +197,12 @@ func TestTOTPConfigurationUnmarshalYAMLErrors(t *testing.T) {
 		{
 			"ShouldErrOnInvalidBase64Secret",
 			"username: john\nissuer: Authelia\nalgorithm: SHA1\ndigits: 6\nperiod: 30\nsecret: '!!!invalid-base64!!!'\n",
-			"illegal base64 data at input byte 0",
+			"yaml: construct errors: line 1: illegal base64 data at input byte 0",
 		},
 		{
 			"ShouldErrOnInvalidYAML",
 			"username: [[[",
-			"yaml: while parsing a flow node at line 1: did not find expected node content",
+			"go-yaml load error in parser (while parsing a flow node) at L2.C1: did not find expected node content",
 		},
 	}
 

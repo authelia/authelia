@@ -63,15 +63,15 @@ type AccessControlDomainMatcher struct {
 func (m AccessControlDomainMatcher) IsMatch(domain string, subject Subject) (match bool) {
 	switch {
 	case m.Wildcard:
-		return strings.HasSuffix(domain, m.Name)
+		return utils.StringHasSuffixFold(domain, m.Name)
 	case m.UserWildcard:
-		if subject.IsAnonymous() && strings.HasSuffix(domain, m.Name) {
+		if subject.IsAnonymous() && utils.StringHasSuffixFold(domain, m.Name) {
 			return len(domain) > len(m.Name)
 		}
 
 		return domain == fmt.Sprintf("%s%s", subject.Username, m.Name)
 	case m.GroupWildcard:
-		if subject.IsAnonymous() && strings.HasSuffix(domain, m.Name) {
+		if subject.IsAnonymous() && utils.StringHasSuffixFold(domain, m.Name) {
 			return len(domain) > len(m.Name)
 		}
 

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/rpadovani/sqlx-v2"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -185,7 +185,7 @@ func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (mi
 // SchemaMigrate migrates from the storage provider's current schema version to the provided schema version.
 func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (err error) {
 	var (
-		tx   *sqlx.Tx
+		tx   SQLXTx
 		conn SQLXConnection
 	)
 
@@ -258,7 +258,7 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, conn SQLXConnection, pr
 			}
 		}
 
-		if err = p.schemaMigrateApply(ctx, conn, migration); err != nil {
+		if err = p.schemaMigrateApply(ctx, conn, migration, prior, target); err != nil {
 			return p.schemaMigrateRollback(ctx, conn, prior, migration.After(), err)
 		}
 	}
@@ -280,7 +280,7 @@ func (p *SQLProvider) schemaMigrateLock(ctx context.Context, conn SQLXConnection
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnection, migration model.SchemaMigration) (err error) {
+func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnection, migration model.SchemaMigration, prior, target int) (err error) {
 	if migration.NotEmpty() {
 		if _, err = conn.ExecContext(ctx, migration.Query); err != nil {
 			return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
@@ -288,7 +288,26 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnectio
 
 		if migration.Version == 1 && migration.Up {
 			// Add the schema encryption value if upgrading to v1.
-			if err = p.setNewEncryptionCheckValue(ctx, conn, &p.keys.encryption); err != nil {
+			if err = p.setNewEncryptionCheckValue(ctx, conn, p.keys.encryption); err != nil {
+				return err
+			}
+		}
+	}
+
+	var (
+		migrationsSpecial []fSchemaMigration
+		ok                bool
+	)
+
+	if migration.Up {
+		migrationsSpecial, ok = migrationsSpecialUp[migration.Version]
+	} else {
+		migrationsSpecial, ok = migrationsSpecialDown[migration.Version]
+	}
+
+	if ok {
+		for _, special := range migrationsSpecial {
+			if err = special(ctx, conn, p, prior, migration.Before(), migration.After(), target); err != nil {
 				return err
 			}
 		}
@@ -317,14 +336,14 @@ func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, conn SQLXConnec
 
 func (p *SQLProvider) schemaMigrateRollback(ctx context.Context, conn SQLXConnection, prior, after int, merr error) (err error) {
 	switch tx := conn.(type) {
-	case *sqlx.Tx:
+	case SQLXTx:
 		return p.schemaMigrateRollbackWithTx(ctx, tx, merr)
 	default:
 		return p.schemaMigrateRollbackWithoutTx(ctx, prior, after, merr)
 	}
 }
 
-func (p *SQLProvider) schemaMigrateRollbackWithTx(_ context.Context, tx *sqlx.Tx, merr error) (err error) {
+func (p *SQLProvider) schemaMigrateRollbackWithTx(_ context.Context, tx SQLXTx, merr error) (err error) {
 	if err = tx.Rollback(); err != nil {
 		return fmt.Errorf("error applying rollback %+v. rollback caused by: %w", err, merr)
 	}
@@ -339,7 +358,7 @@ func (p *SQLProvider) schemaMigrateRollbackWithoutTx(ctx context.Context, prior,
 	}
 
 	for _, migration := range migrations {
-		if err = p.schemaMigrateApply(ctx, p.db, migration); err != nil {
+		if err = p.schemaMigrateApply(ctx, p.db, migration, prior, prior); err != nil {
 			return fmt.Errorf("error applying migration version %d to version %d for rollback: %+v. rollback caused by: %w", migration.Before(), migration.After(), err, merr)
 		}
 	}

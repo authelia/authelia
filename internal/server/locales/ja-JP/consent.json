@@ -48,6 +48,7 @@
 	"scopes": {
 		"address": "住所にアクセス",
 		"authelia.bearer.authz": "ログイン中に保護されたリソースにアクセスする",
+		"authelia.pam": "Linux システムに認証する",
 		"email": "メールアドレスにアクセスする",
 		"groups": "グループのメンバーシップにアクセス",
 		"offline_access": "ユーザーの操作なしでこれらの権限を自動的に更新する",

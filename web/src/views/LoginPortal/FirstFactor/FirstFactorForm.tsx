@@ -87,11 +87,17 @@ const FirstFactorForm = function (props: Props) {
     }, [focusUsername]);
 
     useEffect(() => {
-        loginChannel.addEventListener("message", (authenticated) => {
+        const handleMessage = (authenticated: boolean) => {
             if (authenticated) {
                 props.onChannelStateChange();
             }
-        });
+        };
+
+        loginChannel.addEventListener("message", handleMessage);
+
+        return () => {
+            loginChannel.removeEventListener("message", handleMessage);
+        };
     }, [loginChannel, redirectionURL, props]);
 
     const disabled = props.disabled;

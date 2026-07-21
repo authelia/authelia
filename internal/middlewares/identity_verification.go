@@ -15,7 +15,7 @@ import (
 )
 
 // IdentityVerificationStart the handler for initiating the identity validation process.
-func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc TimingAttackDelayFunc) RequestHandler {
+func IdentityVerificationStart(args IdentityVerificationStartArgs, delayer Delayer) RequestHandler {
 	if args.IdentityRetrieverFunc == nil {
 		panic(fmt.Errorf("identity verification requires an identity retriever"))
 	}
@@ -33,8 +33,8 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		requestTime := time.Now()
 		success := false
 
-		if delayFunc != nil {
-			defer delayFunc(ctx, requestTime, &success)
+		if delayer != nil {
+			defer delayer.Delay(ctx, requestTime, &success)
 		}
 
 		identity, err := args.IdentityRetrieverFunc(ctx)

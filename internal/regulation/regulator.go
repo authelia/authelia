@@ -23,7 +23,14 @@ func NewRegulator(config schema.Regulation, store storage.RegulatorProvider, clo
 	}
 }
 
-func (r *Regulator) HandleAttempt(ctx Context, successful, banned bool, username, requestURI, requestMethod, authType string) {
+func (r *Regulator) HandleAttempt(ctx Context, successful bool, ban *Ban, requestURI, requestMethod, authType string) {
+	if ban.Type() == BanTypeUnknown {
+		ban.ban, _, _, _ = r.banCheckIP(ctx)
+	}
+
+	banned := ban.IsBanned()
+	username := ban.Value()
+
 	ctx.RecordAuthn(successful, banned, strings.ToLower(authType))
 
 	attempt := model.AuthenticationAttempt{
@@ -132,7 +139,7 @@ func (r *Regulator) handleAttemptPossibleBannedUser(ctx Context, since time.Time
 	}
 }
 
-func (r *Regulator) BanCheck(ctx Context, username string) (ban BanType, value string, expires *time.Time, err error) {
+func (r *Regulator) banCheckIP(ctx Context) (ban BanType, value string, expires *time.Time, err error) {
 	ip := model.NewIP(ctx.RemoteIP())
 
 	var bansIP []model.BannedIP
@@ -145,6 +152,14 @@ func (r *Regulator) BanCheck(ctx Context, username string) (ban BanType, value s
 		b := bansIP[0]
 
 		return returnBanResult(BanTypeIP, ip.String(), b.Expires)
+	}
+
+	return BanTypeNone, "", nil, nil
+}
+
+func (r *Regulator) BanCheck(ctx Context, username string) (ban BanType, value string, expires *time.Time, err error) {
+	if ban, value, expires, err = r.banCheckIP(ctx); err != nil || ban != BanTypeNone {
+		return ban, value, expires, err
 	}
 
 	var bansUser []model.BannedUser

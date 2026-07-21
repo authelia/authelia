@@ -10,10 +10,5 @@
   "license": "Apache-2.0",
   "dependencies": {
     "express": "5.2.1"
-  },
-  "pnpm": {
-    "overrides": {
-      "path-to-regexp": "8.4.2"
-    }
   }
 }

@@ -68,30 +68,30 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     const { createErrorNotification } = useNotifications();
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         return () => {
-            if (timeoutRateLimit.current !== null) {
-                clearTimeout(timeoutRateLimit.current);
-                timeoutRateLimit.current = null;
+            if (timeoutRateLimitRef.current !== null) {
+                clearTimeout(timeoutRateLimitRef.current);
+                timeoutRateLimitRef.current = null;
             }
         };
     }, []);
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimit.current) {
-                clearTimeout(timeoutRateLimit.current);
+            if (timeoutRateLimitRef.current) {
+                clearTimeout(timeoutRateLimitRef.current);
             }
 
             dispatch({ type: "rateLimited" });
 
             createErrorNotification(translate("You have made too many requests"));
 
-            timeoutRateLimit.current = setTimeout(() => {
+            timeoutRateLimitRef.current = setTimeout(() => {
                 dispatch({ type: "pushFailure" });
-                timeoutRateLimit.current = null;
+                timeoutRateLimitRef.current = null;
             }, retryAfter * 1000);
         },
         [createErrorNotification, translate],

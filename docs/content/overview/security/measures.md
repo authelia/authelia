@@ -209,26 +209,49 @@ policy by changing refresh_interval, however we believe that 5 minutes is a fair
 
 **Measure Types:** In-built
 
-We use encryption and HMAC signatures to protect vulnerable data stored in the database. It is strongly advised you do
-not give the storage encryption key to anyone. In the instance of a database installation that multiple users have
-access to, you should aim to ensure that users who have access to the database do not also have access to the encryption
-key.
+We use encryption and HMAC signatures to protect sensitive data stored in the database as a hardening measure. It is
+strongly advised you do not give the storage encryption key to anyone. In the instance of a database installation that
+multiple users have access to, you should aim to ensure that users who have access to the database do not also have
+access to the encryption key.
 
-The encrypted data in the database is as follows:
+All of the data is encrypted using the user provided encryption key after passing it through the HMAC-based Extract and
+Expand Key Derivation Function (HKDF) as defined by [RFC5869](https://datatracker.ietf.org/doc/html/rfc5869), with the
+context and application specific information value of `authelia:kdf:storage:encryption_key:v1`. This is done to
+ensure the key is exactly the right length without losing any entropy from the input.
 
-|               Table               |  Column(s)   |                                               Rationale                                                |
-|:---------------------------------:|:------------:|:------------------------------------------------------------------------------------------------------:|
-|            encryption             |    value     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|            cached_data            |    value     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|           one_time_code           |     code     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|        totp_configurations        |    secret    | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|         webauthn_devices          |  public_key  |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
-| oauth2_authorization_code_session | session_data | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|    oauth2_access_token_session    | session_data | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|   oauth2_refresh_token_session    | session_data | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|    oauth2_pkce_request_session    | session_data | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|   oauth2_openid_connect_session   | session_data | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|        oauth2_par_context         | session_data | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+We use column specific additional authenticated data to harden against swapping data from one table or column into
+another. While at this time there is no known benefit to doing this that does not mean there is no benefit or will not
+be one in the future.
+
+The encrypted data in the database with the various AAD's used is as follows:
+
+|               Table               |    Column    |                 Additional Authenticated Data (AAD)                 |                                               Rationale                                                |
+|:---------------------------------:|:------------:|:-------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------:|
+|            encryption             |    value     |                 `authelia:storage:encryption:value`                 | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|            cached_data            |    value     |                `authelia:storage:cached_data:value`                 | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|           one_time_code           |     code     |                `authelia:storage:one_time_code:code`                | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|        totp_configurations        |    secret    |            `authelia:storage:totp_configurations:secret`            | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|       webauthn_credentials        |  public_key  |      `authelia:storage:webauthn_credentials:<rpid>:public_key`      |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+|       webauthn_credentials        | attestation  |     `authelia:storage:webauthn_credentials:<rpid>:attestation`      |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+| oauth2_authorization_code_session | session_data |  `authelia:storage:oauth2_authorization_code_session:session_data`  | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_device_code_session     | session_data |     `authelia:storage:oauth2_device_code_session:session_data`      | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_access_token_session    | session_data |     `authelia:storage:oauth2_access_token_session:session_data`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|   oauth2_refresh_token_session    | session_data |    `authelia:storage:oauth2_refresh_token_session:session_data`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_pkce_request_session    | session_data |     `authelia:storage:oauth2_pkce_request_session:session_data`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|   oauth2_openid_connect_session   | session_data |    `authelia:storage:oauth2_openid_connect_session:session_data`    | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|        oauth2_par_context         | session_data | `authelia:storage:oauth2_pushed_authorization_session:session_data` | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+
+You will note that the pattern for the additional authenticated data is the same for all tables and columns with a few
+exceptions. The format is `authelia:storage:<table>:<column>` for basically every table and column combination.
+
+The first exception is the `webauthn_credentials` table where the additional authenticated data is different for each domain,
+specifically the `rpid` column is included in the additional authenticated data. If the `rpid` value is `example.com`
+then the `<rpid>` placeholder will be replaced with `example.com` and become
+`authelia:storage:webauthn_credentials:example.com:public_key` for example. This exception is likely to follow for the
+`oauth2_*` tables and the `one_time_code` table in the near future, and `totp_configurations` in v5.
+
+The second exception is the `oauth2_par_context` table where the table name is replaced with
+`oauth2_pushed_authorization_session` which is the name the table will be renamed to in the future.
 
 The HMAC signatures stored in the database use the encrypted key stored in the `encryption` table where the `name`
 column matches the table below. We both ensure the keys are encrypted and use unique keys for each purpose to ensure
@@ -246,7 +269,7 @@ for this purpose prevent this attack vector.
 
 ### Bad Actors
 
-A bad actor who has the SQL password and access to the database can theoretically change another users credential, this
+A bad actor who has access to the database can theoretically change values in the database, this
 theoretically bypasses authentication. Columns encrypted for this purpose prevent this attack vector.
 
 A bad actor may also be able to use data in the database to bypass 2FA silently depending on the credentials. In the

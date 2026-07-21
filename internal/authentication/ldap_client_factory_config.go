@@ -4,6 +4,8 @@ type LDAPClientFactoryOptions struct {
 	Address  string
 	Username string
 	Password string
+
+	PermitUnauthenticatedBind bool
 }
 
 type LDAPClientFactoryOption func(*LDAPClientFactoryOptions)
@@ -23,5 +25,11 @@ func WithUsername(username string) func(*LDAPClientFactoryOptions) {
 func WithPassword(password string) func(*LDAPClientFactoryOptions) {
 	return func(settings *LDAPClientFactoryOptions) {
 		settings.Password = password
+	}
+}
+
+func WithPermitUnauthenticatedBind(permit bool) func(*LDAPClientFactoryOptions) {
+	return func(settings *LDAPClientFactoryOptions) {
+		settings.PermitUnauthenticatedBind = permit
 	}
 }

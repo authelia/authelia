@@ -1,9 +1,11 @@
-FROM golang:1.26.2-alpine@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1
+FROM golang:1.26.5-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
 
 ARG USER_ID
 ARG GROUP_ID
 
-RUN addgroup --gid ${GROUP_ID} dev && \
+RUN if getent group ${GROUP_ID} >/dev/null; then delgroup "$(getent group ${GROUP_ID} | cut -d: -f1)"; fi && \
+    if getent passwd ${USER_ID} >/dev/null; then deluser "$(getent passwd ${USER_ID} | cut -d: -f1)"; fi && \
+    addgroup --gid ${GROUP_ID} dev && \
     adduser --uid ${USER_ID} -G dev -D dev && \
     apk --no-cache add gcc git musl-dev
 
@@ -13,6 +15,7 @@ RUN \
 USER dev
 
 ENV PATH="/app:${PATH}" \
+	GOCACHE="/go/cache/go-build" \
 	X_AUTHELIA_CONFIG="/config/configuration.yml"
 
 VOLUME /config

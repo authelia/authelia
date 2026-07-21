@@ -65,18 +65,18 @@ const PushNotificationMethod = function (props: Props) {
     const signInInitiatedRef = useRef(false);
     const stateRef = useRef<null | State>(null);
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
-    const timeoutSuccess = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutSuccessRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         return () => {
-            if (timeoutRateLimit.current !== null) {
-                clearTimeout(timeoutRateLimit.current);
-                timeoutRateLimit.current = null;
+            if (timeoutRateLimitRef.current !== null) {
+                clearTimeout(timeoutRateLimitRef.current);
+                timeoutRateLimitRef.current = null;
             }
-            if (timeoutSuccess.current !== null) {
-                clearTimeout(timeoutSuccess.current);
-                timeoutSuccess.current = null;
+            if (timeoutSuccessRef.current !== null) {
+                clearTimeout(timeoutSuccessRef.current);
+                timeoutSuccessRef.current = null;
             }
         };
     }, []);
@@ -107,9 +107,9 @@ const PushNotificationMethod = function (props: Props) {
     const handleSuccess = useCallback(
         (redirect: string | undefined) => {
             setState(State.Success);
-            timeoutSuccess.current = setTimeout(() => {
+            timeoutSuccessRef.current = setTimeout(() => {
                 onSignInSuccess(redirect);
-                timeoutSuccess.current = null;
+                timeoutSuccessRef.current = null;
             }, 1500);
         },
         [onSignInSuccess],
@@ -117,17 +117,17 @@ const PushNotificationMethod = function (props: Props) {
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
-            if (timeoutRateLimit.current) {
-                clearTimeout(timeoutRateLimit.current);
+            if (timeoutRateLimitRef.current) {
+                clearTimeout(timeoutRateLimitRef.current);
             }
 
             setState(State.RateLimited);
 
             onSignInError(new Error(translate("You have made too many requests")));
 
-            timeoutRateLimit.current = setTimeout(() => {
+            timeoutRateLimitRef.current = setTimeout(() => {
                 setState(State.Failure);
-                timeoutRateLimit.current = null;
+                timeoutRateLimitRef.current = null;
             }, retryAfter * 1000);
         },
         [onSignInError, translate],

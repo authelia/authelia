@@ -48,6 +48,7 @@
 	"scopes": {
 		"address": "Zugriff auf Ihre Adresse",
 		"authelia.bearer.authz": "Zugriff auf geschützte Ressourcen, eingeloggt als Sie",
+		"authelia.pam": "Authentifizieren Sie sich bei einem Linux-System während Sie",
 		"email": "Zugriff auf Ihre E-Mail-Adressen",
 		"groups": "Zugriff auf Ihre Gruppenmitgliedschaften",
 		"offline_access": "Diese Berechtigungen automatisch ohne Benutzerinteraktion aktualisieren",

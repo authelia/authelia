@@ -87,7 +87,7 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 		profile         *ldapUserProfile
 	)
 
-	if client, err = p.factory.GetClient(); err != nil {
+	if client, err = p.factory.GetClient(WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); err != nil {
 		return false, err
 	}
 
@@ -121,7 +121,7 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 		profile *ldapUserProfile
 	)
 
-	if client, err = p.factory.GetClient(); err != nil {
+	if client, err = p.factory.GetClient(WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); err != nil {
 		return nil, err
 	}
 
@@ -158,7 +158,7 @@ func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDet
 		profile *ldapUserProfileExtended
 	)
 
-	if client, err = p.factory.GetClient(); err != nil {
+	if client, err = p.factory.GetClient(WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); err != nil {
 		return nil, err
 	}
 
@@ -247,7 +247,7 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 		profile *ldapUserProfile
 	)
 
-	if client, err = p.factory.GetClient(); err != nil {
+	if client, err = p.factory.GetClient(WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); err != nil {
 		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
@@ -275,7 +275,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 		profile *ldapUserProfile
 	)
 
-	if client, err = p.factory.GetClient(); err != nil {
+	if client, err = p.factory.GetClient(WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); err != nil {
 		return fmt.Errorf("unable to update password for user '%s'. Cause: %w", username, err)
 	}
 
@@ -403,7 +403,7 @@ func (p *LDAPUserProvider) searchReferral(referral string, request *ldap.SearchR
 		result *ldap.SearchResult
 	)
 
-	if client, err = p.factory.GetClient(WithAddress(referral)); err != nil {
+	if client, err = p.factory.GetClient(WithAddress(referral), WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); err != nil {
 		return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %w", referral, err)
 	}
 
@@ -808,7 +808,7 @@ func (p *LDAPUserProvider) modify(client LDAPExtendedClient, modifyRequest *ldap
 		clientRef LDAPExtendedClient
 		errRef    error
 	)
-	if clientRef, errRef = p.factory.GetClient(WithAddress(result.Referral)); errRef != nil {
+	if clientRef, errRef = p.factory.GetClient(WithAddress(result.Referral), WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); errRef != nil {
 		return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", result.Referral, errRef, err)
 	}
 
@@ -854,7 +854,7 @@ func (p *LDAPUserProvider) pwdModify(client LDAPExtendedClient, pwdModifyRequest
 		clientRef LDAPExtendedClient
 		errRef    error
 	)
-	if clientRef, errRef = p.factory.GetClient(WithAddress(result.Referral)); errRef != nil {
+	if clientRef, errRef = p.factory.GetClient(WithAddress(result.Referral), WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); errRef != nil {
 		return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", result.Referral, errRef, err)
 	}
 

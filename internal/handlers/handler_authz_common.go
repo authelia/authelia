@@ -7,11 +7,10 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func handleAuthzPortalURLLegacy(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error) {
+func handleAuthzPortalURLLegacy(ctx AuthzContext) (portalURL *url.URL, err error) {
 	if portalURL, err = handleAuthzPortalURLFromQueryLegacy(ctx); err != nil || portalURL != nil {
 		return portalURL, err
 	}
@@ -19,7 +18,7 @@ func handleAuthzPortalURLLegacy(ctx *middlewares.AutheliaCtx) (portalURL *url.UR
 	return handleAuthzPortalURLFromHeader(ctx)
 }
 
-func handleAuthzPortalURLFromHeader(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error) {
+func handleAuthzPortalURLFromHeader(ctx AuthzContext) (portalURL *url.URL, err error) {
 	rawURL := ctx.XAutheliaURL()
 	if rawURL == nil {
 		return nil, nil
@@ -32,7 +31,7 @@ func handleAuthzPortalURLFromHeader(ctx *middlewares.AutheliaCtx) (portalURL *ur
 	return portalURL, nil
 }
 
-func handleAuthzPortalURLFromQuery(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error) {
+func handleAuthzPortalURLFromQuery(ctx AuthzContext) (portalURL *url.URL, err error) {
 	rawURL := ctx.QueryArgAutheliaURL()
 	if rawURL == nil {
 		return nil, nil
@@ -45,8 +44,8 @@ func handleAuthzPortalURLFromQuery(ctx *middlewares.AutheliaCtx) (portalURL *url
 	return portalURL, nil
 }
 
-func handleAuthzPortalURLFromQueryLegacy(ctx *middlewares.AutheliaCtx) (portalURL *url.URL, err error) {
-	rawURL := ctx.QueryArgs().PeekBytes(qryArgRD)
+func handleAuthzPortalURLFromQueryLegacy(ctx AuthzContext) (portalURL *url.URL, err error) {
+	rawURL := ctx.GetRequestQueryArgValue(qryArgRD)
 	if rawURL == nil {
 		return nil, nil
 	}
@@ -58,29 +57,29 @@ func handleAuthzPortalURLFromQueryLegacy(ctx *middlewares.AutheliaCtx) (portalUR
 	return portalURL, nil
 }
 
-func handleAuthzAuthorizedStandard(ctx *middlewares.AutheliaCtx, authn *Authn) {
+func handleAuthzAuthorizedStandard(ctx AuthzContext, authn *Authn) {
 	ctx.ReplyStatusCode(fasthttp.StatusOK)
 
 	if authn.Details.Username != "" {
-		ctx.Response.Header.SetBytesK(headerRemoteUser, authn.Details.Username)
-		ctx.Response.Header.SetBytesK(headerRemoteGroups, strings.Join(authn.Details.Groups, ","))
-		ctx.Response.Header.SetBytesK(headerRemoteName, authn.Details.DisplayName)
+		ctx.SetResponseHeaderValue(headerRemoteUser, authn.Details.Username)
+		ctx.SetResponseHeaderValue(headerRemoteGroups, strings.Join(authn.Details.Groups, ","))
+		ctx.SetResponseHeaderValue(headerRemoteName, authn.Details.DisplayName)
 
 		switch len(authn.Details.Emails) {
 		case 0:
-			ctx.Response.Header.SetBytesK(headerRemoteEmail, "")
+			ctx.SetResponseHeaderValue(headerRemoteEmail, "")
 		default:
-			ctx.Response.Header.SetBytesK(headerRemoteEmail, authn.Details.Emails[0])
+			ctx.SetResponseHeaderValue(headerRemoteEmail, authn.Details.Emails[0])
 		}
 	}
 }
 
-func handleAuthzUnauthorizedAuthorizationBasic(ctx *middlewares.AutheliaCtx, authn *Authn) {
-	ctx.Logger.Infof("Access to '%s' is not authorized to user '%s', sending 401 response with WWW-Authenticate header requesting Basic scheme", authn.Object.URL.String(), authn.Username)
+func handleAuthzUnauthorizedAuthorizationBasic(ctx AuthzContext, authn *Authn) {
+	ctx.GetLogger().Infof("Access to '%s' is not authorized to user '%s', sending 401 response with WWW-Authenticate header requesting Basic scheme", authn.Object.URL.String(), authn.Username)
 
 	ctx.ReplyUnauthorized()
 
-	ctx.Response.Header.SetBytesKV(headerWWWAuthenticate, headerValueAuthenticateBasic)
+	ctx.SetResponseHeaderValueBytes(headerWWWAuthenticate, headerValueAuthenticateBasic)
 }
 
 var protoHostSeparator = []byte("://")

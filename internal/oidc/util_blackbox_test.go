@@ -856,8 +856,7 @@ func TestIsAccessToken(t *testing.T) {
 	}
 }
 
-type TestGetLangRequester struct {
-}
+type TestGetLangRequester struct{}
 
 func (t TestGetLangRequester) SetRequestedAt(rat time.Time) {}
 
@@ -900,6 +899,18 @@ func (t TestGetLangRequester) GetGrantedAudience() (grantedAudience oauthelia2.A
 func (t TestGetLangRequester) GrantScope(scope string) {}
 
 func (t TestGetLangRequester) GrantAudience(audience string) {}
+
+func (t TestGetLangRequester) GetRequestedResource() (resource oauthelia2.Arguments) {
+	return nil
+}
+
+func (t TestGetLangRequester) SetRequestedResource(resource oauthelia2.Arguments) {}
+
+func (t TestGetLangRequester) GetGrantedResource() (grantedResource oauthelia2.Arguments) {
+	return nil
+}
+
+func (t TestGetLangRequester) GrantResource(resource string) {}
 
 func (t TestGetLangRequester) GetSession() (session oauthelia2.Session) {
 	return nil

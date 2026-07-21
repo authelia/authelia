@@ -55,7 +55,9 @@ func NewRegulator(config *schema.Configuration, storage storage.RegulatorProvide
 
 // NewMetrics creates a new metrics.Provider.
 func NewMetrics() metrics.Provider {
-	return metrics.NewPrometheus()
+	provider, _ := metrics.NewPrometheus()
+
+	return provider
 }
 
 // NewNTP creates a new *ntp.Provider given a valid configuration.

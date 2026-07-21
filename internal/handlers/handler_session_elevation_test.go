@@ -607,7 +607,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 					ID:        1,
 					PublicID:  uuid.Must(uuid.Parse("01020304-0506-4722-8910-111213141500")),
 					IssuedAt:  mock.Clock.Now(),
-					IssuedIP:  model.NewIP(net.ParseIP("0.0.0.0")),
+					IssuedIP:  model.NewIP(mock.Ctx.RemoteIP()),
 					ExpiresAt: mock.Clock.Now().Add(time.Minute),
 					Username:  testUsername,
 					Intent:    model.OTCIntentUserSessionElevation,
@@ -617,7 +617,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -659,7 +659,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -723,7 +723,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
 				)
 			},
@@ -807,7 +807,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
 					mock.StorageMock.
 						EXPECT().
@@ -852,7 +852,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
 				)
 			},
@@ -893,7 +893,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
 				)
 			},
@@ -933,7 +933,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
 				)
 			},
@@ -973,7 +973,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(code, nil),
 				)
 			},
@@ -1002,7 +1002,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(nil, nil),
 				)
 			},
@@ -1031,7 +1031,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.
 						EXPECT().
-						LoadOneTimeCode(mock.Ctx, testUsername, model.OTCIntentUserSessionElevation, "ABC123ABC1").
+						LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
 						Return(nil, fmt.Errorf("not found")),
 				)
 			},

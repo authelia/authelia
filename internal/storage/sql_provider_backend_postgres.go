@@ -24,9 +24,15 @@ type PostgreSQLProvider struct {
 }
 
 // NewPostgreSQLProvider a PostgreSQL provider.
-func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *PostgreSQLProvider) {
+func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *PostgreSQLProvider, err error) {
+	var p SQLProvider
+
+	if p, err = NewSQLProvider(config, providerPostgres, "pgx", dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)); err != nil {
+		return nil, err
+	}
+
 	provider = &PostgreSQLProvider{
-		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)),
+		SQLProvider: p,
 	}
 
 	// All providers have differing SELECT existing table statements.
@@ -122,7 +128,8 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOAuth2ConsentPreConfigurations = provider.db.Rebind(provider.sqlSelectOAuth2ConsentPreConfigurations)
 
 	provider.sqlInsertOAuth2ConsentSession = provider.db.Rebind(provider.sqlInsertOAuth2ConsentSession)
-	provider.sqlUpdateOAuth2ConsentSessionResponse = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionResponse)
+	provider.sqlUpdateOAuth2ConsentSessionResponseByID = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionResponseByID)
+	provider.sqlUpdateOAuth2ConsentSessionResponseByChallengeID = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionResponseByChallengeID)
 	provider.sqlUpdateOAuth2ConsentSessionGranted = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionGranted)
 	provider.sqlSelectOAuth2ConsentSessionByChallengeID = provider.db.Rebind(provider.sqlSelectOAuth2ConsentSessionByChallengeID)
 
@@ -177,7 +184,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 
-	return provider
+	return provider, nil
 }
 
 func dsnPostgreSQL(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (dsn string) {

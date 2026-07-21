@@ -25,12 +25,32 @@ func TestAccessControlDomain_IsMatch(t *testing.T) {
 			true,
 		},
 		{
+			"ShouldMatchDomainSuffixUserWildcardWithMixedCaseDomain",
+			&AccessControlDomainMatcher{
+				Name:         "-user.domain.com",
+				UserWildcard: true,
+			},
+			"A-User.Domain.COM",
+			Subject{},
+			true,
+		},
+		{
 			"ShouldMatchDomainSuffixGroupWildcard",
 			&AccessControlDomainMatcher{
 				Name:          "-group.domain.com",
 				GroupWildcard: true,
 			},
 			"a-group.domain.com",
+			Subject{},
+			true,
+		},
+		{
+			"ShouldMatchDomainSuffixGroupWildcardWithMixedCaseDomain",
+			&AccessControlDomainMatcher{
+				Name:          "-group.domain.com",
+				GroupWildcard: true,
+			},
+			"A-Group.Domain.COM",
 			Subject{},
 			true,
 		},
@@ -45,6 +65,26 @@ func TestAccessControlDomain_IsMatch(t *testing.T) {
 			false,
 		},
 		{
+			"ShouldNotMatchExactDomainWithUserWildcardWithMixedCaseDomain",
+			&AccessControlDomainMatcher{
+				Name:         "-user.domain.com",
+				UserWildcard: true,
+			},
+			"-User.Domain.COM",
+			Subject{},
+			false,
+		},
+		{
+			"ShouldNotMatchExactDomainWithGroupWildcardWithMixedCaseDomain",
+			&AccessControlDomainMatcher{
+				Name:          "-group.domain.com",
+				GroupWildcard: true,
+			},
+			"-Group.Domain.COM",
+			Subject{},
+			false,
+		},
+		{
 			"ShouldMatchWildcard",
 			&AccessControlDomainMatcher{
 				Name:     "user.domain.com",
@@ -53,6 +93,26 @@ func TestAccessControlDomain_IsMatch(t *testing.T) {
 			"abc.user.domain.com",
 			Subject{},
 			true,
+		},
+		{
+			"ShouldMatchWildcardWithMixedCaseDomain",
+			&AccessControlDomainMatcher{
+				Name:     "user.domain.com",
+				Wildcard: true,
+			},
+			"ABC.User.Domain.COM",
+			Subject{},
+			true,
+		},
+		{
+			"ShouldNotMatchWildcardWithDifferentSuffix",
+			&AccessControlDomainMatcher{
+				Name:     "user.domain.com",
+				Wildcard: true,
+			},
+			"abc.user.example.com",
+			Subject{},
+			false,
 		},
 	}
 

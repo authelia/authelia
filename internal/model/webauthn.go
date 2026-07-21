@@ -103,22 +103,23 @@ func NewWebAuthnCredential(ctx Context, rpid, username, description string, cred
 	}
 
 	c = WebAuthnCredential{
-		RPID:            rpid,
-		Username:        username,
-		CreatedAt:       ctx.GetClock().Now(),
-		Description:     description,
-		KID:             NewBase64(credential.ID),
-		AttestationType: credential.AttestationType,
-		Attachment:      string(credential.Authenticator.Attachment),
-		Transport:       strings.Join(transport, ","),
-		SignCount:       credential.Authenticator.SignCount,
-		CloneWarning:    credential.Authenticator.CloneWarning,
-		Discoverable:    false,
-		Present:         credential.Flags.UserPresent,
-		Verified:        credential.Flags.UserVerified,
-		BackupEligible:  credential.Flags.BackupEligible,
-		BackupState:     credential.Flags.BackupState,
-		PublicKey:       credential.PublicKey,
+		RPID:              rpid,
+		Username:          username,
+		CreatedAt:         ctx.GetClock().Now(),
+		Description:       description,
+		KID:               NewBase64(credential.ID),
+		AttestationType:   credential.AttestationType,
+		AttestationFormat: credential.AttestationFormat,
+		Attachment:        string(credential.Authenticator.Attachment),
+		Transport:         strings.Join(transport, ","),
+		SignCount:         credential.Authenticator.SignCount,
+		CloneWarning:      credential.Authenticator.CloneWarning,
+		Discoverable:      false,
+		Present:           credential.Flags.UserPresent,
+		Verified:          credential.Flags.UserVerified,
+		BackupEligible:    credential.Flags.BackupEligible,
+		BackupState:       credential.Flags.BackupState,
+		PublicKey:         credential.PublicKey,
 	}
 
 	c.Attestation, _ = json.Marshal(credential.Attestation)
@@ -133,35 +134,38 @@ func NewWebAuthnCredential(ctx Context, rpid, username, description string, cred
 
 // WebAuthnCredential represents a WebAuthn Credential in the database storage.
 type WebAuthnCredential struct {
-	ID              int           `db:"id"`
-	CreatedAt       time.Time     `db:"created_at"`
-	LastUsedAt      sql.NullTime  `db:"last_used_at"`
-	RPID            string        `db:"rpid"`
-	Username        string        `db:"username"`
-	Description     string        `db:"description"`
-	KID             Base64        `db:"kid"`
-	AAGUID          uuid.NullUUID `db:"aaguid"`
-	AttestationType string        `db:"attestation_type"`
-	Attachment      string        `db:"attachment"`
-	Transport       string        `db:"transport"`
-	SignCount       uint32        `db:"sign_count"`
-	CloneWarning    bool          `db:"clone_warning"`
-	Legacy          bool          `db:"legacy"`
-	Discoverable    bool          `db:"discoverable"`
-	Present         bool          `db:"present"`
-	Verified        bool          `db:"verified"`
-	BackupEligible  bool          `db:"backup_eligible"`
-	BackupState     bool          `db:"backup_state"`
-	PublicKey       []byte        `db:"public_key"`
-	Attestation     []byte        `db:"attestation"`
+	ID                int           `db:"id"`
+	CreatedAt         time.Time     `db:"created_at"`
+	LastUsedAt        sql.NullTime  `db:"last_used_at"`
+	RPID              string        `db:"rpid"`
+	Username          string        `db:"username"`
+	Description       string        `db:"description"`
+	KID               Base64        `db:"kid"`
+	AAGUID            uuid.NullUUID `db:"aaguid"`
+	AttestationType   string        `db:"attestation_type"`
+	AttestationFormat string        `db:"attestation_format"`
+	Attachment        string        `db:"attachment"`
+	Transport         string        `db:"transport"`
+	SignCount         uint32        `db:"sign_count"`
+	CloneWarning      bool          `db:"clone_warning"`
+	Legacy            bool          `db:"legacy"`
+	Discoverable      bool          `db:"discoverable"`
+	Present           bool          `db:"present"`
+	Verified          bool          `db:"verified"`
+	BackupEligible    bool          `db:"backup_eligible"`
+	BackupState       bool          `db:"backup_state"`
+	PublicKey         []byte        `db:"public_key"`
+	Attestation       []byte        `db:"attestation"`
 }
 
 // UpdateSignInInfo adjusts the values of the WebAuthnCredential after a sign in.
-func (c *WebAuthnCredential) UpdateSignInInfo(config *webauthn.Config, now time.Time, authenticator webauthn.Authenticator) {
+func (c *WebAuthnCredential) UpdateSignInInfo(config *webauthn.Config, now time.Time, credential *webauthn.Credential) {
 	c.LastUsedAt = sql.NullTime{Time: now, Valid: true}
-	c.SignCount, c.CloneWarning = authenticator.SignCount, authenticator.CloneWarning
+	c.SignCount, c.CloneWarning = credential.Authenticator.SignCount, credential.Authenticator.CloneWarning
 
-	if c.RPID != "" {
+	c.UpdateAttestationType(credential)
+
+	if c.RPID != "" || config == nil {
 		return
 	}
 
@@ -171,6 +175,15 @@ func (c *WebAuthnCredential) UpdateSignInInfo(config *webauthn.Config, now time.
 	default:
 		c.RPID = config.RPID
 	}
+}
+
+// UpdateAttestationType adjusts the AttestationType value to handle legacy configurations.
+func (c *WebAuthnCredential) UpdateAttestationType(credential *webauthn.Credential) {
+	if c.AttestationType != "" {
+		return
+	}
+
+	c.AttestationType = credential.AttestationType
 }
 
 // DataValueLastUsedAt provides LastUsedAt as a *time.Time instead of sql.NullTime.
@@ -197,9 +210,10 @@ func (c *WebAuthnCredential) DataValueAAGUID() *string {
 
 func (c *WebAuthnCredential) ToCredential() (credential *webauthn.Credential, err error) {
 	credential = &webauthn.Credential{
-		ID:              c.KID.Bytes(),
-		PublicKey:       c.PublicKey,
-		AttestationType: c.AttestationType,
+		ID:                c.KID.Bytes(),
+		PublicKey:         c.PublicKey,
+		AttestationType:   c.AttestationType,
+		AttestationFormat: c.AttestationFormat,
 		Flags: webauthn.CredentialFlags{
 			UserPresent:    c.Present,
 			UserVerified:   c.Verified,
@@ -240,26 +254,27 @@ func (c *WebAuthnCredential) ToCredential() (credential *webauthn.Credential, er
 
 func (c *WebAuthnCredential) ToData() WebAuthnCredentialData {
 	o := WebAuthnCredentialData{
-		ID:              c.ID,
-		CreatedAt:       c.CreatedAt,
-		LastUsedAt:      c.DataValueLastUsedAt(),
-		RPID:            c.RPID,
-		Username:        c.Username,
-		Description:     c.Description,
-		KID:             c.KID.String(),
-		AAGUID:          c.DataValueAAGUID(),
-		AttestationType: c.AttestationType,
-		Attachment:      c.Attachment,
-		SignCount:       c.SignCount,
-		CloneWarning:    c.CloneWarning,
-		Legacy:          c.Legacy,
-		Discoverable:    c.Discoverable,
-		Present:         c.Present,
-		Verified:        c.Verified,
-		BackupEligible:  c.BackupEligible,
-		BackupState:     c.BackupState,
-		PublicKey:       base64.StdEncoding.EncodeToString(c.PublicKey),
-		Attestation:     base64.StdEncoding.EncodeToString(c.Attestation),
+		ID:                c.ID,
+		CreatedAt:         c.CreatedAt,
+		LastUsedAt:        c.DataValueLastUsedAt(),
+		RPID:              c.RPID,
+		Username:          c.Username,
+		Description:       c.Description,
+		KID:               c.KID.String(),
+		AAGUID:            c.DataValueAAGUID(),
+		AttestationType:   c.AttestationType,
+		AttestationFormat: c.AttestationFormat,
+		Attachment:        c.Attachment,
+		SignCount:         c.SignCount,
+		CloneWarning:      c.CloneWarning,
+		Legacy:            c.Legacy,
+		Discoverable:      c.Discoverable,
+		Present:           c.Present,
+		Verified:          c.Verified,
+		BackupEligible:    c.BackupEligible,
+		BackupState:       c.BackupState,
+		PublicKey:         base64.StdEncoding.EncodeToString(c.PublicKey),
+		Attestation:       base64.StdEncoding.EncodeToString(c.Attestation),
 	}
 
 	if c.Transport != "" {
@@ -320,6 +335,7 @@ func (c *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
 	c.Username = o.Username
 	c.Description = o.Description
 	c.AttestationType = o.AttestationType
+	c.AttestationFormat = o.AttestationFormat
 	c.Attachment = o.Attachment
 	c.Transport = strings.Join(o.Transports, ",")
 	c.SignCount = o.SignCount
@@ -339,46 +355,48 @@ func (c *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
 
 // WebAuthnCredentialData represents a WebAuthn Credential in a way which can be serialized.
 type WebAuthnCredentialData struct {
-	ID              int        `json:"id" yaml:"-"`
-	CreatedAt       time.Time  `yaml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time this credential was created."`
-	LastUsedAt      *time.Time `yaml:"last_used_at,omitempty" json:"last_used_at,omitempty" jsonschema:"title=Last Used At" jsonschema_description:"The last time this credential was used."`
-	RPID            string     `yaml:"rpid" json:"rpid" jsonschema:"title=Relying Party ID" jsonschema_description:"The Relying Party ID used to register this credential."`
-	Username        string     `yaml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this credential belongs to."`
-	Description     string     `yaml:"description" json:"description" jsonschema:"title=Description" jsonschema_description:"The user description of this credential."`
-	KID             string     `yaml:"kid" json:"kid" jsonschema:"title=Public Key ID" jsonschema_description:"The Public Key ID of this credential."`
-	AAGUID          *string    `yaml:"aaguid,omitempty" json:"aaguid,omitempty" jsonschema:"title=AAGUID" jsonschema_description:"The Authenticator Attestation Global Unique Identifier of this credential."`
-	AttestationType string     `yaml:"attestation_type" json:"attestation_type" jsonschema:"title=Attestation Type" jsonschema_description:"The attestation format type this credential uses."`
-	Attachment      string     `yaml:"attachment" json:"attachment" jsonschema:"title=Attachment" jsonschema_description:"The last recorded credential attachment type."`
-	Transports      []string   `yaml:"transports" json:"transports" jsonschema:"title=Transports" jsonschema_description:"The last recorded credential transports."`
-	SignCount       uint32     `yaml:"sign_count" json:"sign_count" jsonschema:"title=Sign Count" jsonschema_description:"The last recorded credential sign count."`
-	CloneWarning    bool       `yaml:"clone_warning" json:"clone_warning" jsonschema:"title=Clone Warning" jsonschema_description:"The clone warning status of the credential."`
-	Legacy          bool       `yaml:"legacy" json:"legacy" jsonschema:"title=Legacy" jsonschema_description:"The legacy value indicates this credential may need to be registered again."`
-	Discoverable    bool       `yaml:"discoverable" json:"discoverable" jsonschema:"title=Discoverable" jsonschema_description:"The discoverable status of this credential."`
-	Present         bool       `yaml:"present" json:"present" jsonschema:"title=Present" jsonschema_description:"The user presence status of this credential."`
-	Verified        bool       `yaml:"verified" json:"verified" jsonschema:"title=Verified" jsonschema_description:"The verified status of this credential."`
-	BackupEligible  bool       `yaml:"backup_eligible" json:"backup_eligible" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
-	BackupState     bool       `yaml:"backup_state" json:"backup_state" jsonschema:"title=Backup State" jsonschema_description:"The backup state of this credential."`
-	PublicKey       string     `yaml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The credential public key."`
-	Attestation     string     `yaml:"attestation" json:"attestation,omitempty" jsonschema:"title=Attestation" jsonschema_description:"The credential attestation information for auditing and validation."`
+	ID                int        `json:"id" yaml:"-"`
+	CreatedAt         time.Time  `yaml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time this credential was created."`
+	LastUsedAt        *time.Time `yaml:"last_used_at,omitempty" json:"last_used_at,omitempty" jsonschema:"title=Last Used At" jsonschema_description:"The last time this credential was used."`
+	RPID              string     `yaml:"rpid" json:"rpid" jsonschema:"title=Relying Party ID" jsonschema_description:"The Relying Party ID used to register this credential."`
+	Username          string     `yaml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this credential belongs to."`
+	Description       string     `yaml:"description" json:"description" jsonschema:"title=Description" jsonschema_description:"The user description of this credential."`
+	KID               string     `yaml:"kid" json:"kid" jsonschema:"title=Public Key ID" jsonschema_description:"The Public Key ID of this credential."`
+	AAGUID            *string    `yaml:"aaguid,omitempty" json:"aaguid,omitempty" jsonschema:"title=AAGUID" jsonschema_description:"The Authenticator Attestation Global Unique Identifier of this credential."`
+	AttestationType   string     `yaml:"attestation_type" json:"attestation_type" jsonschema:"title=Attestation Type" jsonschema_description:"The attestation type this credential uses."`
+	AttestationFormat string     `yaml:"attestation_format" json:"attestation_format" jsonschema:"title=Attestation Format" jsonschema_description:"The attestation format this credential uses."`
+	Attachment        string     `yaml:"attachment" json:"attachment" jsonschema:"title=Attachment" jsonschema_description:"The last recorded credential attachment type."`
+	Transports        []string   `yaml:"transports" json:"transports" jsonschema:"title=Transports" jsonschema_description:"The last recorded credential transports."`
+	SignCount         uint32     `yaml:"sign_count" json:"sign_count" jsonschema:"title=Sign Count" jsonschema_description:"The last recorded credential sign count."`
+	CloneWarning      bool       `yaml:"clone_warning" json:"clone_warning" jsonschema:"title=Clone Warning" jsonschema_description:"The clone warning status of the credential."`
+	Legacy            bool       `yaml:"legacy" json:"legacy" jsonschema:"title=Legacy" jsonschema_description:"The legacy value indicates this credential may need to be registered again."`
+	Discoverable      bool       `yaml:"discoverable" json:"discoverable" jsonschema:"title=Discoverable" jsonschema_description:"The discoverable status of this credential."`
+	Present           bool       `yaml:"present" json:"present" jsonschema:"title=Present" jsonschema_description:"The user presence status of this credential."`
+	Verified          bool       `yaml:"verified" json:"verified" jsonschema:"title=Verified" jsonschema_description:"The verified status of this credential."`
+	BackupEligible    bool       `yaml:"backup_eligible" json:"backup_eligible" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
+	BackupState       bool       `yaml:"backup_state" json:"backup_state" jsonschema:"title=Backup State" jsonschema_description:"The backup state of this credential."`
+	PublicKey         string     `yaml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The credential public key."`
+	Attestation       string     `yaml:"attestation" json:"attestation,omitempty" jsonschema:"title=Attestation" jsonschema_description:"The credential attestation information for auditing and validation."`
 }
 
 func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential, err error) {
 	credential = &WebAuthnCredential{
-		CreatedAt:       c.CreatedAt,
-		RPID:            c.RPID,
-		Username:        c.Username,
-		Description:     c.Description,
-		AttestationType: c.AttestationType,
-		Attachment:      c.Attachment,
-		Transport:       strings.Join(c.Transports, ","),
-		SignCount:       c.SignCount,
-		CloneWarning:    c.CloneWarning,
-		Legacy:          c.Legacy,
-		Discoverable:    c.Discoverable,
-		Present:         c.Present,
-		Verified:        c.Verified,
-		BackupEligible:  c.BackupEligible,
-		BackupState:     c.BackupState,
+		CreatedAt:         c.CreatedAt,
+		RPID:              c.RPID,
+		Username:          c.Username,
+		Description:       c.Description,
+		AttestationType:   c.AttestationType,
+		AttestationFormat: c.AttestationFormat,
+		Attachment:        c.Attachment,
+		Transport:         strings.Join(c.Transports, ","),
+		SignCount:         c.SignCount,
+		CloneWarning:      c.CloneWarning,
+		Legacy:            c.Legacy,
+		Discoverable:      c.Discoverable,
+		Present:           c.Present,
+		Verified:          c.Verified,
+		BackupEligible:    c.BackupEligible,
+		BackupState:       c.BackupState,
 	}
 
 	if len(c.PublicKey) != 0 {

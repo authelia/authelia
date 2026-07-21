@@ -21,7 +21,8 @@ vi.mock("@models/WebAuthn", () => ({
 
 const credential = {
     aaguid: "test-aaguid",
-    attestation_type: "packed",
+    attestation_format: "packed",
+    attestation_type: "basic_full",
     backup_eligible: true,
     backup_state: true,
     clone_warning: false,

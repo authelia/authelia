@@ -174,7 +174,7 @@ type Provider interface {
 	RevokeOneTimeCode(ctx context.Context, id uuid.UUID, ip model.IP) (err error)
 
 	// LoadOneTimeCode loads a one-time code from the storage provider given a username, intent, and code.
-	LoadOneTimeCode(ctx context.Context, username, intent, raw string) (code *model.OneTimeCode, err error)
+	LoadOneTimeCode(ctx context.Context, username string, ip model.IP, intent, raw string) (code *model.OneTimeCode, err error)
 
 	// LoadOneTimeCodeBySignature loads a one-time code from the storage provider given the signature.
 	// This method should NOT be used to validate a One-Time Code, LoadOneTimeCode should be used instead.
@@ -268,17 +268,17 @@ type Provider interface {
 		Implementation for OAuth2.0 PAR Contexts.
 	*/
 
-	// SaveOAuth2PARContext save an OAuth2.0 PAR context to the storage provider.
-	SaveOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) (err error)
+	// SaveOAuth2PushedAuthorizationSession save an OAuth2.0 PAR session to the storage provider.
+	SaveOAuth2PushedAuthorizationSession(ctx context.Context, par model.OAuth2PushedAuthorizationSession) (err error)
 
-	// LoadOAuth2PARContext loads an OAuth2.0 PAR context from the storage provider.
-	LoadOAuth2PARContext(ctx context.Context, signature string) (par *model.OAuth2PARContext, err error)
+	// LoadOAuth2PushedAuthorizationSession loads an OAuth2.0 PAR session from the storage provider.
+	LoadOAuth2PushedAuthorizationSession(ctx context.Context, signature string) (par *model.OAuth2PushedAuthorizationSession, err error)
 
-	// RevokeOAuth2PARContext marks an OAuth2.0 PAR context as revoked in the storage provider.
-	RevokeOAuth2PARContext(ctx context.Context, signature string) (err error)
+	// RevokeOAuth2PushedAuthorizationSession marks an OAuth2.0 PAR session as revoked in the storage provider.
+	RevokeOAuth2PushedAuthorizationSession(ctx context.Context, signature string) (err error)
 
-	// UpdateOAuth2PARContext updates an existing OAuth2.0 PAR context in the storage provider.
-	UpdateOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) (err error)
+	// UpdateOAuth2PushedAuthorizationSession updates an existing OAuth2.0 PAR session in the storage provider.
+	UpdateOAuth2PushedAuthorizationSession(ctx context.Context, par model.OAuth2PushedAuthorizationSession) (err error)
 
 	/*
 		Implementation for OAuth2.0 Blacklisted JTI's.

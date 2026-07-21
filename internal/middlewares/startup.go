@@ -30,6 +30,9 @@ func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 	provider, disable = ctx.GetProviders().StorageProvider, false
 	doStartupCheck(ctx, ProviderNameStorage, provider, nil, disable, log, e.errors)
 
+	provider, disable = ctx.GetProviders().SessionProvider, false
+	doStartupCheck(ctx, ProviderNameSession, provider, nil, disable, log, e.errors)
+
 	provider, disable = ctx.GetProviders().UserProvider, false
 	doStartupCheck(ctx, ProviderNameUser, provider, nil, disable, log, e.errors)
 

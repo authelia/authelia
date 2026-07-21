@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.19](https://github.com/authelia/authelia/releases/tag/v4.39.19)
+  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
 - [Gravitee]
   - [v4.7](https://documentation.gravitee.io/apim/release-information/release-notes/apim-4.7)
 

@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.19](https://github.com/authelia/authelia/releases/tag/v4.39.19)
+  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
 - [Proxmox Virtual Environment]
   - [v8.4.1](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.4)
 - [Proxmox Backup Server]

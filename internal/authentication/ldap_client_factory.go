@@ -181,7 +181,7 @@ func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
 
 	f.log.Trace("Dialing new pooled client")
 
-	if client, err = ldapDialBind(f.log, f.config, f.dialer, f.tls, f.opts); err != nil {
+	if client, err = ldapDialBind(f.log, f.config, f.dialer, f.tls, f.opts, WithPermitUnauthenticatedBind(f.config.PermitUnauthenticatedBind)); err != nil {
 		return nil, fmt.Errorf("error occurred establishing new client for the pool: %w", err)
 	}
 
@@ -363,9 +363,8 @@ func ldapDialBind(log *logrus.Entry, config *schema.AuthenticationBackendLDAP, d
 	}
 
 	// TODO: Add additional bind logic here, such as MD5Bind, NTLMBind, NTLMUnauthenticatedBind, etc.
-	//nolint:staticcheck
 	switch {
-	case options.Password == "":
+	case options.Password == "" && options.PermitUnauthenticatedBind:
 		err = client.UnauthenticatedBind(options.Username)
 	default:
 		err = client.Bind(options.Username, options.Password)

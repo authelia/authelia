@@ -913,7 +913,7 @@ func TestShouldHandleOIDCClaims(t *testing.T) {
 	require.IsType(t, &ecdsa.PrivateKey{}, config.IdentityProviders.OIDC.JSONWebKeys[1].Key)
 	assert.Equal(t, "sig", config.IdentityProviders.OIDC.JSONWebKeys[1].Use)
 	assert.Equal(t, "ES512", config.IdentityProviders.OIDC.JSONWebKeys[1].Algorithm)
-	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).D)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).D) //nolint:staticcheck
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Y)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).X)
 	assert.Equal(t, elliptic.P521(), config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Curve)
@@ -967,7 +967,7 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 	require.IsType(t, &ecdsa.PrivateKey{}, config.IdentityProviders.OIDC.JSONWebKeys[1].Key)
 	assert.Equal(t, "sig", config.IdentityProviders.OIDC.JSONWebKeys[1].Use)
 	assert.Equal(t, "ES512", config.IdentityProviders.OIDC.JSONWebKeys[1].Algorithm)
-	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).D)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).D) //nolint:staticcheck
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Y)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).X)
 	assert.Equal(t, elliptic.P521(), config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Curve)

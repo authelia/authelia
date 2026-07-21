@@ -161,7 +161,7 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 
 				mock.StorageMock.EXPECT().LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).Return([]model.WebAuthnCredential{{ID: 1}}, nil)
 			},
-			"{\"status\":\"OK\",\"data\":[{\"id\":1,\"created_at\":\"0001-01-01T00:00:00Z\",\"rpid\":\"\",\"username\":\"\",\"description\":\"\",\"kid\":\"\",\"attestation_type\":\"\",\"attachment\":\"\",\"transports\":null,\"sign_count\":0,\"clone_warning\":false,\"legacy\":false,\"discoverable\":false,\"present\":false,\"verified\":false,\"backup_eligible\":false,\"backup_state\":false,\"public_key\":\"\"}]}",
+			"{\"status\":\"OK\",\"data\":[{\"id\":1,\"created_at\":\"0001-01-01T00:00:00Z\",\"rpid\":\"\",\"username\":\"\",\"description\":\"\",\"kid\":\"\",\"attestation_type\":\"\",\"attestation_format\":\"\",\"attachment\":\"\",\"transports\":null,\"sign_count\":0,\"clone_warning\":false,\"legacy\":false,\"discoverable\":false,\"present\":false,\"verified\":false,\"backup_eligible\":false,\"backup_state\":false,\"public_key\":\"\"}]}",
 			fasthttp.StatusOK,
 			nil,
 		},

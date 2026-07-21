@@ -8,4 +8,4 @@ if [[ ! "${BUILDKITE_COMMAND}" =~ buildkite-agent\ pipeline\ upload ]] && \
   docker images --filter "label=org.authelia.image.prune.protection=true" -q | xargs -r -I{} docker run -d --name "protect_{}" {} sleep infinity; docker system prune -af --volumes; docker ps -aq --filter "name=protect_" | xargs -r docker rm -f
 fi
 
-sudo find /tmp/ ! -wholename "/tmp/" ! -wholename "/tmp/buildkite-agent-hook-wrapper*" ! -name "buildkite*" ! -name "job-env-*" -type d,f -exec rm -rf {} +
+sudo find /tmp/ -mindepth 1 -maxdepth 1 ! -name "buildkite-agent-hook-wrapper*" ! -name "buildkite*" ! -name "job-env-*" -exec rm -rf {} +

@@ -241,7 +241,7 @@ func TestHandlerMainWithAuthzEndpoints(t *testing.T) {
 			providers.Random = random.NewMathematical()
 			providers.Templates = provider
 
-			handler, err := handlerMain(config, providers)
+			handler, err := handlerMain(t.Context(), config, providers)
 
 			require.NoError(t, err)
 			assert.NotNil(t, handler)
@@ -356,7 +356,7 @@ func TestHandlerMainWithOptionalFeatures(t *testing.T) {
 				providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, nil, provider)
 			}
 
-			handler, err := handlerMain(config, providers)
+			handler, err := handlerMain(t.Context(), config, providers)
 
 			require.NoError(t, err)
 			assert.NotNil(t, handler)

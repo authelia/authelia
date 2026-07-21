@@ -36,8 +36,10 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 
 	log := ctx.GetLogger()
 
+	rctx := &runContext{base: ctx, Context: cctx}
+
 	for _, provisioner := range provisioners {
-		if service, err := provisioner(ctx); err != nil {
+		if service, err := provisioner(rctx); err != nil {
 			return fmt.Errorf("error occurred provisioning services: %w", err)
 		} else if service != nil {
 			services = append(services, service)

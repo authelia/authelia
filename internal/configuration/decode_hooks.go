@@ -69,7 +69,7 @@ func StringToMailAddressHookFunc() mapstructure.DecodeHookFuncType {
 
 		prefixType := ""
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}
@@ -115,7 +115,7 @@ func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 
 		prefixType := ""
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}
@@ -212,7 +212,7 @@ func ToRefreshIntervalDurationHookFunc() mapstructure.DecodeHookFuncType {
 
 		prefixType := ""
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}
@@ -268,7 +268,7 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 			prefixType string
 		)
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}
@@ -314,7 +314,7 @@ func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 
 		prefixType := ""
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}
@@ -366,7 +366,7 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 
 		prefixType := ""
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}
@@ -471,7 +471,7 @@ func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
-		if t.Kind() != reflect.Ptr {
+		if t.Kind() != reflect.Pointer {
 			return data, nil
 		}
 
@@ -515,7 +515,7 @@ func StringToX509CertificateChainHookFunc() mapstructure.DecodeHookFuncType {
 
 		prefixType := ""
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}
@@ -563,7 +563,7 @@ func StringToTLSVersionHookFunc() mapstructure.DecodeHookFuncType {
 
 		prefixType := ""
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}
@@ -665,7 +665,7 @@ func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
 			return data, nil
 		}
 
-		if t.Kind() != reflect.Ptr {
+		if t.Kind() != reflect.Pointer {
 			return data, nil
 		}
 
@@ -751,7 +751,7 @@ func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
 
 		prefixType := ""
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}
@@ -803,8 +803,8 @@ func StringToIPNetworksHookFunc(definitions map[string][]*net.IPNet) mapstructur
 			return data, nil
 		}
 
-		isSlice := t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Ptr && t.Elem().Elem() == expectedType
-		isKind := t.Kind() == reflect.Ptr && t.Elem() == expectedType
+		isSlice := t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Pointer && t.Elem().Elem() == expectedType
+		isKind := t.Kind() == reflect.Pointer && t.Elem() == expectedType
 
 		if !isSlice && !isKind {
 			return data, nil
@@ -870,7 +870,7 @@ func StringToUUIDHookFunc() mapstructure.DecodeHookFuncType {
 
 		prefixType := ""
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}
@@ -918,7 +918,7 @@ func StringToLanguageTagHookFunc() mapstructure.DecodeHookFuncType {
 
 		prefixType := ""
 
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			ptr = true
 			prefixType = "*"
 		}

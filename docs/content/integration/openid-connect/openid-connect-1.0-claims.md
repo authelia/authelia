@@ -320,6 +320,18 @@ The specifics about this scope are discussed in the
 [OAuth 2.0 Bearer Token Usage for Authorization Endpoints](oauth-2.0-bearer-token-usage.md#authorization-endpoints)
 guide.
 
+#### authelia.pam
+
+This scope is consumed by the [pam_authelia](https://github.com/authelia/pam) PAM module to authenticate Linux
+system logins (e.g. SSH, console) against Authelia using the OAuth 2.0 Device Authorization Grant flow. When granted,
+the issued tokens carry the `authelia.pam.username` claim which `pam_authelia` matches against the local Linux username
+to defend against confused-deputy attacks where one Authelia user approves another user's login.
+
+Unlike the other special scopes, `authelia.pam` is user-customizable: claims attached to it via
+[Scopes](../../configuration/identity-providers/openid-connect/provider.md#scopes) are added on top of the built-in
+`authelia.pam.username` claim, allowing operators to project additional user attributes into the access token or
+[UserInfo] response for use by downstream PAM-aware tooling.
+
 [OAuth 2.0]: https://oauth.net/2/
 [OpenID Connect 1.0]: https://openid.net/connect/
 

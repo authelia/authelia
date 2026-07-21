@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/elliptic"
 	"crypto/tls"
 	"crypto/x509"
@@ -241,6 +242,13 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 }
 
 func TestNewMetrics(t *testing.T) {
+	mustNewPrometheus := func(t *testing.T) metrics.Provider {
+		prometheus, err := metrics.NewPrometheus()
+		require.NoError(t, err)
+
+		return prometheus
+	}
+
 	testCases := []struct {
 		name           string
 		config         *schema.Configuration
@@ -270,7 +278,7 @@ func TestNewMetrics(t *testing.T) {
 				},
 			},
 			middlewares.Providers{
-				Metrics: metrics.NewPrometheus(),
+				Metrics: mustNewPrometheus(t),
 			},
 			true,
 			true,
@@ -428,7 +436,7 @@ func NewTLSServerContext(configuration schema.Configuration) (serverContext *TLS
 		return nil, err
 	}
 
-	s, listener, _, _, err := New(&configuration, providers)
+	s, listener, _, _, err := New(context.Background(), &configuration, providers)
 	if err != nil {
 		return nil, err
 	}

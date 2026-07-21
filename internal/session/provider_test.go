@@ -1,6 +1,7 @@
 package session
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -334,4 +335,55 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "", newUserSession.Username)
 	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel(false))
+}
+
+func TestStartupCheckShouldSucceedForMemoryBackend(t *testing.T) {
+	config := schema.Session{}
+	config.Cookies = []schema.SessionCookie{
+		{
+			SessionCookieCommon: schema.SessionCookieCommon{
+				Name:       testName,
+				Expiration: testExpiration,
+			},
+			Domain: testDomain,
+		},
+	}
+
+	provider := NewProvider(config, nil)
+
+	assert.NoError(t, provider.StartupCheck())
+}
+
+func TestStartupCheckShouldSucceedForMemoryBackendWithMultipleDomains(t *testing.T) {
+	config := schema.Session{}
+	config.Cookies = []schema.SessionCookie{
+		{
+			SessionCookieCommon: schema.SessionCookieCommon{
+				Name:       testName,
+				Expiration: testExpiration,
+			},
+			Domain: "first.example.com",
+		},
+		{
+			SessionCookieCommon: schema.SessionCookieCommon{
+				Name:       testName,
+				Expiration: testExpiration,
+			},
+			Domain: "second.example.com",
+		},
+	}
+
+	provider := NewProvider(config, nil)
+
+	assert.NoError(t, provider.StartupCheck())
+	assert.Len(t, provider.sessions, 2)
+}
+
+func TestStartupCheckShouldSurfaceConstructionError(t *testing.T) {
+	construction := fmt.Errorf("backend connection refused")
+
+	provider := &Provider{errStartup: construction}
+
+	err := provider.StartupCheck()
+	assert.ErrorIs(t, err, construction)
 }

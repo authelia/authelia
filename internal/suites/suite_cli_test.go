@@ -936,13 +936,10 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 }
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
-	storageProvider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	storageProvider, err := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	s.Require().NoError(err)
 
 	ctx := context.Background()
-
-	var (
-		err error
-	)
 
 	var (
 		expectedLines    = make([]string, 0, 3)
@@ -1305,7 +1302,7 @@ func (s *CLISuite) TestStorage07CacheMDS3() {
 		updateArgs = append(updateArgs, "--path="+strings.Replace(mds3, "/buildkite/.cache/fido/", "/tmp/", 1))
 	}
 
-	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
+	output, err = s.ExecWithEnv("authelia-backend", append([]string{"authelia", "storage", "cache", "mds3", "update"}, updateArgs...), env)
 	s.NoError(err)
 	s.Regexp(reUpdated, output)
 

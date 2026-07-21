@@ -73,10 +73,13 @@
       "people": ["clement-michaud", "amir-zarrinkafsh", "james-elliott"],
       "responsibilities": [
         "All responsibilities of the Maintainers Team",
+        "Strategic direction and long-term planning for the project",
         "Review and merge pull requests from all other teams",
+        "Reviewing and approving escalated permissions for contributors",
         "Handle vulnerability and security related bug reports",
         "Handle project governance unanimously",
         "Maintain the project roadmap",
+        "Release and versioning management",
         "Coordinate collaboration",
         "Maintain the continuous integration and delivery pipelines and related mechanisms"
       ]
@@ -87,7 +90,10 @@
       "people": ["manuel-nunez", "brynn-crowley"],
       "responsibilities": [
         "Review and merge pull requests from external parties",
-        "Respond to bug reports, feature requests, discussions, and support chat rooms"
+        "Respond to bug reports, feature requests, discussions, and support chat rooms",
+        "Ensuring contributions meet the project guidelines",
+        "Maintain code quality and test coverage",
+        "Participate in project discussions and decision-making"
       ]
     }
   }

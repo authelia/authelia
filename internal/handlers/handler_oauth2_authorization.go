@@ -29,6 +29,16 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		err       error
 	)
 
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
+
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, rfc)
+
+		return
+	}
+
 	if requester, err = ctx.Providers.OpenIDConnect.NewAuthorizeRequest(ctx, r); requester == nil {
 		err = oauthelia2.ErrServerError.WithDebug("The requester was nil.")
 
@@ -54,14 +64,6 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	clientID := requester.GetClient().GetID()
 
 	ctx.GetLogger().Debugf("Authorization Request with id '%s' on client with id '%s' is being processed", requester.GetID(), clientID)
-
-	if issuer, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: %s", requester.GetID(), clientID, oidc.ErrTextEffectiveIssuer)
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrEffectiveIssuer)
-
-		return
-	}
 
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, clientID); err != nil {
 		if errors.Is(err, oauthelia2.ErrNotFound) || errors.Is(err, oauthelia2.ErrInvalidClient) {
@@ -179,10 +181,24 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	requester := oauthelia2.NewAuthorizeRequest()
 
-	var err error
+	var (
+		redirectURL *url.URL
+		err         error
+	)
+
+	if redirectURL, err = ctx.IssuerURL(); err != nil {
+		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
+
+		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' could not be processed: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(rfc))
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, rfc)
+
+		return
+	}
 
 	r.Body = http.MaxBytesReader(rw, r.Body, 10<<20)
 
+	//nolint:gosec // G120 FALSE positive: bounded by MaxBytesReader on r.Body above.
 	if err = r.ParseMultipartForm(5 << 20); err != nil && !errors.Is(err, http.ErrNotMultipart) {
 		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' had an error parsing a multipart form.", requester.GetID())
 
@@ -192,16 +208,6 @@ func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 	}
 
 	query := r.Form
-
-	var redirectURL *url.URL
-
-	if redirectURL, err = ctx.IssuerURL(); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' could not be processed: %s", requester.GetID(), oidc.ErrTextEffectiveIssuer)
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrEffectiveIssuer)
-
-		return
-	}
 
 	redirectURL = redirectURL.JoinPath(oidc.EndpointPathAuthorization)
 

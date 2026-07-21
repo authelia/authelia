@@ -1,12 +1,10 @@
-import { fixupPluginRules } from "@eslint/compat";
+import eslintReact from "@eslint-react/eslint-plugin";
 import limegrassImportAlias from "@limegrass/eslint-plugin-import-alias";
 import tsEslintPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
 import perfectionist from "eslint-plugin-perfectionist";
 import prettierPluginRecommended from "eslint-plugin-prettier/recommended";
-import reactPlugin from "eslint-plugin-react";
-import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 export default [
     {
@@ -20,26 +18,18 @@ export default [
             "import/resolver": {
                 typescript: {},
             },
-            react: {
-                version: "detect",
-            },
         },
     },
 
     {
-        plugins: {
-            react: fixupPluginRules(reactPlugin),
-            "react-hooks": reactHooksPlugin,
-        },
-        rules: {
-            ...reactPlugin.configs.recommended.rules,
-            ...reactHooksPlugin.configs.recommended.rules,
+        files: ["**/*.{ts,tsx}"],
+        ...eslintReact.configs["recommended-typescript"],
+    },
 
+    {
+        rules: {
             "import/no-webpack-loader-syntax": "error",
             "no-restricted-globals": ["error", "event", "fdescribe"],
-            "react/jsx-pascal-case": ["warn", { allowAllCaps: true }],
-            "react/prop-types": "off",
-            "react/react-in-jsx-scope": "off",
         },
     },
 

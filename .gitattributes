@@ -1,7 +1,7 @@
 * text=auto
 
 *.go text
-*.sh text
+*.sh text eol=lf
 *.html text
 *.js text
 *.jsx text
@@ -29,3 +29,6 @@ LICENSE text
 internal/templates/src/notification/* text eol=crlf
 examples/templates/notifications/*.tmpl text eol=crlf
 examples/templates/notifications/*.html text eol=crlf
+
+# shellcheck rejects literal carriage returns in its config (SC1017).
+.shellcheckrc text eol=lf

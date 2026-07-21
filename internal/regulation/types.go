@@ -54,7 +54,16 @@ type Ban struct {
 }
 
 func (b *Ban) IsBanned() bool {
-	return b.Type() != BanTypeNone
+	if b == nil {
+		return false
+	}
+
+	switch b.Type() {
+	case BanTypeNone, BanTypeUnknown:
+		return false
+	default:
+		return true
+	}
 }
 
 func (b *Ban) Value() string {
@@ -93,6 +102,7 @@ type BanType int
 
 const (
 	BanTypeNone BanType = iota
+	BanTypeUnknown
 	BanTypeIP
 	BanTypeUser
 )

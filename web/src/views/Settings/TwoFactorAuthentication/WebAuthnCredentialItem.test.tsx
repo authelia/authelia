@@ -13,7 +13,8 @@ vi.mock("@views/Settings/TwoFactorAuthentication/CredentialItem", () => ({
 }));
 
 const credential = {
-    attestation_type: "fido-u2f",
+    attestation_format: "fido-u2f",
+    attestation_type: "none",
     created_at: "2024-01-01T00:00:00Z",
     description: "Security Key",
     id: "abc123",

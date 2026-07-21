@@ -70,7 +70,53 @@ You can view our published conformance tests at [Certified OpenID Providers & Pr
 The elements we support are Core, Discovery, and the Form Post Response Mode; as well as all the underpinnings except
 WebFinger. This leaves Dynamic Client Registration and Session Management as obvious goals which are both planned.
 
+## Request Subset Rules
+
+There are a number of unique situations which may result in certain flows resulting in more or less `scope` or `audience`
+then they are intended.
+
+In particular the common issues are that during the Refresh Flow if the `scope` is widened to more scopes than
+originally granted by the user, or during the Refresh Flow if the client is no longer allowed to request the same
+scopes.
+
+To this end we implement the same strategies for the `scope`, `resource`, and `audience` parameters. i.e. the requested
+scopes and audience of the [Access Token]:
+
+1. If the grant type had a previous interaction which requested scopes or audiences, the scopes and audiences granted
+   regardless of the scopes and audiences the client is permitted to obtain are the maximum scopes and audiences
+   allowed (they may request less, not more). The [Authorization Code Flow] is a prime example of this i.e. if either of
+   these parameters were used then the request to the token endpoint cannot exceed those.
+2. If the client does not currently have the scopes or audiences requested, regardless of what they were previously
+   granted, they are not allowed to request more than their currently allowed scopes and audiences.
+
 ## Audiences
+
+This section describes the audience strategy of Authelia.
+
+### Implementation
+
+Authelia supports three key audience issuance modes.
+
+1. Using the `audience` parameter in the authorization request (at the authorization endpoint) or in the access request
+   (at the token endpoint). This allows for opaque and arbitrary audiences.
+2. Using the `resource` parameter in the authorization request (at the authorization endpoint) or in the access request
+   (at the token endpoint). This allows for audiences that are absolute URIs, which allows for special matching
+   behaviors.
+3. Implicitly granting all audiences when neither the `audience` or `resource` parameters are used (by policy only).
+
+Both the `audience` and `resource` parameters can be used together. The matching strategy for the `audience` parameter
+only allows for exact matches.
+
+The matching strategy for the `resource` parameter however allows for exact matches and also
+allows for special matching behaviors, specifically they can request a suffix of an allowed audience if the client is
+allowed to request the `https://example.com/example` they can request the `https://example.com/example` or
+`https://example.com/example/admin` audience using the resource parameter, but cannot request the
+`https://example.com/notexample/admin/users` audience.
+
+Please note that this only applies to absolute URLs and both the `audience` allowed to the client and the `resource`
+requested by the client must be absolute URLs, otherwise they are skipped and will eventually result in an error.
+
+### Access Token Audience vs ID Token Audience
 
 When it comes to [OpenID Connect 1.0] there are effectively two types of audiences. There is the audience embedded in
 the [ID Token] which should always include the requesting clients identifier and audience of the [Access Token] and
@@ -259,14 +305,18 @@ The following describes the various [OAuth 2.0] and [OpenID Connect 1.0] grant t
 field is both the required value for the `grant_type` parameter in the access / token request and the
 [grant_types](../../configuration/identity-providers/openid-connect/clients.md#grant_types) client configuration option.
 
-|                   Grant Type                    | Supported |                     Value                      |                                                         Notes                                                         |
-|:-----------------------------------------------:|:---------:|:----------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
-|         [OAuth 2.0 Authorization Code]          |    Yes    |              `authorization_code`              |                                                                                                                       |
-| [OAuth 2.0 Resource Owner Password Credentials] |    No     |                   `password`                   |              This Grant Type has been deprecated as it's highly insecure and should not normally be used              |
-|         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
-|              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |                          This Grant Type has been deprecated and should not normally be used                          |
-|            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
-|             [OAuth 2.0 Device Code]             |    Yes    | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                                       |
+|                                  Grant Type                                  | Supported |                       Value                       |                                                         Notes                                                         |
+|:----------------------------------------------------------------------------:|:---------:|:-------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
+|                        [OAuth 2.0 Authorization Code]                        |    Yes    |               `authorization_code`                |                                                                                                                       |
+|               [OAuth 2.0 Resource Owner Password Credentials]                |    No     |                    `password`                     |              This Grant Type has been deprecated as it's highly insecure and should not normally be used              |
+|                        [OAuth 2.0 Client Credentials]                        |    Yes    |               `client_credentials`                | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
+|                             [OAuth 2.0 Implicit]                             |    Yes    |                    `implicit`                     |                          This Grant Type has been deprecated and should not normally be used                          |
+|                          [OAuth 2.0 Refresh Token]                           |    Yes    |                  `refresh_token`                  |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
+|                           [OAuth 2.0 Device Code]                            |    Yes    |  `urn:ietf:params:oauth:grant-type:device_code`   |                                                                                                                       |
+|                          [OAuth 2.0 Token Exchange]                          |    No     | `urn:ietf:params:oauth:grant-type:token-exchange` |                                                        Planned                                                        |
+|                 [SAML 2.0 Profile for Authorization Grants]                  |    No     |  `urn:ietf:params:oauth:grant-type:saml2-bearer`  |                                                        Planned                                                        |
+|               [OAuth 2.0 JWT Profile for Authorization Grants]               |    No     |   `urn:ietf:params:oauth:grant-type:jwt-bearer`   |                                                        Planned                                                        |
+| [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] |    No     |        `urn:openid:params:grant-type:ciba`        |                                                        Planned                                                        |
 
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
 [OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
@@ -274,6 +324,8 @@ field is both the required value for the `grant_type` parameter in the access / 
 [OAuth 2.0 Client Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
 [OAuth 2.0 Refresh Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
 [OAuth 2.0 Device Code]: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+[SAML 2.0 Profile for Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7522
+[OAuth 2.0 JWT Profile for Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7523
 
 ### Client Authentication Method
 
@@ -489,6 +541,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                                        [OAuth 2.0 Multiple Response Types]                                         |   Certified   |                                              N/A                                              |
 |                                        [OAuth 2.0 Form Post Response Mode]                                         |   Certified   |                                              N/A                                              |
 |                                  [OpenID Connect Dynamic Client Registration 1.0]                                  |     None      |                                              N/A                                              |
+|                                [OpenID Connect Relying Party Metadata Choices 1.0]                                 |     None      |                                              N/A                                              |
 |                                      [OpenID Connect RP-Initiated Logout 1.0]                                      |     None      |                                              N/A                                              |
 |                                      [OpenID Connect Session Management 1.0]                                       |     None      |                                              N/A                                              |
 |                                     [OpenID Connect Front-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
@@ -496,9 +549,9 @@ either implemented, have our eye on, or are refusing to implement.
 |                                       [OpenID Connect 1.0 User Registration]                                       |     None      |                                              N/A                                              |
 |                [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] (CIBA)                 |     None      |                                              N/A                                              |
 |                                    [OpenID Shared Signals Framework 1.0] (SSF)                                     |     None      |                                              N/A                                              |
+|                                     [CAEP Interoperability Profile 1.0] (SSF)                                      |     None      |                                              N/A                                              |
 |                           [OpenID Continuous Access Evaluation Profile 1.0] (CAEP - SSF)                           |     None      |                                              N/A                                              |
 |                                    [OpenID Connect for Identity Assurance 1.0]                                     |     None      |                                              N/A                                              |
-|                                     [CAEP Interoperability Profile 1.0] (SSF)                                      |     None      |                                              N/A                                              |
 |                                             [Proof Key Code Exchange]                                              | Certified[^3] |         [RFC7636], [OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/pkce/)         |
 |                                                  [OAuth 2.0 Core]                                                  | Certified[^3] |                                           [RFC6749]                                           |
 |                                            [OAuth 2.0 Token Revocation]                                            |   Complete    |                                           [RFC7009]                                           |
@@ -516,12 +569,12 @@ either implemented, have our eye on, or are refusing to implement.
 |                           [OAuth 2.0 Device Flow / OAuth 2.0 Device Authorization Grant]                           |   Complete    |                                           [RFC8628]                                           |
 |                                     [OAuth 2.0 JWT Profile for Access Tokens]                                      |   Complete    |                                           [RFC9068]                                           |
 |                                      [OAuth 2.0 Rich Authorization Requests]                                       |     None      |                                           [RFC9396]                                           |
-|                      OAuth 2.0 JWT Profile for Client Authentication and Authorization Grants                      |   Complete    |                                           [RFC7523]                                           |
+|                      OAuth 2.0 JWT Profile for Client Authentication and Authorization Grants                      |    Partial    |                                           [RFC7523]                                           |
 |                                OAuth 2.0 Step-up Authentication Challenge Protocol                                 |     None      |                                           [RFC9470]                                           |
 |                                          OAuth 2.0 for Browser-Based Apps                                          |   Complete    |    [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps)    |
 |                                  SD-JWT-based Verifiable Credentials (SD-JWT VC)                                   |     None      |        [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc)         |
 |                                       Selective Disclosure for JWTs (SD-JWT)                                       |     None      | [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-selective-disclosure-jwt) |
-|                                         Resource Indicators for OAuth 2.0                                          |     None      |                                           [RFC8707]                                           |
+|                                         Resource Indicators for OAuth 2.0                                          |   Complete    |                                           [RFC8707]                                           |
 |                                             [OAuth 2.0 Bearer Tokens]                                              |   Complete    |                                           [RFC6750]                                           |
 |                 [OAuth 2.0 Assertion Framework for Client Authentication and Authorization Grants]                 |   Complete    |                                           [RFC7521]                                           |
 |                                            [OAuth 2.0 Private Key JWT]                                             |   Complete    |                                           [RFC7521]                                           |
@@ -610,6 +663,7 @@ either implemented, have our eye on, or are refusing to implement.
 [OpenID Connect Core 1.0]: https://openid.net/specs/openid-connect-core-1_0.html
 [OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [OpenID Connect Dynamic Client Registration 1.0]: https://openid.net/specs/openid-connect-registration-1_0.html
+[OpenID Connect Relying Party Metadata Choices 1.0]: https://openid.net/specs/openid-connect-rp-metadata-choices-1_0-final.html
 [OpenID Connect RP-Initiated Logout 1.0]: https://openid.net/specs/openid-connect-rpinitiated-1_0.html
 [OpenID Connect Session Management 1.0]: https://openid.net/specs/openid-connect-session-1_0.html
 [OpenID Connect Front-Channel Logout 1.0]: https://openid.net/specs/openid-connect-frontchannel-1_0.html

@@ -1,13 +1,4 @@
-import {
-    ReactNode,
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-    useSyncExternalStore,
-} from "react";
+import { ReactNode, createContext, use, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { Theme, ThemeProvider } from "@mui/material";
 
@@ -31,7 +22,7 @@ export interface ValueProps {
 }
 
 export default function ThemeContextProvider(props: Props) {
-    const [themeName, setThemeName] = useState(GetCurrentThemeName());
+    const [themeName, setThemeName] = useState(() => GetCurrentThemeName());
     const prefersDark = useSyncExternalStore(subscribePrefersDark, getPrefersDarkSnapshot, getPrefersDarkSnapshot);
 
     const theme = useMemo(() => ThemeFromName(themeName, prefersDark), [themeName, prefersDark]);
@@ -72,14 +63,14 @@ export default function ThemeContextProvider(props: Props) {
     );
 
     return (
-        <ThemeContext.Provider value={value}>
+        <ThemeContext value={value}>
             <ThemeWrapper>{props.children}</ThemeWrapper>
-        </ThemeContext.Provider>
+        </ThemeContext>
     );
 }
 
 export function useThemeContext() {
-    const context = useContext(ThemeContext);
+    const context = use(ThemeContext);
     if (!context) {
         throw new Error("useThemeContext must be used within a ThemeContextProvider");
     }

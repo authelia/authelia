@@ -79,7 +79,7 @@ export function getRelativeTimeString(date: Date): string {
  * }
  */
 export function useRelativeTime(date: Date): string {
-    const [relativeTime, setRelativeTime] = useState<string>(getRelativeTimeString(date));
+    const [relativeTime, setRelativeTime] = useState<string>(() => getRelativeTimeString(date));
 
     useEffect(() => {
         const intervalId = setInterval(() => {

@@ -91,6 +91,15 @@ type Config struct {
 	DisableRefreshTokenValidation bool
 	OmitRedirectScopeParameter    bool
 
+	DPoPEnabled       bool
+	DPoPEnforce       bool
+	DPoPNonceRequired bool
+
+	DPoPAllowedJWSAlgorithms []string
+	DPoPClockSkew            time.Duration
+	DPoPNonceLifespan        time.Duration
+	DPoPStrategy             oauthelia2.DPoPStrategy
+
 	JWTScopeField  jwt.JWTScopeFieldEnum
 	JWTMaxDuration time.Duration
 
@@ -155,14 +164,18 @@ type HashConfig struct {
 
 // StrategyConfig holds specific oauthelia2.Configurator information for various strategies.
 type StrategyConfig struct {
-	Core                        oauth2.CoreStrategy
-	OpenID                      openid.OpenIDConnectTokenStrategy
-	Audience                    oauthelia2.AudienceMatchingStrategy
-	Scope                       oauthelia2.ScopeStrategy
-	JWT                         jwt.Strategy
-	JWKSFetcher                 jwt.JWKSFetcherStrategy
-	ClientAuthentication        oauthelia2.ClientAuthenticationStrategy
-	AuthorizeErrorFieldResponse oauthelia2.AuthorizeErrorFieldResponseStrategy
+	Core                            oauth2.CoreStrategy
+	OpenID                          openid.OpenIDConnectTokenStrategy
+	Audience                        oauthelia2.AudienceStrategy
+	Resource                        oauthelia2.ResourceStrategy
+	Scope                           oauthelia2.ScopeStrategy
+	JWT                             jwt.Strategy
+	JWKSFetcher                     jwt.JWKSFetcherStrategy
+	ClientAuthentication            oauthelia2.ClientAuthenticationStrategy
+	AuthorizeErrorFieldResponse     oauthelia2.AuthorizeErrorFieldResponseStrategy
+	TokenEndpointClientAuth         oauthelia2.EndpointClientAuthStrategy
+	RevocationEndpointClientAuth    oauthelia2.EndpointClientAuthStrategy
+	IntrospectionEndpointClientAuth oauthelia2.EndpointClientAuthStrategy
 }
 
 // JWTAccessTokenConfig represents the JWT Access Token config.
@@ -691,12 +704,21 @@ func (c *Config) GetScopeStrategy(ctx context.Context) (strategy oauthelia2.Scop
 }
 
 // GetAudienceStrategy returns the audience strategy.
-func (c *Config) GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceMatchingStrategy) {
+func (c *Config) GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceStrategy) {
 	if c.Strategy.Audience == nil {
-		c.Strategy.Audience = oauthelia2.DefaultAudienceMatchingStrategy
+		c.Strategy.Audience = oauthelia2.DefaultAudienceStrategy
 	}
 
 	return c.Strategy.Audience
+}
+
+// GetResourceStrategy returns the audience strategy.
+func (c *Config) GetResourceStrategy(ctx context.Context) (strategy oauthelia2.ResourceStrategy) {
+	if c.Strategy.Resource == nil {
+		c.Strategy.Resource = oauthelia2.DefaultResourceStrategy
+	}
+
+	return c.Strategy.Resource
 }
 
 func (c *Config) GetClientCredentialsFlowImplicitGrantRequested(ctx context.Context) (implicit bool) {
@@ -902,6 +924,58 @@ func (c *Config) GetAuthorizeErrorFieldResponseStrategy(ctx context.Context) (st
 	return c.Strategy.AuthorizeErrorFieldResponse
 }
 
+func (c *Config) GetTokenEndpointClientAuthStrategy(ctx context.Context) (strategy oauthelia2.EndpointClientAuthStrategy) {
+	if c.Strategy.TokenEndpointClientAuth == nil {
+		c.Strategy.TokenEndpointClientAuth = &oauthelia2.TokenEndpointClientAuthStrategy{}
+	}
+
+	return c.Strategy.TokenEndpointClientAuth
+}
+
+func (c *Config) GetRevocationEndpointClientAuthStrategy(ctx context.Context) (strategy oauthelia2.EndpointClientAuthStrategy) {
+	if c.Strategy.RevocationEndpointClientAuth == nil {
+		c.Strategy.RevocationEndpointClientAuth = &oauthelia2.TokenEndpointClientAuthStrategy{}
+	}
+
+	return c.Strategy.RevocationEndpointClientAuth
+}
+
+func (c *Config) GetIntrospectionEndpointClientAuthStrategy(ctx context.Context) (strategy oauthelia2.EndpointClientAuthStrategy) {
+	if c.Strategy.IntrospectionEndpointClientAuth == nil {
+		c.Strategy.IntrospectionEndpointClientAuth = &oauthelia2.TokenEndpointClientAuthStrategy{}
+	}
+
+	return c.Strategy.IntrospectionEndpointClientAuth
+}
+
+func (c *Config) GetDPoPEnabled(ctx context.Context) (enabled bool) {
+	return c.DPoPEnabled
+}
+
+func (c *Config) GetDPoPEnforce(ctx context.Context) (enforce bool) {
+	return c.DPoPEnforce
+}
+
+func (c *Config) GetDPoPAllowedJWSAlgorithms(ctx context.Context) (algs []string) {
+	return c.DPoPAllowedJWSAlgorithms
+}
+
+func (c *Config) GetDPoPClockSkew(ctx context.Context) (skew time.Duration) {
+	return c.DPoPClockSkew
+}
+
+func (c *Config) GetDPoPNonceRequired(ctx context.Context) (required bool) {
+	return c.DPoPNonceRequired
+}
+
+func (c *Config) GetDPoPNonceLifespan(ctx context.Context) (lifespan time.Duration) {
+	return c.DPoPNonceLifespan
+}
+
+func (c *Config) GetDPoPStrategy(ctx context.Context) (strategy oauthelia2.DPoPStrategy) {
+	return c.DPoPStrategy
+}
+
 func (c *Config) GetContext(ctx context.Context) (octx Context) {
 	var ok bool
 
@@ -915,3 +989,7 @@ func (c *Config) GetContext(ctx context.Context) (octx Context) {
 
 	return nil
 }
+
+var (
+	_ oauthelia2.Configurator = (*Config)(nil)
+)

@@ -66,7 +66,8 @@ func TestNewMetricsServer(t *testing.T) {
 	providers.Templates, err = templates.New(templates.Config{})
 	require.NoError(t, err)
 
-	providers.Metrics = metrics.NewPrometheus()
+	providers.Metrics, err = metrics.NewPrometheus()
+	require.NoError(t, err)
 
 	address, err := schema.NewAddress("tcp://:9891/metrics")
 	require.NoError(t, err)

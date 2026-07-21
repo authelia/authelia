@@ -26,7 +26,8 @@ func TestNewProvider(t *testing.T) {
 			"ShouldReturnSQLiteProvider",
 			&schema.Configuration{
 				Storage: schema.Storage{
-					Local: &schema.StorageLocal{Path: filepath.Join(t.TempDir(), "db.sqlite3")},
+					EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+					Local:         &schema.StorageLocal{Path: filepath.Join(t.TempDir(), "db.sqlite3")},
 				},
 			},
 			false,
@@ -40,7 +41,9 @@ func TestNewProvider(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			provider := NewProvider(tc.config, nil)
+			provider, err := NewProvider(tc.config, nil)
+
+			assert.NoError(t, err)
 
 			if tc.expectNl {
 				assert.Nil(t, provider)
@@ -669,6 +672,7 @@ func TestSQLProviderOAuth2Session(t *testing.T) {
 		s.Signature = "sig-deact-req"
 		s.RequestID = "req-deact"
 		s.ChallengeID = model.MustNullUUID(model.NewRandomNullUUID())
+		s.Active = true
 
 		require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAuthorizeCode, s))
 		require.NoError(t, provider.DeactivateOAuth2SessionByRequestID(ctx, OAuth2SessionTypeAuthorizeCode, "req-deact"))
@@ -745,7 +749,7 @@ func TestSQLProviderOAuth2PARContext(t *testing.T) {
 
 	ctx := context.Background()
 
-	par := model.OAuth2PARContext{
+	par := model.OAuth2PushedAuthorizationSession{
 		Signature:   "par-sig-123",
 		RequestID:   "par-req-123",
 		ClientID:    "test-client",
@@ -754,9 +758,9 @@ func TestSQLProviderOAuth2PARContext(t *testing.T) {
 	}
 
 	t.Run("ShouldSaveAndLoad", func(t *testing.T) {
-		require.NoError(t, provider.SaveOAuth2PARContext(ctx, par))
+		require.NoError(t, provider.SaveOAuth2PushedAuthorizationSession(ctx, par))
 
-		loaded, err := provider.LoadOAuth2PARContext(ctx, "par-sig-123")
+		loaded, err := provider.LoadOAuth2PushedAuthorizationSession(ctx, "par-sig-123")
 
 		require.NoError(t, err)
 		require.NotNil(t, loaded)
@@ -764,9 +768,9 @@ func TestSQLProviderOAuth2PARContext(t *testing.T) {
 	})
 
 	t.Run("ShouldRevoke", func(t *testing.T) {
-		require.NoError(t, provider.RevokeOAuth2PARContext(ctx, "par-sig-123"))
+		require.NoError(t, provider.RevokeOAuth2PushedAuthorizationSession(ctx, "par-sig-123"))
 
-		loaded, err := provider.LoadOAuth2PARContext(ctx, "par-sig-123")
+		loaded, err := provider.LoadOAuth2PushedAuthorizationSession(ctx, "par-sig-123")
 
 		require.NoError(t, err)
 		assert.True(t, loaded.Revoked)
@@ -943,7 +947,7 @@ func TestSQLProviderOneTimeCode(t *testing.T) {
 	})
 
 	t.Run("ShouldLoadOneTimeCode", func(t *testing.T) {
-		loaded, err := provider.LoadOneTimeCode(ctx, "john", "reset_password", "123456")
+		loaded, err := provider.LoadOneTimeCode(ctx, "john", model.NewIP(net.ParseIP("127.0.0.1")), "reset_password", "123456")
 
 		require.NoError(t, err)
 		require.NotNil(t, loaded)
@@ -1008,7 +1012,7 @@ func TestSQLProviderOneTimeCode(t *testing.T) {
 	})
 
 	t.Run("ShouldReturnNilForUnknownCode", func(t *testing.T) {
-		loaded, err := provider.LoadOneTimeCode(ctx, "nobody", "unknown", "000000")
+		loaded, err := provider.LoadOneTimeCode(ctx, "nobody", model.NewIP(net.ParseIP("192.168.1.1")), "unknown", "000000")
 
 		assert.NoError(t, err)
 		assert.Nil(t, loaded)
@@ -1104,19 +1108,19 @@ func TestSQLProviderUpdateOAuth2PARContext(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("ShouldErrWhenIDIsZero", func(t *testing.T) {
-		par := model.OAuth2PARContext{
+		par := model.OAuth2PushedAuthorizationSession{
 			ID:        0,
 			Signature: "par-sig",
 			RequestID: "par-req",
 		}
 
-		err := provider.UpdateOAuth2PARContext(ctx, par)
+		err := provider.UpdateOAuth2PushedAuthorizationSession(ctx, par)
 
 		assert.ErrorContains(t, err, "the id was a zero value")
 	})
 
 	t.Run("ShouldUpdateExistingPAR", func(t *testing.T) {
-		par := model.OAuth2PARContext{
+		par := model.OAuth2PushedAuthorizationSession{
 			Signature:   "par-update-sig",
 			RequestID:   "par-update-req",
 			ClientID:    "test-client",
@@ -1124,14 +1128,14 @@ func TestSQLProviderUpdateOAuth2PARContext(t *testing.T) {
 			Session:     []byte("{}"),
 		}
 
-		require.NoError(t, provider.SaveOAuth2PARContext(ctx, par))
+		require.NoError(t, provider.SaveOAuth2PushedAuthorizationSession(ctx, par))
 
-		loaded, err := provider.LoadOAuth2PARContext(ctx, "par-update-sig")
+		loaded, err := provider.LoadOAuth2PushedAuthorizationSession(ctx, "par-update-sig")
 		require.NoError(t, err)
 
 		loaded.ClientID = "updated-client-id-par"
 
-		require.NoError(t, provider.UpdateOAuth2PARContext(ctx, *loaded))
+		require.NoError(t, provider.UpdateOAuth2PushedAuthorizationSession(ctx, *loaded))
 	})
 }
 
@@ -1218,14 +1222,16 @@ func newTestSQLiteProvider(t *testing.T) *SQLiteProvider {
 
 	config := &schema.Configuration{
 		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
 				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
 			},
 		},
 	}
 
-	provider := NewSQLiteProvider(config)
+	provider, err := NewSQLiteProvider(config)
 
+	require.NoError(t, err)
 	require.NotNil(t, provider)
 
 	return provider

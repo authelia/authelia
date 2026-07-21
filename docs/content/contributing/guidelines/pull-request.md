@@ -50,6 +50,11 @@ and/or perform a force push, especially after a maintainer has started a review.
 you merge `origin/master` into your branch to synchronize your commit after the initial review and any other action that
 rewrites history.
 
+This review process is designed to ensure that the code is in a state that is ready to be merged into [master]. At
+minimum two maintainers must approve the pull request before it can be merged, and all checks must pass. No single
+member of the organization can merge a pull request that does not meet these requirements as well as additional
+requirements outlined in the [GitHub repository ruleset](https://github.com/authelia/authelia/rules).
+
 ### Requirements
 
 The following requirements must be met for a pull request to be accepted. This list also acts as a checklist for

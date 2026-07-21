@@ -1,12 +1,7 @@
 package service
 
 import (
-	"context"
-
 	"github.com/sirupsen/logrus"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
 // Provider represents the required methods to support handling a service.
@@ -41,12 +36,4 @@ func GetProvisioners() []Provisioner {
 		ProvisionUsersFileWatcher,
 		ProvisionLoggingSignal,
 	}
-}
-
-type Context interface {
-	GetLogger() *logrus.Entry
-	GetProviders() middlewares.Providers
-	GetConfiguration() *schema.Configuration
-
-	context.Context
 }

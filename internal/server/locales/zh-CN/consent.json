@@ -48,6 +48,7 @@
 	"scopes": {
 		"address": "访问您的地址",
 		"authelia.bearer.authz": "访问登录时受保护的资源",
+		"authelia.pam": "以您身份验证Linux系统",
 		"email": "访问您的电子邮件地址",
 		"groups": "访问您的所属用户组",
 		"offline_access": "在不通知您的情况下访问以上数据",

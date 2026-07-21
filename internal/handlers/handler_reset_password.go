@@ -262,7 +262,7 @@ var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewar
 	RevokeEndpoint:          "/revoke/reset-password",
 	ActionClaim:             ActionResetPassword,
 	IdentityRetrieverFunc:   identityRetrieverFromStorage,
-}, middlewares.TimingAttackDelay(10, 250, 85, time.Millisecond*500, false))
+}, middlewares.NewTimingAttackDelay(10, time.Millisecond*500))
 
 func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, username string) {
 	var (

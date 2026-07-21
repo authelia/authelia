@@ -12,11 +12,14 @@ ignore: |
   api/openapi.yml
   dist/public_html/api/openapi.yml
   docs/pnpm-lock.yaml
+  docs/pnpm-workspace.yaml
   docs/node_modules/
   internal/configuration/test_resources/config_bad_quoting.yml
   internal/templates/src/pnpm-lock.yaml
+  internal/templates/src/pnpm-workspace.yaml
   internal/templates/src/node_modules/
   web/pnpm-lock.yaml
+  web/pnpm-workspace.yaml
   web/node_modules/
   .github/ISSUE_TEMPLATE/feature-request.yml
   .github/ISSUE_TEMPLATE/bug-report.yml

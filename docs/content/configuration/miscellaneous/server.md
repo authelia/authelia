@@ -86,7 +86,7 @@ server:
 ```yaml
 # When running "systemd-socket-activate -l 9091 go run ./cmd/authelia", the connections to port 9091 will be forwarded to file descriptor 3.
 server:
-  address: fd://:3
+  address: fd://3
 ```
 
 ### asset_path
@@ -149,6 +149,8 @@ The list of file paths to certificates used for authenticating clients. Those ce
 or intermediate certificates. If no item is provided mutual TLS is disabled.
 
 ### headers
+
+#### csp_template
 
 {{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
 This header is a security critical header which protects you from malicious parties and should almost never be

@@ -48,7 +48,12 @@
         "attestation_type": {
           "type": "string",
           "title": "Attestation Type",
-          "description": "The attestation format type this credential uses."
+          "description": "The attestation type this credential uses."
+        },
+        "attestation_format": {
+          "type": "string",
+          "title": "Attestation Format",
+          "description": "The attestation format this credential uses."
         },
         "attachment": {
           "type": "string",

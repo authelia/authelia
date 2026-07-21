@@ -104,12 +104,12 @@ const (
 	queryFmtConsumeOTC = `
 		UPDATE %s
 		SET consumed = ?, consumed_ip = ?
-		WHERE signature = ?;`
+		WHERE signature = ? AND consumed IS NULL AND revoked IS NULL;`
 
 	queryFmtRevokeOTC = `
 		UPDATE %s
 		SET revoked = ?, revoked_ip = ?
-		WHERE public_id = ?;`
+		WHERE public_id = ? AND consumed IS NULL AND revoked IS NULL;`
 
 	queryFmtSelectOTCEncryptedData = `
 		SELECT id, code
@@ -181,23 +181,23 @@ const (
 //nolint:gosec // The following queries are not hard coded credentials.
 const (
 	queryFmtSelectWebAuthnCredentials = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attestation_format, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
 	queryFmtSelectWebAuthnCredentialsByUsername = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attestation_format, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
 		WHERE username = ? AND (? = FALSE OR discoverable = TRUE);`
 
 	queryFmtSelectWebAuthnCredentialsByRPIDByUsername = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attestation_format, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
 		WHERE rpid = ? AND username = ? AND (? = FALSE OR discoverable = TRUE);`
 
 	queryFmtSelectWebAuthnCredentialByID = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attestation_format, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
 		WHERE id = ?;`
 
@@ -209,13 +209,13 @@ const (
 	queryFmtUpdateWebAuthnCredentialRecordSignIn = `
 		UPDATE %s
 		SET
-			rpid = ?, last_used_at = ?, sign_count = ?, discoverable = ?, present = ?, verified = ?, backup_eligible = ?, backup_state = ?,
+			rpid = ?, last_used_at = ?, attestation_type = ?, sign_count = ?, discoverable = ?, present = ?, verified = ?, backup_eligible = ?, backup_state = ?,
 			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
 		WHERE id = ?;`
 
 	queryFmtInsertWebAuthnCredential = `
-		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attestation_format, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtDeleteWebAuthnCredential = `
 		DELETE FROM %s
@@ -230,7 +230,7 @@ const (
 		WHERE username = ? AND description = ?;`
 
 	queryFmtSelectWebAuthnCredentialsEncryptedData = `
-		SELECT id, public_key, attestation
+		SELECT id, rpid, public_key, attestation
 		FROM %s;`
 
 	queryFmtUpdateWebAuthnCredentialsEncryptedData = `
@@ -451,7 +451,7 @@ const (
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, granted_claims, preconfiguration)
 		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtUpdateOAuth2ConsentSessionResponse = `
+	queryFmtUpdateOAuth2ConsentSessionResponseByID = `
 		UPDATE %s
 		SET
 			subject = ?,
@@ -463,10 +463,22 @@ const (
 			preconfiguration = ?
 		WHERE id = ? AND responded_at IS NULL;`
 
+	queryFmtUpdateOAuth2ConsentSessionResponseByChallengeID = `
+		UPDATE %s
+		SET
+			subject = ?,
+			responded_at = ?,
+			authorized = ?,
+			granted_scopes = ?,
+			granted_audience = ?,
+			granted_claims = ?,
+			preconfiguration = ?
+		WHERE challenge_id = ? AND responded_at IS NULL;`
+
 	queryFmtUpdateOAuth2ConsentSessionGranted = `
 		UPDATE %s
 		SET granted = TRUE
-		WHERE id = ? AND responded_at IS NOT NULL;`
+		WHERE id = ? AND responded_at IS NOT NULL AND granted = FALSE;`
 
 	queryFmtSelectOAuth2Session = `
 		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
@@ -484,22 +496,22 @@ const (
 	queryFmtRevokeOAuth2Session = `
 		UPDATE %s
 		SET revoked = TRUE
-		WHERE signature = ?;`
+		WHERE signature = ? AND revoked = FALSE;`
 
 	queryFmtRevokeOAuth2SessionByRequestID = `
 		UPDATE %s
 		SET revoked = TRUE
-		WHERE request_id = ?;`
+		WHERE request_id = ? AND revoked = FALSE;`
 
 	queryFmtDeactivateOAuth2Session = `
 		UPDATE %s
 		SET active = FALSE
-		WHERE signature = ?;`
+		WHERE signature = ? AND active = TRUE;`
 
 	queryFmtDeactivateOAuth2SessionByRequestID = `
 		UPDATE %s
 		SET active = FALSE
-		WHERE request_id = ?;`
+		WHERE request_id = ? AND active = TRUE;`
 
 	queryFmtSelectOAuth2DeviceCodeSession = `
 		SELECT id, challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
@@ -539,7 +551,7 @@ const (
 			revoked = ?,
 			form_data = ?,
 			session_data = ?
-		WHERE signature = ?;`
+		WHERE signature = ? AND revoked = FALSE;`
 
 	queryFmtUpdateOAuth2DeviceCodeSessionData = `
 		UPDATE %s

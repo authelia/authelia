@@ -32,7 +32,7 @@ const WebAuthnCredentialItem = function (props: Props) {
             id={`webauthn-credential-${props.index}`}
             icon={<Fingerprint fontSize="large" color={"warning"} />}
             description={props.credential.description}
-            qualifier={` (${props.credential.attestation_type.toUpperCase()})`}
+            qualifier={` (${props.credential.attestation_format.toUpperCase()})`}
             created_at={new Date(props.credential.created_at)}
             problem={props.credential.legacy}
             last_used_at={props.credential.last_used_at ? new Date(props.credential.last_used_at) : undefined}

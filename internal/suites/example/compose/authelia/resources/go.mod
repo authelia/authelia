@@ -4,7 +4,7 @@ go 1.25.1
 
 require (
 	github.com/cespare/reflex v0.3.2
-	github.com/go-delve/delve v1.26.2
+	github.com/go-delve/delve v1.27.0
 )
 
 require (
@@ -34,4 +34,4 @@ require (
 	golang.org/x/telemetry v0.0.0-20260316223853-b6b0c46d1ccd // indirect
 )
 
-replace golang.org/x/net => golang.org/x/net v0.53.0
+replace golang.org/x/net => golang.org/x/net v0.57.0

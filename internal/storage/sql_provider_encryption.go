@@ -12,65 +12,51 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
+	"github.com/rpadovani/sqlx-v2"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name string) (err error) {
-	var tx *sqlx.Tx
+	var (
+		size  int
+		table string
+		desc  string
+	)
 
 	switch name {
-	case "otc":
-		if tx, err = p.db.Beginx(); err != nil {
-			return fmt.Errorf("error beginning transaction to rotate hmac key: %w", err)
-		}
-
-		if _, err = p.setCrypographyKey(ctx, tx, keyTypeCryptographyHMAC, name, sha512.BlockSize); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
-			}
-
-			return fmt.Errorf("error setting the hmac key: %w", err)
-		}
-
-		if err = p.truncate(ctx, tx, tableOneTimeCode); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
-			}
-
-			return fmt.Errorf("error truncating one time-codes: %w", err)
-		}
-
-		if err = tx.Commit(); err != nil {
-			return fmt.Errorf("error committing transaction to rotate hmac key: %w", err)
-		}
-	case "otp":
-		if tx, err = p.db.Beginx(); err != nil {
-			return fmt.Errorf("error beginning transaction to rotate hmac key: %w", err)
-		}
-
-		if _, err = p.setCrypographyKey(ctx, tx, keyTypeCryptographyHMAC, name, sha256.BlockSize); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
-			}
-
-			return fmt.Errorf("error setting the hmac key: %w", err)
-		}
-
-		if err = p.truncate(ctx, tx, tableTOTPHistory); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
-			}
-
-			return fmt.Errorf("error truncating totp history: %w", err)
-		}
-
-		if err = tx.Commit(); err != nil {
-			return fmt.Errorf("error committing transaction to rotate hmac key: %w", err)
-		}
+	case hmacNameOneTimeCode:
+		size, table, desc = sha512.BlockSize, tableOneTimeCode, "one time-codes"
+	case hmacNameOneTimePassword:
+		size, table, desc = sha256.BlockSize, tableTOTPHistory, "totp history"
 	default:
 		return fmt.Errorf("unknown key name '%s'", name)
+	}
+
+	var tx SQLXTx
+
+	if tx, err = p.db.Beginx(); err != nil {
+		return fmt.Errorf("error beginning transaction to rotate hmac key: %w", err)
+	}
+
+	if _, err = p.setCrypographyKey(ctx, tx, keyTypeCryptographyHMAC, name, size); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+		}
+
+		return fmt.Errorf("error setting the hmac key: %w", err)
+	}
+
+	if err = p.truncate(ctx, tx, table); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+		}
+
+		return fmt.Errorf("error truncating %s: %w", desc, err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("error committing transaction to rotate hmac key: %w", err)
 	}
 
 	return nil
@@ -79,9 +65,13 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 // SchemaEncryptionChangeKey uses the currently configured key to decrypt values in the storage provider and the key
 // provided by this command to encrypt the values again and update them using a transaction.
 func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, rawKey string) (err error) {
-	key := sha256.Sum256([]byte(rawKey))
+	var key []byte
 
-	if bytes.Equal(key[:], p.keys.encryption[:]) {
+	if key, err = utils.DeriveCryptographicKey([]byte(rawKey), hkdfKeyInfo, sha256.New); err != nil {
+		return err
+	}
+
+	if bytes.Equal(key, p.keys.encryption) {
 		return fmt.Errorf("error changing the storage encryption key: the old key and the new key are the same")
 	}
 
@@ -89,11 +79,28 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, rawKey stri
 		return fmt.Errorf("error changing the storage encryption key: %w", err)
 	}
 
-	tx, err := p.db.Beginx()
-	if err != nil {
+	var tx SQLXTx
+
+	if tx, err = p.db.Beginx(); err != nil {
 		return fmt.Errorf("error beginning transaction to change encryption key: %w", err)
 	}
 
+	if err = p.SchemaEncryptionChangeKeyAdvanced(ctx, tx, key, false, true, true); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("error rolling back transaction to change encryption key: %w", rollbackErr)
+		}
+
+		return fmt.Errorf("error changing the storage encryption key: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("error committing transaction to change encryption key: %w", err)
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) SchemaEncryptionChangeKeyAdvanced(ctx context.Context, conn SQLXConnection, key []byte, init bool, useDecryptAAD, useEncryptAAD bool) (err error) {
 	encChangeFuncs := []EncryptionChangeKeyFunc{
 		schemaEncryptionChangeKeyOneTimeCode,
 		schemaEncryptionChangeKeyTOTP,
@@ -114,16 +121,12 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, rawKey stri
 	encChangeFuncs = append(encChangeFuncs, schemaEncryptionChangeKeyEncryption)
 
 	for _, encChangeFunc := range encChangeFuncs {
-		if err = encChangeFunc(ctx, p, tx, key); err != nil {
-			if rerr := tx.Rollback(); rerr != nil {
-				return fmt.Errorf("rollback error %v: rollback due to error: %w", rerr, err)
-			}
-
-			return fmt.Errorf("rollback due to error: %w", err)
+		if err = encChangeFunc(ctx, p, conn, init, useDecryptAAD, useEncryptAAD, key); err != nil {
+			return err
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 // SchemaEncryptionCheckKey checks the encryption key configured is valid for the database.
@@ -141,7 +144,7 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 		Tables: map[string]EncryptionValidationTableResult{},
 	}
 
-	if _, err = p.getEncryptionValue(ctx, encryptionNameCheck); err != nil {
+	if err = p.checkEncryptionCheckValue(ctx, version); err != nil {
 		result.InvalidCheckValue = true
 	}
 
@@ -175,10 +178,10 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 	return result, nil
 }
 
-func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init, useDecryptAAD, useEncryptAAD bool, key []byte) (err error) {
 	var count int
 
-	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableOneTimeCode)); err != nil {
+	if err = conn.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableOneTimeCode)); err != nil {
 		return err
 	}
 
@@ -188,7 +191,7 @@ func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProv
 
 	configs := make([]encOneTimeCode, 0, count)
 
-	if err = tx.SelectContext(ctx, &configs, fmt.Sprintf(queryFmtSelectOTCEncryptedData, tableOneTimeCode)); err != nil {
+	if err = conn.SelectContext(ctx, &configs, fmt.Sprintf(queryFmtSelectOTCEncryptedData, tableOneTimeCode)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
@@ -198,16 +201,26 @@ func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProv
 
 	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateOTCEncryptedData, tableOneTimeCode))
 
+	var decryptAAD, encryptAAD []byte
+
+	if useDecryptAAD {
+		decryptAAD = getAAD(tableOneTimeCode, columnCode)
+	}
+
+	if useEncryptAAD {
+		encryptAAD = getAAD(tableOneTimeCode, columnCode)
+	}
+
 	for _, c := range configs {
-		if c.Code, err = provider.decrypt(c.Code); err != nil {
+		if c.Code, err = utils.Decrypt(c.Code, decryptAAD, provider.keys.encryption); err != nil {
 			return fmt.Errorf("error decrypting one-time code with id '%d': %w", c.ID, err)
 		}
 
-		if c.Code, err = utils.Encrypt(c.Code, &key); err != nil {
+		if c.Code, err = utils.Encrypt(c.Code, encryptAAD, key); err != nil {
 			return fmt.Errorf("error encrypting one-time code with id '%d': %w", c.ID, err)
 		}
 
-		if _, err = tx.ExecContext(ctx, query, c.Code, c.ID); err != nil {
+		if _, err = conn.ExecContext(ctx, query, c.Code, c.ID); err != nil {
 			return fmt.Errorf("error updating one-time code with id '%d': %w", c.ID, err)
 		}
 	}
@@ -215,10 +228,10 @@ func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProv
 	return nil
 }
 
-func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init, useDecryptAAD, useEncryptAAD bool, key []byte) (err error) {
 	var count int
 
-	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableTOTPConfigurations)); err != nil {
+	if err = conn.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableTOTPConfigurations)); err != nil {
 		return err
 	}
 
@@ -228,7 +241,7 @@ func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, t
 
 	configs := make([]encTOTPConfiguration, 0, count)
 
-	if err = tx.SelectContext(ctx, &configs, fmt.Sprintf(queryFmtSelectTOTPConfigurationsEncryptedData, tableTOTPConfigurations)); err != nil {
+	if err = conn.SelectContext(ctx, &configs, fmt.Sprintf(queryFmtSelectTOTPConfigurationsEncryptedData, tableTOTPConfigurations)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
@@ -238,16 +251,26 @@ func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, t
 
 	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateTOTPConfigurationEncryptedData, tableTOTPConfigurations))
 
+	var decryptAAD, encryptAAD []byte
+
+	if useDecryptAAD {
+		decryptAAD = getAAD(tableTOTPConfigurations, columnSecret)
+	}
+
+	if useEncryptAAD {
+		encryptAAD = getAAD(tableTOTPConfigurations, columnSecret)
+	}
+
 	for _, c := range configs {
-		if c.Secret, err = provider.decrypt(c.Secret); err != nil {
+		if c.Secret, err = utils.Decrypt(c.Secret, decryptAAD, provider.keys.encryption); err != nil {
 			return fmt.Errorf("error decrypting TOTP configuration secret with id '%d': %w", c.ID, err)
 		}
 
-		if c.Secret, err = utils.Encrypt(c.Secret, &key); err != nil {
+		if c.Secret, err = utils.Encrypt(c.Secret, encryptAAD, key); err != nil {
 			return fmt.Errorf("error encrypting TOTP configuration secret with id '%d': %w", c.ID, err)
 		}
 
-		if _, err = tx.ExecContext(ctx, query, c.Secret, c.ID); err != nil {
+		if _, err = conn.ExecContext(ctx, query, c.Secret, c.ID); err != nil {
 			return fmt.Errorf("error updating TOTP configuration secret with id '%d': %w", c.ID, err)
 		}
 	}
@@ -255,10 +278,10 @@ func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, t
 	return nil
 }
 
-func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init, useDecryptAAD, useEncryptAAD bool, key []byte) (err error) {
 	var count int
 
-	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableWebAuthnCredentials)); err != nil {
+	if err = conn.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableWebAuthnCredentials)); err != nil {
 		return err
 	}
 
@@ -268,7 +291,7 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 
 	credentials := make([]encWebAuthnCredential, 0, count)
 
-	if err = tx.SelectContext(ctx, &credentials, fmt.Sprintf(queryFmtSelectWebAuthnCredentialsEncryptedData, tableWebAuthnCredentials)); err != nil {
+	if err = conn.SelectContext(ctx, &credentials, fmt.Sprintf(queryFmtSelectWebAuthnCredentialsEncryptedData, tableWebAuthnCredentials)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
@@ -278,26 +301,38 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 
 	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateWebAuthnCredentialsEncryptedData, tableWebAuthnCredentials))
 
+	var publickeyDecryptAAD, publickeyEncryptAAD, attestationDecryptAAD, attestationEncryptAAD []byte
+
 	for _, d := range credentials {
-		if d.PublicKey, err = provider.decrypt(d.PublicKey); err != nil {
+		if useDecryptAAD {
+			publickeyDecryptAAD = getIssuerAAD(tableWebAuthnCredentials, "public_key", d.RPID)
+			attestationDecryptAAD = getIssuerAAD(tableWebAuthnCredentials, "attestation", d.RPID)
+		}
+
+		if useEncryptAAD {
+			publickeyEncryptAAD = getIssuerAAD(tableWebAuthnCredentials, "public_key", d.RPID)
+			attestationEncryptAAD = getIssuerAAD(tableWebAuthnCredentials, "attestation", d.RPID)
+		}
+
+		if d.PublicKey, err = utils.Decrypt(d.PublicKey, publickeyDecryptAAD, provider.keys.encryption); err != nil {
 			return fmt.Errorf("error decrypting WebAuthn credential public key with id '%d': %w", d.ID, err)
 		}
 
-		if d.PublicKey, err = utils.Encrypt(d.PublicKey, &key); err != nil {
+		if d.PublicKey, err = utils.Encrypt(d.PublicKey, publickeyEncryptAAD, key); err != nil {
 			return fmt.Errorf("error encrypting WebAuthn credential public key with id '%d': %w", d.ID, err)
 		}
 
 		if d.Attestation != nil {
-			if d.Attestation, err = provider.decrypt(d.Attestation); err != nil {
+			if d.Attestation, err = utils.Decrypt(d.Attestation, attestationDecryptAAD, provider.keys.encryption); err != nil {
 				return fmt.Errorf("error decrypting WebAuthn credential attestation with id '%d': %w", d.ID, err)
 			}
 
-			if d.Attestation, err = utils.Encrypt(d.Attestation, &key); err != nil {
+			if d.Attestation, err = utils.Encrypt(d.Attestation, attestationEncryptAAD, key); err != nil {
 				return fmt.Errorf("error encrypting WebAuthn credential attestation with id '%d': %w", d.ID, err)
 			}
 		}
 
-		if _, err = tx.ExecContext(ctx, query, d.PublicKey, d.Attestation, d.ID); err != nil {
+		if _, err = conn.ExecContext(ctx, query, d.PublicKey, d.Attestation, d.ID); err != nil {
 			return fmt.Errorf("error updating WebAuthn credential encrypted columns with id '%d': %w", d.ID, err)
 		}
 	}
@@ -305,10 +340,10 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 	return nil
 }
 
-func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init, useDecryptAAD, useEncryptAAD bool, key []byte) (err error) {
 	var caches []encCachedData
 
-	if err = tx.SelectContext(ctx, &caches, tx.Rebind(fmt.Sprintf(queryFmtSelectCachedDataValueEncrypted, tableCachedData)), true); err != nil {
+	if err = conn.SelectContext(ctx, &caches, conn.Rebind(fmt.Sprintf(queryFmtSelectCachedDataValueEncrypted, tableCachedData)), true); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
@@ -318,20 +353,30 @@ func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvi
 
 	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateCachedDataEncryptedData, tableCachedData))
 
+	var decryptAAD, encryptAAD []byte
+
+	if useDecryptAAD {
+		decryptAAD = getAAD(tableCachedData, columnValue)
+	}
+
+	if useEncryptAAD {
+		encryptAAD = getAAD(tableCachedData, columnValue)
+	}
+
 	for _, d := range caches {
 		if len(d.Value) == 0 {
 			continue
 		}
 
-		if d.Value, err = provider.decrypt(d.Value); err != nil {
+		if d.Value, err = utils.Decrypt(d.Value, decryptAAD, provider.keys.encryption); err != nil {
 			return fmt.Errorf("error decrypting cached data value id '%d': %w", d.ID, err)
 		}
 
-		if d.Value, err = utils.Encrypt(d.Value, &key); err != nil {
+		if d.Value, err = utils.Encrypt(d.Value, encryptAAD, key); err != nil {
 			return fmt.Errorf("error encrypting cached data value id '%d': %w", d.ID, err)
 		}
 
-		if _, err = tx.ExecContext(ctx, query, d.Value, d.ID); err != nil {
+		if _, err = conn.ExecContext(ctx, query, d.Value, d.ID); err != nil {
 			return fmt.Errorf("error updating cached data encrypted columns with id '%d': %w", d.ID, err)
 		}
 	}
@@ -340,10 +385,10 @@ func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvi
 }
 
 func schemaEncryptionChangeKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType) EncryptionChangeKeyFunc {
-	return func(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+	return func(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init, useDecryptAAD, useEncryptAAD bool, key []byte) (err error) {
 		var count int
 
-		if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, typeOAuth2Session.Table())); err != nil {
+		if err = conn.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, typeOAuth2Session.Table())); err != nil {
 			return err
 		}
 
@@ -353,22 +398,32 @@ func schemaEncryptionChangeKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType)
 
 		sessions := make([]encOAuth2Session, 0, count)
 
-		if err = tx.SelectContext(ctx, &sessions, fmt.Sprintf(queryFmtSelectOAuth2SessionEncryptedData, typeOAuth2Session.Table())); err != nil {
+		if err = conn.SelectContext(ctx, &sessions, fmt.Sprintf(queryFmtSelectOAuth2SessionEncryptedData, typeOAuth2Session.Table())); err != nil {
 			return fmt.Errorf("error selecting oauth2 %s sessions: %w", typeOAuth2Session.String(), err)
 		}
 
 		query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionEncryptedData, typeOAuth2Session.Table()))
 
+		var decryptAAD, encryptAAD []byte
+
+		if useDecryptAAD {
+			decryptAAD = getAAD(typeOAuth2Session.AAD(), columnSessionData)
+		}
+
+		if useEncryptAAD {
+			encryptAAD = getAAD(typeOAuth2Session.AAD(), columnSessionData)
+		}
+
 		for _, s := range sessions {
-			if s.Session, err = provider.decrypt(s.Session); err != nil {
+			if s.Session, err = utils.Decrypt(s.Session, decryptAAD, provider.keys.encryption); err != nil {
 				return fmt.Errorf("error decrypting oauth2 %s session data with id '%d': %w", typeOAuth2Session.String(), s.ID, err)
 			}
 
-			if s.Session, err = utils.Encrypt(s.Session, &key); err != nil {
+			if s.Session, err = utils.Encrypt(s.Session, encryptAAD, key); err != nil {
 				return fmt.Errorf("error encrypting oauth2 %s session data with id '%d': %w", typeOAuth2Session.String(), s.ID, err)
 			}
 
-			if _, err = tx.ExecContext(ctx, query, s.Session, s.ID); err != nil {
+			if _, err = conn.ExecContext(ctx, query, s.Session, s.ID); err != nil {
 				return fmt.Errorf("error updating oauth2 %s session data with id '%d': %w", typeOAuth2Session.String(), s.ID, err)
 			}
 		}
@@ -377,10 +432,10 @@ func schemaEncryptionChangeKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType)
 	}
 }
 
-func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init, useDecryptAAD, useEncryptAAD bool, key []byte) (err error) {
 	var count int
 
-	if err = tx.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableEncryption)); err != nil {
+	if err = conn.GetContext(ctx, &count, fmt.Sprintf(queryFmtSelectRowCount, tableEncryption)); err != nil {
 		return err
 	}
 
@@ -390,7 +445,7 @@ func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvi
 
 	configs := make([]encEncryption, 0, count)
 
-	if err = tx.SelectContext(ctx, &configs, fmt.Sprintf(queryFmtSelectEncryptionEncryptedData, tableEncryption)); err != nil {
+	if err = conn.SelectContext(ctx, &configs, fmt.Sprintf(queryFmtSelectEncryptionEncryptedData, tableEncryption)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
@@ -400,16 +455,26 @@ func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvi
 
 	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateEncryptionEncryptedData, tableEncryption))
 
+	var decryptAAD, encryptAAD []byte
+
+	if useDecryptAAD || init {
+		decryptAAD = getAAD(tableEncryption, columnValue)
+	}
+
+	if useEncryptAAD {
+		encryptAAD = getAAD(tableEncryption, columnValue)
+	}
+
 	for _, c := range configs {
-		if c.Value, err = provider.decrypt(c.Value); err != nil {
+		if c.Value, err = utils.Decrypt(c.Value, decryptAAD, provider.keys.encryption); err != nil {
 			return fmt.Errorf("error decrypting encryption value with id '%d': %w", c.ID, err)
 		}
 
-		if c.Value, err = utils.Encrypt(c.Value, &key); err != nil {
+		if c.Value, err = utils.Encrypt(c.Value, encryptAAD, key); err != nil {
 			return fmt.Errorf("error encrypting encryption value with id '%d': %w", c.ID, err)
 		}
 
-		if _, err = tx.ExecContext(ctx, query, c.Value, c.ID); err != nil {
+		if _, err = conn.ExecContext(ctx, query, c.Value, c.ID); err != nil {
 			return fmt.Errorf("error updating encryption value with id '%d': %w", c.ID, err)
 		}
 	}
@@ -437,7 +502,7 @@ func schemaEncryptionCheckKeyOneTimeCode(ctx context.Context, provider *SQLProvi
 			return tableOneTimeCode, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning one time-code to struct: %w", err)}
 		}
 
-		if _, err = provider.decrypt(config.Code); err != nil {
+		if _, err = utils.Decrypt(config.Code, getAAD(tableOneTimeCode, columnCode), provider.keys.encryption); err != nil {
 			result.Invalid++
 		}
 	}
@@ -467,7 +532,7 @@ func schemaEncryptionCheckKeyTOTP(ctx context.Context, provider *SQLProvider) (t
 			return tableTOTPConfigurations, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning TOTP configuration to struct: %w", err)}
 		}
 
-		if _, err = provider.decrypt(config.Secret); err != nil {
+		if _, err = utils.Decrypt(config.Secret, getAAD(tableTOTPConfigurations, columnSecret), provider.keys.encryption); err != nil {
 			result.Invalid++
 		}
 	}
@@ -497,10 +562,10 @@ func schemaEncryptionCheckKeyWebAuthn(ctx context.Context, provider *SQLProvider
 			return tableWebAuthnCredentials, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning WebAuthn credential to struct: %w", err)}
 		}
 
-		if _, err = provider.decrypt(credential.PublicKey); err != nil {
+		if _, err = utils.Decrypt(credential.PublicKey, getIssuerAAD(tableWebAuthnCredentials, "public_key", credential.RPID), provider.keys.encryption); err != nil {
 			result.Invalid++
 		} else if credential.Attestation != nil {
-			if _, err = provider.decrypt(credential.Attestation); err != nil {
+			if _, err = utils.Decrypt(credential.Attestation, getIssuerAAD(tableWebAuthnCredentials, "attestation", credential.RPID), provider.keys.encryption); err != nil {
 				result.Invalid++
 			}
 		}
@@ -531,7 +596,7 @@ func schemaEncryptionCheckKeyCachedData(ctx context.Context, provider *SQLProvid
 			return tableCachedData, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning cached data to struct: %w", err)}
 		}
 
-		if _, err = provider.decrypt(cache.Value); err != nil {
+		if _, err = utils.Decrypt(cache.Value, getAAD(tableCachedData, columnValue), provider.keys.encryption); err != nil {
 			result.Invalid++
 		}
 	}
@@ -562,7 +627,7 @@ func schemaEncryptionCheckKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType) 
 				return typeOAuth2Session.Table(), EncryptionValidationTableResult{Error: fmt.Errorf("error scanning oauth2 %s session to struct: %w", typeOAuth2Session.String(), err)}
 			}
 
-			if _, err = provider.decrypt(session.Session); err != nil {
+			if _, err = utils.Decrypt(session.Session, getAAD(typeOAuth2Session.AAD(), columnSessionData), provider.keys.encryption); err != nil {
 				result.Invalid++
 			}
 		}
@@ -593,7 +658,7 @@ func schemaEncryptionCheckKeyEncryption(ctx context.Context, provider *SQLProvid
 			return tableEncryption, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning encryption value to struct: %w", err)}
 		}
 
-		if _, err = provider.decrypt(config.Value); err != nil {
+		if _, err = utils.Decrypt(config.Value, getAAD(tableEncryption, columnValue), provider.keys.encryption); err != nil {
 			result.Invalid++
 		}
 	}
@@ -601,14 +666,6 @@ func schemaEncryptionCheckKeyEncryption(ctx context.Context, provider *SQLProvid
 	_ = rows.Close()
 
 	return tableEncryption, result
-}
-
-func (p *SQLProvider) encrypt(clearText []byte) (cipherText []byte, err error) {
-	return utils.Encrypt(clearText, &p.keys.encryption)
-}
-
-func (p *SQLProvider) decrypt(cipherText []byte) (clearText []byte, err error) {
-	return utils.Decrypt(cipherText, &p.keys.encryption)
 }
 
 func (p *SQLProvider) otcHMACSignature(values ...[]byte) string {
@@ -632,11 +689,11 @@ func (p *SQLProvider) otpHMACSignature(values ...[]byte) string {
 }
 
 func (p *SQLProvider) getHMACOneTimeCode(ctx context.Context) (key []byte, err error) {
-	return p.getHMACKey(ctx, "otc", sha512.BlockSize)
+	return p.getHMACKey(ctx, hmacNameOneTimeCode, sha512.BlockSize)
 }
 
 func (p *SQLProvider) getHMACOneTimePassword(ctx context.Context) (key []byte, err error) {
-	return p.getHMACKey(ctx, "otp", sha256.BlockSize)
+	return p.getHMACKey(ctx, hmacNameOneTimePassword, sha256.BlockSize)
 }
 
 func (p *SQLProvider) setCrypographyKey(ctx context.Context, conn SQLXConnection, typ string, name string, size int) (key []byte, err error) {
@@ -676,19 +733,46 @@ func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (ke
 	return key, nil
 }
 
+// checkEncryptionCheckValue reads and decrypts the encryption check value using the key and AAD appropriate for the
+// provided schema version. Databases created before HKDF key derivation and GCM AAD were introduced
+// (schemaVersionEncryptionKeyDerivation) store the value using the legacy SHA256 key without AAD, so validating them
+// with the derived key would incorrectly fail prior to the upgrade migration running.
+func (p *SQLProvider) checkEncryptionCheckValue(ctx context.Context, version int) (err error) {
+	key, aad := p.keys.encryption, getAAD(tableEncryption, columnValue)
+
+	if version < schemaVersionEncryptionKeyDerivation {
+		key, aad = utils.DeriveLegacyCryptographicKey([]byte(p.config.Storage.EncryptionKey)), nil
+	}
+
+	var encryptedValue []byte
+
+	if err = p.db.GetContext(ctx, &encryptedValue, p.sqlSelectEncryptionValue, encryptionNameCheck); err != nil {
+		return err
+	}
+
+	if _, err = utils.Decrypt(encryptedValue, aad, key); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *SQLProvider) getEncryptionValue(ctx context.Context, name string) (value []byte, err error) {
 	var encryptedValue []byte
 
-	err = p.db.GetContext(ctx, &encryptedValue, p.sqlSelectEncryptionValue, name)
-	if err != nil {
+	if err = p.db.GetContext(ctx, &encryptedValue, p.sqlSelectEncryptionValue, name); err != nil {
 		return nil, err
 	}
 
-	return p.decrypt(encryptedValue)
+	if value, err = utils.Decrypt(encryptedValue, getAAD(tableEncryption, columnValue), p.keys.encryption); err != nil {
+		return nil, err
+	}
+
+	return value, nil
 }
 
 func (p *SQLProvider) setEncryptionValue(ctx context.Context, conn SQLXConnection, name string, value []byte) (err error) {
-	if value, err = p.encrypt(value); err != nil {
+	if value, err = utils.Encrypt(value, getAAD(tableEncryption, columnValue), p.keys.encryption); err != nil {
 		return err
 	}
 
@@ -699,13 +783,13 @@ func (p *SQLProvider) setEncryptionValue(ctx context.Context, conn SQLXConnectio
 	return nil
 }
 
-func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, conn SQLXConnection, key *[32]byte) (err error) {
+func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, conn SQLXConnection, key []byte) (err error) {
 	valueClearText, err := uuid.NewRandom()
 	if err != nil {
 		return err
 	}
 
-	value, err := utils.Encrypt([]byte(valueClearText.String()), key)
+	value, err := utils.Encrypt([]byte(valueClearText.String()), getAAD(tableEncryption, columnValue), key)
 	if err != nil {
 		return err
 	}
@@ -713,4 +797,13 @@ func (p *SQLProvider) setNewEncryptionCheckValue(ctx context.Context, conn SQLXC
 	_, err = conn.ExecContext(ctx, p.sqlUpsertEncryptionValue, encryptionNameCheck, value)
 
 	return err
+}
+
+func getAAD(table, column string) []byte {
+	return []byte(fmt.Sprintf("authelia:storage:%s:%s", table, column))
+}
+
+//nolint:unparam
+func getIssuerAAD(table, column, issuer string) []byte {
+	return []byte(fmt.Sprintf("authelia:storage:%s:%s:%s", table, issuer, column))
 }

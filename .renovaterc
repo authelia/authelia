@@ -78,7 +78,8 @@
       ],
       "addLabels": [
         "javascript"
-      ]
+      ],
+      "minimumReleaseAge": "1 day"
     }
   ],
   "postUpdateOptions": [
