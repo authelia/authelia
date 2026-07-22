@@ -82,8 +82,8 @@ importers:
         specifier: 11.0.1
         version: 11.0.1(postcss@8.5.20)
       prettier:
-        specifier: 3.9.5
-        version: 3.9.5
+        specifier: 3.9.6
+        version: 3.9.6
       vite:
         specifier: 8.1.5
         version: 8.1.5(yaml@2.9.0)
@@ -1521,8 +1521,8 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
-  prettier@3.9.5:
-    resolution: {integrity: sha512-/FVl766LpUfB5vXgCYOYa0MeV/441Ia99AeICQIQFTY/Nw0roZwULcXpku5i1/m5kt/baz+s4Zogspd839HSMg==}
+  prettier@3.9.6:
+    resolution: {integrity: sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3404,7 +3404,7 @@ snapshots:
 
   prettier@2.8.8: {}
 
-  prettier@3.9.5: {}
+  prettier@3.9.6: {}
 
   pretty-hrtime@1.0.3: {}
 
