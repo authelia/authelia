@@ -41,16 +41,17 @@ This section describes the individual configuration options.
 
 {{< confkey type="string" required="yes" secret="yes" >}}
 
-The encryption key used to encrypt data in the database. We encrypt data by creating a sha256 checksum of the provided
-value, and use that to encrypt the data with the AES-GCM 256bit algorithm.
+The encryption key used to encrypt data in the database.
 
-The minimum length of this key is 20 characters.
+While the minimum length is 20 characters, it's __strongly recommended__ this is a
+[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string)
+with 64 or more characters.
 
-It's __strongly recommended__ this is a
-[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
-characters.
+The key is used to perform application level column specific encryption and decryption of data on sensitive values
+within the database.
 
-See [security measures](../../overview/security/measures.md#storage-security-measures) for more information.
+See [security measures](../../overview/security/measures.md#protection-against-storage-exfiltration-and-manipulation)
+for more information.
 
 ### postgres
 

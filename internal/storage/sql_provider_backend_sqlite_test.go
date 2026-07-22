@@ -19,6 +19,7 @@ func TestNewSQLiteProvider(t *testing.T) {
 			"ShouldHandleBasic",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					Local: &schema.StorageLocal{
 						Path: filepath.Join(dir, "sqlite1.db"),
 					},
@@ -29,7 +30,10 @@ func TestNewSQLiteProvider(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.NotNil(t, NewSQLiteProvider(tc.have))
+			provider, err := NewSQLiteProvider(tc.have)
+
+			assert.NoError(t, err)
+			assert.NotNil(t, provider)
 		})
 	}
 }

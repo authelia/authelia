@@ -27,8 +27,8 @@ importers:
         specifier: 4.6.3
         version: 4.6.3
       '@tabler/icons':
-        specifier: 3.44.0
-        version: 3.44.0
+        specifier: 3.45.0
+        version: 3.45.0
       '@thulite/core':
         specifier: 1.5.9
         version: 1.5.9
@@ -59,10 +59,10 @@ importers:
         version: 2.31.1
       '@fullhuman/postcss-purgecss':
         specifier: 8.0.0
-        version: 8.0.0(postcss@8.5.19)
+        version: 8.0.0(postcss@8.5.21)
       autoprefixer:
         specifier: 10.5.4
-        version: 10.5.4(postcss@8.5.19)
+        version: 10.5.4(postcss@8.5.21)
       basiclightbox:
         specifier: 5.0.4
         version: 5.0.4
@@ -76,11 +76,11 @@ importers:
         specifier: 0.8.212
         version: 0.8.212
       postcss:
-        specifier: 8.5.19
-        version: 8.5.19
+        specifier: 8.5.21
+        version: 8.5.21
       postcss-cli:
         specifier: 11.0.1
-        version: 11.0.1(postcss@8.5.19)
+        version: 11.0.1(postcss@8.5.21)
       prettier:
         specifier: 3.9.5
         version: 3.9.5
@@ -843,8 +843,8 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@tabler/icons@3.44.0':
-    resolution: {integrity: sha512-Wn0AOZG9sg0L+bjfMqq4eNhC6pQjIrk94LvvWYNYkY8KH8wC3YILRzQlrnVJc4FUeMxH/AK97QsYCX35H3LndA==}
+  '@tabler/icons@3.45.0':
+    resolution: {integrity: sha512-jiATwV8+zGYLTZ7gMLGivCic+KtsMZXcDmufIG8umlLxoHhI6902hGYIEt0Oa9Y9SXblNzUlrisHm5jOFMxOQA==}
 
   '@thulite/bootstrap@1.2.3':
     resolution: {integrity: sha512-230kXC1QwBESDP2ye7hlfVs6OHvLFKxlb9NJxjTLzMnE5cDGTjR3Tf+2PQftVERBmItpgXTL559ZE3zo6CKZSw==}
@@ -1388,8 +1388,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  nanoid@3.3.12:
-    resolution: {integrity: sha512-ZB9RH/39qpq5Vu6Y+NmUaFhQR6pp+M2Xt76XBnEwDaGcVAqhlvxrl3B2bKS5D3NH3QR76v3aSrKaF/Kiy7lEtQ==}
+  nanoid@3.3.16:
+    resolution: {integrity: sha512-bzlKTyNJ7+LdGIIwy8ijFpIqEQIvafahV7eYykJ8Cvh42EdJeODoJ6gUJXpQJvej1BddH8OqTXZNE/KfbWAu8Q==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -1512,8 +1512,8 @@ packages:
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
-  postcss@8.5.19:
-    resolution: {integrity: sha512-Mz8SaolMd8nB+G13WkORcxQKHZ/NE4xXevtkJHVuG+guo9/wYKlIMTKAqGdEmYOXR2ijPjTYNHssizdaVSUNdQ==}
+  postcss@8.5.21:
+    resolution: {integrity: sha512-v4sDNP3fdNiWMfabO7OwOQdOX8TiQSztKyT1Wj0w+j7LDallJThJRBBBmzVGyYj0crMh7jlV4zepPkiNu9UwDQ==}
     engines: {node: ^10 || ^12 || >=14}
 
   prettier@2.8.8:
@@ -2682,9 +2682,9 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@fullhuman/postcss-purgecss@8.0.0(postcss@8.5.19)':
+  '@fullhuman/postcss-purgecss@8.0.0(postcss@8.5.21)':
     dependencies:
-      postcss: 8.5.19
+      postcss: 8.5.21
       purgecss: 8.0.0
 
   '@inquirer/external-editor@1.0.3':
@@ -2809,7 +2809,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@tabler/icons@3.44.0': {}
+  '@tabler/icons@3.45.0': {}
 
   '@thulite/bootstrap@1.2.3':
     dependencies:
@@ -2821,12 +2821,12 @@ snapshots:
       '@babel/cli': 7.29.7(@babel/core@7.29.7)
       '@babel/core': 7.29.7
       '@babel/preset-env': 7.29.7(@babel/core@7.29.7)
-      '@fullhuman/postcss-purgecss': 8.0.0(postcss@8.5.19)
-      autoprefixer: 10.5.4(postcss@8.5.19)
+      '@fullhuman/postcss-purgecss': 8.0.0(postcss@8.5.21)
+      autoprefixer: 10.5.4(postcss@8.5.21)
       lazysizes: 5.3.2
       modern-css-reset: 1.4.0
-      postcss: 8.5.19
-      postcss-cli: 11.0.1(postcss@8.5.19)
+      postcss: 8.5.21
+      postcss-cli: 11.0.1(postcss@8.5.21)
       quicklink: 3.0.1
     transitivePeerDependencies:
       - jiti
@@ -2875,13 +2875,13 @@ snapshots:
 
   array-union@2.1.0: {}
 
-  autoprefixer@10.5.4(postcss@8.5.19):
+  autoprefixer@10.5.4(postcss@8.5.21):
     dependencies:
       browserslist: 4.28.6
       caniuse-lite: 1.0.30001806
       fraction.js: 5.3.4
       picocolors: 1.1.1
-      postcss: 8.5.19
+      postcss: 8.5.21
       postcss-value-parser: 4.2.0
 
   babel-plugin-polyfill-corejs2@0.4.17(@babel/core@7.29.7):
@@ -3302,7 +3302,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  nanoid@3.3.12: {}
+  nanoid@3.3.16: {}
 
   node-fetch@2.7.0:
     dependencies:
@@ -3358,15 +3358,15 @@ snapshots:
 
   pify@4.0.1: {}
 
-  postcss-cli@11.0.1(postcss@8.5.19):
+  postcss-cli@11.0.1(postcss@8.5.21):
     dependencies:
       chokidar: 3.6.0
       dependency-graph: 1.0.0
       fs-extra: 11.3.5
       picocolors: 1.1.1
-      postcss: 8.5.19
-      postcss-load-config: 5.1.0(postcss@8.5.19)
-      postcss-reporter: 7.1.0(postcss@8.5.19)
+      postcss: 8.5.21
+      postcss-load-config: 5.1.0(postcss@8.5.21)
+      postcss-reporter: 7.1.0(postcss@8.5.21)
       pretty-hrtime: 1.0.3
       read-cache: 1.0.0
       slash: 5.1.0
@@ -3376,17 +3376,17 @@ snapshots:
       - jiti
       - tsx
 
-  postcss-load-config@5.1.0(postcss@8.5.19):
+  postcss-load-config@5.1.0(postcss@8.5.21):
     dependencies:
       lilconfig: 3.1.3
       yaml: 2.9.0
     optionalDependencies:
-      postcss: 8.5.19
+      postcss: 8.5.21
 
-  postcss-reporter@7.1.0(postcss@8.5.19):
+  postcss-reporter@7.1.0(postcss@8.5.21):
     dependencies:
       picocolors: 1.1.1
-      postcss: 8.5.19
+      postcss: 8.5.21
       thenby: 1.4.1
 
   postcss-selector-parser@7.1.4:
@@ -3396,9 +3396,9 @@ snapshots:
 
   postcss-value-parser@4.2.0: {}
 
-  postcss@8.5.19:
+  postcss@8.5.21:
     dependencies:
-      nanoid: 3.3.12
+      nanoid: 3.3.16
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
@@ -3412,7 +3412,7 @@ snapshots:
     dependencies:
       commander: 12.1.0
       fast-glob: 3.3.3
-      postcss: 8.5.19
+      postcss: 8.5.21
       postcss-selector-parser: 7.1.4
 
   quansync@0.2.11: {}
@@ -3619,7 +3619,7 @@ snapshots:
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.5
-      postcss: 8.5.19
+      postcss: 8.5.21
       rolldown: 1.1.5
       tinyglobby: 0.2.17
     optionalDependencies:

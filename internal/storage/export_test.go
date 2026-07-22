@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // CtxKeyConnection is the exported context key for stashing a SQLXConnection used by tests in storage_test.
@@ -13,17 +14,32 @@ var CtxKeyConnection = ctxKeyConnection
 // CtxKeyTransaction is the exported context key for stashing a SQLXTx used by tests in storage_test.
 var CtxKeyTransaction = ctxKeyTransaction
 
-// ProviderSQLite is the exported provider name used by tests in storage_test.
-const ProviderSQLite = providerSQLite
-
 // NewSQLProviderForTesting constructs an SQLProvider with the supplied db and a deterministic encryption key.
 func NewSQLProviderForTesting(db SQLXDB) *SQLProvider {
+	key, err := utils.DeriveCryptographicKey([]byte("test-encryption-key"), hkdfKeyInfo, sha256.New)
+	if err != nil {
+		panic(err)
+	}
+
 	return &SQLProvider{
 		db:   db,
 		name: providerSQLite,
 		log:  logging.Logger(),
 		keys: SQLProviderKeys{
-			encryption: sha256.Sum256([]byte("test-encryption-key")),
+			encryption: key,
+		},
+	}
+}
+
+// NewSQLProviderForTestingWithKey constructs an SQLProvider with the supplied db and encryption key. It's used by
+// tests that need to exercise the encryption failure paths by supplying an invalid key.
+func NewSQLProviderForTestingWithKey(db SQLXDB, key []byte) *SQLProvider {
+	return &SQLProvider{
+		db:   db,
+		name: providerSQLite,
+		log:  logging.Logger(),
+		keys: SQLProviderKeys{
+			encryption: key,
 		},
 	}
 }
@@ -33,13 +49,7 @@ func (p *SQLProvider) Conn(ctx context.Context) SQLXConnection {
 	return p.conn(ctx)
 }
 
-// WithOpenErr sets the errOpen field on the SQLProvider for tests in storage_test.
-func (p *SQLProvider) WithOpenErr(err error) *SQLProvider {
-	p.errOpen = err
-	return p
-}
-
 // Encrypt exposes (*SQLProvider).encrypt for tests in storage_test.
-func (p *SQLProvider) Encrypt(clearText []byte) ([]byte, error) {
-	return p.encrypt(clearText)
+func (p *SQLProvider) Encrypt(clearText, aad []byte) ([]byte, error) {
+	return utils.Encrypt(clearText, aad, p.keys.encryption)
 }

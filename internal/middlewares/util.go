@@ -37,7 +37,20 @@ func SetContentTypeTextPlain(ctx *fasthttp.RequestCtx) {
 func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (providers Providers, warns, errs []error) {
 	providers = NewProvidersBasic()
 
-	providers.StorageProvider = storage.NewProvider(config, caCertPool)
+	var err error
+
+	if providers.StorageProvider, err = storage.NewProvider(config, caCertPool); err != nil {
+		errs = append(errs, err)
+	}
+
+	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath}); err != nil {
+		errs = append(errs, err)
+	}
+
+	if providers.MetaDataService, err = webauthn.NewMetaDataProvider(config, providers.StorageProvider); err != nil {
+		errs = append(errs, err)
+	}
+
 	providers.Authorizer = authorization.NewAuthorizer(config)
 	providers.NTP = ntp.NewProvider(&config.NTP)
 	providers.PasswordPolicy = NewPasswordPolicyProvider(config.PasswordPolicy)
@@ -46,15 +59,6 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
 	providers.UserAttributeResolver = expression.NewUserAttributes(config)
 	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
-
-	var err error
-	if providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: config.Notifier.TemplatePath}); err != nil {
-		errs = append(errs, err)
-	}
-
-	if providers.MetaDataService, err = webauthn.NewMetaDataProvider(config, providers.StorageProvider); err != nil {
-		errs = append(errs, err)
-	}
 
 	switch {
 	case config.Notifier.SMTP != nil:

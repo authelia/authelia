@@ -24,9 +24,15 @@ type PostgreSQLProvider struct {
 }
 
 // NewPostgreSQLProvider a PostgreSQL provider.
-func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *PostgreSQLProvider) {
+func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *PostgreSQLProvider, err error) {
+	var p SQLProvider
+
+	if p, err = NewSQLProvider(config, providerPostgres, "pgx", dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)); err != nil {
+		return nil, err
+	}
+
 	provider = &PostgreSQLProvider{
-		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)),
+		SQLProvider: p,
 	}
 
 	// All providers have differing SELECT existing table statements.
@@ -178,7 +184,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 
-	return provider
+	return provider, nil
 }
 
 func dsnPostgreSQL(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (dsn string) {
