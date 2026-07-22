@@ -11,7 +11,7 @@ overrides:
   js-yaml: 5.2.1
   picomatch: 4.0.5
   semver: 7.8.5
-  tar: 7.5.20
+  tar: 7.5.21
   vite: 8.1.5
   yaml: 2.9.0
   yauzl: 3.4.0
@@ -1671,8 +1671,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  tar@7.5.20:
-    resolution: {integrity: sha512-9FcyK4PA6+WbzlTM9WhQm6vB5W7cP7dUiPsv1g7YDwEQnQ1CGpK3MGlKk/ITVWMk05kHZuBhmVhiv8LZoy/PFQ==}
+  tar@7.5.21:
+    resolution: {integrity: sha512-XdhtCvlMywwxpCW8YEq3lOXBJpUPTR2OHHcwLPO3HwsJqOHa2Ok/oJ7ruGzp+JrKoRPVCzJwAdEjqLW/vNRPHA==}
     engines: {node: '>=18'}
 
   term-size@2.2.1:
@@ -3143,7 +3143,7 @@ snapshots:
   hugo-extended@0.164.0:
     dependencies:
       adm-zip: 0.5.17
-      tar: 7.5.20
+      tar: 7.5.21
     optional: true
 
   human-id@4.2.0: {}
@@ -3545,7 +3545,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  tar@7.5.20:
+  tar@7.5.21:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
