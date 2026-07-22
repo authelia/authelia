@@ -18,7 +18,7 @@ overrides:
   nanoid: 6.0.0
   next: 16.2.10
   picomatch: 4.0.5
-  postcss: 8.5.20
+  postcss: 8.5.21
   prismjs: 1.30.0
   rollup: 4.62.2
   sharp: 0.35.3
