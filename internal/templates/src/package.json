@@ -10,7 +10,7 @@
   "author": "Authelia",
   "license": "Apache-2.0",
   "dependencies": {
-    "react": "19.2.7",
+    "react": "19.2.8",
     "react-dom": "19.2.7",
     "react-email": "6.9.0",
     "tailwind-merge": "3.6.0",
