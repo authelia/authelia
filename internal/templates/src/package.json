@@ -11,7 +11,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "react": "19.2.7",
-    "react-dom": "19.2.7",
+    "react-dom": "19.2.8",
     "react-email": "6.9.0",
     "tailwind-merge": "3.6.0",
     "tailwindcss": "4.3.3",
