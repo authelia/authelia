@@ -1,6 +1,6 @@
 ---
 title: "Writefreely"
-description: "Integrating Writefreely with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Writefreely with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-01-25T10:04:53+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Docmost"
-description: "Integrating Docmost with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Docmost with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false

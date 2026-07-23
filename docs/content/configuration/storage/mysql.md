@@ -1,6 +1,6 @@
 ---
 title: "MySQL"
-description: "MySQL Configuration"
+description: "Configuring the Authelia MySQL and MariaDB storage provider including the server address, database name, credentials, TLS settings, and connection timeout."
 summary: "The MySQL storage provider which supports both MySQL and MariaDB."
 date: 2024-03-14T06:00:14+11:00
 draft: false

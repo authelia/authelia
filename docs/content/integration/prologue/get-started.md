@@ -1,6 +1,6 @@
 ---
 title: "Get started"
-description: "A getting started guide for Authelia."
+description: "A getting started guide for Authelia covering prerequisites, important deployment requirements, links to essential configuration sections, and initial setup."
 summary: "This document serves as a get started guide for Authelia. It contains links to various sections and has some key notes in questions frequently asked by people looking to perform setup for the first time."
 date: 2024-03-14T06:00:14+11:00
 draft: false

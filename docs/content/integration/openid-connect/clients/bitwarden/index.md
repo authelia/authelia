@@ -1,6 +1,6 @@
 ---
 title: "Bitwarden"
-description: "Integrating Bitwarden with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Bitwarden with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-04-26T18:35:57+10:00
 draft: false

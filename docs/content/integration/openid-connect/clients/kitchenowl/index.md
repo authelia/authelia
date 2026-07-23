@@ -1,6 +1,6 @@
 ---
 title: "KitchenOwl"
-description: "Integrating KitchenOwl with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating KitchenOwl with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-08-29T10:51:00+01:00
 draft: false

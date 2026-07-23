@@ -1,6 +1,6 @@
 ---
 title: "Securing Applications with Basic Auth"
-description: "Learn how to protect applications using Authelia's ForwardAuth while enabling API access through Basic Authentication and service accounts."
+description: "Learn how to protect applications using Authelia ForwardAuth while enabling programmatic API access through Basic Authentication with Traefik service accounts."
 summary: "A comprehensive guide for adding authentication to unprotected applications using Authelia and Traefik, with support for both web users and programmatic API access via service accounts."
 date: 2025-08-21T14:44:34-07:00
 draft: false

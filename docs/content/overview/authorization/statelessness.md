@@ -1,6 +1,6 @@
 ---
 title: "Statelessness"
-description: "Statelessness is the ability for a system to operate without an in-memory state. A crash could result in loss of the in-memory state causing a bad user experience."
+description: "An overview of Authelia's stateless design which avoids in-memory state to ensure a crash does not result in session loss or a degraded user experience."
 summary: "Statelessness is the ability for a system to operate without an in-memory state. A crash could result in loss of the in-memory state causing a bad user experience."
 date: 2024-03-14T06:00:14+11:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "PatchMon"
-description: "Integrating PatchMon with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating PatchMon with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2026-02-14T22:22:00+01:00
 draft: false

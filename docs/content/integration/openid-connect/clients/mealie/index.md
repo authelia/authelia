@@ -1,6 +1,6 @@
 ---
 title: "Mealie"
-description: "Integrating Mealie with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Mealie with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2024-04-13T21:01:17+10:00
 draft: false
