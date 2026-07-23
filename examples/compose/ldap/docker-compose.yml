@@ -1,0 +1,129 @@
+version: '3'
+networks:
+  net:
+    driver: bridge
+
+services:
+  authelia:
+    image: authelia/authelia:master
+    container_name: authelia
+    volumes:
+      - ./authelia:/config
+    networks:
+      - net
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.authelia.rule=Host(`authelia.example.com`)'
+      - 'traefik.http.routers.authelia.entrypoints=https'
+      - 'traefik.http.routers.authelia.tls=true'
+      - 'traefik.http.routers.authelia.tls.options=default'
+      - 'traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/authz/forward-auth?authelia-url=https://authelia.example.com'  # yamllint disable-line rule:line-length
+      - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
+      - 'traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email'  # yamllint disable-line rule:line-length
+    expose:
+      - 9091
+    restart: unless-stopped
+    healthcheck:
+      ## In production the healthcheck section should be commented.
+      disable: true
+    environment:
+      - TZ=Australia/Melbourne
+    depends_on: 
+      - openldap
+
+  traefik:
+    image: traefik:2.11.0
+    container_name: traefik
+    volumes:
+      - ./traefik:/etc/traefik
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - net
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.api.rule=Host(`traefik.example.com`)'
+      - 'traefik.http.routers.api.entrypoints=https'
+      - 'traefik.http.routers.api.service=api@internal'
+      - 'traefik.http.routers.api.tls=true'
+      - 'traefik.http.routers.api.tls.options=default'
+      - 'traefik.http.routers.api.middlewares=authelia@docker'
+    ports:
+      - '80:80'
+      - '443:443'
+      - '8080:443'
+    command:
+      - '--api'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedByDefault=false'
+      - '--providers.file.filename=/etc/traefik/certificates.yml'
+      - '--entrypoints.http=true'
+      - '--entrypoints.http.address=:80'
+      - '--entrypoints.http.http.redirections.entrypoint.to=https'
+      - '--entrypoints.http.http.redirections.entrypoint.scheme=https'
+      - '--entrypoints.https=true'
+      - '--entrypoints.https.address=:443'
+      - '--log=true'
+      - '--log.level=DEBUG'
+
+  secure:
+    image: traefik/whoami
+    container_name: secure
+    networks:
+      - net
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.secure.rule=Host(`secure.example.com`)'
+      - 'traefik.http.routers.secure.entrypoints=https'
+      - 'traefik.http.routers.secure.tls=true'
+      - 'traefik.http.routers.secure.tls.options=default'
+      - 'traefik.http.routers.secure.middlewares=authelia@docker'
+    expose:
+      - 80
+    restart: unless-stopped
+
+  public:
+    image: traefik/whoami
+    container_name: public
+    networks:
+      - net
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.public.rule=Host(`public.example.com`)'
+      - 'traefik.http.routers.public.entrypoints=https'
+      - 'traefik.http.routers.public.tls=true'
+      - 'traefik.http.routers.public.tls.options=default'
+      - 'traefik.http.routers.public.middlewares=authelia@docker'
+    expose:
+      - 80
+    restart: unless-stopped
+
+  openldap:
+    image: osixia/openldap:1.5.0
+    hostname: ldap.example.com
+    environment:
+      - LDAP_ORGANISATION=MyCompany
+      - LDAP_DOMAIN=example.com
+      - LDAP_ADMIN_PASSWORD=password
+      - LDAP_CONFIG_PASSWORD=password
+      - LDAP_ADDITIONAL_MODULES=memberof
+      - LDAP_ADDITIONAL_SCHEMAS=openldap
+      - LDAP_FORCE_RECONFIGURE=true
+      - LDAP_TLS_VERIFY_CLIENT=try
+    volumes:
+      - './ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom'
+    command:
+      - '--copy-service'
+      - '--loglevel'
+      - 'debug'
+    networks:
+      - net
+  openldap-admin:
+    image: osixia/phpldapadmin:0.9.0
+    ports:
+      - 9090:80
+    environment:
+      - PHPLDAPADMIN_LDAP_HOSTS=openldap
+      - PHPLDAPADMIN_HTTPS=false
+    networks:
+      - net
+

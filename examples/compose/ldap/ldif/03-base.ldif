@@ -1,0 +1,78 @@
+dn: cn=pwmanager,{{ LDAP_BASE_DN }}
+cn: Password Manager
+displayName: Password Manager
+givenName: Password
+objectClass: inetOrgPerson
+objectClass: top
+mail: password.manager@authelia.com
+sn: Manager
+uid: pwmanager
+userPassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
+dn: ou=groups,{{ LDAP_BASE_DN }}
+objectClass: organizationalUnit
+objectClass: top
+ou: groups
+
+dn: ou=users,{{ LDAP_BASE_DN }}
+objectClass: organizationalUnit
+objectClass: top
+ou: users
+
+dn: cn=dev,ou=groups,{{ LDAP_BASE_DN }}
+cn: dev
+member: cn=John Doe (external),ou=users,{{ LDAP_BASE_DN }}
+member: cn=Bob Dylan,ou=users,{{ LDAP_BASE_DN }}
+objectClass: groupOfNames
+objectClass: top
+
+dn: cn=admins,ou=groups,{{ LDAP_BASE_DN }}
+cn: admins
+member: cn=John Doe (external),ou=users,{{ LDAP_BASE_DN }}
+objectClass: groupOfNames
+objectClass: top
+
+dn: cn=John Doe (external),ou=users,{{ LDAP_BASE_DN }}
+cn: John Doe (external)
+displayName: John Doe
+givenName: John
+objectClass: inetOrgPerson
+objectClass: top
+mail: john.doe@authelia.com
+sn: Doe
+uid: john
+userPassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
+dn: cn=Harry Potter,ou=users,{{ LDAP_BASE_DN }}
+cn: Harry Potter
+displayName: Harry Potter
+givenName: Harry
+objectClass: inetOrgPerson
+objectClass: top
+mail: harry.potter@authelia.com
+sn: Potter
+uid: harry
+userPassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
+dn: cn=Bob Dylan,ou=users,{{ LDAP_BASE_DN }}
+cn: Bob Dylan
+displayName: Bob Dylan
+givenName: Bob
+objectClass: inetOrgPerson
+objectClass: top
+mail: bob.dylan@authelia.com
+sn: Dylan
+uid: bob
+userPassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
+dn: cn=James Dean,ou=users,{{ LDAP_BASE_DN }}
+cn: James Dean
+displayName: James Dean
+givenName: James
+objectClass: inetOrgPerson
+objectClass: top
+mail: james.dean@authelia.com
+sn: Dean
+uid: james
+userPassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+
