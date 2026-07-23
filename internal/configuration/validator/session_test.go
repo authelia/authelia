@@ -42,6 +42,35 @@ func TestShouldSetDefaultSessionValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultSessionConfiguration.SameSite, config.Session.SameSite)
 }
 
+func TestShouldSetDefaultRedisKeyPrefix(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Session.Redis = &schema.SessionRedis{
+		Host: "redis.localhost",
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+	assert.Equal(t, "authelia-session", config.Session.Redis.KeyPrefix)
+}
+
+func TestShouldUseConfiguredRedisKeyPrefix(t *testing.T) {
+	validator := schema.NewStructValidator()
+	config := newDefaultSessionConfig()
+	config.Session.Redis = &schema.SessionRedis{
+		Host:      "redis.localhost",
+		KeyPrefix: "custom-prefix",
+	}
+
+	ValidateSession(&config, validator)
+
+	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Errors(), 0)
+	assert.Equal(t, "custom-prefix", config.Session.Redis.KeyPrefix)
+}
+
 func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 	testCases := []struct {
 		name     string

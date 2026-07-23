@@ -53,6 +53,7 @@ type SessionRedis struct {
 	MaximumActiveConnections int           `koanf:"maximum_active_connections" yaml:"maximum_active_connections" toml:"maximum_active_connections" json:"maximum_active_connections" jsonschema:"default=8,title=Maximum Active Connections" jsonschema_description:"The maximum connections that can be made to redis at one time."`
 	MinimumIdleConnections   int           `koanf:"minimum_idle_connections" yaml:"minimum_idle_connections" toml:"minimum_idle_connections" json:"minimum_idle_connections" jsonschema:"title=Minimum Idle Connections" jsonschema_description:"The minimum idle connections that should be open to redis."`
 	TLS                      *TLS          `koanf:"tls" yaml:"tls,omitempty" toml:"tls,omitempty" json:"tls,omitempty" jsonschema:"title=TLS" jsonschema_description:"The TLS configuration for the redis server."`
+	KeyPrefix                string        `koanf:"key_prefix" yaml:"key_prefix,omitempty" toml:"key_prefix,omitempty" json:"key_prefix,omitempty" jsonschema:"default=authelia-session,title=Key Prefix" jsonschema_description:"The prefix for the keys stored in redis."`
 
 	HighAvailability *SessionRedisHighAvailability `koanf:"high_availability" yaml:"high_availability,omitempty" toml:"high_availability,omitempty" json:"high_availability,omitempty" jsonschema:"title=High Availability" jsonschema_description:"The redis high availability configuration."`
 }
@@ -91,6 +92,7 @@ var DefaultRedisConfiguration = SessionRedis{
 	Timeout:                  time.Second * 5,
 	MaxRetries:               0,
 	MaximumActiveConnections: 8,
+	KeyPrefix:                "authelia-session",
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},
 	},
@@ -102,6 +104,7 @@ var DefaultRedisHighAvailabilityConfiguration = SessionRedis{
 	Timeout:                  time.Second * 5,
 	MaxRetries:               0,
 	MaximumActiveConnections: 8,
+	KeyPrefix:                "authelia-session",
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},
 	},
