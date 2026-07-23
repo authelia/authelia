@@ -537,6 +537,38 @@ func (AccessControlRuleMethods) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// AccessControlRuleRegexCI represents the ACL AccessControlRuleSubjects type.
+type AccessControlRuleRegexCI []RegexpCI
+
+func (acl AccessControlRuleRegexCI) ToRegexp() []regexp.Regexp {
+	regexps := make([]regexp.Regexp, len(acl))
+
+	for i, r := range acl {
+		regexps[i] = r.Regexp
+	}
+
+	return regexps
+}
+
+func (AccessControlRuleRegexCI) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{
+		OneOf: []*jsonschema.Schema{
+			{
+				Type:   jsonschema.TypeString,
+				Format: jsonschema.FormatStringRegex,
+			},
+			{
+				Type: jsonschema.TypeArray,
+				Items: &jsonschema.Schema{
+					Type:   jsonschema.TypeString,
+					Format: jsonschema.FormatStringRegex,
+				},
+				UniqueItems: true,
+			},
+		},
+	}
+}
+
 // AccessControlRuleRegex represents the ACL AccessControlRuleSubjects type.
 type AccessControlRuleRegex []regexp.Regexp
 
@@ -629,4 +661,8 @@ var jsonschemaACLMethod = jsonschema.Schema{
 		"PROPPATCH",
 		"UNLOCK",
 	},
+}
+
+type RegexpCI struct {
+	regexp.Regexp
 }

@@ -90,7 +90,7 @@
           "description": "The literal domains to match the domain against that this rule applies to."
         },
         "domain_regex": {
-          "$ref": "#/$defs/AccessControlRuleRegex",
+          "$ref": "#/$defs/AccessControlRuleRegexCI",
           "title": "Domain Regex Patterns",
           "description": "The regex patterns to match the domain against that this rule applies to."
         },
@@ -251,6 +251,22 @@
       "description": "AccessControlRuleQuery represents the ACL query criteria."
     },
     "AccessControlRuleRegex": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "regex"
+        },
+        {
+          "items": {
+            "type": "string",
+            "format": "regex"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      ]
+    },
+    "AccessControlRuleRegexCI": {
       "oneOf": [
         {
           "type": "string",

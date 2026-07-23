@@ -175,6 +175,104 @@ func (s *AuthorizerSuite) TestShouldCheckDynamicDomainRules() {
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev.example.com/", fasthttp.MethodGet, OneFactor)
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins.example.com/", fasthttp.MethodGet, OneFactor)
 	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://othergroup.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://JOHN.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://John.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.EXAMPLE.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://DEV.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://Admins.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev.EXAMPLE.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.example.co/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://bob.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://BOB.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://john.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://dev.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://admins.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.dev.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.attacker.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins.attacker.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev.sub.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://bob.sub.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://john.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://dev.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://example.com/", fasthttp.MethodGet, Denied)
+}
+
+func (s *AuthorizerSuite) TestShouldMatchDynamicDomainRuleWithoutDotSeparator() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy(deny).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"{user}-example.example.com"},
+			Policy:  oneFactor,
+		}).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"{group}-example.example.com"},
+			Policy:  oneFactor,
+		}).
+		Build()
+
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john-example.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev-example.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins-example.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://bob-example.example.com/", fasthttp.MethodGet, OneFactor)
+
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john-example.Example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dev-example.Example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://admins-example.Example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://john.Example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://bob-Example.Example.com/", fasthttp.MethodGet, OneFactor)
+
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://jOhn-example.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://dEv-example.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://aDmins-example.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserWithGroups, "https://jOhn.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithoutGroups, "https://bOb-example.example.com/", fasthttp.MethodGet, OneFactor)
+}
+
+func (s *AuthorizerSuite) TestShouldNotMatchDynamicDomainRuleWithDottedUserOrGroup() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy(deny).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"{user}.example.com"},
+			Policy:  oneFactor,
+		}).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"{group}.example.com"},
+			Policy:  oneFactor,
+		}).
+		Build()
+
+	UserWithDottedName := Subject{Username: "john.doe", Groups: []string{}, IP: net.ParseIP("10.0.0.8")}
+	UserWithDottedGroup := Subject{Username: "jane", Groups: []string{"dev.team"}, IP: net.ParseIP("10.0.0.8")}
+
+	tester.CheckAuthorizations(s.T(), UserWithDottedName, "https://john.doe.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithDottedName, "https://john.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithDottedGroup, "https://dev.team.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserWithDottedGroup, "https://dev.example.com/", fasthttp.MethodGet, Denied)
+}
+
+func (s *AuthorizerSuite) TestShouldCheckDynamicDomainRuleUserGroupCharacterClass() {
+	tester := NewAuthorizerBuilder().
+		WithDefaultPolicy(deny).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"{user}.example.com"},
+			Policy:  oneFactor,
+		}).
+		WithRule(schema.AccessControlRule{
+			Domains: []string{"{group}.example.com"},
+			Policy:  oneFactor,
+		}).
+		Build()
+
+	UserHyphenated := Subject{Username: "john-doe", Groups: []string{"dev-team"}, IP: net.ParseIP("10.0.0.8")}
+	UserUnderscored := Subject{Username: "john_doe", Groups: []string{"dev_team"}, IP: net.ParseIP("10.0.0.8")}
+
+	tester.CheckAuthorizations(s.T(), UserHyphenated, "https://john-doe.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserHyphenated, "https://dev-team.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserHyphenated, "https://JOHN-DOE.example.com/", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), UserUnderscored, "https://john_doe.example.com/", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), UserUnderscored, "https://dev_team.example.com/", fasthttp.MethodGet, Denied)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckMultipleDomainRule() {
@@ -454,8 +552,6 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 	s.Require().True(ok)
 	s.Assert().Equal("public.example.com", ruleMatcher0.Name)
 	s.Assert().False(ruleMatcher0.Wildcard)
-	s.Assert().False(ruleMatcher0.UserWildcard)
-	s.Assert().False(ruleMatcher0.GroupWildcard)
 
 	s.Require().Len(tester.rules[1].Domains, 1)
 
@@ -463,8 +559,6 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 	s.Require().True(ok)
 	s.Assert().Equal("one-factor.example.com", ruleMatcher1.Name)
 	s.Assert().False(ruleMatcher1.Wildcard)
-	s.Assert().False(ruleMatcher1.UserWildcard)
-	s.Assert().False(ruleMatcher1.GroupWildcard)
 
 	s.Require().Len(tester.rules[2].Domains, 1)
 
@@ -472,8 +566,6 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 	s.Require().True(ok)
 	s.Assert().Equal("two-factor.example.com", ruleMatcher2.Name)
 	s.Assert().False(ruleMatcher2.Wildcard)
-	s.Assert().False(ruleMatcher2.UserWildcard)
-	s.Assert().False(ruleMatcher2.GroupWildcard)
 
 	s.Require().Len(tester.rules[3].Domains, 1)
 
@@ -481,8 +573,6 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 	s.Require().True(ok)
 	s.Assert().Equal(".example.com", ruleMatcher3.Name)
 	s.Assert().True(ruleMatcher3.Wildcard)
-	s.Assert().False(ruleMatcher3.UserWildcard)
-	s.Assert().False(ruleMatcher3.GroupWildcard)
 
 	s.Require().Len(tester.rules[4].Domains, 1)
 
@@ -490,38 +580,42 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 	s.Require().True(ok)
 	s.Assert().Equal(".example.com", ruleMatcher4.Name)
 	s.Assert().True(ruleMatcher4.Wildcard)
-	s.Assert().False(ruleMatcher4.UserWildcard)
-	s.Assert().False(ruleMatcher4.GroupWildcard)
 }
 
 func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
-	createSliceRegexRule := func(t *testing.T, rules []string) []regexp.Regexp {
+	createSliceRegexRule := func(t *testing.T, rules []string) []schema.RegexpCI {
 		result, err := stringSliceToRegexpSlice(rules)
 
 		require.NoError(t, err)
 
-		return result
+		items := make([]schema.RegexpCI, len(result))
+
+		for i, item := range result {
+			items[i] = schema.RegexpCI{Regexp: item}
+		}
+
+		return items
 	}
 
 	tester := NewAuthorizerBuilder().
 		WithRule(schema.AccessControlRule{
-			DomainsRegex: createSliceRegexRule(s.T(), []string{`^.*\.example.com$`}),
+			DomainsRegex: createSliceRegexRule(s.T(), []string{`(?i)^.*\.example.com$`}),
 			Policy:       bypass,
 		}).
 		WithRule(schema.AccessControlRule{
-			DomainsRegex: createSliceRegexRule(s.T(), []string{`^.*\.example2.com$`}),
+			DomainsRegex: createSliceRegexRule(s.T(), []string{`(?i)^.*\.example2.com$`}),
 			Policy:       oneFactor,
 		}).
 		WithRule(schema.AccessControlRule{
-			DomainsRegex: createSliceRegexRule(s.T(), []string{`^(?P<User>[a-zA-Z0-9]+)\.regex.com$`}),
+			DomainsRegex: createSliceRegexRule(s.T(), []string{`(?i)^(?P<User>[a-zA-Z0-9]+)\.regex.com$`}),
 			Policy:       oneFactor,
 		}).
 		WithRule(schema.AccessControlRule{
-			DomainsRegex: createSliceRegexRule(s.T(), []string{`^group-(?P<Group>[a-zA-Z0-9]+)\.regex.com$`}),
+			DomainsRegex: createSliceRegexRule(s.T(), []string{`(?i)^group-(?P<Group>[a-zA-Z0-9]+)\.regex.com$`}),
 			Policy:       twoFactor,
 		}).
 		WithRule(schema.AccessControlRule{
-			DomainsRegex: createSliceRegexRule(s.T(), []string{`^.*\.(one|two).com$`}),
+			DomainsRegex: createSliceRegexRule(s.T(), []string{`(?i)^.*\.(one|two).com$`}),
 			Policy:       twoFactor,
 		}).
 		Build()
@@ -533,37 +627,46 @@ func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
 	tester.CheckAuthorizations(s.T(), John, "https://group-dev.regex.com", fasthttp.MethodGet, TwoFactor)
 	tester.CheckAuthorizations(s.T(), Bob, "https://group-dev.regex.com", fasthttp.MethodGet, Denied)
 
+	tester.CheckAuthorizations(s.T(), Bob, "https://PUBLIC.EXAMPLE.COM", fasthttp.MethodGet, Bypass)
+	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://Public.Example2.Com", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://John.Regex.COM", fasthttp.MethodGet, OneFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://JOHN.REGEX.COM", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://GROUP-DEV.Regex.Com", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), Bob, "https://Group-Dev.regex.com", fasthttp.MethodGet, Denied)
+	tester.CheckAuthorizations(s.T(), John, "https://test.ONE.com", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizations(s.T(), John, "https://test.TWO.com", fasthttp.MethodGet, TwoFactor)
+
 	s.Require().Len(tester.rules, 5)
 
 	s.Require().Len(tester.rules[0].Domains, 1)
 
 	ruleMatcher0, ok := tester.rules[0].Domains[0].Matcher.(RegexpStringSubjectMatcher)
 	s.Require().True(ok)
-	s.Assert().Equal("^.*\\.example.com$", ruleMatcher0.String())
+	s.Assert().Equal("(?i)^.*\\.example.com$", ruleMatcher0.String())
 
 	s.Require().Len(tester.rules[1].Domains, 1)
 
 	ruleMatcher1, ok := tester.rules[1].Domains[0].Matcher.(RegexpStringSubjectMatcher)
 	s.Require().True(ok)
-	s.Assert().Equal("^.*\\.example2.com$", ruleMatcher1.String())
+	s.Assert().Equal("(?i)^.*\\.example2.com$", ruleMatcher1.String())
 
 	s.Require().Len(tester.rules[2].Domains, 1)
 
 	ruleMatcher2, ok := tester.rules[2].Domains[0].Matcher.(RegexpGroupStringSubjectMatcher)
 	s.Require().True(ok)
-	s.Assert().Equal("^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher2.String())
+	s.Assert().Equal("(?i)^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher2.String())
 
 	s.Require().Len(tester.rules[3].Domains, 1)
 
 	ruleMatcher3, ok := tester.rules[3].Domains[0].Matcher.(RegexpGroupStringSubjectMatcher)
 	s.Require().True(ok)
-	s.Assert().Equal("^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher3.String())
+	s.Assert().Equal("(?i)^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher3.String())
 
 	s.Require().Len(tester.rules[4].Domains, 1)
 
 	ruleMatcher4, ok := tester.rules[4].Domains[0].Matcher.(RegexpStringSubjectMatcher)
 	s.Require().True(ok)
-	s.Assert().Equal("^.*\\.(one|two).com$", ruleMatcher4.String())
+	s.Assert().Equal("(?i)^.*\\.(one|two).com$", ruleMatcher4.String())
 }
 
 func (s *AuthorizerSuite) TestShouldCheckResourceSubjectMatching() {
