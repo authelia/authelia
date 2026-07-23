@@ -18,73 +18,80 @@ import (
 )
 
 // FirstFactorPasskeyGET handler starts the passkey assertion ceremony.
-func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
-	var (
-		w           *webauthn.WebAuthn
-		userSession session.UserSession
-		err         error
-	)
-	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
+func FirstFactorPasskeyGET(conditionalMediation bool) middlewares.RequestHandler {
+	return func(ctx *middlewares.AutheliaCtx) {
+		var (
+			w           *webauthn.WebAuthn
+			userSession session.UserSession
+			err         error
+		)
+		if userSession, err = ctx.GetSession(); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-		return
-	}
+			return
+		}
 
-	if !userSession.IsAnonymous() {
-		ctx.Logger.WithError(errUserIsAlreadyAuthenticated).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
+		if !userSession.IsAnonymous() {
+			ctx.Logger.WithError(errUserIsAlreadyAuthenticated).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-		return
-	}
+			return
+		}
 
-	if w, err = ctx.GetWebAuthnProvider(); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred provisioning the configuration")
+		if w, err = ctx.GetWebAuthnProvider(); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred provisioning the configuration")
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-		return
-	}
+			return
+		}
 
-	var opts []webauthn.LoginOption
+		var (
+			opts      []webauthn.LoginOption
+			assertion *protocol.CredentialAssertion
+			data      session.WebAuthn
+		)
 
-	var (
-		assertion *protocol.CredentialAssertion
-		data      session.WebAuthn
-	)
+		cmr := protocol.MediationDefault
 
-	if assertion, data.SessionData, err = w.BeginDiscoverableLogin(opts...); err != nil {
-		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred starting the authentication session")
+		if conditionalMediation {
+			cmr = protocol.MediationConditional
+		}
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+		if assertion, data.SessionData, err = w.BeginDiscoverableMediatedLogin(cmr, opts...); err != nil {
+			ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred starting the authentication session")
 
-		return
-	}
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-	userSession.WebAuthn = &data
+			return
+		}
 
-	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionDataSave)
+		userSession.WebAuthn = &data
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+		if err = ctx.SaveSession(userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionDataSave)
 
-		return
-	}
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-	if err = ctx.SetJSONBody(assertion); err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrRespBody)
+			return
+		}
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
+		if err = ctx.SetJSONBody(assertion); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrRespBody)
 
-		return
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageUnableToRegisterSecurityKey)
+
+			return
+		}
 	}
 }
 
