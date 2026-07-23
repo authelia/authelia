@@ -6,9 +6,13 @@ import (
 	"crypto/x509"
 	"fmt"
 	th "html/template"
+	"io"
+	"net"
 	"net/mail"
+	"sync/atomic"
 	"testing"
 	tt "text/template"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -85,6 +89,67 @@ func TestNewSMTPNotifier(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSMTPNotifierClientUsesSOCKS5ProxyFromEnvironment(t *testing.T) {
+	smtpListener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer smtpListener.Close()
+
+	proxyListener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer proxyListener.Close()
+
+	var directSMTPConnections, proxyConnections atomic.Int64
+
+	go func() {
+		conn, err := smtpListener.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+
+		directSMTPConnections.Add(1)
+	}()
+
+	go func() {
+		conn, err := proxyListener.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+
+		proxyConnections.Add(1)
+
+		_, _ = io.Copy(io.Discard, conn)
+	}()
+
+	t.Setenv("ALL_PROXY", "socks5://"+proxyListener.Addr().String())
+	t.Setenv("NO_PROXY", "")
+
+	config := &schema.NotifierSMTP{
+		Address:    schema.NewSMTPAddress("smtp", "127.0.0.1", uint16(smtpListener.Addr().(*net.TCPAddr).Port)),
+		Timeout:    time.Millisecond * 200,
+		Identifier: "localhost",
+		Sender:     mail.Address{Name: "Example Name", Address: "example@example.com"},
+		TLS: &schema.TLS{
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+		},
+	}
+
+	notifier := NewSMTPNotifier(config, nil)
+
+	client, err := notifier.factory.GetClient()
+	require.NoError(t, err)
+
+	_ = client.DialWithContext(context.Background())
+
+	require.Eventually(t, func() bool {
+		return proxyConnections.Load() > 0 || directSMTPConnections.Load() > 0
+	}, time.Second, time.Millisecond*10)
+
+	assert.Equal(t, int64(1), proxyConnections.Load())
+	assert.Equal(t, int64(0), directSMTPConnections.Load())
 }
 
 func SetupMockTest(t *testing.T) (ctrl *gomock.Controller, factory *MockSMTPClientFactory, client *MockSMTPClient, et *templates.EmailTemplate) {
