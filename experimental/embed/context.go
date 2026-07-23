@@ -20,7 +20,7 @@ func New(paths []string, filterNames []string) (ctx Context, val *schema.StructV
 		return nil, nil, fmt.Errorf("no paths provided")
 	}
 
-	filters, err := NewNamedConfigFileFilters(filterNames...)
+	filters, err := NewNamedConfigFileFilters("", "", filterNames...)
 	if err != nil {
 		return nil, nil, err
 	}

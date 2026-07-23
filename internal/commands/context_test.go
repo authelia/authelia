@@ -204,15 +204,17 @@ func TestHelperConfigValidateKeysRunE(t *testing.T) {
 
 	cmd := &cobra.Command{}
 
-	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{filepath.Join(dir, "file.yml")}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
-	cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
+	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{filepath.Join(dir, "file.yml")}, "")
+	cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "")
+	cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterRight, "", "")
+	cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterLeft, "", "")
 
 	assert.NoError(t, ctx.HelperConfigLoadRunE(cmd, nil))
 	assert.NoError(t, ctx.HelperConfigValidateKeysRunE(cmd, nil))
 	assert.NoError(t, ctx.HelperConfigValidateRunE(cmd, nil))
 	assert.NoError(t, ctx.LogConfigure(cmd, nil))
 
-	require.NoError(t, cmd.Flags().Set(cmdFlagNameConfigExpFilters, "expand-env"))
+	require.NoError(t, cmd.Flags().Set(cmdFlagNameConfigFilters, "template"))
 	assert.NoError(t, ctx.HelperConfigLoadRunE(cmd, nil))
 }
 
@@ -323,7 +325,7 @@ func TestConfigEnsureExistsRunE(t *testing.T) {
 	assert.EqualError(t, ctx.ConfigEnsureExistsRunE(cmd, nil), "flag accessed but not defined: config")
 
 	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{filepath.Join(dir, "dir", "file.yml")}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
-	cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
+	cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
 
 	assert.Equal(t, 0, exitCode)
 
@@ -334,7 +336,7 @@ func TestConfigEnsureExistsRunE(t *testing.T) {
 	cmd = &cobra.Command{}
 
 	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{filepath.Join(dir, "file.yml")}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
-	cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
+	cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
 
 	assert.True(t, errors.Is(ctx.ConfigEnsureExistsRunE(cmd, nil), ErrConfigCreated))
 	assert.NoError(t, ctx.ConfigEnsureExistsRunE(cmd, nil))
