@@ -536,9 +536,17 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-				mock.UserProviderMock.EXPECT().
-					GetDetails(gomock.Eq("john")).
-					Return(nil, authentication.ErrUserNotFound)
+				gomock.InOrder(
+					mock.UserProviderMock.EXPECT().
+						GetDetails(gomock.Eq("john")).
+						Return(nil, authentication.ErrUserNotFound),
+					mock.StorageMock.
+						EXPECT().
+						LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+					mock.StorageMock.
+						EXPECT().
+						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, "https://one-factor.example.com"))).Return(nil),
+				)
 			},
 		},
 		{
@@ -549,6 +557,24 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 				mock.UserProviderMock.EXPECT().
 					GetDetails(gomock.Eq("john")).
 					Return(nil, fmt.Errorf("backend unreachable"))
+			},
+		},
+		{
+			"UserDetailsNil",
+			func(mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+				gomock.InOrder(
+					mock.UserProviderMock.EXPECT().
+						GetDetails(gomock.Eq("john")).
+						Return(nil, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+					mock.StorageMock.
+						EXPECT().
+						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attemptUnknownUser(mock, "https://one-factor.example.com"))).Return(nil),
+				)
 			},
 		},
 		{
