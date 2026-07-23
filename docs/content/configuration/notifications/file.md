@@ -41,3 +41,15 @@ This section describes the individual configuration options.
 {{< confkey type="string" required="yes" >}}
 
 The file to add email text to. If it doesn't exist it will be created.
+
+If `filename` points to an existing FIFO (named pipe), Authelia detects this from the file mode and writes notifications
+to the pipe instead of a regular file. The startup check leaves the FIFO untouched and the per-notification write skips
+the disk sync that is unsupported on pipes. The byte stream written to the pipe is identical to the regular-file format,
+so any tooling that already parses notifications continues to work.
+
+The FIFO must be created by the operator with `mkfifo` before Authelia starts; Authelia will not create one. A reader
+must be attached on the other end of the pipe. If no reader is connected when a notification is generated, the write
+blocks until one is.
+
+Use the `authelia debug notification` subcommand to verify the configured notifier (file, FIFO, or SMTP) without
+exercising the full identity verification flow.
