@@ -108,7 +108,7 @@ To configure [Bitwarden] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 ## See Also
 
-- [Bitwarden Configure Unlock Bitwarden with SSO using OpenID Connect Documentation](https://support.bitwarden.com/sso-configure-generic/)
+- [Bitwarden - Generic OIDC](https://bitwarden.com/help/configure-sso-oidc)
 
 [Authelia]: https://www.authelia.com
 [Bitwarden]: https://bitwarden.com/
