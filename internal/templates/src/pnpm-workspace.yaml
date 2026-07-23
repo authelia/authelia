@@ -11,7 +11,7 @@ overrides:
   ajv: 8.20.0
   brace-expansion: 5.0.7
   fast-uri: 4.1.1
-  flatted: 3.4.2
+  flatted: 3.4.3
   glob: 13.0.6
   js-yaml: 5.2.1
   minimatch: 10.2.5
