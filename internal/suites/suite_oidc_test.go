@@ -20,6 +20,10 @@ func (s *OIDCSuite) TestOIDCScenario() {
 	suite.Run(s.T(), NewOIDCScenario())
 }
 
+func (s *OIDCSuite) TestOIDCClientCredentialsScenario() {
+	suite.Run(s.T(), NewOIDCClientCredentialsScenario())
+}
+
 func TestOIDCSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
