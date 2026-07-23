@@ -11,9 +11,11 @@ import (
 )
 
 func TestNewLDAPClientDialerStandard(t *testing.T) {
-	ln, err := net.Listen("tcp", "127.0.0.1:3389")
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
 
 	require.NoError(t, err)
+
+	address := "ldap://" + ln.Addr().String()
 
 	testCases := []struct {
 		name    string
@@ -35,7 +37,7 @@ func TestNewLDAPClientDialerStandard(t *testing.T) {
 		},
 		{
 			"ShouldSuccessfullyDial",
-			"ldap://127.0.0.1:3389",
+			address,
 			20 * time.Millisecond,
 			"",
 		},
