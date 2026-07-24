@@ -16,7 +16,7 @@ overrides:
   "@typescript-eslint/typescript-estree": 8.65.0
   "@typescript-eslint/utils": 8.65.0
   body-parser: 2.3.0
-  brace-expansion: 5.0.7
+  brace-expansion: 5.0.8
   esbuild: 0.28.1
   express: 5.2.1
   fast-uri: 4.1.1
