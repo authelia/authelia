@@ -30,6 +30,7 @@ overrides:
   path-to-regexp: 8.4.2
   picomatch: 4.0.5
   qs: 6.15.3
+  react-router: 8.3.0
   semver: 7.8.5
   vite: 8.1.5
   ws: 8.21.1
