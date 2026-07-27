@@ -285,6 +285,30 @@ func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, usern
 	}
 }
 
+func ResetPasswordPATCH(ctx *middlewares.AutheliaCtx) {
+	var (
+		userSession session.UserSession
+		err         error
+	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Unable to get session to clear password reset flag in session for user '%s'", userSession.Username)
+
+		return
+	}
+
+	username, ok := ctx.UserValue("username").(string)
+	if !ok {
+		ctx.ReplyBadRequest()
+	}
+
+	userSession.PasswordResetUsername = &username
+
+	if err = ctx.SaveSession(userSession); err != nil {
+		ctx.GetLogger().WithError(err).Errorf("Unable to clear password reset flag in session for user '%s'", userSession.Username)
+	}
+}
+
 // ResetPasswordIdentityFinish the handler for finishing the identity validation.
 var ResetPasswordIdentityFinish = middlewares.IdentityVerificationFinish(
 	middlewares.IdentityVerificationFinishArgs{ActionClaim: ActionResetPassword}, resetPasswordIdentityVerificationFinish)

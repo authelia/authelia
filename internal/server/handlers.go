@@ -268,6 +268,7 @@ func handlerMain(ctx context.Context, config *schema.Configuration, providers mi
 		r.POST("/api/reset-password/identity/start", middlewareAPI(rateLimitResetPasswordStart(handlers.ResetPasswordIdentityStart)))
 		r.POST("/api/reset-password/identity/finish", middlewareAPI(rateLimitResetPasswordFinish(handlers.ResetPasswordIdentityFinish)))
 
+		r.PATCH("/api/reset-password/{username}", middlewareAPI(handlers.ResetPasswordPATCH))
 		r.POST("/api/reset-password", middlewareAPI(handlers.ResetPasswordPOST))
 		r.DELETE("/api/reset-password", middlewareAPI(rateLimitResetPasswordFinish(handlers.ResetPasswordDELETE)))
 	}
