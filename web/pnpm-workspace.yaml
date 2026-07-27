@@ -25,11 +25,12 @@ overrides:
   form-data: 4.0.6
   glob: 13.0.6
   import-meta-resolve: 4.2.0
-  js-yaml: 5.2.1
+  js-yaml: 5.2.2
   minimatch: 10.2.5
   path-to-regexp: 8.4.2
   picomatch: 4.0.5
   qs: 6.15.3
+  react-router: 8.3.0
   semver: 7.8.5
   vite: 8.1.5
   ws: 8.21.1
