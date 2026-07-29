@@ -56,10 +56,6 @@ type FileUserDatabase struct {
 
 // Save the database to disk.
 func (m *FileUserDatabase) Save() (err error) {
-	m.RLock()
-
-	defer m.RUnlock()
-
 	if err = m.ToDatabaseModel().Write(m.Path); err != nil {
 		return err
 	}
@@ -195,9 +191,9 @@ func (m *FileUserDatabase) SetUserDetails(username string, details *FileUserData
 
 	m.Lock()
 
-	m.Users[username] = *details
+	defer m.Unlock()
 
-	m.Unlock()
+	m.Users[username] = *details
 }
 
 // ToDatabaseModel converts the FileUserDatabase into the FileDatabaseModel for saving.
@@ -208,11 +204,11 @@ func (m *FileUserDatabase) ToDatabaseModel() (model *FileDatabaseModel) {
 
 	m.RLock()
 
+	defer m.RUnlock()
+
 	for user, details := range m.Users {
 		model.Users[user] = details.ToUserDetailsModel()
 	}
-
-	m.RUnlock()
 
 	return model
 }
