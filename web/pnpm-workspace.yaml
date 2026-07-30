@@ -16,7 +16,7 @@ overrides:
   "@typescript-eslint/typescript-estree": 8.65.0
   "@typescript-eslint/utils": 8.65.0
   body-parser: 2.3.0
-  brace-expansion: 5.0.7
+  brace-expansion: 5.0.8
   esbuild: 0.28.1
   express: 5.2.1
   fast-uri: 4.1.1
@@ -25,11 +25,12 @@ overrides:
   form-data: 4.0.6
   glob: 13.0.6
   import-meta-resolve: 4.2.0
-  js-yaml: 5.2.1
+  js-yaml: 5.2.2
   minimatch: 10.2.5
   path-to-regexp: 8.4.2
   picomatch: 4.0.5
   qs: 6.15.3
+  react-router: 8.3.0
   semver: 7.8.5
   vite: 8.1.5
   ws: 8.21.1
