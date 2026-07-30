@@ -936,13 +936,10 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 }
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
-	storageProvider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	storageProvider, err := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	s.Require().NoError(err)
 
 	ctx := context.Background()
-
-	var (
-		err error
-	)
 
 	var (
 		expectedLines    = make([]string, 0, 3)

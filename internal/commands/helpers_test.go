@@ -11,7 +11,9 @@ import (
 )
 
 func TestGetStorageProvider(t *testing.T) {
-	assert.Nil(t, getStorageProvider(NewCmdCtx()))
+	provider, err := getStorageProvider(NewCmdCtx())
+	assert.Nil(t, provider)
+	assert.NoError(t, err)
 }
 
 func TestContainsIdentifier(t *testing.T) {
