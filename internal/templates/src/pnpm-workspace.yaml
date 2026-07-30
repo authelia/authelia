@@ -14,7 +14,7 @@ overrides:
   flatted: 3.4.3
   glob: 13.0.6
   js-yaml: 5.2.2
-  minimatch: 10.2.5
+  minimatch: 10.2.6
   nanoid: 6.0.0
   next: 16.2.12
   picomatch: 4.0.5
