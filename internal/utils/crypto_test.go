@@ -6,10 +6,13 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/sha512"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"hash"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -1328,4 +1331,285 @@ func TestParsePEMBlockUnknownTypes(t *testing.T) {
 			assert.EqualError(t, err, tc.err)
 		})
 	}
+}
+
+func TestShouldEncryptAndDecriptUsingAES(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+	secret := "the secret"
+
+	encryptedSecret, err := Encrypt([]byte(secret), []byte("test"), key)
+	assert.NoError(t, err, "")
+
+	decryptedSecret, err := Decrypt(encryptedSecret, []byte("test"), key)
+
+	assert.NoError(t, err, "")
+	assert.Equal(t, secret, string(decryptedSecret))
+}
+
+func TestShouldFailDecryptOnInvalidKey(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+	secret := "the secret"
+
+	encryptedSecret, err := Encrypt([]byte(secret), []byte("test"), key)
+	assert.NoError(t, err, "")
+
+	key = DeriveLegacyCryptographicKey([]byte("the key 2"))
+
+	_, err = Decrypt(encryptedSecret, []byte("test"), key)
+
+	assert.EqualError(t, err, "cipher: message authentication failed")
+}
+
+func TestDecrypt(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+
+	testCases := []struct {
+		name       string
+		ciphertext []byte
+		err        string
+	}{
+		{
+			"ShouldReturnErrorForTooShortCiphertext",
+			[]byte("abc123"),
+			"malformed ciphertext",
+		},
+		{
+			"ShouldReturnErrorForEmptyCiphertext",
+			[]byte{},
+			"malformed ciphertext",
+		},
+		{
+			"ShouldReturnErrorForNilCiphertext",
+			nil,
+			"malformed ciphertext",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := Decrypt(tc.ciphertext, []byte("test"), key)
+
+			if len(tc.err) != 0 {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestEncryptDecryptAAD(t *testing.T) {
+	key := DeriveLegacyCryptographicKey([]byte("the key"))
+
+	testCases := []struct {
+		name       string
+		plaintext  []byte
+		encryptAAD []byte
+		decryptAAD []byte
+		errEncrypt string
+		errDecrypt string
+	}{
+		{
+			name:       "ShouldRoundTripWithMatchingAAD",
+			plaintext:  []byte("the secret"),
+			encryptAAD: []byte("authelia:storage:totp_configurations:secret"),
+			decryptAAD: []byte("authelia:storage:totp_configurations:secret"),
+		},
+		{
+			name:       "ShouldRoundTripWithNilAAD",
+			plaintext:  []byte("the secret"),
+			encryptAAD: nil,
+			decryptAAD: nil,
+		},
+		{
+			name:       "ShouldRoundTripWithEmptyPlaintext",
+			plaintext:  []byte{},
+			encryptAAD: []byte("aad"),
+			decryptAAD: []byte("aad"),
+		},
+		{
+			name:       "ShouldFailDecryptWithMismatchedAAD",
+			plaintext:  []byte("the secret"),
+			encryptAAD: []byte("authelia:storage:totp_configurations:secret"),
+			decryptAAD: []byte("authelia:storage:one_time_code:code"),
+			errDecrypt: "cipher: message authentication failed",
+		},
+		{
+			name:       "ShouldFailDecryptWhenAADMissing",
+			plaintext:  []byte("the secret"),
+			encryptAAD: []byte("aad"),
+			decryptAAD: nil,
+			errDecrypt: "cipher: message authentication failed",
+		},
+		{
+			name:       "ShouldFailDecryptWhenAADAddedUnexpectedly",
+			plaintext:  []byte("the secret"),
+			encryptAAD: nil,
+			decryptAAD: []byte("aad"),
+			errDecrypt: "cipher: message authentication failed",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ciphertext, err := Encrypt(tc.plaintext, tc.encryptAAD, key)
+
+			if tc.errEncrypt != "" {
+				assert.EqualError(t, err, tc.errEncrypt)
+
+				return
+			}
+
+			require.NoError(t, err)
+
+			plaintext, err := Decrypt(ciphertext, tc.decryptAAD, key)
+
+			if tc.errDecrypt != "" {
+				assert.EqualError(t, err, tc.errDecrypt)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, string(tc.plaintext), string(plaintext))
+			}
+		})
+	}
+}
+
+func TestEncryptDecryptInvalidKey(t *testing.T) {
+	testCases := []struct {
+		name string
+		key  []byte
+		err  string
+	}{
+		{
+			name: "ShouldErrOnEmptyKey",
+			key:  []byte{},
+			err:  "crypto/aes: invalid key size 0",
+		},
+		{
+			name: "ShouldErrOnShortKey",
+			key:  []byte("tooshort"),
+			err:  "crypto/aes: invalid key size 8",
+		},
+		{
+			name: "ShouldErrOnOversizedKey",
+			key:  bytes.Repeat([]byte{0x00}, 33),
+			err:  "crypto/aes: invalid key size 33",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Run("Encrypt", func(t *testing.T) {
+				_, err := Encrypt([]byte("the secret"), nil, tc.key)
+
+				assert.EqualError(t, err, tc.err)
+			})
+
+			t.Run("Decrypt", func(t *testing.T) {
+				_, err := Decrypt([]byte("some-ciphertext-value-longer-than-nonce"), nil, tc.key)
+
+				assert.EqualError(t, err, tc.err)
+			})
+		})
+	}
+}
+
+func TestDeriveCryptographicKey(t *testing.T) {
+	testCases := []struct {
+		name string
+		raw  []byte
+		info string
+		hash func() hash.Hash
+		size int
+		err  string
+	}{
+		{
+			name: "ShouldDeriveSHA256Key",
+			raw:  []byte("the key"),
+			info: "authelia:kdf:storage:encryption_key:v1",
+			hash: sha256.New,
+			size: 32,
+		},
+		{
+			name: "ShouldDeriveSHA512Key",
+			raw:  []byte("the key"),
+			info: "authelia:kdf:storage:encryption_key:v1",
+			hash: sha512.New,
+			size: 64,
+		},
+		{
+			name: "ShouldDeriveKeyWithEmptyInfo",
+			raw:  []byte("the key"),
+			info: "",
+			hash: sha256.New,
+			size: 32,
+		},
+		{
+			name: "ShouldErrOnNilValue",
+			raw:  nil,
+			info: "authelia:kdf:storage:encryption_key:v1",
+			hash: sha256.New,
+			err:  "error deriving cryptographic key: value is empty",
+		},
+		{
+			name: "ShouldErrOnEmptyValue",
+			raw:  []byte{},
+			info: "authelia:kdf:storage:encryption_key:v1",
+			hash: sha256.New,
+			err:  "error deriving cryptographic key: value is empty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			key, err := DeriveCryptographicKey(tc.raw, tc.info, tc.hash)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, key)
+
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Len(t, key, tc.size)
+		})
+	}
+
+	t.Run("ShouldBeDeterministic", func(t *testing.T) {
+		first, err := DeriveCryptographicKey([]byte("the key"), "info", sha256.New)
+		require.NoError(t, err)
+
+		second, err := DeriveCryptographicKey([]byte("the key"), "info", sha256.New)
+		require.NoError(t, err)
+
+		assert.Equal(t, first, second)
+	})
+
+	t.Run("ShouldDeriveDifferentKeyForDifferentInfo", func(t *testing.T) {
+		first, err := DeriveCryptographicKey([]byte("the key"), "info-a", sha256.New)
+		require.NoError(t, err)
+
+		second, err := DeriveCryptographicKey([]byte("the key"), "info-b", sha256.New)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, first, second)
+	})
+
+	t.Run("ShouldDeriveDifferentKeyForDifferentValue", func(t *testing.T) {
+		first, err := DeriveCryptographicKey([]byte("the key a"), "info", sha256.New)
+		require.NoError(t, err)
+
+		second, err := DeriveCryptographicKey([]byte("the key b"), "info", sha256.New)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, first, second)
+	})
+
+	t.Run("ShouldDeriveDifferentKeyFromLegacyDerivation", func(t *testing.T) {
+		derived, err := DeriveCryptographicKey([]byte("the key"), "info", sha256.New)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, DeriveLegacyCryptographicKey([]byte("the key")), derived)
+	})
 }
