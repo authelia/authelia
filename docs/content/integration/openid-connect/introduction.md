@@ -166,9 +166,9 @@ parameter):
 |       ES256        |  ECDSA P-256   |      SHA-256      | `sig` |    ECDSA Private Key with the P-256 curve    | Requires an ECDSA Private Key with a 256 bit curve |
 |       ES384        |  ECDSA P-384   |      SHA-384      | `sig` |    ECDSA Private Key with the P-384 curve    | Requires an ECDSA Private Key with a 384 bit curve |
 |       ES512        |  ECDSA P-521   |      SHA-512      | `sig` |    ECDSA Private Key with the P-521 curve    | Requires an ECDSA Private Key with a 512 bit curve |
-|       PS256        |   RSA (MGF1)   |      SHA-256      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
-|       PS384        |   RSA (MGF1)   |      SHA-384      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
-|       PS512        |   RSA (MGF1)   |      SHA-512      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|       PS256        |   RSA (MFG1)   |      SHA-256      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|       PS384        |   RSA (MFG1)   |      SHA-384      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|       PS512        |   RSA (MFG1)   |      SHA-512      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |    RSA1_5 [^2]     |      RSA       |        N/A        | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |      RSA-OAEP      |   RSA (MFG1)   |        N/A        | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |    RSA-OAEP-256    |   RSA (MFG1)   |      SHA-256      | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
@@ -207,12 +207,12 @@ parameter):
 |       ES256        |  ECDSA P-256   |      SHA-256      | `sig` |       `private_key_jwt`        |
 |       ES384        |  ECDSA P-384   |      SHA-384      | `sig` |       `private_key_jwt`        |
 |       ES512        |  ECDSA P-521   |      SHA-512      | `sig` |       `private_key_jwt`        |
-|       PS256        |   RSA (MGF1)   |      SHA-256      | `sig` |       `private_key_jwt`        |
-|       PS384        |   RSA (MGF1)   |      SHA-384      | `sig` |       `private_key_jwt`        |
-|       PS512        |   RSA (MGF1)   |      SHA-512      | `sig` |       `private_key_jwt`        |
+|       PS256        |   RSA (MFG1)   |      SHA-256      | `sig` |       `private_key_jwt`        |
+|       PS384        |   RSA (MFG1)   |      SHA-384      | `sig` |       `private_key_jwt`        |
+|       PS512        |   RSA (MFG1)   |      SHA-512      | `sig` |       `private_key_jwt`        |
 |    RSA1_5 [^2]     |      RSA       |        N/A        | `enc` |       `private_key_jwt`        |
-|      RSA-OAEP      |   RSA (MGF1)   |        N/A        | `enc` |       `private_key_jwt`        |
-|    RSA-OAEP-256    |   RSA (MGF1)   |      SHA-256      | `enc` |       `private_key_jwt`        |
+|      RSA-OAEP      |   RSA (MFG1)   |        N/A        | `enc` |       `private_key_jwt`        |
+|    RSA-OAEP-256    |   RSA (MFG1)   |      SHA-256      | `enc` |       `private_key_jwt`        |
 |       A128KW       | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 |       A192KW       | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 |       A256KW       | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
@@ -239,7 +239,6 @@ Authelia accepts request objects and generates response objects with the followi
 |:-------------:|:-------------------------:|
 | A128CBC-HS256 | Default for all JWE types |
 | A192CBC-HS384 |                           |
-| A256CBC-HS512 |                           |
 | A256CBC-HS512 |                           |
 |    A128GCM    |                           |
 |    A192GCM    |                           |
@@ -465,7 +464,7 @@ The [Pushed Authorization Requests] endpoint is discussed in depth in [RFC9126] 
 [OAuth 2.0 Pushed Authorization Requests](https://oauth.net/2/pushed-authorization-requests/) documentation.
 
 Essentially it's a special endpoint that takes the same parameters as the [Authorization Endpoint] (including
-[Proof Key Code Exchange](#proof-key-code-exchange)) with a few caveats:
+[Proof Key for Code Exchange](#proof-key-code-exchange)) with a few caveats:
 
 1. The same [Client Authentication] mechanism required by the [Token Endpoint] **MUST** be used.
 2. The request **MUST** use the [HTTP POST method].
@@ -490,7 +489,7 @@ The advantages of this approach are as follows:
    [Token Endpoint]:
    1. Clients using the confidential [Client Type] can't have [Pushed Authorization Requests] generated by parties who do not
       have the credentials.
-   2. Clients using the public [Client Type] and utilizing [Proof Key Code Exchange](#proof-key-code-exchange) never
+   2. Clients using the public [Client Type] and utilizing [Proof Key for Code Exchange](#proof-key-code-exchange) never
       transmit the verifier over any front-channel making even the `plain` challenge method relatively secure.
 
 #### OAuth 2.0 Authorization Server Issuer Identification
@@ -510,18 +509,18 @@ was not tampered with or forged as it is cryptographically signed.
 
 This response mode is not supported by many clients, but we recommend it is used if it's supported.
 
-#### Proof Key Code Exchange
+#### Proof Key for Code Exchange
 
-The [Proof Key Code Exchange] mechanism is discussed in depth in [RFC7636] as well as in the
-[OAuth 2.0 Proof Key Code Exchange](https://oauth.net/2/pkce/) documentation.
+The [Proof Key for Code Exchange] mechanism is discussed in depth in [RFC7636] as well as in the
+[OAuth 2.0 Proof Key for Code Exchange](https://oauth.net/2/pkce/) documentation.
 
 Essentially a random opaque value is generated by the Relying Party and optionally (but recommended) passed through a
 SHA256 hash. The original value is saved by the Relying Party, and the hashed value is sent in the [Authorization]
-request in the `code_verifier` parameter with the `code_challenge_method` set to `S256` (or `plain` using a bad practice
+request in the `code_challenge` parameter with the `code_challenge_method` set to `S256` (or `plain` using a bad practice
 of not hashing the opaque value).
 
 When the Relying Party requests the token from the [Token Endpoint], they must include the `code_verifier` parameter
-again (in the body), but this time they send the value without it being hashed.
+(in the body), but this time they send the value without it being hashed.
 
 The advantages of this approach are as follows:
 
@@ -552,7 +551,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                                     [CAEP Interoperability Profile 1.0] (SSF)                                      |     None      |                                              N/A                                              |
 |                           [OpenID Continuous Access Evaluation Profile 1.0] (CAEP - SSF)                           |     None      |                                              N/A                                              |
 |                                    [OpenID Connect for Identity Assurance 1.0]                                     |     None      |                                              N/A                                              |
-|                                             [Proof Key Code Exchange]                                              | Certified[^3] |         [RFC7636], [OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/pkce/)         |
+|                                           [Proof Key for Code Exchange]                                            | Certified[^3] |         [RFC7636], [OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/pkce/)         |
 |                                                  [OAuth 2.0 Core]                                                  | Certified[^3] |                                           [RFC6749]                                           |
 |                                            [OAuth 2.0 Token Revocation]                                            |   Complete    |                                           [RFC7009]                                           |
 |                                          [OAuth 2.0 Token Introspection]                                           |   Complete    |                                           [RFC7662]                                           |
@@ -563,7 +562,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                                   OAuth 2.0 Resource Owner Password Credentials                                    |   None[^4]    |     [RFC6749 Section 1.3.3](https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3)      |
 |                                     [OAuth 2.0 Authorization Server Metadata]                                      |   Complete    |                                           [RFC8414]                                           |
 |                                     [OAuth 2.0 Pushed Authorization Requests]                                      |   Complete    |                                           [RFC9126]                                           |
-|                                  [OAuth 2.0 Demonstrating of Proof of Possession]                                  |     None      |                                           [RFC9449]                                           |
+|                                  [OAuth 2.0 Demonstrating of Proof of Possession]                                  |   Complete    |                                           [RFC9449]                                           |
 |                  [OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens]                  |     None      |                                           [RFC8705]                                           |
 |                                            [OAuth 2.0 for Native Apps]                                             |   Complete    |                                           [RFC8252]                                           |
 |                           [OAuth 2.0 Device Flow / OAuth 2.0 Device Authorization Grant]                           |   Complete    |                                           [RFC8628]                                           |
@@ -577,11 +576,10 @@ either implemented, have our eye on, or are refusing to implement.
 |                                         Resource Indicators for OAuth 2.0                                          |   Complete    |                                           [RFC8707]                                           |
 |                                             [OAuth 2.0 Bearer Tokens]                                              |   Complete    |                                           [RFC6750]                                           |
 |                 [OAuth 2.0 Assertion Framework for Client Authentication and Authorization Grants]                 |   Complete    |                                           [RFC7521]                                           |
-|                                            [OAuth 2.0 Private Key JWT]                                             |   Complete    |                                           [RFC7521]                                           |
+|                                            [OAuth 2.0 Private Key JWT]                                             |   Complete    |                                           [RFC7523]                                           |
 |                                    OAuth 2.0 JWT-Secured Authorization Request                                     |   Complete    |                                           [RFC9101]                                           |
 |                                OAuth 2.0 Authorization Server Issuer Identification                                |   Complete    |                                           [RFC9207]                                           |
 |                                       OAuth 2.0 Protected Resource Metadata                                        |     None      |                                           [RFC9728]                                           |
-|                                           OAuth 2.0 Resource Indicators                                            |     None      |                                           [RFC8707]                                           |
 |                                 OAuth 2.0 JWT Secured Authorization Response Mode                                  |   Complete    |                                       [OpenID 1.0 JARM]                                       |
 |                                            [FAPI 2.0] Security Profile                                             |    Partial    |                            [OpenID 1.0 FAPI 2.0 Security Profile]                             |
 |                                             [FAPI 2.0] Message Signing                                             |    Partial    |                             [OpenID 1.0 FAPI 2.0 Message Signing]                             |
@@ -636,13 +634,13 @@ either implemented, have our eye on, or are refusing to implement.
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
-[Proof Key Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html
+[Proof Key for Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html
 
 [Subject Identifier Types]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Client Authentication]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3
 [Client Type]: https://oauth.net/2/client-types/
 [HTTP POST method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
-[Proof Key Code Exchange]: #proof-key-code-exchange
+[Proof Key for Code Exchange]: #proof-key-code-exchange
 
 [RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
 [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
@@ -692,7 +690,7 @@ either implemented, have our eye on, or are refusing to implement.
 [OAuth 2.0 Assertion Framework for Client Authentication and Authorization Grants]: https://oauth.net/private-key-jwt/
 [OAuth 2.0 Private Key JWT]: https://oauth.net/private-key-jwt/
 [OAuth 2.0 Rich Authorization Requests]: https://oauth.net/2/rich-authorization-requests/
-[Proof Key Code Exchange]: https://oauth.net/2/pkce/
+[Proof Key for Code Exchange]: https://oauth.net/2/pkce/
 [OpenID 1.0 JARM]: https://openid.net/specs/oauth-v2-jarm.html
 [RFC6749]: https://datatracker.ietf.org/doc/html/rfc6749
 [RFC7009]: https://datatracker.ietf.org/doc/html/rfc7009

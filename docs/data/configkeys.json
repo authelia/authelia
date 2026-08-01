@@ -450,6 +450,31 @@
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_KEY_ID"
     },
     {
+        "path": "identity_providers.oidc.dpop.clock_skew",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_CLOCK_SKEW"
+    },
+    {
+        "path": "identity_providers.oidc.dpop.enabled",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_ENABLED"
+    },
+    {
+        "path": "identity_providers.oidc.dpop.enforced",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_ENFORCED"
+    },
+    {
+        "path": "identity_providers.oidc.dpop.nonce_enforced",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_NONCE_ENFORCED"
+    },
+    {
+        "path": "identity_providers.oidc.dpop.nonce_lifespan",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DPOP_NONCE_LIFESPAN"
+    },
+    {
         "path": "identity_providers.oidc.enable_client_debug_messages",
         "secret": false,
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_CLIENT_DEBUG_MESSAGES"

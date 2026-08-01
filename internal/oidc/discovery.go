@@ -187,6 +187,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 			OAuth2IssuerIdentificationDiscoveryOptions: &OAuth2IssuerIdentificationDiscoveryOptions{
 				AuthorizationResponseIssuerParameterSupported: true,
 			},
+			OAuth2DemonstratingProofOfPossessionDiscoveryOptions: &OAuth2DemonstratingProofOfPossessionDiscoveryOptions{},
 		},
 
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
@@ -374,6 +375,20 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				EncryptionEncA256GCM,
 			},
 		},
+	}
+
+	if c.DPoP.Enabled {
+		config.DPoPSigningAlgValuesSupported = []string{
+			SigningAlgRSAUsingSHA256,
+			SigningAlgRSAUsingSHA384,
+			SigningAlgRSAUsingSHA512,
+			SigningAlgECDSAUsingP256AndSHA256,
+			SigningAlgECDSAUsingP384AndSHA384,
+			SigningAlgECDSAUsingP521AndSHA512,
+			SigningAlgRSAPSSUsingSHA256,
+			SigningAlgRSAPSSUsingSHA384,
+			SigningAlgRSAPSSUsingSHA512,
+		}
 	}
 
 	if c.EnablePKCEPlainChallenge {

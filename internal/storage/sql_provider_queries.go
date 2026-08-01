@@ -603,6 +603,27 @@ const (
 			ON CONFLICT (signature)
 			DO UPDATE SET expires_at = $2;`
 
+	queryFmtUpsertOAuth2DPoPProof = `
+		INSERT INTO %[1]s (jti, htm, htu, expires_at)
+		VALUES (?, ?, ?, ?)
+			ON CONFLICT (jti, htm, htu)
+			DO UPDATE SET expires_at = excluded.expires_at
+			WHERE %[1]s.expires_at <= ?;`
+
+	queryFmtUpsertOAuth2DPoPProofMySQL = `
+		INSERT INTO %s (jti, htm, htu, expires_at)
+		VALUES (?, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE expires_at = IF(expires_at <= ?, VALUES(expires_at), expires_at);`
+
+	queryFmtInsertOAuth2DPoPNonce = `
+		INSERT INTO %s (signature, expires_at)
+		VALUES (?, ?);`
+
+	queryFmtSelectOAuth2DPoPNonce = `
+		SELECT id, signature, expires_at
+		FROM %s
+		WHERE signature = ?;`
+
 	queryFmtSelectOAuth2SessionEncryptedData = `
 		SELECT id, session_data
 		FROM %s;`
