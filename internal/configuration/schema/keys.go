@@ -165,6 +165,7 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].client_name",
 	"identity_providers.oidc.clients[].client_secret",
 	"identity_providers.oidc.clients[].consent_mode",
+	"identity_providers.oidc.clients[].dpop_bound_access_tokens",
 	"identity_providers.oidc.clients[].grant_types",
 	"identity_providers.oidc.clients[].id_token_encrypted_response_alg",
 	"identity_providers.oidc.clients[].id_token_encrypted_response_enc",

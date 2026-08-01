@@ -12,60 +12,78 @@ import (
 type AutheliaHandlerFunc func(ctx *AutheliaCtx, rw http.ResponseWriter, r *http.Request)
 
 // NewHTTPToAutheliaHandlerAdaptor creates a new adaptor given the AutheliaHandlerFunc.
-func NewHTTPToAutheliaHandlerAdaptor(h AutheliaHandlerFunc) RequestHandler {
+func NewHTTPToAutheliaHandlerAdaptor(handler AutheliaHandlerFunc) RequestHandler {
 	return func(ctx *AutheliaCtx) {
-		var r http.Request
-
 		body := ctx.PostBody()
-		r.Method = string(ctx.Method())
-		r.Proto = "HTTP/1.1"
-		r.ProtoMajor = 1
-		r.ProtoMinor = 1
-		r.RequestURI = string(ctx.RequestURI())
-		r.ContentLength = int64(len(body))
-		r.Host = string(ctx.Host())
-		r.RemoteAddr = ctx.RemoteAddr().String()
 
-		hdr := make(http.Header)
+		proto := string(ctx.Request.Header.Protocol())
+
+		major, minor, ok := http.ParseHTTPVersion(proto)
+		if !ok {
+			proto, major, minor = strProtoHTTP11, 1, 1
+		}
+
+		r := &http.Request{
+			Header:        make(http.Header),
+			TLS:           ctx.TLSConnectionState(),
+			Proto:         proto,
+			ProtoMajor:    major,
+			ProtoMinor:    minor,
+			ContentLength: int64(len(body)),
+			Method:        string(ctx.Method()),
+			Host:          string(ctx.Host()),
+			RequestURI:    string(ctx.RequestURI()),
+			RemoteAddr:    ctx.RemoteAddr().String(),
+		}
 
 		for k, v := range ctx.Request.Header.All() {
-			sk := string(k)
-			sv := string(v)
+			header := string(k)
+			value := string(v)
 
-			switch sk {
+			switch header {
 			case fasthttp.HeaderTransferEncoding:
-				r.TransferEncoding = append(r.TransferEncoding, sv)
+				r.TransferEncoding = append(r.TransferEncoding, value)
 			default:
-				hdr.Set(sk, sv)
+				r.Header.Add(header, value)
 			}
 		}
 
-		r.Header = hdr
 		r.Body = &netHTTPBody{body}
 
-		rURL, err := url.ParseRequestURI(r.RequestURI)
-		if err != nil {
-			ctx.Logger.Errorf("Cannot parse requestURI %q: %s", r.RequestURI, err)
+		var (
+			uri *url.URL
+			err error
+		)
+
+		if uri, err = url.ParseRequestURI(r.RequestURI); err != nil {
+			ctx.GetLogger().Errorf("Cannot parse requestURI %q: %s", r.RequestURI, err)
 			ctx.RequestCtx.Error("Internal Server Error", fasthttp.StatusInternalServerError)
 
 			return
 		}
 
-		r.URL = rURL
+		r.URL = uri
 
-		var w netHTTPResponseWriter
+		var rw netHTTPResponseWriter
 
-		h(ctx, &w, r.WithContext(ctx))
+		handler(ctx, &rw, r.WithContext(ctx))
 
-		ctx.SetStatusCode(w.StatusCode())
+		ctx.SetStatusCode(rw.StatusCode())
 
-		for k, vv := range w.Header() {
-			for _, v := range vv {
-				ctx.Response.Header.Set(k, v)
+		for key, values := range rw.Header() {
+			for i, value := range values {
+				switch i {
+				case 0:
+					ctx.Response.Header.Set(key, value)
+				default:
+					ctx.Response.Header.Add(key, value)
+				}
 			}
 		}
 
-		_, _ = ctx.Write(w.body)
+		if rw.body != nil {
+			_, _ = ctx.Write(rw.body)
+		}
 	}
 }
 
@@ -115,8 +133,13 @@ func (w *netHTTPResponseWriter) Header() http.Header {
 	return w.h
 }
 
-// WriteHeader writes the status code.
+// WriteHeader writes the status code. Only the first call has an effect which matches the net/http semantics the
+// wrapped handlers are written against.
 func (w *netHTTPResponseWriter) WriteHeader(statusCode int) {
+	if w.statusCode != 0 {
+		return
+	}
+
 	w.statusCode = statusCode
 }
 

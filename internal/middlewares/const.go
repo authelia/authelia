@@ -82,6 +82,8 @@ var (
 )
 
 const (
+	strProtoHTTP11 = "HTTP/1.1"
+
 	strProtoHTTPS = "https"
 	strProtoHTTP  = "http"
 	strSlash      = "/"

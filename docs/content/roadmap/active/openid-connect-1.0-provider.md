@@ -204,7 +204,7 @@ Feature List:
   * [JSON Web Key Rotation](https://openid.net/specs/openid-connect-messages-1_0-20.html#rotate.sig.keys)
   * [Multi-Issuer Configuration](#multi-issuer-configuration) (require one per Issuer URL)
   * Dynamic Client Registration:
-    * Specification Based with Special Opaque Tokens (authelia_dcrt_*) as per
+    * Specification Based on Special Opaque Tokens (authelia_dt_*) as per
       [OpenID Connect Dynamic Client Registration 1.0], [RFC7591: OAuth 2.0 Dynamic Client Registration Protocol], and
       [RFC7592: OAuth 2.0 Dynamic Client Registration Management Protocol]
     * Via the CLI
@@ -217,6 +217,7 @@ Feature List:
 * Subject Sectoring:
   * Pairwise Pseudonymous Identifier (PPID)
   * Sector Identifier validation.
+* OAuth 2.0 Demonstrating Proof of Possession
 
 Potential Feature List:
 

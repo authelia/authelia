@@ -615,9 +615,17 @@ const (
 		VALUES (?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE expires_at = IF(expires_at <= ?, VALUES(expires_at), expires_at);`
 
+	queryFmtDeleteExpiredOAuth2DPoPProofs = `
+		DELETE FROM %s
+		WHERE expires_at <= ?;`
+
 	queryFmtInsertOAuth2DPoPNonce = `
 		INSERT INTO %s (signature, expires_at)
 		VALUES (?, ?);`
+
+	queryFmtDeleteExpiredOAuth2DPoPNonces = `
+		DELETE FROM %s
+		WHERE expires_at <= ?;`
 
 	queryFmtSelectOAuth2DPoPNonce = `
 		SELECT id, signature, expires_at

@@ -201,6 +201,34 @@ func (mr *MockStorageMockRecorder) DeleteCachedData(ctx, name any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCachedData", reflect.TypeOf((*MockStorage)(nil).DeleteCachedData), ctx, name)
 }
 
+// DeleteExpiredOAuth2DPoPNonces mocks base method.
+func (m *MockStorage) DeleteExpiredOAuth2DPoPNonces(ctx context.Context, now time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExpiredOAuth2DPoPNonces", ctx, now)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExpiredOAuth2DPoPNonces indicates an expected call of DeleteExpiredOAuth2DPoPNonces.
+func (mr *MockStorageMockRecorder) DeleteExpiredOAuth2DPoPNonces(ctx, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredOAuth2DPoPNonces", reflect.TypeOf((*MockStorage)(nil).DeleteExpiredOAuth2DPoPNonces), ctx, now)
+}
+
+// DeleteExpiredOAuth2DPoPProofs mocks base method.
+func (m *MockStorage) DeleteExpiredOAuth2DPoPProofs(ctx context.Context, now time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExpiredOAuth2DPoPProofs", ctx, now)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExpiredOAuth2DPoPProofs indicates an expected call of DeleteExpiredOAuth2DPoPProofs.
+func (mr *MockStorageMockRecorder) DeleteExpiredOAuth2DPoPProofs(ctx, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredOAuth2DPoPProofs", reflect.TypeOf((*MockStorage)(nil).DeleteExpiredOAuth2DPoPProofs), ctx, now)
+}
+
 // DeletePreferredDuoDevice mocks base method.
 func (m *MockStorage) DeletePreferredDuoDevice(ctx context.Context, username string) error {
 	m.ctrl.T.Helper()
