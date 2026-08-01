@@ -36,6 +36,7 @@
 	"delete": "delete",
 	"deleted": "deleted",
 	"deleting": "deleting",
+	"Delete this {{item}}": "Delete this {{item}}",
 	"Description": "Description",
 	"Digits": "Digits",
 	"Discoverable": "Discoverable",
@@ -47,9 +48,11 @@
 	"Edit WebAuthn Credential": "Edit WebAuthn Credential",
 	"Eligible": "Eligible",
 	"Enabled": "Enabled",
+	"Exit Without Saving": "Exit Without Saving",
 	"Enter a description for this WebAuthn Credential": "Enter a description for this WebAuthn Credential",
 	"Enter a new description for this WebAuthn Credential": "Enter a new description for this WebAuthn Credential:",
 	"Error occurred obtaining the WebAuthn Credential creation options": "Error occurred obtaining the WebAuthn Credential creation options",
+	"Error sending password reset email": "Error sending password reset email",
 	"Extended information for WebAuthn Credential": "Extended information for WebAuthn Credential {{description}}",
 	"Extended information for One-Time Password": "Extended information for One-Time Password",
 	"Failed to get session elevation status": "Failed to get session elevation status",
@@ -57,15 +60,22 @@
 	"Failed to register device, the provided link is expired or has already been used": "Failed to register device, the provided link is expired or has already been used",
 	"Failed to register your credential, the identity verification process might have timed out": "Failed to register your credential, the identity verification process might have timed out",
 	"global configuration": "global configuration",
+	"Group": "Group",
+	"Group names must contain only alphanumeric characters, hyphens (-), underscores (_), and commas (,) with a maximum length of 100 characters.": "Group names must contain only alphanumeric characters, hyphens (-), underscores (_), and commas (,) with a maximum length of 100 characters.",
 	"Identity Verification": "Identity Verification",
 	"Incorrect password": "Incorrect password",
 	"In order to perform this action policy enforcement requires additional identity verification and a One-Time Code has been sent to your email": "In order to perform this action policy enforcement requires additional identity verification and a One-Time Code has been sent to your email",
 	"In order to perform this action, policy enforcement requires that two-factor authentication is performed": "In order to perform this action, policy enforcement requires that two-factor authentication is performed",
+	"{{item}} is required": "{{item}} is required",
+	"Invalid {{item}}": "Invalid {{item}}",
+	"Phone number": "Phone number",
+	"URL": "URL",
 	"Issuer": "Issuer",
 	"Last Used when": "Last Used {{when, datetime}}",
 	"Last Used": "Last Used",
 	"Length": "Length",
 	"Mobile Push": "Mobile Push",
+	"More actions": "More actions",
 	"Need Google Authenticator?": "Need Google Authenticator?",
 	"Never used": "Never used",
 	"Never": "Never",
@@ -84,6 +94,7 @@
 	"Password": "Password",
 	"Passwords do not match": "Passwords do not match",
 	"Password changed successfully": "Password changed successfully",
+	"Password reset email sent successfully": "Password reset email sent successfully",
 	"Platform": "Platform",
 	"Previous": "Previous",
 	"Public Key": "Public Key",
@@ -101,6 +112,7 @@
 	"Select a Method": "Select a Method",
 	"Settings": "Settings",
 	"Settings - {{authelia}}": "Settings - {{authelia}}",
+	"Send Password Reset Email": "Send Password Reset Email",
 	"Start": "Start",
 	"Submit": "Submit",
 	"Successfully {{action}} the {{item}}": "Successfully {{action}} the {{item}}",
@@ -128,12 +140,14 @@
 	"Transports": "Transports",
 	"Two-Factor Authentication": "Two-Factor Authentication",
 	"Unknown": "Unknown",
+	"Unsaved Changes": "Unsaved Changes",
 	"update": "update",
 	"Update": "Update",
 	"updated": "updated",
 	"updating": "updating",
 	"URI": "URI",
 	"Usage Count": "Usage Count",
+	"User": "User",
 	"Username": "Username",
 	"Name": "Name",
 	"user preferences": "user preferences",
@@ -147,10 +161,12 @@
 	"WebAuthn Credentials": "WebAuthn Credentials",
 	"WebAuthn Credentials are widely considered the most secure means of authentication, regardless of if they're used for Multi-Factor Authentication or Passwordless Authentication": "WebAuthn Credentials are widely considered the most secure means of authentication, regardless of if they're used for Multi-Factor Authentication or Passwordless Authentication",
 	"Yes": "Yes",
+	"You are about to send a password reset email to {{user}} {{username}}, would you like to continue": "You are about to send a password reset email to {{user}} {{username}}, would you like to continue",
 	"You can only register a single One-Time Password": "You can only register a single One-Time Password",
 	"You cancelled the attestation request": "You cancelled the attestation request",
 	"You cannot reuse your old password": "You cannot reuse your old password",
 	"You have registered this device already": "You have registered this device already",
+	"You have unsaved changes. Are you sure you want to exit without saving?": "You have unsaved changes. Are you sure you want to exit without saving?",
 	"You must be elevated to {{action}} a {{item}}": "You must be elevated to {{action}} a {{item}}",
 	"You must have a higher authentication level to {{action}} a {{item}}": "You must have a higher authentication level to {{action}} a {{item}}",
 	"You must open the link from the same device and browser that initiated the registration process": "You must open the link from the same device and browser that initiated the registration process",
@@ -159,5 +175,118 @@
 	"Your browser does not appear to support the configuration": "Your browser does not appear to support the configuration",
 	"Your browser does not support the WebAuthn protocol": "Your browser does not support the WebAuthn protocol",
 	"Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements",
-	"Your device does not support user verification or resident keys but this was required": "Your device does not support user verification or resident keys but this was required"
+	"Your device does not support user verification or resident keys but this was required": "Your device does not support user verification or resident keys but this was required",
+	"User Management": "User Management",
+	"Generate Password": "Generate Password",
+	"Show Additional Fields": "Show Additional Fields",
+	"Hide Additional Fields": "Hide Additional Fields",
+	"New {{item}}": "New {{item}}",
+	"User created successfully.": "User created successfully.",
+	"Error creating user": "Error creating user",
+	"Edit {{item}}:": "Edit {{item}}:",
+	"User modified successfully.": "User modified successfully.",
+	"Unable to edit user": "Unable to edit user",
+	"Error modifying user": "Error modifying user",
+	"No changes to save": "No changes to save",
+	"Exit": "Exit",
+	"user_management": {
+		"attributes": {
+			"username": {
+				"label": "Username",
+				"description": "Unique identifier for user account, used for logging in."
+			},
+			"password": {
+				"label": "Password",
+				"description": "The User's password."
+			},
+			"display_name": {
+				"label": "Display Name",
+				"description": "Name shown in the user interface"
+			},
+			"mail": {
+				"label": "Email",
+				"description": "Primary email address for the user"
+			},
+			"given_name": {
+				"label": "First Name",
+				"description": "User's first name"
+			},
+			"family_name": {
+				"label": "Last Name",
+				"description": "User's last name"
+			},
+			"middle_name": {
+				"label": "Middle Name",
+				"description": "User's middle name"
+			},
+			"full_name": {
+				"label": "Full Name",
+				"description": "User's complete name"
+			},
+			"nickname": {
+				"label": "Nickname",
+				"description": "Casual or informal name"
+			},
+			"profile": {
+				"label": "Profile URL",
+				"description": "URL to user's profile page"
+			},
+			"picture": {
+				"label": "Picture URL",
+				"description": "URL to user's profile picture"
+			},
+			"website": {
+				"label": "Website",
+				"description": "URL to user's personal or professional website"
+			},
+			"gender": {
+				"label": "Gender",
+				"description": "User's gender identity"
+			},
+			"birthdate": {
+				"label": "Birthdate",
+				"description": "User's date of birth"
+			},
+			"zoneinfo": {
+				"label": "Time Zone",
+				"description": "User's time zone (e.g., America/New_York)"
+			},
+			"locale": {
+				"label": "Locale",
+				"description": "User's language and regional preferences (e.g., en-US)"
+			},
+			"phone_number": {
+				"label": "Phone Number",
+				"description": "User's primary phone number"
+			},
+			"phone_extension": {
+				"label": "Phone Extension",
+				"description": "Extension for the phone number"
+			},
+			"street_address": {
+				"label": "Street Address",
+				"description": "Street address including apartment/unit number"
+			},
+			"locality": {
+				"label": "City",
+				"description": "City or locality"
+			},
+			"region": {
+				"label": "State/Region",
+				"description": "State, province, or region"
+			},
+			"postal_code": {
+				"label": "Postal Code",
+				"description": "ZIP or postal code"
+			},
+			"country": {
+				"label": "Country",
+				"description": "Country name or code"
+			},
+			"groups": {
+				"label": "Groups",
+				"description": "Groups the user belongs to"
+			}
+		}
+	}
 }

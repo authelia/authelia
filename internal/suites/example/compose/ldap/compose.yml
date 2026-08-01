@@ -9,11 +9,12 @@ services:
       LDAP_ADMIN_PASSWORD: 'password'
       LDAP_CONFIG_PASSWORD: 'password'
       LDAP_ADDITIONAL_MODULES: 'memberof'
-      LDAP_ADDITIONAL_SCHEMAS: 'openldap'
+      LDAP_ADDITIONAL_SCHEMAS: 'openldap,authelia'
       LDAP_FORCE_RECONFIGURE: 'true'
       LDAP_TLS_VERIFY_CLIENT: 'try'
     volumes:
       - './example/compose/ldap/ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom'
+      - './example/compose/ldap/schema:/container/service/slapd/assets/config/bootstrap/schema/custom'
     command:
       - '--copy-service'
       - '--loglevel'
