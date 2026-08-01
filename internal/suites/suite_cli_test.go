@@ -3,6 +3,8 @@ package suites
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.yaml.in/yaml/v4"
 
@@ -1479,6 +1482,136 @@ func (s *CLISuite) TestDebugTLS() {
 	s.NoError(err)
 
 	s.Contains(output, "General Information:\n\tFailure: Did not receive a TLS handshake from secure.example.com:8081")
+}
+
+// execWithStdin runs an authelia CLI command in the container, piping payload in as base64 to avoid shell-quoting issues.
+func (s *CLISuite) execWithStdin(service string, payload []byte, args ...string) (output string, err error) {
+	encoded := base64.StdEncoding.EncodeToString(payload)
+
+	command := fmt.Sprintf("'echo %s | base64 -d | %s'", encoded, strings.Join(args, " "))
+
+	return s.Exec(service, []string{"sh", "-c", command})
+}
+
+// buildUserJSON marshals a Go value into the JSON payload accepted by `authelia users add --file -`.
+func buildUserJSON(t *testing.T, user map[string]any) []byte {
+	t.Helper()
+
+	payload, err := json.Marshal(user)
+	require.NoError(t, err)
+
+	return payload
+}
+
+func (s *CLISuite) TestUsers00ShouldPrintSchema() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", "users", "schema"})
+	s.NoError(err)
+	s.Contains(output, "Attribute")
+	s.Contains(output, "Label")
+	s.Contains(output, "Type")
+	s.Contains(output, "Required")
+	s.Contains(output, "Multi-Valued")
+	s.Contains(output, "username")
+	s.Contains(output, "extra.employee_id")
+	s.Contains(output, "extra.tags")
+}
+
+func (s *CLISuite) TestUsers01ShouldAddUserFromJSONStdin() {
+	payload := buildUserJSON(s.T(), map[string]any{
+		"username":     "alice",
+		"password":     "apple123",
+		"display_name": "Alice Anderson",
+		"mail":         "alice@example.com",
+		"groups":       []string{"engineering"},
+		"extra":        map[string]any{"employee_id": "E-1001"},
+	})
+
+	output, err := s.execWithStdin("authelia-backend", payload, "authelia", "users", "add", "--file", "-")
+	s.NoError(err)
+	s.Contains(output, "Successfully created user 'alice'.")
+}
+
+func (s *CLISuite) TestUsers02ShouldRejectMalformedJSON() {
+	output, err := s.execWithStdin("authelia-backend", []byte("{not-json"), "authelia", "users", "add", "--file", "-")
+	s.Error(err)
+	s.Contains(output, "error parsing user JSON")
+}
+
+func (s *CLISuite) TestUsers03ShouldGetUser() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", "users", "get", "alice"})
+	s.NoError(err)
+	s.Contains(output, "alice")
+	s.Contains(output, "Alice Anderson")
+	s.NotContains(output, "apple123")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "users", "get", "alice", "--format", "json"})
+	s.NoError(err)
+	s.Contains(output, `"username": "alice"`)
+	s.Contains(output, `"mail"`)
+	s.Contains(output, "alice@example.com")
+	s.NotContains(output, "apple123")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "users", "get", "alice", "--fields", "username,mail"})
+	s.NoError(err)
+	s.Contains(output, "alice")
+	s.Contains(output, "alice@example.com")
+	s.NotContains(output, "Alice Anderson")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "users", "get", "alice", "--format", "json", "--fields", "username"})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "flag '--fields' cannot be used with '--format json'")
+}
+
+func (s *CLISuite) TestUsers04ShouldGetNonExistentUser() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", "users", "get", "does-not-exist"})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "error occurred retrieving user 'does-not-exist'")
+}
+
+func (s *CLISuite) TestUsers05ShouldListUsers() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", "users", "list"})
+	s.NoError(err)
+	s.Contains(output, "alice")
+	s.Contains(output, "john")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "users", "list", "--fields", "username"})
+	s.NoError(err)
+	s.Contains(output, "alice")
+	s.NotContains(output, "Alice Anderson")
+}
+
+// TestUsers06ShouldManageGroups checks file-backend group handling: `list` reflects users' groups; `add`/`delete` are rejected.
+func (s *CLISuite) TestUsers06ShouldManageGroups() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", "users", "groups", "list"})
+	s.NoError(err)
+	s.Contains(output, "engineering")
+	s.Contains(output, "admins")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "users", "groups", "list", "--format", "json"})
+	s.NoError(err)
+	s.Contains(output, `"engineering"`)
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "users", "groups", "add", "engineering-leads"})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "standalone group creation is not supported for file-based authentication")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "users", "groups", "delete", "engineering"})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "standalone group deletion is not supported for file-based authentication")
+}
+
+func (s *CLISuite) TestUsers07ShouldDeleteUser() {
+	output, err := s.Exec("authelia-backend", []string{"authelia", "users", "delete", "alice"})
+	s.NoError(err)
+	s.Contains(output, "Successfully deleted user 'alice'.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "users", "list"})
+	s.NoError(err)
+	s.NotContains(output, "alice")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "users", "get", "alice"})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "error occurred retrieving user 'alice'")
 }
 
 func TestCLISuite(t *testing.T) {

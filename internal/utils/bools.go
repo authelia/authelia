@@ -1,5 +1,14 @@
 package utils
 
+// FormatBool converts a bool into a "yes"/"no" string suitable for CLI display.
+func FormatBool(v bool) string {
+	if v {
+		return "yes"
+	}
+
+	return "no"
+}
+
 // IsBoolCountLessThanN takes an int (n), bool (v), and then a variadic slice of bool (vals). If the number of bools in vals with
 // the value v is more than n, it returns false, otherwise it returns true.
 func IsBoolCountLessThanN(n int, v bool, vals ...bool) bool {
