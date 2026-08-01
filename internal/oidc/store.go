@@ -454,7 +454,8 @@ func (s *Store) DeletePARSession(ctx context.Context, requestURI string) (err er
 // CheckAndSetDPoPProofUsed atomically determines if a DPoP proof has already been used and has not yet expired and,
 // when it has not, records it as used until exp. The record is keyed on the 'jti' claim, the HTTP method, and the
 // normalized target URI, as RFC 9449 Section 4.2 only requires a 'jti' to be unique in the context it is presented in
-// and keying on the 'jti' alone would reject a conforming client which reuses it against another endpoint.
+// and keying on the 'jti' alone would reject a conforming client which reuses it against another endpoint. The JWK
+// Thumbprint and the 'nonce' claim are deliberately excluded as both are validated before this record is written.
 // This implements a portion of rfc9449.DPoPReplayStorage.
 func (s *Store) CheckAndSetDPoPProofUsed(ctx context.Context, jti, _, _, htm, htu string, exp time.Time) (used bool, err error) {
 	return s.provider.CheckAndSetOAuth2DPoPProofUsed(ctx, jti, htm, htu, exp, time.Now())

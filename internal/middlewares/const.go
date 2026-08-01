@@ -83,11 +83,12 @@ var (
 )
 
 const (
-	strProtoHTTP2 = "HTTP/2"
-	strProtoHTTPS = "https"
-	strProtoHTTP  = "http"
-	strSlash      = "/"
-	localhost     = "127.0.0.1"
+	strProtoHTTP2  = "HTTP/2"
+	strProtoHTTP11 = "HTTP/1.1"
+	strProtoHTTPS  = "https"
+	strProtoHTTP   = "http"
+	strSlash       = "/"
+	localhost      = "127.0.0.1"
 
 	queryArgRedirect    = "rd"
 	queryArgAutheliaURL = "authelia_url"

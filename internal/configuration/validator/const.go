@@ -179,6 +179,8 @@ const (
 	errFmtOIDCProviderNoPrivateKey            = "identity_providers: oidc: option `jwks` is required"
 	errFmtOIDCProviderEnforcePKCEInvalidValue = "identity_providers: oidc: option 'enforce_pkce' must be 'never', " +
 		"'public_clients_only' or 'always', but it's configured as '%s'"
+	errFmtOIDCProviderDPoPDurationNotPositive        = "identity_providers: oidc: dpop: option '%s' must be a positive duration but it's configured as '%s'"
+	errFmtOIDCProviderDPoPOptionRequiresEnabled      = "identity_providers: oidc: dpop: option '%s' can't be enabled when option 'enabled' is disabled"
 	errFmtOIDCProviderInsecureParameterEntropy       = "identity_providers: oidc: option 'minimum_parameter_entropy' is "
 	errFmtOIDCProviderInsecureParameterEntropyUnsafe = errFmtOIDCProviderInsecureParameterEntropy +
 		"configured to an unsafe and insecure value, it should at least be %d but it's configured to %d"
@@ -234,6 +236,8 @@ const (
 		"required to be empty when option 'public' is true"
 	errFmtOIDCClientPublicInvalidSecretClientAuthMethod = errFmtOIDCClientInvalidSecretIs +
 		"required to be empty when option '%s' is configured as '%s'"
+	errFmtOIDCClientDPoPOptionRequiresEnabled = errFmtOIDCClientOption + "'%s' can't be enabled when the 'identity_providers: oidc: dpop: enabled' option is disabled"
+
 	errFmtOIDCClientIDTooLong           = errFmtOIDCClientOption + "'id' must not be more than 100 characters but it has %d characters"
 	errFmtOIDCClientIDInvalidCharacters = errFmtOIDCClientOption + "'id' must only contain RFC3986 unreserved characters"
 
@@ -511,7 +515,7 @@ var (
 	validAuthzImplementations       = []string{schema.AuthzImplementationAuthRequest, schema.AuthzImplementationForwardAuth, schema.AuthzImplementationExtAuthz, schema.AuthzImplementationLegacy}
 	validAuthzAuthnStrategies       = []string{schema.AuthzStrategyHeaderCookieSession, schema.AuthzStrategyHeaderAuthorization, schema.AuthzStrategyHeaderProxyAuthorization, schema.AuthzStrategyHeaderAuthRequestProxyAuthorization, schema.AuthzStrategyHeaderLegacy}
 	validAuthzAuthnHeaderStrategies = []string{schema.AuthzStrategyHeaderAuthorization, schema.AuthzStrategyHeaderProxyAuthorization, schema.AuthzStrategyHeaderAuthRequestProxyAuthorization}
-	validAuthzAuthnStrategySchemes  = []string{schema.SchemeBasic, schema.SchemeBearer}
+	validAuthzAuthnStrategySchemes  = []string{schema.SchemeBasic, schema.SchemeBearer, schema.SchemeDPoP}
 )
 
 var (

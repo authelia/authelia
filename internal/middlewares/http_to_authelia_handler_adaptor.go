@@ -19,23 +19,30 @@ func NewHTTPToAutheliaHandlerAdaptor(handler AutheliaHandlerFunc) RequestHandler
 	return func(ctx *AutheliaCtx) {
 		body := ctx.PostBody()
 
+		proto := bytesToString(ctx.Request.Header.Protocol())
+
+		major, minor, ok := http.ParseHTTPVersion(proto)
+		if !ok {
+			switch proto {
+			case strProtoHTTP2:
+				major, minor = 2, 0
+			default:
+				proto, major, minor = strProtoHTTP11, 1, 1
+			}
+		}
+
 		r := &http.Request{
 			Header:        make(http.Header),
 			TLS:           ctx.TLSConnectionState(),
-			Proto:         bytesToString(ctx.Request.Header.Protocol()),
-			ProtoMinor:    1,
+			Proto:         proto,
+			ProtoMajor:    major,
+			ProtoMinor:    minor,
 			ContentLength: int64(len(body)),
 			Method:        bytesToString(ctx.Method()),
 			Host:          bytesToString(ctx.Host()),
 			RequestURI:    bytesToString(ctx.RequestURI()),
 			RemoteAddr:    ctx.RemoteAddr().String(),
 			Body:          io.NopCloser(bytes.NewReader(body)),
-		}
-
-		if r.Proto == strProtoHTTP2 {
-			r.ProtoMajor = 2
-		} else {
-			r.ProtoMajor = 1
 		}
 
 		for k, v := range ctx.Request.Header.All() {
@@ -115,8 +122,13 @@ func (w *netHTTPResponseWriter) Header() http.Header {
 	return w.h
 }
 
-// WriteHeader writes the status code.
+// WriteHeader writes the status code. Only the first call has an effect which matches the net/http semantics the
+// wrapped handlers are written against.
 func (w *netHTTPResponseWriter) WriteHeader(statusCode int) {
+	if w.statusCode != 0 {
+		return
+	}
+
 	w.statusCode = statusCode
 }
 

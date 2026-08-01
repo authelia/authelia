@@ -217,6 +217,7 @@ Feature List:
 - Subject Sectoring:
   - Pairwise Pseudonymous Identifier (PPID)
   - Sector Identifier validation.
+- OAuth 2.0 Demonstrating Proof of Possession
 
 Potential Feature List:
 

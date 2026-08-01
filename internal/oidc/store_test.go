@@ -1012,10 +1012,19 @@ func (s *StoreSuite) TestCheckAndSetDPoPProofUsed() {
 		assert.False(t, used)
 	})
 
-	s.T().Run("ShouldNotKeyOnThumbprintOrNonce", func(t *testing.T) {
+	s.T().Run("ShouldNotKeyOnThumbprint", func(t *testing.T) {
 		s.mock.EXPECT().CheckAndSetOAuth2DPoPProofUsed(s.ctx, "jti", "POST", htu, exp, gomock.Any()).Return(true, nil)
 
-		used, err := s.store.CheckAndSetDPoPProofUsed(s.ctx, "jti", "other", "other", "POST", htu, exp)
+		used, err := s.store.CheckAndSetDPoPProofUsed(s.ctx, "jti", "other", "nonce", "POST", htu, exp)
+
+		assert.NoError(t, err)
+		assert.True(t, used)
+	})
+
+	s.T().Run("ShouldNotKeyOnNonce", func(t *testing.T) {
+		s.mock.EXPECT().CheckAndSetOAuth2DPoPProofUsed(s.ctx, "jti", "POST", htu, exp, gomock.Any()).Return(true, nil)
+
+		used, err := s.store.CheckAndSetDPoPProofUsed(s.ctx, "jti", "jkt", "other", "POST", htu, exp)
 
 		assert.NoError(t, err)
 		assert.True(t, used)

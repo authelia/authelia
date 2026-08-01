@@ -147,7 +147,6 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 			OAuth2IssuerIdentificationDiscoveryOptions: &OAuth2IssuerIdentificationDiscoveryOptions{
 				AuthorizationResponseIssuerParameterSupported: true,
 			},
-			OAuth2DemonstratingProofOfPossessionDiscoveryOptions: &OAuth2DemonstratingProofOfPossessionDiscoveryOptions{},
 		},
 
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
@@ -284,16 +283,18 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 	}
 
 	if c.DPoP.Enabled {
-		config.DPoPSigningAlgValuesSupported = []string{
-			SigningAlgRSAUsingSHA256,
-			SigningAlgRSAUsingSHA384,
-			SigningAlgRSAUsingSHA512,
-			SigningAlgECDSAUsingP256AndSHA256,
-			SigningAlgECDSAUsingP384AndSHA384,
-			SigningAlgECDSAUsingP521AndSHA512,
-			SigningAlgRSAPSSUsingSHA256,
-			SigningAlgRSAPSSUsingSHA384,
-			SigningAlgRSAPSSUsingSHA512,
+		config.OAuth2DemonstratingProofOfPossessionDiscoveryOptions = &OAuth2DemonstratingProofOfPossessionDiscoveryOptions{
+			DPoPSigningAlgValuesSupported: []string{
+				SigningAlgRSAUsingSHA256,
+				SigningAlgRSAUsingSHA384,
+				SigningAlgRSAUsingSHA512,
+				SigningAlgECDSAUsingP256AndSHA256,
+				SigningAlgECDSAUsingP384AndSHA384,
+				SigningAlgECDSAUsingP521AndSHA512,
+				SigningAlgRSAPSSUsingSHA256,
+				SigningAlgRSAPSSUsingSHA384,
+				SigningAlgRSAPSSUsingSHA512,
+			},
 		}
 	}
 
@@ -351,6 +352,11 @@ func (opts OAuth2WellKnownConfiguration) Copy() (optsCopy OAuth2WellKnownConfigu
 	if opts.OAuth2IssuerIdentificationDiscoveryOptions != nil {
 		optsCopy.OAuth2IssuerIdentificationDiscoveryOptions = &OAuth2IssuerIdentificationDiscoveryOptions{}
 		*optsCopy.OAuth2IssuerIdentificationDiscoveryOptions = *opts.OAuth2IssuerIdentificationDiscoveryOptions
+	}
+
+	if opts.OAuth2DemonstratingProofOfPossessionDiscoveryOptions != nil {
+		optsCopy.OAuth2DemonstratingProofOfPossessionDiscoveryOptions = &OAuth2DemonstratingProofOfPossessionDiscoveryOptions{}
+		*optsCopy.OAuth2DemonstratingProofOfPossessionDiscoveryOptions = *opts.OAuth2DemonstratingProofOfPossessionDiscoveryOptions
 	}
 
 	if opts.OAuth2JWTIntrospectionResponseDiscoveryOptions != nil {

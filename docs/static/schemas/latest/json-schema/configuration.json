@@ -3665,7 +3665,8 @@
             "type": "string",
             "enum": [
               "basic",
-              "bearer"
+              "bearer",
+              "dpop"
             ]
           },
           "type": "array",

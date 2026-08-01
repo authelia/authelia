@@ -207,6 +207,7 @@ type JWTAccessTokenConfig struct {
 	EnableStatelessIntrospection bool
 }
 
+// DPoPConfig holds specific oauthelia2.Configurator information for RFC9449 Demonstrating Proof of Possession.
 type DPoPConfig struct {
 	Enabled                   bool
 	Enforced                  bool

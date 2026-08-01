@@ -269,6 +269,10 @@ var DefaultOpenIDConnectConfiguration = IdentityProvidersOpenIDConnect{
 		DeviceCode: time.Minute * 10,
 	},
 	EnforcePKCE: "public_clients_only",
+	DPoP: IdentityProvidersOpenIDConnectDPoP{
+		NonceLifespan: time.Minute * 5,
+		ClockSkew:     time.Second * 30,
+	},
 }
 
 // DefaultOpenIDConnectPolicyConfiguration is the default OpenID Connect 1.0 authorization policy configuration.
