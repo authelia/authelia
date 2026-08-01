@@ -7,6 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestFormatBool(t *testing.T) {
+	assert.Equal(t, "yes", FormatBool(true))
+	assert.Equal(t, "no", FormatBool(false))
+}
+
 func TestIsBoolCountLessThanN(t *testing.T) {
 	type h struct {
 		n    int
