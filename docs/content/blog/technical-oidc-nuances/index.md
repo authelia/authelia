@@ -25,8 +25,8 @@ just interested in the topic may also find this beneficial. I have seen some int
 Source Community as well as the more specific Authelia Community for information like this, so hopefully it helps
 satisfy some of this.
 
-Because of the technical nature, I've intentionally not including it on the homepage, but we will probably publish more
-articles like this in the future in the same [category](categories/technical).
+Because of the technical nature, I've intentionally not included it on the homepage, but we will probably publish more
+articles like this in the future in the same [category](/categories/technical/).
 
 Learning about [OpenID Connect 1.0] and the associated specifications has been quite a journey. There is a lot to
 read and even more to understand. This journey has taken years even with preexisting knowledge; and the following
@@ -41,7 +41,8 @@ now consider a wonderfully beautiful framework and technology.
 The decision to write this article mainly comes from the fact that I have found myself recently and regularly discussing a
 few topics associated with [OpenID Connect 1.0] and in particular some of the nuances that don't seem well understood.
 I fail to see today why these concepts are hard to understand, they are very clearly detailed in the relevant
-specifications; I can only summarize at least from my anecdotal experience no one appears to discuss them in detail.
+specifications; I can only surmise, at least from my anecdotal experience, that no one appears to discuss them in
+detail.
 
 I suspect most people will find this topic rather boring. However, those of you who find technical articles interesting
 will probably really enjoy this, especially if your understanding of the [OpenID Connect 1.0] specifications is
@@ -63,7 +64,7 @@ contrast the _ID Token_[^3] is strictly a _JSON Web Token_[^4].
 Some confusion has developed over the years surrounding the purpose of these tokens. You see they are meant to have
 meaning and to be verified only by the _Authorization Server_[^5] or integrated _Resource Server_[^6]. This is partially
 because they can be completely opaque, and a couple of other reasons we'll get into. It's true that these tokens can be
-Introspected regardless of if they are opaque or a _JSON Web Token_[^4], but this is typically the role of the
+Introspected regardless of whether they are opaque or a _JSON Web Token_[^4], but this is typically the role of the
 _Resource Server_[^6].
 
 However as the [JSON Web Token Profile for OAuth 2.0 Access Tokens] was ratified several providers started using the
@@ -75,7 +76,7 @@ The intended purpose of [OpenID Connect 1.0] was to solve this particular issue 
 How it solves this particular issue is via the _ID Token_[^3]. These tokens are designed to carry information that will
 uniquely identify a user.
 
-This becomes more visible when you look at the final audience (`aud` _Claim_[^1]) of a _ID Token_[^3] vs an
+This becomes more visible when you look at the final audience (`aud` _Claim_[^1]) of an _ID Token_[^3] vs an
 _Access Token_[^2] using the _JSON Web Token_[^4] format. According to
 [RFC7519 Section 4.1.3](https://www.rfc-editor.org/rfc/rfc7519.html#section-4.1.3) the audience identifies the
 recipients that the _JWT_[^4] is intended for.
@@ -111,16 +112,16 @@ _Authorization Code Flow_[^7] with the following parameters:
 }
 ```
 
-As opposed to the _Authorization Code Flow_[^7] where the `sub` should normally be the _Resource Owners_[^8] subject
-identifier, the Client Credentials Flow has an interesting effect on the _Access Token_[^2] where the `sub` should
-normally be the Client ID. While you could technically try to use this to validate the identity of the _End-User_[^9],
-this is not the intended purpose behind this _Access Token_[^2] format. In fact, it's not even guaranteed by any normal
-area of the specification that this will be the case.
+As opposed to the _Authorization Code Flow_[^7] where the `sub` should normally be the subject identifier of the
+_Resource Owner_[^8], the Client Credentials Flow has an interesting effect on the _Access Token_[^2] where the `sub`
+should normally be the Client ID. While you could technically try to use this to validate the identity of the
+_End-User_[^9], this is not the intended purpose behind this _Access Token_[^2] format. In fact, it's not even
+guaranteed by any normal area of the specification that this will be the case.
 
-If you take a look the audience of the _Access Token_[^2] is not the Client ID, this is because it is not the intended
-recipient and should not use it to validate the identity of a user. You will also note the audience in the _ID Token_[^3] is
-the Client ID, it is required to be the Client ID, though it optionally can have additional values. This clearly
-expresses that the Client is the intended recipient.
+If you take a look, the audience of the _Access Token_[^2] is not the Client ID, this is because the Client is not the
+intended recipient and should not use it to validate the identity of a user. You will also note the audience in the
+_ID Token_[^3] is the Client ID; it is required to be the Client ID, though it optionally can have additional values.
+This clearly expresses that the Client is the intended recipient.
 
 The short version of this is that the _Access Token_[^2] is meant to be understood by the Authorization Server for uses at
 the _User Information Endpoint_[^10], _Introspection Endpoint_[^11], _Revocation Endpoint_[^12], and various other endpoints it
@@ -157,10 +158,10 @@ cleanly be identified by.
 
 The [Claim Stability and Uniqueness] Section of [OpenID Connect 1.0] reads:
 
-> The sub (subject) and iss (issuer) Claims from the ID Token, used together, are the only Claims that an RP can rely
-> upon as a stable identifier for the End-User, since the sub Claim MUST be locally unique and never reassigned within
-> the Issuer for a particular End-User, as described in Section 2. Therefore, the only guaranteed unique identifier for
-> a given End-User is the combination of the iss Claim and the sub Claim.
+> The sub (subject) and iss (issuer) Claims, used together, are the only Claims that an RP can rely upon as a stable
+> identifier for the End-User, since the sub Claim MUST be locally unique and never reassigned within the Issuer for a
+> particular End-User, as described in Section 2. Therefore, the only guaranteed unique identifier for a given End-User
+> is the combination of the iss Claim and the sub Claim.
 >
 > All other Claims carry no such guarantees across different issuers in terms of stability over time or uniqueness
 > across users, and Issuers are permitted to apply local restrictions and policies. For instance, an Issuer MAY re-use
@@ -169,7 +170,7 @@ The [Claim Stability and Uniqueness] Section of [OpenID Connect 1.0] reads:
 > NOT be used as unique identifiers for the End-User, whether obtained from the ID Token or the UserInfo Endpoint.
 
 The intent and gravity of neglecting this element is very clear as soon as you realize that providers may allow users to
-change their email address or username. TThese values are intended to be persistent identifiers for a user, never
+change their email address or username. These values are intended to be persistent identifiers for a user, never
 changing, regardless of what other values change. Not only for security, but for the user experience to be seamless.
 Just because they change their email they should not be prevented from signing into an application; and this would be
 the case if you do not use the intended _Claims_[^1].
@@ -178,17 +179,17 @@ This is linked heavily to the first concept because the _Access Token_[^2] may i
 not required to. In fact the _Access Token_[^2] may not even be a _JWT_[^4], it's up to the [OpenID Connect 1.0] Provider how
 they deliver it, as long as they understand it.
 
-So some astute readers may be thinking. Why do these _Claims_[^1] exist in the first place then? Well it comes down to three
-primary functions. Obviously these functions are not an exhaustive list, but it should be enough to explain the
+So some astute readers may be thinking: why do these _Claims_[^1] exist in the first place then? Well it comes down to
+three primary functions. Obviously these functions are not an exhaustive list, but it should be enough to explain the
 principles.
 
 The first function of these _Claims_[^1] is to provide helpful information or hints to the _Relying Party_[^13] during a
 Registration Flow, or in some instances an Identity Binding Flow (i.e. binding the `sub` and `iss` _Claims_[^1] to an
 identity that already exists) when they're not already logged in. For example they may prefill a form.
 
-The second function of these _Claims_[^1] is to provide the _Relying Party_[^13] with information about a _Resource Owner_[^8]
-with an already bound identity that they may not want to store themselves; such as they may perform a Authorization Flow
-to temporarily obtain the _Resource Owners_[^8] address information for a purchase.
+The second function of these _Claims_[^1] is to provide the _Relying Party_[^13] with information about a
+_Resource Owner_[^8] with an already bound identity that they may not want to store themselves; such as they may perform
+an Authorization Flow to temporarily obtain the address information of the _Resource Owner_[^8] for a purchase.
 
 The third function of these _Claims_[^1] is to provide the _Relying Party_[^13] a way to obtain updated details about a
 _Resource Owner_[^8] who already has a bound identity. For example updating their contact details. This leads naturally
@@ -212,13 +213,13 @@ This comes directly from the
 indicates the _ID Token_[^3] contains a bare minimum information to identify a user as well as information about _how_
 and _when_ the user authenticated, and that it **_can_** contain additional identity data.
 
-If we dive into the _Claims_[^1] that are standard in the _ID Token_[^3], it has a very minimal set of _Claims_[^1]
-by default, and it's clear the ways in which a _Relying Party_[^13] may request additional _Claims_[^1] and in which
-scenarios it must contain additional _Claims_[^1].
+If we dive into the _Claims_[^1] that are standard in the _ID Token_[^3], we find the _ID Token_[^3] has a very minimal
+set of _Claims_[^1] by default, and it's clear the ways in which a _Relying Party_[^13] may request additional
+_Claims_[^1] and in which scenarios it must contain additional _Claims_[^1].
 
 ### Scope Parameter
 
-Scopes seem to be mostly be assumed to always mint an _ID Token_[^3] with all the scopes relevant _Claims_[^1]. Why is
+Scopes seem to mostly be assumed to always mint an _ID Token_[^3] with all the scopes relevant _Claims_[^1]. Why is
 this assumption flawed?
 
 The section on [Requesting Claims using Scope Values] has a crucial passage regarding this:
@@ -244,33 +245,32 @@ instance the _ID Token_[^3] is categorically required to be populated with every
 _Access Token_[^2] would normally be able to access at the _User Information Endpoint_[^10].
 
 It's amazing how this neatly ties back into the use case for the _Access Token_[^2] at the very start of this article.
-It's intended for use cases like accessing specific API's at the Authorization Server. If you then consider the fact the
+It's intended for use cases like accessing specific APIs at the Authorization Server. If you then consider the fact the
 _ID Token_[^3] is a static snapshot of the unique identity of a _Resource Owner_[^8] as described in the above concept
 surrounding Claim Stability and Uniqueness, and then extrapolate that the request to the
 _User Information Endpoint_[^10] could realistically have the most up-to-date information about the user; I feel like
 it all just makes complete sense.
 
-The question is if a _Relying Party_[^13] is not intending on using the _Access Token_[^2] to access the
-_User Information Endpoint_[^10] why are they not using the _Implicit Flow_[^16] with the _Response Mode_[^17] `form_post`
-since this flow is intended specifically to identify the user. Since they will not be issued an _Access Token_[^2], and
-only the _ID Token_[^3], and it's performed over `form_post`, and the _ID Token_[^3] is signed and potentially encrypted
-multiple times; with the exception of the lack of client authentication most of the issues surrounding this flow
-mitigated by only returning the _ID Token_[^3] via `form_post`. That being said I think the security concerns are
-definitely a reasonable explanation; but the privacy and security benefits of using the _User Information Endpoint_[^10]
-are too strong an argument to not implement this properly.
+The question is, if a _Relying Party_[^13] is not intending on using the _Access Token_[^2] to access the
+_User Information Endpoint_[^10], why are they not using the _Implicit Flow_[^16] with the _Response Mode_[^17]
+`form_post`, since this flow is intended specifically to identify the user? They will not be issued an
+_Access Token_[^2], only the _ID Token_[^3]; the response is performed over `form_post`; and the _ID Token_[^3] is
+signed and potentially encrypted multiple times. With the exception of the lack of client authentication, most of the
+issues surrounding this flow are mitigated by only returning the _ID Token_[^3] via `form_post`. That being said I
+think the security concerns are definitely a reasonable explanation; but the privacy and security benefits of using the
+_User Information Endpoint_[^10] are too strong an argument to not implement this properly.
 
 What do I mean by privacy and security benefits? Well the _User Information Endpoint_[^10] requires an active
-_Access Token_[^2] to obtain the _Claims_[^1]. This means even if the _ID Token_[^3] does not need to contain privacy
+_Access Token_[^2] to obtain the _Claims_[^1]. This means the _ID Token_[^3] does not need to contain privacy
 sensitive information. An added benefit of this approach is that the _Access Token_[^2] can be revoked, and security
 conscious _Authorization Servers_[^5] will automatically mint a new _Refresh Token_[^19] at the same time it mints a
 new _Access Token_[^2] during the _Refresh Token Flow_[^18] which effectively rotates both of these tokens as the old
-ones should be intentioanlly revoked.
-
+ones should be intentionally revoked.
 
 ### Claims Parameter
 
-To cement the above point there is actually another means by which clients using **_any_** flow other than the
-_Implicit Flow_[^16] which only returns an _ID Token_[^3] can obtain additional _Claims_[^1] in the _ID Token_[^3].
+To cement the above point there is actually another means by which clients using **_any_** flow can obtain additional
+_Claims_[^1] in the _ID Token_[^3], not just the _Implicit Flow_[^16] variation which only returns an _ID Token_[^3].
 
 This is done via the [Claims Parameter]. The [Claims Parameter] allows requesting specific _Claims_[^1] be present in the
 _ID Token_[^3]. In addition it has the added benefit of allowing granular requests for specific _Claims_[^1] rather than
@@ -287,7 +287,7 @@ _ID Token_[^3]. It's just too powerful not to use it.
 
 ## Footnotes
 
-[^1]: A Claim is some information that has been asserted about an Entity such as a _End-User_[^9] or
+[^1]: A Claim is some information that has been asserted about an Entity such as an _End-User_[^9] or
 _Resource Owner_[^8]. This is also specifically defined in the [OpenID Connect 1.0 Core Terminology] as well as the
 [Claims] section which describes them in detail.
 
@@ -297,8 +297,8 @@ which is either completely proprietary or described in [RFC9068](https://datatra
 Access Token is used to access resources.
 
 [^3]: An ID Token otherwise known as an Identity Token is a _JSON Web Token_[^4] which is described in
-[ID Token Section of OpenID Connect 1.0 Core](https://openid.net/specs/openid-connect-core-1_0.html). The ID Token is
-intentionally designed to identify a unique user and has a strictly defined format and contents.
+[ID Token Section of OpenID Connect 1.0 Core](https://openid.net/specs/openid-connect-core-1_0.html#IDToken).
+The ID Token is intentionally designed to identify a unique user and has a strictly defined format and contents.
 This is also specifically defined in the [OpenID Connect 1.0 Core Terminology].
 
 [^4]: A JSON Web Token or JWT has multiple serialization forms, in our usages of them currently we use the compact
@@ -331,7 +331,7 @@ commonly referred to as a user. You can read more about the User Information End
 can read more about Token Introspection in [RFC7662](https://datatracker.ietf.org/doc/html/rfc7662).
 
 [^12]: The Revocation Endpoint is used to revoke an Access Token and/or _Refresh Token_[^19]. You
-can read more about Token Introspection in [RFC7009](https://datatracker.ietf.org/doc/html/rfc7009).
+can read more about Token Revocation in [RFC7009](https://datatracker.ietf.org/doc/html/rfc7009).
 
 [^13]: The Relying Party is the party which relies on the OpenID Connect 1.0 Provider to process the Authorization Flow
 and the _Resource Owner_[^8] to grant access to the information.
@@ -340,9 +340,9 @@ and the _Resource Owner_[^8] to grant access to the information.
 [OpenID Connect 1.0] the most common use for them is to define as set of _Claims_[^1] the token can access. You can read more
 about Scopes in the [OAuth Defining Scopes Explainer](https://www.oauth.com/oauth2-servers/scope/defining-scopes/).
 
-[^15]: The Audience describes the intended recipient that the token (especially a _JSON Web Token_[^4]). This is
-represented as an array of strings which either contain URI's or some other uniquely identifiable name for the
-recipient. This is stored in the `aud` _Claim_[^1] of _JSON Web Token_[^4] if applicable.
+[^15]: The Audience describes the intended recipients of a token (especially a _JSON Web Token_[^4]). This is
+represented as either a single string or an array of strings which either contain URIs or some other uniquely
+identifiable name for the recipient. This is stored in the `aud` _Claim_[^1] of a _JSON Web Token_[^4] if applicable.
 
 [^16]: The Implicit Flow is a flow which directly returns the requested tokens within the Authorization Response. It does
 not exchange any short-lived code for the requested tokens. This flow is traditionally less secure due to the fact no
@@ -358,7 +358,7 @@ which performs a `POST` request with the response in the request body.
 [^18]: The Refresh Token Flow is a flow which exchanges a _Refresh Token_[^19] at the Token Endpoint for new tokens with
 the same security characteristics or narrowed security characteristics.
 
-[^19]: The Refresh Token is typically a  completely opaque token which can be used to reissue other tokens.
+[^19]: The Refresh Token is typically a completely opaque token which can be used to reissue other tokens.
 
 [OpenID Connect 1.0]: https://openid.net/specs/openid-connect-core-1_0.html
 [Requesting Claims using Scope Values]: https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
