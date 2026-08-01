@@ -82,6 +82,8 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		PushedAuthorizationRequestEndpointAuthMethod:     config.PushedAuthorizationRequestEndpointAuthMethod,
 		PushedAuthorizationRequestEndpointAuthSigningAlg: config.PushedAuthorizationRequestAuthSigningAlg,
 
+		DPoPBoundAccessTokens: config.DPoPBoundAccessTokens,
+
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewJSONWebKeySet(config.JSONWebKeys),
 	}

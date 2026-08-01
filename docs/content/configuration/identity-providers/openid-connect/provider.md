@@ -105,6 +105,12 @@ identity_providers:
     scopes:
       scope_name:
         claims: []
+    dpop:
+      enabled: false
+      enforced: false
+      nonce_enforced: false
+      nonce_lifespan: '5 minutes'
+      clock_skew: '30 seconds'
     cors:
       endpoints:
         - 'authorization'
@@ -683,6 +689,41 @@ The claims to be available to this scope.
 If the scope is configured in a [OpenID Connect 1.0 Client](clients.md#scopes) in the [scopes](clients.md#scopes) then
 every claim available in this list must either be a Standard Claim or must be fulfilled by the
 [claims_policy](clients.md#claims_policy).
+
+### dpop
+
+Configures the Demonstrating Proof of Possession characteristics of this issuer.
+
+#### enabled
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables Demonstrating Proof of Possession functionality.
+
+#### enforced
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces Demonstrating Proof of Possession usage by all clients.
+
+#### nonce_enforced
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces the Demonstrating Proof of Possession nonce mechanism.
+
+#### nonce_lifespan
+
+{{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no" >}}
+
+Configures how long the Demonstrating Proof of Possession nonce values are valid for.
+
+#### clock_skew
+
+{{< confkey type="string,integer" syntax="duration" default="30 seconds" required="no" >}}
+
+Configures the window of time the Demonstrating Proof of Possession proofs are considered valid for surrounding the
+issued at `iat` claim, i.e. the default is 30 seconds before and after the issued at claim value.
 
 ### cors
 

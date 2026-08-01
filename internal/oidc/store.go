@@ -14,6 +14,7 @@ import (
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
 	"authelia.com/provider/oauth2/handler/rfc8628"
+	"authelia.com/provider/oauth2/handler/rfc9449"
 	ostorage "authelia.com/provider/oauth2/storage"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -450,6 +451,37 @@ func (s *Store) DeletePARSession(ctx context.Context, requestURI string) (err er
 	return errStorage(s.provider.RevokeOAuth2PushedAuthorizationSession(ctx, requestURI))
 }
 
+// CheckAndSetDPoPProofUsed atomically determines if a DPoP proof has already been used and has not yet expired and,
+// when it has not, records it as used until exp. The record is keyed on the 'jti' claim, the HTTP method, and the
+// normalized target URI, as RFC 9449 Section 4.2 only requires a 'jti' to be unique in the context it is presented in
+// and keying on the 'jti' alone would reject a conforming client which reuses it against another endpoint.
+// This implements a portion of rfc9449.DPoPReplayStorage.
+func (s *Store) CheckAndSetDPoPProofUsed(ctx context.Context, jti, _, _, htm, htu string, exp time.Time) (used bool, err error) {
+	return s.provider.CheckAndSetOAuth2DPoPProofUsed(ctx, jti, htm, htu, exp, time.Now())
+}
+
+// CreateDPoPNonce persists a freshly issued DPoP nonce until exp.
+// This implements a portion of rfc9449.DPoPNonceStorage.
+func (s *Store) CreateDPoPNonce(ctx context.Context, nonce string, exp time.Time) (err error) {
+	return s.provider.SaveOAuth2DPoPNonce(ctx, model.NewOAuth2DPoPNonce(nonce, exp))
+}
+
+// IsDPoPNonceValid determines if a DPoP nonce exists and has not expired.
+// This implements a portion of rfc9449.DPoPNonceStorage.
+func (s *Store) IsDPoPNonceValid(ctx context.Context, nonce string) (valid bool, err error) {
+	var value *model.OAuth2DPoPNonce
+
+	if value, err = s.provider.LoadOAuth2DPoPNonce(ctx, model.NewOAuth2DPoPNonceSignature(nonce)); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return value.ExpiresAt.After(time.Now()), nil
+}
+
 // IsJWTUsed implements an interface required for RFC7523.
 func (s *Store) IsJWTUsed(ctx context.Context, jti string) (used bool, err error) {
 	if err = s.ClientAssertionJWTValid(ctx, jti); err != nil {
@@ -542,4 +574,5 @@ var (
 	_ oauth2.TokenRevocationStorage      = (*Store)(nil)
 	_ openid.OpenIDConnectRequestStorage = (*Store)(nil)
 	_ rfc8628.Storage                    = (*Store)(nil)
+	_ rfc9449.Storage                    = (*Store)(nil)
 )

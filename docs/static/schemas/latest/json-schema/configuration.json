@@ -1422,6 +1422,11 @@
           "title": "Scopes",
           "description": "List of custom scopes."
         },
+        "dpop": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectDPoP",
+          "title": "DPoP",
+          "description": "Demonstrating Proof of Possession configuration"
+        },
         "issuer_certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",
           "title": "Issuer Certificate Chain",
@@ -2329,6 +2334,12 @@
           "title": "Allow Multiple Authentication Methods",
           "description": "Permits this registered client to accept misbehaving clients which use a broad authentication approach. This is not standards complaint, use at your own security risk."
         },
+        "dpop_bound_access_tokens": {
+          "type": "boolean",
+          "title": "DPoP Bound Access Tokens",
+          "description": "Enforces DPoP bound Access Tokens for this client.",
+          "default": false
+        },
         "jwks_uri": {
           "type": "string",
           "format": "uri",
@@ -2393,6 +2404,56 @@
       },
       "type": "object",
       "description": "IdentityProvidersOpenIDConnectCustomClaims represents the custom claims configuration."
+    },
+    "IdentityProvidersOpenIDConnectDPoP": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "Determines if the Issuer has enabled DPoP usage."
+        },
+        "enforced": {
+          "type": "boolean",
+          "title": "Enforced",
+          "description": "Determines if the Issuer enforces DPoP usage."
+        },
+        "nonce_enforced": {
+          "type": "boolean",
+          "title": "Nonce Enforced",
+          "description": "Determines if the Issuer enforces DPoP nonce usage."
+        },
+        "nonce_lifespan": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Nonce Lifespan",
+          "description": "Determines the Issuer DPoP nonce lifespans."
+        },
+        "clock_skew": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Proof Clock Skew",
+          "description": "Determines the Issuer DPoP policy surrounding which proofs are accepted based on the time they were issued."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectDPoP represents the DPoP configuration."
     },
     "IdentityProvidersOpenIDConnectLifespan": {
       "properties": {

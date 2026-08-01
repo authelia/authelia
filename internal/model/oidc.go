@@ -51,6 +51,19 @@ func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2Blac
 	}
 }
 
+// NewOAuth2DPoPNonceSignature creates the storage signature for an OAuth2.0 DPoP nonce.
+func NewOAuth2DPoPNonceSignature(nonce string) (signature string) {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(nonce)))
+}
+
+// NewOAuth2DPoPNonce creates a new OAuth2DPoPNonce.
+func NewOAuth2DPoPNonce(nonce string, exp time.Time) (n OAuth2DPoPNonce) {
+	return OAuth2DPoPNonce{
+		Signature: NewOAuth2DPoPNonceSignature(nonce),
+		ExpiresAt: exp,
+	}
+}
+
 // NewOAuth2SessionFromRequest creates a new OAuth2Session from a signature and oauthelia2.Requester.
 func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (session *OAuth2Session, err error) {
 	if r == nil {
@@ -425,6 +438,13 @@ func (s *OAuth2ConsentSession) MatchesRequester(requester oauthelia2.Requester, 
 
 // OAuth2BlacklistedJTI represents a blacklisted JTI used with OAuth2.0.
 type OAuth2BlacklistedJTI struct {
+	ID        int       `db:"id"`
+	Signature string    `db:"signature"`
+	ExpiresAt time.Time `db:"expires_at"`
+}
+
+// OAuth2DPoPNonce represents a server provided OAuth2.0 DPoP nonce.
+type OAuth2DPoPNonce struct {
 	ID        int       `db:"id"`
 	Signature string    `db:"signature"`
 	ExpiresAt time.Time `db:"expires_at"`

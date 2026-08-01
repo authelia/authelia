@@ -17,6 +17,7 @@ import (
 	"authelia.com/provider/oauth2/handler/par"
 	"authelia.com/provider/oauth2/handler/pkce"
 	"authelia.com/provider/oauth2/handler/rfc8628"
+	"authelia.com/provider/oauth2/handler/rfc9449"
 	"authelia.com/provider/oauth2/i18n"
 	"authelia.com/provider/oauth2/token/jwt"
 
@@ -50,6 +51,24 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		JWTAccessToken: JWTAccessTokenConfig{
 			Enable:                       config.Discovery.JWTResponseAccessTokens,
 			EnableStatelessIntrospection: config.EnableJWTAccessTokenStatelessIntrospection,
+		},
+		DPoP: DPoPConfig{
+			Enabled:       config.DPoP.Enabled,
+			Enforced:      config.DPoP.Enforced,
+			NonceEnforced: config.DPoP.NonceEnforced,
+			NonceLifespan: config.DPoP.NonceLifespan,
+			ClockSkew:     config.DPoP.ClockSkew,
+			SigningAlgValuesSupported: []string{
+				SigningAlgRSAUsingSHA256,
+				SigningAlgRSAUsingSHA384,
+				SigningAlgRSAUsingSHA512,
+				SigningAlgECDSAUsingP256AndSHA256,
+				SigningAlgECDSAUsingP384AndSHA384,
+				SigningAlgECDSAUsingP521AndSHA512,
+				SigningAlgRSAPSSUsingSHA256,
+				SigningAlgRSAPSSUsingSHA384,
+				SigningAlgRSAPSSUsingSHA512,
+			},
 		},
 		Strategy:                        StrategyConfig{},
 		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
@@ -93,16 +112,6 @@ type Config struct {
 	DisableRefreshTokenValidation bool
 	OmitRedirectScopeParameter    bool
 
-	DPoPEnabled       bool
-	DPoPEnforce       bool
-	DPoPNonceRequired bool
-
-	DPoPAllowedJWSAlgorithms []string
-	DPoPClockSkew            time.Duration
-	DPoPNonceLifespan        time.Duration
-	DPoPProofLifespan        time.Duration
-	DPoPStrategy             oauthelia2.DPoPStrategy
-
 	EnforceClientAssertionIssuerAudience bool
 
 	BackChannelLogoutLifespan    time.Duration
@@ -114,6 +123,7 @@ type Config struct {
 	JWTSecuredAuthorizationLifespan time.Duration
 
 	JWTAccessToken JWTAccessTokenConfig
+	DPoP           DPoPConfig
 
 	Hash      HashConfig
 	Strategy  StrategyConfig
@@ -188,12 +198,24 @@ type StrategyConfig struct {
 	RevocationEndpointClientAuth    oauthelia2.EndpointClientAuthStrategy
 	IntrospectionEndpointClientAuth oauthelia2.EndpointClientAuthStrategy
 	IDTokenValidation               oauthelia2.TokenValidationStrategy
+	DPoP                            oauthelia2.DPoPStrategy
 }
 
 // JWTAccessTokenConfig represents the JWT Access Token config.
 type JWTAccessTokenConfig struct {
 	Enable                       bool
 	EnableStatelessIntrospection bool
+}
+
+type DPoPConfig struct {
+	Enabled                   bool
+	Enforced                  bool
+	NonceEnforced             bool
+	SigningAlgValuesSupported []string
+
+	ClockSkew     time.Duration
+	NonceLifespan time.Duration
+	ProofLifespan time.Duration
 }
 
 // PARConfig holds specific oauthelia2.Configurator information for Pushed Authorization Requests.
@@ -282,6 +304,18 @@ type StatelessJWTStrategy struct {
 func (c *Config) LoadHandlers(store *Store) {
 	validator := openid.NewOpenIDConnectRequestValidator(c.Strategy.JWT, c)
 
+	var (
+		handlerDPoPAuthorize any = nil
+		handlerDPoPToken     any = nil
+	)
+
+	if c.DPoP.Enabled {
+		c.Strategy.DPoP = rfc9449.NewDefaultStrategy(c, store)
+
+		handlerDPoPAuthorize = &rfc9449.AuthorizeHandler{Config: c}
+		handlerDPoPToken = &rfc9449.Handler{Config: c, Strategy: c.Strategy.DPoP}
+	}
+
 	var statelessJWT any
 
 	if c.JWTAccessToken.Enable && c.JWTAccessToken.EnableStatelessIntrospection {
@@ -295,6 +329,8 @@ func (c *Config) LoadHandlers(store *Store) {
 	}
 
 	handlers := []any{
+		handlerDPoPAuthorize,
+
 		&oauth2.AuthorizeExplicitGrantHandler{
 			AccessTokenStrategy:    c.Strategy.Core,
 			RefreshTokenStrategy:   c.Strategy.Core,
@@ -432,13 +468,14 @@ func (c *Config) LoadHandlers(store *Store) {
 			Config:  c,
 		},
 
-		// Response Modes Handling.
 		&oauthelia2.DefaultResponseModeHandler{
 			Config: c,
 		},
 		&oauthelia2.RFC9207ResponseModeParameterHandler{
 			Config: c,
 		},
+
+		handlerDPoPToken,
 	}
 
 	x := HandlersConfig{
@@ -998,37 +1035,37 @@ func (c *Config) GetIntrospectionEndpointClientAuthStrategy(ctx context.Context)
 
 // GetDPoPEnabled returns the DPoP enabled flag.
 func (c *Config) GetDPoPEnabled(ctx context.Context) (enabled bool) {
-	return c.DPoPEnabled
+	return c.DPoP.Enabled
 }
 
 // GetDPoPEnforce returns the DPoP enforcement flag.
 func (c *Config) GetDPoPEnforce(ctx context.Context) (enforce bool) {
-	return c.DPoPEnforce
+	return c.DPoP.Enforced
 }
 
 // GetDPoPAllowedJWSAlgorithms returns the allowed DPoP JWS algorithms.
 func (c *Config) GetDPoPAllowedJWSAlgorithms(ctx context.Context) (algs []string) {
-	return c.DPoPAllowedJWSAlgorithms
+	return c.DPoP.SigningAlgValuesSupported
 }
 
 // GetDPoPClockSkew returns the DPoP clock skew.
 func (c *Config) GetDPoPClockSkew(ctx context.Context) (skew time.Duration) {
-	return c.DPoPClockSkew
+	return c.DPoP.ClockSkew
 }
 
 // GetDPoPNonceRequired returns the DPoP nonce required flag.
 func (c *Config) GetDPoPNonceRequired(ctx context.Context) (required bool) {
-	return c.DPoPNonceRequired
+	return c.DPoP.NonceEnforced
 }
 
 // GetDPoPNonceLifespan returns the DPoP nonce lifespan.
 func (c *Config) GetDPoPNonceLifespan(ctx context.Context) (lifespan time.Duration) {
-	return c.DPoPNonceLifespan
+	return c.DPoP.NonceLifespan
 }
 
 // GetDPoPStrategy returns the DPoP strategy.
 func (c *Config) GetDPoPStrategy(ctx context.Context) (strategy oauthelia2.DPoPStrategy) {
-	return c.DPoPStrategy
+	return c.Strategy.DPoP
 }
 
 // GetMTLSEnabled returns false as RFC 8705 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens is
@@ -1049,11 +1086,11 @@ func (c *Config) GetAllowedIntrospectionAudiences(ctx context.Context) (audience
 // GetDPoPProofLifespan returns the DPoP proof lifespan, which together with the clock skew fixes the window a proof
 // is accepted in.
 func (c *Config) GetDPoPProofLifespan(ctx context.Context) (lifespan time.Duration) {
-	if c.DPoPProofLifespan <= 0 {
+	if c.DPoP.ProofLifespan <= 0 {
 		return lifespanDPoPProofDefault
 	}
 
-	return c.DPoPProofLifespan
+	return c.DPoP.ProofLifespan
 }
 
 // GetMTLSEnforce returns false as RFC 8705 is not implemented by this Authorization Server.

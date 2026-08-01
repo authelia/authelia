@@ -22,6 +22,8 @@ const (
 	tableOAuth2BlacklistedJTI          = "oauth2_blacklisted_jti"
 	tableOAuth2ConsentSession          = "oauth2_consent_session"
 	tableOAuth2ConsentPreConfiguration = "oauth2_consent_preconfiguration"
+	tableOAuth2DPoPNonce               = "oauth2_dpop_nonce"
+	tableOAuth2DPoPProof               = "oauth2_dpop_proof"
 
 	tableOAuth2AccessTokenSession   = "oauth2_access_token_session" //nolint:gosec // This is not a hardcoded credential.
 	tableOAuth2AuthorizeCodeSession = "oauth2_authorization_code_session"
