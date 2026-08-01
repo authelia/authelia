@@ -593,7 +593,7 @@ func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Errorf("Error occurred deleting Duo data for user '%s'", username)
 	}
 
-	// TODO: add new storage methods for revoking oauth2 sessions and deleting opaque identifiers by username
+	// TODO: add new storage methods for revoking oauth2 sessions and deleting opaque identifiers by username.
 
 	if err = ctx.Providers.StorageProvider.DeleteUserByUsername(ctx, username); err != nil {
 		ctx.Logger.WithError(err).Errorf(messageUnableToDeleteUserMetadata+" for user '%s'", username)
@@ -601,7 +601,6 @@ func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
 
 	ctx.Response.SetStatusCode(fasthttp.StatusOK)
 }
-
 
 func AdminChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	usernameRaw := ctx.UserValue("username")

@@ -349,7 +349,7 @@ func (a *ActiveDirectoryUserManagement) AddGroup(groupName string) error {
 		return fmt.Errorf("failed to create group '%s': %w", groupName, err)
 	}
 
-	a.provider.log.Infof("Successfully created group '%s'", groupName)
+	a.provider.log.Debugf("Successfully created group '%s'", groupName)
 
 	return nil
 }
@@ -388,7 +388,7 @@ func (a *ActiveDirectoryUserManagement) DeleteGroup(groupName string) error {
 		return fmt.Errorf("failed to delete group '%s': %w", groupName, err)
 	}
 
-	a.provider.log.Infof("Successfully deleted group '%s'", groupName)
+	a.provider.log.Debugf("Successfully deleted group '%s'", groupName)
 
 	return nil
 }
@@ -796,16 +796,16 @@ func (a *ActiveDirectoryUserManagement) GetSupportedAttributes() map[string]User
 			continue
 		}
 
-		if meta, exists := attributeMetadataMap[fieldName]; exists {
+		if meta, exists := AttributeMetadataMap[fieldName]; exists {
 			metadata[fieldName] = meta
 		}
 	}
 
-	if meta, exists := attributeMetadataMap["password"]; exists {
+	if meta, exists := AttributeMetadataMap["password"]; exists {
 		metadata["password"] = meta
 	}
 
-	if meta, exists := attributeMetadataMap["groups"]; exists {
+	if meta, exists := AttributeMetadataMap["groups"]; exists {
 		metadata["groups"] = meta
 	}
 

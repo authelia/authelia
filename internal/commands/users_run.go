@@ -9,9 +9,7 @@ import (
 	"net/url"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
-	"text/tabwriter"
 
 	"golang.org/x/text/language"
 
@@ -20,17 +18,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ConfigValidateAdministrationRunE validates the administration config before running user management commands.
 func (ctx *CmdCtx) ConfigValidateAdministrationRunE(_ *cobra.Command, _ []string) (err error) {
 	if errs := ctx.cconfig.validator.Errors(); len(errs) != 0 {
-		var (
-			i int
-			e error
-		)
-
-		for i, e = range errs {
+		for i, e := range errs {
 			if i == 0 {
 				err = e
 				continue
@@ -45,12 +39,7 @@ func (ctx *CmdCtx) ConfigValidateAdministrationRunE(_ *cobra.Command, _ []string
 	validator.ValidateAdministration(ctx.config, ctx.cconfig.validator)
 
 	if errs := ctx.cconfig.validator.Errors(); len(errs) != 0 {
-		var (
-			i int
-			e error
-		)
-
-		for i, e = range errs {
+		for i, e := range errs {
 			if i == 0 {
 				err = e
 				continue
@@ -68,12 +57,7 @@ func (ctx *CmdCtx) ConfigValidateAdministrationRunE(_ *cobra.Command, _ []string
 // ConfigValidateUserBackendRunE validates the authentication backend config before running user management commands.
 func (ctx *CmdCtx) ConfigValidateUserBackendRunE(_ *cobra.Command, _ []string) (err error) {
 	if errs := ctx.cconfig.validator.Errors(); len(errs) != 0 {
-		var (
-			i int
-			e error
-		)
-
-		for i, e = range errs {
+		for i, e := range errs {
 			if i == 0 {
 				err = e
 				continue
@@ -88,12 +72,7 @@ func (ctx *CmdCtx) ConfigValidateUserBackendRunE(_ *cobra.Command, _ []string) (
 	validator.ValidateAuthenticationBackend(ctx.config, ctx.cconfig.validator)
 
 	if errs := ctx.cconfig.validator.Errors(); len(errs) != 0 {
-		var (
-			i int
-			e error
-		)
-
-		for i, e = range errs {
+		for i, e := range errs {
 			if i == 0 {
 				err = e
 				continue
@@ -116,15 +95,76 @@ func (ctx *CmdCtx) LoadProvidersUserBackendRunE(_ *cobra.Command, _ []string) (e
 		return fmt.Errorf("user management requires a configured authentication backend (file or ldap)")
 	}
 
+	if err = ctx.providers.UserProvider.StartupCheck(); err != nil {
+		return fmt.Errorf("error occurred initializing the authentication backend: %w", err)
+	}
+
 	return nil
 }
 
+// UsersSchemaPrintRunE prints the attributes supported by the configured authentication backend as a table.
 func (ctx *CmdCtx) UsersSchemaPrintRunE() func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
-		return nil
+		supported := ctx.providers.UserProvider.GetSupportedAttributes()
+		required := ctx.providers.UserProvider.GetRequiredAttributes()
+
+		requiredSet := make(map[string]struct{}, len(required))
+		for _, r := range required {
+			requiredSet[r] = struct{}{}
+		}
+
+		globalMeta := authentication.AttributeMetadataMap
+
+		attrs := make([]string, 0, len(supported))
+		for attr := range supported {
+			attrs = append(attrs, attr)
+		}
+
+		sort.Slice(attrs, func(i, j int) bool {
+			_, iRequired := requiredSet[attrs[i]]
+			_, jRequired := requiredSet[attrs[j]]
+
+			if iRequired != jRequired {
+				return iRequired
+			}
+
+			return attrs[i] < attrs[j]
+		})
+
+		headers := []string{"Attribute", "Label", "Type", "Required", "Multi-Valued"}
+
+		rows := make([][]string, len(attrs))
+
+		for i, attr := range attrs {
+			meta := supported[attr]
+
+			label := meta.Label
+			if label == "" {
+				if gm, ok := globalMeta[attr]; ok {
+					label = gm.Label
+				}
+			}
+
+			if label == "" {
+				label = attributeFieldLabel(attr)
+			}
+
+			_, isRequired := requiredSet[attr]
+
+			rows[i] = []string{
+				attr,
+				label,
+				string(meta.Type),
+				utils.FormatBool(isRequired),
+				utils.FormatBool(meta.Multiple),
+			}
+		}
+
+		return utils.RenderTable(cmd.OutOrStdout(), headers, rows)
 	}
 }
 
+// UsersGetRunE retrieves and prints a single user's details in the requested format.
 func (ctx *CmdCtx) UsersGetRunE() func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		defer func() {
@@ -208,6 +248,7 @@ var userFieldExtractors = map[string]func(*authentication.UserDetailsExtended) s
 	authentication.AttributeAddressCountry:       func(u *authentication.UserDetailsExtended) string { return u.GetCountry() },
 }
 
+// UsersListRunE retrieves and prints all users' details in the requested format.
 func (ctx *CmdCtx) UsersListRunE() func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		defer func() {
@@ -268,43 +309,87 @@ func (ctx *CmdCtx) UsersListRunE() func(cmd *cobra.Command, args []string) (err 
 func FormatUserOutput(w io.Writer, users []authentication.UserDetailsExtended, fields []string, format string) (err error) {
 	switch format {
 	case cmdFlagValueFormatJSON:
+		out := make([]map[string]any, len(users))
+
+		for i := range users {
+			var raw []byte
+
+			if raw, err = json.Marshal(&users[i]); err != nil {
+				return fmt.Errorf("error occurred encoding users as JSON: %w", err)
+			}
+
+			var m map[string]any
+
+			if err = json.Unmarshal(raw, &m); err != nil {
+				return fmt.Errorf("error occurred encoding users as JSON: %w", err)
+			}
+
+			out[i] = utils.StripEmpty(m)
+		}
+
 		encoder := json.NewEncoder(w)
 		encoder.SetIndent("", "  ")
 		encoder.SetEscapeHTML(false)
 
-		if err = encoder.Encode(users); err != nil {
+		if err = encoder.Encode(out); err != nil {
 			return fmt.Errorf("error occurred encoding users as JSON: %w", err)
 		}
 
 		return nil
 	default:
-		tw := tabwriter.NewWriter(w, 1, 1, 4, ' ', 0)
+		supported := authentication.AttributeMetadataMap
 
-		_, _ = fmt.Fprintln(tw, strings.Join(fields, "\t"))
+		headers := make([]string, len(fields))
 
-		for _, u := range users {
-			values := make([]string, len(fields))
+		for i, field := range fields {
+			if meta, ok := supported[field]; ok && meta.Label != "" {
+				headers[i] = meta.Label
+			} else {
+				headers[i] = attributeFieldLabel(field)
+			}
+		}
 
-			for i, field := range fields {
+		rows := make([][]string, len(users))
+
+		for i, u := range users {
+			row := make([]string, len(fields))
+
+			for j, field := range fields {
 				if extractor, ok := userFieldExtractors[field]; ok {
-					values[i] = extractor(&u)
+					row[j] = extractor(&u)
 				} else if strings.HasPrefix(field, authentication.PrefixAttributeExtra) {
 					extraKey := strings.TrimPrefix(field, authentication.PrefixAttributeExtra)
 					if u.Extra != nil {
 						if v, exists := u.Extra[extraKey]; exists {
-							values[i] = fmt.Sprint(v)
+							row[j] = fmt.Sprint(v)
 						}
 					}
 				}
 			}
 
-			_, _ = fmt.Fprintln(tw, strings.Join(values, "\t"))
+			rows[i] = row
 		}
 
-		return tw.Flush()
+		return utils.RenderTable(w, headers, rows)
 	}
 }
 
+// attributeFieldLabel converts a snake_case attribute name to a Title Case label as a fallback for attributes not found in the standard metadata map.
+func attributeFieldLabel(field string) string {
+	field = strings.TrimPrefix(field, authentication.PrefixAttributeExtra)
+
+	words := strings.Split(field, "_")
+
+	for i, w := range words {
+		if len(w) > 0 {
+			words[i] = strings.ToUpper(w[:1]) + w[1:]
+		}
+	}
+
+	return strings.Join(words, " ")
+}
+
+// UsersAddRunE builds a new user from a JSON file or interactive prompts, validates it, and creates it in the authentication backend.
 func (ctx *CmdCtx) UsersAddRunE() func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		defer func() {
@@ -358,6 +443,7 @@ func (ctx *CmdCtx) UsersAddRunE() func(cmd *cobra.Command, args []string) (err e
 	}
 }
 
+// usersAddFromJSON reads and parses a new user's details from a JSON file (or stdin if the path is "-").
 func usersAddFromJSON(cmd *cobra.Command) (user *authentication.UserDetailsExtended, err error) {
 	var filePath string
 
@@ -387,6 +473,7 @@ func usersAddFromJSON(cmd *cobra.Command) (user *authentication.UserDetailsExten
 	return user, nil
 }
 
+// usersAddInteractive builds a new user by prompting for each required attribute and any optional attributes the caller selects.
 func (ctx *CmdCtx) usersAddInteractive(cmd *cobra.Command) (user *authentication.UserDetailsExtended, err error) {
 	required := ctx.providers.UserProvider.GetRequiredAttributes()
 	supported := ctx.providers.UserProvider.GetSupportedAttributes()
@@ -401,7 +488,7 @@ func (ctx *CmdCtx) usersAddInteractive(cmd *cobra.Command) (user *authentication
 			meta = authentication.UserManagementAttributeMetadata{Type: authentication.Text}
 		}
 
-		if err = usersAddPromptAttribute(out, user, attr, meta); err != nil {
+		if err = usersAddPromptAttribute(cmd.InOrStdin(), out, user, attr, meta); err != nil {
 			return nil, err
 		}
 	}
@@ -426,7 +513,7 @@ func (ctx *CmdCtx) usersAddInteractive(cmd *cobra.Command) (user *authentication
 
 	_, _ = fmt.Fprintf(out, "Add additional attributes? Supported: %s\n(Enter comma-separated list or leave empty to skip): ", strings.Join(optional, ", "))
 
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(cmd.InOrStdin())
 
 	if scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -444,7 +531,7 @@ func (ctx *CmdCtx) usersAddInteractive(cmd *cobra.Command) (user *authentication
 					return nil, fmt.Errorf("attribute '%s' is not supported by the configured authentication backend", sel)
 				}
 
-				if err = usersAddPromptAttribute(out, user, sel, meta); err != nil {
+				if err = usersAddPromptAttribute(cmd.InOrStdin(), out, user, sel, meta); err != nil {
 					return nil, err
 				}
 			}
@@ -454,101 +541,116 @@ func (ctx *CmdCtx) usersAddInteractive(cmd *cobra.Command) (user *authentication
 	return user, nil
 }
 
-func usersAddPromptAttribute(out io.Writer, user *authentication.UserDetailsExtended, attr string, meta authentication.UserManagementAttributeMetadata) (err error) {
+// usersAddPromptAttribute prompts for a single attribute's value according to its metadata type and sets it on user.
+func usersAddPromptAttribute(in io.Reader, out io.Writer, user *authentication.UserDetailsExtended, attr string, meta authentication.UserManagementAttributeMetadata) (err error) {
 	label := strings.ReplaceAll(attr, "_", " ")
+	scanner := bufio.NewScanner(in)
 
 	switch meta.Type {
 	case authentication.Password:
-		var password string
-
-		if password, err = termReadPasswordWithPrompt(fmt.Sprintf("Enter %s: ", label), ""); err != nil {
-			return err
-		}
-
-		var confirm string
-
-		if confirm, err = termReadPasswordWithPrompt(fmt.Sprintf("Confirm %s: ", label), ""); err != nil {
-			return err
-		}
-
-		if password != confirm {
-			return fmt.Errorf("passwords do not match")
-		}
-
-		return usersSetField(user, attr, password)
-
+		return usersPromptPassword(user, attr, label)
 	case authentication.Groups:
-		_, _ = fmt.Fprintf(out, "Enter %s (comma-separated): ", label)
-
-		scanner := bufio.NewScanner(os.Stdin)
-		if scanner.Scan() {
-			parts := strings.Split(scanner.Text(), ",")
-			groups := make([]string, 0, len(parts))
-
-			for _, p := range parts {
-				if p = strings.TrimSpace(p); p != "" {
-					groups = append(groups, p)
-				}
-			}
-
-			return usersSetFieldMultiple(user, attr, groups)
-		}
-
+		return usersPromptMultiValue(scanner, out, user, attr, label)
 	case authentication.Checkbox:
-		_, _ = fmt.Fprintf(out, "Enter %s (yes/no): ", label)
-
-		scanner := bufio.NewScanner(os.Stdin)
-		if scanner.Scan() {
-			val := strings.ToLower(strings.TrimSpace(scanner.Text()))
-			return usersSetFieldBool(user, attr, val == "yes" || val == "y" || val == "true")
-		}
-
+		return usersPromptTypedValue(scanner, out, user, attr, label, utils.AttributeValueTypeBoolean)
 	case authentication.Number:
-		_, _ = fmt.Fprintf(out, "Enter %s: ", label)
-
-		scanner := bufio.NewScanner(os.Stdin)
-		if scanner.Scan() {
-			val := strings.TrimSpace(scanner.Text())
-
-			var n int64
-
-			if n, err = strconv.ParseInt(val, 10, 64); err != nil {
-				return fmt.Errorf("invalid number for attribute '%s': %w", attr, err)
-			}
-
-			return usersSetFieldNumber(user, attr, n)
-		}
-
+		return usersPromptTypedValue(scanner, out, user, attr, label, utils.AttributeValueTypeInteger)
+	case authentication.Text:
+		fallthrough
 	default:
 		if meta.Multiple {
-			_, _ = fmt.Fprintf(out, "Enter %s (comma-separated): ", label)
+			return usersPromptMultiValue(scanner, out, user, attr, label)
+		}
 
-			scanner := bufio.NewScanner(os.Stdin)
-			if scanner.Scan() {
-				parts := strings.Split(scanner.Text(), ",")
-				values := make([]string, 0, len(parts))
+		return usersPromptSingleValue(scanner, out, user, attr, label)
+	}
+}
 
-				for _, p := range parts {
-					if p = strings.TrimSpace(p); p != "" {
-						values = append(values, p)
-					}
-				}
+// usersPromptPassword prompts for a password twice and sets it if the two entries match.
+func usersPromptPassword(user *authentication.UserDetailsExtended, attr, label string) error {
+	password, err := termReadPasswordWithPrompt(fmt.Sprintf("Enter %s: ", label), "")
+	if err != nil {
+		return err
+	}
 
-				return usersSetFieldMultiple(user, attr, values)
-			}
-		} else {
-			_, _ = fmt.Fprintf(out, "Enter %s: ", label)
+	confirm, err := termReadPasswordWithPrompt(fmt.Sprintf("Confirm %s: ", label), "")
+	if err != nil {
+		return err
+	}
 
-			scanner := bufio.NewScanner(os.Stdin)
-			if scanner.Scan() {
-				return usersSetField(user, attr, strings.TrimSpace(scanner.Text()))
-			}
+	if password != confirm {
+		return fmt.Errorf("passwords do not match")
+	}
+
+	return usersSetField(user, attr, password)
+}
+
+// usersPromptSingleValue prompts for and sets a single scalar string value.
+func usersPromptSingleValue(scanner *bufio.Scanner, out io.Writer, user *authentication.UserDetailsExtended, attr, label string) error {
+	_, _ = fmt.Fprintf(out, "Enter %s: ", label)
+
+	if !scanner.Scan() {
+		return nil
+	}
+
+	return usersSetField(user, attr, strings.TrimSpace(scanner.Text()))
+}
+
+// usersPromptMultiValue prompts for a comma-separated list and sets it as a multi-value attribute.
+func usersPromptMultiValue(scanner *bufio.Scanner, out io.Writer, user *authentication.UserDetailsExtended, attr, label string) error {
+	_, _ = fmt.Fprintf(out, "Enter %s (comma-separated): ", label)
+
+	if !scanner.Scan() {
+		return nil
+	}
+
+	return usersSetFieldMultiple(user, attr, splitTrimmedCSV(scanner.Text()))
+}
+
+// usersPromptTypedValue prompts for and coerces a scalar value for boolean or integer attributes.
+func usersPromptTypedValue(scanner *bufio.Scanner, out io.Writer, user *authentication.UserDetailsExtended, attr, label, valueType string) error {
+	prompt := fmt.Sprintf("Enter %s: ", label)
+
+	if valueType == utils.AttributeValueTypeBoolean {
+		prompt = fmt.Sprintf("Enter %s (yes/no): ", label)
+	}
+
+	_, _ = fmt.Fprint(out, prompt)
+
+	if !scanner.Scan() {
+		return nil
+	}
+
+	converted, err := utils.ConvertAttributeValue(strings.TrimSpace(scanner.Text()), valueType, false)
+	if err != nil {
+		return fmt.Errorf("invalid value for attribute '%s': %w", attr, err)
+	}
+
+	switch valueType {
+	case utils.AttributeValueTypeInteger:
+		return usersSetFieldNumber(user, attr, converted.(int64))
+	default:
+		return usersSetFieldBool(user, attr, converted.(bool))
+	}
+}
+
+// splitTrimmedCSV splits a comma-separated line into trimmed, non-empty values.
+func splitTrimmedCSV(line string) []string {
+	parts := strings.Split(line, ",")
+	values := make([]string, 0, len(parts))
+
+	for _, p := range parts {
+		if p = strings.TrimSpace(p); p != "" {
+			values = append(values, p)
 		}
 	}
 
-	return nil
+	return values
 }
 
+// usersSetField parses and assigns a single string value to the named attribute on user.
+//
+//nolint:gocyclo
 func usersSetField(user *authentication.UserDetailsExtended, attr, value string) (err error) {
 	switch attr {
 	case authentication.AttributeUsername:
@@ -656,6 +758,7 @@ func usersSetField(user *authentication.UserDetailsExtended, attr, value string)
 	return nil
 }
 
+// usersSetFieldMultiple assigns a slice of string values to the named multi-valued attribute on user.
 func usersSetFieldMultiple(user *authentication.UserDetailsExtended, attr string, values []string) error {
 	switch attr {
 	case authentication.AttributeGroups:
@@ -677,6 +780,7 @@ func usersSetFieldMultiple(user *authentication.UserDetailsExtended, attr string
 	return nil
 }
 
+// usersSetFieldBool assigns a boolean value to the named extra attribute on user.
 func usersSetFieldBool(user *authentication.UserDetailsExtended, attr string, value bool) error {
 	if strings.HasPrefix(attr, authentication.PrefixAttributeExtra) {
 		extraKey := strings.TrimPrefix(attr, authentication.PrefixAttributeExtra)
@@ -691,6 +795,7 @@ func usersSetFieldBool(user *authentication.UserDetailsExtended, attr string, va
 	return nil
 }
 
+// usersSetFieldNumber assigns an integer value to the named extra attribute on user.
 func usersSetFieldNumber(user *authentication.UserDetailsExtended, attr string, value int64) error {
 	if strings.HasPrefix(attr, authentication.PrefixAttributeExtra) {
 		extraKey := strings.TrimPrefix(attr, authentication.PrefixAttributeExtra)
@@ -705,12 +810,14 @@ func usersSetFieldNumber(user *authentication.UserDetailsExtended, attr string, 
 	return nil
 }
 
+// UsersUpdateRunE is not yet implemented and currently performs no action.
 func (ctx *CmdCtx) UsersUpdateRunE() func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	}
 }
 
+// UsersDeleteRunE deletes a user from the authentication backend along with their TOTP, WebAuthn, Duo, and metadata records.
 func (ctx *CmdCtx) UsersDeleteRunE() func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		defer func() {
@@ -721,24 +828,35 @@ func (ctx *CmdCtx) UsersDeleteRunE() func(cmd *cobra.Command, args []string) (er
 
 		username := args[0]
 
-		if err = ctx.providers.UserProvider.DeleteUser(username); err != nil {
-			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error occurred deleting user '%s' from the authentication backend: %v\n", username, err)
+		var errs []error
+
+		if e := ctx.providers.UserProvider.DeleteUser(username); e != nil {
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error occurred deleting user '%s' from the authentication backend: %v\n", username, e)
+			errs = append(errs, e)
 		}
 
-		if err = ctx.providers.StorageProvider.DeleteTOTPConfiguration(ctx, username); err != nil {
-			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error occurred deleting TOTP data for user '%s': %v\n", username, err)
+		if e := ctx.providers.StorageProvider.DeleteTOTPConfiguration(ctx, username); e != nil {
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error occurred deleting TOTP data for user '%s': %v\n", username, e)
+			errs = append(errs, e)
 		}
 
-		if err = ctx.providers.StorageProvider.DeleteWebAuthnCredentialByUsername(ctx, username, ""); err != nil {
-			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error occurred deleting WebAuthn data for user '%s': %v\n", username, err)
+		if e := ctx.providers.StorageProvider.DeleteWebAuthnCredentialByUsername(ctx, username, ""); e != nil {
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error occurred deleting WebAuthn data for user '%s': %v\n", username, e)
+			errs = append(errs, e)
 		}
 
-		if err = ctx.providers.StorageProvider.DeletePreferredDuoDevice(ctx, username); err != nil {
-			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error occurred deleting Duo data for user '%s': %v\n", username, err)
+		if e := ctx.providers.StorageProvider.DeletePreferredDuoDevice(ctx, username); e != nil {
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error occurred deleting Duo data for user '%s': %v\n", username, e)
+			errs = append(errs, e)
 		}
 
-		if err = ctx.providers.StorageProvider.DeleteUserByUsername(ctx, username); err != nil {
-			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error occurred deleting metadata for user '%s': %v\n", username, err)
+		if e := ctx.providers.StorageProvider.DeleteUserByUsername(ctx, username); e != nil {
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error occurred deleting metadata for user '%s': %v\n", username, e)
+			errs = append(errs, e)
+		}
+
+		if err = errors.Join(errs...); err != nil {
+			return err
 		}
 
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully deleted user '%s'.\n", username)
@@ -747,22 +865,67 @@ func (ctx *CmdCtx) UsersDeleteRunE() func(cmd *cobra.Command, args []string) (er
 	}
 }
 
+// UsersGroupsListRunE retrieves and prints all groups known to the authentication backend in the requested format.
 func (ctx *CmdCtx) UsersGroupsListRunE() func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
-		return nil
+		var format string
+
+		if format, err = cmd.Flags().GetString(cmdFlagNameFormat); err != nil {
+			return err
+		}
+
+		var groups []string
+
+		if groups, err = ctx.providers.UserProvider.ListGroups(); err != nil {
+			return fmt.Errorf("error occurred retrieving groups: %w", err)
+		}
+
+		switch format {
+		case cmdFlagValueFormatJSON:
+			encoder := json.NewEncoder(cmd.OutOrStdout())
+			encoder.SetIndent("", "  ")
+			encoder.SetEscapeHTML(false)
+
+			return encoder.Encode(groups)
+		default:
+			return utils.RenderTable(cmd.OutOrStdout(), []string{"Group"}, func() [][]string {
+				rows := make([][]string, len(groups))
+				for i, g := range groups {
+					rows[i] = []string{g}
+				}
+
+				return rows
+			}())
+		}
 	}
 }
 
+// UsersGroupsAddRunE creates a new standalone group in the authentication backend.
 func (ctx *CmdCtx) UsersGroupsAddRunE() func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
-		// groupName := args[0].
+		group := args[0]
+
+		if err = ctx.providers.UserProvider.AddGroup(group); err != nil {
+			return fmt.Errorf("error occurred creating group '%s': %w", group, err)
+		}
+
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully created group '%s'.\n", group)
+
 		return nil
 	}
 }
 
+// UsersGroupsDeleteRunE deletes a standalone group from the authentication backend.
 func (ctx *CmdCtx) UsersGroupsDeleteRunE() func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
-		// groupName := args[0].
+		group := args[0]
+
+		if err = ctx.providers.UserProvider.DeleteGroup(group); err != nil {
+			return fmt.Errorf("error occurred deleting group '%s': %w", group, err)
+		}
+
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully deleted group '%s'.\n", group)
+
 		return nil
 	}
 }

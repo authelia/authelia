@@ -426,3 +426,58 @@ func TestStringJoinBuild(t *testing.T) {
 		})
 	}
 }
+
+func TestStripEmpty(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     map[string]any
+		expected map[string]any
+	}{
+		{
+			name:     "ShouldRemoveEmptyString",
+			have:     map[string]any{"a": "value", "b": ""},
+			expected: map[string]any{"a": "value"},
+		},
+		{
+			name:     "ShouldRemoveNil",
+			have:     map[string]any{"a": "value", "b": nil},
+			expected: map[string]any{"a": "value"},
+		},
+		{
+			name:     "ShouldRemoveEmptySlice",
+			have:     map[string]any{"a": "value", "b": []any{}},
+			expected: map[string]any{"a": "value"},
+		},
+		{
+			name:     "ShouldKeepNonEmptySlice",
+			have:     map[string]any{"a": []any{"x"}},
+			expected: map[string]any{"a": []any{"x"}},
+		},
+		{
+			name:     "ShouldRemoveEmptyNestedMap",
+			have:     map[string]any{"a": "value", "b": map[string]any{"c": ""}},
+			expected: map[string]any{"a": "value"},
+		},
+		{
+			name:     "ShouldKeepNonEmptyNestedMap",
+			have:     map[string]any{"a": map[string]any{"b": "value"}},
+			expected: map[string]any{"a": map[string]any{"b": "value"}},
+		},
+		{
+			name:     "ShouldKeepZeroValueNumbersAndFalse",
+			have:     map[string]any{"a": 0, "b": false},
+			expected: map[string]any{"a": 0, "b": false},
+		},
+		{
+			name:     "ShouldHandleEmptyMap",
+			have:     map[string]any{},
+			expected: map[string]any{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, StripEmpty(tc.have))
+		})
+	}
+}

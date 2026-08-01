@@ -41,6 +41,7 @@ type UserDetails struct {
 type UserManagementAttributeMetadata struct {
 	Type     AttributeType `json:"type"`
 	Multiple bool          `json:"multiple,omitempty"`
+	Label    string        `json:"-"`
 }
 
 // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.

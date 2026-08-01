@@ -39,16 +39,16 @@ func (r *RFC2307bisUserManagement) GetSupportedAttributes() map[string]UserManag
 			continue
 		}
 
-		if meta, exists := attributeMetadataMap[fieldName]; exists {
+		if meta, exists := AttributeMetadataMap[fieldName]; exists {
 			metadata[fieldName] = meta
 		}
 	}
 
-	if meta, exists := attributeMetadataMap["password"]; exists {
+	if meta, exists := AttributeMetadataMap["password"]; exists {
 		metadata["password"] = meta
 	}
 
-	if meta, exists := attributeMetadataMap["groups"]; exists {
+	if meta, exists := AttributeMetadataMap["groups"]; exists {
 		metadata["groups"] = meta
 	}
 
@@ -796,7 +796,7 @@ func (r *RFC2307bisUserManagement) AddGroup(groupName string) error {
 		return err
 	}
 
-	r.provider.log.Infof("Successfully created group '%s'", groupName)
+	r.provider.log.Debugf("Successfully created group '%s'", groupName)
 
 	return nil
 }
@@ -829,6 +829,7 @@ func (r *RFC2307bisUserManagement) DeleteGroup(groupName string) error {
 		client LDAPExtendedClient
 		err    error
 	)
+
 	if client, err = r.provider.factory.GetClient(); err != nil {
 		return fmt.Errorf("unable to get LDAP client for group deletion: %w", err)
 	}
@@ -858,7 +859,7 @@ func (r *RFC2307bisUserManagement) DeleteGroup(groupName string) error {
 		return fmt.Errorf("failed to delete group '%s': %w", groupName, err)
 	}
 
-	r.provider.log.Infof("Successfully deleted group '%s'", groupName)
+	r.provider.log.Debugf("Successfully deleted group '%s'", groupName)
 
 	return nil
 }

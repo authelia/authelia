@@ -2,7 +2,6 @@ package authentication
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/go-crypt/crypt/algorithm"
@@ -35,7 +34,7 @@ func (f *FileUserManagement) GetSupportedAttributes() map[string]UserManagementA
 
 	metadata := make(map[string]UserManagementAttributeMetadata)
 
-	for fieldName, meta := range attributeMetadataMap {
+	for fieldName, meta := range AttributeMetadataMap {
 		if blocklist[fieldName] {
 			continue
 		}
@@ -491,71 +490,11 @@ func (f *FileUserManagement) DeleteGroup(groupName string) error {
 }
 
 // convertExtraAttributeValue converts an extra attribute value to the proper type based on configuration.
-//
-//nolint:gocyclo
 func (f *FileUserManagement) convertExtraAttributeValue(attrName string, value any) (any, error) {
 	attrConfig, exists := f.provider.config.ExtraAttributes[attrName]
 	if !exists {
 		return value, nil
 	}
 
-	if attrConfig.MultiValued {
-		if slice, ok := value.([]interface{}); ok {
-			return slice, nil
-		}
-
-		if strSlice, ok := value.([]string); ok {
-			result := make([]interface{}, len(strSlice))
-			for i, s := range strSlice {
-				result[i] = s
-			}
-
-			return result, nil
-		}
-
-		return []interface{}{value}, nil
-	}
-
-	switch attrConfig.ValueType {
-	case ValueTypeBoolean:
-		if boolVal, ok := value.(bool); ok {
-			return boolVal, nil
-		}
-
-		if strVal, ok := value.(string); ok {
-			switch strings.ToUpper(strVal) {
-			case "TRUE", "T", "1", "YES", "Y":
-				return true, nil
-			case "FALSE", "F", "0", "NO", "N", "":
-				return false, nil
-			default:
-				return nil, fmt.Errorf("invalid boolean value: %s", strVal)
-			}
-		}
-	case ValueTypeInteger:
-		if intVal, ok := value.(int); ok {
-			return int64(intVal), nil
-		}
-
-		if int64Val, ok := value.(int64); ok {
-			return int64Val, nil
-		}
-
-		// JSON unmarshals numbers as float64.
-		if floatVal, ok := value.(float64); ok {
-			return int64(floatVal), nil
-		}
-
-		if strVal, ok := value.(string); ok {
-			return strconv.ParseInt(strVal, 10, 64)
-		}
-	case ValueTypeString, "":
-		if strVal, ok := value.(string); ok {
-			return strVal, nil
-		}
-
-		return fmt.Sprintf("%v", value), nil
-	}
-
-	return value, nil
+	return utils.ConvertAttributeValue(value, attrConfig.ValueType, attrConfig.MultiValued)
 }

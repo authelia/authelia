@@ -330,3 +330,34 @@ func IsEmptyValue(value interface{}) bool {
 		return false
 	}
 }
+
+// StripEmpty removes keys from a map whose values are nil, empty strings, empty slices, or empty maps.
+func StripEmpty(m map[string]any) map[string]any {
+	out := make(map[string]any, len(m))
+
+	for k, v := range m {
+		switch val := v.(type) {
+		case nil:
+			continue
+		case string:
+			if val == "" {
+				continue
+			}
+		case []any:
+			if len(val) == 0 {
+				continue
+			}
+		case map[string]any:
+			cleaned := StripEmpty(val)
+			if len(cleaned) == 0 {
+				continue
+			}
+
+			v = cleaned
+		}
+
+		out[k] = v
+	}
+
+	return out
+}

@@ -141,21 +141,23 @@ func newUsersGroupsListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Use:               "list",
 		Short:             "List all user groups",
 		Long:              "List all user groups",
-		Example:           "authelia users groups list --help",
+		Example:           "authelia users groups list --format json",
 		Args:              cobra.NoArgs,
 		RunE:              ctx.UsersGroupsListRunE(),
 		DisableAutoGenTag: true,
 	}
+
+	cmd.Flags().StringP(cmdFlagNameFormat, "f", cmdFlagValueFormatTable, "output format, options are 'table' or 'json'")
 
 	return cmd
 }
 
 func newUsersGroupsAddCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "add",
+		Use:               "add <group>",
 		Short:             "Add a group",
 		Long:              "Add a group",
-		Example:           "authelia users groups add --help",
+		Example:           "authelia users groups add <group>",
 		Args:              cobra.ExactArgs(1),
 		RunE:              ctx.UsersGroupsAddRunE(),
 		DisableAutoGenTag: true,
@@ -166,10 +168,10 @@ func newUsersGroupsAddCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newUsersGroupsDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:               "delete",
+		Use:               "delete <group>",
 		Short:             "Delete a group",
 		Long:              "Delete a group",
-		Example:           "authelia users groups delete --help",
+		Example:           "authelia users groups delete <group>",
 		Args:              cobra.ExactArgs(1),
 		RunE:              ctx.UsersGroupsDeleteRunE(),
 		DisableAutoGenTag: true,
