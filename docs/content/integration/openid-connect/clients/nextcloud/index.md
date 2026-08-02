@@ -84,7 +84,7 @@ which will operate with the application example:
 definitions:
   user_attributes:
     is_nextcloud_admin:
-      ## Expression to evaluate admin privilege for Nextcloud. Must return a string, not a boolean.
+      ## Expression to evaluate admin privilege for Nextcloud.
       expression: '"nextcloud-admins" in groups ? "yes" : "no"'
 
 identity_providers:
