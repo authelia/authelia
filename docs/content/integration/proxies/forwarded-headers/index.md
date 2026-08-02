@@ -50,59 +50,55 @@ These same rules apply to any off-site hosted proxy or load balancing solution t
 to it. This means a client can forge their remote IP address with the most widely accepted remote IP header out of the
 box.
 
-It is therefore important you configure [Cloudflare] to remove this IP address. *__Please Note:__ This is by no means an
-exhaustive guide on using [Cloudflare] transform rules, however it's enough to configure a couple rules which should
+#### Remove Client IPs from X-Forwarded-For Header
+
+[Cloudflare] has managed rules with one of them removing client IPs from the X-Forwarded-For header. *__Please Note:__ This is by no means an
+exhaustive guide on using [Cloudflare] managed transforms, however it's enough to configure this rule which should
 achieve a secure result. Please see the [Cloudflare] documentation on
-[transform rules](https://developers.cloudflare.com/rules/transform/) for more information._
+[managed transforms](https://developers.cloudflare.com/rules/transform/managed-transforms/) for more information._
 
-#### Steps
+##### Method 1 Steps
 
-1. On the left sidebar, click `Rules`.
-2. Click `Transform Rules`.
-3. On the right, click `Modify Request Header` tab.
-4. Click `Create rule`.
-5. Set the `Rule name` to something appropriate like `Remove X-Forwarded-For Header`.
-6. Set the `Field` option in the `When incoming requests match` section to an appropriate value (see criteria table
-   below).
-7. Set the `Operator` option in the `When incoming requests match` section to an appropriate value (see criteria table
-   below).
-8. Set the `Value` option in the `When incoming requests match` section to an appropriate value (see criteria table
-   below).
-9. Set the `Then` section dropdown to `Remove`.
-10. Set the `Then` section `Header name` to `X-Forwarded-For`.
-11. Click `Deploy`.
+`Rules → Overview → Create rule → Request Header Transform Rule`
 
 {{< figure
-src="cloudflare_1.png"
+src="cloudflare.png"
 alt="Image of Cloudflare dashboard with steps 1 to 4 labeled"
 width="736"
-caption="Steps 1 - 4: Create New Request Header Transform Rule"
-title="Steps 1 - 4: Create New Request Header Transform Rule" >}}
+caption="Steps 1 - 4: Image of Cloudflare dashboard with steps 1 to 4 labeled for method 1"
+title="Steps 1 - 4: Image of Cloudflare dashboard with steps 1 to 4 labeled for method 1" >}}
+
+#### Allow Trusted IPs to Add Client IPs to X-Forwarded-For Header
+
+The Managed Transforms option removes visitor IP values from the X-Forwarded-For header regardless of if it originates from a trusted source. If you wish to allow certain IPs to be included in this header, you will need to create a Transform Rule under Overview. *Please Note: This is by no means an exhaustive guide on using Cloudflare transform rules, however it's enough to configure this rule which should achieve a secure result. Please refer to the Cloudflare documentation on [transform rules](https://developers.cloudflare.com/rules/transform/) for more information._
+
+##### Method 2 Steps
+
+1. On the left sidebar, click `Rules`.
+2. Click `Overview`.
+3. Scroll down to `Request Header Transform Rules` and click `Create rule`.
+4. Set the `Rule name` to something appropriate like `Remove X-Forwarded-For Header`.
+5. Set the `Field` option in the `When incoming requests match` section to `IP Source Address`.
+6. Set the `Operator` option in the `When incoming requests match` section to `does not equal`.
+7. Set the `Value` option in the `When incoming requests match` section to any of the IP addresses you trust.
+8. Set the `Then` section dropdown to `Remove`.
+9. Set the `Then` section Header name to `X-Forwarded-For`.
+10. Click `Deploy`.
 
 {{< figure
-src="cloudflare_2.png"
-alt="Image of Cloudflare dashboard with steps 5 to 11 labeled for Option 1"
+src="cloudflare2.png"
+alt="Image of Cloudflare dashboard with steps 1 to 3 labeled"
 width="736"
-caption="Steps 5 - 11 Option 1: Always Remove Headers"
-title="Steps 5 - 11 Option 1: Always Remove Headers" >}}
+caption="Steps 1 - 3: Image of Cloudflare dashboard with steps 1 to 3 labeled for method 2"
+title="Steps 1 - 3: Image of Cloudflare dashboard with steps 1 to 3 labeled for method 2" >}}
 
 {{< figure
-src="cloudflare_3.png"
-alt="Image of Cloudflare dashboard with steps 5 to 11 labeled for Option 2"
+src="cloudflare3.png"
+alt="Image of Cloudflare dashboard with steps 4 to 10 labeled"
 width="736"
-caption="Steps 5 - 11 Option 2: Remove When Not From Trusted Source"
-title="Steps 5 - 11 Option 2: Remove When Not From Trusted Source" >}}
+caption="Steps 4 - 10: Image of Cloudflare dashboard with steps 4 to 10 labeled for method 2"
+title="Steps 4 - 10: Image of Cloudflare dashboard with steps 4 to 10 labeled for method 2" >}}
 
-#### Criteria
-
-This table describes the criteria needed to achieve a desired result. Only one of these options should be chosen. You
-Should look at the desired result column and apply the appropriate field, operator, and value to [step](#steps) 8.
-Generally speaking the `Always Remove` option is the correct option.
-
-|           Desired Result            |       Field       |    Operator    |               Value                |
-|:-----------------------------------:|:-----------------:|:--------------:|:----------------------------------:|
-|            Always Remove            |  X-Forwarded-For  | does not equal |              *blank*               |
-| Remove When Not From Trusted Source | IP Source Address |   is not in    | *list of trusted source addresses* |
 
 Cloudflare publishes its IP address ranges publicly at the easy to remember address
 [https://www.cloudflare.com/ips/](https://www.cloudflare.com/ips/). You should use this with the trusted proxies section

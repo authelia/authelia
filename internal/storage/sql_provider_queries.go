@@ -230,7 +230,7 @@ const (
 		WHERE username = ? AND description = ?;`
 
 	queryFmtSelectWebAuthnCredentialsEncryptedData = `
-		SELECT id, public_key, attestation
+		SELECT id, rpid, public_key, attestation
 		FROM %s;`
 
 	queryFmtUpdateWebAuthnCredentialsEncryptedData = `
