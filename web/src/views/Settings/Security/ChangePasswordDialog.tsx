@@ -90,6 +90,7 @@ const ChangePasswordDialog = (props: Props) => {
     useEffect(() => {
         (async () => {
             try {
+                setLoading(true);
                 const policy = await getPasswordPolicyConfiguration();
                 setPPolicy(policy);
                 setLoading(false);
@@ -99,6 +100,7 @@ const ChangePasswordDialog = (props: Props) => {
                         ns: "portal",
                     }),
                 );
+                setLoading(true);
             }
         })();
     }, [createErrorNotification, translate]);
