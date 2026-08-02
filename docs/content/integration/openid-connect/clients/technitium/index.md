@@ -34,34 +34,29 @@ apply, in particular regarding generating a [client secret](../../introduction.m
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://dns.example.com/`  (the Technitium web console)
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://dns.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `technitium`
-* __Client Secret:__ `insecure_secret`  (generate your own — see below)
-* __Authelia group → Technitium group:__ members of the Authelia group `dns-admins` become Technitium `Administrators`.
+* __Client Secret:__ `insecure_secret`
+* 
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
 ### Authelia
 
-The following YAML configures the Authelia [OpenID Connect 1.0 Provider] to register Technitium as a client. Technitium
-maps SSO users to local groups from a group claim, so we deliver the user's groups in **both** the standard `groups`
-claim and a custom `roles` claim (Technitium's group-claim name is not formally documented; sending both is robust).
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Technitium] which will operate with the application example:
 
 ```yaml
 identity_providers:
   oidc:
-    authorization_policies:
-      technitium:
-        default_policy: 'deny'
-        rules:
-          - policy: 'two_factor'
-            subject:
-              - 'group:dns-admins'
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
     claims_policies:
       technitium:
-        id_token:
-          - 'groups'
         custom_claims:
           roles:
             attribute: 'groups'
@@ -89,8 +84,14 @@ identity_providers:
           - 'authorization_code'
         response_types:
           - 'code'
+        access_token_signed_response_alg: 'none'
+        userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
 ```
+
+#### Configuration Escape Hatch
+
+{{% oidc-escape-hatch-claims-hydration client_id="technitium" claims="groups" %}}
 
 ### Application
 
@@ -122,5 +123,6 @@ Technitium DNS Server resolves **its own outbound requests** (the OIDC discovery
 
 [Authelia]: https://www.authelia.com
 [Technitium DNS Server]: https://technitium.com/dns/
+[Technitium]: https://technitium.com/dns/
 [OpenID Connect 1.0]: ../../introduction.md
 [OpenID Connect 1.0 Provider]: ../../../../configuration/identity-providers/openid-connect/provider.md
