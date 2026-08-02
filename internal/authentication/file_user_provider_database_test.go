@@ -5,7 +5,9 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/go-crypt/crypt"
 	"github.com/stretchr/testify/assert"
@@ -43,6 +45,104 @@ func TestDatabaseModel_Read(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.EqualError(t, model.Read(f), "could not parse the YAML database: go-yaml load error in scanner (while scanning for the next token) at L2.C1: found character that cannot start any token")
+}
+
+func TestFileUserDatabaseShouldNotDeadlockOnSave(t *testing.T) {
+	const (
+		concurrency = 8
+		iterations  = 50
+		timeout     = 30 * time.Second
+	)
+
+	save := func(db *FileUserDatabase) {
+		for i := 0; i < iterations; i++ {
+			_ = db.Save()
+		}
+	}
+
+	set := func(db *FileUserDatabase) {
+		for i := 0; i < iterations; i++ {
+			details, err := db.GetUserDetails("john")
+			if err != nil {
+				continue
+			}
+
+			db.SetUserDetails("john", &details)
+		}
+	}
+
+	load := func(db *FileUserDatabase) {
+		for i := 0; i < iterations; i++ {
+			_ = db.Load()
+		}
+	}
+
+	get := func(db *FileUserDatabase) {
+		for i := 0; i < iterations; i++ {
+			_, _ = db.GetUserDetails("john")
+		}
+	}
+
+	testCases := []struct {
+		name    string
+		workers []func(db *FileUserDatabase)
+	}{
+		{
+			"ShouldNotDeadlockWithConcurrentSaves",
+			[]func(db *FileUserDatabase){save},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentSavesAndWrites",
+			[]func(db *FileUserDatabase){save, set},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentSavesAndLoads",
+			[]func(db *FileUserDatabase){save, load},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentSavesWritesLoadsAndReads",
+			[]func(db *FileUserDatabase){save, set, load, get},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContent, func(path string) {
+				db := NewFileUserDatabase(path, false, false, nil)
+
+				require.NoError(t, db.Load())
+
+				done := make(chan struct{})
+
+				go func() {
+					defer close(done)
+
+					wg := &sync.WaitGroup{}
+
+					for _, worker := range tc.workers {
+						for i := 0; i < concurrency; i++ {
+							wg.Add(1)
+
+							go func() {
+								defer wg.Done()
+
+								worker(db)
+							}()
+						}
+					}
+
+					wg.Wait()
+				}()
+
+				select {
+				case <-done:
+					require.NoError(t, db.Load())
+				case <-time.After(timeout):
+					t.Fatalf("deadlock detected: the concurrent workload did not complete within %s", timeout)
+				}
+			})
+		})
+	}
 }
 
 //nolint:gosec // Test Credentials.

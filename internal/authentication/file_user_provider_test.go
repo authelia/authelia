@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
+	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -402,6 +403,97 @@ func TestShouldErrOnUpdatePasswordNoUser(t *testing.T) {
 		assert.Equal(t, provider.UpdatePassword("nousers", "newpassword"), ErrUserNotFound)
 		assert.Equal(t, provider.UpdatePassword("dis", "example"), ErrUserNotFound)
 	})
+}
+
+func TestFileUserProviderShouldNotDeadlockOnUpdatePassword(t *testing.T) {
+	const (
+		concurrency = 8
+		iterations  = 50
+		timeout     = 30 * time.Second
+	)
+
+	hash, err := plaintext.New()
+	require.NoError(t, err)
+
+	update := func(provider *FileUserProvider) {
+		for i := 0; i < iterations; i++ {
+			_ = provider.UpdatePassword("john", "apple123")
+		}
+	}
+
+	reload := func(provider *FileUserProvider) {
+		for i := 0; i < iterations; i++ {
+			_, _ = provider.Reload()
+		}
+	}
+
+	details := func(provider *FileUserProvider) {
+		for i := 0; i < iterations; i++ {
+			_, _ = provider.GetDetails("john")
+		}
+	}
+
+	testCases := []struct {
+		name    string
+		workers []func(provider *FileUserProvider)
+	}{
+		{
+			"ShouldNotDeadlockWithConcurrentUpdates",
+			[]func(provider *FileUserProvider){update},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentUpdatesAndReloads",
+			[]func(provider *FileUserProvider){update, reload},
+		},
+		{
+			"ShouldNotDeadlockWithConcurrentUpdatesReloadsAndReads",
+			[]func(provider *FileUserProvider){update, reload, details},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContent, func(path string) {
+				config := DefaultFileAuthenticationBackendConfiguration
+				config.Path = path
+
+				provider := NewFileUserProvider(&config)
+
+				require.NoError(t, provider.StartupCheck())
+
+				provider.hash = hash
+
+				done := make(chan struct{})
+
+				go func() {
+					defer close(done)
+
+					wg := &sync.WaitGroup{}
+
+					for _, worker := range tc.workers {
+						for i := 0; i < concurrency; i++ {
+							wg.Add(1)
+
+							go func() {
+								defer wg.Done()
+
+								worker(provider)
+							}()
+						}
+					}
+
+					wg.Wait()
+				}()
+
+				select {
+				case <-done:
+					require.NoError(t, provider.UpdatePassword("john", "apple123"))
+				case <-time.After(timeout):
+					t.Fatalf("deadlock detected: the concurrent workload did not complete within %s", timeout)
+				}
+			})
+		})
+	}
 }
 
 func TestShouldChangePassword(t *testing.T) {
