@@ -35,6 +35,7 @@ func validateOIDC(ctx *ValidateCtx, config *schema.Configuration, validator *sch
 	validateOIDCIssuer(config.IdentityProviders.OIDC, validator)
 	validateOIDCAuthorizationPolicies(config, validator)
 	validateOIDCLifespans(config, validator)
+	validateOIDCDPoP(config, validator)
 	validateOIDCClaims(config, validator)
 	validateOIDCScopes(config, validator)
 
@@ -135,6 +136,30 @@ func validateOIDCAuthorizationPoliciesRule(name string, i int, config *schema.Co
 func validateOIDCLifespans(config *schema.Configuration, _ *schema.StructValidator) {
 	for name := range config.IdentityProviders.OIDC.Lifespans.Custom {
 		config.IdentityProviders.OIDC.Discovery.Lifespans = append(config.IdentityProviders.OIDC.Discovery.Lifespans, name)
+	}
+}
+
+func validateOIDCDPoP(config *schema.Configuration, validator *schema.StructValidator) {
+	dpop := config.IdentityProviders.OIDC.DPoP
+
+	if dpop.NonceLifespan < durationZero {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPDurationNotPositive, "nonce_lifespan", dpop.NonceLifespan))
+	}
+
+	if dpop.ClockSkew < durationZero {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPDurationNotPositive, "clock_skew", dpop.ClockSkew))
+	}
+
+	if dpop.Enabled {
+		return
+	}
+
+	if dpop.Enforced {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPOptionRequiresEnabled, "enforced"))
+	}
+
+	if dpop.NonceEnforced {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderDPoPOptionRequiresEnabled, "nonce_enforced"))
 	}
 }
 
@@ -550,6 +575,14 @@ func setOIDCDefaults(config *schema.Configuration) {
 	if config.IdentityProviders.OIDC.EnforcePKCE == "" {
 		config.IdentityProviders.OIDC.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
 	}
+
+	if config.IdentityProviders.OIDC.DPoP.NonceLifespan == durationZero {
+		config.IdentityProviders.OIDC.DPoP.NonceLifespan = schema.DefaultOpenIDConnectConfiguration.DPoP.NonceLifespan
+	}
+
+	if config.IdentityProviders.OIDC.DPoP.ClockSkew == durationZero {
+		config.IdentityProviders.OIDC.DPoP.ClockSkew = schema.DefaultOpenIDConnectConfiguration.DPoP.ClockSkew
+	}
 }
 
 func validateOIDCOptionsCORS(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
@@ -710,6 +743,8 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue, config.Clients[c].ID, attrOIDCRequestedAudienceMode, utils.StringJoinOr([]string{oidc.ClientRequestedAudienceModeExplicit.String(), oidc.ClientRequestedAudienceModeImplicit.String()}), config.Clients[c].RequestedAudienceMode))
 	}
 
+	validateOIDCClientDPoP(c, config, validator)
+
 	setDefaults := validateOIDCClientScopesSpecialBearerAuthz(c, config, ccg, validator)
 
 	validateOIDCClientConsentMode(c, config, validator, setDefaults)
@@ -772,6 +807,17 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	if public {
 		validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
 	}
+}
+
+// validateOIDCClientDPoP ensures a client does not require DPoP bound Access Tokens while the issuer itself has DPoP
+// disabled. The RFC9449 handler does not run at all when the issuer has DPoP disabled, so the per-client requirement is
+// never applied and the client silently receives unbound Access Tokens instead.
+func validateOIDCClientDPoP(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	if config.DPoP.Enabled || !config.Clients[c].DPoPBoundAccessTokens {
+		return
+	}
+
+	validator.Push(fmt.Errorf(errFmtOIDCClientDPoPOptionRequiresEnabled, config.Clients[c].ID, "dpop_bound_access_tokens"))
 }
 
 func validateOIDCClientPublicKeys(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {

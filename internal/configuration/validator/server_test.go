@@ -612,7 +612,7 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "HeaderAuthorization", Schemes: []string{"basic", "bearer", "abc"}}}},
 			},
 			[]string{
-				"server: endpoints: authz: example: authn_strategies: strategy #1 (HeaderAuthorization): option 'schemes' must only include the values 'basic' or 'bearer' but has 'abc'",
+				"server: endpoints: authz: example: authn_strategies: strategy #1 (HeaderAuthorization): option 'schemes' must only include the values 'basic', 'bearer', or 'dpop' but has 'abc'",
 			},
 		},
 		{

@@ -55,12 +55,23 @@ type Session struct {
 
 	ChallengeID           uuid.NullUUID   `json:"challenge_id"`
 	ClientID              string          `json:"client_id"`
+	DPoPJWKThumbprint     string          `json:"dpop_jkt,omitempty"`
 	ClientCredentials     bool            `json:"client_credentials"`
 	ExcludeNotBeforeClaim bool            `json:"exclude_nbf_claim"`
 	AllowedTopLevelClaims []string        `json:"allowed_top_level_claims"`
 	ClaimRequests         *ClaimsRequests `json:"claim_requests,omitempty"`
 	GrantedClaims         []string        `json:"granted_claims,omitempty"`
 	Extra                 map[string]any  `json:"extra"`
+}
+
+// SetDPoPJWKThumbprint records the JWK thumbprint (jkt) the token is bound to.
+func (s *Session) SetDPoPJWKThumbprint(jkt string) {
+	s.DPoPJWKThumbprint = jkt
+}
+
+// GetDPoPJWKThumbprint returns the bound JWK thumbprint, or an empty string when the session is not DPoP bound.
+func (s *Session) GetDPoPJWKThumbprint() (jkt string) {
+	return s.DPoPJWKThumbprint
 }
 
 // ValidIssuer returns true if the issuer is valid for this session, false otherwise.

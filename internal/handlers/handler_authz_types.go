@@ -85,7 +85,28 @@ type HeaderAuthorization struct {
 	Authorization *model.Authorization
 	Realm         string
 	Scope         string
+	Nonce         string
 	Error         *oauthelia2.RFC6749Error
+
+	// Challenge overrides the authentication scheme the challenge is issued under when it must differ from the scheme
+	// the credentials were presented with.
+	Challenge model.AuthorizationScheme
+}
+
+// ChallengeScheme returns the authentication scheme a challenge for this HeaderAuthorization must be issued under. It's
+// the scheme the credentials were presented with unless a Challenge override has been recorded, which RFC9449 Section
+// 7.1 requires when the rejection concerns a proof-of-possession bound Access Token that was presented as a bearer
+// token.
+func (h *HeaderAuthorization) ChallengeScheme() (scheme model.AuthorizationScheme) {
+	if h.Challenge != model.AuthorizationSchemeNone {
+		return h.Challenge
+	}
+
+	if h.Authorization == nil {
+		return model.AuthorizationSchemeNone
+	}
+
+	return h.Authorization.Scheme()
 }
 
 // AuthzConfig represents the configuration elements of the Authz type.
@@ -172,6 +193,8 @@ func (i AuthzImplementation) String() string {
 type AuthzBearerIntrospectionProvider interface {
 	GetRegisteredClient(ctx context.Context, id string) (client oidc.Client, err error)
 	GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceStrategy)
+	GetDPoPStrategy(ctx context.Context) (strategy oauthelia2.DPoPStrategy)
+	GetDPoPNonceRequired(ctx context.Context) (required bool)
 	IntrospectToken(ctx context.Context, token string, tokenUse oauthelia2.TokenUse, session oauthelia2.Session, scope ...string) (oauthelia2.TokenUse, oauthelia2.AccessRequester, error)
 }
 

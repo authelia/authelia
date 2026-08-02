@@ -39,7 +39,7 @@ type ServerEndpointsAuthz struct {
 // ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server.
 type ServerEndpointsAuthzAuthnStrategy struct {
 	Name                     string        `koanf:"name" yaml:"name,omitempty" toml:"name,omitempty" json:"name,omitempty" jsonschema:"enum=HeaderAuthorization,enum=HeaderProxyAuthorization,enum=HeaderAuthRequestProxyAuthorization,enum=HeaderLegacy,enum=CookieSession,title=Name" jsonschema_description:"The name of the Authorization strategy to use."`
-	Schemes                  []string      `koanf:"schemes" yaml:"schemes,omitempty" toml:"schemes,omitempty" json:"schemes,omitempty" jsonschema:"enum=basic,enum=bearer,default=basic,title=Authorization Schemes" jsonschema_description:"The name of the authorization schemes to allow with the header strategies."`
+	Schemes                  []string      `koanf:"schemes" yaml:"schemes,omitempty" toml:"schemes,omitempty" json:"schemes,omitempty" jsonschema:"enum=basic,enum=bearer,enum=dpop,default=basic,title=Authorization Schemes" jsonschema_description:"The name of the authorization schemes to allow with the header strategies."`
 	SchemeBasicCacheLifespan time.Duration `koanf:"scheme_basic_cache_lifespan" yaml:"scheme_basic_cache_lifespan,omitempty" toml:"scheme_basic_cache_lifespan,omitempty" json:"scheme_basic_cache_lifespan,omitempty" jsonschema:"default=0,title=Scheme Basic Cache Lifespan" jsonschema_description:"The lifespan for cached basic scheme authorization attempts."`
 }
 

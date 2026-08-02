@@ -35,6 +35,9 @@ func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 	// Specific alterations to this provider.
 	provider.sqlFmtRenameTable = queryFmtMySQLRenameTable
 
+	// MySQL doesn't support a conditional ON CONFLICT operation but has an ON DUPLICATE KEY operation instead.
+	provider.sqlUpsertOAuth2DPoPProof = fmt.Sprintf(queryFmtUpsertOAuth2DPoPProofMySQL, tableOAuth2DPoPProof)
+
 	return provider, nil
 }
 

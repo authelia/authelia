@@ -14,6 +14,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -253,7 +254,7 @@ func (s *HeaderAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, object *a
 	switch scheme {
 	case model.AuthorizationSchemeBasic:
 		details, level, err = handleGetBasic(ctx, s.delay, authn, object, s.headerAuthorize, s.basic)
-	case model.AuthorizationSchemeBearer:
+	case model.AuthorizationSchemeBearer, model.AuthorizationSchemeDPoP:
 		details, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object)
 	default:
 		ctx.GetLogger().
@@ -308,11 +309,28 @@ func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx AuthzContext, authn *Authn,
 
 	ctx.ReplyStatusCode(s.statusAuthenticate)
 
-	if authn.Header.Authorization != nil && authn.Header.Authorization.Scheme() == model.AuthorizationSchemeBearer && authn.Header.Error != nil {
-		ctx.SetResponseHeaderValue(s.headerAuthenticate, fmt.Sprintf(`Bearer %s`, oidc.RFC6750Header(authn.Header.Realm, authn.Header.Scope, authn.Header.Error)))
-	} else if s.headerAuthenticate != nil {
-		ctx.SetResponseHeaderValueBytes(s.headerAuthenticate, headerValueAuthenticateBasic)
+	if s.headerAuthenticate == nil {
+		return
 	}
+
+	if authn.Header.Error != nil {
+		switch authn.Header.ChallengeScheme() {
+		case model.AuthorizationSchemeDPoP:
+			if authn.Header.Nonce != "" {
+				ctx.SetResponseHeaderValue(headerDPoPNonce, authn.Header.Nonce)
+			}
+
+			ctx.SetResponseHeaderValue(s.headerAuthenticate, fmt.Sprintf(`%s %s`, oidc.SchemeDPoP, oidc.RFC6750Header(authn.Header.Realm, authn.Header.Scope, authn.Header.Error)))
+
+			return
+		case model.AuthorizationSchemeBearer:
+			ctx.SetResponseHeaderValue(s.headerAuthenticate, fmt.Sprintf(`Bearer %s`, oidc.RFC6750Header(authn.Header.Realm, authn.Header.Scope, authn.Header.Error)))
+
+			return
+		}
+	}
+
+	ctx.SetResponseHeaderValueBytes(s.headerAuthenticate, headerValueAuthenticateBasic)
 }
 
 // HeaderLegacyAuthnStrategy is a legacy header AuthnStrategy which can be switched based on the query parameters.
@@ -589,7 +607,13 @@ func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *
 
 	var username string
 
-	if username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.GetProviders().OpenIDConnect, authn, object); err != nil {
+	// The RFC9449 proof is bound to the request the client made to the protected resource, which a proxy forwards to
+	// this endpoint alongside the details of that request. It's read here rather than within the introspection handler
+	// so the latter can continue to accept a plain context.Context. Every value is read rather than just the first as
+	// RFC9449 Section 4.3 makes the presence of more than one proof an error in itself.
+	proofs := ctx.GetRequestHeaderValues(headerDPoP)
+
+	if username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.GetProviders().OpenIDConnect, authn, object, proofs); err != nil {
 		return nil, "", false, authentication.NotAuthenticated, err
 	}
 
@@ -615,7 +639,63 @@ func handleVerifyGETAuthorizationBearerResolveUser(ctx AuthzContext, username, c
 	return details, clientID, ccs, level, nil
 }
 
-func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
+// handleVerifyGETAuthorizationBearerDPoP performs the RFC9449 Section 7.1 and 7.2 checks for an Access Token presented
+// to a resource protected by the bearer authorization flow. The proof commits to the request the client made to that
+// resource rather than to the authorization request this server received from the proxy, so the method and target URI
+// are taken from the authorization object reconstructed from the forwarded headers.
+//
+// The checks are performed when the Access Token is bound to a proof-of-possession key or when it was presented using
+// the DPoP authentication scheme. An unbound Access Token presented using the bearer scheme is not subject to RFC9449.
+//
+// The request handed to the strategy is synthesized from the details the proxy forwarded rather than being the request
+// the client made, so the checks the strategy performs on the request itself cannot apply to it: the synthesized
+// request always presents the token under the DPoP scheme and can only carry a single proof. Both are therefore
+// checked here against what the client actually presented.
+func handleVerifyGETAuthorizationBearerDPoP(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object, osession *oidc.Session, proofs [][]byte) (err error) {
+	var (
+		jkt   = osession.GetDPoPJWKThumbprint()
+		dpop  = authn.Header.Authorization.Scheme() == model.AuthorizationSchemeDPoP
+		nonce string
+	)
+
+	if jkt == "" && !dpop {
+		return nil
+	}
+
+	switch {
+	case !dpop:
+		// RFC9449 Section 7.2: a bound Access Token must be presented under the DPoP scheme, and a downgrade to any
+		// other scheme is rejected whether or not a proof accompanies it.
+		err = errorsx.WithStack(oauthelia2.ErrInvalidDPoPProof.
+			WithHint("The DPoP-bound access token was not presented using the DPoP authentication scheme.").
+			WithDebugf("The access token is bound to a DPoP proof-of-possession key but was presented using the '%s' scheme.", authn.Header.Authorization.SchemeRaw()))
+	case len(proofs) > 1:
+		// RFC9449 Section 4.3: a request must not carry more than one proof.
+		err = errorsx.WithStack(oauthelia2.ErrInvalidDPoPProof.WithHint("The request contains more than one DPoP proof but only one is allowed."))
+	default:
+		var proof string
+
+		if len(proofs) == 1 {
+			proof = string(proofs[0])
+		}
+
+		token := authn.Header.Authorization.Value()
+
+		nonce, err = oidc.ValidateDPoPResourceAccess(ctx, provider.GetDPoPStrategy(ctx), oidc.NewDPoPResourceRequest(object.Method, object.URL, token, proof), token, jkt, provider.GetDPoPNonceRequired(ctx))
+	}
+
+	if err == nil {
+		return nil
+	}
+
+	authn.Header.Error = oauthelia2.ErrorToRFC6749Error(err)
+	authn.Header.Nonce = nonce
+	authn.Header.Challenge = model.AuthorizationSchemeDPoP
+
+	return fmt.Errorf("error validating the dpop proof: %w", oauthelia2.ErrorToDebugRFC6749Error(err))
+}
+
+func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object, proofs [][]byte) (username, clientID string, ccs bool, level authentication.Level, err error) {
 	var (
 		use       oauthelia2.TokenUse
 		requester oauthelia2.AccessRequester
@@ -652,6 +732,10 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 
 	if osession, ok = fsession.(*oidc.Session); !ok {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("introspection returned an invalid session type")
+	}
+
+	if err = handleVerifyGETAuthorizationBearerDPoP(ctx, provider, authn, object, osession, proofs); err != nil {
+		return "", "", false, authentication.NotAuthenticated, err
 	}
 
 	if client, err = provider.GetRegisteredClient(ctx, osession.ClientID); err != nil || client == nil {

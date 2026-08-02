@@ -39,10 +39,20 @@ type IdentityProvidersOpenIDConnect struct {
 	ClaimsPolicies        map[string]IdentityProvidersOpenIDConnectClaimsPolicy `koanf:"claims_policies" yaml:"claims_policies,omitempty" toml:"claims_policies,omitempty" json:"claims_policies,omitempty" jsonschema:"title=Claims Policies" jsonschema_description:"The dictionary of claims policies which can be applied to clients."`
 	Scopes                map[string]IdentityProvidersOpenIDConnectScope        `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes,omitempty" jsonschema:"title=Scopes" jsonschema_description:"List of custom scopes."`
 
+	DPoP IdentityProvidersOpenIDConnectDPoP `koanf:"dpop" yaml:"dpop,omitempty" toml:"dpop,omitempty" json:"dpop,omitempty" jsonschema:"title=DPoP" jsonschema_description:"Demonstrating Proof of Possession configuration"`
+
 	Discovery IdentityProvidersOpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
 
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" yaml:"issuer_certificate_chain,omitempty" toml:"issuer_certificate_chain,omitempty" json:"issuer_certificate_chain,omitempty" jsonschema:"title=Issuer Certificate Chain,deprecated" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens."`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" yaml:"issuer_private_key,omitempty" toml:"issuer_private_key,omitempty" json:"issuer_private_key,omitempty" jsonschema:"title=Issuer Private Key,deprecated" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens."`
+}
+
+type IdentityProvidersOpenIDConnectDPoP struct {
+	Enabled       bool          `koanf:"enabled" yaml:"enabled,omitempty" toml:"enabled,omitempty" json:"enabled,omitempty" jsonschema:"title=Enabled" jsonschema_description:"Determines if the Issuer has enabled DPoP usage."`
+	Enforced      bool          `koanf:"enforced" yaml:"enforced,omitempty" toml:"enforced,omitempty" json:"enforced,omitempty" jsonschema:"title=Enforced" jsonschema_description:"Determines if the Issuer enforces DPoP usage."`
+	NonceEnforced bool          `koanf:"nonce_enforced" yaml:"nonce_enforced,omitempty" toml:"nonce_enforced,omitempty" json:"nonce_enforced,omitempty" jsonschema:"title=Nonce Enforced" jsonschema_description:"Determines if the Issuer enforces DPoP nonce usage."`
+	NonceLifespan time.Duration `koanf:"nonce_lifespan" yaml:"nonce_lifespan,omitempty" toml:"nonce_lifespan,omitempty" json:"nonce_lifespan,omitempty" jsonschema:"title=Nonce Lifespan" jsonschema_description:"Determines the Issuer DPoP nonce lifespans."`
+	ClockSkew     time.Duration `koanf:"clock_skew" yaml:"clock_skew,omitempty" toml:"clock_skew,omitempty" json:"clock_skew,omitempty" jsonschema:"title=Proof Clock Skew" jsonschema_description:"Determines the Issuer DPoP policy surrounding which proofs are accepted based on the time they were issued."`
 }
 
 type IdentityProvidersOpenIDConnectClaimsPolicy struct {
@@ -232,6 +242,8 @@ type IdentityProvidersOpenIDConnectClient struct {
 
 	AllowMultipleAuthenticationMethods bool `koanf:"allow_multiple_auth_methods" yaml:"allow_multiple_auth_methods,omitempty" toml:"allow_multiple_auth_methods,omitempty" json:"allow_multiple_auth_methods" jsonschema:"title=Allow Multiple Authentication Methods" jsonschema_description:"Permits this registered client to accept misbehaving clients which use a broad authentication approach. This is not standards complaint, use at your own security risk."`
 
+	DPoPBoundAccessTokens bool `koanf:"dpop_bound_access_tokens" yaml:"dpop_bound_access_tokens,omitempty" toml:"dpop_bound_access_tokens,omitempty" json:"dpop_bound_access_tokens,omitempty" jsonschema:"title=DPoP Bound Access Tokens,default=false" jsonschema_description:"Enforces DPoP bound Access Tokens for this client."`
+
 	JSONWebKeysURI *url.URL `koanf:"jwks_uri" yaml:"jwks_uri,omitempty" toml:"jwks_uri,omitempty" json:"jwks_uri" jsonschema:"title=JSON Web Keys URI" jsonschema_description:"URI of the JWKS endpoint which contains the Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
 	JSONWebKeys    []JWK    `koanf:"jwks" yaml:"jwks,omitempty" toml:"jwks,omitempty" json:"jwks" jsonschema:"title=JSON Web Keys" jsonschema_description:"List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
 
@@ -250,6 +262,10 @@ var DefaultOpenIDConnectConfiguration = IdentityProvidersOpenIDConnect{
 		DeviceCode: time.Minute * 10,
 	},
 	EnforcePKCE: "public_clients_only",
+	DPoP: IdentityProvidersOpenIDConnectDPoP{
+		NonceLifespan: time.Minute * 5,
+		ClockSkew:     time.Second * 30,
+	},
 }
 
 var DefaultOpenIDConnectPolicyConfiguration = IdentityProvidersOpenIDConnectPolicy{

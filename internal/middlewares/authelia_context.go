@@ -505,6 +505,13 @@ func (ctx *AutheliaCtx) GetRequestHeaderValue(key []byte) (value []byte) {
 	return ctx.Request.Header.PeekBytes(key)
 }
 
+// GetRequestHeaderValues returns every value of the header with the given key. This is distinct from
+// GetRequestHeaderValue which only returns the first value, and is necessary for headers where the presence of more
+// than one value is itself meaningful.
+func (ctx *AutheliaCtx) GetRequestHeaderValues(key []byte) (values [][]byte) {
+	return ctx.Request.Header.PeekAll(string(key))
+}
+
 // SetResponseHeaderValue sets a response header with the specified key and value.
 func (ctx *AutheliaCtx) SetResponseHeaderValue(key []byte, value string) {
 	ctx.Response.Header.SetBytesK(key, value)

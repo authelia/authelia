@@ -98,6 +98,9 @@ type AuthzContext interface {
 	// GetRequestHeaderValue returns the value of the header with the given key.
 	GetRequestHeaderValue(key []byte) (value []byte)
 
+	// GetRequestHeaderValues should return every value of the header with the given key.
+	GetRequestHeaderValues(key []byte) (values [][]byte)
+
 	// SetResponseHeaderValue should set the value of the header with the given key.
 	SetResponseHeaderValue(key []byte, value string)
 
