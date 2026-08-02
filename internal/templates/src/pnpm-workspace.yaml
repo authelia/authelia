@@ -13,7 +13,7 @@ overrides:
   fast-uri: 4.1.2
   flatted: 3.4.4
   glob: 13.0.6
-  js-yaml: 5.2.2
+  js-yaml: 5.2.3
   minimatch: 10.2.6
   nanoid: 6.0.0
   next: 16.2.12
