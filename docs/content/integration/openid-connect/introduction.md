@@ -72,8 +72,8 @@ WebFinger. This leaves Dynamic Client Registration and Session Management as obv
 
 ## Request Subset Rules
 
-There are a number of unique situations which may result in certain flows resulting in more or less `scope` or `audience`
-than they are intended.
+There are a number of unique situations where certain flows may grant more or fewer `scopes` or `audiences` than
+intended.
 
 In particular the common issues are that during the Refresh Flow if the `scope` is widened to more scopes than
 originally granted by the user, or during the Refresh Flow if the client is no longer allowed to request the same
@@ -166,12 +166,12 @@ parameter):
 |       ES256        |  ECDSA P-256   |      SHA-256      | `sig` |    ECDSA Private Key with the P-256 curve    | Requires an ECDSA Private Key with a 256 bit curve |
 |       ES384        |  ECDSA P-384   |      SHA-384      | `sig` |    ECDSA Private Key with the P-384 curve    | Requires an ECDSA Private Key with a 384 bit curve |
 |       ES512        |  ECDSA P-521   |      SHA-512      | `sig` |    ECDSA Private Key with the P-521 curve    | Requires an ECDSA Private Key with a 521 bit curve |
-|       PS256        |   RSA (MGF1)   |      SHA-256      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
-|       PS384        |   RSA (MGF1)   |      SHA-384      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
-|       PS512        |   RSA (MGF1)   |      SHA-512      | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|       PS256        |      RSA       |  SHA-256 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|       PS384        |      RSA       |  SHA-384 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|       PS512        |      RSA       |  SHA-512 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |    RSA1_5 [^2]     |      RSA       |        N/A        | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
-|      RSA-OAEP      |   RSA (MGF1)   |        N/A        | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
-|    RSA-OAEP-256    |   RSA (MGF1)   |      SHA-256      | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|      RSA-OAEP      |      RSA       |   SHA-1 (MGF1)    | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|    RSA-OAEP-256    |      RSA       |  SHA-256 (MGF1)   | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |       A128KW       | Symmetric [^1] |        N/A        | `enc` |                     N/A                      |              Uses the `client_secret`              |
 |       A192KW       | Symmetric [^1] |        N/A        | `enc` |                     N/A                      |              Uses the `client_secret`              |
 |       A256KW       | Symmetric [^1] |        N/A        | `enc` |                     N/A                      |              Uses the `client_secret`              |
@@ -207,12 +207,12 @@ parameter):
 |       ES256        |  ECDSA P-256   |      SHA-256      | `sig` |       `private_key_jwt`        |
 |       ES384        |  ECDSA P-384   |      SHA-384      | `sig` |       `private_key_jwt`        |
 |       ES512        |  ECDSA P-521   |      SHA-512      | `sig` |       `private_key_jwt`        |
-|       PS256        |   RSA (MGF1)   |      SHA-256      | `sig` |       `private_key_jwt`        |
-|       PS384        |   RSA (MGF1)   |      SHA-384      | `sig` |       `private_key_jwt`        |
-|       PS512        |   RSA (MGF1)   |      SHA-512      | `sig` |       `private_key_jwt`        |
+|       PS256        |      RSA       |  SHA-256 (MGF1)   | `sig` |       `private_key_jwt`        |
+|       PS384        |      RSA       |  SHA-384 (MGF1)   | `sig` |       `private_key_jwt`        |
+|       PS512        |      RSA       |  SHA-512 (MGF1)   | `sig` |       `private_key_jwt`        |
 |    RSA1_5 [^2]     |      RSA       |        N/A        | `enc` |       `private_key_jwt`        |
-|      RSA-OAEP      |   RSA (MGF1)   |        N/A        | `enc` |       `private_key_jwt`        |
-|    RSA-OAEP-256    |   RSA (MGF1)   |      SHA-256      | `enc` |       `private_key_jwt`        |
+|      RSA-OAEP      |      RSA       |   SHA-1 (MGF1)    | `enc` |       `private_key_jwt`        |
+|    RSA-OAEP-256    |      RSA       |  SHA-256 (MGF1)   | `enc` |       `private_key_jwt`        |
 |       A128KW       | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 |       A192KW       | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 |       A256KW       | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
@@ -514,19 +514,27 @@ This response mode is not supported by many clients, but we recommend it is used
 The [Proof Key for Code Exchange] mechanism is discussed in depth in [RFC7636] as well as in the
 [OAuth 2.0 Proof Key for Code Exchange](https://oauth.net/2/pkce/) documentation.
 
-Essentially a random opaque value is generated by the Relying Party and optionally (but recommended) passed through a
-SHA256 hash. The original value is saved by the Relying Party, and the hashed value is sent in the [Authorization]
-request in the `code_challenge` parameter with the `code_challenge_method` set to `S256` (or `plain` using a bad practice
-of not hashing the opaque value).
+Essentially a random opaque value (the `code_verifier`) is generated by the Relying Party and transformed into the
+`code_challenge` by computing the SHA-256 digest over the ASCII representation of the `code_verifier` and then
+Base64URL-encoding that digest (i.e. the `code_challenge` is never the raw or hexadecimal SHA-256 value). The original
+value is saved by the Relying Party, and the transformed value is sent in the [Authorization] request in the
+`code_challenge` parameter, which must be accompanied by the `code_challenge_method` parameter.
+
+Every Relying Party capable of performing the `S256` transformation must use the `S256` method. The `plain` method,
+which sends the `code_verifier` as the `code_challenge` without transforming it, should only be used by Relying Parties
+which are unable to support `S256` for technical reasons, and only where the Authorization Server explicitly supports
+the `plain` method.
 
 When the Relying Party requests the token from the [Token Endpoint], they must include the `code_verifier` parameter
 (in the body), but this time they send the value without it being hashed.
 
 The advantages of this approach are as follows:
 
-1. Provided the value was hashed it's certain that the Relying Party which generated the authorization request is the
-   same party as the one requesting the token or is permitted by the Relying Party to make this request.
-2. Even when using the public [Client Type] there is a form of authentication on the [Token Endpoint].
+1. Provided the `S256` method was used, the party redeeming the authorization code must prove possession of the
+   `code_verifier` bound to that code, which mitigates authorization code interception attacks.
+2. This protection applies even when using the public [Client Type], which cannot authenticate at the
+   [Token Endpoint]. It should be noted that this is proof of possession of the `code_verifier`, not authentication of
+   the client itself.
 
 ## Support Chart
 

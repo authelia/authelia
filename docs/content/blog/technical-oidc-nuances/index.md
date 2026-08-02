@@ -170,10 +170,10 @@ The [Claim Stability and Uniqueness] Section of [OpenID Connect 1.0] reads:
 > NOT be used as unique identifiers for the End-User, whether obtained from the ID Token or the UserInfo Endpoint.
 
 The intent and gravity of neglecting this element is very clear as soon as you realize that providers may allow users to
-change their email address or username. These values are intended to be persistent identifiers for a user, never
-changing, regardless of what other values change. Not only for security, but for the user experience to be seamless.
-Just because they change their email they should not be prevented from signing into an application; and this would be
-the case if you do not use the intended _Claims_[^1].
+change their email address or username. These are mutable attributes, not identifiers; it's the `iss` and `sub`
+_Claims_[^1] which are intended to be stable for a user, never changing, regardless of what other values change. Not
+only for security, but for the user experience to be seamless. Just because they change their email they should not be
+prevented from signing into an application; and this would be the case if you do not use the intended _Claims_[^1].
 
 This is linked heavily to the first concept because the _Access Token_[^2] may in some way identify the _End-User_[^9], but it's
 not required to. In fact the _Access Token_[^2] may not even be a _JWT_[^4], it's up to the [OpenID Connect 1.0] Provider how
@@ -262,10 +262,18 @@ _User Information Endpoint_[^10] are too strong an argument to not implement thi
 
 What do I mean by privacy and security benefits? Well the _User Information Endpoint_[^10] requires an active
 _Access Token_[^2] to obtain the _Claims_[^1]. This means the _ID Token_[^3] does not need to contain privacy
-sensitive information. An added benefit of this approach is that the _Access Token_[^2] can be revoked, and security
-conscious _Authorization Servers_[^5] will automatically mint a new _Refresh Token_[^19] at the same time it mints a
-new _Access Token_[^2] during the _Refresh Token Flow_[^18] which effectively rotates both of these tokens as the old
-ones should be intentionally revoked.
+sensitive information, and the _Claims_[^1] are only released to a party which presents a currently valid
+_Access Token_[^2].
+
+Separate to how the _Claims_[^1] are delivered, _Authorization Servers_[^5] may adopt one of several practices which
+limit the usefulness of a stolen _Refresh Token_[^19]. Some rotate the _Refresh Token_[^19], minting a new one at the
+same time they mint a new _Access Token_[^2] during the _Refresh Token Flow_[^18] and invalidating the previous one.
+It's worth being clear about what this does and does not achieve: it does not prevent the first use of a stolen
+_Refresh Token_[^19], but it does allow the theft to be detected when an already invalidated _Refresh Token_[^19] is
+subsequently presented. Others issue sender-constrained _Refresh Tokens_[^19] (for example via mTLS or DPoP) which bind
+the token to the _Relying Party_[^13] it was issued to, so that possession of the token alone is not sufficient to use
+it. Revocation of the _Access Token_[^2] is a separate and largely implementation specific matter as it may remain
+valid until it expires.
 
 ### Claims Parameter
 
