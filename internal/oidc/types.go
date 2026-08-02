@@ -129,6 +129,7 @@ type RegisteredClient struct {
 	RefreshFlowIgnoreOriginalGrantedScopes  bool
 	AllowMultipleAuthenticationMethods      bool
 	ClientCredentialsFlowAllowImplicitScope bool
+	DPoPBoundAccessTokens                   bool
 
 	AuthorizationPolicy ClientAuthorizationPolicy
 

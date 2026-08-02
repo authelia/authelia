@@ -39,6 +39,10 @@ var (
 	// ErrSchemaEncryptionInvalidKey is returned when the schema is checked if the encryption key is valid for
 	// the database but the key doesn't appear to be valid.
 	ErrSchemaEncryptionInvalidKey = errors.New("the configured encryption key does not appear to be valid for this database which may occur if the encryption key was changed in the configuration without using the cli to change it in the database")
+
+	ErrNoRowsAffected = errors.New("no rows affected")
+
+	ErrMultipleRowsAffected = errors.New("multiple rows affected")
 )
 
 // Error formats for the storage provider.

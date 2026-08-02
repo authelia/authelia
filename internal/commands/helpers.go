@@ -12,7 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func getStorageProvider(ctx *CmdCtx) (provider storage.Provider) {
+func getStorageProvider(ctx *CmdCtx) (provider storage.Provider, err error) {
 	return storage.NewProvider(ctx.config, ctx.trusted)
 }
 

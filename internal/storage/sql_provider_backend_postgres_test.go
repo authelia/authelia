@@ -25,6 +25,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleSimple",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -37,6 +38,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleTLS",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -53,6 +55,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSVerifyFull",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -68,6 +71,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSVerifyCA",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -83,6 +87,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSRequire",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -98,6 +103,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSDisabled",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -113,6 +119,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSVerifyCARootCA",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -129,6 +136,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSVerifyCAAllCertificates",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -147,6 +155,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSVerifyCAAllCertificatesFailReadFileCA",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -165,6 +174,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSVerifyCAAllCertificatesFailReadFileKey",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -183,6 +193,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSVerifyCAAllCertificatesFailReadFileCertificate",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -201,6 +212,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSVerifyCAAllCertificatesFailPair",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -219,6 +231,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			"ShouldHandleLegacyTLSVerifyCAAllCertificatesFailReadCACertificateFromPrivateKey",
 			&schema.Configuration{
 				Storage: schema.Storage{
+					EncryptionKey: "testing-key-only",
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
@@ -239,7 +252,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			provider := NewPostgreSQLProvider(tc.have, x509.NewCertPool())
+			provider, _ := NewPostgreSQLProvider(tc.have, x509.NewCertPool())
 
 			assert.NotNil(t, provider)
 		})

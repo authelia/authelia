@@ -25,9 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
 - [Headscale]
-  - [v0.26.1](https://github.com/juanfont/headscale/releases/tag/v0.26.1)
-
-{{% oidc-common bugs="claims-hydration" %}}
+  - [v0.29.1](https://github.com/juanfont/headscale/releases/tag/v0.29.1)
 
 ### Assumptions
 
@@ -77,14 +75,6 @@ identity_providers:
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
-
-#### Configuration Escape Hatch
-
-{{% oidc-escape-hatch-claims-hydration client_id="headscale" claims="email,groups" %}}
-
-Note this additional configuration of a `claims_policy` is only necessary if you are authorizing users based on domain,
-groups or email (`oidc.allowed_domains`, `oidc.allowed_groups` and `oidc.allowed_users` in the [Headscale] configuration
-file). See [Headscale#2655](https://github.com/juanfont/headscale/issues/2655) for details.
 
 ### Application
 

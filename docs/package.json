@@ -13,9 +13,9 @@
     "preview": "vite preview --outDir public"
   },
   "dependencies": {
-    "@docsearch/css": "4.6.3",
-    "@docsearch/js": "4.6.3",
-    "@tabler/icons": "3.44.0",
+    "@docsearch/css": "4.7.0",
+    "@docsearch/js": "4.7.0",
+    "@tabler/icons": "3.46.0",
     "@thulite/core": "1.5.9",
     "@thulite/doks-core": "1.9.3",
     "@thulite/images": "3.3.4",
@@ -26,26 +26,26 @@
   },
   "devDependencies": {
     "@changesets/changelog-github": "0.7.0",
-    "@changesets/cli": "2.31.0",
+    "@changesets/cli": "2.31.1",
     "@fullhuman/postcss-purgecss": "8.0.0",
-    "autoprefixer": "10.5.0",
+    "autoprefixer": "10.5.4",
     "basiclightbox": "5.0.4",
     "bootstrap": "5.3.8",
     "clipboard": "2.0.11",
     "flexsearch": "0.8.212",
-    "postcss": "8.5.15",
+    "postcss": "8.5.25",
     "postcss-cli": "11.0.1",
-    "prettier": "3.8.4",
-    "vite": "8.0.16"
+    "prettier": "3.9.6",
+    "vite": "8.2.0"
   },
   "optionalDependencies": {
-    "hugo-extended": "0.163.1"
+    "hugo-extended": "0.164.0"
   },
   "engines": {
     "node": ">=24.13.0",
     "pnpm": "11"
   },
-  "packageManager": "pnpm@11.6.0",
+  "packageManager": "pnpm@11.18.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

@@ -320,6 +320,31 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			},
 			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimAuthenticationMethodsReference: []string{oidc.AMRMultiFactorAuthentication}, oidc.ClaimClientIdentifier: abc}},
 		},
+
+		{
+			"ShouldSetClientCredentialsSubjectFromClientID",
+			&oidc.Session{DefaultSession: openid.NewDefaultSession(), ClientID: abc, ClientCredentials: true},
+			&jwt.JWTClaims{Subject: abc, Extra: map[string]any{oidc.ClaimClientIdentifier: abc}},
+		},
+		{
+			"ShouldNotOverrideClientCredentialsSubject",
+			&oidc.Session{
+				DefaultSession: &openid.DefaultSession{
+					Subject:     "existing",
+					Claims:      &jwt.IDTokenClaims{Extra: map[string]any{}},
+					Headers:     &jwt.Headers{},
+					RequestedAt: time.Now(),
+				},
+				ClientID:          abc,
+				ClientCredentials: true,
+			},
+			&jwt.JWTClaims{Subject: "existing", Extra: map[string]any{oidc.ClaimClientIdentifier: abc}},
+		},
+		{
+			"ShouldNotSetSubjectFromClientIDWhenNotClientCredentials",
+			&oidc.Session{DefaultSession: openid.NewDefaultSession(), ClientID: abc},
+			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: abc}},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -330,6 +355,7 @@ func TestSession_GetJWTClaims(t *testing.T) {
 
 			require.True(t, ok)
 
+			assert.Equal(t, tc.expected.Subject, actual.Subject)
 			assert.Equal(t, tc.expected.JTI, actual.JTI)
 			assert.Equal(t, tc.expected.Audience, actual.Audience)
 			assert.Equal(t, tc.expected.Issuer, actual.Issuer)

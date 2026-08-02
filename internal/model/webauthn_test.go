@@ -624,27 +624,27 @@ func TestWebAuthnCredential_UnmarshalYAML_Errors(t *testing.T) {
 		{
 			"ShouldErrOnInvalidYAML",
 			"rpid: [[[",
-			"yaml: while parsing a flow node at line 1: did not find expected node content",
+			"go-yaml load error in parser (while parsing a flow node) at L2.C1: did not find expected node content",
 		},
 		{
 			"ShouldErrOnInvalidPublicKeyBase64",
 			"rpid: example.com\npublic_key: '!!!bad!!!'\nkid: dGVzdA==\n",
-			"illegal base64 data at input byte 0",
+			"yaml: construct errors: line 1: illegal base64 data at input byte 0",
 		},
 		{
 			"ShouldErrOnInvalidKIDBase64",
 			"rpid: example.com\npublic_key: dGVzdA==\nkid: '!!!bad!!!'\n",
-			"illegal base64 data at input byte 0",
+			"yaml: construct errors: line 1: illegal base64 data at input byte 0",
 		},
 		{
 			"ShouldErrOnInvalidAAGUID",
 			"rpid: example.com\npublic_key: dGVzdA==\nkid: dGVzdA==\naaguid: 'not-a-uuid'\n",
-			"invalid UUID length: 10",
+			"yaml: construct errors: line 1: invalid UUID length: 10",
 		},
 		{
 			"ShouldErrOnInvalidAttestationBase64",
 			"rpid: example.com\npublic_key: dGVzdA==\nkid: dGVzdA==\nattestation: '!!!bad!!!'\n",
-			"illegal base64 data at input byte 0",
+			"yaml: construct errors: line 1: illegal base64 data at input byte 0",
 		},
 	}
 

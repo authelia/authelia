@@ -42,7 +42,7 @@ func TestDatabaseModel_Read(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.EqualError(t, model.Read(f), "could not parse the YAML database: yaml: while scanning for the next token at line 2: found character that cannot start any token")
+	assert.EqualError(t, model.Read(f), "could not parse the YAML database: go-yaml load error in scanner (while scanning for the next token) at L2.C1: found character that cannot start any token")
 }
 
 //nolint:gosec // Test Credentials.

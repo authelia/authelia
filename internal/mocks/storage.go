@@ -467,19 +467,19 @@ func (mr *MockStorageMockRecorder) LoadOAuth2DeviceCodeSessionByUserCode(ctx, si
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2DeviceCodeSessionByUserCode", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2DeviceCodeSessionByUserCode), ctx, signature)
 }
 
-// LoadOAuth2PARContext mocks base method.
-func (m *MockStorage) LoadOAuth2PARContext(ctx context.Context, signature string) (*model.OAuth2PARContext, error) {
+// LoadOAuth2PushedAuthorizationSession mocks base method.
+func (m *MockStorage) LoadOAuth2PushedAuthorizationSession(ctx context.Context, signature string) (*model.OAuth2PushedAuthorizationSession, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadOAuth2PARContext", ctx, signature)
-	ret0, _ := ret[0].(*model.OAuth2PARContext)
+	ret := m.ctrl.Call(m, "LoadOAuth2PushedAuthorizationSession", ctx, signature)
+	ret0, _ := ret[0].(*model.OAuth2PushedAuthorizationSession)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadOAuth2PARContext indicates an expected call of LoadOAuth2PARContext.
-func (mr *MockStorageMockRecorder) LoadOAuth2PARContext(ctx, signature any) *gomock.Call {
+// LoadOAuth2PushedAuthorizationSession indicates an expected call of LoadOAuth2PushedAuthorizationSession.
+func (mr *MockStorageMockRecorder) LoadOAuth2PushedAuthorizationSession(ctx, signature any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2PARContext", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2PARContext), ctx, signature)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2PushedAuthorizationSession), ctx, signature)
 }
 
 // LoadOAuth2Session mocks base method.
@@ -839,18 +839,18 @@ func (mr *MockStorageMockRecorder) RevokeIdentityVerification(ctx, jti, ip any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeIdentityVerification", reflect.TypeOf((*MockStorage)(nil).RevokeIdentityVerification), ctx, jti, ip)
 }
 
-// RevokeOAuth2PARContext mocks base method.
-func (m *MockStorage) RevokeOAuth2PARContext(ctx context.Context, signature string) error {
+// RevokeOAuth2PushedAuthorizationSession mocks base method.
+func (m *MockStorage) RevokeOAuth2PushedAuthorizationSession(ctx context.Context, signature string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RevokeOAuth2PARContext", ctx, signature)
+	ret := m.ctrl.Call(m, "RevokeOAuth2PushedAuthorizationSession", ctx, signature)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// RevokeOAuth2PARContext indicates an expected call of RevokeOAuth2PARContext.
-func (mr *MockStorageMockRecorder) RevokeOAuth2PARContext(ctx, signature any) *gomock.Call {
+// RevokeOAuth2PushedAuthorizationSession indicates an expected call of RevokeOAuth2PushedAuthorizationSession.
+func (mr *MockStorageMockRecorder) RevokeOAuth2PushedAuthorizationSession(ctx, signature any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOAuth2PARContext", reflect.TypeOf((*MockStorage)(nil).RevokeOAuth2PARContext), ctx, signature)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).RevokeOAuth2PushedAuthorizationSession), ctx, signature)
 }
 
 // RevokeOAuth2Session mocks base method.
@@ -1050,18 +1050,18 @@ func (mr *MockStorageMockRecorder) SaveOAuth2DeviceCodeSession(ctx, session any)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2DeviceCodeSession), ctx, session)
 }
 
-// SaveOAuth2PARContext mocks base method.
-func (m *MockStorage) SaveOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) error {
+// SaveOAuth2PushedAuthorizationSession mocks base method.
+func (m *MockStorage) SaveOAuth2PushedAuthorizationSession(ctx context.Context, par model.OAuth2PushedAuthorizationSession) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOAuth2PARContext", ctx, par)
+	ret := m.ctrl.Call(m, "SaveOAuth2PushedAuthorizationSession", ctx, par)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SaveOAuth2PARContext indicates an expected call of SaveOAuth2PARContext.
-func (mr *MockStorageMockRecorder) SaveOAuth2PARContext(ctx, par any) *gomock.Call {
+// SaveOAuth2PushedAuthorizationSession indicates an expected call of SaveOAuth2PushedAuthorizationSession.
+func (mr *MockStorageMockRecorder) SaveOAuth2PushedAuthorizationSession(ctx, par any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2PARContext", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2PARContext), ctx, par)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2PushedAuthorizationSession), ctx, par)
 }
 
 // SaveOAuth2Session mocks base method.
@@ -1380,18 +1380,18 @@ func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSessionData(ctx, sessio
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSessionData", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSessionData), ctx, session)
 }
 
-// UpdateOAuth2PARContext mocks base method.
-func (m *MockStorage) UpdateOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) error {
+// UpdateOAuth2PushedAuthorizationSession mocks base method.
+func (m *MockStorage) UpdateOAuth2PushedAuthorizationSession(ctx context.Context, par model.OAuth2PushedAuthorizationSession) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOAuth2PARContext", ctx, par)
+	ret := m.ctrl.Call(m, "UpdateOAuth2PushedAuthorizationSession", ctx, par)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateOAuth2PARContext indicates an expected call of UpdateOAuth2PARContext.
-func (mr *MockStorageMockRecorder) UpdateOAuth2PARContext(ctx, par any) *gomock.Call {
+// UpdateOAuth2PushedAuthorizationSession indicates an expected call of UpdateOAuth2PushedAuthorizationSession.
+func (mr *MockStorageMockRecorder) UpdateOAuth2PushedAuthorizationSession(ctx, par any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2PARContext", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2PARContext), ctx, par)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2PushedAuthorizationSession), ctx, par)
 }
 
 // UpdateTOTPConfigurationSignIn mocks base method.

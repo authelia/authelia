@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -343,7 +344,7 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig").Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				return p.RevokeOAuth2PARContext(context.Background(), "sig")
+				return p.RevokeOAuth2PushedAuthorizationSession(context.Background(), "sig")
 			},
 			expectErr: "error revoking oauth2 pushed authorization request session with signature 'sig': boom",
 		},
@@ -773,10 +774,10 @@ func TestSQLProviderLoadErrors(t *testing.T) {
 				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), "sig").Return(errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				_, err := p.LoadOAuth2PARContext(context.Background(), "sig")
+				_, err := p.LoadOAuth2PushedAuthorizationSession(context.Background(), "sig")
 				return err
 			},
-			expectErr: "error selecting oauth2 pushed authorization request context with signature 'sig': boom",
+			expectErr: "error selecting oauth2 pushed authorization request session with signature 'sig': boom",
 		},
 		{
 			name: "ShouldReturnErrLoadOAuth2BlacklistedJTI",
@@ -1204,9 +1205,9 @@ func TestSQLProviderUpdateOAuth2PARContextZeroID(t *testing.T) {
 		db := mocks.NewMockSQLXDB(ctrl)
 		p := storage.NewSQLProviderForTesting(db)
 
-		err := p.UpdateOAuth2PARContext(context.Background(), model.OAuth2PARContext{Signature: "sig", RequestID: "req"})
+		err := p.UpdateOAuth2PushedAuthorizationSession(context.Background(), model.OAuth2PushedAuthorizationSession{Signature: "sig", RequestID: "req"})
 
-		assert.EqualError(t, err, "error updating oauth2 pushed authorization request context data with signature 'sig' and request id 'req': the id was a zero value")
+		assert.EqualError(t, err, "error updating oauth2 pushed authorization request session data with signature 'sig' and request id 'req': the id was a zero value")
 	})
 }
 
@@ -1236,7 +1237,7 @@ func TestSQLProviderConsumeRevokeOneTimeCodeRowsAffected(t *testing.T) {
 			invoke: func(p *storage.SQLProvider) error {
 				return p.ConsumeOneTimeCode(context.Background(), &model.OneTimeCode{Signature: "sig"})
 			},
-			expectErr: "error consuming one-time code: ra-err",
+			expectErr: "error consuming one-time code: error occurred determining the number of affected rows: ra-err",
 		},
 		{
 			name: "ShouldErrConsumeWhenNoRowsAffected",
@@ -1574,9 +1575,9 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				return p.SaveOAuth2PARContext(context.Background(), model.OAuth2PARContext{Signature: "sig", RequestID: "req"})
+				return p.SaveOAuth2PushedAuthorizationSession(context.Background(), model.OAuth2PushedAuthorizationSession{Signature: "sig", RequestID: "req"})
 			},
-			expectErr: "error inserting oauth2 pushed authorization request context data for with signature 'sig' and request id 'req': boom",
+			expectErr: "error inserting oauth2 pushed authorization request session data for with signature 'sig' and request id 'req': boom",
 		},
 		{
 			name: "ShouldReturnErrUpdateOAuth2PARContext",
@@ -1588,9 +1589,9 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				).Return(nil, errors.New("boom"))
 			},
 			invoke: func(p *storage.SQLProvider) error {
-				return p.UpdateOAuth2PARContext(context.Background(), model.OAuth2PARContext{ID: 9, Signature: "sig", RequestID: "req"})
+				return p.UpdateOAuth2PushedAuthorizationSession(context.Background(), model.OAuth2PushedAuthorizationSession{ID: 9, Signature: "sig", RequestID: "req"})
 			},
-			expectErr: "error updating oauth2 pushed authorization request context data with id '9' and signature 'sig' and request id 'req': boom",
+			expectErr: "error updating oauth2 pushed authorization request session data with id '9' and signature 'sig' and request id 'req': boom",
 		},
 		{
 			name: "ShouldReturnErrSaveOAuth2DeviceCodeSession",
@@ -2059,7 +2060,7 @@ func TestSQLProviderRevokeOneTimeCodeRowsAffectedError(t *testing.T) {
 
 		err := p.RevokeOneTimeCode(context.Background(), uuid.Nil, model.NewIP(net.ParseIP("1.2.3.4")))
 
-		assert.EqualError(t, err, "error revoking one-time code: ra-err")
+		assert.EqualError(t, err, "error revoking one-time code: error occurred determining the number of affected rows: ra-err")
 	})
 }
 
@@ -2203,13 +2204,14 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialByIDDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), 7).DoAndReturn(
 					func(_ context.Context, dest any, _ string, _ ...any) error {
 						c := dest.(*model.WebAuthnCredential)
 						c.ID = 7
+						c.RPID = "example.com"
 						c.Username = "john"
 						c.PublicKey = validPK
 						c.Attestation = invalidCipher
@@ -2245,13 +2247,13 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialsDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), 10, 0).DoAndReturn(
 					func(_ context.Context, dest any, _ string, _ ...any) error {
 						creds := dest.(*[]model.WebAuthnCredential)
-						*creds = []model.WebAuthnCredential{{ID: 9, Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
+						*creds = []model.WebAuthnCredential{{ID: 9, RPID: "example.com", Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
 
 						return nil
 					},
@@ -2284,13 +2286,13 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialsByUsernameDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), "example.com", "john", false).DoAndReturn(
 					func(_ context.Context, dest any, _ string, _ ...any) error {
 						creds := dest.(*[]model.WebAuthnCredential)
-						*creds = []model.WebAuthnCredential{{ID: 9, Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
+						*creds = []model.WebAuthnCredential{{ID: 9, RPID: "example.com", Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
 
 						return nil
 					},
@@ -2323,13 +2325,13 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnPasskeyCredentialsByUsernameDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), "example.com", "john", true).DoAndReturn(
 					func(_ context.Context, dest any, _ string, _ ...any) error {
 						creds := dest.(*[]model.WebAuthnCredential)
-						*creds = []model.WebAuthnCredential{{ID: 9, Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
+						*creds = []model.WebAuthnCredential{{ID: 9, RPID: "example.com", Username: "john", PublicKey: validPK, Attestation: invalidCipher}}
 
 						return nil
 					},
@@ -2391,20 +2393,20 @@ func TestSQLProviderSaveWebAuthnCredentialAttestation(t *testing.T) {
 	})
 }
 
-func TestSQLProviderStartupCheckOpenErr(t *testing.T) {
+func TestNewSQLProviderShouldReturnOpenError(t *testing.T) {
 	t.Run("ShouldReturnErrorWhenDBOpenFailed", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
+		config := &schema.Configuration{
+			Storage: schema.Storage{
+				EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			},
+		}
 
-		db := mocks.NewMockSQLXDB(ctrl)
-		p := storage.NewSQLProviderForTesting(db).WithOpenErr(errors.New("dsn invalid"))
+		_, err := storage.NewSQLProvider(config, "test", "not-a-real-driver", "dsn")
 
-		err := p.StartupCheck()
-
-		assert.EqualError(t, err, "error opening database: dsn invalid")
+		assert.EqualError(t, err, `error opening database: sql: unknown driver "not-a-real-driver" (forgotten import?)`)
 	})
 }
 
-func encryptForTesting(clearText []byte) ([]byte, error) {
-	return storage.NewSQLProviderForTesting(nil).Encrypt(clearText)
+func encryptForTesting(clearText, aad []byte) ([]byte, error) {
+	return storage.NewSQLProviderForTesting(nil).Encrypt(clearText, aad)
 }

@@ -727,6 +727,10 @@ func (c *RegisteredClient) GetRequestedAudienceImplicit() (implicit bool) {
 	return c.RequestedAudienceMode == ClientRequestedAudienceModeImplicit
 }
 
+func (c *RegisteredClient) GetEnableDPoPBoundAccessTokens() (enable bool) {
+	return c.DPoPBoundAccessTokens
+}
+
 // GetEffectiveLifespan returns the effective lifespan for a grant type and token type otherwise returns the fallback
 // value. This implements the oauthelia2.ClientWithCustomTokenLifespans interface.
 func (c *RegisteredClient) GetEffectiveLifespan(gt oauthelia2.GrantType, tt oauthelia2.TokenType, fallback time.Duration) time.Duration {
