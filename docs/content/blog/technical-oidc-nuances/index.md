@@ -271,9 +271,9 @@ same time they mint a new _Access Token_[^2] during the _Refresh Token Flow_[^18
 It's worth being clear about what this does and does not achieve: it does not prevent the first use of a stolen
 _Refresh Token_[^19], but it does allow the theft to be detected when an already invalidated _Refresh Token_[^19] is
 subsequently presented. Others issue sender-constrained _Refresh Tokens_[^19] (for example via mTLS or DPoP) which bind
-the token to the _Relying Party_[^13] it was issued to, so that possession of the token alone is not sufficient to use
-it. Revocation of the _Access Token_[^2] is a separate and largely implementation specific matter as it may remain
-valid until it expires.
+the token to a key held by the specific client instance it was issued to rather than to the _Relying Party_[^13]
+generally, so that possession of the token alone is not sufficient to use it. Revocation of the _Access Token_[^2] is a
+separate and largely implementation-specific matter as it may remain valid until it expires.
 
 ### Claims Parameter
 
