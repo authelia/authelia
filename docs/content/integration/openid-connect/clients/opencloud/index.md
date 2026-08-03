@@ -111,9 +111,9 @@ identity_providers:
           - 'profile'
           - 'email'
         redirect_uris:
-          - 'https://opencloud.example.com/'
-          - 'https://opencloud.example.com/oidc-callback.html'
-          - 'https://opencloud.example.com/oidc-silent-redirect.html'
+          - 'https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}/'
+          - 'https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}/oidc-callback.html'
+          - 'https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}/oidc-silent-redirect.html'
         response_types:
           - 'code'
         grant_types:
@@ -216,21 +216,14 @@ variables:
   PROXY_AUTOPROVISION_CLAIM_DISPLAYNAME=name
   PROXY_AUTOPROVISION_CLAIM_GROUPS=groups
   PROXY_CSP_CONFIG_FILE_LOCATION=/etc/opencloud/csp.yaml
-
-  # Configure the clients
   WEBFINGER_WEB_OIDC_CLIENT_ID=opencloud
   WEBFINGER_WEB_OIDC_CLIENT_SCOPES="openid profile email groups offline_access"
-
   WEBFINGER_ANDROID_OIDC_CLIENT_ID=opencloud-android
   WEBFINGER_ANDROID_OIDC_CLIENT_SCOPES="openid profile email groups offline_access"
-
   WEBFINGER_IOS_OIDC_CLIENT_ID=opencloud-ios
   WEBFINGER_IOS_OIDC_CLIENT_SCOPES="openid profile email groups offline_access"
-
   WEBFINGER_DESKTOP_OIDC_CLIENT_ID=opencloud-desktop
   WEBFINGER_DESKTOP_OIDC_CLIENT_SCOPES="openid profile email groups offline_access"
-
-  # When using external IdP (e.g. Authelia), disable the internal IdP service to avoid conflicts
   OC_EXCLUDE_RUN_SERVICES=idp
   PROXY_ROLE_ASSIGNMENT_DRIVER=oidc
   GRAPH_ASSIGN_DEFAULT_USER_ROLE=false
@@ -240,7 +233,7 @@ variables:
 
 ```yaml {title="compose.yml"}
 services:
-  oics:
+  openCloud:
     environment:
       OC_OIDC_ISSUER: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
       PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD: jwt
@@ -251,21 +244,14 @@ services:
       PROXY_AUTOPROVISION_CLAIM_DISPLAYNAME: name
       PROXY_AUTOPROVISION_CLAIM_GROUPS: groups
       PROXY_CSP_CONFIG_FILE_LOCATION: /etc/opencloud/csp.yaml
-
-      # Configure the clients
       WEBFINGER_WEB_OIDC_CLIENT_ID: opencloud
       WEBFINGER_WEB_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
-
       WEBFINGER_ANDROID_OIDC_CLIENT_ID: opencloud-android
       WEBFINGER_ANDROID_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
-
       WEBFINGER_IOS_OIDC_CLIENT_ID: opencloud-ios
       WEBFINGER_IOS_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
-
       WEBFINGER_DESKTOP_OIDC_CLIENT_ID: opencloud-desktop
       WEBFINGER_DESKTOP_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
-
-      # When using external IdP (e.g. Authelia), disable the internal IdP service to avoid conflicts
       OC_EXCLUDE_RUN_SERVICES: idp
       PROXY_ROLE_ASSIGNMENT_DRIVER: oidc
       GRAPH_ASSIGN_DEFAULT_USER_ROLE: false
