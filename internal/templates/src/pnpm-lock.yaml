@@ -69,11 +69,11 @@ importers:
         specifier: 10.8.0
         version: 10.8.0(jiti@2.6.1)
       tsx:
-        specifier: 4.23.1
-        version: 4.23.1
+        specifier: 4.23.3
+        version: 4.23.3
       vitest:
         specifier: 4.1.10
-        version: 4.1.10(@types/node@25.9.5)(vite@8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.1))
+        version: 4.1.10(@types/node@25.9.5)(vite@8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.3))
 
 packages:
 
@@ -1498,8 +1498,8 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
-  tsx@4.23.1:
-    resolution: {integrity: sha512-GQHnkIfxyx1wYCOS/wonik5MVRZU9hi1TEZmzGZSCJB1y9YgoZ8H6itNE/u4suE+yLmOzuE4E5S4TZ/ZX2wcWQ==}
+  tsx@4.23.3:
+    resolution: {integrity: sha512-hahlTkAAf5cqMiD8V2b+UgasXreAb2D1tgcYkLegeacgcDH11fY0gqrFJRzlpBDZkFJrVuPvIVMSc7rvJpHLLQ==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -2148,13 +2148,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.10(vite@8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.1))':
+  '@vitest/mocker@4.1.10(vite@8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.3))':
     dependencies:
       '@vitest/spy': 4.1.10
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.1)
+      vite: 8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.3)
 
   '@vitest/pretty-format@4.1.10':
     dependencies:
@@ -2914,7 +2914,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  tsx@4.23.1:
+  tsx@4.23.3:
     dependencies:
       esbuild: 0.28.1
     optionalDependencies:
@@ -2936,7 +2936,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite@8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.1):
+  vite@8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.3):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
@@ -2948,12 +2948,12 @@ snapshots:
       esbuild: 0.28.1
       fsevents: 2.3.3
       jiti: 2.6.1
-      tsx: 4.23.1
+      tsx: 4.23.3
 
-  vitest@4.1.10(@types/node@25.9.5)(vite@8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.1)):
+  vitest@4.1.10(@types/node@25.9.5)(vite@8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.3)):
     dependencies:
       '@vitest/expect': 4.1.10
-      '@vitest/mocker': 4.1.10(vite@8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.1))
+      '@vitest/mocker': 4.1.10(vite@8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.3))
       '@vitest/pretty-format': 4.1.10
       '@vitest/runner': 4.1.10
       '@vitest/snapshot': 4.1.10
@@ -2970,7 +2970,7 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.1)
+      vite: 8.2.0(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.3)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.9.5
