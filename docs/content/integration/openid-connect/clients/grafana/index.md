@@ -27,6 +27,8 @@ seo:
 - [Grafana]
   - [v13.1.0](https://github.com/grafana/grafana/releases/tag/v13.1.0)
 
+{{% oidc-common bugs="claims-hydration" %}}
+
 ### Assumptions
 
 This example makes the following assumptions:
@@ -75,6 +77,10 @@ identity_providers:
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
+
+#### Configuration Escape Hatch
+
+{{% oidc-escape-hatch-claims-hydration client_id="grafana" claims="email,name,groups,preferred_username" %}}
 
 ### Application
 
