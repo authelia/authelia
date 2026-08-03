@@ -279,7 +279,7 @@ directives:
     - 'https://${COLLABORA_DOMAIN|collabora.opencloud.test}${TRAEFIK_PORT_HTTPS}/'
     - 'https://${EURO_OFFICE_DOMAIN|euro-office.opencloud.test}${TRAEFIK_PORT_HTTPS}/'
     - 'https://docs.opencloud.eu'
-    - "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
+    - 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
   img-src:
     - '''self'''
     - 'data:'
@@ -298,12 +298,12 @@ directives:
   script-src:
     - '''self'''
     - '''unsafe-inline'''
-    - "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
+    - 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
   style-src:
     - '''self'''
     - '''unsafe-inline'''
   worker-src:
-    - "'self'"
+    - '''self'''
     - 'blob:'
 ```
 Refer to [csp.yaml](https://github.com/opencloud-eu/opencloud-compose/blob/main/config/opencloud/csp.yaml)
