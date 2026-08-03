@@ -7,8 +7,7 @@ draft: false
 images: []
 weight: 620
 toc: true
-aliases:
-  - '/integration/openid-connect/openCloud/'
+aliases: []
 support:
   level: community
   versions: true
@@ -36,10 +35,10 @@ This example makes the following assumptions:
 - __Application Root URL:__ `https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}`
 - __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
 - __Client ID:__
-  - Web Application: `OpenCloudWeb`
-  - Android App: `OpenCloudAndroid`
-  - iOS App: `OpenCloudIOS`
-  - Desktop client: `OpenCloudDesktop`
+  - Web Application: `opencloud`
+  - Android App: `opencloud-android`
+  - iOS App: `opencloud-ios`
+  - Desktop client: `opencloud-desktop`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -48,6 +47,7 @@ Some of the values presented in this guide can automatically be replaced with do
 ## Configuration
 
 ### Authelia
+
 #### Limitations
 
 * When using Authelia as an external IDP, the refresh token lifespan must be increased manually. This workaround should no longer be required once Authelia supports dynamic client registration (DCR), see the [Authelia OpenID Connect roadmap](https://www.authelia.com/roadmap/active/openid-connect-1.0-provider/#beta-8)
@@ -62,7 +62,7 @@ Some of the values presented in this guide can automatically be replaced with do
     Example:
 
     ```
-    https://<authelia-domain>/api/oidc/authorization?response_type=code&client_id=<client_id>&redirect_uri=<redirect_uri>&code_challenge=<code_challenge>&code_challenge_method=S256&scope=<scope>&prompt=<prompt>&state=<state>
+    https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization?response_type=code&client_id=<client_id>&redirect_uri=<redirect_uri>&code_challenge=<code_challenge>&code_challenge_method=S256&scope=<scope>&prompt=<prompt>&state=<state>
     ```
 
     The default scope is:
@@ -77,15 +77,11 @@ Some of the values presented in this guide can automatically be replaced with do
     scope=groups%20openid%20offline_access%20email%20profile
     ```
 
-    {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-  The desktop client integration with Authelia is currently not production ready.
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The desktop client integration with Authelia is currently not production ready.
 
-  The current implementation is intended for one-time use cases, such as migrating files. It should not be considered a stable long-term desktop client setup until the WebFinger integration is completed.
-  {{< /callout >}}
-
-
-
-
+The current implementation is intended for one-time use cases, such as migrating files. It should not be considered a stable long-term desktop client setup until the WebFinger integration is completed.
+{{< /callout >}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with
 [openCloud] which will operate with the application example:
@@ -93,14 +89,6 @@ The following YAML configuration is an example __Authelia__ [client configuratio
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
-    # Extend the access and refresh token lifespan from the default 30m to work around ownCloud client re-authentication prompts every few hours.
-    # TODO It should be possible to remove this once Authelia supports dynamic client registration (DCR).
-    # Note: ownCloud's built-in IDP uses a value of 30d.
-    lifespans:
-      custom:
-        openCloud:
-          access_token: '2 days'
-          refresh_token: '3 days' # use 30 if external IDP (e.g Authelia)
     cors:
       endpoints:
         - 'authorization'
@@ -110,9 +98,8 @@ identity_providers:
         - 'userinfo'
 
     clients:
-      - client_id: 'OpenCloudWeb'
+      - client_id: 'opencloud'
         client_name: 'openCloud'
-        lifespan: 'openCloud'
         public: true
         authorization_policy: 'two_factor'
         require_pkce: true
@@ -136,10 +123,9 @@ identity_providers:
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
       
-      - client_id: 'OpenCloudAndroid'
-        client_name: 'openCloud (Android)'
+      - client_id: 'opencloud-android'
+        client_name: 'openCloud'
         public: true
-        lifespan: 'openCloud'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -160,10 +146,9 @@ identity_providers:
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
 
-      - client_id: 'OpenCloudDesktop'
-        client_name: 'openCloud (Desktop Client)'
+      - client_id: 'opencloud-desktop'
+        client_name: 'openCloud'
         public: true
-        lifespan: 'openCloud'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -185,10 +170,9 @@ identity_providers:
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
 
-      - client_id: 'OpenCloudIOS'
-        client_name: 'openCloud (iOS)'
+      - client_id: 'opencloud-ios'
+        client_name: 'openCloud'
         public: true
-        lifespan: 'openCloud'
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -234,16 +218,16 @@ variables:
   PROXY_CSP_CONFIG_FILE_LOCATION=/etc/opencloud/csp.yaml
 
   # Configure the clients
-  WEBFINGER_WEB_OIDC_CLIENT_ID=OpenCloudWeb
+  WEBFINGER_WEB_OIDC_CLIENT_ID=opencloud
   WEBFINGER_WEB_OIDC_CLIENT_SCOPES="openid profile email groups offline_access"
 
-  WEBFINGER_ANDROID_OIDC_CLIENT_ID=OpenCloudAndroid
+  WEBFINGER_ANDROID_OIDC_CLIENT_ID=opencloud-android
   WEBFINGER_ANDROID_OIDC_CLIENT_SCOPES="openid profile email groups offline_access"
 
-  WEBFINGER_IOS_OIDC_CLIENT_ID=OpenCloudIOS
+  WEBFINGER_IOS_OIDC_CLIENT_ID=opencloud-ios
   WEBFINGER_IOS_OIDC_CLIENT_SCOPES="openid profile email groups offline_access"
 
-  WEBFINGER_DESKTOP_OIDC_CLIENT_ID=OpenCloudDesktop
+  WEBFINGER_DESKTOP_OIDC_CLIENT_ID=opencloud-desktop
   WEBFINGER_DESKTOP_OIDC_CLIENT_SCOPES="openid profile email groups offline_access"
 
   # When using external IdP (e.g. Authelia), disable the internal IdP service to avoid conflicts
@@ -269,16 +253,16 @@ services:
       PROXY_CSP_CONFIG_FILE_LOCATION: /etc/opencloud/csp.yaml
 
       # Configure the clients
-      WEBFINGER_WEB_OIDC_CLIENT_ID: OpenCloudWeb
+      WEBFINGER_WEB_OIDC_CLIENT_ID: opencloud
       WEBFINGER_WEB_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
 
-      WEBFINGER_ANDROID_OIDC_CLIENT_ID: OpenCloudAndroid
+      WEBFINGER_ANDROID_OIDC_CLIENT_ID: opencloud-android
       WEBFINGER_ANDROID_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
 
-      WEBFINGER_IOS_OIDC_CLIENT_ID: OpenCloudIOS
+      WEBFINGER_IOS_OIDC_CLIENT_ID: opencloud-ios
       WEBFINGER_IOS_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
 
-      WEBFINGER_DESKTOP_OIDC_CLIENT_ID: OpenCloudDesktop
+      WEBFINGER_DESKTOP_OIDC_CLIENT_ID: opencloud-desktop
       WEBFINGER_DESKTOP_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
 
       # When using external IdP (e.g. Authelia), disable the internal IdP service to avoid conflicts
@@ -356,6 +340,7 @@ Refer to [csp.yaml](https://github.com/opencloud-eu/opencloud-compose/blob/main/
 
 
 #### Proxy
+
 When using an external IDP, you need to map groups and roles. Create the following file and save it next to `opencloud.yaml`:
 
 ```yaml {title="proxy.yaml"}
