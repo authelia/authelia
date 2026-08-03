@@ -70,9 +70,10 @@ The following example uses the [Nextcloud OpenID Connect Login app] which is ass
 #### Authelia
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
-The `is_nextcloud_admin` user attribute renders the value `true` if the user is in the `nextcloud-admins` group within
-Authelia, otherwise it renders `false`. You can adjust this to your preference to assign the admin role to the
-appropriate user groups.
+The `is_nextcloud_admin` user attribute renders the string value `"yes"` if the user is in the `nextcloud-admins` group within
+Authelia, otherwise it renders `"no"`. You can adjust this to your preference to assign the admin role to the
+appropriate user groups. The expression must return a **string** (not a boolean) because Nextcloud's
+oidc_login app expects a `?string` type for the `is_admin` attribute.
 {{< /callout >}}
 
 The following YAML configuration is an example __Authelia__
@@ -84,14 +85,15 @@ definitions:
   user_attributes:
     is_nextcloud_admin:
       ## Expression to evaluate admin privilege for Nextcloud.
-      expression: '"nextcloud-admins" in groups'
+      expression: '"nextcloud-admins" in groups ? "yes" : "no"'
 
 identity_providers:
   oidc:
     claims_policies:
       nextcloud_userinfo:
         custom_claims:
-          is_nextcloud_admin: {}
+          is_nextcloud_admin:
+            attribute: 'is_nextcloud_admin'
 
     scopes:
       nextcloud_userinfo:

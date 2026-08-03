@@ -36,7 +36,7 @@
     "postcss": "8.5.25",
     "postcss-cli": "11.0.1",
     "prettier": "3.9.6",
-    "vite": "8.1.5"
+    "vite": "8.2.0"
   },
   "optionalDependencies": {
     "hugo-extended": "0.164.0"
@@ -45,7 +45,7 @@
     "node": ">=24.13.0",
     "pnpm": "11"
   },
-  "packageManager": "pnpm@11.17.0",
+  "packageManager": "pnpm@11.18.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
