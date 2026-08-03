@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useEffectEvent, useState } from "react";
+import { Fragment, useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { Button, CircularProgress, Divider, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -13,6 +13,7 @@ import { useFlow } from "@hooks/Flow";
 import { useQueryParam } from "@hooks/QueryParam";
 import { AssertionResult, AssertionResultFailureString } from "@models/WebAuthn";
 import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyResponse } from "@services/WebAuthn";
+import PasskeyRememberMeDialog from "@views/LoginPortal/FirstFactor/PasskeyRememberMeDialog";
 
 export interface Props {
     disabled: boolean;
@@ -33,8 +34,21 @@ export default function PasskeyForm(props: Props) {
     const getSignal = useAbortSignal();
 
     const [loading, setLoading] = useState(false);
+    const [rememberMeOpen, setRememberMeOpen] = useState(false);
 
-    const handleSignIn = useEffectEvent(async (conditionalMediation: boolean) => {
+    const rememberMeResolverRef = useRef<((_rememberMe: boolean) => void) | null>(null);
+    const cancelledRef = useRef(false);
+
+    const handleRememberMeChoice = (rememberMe: boolean) => {
+        const resolve = rememberMeResolverRef.current;
+
+        rememberMeResolverRef.current = null;
+        setRememberMeOpen(false);
+
+        resolve?.(rememberMe);
+    };
+
+    const handleSignIn = async (conditionalMediation: boolean) => {
         if (loading) return;
 
         const startUI = () => {
@@ -51,6 +65,16 @@ export default function PasskeyForm(props: Props) {
             if (conditionalMediation) return;
             stopUI();
             props.onAuthenticationError(new Error(translate(message)));
+        };
+
+        const promptRememberMe = () => {
+            if (!props.rememberMe) return Promise.resolve(false);
+
+            return new Promise<boolean>((resolve) => {
+                rememberMeResolverRef.current?.(false);
+                rememberMeResolverRef.current = resolve;
+                setRememberMeOpen(true);
+            });
         };
 
         if (!conditionalMediation) startUI();
@@ -85,9 +109,13 @@ export default function PasskeyForm(props: Props) {
 
             if (conditionalMediation) startUI();
 
+            const rememberMe = await promptRememberMe();
+
+            if (signal.aborted) return;
+
             const response = await postWebAuthnPasskeyResponse(
                 result.response,
-                props.rememberMe,
+                rememberMe,
                 redirectionURL,
                 requestMethod,
                 flowID,
@@ -109,24 +137,26 @@ export default function PasskeyForm(props: Props) {
             console.error(err);
             fail("Failed to initiate security key sign in process");
         }
+    };
+
+    const handleConditionalMediation = useEffectEvent(async () => {
+        try {
+            const supported = await browserSupportsWebAuthnAutofill();
+            if (cancelledRef.current || !supported) return;
+            await handleSignIn(true);
+        } catch (err) {
+            if (axios.isCancel(err)) return;
+            console.error(err);
+        }
     });
 
     useEffect(() => {
-        let cancelled = false;
+        cancelledRef.current = false;
 
-        (async () => {
-            try {
-                const supported = await browserSupportsWebAuthnAutofill();
-                if (cancelled || !supported) return;
-                await handleSignIn(true);
-            } catch (err) {
-                if (axios.isCancel(err)) return;
-                console.error(err);
-            }
-        })();
+        void handleConditionalMediation();
 
         return () => {
-            cancelled = true;
+            cancelledRef.current = true;
         };
     }, []);
 
@@ -151,6 +181,7 @@ export default function PasskeyForm(props: Props) {
                     {translate("Sign in with a passkey")}
                 </Button>
             </Grid>
+            <PasskeyRememberMeDialog open={rememberMeOpen} onChoice={handleRememberMeChoice} />
         </Fragment>
     );
 }
