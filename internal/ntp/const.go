@@ -8,13 +8,20 @@ const (
 )
 
 const (
-	maskMode    = 0xf8
-	maskVersion = 0xc7
-	maskLeap    = 0x3f
+	maskMode      = 0xf8
+	maskVersion   = 0xc7
+	maskLeap      = 0x3f
+	maskModeValue = 0x07
 )
 
 const (
 	modeClient = 3
+	modeServer = 4
+)
+
+const (
+	stratumMinimum = 1
+	stratumMaximum = 15
 )
 
 const (
