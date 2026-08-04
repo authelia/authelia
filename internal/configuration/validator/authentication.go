@@ -601,26 +601,22 @@ func validateKnownIP(config *schema.AuthenticationBackend, validator *schema.Str
 		validator.Push(fmt.Errorf(errFmtKnownIPInvalidExpiryMode, config.KnownIP.ExpirationMode))
 	}
 
-	// Generate warning when using "never":.
 	if config.KnownIP.ExpirationMode == "never" {
 		validator.PushWarning(errors.New("authentication_backend.known_ip.expiration_mode is set to 'never', which may lead to unbounded database growth"))
 	}
 
-	// DefaultLifespan.
 	if config.KnownIP.DefaultLifeSpan == 0 {
 		config.KnownIP.DefaultLifeSpan = schema.DefaultKnownIPConfig.DefaultLifeSpan
 	} else if config.KnownIP.DefaultLifeSpan > time.Hour*24*365*2 { // 2 years as upper limit.
 		validator.PushWarning(fmt.Errorf(errFmtKnownIPDefaultLifespanVeryLong, config.KnownIP.DefaultLifeSpan))
 	}
 
-	// ExtensionPeriod.
-	if config.KnownIP.ExtensionPeriod < 0 {
+	if config.KnownIP.ExtensionPeriod <= 0 {
 		config.KnownIP.ExtensionPeriod = schema.DefaultKnownIPConfig.ExtensionPeriod
 	} else if config.KnownIP.ExtensionPeriod > time.Hour*24*365*2 { // 2 years as upper limit.
 		validator.PushWarning(fmt.Errorf(errFmtKnownIPExtensionPeriodVeryLong, config.KnownIP.ExtensionPeriod))
 	}
 
-	// MaxLifespan.
 	switch {
 	case config.KnownIP.MaxLifespan <= 0:
 		config.KnownIP.MaxLifespan = schema.DefaultKnownIPConfig.MaxLifespan
@@ -630,7 +626,6 @@ func validateKnownIP(config *schema.AuthenticationBackend, validator *schema.Str
 		validator.PushWarning(fmt.Errorf(errFmtKnownIPMaxLifespanVeryLong, config.KnownIP.MaxLifespan))
 	}
 
-	// CleanupInterval.
 	if config.KnownIP.CleanupInterval < time.Hour { // Minimum 1 hour.
 		if config.KnownIP.CleanupInterval < 0 {
 			validator.Push(errors.New(errFmtKnownIPCleanupIntervalTooSmall))

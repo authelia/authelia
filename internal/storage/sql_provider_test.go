@@ -902,6 +902,105 @@ func TestSQLProviderBannedIP(t *testing.T) {
 	})
 }
 
+func TestSQLProviderKnownIP(t *testing.T) {
+	provider := newTestSQLiteProviderWithEncryption(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	now := time.Now().Truncate(time.Second)
+
+	future := now.Add(time.Hour)
+	past := now.Add(-time.Hour)
+
+	t.Run("ShouldSaveAndLoadByUser", func(t *testing.T) {
+		require.NoError(t, provider.SaveKnownIP(ctx, model.KnownIP{
+			Username:  "john",
+			IP:        model.NewIP(net.ParseIP("192.168.1.100")),
+			FirstSeen: now,
+			LastSeen:  now,
+			ExpiresAt: sql.NullTime{Valid: true, Time: future},
+		}))
+
+		require.NoError(t, provider.SaveKnownIP(ctx, model.KnownIP{
+			Username:  "john",
+			IP:        model.NewIP(net.ParseIP("192.168.1.101")),
+			FirstSeen: now,
+			LastSeen:  now,
+		}))
+
+		ips, err := provider.LoadKnownIPsByUser(ctx, "john")
+
+		require.NoError(t, err)
+		require.Len(t, ips, 2)
+	})
+
+	t.Run("ShouldUpsertOnConflict", func(t *testing.T) {
+		require.NoError(t, provider.SaveKnownIP(ctx, model.KnownIP{
+			Username:  "john",
+			IP:        model.NewIP(net.ParseIP("192.168.1.100")),
+			FirstSeen: now,
+			LastSeen:  now,
+			ExpiresAt: sql.NullTime{Valid: true, Time: future.Add(time.Hour)},
+		}))
+
+		ips, err := provider.LoadKnownIPsByUser(ctx, "john")
+
+		require.NoError(t, err)
+		require.Len(t, ips, 2)
+	})
+
+	t.Run("ShouldLoadKnownIPs", func(t *testing.T) {
+		require.NoError(t, provider.SaveKnownIP(ctx, model.KnownIP{
+			Username:  "mary",
+			IP:        model.NewIP(net.ParseIP("192.168.1.102")),
+			FirstSeen: now,
+			LastSeen:  now,
+			ExpiresAt: sql.NullTime{Valid: true, Time: past},
+		}))
+
+		ips, err := provider.LoadKnownIPs(ctx, 10, 0)
+
+		require.NoError(t, err)
+		assert.Len(t, ips, 3)
+	})
+
+	t.Run("ShouldLoadExpiredKnownIPs", func(t *testing.T) {
+		ips, err := provider.LoadExpiredKnownIPs(ctx)
+
+		require.NoError(t, err)
+		require.Len(t, ips, 1)
+		assert.Equal(t, "mary", ips[0].Username)
+	})
+
+	t.Run("ShouldCleanupExpiredKnownIPs", func(t *testing.T) {
+		count, err := provider.CleanupExpiredKnownIPs(ctx)
+
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), count)
+
+		ips, err := provider.LoadKnownIPs(ctx, 10, 0)
+
+		require.NoError(t, err)
+		assert.Len(t, ips, 2)
+	})
+
+	t.Run("ShouldDeleteKnownIP", func(t *testing.T) {
+		require.NoError(t, provider.DeleteKnownIP(ctx, "john", model.NewIP(net.ParseIP("192.168.1.100"))))
+
+		ips, err := provider.LoadKnownIPsByUser(ctx, "john")
+
+		require.NoError(t, err)
+		require.Len(t, ips, 1)
+	})
+
+	t.Run("ShouldErrDeletingUnknownIP", func(t *testing.T) {
+		err := provider.DeleteKnownIP(ctx, "ghost", model.NewIP(net.ParseIP("10.0.0.1")))
+
+		assert.Error(t, err)
+	})
+}
+
 func TestSQLProviderLoadRegulationRecordsByIP(t *testing.T) {
 	provider := newTestSQLiteProviderWithEncryption(t)
 	require.NoError(t, provider.StartupCheck())

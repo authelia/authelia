@@ -150,9 +150,23 @@ type Provider interface {
 
 	UpdateKnownIP(ctx context.Context, username string, ip model.IP) (err error)
 
-	LoadKnownIPsByUser(ctx context.Context, username string) (ips []model.IP, err error)
+	// LoadKnownIPsByUser loads all known IP addresses (including expired) for a given username.
+	LoadKnownIPsByUser(ctx context.Context, username string) (ips []model.KnownIP, err error)
 
-	CleanupExpiredKnownIPs(ctx context.Context) error
+	// LoadKnownIPs loads a page of known IP addresses for all users.
+	LoadKnownIPs(ctx context.Context, limit, page int) (ips []model.KnownIP, err error)
+
+	// LoadExpiredKnownIPs loads all known IP addresses that have expired.
+	LoadExpiredKnownIPs(ctx context.Context) (ips []model.KnownIP, err error)
+
+	// SaveKnownIP saves (upserts) a known IP address record.
+	SaveKnownIP(ctx context.Context, ip model.KnownIP) (err error)
+
+	// DeleteKnownIP deletes a known IP address record for a user.
+	DeleteKnownIP(ctx context.Context, username string, ip model.IP) (err error)
+
+	// CleanupExpiredKnownIPs deletes all expired known IP addresses and returns the number of rows removed.
+	CleanupExpiredKnownIPs(ctx context.Context) (count int64, err error)
 
 	/*
 		Implementation for Identity Verification (JWT).

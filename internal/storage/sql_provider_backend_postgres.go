@@ -47,6 +47,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
+	provider.sqlUpsertKnownIP = fmt.Sprintf(queryFmtUpsertKnownIPPostgreSQL, tableKnownIpAddresses)
 
 	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
 	provider.sqlFmtRenameTable = provider.db.Rebind(provider.sqlFmtRenameTable)
@@ -102,10 +103,14 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername)
 	provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP)
 
-	provider.sqlInsertNewKnownIp = provider.db.Rebind(provider.sqlInsertNewKnownIp)
 	provider.sqlIsIPKnownForUser = provider.db.Rebind(provider.sqlIsIPKnownForUser)
+	provider.sqlSelectKnownIPForUpdate = provider.db.Rebind(provider.sqlSelectKnownIPForUpdate)
 	provider.sqlSelectKnownIPsByUsername = provider.db.Rebind(provider.sqlSelectKnownIPsByUsername)
-	provider.sqlUpdateKnownIpByUsername = provider.db.Rebind(provider.sqlUpdateKnownIpByUsername)
+	provider.sqlSelectKnownIPs = provider.db.Rebind(provider.sqlSelectKnownIPs)
+	provider.sqlSelectExpiredKnownIPs = provider.db.Rebind(provider.sqlSelectExpiredKnownIPs)
+	provider.sqlUpdateKnownIpByUsernameWithTime = provider.db.Rebind(provider.sqlUpdateKnownIpByUsernameWithTime)
+	provider.sqlUpdateKnownIpByUsernameNullDate = provider.db.Rebind(provider.sqlUpdateKnownIpByUsernameNullDate)
+	provider.sqlDeleteKnownIP = provider.db.Rebind(provider.sqlDeleteKnownIP)
 	provider.sqlDeleteExpiredIPs = provider.db.Rebind(provider.sqlDeleteExpiredIPs)
 
 	provider.sqlInsertBannedUser = provider.db.Rebind(provider.sqlInsertBannedUser)

@@ -403,45 +403,63 @@ const (
 		SELECT id, expires_at
 		FROM %s
 		WHERE username = ? AND ip_address = ?
-		  AND (expires_at IS NULL OR expires_at > datetime('now', 'localtime'));`
+		  AND (expires_at IS NULL OR expires_at > ?);`
 
 	queryFmtSelectKnownIPForUpdate = `
 		SELECT first_seen, expires_at
 		FROM %s
 		WHERE username = ? AND ip_address = ?;`
 
-	queryFmtInsertNewIpAddress = `
-		INSERT INTO %s
-		  (username, ip_address, browser_name, browser_version, os_name, os_version, device_type, expires_at)
+	queryFmtUpsertKnownIP = `
+		REPLACE INTO %s
+		  (username, ip_address, first_seen, last_seen, expires_at, browser_name, browser_version, os_name, os_version, device_type)
 		VALUES
-		  (?, ?, ?, ?, ?, ?, ?, ?);`
+		  (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpsertKnownIPPostgreSQL = `
+		INSERT INTO %s
+		  (username, ip_address, first_seen, last_seen, expires_at, browser_name, browser_version, os_name, os_version, device_type)
+		VALUES
+		  ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			ON CONFLICT (username, ip_address)
+			DO UPDATE SET first_seen = $3, last_seen = $4, expires_at = $5, browser_name = $6, browser_version = $7, os_name = $8, os_version = $9, device_type = $10;`
 
 	queryFmtSelectKnownIPsByUsername = `
-		SELECT ip_address, first_seen, last_seen, browser_name, browser_version, os_name, os_version, device_type, expires_at
+		SELECT id, username, ip_address, first_seen, last_seen, expires_at, browser_name, browser_version, os_name, os_version, device_type
 		FROM %s
 		WHERE username = ?
-		  AND (expires_at IS NULL OR expires_at > datetime('now', 'localtime'))
+		ORDER BY last_seen DESC;`
+
+	queryFmtSelectKnownIPs = `
+		SELECT id, username, ip_address, first_seen, last_seen, expires_at, browser_name, browser_version, os_name, os_version, device_type
+		FROM %s
+		ORDER BY last_seen DESC
+		LIMIT ?
+		OFFSET ?;`
+
+	queryFmtSelectExpiredKnownIPs = `
+		SELECT id, username, ip_address, first_seen, last_seen, expires_at, browser_name, browser_version, os_name, os_version, device_type
+		FROM %s
+		WHERE expires_at IS NOT NULL AND expires_at <= ?
 		ORDER BY last_seen DESC;`
 
 	queryFmtDeleteExpiredIPs = `
 		DELETE FROM %s
-		WHERE expires_at IS NOT NULL AND expires_at <= datetime('now', 'localtime');`
+		WHERE expires_at IS NOT NULL AND expires_at <= ?;`
 
-	queryFmtUpdateKnownIpByUsername = `
-		UPDATE %s
-		SET last_seen = datetime('now', 'localtime'),
-			expires_at = datetime('now', 'localtime', '+' || ? || ' days')
+	queryFmtDeleteKnownIP = `
+		DELETE FROM %s
 		WHERE username = ? AND ip_address = ?;`
 
 	queryFmtUpdateKnownIpByUsernameWithTime = `
 		UPDATE %s
-		SET last_seen = datetime('now', 'localtime'),
+		SET last_seen = ?,
 			expires_at = ?
 		WHERE username = ? AND ip_address = ?;`
 
 	queryFmtUpdateKnownIpByUsernameNullDate = `
 		UPDATE %s
-		SET last_seen = datetime('now', 'localtime'),
+		SET last_seen = ?,
 			expires_at = null
 		WHERE username = ? AND ip_address = ?;`
 )

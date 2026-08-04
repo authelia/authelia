@@ -48,6 +48,7 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageEncryptionCmd(ctx),
 		newStorageUserCmd(ctx),
 		newStorageBansCmd(ctx),
+		newStorageKnownIPsCmd(ctx),
 	)
 
 	return cmd
@@ -391,6 +392,136 @@ func newStorageBansAddCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 	cmd.Flags().BoolP("permanent", "p", false, "makes the ban effectively permanent")
 	cmd.Flags().StringP("reason", "r", "", "includes a reason for the ban")
 	cmd.Flags().StringP("duration", "d", "1 day", "the duration for the ban")
+
+	return cmd
+}
+
+func newStorageKnownIPsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "known-ips",
+		Short:   cmdAutheliaStorageKnownIPsShort,
+		Long:    cmdAutheliaStorageKnownIPsLong,
+		Example: cmdAutheliaStorageKnownIPsExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageKnownIPsListCmd(ctx),
+		newStorageKnownIPsAddCmd(ctx),
+		newStorageKnownIPsDeleteCmd(ctx),
+		newStorageKnownIPsExportCmd(ctx),
+		newStorageKnownIPsImportCmd(ctx),
+		newStorageKnownIPsPruneCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageKnownIPsListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "list [username]",
+		Short:   cmdAutheliaStorageKnownIPsListShort,
+		Long:    cmdAutheliaStorageKnownIPsListLong,
+		Example: cmdAutheliaStorageKnownIPsListExample,
+		Args:    cobra.RangeArgs(0, 1),
+		RunE:    ctx.StorageKnownIPsListRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String(cmdFlagNameFormat, cmdFlagValueFormatTable, fmt.Sprintf("The format to display the known IP addresses in, valid values are: %s, %s", cmdFlagValueFormatTable, cmdFlagValueFormatJSON))
+
+	return cmd
+}
+
+func newStorageKnownIPsAddCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "add <username> <ip>",
+		Short:   cmdAutheliaStorageKnownIPsAddShort,
+		Long:    cmdAutheliaStorageKnownIPsAddLong,
+		Example: cmdAutheliaStorageKnownIPsAddExample,
+		Args:    cobra.ExactArgs(2),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flags().Changed(cmdFlagNameExpires) && cmd.Flags().Changed(cmdFlagNameNeverExpires) {
+				return fmt.Errorf("invalid flag combination specified: both %s and %s flags can't be used at the same time", cmdFlagNameExpires, cmdFlagNameNeverExpires)
+			}
+
+			return nil
+		},
+		RunE: ctx.StorageKnownIPsAddRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().Duration(cmdFlagNameExpires, 0, "the duration after which the known IP address expires, relative to now (defaults to the configured default lifespan)")
+	cmd.Flags().Bool(cmdFlagNameNeverExpires, false, "the known IP address never expires")
+	cmd.Flags().String(cmdFlagNameUserAgent, "", "the raw user agent string associated with the known IP address")
+
+	return cmd
+}
+
+func newStorageKnownIPsDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "delete <username> <ip>",
+		Short:   cmdAutheliaStorageKnownIPsDeleteShort,
+		Long:    cmdAutheliaStorageKnownIPsDeleteLong,
+		Example: cmdAutheliaStorageKnownIPsDeleteExample,
+		Args:    cobra.ExactArgs(2),
+		RunE:    ctx.StorageKnownIPsDeleteRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageKnownIPsExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     cmdUseExport,
+		Short:   cmdAutheliaStorageKnownIPsExportShort,
+		Long:    cmdAutheliaStorageKnownIPsExportLong,
+		Example: cmdAutheliaStorageKnownIPsExportExample,
+		RunE:    ctx.StorageKnownIPsExportRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.known-ips.yml", "The file name for the YAML export")
+
+	return cmd
+}
+
+func newStorageKnownIPsImportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     cmdUseImportFileName,
+		Short:   cmdAutheliaStorageKnownIPsImportShort,
+		Long:    cmdAutheliaStorageKnownIPsImportLong,
+		Example: cmdAutheliaStorageKnownIPsImportExample,
+		RunE:    ctx.StorageKnownIPsImportRunE,
+		Args:    cobra.ExactArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageKnownIPsPruneCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "prune",
+		Short:   cmdAutheliaStorageKnownIPsPruneShort,
+		Long:    cmdAutheliaStorageKnownIPsPruneLong,
+		Example: cmdAutheliaStorageKnownIPsPruneExample,
+		Args:    cobra.NoArgs,
+		RunE:    ctx.StorageKnownIPsPruneRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().Bool(cmdFlagNameDestroyData, false, "deletes the expired known IP addresses instead of just previewing them")
 
 	return cmd
 }
