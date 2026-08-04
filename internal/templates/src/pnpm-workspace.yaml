@@ -16,7 +16,7 @@ overrides:
   glob: 13.0.6
   js-yaml: 5.2.3
   minimatch: 10.2.6
-  nanoid: 6.0.0
+  nanoid: 6.0.1
   next: 16.2.12
   picomatch: 4.0.5
   postcss: 8.5.25
