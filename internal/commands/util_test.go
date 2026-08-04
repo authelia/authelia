@@ -82,6 +82,72 @@ func TestLoadXEnvCLIStringSliceValue(t *testing.T) {
 	}
 }
 
+func TestLoadXEnvCLIStringValue(t *testing.T) {
+	testCases := []struct {
+		name                        string
+		envKey, envValue, flagValue string
+		flagDefault                 string
+		flag                        *pflag.Flag
+		expected                    string
+		expectedResult              XEnvCLIResult
+		expectedErr                 string
+	}{
+		{
+			"ShouldParseFromEnv",
+			"EXAMPLE_ONE", "abc",
+			"example-one", "flagdef", &pflag.Flag{Name: "example-one", Changed: false},
+			"abc", XEnvCLIResultEnvironment, "",
+		},
+		{
+			"ShouldParseCLIExplicit",
+			"EXAMPLE_ONE", "abc",
+			"example-from-flag", "flagdef", &pflag.Flag{Name: "example-one", Changed: true},
+			"example-from-flag", XEnvCLIResultCLIExplicit, "",
+		},
+		{
+			"ShouldParseCLIImplicit",
+			"EXAMPLE_ONE", "",
+			"example-one", "example-from-flag-default", &pflag.Flag{Name: "example-one", Changed: false},
+			"example-from-flag-default", XEnvCLIResultCLIImplicit, "",
+		},
+		{
+			"ShouldParseCLIImplicitWhenEnvKeyEmpty",
+			"", "",
+			"example-one", "example-from-flag-default", &pflag.Flag{Name: "example-one", Changed: false},
+			"example-from-flag-default", XEnvCLIResultCLIImplicit, "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := &cobra.Command{}
+
+			if tc.flag != nil {
+				cmd.Flags().String(tc.flag.Name, tc.flagDefault, "")
+
+				if tc.flag.Changed {
+					require.NoError(t, cmd.Flags().Set(tc.flag.Name, tc.flagValue))
+				}
+			}
+
+			if tc.envValue != "" {
+				t.Setenv(tc.envKey, tc.envValue)
+			}
+
+			actual, actualResult, actualErr := loadXEnvCLIStringValue(cmd, tc.envKey, tc.flag.Name)
+
+			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, tc.expectedResult, actualResult)
+
+			if tc.expectedErr == "" {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.EqualError(t, actualErr, tc.expectedErr)
+			}
+		})
+	}
+}
+
 func TestLoadXNormalizedPaths(t *testing.T) {
 	root := t.TempDir()
 
@@ -720,7 +786,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		{
 			"ShouldErrInvalidFilter",
 			map[string]string{cmdFlagEnvNameConfigFilters: "invalidfilter"},
-			"error occurred loading configuration: flag '--config.experimental.filters' is invalid:",
+			"error occurred loading configuration: flag '--config.filters' is invalid:",
 		},
 	}
 
@@ -728,7 +794,9 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := &cobra.Command{}
 			cmd.Flags().StringSlice(cmdFlagNameConfig, []string{}, "")
-			cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
+			cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "")
+			cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterLeft, "", "")
+			cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterRight, "", "")
 
 			for k, v := range tc.env {
 				t.Setenv(k, v)
@@ -747,6 +815,68 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		})
 	}
 
+	t.Run("ShouldErrorOnInvalidConfigFlagType", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool(cmdFlagNameConfig, false, "")
+
+		_, _, err := loadXEnvCLIConfigValues(cmd)
+
+		assert.ErrorContains(t, err, "trying to get stringSlice value of flag of type bool")
+	})
+
+	t.Run("ShouldErrorOnOverlappingNormalizedPaths", func(t *testing.T) {
+		dir := t.TempDir()
+		file := filepath.Join(dir, "config.yml")
+
+		require.NoError(t, os.WriteFile(file, []byte("---\n"), 0600))
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "")
+		cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterLeft, "", "")
+		cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterRight, "", "")
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, file))
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, dir))
+
+		_, _, err := loadXEnvCLIConfigValues(cmd)
+
+		assert.ErrorContains(t, err, "is in that directory which is not supported")
+	})
+
+	t.Run("ShouldErrorOnInvalidFiltersFlagType", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
+		cmd.Flags().Bool(cmdFlagNameConfigFilters, false, "")
+
+		_, _, err := loadXEnvCLIConfigValues(cmd)
+
+		assert.ErrorContains(t, err, "trying to get stringSlice value of flag of type bool")
+	})
+
+	t.Run("ShouldErrorOnInvalidLeftDelimiterFlagType", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "")
+		cmd.Flags().Bool(cmdFlagNameConfigFiltersTemplateDelimiterLeft, false, "")
+
+		_, _, err := loadXEnvCLIConfigValues(cmd)
+
+		assert.ErrorContains(t, err, "trying to get string value of flag of type bool")
+	})
+
+	t.Run("ShouldErrorOnInvalidRightDelimiterFlagType", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "")
+		cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterLeft, "", "")
+		cmd.Flags().Bool(cmdFlagNameConfigFiltersTemplateDelimiterRight, false, "")
+
+		_, _, err := loadXEnvCLIConfigValues(cmd)
+
+		assert.ErrorContains(t, err, "trying to get string value of flag of type bool")
+	})
+
 	t.Run("ShouldSucceedWithConfigFiles", func(t *testing.T) {
 		dir := t.TempDir()
 
@@ -756,7 +886,9 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
-		cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigFilters, nil, "")
+		cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterRight, "", "")
+		cmd.Flags().String(cmdFlagNameConfigFiltersTemplateDelimiterLeft, "", "")
 
 		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, configFile))
 

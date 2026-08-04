@@ -10,10 +10,10 @@ identity_providers:
         - 'https://example.com'
     clients:
       - client_id: 'abc'
-        client_secret: '${ABC_CLIENT_SECRET}'
+        client_secret: '{{ env "ABC_CLIENT_SECRET" }}'
         consent_mode: 'explicit'
       - client_id: 'xyz'
-        client_secret: '$XYZ_CLIENT_SECRET'
+        client_secret: '{{ env "XYZ_CLIENT_SECRET" }}'
         consent_mode: 'explicit'
       - client_id: '123'
         client_secret: '{{ secret "./test_resources/example_secret" }}'
