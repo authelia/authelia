@@ -25,4 +25,4 @@ overrides:
   sharp: 0.35.3
   socket.io-parser: 4.2.7
   vite: 8.2.0
-  ws: 8.21.1
+  ws: 8.21.2
