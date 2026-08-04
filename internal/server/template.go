@@ -40,10 +40,15 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		}
 
 		logoOverride := strFalse
+		cssOverride := strFalse
 
 		if opts.AssetPath != "" {
 			if _, err = os.Stat(filepath.Join(opts.AssetPath, fileLogo)); err == nil {
 				logoOverride = strTrue
+			}
+
+			if _, err = os.Stat(filepath.Join(opts.AssetPath, fileCustomCSS)); err == nil {
+				cssOverride = strTrue
 			}
 		}
 
@@ -85,7 +90,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 
 		data := &bytes.Buffer{}
 
-		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, rememberMe)); err != nil {
+		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, cssOverride, rememberMe)); err != nil {
 			ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
@@ -279,9 +284,9 @@ type TemplatedFileOptions struct {
 }
 
 // CommonData returns a TemplatedFileCommonData with the dynamic options.
-func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, language, logoOverride, rememberMe string) TemplatedFileCommonData {
+func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, language, logoOverride, cssOverride, rememberMe string) TemplatedFileCommonData {
 	if rememberMe != "" {
-		return options.commonDataWithRememberMe(base, baseURL, domain, nonce, language, logoOverride, rememberMe)
+		return options.commonDataWithRememberMe(base, baseURL, domain, nonce, language, logoOverride, cssOverride, rememberMe)
 	}
 
 	return TemplatedFileCommonData{
@@ -292,6 +297,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		Language: language,
 
 		LogoOverride:           logoOverride,
+		CSSOverride:            cssOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
 		RememberMe:             options.RememberMe,
@@ -305,7 +311,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 }
 
 // CommonDataWithRememberMe returns a TemplatedFileCommonData with the dynamic options.
-func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, domain, nonce, language, logoOverride, rememberMe string) TemplatedFileCommonData {
+func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, domain, nonce, language, logoOverride, cssOverride, rememberMe string) TemplatedFileCommonData {
 	return TemplatedFileCommonData{
 		Base:                   base,
 		BaseURL:                baseURL,
@@ -313,6 +319,7 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		CSPNonce:               nonce,
 		Language:               language,
 		LogoOverride:           logoOverride,
+		CSSOverride:            cssOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
 		RememberMe:             rememberMe,
@@ -352,6 +359,7 @@ type TemplatedFileCommonData struct {
 	CSPNonce               string
 	Language               string
 	LogoOverride           string
+	CSSOverride            string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
 	RememberMe             string
