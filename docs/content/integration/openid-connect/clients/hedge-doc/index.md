@@ -1,6 +1,6 @@
 ---
 title: "HedgeDoc"
-description: "Integrating HedgeDoc with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating HedgeDoc with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2024-04-13T13:46:05+10:00
 draft: false

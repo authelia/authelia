@@ -1,6 +1,6 @@
 ---
 title: "Identity Providers"
-description: "Identity Providers Configuration"
+description: "An introduction to configuring Authelia as an identity provider with information about the supported OpenID Connect 1.0 Provider role and implementation."
 summary: "Authelia is evolving to become an identity provider. This section describes how to configure this."
 date: 2024-03-14T06:00:14+11:00
 draft: false

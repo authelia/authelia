@@ -1,6 +1,6 @@
 ---
 title: "Linkding"
-description: "Integrating Linkding with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Linkding with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-08-19T13:35:49+05:30
 draft: false

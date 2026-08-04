@@ -1,6 +1,6 @@
 ---
 title: "Dashy"
-description: "Integrating Dashy with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Dashy with the Authelia OpenID Connect 1.0 Provider including example configurations and an overview of available options for SSO."
 summary: ""
 date: 2025-06-13T14:12:09+00:00
 draft: false
