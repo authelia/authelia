@@ -62,6 +62,7 @@ authelia storage --help
 * [authelia storage bans](authelia_storage_bans.md)	 - Manages user and ip bans
 * [authelia storage cache](authelia_storage_cache.md)	 - Manage storage cache
 * [authelia storage encryption](authelia_storage_encryption.md)	 - Manage storage encryption
+* [authelia storage logs](authelia_storage_logs.md)	 - Manage various types of logs
 * [authelia storage migrate](authelia_storage_migrate.md)	 - Perform or list migrations
 * [authelia storage schema-info](authelia_storage_schema-info.md)	 - Show the storage information
 * [authelia storage user](authelia_storage_user.md)	 - Manages user settings
