@@ -97,6 +97,9 @@ auth:
         - profile
       field_map:
         user_identifier: preferred_username
+        email: email
+        firstname: given_name
+        lastname: family_name
 ```
 
 Mapping users to admins by group did not work at the time of writing this.
