@@ -66,7 +66,6 @@ identity_providers:
           - 'https://wg-portal.{{< sitevar name="domain" nojs="example.com" >}}/api/v0/auth/login/{{< sitevar name="provider-id" nojs="authelia" >}}/callback'
         scopes:
           - 'openid'
-          - 'groups'
           - 'email'
           - 'profile'
         response_types:
@@ -95,7 +94,6 @@ auth:
       client_secret: insecure_secret
       extra_scopes: 
         - email
-        - groups
         - profile
       field_map:
         user_identifier: preferred_username
