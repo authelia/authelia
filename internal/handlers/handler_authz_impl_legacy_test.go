@@ -345,9 +345,9 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllow() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
-				s.RequireParseRequestURI("https://bypass.example.com"),
+				s.RequireParseRequestURI("https://bypass.example.com/"),
 				s.RequireParseRequestURI("https://bypass.example.com/subpath"),
-				s.RequireParseRequestURI("https://bypass.example2.com"),
+				s.RequireParseRequestURI("https://bypass.example2.com/"),
 				s.RequireParseRequestURI("https://bypass.example2.com/subpath"),
 			} {
 				t.Run(targetURI.String(), func(t *testing.T) {
@@ -377,7 +377,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, methodACL := range testRequestMethods {
-				targetURI := s.RequireParseRequestURI(fmt.Sprintf("https://bypass-%s.example.com", strings.ToLower(methodACL)))
+				targetURI := s.RequireParseRequestURI(fmt.Sprintf("https://bypass-%s.example.com/", strings.ToLower(methodACL)))
 				t.Run(targetURI.String(), func(t *testing.T) {
 					authz := s.BuildWithDelayer()
 
@@ -473,7 +473,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() { // TestShouldVeri
 		Username:      "john",
 		Type:          regulation.AuthType1FA,
 		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-		RequestURI:    "https://one-factor.example.com",
+		RequestURI:    "https://one-factor.example.com/",
 		RequestMethod: fasthttp.MethodGet,
 	}
 
@@ -589,7 +589,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 					Username:      "john",
 					Type:          regulation.AuthType1FA,
 					RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
-					RequestURI:    "https://one-factor.example.com",
+					RequestURI:    "https://one-factor.example.com/",
 					RequestMethod: fasthttp.MethodGet,
 				}
 

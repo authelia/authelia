@@ -36,46 +36,35 @@ func TestShouldCreateNewObjectFromRaw(t *testing.T) {
 	assert.Equal(t, fasthttp.MethodGet, object.Method)
 }
 
-func TestShouldCleanURL(t *testing.T) {
+func TestNewObjectMethodURLCleanURL(t *testing.T) {
 	testCases := []struct {
-		have     string
-		havePath string
-		method   string
-
+		name                                                            string
+		have                                                            string
+		havePath                                                        string
+		method                                                          string
+		error                                                           string
 		expectedScheme, expectedDomain, expectedPath, expectedPathClean string
 	}{
-		{"https://a.com", "/a/../t", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/..%2f/t", fasthttp.MethodGet, "https", "a.com", "/a/..//t", "/t"},
-		{"https://a.com", "/a/..%2ft", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/..%2F/t", fasthttp.MethodGet, "https", "a.com", "/a/..//t", "/t"},
-		{"https://a.com", "/a/..%2Ft", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/..%2Ft", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/%2F..%2Ft", fasthttp.MethodGet, "https", "a.com", "/a//../t", "/t"},
-		{"https://a.com", "/a/%2F%2e%2e%2Ft", fasthttp.MethodGet, "https", "a.com", "/a//../t", "/t"},
+		{"ShouldNormalizePathSegments", "https://example.com", "/a/../t", fasthttp.MethodGet, "", "https", "example.com", "/t", "/t"},
+		{"ShouldNormalizeSinglePathSegments", "https://example.com", "/a/./t", fasthttp.MethodGet, "", "https", "example.com", "/a/t", "/a/t"},
+		{"ShouldDecodePathElementsPerSpecification", "https://example.com", "/a/..%2f/t", fasthttp.MethodGet, "", "https", "example.com", "/a/..//t", "/a/..%2F/t"},
+		{"ShouldDecodePathElementsPerSpecificationRegardlessOfCase", "https://example.com", "/a/..%2F/t", fasthttp.MethodGet, "", "https", "example.com", "/a/..//t", "/a/..%2F/t"},
+		{"ShouldDecodeNonReservedCharactersPerSpecification", "https://example.com", "/%4C/..%2f/%74", fasthttp.MethodGet, "", "https", "example.com", "/L/..//t", "/L/..%2F/t"},
+		{"ShouldFailToParseEscapeInDomain", "https://exa%6Dple.com", "/%4C/..%2f/%74", fasthttp.MethodGet, "error occurred parsing object url: parse \"https://exa%6Dple.com/%4C/..%2f/%74\": invalid URL escape \"%6D\"", "", "", "", ""},
+		{"ShouldNotDecodePathSegmentEncodedCharacters", "https://example.com", "/a/..%2Ft", fasthttp.MethodGet, "", "https", "example.com", "/a/../t", "/a/..%2Ft"},
+		{"ShouldNotDecodePathSegmentEncodedCharactersOnBothSides", "https://example.com", "/a/%2F..%2Ft", fasthttp.MethodGet, "", "https", "example.com", "/a//../t", "/a/%2F..%2Ft"},
+		{"ShouldNotDecodeFullyEncodedReservedCharacters", "https://example.com", "/a/%2F%2e%2e%2Ft", fasthttp.MethodGet, "", "https", "example.com", "/a//../t", "/a/%2F..%2Ft"},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.have, func(t *testing.T) {
-			have, err := url.ParseRequestURI(tc.have + tc.havePath)
+		t.Run(tc.name, func(t *testing.T) {
+			object, err := NewObjectMethodURL([]byte(tc.method), []byte(tc.have+tc.havePath))
+			if tc.error != "" {
+				assert.EqualError(t, err, tc.error)
+				return
+			}
+
 			require.NoError(t, err)
-
-			object := NewObject(have, tc.method)
-
-			assert.Equal(t, tc.expectedScheme, object.URL.Scheme)
-			assert.Equal(t, tc.expectedDomain, object.Domain)
-			assert.Equal(t, tc.expectedPath, object.URL.Path)
-			assert.Equal(t, tc.expectedPathClean, object.Path)
-			assert.Equal(t, tc.method, object.Method)
-
-			have, err = url.ParseRequestURI(tc.have)
-			require.NoError(t, err)
-
-			path, err := url.ParseRequestURI(tc.havePath)
-			require.NoError(t, err)
-
-			have.Path, have.RawQuery = path.Path, path.RawQuery
-
-			object = NewObject(have, tc.method)
 
 			assert.Equal(t, tc.expectedScheme, object.URL.Scheme)
 			assert.Equal(t, tc.expectedDomain, object.Domain)
