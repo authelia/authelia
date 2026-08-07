@@ -138,6 +138,13 @@ var (
 	ErrAuthenticationFailed = errors.New("authentication failed")
 
 	ErrLDAPHealthCheckFailedEntryCount = errors.New("incorrect number entries found when performing RootDSE search")
+
+	// ErrPoolClosed is returned by acquisition attempts made against a pool which is closing or closed.
+	ErrPoolClosed = NewPoolCtxErr(errors.New("error acquiring client: the pool is closed"))
+
+	// ErrPoolClosedInitialize is returned when a pool is initialized after it has been closed, which is unsupported as
+	// the clients it dialed would never be usable.
+	ErrPoolClosedInitialize = NewPoolCtxErr(errors.New("error initializing client pool: the pool is closed"))
 )
 
 const fileAuthenticationMode = 0600
