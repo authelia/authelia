@@ -137,7 +137,7 @@ spec:
 The following [HTTPRoute] has the above [SecurityPolicy] applied to it for the
 `app.{{< sitevar name="domain" nojs="example.com" >}}` domain:
 
-```yaml {title="authoriztion-policy.yml"}
+```yaml {title="authorization-policy.yml"}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
