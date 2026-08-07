@@ -2,12 +2,19 @@ package suites
 
 import (
 	"os"
+	"syscall"
 	"time"
 )
 
 var cliSuiteName = "CLI"
 
+const cliSuiteFIFOPath = "/tmp/authelia/CLISuite/notification.fifo"
+
 func init() {
+	_ = os.MkdirAll("/tmp/authelia/CLISuite/", 0o700)
+	_ = os.Remove(cliSuiteFIFOPath)
+	_ = syscall.Mkfifo(cliSuiteFIFOPath, 0o600)
+
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/compose.yml",
 		"internal/suites/CLI/compose.yml",
@@ -34,6 +41,7 @@ func init() {
 		_ = os.RemoveAll("/tmp/qr/")
 		_ = os.RemoveAll("/tmp/out/")
 		_ = os.Remove("/tmp/qr.png")
+		_ = os.Remove(cliSuiteFIFOPath)
 
 		return err
 	}

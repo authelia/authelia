@@ -3,11 +3,14 @@ package notification
 import (
 	"bufio"
 	"context"
+	"io"
 	"net/mail"
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,13 +22,13 @@ import (
 func TestFileNotifier_StartupCheck(t *testing.T) {
 	testCases := []struct {
 		name       string
-		setup      func(base string) string
+		setup      func(t *testing.T, base string) string
 		expectErr  bool
 		verifyFile func(t *testing.T, path string)
 	}{
 		{
 			name: "ShouldReturnErrorWhenParentIsFile",
-			setup: func(base string) string {
+			setup: func(t *testing.T, base string) string {
 				parent := filepath.Join(base, "notadir")
 				require.NoError(t, os.WriteFile(parent, []byte("x"), 0o600))
 
@@ -35,8 +38,38 @@ func TestFileNotifier_StartupCheck(t *testing.T) {
 			verifyFile: func(t *testing.T, path string) {},
 		},
 		{
+			name: "ShouldReturnErrorWhenStatDirFails",
+			setup: func(t *testing.T, base string) string {
+				regfile := filepath.Join(base, "regfile")
+				require.NoError(t, os.WriteFile(regfile, []byte("x"), 0o600))
+
+				return filepath.Join(regfile, "sub", "notify.log")
+			},
+			expectErr:  true,
+			verifyFile: func(t *testing.T, path string) {},
+		},
+		{
+			name: "ShouldReturnErrorWhenMkdirAllFails",
+			setup: func(t *testing.T, base string) string {
+				if os.Geteuid() == 0 {
+					t.Skip("running as root bypasses directory permissions")
+				}
+
+				parent := filepath.Join(base, "readonly")
+				require.NoError(t, os.MkdirAll(parent, 0o500))
+
+				t.Cleanup(func() {
+					_ = os.Chmod(parent, 0o700)
+				})
+
+				return filepath.Join(parent, "sub", "notify.log")
+			},
+			expectErr:  true,
+			verifyFile: func(t *testing.T, path string) {},
+		},
+		{
 			name: "ShouldSucceedWhenParentIsDir",
-			setup: func(base string) string {
+			setup: func(t *testing.T, base string) string {
 				parent := filepath.Join(base, "adir")
 				require.NoError(t, os.MkdirAll(parent, 0o755))
 
@@ -51,7 +84,7 @@ func TestFileNotifier_StartupCheck(t *testing.T) {
 		},
 		{
 			name: "ShouldCreateParentDirectoryWhenMissing",
-			setup: func(base string) string {
+			setup: func(t *testing.T, base string) string {
 				return filepath.Join(base, "nested", "dir", "notify.log")
 			},
 			expectErr: false,
@@ -67,7 +100,7 @@ func TestFileNotifier_StartupCheck(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			base := t.TempDir()
-			path := tc.setup(base)
+			path := tc.setup(t, base)
 			n := NewFileNotifier(schema.NotifierFileSystem{Filename: path})
 
 			err := n.StartupCheck()
@@ -87,6 +120,7 @@ func TestFileNotifier_Send(t *testing.T) {
 		name            string
 		appendMode      bool
 		setpathbase     bool
+		setpathstaterr  bool
 		preContent      string
 		subject         string
 		data            any
@@ -120,6 +154,14 @@ func TestFileNotifier_Send(t *testing.T) {
 			data:            map[string]string{"User": "Y"},
 			expectErrSubstr: "failed to open file",
 		},
+		{
+			name:            "ShouldReturnErrorWhenStatFails",
+			appendMode:      false,
+			setpathstaterr:  true,
+			subject:         "X",
+			data:            map[string]string{"User": "Y"},
+			expectErrSubstr: "failed to stat file",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -127,11 +169,16 @@ func TestFileNotifier_Send(t *testing.T) {
 			base := t.TempDir()
 			filePath := filepath.Join(base, "notify.log")
 
-			if tc.setpathbase {
+			switch {
+			case tc.setpathbase:
 				filePath = base
+			case tc.setpathstaterr:
+				regfile := filepath.Join(base, "regfile")
+				require.NoError(t, os.WriteFile(regfile, []byte("x"), 0o600))
+				filePath = filepath.Join(regfile, "sub", "notify.log")
 			}
 
-			if tc.preContent != "" && tc.name != "ShouldReturnErrorWhenOpenFileFails" {
+			if tc.preContent != "" && !tc.setpathbase {
 				require.NoError(t, os.WriteFile(filePath, []byte(tc.preContent), 0o600))
 			}
 
@@ -175,6 +222,109 @@ func TestFileNotifier_Send(t *testing.T) {
 				assert.NotContains(t, content, s)
 			}
 		})
+	}
+}
+
+func TestIsFIFO(t *testing.T) {
+	base := t.TempDir()
+
+	t.Run("MissingPathReturnsFalse", func(t *testing.T) {
+		fifo, err := isFIFO(filepath.Join(base, "does-not-exist"))
+		require.NoError(t, err)
+		assert.False(t, fifo)
+	})
+
+	t.Run("RegularFileReturnsFalse", func(t *testing.T) {
+		path := filepath.Join(base, "regular")
+		require.NoError(t, os.WriteFile(path, []byte("x"), 0o600))
+
+		fifo, err := isFIFO(path)
+		require.NoError(t, err)
+		assert.False(t, fifo)
+	})
+
+	t.Run("FIFOReturnsTrue", func(t *testing.T) {
+		path := filepath.Join(base, "pipe")
+		require.NoError(t, syscall.Mkfifo(path, 0o600))
+
+		fifo, err := isFIFO(path)
+		require.NoError(t, err)
+		assert.True(t, fifo)
+	})
+}
+
+func TestFileNotifier_StartupCheck_FIFOIsLeftUntouched(t *testing.T) {
+	base := t.TempDir()
+	path := filepath.Join(base, "notify.fifo")
+	require.NoError(t, syscall.Mkfifo(path, 0o600))
+
+	n := NewFileNotifier(schema.NotifierFileSystem{Filename: path})
+
+	require.NoError(t, n.StartupCheck())
+
+	info, err := os.Stat(path)
+	require.NoError(t, err)
+	assert.NotZero(t, info.Mode()&os.ModeNamedPipe, "StartupCheck must not replace the FIFO with a regular file")
+}
+
+func TestFileNotifier_Send_FIFOWritesIdenticalBytesToReader(t *testing.T) {
+	base := t.TempDir()
+	fifoPath := filepath.Join(base, "notify.fifo")
+	require.NoError(t, syscall.Mkfifo(fifoPath, 0o600))
+
+	type readResult struct {
+		data []byte
+		err  error
+	}
+
+	got := make(chan readResult, 1)
+
+	go func() {
+		f, err := os.OpenFile(fifoPath, os.O_RDONLY, 0)
+		if err != nil {
+			got <- readResult{nil, err}
+
+			return
+		}
+
+		defer f.Close()
+
+		b, err := io.ReadAll(f)
+		got <- readResult{b, err}
+	}()
+
+	n := NewFileNotifier(schema.NotifierFileSystem{Filename: fifoPath})
+	tmpl := template.Must(template.New("text").Parse("Hello {{ .User }}"))
+	et := &templates.EmailTemplate{Text: tmpl}
+	rcpt := mail.Address{Name: "John Doe", Address: "john@example.com"}
+
+	sendErr := make(chan error, 1)
+
+	go func() {
+		sendErr <- n.Send(context.Background(), rcpt, "FIFOSubject", et, map[string]string{"User": "World"})
+	}()
+
+	deadline := time.After(5 * time.Second)
+
+	select {
+	case err := <-sendErr:
+		require.NoError(t, err)
+	case <-deadline:
+		t.Fatal("notifier Send blocked; FIFO reader did not connect")
+	}
+
+	select {
+	case r := <-got:
+		require.NoError(t, r.err)
+
+		content := string(r.data)
+		assert.Contains(t, content, "Subject: FIFOSubject")
+		assert.Contains(t, content, "john@example.com")
+		assert.Contains(t, content, "Hello World")
+		assert.Contains(t, content, "Date: ")
+		assert.Contains(t, content, "Recipient: ")
+	case <-deadline:
+		t.Fatal("FIFO reader timed out; notifier did not write to the pipe")
 	}
 }
 
