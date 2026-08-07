@@ -1,7 +1,8 @@
-import { Fragment, useCallback, useRef, useState } from "react";
+import { Fragment, useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { Button, CircularProgress, Divider, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
+import { browserSupportsWebAuthnAutofill } from "@simplewebauthn/browser";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
@@ -12,6 +13,7 @@ import { useFlow } from "@hooks/Flow";
 import { useQueryParam } from "@hooks/QueryParam";
 import { AssertionResult, AssertionResultFailureString } from "@models/WebAuthn";
 import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyResponse } from "@services/WebAuthn";
+import PasskeyRememberMeDialog from "@views/LoginPortal/FirstFactor/PasskeyRememberMeDialog";
 
 export interface Props {
     disabled: boolean;
@@ -23,7 +25,7 @@ export interface Props {
     onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
 }
 
-const PasskeyForm = function (props: Props) {
+export default function PasskeyForm(props: Props) {
     const { t: translate } = useTranslation();
 
     const redirectionURL = useQueryParam(RedirectionURL);
@@ -32,62 +34,88 @@ const PasskeyForm = function (props: Props) {
     const getSignal = useAbortSignal();
 
     const [loading, setLoading] = useState(false);
+    const [rememberMeOpen, setRememberMeOpen] = useState(false);
 
-    const onSignInErrorCallback = useRef(props.onAuthenticationError).current;
+    const rememberMeResolverRef = useRef<((_rememberMe: boolean) => void) | null>(null);
+    const cancelledRef = useRef(false);
 
-    const handleAuthenticationStart = useCallback(() => {
-        props.onAuthenticationStart();
-        setLoading(true);
-    }, [props]);
+    const handleRememberMeChoice = (rememberMe: boolean) => {
+        const resolve = rememberMeResolverRef.current;
 
-    const handleAuthenticationStop = useCallback(() => {
-        props.onAuthenticationStop();
-        setLoading(false);
-    }, [props]);
+        rememberMeResolverRef.current = null;
+        setRememberMeOpen(false);
 
-    const handleSignIn = useCallback(async () => {
-        if (loading) {
-            return;
-        }
+        resolve?.(rememberMe);
+    };
 
-        handleAuthenticationStart();
+    const handleSignIn = async (conditionalMediation: boolean) => {
+        if (loading) return;
+
+        const startUI = () => {
+            props.onAuthenticationStart();
+            setLoading(true);
+        };
+
+        const stopUI = () => {
+            props.onAuthenticationStop();
+            setLoading(false);
+        };
+
+        const fail = (message: string) => {
+            if (conditionalMediation) return;
+            stopUI();
+            props.onAuthenticationError(new Error(translate(message)));
+        };
+
+        const promptRememberMe = () => {
+            if (!props.rememberMe) return Promise.resolve(false);
+
+            return new Promise<boolean>((resolve) => {
+                rememberMeResolverRef.current?.(false);
+                rememberMeResolverRef.current = resolve;
+                setRememberMeOpen(true);
+            });
+        };
+
+        if (!conditionalMediation) startUI();
 
         const signal = getSignal();
 
         try {
-            const optionsStatus = await getWebAuthnPasskeyOptions(signal);
+            const optionsStatus = await getWebAuthnPasskeyOptions(conditionalMediation, signal);
+
+            if (signal.aborted) return;
+
+            if (signal.aborted) return;
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
-                handleAuthenticationStop();
-                onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
-
+                fail("Failed to initiate security key sign in process");
                 return;
             }
 
-            const result = await getWebAuthnResult(optionsStatus.options);
+            const result = await getWebAuthnResult(optionsStatus.options, conditionalMediation);
 
             if (signal.aborted) return;
 
             if (result.result !== AssertionResult.Success) {
-                handleAuthenticationStop();
-
-                onSignInErrorCallback(new Error(translate(AssertionResultFailureString(result.result))));
-
+                fail(AssertionResultFailureString(result.result));
                 return;
             }
 
             if (result.response == null) {
-                onSignInErrorCallback(
-                    new Error(translate("The browser did not respond with the expected attestation data")),
-                );
-                handleAuthenticationStop();
-
+                fail("The browser did not respond with the expected attestation data");
                 return;
             }
 
+            if (conditionalMediation) startUI();
+
+            const rememberMe = await promptRememberMe();
+
+            if (signal.aborted) return;
+
             const response = await postWebAuthnPasskeyResponse(
                 result.response,
-                props.rememberMe,
+                rememberMe,
                 redirectionURL,
                 requestMethod,
                 flowID,
@@ -96,35 +124,41 @@ const PasskeyForm = function (props: Props) {
                 signal,
             );
 
-            handleAuthenticationStop();
+            stopUI();
 
             if (response.data.status === "OK" && response.status === 200) {
                 props.onAuthenticationSuccess(response.data.data ? response.data.data.redirect : undefined);
                 return;
             }
 
-            onSignInErrorCallback(new Error(translate("The server rejected the security key")));
+            props.onAuthenticationError(new Error(translate("The server rejected the security key")));
         } catch (err) {
-            handleAuthenticationStop();
-
             if (axios.isCancel(err)) return;
             console.error(err);
-            onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
+            fail("Failed to initiate security key sign in process");
         }
-    }, [
-        getSignal,
-        loading,
-        handleAuthenticationStart,
-        props,
-        redirectionURL,
-        requestMethod,
-        flowID,
-        flow,
-        subflow,
-        handleAuthenticationStop,
-        onSignInErrorCallback,
-        translate,
-    ]);
+    };
+
+    const handleConditionalMediation = useEffectEvent(async () => {
+        try {
+            const supported = await browserSupportsWebAuthnAutofill();
+            if (cancelledRef.current || !supported) return;
+            await handleSignIn(true);
+        } catch (err) {
+            if (axios.isCancel(err)) return;
+            console.error(err);
+        }
+    });
+
+    useEffect(() => {
+        cancelledRef.current = false;
+
+        void handleConditionalMediation();
+
+        return () => {
+            cancelledRef.current = true;
+        };
+    }, []);
 
     return (
         <Fragment>
@@ -139,7 +173,7 @@ const PasskeyForm = function (props: Props) {
                     variant="contained"
                     color="primary"
                     fullWidth
-                    onClick={handleSignIn}
+                    onClick={() => handleSignIn(false)}
                     startIcon={<PasskeyIcon />}
                     disabled={props.disabled}
                     endIcon={loading ? <CircularProgress size={20} /> : null}
@@ -147,8 +181,7 @@ const PasskeyForm = function (props: Props) {
                     {translate("Sign in with a passkey")}
                 </Button>
             </Grid>
+            <PasskeyRememberMeDialog open={rememberMeOpen} onChoice={handleRememberMeChoice} />
         </Fragment>
     );
-};
-
-export default PasskeyForm;
+}
