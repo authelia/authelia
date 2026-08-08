@@ -1187,7 +1187,7 @@ func TestShouldConfigureRefreshIntervalDefault(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
 
-	validator.ValidateAuthenticationBackend(&config.AuthenticationBackend, val)
+	validator.ValidateAuthenticationBackend(config, val)
 
 	require.NotNil(t, config.AuthenticationBackend.RefreshInterval)
 	assert.False(t, config.AuthenticationBackend.RefreshInterval.Always())

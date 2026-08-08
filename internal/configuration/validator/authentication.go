@@ -3,7 +3,10 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"regexp"
 	"strings"
+	"text/template"
 
 	"github.com/go-crypt/crypt/algorithm/argon2"
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
@@ -18,37 +21,37 @@ import (
 )
 
 // ValidateAuthenticationBackend validates and updates the authentication backend configuration.
-func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	if config.LDAP == nil && config.File == nil {
+func ValidateAuthenticationBackend(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.AuthenticationBackend.LDAP == nil && config.AuthenticationBackend.File == nil {
 		validator.Push(errors.New(errFmtAuthBackendNotConfigured))
 	}
 
-	if !config.RefreshInterval.Valid() {
-		if config.File != nil && config.File.Watch {
-			config.RefreshInterval = schema.NewRefreshIntervalDurationAlways()
+	if !config.AuthenticationBackend.RefreshInterval.Valid() {
+		if config.AuthenticationBackend.File != nil && config.AuthenticationBackend.File.Watch {
+			config.AuthenticationBackend.RefreshInterval = schema.NewRefreshIntervalDurationAlways()
 		} else {
-			config.RefreshInterval = schema.NewRefreshIntervalDuration(schema.RefreshIntervalDefault)
+			config.AuthenticationBackend.RefreshInterval = schema.NewRefreshIntervalDuration(schema.RefreshIntervalDefault)
 		}
 	}
 
-	if config.PasswordReset.CustomURL.String() != "" {
-		switch config.PasswordReset.CustomURL.Scheme {
+	if config.AuthenticationBackend.PasswordReset.CustomURL.String() != "" {
+		switch config.AuthenticationBackend.PasswordReset.CustomURL.Scheme {
 		case schemeHTTP, schemeHTTPS:
-			config.PasswordReset.Disable = false
+			config.AuthenticationBackend.PasswordReset.Disable = false
 		default:
-			validator.Push(fmt.Errorf(errFmtAuthBackendPasswordResetCustomURLScheme, config.PasswordReset.CustomURL.String(), config.PasswordReset.CustomURL.Scheme))
+			validator.Push(fmt.Errorf(errFmtAuthBackendPasswordResetCustomURLScheme, config.AuthenticationBackend.PasswordReset.CustomURL.String(), config.AuthenticationBackend.PasswordReset.CustomURL.Scheme))
 		}
 	}
 
-	if config.LDAP != nil && config.File != nil {
+	if config.AuthenticationBackend.LDAP != nil && config.AuthenticationBackend.File != nil {
 		validator.Push(errors.New(errFmtAuthBackendMultipleConfigured))
 	}
 
-	if config.File != nil {
-		validateFileAuthenticationBackend(config.File, validator)
+	if config.AuthenticationBackend.File != nil {
+		validateFileAuthenticationBackend(config.AuthenticationBackend.File, validator)
 	}
 
-	if config.LDAP != nil {
+	if config.AuthenticationBackend.LDAP != nil {
 		validateLDAPAuthenticationBackend(config, validator)
 	}
 }
@@ -339,57 +342,68 @@ func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Authen
 	}
 }
 
-func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	if config.LDAP.Implementation == "" {
-		config.LDAP.Implementation = schema.LDAPImplementationCustom
+func validateLDAPAuthenticationBackend(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.AuthenticationBackend.LDAP.Implementation == "" {
+		config.AuthenticationBackend.LDAP.Implementation = schema.LDAPImplementationCustom
 	}
 
 	defaultTLS := validateLDAPAuthenticationBackendImplementation(config, validator)
 
-	defaultTLS.ServerName = validateLDAPAuthenticationAddress(config.LDAP, validator)
+	defaultTLS.ServerName = validateLDAPAuthenticationAddress(config.AuthenticationBackend.LDAP, validator)
 
-	if config.LDAP.TLS == nil {
-		config.LDAP.TLS = &schema.TLS{}
+	if config.AuthenticationBackend.LDAP.TLS == nil {
+		config.AuthenticationBackend.LDAP.TLS = &schema.TLS{}
 	}
 
-	if err := ValidateTLSConfig(config.LDAP.TLS, defaultTLS); err != nil {
+	if err := ValidateTLSConfig(config.AuthenticationBackend.LDAP.TLS, defaultTLS); err != nil {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSConfigInvalid, err))
 	}
 
-	if config.LDAP.Pooling.Enable {
-		if config.LDAP.Pooling.Count < 1 {
-			config.LDAP.Pooling.Count = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Count
+	if config.AuthenticationBackend.LDAP.Pooling.Enable {
+		if config.AuthenticationBackend.LDAP.Pooling.Count < 1 {
+			config.AuthenticationBackend.LDAP.Pooling.Count = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Count
 		}
 
-		if config.LDAP.Pooling.Retries < 1 {
-			config.LDAP.Pooling.Retries = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Retries
+		if config.AuthenticationBackend.LDAP.Pooling.Retries < 1 {
+			config.AuthenticationBackend.LDAP.Pooling.Retries = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Retries
 		}
 
-		if config.LDAP.Pooling.Timeout < 1 {
-			config.LDAP.Pooling.Timeout = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Timeout
+		if config.AuthenticationBackend.LDAP.Pooling.Timeout < 1 {
+			config.AuthenticationBackend.LDAP.Pooling.Timeout = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Timeout
 		}
 	}
 
-	if strings.Contains(config.LDAP.UsersFilter, "{0}") {
+	if strings.Contains(config.AuthenticationBackend.LDAP.UsersFilter, "{0}") {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "users_filter", "{0}", "{input}"))
 	}
 
-	if strings.Contains(config.LDAP.GroupsFilter, "{0}") {
+	if strings.Contains(config.AuthenticationBackend.LDAP.GroupsFilter, "{0}") {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "groups_filter", "{0}", "{input}"))
 	}
 
-	if strings.Contains(config.LDAP.GroupsFilter, "{1}") {
+	if strings.Contains(config.AuthenticationBackend.LDAP.GroupsFilter, "{1}") {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "groups_filter", "{1}", "{username}"))
 	}
 
 	validateLDAPExtraAttributes(config, validator)
 	validateLDAPRequiredParameters(config, validator)
+
+	if config.Administration.Enabled && config.Administration.EnableUserManagement {
+		validateLDAPAuthenticationBackendUserManagement(config, validator)
+	}
 }
 
-func validateLDAPAuthenticationBackendImplementation(config *schema.AuthenticationBackend, validator *schema.StructValidator) *schema.TLS {
+func validateLDAPAuthenticationBackendUserManagement(config *schema.Configuration, validator *schema.StructValidator) {
+	validateLDAPAuthenticationBackendUserManagementObjectClasses(config, validator)
+	validateLDAPAuthenticationBackendUserManagementRequiredAttributes(config, validator)
+	validateLDAPAuthenticationBackendUserManagementRDNTemplate(config, validator)
+	validateLDAPAuthenticationBackendUserManagementRDNAttribute(config, validator)
+}
+
+func validateLDAPAuthenticationBackendImplementation(config *schema.Configuration, validator *schema.StructValidator) *schema.TLS {
 	var implementation *schema.AuthenticationBackendLDAP
 
-	switch config.LDAP.Implementation {
+	switch config.AuthenticationBackend.LDAP.Implementation {
 	case schema.LDAPImplementationCustom:
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom
 	case schema.LDAPImplementationActiveDirectory:
@@ -403,14 +417,14 @@ func validateLDAPAuthenticationBackendImplementation(config *schema.Authenticati
 	case schema.LDAPImplementationGLAuth:
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth
 	default:
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "implementation", utils.StringJoinOr(validLDAPImplementations), config.LDAP.Implementation))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "implementation", utils.StringJoinOr(validLDAPImplementations), config.AuthenticationBackend.LDAP.Implementation))
 	}
 
 	tlsconfig := &schema.TLS{}
 
 	if implementation != nil {
-		if config.LDAP.Timeout == 0 {
-			config.LDAP.Timeout = implementation.Timeout
+		if config.AuthenticationBackend.LDAP.Timeout == 0 {
+			config.AuthenticationBackend.LDAP.Timeout = implementation.Timeout
 		}
 
 		tlsconfig = &schema.TLS{
@@ -418,7 +432,7 @@ func validateLDAPAuthenticationBackendImplementation(config *schema.Authenticati
 			MaximumVersion: implementation.TLS.MaximumVersion,
 		}
 
-		setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config.LDAP, implementation)
+		setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config.AuthenticationBackend.LDAP, implementation)
 	}
 
 	return tlsconfig
@@ -491,53 +505,53 @@ func validateLDAPAuthenticationAddress(config *schema.AuthenticationBackendLDAP,
 	return config.Address.Hostname()
 }
 
-func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	if config.LDAP.PermitUnauthenticatedBind {
-		if config.LDAP.Password != "" {
+func validateLDAPRequiredParameters(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.AuthenticationBackend.LDAP.PermitUnauthenticatedBind {
+		if config.AuthenticationBackend.LDAP.Password != "" {
 			validator.Push(errors.New(errFmtLDAPAuthBackendUnauthenticatedBindWithPassword))
 		}
 
-		if !config.PasswordReset.Disable {
+		if !config.AuthenticationBackend.PasswordReset.Disable {
 			validator.Push(errors.New(errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled))
 		}
 	} else {
-		if config.LDAP.User == "" {
+		if config.AuthenticationBackend.LDAP.User == "" {
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "user"))
 		}
 
-		if config.LDAP.Password == "" {
+		if config.AuthenticationBackend.LDAP.Password == "" {
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "password"))
 		}
 	}
 
-	if config.LDAP.UsersFilter == "" {
+	if config.AuthenticationBackend.LDAP.UsersFilter == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "users_filter"))
 	} else {
-		if !strings.HasPrefix(config.LDAP.UsersFilter, "(") || !strings.HasSuffix(config.LDAP.UsersFilter, ")") {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "users_filter", config.LDAP.UsersFilter, config.LDAP.UsersFilter))
+		if !strings.HasPrefix(config.AuthenticationBackend.LDAP.UsersFilter, "(") || !strings.HasSuffix(config.AuthenticationBackend.LDAP.UsersFilter, ")") {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "users_filter", config.AuthenticationBackend.LDAP.UsersFilter, config.AuthenticationBackend.LDAP.UsersFilter))
 		}
 
-		if !strings.Contains(config.LDAP.UsersFilter, "{username_attribute}") {
+		if !strings.Contains(config.AuthenticationBackend.LDAP.UsersFilter, "{username_attribute}") {
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "users_filter", "username_attribute"))
 		}
 
 		// This test helps the user know that users_filter is broken after the breaking change induced by this commit.
-		if !strings.Contains(config.LDAP.UsersFilter, "{input}") {
+		if !strings.Contains(config.AuthenticationBackend.LDAP.UsersFilter, "{input}") {
 			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholder, "users_filter", "input"))
 		}
 	}
 
-	if config.LDAP.GroupsFilter == "" {
+	if config.AuthenticationBackend.LDAP.GroupsFilter == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "groups_filter"))
-	} else if !strings.HasPrefix(config.LDAP.GroupsFilter, "(") || !strings.HasSuffix(config.LDAP.GroupsFilter, ")") {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "groups_filter", config.LDAP.GroupsFilter, config.LDAP.GroupsFilter))
+	} else if !strings.HasPrefix(config.AuthenticationBackend.LDAP.GroupsFilter, "(") || !strings.HasSuffix(config.AuthenticationBackend.LDAP.GroupsFilter, ")") {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterEnclosingParenthesis, "groups_filter", config.AuthenticationBackend.LDAP.GroupsFilter, config.AuthenticationBackend.LDAP.GroupsFilter))
 	}
 
 	validateLDAPGroupFilter(config, validator)
 }
 
-func validateLDAPExtraAttributes(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	for name, attr := range config.LDAP.Attributes.Extra {
+func validateLDAPExtraAttributes(config *schema.Configuration, validator *schema.StructValidator) {
+	for name, attr := range config.AuthenticationBackend.LDAP.Attributes.Extra {
 		switch attr.ValueType {
 		case authentication.ValueTypeString, authentication.ValueTypeInteger, authentication.ValueTypeBoolean:
 			break
@@ -559,28 +573,403 @@ func validateLDAPExtraAttributes(config *schema.AuthenticationBackend, validator
 	}
 }
 
-func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	if config.LDAP.GroupSearchMode == "" {
-		config.LDAP.GroupSearchMode = schema.LDAPGroupSearchModeFilter
+func validateLDAPGroupFilter(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.AuthenticationBackend.LDAP.GroupSearchMode == "" {
+		config.AuthenticationBackend.LDAP.GroupSearchMode = schema.LDAPGroupSearchModeFilter
 	}
 
-	if !utils.IsStringInSlice(config.LDAP.GroupSearchMode, validLDAPGroupSearchModes) {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "group_search_mode", utils.StringJoinOr(validLDAPGroupSearchModes), config.LDAP.GroupSearchMode))
+	if !utils.IsStringInSlice(config.AuthenticationBackend.LDAP.GroupSearchMode, validLDAPGroupSearchModes) {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "group_search_mode", utils.StringJoinOr(validLDAPGroupSearchModes), config.AuthenticationBackend.LDAP.GroupSearchMode))
 	}
 
-	pMemberOfDN, pMemberOfRDN := strings.Contains(config.LDAP.GroupsFilter, "{memberof:dn}"), strings.Contains(config.LDAP.GroupsFilter, "{memberof:rdn}")
+	pMemberOfDN, pMemberOfRDN := strings.Contains(config.AuthenticationBackend.LDAP.GroupsFilter, "{memberof:dn}"), strings.Contains(config.AuthenticationBackend.LDAP.GroupsFilter, "{memberof:rdn}")
 
-	if config.LDAP.GroupSearchMode == schema.LDAPGroupSearchModeMemberOf {
+	if config.AuthenticationBackend.LDAP.GroupSearchMode == schema.LDAPGroupSearchModeMemberOf {
 		if !pMemberOfDN && !pMemberOfRDN {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholderGroupSearchMode, "groups_filter", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"}), config.LDAP.GroupSearchMode))
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholderGroupSearchMode, "groups_filter", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"}), config.AuthenticationBackend.LDAP.GroupSearchMode))
 		}
 	}
 
-	if pMemberOfDN && config.LDAP.Attributes.DistinguishedName == "" {
+	if pMemberOfDN && config.AuthenticationBackend.LDAP.Attributes.DistinguishedName == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "distinguished_name", utils.StringJoinOr([]string{"{memberof:dn}"})))
 	}
 
-	if (pMemberOfDN || pMemberOfRDN) && config.LDAP.Attributes.MemberOf == "" {
+	if (pMemberOfDN || pMemberOfRDN) && config.AuthenticationBackend.LDAP.Attributes.MemberOf == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
 	}
+}
+
+func validateLDAPAuthenticationBackendUserManagementObjectClasses(config *schema.Configuration, validator *schema.StructValidator) {
+	if len(config.AuthenticationBackend.LDAP.UserManagement.UserObjectClasses) == 0 {
+		switch config.AuthenticationBackend.LDAP.Implementation {
+		case schema.LDAPImplementationRFC2307bis:
+			config.AuthenticationBackend.LDAP.UserManagement.UserObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.UserObjectClasses
+		case schema.LDAPImplementationActiveDirectory:
+			config.AuthenticationBackend.LDAP.UserManagement.UserObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UserManagement.UserObjectClasses
+		case schema.LDAPImplementationCustom:
+		default:
+			validator.Push(errors.New(errFmtAuthBackendUserManagementUserObjectClassesRequiredForCustom))
+		}
+	}
+
+	if len(config.AuthenticationBackend.LDAP.UserManagement.GroupObjectClasses) == 0 {
+		switch config.AuthenticationBackend.LDAP.Implementation {
+		case schema.LDAPImplementationRFC2307bis:
+			config.AuthenticationBackend.LDAP.UserManagement.GroupObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationRFC2307bis.UserManagement.GroupObjectClasses
+		case schema.LDAPImplementationActiveDirectory:
+			config.AuthenticationBackend.LDAP.UserManagement.GroupObjectClasses = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory.UserManagement.GroupObjectClasses
+		case schema.LDAPImplementationCustom:
+		default:
+			validator.Push(errors.New(errFmtAuthBackendUserManagementGroupObjectClassesRequiredForCustom))
+		}
+	}
+}
+
+func validateLDAPAuthenticationBackendUserManagementRequiredAttributes(config *schema.Configuration, validator *schema.StructValidator) {
+	if len(config.AuthenticationBackend.LDAP.UserManagement.RequiredAttributes) == 0 {
+		return
+	}
+
+	supportedAttributes := getSupportedLDAPUserProfileAttributes(config.AuthenticationBackend.LDAP)
+
+	for _, requiredAttr := range config.AuthenticationBackend.LDAP.UserManagement.RequiredAttributes {
+		if !utils.IsStringInSlice(requiredAttr, supportedAttributes) {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserManagementRequiredAttributeNotSupported, requiredAttr))
+		}
+	}
+}
+
+// toSnakeCase converts a PascalCase string to snake_case.
+func toSnakeCase(s string) string {
+	var result strings.Builder
+
+	for i, r := range s {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			result.WriteRune('_')
+		}
+
+		result.WriteRune(r)
+	}
+
+	return strings.ToLower(result.String())
+}
+
+// getFieldNamesFromStruct extracts field names in snake_case from a struct using reflection.
+func getFieldNamesFromStruct(t reflect.Type) map[string]string {
+	fieldMap := make(map[string]string)
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+
+		if !field.IsExported() {
+			continue
+		}
+
+		fieldMap[field.Name] = toSnakeCase(field.Name)
+	}
+
+	return fieldMap
+}
+
+// getSupportedLDAPUserProfileAttributes returns a list of all attributes that are supported based on the LDAP configuration's attribute mappings and extra attributes.
+//
+//nolint:gocyclo
+func getSupportedLDAPUserProfileAttributes(config *schema.AuthenticationBackendLDAP) []string {
+	var attributes []string
+
+	if config.Attributes.Username != "" {
+		attributes = append(attributes, "username")
+	}
+
+	if config.Attributes.DisplayName != "" {
+		attributes = append(attributes, "display_name")
+	}
+
+	if config.Attributes.Mail != "" {
+		attributes = append(attributes, "mail")
+	}
+
+	if config.Attributes.GivenName != "" {
+		attributes = append(attributes, "given_name")
+	}
+
+	if config.Attributes.FamilyName != "" {
+		attributes = append(attributes, "family_name")
+	}
+
+	if config.Attributes.MiddleName != "" {
+		attributes = append(attributes, "middle_name")
+	}
+
+	if config.Attributes.Nickname != "" {
+		attributes = append(attributes, "nickname")
+	}
+
+	if config.Attributes.Profile != "" {
+		attributes = append(attributes, "profile")
+	}
+
+	if config.Attributes.Picture != "" {
+		attributes = append(attributes, "picture")
+	}
+
+	if config.Attributes.Website != "" {
+		attributes = append(attributes, "website")
+	}
+
+	if config.Attributes.Gender != "" {
+		attributes = append(attributes, "gender")
+	}
+
+	if config.Attributes.Birthdate != "" {
+		attributes = append(attributes, "birthdate")
+	}
+
+	if config.Attributes.ZoneInfo != "" {
+		attributes = append(attributes, "zoneinfo")
+	}
+
+	if config.Attributes.Locale != "" {
+		attributes = append(attributes, "locale")
+	}
+
+	if config.Attributes.PhoneNumber != "" {
+		attributes = append(attributes, "phone_number")
+	}
+
+	if config.Attributes.PhoneExtension != "" {
+		attributes = append(attributes, "phone_extension")
+	}
+
+	if config.Attributes.StreetAddress != "" {
+		attributes = append(attributes, "address", "address.street_address")
+	}
+
+	if config.Attributes.Locality != "" {
+		attributes = append(attributes, "address", "address.locality")
+	}
+
+	if config.Attributes.Region != "" {
+		attributes = append(attributes, "address", "address.region")
+	}
+
+	if config.Attributes.PostalCode != "" {
+		attributes = append(attributes, "address", "address.postal_code")
+	}
+
+	if config.Attributes.Country != "" {
+		attributes = append(attributes, "address", "address.country")
+	}
+
+	if config.Attributes.MemberOf != "" || config.Attributes.GroupName != "" {
+		attributes = append(attributes, "groups")
+	}
+
+	for name := range config.Attributes.Extra {
+		attributes = append(attributes, name)
+	}
+
+	attributes = append(attributes, "password", "full_name")
+
+	seen := make(map[string]bool)
+	unique := make([]string, 0, len(attributes))
+
+	for _, attr := range attributes {
+		if !seen[attr] {
+			seen[attr] = true
+			unique = append(unique, attr)
+		}
+	}
+
+	return unique
+}
+
+// getSupportedLDAPRDNTemplateFields returns a list of all fields that are supported in RDN templates
+// based on the LDAP configuration's attribute mappings and extra attributes.
+// Field names are derived from the ldapUserProfileExtended struct and converted to snake_case for template usage.
+//
+//nolint:gocyclo
+func getSupportedLDAPRDNTemplateFields(config *schema.AuthenticationBackendLDAP) []string {
+	var attributes []string
+
+	// Map LDAP attribute configuration to template field names (snake_case versions of struct fields)
+	// These correspond to fields in ldapUserProfileExtended and its embedded ldapUserProfile.
+	if config.Attributes.Username != "" {
+		attributes = append(attributes, "username")
+	}
+
+	if config.Attributes.DisplayName != "" {
+		attributes = append(attributes, "display_name")
+	}
+
+	if config.Attributes.Mail != "" {
+		attributes = append(attributes, "emails")
+	}
+
+	if config.Attributes.GivenName != "" {
+		attributes = append(attributes, "given_name")
+	}
+
+	if config.Attributes.FamilyName != "" {
+		attributes = append(attributes, "family_name")
+	}
+
+	if config.Attributes.MiddleName != "" {
+		attributes = append(attributes, "middle_name")
+	}
+
+	if config.Attributes.Nickname != "" {
+		attributes = append(attributes, "nickname")
+	}
+
+	if config.Attributes.Profile != "" {
+		attributes = append(attributes, "profile")
+	}
+
+	if config.Attributes.Picture != "" {
+		attributes = append(attributes, "picture")
+	}
+
+	if config.Attributes.Website != "" {
+		attributes = append(attributes, "website")
+	}
+
+	if config.Attributes.Gender != "" {
+		attributes = append(attributes, "gender")
+	}
+
+	if config.Attributes.Birthdate != "" {
+		attributes = append(attributes, "birthdate")
+	}
+
+	if config.Attributes.ZoneInfo != "" {
+		attributes = append(attributes, "zoneinfo")
+	}
+
+	if config.Attributes.Locale != "" {
+		attributes = append(attributes, "locale")
+	}
+
+	if config.Attributes.PhoneNumber != "" {
+		attributes = append(attributes, "phone_number")
+	}
+
+	if config.Attributes.PhoneExtension != "" {
+		attributes = append(attributes, "phone_extension")
+	}
+
+	addressType := reflect.TypeOf(authentication.UserDetailsAddress{})
+	addressFieldMap := getFieldNamesFromStruct(addressType)
+
+	if config.Attributes.StreetAddress != "" {
+		if addrField, exists := addressFieldMap["StreetAddress"]; exists {
+			attributes = append(attributes, "address", "address."+addrField)
+		}
+	}
+
+	if config.Attributes.Locality != "" {
+		if addrField, exists := addressFieldMap["Locality"]; exists {
+			attributes = append(attributes, "address", "address."+addrField)
+		}
+	}
+
+	if config.Attributes.Region != "" {
+		if addrField, exists := addressFieldMap["Region"]; exists {
+			attributes = append(attributes, "address", "address."+addrField)
+		}
+	}
+
+	if config.Attributes.PostalCode != "" {
+		if addrField, exists := addressFieldMap["PostalCode"]; exists {
+			attributes = append(attributes, "address", "address."+addrField)
+		}
+	}
+
+	if config.Attributes.Country != "" {
+		if addrField, exists := addressFieldMap["Country"]; exists {
+			attributes = append(attributes, "address", "address."+addrField)
+		}
+	}
+
+	if config.Attributes.MemberOf != "" || config.Attributes.GroupName != "" {
+		attributes = append(attributes, "member_of")
+	}
+
+	for name := range config.Attributes.Extra {
+		attributes = append(attributes, name)
+	}
+
+	attributes = append(attributes, "password", "full_name")
+
+	seen := make(map[string]bool)
+	unique := make([]string, 0, len(attributes))
+
+	for _, attr := range attributes {
+		if !seen[attr] {
+			seen[attr] = true
+			unique = append(unique, attr)
+		}
+	}
+
+	return unique
+}
+
+func validateLDAPAuthenticationBackendUserManagementRDNTemplate(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.AuthenticationBackend.LDAP.UserManagement.CreatedUsersRDNFormat == "" {
+		return
+	}
+
+	tmpl, err := template.New("rdn").Delims("[[", "]]").Funcs(template.FuncMap{}).Parse(config.AuthenticationBackend.LDAP.UserManagement.CreatedUsersRDNFormat)
+	if err != nil {
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserManagementRDNTemplateInvalid, err))
+		return
+	}
+
+	supportedFields := getSupportedLDAPRDNTemplateFields(config.AuthenticationBackend.LDAP)
+	fields := extractTemplateFields(config.AuthenticationBackend.LDAP.UserManagement.CreatedUsersRDNFormat)
+
+	// Get the base required attributes for the implementation.
+	requiredAttributes := authentication.GetBaseRequiredAttributesForImplementation(config.AuthenticationBackend.LDAP.Implementation)
+	requiredAttributes = append(requiredAttributes, config.AuthenticationBackend.LDAP.UserManagement.RequiredAttributes...)
+
+	for _, field := range fields {
+		if !utils.IsStringInSlice(field, supportedFields) {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUserManagementRDNTemplateFieldUnsupported, field))
+		}
+
+		if !utils.IsStringInSlice(field, requiredAttributes) {
+			validator.Push(fmt.Errorf("authentication: ldap: user_management: created_users_rdn_format: field '%s' must be in required_attributes when used in RDN template", field))
+		}
+	}
+
+	_ = tmpl
+}
+
+func validateLDAPAuthenticationBackendUserManagementRDNAttribute(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.AuthenticationBackend.LDAP.UserManagement.CreatedUsersRDNFormat == "" {
+		config.AuthenticationBackend.LDAP.UserManagement.CreatedUsersRDNAttribute = ""
+
+		return
+	}
+
+	if config.AuthenticationBackend.LDAP.UserManagement.CreatedUsersRDNAttribute == "" {
+		validator.Push(fmt.Errorf("authentication_backend: ldap: user_management: rdn_attribute must be set when using created_users_rdn_format"))
+		return
+	}
+}
+
+// extractTemplateFields extracts field names from a Go template string.
+func extractTemplateFields(tmplStr string) []string {
+	var fields []string
+
+	re := regexp.MustCompile(`\[\[\s*\.(\w+)\s*\]\]`)
+	matches := re.FindAllStringSubmatch(tmplStr, -1)
+
+	for _, match := range matches {
+		if len(match) > 1 {
+			fields = append(fields, match[1])
+		}
+	}
+
+	return fields
 }

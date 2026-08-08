@@ -15,6 +15,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/go-crypt/crypt/algorithm/shacrypt"
+	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
@@ -28,15 +29,49 @@ type FileUserProvider struct {
 	database      FileUserProviderDatabase
 	mutex         sync.Mutex
 	timeoutReload time.Time
+	log           *logrus.Entry
+
+	Management UserManagementProvider
+}
+
+func (p *FileUserProvider) ListGroups() ([]string, error) {
+	if p.Management == nil {
+		return nil, fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.ListGroups()
+}
+
+func (p *FileUserProvider) DeleteGroup(group string) error {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.DeleteGroup(group)
+}
+
+func (p *FileUserProvider) AddGroup(newGroup string) error {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.AddGroup(newGroup)
 }
 
 // NewFileUserProvider creates a new instance of FileUserProvider.
 func NewFileUserProvider(config *schema.AuthenticationBackendFile) (provider *FileUserProvider) {
-	return &FileUserProvider{
+	provider = &FileUserProvider{
 		config:        config,
 		timeoutReload: time.Now().Add(-1 * time.Second),
 		database:      NewFileUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive, getExtra(config)),
+		log:           logging.Logger().WithFields(map[string]any{"provider": "file"}),
 	}
+
+	provider.Management = &FileUserManagement{
+		provider: provider,
+	}
+
+	return provider
 }
 
 func getExtra(config *schema.AuthenticationBackendFile) (extra map[string]expression.ExtraAttribute) {
@@ -96,7 +131,7 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 	return details.Password.MatchAdvanced(password)
 }
 
-// GetDetails retrieve the groups a user belongs to.
+// GetDetails retrieves a user's information, excluding disabled users.
 func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, err error) {
 	var d FileUserDatabaseUserDetails
 
@@ -109,6 +144,37 @@ func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, er
 	}
 
 	return d.ToUserDetails(), nil
+}
+
+// GetUser retrieves a user's information, including disabled users.
+func (p *FileUserProvider) GetUser(username string) (details *UserDetailsExtended, err error) {
+	var d FileUserDatabaseUserDetails
+
+	if d, err = p.database.GetUserDetails(username); err != nil {
+		return nil, err
+	}
+
+	return d.ToExtendedUserDetails(), nil
+}
+
+// ListUsers returns a list of all users and their attributes.
+func (p *FileUserProvider) ListUsers() (userList []UserDetailsExtended, err error) {
+	if _, err := p.Reload(); err != nil {
+		var reloadErr *errReload
+		if !errors.As(err, &reloadErr) || !errors.Is(reloadErr.err, ErrWatcherCooldown) {
+			return nil, fmt.Errorf("failed to reload user database: %w", err)
+		}
+	}
+
+	allUsers := p.database.GetAllUsers()
+	userList = make([]UserDetailsExtended, 0, len(allUsers))
+
+	for _, details := range allUsers {
+		extendedDetails := details.ToExtendedUserDetails()
+		userList = append(userList, *extendedDetails)
+	}
+
+	return userList, nil
 }
 
 func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
@@ -125,7 +191,7 @@ func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDet
 	return d.ToExtendedUserDetails(), nil
 }
 
-// UpdatePassword update the password of the given user.
+// UpdatePassword updates the password of the given user.
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
 	var details FileUserDatabaseUserDetails
 
@@ -148,9 +214,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	p.database.SetUserDetails(details.Username, &details)
 
 	p.mutex.Lock()
-
 	p.setTimeoutReload(time.Now())
-
 	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
@@ -160,6 +224,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	return nil
 }
 
+// ChangePassword validates the old password then changes the password of the given user.
 func (p *FileUserProvider) ChangePassword(username string, oldPassword string, newPassword string) (err error) {
 	var details FileUserDatabaseUserDetails
 
@@ -199,9 +264,7 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	p.database.SetUserDetails(details.Username, &details)
 
 	p.mutex.Lock()
-
 	p.setTimeoutReload(time.Now())
-
 	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
@@ -209,6 +272,102 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	}
 
 	return nil
+}
+
+// AddUser creates a new user in the file database.
+func (p *FileUserProvider) AddUser(userData *UserDetailsExtended) (err error) {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.AddUser(userData)
+}
+
+func (p *FileUserProvider) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) (err error) {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.UpdateUserWithMask(username, userData, updateMask)
+}
+
+// UpdateUser modifies an existing user in the file database. Takes new values via opts.
+func (p *FileUserProvider) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
+	var existingDetails FileUserDatabaseUserDetails
+
+	if existingDetails, err = p.database.GetUserDetails(username); err != nil {
+		return err
+	}
+
+	updatedDetails := FileUserDatabaseUserDetails{
+		Username:    username,
+		DisplayName: existingDetails.DisplayName,
+		Password:    existingDetails.Password,
+		Email:       existingDetails.Email,
+		Groups:      existingDetails.Groups,
+		Disabled:    existingDetails.Disabled,
+	}
+
+	if userData.UserDetails != nil {
+		if userData.DisplayName != "" {
+			updatedDetails.DisplayName = userData.DisplayName
+		}
+
+		if len(userData.Emails) > 0 {
+			updatedDetails.Email = userData.Emails[0]
+		}
+
+		if len(userData.Groups) > 0 {
+			updatedDetails.Groups = userData.Groups
+		}
+	}
+
+	if userData.Password != "" {
+		var digest algorithm.Digest
+		if digest, err = p.hash.Hash(userData.Password); err != nil {
+			return err
+		}
+
+		updatedDetails.Password = schema.NewPasswordDigest(digest)
+	}
+
+	p.database.SetUserDetails(username, &updatedDetails)
+
+	p.mutex.Lock()
+	p.setTimeoutReload(time.Now())
+	p.mutex.Unlock()
+
+	return p.database.Save()
+}
+
+func (p *FileUserProvider) GetRequiredAttributes() []string {
+	if p.Management == nil {
+		return []string{}
+	}
+
+	return p.Management.GetRequiredAttributes()
+}
+
+func (p *FileUserProvider) IsExtraAttribute(fieldName string) bool {
+	_, exists := p.config.ExtraAttributes[fieldName]
+	return exists
+}
+
+func (p *FileUserProvider) GetSupportedAttributes() map[string]UserManagementAttributeMetadata {
+	if p.Management == nil {
+		return map[string]UserManagementAttributeMetadata{}
+	}
+
+	return p.Management.GetSupportedAttributes()
+}
+
+// DeleteUser deletes a user from the file database.
+func (p *FileUserProvider) DeleteUser(username string) (err error) {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.DeleteUser(username)
 }
 
 // StartupCheck implements the startup check provider interface.
@@ -227,11 +386,23 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 		p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive, getExtra(p.config))
 	}
 
-	if err = p.database.Load(); err != nil {
-		return err
+	return p.database.Load()
+}
+
+func (p *FileUserProvider) ValidateUserData(userData *UserDetailsExtended) error {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
 	}
 
-	return nil
+	return p.Management.ValidateUserData(userData)
+}
+
+func (p *FileUserProvider) ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error {
+	if p.Management == nil {
+		return fmt.Errorf("user management is not configured for this provider")
+	}
+
+	return p.Management.ValidatePartialUpdate(userData, updateMask)
 }
 
 func (p *FileUserProvider) setTimeoutReload(now time.Time) {

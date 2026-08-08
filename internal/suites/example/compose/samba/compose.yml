@@ -4,6 +4,8 @@ services:
     image: 'authelia/integration-samba'
     volumes:
       - './example/compose/samba/init.sh:/init.sh'
+      - './example/compose/samba/schema-attributes.ldif:/schema-attributes.ldif'
+      - './example/compose/samba/schema-classes.ldif:/schema-classes.ldif'
     cap_add:
       - 'SYS_ADMIN'
     hostname: 'ldap.example.com'

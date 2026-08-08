@@ -1,0 +1,15 @@
+dn: CN=authelia-user-attributes,CN=Schema,CN=Configuration,DC=X
+changetype: add
+objectClass: top
+objectClass: classSchema
+cn: authelia-user-attributes
+governsID: 1.2.840.113556.1.8000.2554.65002.1
+objectClassCategory: 3
+subClassOf: top
+mayContain: autheliaEmployeeNumber
+mayContain: autheliaEmployeeType
+mayContain: autheliaTestFlag
+mayContain: autheliaTags
+adminDescription: Auxiliary class for Authelia user testing attributes
+adminDisplayName: authelia-user-attributes
+lDAPDisplayName: autheliaUserAttributes
