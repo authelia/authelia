@@ -739,7 +739,7 @@ func (p *SQLProvider) UpdatePasswordChangedDateByUsername(ctx context.Context, u
 // SavePreferred2FAMethod save the preferred method for 2FA for a username to the storage provider.
 func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, method); err != nil {
-		return fmt.Errorf("error inserting preferred two factor method for user '%s': %w", username, err)
+		return fmt.Errorf("error upserting preferred two factor method for user '%s': %w", username, err)
 	}
 
 	return nil
