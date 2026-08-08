@@ -1,0 +1,9 @@
+{{ $css := "" }}
+{{ if eq (hugo.Environment) "development" -}}
+  {{ $options := (dict "targetPath" "main.css" "transpiler" "dartsass" "enableSourceMap" true "includePaths" (slice "node_modules") "silenceDeprecations" (slice "import" "global-builtin" "color-functions" "mixed-decls")) -}}
+  {{ $css = resources.Get . | toCSS $options | resources.Fingerprint "sha512" -}}
+{{ else -}}
+  {{ $options := (dict "targetPath" "main.css" "transpiler" "dartsass" "outputStyle" "compressed" "includePaths" (slice "node_modules") "silenceDeprecations" (slice "import" "global-builtin" "color-functions" "mixed-decls")) -}}
+  {{ $css = resources.Get . | toCSS $options | postCSS (dict "config" "config/postcss.config.js") |  resources.Fingerprint "sha512" | resources.PostProcess -}}
+{{ end -}}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" crossorigin="anonymous">
