@@ -1,9 +1,17 @@
 package templates
 
 import (
+	"fmt"
 	th "html/template"
 	"io"
 	tt "text/template"
+	"time"
+
+	"github.com/avct/uasurfer"
+
+	"github.com/authelia/authelia/v4/internal/logging"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // Templates is the struct which holds all the *template.Template values.
@@ -34,6 +42,7 @@ type NotificationTemplates struct {
 	jwtIdentityVerification *EmailTemplate
 	otcIdentityVerification *EmailTemplate
 	event                   *EmailTemplate
+	newLogin                *EmailTemplate
 }
 
 // Template covers shared implementations between the text and html template.Template.
@@ -64,6 +73,55 @@ type EmailEventValues struct {
 	DisplayName string
 	Details     map[string]any
 	RemoteIP    string
+}
+
+// EmailNewLoginValues are the values used for new login templates.
+type EmailNewLoginValues struct {
+	Title        string
+	Date         string
+	Domain       string
+	DisplayName  string
+	RemoteIP     string
+	DeviceInfo   string
+	RawUserAgent string
+}
+
+func NewEmailNewLoginValues(displayName, domain, remoteIP string, userAgent *uasurfer.UserAgent, rawUserAgent string, timestamp time.Time) EmailNewLoginValues {
+	unknown := "Unknown"
+	formattedDate := timestamp.Format("Monday, January 2, 2006 at 3:04:05 PM -07:00")
+
+	browserName := userAgent.Browser.Name.StringTrimPrefix()
+	browserVersion := utils.FormatVersion(userAgent.Browser.Version)
+	osName := userAgent.OS.Name.StringTrimPrefix()
+	osVersion := utils.FormatVersion(userAgent.OS.Version)
+	deviceType := userAgent.DeviceType.StringTrimPrefix()
+
+	browserStr := browserName
+	if browserVersion != "" && browserVersion != unknown {
+		browserStr = fmt.Sprintf("%s %s", browserName, browserVersion)
+	}
+
+	osStr := osName
+	if osVersion != "" && osVersion != unknown {
+		osStr = fmt.Sprintf("%s %s", osName, osVersion)
+	}
+
+	deviceInfo := fmt.Sprintf("%s on %s", browserStr, osStr)
+	if deviceType != "" {
+		deviceInfo = fmt.Sprintf("%s (%s)", deviceInfo, deviceType)
+	}
+
+	logging.Logger().Debug(deviceInfo)
+
+	return EmailNewLoginValues{
+		Title:        "Login From New IP",
+		Date:         formattedDate,
+		Domain:       domain,
+		DisplayName:  displayName,
+		RemoteIP:     remoteIP,
+		DeviceInfo:   deviceInfo,
+		RawUserAgent: rawUserAgent,
+	}
 }
 
 // EmailIdentityVerificationJWTValues are the values used for the identity verification JWT templates.

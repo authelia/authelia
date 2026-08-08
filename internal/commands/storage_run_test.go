@@ -3,7 +3,9 @@ package commands
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"testing"
@@ -3479,6 +3481,336 @@ func seedBanUser(t *testing.T, ctx context.Context, store storage.Provider, user
 func newFlagSetWithInt(name string, value int) *pflag.FlagSet {
 	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
 	flags.Int(name, value, "")
+
+	return flags
+}
+
+func TestRunStorageKnownIPsAdd(t *testing.T) {
+	testCases := []struct {
+		name     string
+		username string
+		ip       string
+		setFlags map[string]string
+		err      string
+		expected string
+	}{
+		{
+			"ShouldAddWithDefaultExpiry",
+			"john",
+			"203.0.113.10",
+			nil,
+			"",
+			"Successfully added known IP address '203.0.113.10' for user 'john'.",
+		},
+		{
+			"ShouldAddWithCustomExpiry",
+			"john",
+			"203.0.113.11",
+			map[string]string{cmdFlagNameExpires: "1h"},
+			"",
+			"Successfully added known IP address '203.0.113.11' for user 'john'.",
+		},
+		{
+			"ShouldAddWithNeverExpires",
+			"john",
+			"203.0.113.12",
+			map[string]string{cmdFlagNameNeverExpires: "true"},
+			"",
+			"Successfully added known IP address '203.0.113.12' for user 'john'.",
+		},
+		{
+			"ShouldAddWithUserAgent",
+			"john",
+			"203.0.113.13",
+			map[string]string{cmdFlagNameUserAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36"},
+			"",
+			"Successfully added known IP address '203.0.113.13' for user 'john'.",
+		},
+		{
+			"ShouldErrOnInvalidIP",
+			"john",
+			"notanip",
+			nil,
+			"invalid IP address: notanip",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmdCtx := newTestCmdCtx(t)
+
+			cmd := newStorageKnownIPsAddCmd(cmdCtx)
+
+			for name, value := range tc.setFlags {
+				require.NoError(t, cmd.Flags().Set(name, value))
+			}
+
+			buf := new(bytes.Buffer)
+
+			err := runStorageKnownIPsAdd(context.Background(), buf, cmd.Flags(), []string{tc.username, tc.ip}, cmdCtx.providers.StorageProvider, cmdCtx.config)
+
+			if tc.err == "" {
+				require.NoError(t, err)
+				assert.Contains(t, buf.String(), tc.expected)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
+
+	t.Run("ShouldParseUserAgentFields", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		cmd := newStorageKnownIPsAddCmd(cmdCtx)
+
+		require.NoError(t, cmd.Flags().Set(cmdFlagNameUserAgent, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36"))
+
+		require.NoError(t, runStorageKnownIPsAdd(context.Background(), &bytes.Buffer{}, cmd.Flags(), []string{"john", "203.0.113.14"}, cmdCtx.providers.StorageProvider, cmdCtx.config))
+
+		ips, err := cmdCtx.providers.StorageProvider.LoadKnownIPsByUser(context.Background(), "john")
+		require.NoError(t, err)
+		require.Len(t, ips, 1)
+
+		assert.Equal(t, "Chrome", ips[0].BrowserName)
+		assert.Equal(t, "Linux", ips[0].OSName)
+		assert.NotEmpty(t, ips[0].DeviceType)
+	})
+
+	t.Run("ShouldLeaveDeviceFieldsEmptyWithoutUserAgent", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		cmd := newStorageKnownIPsAddCmd(cmdCtx)
+
+		require.NoError(t, runStorageKnownIPsAdd(context.Background(), &bytes.Buffer{}, cmd.Flags(), []string{"john", "203.0.113.15"}, cmdCtx.providers.StorageProvider, cmdCtx.config))
+
+		ips, err := cmdCtx.providers.StorageProvider.LoadKnownIPsByUser(context.Background(), "john")
+		require.NoError(t, err)
+		require.Len(t, ips, 1)
+
+		assert.Empty(t, ips[0].BrowserName)
+		assert.Empty(t, ips[0].OSName)
+		assert.Empty(t, ips[0].DeviceType)
+	})
+}
+
+func seedKnownIP(t *testing.T, ctx context.Context, store storage.Provider, username, ip string, expiresAt *time.Time) {
+	t.Helper()
+
+	knownIP := model.KnownIP{
+		Username:  username,
+		IP:        model.NewIP(net.ParseIP(ip)),
+		FirstSeen: time.Now(),
+		LastSeen:  time.Now(),
+	}
+
+	if expiresAt != nil {
+		knownIP.ExpiresAt = sql.NullTime{Valid: true, Time: *expiresAt}
+	}
+
+	require.NoError(t, store.SaveKnownIP(ctx, knownIP))
+}
+
+func TestRunStorageKnownIPsList(t *testing.T) {
+	t.Run("ShouldReportNoResults", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		buf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageKnownIPsList(context.Background(), buf, cmdCtx.providers.StorageProvider, "", cmdFlagValueFormatTable))
+		assert.Contains(t, buf.String(), "No results.")
+	})
+
+	t.Run("ShouldListAllUsers", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "john", "203.0.113.20", nil)
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "mary", "203.0.113.21", nil)
+
+		buf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageKnownIPsList(context.Background(), buf, cmdCtx.providers.StorageProvider, "", cmdFlagValueFormatTable))
+		assert.Contains(t, buf.String(), "john")
+		assert.Contains(t, buf.String(), "mary")
+	})
+
+	t.Run("ShouldListSingleUser", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "john", "203.0.113.22", nil)
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "mary", "203.0.113.23", nil)
+
+		buf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageKnownIPsList(context.Background(), buf, cmdCtx.providers.StorageProvider, "john", cmdFlagValueFormatTable))
+		assert.Contains(t, buf.String(), "john")
+		assert.NotContains(t, buf.String(), "mary")
+	})
+
+	t.Run("ShouldRenderNeverExpires", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "john", "203.0.113.24", nil)
+
+		buf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageKnownIPsList(context.Background(), buf, cmdCtx.providers.StorageProvider, "john", cmdFlagValueFormatTable))
+		assert.Contains(t, buf.String(), "never")
+	})
+
+	t.Run("ShouldRenderJSON", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "john", "203.0.113.25", nil)
+
+		buf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageKnownIPsList(context.Background(), buf, cmdCtx.providers.StorageProvider, "john", cmdFlagValueFormatJSON))
+		assert.Contains(t, buf.String(), `"username": "john"`)
+		assert.Contains(t, buf.String(), `"ip_address": "203.0.113.25"`)
+	})
+}
+
+func TestRunStorageKnownIPsDelete(t *testing.T) {
+	t.Run("ShouldDelete", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "john", "203.0.113.30", nil)
+
+		buf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageKnownIPsDelete(context.Background(), buf, []string{"john", "203.0.113.30"}, cmdCtx.providers.StorageProvider))
+		assert.Contains(t, buf.String(), "Successfully deleted known IP address '203.0.113.30' for user 'john'.")
+
+		ips, err := cmdCtx.providers.StorageProvider.LoadKnownIPsByUser(context.Background(), "john")
+		require.NoError(t, err)
+		assert.Empty(t, ips)
+	})
+
+	t.Run("ShouldErrOnInvalidIP", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		err := runStorageKnownIPsDelete(context.Background(), &bytes.Buffer{}, []string{"john", "notanip"}, cmdCtx.providers.StorageProvider)
+		assert.EqualError(t, err, "invalid IP address: notanip")
+	})
+
+	t.Run("ShouldErrOnMissingRecord", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		err := runStorageKnownIPsDelete(context.Background(), &bytes.Buffer{}, []string{"ghost", "203.0.113.31"}, cmdCtx.providers.StorageProvider)
+		assert.Error(t, err)
+	})
+}
+
+func TestRunStorageKnownIPsExportImport(t *testing.T) {
+	t.Run("ShouldExportAndImport", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "john", "203.0.113.40", nil)
+
+		filename := filepath.Join(t.TempDir(), "export.yml")
+
+		bufExport := new(bytes.Buffer)
+		require.NoError(t, runStorageKnownIPsExport(context.Background(), bufExport, cmdCtx.providers.StorageProvider, filename))
+		assert.Contains(t, bufExport.String(), "Successfully exported")
+
+		require.NoError(t, cmdCtx.providers.StorageProvider.DeleteKnownIP(context.Background(), "john", model.NewIP(net.ParseIP("203.0.113.40"))))
+
+		bufImport := new(bytes.Buffer)
+		require.NoError(t, runStorageKnownIPsImport(context.Background(), bufImport, cmdCtx.providers.StorageProvider, filename))
+		assert.Contains(t, bufImport.String(), "Successfully imported")
+
+		ips, err := cmdCtx.providers.StorageProvider.LoadKnownIPsByUser(context.Background(), "john")
+		require.NoError(t, err)
+		require.Len(t, ips, 1)
+		assert.Equal(t, "203.0.113.40", ips[0].IP.String())
+	})
+
+	t.Run("ShouldErrExportFileExists", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "john", "203.0.113.41", nil)
+
+		filename := filepath.Join(t.TempDir(), "export.yml")
+		require.NoError(t, os.WriteFile(filename, []byte(""), 0600))
+
+		err := runStorageKnownIPsExport(context.Background(), &bytes.Buffer{}, cmdCtx.providers.StorageProvider, filename)
+		assert.EqualError(t, err, fmt.Sprintf("must specify a file that doesn't exist but '%s' exists", filename))
+	})
+
+	t.Run("ShouldErrExportNoData", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		filename := filepath.Join(t.TempDir(), "export.yml")
+
+		err := runStorageKnownIPsExport(context.Background(), &bytes.Buffer{}, cmdCtx.providers.StorageProvider, filename)
+		assert.EqualError(t, err, "no data to export")
+	})
+
+	t.Run("ShouldErrImportMissingFile", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		err := runStorageKnownIPsImport(context.Background(), &bytes.Buffer{}, cmdCtx.providers.StorageProvider, filepath.Join(t.TempDir(), "missing.yml"))
+		assert.Error(t, err)
+	})
+
+	t.Run("ShouldErrImportEmptyData", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		filename := filepath.Join(t.TempDir(), "empty.yml")
+		require.NoError(t, os.WriteFile(filename, []byte("known_ips: []"), 0600))
+
+		err := runStorageKnownIPsImport(context.Background(), &bytes.Buffer{}, cmdCtx.providers.StorageProvider, filename)
+		assert.EqualError(t, err, "can't import a YAML file without Known IP Addresses data")
+	})
+}
+
+func TestRunStorageKnownIPsPrune(t *testing.T) {
+	t.Run("ShouldReportNoResults", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		buf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageKnownIPsPrune(context.Background(), buf, newFlagSetWithBool(cmdFlagNameDestroyData, false), cmdCtx.providers.StorageProvider))
+		assert.Contains(t, buf.String(), "No results.")
+	})
+
+	t.Run("ShouldPreviewWithoutDeleting", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		past := time.Now().Add(-time.Hour)
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "john", "203.0.113.50", &past)
+
+		buf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageKnownIPsPrune(context.Background(), buf, newFlagSetWithBool(cmdFlagNameDestroyData, false), cmdCtx.providers.StorageProvider))
+		assert.Contains(t, buf.String(), "Would delete 1 record(s)")
+
+		ips, err := cmdCtx.providers.StorageProvider.LoadKnownIPsByUser(context.Background(), "john")
+		require.NoError(t, err)
+		assert.Len(t, ips, 1)
+	})
+
+	t.Run("ShouldDeleteWithDestroyData", func(t *testing.T) {
+		cmdCtx := newTestCmdCtx(t)
+
+		past := time.Now().Add(-time.Hour)
+		seedKnownIP(t, context.Background(), cmdCtx.providers.StorageProvider, "john", "203.0.113.51", &past)
+
+		buf := new(bytes.Buffer)
+
+		require.NoError(t, runStorageKnownIPsPrune(context.Background(), buf, newFlagSetWithBool(cmdFlagNameDestroyData, true), cmdCtx.providers.StorageProvider))
+		assert.Contains(t, buf.String(), "Successfully deleted 1 expired known IP address record(s).")
+
+		ips, err := cmdCtx.providers.StorageProvider.LoadKnownIPsByUser(context.Background(), "john")
+		require.NoError(t, err)
+		assert.Empty(t, ips)
+	})
+}
+
+func newFlagSetWithBool(name string, value bool) *pflag.FlagSet {
+	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	flags.Bool(name, value, "")
 
 	return flags
 }

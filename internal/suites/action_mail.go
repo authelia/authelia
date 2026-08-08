@@ -204,6 +204,48 @@ func doGetLastEmailMessageWithSubject(t *testing.T, subject string) (message Ema
 	return message
 }
 
+// doGetLastEmailMessageWithSubjectForRecipient returns the last unread message with the subject for the recipient.
+func doGetLastEmailMessageWithSubjectForRecipient(t *testing.T, subject, recipient string) (message EmailMessage) {
+	t.Helper()
+
+	messages := doGetEmailMessages(t)
+
+	for i := len(messages) - 1; i >= 0; i-- {
+		if subject == messages[i].Subject && !messages[i].Read && hasRecipient(messages[i], recipient) {
+			return messages[i]
+		}
+	}
+
+	require.Fail(t, "Didn't find the message.")
+
+	return message
+}
+
+// doHasUnreadEmailMessageWithSubjectForRecipient reports whether an unread message with the subject exists for the recipient.
+func doHasUnreadEmailMessageWithSubjectForRecipient(t *testing.T, subject, recipient string) bool {
+	t.Helper()
+
+	messages := doGetEmailMessages(t)
+
+	for i := len(messages) - 1; i >= 0; i-- {
+		if subject == messages[i].Subject && !messages[i].Read && hasRecipient(messages[i], recipient) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func hasRecipient(message EmailMessage, recipient string) bool {
+	for _, to := range message.To {
+		if to.Address == recipient {
+			return true
+		}
+	}
+
+	return false
+}
+
 func doGetEmailMessages(t *testing.T) []EmailMessage {
 	t.Helper()
 

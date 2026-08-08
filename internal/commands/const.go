@@ -258,6 +258,72 @@ This subcommand allows revoking %s bans in the regulation system.`
 
 	cmdAutheliaStorageBansRevokeExample = `authelia storage bans %s revoke --help`
 
+	cmdAutheliaStorageKnownIPsShort = "Manages known IP addresses"
+
+	cmdAutheliaStorageKnownIPsLong = `Manages known IP addresses.
+
+This subcommand allows listing, adding, deleting, exporting, importing, and pruning known IP addresses used for the
+login from a new IP notification feature.`
+
+	cmdAutheliaStorageKnownIPsExample = `authelia storage known-ips --help`
+
+	cmdAutheliaStorageKnownIPsListShort = "List known IP addresses"
+
+	cmdAutheliaStorageKnownIPsListLong = `List known IP addresses.
+
+This subcommand allows listing known IP addresses, optionally filtered to a specific user.`
+
+	cmdAutheliaStorageKnownIPsListExample = `authelia storage known-ips list
+authelia storage known-ips list john
+authelia storage known-ips list --format json`
+
+	cmdAutheliaStorageKnownIPsAddShort = "Add a known IP address"
+
+	cmdAutheliaStorageKnownIPsAddLong = `Add a known IP address.
+
+This subcommand allows manually adding a known IP address for a user to the database.`
+
+	cmdAutheliaStorageKnownIPsAddExample = `authelia storage known-ips add john 203.0.113.10
+authelia storage known-ips add john 203.0.113.10 --expires 1h
+authelia storage known-ips add john 203.0.113.10 --never-expires
+authelia storage known-ips add john 203.0.113.10 --user-agent 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36'`
+
+	cmdAutheliaStorageKnownIPsDeleteShort = "Delete a known IP address"
+
+	cmdAutheliaStorageKnownIPsDeleteLong = `Delete a known IP address.
+
+This subcommand allows deleting a known IP address for a user directly from the database.`
+
+	cmdAutheliaStorageKnownIPsDeleteExample = `authelia storage known-ips delete john 203.0.113.10`
+
+	cmdAutheliaStorageKnownIPsExportShort = "Export known IP addresses to a YAML file"
+
+	cmdAutheliaStorageKnownIPsExportLong = `Export known IP addresses to a YAML file.
+
+This subcommand allows exporting known IP addresses in order to back them up.`
+
+	cmdAutheliaStorageKnownIPsExportExample = `authelia storage known-ips export
+authelia storage known-ips export --file export.yml`
+
+	cmdAutheliaStorageKnownIPsImportShort = "Import known IP addresses from a YAML file"
+
+	cmdAutheliaStorageKnownIPsImportLong = `Import known IP addresses from a YAML file.
+
+This subcommand allows you to import known IP addresses from a YAML file. The YAML file can either be automatically
+generated using the authelia storage known-ips export command, or manually provided the file is in the same format.`
+
+	cmdAutheliaStorageKnownIPsImportExample = `authelia storage known-ips import
+authelia storage known-ips import authelia.export.known-ips.yml`
+
+	cmdAutheliaStorageKnownIPsPruneShort = "Prune expired known IP addresses"
+
+	cmdAutheliaStorageKnownIPsPruneLong = `Prune expired known IP addresses.
+
+This subcommand previews the expired known IP addresses by default. Pass --destroy-data to actually delete them.`
+
+	cmdAutheliaStorageKnownIPsPruneExample = `authelia storage known-ips prune
+authelia storage known-ips prune --destroy-data`
+
 	cmdAutheliaStorageUserShort = "Manages user settings"
 
 	cmdAutheliaStorageUserLong = `Manages user settings.
@@ -844,6 +910,15 @@ const (
 	cmdFlagNamePath        = "path"
 	cmdFlagNameTarget      = "target"
 	cmdFlagNameDestroyData = "destroy-data"
+
+	cmdFlagNameFormat = "format"
+
+	cmdFlagValueFormatTable = "table"
+	cmdFlagValueFormatJSON  = "json"
+
+	cmdFlagNameExpires      = "expires"
+	cmdFlagNameNeverExpires = "never-expires"
+	cmdFlagNameUserAgent    = "user-agent"
 
 	cmdFlagNameEncryptionKey      = "encryption-key"
 	cmdFlagNameSQLite3Path        = "sqlite.path"

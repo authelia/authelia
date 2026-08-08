@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -1100,6 +1101,419 @@ func runStorageBansAddUser(ctx context.Context, w io.Writer, store storage.Provi
 	} else {
 		_, _ = fmt.Fprintf(w, "Successfully banned user '%s' until '%s'.\n", ban.Username, time.Now().Add(duration).Format(time.RFC3339))
 	}
+
+	return nil
+}
+
+// StorageKnownIPsListRunE is the RunE for the authelia storage known-ips list command.
+func (ctx *CmdCtx) StorageKnownIPsListRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	var format string
+
+	if format, err = cmd.Flags().GetString(cmdFlagNameFormat); err != nil {
+		return err
+	}
+
+	var username string
+
+	if len(args) != 0 {
+		username = args[0]
+	}
+
+	return runStorageKnownIPsList(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, username, format)
+}
+
+func runStorageKnownIPsList(ctx context.Context, w io.Writer, store storage.Provider, username, format string) (err error) {
+	var results []model.KnownIP
+
+	if username != "" {
+		if results, err = store.LoadKnownIPsByUser(ctx, username); err != nil {
+			return err
+		}
+	} else {
+		limit := 10
+
+		for page := 0; true; page++ {
+			var ips []model.KnownIP
+
+			if ips, err = store.LoadKnownIPs(ctx, limit, page); err != nil {
+				return err
+			}
+
+			results = append(results, ips...)
+
+			if len(ips) < limit {
+				break
+			}
+		}
+	}
+
+	if len(results) == 0 {
+		_, _ = fmt.Fprintf(w, "No results.\n")
+
+		return nil
+	}
+
+	return FormatKnownIPOutput(w, results, format)
+}
+
+// FormatKnownIPOutput writes a list of known IP addresses to w in the requested format (table or json).
+func FormatKnownIPOutput(w io.Writer, ips []model.KnownIP, format string) (err error) {
+	switch format {
+	case cmdFlagValueFormatJSON:
+		out := make([]map[string]any, len(ips))
+
+		for i := range ips {
+			var raw []byte
+
+			if raw, err = json.Marshal(&ips[i]); err != nil {
+				return fmt.Errorf("error occurred encoding known IP addresses as JSON: %w", err)
+			}
+
+			var m map[string]any
+
+			if err = json.Unmarshal(raw, &m); err != nil {
+				return fmt.Errorf("error occurred encoding known IP addresses as JSON: %w", err)
+			}
+
+			out[i] = utils.StripEmpty(m)
+		}
+
+		encoder := json.NewEncoder(w)
+		encoder.SetIndent("", "  ")
+		encoder.SetEscapeHTML(false)
+
+		if err = encoder.Encode(out); err != nil {
+			return fmt.Errorf("error occurred encoding known IP addresses as JSON: %w", err)
+		}
+
+		return nil
+	default:
+		headers := []string{"Username", "IP", "First Seen", "Last Seen", "Expires", "Browser", "OS", "Device"}
+
+		rows := make([][]string, len(ips))
+
+		for i, ip := range ips {
+			rows[i] = []string{
+				ip.Username,
+				ip.IP.String(),
+				ip.FirstSeen.Format(time.RFC3339),
+				ip.LastSeen.Format(time.RFC3339),
+				formatKnownIPExpires(ip.Expires()),
+				ip.BrowserName,
+				ip.OSName,
+				ip.DeviceType,
+			}
+		}
+
+		return utils.RenderTable(w, headers, rows)
+	}
+}
+
+func formatKnownIPExpires(expiresAt *time.Time) string {
+	if expiresAt == nil {
+		return "never"
+	}
+
+	return expiresAt.Format(time.RFC3339)
+}
+
+// StorageKnownIPsAddRunE is the RunE for the authelia storage known-ips add command.
+func (ctx *CmdCtx) StorageKnownIPsAddRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	return runStorageKnownIPsAdd(ctx, cmd.OutOrStdout(), cmd.Flags(), args, ctx.providers.StorageProvider, ctx.config)
+}
+
+func runStorageKnownIPsAdd(ctx context.Context, w io.Writer, flags *pflag.FlagSet, args []string, store storage.Provider, config *schema.Configuration) (err error) {
+	username, target := args[0], args[1]
+
+	ip := net.ParseIP(target)
+	if ip == nil {
+		return fmt.Errorf("invalid IP address: %s", target)
+	}
+
+	var (
+		expires      time.Duration
+		neverExpires bool
+		userAgent    string
+	)
+
+	if expires, err = flags.GetDuration(cmdFlagNameExpires); err != nil {
+		return err
+	}
+
+	if neverExpires, err = flags.GetBool(cmdFlagNameNeverExpires); err != nil {
+		return err
+	}
+
+	if userAgent, err = flags.GetString(cmdFlagNameUserAgent); err != nil {
+		return err
+	}
+
+	now := time.Now()
+
+	knownIP := model.KnownIP{
+		Username:  username,
+		IP:        model.NewIP(ip),
+		FirstSeen: now,
+		LastSeen:  now,
+	}
+
+	switch {
+	case neverExpires:
+		knownIP.ExpiresAt = sql.NullTime{}
+	case flags.Changed(cmdFlagNameExpires):
+		knownIP.ExpiresAt = sql.NullTime{Valid: true, Time: now.Add(expires)}
+	default:
+		knownIP.ExpiresAt = sql.NullTime{Valid: true, Time: now.Add(config.AuthenticationBackend.KnownIP.DefaultLifeSpan)}
+	}
+
+	if userAgent != "" {
+		ua := utils.ParseUserAgent(userAgent)
+
+		knownIP.BrowserName = ua.Browser.Name.StringTrimPrefix()
+		knownIP.BrowserVersion = utils.FormatVersion(ua.Browser.Version)
+		knownIP.OSName = ua.OS.Name.StringTrimPrefix()
+		knownIP.OSVersion = utils.FormatVersion(ua.OS.Version)
+		knownIP.DeviceType = ua.DeviceType.StringTrimPrefix()
+	}
+
+	if err = store.SaveKnownIP(ctx, knownIP); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(w, "Successfully added known IP address '%s' for user '%s'.\n", target, username)
+
+	return nil
+}
+
+// StorageKnownIPsDeleteRunE is the RunE for the authelia storage known-ips delete command.
+func (ctx *CmdCtx) StorageKnownIPsDeleteRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	return runStorageKnownIPsDelete(ctx, cmd.OutOrStdout(), args, ctx.providers.StorageProvider)
+}
+
+func runStorageKnownIPsDelete(ctx context.Context, w io.Writer, args []string, store storage.Provider) (err error) {
+	username, target := args[0], args[1]
+
+	ip := net.ParseIP(target)
+	if ip == nil {
+		return fmt.Errorf("invalid IP address: %s", target)
+	}
+
+	if err = store.DeleteKnownIP(ctx, username, model.NewIP(ip)); err != nil {
+		return fmt.Errorf("error deleting known ip address '%s' for user '%s': %w", target, username, err)
+	}
+
+	_, _ = fmt.Fprintf(w, "Successfully deleted known IP address '%s' for user '%s'.\n", target, username)
+
+	return nil
+}
+
+// StorageKnownIPsExportRunE is the RunE for the authelia storage known-ips export command.
+func (ctx *CmdCtx) StorageKnownIPsExportRunE(cmd *cobra.Command, _ []string) (err error) {
+	defer func() {
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	var filename string
+
+	if filename, err = cmd.Flags().GetString(cmdFlagNameFile); err != nil {
+		return err
+	}
+
+	return runStorageKnownIPsExport(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, filename)
+}
+
+func runStorageKnownIPsExport(ctx context.Context, w io.Writer, store storage.Provider, filename string) (err error) {
+	switch _, err = os.Stat(filename); {
+	case err == nil:
+		return fmt.Errorf("must specify a file that doesn't exist but '%s' exists", filename)
+	case !os.IsNotExist(err):
+		return fmt.Errorf("error occurred opening '%s': %w", filename, err)
+	}
+
+	export := &model.KnownIPsExport{}
+
+	limit := 10
+
+	for page := 0; true; page++ {
+		var ips []model.KnownIP
+
+		if ips, err = store.LoadKnownIPs(ctx, limit, page); err != nil {
+			return err
+		}
+
+		export.KnownIPs = append(export.KnownIPs, ips...)
+
+		if len(ips) < limit {
+			break
+		}
+	}
+
+	if len(export.KnownIPs) == 0 {
+		return fmt.Errorf("no data to export")
+	}
+
+	var f *os.File
+
+	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
+	}
+
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err = exportYAMLWithJSONSchema(f, "export.known-ips", export); err != nil {
+		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
+	}
+
+	_, _ = fmt.Fprintf(w, cliOutputFmtSuccessfulUserExportFile, len(export.KnownIPs), "Known IP Addresses", "YAML", filename)
+
+	return nil
+}
+
+// StorageKnownIPsImportRunE is the RunE for the authelia storage known-ips import command.
+func (ctx *CmdCtx) StorageKnownIPsImportRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	return runStorageKnownIPsImport(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, args[0])
+}
+
+func runStorageKnownIPsImport(ctx context.Context, w io.Writer, store storage.Provider, filename string) (err error) {
+	var (
+		stat os.FileInfo
+		data []byte
+	)
+
+	if stat, err = os.Stat(filename); err != nil {
+		return fmt.Errorf("must specify a file that exists but '%s' had an error opening it: %w", filename, err)
+	}
+
+	if stat.IsDir() {
+		return fmt.Errorf("must specify a file that exists but '%s' is a directory", filename)
+	}
+
+	if data, err = os.ReadFile(filename); err != nil {
+		return err
+	}
+
+	export := &model.KnownIPsExport{}
+
+	if err = yaml.Unmarshal(data, export); err != nil {
+		return err
+	}
+
+	if len(export.KnownIPs) == 0 {
+		return fmt.Errorf("can't import a YAML file without Known IP Addresses data")
+	}
+
+	for _, knownIP := range export.KnownIPs {
+		if err = store.SaveKnownIP(ctx, knownIP); err != nil {
+			return err
+		}
+	}
+
+	_, _ = fmt.Fprintf(w, cliOutputFmtSuccessfulUserImportFile, len(export.KnownIPs), "Known IP Addresses", "YAML", filename)
+
+	return nil
+}
+
+// StorageKnownIPsPruneRunE is the RunE for the authelia storage known-ips prune command.
+func (ctx *CmdCtx) StorageKnownIPsPruneRunE(cmd *cobra.Command, _ []string) (err error) {
+	defer func() {
+		if err := ctx.providers.StorageProvider.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	return runStorageKnownIPsPrune(ctx, cmd.OutOrStdout(), cmd.Flags(), ctx.providers.StorageProvider)
+}
+
+func runStorageKnownIPsPrune(ctx context.Context, w io.Writer, flags *pflag.FlagSet, store storage.Provider) (err error) {
+	var expired []model.KnownIP
+
+	if expired, err = store.LoadExpiredKnownIPs(ctx); err != nil {
+		return err
+	}
+
+	if len(expired) == 0 {
+		_, _ = fmt.Fprintf(w, "No results.\n")
+
+		return nil
+	}
+
+	if err = FormatKnownIPOutput(w, expired, cmdFlagValueFormatTable); err != nil {
+		return err
+	}
+
+	var destroy bool
+
+	if destroy, err = flags.GetBool(cmdFlagNameDestroyData); err != nil {
+		return err
+	}
+
+	if !destroy {
+		_, _ = fmt.Fprintf(w, "Would delete %d record(s), re-run with --%s to remove them.\n", len(expired), cmdFlagNameDestroyData)
+
+		return nil
+	}
+
+	var count int64
+
+	if count, err = store.CleanupExpiredKnownIPs(ctx); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(w, "Successfully deleted %d expired known IP address record(s).\n", count)
 
 	return nil
 }
