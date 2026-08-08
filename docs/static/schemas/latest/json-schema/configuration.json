@@ -4405,6 +4405,14 @@
           "description": "The default conveyance preference for all WebAuthn credentials.",
           "default": "indirect"
         },
+        "additional_origins": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Additional Origins",
+          "description": "List of additional origins to consider valid during WebAuthn ceremony validation. Useful for native application facet origins such as those prefixed with android:apk-key-hash: which are matched verbatim."
+        },
         "timeout": {
           "oneOf": [
             {

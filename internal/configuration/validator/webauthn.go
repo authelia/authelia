@@ -72,4 +72,16 @@ func ValidateWebAuthn(config *schema.Configuration, validator *schema.StructVali
 	if len(config.WebAuthn.Filtering.PermittedAAGUIDs) != 0 && len(config.WebAuthn.Filtering.ProhibitedAAGUIDs) != 0 {
 		validator.Push(errors.New(errFmtWebAuthnFiltering))
 	}
+
+	if len(config.WebAuthn.AdditionalOrigins) != 0 {
+		for i, origin := range config.WebAuthn.AdditionalOrigins {
+			if origin == "" {
+				validator.Push(fmt.Errorf(errFmtWebAuthnAdditionalOriginsEmpty, i+1))
+			}
+		}
+
+		if _, duplicates := validateList(config.WebAuthn.AdditionalOrigins, nil, true); len(duplicates) != 0 {
+			validator.Push(fmt.Errorf(errFmtWebAuthnAdditionalOriginsDuplicates, utils.StringJoinAnd(duplicates)))
+		}
+	}
 }

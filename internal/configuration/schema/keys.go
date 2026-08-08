@@ -490,6 +490,7 @@ var Keys = []string{
 	"totp.period",
 	"totp.secret_size",
 	"totp.skew",
+	"webauthn.additional_origins",
 	"webauthn.attestation_conveyance_preference",
 	"webauthn.disable",
 	"webauthn.display_name",

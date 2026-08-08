@@ -1334,6 +1334,8 @@ func TestAutheliaCtx_GetWebAuthnProvider(t *testing.T) {
 	assert.NotNil(t, provider)
 	assert.NoError(t, err)
 
+	assert.Equal(t, []string{"https://login.example.com:8080"}, provider.Config.RPOrigins)
+
 	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Attachment = protocol.CrossPlatform
 	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability = protocol.ResidentKeyRequirementRequired
 
@@ -1346,6 +1348,14 @@ func TestAutheliaCtx_GetWebAuthnProvider(t *testing.T) {
 	provider, err = mock.Ctx.GetWebAuthnProvider()
 	assert.NotNil(t, provider)
 	assert.NoError(t, err)
+
+	mock.Ctx.Configuration.WebAuthn.AdditionalOrigins = []string{"android:apk-key-hash:-sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w"}
+
+	provider, err = mock.Ctx.GetWebAuthnProvider()
+	assert.NotNil(t, provider)
+	assert.NoError(t, err)
+
+	assert.Equal(t, []string{"https://login.example.com:8080", "android:apk-key-hash:-sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w"}, provider.Config.RPOrigins)
 }
 
 func TestAutheliaCtx_RecordAuthn(t *testing.T) {

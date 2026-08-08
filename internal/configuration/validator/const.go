@@ -317,12 +317,14 @@ const (
 
 // WebAuthn Error constants.
 const (
-	errFmtWebAuthnConveyancePreference   = "webauthn: option 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnSelectionCriteria      = "webauthn: selection_criteria: option '%s' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnPasskeyDiscoverability = "webauthn: selection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
-	errFmtWebAuthnFiltering              = "webauthn: filtering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values"
-	errFmtWebAuthnBoolean                = "webauthn: option '%s' is %t but it must be %t when '%s' is %t"
-	errFmtWebAuthnMetadataString         = "webauthn: metadata: option '%s' is '%s' but it must be %s"
+	errFmtWebAuthnConveyancePreference        = "webauthn: option 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnSelectionCriteria           = "webauthn: selection_criteria: option '%s' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnPasskeyDiscoverability      = "webauthn: selection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
+	errFmtWebAuthnFiltering                   = "webauthn: filtering: option 'permitted_aaguids' and 'prohibited_aaguids' are mutually exclusive however both have values"
+	errFmtWebAuthnBoolean                     = "webauthn: option '%s' is %t but it must be %t when '%s' is %t"
+	errFmtWebAuthnMetadataString              = "webauthn: metadata: option '%s' is '%s' but it must be %s"
+	errFmtWebAuthnAdditionalOriginsEmpty      = "webauthn: option 'additional_origins' must not have empty values but origin #%d is empty"
+	errFmtWebAuthnAdditionalOriginsDuplicates = "webauthn: option 'additional_origins' must have unique values but the values %s are duplicated"
 )
 
 // Access Control error constants.

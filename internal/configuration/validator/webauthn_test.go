@@ -300,6 +300,49 @@ func TestValidateWebAuthn(t *testing.T) {
 				"webauthn: metadata: option 'cache_policy' is 'x' but it must be 'strict' or 'relaxed'",
 			},
 		},
+		{
+			"ShouldAcceptAdditionalOrigins",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					AdditionalOrigins: []string{
+						"android:apk-key-hash:-sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w",
+						"https://app.example.com",
+					},
+				},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldHandleAdditionalOriginsEmptyValues",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					AdditionalOrigins: []string{
+						"android:apk-key-hash:-sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w",
+						"",
+					},
+				},
+			},
+			nil,
+			[]string{
+				"webauthn: option 'additional_origins' must not have empty values but origin #2 is empty",
+			},
+		},
+		{
+			"ShouldHandleAdditionalOriginsDuplicateValues",
+			&schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					AdditionalOrigins: []string{
+						"android:apk-key-hash:-sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w",
+						"android:apk-key-hash:-sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w",
+					},
+				},
+			},
+			nil,
+			[]string{
+				"webauthn: option 'additional_origins' must have unique values but the values 'android:apk-key-hash:-sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w' are duplicated",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
