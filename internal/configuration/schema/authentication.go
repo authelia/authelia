@@ -131,7 +131,7 @@ type AuthenticationBackendLDAP struct {
 	Address        *AddressLDAP  `koanf:"address" yaml:"address,omitempty" toml:"address,omitempty" json:"address,omitempty" jsonschema:"title=Address" jsonschema_description:"The address of the LDAP directory server."`
 	Implementation string        `koanf:"implementation" yaml:"implementation,omitempty" toml:"implementation,omitempty" json:"implementation,omitempty" jsonschema:"default=custom,enum=custom,enum=activedirectory,enum=rfc2307bis,enum=freeipa,enum=lldap,enum=glauth,title=Implementation" jsonschema_description:"The implementation which mostly decides the default values."`
 	Timeout        time.Duration `koanf:"timeout" yaml:"timeout,omitempty" toml:"timeout,omitempty" json:"timeout,omitempty" jsonschema:"default=20 seconds,title=Timeout" jsonschema_description:"The LDAP directory server connection timeout."`
-	StartTLS       bool          `koanf:"start_tls" yaml:"start_tls" toml:"start_tls" json:"start_tls" jsonschema:"default=false,title=StartTLS" jsonschema_description:"Enables the use of StartTLS."`
+	StartTLS       bool          `koanf:"start_tls" yaml:"start_tls" toml:"start_tls" json:"start_tls" jsonschema:"default=false,title=StartTLS" jsonschema_description:"Forces the use of StartTLS."`
 	TLS            *TLS          `koanf:"tls" yaml:"tls,omitempty" toml:"tls,omitempty" json:"tls,omitempty" jsonschema:"title=TLS" jsonschema_description:"The LDAP directory server TLS connection properties."`
 
 	Pooling AuthenticationBackendLDAPPooling `koanf:"pooling" yaml:"pooling,omitempty" toml:"pooling,omitempty" json:"pooling,omitempty" jsonschema:"title=Pooling" jsonschema_description:"The LDAP Connection Pooling properties."`

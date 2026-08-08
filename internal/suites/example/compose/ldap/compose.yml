@@ -12,8 +12,12 @@ services:
       LDAP_ADDITIONAL_SCHEMAS: 'openldap'
       LDAP_FORCE_RECONFIGURE: 'true'
       LDAP_TLS_VERIFY_CLIENT: 'try'
+      LDAP_TLS_ENFORCE: 'true'
     volumes:
       - './example/compose/ldap/ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom'
+      - './common/pki/private.ldap.pem:/container/service/slapd/assets/certs/ldap.key'
+      - './common/pki/public.ldap.crt:/container/service/slapd/assets/certs/ldap.crt'
+      - './common/pki/ca/public.crt:/container/service/slapd/assets/certs/ca.crt'
     command:
       - '--copy-service'
       - '--loglevel'
