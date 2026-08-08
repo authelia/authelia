@@ -95,5 +95,6 @@ body {
 @import "common/custom";
 
 // 10. DocSearch
+@import "@docsearch/css/dist/_variables.scss";
 @import "common/variables-docsearch";
-@import "@docsearch/css/dist/modal";
+@import "@docsearch/css/dist/modal.scss";
