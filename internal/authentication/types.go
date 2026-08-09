@@ -283,11 +283,6 @@ func (d *UserDetailsExtended) MarshalJSON() ([]byte, error) {
 		aux.Locale = d.Locale.String()
 	}
 
-	aux.Alias.Profile = nil
-	aux.Alias.Picture = nil
-	aux.Alias.Website = nil
-	aux.Alias.Locale = nil
-
 	return json.Marshal(aux)
 }
 

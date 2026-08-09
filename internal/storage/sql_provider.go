@@ -90,7 +90,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectUserMetadata:                          fmt.Sprintf(queryFmtSelectUserMetadata, tableUserMetadata),
 		sqlSelectMultipleUserMetadataByUsername:        fmt.Sprintf(queryFmtSelectMultipleUserMetadataByUsername, tableUserMetadata),
 		sqlSelectUserMetadataByUsername:                fmt.Sprintf(queryFmtSelectUserByUsername, tableUserMetadata),
-		sqlSelectAllUserInfoAndMetadata:                fmt.Sprintf(queryFmtSelectAllUserInfoAndMetadata, tableUserMetadata, tableUserPreferences, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices),
+		sqlSelectAllUserInfoAndMetadata:                fmt.Sprintf(queryFmtSelectAllUserInfoAndMetadata, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices, tableUserMetadata, tableUserPreferences),
 		sqlUpdateUserRecordSignInByUsername:            fmt.Sprintf(queryFmtUpdateUserRecordSignInByUsername, tableUserMetadata),
 		sqlDeleteUserMetadataByUsername:                fmt.Sprintf(queryFmtDeleteUserMetadataByUsername, tableUserMetadata),
 		sqlUpdateUserRecordPasswordChangedAtByUsername: fmt.Sprintf(queryFmtUpdateUserRecordPasswordChangedAtByUsername, tableUserMetadata),
@@ -141,7 +141,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
 		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfoByUsername, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices, tableUserPreferences),
-		sqlSelectAllUserInfo:        fmt.Sprintf(queryFmtSelectAllUserInfo, tableUserPreferences, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices),
+		sqlSelectAllUserInfo:        fmt.Sprintf(queryFmtSelectAllUserInfo, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices, tableUserPreferences),
 
 		sqlInsertUserOpaqueIdentifier:            fmt.Sprintf(queryFmtInsertUserOpaqueIdentifier, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifier:            fmt.Sprintf(queryFmtSelectUserOpaqueIdentifier, tableUserOpaqueIdentifier),
@@ -259,7 +259,7 @@ type SQLProvider struct {
 	sqlSelectCachedData string
 	sqlDeleteCachedData string
 
-	// Table: user_Metadata.
+	// Table: user_metadata.
 	sqlInsertUserMetadata                               string
 	sqlInsertNewUserMetadata                            string
 	sqlInsertExistingUserAtLoginMetadata                string
@@ -268,10 +268,10 @@ type SQLProvider struct {
 	sqlSelectMultipleUserMetadataByUsername             string
 	sqlSelectUserMetadataByUsername                     string
 	sqlSelectAllUserInfoAndMetadata                     string
-	sqlUpdateUserRecordSignInByUsername                 string
 	sqlDeleteUserMetadataByUsername                     string
 	sqlUpdateUserRecordPasswordChangedAtByUsername      string
 	sqlUpdateUserRecordRequirePasswordChangedByUsername string
+	sqlUpdateUserRecordSignInByUsername                 string
 
 	// Table: identity_verification.
 	sqlInsertIdentityVerification  string
@@ -603,7 +603,7 @@ func (p *SQLProvider) LoadAllUsersMetadata(ctx context.Context) (allUserMetadata
 	return users, nil
 }
 
-// LoadAllUsersMetadata load all user Metadata from the database.
+// LoadMultipleUsersMetadataByUsername loads multiple users' metadata from the database.
 func (p *SQLProvider) LoadMultipleUsersMetadataByUsername(ctx context.Context, usernames []string) (allUserMetadata []model.UserInfo, err error) {
 	rows, err := p.db.QueryContext(ctx, p.sqlSelectMultipleUserMetadataByUsername, usernames)
 	if err != nil {

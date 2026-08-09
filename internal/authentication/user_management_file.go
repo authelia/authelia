@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -254,29 +255,35 @@ func (f *FileUserManagement) UpdateUserWithMask(username string, userData *UserD
 		case strings.HasPrefix(field, PrefixAttributeExtra):
 			extraField := strings.TrimPrefix(field, PrefixAttributeExtra)
 
-			if userData.Extra != nil {
-				if value, exists := userData.Extra[extraField]; exists {
-					// Skip empty strings.
-					if strValue, ok := value.(string); ok && strValue == "" {
-						// Remove the field if it's an empty string.
-						if updatedDetails.Extra != nil {
-							delete(updatedDetails.Extra, extraField)
-						}
-					} else {
-						if updatedDetails.Extra == nil {
-							updatedDetails.Extra = make(map[string]any)
-						}
-
-						// Convert the value to the proper type based on configuration.
-						convertedValue, err := f.convertExtraAttributeValue(extraField, value)
-						if err != nil {
-							return fmt.Errorf("failed to convert extra attribute '%s' for user '%s': %w", extraField, username, err)
-						}
-
-						updatedDetails.Extra[extraField] = convertedValue
-					}
-				}
+			if userData.Extra == nil {
+				continue
 			}
+
+			value, exists := userData.Extra[extraField]
+			if !exists {
+				continue
+			}
+
+			strValue, ok := value.(string)
+			if !ok || strValue != "" {
+				if updatedDetails.Extra == nil {
+					updatedDetails.Extra = make(map[string]any)
+				}
+
+				convertedValue, err := f.convertExtraAttributeValue(extraField, value)
+				if err != nil {
+					return fmt.Errorf("failed to convert extra attribute '%s' for user '%s': %w", extraField, username, err)
+				}
+
+				updatedDetails.Extra[extraField] = convertedValue
+
+				continue
+			}
+
+			if updatedDetails.Extra != nil {
+				delete(updatedDetails.Extra, extraField)
+			}
+
 		case field == AttributeAddress:
 			if userData.Address != nil {
 				if updatedDetails.Address == nil {
@@ -312,7 +319,6 @@ func (f *FileUserManagement) UpdateUserWithMask(username string, userData *UserD
 		}
 	}
 
-	// Save updated details.
 	f.provider.database.SetUserDetails(username, &updatedDetails)
 
 	f.provider.mutex.Lock()
@@ -330,6 +336,11 @@ func (f *FileUserManagement) UpdateUserWithMask(username string, userData *UserD
 func (f *FileUserManagement) AddUser(userData *UserDetailsExtended) (err error) {
 	if userData == nil || userData.UserDetails == nil {
 		return fmt.Errorf("userData and userData.UserDetails cannot be nil")
+	}
+
+	_, err = f.provider.GetDetails(userData.Username)
+	if !errors.Is(err, ErrUserNotFound) {
+		return ErrUserExists
 	}
 
 	if err = f.ValidateUserData(userData); err != nil {
@@ -389,7 +400,6 @@ func (f *FileUserManagement) AddUser(userData *UserDetailsExtended) (err error) 
 		Disabled:       false,
 	}
 
-	// Add address if provided.
 	if userData.Address != nil {
 		details.Address = &FileUserDatabaseUserDetailsAddressModel{
 			StreetAddress: userData.Address.StreetAddress,
@@ -411,7 +421,6 @@ func (f *FileUserManagement) AddUser(userData *UserDetailsExtended) (err error) 
 					details.Extra = make(map[string]any)
 				}
 
-				// Convert the value to the proper type based on configuration.
 				convertedValue, err := f.convertExtraAttributeValue(key, value)
 				if err != nil {
 					return fmt.Errorf("failed to convert extra attribute '%s' for user '%s': %w", key, userData.Username, err)
@@ -436,7 +445,6 @@ func (f *FileUserManagement) AddUser(userData *UserDetailsExtended) (err error) 
 }
 
 func (f *FileUserManagement) DeleteUser(username string) (err error) {
-	// Check if user exists.
 	_, err = f.provider.database.GetUserDetails(username)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve user for deletion of user '%s': %w", username, err)

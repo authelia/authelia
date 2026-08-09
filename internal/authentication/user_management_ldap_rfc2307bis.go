@@ -11,6 +11,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+const rfc2307bisGroupObjectClassFilter = "(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=posixGroup))"
+
 type RFC2307bisUserManagement struct {
 	provider *LDAPUserProvider
 }
@@ -692,7 +694,7 @@ func (r *RFC2307bisUserManagement) ListGroups() ([]string, error) {
 		0,
 		0,
 		false,
-		"(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=posixGroup))",
+		rfc2307bisGroupObjectClassFilter,
 		[]string{r.provider.config.Attributes.GroupName},
 		nil,
 	)
@@ -727,6 +729,12 @@ func (r *RFC2307bisUserManagement) GetGroups() ([]*ldap.Entry, error) {
 		return nil, fmt.Errorf("unable to get LDAP client for group update: %w", err)
 	}
 
+	defer func() {
+		if err := r.provider.factory.ReleaseClient(client); err != nil {
+			r.provider.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
+
 	searchRequest := ldap.NewSearchRequest(
 		r.provider.groupsBaseDN,
 		ldap.ScopeSingleLevel,
@@ -734,15 +742,14 @@ func (r *RFC2307bisUserManagement) GetGroups() ([]*ldap.Entry, error) {
 		0,
 		0,
 		false,
-		"(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=posixGroup))",
+		rfc2307bisGroupObjectClassFilter,
 		[]string{"cn", "member", "uniqueMember", "gidNumber"},
 		nil,
 	)
 
 	searchResult, err := r.provider.search(client, searchRequest)
 	if err != nil {
-		var ldapErr *ldap.Error
-		if errors.As(err, &ldapErr) && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
+		if ldapErr, ok := errors.AsType[*ldap.Error](err); ok && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
 			return []*ldap.Entry{}, nil
 		}
 
@@ -750,17 +757,6 @@ func (r *RFC2307bisUserManagement) GetGroups() ([]*ldap.Entry, error) {
 	}
 
 	return searchResult.Entries, nil
-}
-
-func (p *LDAPUserProvider) BuildGroupDN(groupName string) string {
-	baseDN := p.groupsBaseDN
-	if p.config.UserManagement.CreatedGroupsDN != "" {
-		baseDN = p.config.UserManagement.CreatedGroupsDN + "," + p.groupsBaseDN
-	}
-
-	rdn := fmt.Sprintf("%s=%s", p.config.Attributes.GroupName, ldap.EscapeFilter(groupName))
-
-	return fmt.Sprintf("%s,%s", rdn, baseDN)
 }
 
 // AddGroup creates a new group in LDAP.
@@ -839,17 +835,14 @@ func (r *RFC2307bisUserManagement) DeleteGroup(groupName string) error {
 		}
 	}()
 
-	groupDN := fmt.Sprintf("%s=%s,%s", r.provider.config.Attributes.GroupName, ldap.EscapeFilter(groupName), r.provider.groupsBaseDN)
-
-	// Check if group exists first.
-	exists, err := r.groupExists(client, groupName)
+	groupDN, err := r.provider.getGroupDN(client, groupName, rfc2307bisGroupObjectClassFilter)
 	if err != nil {
-		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
-	}
+		if errors.Is(err, ErrGroupNotFound) {
+			r.provider.log.Debugf("Group '%s' doesn't exist, nothing to delete", groupName)
+			return ErrGroupNotFound
+		}
 
-	if !exists {
-		r.provider.log.Debugf("Group '%s' doesn't exist, nothing to delete", groupName)
-		return ErrGroupNotFound
+		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
 	}
 
 	deleteRequest := ldap.NewDelRequest(groupDN, nil)
@@ -868,15 +861,14 @@ func (r *RFC2307bisUserManagement) getGroupObject(client LDAPExtendedClient, gro
 		groupDN,
 		ldap.ScopeBaseObject, ldap.NeverDerefAliases,
 		1, 0, false,
-		"(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=posixGroup))",
+		rfc2307bisGroupObjectClassFilter,
 		[]string{"cn", "member", "uniqueMember", "gidNumber"},
 		nil,
 	)
 
 	searchResult, err := r.provider.search(client, searchRequest)
 	if err != nil {
-		var ldapErr *ldap.Error
-		if errors.As(err, &ldapErr) && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
+		if ldapErr, ok := errors.AsType[*ldap.Error](err); ok && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
 			return nil, nil
 		}
 
@@ -907,32 +899,15 @@ func (r *RFC2307bisUserManagement) getLDAPAttributeForExtraField(jsonKey string)
 
 // groupExists checks if a group exists in LDAP.
 func (r *RFC2307bisUserManagement) groupExists(client LDAPExtendedClient, groupName string) (bool, error) {
-	groupDN := fmt.Sprintf("%s=%s,%s",
-		r.provider.config.Attributes.GroupName,
-		ldap.EscapeFilter(groupName),
-		r.provider.groupsBaseDN)
-
-	searchRequest := ldap.NewSearchRequest(
-		groupDN,
-		ldap.ScopeBaseObject,
-		ldap.NeverDerefAliases,
-		1, 0, false,
-		"(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=posixGroup))",
-		[]string{"dn"},
-		nil,
-	)
-
-	searchResult, err := client.Search(searchRequest)
-	if err != nil {
-		var ldapErr *ldap.Error
-		if errors.As(err, &ldapErr) && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
+	if _, err := r.provider.getGroupDN(client, groupName, rfc2307bisGroupObjectClassFilter); err != nil {
+		if errors.Is(err, ErrGroupNotFound) {
 			return false, nil
 		}
 
 		return false, err
 	}
 
-	return len(searchResult.Entries) > 0, nil
+	return true, nil
 }
 
 // isUserMemberOfGroup checks if a user is already a member of a group.
@@ -958,10 +933,10 @@ func (r *RFC2307bisUserManagement) isUserMemberOfGroup(client LDAPExtendedClient
 
 // addUserToGroup adds a user to a group.
 func (r *RFC2307bisUserManagement) addUserToGroup(client LDAPExtendedClient, groupName, userDn string) error {
-	groupDN := fmt.Sprintf("%s=%s,%s",
-		r.provider.config.Attributes.GroupName,
-		ldap.EscapeFilter(groupName),
-		r.provider.groupsBaseDN)
+	groupDN, err := r.provider.getGroupDN(client, groupName, rfc2307bisGroupObjectClassFilter)
+	if err != nil {
+		return fmt.Errorf("failed to find group '%s': %w", groupName, err)
+	}
 
 	modifyRequest := ldap.NewModifyRequest(groupDN, nil)
 	modifyRequest.Add(r.provider.config.Attributes.GroupMember, []string{userDn})
@@ -975,19 +950,14 @@ func (r *RFC2307bisUserManagement) addUserToGroup(client LDAPExtendedClient, gro
 
 // removeUserFromGroup removes a user from a group.
 func (r *RFC2307bisUserManagement) removeUserFromGroup(client LDAPExtendedClient, userDN, groupName string) error {
-	groupDN := fmt.Sprintf("%s=%s,%s",
-		r.provider.config.Attributes.GroupName,
-		ldap.EscapeFilter(groupName),
-		r.provider.groupsBaseDN)
-
-	exists, err := r.groupExists(client, groupName)
+	groupDN, err := r.provider.getGroupDN(client, groupName, rfc2307bisGroupObjectClassFilter)
 	if err != nil {
-		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
-	}
+		if errors.Is(err, ErrGroupNotFound) {
+			r.provider.log.Debugf("Group '%s' doesn't exist, nothing to remove", groupName)
+			return nil
+		}
 
-	if !exists {
-		r.provider.log.Debugf("Group '%s' doesn't exist, nothing to remove", groupName)
-		return nil
+		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
 	}
 
 	isMember, err := r.isUserMemberOfGroup(client, userDN, groupDN)

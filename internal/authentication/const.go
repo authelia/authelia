@@ -127,6 +127,8 @@ var (
 	// ErrUserNotFound indicates the user wasn't found in the authentication backend.
 	ErrUserNotFound = errors.New("user not found")
 
+	ErrUserExists = errors.New("user already exists")
+
 	ErrGroupNotFound = errors.New("group not found")
 
 	ErrGroupExists = errors.New("group already exists")

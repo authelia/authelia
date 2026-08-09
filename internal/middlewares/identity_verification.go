@@ -24,8 +24,7 @@ func MintTokenAndSendPasswordResetEmail(ctx *AutheliaCtx, args IdentityVerificat
 	var issuerURL *url.URL
 
 	if issuerURL, err = ctx.IssuerURL(); err != nil {
-		ctx.Error(err, messageOperationFailed)
-		return
+		return false, err
 	}
 
 	verification := model.NewIdentityVerification(jti, identity.Username, args.ActionClaim, ctx.RemoteIP(), ctx.Configuration.IdentityValidation.ResetPassword.JWTExpiration)

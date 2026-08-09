@@ -186,11 +186,15 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlInsertUserMetadata = provider.db.Rebind(provider.sqlInsertUserMetadata)
 	provider.sqlInsertNewUserMetadata = provider.db.Rebind(provider.sqlInsertNewUserMetadata)
 	provider.sqlInsertExistingUserAtLoginMetadata = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginMetadata)
+	provider.sqlInsertExistingUserAtPasswordChangeMetadata = provider.db.Rebind(provider.sqlInsertExistingUserAtPasswordChangeMetadata)
+	provider.sqlSelectUserMetadata = provider.db.Rebind(provider.sqlSelectUserMetadata)
+	provider.sqlSelectMultipleUserMetadataByUsername = provider.db.Rebind(provider.sqlSelectMultipleUserMetadataByUsername)
 	provider.sqlSelectUserMetadataByUsername = provider.db.Rebind(provider.sqlSelectUserMetadataByUsername)
-	provider.sqlUpdateUserRecordSignInByUsername = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginMetadata)
+	provider.sqlSelectAllUserInfoAndMetadata = provider.db.Rebind(provider.sqlSelectAllUserInfoAndMetadata)
 	provider.sqlDeleteUserMetadataByUsername = provider.db.Rebind(provider.sqlDeleteUserMetadataByUsername)
 	provider.sqlUpdateUserRecordPasswordChangedAtByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordPasswordChangedAtByUsername)
 	provider.sqlUpdateUserRecordRequirePasswordChangedByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordRequirePasswordChangedByUsername)
+	provider.sqlUpdateUserRecordSignInByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordSignInByUsername)
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 

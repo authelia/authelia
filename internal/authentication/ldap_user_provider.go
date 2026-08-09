@@ -81,11 +81,12 @@ func NewLDAPUserProviderWithFactory(config *schema.AuthenticationBackendLDAP, di
 	provider.parseDynamicGroupsConfiguration()
 
 	switch config.Implementation {
-	case "activedirectory":
+	case schema.LDAPImplementationActiveDirectory:
 		provider.Management = &ActiveDirectoryUserManagement{
 			provider: provider,
 		}
-	case "rfc2307bis":
+	case schema.LDAPImplementationRFC2307bis:
+		fallthrough
 	default:
 		provider.Management = &RFC2307bisUserManagement{
 			provider: provider,
@@ -141,10 +142,22 @@ func (p *LDAPUserProvider) BuildUserDN(userData *UserDetailsExtended) (string, e
 			return "", fmt.Errorf("failed to build RDN from template for user '%s': %w", userData.GetUsername(), err)
 		}
 	} else {
-		rdn = fmt.Sprintf("%s=%s", p.config.Attributes.Username, ldap.EscapeFilter(userData.GetUsername()))
+		rdn = fmt.Sprintf("%s=%s", p.config.Attributes.Username, ldap.EscapeDN(userData.GetUsername()))
 	}
 
 	return fmt.Sprintf("%s,%s", rdn, baseDN), nil
+}
+
+// BuildGroupDN constructs the full distinguished name for a group based on the configured CreatedGroupsDN.
+func (p *LDAPUserProvider) BuildGroupDN(groupName string) string {
+	baseDN := p.groupsBaseDN
+	if p.config.UserManagement.CreatedGroupsDN != "" {
+		baseDN = p.config.UserManagement.CreatedGroupsDN + "," + p.groupsBaseDN
+	}
+
+	rdn := fmt.Sprintf("%s=%s", p.config.Attributes.GroupName, ldap.EscapeDN(groupName))
+
+	return fmt.Sprintf("%s,%s", rdn, baseDN)
 }
 
 // BuildRDNFromTemplate executes the configured RDN template using the user's data.
@@ -264,7 +277,7 @@ func (p *LDAPUserProvider) BuildRDNFromTemplate(userData *UserDetailsExtended) (
 
 	rdnAttr := p.config.UserManagement.CreatedUsersRDNAttribute
 
-	return fmt.Sprintf("%s=%s", rdnAttr, ldap.EscapeFilter(rdnValue)), nil
+	return fmt.Sprintf("%s=%s", rdnAttr, ldap.EscapeDN(rdnValue)), nil
 }
 
 func (p *LDAPUserProvider) UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) (err error) {
@@ -676,16 +689,13 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	return nil
 }
 
-// getGroupDN is a helper function to get the DN of a group given its name.
-// TODO: Use this method :)
-//
-//nolint:unused
-func (p *LDAPUserProvider) getGroupDN(client LDAPExtendedClient, groupName string) (string, error) {
+// getGroupDN searches the groups base DN subtree and returns the actual distinguished name of a group by name.
+func (p *LDAPUserProvider) getGroupDN(client LDAPExtendedClient, groupName, objectClassFilter string) (string, error) {
 	searchRequest := ldap.NewSearchRequest(
 		p.groupsBaseDN,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		0, 0, false,
-		fmt.Sprintf("(&(objectClass=group)(%s=%s))", p.config.Attributes.GroupName, ldap.EscapeFilter(groupName)),
+		1, 0, false,
+		fmt.Sprintf("(&%s(%s=%s))", objectClassFilter, p.config.Attributes.GroupName, ldap.EscapeFilter(groupName)),
 		[]string{"dn"},
 		nil,
 	)
@@ -696,7 +706,7 @@ func (p *LDAPUserProvider) getGroupDN(client LDAPExtendedClient, groupName strin
 	}
 
 	if len(result.Entries) == 0 {
-		return "", fmt.Errorf("group '%s' not found", groupName)
+		return "", fmt.Errorf("group '%s' not found: %w", groupName, ErrGroupNotFound)
 	}
 
 	return result.Entries[0].DN, nil

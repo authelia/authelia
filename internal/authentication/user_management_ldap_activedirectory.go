@@ -11,6 +11,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+const activeDirectoryGroupObjectClassFilter = "(objectClass=group)"
+
 type ActiveDirectoryUserManagement struct {
 	provider *LDAPUserProvider
 }
@@ -40,7 +42,7 @@ func (a *ActiveDirectoryUserManagement) AddUser(userData *UserDetailsExtended) (
 		}
 	}()
 
-	userDN := fmt.Sprintf("cn=%s,%s", ldap.EscapeFilter(userData.CommonName), a.provider.usersBaseDN)
+	userDN := fmt.Sprintf("cn=%s,%s", ldap.EscapeDN(userData.CommonName), a.provider.usersBaseDN)
 
 	addRequest := ldap.NewAddRequest(userDN, nil)
 
@@ -134,14 +136,6 @@ func (a *ActiveDirectoryUserManagement) AddUser(userData *UserDetailsExtended) (
 	}
 
 	return nil
-}
-
-func (a *ActiveDirectoryUserManagement) ModifyUser(username string, userData *UserDetailsExtended) error {
-	return nil
-}
-
-func (a *ActiveDirectoryUserManagement) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
-	panic("implement me")
 }
 
 //nolint:gocyclo
@@ -370,16 +364,14 @@ func (a *ActiveDirectoryUserManagement) DeleteGroup(groupName string) error {
 		}
 	}()
 
-	groupDN := fmt.Sprintf("%s=%s,%s", a.provider.config.Attributes.GroupName, ldap.EscapeFilter(groupName), a.provider.groupsBaseDN)
-
-	exists, err := a.groupExists(client, groupName)
+	groupDN, err := a.provider.getGroupDN(client, groupName, activeDirectoryGroupObjectClassFilter)
 	if err != nil {
-		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
-	}
+		if errors.Is(err, ErrGroupNotFound) {
+			a.provider.log.Debugf("Group '%s' doesn't exist, nothing to delete", groupName)
+			return ErrGroupNotFound
+		}
 
-	if !exists {
-		a.provider.log.Debugf("Group '%s' doesn't exist, nothing to delete", groupName)
-		return ErrGroupNotFound
+		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
 	}
 
 	deleteRequest := ldap.NewDelRequest(groupDN, nil)
@@ -416,7 +408,7 @@ func (a *ActiveDirectoryUserManagement) ListGroups() ([]string, error) {
 		0,
 		0,
 		false,
-		"(objectClass=group)",
+		activeDirectoryGroupObjectClassFilter,
 		[]string{a.provider.config.Attributes.GroupName},
 		nil,
 	)
@@ -636,10 +628,10 @@ func (a *ActiveDirectoryUserManagement) UpdateUserGroups(username string, groups
 
 // addUserToGroup adds a user to a group.
 func (a *ActiveDirectoryUserManagement) addUserToGroup(client LDAPExtendedClient, groupName, userDN string) error {
-	groupDN := fmt.Sprintf("%s=%s,%s",
-		a.provider.config.Attributes.GroupName,
-		ldap.EscapeFilter(groupName),
-		a.provider.groupsBaseDN)
+	groupDN, err := a.provider.getGroupDN(client, groupName, activeDirectoryGroupObjectClassFilter)
+	if err != nil {
+		return fmt.Errorf("failed to find group '%s': %w", groupName, err)
+	}
 
 	modifyRequest := ldap.NewModifyRequest(groupDN, nil)
 	modifyRequest.Add(a.provider.config.Attributes.GroupMember, []string{userDN})
@@ -653,19 +645,14 @@ func (a *ActiveDirectoryUserManagement) addUserToGroup(client LDAPExtendedClient
 
 // removeUserFromGroup removes a user from a group.
 func (a *ActiveDirectoryUserManagement) removeUserFromGroup(client LDAPExtendedClient, userDN, groupName string) error {
-	groupDN := fmt.Sprintf("%s=%s,%s",
-		a.provider.config.Attributes.GroupName,
-		ldap.EscapeFilter(groupName),
-		a.provider.groupsBaseDN)
-
-	exists, err := a.groupExists(client, groupName)
+	groupDN, err := a.provider.getGroupDN(client, groupName, activeDirectoryGroupObjectClassFilter)
 	if err != nil {
-		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
-	}
+		if errors.Is(err, ErrGroupNotFound) {
+			a.provider.log.Debugf("Group '%s' doesn't exist, nothing to remove", groupName)
+			return nil
+		}
 
-	if !exists {
-		a.provider.log.Debugf("Group '%s' doesn't exist, nothing to remove", groupName)
-		return nil
+		return fmt.Errorf("failed to check if group '%s' exists: %w", groupName, err)
 	}
 
 	isMember, err := a.isUserMemberOfGroup(client, userDN, groupDN)
@@ -745,32 +732,15 @@ func (a *ActiveDirectoryUserManagement) isUserMemberOfGroup(client LDAPExtendedC
 
 // groupExists checks if a group exists in Active Directory.
 func (a *ActiveDirectoryUserManagement) groupExists(client LDAPExtendedClient, groupName string) (bool, error) {
-	groupDN := fmt.Sprintf("%s=%s,%s",
-		a.provider.config.Attributes.GroupName,
-		ldap.EscapeFilter(groupName),
-		a.provider.groupsBaseDN)
-
-	searchRequest := ldap.NewSearchRequest(
-		groupDN,
-		ldap.ScopeBaseObject,
-		ldap.NeverDerefAliases,
-		1, 0, false,
-		"(objectClass=group)",
-		[]string{"dn"},
-		nil,
-	)
-
-	searchResult, err := client.Search(searchRequest)
-	if err != nil {
-		var ldapErr *ldap.Error
-		if errors.As(err, &ldapErr) && ldapErr.ResultCode == ldap.LDAPResultNoSuchObject {
+	if _, err := a.provider.getGroupDN(client, groupName, activeDirectoryGroupObjectClassFilter); err != nil {
+		if errors.Is(err, ErrGroupNotFound) {
 			return false, nil
 		}
 
 		return false, err
 	}
 
-	return len(searchResult.Entries) > 0, nil
+	return true, nil
 }
 
 func (a *ActiveDirectoryUserManagement) GetRequiredAttributes() []string {

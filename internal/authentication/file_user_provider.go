@@ -291,55 +291,6 @@ func (p *FileUserProvider) UpdateUserWithMask(username string, userData *UserDet
 	return p.Management.UpdateUserWithMask(username, userData, updateMask)
 }
 
-// UpdateUser modifies an existing user in the file database. Takes new values via opts.
-func (p *FileUserProvider) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
-	var existingDetails FileUserDatabaseUserDetails
-
-	if existingDetails, err = p.database.GetUserDetails(username); err != nil {
-		return err
-	}
-
-	updatedDetails := FileUserDatabaseUserDetails{
-		Username:    username,
-		DisplayName: existingDetails.DisplayName,
-		Password:    existingDetails.Password,
-		Email:       existingDetails.Email,
-		Groups:      existingDetails.Groups,
-		Disabled:    existingDetails.Disabled,
-	}
-
-	if userData.UserDetails != nil {
-		if userData.DisplayName != "" {
-			updatedDetails.DisplayName = userData.DisplayName
-		}
-
-		if len(userData.Emails) > 0 {
-			updatedDetails.Email = userData.Emails[0]
-		}
-
-		if len(userData.Groups) > 0 {
-			updatedDetails.Groups = userData.Groups
-		}
-	}
-
-	if userData.Password != "" {
-		var digest algorithm.Digest
-		if digest, err = p.hash.Hash(userData.Password); err != nil {
-			return err
-		}
-
-		updatedDetails.Password = schema.NewPasswordDigest(digest)
-	}
-
-	p.database.SetUserDetails(username, &updatedDetails)
-
-	p.mutex.Lock()
-	p.setTimeoutReload(time.Now())
-	p.mutex.Unlock()
-
-	return p.database.Save()
-}
-
 func (p *FileUserProvider) GetRequiredAttributes() []string {
 	if p.Management == nil {
 		return []string{}

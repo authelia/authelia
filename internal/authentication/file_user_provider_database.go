@@ -261,10 +261,11 @@ func (m *FileUserDatabase) DeleteUserDetails(username string) {
 	m.Lock()
 	defer m.Unlock()
 
+	email := strings.ToLower(m.Users[username].Email)
+
 	delete(m.Users, username)
 
 	if m.SearchEmail {
-		email := strings.ToLower(m.Users[username].Email)
 		delete(m.Emails, email)
 	}
 

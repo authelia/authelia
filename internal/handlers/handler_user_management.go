@@ -218,7 +218,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	if err = ctx.Providers.UserProvider.AddUser(userData); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred creating user '%s'", newUserRequest.Username)
 
-		if ldap.IsErrorAnyOf(err, ldap.LDAPResultEntryAlreadyExists, ldap.LDAPResultConstraintViolation) {
+		if ldap.IsErrorAnyOf(err, ldap.LDAPResultEntryAlreadyExists, ldap.LDAPResultConstraintViolation) || errors.Is(err, authentication.ErrUserExists) {
 			ctx.Response.SetStatusCode(fasthttp.StatusConflict)
 			ctx.SetJSONError("User already exists")
 
@@ -370,7 +370,13 @@ func ChangeUserPATCH(ctx *middlewares.AutheliaCtx) {
 			partialUpdate.DisplayName = requestBody.GetDisplayName()
 		case field == "mail":
 			partialUpdate.Emails = requestBody.GetEmails()
-			if !utils.ValidateEmailString(partialUpdate.Emails[0]) {
+
+			var email string
+			if len(partialUpdate.Emails) == 0 {
+				email = partialUpdate.Emails[0]
+			}
+
+			if !utils.ValidateEmailString(email) {
 				ctx.Logger.Debugf("unable to add user '%s': %s", partialUpdate.GetUsername(), messageInvalidEmail)
 				ctx.SetStatusCode(fasthttp.StatusBadRequest)
 				ctx.SetJSONError(fmt.Sprintf("unable to add user '%s': %s", partialUpdate.GetUsername(), messageInvalidEmail))
@@ -713,9 +719,14 @@ func AdminChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	addresses := userInfo.Addresses()
 
+	var email string
+	if len(addresses) != 0 {
+		email = addresses[0].String()
+	}
+
 	ctx.Logger.WithFields(map[string]any{
 		"username": username,
-		"email":    addresses[0].String(),
+		"email":    email,
 	}).
 		Debug("Sending an email to inform user that their password has changed.")
 
@@ -723,7 +734,7 @@ func AdminChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).
 			WithFields(map[string]any{
 				"username": username,
-				"email":    addresses[0].String(),
+				"email":    email,
 			}).
 			Debug("Unable to notify user of password change")
 		ctx.ReplyOK()
@@ -780,9 +791,14 @@ func AdminResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var email string
+	if len(userInfo.Addresses()) != 0 {
+		email = userInfo.Addresses()[0].String()
+	}
+
 	var userIdentity = &session.Identity{
 		Username:    userInfo.Username,
-		Email:       userInfo.Emails[0],
+		Email:       email,
 		DisplayName: userInfo.DisplayName,
 	}
 
