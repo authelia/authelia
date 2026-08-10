@@ -50,6 +50,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 		newConfigCmd(ctx),
 		newConfigValidateLegacyCmd(ctx),
 		newDebugCmd(ctx),
+		newUsersCmd(ctx),
 
 		newHelpTopic("config", "Help for the config file/directory paths", helpTopicConfig),
 		newHelpTopic("filters", "help topic for the config filters", helpTopicConfigFilters),

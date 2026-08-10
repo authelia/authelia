@@ -856,6 +856,14 @@ const (
 	cmdFlagNamePostgreSQLSchema   = "postgres.schema"
 	cmdFlagNamePostgreSQLUsername = "postgres.username"
 	cmdFlagNamePostgreSQLPassword = "postgres.password"
+
+	cmdFlagNameFormat = "format"
+	cmdFlagNameFields = "fields"
+)
+
+const (
+	cmdFlagValueFormatTable = "table"
+	cmdFlagValueFormatJSON  = "json"
 )
 
 const (
