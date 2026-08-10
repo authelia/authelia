@@ -340,6 +340,7 @@ func (c *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
 	c.Transport = strings.Join(o.Transports, ",")
 	c.SignCount = o.SignCount
 	c.CloneWarning = o.CloneWarning
+	c.Legacy = o.Legacy
 	c.Discoverable = o.Discoverable
 	c.Present = o.Present
 	c.Verified = o.Verified
