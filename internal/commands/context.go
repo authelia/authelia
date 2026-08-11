@@ -279,7 +279,7 @@ func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
 	}
 
 	ctx.log.WithFields(map[string]any{"filters": ctx.cconfig.filters, "files": ctx.cconfig.files}).Debug("Loaded Configuration Sources")
-	ctx.log.WithFields(map[string]any{"level": ctx.config.Log.Level, "format": ctx.config.Log.Format, "file": ctx.config.Log.FilePath, "keep_stdout": ctx.config.Log.KeepStdout}).Debug("Logging Initialized")
+	ctx.log.WithFields(map[string]any{"level": ctx.config.Log.Level, "format": ctx.config.Log.Format, "disable_timestamp": ctx.config.Log.DisableTimestamp, "file": ctx.config.Log.FilePath, "keep_stdout": ctx.config.Log.KeepStdout}).Debug("Logging Initialized")
 
 	return nil
 }

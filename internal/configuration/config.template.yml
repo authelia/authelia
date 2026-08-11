@@ -126,6 +126,9 @@
   ## Format the logs are written as: json, text.
   # format: 'json'
 
+  ## Whether to omit the timestamp from each log entry, useful when the log destination records its own.
+  # disable_timestamp: false
+
   ## File path where the logs will be written. If not set logs are written to stdout.
   # file_path: '/config/authelia.log'
 

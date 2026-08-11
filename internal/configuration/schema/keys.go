@@ -280,6 +280,7 @@ var Keys = []string{
 	"identity_validation.reset_password.jwt_algorithm",
 	"identity_validation.reset_password.jwt_lifespan",
 	"identity_validation.reset_password.jwt_secret",
+	"log.disable_timestamp",
 	"log.file_path",
 	"log.format",
 	"log.keep_stdout",

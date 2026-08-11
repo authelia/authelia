@@ -109,6 +109,43 @@ func TestShouldFormatLogsAsJSON(t *testing.T) {
 	assert.Contains(t, string(b), "{\"level\":\"info\",\"msg\":\"This is a test\",")
 }
 
+func TestShouldNotFormatLogsWithTimestamp(t *testing.T) {
+	dir := t.TempDir()
+
+	path := fmt.Sprintf("%s/authelia.log", dir)
+	err := InitializeLogger(schema.Log{Format: "text", FilePath: path, DisableTimestamp: true}, false)
+	require.NoError(t, err)
+
+	Logger().Info("This is a test")
+
+	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	require.NoError(t, err)
+
+	b, err := io.ReadAll(f)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(b), "level=info msg=\"This is a test\"\n")
+	assert.NotContains(t, string(b), "time=")
+}
+
+func TestShouldNotFormatLogsAsJSONWithTimestamp(t *testing.T) {
+	dir := t.TempDir()
+
+	path := fmt.Sprintf("%s/authelia.log", dir)
+	err := InitializeLogger(schema.Log{Format: "json", FilePath: path, DisableTimestamp: true}, false)
+	require.NoError(t, err)
+
+	Logger().Info("This is a test")
+
+	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	require.NoError(t, err)
+
+	b, err := io.ReadAll(f)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(b), "{\"level\":\"info\",\"msg\":\"This is a test\"}\n")
+}
+
 func TestShouldRaiseErrorOnInvalidFile(t *testing.T) {
 	err := InitializeLogger(schema.Log{FilePath: "/not/a/valid/path/to.log"}, false)
 

@@ -2857,6 +2857,12 @@
           "title": "Format",
           "description": "The Format of Log messages."
         },
+        "disable_timestamp": {
+          "type": "boolean",
+          "title": "Disable Timestamp",
+          "description": "Disables the timestamp in Log messages.",
+          "default": false
+        },
         "file_path": {
           "type": "string",
           "title": "File Path",
