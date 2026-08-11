@@ -43,6 +43,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDevicePostgreSQL, tableDuoDevices)
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
+	provider.sqlSelectUserInfo = provider.db.Rebind(provider.sqlSelectUserInfo)
 	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValuePostgreSQL, tableEncryption)
 	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
@@ -181,6 +182,19 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSession)
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
+
+	provider.sqlInsertUserMetadata = provider.db.Rebind(provider.sqlInsertUserMetadata)
+	provider.sqlInsertNewUserMetadata = provider.db.Rebind(provider.sqlInsertNewUserMetadata)
+	provider.sqlInsertExistingUserAtLoginMetadata = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginMetadata)
+	provider.sqlInsertExistingUserAtPasswordChangeMetadata = provider.db.Rebind(provider.sqlInsertExistingUserAtPasswordChangeMetadata)
+	provider.sqlSelectUserMetadata = provider.db.Rebind(provider.sqlSelectUserMetadata)
+	provider.sqlSelectMultipleUserMetadataByUsername = provider.db.Rebind(provider.sqlSelectMultipleUserMetadataByUsername)
+	provider.sqlSelectUserMetadataByUsername = provider.db.Rebind(provider.sqlSelectUserMetadataByUsername)
+	provider.sqlSelectAllUserInfoAndMetadata = provider.db.Rebind(provider.sqlSelectAllUserInfoAndMetadata)
+	provider.sqlDeleteUserMetadataByUsername = provider.db.Rebind(provider.sqlDeleteUserMetadataByUsername)
+	provider.sqlUpdateUserRecordPasswordChangedAtByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordPasswordChangedAtByUsername)
+	provider.sqlUpdateUserRecordRequirePasswordChangedByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordRequirePasswordChangedByUsername)
+	provider.sqlUpdateUserRecordSignInByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordSignInByUsername)
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 

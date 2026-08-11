@@ -17,7 +17,7 @@ import (
 
 const (
 	// This is the latest schema version for the purpose of tests.
-	LatestVersion = 25
+	LatestVersion = 26
 )
 
 func TestShouldObtainCorrectMigrations(t *testing.T) {

@@ -80,6 +80,8 @@ const (
 
 	// LDAPImplementationGLAuth is the string for the GLAuth LDAP implementation.
 	LDAPImplementationGLAuth = "glauth"
+
+	FileImplementation = "file"
 )
 
 const (
@@ -177,6 +179,7 @@ const (
 	ldapAttrDescription       = "description"
 	ldapAttrCommonName        = "cn"
 	ldapAttrMemberOf          = "memberOf"
+	ldapAttrGroupMember       = "member"
 )
 
 // Address Schemes.

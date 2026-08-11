@@ -315,3 +315,50 @@ func StringHasSuffixFold(s, suffix string) bool {
 func StringHasPrefixFold(s, prefix string) bool {
 	return len(s) >= len(prefix) && strings.EqualFold(s[:len(prefix)], prefix)
 }
+
+// IsEmptyValue checks if a value is considered empty (nil, empty string, empty slice, etc.).
+func IsEmptyValue(value interface{}) bool {
+	if value == nil {
+		return true
+	}
+
+	switch v := value.(type) {
+	case string:
+		return v == ""
+	case []string:
+		return len(v) == 0
+	default:
+		return false
+	}
+}
+
+// StripEmpty removes keys from a map whose values are nil, empty strings, empty slices, or empty maps.
+func StripEmpty(m map[string]any) map[string]any {
+	out := make(map[string]any, len(m))
+
+	for k, v := range m {
+		switch val := v.(type) {
+		case nil:
+			continue
+		case string:
+			if val == "" {
+				continue
+			}
+		case []any:
+			if len(val) == 0 {
+				continue
+			}
+		case map[string]any:
+			cleaned := StripEmpty(val)
+			if len(cleaned) == 0 {
+				continue
+			}
+
+			v = cleaned
+		}
+
+		out[k] = v
+	}
+
+	return out
+}

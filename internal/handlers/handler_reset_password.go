@@ -220,6 +220,14 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.GetLogger().Debugf("Sending an email to user %s (%s) to inform that the password has changed.",
 		username, addresses[0].String())
 
+	if err = ctx.Providers.StorageProvider.UpdatePasswordChangedDateByUsername(ctx, userInfo.Username); err != nil {
+		ctx.Logger.Error(err)
+	}
+
+	if err = ctx.Providers.StorageProvider.UpdatePasswordChangedDateByUsername(ctx, userInfo.Username); err != nil {
+		ctx.Logger.Error(err)
+	}
+
 	if err = ctx.Providers.Notifier.Send(ctx, addresses[0], "Password changed successfully", ctx.Providers.Templates.GetEventEmailTemplate(), data); err != nil {
 		ctx.GetLogger().Error(err)
 		ctx.ReplyOK()

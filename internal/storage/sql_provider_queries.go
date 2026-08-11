@@ -34,8 +34,21 @@ const (
 )
 
 const (
-	queryFmtSelectUserInfo = `
-		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_webauthn, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
+	queryFmtSelectAllUserInfo = `
+	SELECT
+		u.username,
+		u.second_factor_method,
+		EXISTS (SELECT id FROM %s WHERE username = u.username) AS has_totp,
+		EXISTS (SELECT id FROM %s WHERE username = u.username) AS has_webauthn,
+		EXISTS (SELECT id FROM %s WHERE username = u.username) AS has_duo
+	FROM %s u;`
+
+	queryFmtSelectUserInfoByUsername = `
+		SELECT
+			second_factor_method,
+		   (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp,
+		   (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_webauthn,
+		   (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
 		FROM %s
 		WHERE username = ?;`
 
@@ -396,6 +409,67 @@ const (
 		UPDATE %s
 		SET value = ?
 		WHERE id = ?;`
+)
+
+//nolint:gosec // The following queries are not hard coded credentials.
+const (
+	queryFmtInsertUserMetadata = `
+	INSERT INTO %s (username)
+	VALUES (?);`
+
+	queryFmtInsertNewUserMetadata = `
+	INSERT INTO %s (username, user_created_at)
+	VALUES (?, ?);`
+
+	queryFmtInsertNewUserAtLoginMetadata = `
+	INSERT INTO %s (username, last_logged_in)
+	VALUES (?, ?);`
+
+	queryFmtInsertExistingUserAtPasswordChangeMetadata = `
+	INSERT INTO %s (username, last_password_change)
+	VALUES (?, ?);`
+
+	queryFmtSelectUserMetadata = `
+	SELECT username, last_logged_in, last_password_change, user_created_at
+	FROM %s
+	ORDER BY id ASC;`
+
+	queryFmtSelectMultipleUserMetadataByUsername = `
+	SELECT username, last_logged_in, last_password_change, user_created_at
+	FROM %s
+	WHERE username IN (?);`
+
+	queryFmtSelectUserByUsername = `
+	SELECT username, last_logged_in, last_password_change, user_created_at
+	FROM %s
+	WHERE username = ?;`
+
+	queryFmtSelectAllUserInfoAndMetadata = `
+	SELECT
+		COALESCE(preferences.username, metadata.username) as username,
+		COALESCE(preferences.second_factor_method, '') as second_factor_method,
+		metadata.last_logged_in AS last_logged_in,
+		metadata.last_password_change AS last_password_change,
+		metadata.user_created_at AS user_created_at,
+		EXISTS (SELECT id FROM %s WHERE username = COALESCE(preferences.username, metadata.username)) AS has_totp,
+		EXISTS (SELECT id FROM %s WHERE username = COALESCE(preferences.username, metadata.username)) AS has_webauthn,
+		EXISTS (SELECT id FROM %s WHERE username = COALESCE(preferences.username, metadata.username)) AS has_duo
+	FROM %s metadata
+	LEFT JOIN %s preferences ON metadata.username = preferences.username;`
+
+	queryFmtUpdateUserRecordSignInByUsername = `
+	UPDATE %s
+	SET last_logged_in = ?
+	WHERE username = ?;`
+
+	queryFmtDeleteUserMetadataByUsername = `
+	DELETE FROM %s
+	WHERE username = ?;`
+
+	queryFmtUpdateUserRecordPasswordChangedAtByUsername = `
+	UPDATE %s
+	SET last_password_change = ?
+	WHERE username = ?`
 )
 
 const (

@@ -11,8 +11,99 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
+
+func MintTokenAndSendPasswordResetEmail(ctx *AutheliaCtx, args IdentityVerificationStartArgs, identity *session.Identity) (success bool, err error) {
+	jti, err := uuid.NewRandom()
+	if err != nil {
+		return false, err
+	}
+
+	var issuerURL *url.URL
+
+	if issuerURL, err = ctx.IssuerURL(); err != nil {
+		return false, err
+	}
+
+	verification := model.NewIdentityVerification(jti, identity.Username, args.ActionClaim, ctx.RemoteIP(), ctx.Configuration.IdentityValidation.ResetPassword.JWTExpiration)
+
+	// Create the claim with the action to sign it.
+	claims := verification.ToIdentityVerificationClaim(issuerURL)
+
+	var method *jwt.SigningMethodHMAC
+
+	switch ctx.Configuration.IdentityValidation.ResetPassword.JWTAlgorithm {
+	case "HS256":
+		method = jwt.SigningMethodHS256
+	case "HS384":
+		method = jwt.SigningMethodHS384
+	case "HS512":
+		method = jwt.SigningMethodHS512
+	default:
+		method = jwt.SigningMethodHS256
+	}
+
+	token := jwt.NewWithClaims(method, claims)
+
+	signedToken, err := token.SignedString([]byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret))
+	if err != nil {
+		return false, err
+	}
+
+	if err = ctx.Providers.StorageProvider.SaveIdentityVerification(ctx, verification); err != nil {
+		return false, err
+	}
+
+	linkURL := &url.URL{
+		Scheme: issuerURL.Scheme,
+		Host:   issuerURL.Host,
+		Path:   issuerURL.Path,
+	}
+
+	query := linkURL.Query()
+
+	query.Set(queryArgToken, signedToken)
+
+	linkURL.RawQuery = query.Encode()
+	linkURL = linkURL.JoinPath(args.TargetEndpoint)
+
+	revocationLinkURL := &url.URL{
+		Scheme: issuerURL.Scheme,
+		Host:   issuerURL.Host,
+		Path:   issuerURL.Path,
+	}
+
+	query = revocationLinkURL.Query()
+
+	query.Set(queryArgToken, signedToken)
+
+	revocationLinkURL.RawQuery = query.Encode()
+	revocationLinkURL = revocationLinkURL.JoinPath(args.RevokeEndpoint)
+
+	domain, _ := ctx.GetCookieDomain()
+
+	data := templates.EmailIdentityVerificationJWTValues{
+		Title:              args.MailTitle,
+		LinkURL:            linkURL.String(),
+		LinkText:           args.MailButtonContent,
+		RevocationLinkURL:  revocationLinkURL.String(),
+		RevocationLinkText: args.MailButtonRevokeContent,
+		DisplayName:        identity.DisplayName,
+		Domain:             domain,
+		RemoteIP:           ctx.RemoteIP().String(),
+	}
+
+	ctx.GetLogger().Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
+		identity.Username, identity.Email)
+
+	if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationJWTEmailTemplate(), data); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
 
 // IdentityVerificationStart the handler for initiating the identity validation process.
 func IdentityVerificationStart(args IdentityVerificationStartArgs, delayer Delayer) RequestHandler {
@@ -21,15 +112,6 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayer Delay
 	}
 
 	return func(ctx *AutheliaCtx) {
-		var (
-			issuerURL *url.URL
-			err       error
-		)
-		if issuerURL, err = ctx.IssuerURL(); err != nil {
-			ctx.Error(err, messageOperationFailed)
-			return
-		}
-
 		requestTime := time.Now()
 		success := false
 
@@ -40,98 +122,26 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayer Delay
 		identity, err := args.IdentityRetrieverFunc(ctx)
 		if err != nil {
 			// In that case we reply ok to avoid user enumeration.
-			ctx.GetLogger().Error(err)
+			ctx.Logger.Error(err)
 			ctx.ReplyOK()
 
 			return
 		}
 
-		var jti uuid.UUID
-
-		if jti, err = uuid.NewRandom(); err != nil {
-			ctx.Error(err, messageOperationFailed)
-			return
-		}
-
-		verification := model.NewIdentityVerification(jti, identity.Username, args.ActionClaim, ctx.RemoteIP(), ctx.Configuration.IdentityValidation.ResetPassword.JWTExpiration)
-
-		// Create the claim with the action to sign it.
-		claims := verification.ToIdentityVerificationClaim(issuerURL)
-
-		var method *jwt.SigningMethodHMAC
-
-		switch ctx.Configuration.IdentityValidation.ResetPassword.JWTAlgorithm {
-		case "HS256":
-			method = jwt.SigningMethodHS256
-		case "HS384":
-			method = jwt.SigningMethodHS384
-		case "HS512":
-			method = jwt.SigningMethodHS512
-		default:
-			method = jwt.SigningMethodHS256
-		}
-
-		token := jwt.NewWithClaims(method, claims)
-
-		signedToken, err := token.SignedString([]byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret))
+		success, err = MintTokenAndSendPasswordResetEmail(ctx, args, identity)
 		if err != nil {
-			ctx.Error(err, messageOperationFailed)
+			ctx.Logger.Error(err)
+			ctx.ReplyOK()
+
 			return
 		}
 
-		if err = ctx.Providers.StorageProvider.SaveIdentityVerification(ctx, verification); err != nil {
-			ctx.Error(err, messageOperationFailed)
+		if !success {
+			ctx.Logger.Errorf("Identity verification failed for user '%s'.", identity.Username)
+			ctx.ReplyOK()
+
 			return
 		}
-
-		linkURL := &url.URL{
-			Scheme: issuerURL.Scheme,
-			Host:   issuerURL.Host,
-			Path:   issuerURL.Path,
-		}
-
-		query := linkURL.Query()
-
-		query.Set(queryArgToken, signedToken)
-
-		linkURL.RawQuery = query.Encode()
-		linkURL = linkURL.JoinPath(args.TargetEndpoint)
-
-		revocationLinkURL := &url.URL{
-			Scheme: issuerURL.Scheme,
-			Host:   issuerURL.Host,
-			Path:   issuerURL.Path,
-		}
-
-		query = revocationLinkURL.Query()
-
-		query.Set(queryArgToken, signedToken)
-
-		revocationLinkURL.RawQuery = query.Encode()
-		revocationLinkURL = revocationLinkURL.JoinPath(args.RevokeEndpoint)
-
-		domain, _ := ctx.GetCookieDomain()
-
-		data := templates.EmailIdentityVerificationJWTValues{
-			Title:              args.MailTitle,
-			LinkURL:            linkURL.String(),
-			LinkText:           args.MailButtonContent,
-			RevocationLinkURL:  revocationLinkURL.String(),
-			RevocationLinkText: args.MailButtonRevokeContent,
-			DisplayName:        identity.DisplayName,
-			Domain:             domain,
-			RemoteIP:           ctx.RemoteIP().String(),
-		}
-
-		ctx.GetLogger().Debugf("Sending an email to user %s (%s) to confirm identity for registering a device.",
-			identity.Username, identity.Email)
-
-		if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), args.MailTitle, ctx.Providers.Templates.GetIdentityVerificationJWTEmailTemplate(), data); err != nil {
-			ctx.Error(err, messageOperationFailed)
-			return
-		}
-
-		success = true
 
 		ctx.ReplyOK()
 	}
