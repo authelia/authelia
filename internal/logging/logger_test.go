@@ -121,6 +121,8 @@ func TestShouldNotFormatLogsWithTimestamp(t *testing.T) {
 	f, err := os.OpenFile(path, os.O_RDONLY, 0)
 	require.NoError(t, err)
 
+	defer f.Close()
+
 	b, err := io.ReadAll(f)
 	require.NoError(t, err)
 
@@ -139,6 +141,8 @@ func TestShouldNotFormatLogsAsJSONWithTimestamp(t *testing.T) {
 
 	f, err := os.OpenFile(path, os.O_RDONLY, 0)
 	require.NoError(t, err)
+
+	defer f.Close()
 
 	b, err := io.ReadAll(f)
 	require.NoError(t, err)
