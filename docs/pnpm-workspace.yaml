@@ -9,6 +9,7 @@ overrides:
   adm-zip: 0.6.0
   brace-expansion: 5.0.9
   js-yaml: 5.2.3
+  nanoid: 6.0.1
   picomatch: 4.0.5
   semver: 7.8.5
   tar: 7.5.22
