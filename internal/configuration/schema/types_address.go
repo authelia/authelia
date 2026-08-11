@@ -325,6 +325,16 @@ func (a *Address) String() string {
 	return a.url.String()
 }
 
+// MarshalYAML marshals the Address into its string representation.
+func (a Address) MarshalYAML() (value any, err error) {
+	return a.String(), nil
+}
+
+// MarshalText marshals the Address into its string representation.
+func (a Address) MarshalText() (text []byte, err error) {
+	return []byte(a.String()), nil
+}
+
 // Scheme returns the *url.URL Scheme field.
 func (a *Address) Scheme() string {
 	if !a.valid || a.url == nil {
