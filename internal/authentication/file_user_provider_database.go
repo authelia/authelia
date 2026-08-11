@@ -51,7 +51,7 @@ type FileUserDatabase struct {
 	SearchEmail bool `json:"-"`
 	SearchCI    bool `json:"-"`
 
-	Extra map[string]expression.ExtraAttribute
+	Extra map[string]expression.ExtraAttribute `json:"-"`
 }
 
 // Save the database to disk.
@@ -301,6 +301,7 @@ func (m FileUserDatabaseUserDetails) ToExtendedUserDetails() (details *UserDetai
 func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUserDetailsModel) {
 	model = FileDatabaseUserDetailsModel{
 		Password:       m.Password.Encode(),
+		Disabled:       m.Disabled,
 		DisplayName:    m.DisplayName,
 		GivenName:      m.GivenName,
 		MiddleName:     m.MiddleName,

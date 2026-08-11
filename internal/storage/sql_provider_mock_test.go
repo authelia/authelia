@@ -1700,7 +1700,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 					gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 				).Return(nil, errors.New("boom"))
 			},
@@ -2376,7 +2376,7 @@ func TestSQLProviderSaveWebAuthnCredentialAttestation(t *testing.T) {
 			gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		).Return(nil, errors.New("boom"))
 

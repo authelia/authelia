@@ -194,7 +194,7 @@ type AuthenticationBackendLDAPAttributes struct {
 type AuthenticationBackendLDAPAttributesAttribute struct {
 	Name string `koanf:"name" yaml:"name,omitempty" toml:"name,omitempty" json:"name,omitempty" jsonschema:"title=Name" jsonschema_description:"The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."`
 
-	AuthenticationBackendExtraAttribute `koanf:",squash"`
+	AuthenticationBackendExtraAttribute `koanf:",squash" yaml:",inline"`
 }
 
 // DefaultPasswordConfig represents the default configuration related to Argon2id hashing.
