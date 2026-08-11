@@ -746,7 +746,7 @@ func (p *SQLProvider) SaveWebAuthnCredential(ctx context.Context, credential mod
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertWebAuthnCredential,
 		credential.CreatedAt, credential.LastUsedAt, credential.RPID, credential.Username, credential.Description,
 		credential.KID, credential.AAGUID, credential.AttestationType, credential.AttestationFormat, credential.Attachment, credential.Transport,
-		credential.SignCount, credential.CloneWarning, credential.Discoverable, credential.Present, credential.Verified,
+		credential.SignCount, credential.CloneWarning, credential.Legacy, credential.Discoverable, credential.Present, credential.Verified,
 		credential.BackupEligible, credential.BackupState, credential.PublicKey, credential.Attestation,
 	); err != nil {
 		return fmt.Errorf("error inserting WebAuthn credential for user '%s' kid '%x': %w", credential.Username, credential.KID, err)

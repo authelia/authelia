@@ -14,9 +14,6 @@
           "type": "object",
           "title": "Users",
           "description": "The dictionary of users."
-        },
-        "Extra": {
-          "type": "object"
         }
       },
       "additionalProperties": false,
