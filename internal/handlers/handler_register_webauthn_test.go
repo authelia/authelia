@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -399,6 +400,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
@@ -456,6 +458,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
@@ -515,6 +518,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
@@ -570,6 +574,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
 						CredParams:       webauthn.CredentialParametersExtendedL3(),
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
 					},
 				}
 
@@ -864,7 +869,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error comparing the response to the WebAuthn session data", "Error validating the authenticator response (verification_error): RP Hash mismatch. Expected 0c6ca0839c3a5683557833f618a2556665df2a088964787d53850b4ad4d3bedc and Received a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d2125586ce1947")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error comparing the response to the WebAuthn session data", "Error validating the authenticator response (verification_error): RP Hash mismatch. Expected a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d2125586ce1947 and Received 0c6ca0839c3a5683557833f618a2556665df2a088964787d53850b4ad4d3bedc")
 			},
 		},
 	}

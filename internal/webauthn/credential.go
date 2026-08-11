@@ -1,6 +1,7 @@
 package webauthn
 
 import (
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -22,7 +23,7 @@ func VerifyCredential(config *schema.WebAuthn, credential *model.WebAuthnCredent
 	if len(credential.Attestation) == 0 {
 		result.MissingStatement = true
 	} else if c != nil && mds != nil {
-		if err = c.Verify(mds); err != nil {
+		if err = c.Verify(mds, protocol.AttestationPolicy{AndroidKey: protocol.AndroidKeyPolicy{AuthorizationScope: protocol.AndroidKeyAuthorizationScopeTEEEnforced}, Compound: protocol.CompoundPolicy{SubStatementScope: protocol.CompoundSubStatementScopeAny}}, protocol.SignaturePolicy{ECDSAEncoding: protocol.ECDSASignatureEncodingDER}); err != nil {
 			result.ErrorMetadataValidation = err
 			result.MetaDataValidationError = true
 		}

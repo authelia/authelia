@@ -96,7 +96,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 
 	opts := []webauthn.RegistrationOption{
 		webauthn.WithExclusions(user.WebAuthnCredentialDescriptors()),
-		webauthn.WithExtensions(map[string]any{"credProps": true}),
+		webauthn.WithExtensions(webauthn.WithExtensionCredProps()),
 	}
 
 	data := session.WebAuthn{
@@ -219,7 +219,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 
 	credential := model.NewWebAuthnCredential(ctx, w.Config.RPID, userSession.Username, userSession.WebAuthn.Description, c)
 
-	credential.Discoverable = iwebauthn.IsCredentialCreationDiscoverable(ctx.Logger, response)
+	credential.Discoverable = iwebauthn.IsCredentialCreationDiscoverable(response)
 
 	if err = iwebauthn.ValidateCredentialAllowed(&ctx.Configuration.WebAuthn, &credential); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred processing the credential filtering", userSession.Username)

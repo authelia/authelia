@@ -6,12 +6,9 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/webauthn"
 )
@@ -21,89 +18,54 @@ func TestIsCredentialCreationDiscoverable(t *testing.T) {
 		name     string
 		have     *protocol.ParsedCredentialCreationData
 		expected bool
-		message  string
 	}{
 		{
 			"ShouldHandleNormativeCase",
 			&protocol.ParsedCredentialCreationData{
 				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						webauthn.ExtensionCredProps: map[string]any{
-							webauthn.ExtensionCredPropsResidentKey: true,
-						},
+					ClientExtensionResults: protocol.AuthenticationExtensionsClientOutputs{
+						CredProps: &protocol.CredentialPropertiesOutput{RK: ptr(true)},
 					},
 				},
 			},
 			true,
-			"Determined Credential Discoverability via Client Extension Results",
 		},
 		{
-			"ShouldReturnFalseWrongType",
+			"ShouldReturnFalseResidentKeyFalse",
 			&protocol.ParsedCredentialCreationData{
 				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						webauthn.ExtensionCredProps: map[string]any{
-							webauthn.ExtensionCredPropsResidentKey: 1,
-						},
+					ClientExtensionResults: protocol.AuthenticationExtensionsClientOutputs{
+						CredProps: &protocol.CredentialPropertiesOutput{RK: ptr(false)},
 					},
 				},
 			},
 			false,
-			"Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension in the Client Extension Results was not a boolean",
 		},
 		{
-			"ShouldReturnFalseNoKey",
+			"ShouldReturnFalseResidentKeyNotSet",
 			&protocol.ParsedCredentialCreationData{
 				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						webauthn.ExtensionCredProps: map[string]any{},
+					ClientExtensionResults: protocol.AuthenticationExtensionsClientOutputs{
+						CredProps: &protocol.CredentialPropertiesOutput{},
 					},
 				},
 			},
 			false,
-			"Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension was missing from the Client Extension Results",
-		},
-		{
-			"ShouldReturnFalsePropsWrongType",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						webauthn.ExtensionCredProps: []string{},
-					},
-				},
-			},
-			false,
-			"Assuming Credential Discoverability is false as the 'credProps' extension in the Client Extension Results does not appear to be a dictionary",
 		},
 		{
 			"ShouldReturnFalsePropsNotSet",
 			&protocol.ParsedCredentialCreationData{
 				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{},
+					ClientExtensionResults: protocol.AuthenticationExtensionsClientOutputs{},
 				},
 			},
 			false,
-			"Assuming Credential Discoverability is false as the 'credProps' extension is missing from the Client Extension Results",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ctx := mocks.NewMockAutheliaCtx(t)
-			defer ctx.Close()
-
-			ctx.SetLogLevel(logrus.TraceLevel)
-
-			actual := webauthn.IsCredentialCreationDiscoverable(ctx.Ctx.Logger, tc.have)
-
-			assert.Equal(t, tc.expected, actual)
-
-			if tc.message != "" {
-				entry := ctx.Hook.LastEntry()
-
-				require.NotNil(t, entry)
-				assert.Equal(t, tc.message, entry.Message)
-			}
+			assert.Equal(t, tc.expected, webauthn.IsCredentialCreationDiscoverable(tc.have))
 		})
 	}
 }
@@ -227,4 +189,8 @@ func TestFormatError(t *testing.T) {
 			assert.EqualError(t, webauthn.FormatError(tc.have), tc.expected)
 		})
 	}
+}
+
+func ptr[T any](in T) *T {
+	return &in
 }
