@@ -31,32 +31,32 @@ import (
 
 func TestStringToMailAddressHookFunc(t *testing.T) {
 	testCases := []struct {
-		desc   string
+		name   string
 		have   any
 		want   any
 		err    string
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeMailAddress",
+			name:   "ShouldDecodeMailAddress",
 			have:   "james@example.com",
 			want:   mail.Address{Name: "", Address: "james@example.com"},
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeMailAddressWithName",
+			name:   "ShouldDecodeMailAddressWithName",
 			have:   "James <james@example.com>",
 			want:   mail.Address{Name: "James", Address: "james@example.com"},
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeMailAddressWithEmptyString",
+			name:   "ShouldDecodeMailAddressWithEmptyString",
 			have:   "",
 			want:   mail.Address{},
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeInvalidMailAddress",
+			name:   "ShouldNotDecodeInvalidMailAddress",
 			have:   "fred",
 			want:   mail.Address{},
 			err:    "could not decode 'fred' to a mail.Address (RFC5322): mail: missing '@' or angle-addr",
@@ -67,7 +67,7 @@ func TestStringToMailAddressHookFunc(t *testing.T) {
 	hook := configuration.StringToMailAddressHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -87,39 +87,39 @@ func TestStringToMailAddressHookFunc(t *testing.T) {
 
 func TestStringToMailAddressHookFuncPointer(t *testing.T) {
 	testCases := []struct {
-		desc   string
+		name   string
 		have   any
 		want   any
 		err    string
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeMailAddress",
+			name:   "ShouldDecodeMailAddress",
 			have:   "james@example.com",
 			want:   &mail.Address{Name: "", Address: "james@example.com"},
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeMailAddressWithName",
+			name:   "ShouldDecodeMailAddressWithName",
 			have:   "James <james@example.com>",
 			want:   &mail.Address{Name: "James", Address: "james@example.com"},
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeMailAddressWithEmptyString",
+			name:   "ShouldDecodeMailAddressWithEmptyString",
 			have:   "",
 			want:   (*mail.Address)(nil),
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeInvalidMailAddress",
+			name:   "ShouldNotDecodeInvalidMailAddress",
 			have:   "fred",
 			want:   &mail.Address{},
 			err:    "could not decode 'fred' to a *mail.Address (RFC5322): mail: missing '@' or angle-addr",
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeToInt",
+			name:   "ShouldNotDecodeToInt",
 			have:   "fred",
 			want:   ptr(4),
 			decode: false,
@@ -129,7 +129,7 @@ func TestStringToMailAddressHookFuncPointer(t *testing.T) {
 	hook := configuration.StringToMailAddressHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -149,50 +149,50 @@ func TestStringToMailAddressHookFuncPointer(t *testing.T) {
 
 func TestStringToURLHookFunc(t *testing.T) {
 	testCases := []struct {
-		desc   string
+		name   string
 		have   any
 		want   any
 		err    string
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeURL",
+			name:   "ShouldDecodeURL",
 			have:   "https://www.example.com:9090/abc?test=true",
 			want:   url.URL{Scheme: "https", Host: "www.example.com:9090", Path: "/abc", RawQuery: "test=true"},
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeURLEmptyString",
+			name:   "ShouldDecodeURLEmptyString",
 			have:   "",
 			want:   url.URL{},
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeToString",
+			name:   "ShouldNotDecodeToString",
 			have:   "abc",
 			want:   "",
 			decode: false,
 		},
 		{
-			desc:   "ShouldDecodeURLWithUserAndPassword",
+			name:   "ShouldDecodeURLWithUserAndPassword",
 			have:   "https://john:abc123@www.example.com:9090/abc?test=true",
 			want:   url.URL{Scheme: "https", Host: "www.example.com:9090", Path: "/abc", RawQuery: "test=true", User: url.UserPassword("john", "abc123")},
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeInt",
+			name:   "ShouldNotDecodeInt",
 			have:   5,
 			want:   url.URL{},
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeBool",
+			name:   "ShouldNotDecodeBool",
 			have:   true,
 			want:   url.URL{},
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeBadURL",
+			name:   "ShouldNotDecodeBadURL",
 			have:   "*(!&@#(!*^$%",
 			want:   url.URL{},
 			err:    "could not decode '*(!&@#(!*^$%' to a url.URL: parse \"*(!&@#(!*^$%\": invalid URL escape \"%\"",
@@ -203,7 +203,7 @@ func TestStringToURLHookFunc(t *testing.T) {
 	hook := configuration.StringToURLHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -223,51 +223,51 @@ func TestStringToURLHookFunc(t *testing.T) {
 
 func TestStringToURLHookFuncPointer(t *testing.T) {
 	testCases := []struct {
-		desc   string
+		name   string
 		have   any
 		want   any
 		err    string
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeURL",
+			name:   "ShouldDecodeURL",
 			have:   "https://www.example.com:9090/abc?test=true",
 			want:   &url.URL{Scheme: "https", Host: "www.example.com:9090", Path: "/abc", RawQuery: "test=true"},
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeURLEmptyString",
+			name:   "ShouldDecodeURLEmptyString",
 			have:   "",
 			want:   (*url.URL)(nil),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeURLWithUserAndPassword",
+			name:   "ShouldDecodeURLWithUserAndPassword",
 			have:   "https://john:abc123@www.example.com:9090/abc?test=true",
 			want:   &url.URL{Scheme: "https", Host: "www.example.com:9090", Path: "/abc", RawQuery: "test=true", User: url.UserPassword("john", "abc123")},
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeInt",
+			name:   "ShouldNotDecodeInt",
 			have:   5,
 			want:   &url.URL{},
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeBool",
+			name:   "ShouldNotDecodeBool",
 			have:   true,
 			want:   &url.URL{},
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeBadURL",
+			name:   "ShouldNotDecodeBadURL",
 			have:   "*(!&@#(!*^$%",
 			want:   &url.URL{},
 			err:    "could not decode '*(!&@#(!*^$%' to a *url.URL: parse \"*(!&@#(!*^$%\": invalid URL escape \"%\"",
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeToInt",
+			name:   "ShouldNotDecodeToInt",
 			have:   "fred",
 			want:   ptr(4),
 			decode: false,
@@ -277,7 +277,7 @@ func TestStringToURLHookFuncPointer(t *testing.T) {
 	hook := configuration.StringToURLHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -297,129 +297,129 @@ func TestStringToURLHookFuncPointer(t *testing.T) {
 
 func TestToTimeDurationHookFunc(t *testing.T) {
 	testCases := []struct {
-		desc   string
+		name   string
 		have   any
 		want   any
 		err    string
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFortyFiveSeconds",
+			name:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   time.Second * 45,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeOneMinute",
+			name:   "ShouldDecodeOneMinute",
 			have:   "1m",
 			want:   time.Minute,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeTwoHours",
+			name:   "ShouldDecodeTwoHours",
 			have:   "2h",
 			want:   time.Hour * 2,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeThreeDays",
+			name:   "ShouldDecodeThreeDays",
 			have:   "3d",
 			want:   time.Hour * 24 * 3,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFourWeeks",
+			name:   "ShouldDecodeFourWeeks",
 			have:   "4w",
 			want:   time.Hour * 24 * 7 * 4,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFiveMonths",
+			name:   "ShouldDecodeFiveMonths",
 			have:   "5M",
 			want:   time.Hour * 24 * 30 * 5,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeSixYears",
+			name:   "ShouldDecodeSixYears",
 			have:   "6y",
 			want:   time.Hour * 24 * 365 * 6,
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeInvalidString",
+			name:   "ShouldNotDecodeInvalidString",
 			have:   "abc",
 			want:   time.Duration(0),
 			err:    "could not decode 'abc' to a time.Duration: could not parse 'abc' as a duration",
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeIntToSeconds",
+			name:   "ShouldDecodeIntToSeconds",
 			have:   60,
 			want:   time.Second * 60,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt8ToSeconds",
+			name:   "ShouldDecodeInt8ToSeconds",
 			have:   int8(90),
 			want:   time.Second * 90,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt16ToSeconds",
+			name:   "ShouldDecodeInt16ToSeconds",
 			have:   int16(90),
 			want:   time.Second * 90,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt32ToSeconds",
+			name:   "ShouldDecodeInt32ToSeconds",
 			have:   int32(90),
 			want:   time.Second * 90,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFloat64ToSeconds",
+			name:   "ShouldDecodeFloat64ToSeconds",
 			have:   float64(90),
 			want:   time.Second * 90,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFloat64ToSeconds",
+			name:   "ShouldDecodeFloat64ToSeconds",
 			have:   math.MaxFloat64,
 			want:   time.Duration(math.MaxInt64),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt64ToSeconds",
+			name:   "ShouldDecodeInt64ToSeconds",
 			have:   int64(120),
 			want:   time.Second * 120,
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeTimeDuration",
+			name:   "ShouldDecodeTimeDuration",
 			have:   time.Second * 30,
 			want:   time.Second * 30,
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeToString",
+			name:   "ShouldNotDecodeToString",
 			have:   int64(30),
 			want:   "",
 			decode: false,
 		},
 		{
-			desc:   "ShouldDecodeFromIntZero",
+			name:   "ShouldDecodeFromIntZero",
 			have:   0,
 			want:   time.Duration(0),
 			decode: true,
 		},
 		{
-			desc:   "ShouldSkipParsingBoolean",
+			name:   "ShouldSkipParsingBoolean",
 			have:   true,
 			want:   time.Duration(0),
 			decode: false,
 		},
 		{
-			desc: "ShouldNotDecodeFromBool",
+			name: "ShouldNotDecodeFromBool",
 			have: true,
 			want: true,
 		},
@@ -428,7 +428,7 @@ func TestToTimeDurationHookFunc(t *testing.T) {
 	hook := configuration.ToTimeDurationHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -448,99 +448,99 @@ func TestToTimeDurationHookFunc(t *testing.T) {
 
 func TestToTimeDurationHookFuncPointer(t *testing.T) {
 	testCases := []struct {
-		desc   string
+		name   string
 		have   any
 		want   any
 		err    string
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFortyFiveSeconds",
+			name:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   ptr(time.Second * 45),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeOneMinute",
+			name:   "ShouldDecodeOneMinute",
 			have:   "1m",
 			want:   ptr(time.Minute),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeTwoHours",
+			name:   "ShouldDecodeTwoHours",
 			have:   "2h",
 			want:   ptr(time.Hour * 2),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeThreeDays",
+			name:   "ShouldDecodeThreeDays",
 			have:   "3d",
 			want:   ptr(time.Hour * 24 * 3),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFourWeeks",
+			name:   "ShouldDecodeFourWeeks",
 			have:   "4w",
 			want:   ptr(time.Hour * 24 * 7 * 4),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFiveMonths",
+			name:   "ShouldDecodeFiveMonths",
 			have:   "5M",
 			want:   ptr(time.Hour * 24 * 30 * 5),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeSixYears",
+			name:   "ShouldDecodeSixYears",
 			have:   "6y",
 			want:   ptr(time.Hour * 24 * 365 * 6),
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeInvalidString",
+			name:   "ShouldNotDecodeInvalidString",
 			have:   "abc",
 			want:   ptr(time.Duration(0)),
 			err:    "could not decode 'abc' to a *time.Duration: could not parse 'abc' as a duration",
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeIntToSeconds",
+			name:   "ShouldDecodeIntToSeconds",
 			have:   60,
 			want:   ptr(time.Second * 60),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt32ToSeconds",
+			name:   "ShouldDecodeInt32ToSeconds",
 			have:   int32(90),
 			want:   ptr(time.Second * 90),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt64ToSeconds",
+			name:   "ShouldDecodeInt64ToSeconds",
 			have:   int64(120),
 			want:   ptr(time.Second * 120),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeTimeDuration",
+			name:   "ShouldDecodeTimeDuration",
 			have:   time.Second * 30,
 			want:   ptr(time.Second * 30),
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeToString",
+			name:   "ShouldNotDecodeToString",
 			have:   int64(30),
 			want:   &testString,
 			decode: false,
 		},
 		{
-			desc:   "ShouldDecodeFromIntZero",
+			name:   "ShouldDecodeFromIntZero",
 			have:   0,
 			want:   ptr(time.Duration(0)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeFromBool",
+			name:   "ShouldNotDecodeFromBool",
 			have:   true,
 			want:   &testTrue,
 			decode: false,
@@ -550,7 +550,7 @@ func TestToTimeDurationHookFuncPointer(t *testing.T) {
 	hook := configuration.ToTimeDurationHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -570,129 +570,129 @@ func TestToTimeDurationHookFuncPointer(t *testing.T) {
 
 func TestToRefreshIntervalDurationHookFunc(t *testing.T) {
 	testCases := []struct {
-		desc   string
+		name   string
 		have   any
 		want   any
 		err    string
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFortyFiveSeconds",
+			name:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   schema.NewRefreshIntervalDuration(time.Second * 45),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeOneMinute",
+			name:   "ShouldDecodeOneMinute",
 			have:   "1m",
 			want:   schema.NewRefreshIntervalDuration(time.Minute),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeTwoHours",
+			name:   "ShouldDecodeTwoHours",
 			have:   "2h",
 			want:   schema.NewRefreshIntervalDuration(time.Hour * 2),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeThreeDays",
+			name:   "ShouldDecodeThreeDays",
 			have:   "3d",
 			want:   schema.NewRefreshIntervalDuration(time.Hour * 24 * 3),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFourWeeks",
+			name:   "ShouldDecodeFourWeeks",
 			have:   "4w",
 			want:   schema.NewRefreshIntervalDuration(time.Hour * 24 * 7 * 4),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFiveMonths",
+			name:   "ShouldDecodeFiveMonths",
 			have:   "5M",
 			want:   schema.NewRefreshIntervalDuration(time.Hour * 24 * 30 * 5),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeSixYears",
+			name:   "ShouldDecodeSixYears",
 			have:   "6y",
 			want:   schema.NewRefreshIntervalDuration(time.Hour * 24 * 365 * 6),
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeInvalidString",
+			name:   "ShouldNotDecodeInvalidString",
 			have:   "abc",
 			want:   schema.RefreshIntervalDuration{},
 			err:    "could not decode 'abc' to a schema.RefreshIntervalDuration: could not parse 'abc' as a duration",
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeIntToSeconds",
+			name:   "ShouldDecodeIntToSeconds",
 			have:   60,
 			want:   schema.NewRefreshIntervalDuration(time.Second * 60),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt8ToSeconds",
+			name:   "ShouldDecodeInt8ToSeconds",
 			have:   int8(90),
 			want:   schema.NewRefreshIntervalDuration(time.Second * 90),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt16ToSeconds",
+			name:   "ShouldDecodeInt16ToSeconds",
 			have:   int16(90),
 			want:   schema.NewRefreshIntervalDuration(time.Second * 90),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt32ToSeconds",
+			name:   "ShouldDecodeInt32ToSeconds",
 			have:   int32(90),
 			want:   schema.NewRefreshIntervalDuration(time.Second * 90),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFloat64ToSeconds",
+			name:   "ShouldDecodeFloat64ToSeconds",
 			have:   float64(90),
 			want:   schema.NewRefreshIntervalDuration(time.Second * 90),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFloat64ToSeconds",
+			name:   "ShouldDecodeFloat64ToSeconds",
 			have:   math.MaxFloat64,
 			want:   schema.NewRefreshIntervalDuration(time.Duration(math.MaxInt64)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt64ToSeconds",
+			name:   "ShouldDecodeInt64ToSeconds",
 			have:   int64(120),
 			want:   schema.NewRefreshIntervalDuration(time.Second * 120),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeTimeDuration",
+			name:   "ShouldDecodeTimeDuration",
 			have:   time.Second * 30,
 			want:   schema.NewRefreshIntervalDuration(time.Second * 30),
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeToString",
+			name:   "ShouldNotDecodeToString",
 			have:   int64(30),
 			want:   "",
 			decode: false,
 		},
 		{
-			desc:   "ShouldDecodeFromIntZero",
+			name:   "ShouldDecodeFromIntZero",
 			have:   0,
 			want:   schema.NewRefreshIntervalDuration(time.Duration(0)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldSkipParsingBoolean",
+			name:   "ShouldSkipParsingBoolean",
 			have:   true,
 			want:   schema.RefreshIntervalDuration{},
 			decode: false,
 		},
 		{
-			desc: "ShouldNotDecodeFromBool",
+			name: "ShouldNotDecodeFromBool",
 			have: true,
 			want: true,
 		},
@@ -701,7 +701,7 @@ func TestToRefreshIntervalDurationHookFunc(t *testing.T) {
 	hook := configuration.ToRefreshIntervalDurationHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -721,99 +721,99 @@ func TestToRefreshIntervalDurationHookFunc(t *testing.T) {
 
 func TestTestToRefreshIntervalDurationHookFuncPointer(t *testing.T) {
 	testCases := []struct {
-		desc   string
+		name   string
 		have   any
 		want   any
 		err    string
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeFortyFiveSeconds",
+			name:   "ShouldDecodeFortyFiveSeconds",
 			have:   "45s",
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Second * 45)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeOneMinute",
+			name:   "ShouldDecodeOneMinute",
 			have:   "1m",
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Minute)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeTwoHours",
+			name:   "ShouldDecodeTwoHours",
 			have:   "2h",
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Hour * 2)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeThreeDays",
+			name:   "ShouldDecodeThreeDays",
 			have:   "3d",
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Hour * 24 * 3)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFourWeeks",
+			name:   "ShouldDecodeFourWeeks",
 			have:   "4w",
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Hour * 24 * 7 * 4)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeFiveMonths",
+			name:   "ShouldDecodeFiveMonths",
 			have:   "5M",
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Hour * 24 * 30 * 5)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeSixYears",
+			name:   "ShouldDecodeSixYears",
 			have:   "6y",
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Hour * 24 * 365 * 6)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeInvalidString",
+			name:   "ShouldNotDecodeInvalidString",
 			have:   "abc",
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Duration(0))),
 			err:    "could not decode 'abc' to a *schema.RefreshIntervalDuration: could not parse 'abc' as a duration",
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeIntToSeconds",
+			name:   "ShouldDecodeIntToSeconds",
 			have:   60,
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Second * 60)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt32ToSeconds",
+			name:   "ShouldDecodeInt32ToSeconds",
 			have:   int32(90),
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Second * 90)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeInt64ToSeconds",
+			name:   "ShouldDecodeInt64ToSeconds",
 			have:   int64(120),
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Second * 120)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeTimeDuration",
+			name:   "ShouldDecodeTimeDuration",
 			have:   time.Second * 30,
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Second * 30)),
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeToString",
+			name:   "ShouldNotDecodeToString",
 			have:   int64(30),
 			want:   &testString,
 			decode: false,
 		},
 		{
-			desc:   "ShouldDecodeFromIntZero",
+			name:   "ShouldDecodeFromIntZero",
 			have:   0,
 			want:   ptr(schema.NewRefreshIntervalDuration(time.Duration(0))),
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeFromBool",
+			name:   "ShouldNotDecodeFromBool",
 			have:   true,
 			want:   &testTrue,
 			decode: false,
@@ -823,7 +823,7 @@ func TestTestToRefreshIntervalDurationHookFuncPointer(t *testing.T) {
 	hook := configuration.ToRefreshIntervalDurationHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -843,7 +843,7 @@ func TestTestToRefreshIntervalDurationHookFuncPointer(t *testing.T) {
 
 func TestStringToRegexpFunc(t *testing.T) {
 	testCases := []struct {
-		desc     string
+		name     string
 		have     any
 		want     any
 		err      string
@@ -851,57 +851,57 @@ func TestStringToRegexpFunc(t *testing.T) {
 		wantGrps []string
 	}{
 		{
-			desc:   "ShouldNotDecodeRegexpWithOpenParenthesis",
+			name:   "ShouldNotDecodeRegexpWithOpenParenthesis",
 			have:   "hello(test one two",
 			want:   regexp.Regexp{},
 			err:    "could not decode 'hello(test one two' to a regexp.Regexp: error parsing regexp: missing closing ): `hello(test one two`",
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeValidRegex",
+			name:   "ShouldDecodeValidRegex",
 			have:   "^(api|admin)$",
 			want:   *regexp.MustCompile(`^(api|admin)$`),
 			decode: true,
 		},
 		{
-			desc:     "ShouldDecodeValidRegexWithGroupNames",
+			name:     "ShouldDecodeValidRegexWithGroupNames",
 			have:     "^(?P<area>api|admin)(one|two)$",
 			want:     *regexp.MustCompile(`^(?P<area>api|admin)(one|two)$`),
 			decode:   true,
 			wantGrps: []string{"area"},
 		},
 		{
-			desc:   "ShouldNotDecodeFromInt32",
+			name:   "ShouldNotDecodeFromInt32",
 			have:   int32(20),
 			want:   regexp.Regexp{},
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeFromBool",
+			name:   "ShouldNotDecodeFromBool",
 			have:   false,
 			want:   regexp.Regexp{},
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeToBool",
+			name:   "ShouldNotDecodeToBool",
 			have:   "^(?P<area>api|admin)(one|two)$",
 			want:   testTrue,
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeToInt32",
+			name:   "ShouldNotDecodeToInt32",
 			have:   "^(?P<area>api|admin)(one|two)$",
 			want:   ptr(int32(0)),
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeToMailAddress",
+			name:   "ShouldNotDecodeToMailAddress",
 			have:   "^(?P<area>api|admin)(one|two)$",
 			want:   mail.Address{},
 			decode: false,
 		},
 		{
-			desc:   "ShouldErrOnDecodeEmptyString",
+			name:   "ShouldErrOnDecodeEmptyString",
 			have:   "",
 			want:   regexp.Regexp{},
 			err:    "could not decode an empty value to a regexp.Regexp: must have a non-empty value",
@@ -912,7 +912,7 @@ func TestStringToRegexpFunc(t *testing.T) {
 	hook := configuration.StringToRegexpHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -958,7 +958,7 @@ func TestStringToRegexpFunc(t *testing.T) {
 
 func TestStringToRegexpFuncPointers(t *testing.T) {
 	testCases := []struct {
-		desc     string
+		name     string
 		have     any
 		want     any
 		err      string
@@ -966,57 +966,57 @@ func TestStringToRegexpFuncPointers(t *testing.T) {
 		wantGrps []string
 	}{
 		{
-			desc:   "ShouldNotDecodeRegexpWithOpenParenthesis",
+			name:   "ShouldNotDecodeRegexpWithOpenParenthesis",
 			have:   "hello(test one two",
 			want:   &regexp.Regexp{},
 			err:    "could not decode 'hello(test one two' to a *regexp.Regexp: error parsing regexp: missing closing ): `hello(test one two`",
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeValidRegex",
+			name:   "ShouldDecodeValidRegex",
 			have:   "^(api|admin)$",
 			want:   regexp.MustCompile(`^(api|admin)$`),
 			decode: true,
 		},
 		{
-			desc:     "ShouldDecodeValidRegexWithGroupNames",
+			name:     "ShouldDecodeValidRegexWithGroupNames",
 			have:     "^(?P<area>api|admin)(one|two)$",
 			want:     regexp.MustCompile(`^(?P<area>api|admin)(one|two)$`),
 			decode:   true,
 			wantGrps: []string{"area"},
 		},
 		{
-			desc:   "ShouldNotDecodeFromInt32",
+			name:   "ShouldNotDecodeFromInt32",
 			have:   int32(20),
 			want:   &regexp.Regexp{},
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeFromBool",
+			name:   "ShouldNotDecodeFromBool",
 			have:   false,
 			want:   &regexp.Regexp{},
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeToBool",
+			name:   "ShouldNotDecodeToBool",
 			have:   "^(?P<area>api|admin)(one|two)$",
 			want:   &testTrue,
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeToInt32",
+			name:   "ShouldNotDecodeToInt32",
 			have:   "^(?P<area>api|admin)(one|two)$",
 			want:   &testZero,
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeToMailAddress",
+			name:   "ShouldNotDecodeToMailAddress",
 			have:   "^(?P<area>api|admin)(one|two)$",
 			want:   &mail.Address{},
 			decode: false,
 		},
 		{
-			desc:   "ShouldDecodeEmptyStringToNil",
+			name:   "ShouldDecodeEmptyStringToNil",
 			have:   "",
 			want:   (*regexp.Regexp)(nil),
 			decode: true,
@@ -1026,7 +1026,7 @@ func TestStringToRegexpFuncPointers(t *testing.T) {
 	hook := configuration.StringToRegexpHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -1070,6 +1070,365 @@ func TestStringToRegexpFuncPointers(t *testing.T) {
 			default:
 				assert.EqualError(t, err, tc.err)
 				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestStringToRegexpCIFunc(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     any
+		want     any
+		err      string
+		decode   bool
+		wantGrps []string
+	}{
+		{
+			name:   "ShouldNotDecodeRegexpWithOpenParenthesis",
+			have:   "hello(test one two",
+			want:   schema.RegexpCI{},
+			err:    "could not decode '(?i)hello(test one two' to a regexp.Regexp: error parsing regexp: missing closing ): `(?i)hello(test one two`",
+			decode: true,
+		},
+		{
+			name:   "ShouldDecodeValidRegexAndPrependCaseInsensitive",
+			have:   "^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:     "ShouldDecodeValidRegexWithGroupNames",
+			have:     "^(?P<area>api|admin)(one|two)$",
+			want:     schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(?P<area>api|admin)(one|two)$`)},
+			decode:   true,
+			wantGrps: []string{"area"},
+		},
+		{
+			name:   "ShouldNotPrependWhenAlreadyCaseInsensitive",
+			have:   "(?i)^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldNotPrependWhenExplicitlyCaseSensitive",
+			have:   "(?-i)^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?-i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldPrependWhenOtherFlagsWithoutCaseInsensitive",
+			have:   "(?s)^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?is)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldNotPrependWhenCaseInsensitiveAmongOtherFlags",
+			have:   "(?is)^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?is)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldNotPrependWhenCaseInsensitiveAfterOtherFlags",
+			have:   "(?si)^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?si)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldNotPrependWhenCaseSensitiveAmongOtherFlags",
+			have:   "(?s-i)^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?s-i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldPrependWhenNegatedFlagWithoutCaseInsensitive",
+			have:   "(?-s)^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i-s)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldPrependWhenMixedFlagsWithoutCaseInsensitive",
+			have:   "(?ms-U)^(api|admin)$",
+			want:   schema.RegexpCI{Regexp: *regexp.MustCompile(`(?ims-U)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldNotDecodeFromInt32",
+			have:   int32(20),
+			want:   schema.RegexpCI{},
+			decode: false,
+		},
+		{
+			name:   "ShouldNotDecodeFromBool",
+			have:   false,
+			want:   schema.RegexpCI{},
+			decode: false,
+		},
+		{
+			name:   "ShouldNotDecodeToBool",
+			have:   "^(?P<area>api|admin)(one|two)$",
+			want:   testTrue,
+			decode: false,
+		},
+		{
+			name:   "ShouldErrOnDecodeEmptyString",
+			have:   "",
+			want:   schema.RegexpCI{},
+			err:    "could not decode an empty value to a regexp.Regexp: must have a non-empty value",
+			decode: true,
+		},
+	}
+
+	hook := configuration.StringToRegexpHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+
+				var names []string
+
+				pattern := result.(schema.RegexpCI)
+				for _, name := range pattern.SubexpNames() {
+					if name != "" {
+						names = append(names, name)
+					}
+				}
+
+				if len(tc.wantGrps) != 0 {
+					t.Run("MustHaveAllExpectedSubexpGroupNames", func(t *testing.T) {
+						for _, name := range tc.wantGrps {
+							assert.Contains(t, names, name)
+						}
+					})
+					t.Run("MustNotHaveUnexpectedSubexpGroupNames", func(t *testing.T) {
+						for _, name := range names {
+							assert.Contains(t, tc.wantGrps, name)
+						}
+					})
+				} else {
+					t.Run("MustHaveNoSubexpGroupNames", func(t *testing.T) {
+						assert.Len(t, names, 0)
+					})
+				}
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestStringToRegexpCIFuncPointers(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     any
+		want     any
+		err      string
+		decode   bool
+		wantGrps []string
+	}{
+		{
+			name:   "ShouldNotDecodeRegexpWithOpenParenthesis",
+			have:   "hello(test one two",
+			want:   &schema.RegexpCI{},
+			err:    "could not decode '(?i)hello(test one two' to a *regexp.Regexp: error parsing regexp: missing closing ): `(?i)hello(test one two`",
+			decode: true,
+		},
+		{
+			name:   "ShouldDecodeValidRegexAndPrependCaseInsensitive",
+			have:   "^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:     "ShouldDecodeValidRegexWithGroupNames",
+			have:     "^(?P<area>api|admin)(one|two)$",
+			want:     &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(?P<area>api|admin)(one|two)$`)},
+			decode:   true,
+			wantGrps: []string{"area"},
+		},
+		{
+			name:   "ShouldNotPrependWhenAlreadyCaseInsensitive",
+			have:   "(?i)^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldNotPrependWhenExplicitlyCaseSensitive",
+			have:   "(?-i)^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?-i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldPrependWhenOtherFlagsWithoutCaseInsensitive",
+			have:   "(?s)^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?is)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldNotPrependWhenCaseInsensitiveAmongOtherFlags",
+			have:   "(?is)^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?is)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldNotPrependWhenCaseInsensitiveAfterOtherFlags",
+			have:   "(?si)^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?si)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldNotPrependWhenCaseSensitiveAmongOtherFlags",
+			have:   "(?s-i)^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?s-i)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldPrependWhenNegatedFlagWithoutCaseInsensitive",
+			have:   "(?-s)^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?i-s)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldPrependWhenMixedFlagsWithoutCaseInsensitive",
+			have:   "(?ms-U)^(api|admin)$",
+			want:   &schema.RegexpCI{Regexp: *regexp.MustCompile(`(?ims-U)^(api|admin)$`)},
+			decode: true,
+		},
+		{
+			name:   "ShouldNotDecodeFromInt32",
+			have:   int32(20),
+			want:   &schema.RegexpCI{},
+			decode: false,
+		},
+		{
+			name:   "ShouldNotDecodeFromBool",
+			have:   false,
+			want:   &schema.RegexpCI{},
+			decode: false,
+		},
+		{
+			name:   "ShouldDecodeEmptyStringToNil",
+			have:   "",
+			want:   (*schema.RegexpCI)(nil),
+			decode: true,
+		},
+	}
+
+	hook := configuration.StringToRegexpHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
+
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, result)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.want, result)
+
+				pattern := result.(*schema.RegexpCI)
+
+				if tc.want == (*schema.RegexpCI)(nil) {
+					assert.Nil(t, pattern)
+				} else {
+					var names []string
+
+					for _, name := range pattern.SubexpNames() {
+						if name != "" {
+							names = append(names, name)
+						}
+					}
+
+					if len(tc.wantGrps) != 0 {
+						t.Run("MustHaveAllExpectedSubexpGroupNames", func(t *testing.T) {
+							for _, name := range tc.wantGrps {
+								assert.Contains(t, names, name)
+							}
+						})
+						t.Run("MustNotHaveUnexpectedSubexpGroupNames", func(t *testing.T) {
+							for _, name := range names {
+								assert.Contains(t, tc.wantGrps, name)
+							}
+						})
+					} else {
+						t.Run("MustHaveNoSubexpGroupNames", func(t *testing.T) {
+							assert.Len(t, names, 0)
+						})
+					}
+				}
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestStringToRegexpCIFuncMatching(t *testing.T) {
+	testCases := []struct {
+		name      string
+		have      string
+		matches   []string
+		noMatches []string
+	}{
+		{
+			name:      "ShouldMatchCaseInsensitivelyWhenPrepended",
+			have:      "^admin$",
+			matches:   []string{"admin", "ADMIN", "Admin", "aDmIn"},
+			noMatches: []string{"administrator", " admin", "admin "},
+		},
+		{
+			name:      "ShouldMatchCaseInsensitivelyWhenAlreadyCaseInsensitive",
+			have:      "(?i)^admin$",
+			matches:   []string{"admin", "ADMIN", "Admin"},
+			noMatches: []string{"administrator"},
+		},
+		{
+			name:      "ShouldMatchCaseSensitivelyWhenExplicitlyCaseSensitive",
+			have:      "(?-i)^admin$",
+			matches:   []string{"admin"},
+			noMatches: []string{"ADMIN", "Admin", "aDmIn"},
+		},
+		{
+			name:      "ShouldMatchCaseInsensitivelyWhenOtherFlagsWithoutCaseInsensitive",
+			have:      "(?s)^admin$",
+			matches:   []string{"admin", "ADMIN", "Admin"},
+			noMatches: []string{"administrator"},
+		},
+		{
+			name:      "ShouldMatchCaseSensitivelyWhenCaseSensitiveAmongOtherFlags",
+			have:      "(?s-i)^admin$",
+			matches:   []string{"admin"},
+			noMatches: []string{"ADMIN", "Admin"},
+		},
+	}
+
+	hook := configuration.StringToRegexpHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(schema.RegexpCI{}), tc.have)
+			require.NoError(t, err)
+
+			pattern := result.(schema.RegexpCI)
+
+			for _, value := range tc.matches {
+				assert.Truef(t, pattern.MatchString(value), "expected pattern %q to match %q", tc.have, value)
+			}
+
+			for _, value := range tc.noMatches {
+				assert.Falsef(t, pattern.MatchString(value), "expected pattern %q to not match %q", tc.have, value)
 			}
 		})
 	}
@@ -1262,143 +1621,143 @@ func TestStringToPrivateKeyHookFunc(t *testing.T) {
 	)
 
 	testCases := []struct {
-		desc   string
+		name   string
 		have   any
 		want   any
 		err    string
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeRSA1024PrivateKey",
+			name:   "ShouldDecodeRSA1024PrivateKey",
 			have:   x509PrivateKeyRSA1024,
 			want:   MustParsePKCS8RSAPrivateKey(x509PrivateKeyRSA1024),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeRSA2048PrivateKey",
+			name:   "ShouldDecodeRSA2048PrivateKey",
 			have:   x509PrivateKeyRSA2048,
 			want:   MustParsePKCS8RSAPrivateKey(x509PrivateKeyRSA2048),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeRSA4096PrivateKey",
+			name:   "ShouldDecodeRSA4096PrivateKey",
 			have:   x509PrivateKeyRSA4096,
 			want:   MustParsePKCS8RSAPrivateKey(x509PrivateKeyRSA4096),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeECDSAP224PrivateKey",
+			name:   "ShouldDecodeECDSAP224PrivateKey",
 			have:   x509PrivateKeyECDSAP224,
 			want:   MustParsePKCS8ECDSAPrivateKey(x509PrivateKeyECDSAP224),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeECDSAP256PrivateKey",
+			name:   "ShouldDecodeECDSAP256PrivateKey",
 			have:   x509PrivateKeyECDSAP256,
 			want:   MustParsePKCS8ECDSAPrivateKey(x509PrivateKeyECDSAP256),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeECDSAP384PrivateKey",
+			name:   "ShouldDecodeECDSAP384PrivateKey",
 			have:   x509PrivateKeyECDSAP384,
 			want:   MustParsePKCS8ECDSAPrivateKey(x509PrivateKeyECDSAP384),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeECDSAP521PrivateKey",
+			name:   "ShouldDecodeECDSAP521PrivateKey",
 			have:   x509PrivateKeyECDSAP521,
 			want:   MustParsePKCS8ECDSAPrivateKey(x509PrivateKeyECDSAP521),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeEd25519PrivateKey",
+			name:   "ShouldDecodeEd25519PrivateKey",
 			have:   x509PrivateKeyEd25519,
 			want:   MustParsePKCS8Ed25519PrivateKey(x509PrivateKeyEd25519),
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeToECDSAPrivateKey",
+			name:   "ShouldNotDecodeToECDSAPrivateKey",
 			have:   x509PrivateKeyRSA2048,
 			want:   &ecdsa.PrivateKey{},
 			decode: true,
 			err:    "could not decode to a *ecdsa.PrivateKey: the data is for a *rsa.PrivateKey not a *ecdsa.PrivateKey",
 		},
 		{
-			desc:   "ShouldNotDecodeEmptyRSAKey",
+			name:   "ShouldNotDecodeEmptyRSAKey",
 			have:   "",
 			want:   nilRSA,
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeEmptyECDSAKey",
+			name:   "ShouldNotDecodeEmptyECDSAKey",
 			have:   "",
 			want:   nilECDSA,
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeECDSAKeyToRSAKey",
+			name:   "ShouldNotDecodeECDSAKeyToRSAKey",
 			have:   x509PrivateKeyECDSAP521,
 			want:   nilRSA,
 			decode: true,
 			err:    "could not decode to a *rsa.PrivateKey: the data is for a *ecdsa.PrivateKey not a *rsa.PrivateKey",
 		},
 		{
-			desc:   "ShouldNotDecodeRSAKeyToECDSAKey",
+			name:   "ShouldNotDecodeRSAKeyToECDSAKey",
 			have:   x509PrivateKeyRSA2048,
 			want:   nilECDSA,
 			decode: true,
 			err:    "could not decode to a *ecdsa.PrivateKey: the data is for a *rsa.PrivateKey not a *ecdsa.PrivateKey",
 		},
 		{
-			desc:   "ShouldNotDecodeBadRSAPrivateKey",
+			name:   "ShouldNotDecodeBadRSAPrivateKey",
 			have:   x509PrivateKeyRSABad,
 			want:   nilRSA,
 			decode: true,
 			err:    "could not decode to a *rsa.PrivateKey: error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
 		},
 		{
-			desc:   "ShouldNotDecodeBadRSAPrivateKeyTrailingData",
+			name:   "ShouldNotDecodeBadRSAPrivateKeyTrailingData",
 			have:   strings.ReplaceAll(x509PrivateKeyRSA2048, "END PRIVATE KEY-----", "END PRIVATE KEY---------"),
 			want:   nilRSA,
 			decode: true,
 			err:    "could not decode to a *rsa.PrivateKey: error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
 		},
 		{
-			desc:   "ShouldNotDecodeBadRSAPrivateKeyTrailingDataDoubled",
+			name:   "ShouldNotDecodeBadRSAPrivateKeyTrailingDataDoubled",
 			have:   x509PrivateKeyRSA2048 + x509PrivateKeyRSA2048,
 			want:   nilRSA,
 			decode: true,
 			err:    "could not decode to a *rsa.PrivateKey: error occurred attempting to parse PEM block: the block either had trailing data or was otherwise malformed",
 		},
 		{
-			desc:   "ShouldNotDecodeBadECDSAPrivateKey",
+			name:   "ShouldNotDecodeBadECDSAPrivateKey",
 			have:   x509PrivateKeyECBad,
 			want:   nilECDSA,
 			decode: true,
 			err:    "could not decode to a *ecdsa.PrivateKey: error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
 		},
 		{
-			desc:   "ShouldNotDecodeCertificateToRSAPrivateKey",
+			name:   "ShouldNotDecodeCertificateToRSAPrivateKey",
 			have:   x509CertificateRSA2048,
 			want:   nilRSA,
 			decode: true,
 			err:    "could not decode to a *rsa.PrivateKey: the data is for a *x509.Certificate not a *rsa.PrivateKey",
 		},
 		{
-			desc:   "ShouldNotDecodeCertificateToECDSAPrivateKey",
+			name:   "ShouldNotDecodeCertificateToECDSAPrivateKey",
 			have:   x509CertificateRSA2048,
 			want:   nilECDSA,
 			decode: true,
 			err:    "could not decode to a *ecdsa.PrivateKey: the data is for a *x509.Certificate not a *ecdsa.PrivateKey",
 		},
 		{
-			desc:   "ShouldNotDecodeRSAKeyToCertificate",
+			name:   "ShouldNotDecodeRSAKeyToCertificate",
 			have:   x509PrivateKeyRSA2048,
 			want:   nilCert,
 			decode: false,
 		},
 		{
-			desc:   "ShouldNotDecodeECDSAKeyToCertificate",
+			name:   "ShouldNotDecodeECDSAKeyToCertificate",
 			have:   x509PrivateKeyECDSAP521,
 			want:   nilCert,
 			decode: false,
@@ -1408,7 +1767,7 @@ func TestStringToPrivateKeyHookFunc(t *testing.T) {
 	hook := configuration.StringToPrivateKeyHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -1430,63 +1789,63 @@ func TestStringToX509CertificateHookFunc(t *testing.T) {
 	var nilkey *x509.Certificate
 
 	testCases := []struct {
-		desc   string
+		name   string
 		have   any
 		want   any
 		err    string
 		decode bool
 	}{
 		{
-			desc:   "ShouldDecodeRSACertificate",
+			name:   "ShouldDecodeRSACertificate",
 			have:   x509CertificateRSA2048,
 			want:   MustParseX509Certificate(x509CertificateRSA2048),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeECDSACertificate",
+			name:   "ShouldDecodeECDSACertificate",
 			have:   x509CertificateECDSAP521,
 			want:   MustParseX509Certificate(x509CertificateECDSAP521),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeEd25519Certificate",
+			name:   "ShouldDecodeEd25519Certificate",
 			have:   x509CertificateEd25519,
 			want:   MustParseX509Certificate(x509CertificateEd25519),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeRSACACertificate",
+			name:   "ShouldDecodeRSACACertificate",
 			have:   x509CACertificateRSA2048,
 			want:   MustParseX509Certificate(x509CACertificateRSA2048),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeECDSACACertificate",
+			name:   "ShouldDecodeECDSACACertificate",
 			have:   x509CACertificateECDSAP521,
 			want:   MustParseX509Certificate(x509CACertificateECDSAP521),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeEd25519CACertificate",
+			name:   "ShouldDecodeEd25519CACertificate",
 			have:   x509CACertificateEd25519,
 			want:   MustParseX509Certificate(x509CACertificateEd25519),
 			decode: true,
 		},
 		{
-			desc:   "ShouldDecodeEmptyCertificateToNil",
+			name:   "ShouldDecodeEmptyCertificateToNil",
 			have:   "",
 			want:   nilkey,
 			decode: true,
 		},
 		{
-			desc:   "ShouldNotDecodeECDSAKeyToCertificate",
+			name:   "ShouldNotDecodeECDSAKeyToCertificate",
 			have:   x509PrivateKeyECDSAP224,
 			want:   nilkey,
 			decode: true,
 			err:    "could not decode to a *x509.Certificate: the data is for a *ecdsa.PrivateKey not a *x509.Certificate",
 		},
 		{
-			desc:   "ShouldNotDecodeBadRSAPrivateKeyToCertificate",
+			name:   "ShouldNotDecodeBadRSAPrivateKeyToCertificate",
 			have:   x509PrivateKeyRSABad,
 			want:   nilkey,
 			decode: true,
@@ -1497,7 +1856,7 @@ func TestStringToX509CertificateHookFunc(t *testing.T) {
 	hook := configuration.StringToX509CertificateHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			result, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.want), tc.have)
 
 			switch {
@@ -1673,292 +2032,292 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 	var nilkey *schema.X509CertificateChain
 
 	testCases := []struct {
-		desc      string
+		name      string
 		have      any
 		expected  any
 		err, verr string
 		decode    bool
 	}{
 		{
-			desc:     "ShouldDecodeRSA1024Certificate",
+			name:     "ShouldDecodeRSA1024Certificate",
 			have:     x509CertificateRSA1024,
 			expected: MustParseX509CertificateChain(x509CertificateRSA1024),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA1024CertificateNoPtr",
+			name:     "ShouldDecodeRSA1024CertificateNoPtr",
 			have:     x509CertificateRSA1024,
 			expected: *MustParseX509CertificateChain(x509CertificateRSA1024),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA1024CACertificate",
+			name:     "ShouldDecodeRSA1024CACertificate",
 			have:     x509CACertificateRSA1024,
 			expected: MustParseX509CertificateChain(x509CACertificateRSA1024),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA1024CACertificateNoPtr",
+			name:     "ShouldDecodeRSA1024CACertificateNoPtr",
 			have:     x509CACertificateRSA1024,
 			expected: *MustParseX509CertificateChain(x509CACertificateRSA1024),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA1024CertificateChain",
+			name:     "ShouldDecodeRSA1024CertificateChain",
 			have:     BuildChain(x509CertificateRSA1024, x509CACertificateRSA1024),
 			expected: MustParseX509CertificateChain(x509CertificateRSA1024, x509CACertificateRSA1024),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA1024CertificateChainNoPtr",
+			name:     "ShouldDecodeRSA1024CertificateChainNoPtr",
 			have:     BuildChain(x509CertificateRSA1024, x509CACertificateRSA1024),
 			expected: *MustParseX509CertificateChain(x509CertificateRSA1024, x509CACertificateRSA1024),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA2048Certificate",
+			name:     "ShouldDecodeRSA2048Certificate",
 			have:     x509CertificateRSA2048,
 			expected: MustParseX509CertificateChain(x509CertificateRSA2048),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA2048CertificateNoPtr",
+			name:     "ShouldDecodeRSA2048CertificateNoPtr",
 			have:     x509CertificateRSA2048,
 			expected: *MustParseX509CertificateChain(x509CertificateRSA2048),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA2048CACertificate",
+			name:     "ShouldDecodeRSA2048CACertificate",
 			have:     x509CACertificateRSA2048,
 			expected: MustParseX509CertificateChain(x509CACertificateRSA2048),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA2048CACertificateNoPtr",
+			name:     "ShouldDecodeRSA2048CACertificateNoPtr",
 			have:     x509CACertificateRSA2048,
 			expected: *MustParseX509CertificateChain(x509CACertificateRSA2048),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA2048CertificateChain",
+			name:     "ShouldDecodeRSA2048CertificateChain",
 			have:     BuildChain(x509CertificateRSA2048, x509CACertificateRSA2048),
 			expected: MustParseX509CertificateChain(x509CertificateRSA2048, x509CACertificateRSA2048),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA2048CertificateChainNoPtr",
+			name:     "ShouldDecodeRSA2048CertificateChainNoPtr",
 			have:     BuildChain(x509CertificateRSA2048, x509CACertificateRSA2048),
 			expected: *MustParseX509CertificateChain(x509CertificateRSA2048, x509CACertificateRSA2048),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA4096Certificate",
+			name:     "ShouldDecodeRSA4096Certificate",
 			have:     x509CertificateRSA4096,
 			expected: MustParseX509CertificateChain(x509CertificateRSA4096),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA4096CertificateNoPtr",
+			name:     "ShouldDecodeRSA4096CertificateNoPtr",
 			have:     x509CertificateRSA4096,
 			expected: *MustParseX509CertificateChain(x509CertificateRSA4096),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA4096CACertificate",
+			name:     "ShouldDecodeRSA4096CACertificate",
 			have:     x509CACertificateRSA4096,
 			expected: MustParseX509CertificateChain(x509CACertificateRSA4096),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA4096CACertificateNoPtr",
+			name:     "ShouldDecodeRSA4096CACertificateNoPtr",
 			have:     x509CACertificateRSA4096,
 			expected: *MustParseX509CertificateChain(x509CACertificateRSA4096),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA4096CertificateChain",
+			name:     "ShouldDecodeRSA4096CertificateChain",
 			have:     BuildChain(x509CertificateRSA4096, x509CACertificateRSA4096),
 			expected: MustParseX509CertificateChain(x509CertificateRSA4096, x509CACertificateRSA4096),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeRSA4096CertificateChainNoPtr",
+			name:     "ShouldDecodeRSA4096CertificateChainNoPtr",
 			have:     BuildChain(x509CertificateRSA4096, x509CACertificateRSA4096),
 			expected: *MustParseX509CertificateChain(x509CertificateRSA4096, x509CACertificateRSA4096),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP224Certificate",
+			name:     "ShouldDecodeECDSAP224Certificate",
 			have:     x509CertificateECDSAP224,
 			expected: MustParseX509CertificateChain(x509CertificateECDSAP224),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP224CertificateNoPtr",
+			name:     "ShouldDecodeECDSAP224CertificateNoPtr",
 			have:     x509CertificateECDSAP224,
 			expected: *MustParseX509CertificateChain(x509CertificateECDSAP224),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP224CACertificate",
+			name:     "ShouldDecodeECDSAP224CACertificate",
 			have:     x509CACertificateECDSAP224,
 			expected: MustParseX509CertificateChain(x509CACertificateECDSAP224),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP224CACertificateNoPtr",
+			name:     "ShouldDecodeECDSAP224CACertificateNoPtr",
 			have:     x509CACertificateECDSAP224,
 			expected: *MustParseX509CertificateChain(x509CACertificateECDSAP224),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP224CertificateChain",
+			name:     "ShouldDecodeECDSAP224CertificateChain",
 			have:     BuildChain(x509CertificateECDSAP224, x509CACertificateECDSAP224),
 			expected: MustParseX509CertificateChain(x509CertificateECDSAP224, x509CACertificateECDSAP224),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP224CertificateChainNoPtr",
+			name:     "ShouldDecodeECDSAP224CertificateChainNoPtr",
 			have:     BuildChain(x509CertificateECDSAP224, x509CACertificateECDSAP224),
 			expected: *MustParseX509CertificateChain(x509CertificateECDSAP224, x509CACertificateECDSAP224),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP256Certificate",
+			name:     "ShouldDecodeECDSAP256Certificate",
 			have:     x509CertificateECDSAP256,
 			expected: MustParseX509CertificateChain(x509CertificateECDSAP256),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP256CertificateNoPtr",
+			name:     "ShouldDecodeECDSAP256CertificateNoPtr",
 			have:     x509CertificateECDSAP256,
 			expected: *MustParseX509CertificateChain(x509CertificateECDSAP256),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP256CACertificate",
+			name:     "ShouldDecodeECDSAP256CACertificate",
 			have:     x509CACertificateECDSAP256,
 			expected: MustParseX509CertificateChain(x509CACertificateECDSAP256),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP256CACertificateNoPtr",
+			name:     "ShouldDecodeECDSAP256CACertificateNoPtr",
 			have:     x509CACertificateECDSAP256,
 			expected: *MustParseX509CertificateChain(x509CACertificateECDSAP256),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP256CertificateChain",
+			name:     "ShouldDecodeECDSAP256CertificateChain",
 			have:     BuildChain(x509CertificateECDSAP256, x509CACertificateECDSAP256),
 			expected: MustParseX509CertificateChain(x509CertificateECDSAP256, x509CACertificateECDSAP256),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP256CertificateChainNoPtr",
+			name:     "ShouldDecodeECDSAP256CertificateChainNoPtr",
 			have:     BuildChain(x509CertificateECDSAP256, x509CACertificateECDSAP256),
 			expected: *MustParseX509CertificateChain(x509CertificateECDSAP256, x509CACertificateECDSAP256),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP384Certificate",
+			name:     "ShouldDecodeECDSAP384Certificate",
 			have:     x509CertificateECDSAP384,
 			expected: MustParseX509CertificateChain(x509CertificateECDSAP384),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP384CertificateNoPtr",
+			name:     "ShouldDecodeECDSAP384CertificateNoPtr",
 			have:     x509CertificateECDSAP384,
 			expected: *MustParseX509CertificateChain(x509CertificateECDSAP384),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP384CACertificate",
+			name:     "ShouldDecodeECDSAP384CACertificate",
 			have:     x509CACertificateECDSAP384,
 			expected: MustParseX509CertificateChain(x509CACertificateECDSAP384),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP384CACertificateNoPtr",
+			name:     "ShouldDecodeECDSAP384CACertificateNoPtr",
 			have:     x509CACertificateECDSAP384,
 			expected: *MustParseX509CertificateChain(x509CACertificateECDSAP384),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP384CertificateChain",
+			name:     "ShouldDecodeECDSAP384CertificateChain",
 			have:     BuildChain(x509CertificateECDSAP384, x509CACertificateECDSAP384),
 			expected: MustParseX509CertificateChain(x509CertificateECDSAP384, x509CACertificateECDSAP384),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP384CertificateChainNoPtr",
+			name:     "ShouldDecodeECDSAP384CertificateChainNoPtr",
 			have:     BuildChain(x509CertificateECDSAP384, x509CACertificateECDSAP384),
 			expected: *MustParseX509CertificateChain(x509CertificateECDSAP384, x509CACertificateECDSAP384),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP521Certificate",
+			name:     "ShouldDecodeECDSAP521Certificate",
 			have:     x509CertificateECDSAP521,
 			expected: MustParseX509CertificateChain(x509CertificateECDSAP521),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP521CertificateNoPtr",
+			name:     "ShouldDecodeECDSAP521CertificateNoPtr",
 			have:     x509CertificateECDSAP521,
 			expected: *MustParseX509CertificateChain(x509CertificateECDSAP521),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP521CACertificate",
+			name:     "ShouldDecodeECDSAP521CACertificate",
 			have:     x509CACertificateECDSAP521,
 			expected: MustParseX509CertificateChain(x509CACertificateECDSAP521),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP521CACertificateNoPtr",
+			name:     "ShouldDecodeECDSAP521CACertificateNoPtr",
 			have:     x509CACertificateECDSAP521,
 			expected: *MustParseX509CertificateChain(x509CACertificateECDSAP521),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP521CertificateChain",
+			name:     "ShouldDecodeECDSAP521CertificateChain",
 			have:     BuildChain(x509CertificateECDSAP521, x509CACertificateECDSAP521),
 			expected: MustParseX509CertificateChain(x509CertificateECDSAP521, x509CACertificateECDSAP521),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeECDSAP521CertificateChainNoPtr",
+			name:     "ShouldDecodeECDSAP521CertificateChainNoPtr",
 			have:     BuildChain(x509CertificateECDSAP521, x509CACertificateECDSAP521),
 			expected: *MustParseX509CertificateChain(x509CertificateECDSAP521, x509CACertificateECDSAP521),
 			decode:   true,
 		},
 		{
-			desc:     "ShouldNotDecodeBadRSACertificateChain",
+			name:     "ShouldNotDecodeBadRSACertificateChain",
 			have:     BuildChain(x509CertificateRSA2048, x509CACertificateECDSAP521),
 			expected: MustParseX509CertificateChain(x509CertificateRSA2048, x509CACertificateECDSAP521),
 			verr:     "certificate #1 in chain is not signed properly by certificate #2 in chain: x509: signature algorithm specifies an RSA public key, but have public key of type *ecdsa.PublicKey",
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeEmptyCertificateToNil",
+			name:     "ShouldDecodeEmptyCertificateToNil",
 			have:     "",
 			expected: nilkey,
 			decode:   true,
 		},
 		{
-			desc:     "ShouldDecodeEmptyCertificateToEmptyStruct",
+			name:     "ShouldDecodeEmptyCertificateToEmptyStruct",
 			have:     "",
 			expected: schema.X509CertificateChain{},
 			decode:   true,
 		},
 		{
-			desc:     "ShouldNotDecodeECDSAKeyToCertificate",
+			name:     "ShouldNotDecodeECDSAKeyToCertificate",
 			have:     x509PrivateKeyECDSAP224,
 			expected: nilkey,
 			decode:   true,
 			err:      "could not decode to a *schema.X509CertificateChain: the PEM data chain contains a PRIVATE KEY but only certificates are expected",
 		},
 		{
-			desc:     "ShouldNotDecodeBadRSAPrivateKeyToCertificate",
+			name:     "ShouldNotDecodeBadRSAPrivateKeyToCertificate",
 			have:     x509PrivateKeyRSABad,
 			expected: nilkey,
 			decode:   true,
@@ -1969,7 +2328,7 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 	hook := configuration.StringToX509CertificateChainHookFunc()
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			actual, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.expected), tc.have)
 
 			switch {

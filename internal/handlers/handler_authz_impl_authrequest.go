@@ -7,33 +7,16 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
 func handleAuthzGetObjectAuthRequest(ctx AuthzContext) (object authorization.Object, err error) {
-	var (
-		targetURL *url.URL
+	var requestedObject *authorization.Object
 
-		rawURL, method []byte
-	)
-
-	if rawURL = ctx.XOriginalURL(); len(rawURL) == 0 {
-		return object, middlewares.ErrMissingXOriginalURL
-	}
-
-	if targetURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
+	if requestedObject, err = authorization.NewObjectMethodURL(ctx.XOriginalMethod(), ctx.XOriginalURL()); err != nil {
 		return object, fmt.Errorf("failed to parse X-Original-URL header: %w", err)
 	}
 
-	if method = ctx.XOriginalMethod(); len(method) == 0 {
-		return object, fmt.Errorf("header 'X-Original-Method' is empty")
-	}
-
-	if hasInvalidMethodCharacters(method) {
-		return object, fmt.Errorf("header 'X-Original-Method' with value '%s' has invalid characters", method)
-	}
-
-	return authorization.NewObjectRaw(targetURL, method), nil
+	return *requestedObject, nil
 }
 
 func handleAuthzUnauthorizedAuthRequest(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {

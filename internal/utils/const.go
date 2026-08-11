@@ -18,7 +18,9 @@ const (
 
 const (
 	period = "."
+	http   = "http"
 	https  = "https"
+	ws     = "ws"
 	wss    = "wss"
 )
 

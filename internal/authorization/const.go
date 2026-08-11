@@ -167,3 +167,7 @@ const (
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRShortMessageService = "sms"
 )
+
+var (
+	sepSchemeHost = []byte("://")
+)

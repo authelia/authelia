@@ -37,9 +37,9 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsDeny() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, pairURI := range []urlpair{
-				{s.RequireParseRequestURI("https://one-factor.example.com"), s.RequireParseRequestURI("https://login.example.com:8080/")},
+				{s.RequireParseRequestURI("https://one-factor.example.com/"), s.RequireParseRequestURI("https://login.example.com:8080/")},
 				{s.RequireParseRequestURI("https://one-factor.example.com/subpath"), s.RequireParseRequestURI("https://login.example.com:8080/")},
-				{s.RequireParseRequestURI("https://one-factor.example2.com"), s.RequireParseRequestURI("https://auth.example2.com/")},
+				{s.RequireParseRequestURI("https://one-factor.example2.com/"), s.RequireParseRequestURI("https://auth.example2.com/")},
 				{s.RequireParseRequestURI("https://one-factor.example2.com/subpath"), s.RequireParseRequestURI("https://auth.example2.com/")},
 			} {
 				t.Run(pairURI.TargetURI.String(), func(t *testing.T) {
@@ -171,7 +171,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsWithMethodsACL() {
 	for _, method := range testRequestMethods {
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, methodACL := range testRequestMethods {
-				targetURI := s.RequireParseRequestURI(fmt.Sprintf("https://bypass-%s.example.com", strings.ToLower(methodACL)))
+				targetURI := s.RequireParseRequestURI(fmt.Sprintf("https://bypass-%s.example.com/", strings.ToLower(methodACL)))
 				t.Run(targetURI.String(), func(t *testing.T) {
 					authz := s.BuildWithDelayer()
 
