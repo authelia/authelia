@@ -5,6 +5,12 @@ services:
     cpus: 2
     mem_limit: 1g
     hostname: 'ldap.example.com'
+    healthcheck:
+      test: ['CMD-SHELL', 'ldapsearch -x -H ldap://localhost -D "cn=pwmanager,dc=example,dc=com" -w password -b "dc=example,dc=com" -s base dn | grep -q "^dn:" || exit 1']  # yamllint disable-line rule:line-length
+      interval: '5s'
+      timeout: '10s'
+      retries: 6
+      start_period: '120s'
     environment:
       LDAP_ORGANISATION: 'MyCompany'
       LDAP_DOMAIN: 'example.com'
@@ -22,4 +28,8 @@ services:
       - 'debug'
     networks:
       authelianet: {}
+  authelia-backend:
+    depends_on:
+      openldap:
+        condition: service_healthy
 ...

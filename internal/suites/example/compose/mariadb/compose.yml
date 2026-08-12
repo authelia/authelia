@@ -9,6 +9,16 @@ services:
       MARIADB_USER: 'admin'
       MARIADB_PASSWORD: 'password'
       MARIADB_DATABASE: 'authelia'
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: '5s'
+      timeout: '10s'
+      retries: 6
+      start_period: '120s'
     networks:
       authelianet: {}
+  authelia-backend:
+    depends_on:
+      mariadb:
+        condition: service_healthy
 ...

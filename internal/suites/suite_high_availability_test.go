@@ -80,6 +80,8 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
+	since := time.Now()
+
 	err := haDockerEnvironment.Stop("redis-node-0")
 	s.Require().NoError(err)
 
@@ -88,7 +90,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
-	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-0", "+switch-master authelia"))
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-0", "+switch-master authelia", since))
 
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
@@ -118,6 +120,8 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
+	since := time.Now()
+
 	err := haDockerEnvironment.Stop("redis-sentinel-0")
 	s.Require().NoError(err)
 
@@ -134,8 +138,8 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
-	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+sdown sentinel"))
-	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+switch-master authelia"))
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+sdown sentinel", since))
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+switch-master authelia", since))
 
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
@@ -155,11 +159,12 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 
 	s.doLoginAndRegisterTOTPThenLogout(s.T(), s.Context(ctx), "john", "password")
 
+	since := time.Now()
+
 	err := haDockerEnvironment.Restart("mariadb")
 	s.Require().NoError(err)
 
-	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "mariadb", "mariadbd: ready for connections"))
-	time.Sleep(time.Second * 3)
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "mariadb", "mariadbd: ready for connections", since))
 
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
@@ -176,10 +181,12 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 	s.doRegisterTOTPAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
+	since := time.Now()
+
 	err := haDockerEnvironment.Restart("authelia-backend")
 	s.Require().NoError(err)
 
-	err = waitUntilAutheliaBackendIsReady(haDockerEnvironment)
+	err = waitUntilAutheliaBackendIsReady(haDockerEnvironment, since)
 	s.Require().NoError(err)
 
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)

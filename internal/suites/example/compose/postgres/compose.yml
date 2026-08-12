@@ -8,6 +8,16 @@ services:
       POSTGRES_PASSWORD: 'password'
       POSTGRES_USER: 'admin'
       POSTGRES_DB: 'authelia'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" || exit 1']
+      interval: '5s'
+      timeout: '10s'
+      retries: 6
+      start_period: '120s'
     networks:
       authelianet: {}
+  authelia-backend:
+    depends_on:
+      postgres:
+        condition: service_healthy
 ...

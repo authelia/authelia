@@ -13,7 +13,11 @@ services:
       traefik.http.routers.authelia_backend.tls: 'true'
       traefik.http.services.authelia_backend.loadbalancer.server.scheme: 'https'
     healthcheck:
-      disable: true
+      test: ['CMD-SHELL', 'wget --quiet --no-check-certificate --tries=1 --spider https://localhost:9091${PathPrefix}/api/health || exit 1']  # yamllint disable-line rule:line-length
+      interval: '5s'
+      timeout: '5s'
+      retries: 6
+      start_period: '90s'
     volumes:
       - '../..:/authelia'
     restart: 'always'

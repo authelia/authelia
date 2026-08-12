@@ -9,6 +9,16 @@ services:
       MYSQL_USER: 'admin'
       MYSQL_PASSWORD: 'password'
       MYSQL_DATABASE: 'authelia'
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -u root -p"$$MYSQL_ROOT_PASSWORD" || exit 1']
+      interval: '5s'
+      timeout: '10s'
+      retries: 6
+      start_period: '120s'
     networks:
       authelianet: {}
+  authelia-backend:
+    depends_on:
+      mysql:
+        condition: service_healthy
 ...
