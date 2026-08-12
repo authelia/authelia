@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,7 +32,7 @@ func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
 }
 
 func (rs *RodSession) doVisit(t *testing.T, page *rod.Page, url string) {
-	assert.NoError(t, page.Navigate(url))
+	require.NoError(t, page.Navigate(url))
 	require.NoError(t, page.WaitLoad())
 	require.NoError(t, page.WaitStable(time.Millisecond*50))
 }

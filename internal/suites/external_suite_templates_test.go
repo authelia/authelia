@@ -6,6 +6,7 @@ package suites
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/cdp"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -86,7 +88,9 @@ func (s *TemplatesSuite) templatesURL(path string) string {
 }
 
 func isStaleDocumentError(err error) bool {
-	return err != nil && strings.Contains(err.Error(), "does not belong to the document")
+	var cdpErr *cdp.Error
+
+	return errors.As(err, &cdpErr) && strings.Contains(cdpErr.Message, "does not belong to the document")
 }
 
 func (s *TemplatesSuite) previewText(outer *rod.Page, readySelector, selector string) string {
@@ -123,10 +127,9 @@ func (s *TemplatesSuite) previewText(outer *rod.Page, readySelector, selector st
 	return text
 }
 
-// openPreviewFrame returns the inner page of the preview server's srcdoc iframe once
-// react-email has rendered the element matching readySelector. Callers should prefer previewText,
-// which additionally recovers from the document being swapped after the descent.
 func (s *TemplatesSuite) openPreviewFrame(outer *rod.Page, readySelector string) *rod.Page {
+	// react-email has rendered the element matching readySelector. Callers should prefer previewText,
+	// which additionally recovers from the document being swapped after the descent.
 	s.WaitElementLocatedBySelector(s.T(), outer, "iframe")
 
 	outer.MustWait(`(sel) => {

@@ -1,6 +1,7 @@
 package suites
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 
@@ -23,6 +24,10 @@ func doHTTPGetQuery(url string) (body []byte, err error) {
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("request to '%s' returned status code %d", url, resp.StatusCode)
+	}
 
 	return io.ReadAll(resp.Body)
 }

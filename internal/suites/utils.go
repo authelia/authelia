@@ -320,6 +320,8 @@ func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Pa
 
 	base := strings.NewReplacer("/", "-", " ", "_").Replace(test.Name())
 
+	defer rs.collectContainerLogs(test, base)
+
 	path, reported := screenshotPaths(base + ".png")
 
 	if err = os.MkdirAll(filepath.Dir(path), 0755); err != nil {
@@ -346,8 +348,6 @@ func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Pa
 
 		return
 	}
-
-	rs.collectContainerLogs(test, base)
 
 	var url string
 
