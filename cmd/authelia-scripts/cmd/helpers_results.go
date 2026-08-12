@@ -11,8 +11,6 @@ type testEvent struct {
 	Output string `json:"Output"`
 }
 
-// testOutputWriter reconstructs the console output of a `go test -json` event stream so the machine
-// readable results can be captured without making the job log unreadable.
 type testOutputWriter struct {
 	out io.Writer
 	buf bytes.Buffer

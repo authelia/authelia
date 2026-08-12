@@ -11,9 +11,6 @@ import (
 	"github.com/ysmood/gson"
 )
 
-// notificationRecorder reports every notification as it is inserted, rather than leaving the test to
-// find one that may already have been removed. The binding is called by name so the recorder does
-// not have to be regenerated when the name changes.
 const notificationRecorder = `(binding) => {
 	const seen = new Set();
 
@@ -50,10 +47,9 @@ func (rs *RodSession) verifyNotificationDisplayed(t *testing.T, page *rod.Page, 
 	require.NotNil(t, el)
 }
 
-// verifyNotificationDisplayedDuring records notifications from before action runs, so one that is
-// torn down by a redirect the action itself triggers is still observed. Looking for it afterwards
-// races that navigation.
 func (rs *RodSession) verifyNotificationDisplayedDuring(t *testing.T, page *rod.Page, message string, action func()) {
+	// Recording from before the action runs means a notification torn down by a redirect the action
+	// itself triggers is still observed; looking for it afterwards races that navigation.
 	var (
 		mutex sync.Mutex
 		seen  []string

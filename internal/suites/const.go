@@ -93,22 +93,17 @@ const (
 )
 
 const (
-	composeProject        = "authelia"
-	containerLogLines     = 200
-	containerLogTailLines = 15
-)
-
-const (
+	composeProject           = "authelia"
+	containerLogLines        = 200
+	containerLogTailLines    = 15
+	envFileProd              = "/web/.env.production"
+	envFileDev               = "/web/.env.development"
+	namespaceAuthelia        = "authelia"
+	namespaceDashboard       = "kubernetes-dashboard"
+	namespaceKube            = "kube-system"
 	notificationBinding      = "autheliaNotificationObserved"
 	notificationPollInterval = time.Millisecond * 50
-)
-
-const (
-	envFileProd        = "/web/.env.production"
-	envFileDev         = "/web/.env.development"
-	namespaceAuthelia  = "authelia"
-	namespaceDashboard = "kubernetes-dashboard"
-	namespaceKube      = "kube-system"
+	redisMasterTimeout       = time.Second * 60
 )
 
 var (

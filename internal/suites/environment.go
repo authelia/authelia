@@ -26,6 +26,8 @@ func waitUntilServiceLogDetected(
 	flags := []string{"--tail", "200"}
 
 	if !since.IsZero() {
+		// The log is cumulative, so without this an entry produced before the action being waited on
+		// satisfies the wait immediately. Rewound slightly to keep an entry from the same instant.
 		flags = []string{"--since", since.Add(-time.Second).Format(time.RFC3339Nano)}
 	}
 

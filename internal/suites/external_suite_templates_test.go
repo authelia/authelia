@@ -85,19 +85,14 @@ func (s *TemplatesSuite) templatesURL(path string) string {
 	return s.baseURL + path
 }
 
-// isStaleDocumentError reports whether err is Chrome rejecting a node that was resolved against a
-// document which has since been replaced.
 func isStaleDocumentError(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "does not belong to the document")
 }
 
-// previewText resolves selector inside the preview iframe and returns its text.
-//
-// react-email finishes bundling asynchronously and swaps the iframe document when it does, so there
-// is no moment at which descending is guaranteed to be safe: waiting for readySelector only proves
-// the document was populated at that instant. Rather than trying to pick the right moment, the frame
-// is resolved again whenever a node turns out to belong to a replaced document.
 func (s *TemplatesSuite) previewText(outer *rod.Page, readySelector, selector string) string {
+	// react-email swaps the iframe document when it finishes bundling, so there is no moment at which
+	// descending is guaranteed safe. Rather than trying to pick one, the frame is resolved again
+	// whenever a node turns out to belong to a replaced document.
 	var (
 		text string
 		err  error
