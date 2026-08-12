@@ -78,6 +78,11 @@ if [[ ${BUILDKITE_LABEL} =~ (:selenium:|:nodejs:) ]] && [[ -n ${BUILDKITE_ANALYT
   done
 fi
 
+if [[ ${BUILDKITE_LABEL} =~ (:selenium:|:nodejs:) ]] && [[ -d screenshots ]]; then
+  echo "--- :camera_with_flash: Annotating failure screenshots"
+  buildkite-agent annotate --style "error" --context "ctx-screenshots" --append < <(bash .buildkite/annotations/screenshots.sh)
+fi
+
 if [[ ${BUILDKITE_LABEL} =~ :selenium: ]] || [[ ${BUILDKITE_LABEL} =~ :docker:\ Build\ Image ]]; then
   mapfile -t CONTAINERS < <(docker ps -a -q)
   if [[ ${#CONTAINERS[@]} -gt 0 ]]; then

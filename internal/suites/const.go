@@ -92,6 +92,12 @@ const (
 )
 
 const (
+	composeProject        = "authelia"
+	containerLogLines     = 200
+	containerLogTailLines = 15
+)
+
+const (
 	envFileProd        = "/web/.env.production"
 	envFileDev         = "/web/.env.development"
 	namespaceAuthelia  = "authelia"

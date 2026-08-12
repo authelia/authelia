@@ -12,7 +12,7 @@ import (
 
 var (
 	k3dImageName  = "k3d"
-	dockerCmdLine = fmt.Sprintf("docker compose -p authelia -f internal/suites/compose.yml -f internal/suites/example/compose/k3d/compose.yml exec -T %s", k3dImageName)
+	dockerCmdLine = fmt.Sprintf("docker compose -p %s -f internal/suites/compose.yml -f internal/suites/example/compose/k3d/compose.yml exec -T %s", composeProject, k3dImageName)
 )
 
 // K3D used for running kind commands.

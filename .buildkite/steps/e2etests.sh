@@ -22,6 +22,9 @@ cat << EOF
       - "test-results-*.json"
       - "test-results-*.xml"
       - "screenshots/**/*.png"
+      - "screenshots/**/*.html"
+      - "screenshots/**/*.resources.json"
+      - "screenshots/**/*.containers.log"
     timeout_in_minutes: ${TIMEOUT}
     retry:
       automatic:

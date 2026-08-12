@@ -23,9 +23,47 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 var browserPaths = []string{"/usr/bin/chromium-browser", "/usr/bin/chromium", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/Applications/Chromium.app/Contents/MacOS/Chromium"}
+
+// screenshotBanner labels the page with its URL, standing in for the address bar that a capture of
+// the page cannot include. The document is padded by the height of the banner so that the banner
+// never covers page content, and it is only ever injected immediately before capturing an already
+// failed test.
+const screenshotBanner = `() => {
+	const height = 28;
+	const banner = document.createElement('div');
+
+	banner.textContent = location.href;
+	banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+		'height:' + height + 'px;box-sizing:border-box;' +
+		'background:#1f2937;color:#f9fafb;font:12px/20px ui-monospace,monospace;' +
+		'padding:4px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' +
+		'border-bottom:1px solid #4b5563;';
+
+	document.documentElement.style.paddingTop = height + 'px';
+	document.documentElement.appendChild(banner);
+}`
+
+// diagnosticsResources summarizes what the page managed to load. responseStatus and transferSize
+// distinguish a resource that failed to arrive from one that arrived but did not execute.
+const diagnosticsResources = `() => JSON.stringify({
+	url: location.href,
+	title: document.title,
+	readyState: document.readyState,
+	bodyLength: document.body ? document.body.innerHTML.length : 0,
+	resources: performance.getEntriesByType('resource').map((entry) => ({
+		name: entry.name,
+		initiator: entry.initiatorType,
+		status: entry.responseStatus,
+		transferSize: entry.transferSize,
+		encodedBodySize: entry.encodedBodySize,
+		duration: Math.round(entry.duration),
+	})),
+}, null, 2)`
 
 func StringToKeys(value string) []input.Key {
 	n := len(value)
@@ -191,16 +229,98 @@ func (s *BaseSuite) SetupEnvironment() {
 	s.T().Setenv("SUITE_SETUP_ENVIRONMENT", t)
 }
 
-func screenshotDirectory() string {
+// screenshotPaths returns the path to write the capture to, and the path to report it as. Under CI
+// the reported path is relative to the repository root so it matches the Buildkite artifact path,
+// which is what an artifact:// reference has to be given.
+func screenshotPaths(name string) (path, reported string) {
+	suite := strings.ToLower(os.Getenv("SUITE"))
+
 	if os.Getenv("CI") == t {
-		return filepath.Join("../../screenshots", strings.ToLower(os.Getenv("SUITE")))
+		reported = filepath.Join("screenshots", suite, name)
+
+		return filepath.Join("../..", reported), reported
 	}
 
-	return filepath.Join(os.TempDir(), "authelia-suites-screenshots", strings.ToLower(os.Getenv("SUITE")))
+	path = filepath.Join(os.TempDir(), "authelia-suites-screenshots", suite, name)
+
+	return path, path
 }
 
 func (s *RodSuite) collectScreenshot(err error, page *rod.Page) {
 	s.RodSession.collectScreenshot(s.T(), err, page)
+}
+
+// collectContainerLogs writes the logs of every container in the suite beside the capture, and
+// echoes the tail of each through the test so it reaches the JUnit failure body and therefore Test
+// Engine. The OnError hook prints these too, but it runs in a separate process after the test binary
+// has exited, so nothing it prints can be associated with the test that failed.
+func (rs *RodSession) collectContainerLogs(test *testing.T, base string) {
+	output, _, err := utils.RunCommandAndReturnOutput(
+		fmt.Sprintf("docker ps --filter label=com.docker.compose.project=%s --format '{{.Names}}'", composeProject),
+	)
+	if err != nil {
+		log.Debugf("Error listing suite containers: %v", err)
+
+		return
+	}
+
+	var builder strings.Builder
+
+	for _, name := range strings.Fields(output) {
+		logs, _, lerr := utils.RunCommandAndReturnOutput(fmt.Sprintf("docker logs --tail %d %s 2>&1", containerLogLines, name))
+		if lerr != nil {
+			log.Debugf("Error reading logs of container '%s': %v", name, lerr)
+
+			continue
+		}
+
+		fmt.Fprintf(&builder, "===== %s =====\n%s\n", name, logs)
+
+		test.Logf("Last %d log lines of '%s':\n%s", containerLogTailLines, name, tailLines(logs, containerLogTailLines))
+	}
+
+	if builder.Len() == 0 {
+		return
+	}
+
+	path, _ := screenshotPaths(base + ".containers.log")
+
+	if err = os.WriteFile(path, []byte(builder.String()), 0600); err != nil {
+		log.Debugf("Error writing '%s': %v", path, err)
+	}
+}
+
+func tailLines(value string, n int) string {
+	lines := strings.Split(strings.TrimRight(value, "\n"), "\n")
+
+	if len(lines) > n {
+		lines = lines[len(lines)-n:]
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+// collectDiagnostics writes the markup and resource timing of the page beside the capture. A
+// screenshot of a page that rendered nothing shows nothing, so these answer whether the markup
+// arrived at all and whether any of its resources failed to load.
+func (rs *RodSession) collectDiagnostics(page *rod.Page, base string) {
+	for name, expression := range map[string]string{
+		base + ".html":           `() => document.documentElement.outerHTML`,
+		base + ".resources.json": diagnosticsResources,
+	} {
+		path, _ := screenshotPaths(name)
+
+		value, err := page.Eval(expression)
+		if err != nil {
+			log.Debugf("Error collecting '%s': %v", name, err)
+
+			continue
+		}
+
+		if err = os.WriteFile(path, []byte(value.Value.Str()), 0600); err != nil {
+			log.Debugf("Error writing '%s': %v", path, err)
+		}
+	}
 }
 
 func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Page) {
@@ -208,15 +328,21 @@ func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Pa
 		return
 	}
 
-	directory := screenshotDirectory()
+	base := strings.NewReplacer("/", "-", " ", "_").Replace(test.Name())
 
-	if err = os.MkdirAll(directory, 0755); err != nil {
-		log.Errorf("Error creating screenshot directory '%s': %v", directory, err)
+	path, reported := screenshotPaths(base + ".png")
+
+	if err = os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		log.Errorf("Error creating screenshot directory '%s': %v", filepath.Dir(path), err)
 
 		return
 	}
 
-	path := filepath.Join(directory, strings.NewReplacer("/", "-", " ", "_").Replace(test.Name())+".png")
+	rs.collectDiagnostics(page, base)
+
+	if _, err = page.Eval(screenshotBanner); err != nil {
+		log.Debugf("Error labeling the screenshot with the page URL: %v", err)
+	}
 
 	data, err := page.Screenshot(true, nil)
 	if err != nil {
@@ -231,7 +357,19 @@ func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Pa
 		return
 	}
 
-	log.Infof("Captured failure screenshot at '%s'", path)
+	rs.collectContainerLogs(test, base)
+
+	var url string
+
+	if info, ierr := page.Info(); ierr == nil {
+		url = info.URL
+	}
+
+	if build, job := os.Getenv("BUILDKITE_BUILD_URL"), os.Getenv("BUILDKITE_JOB_ID"); build != "" && job != "" {
+		test.Logf("Failure screenshot of '%s' at '%s': %s/waterfall?jid=%s&tab=artifacts", url, reported, build, job)
+	} else {
+		test.Logf("Failure screenshot of '%s' at '%s'", url, reported)
+	}
 }
 
 func (s *RodSuite) GetCookieNames() (names []string) {

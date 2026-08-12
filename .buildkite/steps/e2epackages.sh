@@ -9,6 +9,9 @@ cat << EOF
       - "test-results-*.json"
       - "test-results-*.xml"
       - "screenshots/**/*.png"
+      - "screenshots/**/*.html"
+      - "screenshots/**/*.resources.json"
+      - "screenshots/**/*.containers.log"
       - "internal/suites/testdata/*.actual.png"
     timeout_in_minutes: 20
     retry:
