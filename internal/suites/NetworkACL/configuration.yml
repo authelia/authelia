@@ -41,6 +41,9 @@ session:
 authentication_backend:
   file:
     path: '/config/users.yml'
+  known_ip:
+    enable: true
+    notify_private_ranges: true
 
 totp:
   disable_reuse_security_policy: true
@@ -86,4 +89,9 @@ access_control:
         - 'Clients'
     - domain: 'secure.example.com'
       policy: 'two_factor'
+    - domain: 'public.example.com'
+      policy: 'one_factor'
+      networks:
+        - '192.168.240.201/32'
+        - '192.168.240.202/32'
 ...

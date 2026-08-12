@@ -99,6 +99,11 @@ func (p *Provider) GetEventEmailTemplate() (t *EmailTemplate) {
 	return p.templates.notification.event
 }
 
+// GetNewLoginEmailTemplate returns an EmailTemplate used for new login notifications.
+func (p *Provider) GetNewLoginEmailTemplate() (t *EmailTemplate) {
+	return p.templates.notification.newLogin
+}
+
 // GetOpenIDConnectAuthorizeResponseFormPostTemplate returns a Template used to generate the OpenID Connect 1.0 Form Post Authorize Response.
 func (p *Provider) GetOpenIDConnectAuthorizeResponseFormPostTemplate() (t *th.Template) {
 	return p.templates.oidc.formpost
@@ -117,6 +122,10 @@ func (p *Provider) load() (err error) {
 
 	if p.templates.notification.event, err = loadEmailTemplate(TemplateNameEmailEvent, p.config.EmailTemplatesPath); err != nil {
 		errs = append(errs, fmt.Errorf("error occurred loading '%s' email template: %w", TemplateNameEmailEvent, err))
+	}
+
+	if p.templates.notification.newLogin, err = loadEmailTemplate(TemplateNameEmailNewLogin, p.config.EmailTemplatesPath); err != nil {
+		errs = append(errs, err)
 	}
 
 	var data []byte

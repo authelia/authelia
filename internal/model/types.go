@@ -55,6 +55,27 @@ func (ip IP) Value() (value driver.Value, err error) {
 	return ip.IP.String(), nil
 }
 
+// MarshalText is the IP implementation of the encoding.TextMarshaler, used by encoding/json and YAML encoders.
+func (ip IP) MarshalText() (text []byte, err error) {
+	if ip.IP == nil {
+		return nil, fmt.Errorf(errFmtValueNil, ip)
+	}
+
+	return []byte(ip.IP.String()), nil
+}
+
+// UnmarshalText is the IP implementation of the encoding.TextUnmarshaler, used by encoding/json and YAML decoders.
+func (ip *IP) UnmarshalText(text []byte) (err error) {
+	value := net.ParseIP(string(text))
+	if value == nil {
+		return fmt.Errorf("invalid ip address: %s", text)
+	}
+
+	ip.IP = value
+
+	return nil
+}
+
 // Scan is the IP implementation of the sql.Scanner.
 func (ip *IP) Scan(src any) (err error) {
 	if src == nil {

@@ -349,4 +349,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	} else {
 		HandlePasskeyResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups, userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) == authentication.TwoFactor)
 	}
+
+	// TODO: SECURITY: How does the addition of this logic affect the authentication delay? Does the email logic modify that timing in such a way to break the timing attack mitigation?
+	HandleKnownIPTracking(ctx, &userSession)
 }

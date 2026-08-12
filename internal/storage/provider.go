@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/avct/uasurfer"
 	"github.com/google/uuid"
 
 	"authelia.com/provider/oauth2/storage"
@@ -138,6 +139,34 @@ type Provider interface {
 
 	// LoadPreferredDuoDevice loads a Duo device from the storage provider for a given username.
 	LoadPreferredDuoDevice(ctx context.Context, username string) (device *model.DuoDevice, err error)
+
+	/*
+		Implementation for Known/New IP Tracking
+	*/
+
+	IsIPKnownForUser(ctx context.Context, username string, ip model.IP) (isIPKnown bool, err error)
+
+	SaveNewIPForUser(ctx context.Context, username string, ip model.IP, userAgent uasurfer.UserAgent) (err error)
+
+	UpdateKnownIP(ctx context.Context, username string, ip model.IP) (err error)
+
+	// LoadKnownIPsByUser loads all known IP addresses (including expired) for a given username.
+	LoadKnownIPsByUser(ctx context.Context, username string) (ips []model.KnownIP, err error)
+
+	// LoadKnownIPs loads a page of known IP addresses for all users.
+	LoadKnownIPs(ctx context.Context, limit, page int) (ips []model.KnownIP, err error)
+
+	// LoadExpiredKnownIPs loads all known IP addresses that have expired.
+	LoadExpiredKnownIPs(ctx context.Context) (ips []model.KnownIP, err error)
+
+	// SaveKnownIP saves (upserts) a known IP address record.
+	SaveKnownIP(ctx context.Context, ip model.KnownIP) (err error)
+
+	// DeleteKnownIP deletes a known IP address record for a user.
+	DeleteKnownIP(ctx context.Context, username string, ip model.IP) (err error)
+
+	// CleanupExpiredKnownIPs deletes all expired known IP addresses and returns the number of rows removed.
+	CleanupExpiredKnownIPs(ctx context.Context) (count int64, err error)
 
 	/*
 		Implementation for Identity Verification (JWT).
