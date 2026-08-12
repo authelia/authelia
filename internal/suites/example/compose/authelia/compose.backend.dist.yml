@@ -8,12 +8,12 @@ services:
       GOMAXPROCS: '2'
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.authelia_backend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/`)'  # yamllint disable-line rule:line-length
+      traefik.http.routers.authelia_backend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix:-}/`)'  # yamllint disable-line rule:line-length
       traefik.http.routers.authelia_backend.entrypoints: 'https'
       traefik.http.routers.authelia_backend.tls: 'true'
       traefik.http.services.authelia_backend.loadbalancer.server.scheme: 'https'
     healthcheck:
-      test: ['CMD-SHELL', 'wget --quiet --no-check-certificate --tries=1 --spider https://localhost:9091${PathPrefix}/api/health || exit 1']  # yamllint disable-line rule:line-length
+      test: ['CMD-SHELL', 'wget --quiet --no-check-certificate --tries=1 --spider https://localhost:9091${PathPrefix:-}/api/health || exit 1']  # yamllint disable-line rule:line-length
       interval: '5s'
       timeout: '5s'
       retries: 6

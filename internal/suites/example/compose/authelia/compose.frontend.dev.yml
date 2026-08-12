@@ -18,11 +18,11 @@ services:
       - '~/.local/share/pnpm/store:/app/.pnpm-store'
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.authelia_frontend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/`)'  # yamllint disable-line rule:line-length
+      traefik.http.routers.authelia_frontend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix:-}/`)'  # yamllint disable-line rule:line-length
       traefik.http.routers.authelia_frontend.entrypoints: 'https'
       traefik.http.routers.authelia_frontend.tls: 'true'
     environment:
-      VITE_BASEPATH: '${PathPrefix}'
+      VITE_BASEPATH: '${PathPrefix:-}'
     networks:
       authelianet: {}
 ...
