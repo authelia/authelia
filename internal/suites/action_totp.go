@@ -14,6 +14,8 @@ import (
 
 	"github.com/authelia/otp"
 	"github.com/authelia/otp/totp"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 type OptionsTOTP struct {
@@ -102,15 +104,7 @@ func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, inval
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "qr-toggle").Click("left", 1))
 
-	element := rs.WaitElementLocatedByID(t, page, "secret-url")
-
-	raw, err := element.Text()
-	require.NoError(t, err)
-
-	secretURL, err := url.Parse(raw)
-	require.NoError(t, err)
-
-	values := secretURL.Query()
+	values := rs.doWaitForSecretURLValues(t, page)
 
 	credential := RodSuiteCredentialOneTimePassword{
 		Secret: values.Get("secret"),
@@ -151,6 +145,43 @@ func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, inval
 	rs.doRegisterTOTPFinish(t, page, username, credential)
 }
 
+func (rs *RodSession) doWaitForSecretURLValues(t *testing.T, page *rod.Page) url.Values {
+	var (
+		values url.Values
+		raw    string
+	)
+
+	err := utils.CheckUntil(time.Millisecond*20, time.Second*10, func() (bool, error) {
+		element, err := page.Element("#secret-url")
+		if err != nil {
+			return false, err
+		}
+
+		if raw, err = element.Text(); err != nil {
+			return false, nil
+		}
+
+		secretURL, err := url.Parse(raw)
+		if err != nil {
+			return false, nil
+		}
+
+		query := secretURL.Query()
+
+		if query.Get("secret") == "" || query.Get("period") == "" || query.Get("digits") == "" {
+			return false, nil
+		}
+
+		values = query
+
+		return true, nil
+	})
+
+	require.NoError(t, err, "valid secret url wss not found after 10 seconds the last observed value was '%s'", raw)
+
+	return values
+}
+
 func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page, username string) {
 	credential := rs.GetOneTimePassword(username)
 
@@ -165,15 +196,7 @@ func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "qr-toggle").Click("left", 1))
 
-	secretURLElement := rs.WaitElementLocatedByID(t, page, "secret-url")
-
-	secretURLRaw, err := secretURLElement.Text()
-	require.NoError(t, err)
-
-	secretURL, err := url.Parse(secretURLRaw)
-	require.NoError(t, err)
-
-	values := secretURL.Query()
+	values := rs.doWaitForSecretURLValues(t, page)
 
 	credential.Secret = values.Get("secret")
 

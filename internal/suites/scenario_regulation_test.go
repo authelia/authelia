@@ -37,8 +37,15 @@ func (s *RegulationScenario) TearDownSuite() {
 }
 
 func (s *RegulationScenario) SetupTest() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
 	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.verifyIsHome(s.T(), s.Context(ctx))
 }
 
 func (s *RegulationScenario) TearDownTest() {

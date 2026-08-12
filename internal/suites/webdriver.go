@@ -12,6 +12,7 @@ import (
 	"github.com/go-rod/rod/lib/input"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/proto"
+	"github.com/go-rod/rod/lib/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -90,11 +91,13 @@ func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 		motion = 0 * time.Second
 	}
 
+	devtools := isDevToolsEnabled(opts.disableDevtools, headless)
+
 	l := launcher.New().
 		Bin(browserPath).
 		Proxy(opts.proxy).
 		Headless(headless).
-		Devtools(!opts.disableDevtools)
+		Devtools(devtools)
 
 	if opts.disableDevtools {
 		l.Set("font-render-hinting", "none")
@@ -170,26 +173,29 @@ func (rs *RodSession) WaitElementLocatedByID(t *testing.T, page *rod.Page, cssSe
 	return rs.WaitElementLocatedBySelector(t, page, "#"+cssSelector)
 }
 
-// WaitElementsLocatedBySelector waits for at least one element matching the CSS selector to
-// appear, then returns all current matches.
 func (rs *RodSession) WaitElementsLocatedBySelector(t *testing.T, page *rod.Page, selector string) rod.Elements {
-	_, err := page.Element(selector)
-	require.NoError(t, err)
+	var elements rod.Elements
 
-	elements, err := page.Elements(selector)
+	err := utils.Retry(page.GetContext(), rod.DefaultSleeper(), func() (stop bool, err error) {
+		if _, err = page.Element(selector); err != nil {
+			return true, err
+		}
+
+		if elements, err = page.Elements(selector); err != nil {
+			return true, err
+		}
+
+		return len(elements) != 0, nil
+	})
+
 	require.NoError(t, err)
 	require.NotEmpty(t, elements)
 
 	return elements
 }
 
-// WaitElementsLocatedByID waits for an elements located by an id.
 func (rs *RodSession) WaitElementsLocatedByID(t *testing.T, page *rod.Page, cssSelector string) rod.Elements {
-	e, err := page.Elements("#" + cssSelector)
-	require.NoError(t, err)
-	require.NotNil(t, e)
-
-	return e
+	return rs.WaitElementsLocatedBySelector(t, page, "#"+cssSelector)
 }
 
 // WaitForVisualStable blocks until document.fonts.ready resolves and all in-flight images
@@ -284,4 +290,8 @@ func (rs *RodSession) toInputs(in string) (out []input.Key) {
 	}
 
 	return out
+}
+
+func isDevToolsEnabled(disable bool, headless bool) bool {
+	return !disable && os.Getenv("CI") != t && !headless
 }

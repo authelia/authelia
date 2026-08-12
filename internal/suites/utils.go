@@ -86,6 +86,10 @@ func GetLoginBaseURLWithFallbackPrefix(baseDomain, fallback string) string {
 }
 
 func (rs *RodSession) collectCoverage(page *rod.Page) {
+	if page == nil {
+		return
+	}
+
 	coverageDir := "../../web/.nyc_output"
 
 	resp, err := page.Eval("() => JSON.stringify(window.__coverage__)")
@@ -192,6 +196,10 @@ func (s *BaseSuite) SetupEnvironment() {
 }
 
 func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
+	if page == nil {
+		return
+	}
+
 	if err == context.DeadlineExceeded && os.Getenv("CI") == t {
 		base := "/buildkite/screenshots"
 		build := os.Getenv("BUILDKITE_BUILD_NUMBER")

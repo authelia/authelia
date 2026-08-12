@@ -54,11 +54,18 @@ func (s *TwoFactorWebAuthnScenario) TearDownSuite() {
 }
 
 func (s *TwoFactorWebAuthnScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 
-	s.doWebAuthnInitialize(s.T(), s.Page, false)
-	s.doWebAuthnRestoreCredentials(s.T(), s.Page)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
+	s.verifyIsHome(s.T(), s.Context(ctx))
+
+	s.doWebAuthnInitialize(s.T(), s.Context(ctx), false)
+	s.doWebAuthnRestoreCredentials(s.T(), s.Context(ctx))
 }
 
 func (s *TwoFactorWebAuthnScenario) TearDownTest() {

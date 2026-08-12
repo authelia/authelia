@@ -8,68 +8,59 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	loginFieldAttempts = 10
+	loginClickAttempts = 3
+)
+
 func (rs *RodSession) doFillLoginPageAndClick(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
 	usernameElement := rs.WaitElementLocatedByID(t, page, "username-textfield")
 	passwordElement := rs.WaitElementLocatedByID(t, page, "password-textfield")
 	buttonElement := rs.WaitElementLocatedByID(t, page, "sign-in-button")
 
-username:
-	err := usernameElement.MustSelectAllText().Input(username)
-
-	require.NoError(t, err)
-
-	if usernameElement.MustText() != username {
-		goto username
-	}
-
-password:
-	err = passwordElement.MustSelectAllText().Input(password)
-
-	require.NoError(t, err)
-
-	if passwordElement.MustText() != password {
-		goto password
-	}
+	rs.doFillField(t, usernameElement, "username-textfield", username)
+	rs.doFillField(t, passwordElement, "password-textfield", password)
 
 	if keepMeLoggedIn {
 		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
-		err = keepMeLoggedInElement.Click("left", 1)
-		require.NoError(t, err)
+		require.NoError(t, keepMeLoggedInElement.Click("left", 1))
 	}
 
-click:
-	err = buttonElement.Click("left", 1)
-
-	require.NoError(t, err)
-
-	if buttonElement.MustInteractable() {
-		goto click
-	}
+	rs.doClickSignIn(t, buttonElement)
 }
 
 func (rs *RodSession) doFillPasswordAndClick(t *testing.T, page *rod.Page, password string) {
-	var err error
-
 	element := rs.WaitElementLocatedByID(t, page, "password-textfield")
 	button := rs.WaitElementLocatedByID(t, page, "sign-in-button")
 
-password:
-	err = element.MustSelectAllText().Input(password)
+	rs.doFillField(t, element, "password-textfield", password)
+	rs.doClickSignIn(t, button)
+}
 
-	require.NoError(t, err)
+func (rs *RodSession) doFillField(t *testing.T, element *rod.Element, id, value string) {
+	var actual string
 
-	if element.MustText() != password {
-		goto password
+	for i := 0; i < loginFieldAttempts; i++ {
+		require.NoError(t, element.MustSelectAllText().Input(value))
+
+		if actual = element.MustText(); actual == value {
+			return
+		}
 	}
 
-click:
-	err = button.Click("left", 1)
+	require.FailNowf(t, "field did not accept the value", "the '%s' field contained '%s' instead of the expected value after %d attempts", id, actual, loginFieldAttempts)
+}
 
-	require.NoError(t, err)
+func (rs *RodSession) doClickSignIn(t *testing.T, element *rod.Element) {
+	for i := 0; i < loginClickAttempts; i++ {
+		require.NoError(t, element.Click("left", 1))
 
-	if button.MustInteractable() {
-		goto click
+		if !element.MustInteractable() {
+			return
+		}
 	}
+
+	require.FailNowf(t, "sign in button remained interactable", "the sign in button was still interactable after %d clicks, the login form has likely been submitted %d times", loginClickAttempts, loginClickAttempts)
 }
 
 // Login 1FA.
