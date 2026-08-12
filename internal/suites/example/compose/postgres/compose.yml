@@ -2,6 +2,8 @@
 services:
   postgres:
     image: 'postgres:18'
+    cpus: 2
+    mem_limit: 1g
     environment:
       POSTGRES_PASSWORD: 'password'
       POSTGRES_USER: 'admin'

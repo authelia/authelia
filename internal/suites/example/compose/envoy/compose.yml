@@ -2,6 +2,8 @@
 services:
   envoy:
     image: 'envoyproxy/envoy:v1.39.0'
+    cpus: 2
+    mem_limit: 1g
     volumes:
       - './example/compose/envoy/envoy.yaml:/etc/envoy/envoy.yaml'
       - './common/pki:/pki'

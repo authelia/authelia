@@ -1,6 +1,8 @@
 ---
 services:
   pam:
+    cpus: 2
+    mem_limit: 1g
     build:
       context: '../..'
       dockerfile: 'internal/suites/example/compose/pam/Dockerfile'

@@ -1,6 +1,8 @@
 ---
 services:
   smtp:
+    cpus: 2
+    mem_limit: 1g
     environment:
       MP_SMTP_AUTH: 'authelia:mailer'
       MP_SMTP_AUTH_ACCEPT_ANY: '0'

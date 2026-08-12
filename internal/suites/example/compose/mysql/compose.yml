@@ -2,6 +2,8 @@
 services:
   mysql:
     image: 'mysql:26.7'
+    cpus: 2
+    mem_limit: 1g
     environment:
       MYSQL_ROOT_PASSWORD: 'rootpassword'
       MYSQL_USER: 'admin'

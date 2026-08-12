@@ -3,6 +3,10 @@ services:
   caddy:
     # build: ./example/compose/caddy/ # used for debugging
     image: caddy:2.11.4-alpine
+    cpus: 2
+    mem_limit: 1g
+    environment:
+      GOMAXPROCS: '2'
     volumes:
       - './example/compose/caddy/Caddyfile:/etc/caddy/Caddyfile'
       - './common/pki:/pki'

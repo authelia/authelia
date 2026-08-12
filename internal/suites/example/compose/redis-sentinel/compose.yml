@@ -2,6 +2,8 @@
 services:
   redis-node-0:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh master'
     healthcheck: &node-health
       test: ['CMD-SHELL', 'redis-cli ping || exit 1']
@@ -19,6 +21,8 @@ services:
         ipv4_address: 192.168.240.110
   redis-node-1:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh slave'
     depends_on: &deps
       redis-node-0:
@@ -35,6 +39,8 @@ services:
         ipv4_address: 192.168.240.111
   redis-node-2:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh slave'
     depends_on: *deps
     healthcheck: *node-health
@@ -49,6 +55,8 @@ services:
         ipv4_address: 192.168.240.112
   redis-sentinel-0:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh sentinel'
     depends_on: &deps-sentinel
       <<: *deps
@@ -71,6 +79,8 @@ services:
         ipv4_address: 192.168.240.120
   redis-sentinel-1:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh sentinel'
     depends_on: *deps-sentinel
     healthcheck: *sentinel-health
@@ -84,6 +94,8 @@ services:
         ipv4_address: 192.168.240.121
   redis-sentinel-2:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh sentinel'
     depends_on: *deps-sentinel
     healthcheck: *sentinel-health

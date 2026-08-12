@@ -2,6 +2,8 @@
 services:
   authelia-frontend:
     image: 'nginx:1.31.3-alpine'
+    cpus: 2
+    mem_limit: 1g
     volumes:
       - './example/compose/authelia/resources/nginx.conf:/etc/nginx/nginx.conf'
     labels:

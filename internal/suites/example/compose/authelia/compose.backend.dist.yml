@@ -2,6 +2,10 @@
 services:
   authelia-backend:
     image: 'authelia:dist'
+    cpus: 2
+    mem_limit: 1g
+    environment:
+      GOMAXPROCS: '2'
     labels:
       traefik.enable: 'true'
       traefik.http.routers.authelia_backend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/`)'  # yamllint disable-line rule:line-length
