@@ -54,8 +54,7 @@ func (s *TwoFactorWebAuthnScenario) TearDownSuite() {
 }
 
 func (s *TwoFactorWebAuthnScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 
 	s.doWebAuthnInitialize(s.T(), s.Page, false)
 	s.doWebAuthnRestoreCredentials(s.T(), s.Page)

@@ -1,6 +1,7 @@
 package suites
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -11,15 +12,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func (s *RodSuite) doSetupTest(url string) {
+	ctx, cancel := context.WithTimeout(context.Background(), setupTestTimeout)
+	defer cancel()
+
+	s.Page = s.doCreateTab(s.T(), url)
+	s.verifyIsHome(s.T(), s.Context(ctx))
+}
+
 func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
-	p, err := rs.WebDriver.MustIncognito().Page(proto.TargetCreateTarget{URL: url})
-	assert.NoError(t, err)
+	incognito, err := rs.WebDriver.Incognito()
+	require.NoError(t, err)
+
+	rs.contexts = append(rs.contexts, incognito)
+
+	p, err := incognito.Page(proto.TargetCreateTarget{URL: url})
+	require.NoError(t, err)
 
 	return p
 }
 
 func (rs *RodSession) doVisit(t *testing.T, page *rod.Page, url string) {
 	assert.NoError(t, page.Navigate(url))
+	require.NoError(t, page.WaitLoad())
 	require.NoError(t, page.WaitStable(time.Millisecond*50))
 }
 

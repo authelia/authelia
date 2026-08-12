@@ -85,11 +85,52 @@ func (s *TemplatesSuite) templatesURL(path string) string {
 	return s.baseURL + path
 }
 
+// isStaleDocumentError reports whether err is Chrome rejecting a node that was resolved against a
+// document which has since been replaced.
+func isStaleDocumentError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "does not belong to the document")
+}
+
+// previewText resolves selector inside the preview iframe and returns its text.
+//
+// react-email finishes bundling asynchronously and swaps the iframe document when it does, so there
+// is no moment at which descending is guaranteed to be safe: waiting for readySelector only proves
+// the document was populated at that instant. Rather than trying to pick the right moment, the frame
+// is resolved again whenever a node turns out to belong to a replaced document.
+func (s *TemplatesSuite) previewText(outer *rod.Page, readySelector, selector string) string {
+	var (
+		text string
+		err  error
+	)
+
+	for i := 0; i < waitElementsAttempts; i++ {
+		var element *rod.Element
+
+		if element, err = s.openPreviewFrame(outer, readySelector).Element(selector); err != nil {
+			if isStaleDocumentError(err) {
+				continue
+			}
+
+			break
+		}
+
+		if text, err = element.Text(); err == nil {
+			return text
+		}
+
+		if !isStaleDocumentError(err) {
+			break
+		}
+	}
+
+	require.NoError(s.T(), err, "failed to read '%s' from the preview iframe", selector)
+
+	return text
+}
+
 // openPreviewFrame returns the inner page of the preview server's srcdoc iframe once
-// react-email has rendered the element matching readySelector. Waiting on the final
-// target selector (rather than any body content) avoids descending while react-email
-// is still swapping documents, which would leave the frame handle pointing at a
-// detached DOM and surface as "Node with given id does not belong to the document".
+// react-email has rendered the element matching readySelector. Callers should prefer previewText,
+// which additionally recovers from the document being swapped after the descent.
 func (s *TemplatesSuite) openPreviewFrame(outer *rod.Page, readySelector string) *rod.Page {
 	s.WaitElementLocatedBySelector(s.T(), outer, "iframe")
 
@@ -137,14 +178,11 @@ func (s *TemplatesSuite) TestIdentityVerificationOTCRenders() {
 
 	outer = outer.Context(ctx)
 
-	frame := s.openPreviewFrame(outer, "#one-time-code")
+	require.Contains(s.T(), s.previewText(outer, "#one-time-code", "#one-time-code"), "ABC123", "expected one-time code to render the PreviewProps value")
 
-	code := s.WaitElementLocatedByID(s.T(), frame, "one-time-code")
-	require.Contains(s.T(), code.MustText(), "ABC123", "expected one-time code to render the PreviewProps value")
+	s.previewText(outer, "#one-time-code", "#link-revoke")
 
-	s.WaitElementLocatedByID(s.T(), frame, "link-revoke")
-
-	body := s.WaitElementLocatedBySelector(s.T(), frame, "body").MustText()
+	body := s.previewText(outer, "#one-time-code", "body")
 	require.Contains(s.T(), strings.ToLower(body), "one-time code")
 }
 
@@ -161,12 +199,10 @@ func (s *TemplatesSuite) TestIdentityVerificationJWTRenders() {
 
 	outer = outer.Context(ctx)
 
-	frame := s.openPreviewFrame(outer, "#link")
+	s.previewText(outer, "#link", "#link")
+	s.previewText(outer, "#link", "#link-revoke")
 
-	s.WaitElementLocatedByID(s.T(), frame, "link")
-	s.WaitElementLocatedByID(s.T(), frame, "link-revoke")
-
-	body := s.WaitElementLocatedBySelector(s.T(), frame, "body").MustText()
+	body := s.previewText(outer, "#link", "body")
 	require.Contains(s.T(), strings.ToLower(body), "one-time link")
 }
 
@@ -183,9 +219,7 @@ func (s *TemplatesSuite) TestEventRenders() {
 
 	outer = outer.Context(ctx)
 
-	frame := s.openPreviewFrame(outer, "strong")
-
-	body := s.WaitElementLocatedBySelector(s.T(), frame, "body").MustText()
+	body := s.previewText(outer, "strong", "body")
 	for _, needle := range []string{
 		"Second Factor Method Added",
 		"Example Detail",

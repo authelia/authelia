@@ -42,8 +42,7 @@ func (s *DuoPushWebDriverSuite) TearDownSuite() {
 }
 
 func (s *DuoPushWebDriverSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *DuoPushWebDriverSuite) TearDownTest() {
@@ -420,8 +419,7 @@ func (s *DuoPushDefaultRedirectionSuite) TearDownSuite() {
 }
 
 func (s *DuoPushDefaultRedirectionSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *DuoPushDefaultRedirectionSuite) TearDownTest() {

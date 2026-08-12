@@ -5,12 +5,12 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -191,25 +191,47 @@ func (s *BaseSuite) SetupEnvironment() {
 	s.T().Setenv("SUITE_SETUP_ENVIRONMENT", t)
 }
 
-func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
-	if err == context.DeadlineExceeded && os.Getenv("CI") == t {
-		base := "/buildkite/screenshots"
-		build := os.Getenv("BUILDKITE_BUILD_NUMBER")
-		suite := strings.ToLower(os.Getenv("SUITE"))
-		job := os.Getenv("BUILDKITE_JOB_ID")
-		path := filepath.Join(base, build, suite, job)
-
-		if err = os.MkdirAll(path, 0755); err != nil { //nolint:gosec // TODO: Run this line through taint analysis.
-			log.Fatal(err)
-		}
-
-		pc, _, _, _ := runtime.Caller(2)
-		fn := runtime.FuncForPC(pc)
-		p := "github.com/authelia/authelia/v4/internal/suites."
-		r := strings.NewReplacer(p, "", "(", "", ")", "", "*", "", ".", "-")
-
-		page.MustScreenshotFullPage(fmt.Sprintf("%s/%s.jpg", path, r.Replace(fn.Name())))
+func screenshotDirectory() string {
+	if os.Getenv("CI") == t {
+		return filepath.Join("../../screenshots", strings.ToLower(os.Getenv("SUITE")))
 	}
+
+	return filepath.Join(os.TempDir(), "authelia-suites-screenshots", strings.ToLower(os.Getenv("SUITE")))
+}
+
+func (s *RodSuite) collectScreenshot(err error, page *rod.Page) {
+	s.RodSession.collectScreenshot(s.T(), err, page)
+}
+
+func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Page) {
+	if !test.Failed() && !errors.Is(err, context.DeadlineExceeded) {
+		return
+	}
+
+	directory := screenshotDirectory()
+
+	if err = os.MkdirAll(directory, 0755); err != nil {
+		log.Errorf("Error creating screenshot directory '%s': %v", directory, err)
+
+		return
+	}
+
+	path := filepath.Join(directory, strings.NewReplacer("/", "-", " ", "_").Replace(test.Name())+".png")
+
+	data, err := page.Screenshot(true, nil)
+	if err != nil {
+		log.Errorf("Error capturing screenshot for '%s': %v", test.Name(), err)
+
+		return
+	}
+
+	if err = os.WriteFile(path, data, 0600); err != nil {
+		log.Errorf("Error writing screenshot '%s': %v", path, err)
+
+		return
+	}
+
+	log.Infof("Captured failure screenshot at '%s'", path)
 }
 
 func (s *RodSuite) GetCookieNames() (names []string) {

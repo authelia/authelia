@@ -42,8 +42,7 @@ func (s *HighAvailabilityWebDriverSuite) TearDownSuite() {
 }
 
 func (s *HighAvailabilityWebDriverSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *HighAvailabilityWebDriverSuite) TearDownTest() {
