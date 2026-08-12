@@ -3,6 +3,7 @@ package suites
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -95,6 +96,11 @@ const (
 	composeProject        = "authelia"
 	containerLogLines     = 200
 	containerLogTailLines = 15
+)
+
+const (
+	notificationBinding      = "autheliaNotificationObserved"
+	notificationPollInterval = time.Millisecond * 50
 )
 
 const (
