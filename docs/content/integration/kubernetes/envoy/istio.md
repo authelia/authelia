@@ -84,7 +84,7 @@ spec:
 
 The following [Authorization Policy] applies the above filter extension provider to the `app.{{< sitevar name="domain" nojs="example.com" >}}` domain:
 
-```yaml {title="authoriztion-policy.yml"}
+```yaml {title="authorization-policy.yml"}
 apiVersion: 'security.istio.io/v1beta1'
 kind: 'AuthorizationPolicy'
 metadata:

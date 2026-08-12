@@ -32,12 +32,12 @@ type StorageSQL struct {
 
 // StorageMySQL represents the configuration of a MySQL database.
 type StorageMySQL struct {
-	StorageSQL `koanf:",squash"`
+	StorageSQL `koanf:",squash" yaml:",inline"`
 }
 
 // StoragePostgreSQL represents the configuration of a PostgreSQL database.
 type StoragePostgreSQL struct {
-	StorageSQL `koanf:",squash"`
+	StorageSQL `koanf:",squash" yaml:",inline"`
 
 	Schema string `koanf:"schema" yaml:"schema,omitempty" toml:"schema,omitempty" json:"schema,omitempty" jsonschema:"default=public,title=Schema" jsonschema_description:"The default schema name to use."`
 

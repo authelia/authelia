@@ -83,6 +83,21 @@ func TestStartupCheck(t *testing.T) {
 			},
 			"",
 		},
+		{
+			"ShouldNotErrWhenSpoofedResponseClaimsLargeOffset",
+			func(t *testing.T) *Provider {
+				addr := testServer(t, clock.NewFixed(time.Now().Add(time.Minute*10)), func(resp *packet) {
+					resp.Stratum = 0
+				})
+
+				return NewProvider(&schema.NTP{
+					Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, addr.IP.String(), uint16(addr.Port))},
+					Version:       4,
+					MaximumDesync: time.Second,
+				})
+			},
+			"",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -143,6 +158,47 @@ func TestGetOffset(t *testing.T) {
 			},
 			regexp.MustCompile(`^error occurred reading ntp packet response to the connection: read udp \d+.\d+.\d+.\d+:\d+->\d+.\d+.\d+.\d+:\d+: i/o timeout$`),
 		},
+		{
+			"ShouldErrWhenResponseStratumIsZero",
+			func(t *testing.T) *Provider {
+				addr := testServer(t, clock.New(), func(resp *packet) { resp.Stratum = 0 })
+
+				return NewProvider(&schema.NTP{
+					Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, addr.IP.String(), uint16(addr.Port))},
+					Version:       4,
+					MaximumDesync: time.Minute,
+				})
+			},
+			regexp.MustCompile(`^error occurred validating the ntp packet response: the response has stratum '0' but only values between 1 and 15 are considered valid$`),
+		},
+		{
+			"ShouldErrWhenResponseModeIsNotServer",
+			func(t *testing.T) *Provider {
+				addr := testServer(t, clock.New(), func(resp *packet) {
+					resp.LeapVersionMode = (resp.LeapVersionMode & maskMode) | modeClient
+				})
+
+				return NewProvider(&schema.NTP{
+					Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, addr.IP.String(), uint16(addr.Port))},
+					Version:       4,
+					MaximumDesync: time.Minute,
+				})
+			},
+			regexp.MustCompile(`^error occurred validating the ntp packet response: the response has mode '3' but only the server mode '4' is considered valid$`),
+		},
+		{
+			"ShouldErrWhenResponseOriginTimestampDoesNotMatch",
+			func(t *testing.T) *Provider {
+				addr := testServer(t, clock.New(), func(resp *packet) { resp.OriginTimeSeconds++ })
+
+				return NewProvider(&schema.NTP{
+					Address:       &schema.AddressUDP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeUDP, addr.IP.String(), uint16(addr.Port))},
+					Version:       4,
+					MaximumDesync: time.Minute,
+				})
+			},
+			regexp.MustCompile(`^error occurred validating the ntp packet response: the response origin timestamp does not match the transmit timestamp of the request$`),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -162,7 +218,7 @@ func TestGetOffset(t *testing.T) {
 	}
 }
 
-func testServer(t *testing.T, clock clock.Provider) *net.UDPAddr {
+func testServer(t *testing.T, clock clock.Provider, mutators ...func(resp *packet)) *net.UDPAddr {
 	t.Helper()
 
 	conn, err := net.ListenPacket("udp", "127.0.0.1:0")
@@ -194,7 +250,7 @@ func testServer(t *testing.T, clock clock.Provider) *net.UDPAddr {
 			seconds, fraction := timeToSecondsAndFraction(now)
 
 			resp := &packet{
-				LeapVersionMode:    (req.LeapVersionMode & maskVersion) | (leapUnknown << 6) | 4,
+				LeapVersionMode:    (req.LeapVersionMode & maskMode) | modeServer,
 				Stratum:            1,
 				Poll:               req.Poll,
 				Precision:          -20,
@@ -204,6 +260,10 @@ func testServer(t *testing.T, clock clock.Provider) *net.UDPAddr {
 				RxTimeFraction:     fraction,
 				TxTimeSeconds:      seconds,
 				TxTimeFraction:     fraction,
+			}
+
+			for _, mutator := range mutators {
+				mutator(resp)
 			}
 
 			var out bytes.Buffer

@@ -1,6 +1,27 @@
 package ntp
 
-import "time"
+import (
+	"errors"
+	"fmt"
+	"time"
+)
+
+// validateResponse strictly validates the mode, stratum, and timestamps.
+func validateResponse(req, resp *packet) (err error) {
+	if mode := resp.LeapVersionMode & maskModeValue; mode != modeServer {
+		return fmt.Errorf("the response has mode '%d' but only the server mode '%d' is considered valid", mode, modeServer)
+	}
+
+	if resp.Stratum < stratumMinimum || resp.Stratum > stratumMaximum {
+		return fmt.Errorf("the response has stratum '%d' but only values between %d and %d are considered valid", resp.Stratum, stratumMinimum, stratumMaximum)
+	}
+
+	if resp.OriginTimeSeconds != req.TxTimeSeconds || resp.OriginTimeFraction != req.TxTimeFraction {
+		return errors.New("the response origin timestamp does not match the transmit timestamp of the request")
+	}
+
+	return nil
+}
 
 // leapVersionClientMode does the mathematics to configure the leap/version/mode value of an NTP client packet.
 func leapVersionClientMode(version version) (lvm uint8) {
