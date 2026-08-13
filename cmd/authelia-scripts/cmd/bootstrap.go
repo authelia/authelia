@@ -233,6 +233,35 @@ func hostsLineFields(line string) (ip string, domains []string) {
 	return fields[0], fields[1:]
 }
 
+func hostsLineOnlyWants(domains []string, ip string, addresses map[string]string) bool {
+	for _, domain := range domains {
+		if addresses[domain] != ip {
+			return false
+		}
+	}
+
+	return true
+}
+
+func hostsLineWithout(line, domain string) string {
+	comment := ""
+
+	if i := strings.IndexByte(line, '#'); i >= 0 {
+		comment, line = " "+strings.TrimSpace(line[i:]), line[:i]
+	}
+
+	fields := strings.Fields(line)
+	kept := make([]string, 0, len(fields))
+
+	for _, field := range fields {
+		if field != domain {
+			kept = append(kept, field)
+		}
+	}
+
+	return strings.Join(kept, " ") + comment
+}
+
 func prepareHostsFile() {
 	contentBytes, err := readHostsFile()
 	if err != nil {
@@ -243,7 +272,15 @@ func prepareHostsFile() {
 	toBeAddedLine := make([]string, 0)
 	modified := false
 
-	for _, entry := range hostEntries() {
+	entries := hostEntries()
+
+	addresses := make(map[string]string, len(entries))
+
+	for _, entry := range entries {
+		addresses[entry.Domain] = entry.IP
+	}
+
+	for _, entry := range entries {
 		domainInHostFile := false
 
 		for i, line := range lines {
@@ -255,12 +292,21 @@ func prepareHostsFile() {
 
 			domainInHostFile = true
 
-			// The IP is not up to date. Only the address is rewritten so any other names shared with this line, and
-			// any trailing comment, survive.
-			if ip != entry.IP {
-				lines[i] = strings.Replace(line, ip, entry.IP, 1)
-				modified = true
+			if ip == entry.IP {
+				break
 			}
+
+			// A line carries one address for every name on it, so rewriting it is only safe when all of those names
+			// are ours and all of them want this address. Otherwise the domain moves to a line of its own and the
+			// rest of the line, including any name we do not manage and any trailing comment, is left alone.
+			if hostsLineOnlyWants(domains, entry.IP, addresses) {
+				lines[i] = strings.Replace(line, ip, entry.IP, 1)
+			} else {
+				lines[i] = hostsLineWithout(line, entry.Domain)
+				toBeAddedLine = append(toBeAddedLine, entry.IP+" "+entry.Domain)
+			}
+
+			modified = true
 
 			break
 		}

@@ -57,8 +57,9 @@ address on this page. See [Environment Variables](#environment-variables) below.
 
 ### Sites and Applications
 
-All sites are hosted on the address `192.168.240.100:8080`. This list is not comprehensive and may change over time.
-You can see a full list of the configured host entries by looking at
+All sites are hosted on the address `${SUITE_SUBNET}.100:8080`, which is `192.168.240.100:8080` for local development.
+This list is not comprehensive and may change over time. You can see a full list of the configured host entries by
+looking at
 [bootstrap.go](https://github.com/authelia/authelia/blob/master/cmd/authelia-scripts/cmd/bootstrap.go). For an idea
 of the applications setup in a suite take a look at the `dockerEnvironment` var for the given suite. The file that
 contains the `dockerEnvironment` var for a given suite is located in the
@@ -93,7 +94,7 @@ behavior described above.
 | `SUITE_SLOT` | *unset* | Agent slot number. When set, `bootstrap.sh` derives `COMPOSE_PROJECT_NAME`, `SUITE_SUBNET`, `LDAP_ADMIN_PORT` and `ENVOY_ADMIN_PORT` from it. |
 | `COMPOSE_PROJECT_NAME` | `authelia` | Compose project name. Also scopes the Traefik Docker provider so it only discovers its own containers. |
 | `SUITE_SUBNET` | `192.168.240` | First three octets of the suite network. |
-| `SUITE_TMP` | `/tmp` | Directory the agent and the containers exchange files through. It must resolve to the same directory on the host, at `/tmp` inside the agent, and at `/tmp` inside the suite containers, so that a single path is valid on both sides of every exchange. |
+| `SUITE_TMP` | `/tmp` | Directory the agent and the containers exchange files through. It must resolve to the same directory on the host, at `/tmp` inside the agent, and at `/tmp` inside the suite containers, so that a single path is valid on both sides of every exchange. Give each agent its own directory, because everything at its top level apart from the agent's own working files is removed when a job finishes. |
 | `SUITE_IMAGE` | `authelia:dist` | Image the backend runs. |
 | `AGENT_CONTAINER` | *unset* | Name of the container the tests run in. When set, that container is attached to the suite network on setup and detached on teardown, so Chrome can reach the portal. |
 

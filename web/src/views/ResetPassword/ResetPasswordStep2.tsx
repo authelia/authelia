@@ -17,6 +17,8 @@ import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/Passwor
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
 
+const uninitiated = Symbol("uninitiated");
+
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
 
@@ -44,7 +46,7 @@ const ResetPasswordStep2 = function () {
     // the secret for OTP.
     const processToken = useQueryParam(IdentityToken);
 
-    const resetInitiatedRef = useRef(false);
+    const resetInitiatedRef = useRef<null | string | typeof uninitiated | undefined>(uninitiated);
 
     const handleRateLimited = useCallback(
         (_retryAfter: number) => {
@@ -54,11 +56,11 @@ const ResetPasswordStep2 = function () {
     );
 
     useEffect(() => {
-        if (resetInitiatedRef.current) {
+        if (resetInitiatedRef.current === processToken) {
             return;
         }
 
-        resetInitiatedRef.current = true;
+        resetInitiatedRef.current = processToken;
 
         const submitReset = async () => {
             if (!processToken) {
