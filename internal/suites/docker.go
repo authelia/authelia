@@ -32,14 +32,14 @@ func NewDockerEnvironment(files []string) *DockerEnvironment {
 }
 
 func (de *DockerEnvironment) createCommandWithStdout(cmd string) *exec.Cmd {
-	dockerCmdLine := fmt.Sprintf("docker compose -p authelia -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
+	dockerCmdLine := fmt.Sprintf("docker compose -p %s -f %s %s", composeProject, strings.Join(de.dockerComposeFiles, " -f "), cmd)
 	log.Trace(dockerCmdLine)
 
 	return utils.CommandWithStdout("bash", "-c", dockerCmdLine)
 }
 
 func (de *DockerEnvironment) createCommand(cmd string) *exec.Cmd {
-	dockerCmdLine := fmt.Sprintf("docker compose -p authelia -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
+	dockerCmdLine := fmt.Sprintf("docker compose -p %s -f %s %s", composeProject, strings.Join(de.dockerComposeFiles, " -f "), cmd)
 	log.Trace(dockerCmdLine)
 
 	return utils.Command("bash", "-c", dockerCmdLine)
@@ -53,7 +53,7 @@ func (de *DockerEnvironment) Pull(images ...string) error {
 // Up spawn a docker environment.
 func (de *DockerEnvironment) Up() error {
 	if os.Getenv("CI") == t {
-		return de.createCommandWithStdout("up --build --quiet-pull -d").Run()
+		return de.createCommandWithStdout("up --build --quiet-pull -d --wait --wait-timeout 300").Run()
 	}
 
 	return de.createCommandWithStdout("up --build -d").Run()

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -12,7 +13,13 @@ import (
 	"github.com/go-rod/rod/lib/input"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/proto"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	waitElementsAttempts = 10
+	setupTestTimeout     = time.Second * 30
 )
 
 // RodSession binding a chrome session with devtool protocol.
@@ -21,7 +28,20 @@ type RodSession struct {
 	WebDriver *rod.Browser
 
 	RodSuiteCredentialsProvider
+
+	shared   bool
+	contexts []*rod.Browser
 }
+
+type sharedBrowser struct {
+	launcher *launcher.Launcher
+	browser  *rod.Browser
+}
+
+var (
+	sharedBrowsersMutex sync.Mutex
+	sharedBrowsers      = map[string]*sharedBrowser{}
+)
 
 type RodSessionCredentials struct {
 	TOTP *OptionsTOTP
@@ -74,6 +94,42 @@ func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 		opts.provider = NewRodSuiteCredentials()
 	}
 
+	if opts.disableDevtools {
+		var shared *sharedBrowser
+
+		if shared, err = newBrowser(opts); err != nil {
+			return nil, err
+		}
+
+		return &RodSession{
+			Launcher:                    shared.launcher,
+			WebDriver:                   shared.browser,
+			RodSuiteCredentialsProvider: opts.provider,
+		}, nil
+	}
+
+	sharedBrowsersMutex.Lock()
+	defer sharedBrowsersMutex.Unlock()
+
+	shared, ok := sharedBrowsers[opts.proxy]
+
+	if !ok {
+		if shared, err = newBrowser(opts); err != nil {
+			return nil, err
+		}
+
+		sharedBrowsers[opts.proxy] = shared
+	}
+
+	return &RodSession{
+		Launcher:                    shared.launcher,
+		WebDriver:                   shared.browser,
+		RodSuiteCredentialsProvider: opts.provider,
+		shared:                      true,
+	}, nil
+}
+
+func newBrowser(opts *RodSessionOpts) (shared *sharedBrowser, err error) {
 	var browserPath string
 
 	if browserPath, err = GetBrowserPath(); err != nil {
@@ -94,7 +150,7 @@ func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 		Bin(browserPath).
 		Proxy(opts.proxy).
 		Headless(headless).
-		Devtools(!opts.disableDevtools)
+		Devtools(!headless && !opts.disableDevtools)
 
 	if opts.disableDevtools {
 		l.Set("font-render-hinting", "none")
@@ -113,11 +169,22 @@ func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 
 	browser.MustIgnoreCertErrors(true)
 
-	return &RodSession{
-		Launcher:                    l,
-		WebDriver:                   browser,
-		RodSuiteCredentialsProvider: opts.provider,
-	}, nil
+	return &sharedBrowser{launcher: l, browser: browser}, nil
+}
+
+func closeSharedBrowsers() {
+	sharedBrowsersMutex.Lock()
+	defer sharedBrowsersMutex.Unlock()
+
+	for key, shared := range sharedBrowsers {
+		if err := shared.browser.Close(); err != nil {
+			log.Warnf("Error closing the shared browser: %v", err)
+		}
+
+		shared.launcher.Cleanup()
+
+		delete(sharedBrowsers, key)
+	}
 }
 
 // StartRod create a rod/chromedp session.
@@ -127,14 +194,25 @@ func StartRod() (*RodSession, error) {
 
 // Stop stop the rod/chromedp session.
 func (rs *RodSession) Stop() error {
-	err := rs.WebDriver.Close()
-	if err != nil {
+	for _, incognito := range rs.contexts {
+		if err := incognito.Close(); err != nil {
+			log.Warnf("Error disposing a browser context: %v", err)
+		}
+	}
+
+	rs.contexts = nil
+
+	if rs.shared {
+		return nil
+	}
+
+	if err := rs.WebDriver.Close(); err != nil {
 		return err
 	}
 
 	rs.Launcher.Cleanup()
 
-	return err
+	return nil
 }
 
 // CheckElementExistsLocatedBySelector reports whether at least one element matching the CSS
@@ -173,23 +251,35 @@ func (rs *RodSession) WaitElementLocatedByID(t *testing.T, page *rod.Page, cssSe
 // WaitElementsLocatedBySelector waits for at least one element matching the CSS selector to
 // appear, then returns all current matches.
 func (rs *RodSession) WaitElementsLocatedBySelector(t *testing.T, page *rod.Page, selector string) rod.Elements {
-	_, err := page.Element(selector)
-	require.NoError(t, err)
+	var (
+		elements rod.Elements
+		err      error
+	)
 
-	elements, err := page.Elements(selector)
+	for i := 0; i < waitElementsAttempts; i++ {
+		if _, err = page.Element(selector); err != nil {
+			break
+		}
+
+		if elements, err = page.Elements(selector); err != nil {
+			break
+		}
+
+		if len(elements) != 0 {
+			return elements
+		}
+	}
+
 	require.NoError(t, err)
 	require.NotEmpty(t, elements)
 
 	return elements
 }
 
-// WaitElementsLocatedByID waits for an elements located by an id.
+// WaitElementsLocatedByID waits for at least one element matching the id to appear, then returns
+// all current matches.
 func (rs *RodSession) WaitElementsLocatedByID(t *testing.T, page *rod.Page, cssSelector string) rod.Elements {
-	e, err := page.Elements("#" + cssSelector)
-	require.NoError(t, err)
-	require.NotNil(t, e)
-
-	return e
+	return rs.WaitElementsLocatedBySelector(t, page, "#"+cssSelector)
 }
 
 // WaitForVisualStable blocks until document.fonts.ready resolves and all in-flight images

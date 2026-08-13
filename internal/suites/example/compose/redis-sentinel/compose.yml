@@ -2,12 +2,15 @@
 services:
   redis-node-0:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh master'
     healthcheck: &node-health
       test: ['CMD-SHELL', 'redis-cli ping || exit 1']
       interval: '3s'
       timeout: '5s'
       retries: 5
+      start_period: '60s'
     volumes:
       - './example/compose/redis/templates:/templates'
       - './example/compose/redis/users.acl:/data/users.acl'
@@ -19,6 +22,8 @@ services:
         ipv4_address: 192.168.240.110
   redis-node-1:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh slave'
     depends_on: &deps
       redis-node-0:
@@ -35,6 +40,8 @@ services:
         ipv4_address: 192.168.240.111
   redis-node-2:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh slave'
     depends_on: *deps
     healthcheck: *node-health
@@ -49,6 +56,8 @@ services:
         ipv4_address: 192.168.240.112
   redis-sentinel-0:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh sentinel'
     depends_on: &deps-sentinel
       <<: *deps
@@ -61,6 +70,7 @@ services:
       interval: '3s'
       timeout: '5s'
       retries: 5
+      start_period: '60s'
     volumes:
       - './example/compose/redis/templates:/templates'
       - './example/compose/redis/entrypoint.sh:/entrypoint.sh'
@@ -71,6 +81,8 @@ services:
         ipv4_address: 192.168.240.120
   redis-sentinel-1:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh sentinel'
     depends_on: *deps-sentinel
     healthcheck: *sentinel-health
@@ -84,6 +96,8 @@ services:
         ipv4_address: 192.168.240.121
   redis-sentinel-2:
     image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh sentinel'
     depends_on: *deps-sentinel
     healthcheck: *sentinel-health
@@ -95,4 +109,18 @@ services:
         aliases:
           - 'redis-sentinel-2.example.com'
         ipv4_address: 192.168.240.122
+  authelia-backend:
+    depends_on:
+      redis-node-0:
+        condition: service_healthy
+      redis-node-1:
+        condition: service_healthy
+      redis-node-2:
+        condition: service_healthy
+      redis-sentinel-0:
+        condition: service_healthy
+      redis-sentinel-1:
+        condition: service_healthy
+      redis-sentinel-2:
+        condition: service_healthy
 ...

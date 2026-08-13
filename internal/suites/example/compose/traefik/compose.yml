@@ -1,6 +1,8 @@
 ---
 services:
   traefik:
+    cpus: 2
+    mem_limit: 1g
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - './example/compose/traefik/config:/config'
@@ -11,7 +13,7 @@ services:
       traefik.http.routers.api.entrypoints: 'https'
       traefik.http.routers.api.service: 'api@internal'
       traefik.http.routers.api.tls: 'true'
-      traefik.http.middlewares.authelia.forwardAuth.address: 'https://authelia-backend:9091${PathPrefix}/api/authz/forward-auth'  # yamllint disable-line rule:line-length
+      traefik.http.middlewares.authelia.forwardAuth.address: 'https://authelia-backend:9091${PathPrefix:-}/api/authz/forward-auth'  # yamllint disable-line rule:line-length
       traefik.http.middlewares.authelia.forwardAuth.tls.insecureSkipVerify: 'true'
       traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader: 'true'
       traefik.http.middlewares.authelia.forwardAuth.maxResponseBodySize: '8192'

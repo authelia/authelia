@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 type HighAvailabilityWebDriverSuite struct {
@@ -42,13 +45,68 @@ func (s *HighAvailabilityWebDriverSuite) TearDownSuite() {
 }
 
 func (s *HighAvailabilityWebDriverSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *HighAvailabilityWebDriverSuite) TearDownTest() {
 	s.collectCoverage(s.Page)
 	s.MustClose()
+}
+
+var redisNodeServices = map[string]string{
+	"redis-node-0": "192.168.240.110",
+	"redis-node-1": "192.168.240.111",
+	"redis-node-2": "192.168.240.112",
+}
+
+func (s *HighAvailabilityWebDriverSuite) redisMaster(sentinel string) (master string) {
+	// Which node holds the master role depends on whichever failovers earlier tests provoked, so it
+	// cannot be assumed from the initial configuration. The node is also polled until it answers,
+	// because sentinel reports an address before the node behind it is accepting connections again.
+	err := utils.CheckUntil(time.Second, redisMasterTimeout, func() (bool, error) {
+		output, err := haDockerEnvironment.Exec(sentinel, []string{
+			"redis-cli", "-p", "26379", "-a", "sentinel-server-password", "--no-auth-warning",
+			"sentinel", "get-master-addr-by-name", "authelia",
+		})
+		if err != nil {
+			return false, nil
+		}
+
+		for service, address := range redisNodeServices {
+			if !strings.Contains(output, address) {
+				continue
+			}
+
+			ping, perr := haDockerEnvironment.Exec(service, []string{"redis-cli", "ping"})
+			if perr != nil || !strings.Contains(ping, "PONG") {
+				return false, nil
+			}
+
+			master = service
+
+			return true, nil
+		}
+
+		return false, nil
+	})
+
+	s.Require().NoError(err, "Could not determine an available redis master")
+
+	return master
+}
+
+func (s *HighAvailabilityWebDriverSuite) redisReplica(sentinel string) string {
+	master := s.redisMaster(sentinel)
+
+	for service := range redisNodeServices {
+		if service != master {
+			return service
+		}
+	}
+
+	s.Require().FailNow("Could not determine a redis replica")
+
+	return ""
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
@@ -61,8 +119,12 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
 
 	s.doLoginAndRegisterTOTPThenLogout(s.T(), s.Context(ctx), "john", "password")
 
-	err := haDockerEnvironment.Restart("redis-node-0")
+	err := haDockerEnvironment.Restart(s.redisMaster("redis-sentinel-0"))
 	s.Require().NoError(err)
+
+	// Restarting the master takes the session backend away with it, and a login attempted before it
+	// returns fails at the first factor.
+	s.redisMaster("redis-sentinel-0")
 
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
@@ -81,15 +143,19 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
-	err := haDockerEnvironment.Stop("redis-node-0")
+	master := s.redisMaster("redis-sentinel-0")
+
+	since := time.Now()
+
+	err := haDockerEnvironment.Stop(master)
 	s.Require().NoError(err)
 
 	defer func() {
-		err = haDockerEnvironment.Start("redis-node-0")
+		err = haDockerEnvironment.Start(master)
 		s.Require().NoError(err)
 	}()
 
-	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-0", "+switch-master authelia"))
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-0", "+switch-master authelia", since))
 
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
@@ -119,6 +185,10 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
+	replica := s.redisReplica("redis-sentinel-0")
+
+	since := time.Now()
+
 	err := haDockerEnvironment.Stop("redis-sentinel-0")
 	s.Require().NoError(err)
 
@@ -127,16 +197,16 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
-	err = haDockerEnvironment.Stop("redis-node-0")
+	err = haDockerEnvironment.Stop(replica)
 	s.Require().NoError(err)
 
 	defer func() {
-		err = haDockerEnvironment.Start("redis-node-0")
+		err = haDockerEnvironment.Start(replica)
 		s.Require().NoError(err)
 	}()
 
-	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+sdown sentinel"))
-	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+switch-master authelia"))
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+sdown sentinel", since))
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+sdown slave", since))
 
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
@@ -156,11 +226,12 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 
 	s.doLoginAndRegisterTOTPThenLogout(s.T(), s.Context(ctx), "john", "password")
 
+	since := time.Now()
+
 	err := haDockerEnvironment.Restart("mariadb")
 	s.Require().NoError(err)
 
-	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "mariadb", "mariadbd: ready for connections"))
-	time.Sleep(time.Second * 3)
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "mariadb", "mariadbd: ready for connections", since))
 
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
@@ -177,10 +248,12 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 	s.doRegisterTOTPAndLogin2FA(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
+	since := time.Now()
+
 	err := haDockerEnvironment.Restart("authelia-backend")
 	s.Require().NoError(err)
 
-	err = waitUntilAutheliaBackendIsReady(haDockerEnvironment)
+	err = waitUntilAutheliaBackendIsReady(haDockerEnvironment, since)
 	s.Require().NoError(err)
 
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)

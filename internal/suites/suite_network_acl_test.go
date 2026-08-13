@@ -29,9 +29,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon2FA() {
 	s.Require().NoError(err)
 
 	defer func() {
-		err = browser.WebDriver.Close()
-		s.Require().NoError(err)
-		browser.Launcher.Cleanup()
+		s.Require().NoError(browser.Stop())
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SecureBaseURL)
@@ -51,9 +49,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	s.Require().NoError(err)
 
 	defer func() {
-		err = browser.WebDriver.Close()
-		s.Require().NoError(err)
-		browser.Launcher.Cleanup()
+		s.Require().NoError(browser.Stop())
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SecureBaseURL)
@@ -74,9 +70,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon0FA() {
 	s.Require().NoError(err)
 
 	defer func() {
-		err = browser.WebDriver.Close()
-		s.Require().NoError(err)
-		browser.Launcher.Cleanup()
+		s.Require().NoError(browser.Stop())
 	}()
 
 	page := browser.doCreateTab(s.T(), fmt.Sprintf("%s/secret.html", SecureBaseURL)).Context(ctx)
