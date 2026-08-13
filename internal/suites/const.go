@@ -107,7 +107,6 @@ const (
 	notificationPollInterval = time.Millisecond * 50
 	redisMasterTimeout       = time.Second * 60
 	suiteSubnetDefault       = "192.168.240"
-	suiteTmpDefault          = "/tmp"
 )
 
 var (
@@ -119,7 +118,7 @@ var (
 		Storage: schema.Storage{
 			EncryptionKey: "a_not_so_secure_encryption_key",
 			Local: &schema.StorageLocal{
-				Path: SuiteTmpPath("db.sqlite3"),
+				Path: "/tmp/db.sqlite3",
 			},
 		},
 	}

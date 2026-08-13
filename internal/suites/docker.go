@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -39,18 +38,6 @@ func SuiteSubnet() string {
 // SuiteAddress returns the address of the given host octet on the suite network.
 func SuiteAddress(octet int) string {
 	return fmt.Sprintf("%s.%d", SuiteSubnet(), octet)
-}
-
-// SuiteTmpPath joins the given elements onto the directory the suites exchange files through, matching the SUITE_TMP
-// variable the compose files mount at /tmp. On a shared daemon a mount of /tmp resolves to the host's /tmp rather than
-// the agent's, so the two ends only meet when both sides agree on a path that exists identically inside and out.
-func SuiteTmpPath(elem ...string) string {
-	dir := os.Getenv("SUITE_TMP")
-	if dir == "" {
-		dir = suiteTmpDefault
-	}
-
-	return filepath.Join(append([]string{dir}, elem...)...)
 }
 
 func agentContainer() string {

@@ -26,6 +26,8 @@ fi
 
 if [[ "${CI}" != "true" ]]; then
   export CI=false
+else
+  export SUITE_PULL_POLICY=always
 fi
 
 # Agents that share a Docker daemon are each given a slot so their suites cannot collide on the compose project, the

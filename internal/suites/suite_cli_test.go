@@ -506,16 +506,16 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Contains(output, "\tCertificate: public.crt")
 
 	// Check the certificates look fine.
-	privateKeyData, err := os.ReadFile(SuiteTmpPath("private.pem"))
+	privateKeyData, err := os.ReadFile("/tmp/private.pem")
 	s.NoError(err)
 
-	certificateData, err := os.ReadFile(SuiteTmpPath("public.crt"))
+	certificateData, err := os.ReadFile("/tmp/public.crt")
 	s.NoError(err)
 
-	privateKeyCAData, err := os.ReadFile(SuiteTmpPath("ca.private.pem"))
+	privateKeyCAData, err := os.ReadFile("/tmp/ca.private.pem")
 	s.NoError(err)
 
-	certificateCAData, err := os.ReadFile(SuiteTmpPath("ca.public.crt"))
+	certificateCAData, err := os.ReadFile("/tmp/ca.public.crt")
 	s.NoError(err)
 
 	s.False(bytes.Equal(privateKeyData, privateKeyCAData))
@@ -796,8 +796,8 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 	_, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
 	s.NoError(err)
 
-	s.Require().NoError(os.WriteFile(SuiteTmpPath("ca.private.bad.pem"), []byte("INVALID"), 0600))
-	s.Require().NoError(os.WriteFile(SuiteTmpPath("ca.public.bad.crt"), []byte("INVALID"), 0600))
+	s.Require().NoError(os.WriteFile("/tmp/ca.private.bad.pem", []byte("INVALID"), 0600)) //nolint:gosec
+	s.Require().NoError(os.WriteFile("/tmp/ca.public.bad.crt", []byte("INVALID"), 0600))  //nolint:gosec
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/", "--file.ca-private-key=ca.private.bad.pem", "--directory=/tmp/"})
 	s.NotNil(err)
@@ -809,7 +809,7 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
-	_ = os.Remove(SuiteTmpPath("db.sqlite3"))
+	_ = os.Remove("/tmp/db.sqlite3")
 
 	output, err := s.Exec("authelia-backend", []string{"authelia", "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
