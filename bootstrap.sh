@@ -28,6 +28,19 @@ if [[ "${CI}" != "true" ]]; then
   export CI=false
 fi
 
+# Agents that share a Docker daemon are each given a slot so their suites cannot collide on the compose project, the
+# network subnet or the debug ports. Everything falls back to the historical values when the slot is unset.
+if [[ -n "${SUITE_SLOT}" ]]; then
+  export COMPOSE_PROJECT_NAME="authelia-${SUITE_SLOT}"
+  export SUITE_SUBNET="10.240.${SUITE_SLOT}"
+  export LDAP_ADMIN_PORT="$((9090 + SUITE_SLOT))"
+  export ENVOY_ADMIN_PORT="$((9901 + SUITE_SLOT))"
+fi
+
+if [[ -n "${SUITE_TMP}" ]]; then
+  mkdir -p "${SUITE_TMP}"
+fi
+
 echo "[BOOTSTRAP] Checking if Go is installed..."
 if [[ ! -x "$(command -v go)" ]];
 then

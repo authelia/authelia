@@ -8,9 +8,9 @@ import (
 var twoFactorSuiteName = "TwoFactor"
 
 func init() {
-	_ = os.MkdirAll("/tmp/authelia/TwoFactorSuite/", 0700)
-	_ = os.WriteFile("/tmp/authelia/TwoFactorSuite/jwt", []byte("very_important_secret"), 0600)       //nolint:gosec
-	_ = os.WriteFile("/tmp/authelia/TwoFactorSuite/session", []byte("unsecure_session_secret"), 0600) //nolint:gosec
+	_ = os.MkdirAll(SuiteTmpPath("authelia", "TwoFactorSuite"), 0700)
+	_ = os.WriteFile(SuiteTmpPath("authelia", "TwoFactorSuite", "jwt"), []byte("very_important_secret"), 0600)
+	_ = os.WriteFile(SuiteTmpPath("authelia", "TwoFactorSuite", "session"), []byte("unsecure_session_secret"), 0600)
 
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/compose.yml",
@@ -41,7 +41,7 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := dockerEnvironment.Down()
-		_ = os.Remove("/tmp/db.sqlite3")
+		_ = os.Remove(SuiteTmpPath("db.sqlite3"))
 
 		return err
 	}

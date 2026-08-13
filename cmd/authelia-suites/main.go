@@ -14,7 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var tmpDirectory = "/tmp/authelia/suites/"
+var tmpDirectory = suites.SuiteTmpPath("authelia", "suites") + "/"
 
 // runningSuiteFile name of the file containing the currently running suite.
 var runningSuiteFile = ".suite"

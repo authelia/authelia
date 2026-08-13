@@ -5,6 +5,8 @@ services:
     cpus: 2
     mem_limit: 1g
     command: '/entrypoint.sh master'
+    environment: &redis-env
+      SUITE_SUBNET: '${SUITE_SUBNET:-192.168.240}'
     healthcheck: &node-health
       test: ['CMD-SHELL', 'redis-cli ping || exit 1']
       interval: '3s'
@@ -19,7 +21,7 @@ services:
       authelianet:
         aliases:
           - 'redis-node-0.example.com'
-        ipv4_address: 192.168.240.110
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.110
   redis-node-1:
     image: 'redis:8.10-alpine'
     cpus: 2
@@ -28,6 +30,7 @@ services:
     depends_on: &deps
       redis-node-0:
         condition: 'service_healthy'
+    environment: *redis-env
     healthcheck: *node-health
     volumes:
       - './example/compose/redis/templates:/templates'
@@ -37,13 +40,14 @@ services:
       authelianet:
         aliases:
           - 'redis-node-1.example.com'
-        ipv4_address: 192.168.240.111
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.111
   redis-node-2:
     image: 'redis:8.10-alpine'
     cpus: 2
     mem_limit: 1g
     command: '/entrypoint.sh slave'
     depends_on: *deps
+    environment: *redis-env
     healthcheck: *node-health
     volumes:
       - './example/compose/redis/templates:/templates'
@@ -53,7 +57,7 @@ services:
       authelianet:
         aliases:
           - 'redis-node-2.example.com'
-        ipv4_address: 192.168.240.112
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.112
   redis-sentinel-0:
     image: 'redis:8.10-alpine'
     cpus: 2
@@ -65,6 +69,7 @@ services:
         condition: 'service_healthy'
       redis-node-2:
         condition: 'service_healthy'
+    environment: *redis-env
     healthcheck: &sentinel-health
       test: [ 'CMD-SHELL', 'redis-cli -p 26379 -a sentinel-server-password ping || exit 1' ]
       interval: '3s'
@@ -78,13 +83,14 @@ services:
       authelianet:
         aliases:
           - 'redis-sentinel-0.example.com'
-        ipv4_address: 192.168.240.120
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.120
   redis-sentinel-1:
     image: 'redis:8.10-alpine'
     cpus: 2
     mem_limit: 1g
     command: '/entrypoint.sh sentinel'
     depends_on: *deps-sentinel
+    environment: *redis-env
     healthcheck: *sentinel-health
     volumes:
       - './example/compose/redis/templates:/templates'
@@ -93,13 +99,14 @@ services:
       authelianet:
         aliases:
           - 'redis-sentinel-1.example.com'
-        ipv4_address: 192.168.240.121
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.121
   redis-sentinel-2:
     image: 'redis:8.10-alpine'
     cpus: 2
     mem_limit: 1g
     command: '/entrypoint.sh sentinel'
     depends_on: *deps-sentinel
+    environment: *redis-env
     healthcheck: *sentinel-health
     volumes:
       - './example/compose/redis/templates:/templates'
@@ -108,7 +115,7 @@ services:
       authelianet:
         aliases:
           - 'redis-sentinel-2.example.com'
-        ipv4_address: 192.168.240.122
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.122
   authelia-backend:
     depends_on:
       redis-node-0:

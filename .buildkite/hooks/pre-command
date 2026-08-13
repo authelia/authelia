@@ -52,6 +52,17 @@ if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
 
   if [[ "${SUITE}" == "Kubernetes" ]]; then
     zstd -d authelia-image-coverage.tar.zst --stdout > ./internal/suites/example/kube/authelia-image-coverage.tar
+  elif [[ -n "${SUITE_SLOT}" ]]; then
+    # Every build loads the same authelia:dist tag, so on a shared daemon a job from another build could overwrite it
+    # between the load and the tag. The lock closes that window and the per-build tag pins the suite to the image it
+    # loaded. It lives under the cache directory because that is bind mounted from the host and therefore shared by
+    # every agent on it, unlike the agent home, which is an anonymous volume private to each container.
+    export SUITE_IMAGE="authelia:dist-${BUILDKITE_BUILD_NUMBER}"
+    (
+      flock 9
+      zstdcat "authelia-image-coverage.tar.zst" | docker load
+      docker tag authelia:dist "${SUITE_IMAGE}"
+    ) 9> /buildkite/.cache/authelia-image-load.lock
   else
     zstdcat "authelia-image-coverage.tar.zst" | docker load
   fi

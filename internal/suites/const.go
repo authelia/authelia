@@ -93,7 +93,8 @@ const (
 )
 
 const (
-	composeProject           = "authelia"
+	agentAddressOctet        = 10
+	composeProjectDefault    = "authelia"
 	containerLogLines        = 200
 	containerLogTailLines    = 15
 	envFileProd              = "/web/.env.production"
@@ -101,9 +102,12 @@ const (
 	namespaceAuthelia        = "authelia"
 	namespaceDashboard       = "kubernetes-dashboard"
 	namespaceKube            = "kube-system"
+	networkAuthelia          = "authelianet"
 	notificationBinding      = "autheliaNotificationObserved"
 	notificationPollInterval = time.Millisecond * 50
 	redisMasterTimeout       = time.Second * 60
+	suiteSubnetDefault       = "192.168.240"
+	suiteTmpDefault          = "/tmp"
 )
 
 var (
@@ -115,7 +119,7 @@ var (
 		Storage: schema.Storage{
 			EncryptionKey: "a_not_so_secure_encryption_key",
 			Local: &schema.StorageLocal{
-				Path: "/tmp/db.sqlite3",
+				Path: SuiteTmpPath("db.sqlite3"),
 			},
 		},
 	}

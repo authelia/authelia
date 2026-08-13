@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/authelia/authelia/v4/internal/suites"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -67,81 +69,80 @@ func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 	bootstrapPrintln("More details at https://www.authelia.com/contributing/development/build-and-test/")
 }
 
-var hostEntries = []HostEntry{
-	// For unit tests.
-	{Domain: "local.example.com", IP: "127.0.0.1"},
+func hostEntries() []HostEntry {
+	backend := suites.SuiteAddress(50)
+	portal := suites.SuiteAddress(100)
+	ssh := suites.SuiteAddress(130)
 
-	// For authelia backend.
-	{Domain: "authelia.example.com", IP: "192.168.240.50"},
+	entries := []HostEntry{
+		// For unit tests.
+		{Domain: "local.example.com", IP: "127.0.0.1"},
 
-	// For common tests.
-	{Domain: "login.example.com", IP: "192.168.240.100"},
-	{Domain: "admin.example.com", IP: "192.168.240.100"},
-	{Domain: "singlefactor.example.com", IP: "192.168.240.100"},
-	{Domain: "deny.example.com", IP: "192.168.240.100"},
-	{Domain: "dev.example.com", IP: "192.168.240.100"},
-	{Domain: "home.example.com", IP: "192.168.240.100"},
-	{Domain: "mx1.mail.example.com", IP: "192.168.240.100"},
-	{Domain: "mx2.mail.example.com", IP: "192.168.240.100"},
-	{Domain: "public.example.com", IP: "192.168.240.100"},
-	{Domain: "secure.example.com", IP: "192.168.240.100"},
-	{Domain: "mail.example.com", IP: "192.168.240.100"},
-	{Domain: "duo.example.com", IP: "192.168.240.100"},
+		// For authelia backend.
+		{Domain: "authelia.example.com", IP: backend},
 
-	// For HAProxy suite.
-	{Domain: "haproxy.example.com", IP: "192.168.240.100"},
+		// For common tests.
+		{Domain: "login.example.com", IP: portal},
+		{Domain: "admin.example.com", IP: portal},
+		{Domain: "singlefactor.example.com", IP: portal},
+		{Domain: "deny.example.com", IP: portal},
+		{Domain: "dev.example.com", IP: portal},
+		{Domain: "home.example.com", IP: portal},
+		{Domain: "mx1.mail.example.com", IP: portal},
+		{Domain: "mx2.mail.example.com", IP: portal},
+		{Domain: "public.example.com", IP: portal},
+		{Domain: "secure.example.com", IP: portal},
+		{Domain: "mail.example.com", IP: portal},
+		{Domain: "duo.example.com", IP: portal},
 
-	// Kubernetes dashboard.
-	{Domain: "kubernetes.example.com", IP: "192.168.240.100"},
+		// For HAProxy suite.
+		{Domain: "haproxy.example.com", IP: portal},
 
-	// OIDC tester app.
-	{Domain: "oidc.example.com", IP: "192.168.240.100"},
-	{Domain: "oidc-public.example.com", IP: "192.168.240.100"},
+		// Kubernetes dashboard.
+		{Domain: "kubernetes.example.com", IP: portal},
 
-	// For Traefik suite.
-	{Domain: "traefik.example.com", IP: "192.168.240.100"},
+		// OIDC tester app.
+		{Domain: "oidc.example.com", IP: portal},
+		{Domain: "oidc-public.example.com", IP: portal},
 
-	// For testing network ACLs.
-	{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
-	{Domain: "proxy-client2.example.com", IP: "192.168.240.202"},
-	{Domain: "proxy-client3.example.com", IP: "192.168.240.203"},
+		// For Traefik suite.
+		{Domain: "traefik.example.com", IP: portal},
 
-	// Redis Replicas.
-	{Domain: "redis-node-0.example.com", IP: "192.168.240.110"},
-	{Domain: "redis-node-1.example.com", IP: "192.168.240.111"},
-	{Domain: "redis-node-2.example.com", IP: "192.168.240.112"},
+		// For testing network ACLs.
+		{Domain: "proxy-client1.example.com", IP: suites.SuiteAddress(201)},
+		{Domain: "proxy-client2.example.com", IP: suites.SuiteAddress(202)},
+		{Domain: "proxy-client3.example.com", IP: suites.SuiteAddress(203)},
 
-	// Redis Sentinel Replicas.
-	{Domain: "redis-sentinel-0.example.com", IP: "192.168.240.120"},
-	{Domain: "redis-sentinel-1.example.com", IP: "192.168.240.121"},
-	{Domain: "redis-sentinel-2.example.com", IP: "192.168.240.122"},
+		// Redis Replicas.
+		{Domain: "redis-node-0.example.com", IP: suites.SuiteAddress(110)},
+		{Domain: "redis-node-1.example.com", IP: suites.SuiteAddress(111)},
+		{Domain: "redis-node-2.example.com", IP: suites.SuiteAddress(112)},
 
-	// For PAM suite.
-	{Domain: "ssh.example.com", IP: "192.168.240.130"},
+		// Redis Sentinel Replicas.
+		{Domain: "redis-sentinel-0.example.com", IP: suites.SuiteAddress(120)},
+		{Domain: "redis-sentinel-1.example.com", IP: suites.SuiteAddress(121)},
+		{Domain: "redis-sentinel-2.example.com", IP: suites.SuiteAddress(122)},
 
-	// For multi cookie domain tests.
-	{Domain: "login.example2.com", IP: "192.168.240.100"},
-	{Domain: "admin.example2.com", IP: "192.168.240.100"},
-	{Domain: "singlefactor.example2.com", IP: "192.168.240.100"},
-	{Domain: "dev.example2.com", IP: "192.168.240.100"},
-	{Domain: "home.example2.com", IP: "192.168.240.100"},
-	{Domain: "mx1.mail.example2.com", IP: "192.168.240.100"},
-	{Domain: "mx2.mail.example2.com", IP: "192.168.240.100"},
-	{Domain: "public.example2.com", IP: "192.168.240.100"},
-	{Domain: "secure.example2.com", IP: "192.168.240.100"},
-	{Domain: "mail.example2.com", IP: "192.168.240.100"},
-	{Domain: "duo.example2.com", IP: "192.168.240.100"},
-	{Domain: "login.example3.com", IP: "192.168.240.100"},
-	{Domain: "admin.example3.com", IP: "192.168.240.100"},
-	{Domain: "singlefactor.example3.com", IP: "192.168.240.100"},
-	{Domain: "dev.example3.com", IP: "192.168.240.100"},
-	{Domain: "home.example3.com", IP: "192.168.240.100"},
-	{Domain: "mx1.mail.example3.com", IP: "192.168.240.100"},
-	{Domain: "mx2.mail.example3.com", IP: "192.168.240.100"},
-	{Domain: "public.example3.com", IP: "192.168.240.100"},
-	{Domain: "secure.example3.com", IP: "192.168.240.100"},
-	{Domain: "mail.example3.com", IP: "192.168.240.100"},
-	{Domain: "duo.example3.com", IP: "192.168.240.100"},
+		// For PAM suite.
+		{Domain: "ssh.example.com", IP: ssh},
+	}
+
+	return slices.Concat(entries, hostEntriesCookieDomains(portal))
+}
+
+func hostEntriesCookieDomains(ip string) []HostEntry {
+	domains := []string{"example2.com", "example3.com"}
+	subdomains := []string{"login", "admin", "singlefactor", "dev", "home", "mx1.mail", "mx2.mail", "public", "secure", "mail", "duo"}
+
+	entries := make([]HostEntry, 0, len(domains)*len(subdomains))
+
+	for _, domain := range domains {
+		for _, subdomain := range subdomains {
+			entries = append(entries, HostEntry{Domain: subdomain + "." + domain, IP: ip})
+		}
+	}
+
+	return entries
 }
 
 func runCommand(cmd string, args ...string) {
@@ -219,6 +220,19 @@ func shell(cmd string) {
 	runCommand("bash", "-c", cmd)
 }
 
+func hostsLineFields(line string) (ip string, domains []string) {
+	if i := strings.IndexByte(line, '#'); i >= 0 {
+		line = line[:i]
+	}
+
+	fields := strings.Fields(line)
+	if len(fields) < 2 {
+		return "", nil
+	}
+
+	return fields[0], fields[1:]
+}
+
 func prepareHostsFile() {
 	contentBytes, err := readHostsFile()
 	if err != nil {
@@ -229,26 +243,26 @@ func prepareHostsFile() {
 	toBeAddedLine := make([]string, 0)
 	modified := false
 
-	for _, entry := range hostEntries {
+	for _, entry := range hostEntries() {
 		domainInHostFile := false
 
 		for i, line := range lines {
-			domainFound := strings.Contains(line, entry.Domain)
-			ipFound := strings.Contains(line, entry.IP)
+			ip, domains := hostsLineFields(line)
 
-			if domainFound {
-				domainInHostFile = true
-
-				// The IP is not up to date.
-				if ipFound {
-					break
-				} else {
-					lines[i] = entry.IP + " " + entry.Domain
-					modified = true
-
-					break
-				}
+			if !slices.Contains(domains, entry.Domain) {
+				continue
 			}
+
+			domainInHostFile = true
+
+			// The IP is not up to date. Only the address is rewritten so any other names shared with this line, and
+			// any trailing comment, survive.
+			if ip != entry.IP {
+				lines[i] = strings.Replace(line, ip, entry.IP, 1)
+				modified = true
+			}
+
+			break
 		}
 
 		if !domainInHostFile {

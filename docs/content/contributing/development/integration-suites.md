@@ -51,6 +51,10 @@ The development suite has a standardized setup which makes it easy to interact w
 The backend is the Authelia binary running in a docker container, the frontend is the webserver which hosts all of the
 web frontends for each application.
 
+These are the defaults and are what you get for local development. CI agents that share a single Docker daemon set
+`SUITE_SLOT` so that each agent gets its own compose project and subnet, which changes the first three octets of every
+address on this page. See [Environment Variables](#environment-variables) below.
+
 ### Sites and Applications
 
 All sites are hosted on the address `192.168.240.100:8080`. This list is not comprehensive and may change over time.
@@ -77,6 +81,21 @@ contains the `dockerEnvironment` var for a given suite is located in the
   - [https://secure.example.com:8080](https://secure.example.com:8080)
   - [https://admin.example.com:8080](https://admin.example.com:8080)
   - [https://deny.example.com:8080](https://deny.example.com:8080)
+
+## Environment Variables
+
+The suites run several concurrent copies of themselves when the Docker daemon is shared between CI agents. Every
+variable below is optional and falls back to the value used for local development, so leaving them all unset gives the
+behavior described above.
+
+| Variable | Default | Purpose |
+|:---|:---|:---|
+| `SUITE_SLOT` | *unset* | Agent slot number. When set, `bootstrap.sh` derives `COMPOSE_PROJECT_NAME`, `SUITE_SUBNET`, `LDAP_ADMIN_PORT` and `ENVOY_ADMIN_PORT` from it. |
+| `COMPOSE_PROJECT_NAME` | `authelia` | Compose project name. Also scopes the Traefik Docker provider so it only discovers its own containers. |
+| `SUITE_SUBNET` | `192.168.240` | First three octets of the suite network. |
+| `SUITE_TMP` | `/tmp` | Directory the agent and the containers exchange files through. Must resolve to the same directory inside and outside the agent container. |
+| `SUITE_IMAGE` | `authelia:dist` | Image the backend runs. |
+| `AGENT_CONTAINER` | *unset* | Name of the container the tests run in. When set, that container is attached to the suite network on setup and detached on teardown, so Chrome can reach the portal. |
 
 ## Remote Debugging
 

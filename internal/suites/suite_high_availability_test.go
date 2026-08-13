@@ -54,9 +54,9 @@ func (s *HighAvailabilityWebDriverSuite) TearDownTest() {
 }
 
 var redisNodeServices = map[string]string{
-	"redis-node-0": "192.168.240.110",
-	"redis-node-1": "192.168.240.111",
-	"redis-node-2": "192.168.240.112",
+	"redis-node-0": SuiteAddress(110),
+	"redis-node-1": SuiteAddress(111),
+	"redis-node-2": SuiteAddress(112),
 }
 
 func (s *HighAvailabilityWebDriverSuite) redisMaster(sentinel string) (master string) {

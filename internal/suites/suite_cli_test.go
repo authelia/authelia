@@ -506,16 +506,16 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Contains(output, "\tCertificate: public.crt")
 
 	// Check the certificates look fine.
-	privateKeyData, err := os.ReadFile("/tmp/private.pem")
+	privateKeyData, err := os.ReadFile(SuiteTmpPath("private.pem"))
 	s.NoError(err)
 
-	certificateData, err := os.ReadFile("/tmp/public.crt")
+	certificateData, err := os.ReadFile(SuiteTmpPath("public.crt"))
 	s.NoError(err)
 
-	privateKeyCAData, err := os.ReadFile("/tmp/ca.private.pem")
+	privateKeyCAData, err := os.ReadFile(SuiteTmpPath("ca.private.pem"))
 	s.NoError(err)
 
-	certificateCAData, err := os.ReadFile("/tmp/ca.public.crt")
+	certificateCAData, err := os.ReadFile(SuiteTmpPath("ca.public.crt"))
 	s.NoError(err)
 
 	s.False(bytes.Equal(privateKeyData, privateKeyCAData))
@@ -796,8 +796,8 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 	_, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
 	s.NoError(err)
 
-	s.Require().NoError(os.WriteFile("/tmp/ca.private.bad.pem", []byte("INVALID"), 0600)) //nolint:gosec
-	s.Require().NoError(os.WriteFile("/tmp/ca.public.bad.crt", []byte("INVALID"), 0600))  //nolint:gosec
+	s.Require().NoError(os.WriteFile(SuiteTmpPath("ca.private.bad.pem"), []byte("INVALID"), 0600))
+	s.Require().NoError(os.WriteFile(SuiteTmpPath("ca.public.bad.crt"), []byte("INVALID"), 0600))
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/", "--file.ca-private-key=ca.private.bad.pem", "--directory=/tmp/"})
 	s.NotNil(err)
@@ -809,7 +809,7 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
-	_ = os.Remove("/tmp/db.sqlite3")
+	_ = os.Remove(SuiteTmpPath("db.sqlite3"))
 
 	output, err := s.Exec("authelia-backend", []string{"authelia", "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
@@ -1448,10 +1448,12 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 }
 
 func (s *CLISuite) TestDebugTLS() {
+	portal := fmt.Sprintf("%s:8080", SuiteAddress(100))
+
 	output, err := s.Exec("authelia-backend", []string{"authelia", "debug", "tls", "tcp://secure.example.com:8080"})
 	s.NoError(err)
 
-	s.Contains(output, "General Information:\n\tServer Name: secure.example.com\n\tRemote Address: 192.168.240.100:8080\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)")
+	s.Contains(output, fmt.Sprintf("General Information:\n\tServer Name: secure.example.com\n\tRemote Address: %s\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)", portal))
 	s.Contains(output, "\t\tSerial Number: 280859886455442560996590795939870170263\n\t\tValid: true\n\t\tValid (System): false\n\t\tHostname Verification: pass")
 	s.Contains(output, "\t\tSerial Number: 331626108752148202137556363956074982580\n\t\tValid: true\n\t\tValid (System): false")
 	s.Contains(output, "\tCertificate Trusted: true\n\tCertificate Matches Hostname: true")
@@ -1459,7 +1461,7 @@ func (s *CLISuite) TestDebugTLS() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", "debug", "tls", "tcp://secure.example.com:8080", "--hostname", "notsecure.notexample.com"})
 	s.NoError(err)
 
-	s.Contains(output, "General Information:\n\tServer Name: notsecure.notexample.com\n\tRemote Address: 192.168.240.100:8080\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)")
+	s.Contains(output, fmt.Sprintf("General Information:\n\tServer Name: notsecure.notexample.com\n\tRemote Address: %s\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)", portal))
 	s.Contains(output, "\t\tSerial Number: 280859886455442560996590795939870170263\n\t\tValid: true\n\t\tValid (System): false\n\t\tHostname Verification: fail\n\t\tHostname Verification Error: x509: certificate is valid for *.example.com, example.com, *.example1.com, example1.com, *.example2.com, example2.com, *.example3.com, example3.com, not notsecure.notexample.com")
 	s.Contains(output, "\t\tSerial Number: 331626108752148202137556363956074982580\n\t\tValid: true\n\t\tValid (System): false")
 	s.Contains(output, "\tCertificate Trusted: true\n\tCertificate Matches Hostname: false")
@@ -1467,7 +1469,7 @@ func (s *CLISuite) TestDebugTLS() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", "--config", "/config/configuration.nocerts.yml", "debug", "tls", "tcp://secure.example.com:8080"})
 	s.NoError(err)
 
-	s.Contains(output, "General Information:\n\tServer Name: secure.example.com\n\tRemote Address: 192.168.240.100:8080\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)")
+	s.Contains(output, fmt.Sprintf("General Information:\n\tServer Name: secure.example.com\n\tRemote Address: %s\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)", portal))
 	s.Contains(output, "\t\tSerial Number: 280859886455442560996590795939870170263\n\t\tValid: false\n\t\tValid (System): false\n\t\tValidation Hint: Certificate signed by unknown authority\n\t\tValidation Error: x509: certificate signed by unknown authority\n\t\tHostname Verification: pass")
 	s.Contains(output, "\t\tSerial Number: 331626108752148202137556363956074982580\n\t\tValid: false\n\t\tValid (System): false\n\t\tValidation Hint: Certificate signed by unknown authority\n\t\tValidation Error: x509: certificate signed by unknown authority")
 	s.Contains(output, "\tCertificate Trusted: false\n\tCertificate Matches Hostname: true")

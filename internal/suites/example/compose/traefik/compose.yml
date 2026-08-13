@@ -20,9 +20,15 @@ services:
       traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'  # yamllint disable-line rule:line-length
     command:
       - '--configFile=/config/static.yml'
+      # Every suite labels its containers identically, so on a shared daemon this instance would
+      # otherwise discover other projects' containers and collide on router names. Passed as CLI
+      # arguments because those take precedence over the config file, whereas environment variables
+      # do not.
+      - '--providers.docker.constraints=Label(`com.docker.compose.project`,`${COMPOSE_PROJECT_NAME:-authelia}`)'
+      - '--providers.docker.network=${COMPOSE_PROJECT_NAME:-authelia}_authelianet'
     networks:
       authelianet:
         aliases:
           - login.example.com
-        ipv4_address: 192.168.240.100
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.100
 ...

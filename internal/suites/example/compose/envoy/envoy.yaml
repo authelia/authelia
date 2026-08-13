@@ -1,5 +1,6 @@
 ---
-# Enable the admin interface at http://192.168.240.100:9901/ for debugging.
+# Enable the admin interface on port 9901 of the proxy for debugging. The suite subnet is configurable, so the address
+# is ${SUITE_SUBNET}.100 rather than a fixed one.
 admin:
   address:
     socket_address:
