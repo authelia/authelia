@@ -288,9 +288,6 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypasse
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-
-	// An allowed pre-auth marks the second factor successful as it raises the notification, so the
-	// redirect that follows removes the notification before it can be looked for.
 	s.verifyNotificationDisplayedDuring(s.T(), s.Context(ctx), "Device selection was bypassed by Duo policy", func() {
 		s.doClickButton(s.T(), s.Context(ctx), "selection-link")
 	})

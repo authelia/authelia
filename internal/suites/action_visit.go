@@ -20,15 +20,37 @@ func (s *RodSuite) doSetupTest(url string) {
 }
 
 func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
-	incognito, err := rs.WebDriver.Incognito()
-	require.NoError(t, err)
+	type tab struct {
+		page *rod.Page
+		err  error
+	}
 
-	rs.contexts = append(rs.contexts, incognito)
+	created := make(chan tab, 1)
 
-	p, err := incognito.Page(proto.TargetCreateTarget{URL: url})
-	require.NoError(t, err)
+	go func() {
+		browser, err := rs.WebDriver.Incognito()
+		if err != nil {
+			created <- tab{err: err}
 
-	return p
+			return
+		}
+
+		page, err := browser.Page(proto.TargetCreateTarget{URL: url})
+
+		created <- tab{page: page, err: err}
+	}()
+
+	select {
+	case result := <-created:
+		require.NoError(t, result.err)
+		require.NotNil(t, result.page)
+
+		return result.page
+	case <-time.After(time.Second * 10):
+		require.FailNowf(t, "timeout creating tab", "the tab at '%s' was not created within 10 seconds", url)
+
+		return nil
+	}
 }
 
 func (rs *RodSession) doVisit(t *testing.T, page *rod.Page, url string) {
