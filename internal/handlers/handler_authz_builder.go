@@ -141,7 +141,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromQuery
 	case AuthzImplExtAuthz:
 		authz.handleGetObject = handleAuthzGetObjectExtAuthz
-		authz.handleUnauthorized = handleAuthzUnauthorizedExtAuthz
+		authz.handleUnauthorized = handleAuthzUnauthorizedForwardAuth
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromHeader
 	}
 
