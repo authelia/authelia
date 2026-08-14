@@ -1,7 +1,6 @@
 package model_test
 
 import (
-	"maps"
 	"reflect"
 	"testing"
 
@@ -36,12 +35,35 @@ func TestUserShouldNotDriftFromUserDetailsExtended(t *testing.T) {
 	}
 }
 
+func TestFlattenTypeFieldsShouldFollowGoFieldPromotion(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     reflect.Type
+		expected map[string]string
+	}{
+		{
+			"ShouldPromoteEmbeddedFields",
+			reflect.TypeOf(testFlattenPromoted{}),
+			map[string]string{"Username": "string", "DisplayName": "string", "Extra": "bool"},
+		},
+		{
+			"ShouldPreferDirectFieldsOverPromotedFields",
+			reflect.TypeOf(testFlattenShadowed{}),
+			map[string]string{"Username": "int", "DisplayName": "string", "Extra": "bool"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, flattenTypeFields(tc.have))
+		})
+	}
+}
+
 func flattenTypeFields(t reflect.Type) map[string]string {
 	fields := map[string]string{}
 
-	for i := range t.NumField() {
-		field := t.Field(i)
-
+	for _, field := range reflect.VisibleFields(t) {
 		ft := field.Type
 
 		if field.Anonymous {
@@ -50,8 +72,6 @@ func flattenTypeFields(t reflect.Type) map[string]string {
 			}
 
 			if ft.Kind() == reflect.Struct {
-				maps.Copy(fields, flattenTypeFields(ft))
-
 				continue
 			}
 		}
@@ -69,4 +89,22 @@ func normalizeTypeFieldName(t reflect.Type) string {
 	default:
 		return t.String()
 	}
+}
+
+type testFlattenEmbedded struct {
+	Username    string
+	DisplayName string
+}
+
+type testFlattenPromoted struct {
+	Extra bool
+
+	*testFlattenEmbedded
+}
+
+type testFlattenShadowed struct {
+	Username int
+	Extra    bool
+
+	*testFlattenEmbedded
 }
