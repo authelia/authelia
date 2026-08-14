@@ -50,8 +50,7 @@ func (s *TraefikSuite) TestShouldKeepSessionAfterRedisRestart() {
 	s.Require().NoError(err)
 	s.RodSession = browser
 
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 	s.doLoginAndRegisterTOTPThenLogout(s.T(), s.Context(ctx), "john", "password")
 
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")

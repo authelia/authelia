@@ -52,6 +52,20 @@ if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
 
   if [[ "${SUITE}" == "Kubernetes" ]]; then
     zstd -d authelia-image-coverage.tar.zst --stdout > ./internal/suites/example/kube/authelia-image-coverage.tar
+  elif [[ -n "${SUITE_SLOT}" ]]; then
+    # Every load writes the same authelia:dist tag, so on a shared daemon concurrent jobs race over it. The tag is
+    # taken per slot rather than per build so that its lifetime matches its ownership: an agent runs one job at a
+    # time, which makes the tag safe for that agent to remove again in pre-exit. The floating authelia:dist tag is
+    # dropped inside the lock, since leaving it behind would pin the layers no matter what the per-slot tags do.
+    # The lock lives under the cache directory because that is bind mounted from the host and therefore shared by
+    # every agent on it, unlike the agent home, which is an anonymous volume private to each container.
+    export SUITE_IMAGE="authelia:dist-${SUITE_SLOT}"
+    (
+      flock 9
+      zstdcat "authelia-image-coverage.tar.zst" | docker load
+      docker tag authelia:dist "${SUITE_IMAGE}"
+      docker rmi authelia:dist > /dev/null 2>&1 || true
+    ) 9> /buildkite/.cache/authelia-image-load.lock
   else
     zstdcat "authelia-image-coverage.tar.zst" | docker load
   fi

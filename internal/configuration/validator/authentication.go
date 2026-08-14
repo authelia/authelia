@@ -3,6 +3,7 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/go-crypt/crypt/algorithm/argon2"
@@ -449,28 +450,25 @@ func setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config *
 		config.GroupSearchMode = implementation.GroupSearchMode
 	}
 
-	if ldapImplementationShouldSetStr(config.Attributes.DistinguishedName, implementation.Attributes.DistinguishedName) {
-		config.Attributes.DistinguishedName = implementation.Attributes.DistinguishedName
-	}
+	setDefaultImplementationLDAPAuthenticationBackendAttributes(&config.Attributes, &implementation.Attributes)
+}
 
-	if ldapImplementationShouldSetStr(config.Attributes.Username, implementation.Attributes.Username) {
-		config.Attributes.Username = implementation.Attributes.Username
-	}
+// setDefaultImplementationLDAPAuthenticationBackendAttributes copies every attribute name which the user has not
+// configured from the implementation defaults. It's performed over every string field so an attribute added to the
+// schema is applied without needing to be added here as well.
+func setDefaultImplementationLDAPAuthenticationBackendAttributes(config, implementation *schema.AuthenticationBackendLDAPAttributes) {
+	values, defaults := reflect.ValueOf(config).Elem(), reflect.ValueOf(implementation).Elem()
 
-	if ldapImplementationShouldSetStr(config.Attributes.DisplayName, implementation.Attributes.DisplayName) {
-		config.Attributes.DisplayName = implementation.Attributes.DisplayName
-	}
+	for i := range values.NumField() {
+		value := values.Field(i)
 
-	if ldapImplementationShouldSetStr(config.Attributes.Mail, implementation.Attributes.Mail) {
-		config.Attributes.Mail = implementation.Attributes.Mail
-	}
+		if value.Kind() != reflect.String {
+			continue
+		}
 
-	if ldapImplementationShouldSetStr(config.Attributes.MemberOf, implementation.Attributes.MemberOf) {
-		config.Attributes.MemberOf = implementation.Attributes.MemberOf
-	}
-
-	if ldapImplementationShouldSetStr(config.Attributes.GroupName, implementation.Attributes.GroupName) {
-		config.Attributes.GroupName = implementation.Attributes.GroupName
+		if def := defaults.Field(i).String(); ldapImplementationShouldSetStr(value.String(), def) {
+			value.SetString(def)
+		}
 	}
 }
 

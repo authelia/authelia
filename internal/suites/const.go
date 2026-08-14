@@ -3,6 +3,7 @@ package suites
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -92,11 +93,20 @@ const (
 )
 
 const (
-	envFileProd        = "/web/.env.production"
-	envFileDev         = "/web/.env.development"
-	namespaceAuthelia  = "authelia"
-	namespaceDashboard = "kubernetes-dashboard"
-	namespaceKube      = "kube-system"
+	agentAddressOctet        = 10
+	composeProjectDefault    = "authelia"
+	containerLogLines        = 200
+	containerLogTailLines    = 15
+	envFileProd              = "/web/.env.production"
+	envFileDev               = "/web/.env.development"
+	namespaceAuthelia        = "authelia"
+	namespaceDashboard       = "kubernetes-dashboard"
+	namespaceKube            = "kube-system"
+	networkAuthelia          = "authelianet"
+	notificationBinding      = "autheliaNotificationObserved"
+	notificationPollInterval = time.Millisecond * 50
+	redisMasterTimeout       = time.Second * 60
+	suiteSubnetDefault       = "192.168.240"
 )
 
 var (

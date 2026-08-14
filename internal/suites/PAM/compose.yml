@@ -8,6 +8,6 @@ services:
       - './PAM/users.yml:/config/users.yml'
       - './common/pki:/pki'
       - './common/pki/public.crt:/certs/public.crt'
-      - '/tmp:/tmp'
+      - '${SUITE_TMP:-/tmp}:/tmp'
     user: '${USER_ID}:${GROUP_ID}'
 ...
