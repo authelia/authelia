@@ -77,8 +77,11 @@ func (s *HighAvailabilityWebDriverSuite) redisMaster(sentinel string) (master st
 				continue
 			}
 
-			ping, perr := haDockerEnvironment.Exec(service, []string{"redis-cli", "ping"})
-			if perr != nil || !strings.Contains(ping, "PONG") {
+			// Ask the node itself rather than trusting the address alone. A single sentinel can still be
+			// serving its pre-failover view, and a former master restarted by an earlier test answers PING
+			// perfectly well while it is a replica, so accepting either would hand back the wrong node.
+			role, rerr := haDockerEnvironment.Exec(service, []string{"redis-cli", "role"})
+			if rerr != nil || !strings.HasPrefix(strings.TrimSpace(role), "master") {
 				return false, nil
 			}
 
