@@ -273,7 +273,7 @@ type OAuth2ConsentSession struct {
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
 	GrantedClaims     StringSlicePipeDelimited `db:"granted_claims"`
 
-	PreConfiguration sql.NullInt64
+	PreConfiguration sql.NullInt64 `db:"preconfiguration"`
 }
 
 // GetRequestedAt returns the requested at value.

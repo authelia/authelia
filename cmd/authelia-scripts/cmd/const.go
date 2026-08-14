@@ -24,6 +24,8 @@ const (
 	webDirectory = "web"
 )
 
+const testResultsFileFmt = "test-results-%s.json"
+
 const (
 	pathPNPMModule = "/web/node_modules/.modules.yaml"
 	pathPNPMStore  = "/.local/share/pnpm/store"

@@ -7,20 +7,22 @@ onlyBuiltDependencies:
 overrides:
   "@babel/helpers": 7.29.7
   "@babel/runtime": 7.29.7
-  "@babel/traverse": 7.29.7
+  "@babel/traverse": 7.29.8
   ajv: 8.20.0
-  brace-expansion: 5.0.7
-  fast-uri: 4.1.0
-  flatted: 3.4.2
+  brace-expansion: 5.0.9
+  engine.io: 6.6.9
+  fast-uri: 4.1.2
+  flatted: 3.4.4
   glob: 13.0.6
-  js-yaml: 5.2.1
-  minimatch: 10.2.5
-  nanoid: 6.0.0
-  next: 16.2.10
+  js-yaml: 5.2.3
+  minimatch: 10.2.6
+  nanoid: 6.0.1
+  next: 16.2.12
   picomatch: 4.0.5
-  postcss: 8.5.19
+  postcss: 8.5.26
   prismjs: 1.30.0
-  rollup: 4.62.2
+  rollup: 4.62.4
+  sharp: 0.35.3
   socket.io-parser: 4.2.7
-  vite: 8.1.5
-  ws: 8.21.1
+  vite: 8.2.1
+  ws: 8.21.3

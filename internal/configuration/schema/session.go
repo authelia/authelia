@@ -8,7 +8,7 @@ import (
 
 // Session represents the configuration related to user sessions.
 type Session struct {
-	SessionCookieCommon `koanf:",squash"`
+	SessionCookieCommon `koanf:",squash" yaml:",inline"`
 
 	Secret string `koanf:"secret" yaml:"secret,omitempty" toml:"secret,omitempty" json:"secret,omitempty" jsonschema:"title=Secret" jsonschema_description:"Secret used to encrypt the session data."`
 
@@ -27,18 +27,18 @@ type SessionCookieCommon struct {
 	Inactivity time.Duration `koanf:"inactivity" yaml:"inactivity,omitempty" toml:"inactivity,omitempty" json:"inactivity,omitempty" jsonschema:"default=5 minutes,title=Inactivity" jsonschema_description:"The session inactivity timeout."`
 	RememberMe time.Duration `koanf:"remember_me" yaml:"remember_me,omitempty" toml:"remember_me,omitempty" json:"remember_me,omitempty" jsonschema:"default=30 days,title=Remember Me" jsonschema_description:"The session cookie expiration when remember me is checked."`
 
-	DisableRememberMe bool `json:"-"`
+	DisableRememberMe bool `yaml:"-" toml:"-" json:"-"`
 }
 
 // SessionCookie represents the configuration for a cookie domain.
 type SessionCookie struct {
-	SessionCookieCommon `koanf:",squash"`
+	SessionCookieCommon `koanf:",squash" yaml:",inline"`
 
 	Domain                string   `koanf:"domain" yaml:"domain,omitempty" toml:"domain,omitempty" json:"domain,omitempty" jsonschema:"format=hostname,title=Domain" jsonschema_description:"The domain for this session cookie configuration."`
 	AutheliaURL           *url.URL `koanf:"authelia_url" yaml:"authelia_url,omitempty" toml:"authelia_url,omitempty" json:"authelia_url,omitempty" jsonschema:"format=uri,title=Authelia URL" jsonschema_description:"The Root Authelia URL to redirect users to for this session cookie configuration."`
 	DefaultRedirectionURL *url.URL `koanf:"default_redirection_url" yaml:"default_redirection_url,omitempty" toml:"default_redirection_url,omitempty" json:"default_redirection_url,omitempty" jsonschema:"format=uri,title=Default Redirection URL" jsonschema_description:"The default redirection URL for this session cookie configuration."`
 
-	Legacy bool `json:"-"`
+	Legacy bool `yaml:"-" toml:"-" json:"-"`
 }
 
 // SessionRedis represents the configuration related to redis session store.

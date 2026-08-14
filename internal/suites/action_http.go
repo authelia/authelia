@@ -1,28 +1,33 @@
 package suites
 
 import (
+	"fmt"
 	"io"
 	"net/http"
-	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
 )
 
-func doHTTPGetQuery(t *testing.T, url string) []byte {
-	t.Helper()
-
+func doHTTPGetQuery(url string) (body []byte, err error) {
 	client := NewHTTPClient()
+
 	req, err := http.NewRequest(fasthttp.MethodGet, url, nil)
-	assert.NoError(t, err)
+	if err != nil {
+		return nil, err
+	}
 
 	req.Header.Add(fasthttp.HeaderAccept, "application/json")
+
 	resp, err := client.Do(req)
-	assert.NoError(t, err)
+	if err != nil {
+		return nil, err
+	}
 
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("request to '%s' returned status code %d", url, resp.StatusCode)
+	}
 
-	return body
+	return io.ReadAll(resp.Body)
 }

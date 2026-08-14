@@ -48,8 +48,7 @@ func (s *MultiCookieDomainScenario) TearDownSuite() {
 }
 
 func (s *MultiCookieDomainScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *MultiCookieDomainScenario) TearDownTest() {

@@ -39,7 +39,7 @@ type IdentityProvidersOpenIDConnect struct {
 	ClaimsPolicies        map[string]IdentityProvidersOpenIDConnectClaimsPolicy `koanf:"claims_policies" yaml:"claims_policies,omitempty" toml:"claims_policies,omitempty" json:"claims_policies,omitempty" jsonschema:"title=Claims Policies" jsonschema_description:"The dictionary of claims policies which can be applied to clients."`
 	Scopes                map[string]IdentityProvidersOpenIDConnectScope        `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes,omitempty" jsonschema:"title=Scopes" jsonschema_description:"List of custom scopes."`
 
-	Discovery IdentityProvidersOpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
+	Discovery IdentityProvidersOpenIDConnectDiscovery `yaml:"-" toml:"-" json:"-"` // MetaData value. Not configurable by users.
 
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" yaml:"issuer_certificate_chain,omitempty" toml:"issuer_certificate_chain,omitempty" json:"issuer_certificate_chain,omitempty" jsonschema:"title=Issuer Certificate Chain,deprecated" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens."`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" yaml:"issuer_private_key,omitempty" toml:"issuer_private_key,omitempty" json:"issuer_private_key,omitempty" jsonschema:"title=Issuer Private Key,deprecated" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens."`
@@ -111,7 +111,7 @@ type IdentityProvidersOpenIDConnectDiscovery struct {
 }
 
 type IdentityProvidersOpenIDConnectLifespans struct {
-	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash"`
+	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash" yaml:",inline"`
 
 	DeviceCode              time.Duration `koanf:"device_code" yaml:"device_code,omitempty" toml:"device_code,omitempty" json:"device_code,omitempty" jsonschema:"default=10 minutes,title=Device Code Lifespan" jsonschema_description:"The duration an Device Code is valid for."`
 	JWTSecuredAuthorization time.Duration `koanf:"jwt_secured_authorization" yaml:"jwt_secured_authorization,omitempty" toml:"jwt_secured_authorization,omitempty" json:"jwt_secured_authorization,omitempty" jsonschema:"default=5 minutes,title=JARM" jsonschema_description:"Allows tuning the token lifespan for the JWT Secured Authorization Response Modes (JARM)."`
@@ -121,7 +121,7 @@ type IdentityProvidersOpenIDConnectLifespans struct {
 
 // IdentityProvidersOpenIDConnectLifespan allows tuning the lifespans for OpenID Connect 1.0 issued tokens.
 type IdentityProvidersOpenIDConnectLifespan struct {
-	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash"`
+	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash" yaml:",inline"`
 
 	DeviceCode time.Duration `koanf:"device_code" yaml:"device_code,omitempty" toml:"device_code,omitempty" json:"device_code,omitempty" jsonschema:"default=10 minutes,title=Device Code Lifespan" jsonschema_description:"The duration an Device Code is valid for."`
 

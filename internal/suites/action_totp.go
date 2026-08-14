@@ -88,6 +88,19 @@ func (rs *RodSession) doRegisterTOTPFinish(t *testing.T, page *rod.Page, usernam
 	rs.SetOneTimePassword(username, credential)
 }
 
+func (rs *RodSession) doWaitSecretURL(t *testing.T, page *rod.Page) *url.URL {
+	element, err := page.ElementR("#secret-url", "otpauth://")
+	require.NoError(t, err)
+
+	raw, err := element.Text()
+	require.NoError(t, err)
+
+	secretURL, err := url.Parse(raw)
+	require.NoError(t, err)
+
+	return secretURL
+}
+
 func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, invalid bool, username string, algorithm string, digits, period int) {
 	if invalid {
 		rs.doRegisterTOTPStartBadCode(t, page, username)
@@ -102,15 +115,7 @@ func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, inval
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "qr-toggle").Click("left", 1))
 
-	element := rs.WaitElementLocatedByID(t, page, "secret-url")
-
-	raw, err := element.Text()
-	require.NoError(t, err)
-
-	secretURL, err := url.Parse(raw)
-	require.NoError(t, err)
-
-	values := secretURL.Query()
+	values := rs.doWaitSecretURL(t, page).Query()
 
 	credential := RodSuiteCredentialOneTimePassword{
 		Secret: values.Get("secret"),
@@ -165,15 +170,7 @@ func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "qr-toggle").Click("left", 1))
 
-	secretURLElement := rs.WaitElementLocatedByID(t, page, "secret-url")
-
-	secretURLRaw, err := secretURLElement.Text()
-	require.NoError(t, err)
-
-	secretURL, err := url.Parse(secretURLRaw)
-	require.NoError(t, err)
-
-	values := secretURL.Query()
+	values := rs.doWaitSecretURL(t, page).Query()
 
 	credential.Secret = values.Get("secret")
 
