@@ -2,7 +2,7 @@ module github.com/authelia/authelia/v4
 
 go 1.26.0
 
-toolchain go1.26.5
+toolchain go1.26.6
 
 require (
 	authelia.com/provider/oauth2 v0.2.40
@@ -50,7 +50,7 @@ require (
 	github.com/ysmood/gson v0.7.3
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.6
-	golang.org/x/crypto v0.54.0
+	golang.org/x/crypto v0.55.0
 	golang.org/x/net v0.57.0
 	golang.org/x/sync v0.22.0
 	golang.org/x/term v0.45.0
