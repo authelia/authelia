@@ -31,7 +31,11 @@ func TestMain(m *testing.M) {
 		os.Exit(130)
 	}()
 
-	os.Exit(m.Run())
+	code := m.Run()
+
+	closeSharedBrowsers()
+
+	os.Exit(code)
 }
 
 func findRepoRoot() (string, error) {

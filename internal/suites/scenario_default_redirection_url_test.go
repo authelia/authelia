@@ -50,8 +50,7 @@ func (s *DefaultRedirectionURLScenario) TearDownSuite() {
 }
 
 func (s *DefaultRedirectionURLScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *DefaultRedirectionURLScenario) TearDownTest() {

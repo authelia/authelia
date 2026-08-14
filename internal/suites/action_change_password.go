@@ -8,7 +8,7 @@ import (
 )
 
 func (rs *RodSession) doChangePassword(t *testing.T, page *rod.Page, oldPassword, newPassword1, newPassword2, notification string) {
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "change-password-button").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "change-password-button")
 
 	rs.doMaybeVerifyIdentity(t, page)
 
@@ -20,6 +20,6 @@ func (rs *RodSession) doChangePassword(t *testing.T, page *rod.Page, oldPassword
 	require.NoError(t, newPasswordInput.Type(rs.toInputs(newPassword1)...))
 	require.NoError(t, repeatNewPasswordInput.Type(rs.toInputs(newPassword2)...))
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "password-change-dialog-submit").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "password-change-dialog-submit")
 	rs.verifyNotificationDisplayed(t, page, notification)
 }
