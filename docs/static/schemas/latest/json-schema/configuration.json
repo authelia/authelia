@@ -1552,7 +1552,8 @@
               "address",
               "phone",
               "groups",
-              "authelia.bearer.authz"
+              "authelia.bearer.authz",
+              "authelia.pam"
             ]
           },
           "type": "array",
