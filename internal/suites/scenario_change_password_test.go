@@ -32,8 +32,7 @@ func (s *ChangePasswordScenario) TearDownSuite() {
 }
 
 func (s *ChangePasswordScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *ChangePasswordScenario) TearDownTest() {

@@ -29,9 +29,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon2FA() {
 	s.Require().NoError(err)
 
 	defer func() {
-		err = browser.WebDriver.Close()
-		s.Require().NoError(err)
-		browser.Launcher.Cleanup()
+		s.Require().NoError(browser.Stop())
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SecureBaseURL)
@@ -42,7 +40,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon2FA() {
 	browser.verifySecretAuthorized(s.T(), page)
 }
 
-// from network 192.168.240.201/32.
+// from the proxy-client1 network.
 func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -51,9 +49,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	s.Require().NoError(err)
 
 	defer func() {
-		err = browser.WebDriver.Close()
-		s.Require().NoError(err)
-		browser.Launcher.Cleanup()
+		s.Require().NoError(browser.Stop())
 	}()
 
 	targetURL := fmt.Sprintf("%s/secret.html", SecureBaseURL)
@@ -65,7 +61,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	browser.verifySecretAuthorized(s.T(), page)
 }
 
-// from network 192.168.240.202/32.
+// from the proxy-client2 network.
 func (s *NetworkACLSuite) TestShouldAccessSecretUpon0FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -74,9 +70,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon0FA() {
 	s.Require().NoError(err)
 
 	defer func() {
-		err = browser.WebDriver.Close()
-		s.Require().NoError(err)
-		browser.Launcher.Cleanup()
+		s.Require().NoError(browser.Stop())
 	}()
 
 	page := browser.doCreateTab(s.T(), fmt.Sprintf("%s/secret.html", SecureBaseURL)).Context(ctx)

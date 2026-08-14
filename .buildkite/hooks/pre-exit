@@ -2,10 +2,23 @@
 
 set +u
 
-if [[ ! "${BUILDKITE_COMMAND}" =~ buildkite-agent\ pipeline\ upload ]] && \
-[[ "${BUILDKITE_AGENT_META_DATA_CLEANBUILD}" != "false" ]]; then
-  echo "--- :docker: Clean environment"
-  docker images --filter "label=org.authelia.image.prune.protection=true" -q | xargs -r -I{} docker run -d --name "protect_{}" {} sleep infinity; docker system prune -af --volumes; docker ps -aq --filter "name=protect_" | xargs -r docker rm -f
+PROJECT="${COMPOSE_PROJECT_NAME:-authelia}"
+
+if [[ ! "${BUILDKITE_COMMAND}" =~ buildkite-agent\ pipeline\ upload ]]; then
+  if [[ "${BUILDKITE_AGENT_META_DATA_CLEANBUILD}" != "false" ]]; then
+    echo "--- :docker: Clean environment"
+    docker images --filter "label=org.authelia.image.prune.protection=true" -q | xargs -r -I{} docker run -d --name "protect_{}" {} sleep infinity; docker system prune -af --volumes; docker ps -aq --filter "name=protect_" | xargs -r docker rm -f
+  else
+    # The daemon is shared with every other agent on this host, so only this job's own resources may be removed. The
+    # agent has to leave the suite network before it can be removed, since a network with an endpoint on it is in use.
+    echo "--- :docker: Clean project ${PROJECT}"
+    [[ -n "${AGENT_CONTAINER}" ]] && docker network disconnect -f "${PROJECT}_authelianet" "${AGENT_CONTAINER}" 2> /dev/null
+    docker ps -aq --filter "label=com.docker.compose.project=${PROJECT}" | xargs -r docker rm -f
+    docker volume ls -q --filter "label=com.docker.compose.project=${PROJECT}" | xargs -r docker volume rm -f
+    docker network ls -q --filter "label=com.docker.compose.project=${PROJECT}" | xargs -r docker network rm
+    docker images --filter "reference=${PROJECT}-*" --format '{{.Repository}}:{{.Tag}}' | xargs -r docker rmi -f > /dev/null 2>&1
+    [[ -n "${SUITE_IMAGE}" ]] && docker rmi -f "${SUITE_IMAGE}" > /dev/null 2>&1
+  fi
 fi
 
-sudo find /tmp/ -mindepth 1 -maxdepth 1 ! -name "buildkite-agent-hook-wrapper*" ! -name "buildkite*" ! -name "job-env-*" -exec rm -rf {} +
+sudo find "${SUITE_TMP:-/tmp}/" -mindepth 1 -maxdepth 1 ! -name "buildkite-agent-hook-wrapper*" ! -name "buildkite*" ! -name "job-env-*" -exec rm -rf {} +

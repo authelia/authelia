@@ -1,6 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
+import { completeResetPasswordProcess } from "@services/ResetPassword";
 import ResetPasswordStep2 from "@views/ResetPassword/ResetPasswordStep2";
 
 vi.mock("react-i18next", () => ({
@@ -15,8 +16,10 @@ vi.mock("@contexts/NotificationsContext", () => ({
     }),
 }));
 
+const queryParam = vi.hoisted(() => ({ token: "test-token" as string | undefined }));
+
 vi.mock("@hooks/QueryParam", () => ({
-    useQueryParam: () => "test-token",
+    useQueryParam: () => queryParam.token,
 }));
 
 vi.mock("@layouts/MinimalLayout", () => ({
@@ -45,6 +48,12 @@ vi.mock("@components/PasswordMeter", () => ({
     default: () => <div data-testid="password-meter" />,
 }));
 
+beforeEach(() => {
+    vi.clearAllMocks();
+
+    queryParam.token = "test-token";
+});
+
 afterEach(() => {
     vi.restoreAllMocks();
 });
@@ -58,4 +67,48 @@ it("renders the reset password form", () => {
     );
     expect(screen.getAllByText("New password").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Reset")).toBeInTheDocument();
+});
+
+it("starts the process once a token becomes available", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    queryParam.token = undefined;
+
+    const { rerender } = render(
+        <MemoryRouter>
+            <ResetPasswordStep2 />
+        </MemoryRouter>,
+    );
+
+    expect(completeResetPasswordProcess).not.toHaveBeenCalled();
+
+    queryParam.token = "test-token";
+
+    rerender(
+        <MemoryRouter>
+            <ResetPasswordStep2 />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(completeResetPasswordProcess).toHaveBeenCalledWith("test-token"));
+});
+
+it("does not repeat the process when re-rendered with the same token", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const { rerender } = render(
+        <MemoryRouter>
+            <ResetPasswordStep2 />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(completeResetPasswordProcess).toHaveBeenCalledTimes(1));
+
+    rerender(
+        <MemoryRouter>
+            <ResetPasswordStep2 />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(completeResetPasswordProcess).toHaveBeenCalledTimes(1));
 });

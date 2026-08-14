@@ -42,8 +42,7 @@ func (s *DuoPushWebDriverSuite) TearDownSuite() {
 }
 
 func (s *DuoPushWebDriverSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *DuoPushWebDriverSuite) TearDownTest() {
@@ -289,8 +288,9 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypasse
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-	s.doClickButton(s.T(), s.Context(ctx), "selection-link")
-	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Device selection was bypassed by Duo policy")
+	s.verifyNotificationDisplayedDuring(s.T(), s.Context(ctx), "Device selection was bypassed by Duo policy", func() {
+		s.doClickButton(s.T(), s.Context(ctx), "selection-link")
+	})
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied() {
@@ -420,8 +420,7 @@ func (s *DuoPushDefaultRedirectionSuite) TearDownSuite() {
 }
 
 func (s *DuoPushDefaultRedirectionSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *DuoPushDefaultRedirectionSuite) TearDownTest() {

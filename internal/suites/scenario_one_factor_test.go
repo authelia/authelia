@@ -39,8 +39,7 @@ func (s *OneFactorScenario) TearDownSuite() {
 }
 
 func (s *OneFactorScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *OneFactorScenario) TearDownTest() {

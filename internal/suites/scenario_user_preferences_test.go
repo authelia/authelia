@@ -36,8 +36,7 @@ func (s *UserPreferencesScenario) TearDownSuite() {
 }
 
 func (s *UserPreferencesScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *UserPreferencesScenario) TearDownTest() {

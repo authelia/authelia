@@ -1,6 +1,10 @@
 ---
 services:
   authelia-backend:
+    cpus: 2
+    mem_limit: 1g
+    environment:
+      GOMAXPROCS: '2'
     build:
       context: 'example/compose/authelia'
       dockerfile: 'Dockerfile.backend'
@@ -20,11 +24,11 @@ services:
       - '${GOPATH}:/go:cached'
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.authelia_backend.rule: 'Host(`login.example.com`) && PathPrefix(`/.well-known`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/.well-known`) || Host(`login.example.com`) && PathPrefix(`/api`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/api`) || Host(`login.example.com`) && PathPrefix(`/devworkflow`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/devworkflow`) || Host(`login.example.com`) && PathPrefix(`/locales`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/locales`) || Host(`login.example.com`) && Path(`/jwks.json`) || Host(`login.example.com`) && Path(`${PathPrefix}/jwks.json`)'  # yamllint disable-line rule:line-length
+      traefik.http.routers.authelia_backend.rule: 'Host(`login.example.com`) && PathPrefix(`/.well-known`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix:-}/.well-known`) || Host(`login.example.com`) && PathPrefix(`/api`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix:-}/api`) || Host(`login.example.com`) && PathPrefix(`/devworkflow`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix:-}/devworkflow`) || Host(`login.example.com`) && PathPrefix(`/locales`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix:-}/locales`) || Host(`login.example.com`) && Path(`/jwks.json`) || Host(`login.example.com`) && Path(`${PathPrefix:-}/jwks.json`)'  # yamllint disable-line rule:line-length
       traefik.http.routers.authelia_backend.entrypoints: 'https'
       traefik.http.routers.authelia_backend.tls: 'true'
       traefik.http.services.authelia_backend.loadbalancer.server.scheme: 'https'
     networks:
       authelianet:
-        ipv4_address: 192.168.240.50
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.50
 ...

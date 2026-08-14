@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Button, FormControl, IconButton, InputAdornment } from "@mui/material";
@@ -16,6 +16,8 @@ import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
+
+const uninitiated = Symbol("uninitiated");
 
 const ResetPasswordStep2 = function () {
     const { t: translate } = useTranslation();
@@ -44,6 +46,8 @@ const ResetPasswordStep2 = function () {
     // the secret for OTP.
     const processToken = useQueryParam(IdentityToken);
 
+    const resetInitiatedRef = useRef<null | string | typeof uninitiated | undefined>(uninitiated);
+
     const handleRateLimited = useCallback(
         (_retryAfter: number) => {
             createErrorNotification(translate("You have made too many requests")); // TODO: Do we want to add the amount of seconds a user should retry in the message?
@@ -52,6 +56,12 @@ const ResetPasswordStep2 = function () {
     );
 
     useEffect(() => {
+        if (resetInitiatedRef.current === processToken) {
+            return;
+        }
+
+        resetInitiatedRef.current = processToken;
+
         const submitReset = async () => {
             if (!processToken) {
                 setFormDisabled(true);

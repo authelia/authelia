@@ -8,7 +8,7 @@ import (
 var twoFactorSuiteName = "TwoFactor"
 
 func init() {
-	_ = os.MkdirAll("/tmp/authelia/TwoFactorSuite/", 0700)
+	_ = os.MkdirAll("/tmp/authelia/TwoFactorSuite", 0700)
 	_ = os.WriteFile("/tmp/authelia/TwoFactorSuite/jwt", []byte("very_important_secret"), 0600)       //nolint:gosec
 	_ = os.WriteFile("/tmp/authelia/TwoFactorSuite/session", []byte("unsecure_session_secret"), 0600) //nolint:gosec
 
