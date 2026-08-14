@@ -17,7 +17,7 @@ overrides:
   js-yaml: 5.2.3
   minimatch: 10.2.6
   nanoid: 6.0.1
-  next: 16.2.12
+  next: 16.3.0
   picomatch: 4.0.5
   postcss: 8.5.26
   prismjs: 1.30.0
