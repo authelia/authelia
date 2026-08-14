@@ -39,8 +39,7 @@ func (s *OneFactorOnlySuite) TearDownSuite() {
 }
 
 func (s *OneFactorOnlySuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *OneFactorOnlySuite) TearDownTest() {

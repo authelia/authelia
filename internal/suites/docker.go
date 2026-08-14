@@ -16,6 +16,72 @@ type DockerEnvironment struct {
 	dockerComposeFiles []string
 }
 
+func composeProjectName() string {
+	if name := os.Getenv("COMPOSE_PROJECT_NAME"); name != "" {
+		return name
+	}
+
+	return composeProjectDefault
+}
+
+// SuiteSubnet returns the first three octets of the suite network, matching the SUITE_SUBNET variable the compose files
+// interpolate. Reading the same variable here means the addresses baked into Go and into /etc/hosts cannot drift from
+// the ones compose assigns.
+func SuiteSubnet() string {
+	if subnet := os.Getenv("SUITE_SUBNET"); subnet != "" {
+		return subnet
+	}
+
+	return suiteSubnetDefault
+}
+
+// SuiteAddress returns the address of the given host octet on the suite network.
+func SuiteAddress(octet int) string {
+	return fmt.Sprintf("%s.%d", SuiteSubnet(), octet)
+}
+
+func agentContainer() string {
+	return os.Getenv("AGENT_CONTAINER")
+}
+
+func autheliaNetworkName() string {
+	return fmt.Sprintf("%s_%s", composeProjectName(), networkAuthelia)
+}
+
+func connectAgentNetwork() error {
+	container := agentContainer()
+	if container == "" {
+		return nil
+	}
+
+	network := autheliaNetworkName()
+
+	output, err := utils.Command("docker", "network", "connect", "--ip", SuiteAddress(agentAddressOctet), network, container).CombinedOutput()
+	if err == nil {
+		return nil
+	}
+
+	// A job killed mid-run leaves its attachment behind and the next connect reports it as an error.
+	if strings.Contains(string(output), "already exists in network") {
+		return nil
+	}
+
+	return fmt.Errorf("error connecting container '%s' to network '%s': %w: %s", container, network, err, output)
+}
+
+func disconnectAgentNetwork() {
+	container := agentContainer()
+	if container == "" {
+		return
+	}
+
+	network := autheliaNetworkName()
+
+	if output, err := utils.Command("docker", "network", "disconnect", "-f", network, container).CombinedOutput(); err != nil {
+		log.Debugf("Error disconnecting container '%s' from network '%s': %v: %s", container, network, err, output)
+	}
+}
+
 // NewDockerEnvironment create a new docker environment.
 func NewDockerEnvironment(files []string) *DockerEnvironment {
 	if os.Getenv("CI") == t {
@@ -32,14 +98,14 @@ func NewDockerEnvironment(files []string) *DockerEnvironment {
 }
 
 func (de *DockerEnvironment) createCommandWithStdout(cmd string) *exec.Cmd {
-	dockerCmdLine := fmt.Sprintf("docker compose -p authelia -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
+	dockerCmdLine := fmt.Sprintf("docker compose -p %s -f %s %s", composeProjectName(), strings.Join(de.dockerComposeFiles, " -f "), cmd)
 	log.Trace(dockerCmdLine)
 
 	return utils.CommandWithStdout("bash", "-c", dockerCmdLine)
 }
 
 func (de *DockerEnvironment) createCommand(cmd string) *exec.Cmd {
-	dockerCmdLine := fmt.Sprintf("docker compose -p authelia -f %s %s", strings.Join(de.dockerComposeFiles, " -f "), cmd)
+	dockerCmdLine := fmt.Sprintf("docker compose -p %s -f %s %s", composeProjectName(), strings.Join(de.dockerComposeFiles, " -f "), cmd)
 	log.Trace(dockerCmdLine)
 
 	return utils.Command("bash", "-c", dockerCmdLine)
@@ -52,11 +118,19 @@ func (de *DockerEnvironment) Pull(images ...string) error {
 
 // Up spawn a docker environment.
 func (de *DockerEnvironment) Up() error {
+	command := "up --build -d"
+
 	if os.Getenv("CI") == t {
-		return de.createCommandWithStdout("up --build --quiet-pull -d").Run()
+		command = "up --build --quiet-pull -d --wait --wait-timeout 300"
 	}
 
-	return de.createCommandWithStdout("up --build -d").Run()
+	if err := de.createCommandWithStdout(command).Run(); err != nil {
+		return err
+	}
+
+	// Chrome and the test process both run inside the agent container. On a shared daemon the suite network belongs
+	// to the host namespace rather than the agent's, so the agent has to join it to reach the portal at all.
+	return connectAgentNetwork()
 }
 
 // Restart restarts a service.
@@ -76,6 +150,8 @@ func (de *DockerEnvironment) Start(service string) error {
 
 // Down destroy a docker environment.
 func (de *DockerEnvironment) Down() error {
+	disconnectAgentNetwork()
+
 	return de.createCommandWithStdout("down -v").Run()
 }
 
