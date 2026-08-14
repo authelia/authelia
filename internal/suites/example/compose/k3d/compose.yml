@@ -24,5 +24,5 @@ services:
           - kubernetes.example.com
           - traefik.example.com
         # Set the IP to be able to query on port 443
-        ipv4_address: 192.168.240.100
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.100
 ...

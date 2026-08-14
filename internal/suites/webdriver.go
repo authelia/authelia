@@ -2,6 +2,7 @@ package suites
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/cdp"
 	"github.com/go-rod/rod/lib/input"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/proto"
@@ -19,6 +21,7 @@ import (
 
 const (
 	waitElementsAttempts = 10
+	elementRetryInterval = time.Millisecond * 50
 	setupTestTimeout     = time.Second * 30
 )
 
@@ -248,6 +251,46 @@ func (rs *RodSession) WaitElementLocatedByID(t *testing.T, page *rod.Page, cssSe
 	return rs.WaitElementLocatedBySelector(t, page, "#"+cssSelector)
 }
 
+// ClickElementLocatedBySelector clicks the element matching the CSS selector, locating it again if
+// the document replaced it in the meantime. Locating an element and clicking it are two round trips,
+// and a re-render between them leaves the handle pointing at a node that is no longer in the
+// document, which the click then reports rather than performing.
+func (rs *RodSession) ClickElementLocatedBySelector(t *testing.T, page *rod.Page, selector string) {
+	var err error
+
+	for range waitElementsAttempts {
+		var element *rod.Element
+
+		if element, err = page.Element(selector); err != nil {
+			break
+		}
+
+		if err = element.Click("left", 1); err == nil {
+			return
+		}
+
+		if !isDetachedNodeError(err) {
+			break
+		}
+
+		time.Sleep(elementRetryInterval)
+	}
+
+	require.NoError(t, err)
+}
+
+// ClickElementLocatedByID clicks the element located by an id, locating it again if the document
+// replaced it in the meantime.
+func (rs *RodSession) ClickElementLocatedByID(t *testing.T, page *rod.Page, cssSelector string) {
+	rs.ClickElementLocatedBySelector(t, page, "#"+cssSelector)
+}
+
+func isDetachedNodeError(err error) bool {
+	var e *cdp.Error
+
+	return errors.As(err, &e) && strings.Contains(e.Message, "detached")
+}
+
 // WaitElementsLocatedBySelector waits for at least one element matching the CSS selector to
 // appear, then returns all current matches.
 func (rs *RodSession) WaitElementsLocatedBySelector(t *testing.T, page *rod.Page, selector string) rod.Elements {
@@ -256,7 +299,7 @@ func (rs *RodSession) WaitElementsLocatedBySelector(t *testing.T, page *rod.Page
 		err      error
 	)
 
-	for i := 0; i < waitElementsAttempts; i++ {
+	for range waitElementsAttempts {
 		if _, err = page.Element(selector); err != nil {
 			break
 		}

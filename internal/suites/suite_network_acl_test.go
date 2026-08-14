@@ -40,7 +40,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon2FA() {
 	browser.verifySecretAuthorized(s.T(), page)
 }
 
-// from network 192.168.240.201/32.
+// from the proxy-client1 network.
 func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -61,7 +61,7 @@ func (s *NetworkACLSuite) TestShouldAccessSecretUpon1FA() {
 	browser.verifySecretAuthorized(s.T(), page)
 }
 
-// from network 192.168.240.202/32.
+// from the proxy-client2 network.
 func (s *NetworkACLSuite) TestShouldAccessSecretUpon0FA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
