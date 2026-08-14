@@ -37,8 +37,7 @@ func (s *BypassPolicyScenario) TearDownSuite() {
 }
 
 func (s *BypassPolicyScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *BypassPolicyScenario) TearDownTest() {

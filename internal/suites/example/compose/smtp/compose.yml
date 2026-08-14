@@ -2,9 +2,12 @@
 services:
   smtp:
     image: 'axllent/mailpit:v1.30.7'
+    cpus: 2
+    mem_limit: 1g
     volumes:
       - './common/pki:/pki'
     environment:
+      GOMAXPROCS: '2'
       MP_SMTP_TLS_CERT: '/pki/public.crt'
       MP_SMTP_TLS_KEY: '/pki/private.pem'
       MP_SMTP_AUTH_ACCEPT_ANY: '1'

@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"sort"
@@ -329,7 +330,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 		fail = "-failfast"
 	}
 
-	testCmdLine := fmt.Sprintf("go test -count=1 -v ./internal/suites -timeout %s %s ", timeout, fail)
+	testCmdLine := fmt.Sprintf("go test -count=1 -v -json ./internal/suites -timeout %s %s ", timeout, fail)
 
 	if testPattern != "" {
 		testCmdLine += fmt.Sprintf("-run '%s'", testPattern)
@@ -340,8 +341,15 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	log.Infof("Running tests of suite %s...", suiteName)
 	log.Debugf("Running tests with command: %s", testCmdLine)
 
+	results, err := os.Create(fmt.Sprintf(testResultsFileFmt, suiteName))
+	if err != nil {
+		return err
+	}
+
+	defer results.Close()
+
 	cmd := utils.CommandWithStdout("bash", "-c", testCmdLine)
-	cmd.Stdout = os.Stdout
+	cmd.Stdout = io.MultiWriter(results, &testOutputWriter{out: os.Stdout})
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 
