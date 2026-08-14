@@ -4,5 +4,5 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.240.0/24
+        - subnet: ${SUITE_SUBNET:-192.168.240}.0/24
 ...

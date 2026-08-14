@@ -2,6 +2,9 @@
 services:
   duo-api:
     image: 'authelia/integration-duo'
+    pull_policy: '${SUITE_PULL_POLICY:-missing}'
+    cpus: 2
+    mem_limit: 1g
     volumes:
       - './example/compose/duo-api/duo_api.js:/usr/app/src/duo_api.js'
     networks:

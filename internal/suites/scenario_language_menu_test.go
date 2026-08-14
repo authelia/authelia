@@ -33,8 +33,7 @@ func (s *LanguageMenuScenario) TearDownSuite() {
 }
 
 func (s *LanguageMenuScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *LanguageMenuScenario) TearDownTest() {
