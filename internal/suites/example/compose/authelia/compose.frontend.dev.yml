@@ -2,7 +2,7 @@
 services:
   authelia-frontend:
     cpus: 2
-    mem_limit: 1g
+    mem_limit: 4g
     build:
       context: 'example/compose/authelia'
       dockerfile: 'Dockerfile.frontend'

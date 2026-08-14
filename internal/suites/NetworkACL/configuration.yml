@@ -75,13 +75,13 @@ access_control:
   networks:
     - name: 'Clients'
       networks:
-        - '192.168.240.202/32'
-        - '192.168.240.203/32'
+        - '{{ env "SUITE_SUBNET" }}.202/32'
+        - '{{ env "SUITE_SUBNET" }}.203/32'
   rules:
     - domain: 'secure.example.com'
       policy: 'one_factor'
       networks:
-        - '192.168.240.201/32'
+        - '{{ env "SUITE_SUBNET" }}.201/32'
     - domain: 'secure.example.com'
       policy: 'bypass'
       networks:

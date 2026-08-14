@@ -247,7 +247,7 @@ func (rs *RodSession) collectContainerLogs(test *testing.T, base string) {
 	// The OnError hook prints these too, but it runs in a separate process after the test binary has
 	// exited, so nothing it prints can be associated with the test that failed.
 	output, _, err := utils.RunCommandAndReturnOutput(
-		fmt.Sprintf("docker ps --filter label=com.docker.compose.project=%s --format '{{.Names}}'", composeProject),
+		fmt.Sprintf("docker ps --filter label=com.docker.compose.project=%s --format '{{.Names}}'", composeProjectName()),
 	)
 	if err != nil {
 		log.Debugf("Error listing suite containers: %v", err)

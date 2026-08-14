@@ -138,6 +138,13 @@ func setupSuite(cmd *cobra.Command, args []string) {
 
 	if err = s.SetUp(suiteTmpDirectory); err != nil {
 		log.Error("Failure during environment deployment.")
+
+		if s.OnError != nil {
+			if errLogs := s.OnError(); errLogs != nil {
+				log.Errorf("Error collecting suite logs: %v", errLogs)
+			}
+		}
+
 		teardownSuite(nil, args)
 		log.Fatal(err)
 	}

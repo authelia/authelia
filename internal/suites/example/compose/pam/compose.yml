@@ -13,5 +13,5 @@ services:
       CA_CERT: '/etc/ssl/certs/authelia-ca.crt'
     networks:
       authelianet:
-        ipv4_address: 192.168.240.130
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.130
 ...
