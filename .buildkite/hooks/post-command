@@ -84,7 +84,7 @@ if [[ ${BUILDKITE_LABEL} =~ (:selenium:|:nodejs:) ]] && [[ -d screenshots ]]; th
 fi
 
 if [[ ${BUILDKITE_LABEL} =~ :selenium: ]] || [[ ${BUILDKITE_LABEL} =~ :docker:\ Build\ Image ]]; then
-  mapfile -t CONTAINERS < <(docker ps -a -q)
+  mapfile -t CONTAINERS < <(docker ps -a -q --filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME:-authelia}")
   if [[ ${#CONTAINERS[@]} -gt 0 ]]; then
     echo "--- :docker: Remove lingering containers"
     docker rm -f "${CONTAINERS[@]}"

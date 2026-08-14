@@ -54,9 +54,9 @@ func (s *HighAvailabilityWebDriverSuite) TearDownTest() {
 }
 
 var redisNodeServices = map[string]string{
-	"redis-node-0": "192.168.240.110",
-	"redis-node-1": "192.168.240.111",
-	"redis-node-2": "192.168.240.112",
+	"redis-node-0": SuiteAddress(110),
+	"redis-node-1": SuiteAddress(111),
+	"redis-node-2": SuiteAddress(112),
 }
 
 func (s *HighAvailabilityWebDriverSuite) redisMaster(sentinel string) (master string) {
@@ -77,8 +77,11 @@ func (s *HighAvailabilityWebDriverSuite) redisMaster(sentinel string) (master st
 				continue
 			}
 
-			ping, perr := haDockerEnvironment.Exec(service, []string{"redis-cli", "ping"})
-			if perr != nil || !strings.Contains(ping, "PONG") {
+			// Ask the node itself rather than trusting the address alone. A single sentinel can still be
+			// serving its pre-failover view, and a former master restarted by an earlier test answers PING
+			// perfectly well while it is a replica, so accepting either would hand back the wrong node.
+			role, rerr := haDockerEnvironment.Exec(service, []string{"redis-cli", "role"})
+			if rerr != nil || !strings.HasPrefix(strings.TrimSpace(role), "master") {
 				return false, nil
 			}
 

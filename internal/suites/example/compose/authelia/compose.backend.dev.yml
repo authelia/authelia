@@ -30,5 +30,5 @@ services:
       traefik.http.services.authelia_backend.loadbalancer.server.scheme: 'https'
     networks:
       authelianet:
-        ipv4_address: 192.168.240.50
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.50
 ...
