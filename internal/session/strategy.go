@@ -49,14 +49,20 @@ func (p *DefaultStrategy) GetConfig() (config schema.SessionCookie) {
 	return p.config
 }
 
-func (p *DefaultStrategy) NewDefault() (userSession UserSession) {
-	userSession = NewDefaultUserSession()
+// New returns a session for the given username bound to this strategies cookie domain. Giving a session a username at
+// construction is the only supported way to do so, see NewUserSession.
+func (p *DefaultStrategy) New(username string) (userSession UserSession) {
+	userSession = NewUserSession(username)
 
 	// The session records the configured domain rather than the cookie domain, as the leading dot which may be present
 	// on the latter is a cookie attribute concern and consumers compare this against the configured domain.
 	userSession.CookieDomain = p.config.Domain
 
 	return userSession
+}
+
+func (p *DefaultStrategy) NewDefault() (userSession UserSession) {
+	return p.New("")
 }
 
 func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {

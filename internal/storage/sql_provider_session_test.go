@@ -130,18 +130,6 @@ func TestStorageSessionChangeIDShouldMoveSession(t *testing.T) {
 	assert.Equal(t, []byte("data"), data)
 }
 
-func TestStorageSessionSetUsernameShouldLinkSession(t *testing.T) {
-	ctx, provider := newTestSessionProvider(t)
-
-	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "", time.Hour, []byte("data")))
-	require.NoError(t, provider.SessionSetUsername(ctx, "an-issuer", "a-signature", "john"))
-
-	ids, err := provider.SessionGetIDsByUsername(ctx, "an-issuer", "john")
-
-	require.NoError(t, err)
-	assert.Equal(t, []string{"a-signature"}, ids)
-}
-
 func TestStorageSessionDeleteShouldRemoveSession(t *testing.T) {
 	ctx, provider := newTestSessionProvider(t)
 

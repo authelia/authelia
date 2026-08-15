@@ -127,47 +127,6 @@ func TestRedis_SessionScore(t *testing.T) {
 	}
 }
 
-func TestRedis_SessionSetUsername(t *testing.T) {
-	testCases := []struct {
-		Name     string
-		Username string
-		TTL      time.Duration
-		Expected bool
-		Never    bool
-	}{
-		{"ShouldIndexWithRemainingTTL", "john", time.Hour, true, false},
-		{"ShouldIndexWithoutExpiryWhenKeyHasNone", "john", redisTTLNoExpiry, true, true},
-		{"ShouldNotIndexWhenSessionMissing", "john", redisTTLNoKey, false, false},
-		{"ShouldNotIndexAnonymousSession", "", time.Hour, false, false},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.Name, func(t *testing.T) {
-			client := &mockRedisCmdable{ttl: tc.TTL, added: map[string][]redis.Z{}}
-
-			require.NoError(t, NewRedis(client, "standalone").SessionSetUsername(context.Background(), "example.com", "id", tc.Username))
-
-			if !tc.Expected {
-				assert.Empty(t, client.added)
-
-				return
-			}
-
-			added, ok := client.added[getSessionUserKey("example.com", tc.Username)]
-			require.True(t, ok)
-			require.Len(t, added, 1)
-
-			assert.Equal(t, "id", added[0].Member)
-
-			if tc.Never {
-				assert.True(t, math.IsInf(added[0].Score, 1))
-			} else {
-				assert.InDelta(t, float64(time.Now().Add(tc.TTL).Unix()), added[0].Score, 2)
-			}
-		})
-	}
-}
-
 func TestRedis_SessionGetIDsByUsername(t *testing.T) {
 	t.Run("ShouldPruneExpiredMembersBeforeReading", func(t *testing.T) {
 		client := &mockRedisCmdable{pipeliner: &mockRedisPipeliner{members: []string{"id1", "id2"}, pruned: map[string]string{}}}

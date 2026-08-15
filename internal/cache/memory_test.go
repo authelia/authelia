@@ -116,22 +116,6 @@ func TestMemory_SessionUsernameLookup(t *testing.T) {
 	}
 }
 
-func TestMemory_SessionSetUsername(t *testing.T) {
-	ctx := context.Background()
-	provider := NewMemory()
-
-	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "", time.Hour, []byte("data")))
-	require.NoError(t, provider.SessionSetUsername(ctx, "example.com", "id", "john"))
-	require.NoError(t, provider.SessionSetUsername(ctx, "example.com", "id", "john"))
-
-	assert.Equal(t, []string{"id"}, provider.lookupUsername[provider.key("example.com", "john")])
-
-	require.NoError(t, provider.SessionSetUsername(ctx, "example.com", "id", "jane"))
-
-	assert.NotContains(t, provider.lookupUsername, provider.key("example.com", "john"))
-	assert.Equal(t, []string{"id"}, provider.lookupUsername[provider.key("example.com", "jane")])
-}
-
 func TestMemory_SessionChangeID(t *testing.T) {
 	ctx := context.Background()
 	provider := NewMemory()
@@ -222,7 +206,6 @@ func TestMemory_SessionConcurrentAccess(t *testing.T) {
 				_, _ = provider.SessionGet(ctx, "example.com", id)
 				_, _ = provider.SessionGetIDsByUsername(ctx, "example.com", "john")
 				_ = provider.SessionSaveData(ctx, "example.com", id, "pid", "john", time.Hour, []byte("updated"))
-				_ = provider.SessionSetUsername(ctx, "example.com", id, "john")
 				_ = provider.SessionGarbageCollection(ctx)
 			}
 		}()

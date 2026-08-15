@@ -28,10 +28,6 @@ type Provider interface {
 	// SessionSaveData instead.
 	SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
 
-	// SessionSetUsername is used when SaveSession has been called without a username to link the session to a
-	// specific user.
-	SessionSetUsername(ctx context.Context, issuer, id, username string) (err error)
-
 	// SessionSaveData updates the session data in the cache, refreshing the expiry of the session and every lookup
 	// which refers to it.
 	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
@@ -76,10 +72,6 @@ func (s SessionRepository) Save(ctx context.Context, issuer string, id string, p
 
 func (s SessionRepository) SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error) {
 	return s.provider.SessionSaveData(ctx, issuer, id, pid, username, expiration, data)
-}
-
-func (s SessionRepository) SetUsername(ctx context.Context, issuer string, id string, username string) (err error) {
-	return s.provider.SessionSetUsername(ctx, issuer, id, username)
 }
 
 func (s SessionRepository) Delete(ctx context.Context, issuer string, id string, pid string, username string) (err error) {
