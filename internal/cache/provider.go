@@ -17,7 +17,7 @@ type Provider interface {
 	// HMAC-SHA256 and encoded into hexadecimal) and issuer (which is a domain).
 	SessionGet(ctx context.Context, issuer, id string) (data []byte, err error)
 
-	// SessionGetByPublicID should return a session with a matching public id (which is a UUIDv7 string).
+	// SessionGetByPublicID should return a session with a matching public id.
 	SessionGetByPublicID(ctx context.Context, issuer, pid string) (data []byte, err error)
 
 	// SessionGetIDsByUsername should return all session ids for a given username and issuer (which is a domain).
