@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -39,6 +40,10 @@ type CachedUserProvider struct {
 // GetDetails retrieves the user's information skipping the cache but ensuring the cache is updated.
 func (p *CachedUserProvider) GetDetails(username string) (details *UserDetails, err error) {
 	if details, err = p.UserProvider.GetDetails(username); err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			p.invalidate(username)
+		}
+
 		return nil, err
 	}
 
@@ -47,6 +52,8 @@ func (p *CachedUserProvider) GetDetails(username string) (details *UserDetails, 
 	p.details.values[username] = CachedUserDetailsItem{UserDetails: details, expires: time.Now().Add(p.lifespan.Value())}
 
 	p.details.Unlock()
+
+	p.invalidateExtended(username)
 
 	return details, nil
 }
@@ -106,14 +113,28 @@ func (p *CachedUserProvider) doGetDetailsCached(username string) func() (result 
 // GetDetailsExtended retrieves the user's extended information skipping the cache but ensuring the cache is updated.
 func (p *CachedUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
 	if details, err = p.UserProvider.GetDetailsExtended(username); err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			p.invalidate(username)
+		}
+
 		return nil, err
 	}
 
+	expires := time.Now().Add(p.lifespan.Value())
+
 	p.extended.Lock()
 
-	p.extended.values[username] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: time.Now().Add(p.lifespan.Value())}
+	p.extended.values[username] = CachedUserDetailsExtendedItem{UserDetailsExtended: details, expires: expires}
 
 	p.extended.Unlock()
+
+	if details.UserDetails != nil {
+		p.details.Lock()
+
+		p.details.values[username] = CachedUserDetailsItem{UserDetails: details.UserDetails, expires: expires}
+
+		p.details.Unlock()
+	}
 
 	return details, nil
 }
@@ -168,6 +189,24 @@ func (p *CachedUserProvider) doGetDetailsExtendedCached(username string) func() 
 
 		return details, nil
 	}
+}
+
+func (p *CachedUserProvider) invalidate(username string) {
+	p.details.Lock()
+
+	delete(p.details.values, username)
+
+	p.details.Unlock()
+
+	p.invalidateExtended(username)
+}
+
+func (p *CachedUserProvider) invalidateExtended(username string) {
+	p.extended.Lock()
+
+	delete(p.extended.values, username)
+
+	p.extended.Unlock()
 }
 
 type CachedUserDetails struct {

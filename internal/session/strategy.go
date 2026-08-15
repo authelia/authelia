@@ -73,11 +73,15 @@ func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {
 
 // Save persists the session. The userSession is a pointer as a session which has no public identifier has one generated
 // for it, and the caller must observe it to avoid orphaning the generated identifier on a subsequent save.
-func (p *DefaultStrategy) Save(ctx Context, userSession *UserSession) (err error) {
+func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
+	if session == nil {
+		return fmt.Errorf("error occurred saving session: it is nil")
+	}
+
 	switch {
-	case userSession.CookieDomain == "":
-		userSession.CookieDomain = p.config.Domain
-	case userSession.CookieDomain != p.config.Domain:
+	case session.CookieDomain == "":
+		session.CookieDomain = p.config.Domain
+	case session.CookieDomain != p.config.Domain:
 		return fmt.Errorf("error occurred saving session: domain does not match cookie domain")
 	}
 
@@ -92,23 +96,23 @@ func (p *DefaultStrategy) Save(ctx Context, userSession *UserSession) (err error
 		}
 	}
 
-	if userSession.PublicID == "" {
-		if userSession.PublicID, err = p.codec.GeneratePublicID(); err != nil {
+	if session.PublicID == "" {
+		if session.PublicID, err = p.codec.GeneratePublicID(); err != nil {
 			return fmt.Errorf("error occurred generating session public ID: %w", err)
 		}
 	}
 
-	if data, err = p.codec.Seal(p.config.Domain, *userSession); err != nil {
+	if data, err = p.codec.Seal(p.config.Domain, *session); err != nil {
 		return fmt.Errorf("error occurred encoding session: %w", err)
 	}
 
-	expiration := p.getExpiration(*userSession)
+	expiration := p.getExpiration(*session)
 
 	cookie := p.newCookie(id, p.getExpires(expiration))
 
 	sid := p.codec.Sign([]byte(id))
 
-	if err = p.repository.Save(ctx, p.issuer, sid, userSession.PublicID, userSession.Username, expiration, data); err != nil {
+	if err = p.repository.Save(ctx, p.issuer, sid, session.PublicID, session.Username, expiration, data); err != nil {
 		return fmt.Errorf("error occurred saving session to registry: %w", err)
 	}
 

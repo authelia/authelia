@@ -111,8 +111,6 @@ func findUserSessionUsernameAssignments(path string) (found []usernameAssignment
 	return found, nil
 }
 
-// isGenerated reports whether the file carries the conventional generated code marker. Generated marshalling code
-// assigns the field when decoding a persisted session, which is deserialization rather than a change of identity.
 func isGenerated(file *ast.File) bool {
 	for _, group := range file.Comments {
 		if group.Pos() > file.Package {

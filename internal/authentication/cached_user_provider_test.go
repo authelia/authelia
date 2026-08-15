@@ -499,3 +499,123 @@ func (m *mockCachedUserProvider) GetDetailsExtended(username string) (*UserDetai
 func (m *mockCachedUserProvider) GetDetailsExtendedCached(username string) (*UserDetailsExtended, error) {
 	return m.GetDetailsExtended(username)
 }
+
+func TestCachedUserProviderSecurityEventRefresh(t *testing.T) {
+	testCases := []struct {
+		name             string
+		lifespan         schema.RefreshIntervalDuration
+		event            func(provider *CachedUserProvider) error
+		expectedErr      string
+		expectedExtended int
+	}{
+		{
+			"ShouldInvalidateExtendedOnGetDetails",
+			schema.NewRefreshIntervalDuration(5 * time.Minute),
+			func(provider *CachedUserProvider) error {
+				_, err := provider.GetDetails("john")
+
+				return err
+			},
+			"",
+			2,
+		},
+		{
+			"ShouldInvalidateExtendedOnGetDetailsWhenNever",
+			schema.NewRefreshIntervalDurationNever(),
+			func(provider *CachedUserProvider) error {
+				_, err := provider.GetDetails("john")
+
+				return err
+			},
+			"",
+			2,
+		},
+		{
+			"ShouldInvalidateExtendedOnUserNotFound",
+			schema.NewRefreshIntervalDuration(5 * time.Minute),
+			func(provider *CachedUserProvider) error {
+				_, err := provider.GetDetails("john")
+
+				return err
+			},
+			"user not found",
+			2,
+		},
+		{
+			"ShouldRetainExtendedOnTransientError",
+			schema.NewRefreshIntervalDuration(5 * time.Minute),
+			func(provider *CachedUserProvider) error {
+				_, err := provider.GetDetails("john")
+
+				return err
+			},
+			"backend unreachable",
+			1,
+		},
+		{
+			"ShouldRetainExtendedWithoutASecurityEvent",
+			schema.NewRefreshIntervalDuration(5 * time.Minute),
+			nil,
+			"",
+			1,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := &mockCachedUserProvider{
+				details:         &UserDetails{Username: "john", Groups: []string{"admin"}},
+				detailsExtended: &UserDetailsExtended{UserDetails: &UserDetails{Username: "john", Groups: []string{"admin"}}},
+			}
+
+			switch tc.expectedErr {
+			case "":
+				break
+			case "user not found":
+				mock.details, mock.detailsErr = nil, ErrUserNotFound
+			default:
+				mock.details, mock.detailsErr = nil, fmt.Errorf("%s", tc.expectedErr)
+			}
+
+			provider := NewCachedUserProvider(mock, tc.lifespan).(*CachedUserProvider)
+
+			_, err := provider.GetDetailsExtendedCached("john")
+			require.NoError(t, err)
+			require.Equal(t, 1, mock.detailsExtendedCalls)
+
+			if tc.event != nil {
+				err = tc.event(provider)
+
+				if tc.expectedErr == "" {
+					require.NoError(t, err)
+				} else {
+					require.EqualError(t, err, tc.expectedErr)
+				}
+			}
+
+			_, err = provider.GetDetailsExtendedCached("john")
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expectedExtended, mock.detailsExtendedCalls)
+		})
+	}
+}
+
+func TestCachedUserProviderGetDetailsExtendedPopulatesBothCaches(t *testing.T) {
+	mock := &mockCachedUserProvider{
+		detailsExtended: &UserDetailsExtended{UserDetails: &UserDetails{Username: "john"}},
+	}
+
+	provider := NewCachedUserProvider(mock, schema.NewRefreshIntervalDuration(5*time.Minute)).(*CachedUserProvider)
+
+	_, err := provider.GetDetailsExtended("john")
+	require.NoError(t, err)
+
+	provider.details.Lock()
+	cached, ok := provider.details.values["john"]
+	provider.details.Unlock()
+
+	require.True(t, ok)
+	assert.Equal(t, "john", cached.Username)
+	assert.Equal(t, 0, mock.detailsCalls)
+}
