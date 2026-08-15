@@ -523,13 +523,29 @@ func handleAuthnCookieValidate(ctx AuthzContext, manager session.Manager, userSe
 		return modified, true
 	}
 
-	if !userSession.KeepMeLoggedIn {
+	if handleAuthnCookieValidateActivityRefresh(ctx, manager, userSession, isAnonymous) {
 		modified = true
 
 		userSession.LastActivity = ctx.GetClock().Now().Unix()
 	}
 
 	return modified, false
+}
+
+func handleAuthnCookieValidateActivityRefresh(ctx AuthzContext, manager session.Manager, userSession *session.UserSession, isAnonymous bool) (refresh bool) {
+	config := manager.GetSessionConfig()
+
+	if isAnonymous || userSession.KeepMeLoggedIn || config.Inactivity <= 0 {
+		return false
+	}
+
+	interval := config.Inactivity / sessionActivityRefreshDivisor
+
+	if interval < time.Second {
+		interval = time.Second
+	}
+
+	return !time.Unix(userSession.LastActivity, 0).Add(interval).After(ctx.GetClock().Now())
 }
 
 func handleAuthnCookieValidateInactivity(ctx AuthzContext, manager session.Manager, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
