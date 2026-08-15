@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"path"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -17,23 +16,11 @@ func ValidateSession(config *schema.Configuration, validator *schema.StructValid
 		config.Session.Name = schema.DefaultSessionConfiguration.Name
 	}
 
-	if config.Session.Redis != nil {
-		if config.Session.Redis.HighAvailability != nil {
-			validateRedisSentinel(&config.Session, validator)
-		} else {
-			validateRedis(&config.Session, validator)
-		}
-	}
-
 	validateSession(config, validator)
 }
 
 func validateSession(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.Session.Storage == "" {
-		config.Session.Storage = schema.DefaultSessionConfiguration.Storage
-	} else if !utils.IsStringInSlice(config.Session.Storage, validSessionStorageValues) {
-		validator.Push(fmt.Errorf(errFmtSessionStorage, utils.StringJoinOr(validSessionStorageValues), config.Session.Storage))
-	}
+	validateSessionStorage(config, validator)
 
 	if config.Session.Expiration <= 0 {
 		config.Session.Expiration = schema.DefaultSessionConfiguration.Expiration // 1 hour.
@@ -85,6 +72,21 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 	}
 
 	validateSessionCookieDomains(&config.Session, validator)
+}
+
+// validateSessionStorage validates the options which determine where and how the session data is persisted.
+func validateSessionStorage(config *schema.Configuration, validator *schema.StructValidator) {
+	// The session data is always encrypted at rest with a key derived from this secret regardless of the storage
+	// provider in use, so it is unconditionally required rather than required only by particular providers.
+	if config.Session.Secret == "" {
+		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "secret"))
+	}
+
+	if config.Session.Storage == "" {
+		config.Session.Storage = schema.DefaultSessionConfiguration.Storage
+	} else if !utils.IsStringInSlice(config.Session.Storage, validSessionStorageValues) {
+		validator.Push(fmt.Errorf(errFmtSessionStorage, utils.StringJoinOr(validSessionStorageValues), config.Session.Storage))
+	}
 }
 
 func validateSessionCookieDomains(config *schema.Session, validator *schema.StructValidator) {
@@ -254,76 +256,4 @@ func validateSessionSameSite(i int, config *schema.Session, validator *schema.St
 
 func sessionDomainDescriptor(position int, domain schema.SessionCookie) string {
 	return fmt.Sprintf("#%d (domain '%s')", position+1, domain.Domain)
-}
-
-func validateRedisCommon(config *schema.Session, validator *schema.StructValidator) {
-	if config.Secret == "" {
-		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, "redis"))
-	}
-
-	if config.Redis.TLS != nil {
-		configDefaultTLS := &schema.TLS{
-			ServerName:     config.Redis.Host,
-			MinimumVersion: schema.DefaultRedisConfiguration.TLS.MinimumVersion,
-			MaximumVersion: schema.DefaultRedisConfiguration.TLS.MaximumVersion,
-		}
-
-		if err := ValidateTLSConfig(config.Redis.TLS, configDefaultTLS); err != nil {
-			validator.Push(fmt.Errorf(errFmtSessionRedisTLSConfigInvalid, err))
-		}
-	}
-}
-
-func validateRedis(config *schema.Session, validator *schema.StructValidator) {
-	if config.Redis.Host == "" {
-		validator.Push(errors.New(errFmtSessionRedisHostRequired))
-	}
-
-	validateRedisCommon(config, validator)
-
-	abs := path.IsAbs(config.Redis.Host)
-
-	if !abs && config.Redis.Port == 0 {
-		config.Redis.Port = schema.DefaultRedisConfiguration.Port
-	} else if !abs && (config.Redis.Port < 1 || config.Redis.Port > 65535) {
-		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
-	}
-
-	if config.Redis.MaximumActiveConnections <= 0 {
-		config.Redis.MaximumActiveConnections = schema.DefaultRedisConfiguration.MaximumActiveConnections
-	}
-}
-
-func validateRedisSentinel(config *schema.Session, validator *schema.StructValidator) {
-	if config.Redis.HighAvailability.SentinelName == "" {
-		validator.Push(errors.New(errFmtSessionRedisSentinelMissingName))
-	}
-
-	if config.Redis.Port == 0 {
-		config.Redis.Port = 26379
-	} else if config.Redis.Port < 1 || config.Redis.Port > 65535 {
-		validator.Push(fmt.Errorf(errFmtSessionRedisPortRange, config.Redis.Port))
-	}
-
-	if config.Redis.Host == "" && len(config.Redis.HighAvailability.Nodes) == 0 {
-		validator.Push(errors.New(errFmtSessionRedisHostOrNodesRequired))
-	}
-
-	validateRedisCommon(config, validator)
-
-	hostMissing := false
-
-	for i, node := range config.Redis.HighAvailability.Nodes {
-		if node.Host == "" {
-			hostMissing = true
-		}
-
-		if node.Port == 0 {
-			config.Redis.HighAvailability.Nodes[i].Port = 26379
-		}
-	}
-
-	if hostMissing {
-		validator.Push(errors.New(errFmtSessionRedisSentinelNodeHostMissing))
-	}
 }

@@ -90,3 +90,21 @@ var (
 		"webauthn.metadata.validate_status":                   true,
 	}
 )
+
+const (
+	keySessionRedis        = "session.redis"
+	keySessionRedisHost    = "session.redis.host"
+	keySessionRedisPort    = "session.redis.port"
+	keySessionRedisHANodes = "session.redis.high_availability.nodes"
+	keySessionRedisHAName  = "session.redis.high_availability.sentinel_name"
+	keySessionStorage      = "session.storage"
+	keyCacheRedis          = "cache.redis"
+	keyCacheRedisSentinel  = "cache.redis_sentinel"
+	keyCacheRedisCluster   = "cache.redis_cluster"
+)
+
+const (
+	errFmtSessionRedisMapped   = "configuration keys prefixed with 'session.redis' are deprecated in %s and have been replaced by the '%s' keys: you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in %s"
+	errFmtSessionRedisConflict = "configuration keys prefixed with 'session.redis' are deprecated in %s and have been replaced by the '%s' keys: this has not been automatically mapped for you because the replacement keys also exist and you will need to adjust your configuration to remove this message"
+	errFmtSessionRedisMapErr   = "error occurred performing deprecation mapping for the 'session.redis' keys to the '%s' keys: %w"
+)

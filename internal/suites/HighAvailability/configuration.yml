@@ -42,19 +42,18 @@ session:
       expiration: '1 hour'
       inactivity: '5 minutes'
       remember_me: '1 year'
-  redis:
+  storage: 'cache'
+
+cache:
+  redis_sentinel:
+    master_name: 'authelia'
     username: 'authelia'
     password: 'redis-user-password'
-    high_availability:
-      sentinel_name: 'authelia'
-      sentinel_password: 'sentinel-server-password'
-      nodes:
-        - host: 'redis-sentinel-0'
-          port: 26379
-        - host: 'redis-sentinel-1'
-          port: 26379
-        - host: 'redis-sentinel-2'
-          port: 26379
+    sentinel_password: 'sentinel-server-password'
+    addresses:
+      - 'tcp://redis-sentinel-0:26379'
+      - 'tcp://redis-sentinel-1:26379'
+      - 'tcp://redis-sentinel-2:26379'
 
 authentication_backend:
   ldap:

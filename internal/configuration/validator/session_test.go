@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net"
 	"net/url"
@@ -54,6 +53,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			"ShouldSetGoodDefaultValues",
 			schema.Configuration{
 				Session: schema.Session{
+					Secret: testJWTSecret,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 					},
@@ -62,6 +62,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			},
 			schema.Configuration{
 				Session: schema.Session{
+					Secret:  testJWTSecret,
 					Storage: schema.DefaultSessionConfiguration.Storage,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
@@ -88,6 +89,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			"ShouldNotSetBadDefaultValues",
 			schema.Configuration{
 				Session: schema.Session{
+					Secret: testJWTSecret,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 					},
@@ -105,6 +107,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			},
 			schema.Configuration{
 				Session: schema.Session{
+					Secret:  testJWTSecret,
 					Storage: schema.DefaultSessionConfiguration.Storage,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "authelia_session", SameSite: "BAD VALUE", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
@@ -130,6 +133,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			"ShouldRaiseErrorOnUnknownStorage",
 			schema.Configuration{
 				Session: schema.Session{
+					Secret:  testJWTSecret,
 					Storage: "redis",
 					SessionCookieCommon: schema.SessionCookieCommon{
 						SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
@@ -148,6 +152,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			},
 			schema.Configuration{
 				Session: schema.Session{
+					Secret:  testJWTSecret,
 					Storage: "redis",
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
@@ -173,6 +178,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			"ShouldSetDefaultValuesForEachConfig",
 			schema.Configuration{
 				Session: schema.Session{
+					Secret: testJWTSecret,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "default_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute,
 						RememberMe: schema.RememberMeDisabled,
@@ -194,6 +200,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			},
 			schema.Configuration{
 				Session: schema.Session{
+					Secret:  testJWTSecret,
 					Storage: schema.DefaultSessionConfiguration.Storage,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "default_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute,
@@ -226,6 +233,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			"ShouldErrorOnEmptyConfig",
 			schema.Configuration{
 				Session: schema.Session{
+					Secret: testJWTSecret,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "", SameSite: "",
 					},
@@ -235,6 +243,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 			},
 			schema.Configuration{
 				Session: schema.Session{
+					Secret:  testJWTSecret,
 					Storage: schema.DefaultSessionConfiguration.Storage,
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute * 5, RememberMe: time.Hour * 24 * 30,
@@ -320,443 +329,6 @@ func TestShouldErrorWithoutSessionDomainAutheliaURL(t *testing.T) {
 	assert.Len(t, validator.Errors(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'authelia_url' is required")
-}
-
-func TestShouldHandleRedisConfigSuccessfully(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Errors(), 0)
-	validator.Clear()
-
-	config = newDefaultSessionConfig()
-
-	// Set redis config because password must be set only when redis is used.
-	config.Session.Redis = &schema.SessionRedis{
-		Host:     "redis.localhost",
-		Port:     6379,
-		Password: "password",
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	assert.Len(t, validator.Errors(), 0)
-
-	assert.Equal(t, 8, config.Session.Redis.MaximumActiveConnections)
-}
-
-func TestShouldHandleRedisSocketConfigSuccessfully(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	// Set redis config because password must be set only when redis is used.
-	config.Session.Redis = &schema.SessionRedis{
-		Host:     "/path/to/socket.sock",
-		Port:     0,
-		Password: "password",
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	assert.Len(t, validator.Errors(), 0)
-
-	assert.Equal(t, 8, config.Session.Redis.MaximumActiveConnections)
-	assert.Equal(t, 0, config.Session.Redis.Port)
-	assert.Equal(t, "/path/to/socket.sock", config.Session.Redis.Host)
-}
-
-func TestShouldRaiseErrorWithInvalidRedisPortLow(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "authelia-port-1",
-		Port: -1,
-	}
-
-	ValidateSession(&config, validator)
-
-	require.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, -1))
-}
-
-func TestShouldRaiseErrorWithInvalidRedisPortHigh(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "authelia-port-1",
-		Port: 65536,
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionRedisPortRange, 65536))
-}
-
-func TestShouldRaiseErrorWhenRedisIsUsedAndSecretNotSet(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-	config.Session.Secret = ""
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Errors(), 0)
-	validator.Clear()
-
-	config = newDefaultSessionConfig()
-	config.Session.Secret = ""
-
-	// Set redis config because password must be set only when redis is used.
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "redis.localhost",
-		Port: 6379,
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errFmtSessionSecretRequired, "redis"))
-}
-
-func TestShouldNotRaiseErrorsAndSetDefaultPortWhenRedisPortBlank(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Errors(), 0)
-	validator.Clear()
-
-	config = newDefaultSessionConfig()
-
-	// Set redis config because password must be set only when redis is used.
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "redis.localhost",
-		Port: 0,
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
-
-	assert.Equal(t, 6379, config.Session.Redis.Port)
-}
-
-func TestShouldRaiseErrorWhenRedisPortInvalid(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Errors(), 0)
-	validator.Clear()
-
-	config = newDefaultSessionConfig()
-
-	// Set redis config because password must be set only when redis is used.
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "redis.localhost",
-		Port: -1,
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "session: redis: option 'port' must be between 1 and 65535 but it's configured as '-1'")
-}
-
-func TestShouldRaiseOneErrorWhenRedisHighAvailabilityHasNodesWithNoHost(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "redis",
-		Port: 6379,
-		HighAvailability: &schema.SessionRedisHighAvailability{
-			SentinelName:     "authelia-sentinel",
-			SentinelPassword: "abc123",
-			Nodes: []schema.SessionRedisHighAvailabilityNode{
-				{
-					Port: 26379,
-				},
-				{
-					Port: 26379,
-				},
-			},
-		},
-	}
-
-	ValidateSession(&config, validator)
-
-	errors := validator.Errors()
-
-	assert.False(t, validator.HasWarnings())
-	require.Len(t, errors, 1)
-
-	assert.EqualError(t, errors[0], "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this")
-}
-
-func TestShouldRaiseOneErrorWhenRedisHighAvailabilityDoesNotHaveSentinelName(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "redis",
-		Port: 6379,
-		HighAvailability: &schema.SessionRedisHighAvailability{
-			SentinelPassword: "abc123",
-		},
-	}
-
-	ValidateSession(&config, validator)
-
-	errors := validator.Errors()
-
-	assert.False(t, validator.HasWarnings())
-	require.Len(t, errors, 1)
-
-	assert.EqualError(t, errors[0], "session: redis: high_availability: option 'sentinel_name' is required")
-}
-
-func TestShouldUpdateDefaultPortWhenRedisSentinelHasNodes(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "redis",
-		Port: 6379,
-		HighAvailability: &schema.SessionRedisHighAvailability{
-			SentinelName:     "authelia-sentinel",
-			SentinelPassword: "abc123",
-			Nodes: []schema.SessionRedisHighAvailabilityNode{
-				{
-					Host: "node-1",
-					Port: 333,
-				},
-				{
-					Host: "node-2",
-				},
-				{
-					Host: "node-3",
-				},
-			},
-		},
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
-
-	assert.Equal(t, 333, config.Session.Redis.HighAvailability.Nodes[0].Port)
-	assert.Equal(t, 26379, config.Session.Redis.HighAvailability.Nodes[1].Port)
-	assert.Equal(t, 26379, config.Session.Redis.HighAvailability.Nodes[2].Port)
-}
-
-func TestShouldRaiseErrorsWhenRedisSentinelOptionsIncorrectlyConfigured(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Secret = ""
-	config.Session.Redis = &schema.SessionRedis{
-		Port: 65536,
-		HighAvailability: &schema.SessionRedisHighAvailability{
-			SentinelName:     "sentinel",
-			SentinelPassword: "abc123",
-			Nodes: []schema.SessionRedisHighAvailabilityNode{
-				{
-					Host: "node1",
-					Port: 26379,
-				},
-			},
-			RouteByLatency: true,
-			RouteRandomly:  true,
-		},
-	}
-
-	ValidateSession(&config, validator)
-
-	errors := validator.Errors()
-
-	assert.False(t, validator.HasWarnings())
-	require.Len(t, errors, 2)
-
-	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisPortRange, 65536))
-	assert.EqualError(t, errors[1], fmt.Sprintf(errFmtSessionSecretRequired, "redis"))
-
-	validator.Clear()
-
-	config = newDefaultSessionConfig()
-
-	config.Session.Secret = ""
-	config.Session.Redis = &schema.SessionRedis{
-		Port: -1,
-		HighAvailability: &schema.SessionRedisHighAvailability{
-			SentinelName:     "sentinel",
-			SentinelPassword: "abc123",
-			Nodes: []schema.SessionRedisHighAvailabilityNode{
-				{
-					Host: "node1",
-					Port: 26379,
-				},
-			},
-			RouteByLatency: true,
-			RouteRandomly:  true,
-		},
-	}
-
-	ValidateSession(&config, validator)
-
-	errors = validator.Errors()
-
-	assert.False(t, validator.HasWarnings())
-	require.Len(t, errors, 2)
-
-	assert.EqualError(t, errors[0], fmt.Sprintf(errFmtSessionRedisPortRange, -1))
-	assert.EqualError(t, errors[1], fmt.Sprintf(errFmtSessionSecretRequired, "redis"))
-}
-
-func TestShouldNotRaiseErrorsAndSetDefaultPortWhenRedisSentinelPortBlank(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "mysentinelHost",
-		Port: 0,
-		HighAvailability: &schema.SessionRedisHighAvailability{
-			SentinelName:     "sentinel",
-			SentinelPassword: "abc123",
-			Nodes: []schema.SessionRedisHighAvailabilityNode{
-				{
-					Host: "node1",
-					Port: 26379,
-				},
-			},
-			RouteByLatency: true,
-			RouteRandomly:  true,
-		},
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	assert.False(t, validator.HasErrors())
-
-	assert.Equal(t, 26379, config.Session.Redis.Port)
-}
-
-func TestShouldRaiseErrorWhenRedisHostAndHighAvailabilityNodesEmpty(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Port: 26379,
-		HighAvailability: &schema.SessionRedisHighAvailability{
-			SentinelName:     "sentinel",
-			SentinelPassword: "abc123",
-			RouteByLatency:   true,
-			RouteRandomly:    true,
-		},
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.False(t, validator.HasWarnings())
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], errFmtSessionRedisHostOrNodesRequired)
-}
-
-func TestShouldRaiseErrorsWhenRedisHostNotSet(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Port: 6379,
-	}
-
-	ValidateSession(&config, validator)
-
-	errors := validator.Errors()
-
-	assert.False(t, validator.HasWarnings())
-	require.Len(t, errors, 1)
-
-	assert.EqualError(t, errors[0], errFmtSessionRedisHostRequired)
-}
-
-func TestShouldSetDefaultRedisTLSOptions(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "redis.local",
-		Port: 6379,
-		TLS:  &schema.TLS{},
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	assert.Len(t, validator.Errors(), 0)
-
-	assert.Equal(t, uint16(tls.VersionTLS12), config.Session.Redis.TLS.MinimumVersion.Value)
-	assert.Equal(t, uint16(0), config.Session.Redis.TLS.MaximumVersion.Value)
-	assert.Equal(t, "redis.local", config.Session.Redis.TLS.ServerName)
-}
-
-func TestShouldRaiseErrorOnBadRedisTLSOptionsSSL30(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "redis.local",
-		Port: 6379,
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
-		},
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "session: redis: tls: option 'minimum_version' is invalid: minimum version is TLS1.0 but SSL3.0 was configured")
-}
-
-func TestShouldRaiseErrorOnBadRedisTLSOptionsMinVerGreaterThanMax(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultSessionConfig()
-
-	config.Session.Redis = &schema.SessionRedis{
-		Host: "redis.local",
-		Port: 6379,
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
-			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS10},
-		},
-	}
-
-	ValidateSession(&config, validator)
-
-	assert.Len(t, validator.Warnings(), 0)
-	require.Len(t, validator.Errors(), 1)
-
-	assert.EqualError(t, validator.Errors()[0], "session: redis: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS 1.3 is greater than the maximum version TLS 1.0")
 }
 
 func TestShouldRaiseErrorWhenHaveDuplicatedDomainName(t *testing.T) {

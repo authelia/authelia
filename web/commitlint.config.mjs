@@ -47,7 +47,6 @@ export default {
                 "server",
                 "service",
                 "session",
-                "session2",
                 "storage",
                 "suites",
                 "templates",

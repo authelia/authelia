@@ -376,20 +376,22 @@ const (
 
 // Session error constants.
 const (
-	errFmtSessionDomainLegacy             = "session: option 'domain' is deprecated in v4.38.0 and has been replaced by a multi-domain configuration: this has automatically been mapped for you but you will need to adjust your configuration to remove this message and receive the latest messages"
-	errFmtSessionLegacyRedirectionURL     = "session: option 'cookies' must be configured with the per cookie option 'default_redirection_url' but the global one is configured which is not supported"
-	errFmtSessionOptionRequired           = "session: option '%s' is required"
-	errFmtSessionLegacyAndWarning         = "session: option 'domain' and option 'cookies' can't be specified at the same time"
-	errFmtSessionSameSite                 = "session: option 'same_site' must be one of %s but it's configured as '%s'"
-	errFmtSessionStorage                  = "session: option 'storage' must be one of %s but it's configured as '%s'"
-	errFmtSessionSecretRequired           = "session: option 'secret' is required when using the '%s' provider"
-	errFmtSessionRedisPortRange           = "session: redis: option 'port' must be between 1 and 65535 but it's configured as '%d'"
-	errFmtSessionRedisHostRequired        = "session: redis: option 'host' is required"
-	errFmtSessionRedisHostOrNodesRequired = "session: redis: option 'host' or the 'high_availability' option 'nodes' is required"
-	errFmtSessionRedisTLSConfigInvalid    = "session: redis: tls: %w"
+	errFmtSessionDomainLegacy         = "session: option 'domain' is deprecated in v4.38.0 and has been replaced by a multi-domain configuration: this has automatically been mapped for you but you will need to adjust your configuration to remove this message and receive the latest messages"
+	errFmtSessionLegacyRedirectionURL = "session: option 'cookies' must be configured with the per cookie option 'default_redirection_url' but the global one is configured which is not supported"
+	errFmtSessionOptionRequired       = "session: option '%s' is required"
+	errFmtSessionLegacyAndWarning     = "session: option 'domain' and option 'cookies' can't be specified at the same time"
+	errFmtSessionSameSite             = "session: option 'same_site' must be one of %s but it's configured as '%s'"
+	errFmtSessionStorage              = "session: option 'storage' must be one of %s but it's configured as '%s'"
 
-	errFmtSessionRedisSentinelMissingName     = "session: redis: high_availability: option 'sentinel_name' is required"
-	errFmtSessionRedisSentinelNodeHostMissing = "session: redis: high_availability: option 'nodes': option 'host' is required for each node but one or more nodes are missing this"
+	errFmtCacheMultipleProviders         = "cache: only one provider can be configured at a time but %s are configured"
+	errFmtCacheOptionRequired            = "cache: %s: option '%s' is required"
+	errFmtCacheRedisAddressNoHost        = "cache: %s: option '%s' must have a hostname but it's configured as '%s'"
+	errFmtCacheRedisAddressNoPort        = "cache: %s: option '%s' must have a port but it's configured as '%s'"
+	errFmtCacheRedisDatabase             = "cache: %s: option 'database' must be between 0 and 15 but it's configured as '%d'"
+	errFmtCacheRedisSentinelMode         = "cache: redis_sentinel: option 'sentinel_mode' must be one of %s but it's configured as '%s'"
+	errFmtCacheRedisSentinelAddressEmpty = "cache: redis_sentinel: option 'addresses' index %d is invalid: the address is empty"
+	errFmtCacheRedisClusterAddressEmpty  = "cache: redis_cluster: option 'addresses' index %d is invalid: the address is empty"
+	errFmtCacheRedisTLSConfigInvalid     = "cache: %s: tls: %w"
 
 	errFmtSessionDomainMustBeRoot                        = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '%s'"
 	errFmtSessionDomainSameSite                          = "session: domain config %s: option 'same_site' must be one of %s but it's configured as '%s'"
@@ -531,6 +533,7 @@ var (
 	validThemeNames                          = []string{"light", "dark", "grey", "oled", auto}
 	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
 	validSessionStorageValues                = []string{"cache", "internal"}
+	validCacheRedisSentinelModes             = []string{"cluster", "failover"}
 	validLogLevels                           = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
 	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}
 	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}

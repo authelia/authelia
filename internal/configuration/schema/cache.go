@@ -1,6 +1,9 @@
 package schema
 
-import "time"
+import (
+	"crypto/tls"
+	"time"
+)
 
 type Cache struct {
 	Redis         *RedisCache         `koanf:"redis" yaml:"redis,omitempty" toml:"redis,omitempty" json:"redis,omitempty" jsonschema:"title=Redis Cache" jsonschema_description:"Redis Cache Configuration."`
@@ -27,6 +30,15 @@ type RedisCache struct {
 	PoolMinimumIdleConnections int           `koanf:"pool_minimum_idle_connections" yaml:"pool_minimum_idle_connections,omitempty" toml:"pool_minimum_idle_connections,omitempty" json:"pool_minimum_idle_connections,omitempty" jsonschema:"default=10,title=Pool Minimum Idle Connections" jsonschema_description:"The minimum idle connections to keep open with the pool when connecting to the Redis server."`
 	PoolMaximumIdleConnections int           `koanf:"pool_maximum_idle_connections" yaml:"pool_maximum_idle_connections,omitempty" toml:"pool_maximum_idle_connections,omitempty" json:"pool_maximum_idle_connections,omitempty" jsonschema:"default=10,title=Pool Maximum Idle Connections" jsonschema_description:"The maximum idle connections to keep open with the pool when connecting to the Redis server."`
 	PoolMaximumConnections     int           `koanf:"pool_maximum_connections" yaml:"pool_maximum_connections,omitempty" toml:"pool_maximum_connections,omitempty" json:"pool_maximum_connections,omitempty" jsonschema:"default=10,title=Pool Maximum Connections" jsonschema_description:"The maximum number of connections the pool can have open when connecting to the Redis server."`
+	DialerRetries              int           `koanf:"dialer_retries" yaml:"dialer_retries,omitempty" toml:"dialer_retries,omitempty" json:"dialer_retries,omitempty" jsonschema:"default=5,title=Dialer Retries" jsonschema_description:"The maximum number of retry attempts when dialing a connection fails."`
+	DialerRetryTimeout         time.Duration `koanf:"dialer_retry_timeout" yaml:"dialer_retry_timeout,omitempty" toml:"dialer_retry_timeout,omitempty" json:"dialer_retry_timeout,omitempty" jsonschema:"default=100 milliseconds,title=Dialer Retry Timeout" jsonschema_description:"The backoff duration between dial retry attempts."`
+	MaximumConcurrentDials     int           `koanf:"maximum_concurrent_dials" yaml:"maximum_concurrent_dials,omitempty" toml:"maximum_concurrent_dials,omitempty" json:"maximum_concurrent_dials,omitempty" jsonschema:"title=Maximum Concurrent Dials" jsonschema_description:"The maximum number of concurrent connection creation goroutines. Defaults to the pool size."`
+	ConnectionLifetimeJitter   time.Duration `koanf:"connection_lifetime_jitter" yaml:"connection_lifetime_jitter,omitempty" toml:"connection_lifetime_jitter,omitempty" json:"connection_lifetime_jitter,omitempty" jsonschema:"title=Connection Lifetime Jitter" jsonschema_description:"The absolute jitter applied to the connection timeout to prevent all connections expiring simultaneously."`
+	ContextTimeoutEnabled      bool          `koanf:"context_timeout_enabled" yaml:"context_timeout_enabled,omitempty" toml:"context_timeout_enabled,omitempty" json:"context_timeout_enabled,omitempty" jsonschema:"default=false,title=Context Timeout Enabled" jsonschema_description:"Enables the client respecting context timeouts and deadlines."`
+	PoolFIFO                   bool          `koanf:"pool_fifo" yaml:"pool_fifo,omitempty" toml:"pool_fifo,omitempty" json:"pool_fifo,omitempty" jsonschema:"default=false,title=Pool FIFO" jsonschema_description:"Uses a FIFO connection pool rather than a LIFO connection pool."`
+	ReadBufferSize             int           `koanf:"read_buffer_size" yaml:"read_buffer_size,omitempty" toml:"read_buffer_size,omitempty" json:"read_buffer_size,omitempty" jsonschema:"default=32768,title=Read Buffer Size" jsonschema_description:"The size of the read buffer in bytes for each connection."`
+	WriteBufferSize            int           `koanf:"write_buffer_size" yaml:"write_buffer_size,omitempty" toml:"write_buffer_size,omitempty" json:"write_buffer_size,omitempty" jsonschema:"default=32768,title=Write Buffer Size" jsonschema_description:"The size of the write buffer in bytes for each connection."`
+	FailingTimeout             time.Duration `koanf:"failing_timeout" yaml:"failing_timeout,omitempty" toml:"failing_timeout,omitempty" json:"failing_timeout,omitempty" jsonschema:"default=15 seconds,title=Failing Timeout" jsonschema_description:"The duration a node is avoided for after being marked as failing."`
 }
 
 type RedisSentinelCache struct {
@@ -54,6 +66,17 @@ type RedisSentinelCache struct {
 	PoolMinimumIdleConnections int           `koanf:"pool_minimum_idle_connections" yaml:"pool_minimum_idle_connections,omitempty" toml:"pool_minimum_idle_connections,omitempty" json:"pool_minimum_idle_connections,omitempty" jsonschema:"default=10,title=Pool Minimum Idle Connections" jsonschema_description:"The minimum idle connections to keep open with the pool when connecting to the Redis server."`
 	PoolMaximumIdleConnections int           `koanf:"pool_maximum_idle_connections" yaml:"pool_maximum_idle_connections,omitempty" toml:"pool_maximum_idle_connections,omitempty" json:"pool_maximum_idle_connections,omitempty" jsonschema:"default=10,title=Pool Maximum Idle Connections" jsonschema_description:"The maximum idle connections to keep open with the pool when connecting to the Redis server."`
 	PoolMaximumConnections     int           `koanf:"pool_maximum_connections" yaml:"pool_maximum_connections,omitempty" toml:"pool_maximum_connections,omitempty" json:"pool_maximum_connections,omitempty" jsonschema:"default=10,title=Pool Maximum Connections" jsonschema_description:"The maximum number of connections the pool can have open when connecting to the Redis server."`
+	DialerRetries              int           `koanf:"dialer_retries" yaml:"dialer_retries,omitempty" toml:"dialer_retries,omitempty" json:"dialer_retries,omitempty" jsonschema:"default=5,title=Dialer Retries" jsonschema_description:"The maximum number of retry attempts when dialing a connection fails."`
+	DialerRetryTimeout         time.Duration `koanf:"dialer_retry_timeout" yaml:"dialer_retry_timeout,omitempty" toml:"dialer_retry_timeout,omitempty" json:"dialer_retry_timeout,omitempty" jsonschema:"default=100 milliseconds,title=Dialer Retry Timeout" jsonschema_description:"The backoff duration between dial retry attempts."`
+	MaximumConcurrentDials     int           `koanf:"maximum_concurrent_dials" yaml:"maximum_concurrent_dials,omitempty" toml:"maximum_concurrent_dials,omitempty" json:"maximum_concurrent_dials,omitempty" jsonschema:"title=Maximum Concurrent Dials" jsonschema_description:"The maximum number of concurrent connection creation goroutines. Defaults to the pool size."`
+	ConnectionLifetimeJitter   time.Duration `koanf:"connection_lifetime_jitter" yaml:"connection_lifetime_jitter,omitempty" toml:"connection_lifetime_jitter,omitempty" json:"connection_lifetime_jitter,omitempty" jsonschema:"title=Connection Lifetime Jitter" jsonschema_description:"The absolute jitter applied to the connection timeout to prevent all connections expiring simultaneously."`
+	ContextTimeoutEnabled      bool          `koanf:"context_timeout_enabled" yaml:"context_timeout_enabled,omitempty" toml:"context_timeout_enabled,omitempty" json:"context_timeout_enabled,omitempty" jsonschema:"default=false,title=Context Timeout Enabled" jsonschema_description:"Enables the client respecting context timeouts and deadlines."`
+	PoolFIFO                   bool          `koanf:"pool_fifo" yaml:"pool_fifo,omitempty" toml:"pool_fifo,omitempty" json:"pool_fifo,omitempty" jsonschema:"default=false,title=Pool FIFO" jsonschema_description:"Uses a FIFO connection pool rather than a LIFO connection pool."`
+	ReadBufferSize             int           `koanf:"read_buffer_size" yaml:"read_buffer_size,omitempty" toml:"read_buffer_size,omitempty" json:"read_buffer_size,omitempty" jsonschema:"default=32768,title=Read Buffer Size" jsonschema_description:"The size of the read buffer in bytes for each connection."`
+	WriteBufferSize            int           `koanf:"write_buffer_size" yaml:"write_buffer_size,omitempty" toml:"write_buffer_size,omitempty" json:"write_buffer_size,omitempty" jsonschema:"default=32768,title=Write Buffer Size" jsonschema_description:"The size of the write buffer in bytes for each connection."`
+	FailingTimeout             time.Duration `koanf:"failing_timeout" yaml:"failing_timeout,omitempty" toml:"failing_timeout,omitempty" json:"failing_timeout,omitempty" jsonschema:"default=15 seconds,title=Failing Timeout" jsonschema_description:"The duration a node is avoided for after being marked as failing."`
+	ReplicaOnly                bool          `koanf:"replica_only" yaml:"replica_only,omitempty" toml:"replica_only,omitempty" json:"replica_only,omitempty" jsonschema:"default=false,title=Replica Only" jsonschema_description:"Routes all commands to replica nodes."`
+	UseDisconnectedReplicas    bool          `koanf:"use_disconnected_replicas" yaml:"use_disconnected_replicas,omitempty" toml:"use_disconnected_replicas,omitempty" json:"use_disconnected_replicas,omitempty" jsonschema:"default=false,title=Use Disconnected Replicas" jsonschema_description:"Allows routing commands to replicas which sentinel reports as disconnected."`
 }
 
 type RedisClusterCache struct {
@@ -78,4 +101,73 @@ type RedisClusterCache struct {
 	PoolMinimumIdleConnections int           `koanf:"pool_minimum_idle_connections" yaml:"pool_minimum_idle_connections,omitempty" toml:"pool_minimum_idle_connections,omitempty" json:"pool_minimum_idle_connections,omitempty" jsonschema:"default=10,title=Pool Minimum Idle Connections" jsonschema_description:"The minimum idle connections to keep open with the pool when connecting to the Redis server."`
 	PoolMaximumIdleConnections int           `koanf:"pool_maximum_idle_connections" yaml:"pool_maximum_idle_connections,omitempty" toml:"pool_maximum_idle_connections,omitempty" json:"pool_maximum_idle_connections,omitempty" jsonschema:"default=10,title=Pool Maximum Idle Connections" jsonschema_description:"The maximum idle connections to keep open with the pool when connecting to the Redis server."`
 	PoolMaximumConnections     int           `koanf:"pool_maximum_connections" yaml:"pool_maximum_connections,omitempty" toml:"pool_maximum_connections,omitempty" json:"pool_maximum_connections,omitempty" jsonschema:"default=10,title=Pool Maximum Connections" jsonschema_description:"The maximum number of connections the pool can have open when connecting to the Redis server."`
+	DialerRetries              int           `koanf:"dialer_retries" yaml:"dialer_retries,omitempty" toml:"dialer_retries,omitempty" json:"dialer_retries,omitempty" jsonschema:"default=5,title=Dialer Retries" jsonschema_description:"The maximum number of retry attempts when dialing a connection fails."`
+	DialerRetryTimeout         time.Duration `koanf:"dialer_retry_timeout" yaml:"dialer_retry_timeout,omitempty" toml:"dialer_retry_timeout,omitempty" json:"dialer_retry_timeout,omitempty" jsonschema:"default=100 milliseconds,title=Dialer Retry Timeout" jsonschema_description:"The backoff duration between dial retry attempts."`
+	MaximumConcurrentDials     int           `koanf:"maximum_concurrent_dials" yaml:"maximum_concurrent_dials,omitempty" toml:"maximum_concurrent_dials,omitempty" json:"maximum_concurrent_dials,omitempty" jsonschema:"title=Maximum Concurrent Dials" jsonschema_description:"The maximum number of concurrent connection creation goroutines. Defaults to the pool size."`
+	ConnectionLifetimeJitter   time.Duration `koanf:"connection_lifetime_jitter" yaml:"connection_lifetime_jitter,omitempty" toml:"connection_lifetime_jitter,omitempty" json:"connection_lifetime_jitter,omitempty" jsonschema:"title=Connection Lifetime Jitter" jsonschema_description:"The absolute jitter applied to the connection timeout to prevent all connections expiring simultaneously."`
+	ContextTimeoutEnabled      bool          `koanf:"context_timeout_enabled" yaml:"context_timeout_enabled,omitempty" toml:"context_timeout_enabled,omitempty" json:"context_timeout_enabled,omitempty" jsonschema:"default=false,title=Context Timeout Enabled" jsonschema_description:"Enables the client respecting context timeouts and deadlines."`
+	PoolFIFO                   bool          `koanf:"pool_fifo" yaml:"pool_fifo,omitempty" toml:"pool_fifo,omitempty" json:"pool_fifo,omitempty" jsonschema:"default=false,title=Pool FIFO" jsonschema_description:"Uses a FIFO connection pool rather than a LIFO connection pool."`
+	ReadBufferSize             int           `koanf:"read_buffer_size" yaml:"read_buffer_size,omitempty" toml:"read_buffer_size,omitempty" json:"read_buffer_size,omitempty" jsonschema:"default=32768,title=Read Buffer Size" jsonschema_description:"The size of the read buffer in bytes for each connection."`
+	WriteBufferSize            int           `koanf:"write_buffer_size" yaml:"write_buffer_size,omitempty" toml:"write_buffer_size,omitempty" json:"write_buffer_size,omitempty" jsonschema:"default=32768,title=Write Buffer Size" jsonschema_description:"The size of the write buffer in bytes for each connection."`
+	FailingTimeout             time.Duration `koanf:"failing_timeout" yaml:"failing_timeout,omitempty" toml:"failing_timeout,omitempty" json:"failing_timeout,omitempty" jsonschema:"default=15 seconds,title=Failing Timeout" jsonschema_description:"The duration a node is avoided for after being marked as failing."`
+	ClusterStateReloadInterval time.Duration `koanf:"cluster_state_reload_interval" yaml:"cluster_state_reload_interval,omitempty" toml:"cluster_state_reload_interval,omitempty" json:"cluster_state_reload_interval,omitempty" jsonschema:"title=Cluster State Reload Interval" jsonschema_description:"The interval the cluster state is reloaded at."`
 }
+
+// DefaultRedisCacheConfiguration is the default redis cache configuration.
+var DefaultRedisCacheConfiguration = RedisCache{
+	DialTimeout:        time.Second * 5,
+	ReadTimeout:        time.Second * 3,
+	WriteTimeout:       time.Second * 3,
+	MaximumRetries:     3,
+	PoolSize:           8,
+	DialerRetries:      5,
+	DialerRetryTimeout: time.Millisecond * 100,
+	ReadBufferSize:     32768,
+	WriteBufferSize:    32768,
+	FailingTimeout:     time.Second * 15,
+	TLS: &TLS{
+		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},
+	},
+}
+
+// DefaultRedisSentinelCacheConfiguration is the default redis sentinel cache configuration.
+var DefaultRedisSentinelCacheConfiguration = RedisSentinelCache{
+	SentinelMode:       "failover",
+	DialTimeout:        time.Second * 5,
+	ReadTimeout:        time.Second * 3,
+	WriteTimeout:       time.Second * 3,
+	MaximumRetries:     3,
+	PoolSize:           8,
+	DialerRetries:      5,
+	DialerRetryTimeout: time.Millisecond * 100,
+	ReadBufferSize:     32768,
+	WriteBufferSize:    32768,
+	FailingTimeout:     time.Second * 15,
+	TLS: &TLS{
+		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},
+	},
+}
+
+// DefaultRedisClusterCacheConfiguration is the default redis cluster cache configuration.
+var DefaultRedisClusterCacheConfiguration = RedisClusterCache{
+	DialTimeout:        time.Second * 5,
+	ReadTimeout:        time.Second * 3,
+	WriteTimeout:       time.Second * 3,
+	MaximumRetries:     3,
+	MaximumRedirects:   3,
+	PoolSize:           8,
+	DialerRetries:      5,
+	DialerRetryTimeout: time.Millisecond * 100,
+	ReadBufferSize:     32768,
+	WriteBufferSize:    32768,
+	FailingTimeout:     time.Second * 15,
+	TLS: &TLS{
+		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},
+	},
+}
+
+// DefaultRedisCachePort is the default port for a redis server.
+const DefaultRedisCachePort = 6379
+
+// DefaultRedisSentinelCachePort is the default port for a redis sentinel node.
+const DefaultRedisSentinelCachePort = 26379

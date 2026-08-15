@@ -48,7 +48,7 @@ func TestGetEnvConfigMaps(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, "mysecret.password", key)
 
-	assert.Len(t, ignoredKeys, 6)
+	assert.Len(t, ignoredKeys, 10)
 	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+MYOTHER_CONFIGKEY_FILE)
 	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+MYSECRET_PASSWORD_FILE)
 	assert.Contains(t, ignoredKeys, DefaultEnvPrefix+MYSECRET_USER_PASSWORD_FILE)
@@ -69,7 +69,7 @@ func TestGetSecretConfigMapMockInput(t *testing.T) {
 		"mysecret.user_password",
 	}
 
-	keys := getSecretConfigMap(input, DefaultEnvPrefix, DefaultEnvDelimiter, deprecations)
+	keys := getSecretConfigMap(input, DefaultEnvPrefix, DefaultEnvDelimiter, deprecations, deprecationsMKM)
 
 	key, ok = keys[DefaultEnvPrefix+"MY_NON_SECRET_CONFIG_ITEM_FILE"]
 	assert.False(t, ok)
@@ -89,7 +89,7 @@ func TestGetSecretConfigMapMockInput(t *testing.T) {
 }
 
 func TestGetSecretConfigMap(t *testing.T) {
-	keys := getSecretConfigMap(schema.Keys, DefaultEnvPrefix, DefaultEnvDelimiter, deprecations)
+	keys := getSecretConfigMap(schema.Keys, DefaultEnvPrefix, DefaultEnvDelimiter, deprecations, deprecationsMKM)
 
 	var (
 		key string

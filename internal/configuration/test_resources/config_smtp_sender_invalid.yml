@@ -98,11 +98,6 @@ session:
   expiration: '1h'  # 1 hour
   inactivity: '5m'  # 5 minutes
   domain: 'example.com'
-  redis:
-    host: '127.0.0.1'
-    port: 6379
-    high_availability:
-      sentinel_name: 'test'
 
 regulation:
   max_retries: 3
@@ -121,4 +116,9 @@ notifier:
     username: 'test'
     sender: 'admin'
     disable_require_tls: true
+cache:
+  redis_sentinel:
+    master_name: 'test'
+    addresses:
+      - 'tcp://127.0.0.1:6379'
 ...
