@@ -47,8 +47,7 @@ func (s *StandaloneWebDriverSuite) TearDownSuite() {
 }
 
 func (s *StandaloneWebDriverSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *StandaloneWebDriverSuite) TearDownTest() {
@@ -154,7 +153,8 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	password := "password"
 
 	// Clean up any TOTP secret already in DB.
-	provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	provider, err := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	require.NoError(s.T(), err)
 
 	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
 

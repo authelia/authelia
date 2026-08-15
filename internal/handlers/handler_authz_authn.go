@@ -178,8 +178,10 @@ type HeaderAuthnStrategy struct {
 	basic BasicAuthHandler
 }
 
-// BasicAuthHandler is a function signature that handles basic authentication. This is used to implement caching.
-type BasicAuthHandler func(ctx AuthzContext, authorization *model.Authorization) (valid, cached bool, err error)
+// BasicAuthHandler is a function signature that handles basic authentication. This is used to implement caching. The
+// username must be the canonical username as resolved by the authentication backend rather than the raw value parsed
+// from the header, otherwise multiple representations of the same user occupy distinct cache entries.
+type BasicAuthHandler func(ctx AuthzContext, username, password string) (valid, cached bool, err error)
 
 // NewBasicAuthHandler creates a new BasicAuthHandler depending on the lifespan.
 func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
@@ -191,8 +193,8 @@ func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 }
 
 // DefaultBasicAuthHandler is a BasicAuthHandler that just checks the username and password directly.
-func DefaultBasicAuthHandler(ctx AuthzContext, authorization *model.Authorization) (valid, cached bool, err error) {
-	valid, err = ctx.GetUserProvider().CheckUserPassword(authorization.Basic())
+func DefaultBasicAuthHandler(ctx AuthzContext, username, password string) (valid, cached bool, err error) {
+	valid, err = ctx.GetUserProvider().CheckUserPassword(username, password)
 
 	return valid, false, err
 }
@@ -202,9 +204,7 @@ func DefaultBasicAuthHandler(ctx AuthzContext, authorization *model.Authorizatio
 func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	cache := authentication.NewCredentialCacheHMAC(sha256.New, lifespan)
 
-	return func(ctx AuthzContext, authorization *model.Authorization) (valid, cached bool, err error) {
-		username, password := authorization.Basic()
-
+	return func(ctx AuthzContext, username, password string) (valid, cached bool, err error) {
 		return cache.Check(ctx, username, password)
 	}
 }
@@ -373,19 +373,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx AuthzContext, _ session.Manager, obj
 		level   authentication.Level
 	)
 
-	validate := func(ctx AuthzContext, authz *model.Authorization) (valid, cached bool, err error) {
-		username, password := authn.Header.Authorization.Basic()
-
-		if username == "" || password == "" {
-			return false, false, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s'", header, username)
-		}
-
-		valid, err = ctx.GetUserProvider().CheckUserPassword(username, password)
-
-		return valid, false, err
-	}
-
-	if details, level, err = handleGetBasic(ctx, s.delay, authn, object, header, validate); err != nil {
+	if details, level, err = handleGetBasic(ctx, s.delay, authn, object, header, DefaultBasicAuthHandler); err != nil {
 		return authn, fmt.Errorf("failed to validate %s header with %s scheme: %w", header, scheme, err)
 	}
 
@@ -423,14 +411,26 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 
 	defer delayer.CachedDelay(ctx, started, &cached, &valid)
 
-	username := authn.Header.Authorization.BasicUsername()
+	username, password := authn.Header.Authorization.Basic()
+
+	if len(username) == 0 || len(password) == 0 {
+		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header: the username or password was empty", header)
+	}
 
 	if details, err = ctx.GetUserProvider().GetDetails(username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, object.String(), object.Method, err)
+
 			ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 		}
 
 		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to retrieve user details for user %s: %w", username, err)
+	} else if details == nil {
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, object.String(), object.Method, err)
+
+		ctx.GetLogger().WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+
+		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to retrieve user details for user %s: no user details were returned", username)
 	}
 
 	if ban, value, expires, err = ctx.GetProviders().Regulator.BanCheck(ctx, details.Username); err != nil {
@@ -445,9 +445,9 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to check the regulation status of user '%s' during an attempt to authenticate using the %s header: %w", details.Username, header, err)
 	}
 
-	if valid, cached, err = validate(ctx, authn.Header.Authorization); err != nil {
+	if valid, cached, err = validate(ctx, details.Username, password); err != nil {
 		if isRegulatorSkippedErr(err) {
-			ctx.GetLogger().WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, authn.Header.Authorization.BasicUsername())
+			ctx.GetLogger().WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, details.Username)
 		} else {
 			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
 		}

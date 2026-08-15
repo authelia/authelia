@@ -31,8 +31,8 @@ func init() {
 		err := dockerEnvironment.Down()
 		_ = os.Remove("/tmp/db.sqlite3")
 		_ = os.Remove("/tmp/db.sqlite")
-		_ = os.RemoveAll("/tmp/qr/")
-		_ = os.RemoveAll("/tmp/out/")
+		_ = os.RemoveAll("/tmp/qr")
+		_ = os.RemoveAll("/tmp/out")
 		_ = os.Remove("/tmp/qr.png")
 
 		return err
@@ -42,6 +42,7 @@ func init() {
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
+		OnError:         displayAutheliaLogs,
 		TestTimeout:     3 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,

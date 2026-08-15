@@ -936,13 +936,10 @@ func (s *CLISuite) TestStorage02ShouldShowSchemaInfo() {
 }
 
 func (s *CLISuite) TestStorage03ShouldExportTOTP() {
-	storageProvider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	storageProvider, err := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	s.Require().NoError(err)
 
 	ctx := context.Background()
-
-	var (
-		err error
-	)
 
 	var (
 		expectedLines    = make([]string, 0, 3)
@@ -1451,10 +1448,12 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 }
 
 func (s *CLISuite) TestDebugTLS() {
+	portal := fmt.Sprintf("%s:8080", SuiteAddress(100))
+
 	output, err := s.Exec("authelia-backend", []string{"authelia", "debug", "tls", "tcp://secure.example.com:8080"})
 	s.NoError(err)
 
-	s.Contains(output, "General Information:\n\tServer Name: secure.example.com\n\tRemote Address: 192.168.240.100:8080\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)")
+	s.Contains(output, fmt.Sprintf("General Information:\n\tServer Name: secure.example.com\n\tRemote Address: %s\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)", portal))
 	s.Contains(output, "\t\tSerial Number: 280859886455442560996590795939870170263\n\t\tValid: true\n\t\tValid (System): false\n\t\tHostname Verification: pass")
 	s.Contains(output, "\t\tSerial Number: 331626108752148202137556363956074982580\n\t\tValid: true\n\t\tValid (System): false")
 	s.Contains(output, "\tCertificate Trusted: true\n\tCertificate Matches Hostname: true")
@@ -1462,7 +1461,7 @@ func (s *CLISuite) TestDebugTLS() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", "debug", "tls", "tcp://secure.example.com:8080", "--hostname", "notsecure.notexample.com"})
 	s.NoError(err)
 
-	s.Contains(output, "General Information:\n\tServer Name: notsecure.notexample.com\n\tRemote Address: 192.168.240.100:8080\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)")
+	s.Contains(output, fmt.Sprintf("General Information:\n\tServer Name: notsecure.notexample.com\n\tRemote Address: %s\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)", portal))
 	s.Contains(output, "\t\tSerial Number: 280859886455442560996590795939870170263\n\t\tValid: true\n\t\tValid (System): false\n\t\tHostname Verification: fail\n\t\tHostname Verification Error: x509: certificate is valid for *.example.com, example.com, *.example1.com, example1.com, *.example2.com, example2.com, *.example3.com, example3.com, not notsecure.notexample.com")
 	s.Contains(output, "\t\tSerial Number: 331626108752148202137556363956074982580\n\t\tValid: true\n\t\tValid (System): false")
 	s.Contains(output, "\tCertificate Trusted: true\n\tCertificate Matches Hostname: false")
@@ -1470,7 +1469,7 @@ func (s *CLISuite) TestDebugTLS() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", "--config", "/config/configuration.nocerts.yml", "debug", "tls", "tcp://secure.example.com:8080"})
 	s.NoError(err)
 
-	s.Contains(output, "General Information:\n\tServer Name: secure.example.com\n\tRemote Address: 192.168.240.100:8080\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)")
+	s.Contains(output, fmt.Sprintf("General Information:\n\tServer Name: secure.example.com\n\tRemote Address: %s\n\tNegotiated Protocol: \n\tTLS Version: TLS 1.3\n\tCipher Suite: TLS_AES_128_GCM_SHA256 (Supported)", portal))
 	s.Contains(output, "\t\tSerial Number: 280859886455442560996590795939870170263\n\t\tValid: false\n\t\tValid (System): false\n\t\tValidation Hint: Certificate signed by unknown authority\n\t\tValidation Error: x509: certificate signed by unknown authority\n\t\tHostname Verification: pass")
 	s.Contains(output, "\t\tSerial Number: 331626108752148202137556363956074982580\n\t\tValid: false\n\t\tValid (System): false\n\t\tValidation Hint: Certificate signed by unknown authority\n\t\tValidation Error: x509: certificate signed by unknown authority")
 	s.Contains(output, "\tCertificate Trusted: false\n\tCertificate Matches Hostname: true")

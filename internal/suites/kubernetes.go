@@ -10,16 +10,17 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var (
-	k3dImageName  = "k3d"
-	dockerCmdLine = fmt.Sprintf("docker compose -p authelia -f internal/suites/compose.yml -f internal/suites/example/compose/k3d/compose.yml exec -T %s", k3dImageName)
-)
+var k3dImageName = "k3d"
+
+func k3dDockerCmdLine() string {
+	return fmt.Sprintf("docker compose -p %s -f internal/suites/compose.yml -f internal/suites/example/compose/k3d/compose.yml exec -T %s", composeProjectName(), k3dImageName)
+}
 
 // K3D used for running kind commands.
 type K3D struct{}
 
 func k3dCommand(cmdline string) *exec.Cmd {
-	cmd := fmt.Sprintf("%s %s", dockerCmdLine, cmdline)
+	cmd := fmt.Sprintf("%s %s", k3dDockerCmdLine(), cmdline)
 	return utils.Shell(cmd)
 }
 

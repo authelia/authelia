@@ -69,10 +69,19 @@ func (v IdentityVerificationClaim) ToIdentityVerification() (verification *Ident
 		return nil, err
 	}
 
-	return &IdentityVerification{
-		JTI:       jti,
-		Username:  v.Username,
-		Action:    v.Action,
-		ExpiresAt: v.ExpiresAt.Time,
-	}, nil
+	verification = &IdentityVerification{
+		JTI:      jti,
+		Username: v.Username,
+		Action:   v.Action,
+	}
+
+	if v.IssuedAt != nil {
+		verification.IssuedAt = v.IssuedAt.Time
+	}
+
+	if v.ExpiresAt != nil {
+		verification.ExpiresAt = v.ExpiresAt.Time
+	}
+
+	return verification, nil
 }

@@ -1,12 +1,24 @@
 ---
 services:
   redis:
-    image: 'redis:8.8-alpine'
+    image: 'redis:8.10-alpine'
+    cpus: 2
+    mem_limit: 1g
     command: '/entrypoint.sh master'
     volumes:
       - './example/compose/redis/templates:/templates'
       - './example/compose/redis/users.acl:/data/users.acl'
       - './example/compose/redis/entrypoint.sh:/entrypoint.sh'
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping || exit 1']
+      interval: '5s'
+      timeout: '10s'
+      retries: 6
+      start_period: '120s'
     networks:
       authelianet: {}
+  authelia-backend:
+    depends_on:
+      redis:
+        condition: service_healthy
 ...

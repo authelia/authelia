@@ -1,7 +1,11 @@
 ---
 services:
   httpbin:
-    image: mccutchen/go-httpbin:2.23.1
+    image: mccutchen/go-httpbin:2.25.0
+    cpus: 2
+    mem_limit: 1g
+    environment:
+      GOMAXPROCS: '2'
     networks:
       authelianet: {}
     labels:

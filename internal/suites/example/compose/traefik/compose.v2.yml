@@ -1,5 +1,9 @@
 ---
 services:
   traefik:
-    image: 'traefik:v2.11.52'
+    image: 'traefik:v2.11.54'
+    cpus: 2
+    mem_limit: 1g
+    environment:
+      GOMAXPROCS: '2'
 ...
