@@ -27,6 +27,21 @@ type Context interface {
 	ClearCookie(cookie *http.Cookie)
 }
 
+// CachingContext is an optional interface a Context may implement to retain the session it loaded for the duration of
+// the request. A Strategy which is given one loads the session from the Repository once rather than once per consumer,
+// as a single request is commonly read by a middleware and then again by the handler behind it. It is keyed by cookie
+// domain because a request may be handled on behalf of a target which belongs to a different domain than the request
+// itself. A Context which doesn't implement it simply loads the session every time.
+type CachingContext interface {
+	Context
+
+	// CachedSession returns the session retained for the given cookie domain, if there is one.
+	CachedSession(domain string) (session *UserSession, ok bool)
+
+	// CacheSession retains the session for the given cookie domain. A nil session discards what is retained.
+	CacheSession(domain string, session *UserSession)
+}
+
 type Provider interface {
 	GetStrategy(domain string) (strategy Strategy, err error)
 }

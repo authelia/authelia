@@ -35,6 +35,10 @@ type AutheliaCtx struct {
 	Configuration schema.Configuration
 
 	session session.Strategy
+
+	// sessions retains the session loaded during this request, keyed by cookie domain. A request may be handled on
+	// behalf of a target which belongs to a different domain than the request itself, so a single slot won't do.
+	sessions map[string]*session.UserSession
 }
 
 // Providers contain all provider provided to Authelia.

@@ -854,3 +854,35 @@ func (ctx *AutheliaCtx) ClearCookie(cookie *http.Cookie) {
 
 	ctx.SetCookie(&deletion)
 }
+
+// CachedSession returns the session retained for the given cookie domain during this request, if there is one. It
+// implements session.CachingContext so a session read by a middleware isn't read again by the handler behind it.
+func (ctx *AutheliaCtx) CachedSession(domain string) (userSession *session.UserSession, ok bool) {
+	if ctx.sessions == nil {
+		return nil, false
+	}
+
+	userSession, ok = ctx.sessions[domain]
+
+	return userSession, ok
+}
+
+// CacheSession retains the session for the given cookie domain for the remainder of this request. A nil session
+// discards what is retained, which the session provider does when it destroys a session.
+func (ctx *AutheliaCtx) CacheSession(domain string, userSession *session.UserSession) {
+	if userSession == nil {
+		delete(ctx.sessions, domain)
+
+		return
+	}
+
+	if ctx.sessions == nil {
+		ctx.sessions = map[string]*session.UserSession{}
+	}
+
+	ctx.sessions[domain] = userSession
+}
+
+var (
+	_ session.CachingContext = (*AutheliaCtx)(nil)
+)
