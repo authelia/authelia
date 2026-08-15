@@ -116,6 +116,8 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		return fmt.Errorf("error occurred saving session to registry: %w", err)
 	}
 
+	p.setCached(ctx, session)
+
 	ctx.SetCookie(cookie)
 
 	return nil
@@ -152,6 +154,8 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 
 func (p *DefaultStrategy) Destroy(ctx Context) (err error) {
 	defer ctx.ClearCookie(p.newDeletionCookie())
+
+	defer p.setCached(ctx, nil)
 
 	// The get error is deliberately discarded. A session which can't be decoded, such as one sealed with a rotated
 	// secret, or which records a different cookie domain, still has a backend record which must be removed or it
@@ -190,6 +194,10 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 
 	id = p.codec.Sign([]byte(cookie))
 
+	if cached, ok := p.getCached(ctx); ok {
+		return id, cached, nil
+	}
+
 	var data []byte
 
 	if data, err = p.repository.Get(ctx, p.issuer, id); err != nil {
@@ -199,6 +207,8 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 	// The backend returns no data and no error when the session is unknown or has expired, which is treated the same
 	// as an anonymous request rather than an error.
 	if len(data) == 0 {
+		p.setCached(ctx, &userSession)
+
 		return id, &userSession, nil
 	}
 
@@ -212,7 +222,47 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 		return id, nil, fmt.Errorf("error occurred getting session: domain does not match cookie domain")
 	}
 
+	p.setCached(ctx, session)
+
 	return id, session, nil
+}
+
+// getCached returns the session the Context retained for this cookie domain. The value is copied so that a mutation
+// made by one consumer of the session isn't observed by another, which is how the session behaved when every consumer
+// decoded its own from the Repository.
+func (p *DefaultStrategy) getCached(ctx Context) (session *UserSession, ok bool) {
+	caching, ok := ctx.(CachingContext)
+	if !ok {
+		return nil, false
+	}
+
+	cached, ok := caching.CachedSession(p.config.Domain)
+	if !ok || cached == nil {
+		return nil, false
+	}
+
+	value := *cached
+
+	return &value, true
+}
+
+// setCached retains a copy of the session against the Context for this cookie domain, discarding what is retained when
+// the session is nil.
+func (p *DefaultStrategy) setCached(ctx Context, session *UserSession) {
+	caching, ok := ctx.(CachingContext)
+	if !ok {
+		return
+	}
+
+	if session == nil {
+		caching.CacheSession(p.config.Domain, nil)
+
+		return
+	}
+
+	value := *session
+
+	caching.CacheSession(p.config.Domain, &value)
 }
 
 func (p *DefaultStrategy) getCookieID(ctx Context) (id string) {
