@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -51,7 +52,7 @@ func TestShouldRaiseErrorWhenClientDoesNotSkipVerify(t *testing.T) {
 	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
-	_, err = http.DefaultClient.Do(req)
+	_, err = NewTestClient(nil).Do(req)
 	require.Error(t, err)
 
 	require.Contains(t, err.Error(), "x509: certificate signed by unknown authority")
@@ -80,10 +81,7 @@ func TestShouldServeOverTLSWhenClientDoesSkipVerify(t *testing.T) {
 	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Needs to be enabled in tests. Not used in production.
-	}
-	client := &http.Client{Transport: tr}
+	client := NewTestClient(&tls.Config{InsecureSkipVerify: true}) //nolint:gosec // Needs to be enabled in tests. Not used in production.
 
 	res, err := client.Do(req)
 	require.NoError(t, err)
@@ -126,13 +124,10 @@ func TestShouldServeOverTLSWhenClientHasProperRootCA(t *testing.T) {
 	rootCAs := x509.NewCertPool()
 	rootCAs.AddCert(c)
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs:    rootCAs,
-			MinVersion: tls.VersionTLS13,
-		},
-	}
-	client := &http.Client{Transport: tr}
+	client := NewTestClient(&tls.Config{
+		RootCAs:    rootCAs,
+		MinVersion: tls.VersionTLS13,
+	})
 
 	res, err := client.Do(req)
 	require.NoError(t, err)
@@ -175,13 +170,10 @@ func TestShouldRaiseWhenMutualTLSIsConfiguredAndClientIsNotAuthenticated(t *test
 	rootCAs := x509.NewCertPool()
 	rootCAs.AddCert(certificateContext.Certificates[0].Certificate)
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs:    rootCAs,
-			MinVersion: tls.VersionTLS13,
-		},
-	}
-	client := &http.Client{Transport: tr}
+	client := NewTestClient(&tls.Config{
+		RootCAs:    rootCAs,
+		MinVersion: tls.VersionTLS13,
+	})
 
 	_, err = client.Do(req)
 	require.Error(t, err)
@@ -222,14 +214,11 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 	cCert, err := certificateContext.Certificates[1].TLSCertificate()
 	require.NoError(t, err)
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs:      rootCAs,
-			Certificates: []tls.Certificate{cCert},
-			MinVersion:   tls.VersionTLS13,
-		},
-	}
-	client := &http.Client{Transport: tr}
+	client := NewTestClient(&tls.Config{
+		RootCAs:      rootCAs,
+		Certificates: []tls.Certificate{cCert},
+		MinVersion:   tls.VersionTLS13,
+	})
 
 	res, err := client.Do(req)
 	require.NoError(t, err)
@@ -469,4 +458,24 @@ func (sc *TLSServerContext) Port() int {
 
 func (sc *TLSServerContext) Close() error {
 	return sc.server.Shutdown()
+}
+
+func NewTestClient(config *tls.Config) *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: config,
+			DialContext:     dialLoopback,
+		},
+	}
+}
+
+func dialLoopback(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+	_, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	dialer := &net.Dialer{}
+
+	return dialer.DialContext(ctx, network, net.JoinHostPort("127.0.0.1", port))
 }
