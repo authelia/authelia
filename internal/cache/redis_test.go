@@ -255,3 +255,23 @@ func (m *mockRedisCmdable) Get(ctx context.Context, key string) *redis.StringCmd
 
 	return cmd
 }
+
+func TestGetFailingTimeoutSeconds(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     time.Duration
+		Expected int
+	}{
+		{"ShouldReturnZeroWhenUnset", 0, 0},
+		{"ShouldReturnZeroWhenNegative", -time.Second, 0},
+		{"ShouldReturnWholeSeconds", time.Second * 15, 15},
+		{"ShouldTruncateToWholeSeconds", time.Millisecond * 2500, 2},
+		{"ShouldRaiseSubSecondToOne", time.Millisecond * 100, 1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, getFailingTimeoutSeconds(tc.Have))
+		})
+	}
+}

@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	driverParameterFmtAppName = "authelia %s"
+	driverParameterFmtAppName = "authelia-%s"
 )
 
 const (

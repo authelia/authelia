@@ -14,6 +14,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"strings"
 )
 
 // The NewRedisStandalone creates a Redis Provider that uses a standalone redis or redis compliant server.
@@ -21,7 +22,7 @@ func NewRedisStandalone(config *schema.RedisCache, rootCAs *x509.CertPool) *Redi
 	options := &redis.Options{
 		Network:               config.Address.Network(),
 		Addr:                  config.Address.NetworkAddress(),
-		ClientName:            fmt.Sprintf(driverParameterFmtAppName, utils.Version()),
+		ClientName:            getClientName(),
 		Protocol:              3,
 		Username:              config.Username,
 		Password:              config.Password,
@@ -30,25 +31,25 @@ func NewRedisStandalone(config *schema.RedisCache, rootCAs *x509.CertPool) *Redi
 		MinRetryBackoff:       config.MinimumRetryBackoff,
 		MaxRetryBackoff:       config.MaximumRetryBackoff,
 		DialTimeout:           config.DialTimeout,
-		DialerRetries:         0,
-		DialerRetryTimeout:    0,
+		DialerRetries:         config.DialerRetries,
+		DialerRetryTimeout:    config.DialerRetryTimeout,
 		ReadTimeout:           config.ReadTimeout,
 		WriteTimeout:          config.WriteTimeout,
-		ContextTimeoutEnabled: false,
-		ReadBufferSize:        0,
-		WriteBufferSize:       0,
-		PoolFIFO:              false,
+		ContextTimeoutEnabled: config.ContextTimeoutEnabled,
+		ReadBufferSize:        config.ReadBufferSize,
+		WriteBufferSize:       config.WriteBufferSize,
+		PoolFIFO:              config.PoolFIFO,
 		PoolSize:              config.PoolSize,
-		MaxConcurrentDials:    0,
+		MaxConcurrentDials:    config.MaximumConcurrentDials,
 		PoolTimeout:           config.PoolTimeout,
 		MinIdleConns:          config.PoolMinimumIdleConnections,
 		MaxIdleConns:          config.PoolMaximumIdleConnections,
 		MaxActiveConns:        config.PoolMaximumConnections,
 		ConnMaxIdleTime:       config.IdleTimeout,
 		ConnMaxLifetime:       config.ConnectionTimeout,
-		ConnMaxLifetimeJitter: 0,
+		ConnMaxLifetimeJitter: config.ConnectionLifetimeJitter,
 		TLSConfig:             utils.NewTLSConfig(config.TLS, rootCAs),
-		FailingTimeoutSeconds: 0,
+		FailingTimeoutSeconds: getFailingTimeoutSeconds(config.FailingTimeout),
 	}
 
 	return NewRedis(redis.NewClient(options), "standalone")
@@ -63,40 +64,42 @@ func NewRedisSentinel(config *schema.RedisSentinelCache, rootCAs *x509.CertPool)
 	}
 
 	options := &redis.FailoverOptions{
-		MasterName:            config.MasterName,
-		SentinelAddrs:         addresses,
-		ClientName:            fmt.Sprintf(driverParameterFmtAppName, utils.Version()),
-		SentinelUsername:      config.SentinelUsername,
-		SentinelPassword:      config.SentinelPassword,
-		RouteByLatency:        config.RouteByLatency,
-		RouteRandomly:         config.RouteRandomly,
-		Protocol:              3,
-		Username:              config.Username,
-		Password:              config.Password,
-		DB:                    config.Database,
-		MaxRetries:            config.MaximumRetries,
-		MinRetryBackoff:       config.MinimumRetryBackoff,
-		MaxRetryBackoff:       config.MaximumRetryBackoff,
-		DialTimeout:           config.DialTimeout,
-		DialerRetries:         0,
-		DialerRetryTimeout:    0,
-		ReadTimeout:           config.ReadTimeout,
-		WriteTimeout:          config.WriteTimeout,
-		ContextTimeoutEnabled: false,
-		ReadBufferSize:        0,
-		WriteBufferSize:       0,
-		PoolFIFO:              false,
-		PoolSize:              config.PoolSize,
-		MaxConcurrentDials:    0,
-		PoolTimeout:           config.PoolTimeout,
-		MinIdleConns:          config.PoolMinimumIdleConnections,
-		MaxIdleConns:          config.PoolMaximumIdleConnections,
-		MaxActiveConns:        config.PoolMaximumConnections,
-		ConnMaxIdleTime:       config.IdleTimeout,
-		ConnMaxLifetime:       config.ConnectionTimeout,
-		ConnMaxLifetimeJitter: 0,
-		TLSConfig:             utils.NewTLSConfig(config.TLS, rootCAs),
-		FailingTimeoutSeconds: 0,
+		MasterName:              config.MasterName,
+		SentinelAddrs:           addresses,
+		ClientName:              getClientName(),
+		SentinelUsername:        config.SentinelUsername,
+		SentinelPassword:        config.SentinelPassword,
+		RouteByLatency:          config.RouteByLatency,
+		RouteRandomly:           config.RouteRandomly,
+		ReplicaOnly:             config.ReplicaOnly,
+		UseDisconnectedReplicas: config.UseDisconnectedReplicas,
+		Protocol:                3,
+		Username:                config.Username,
+		Password:                config.Password,
+		DB:                      config.Database,
+		MaxRetries:              config.MaximumRetries,
+		MinRetryBackoff:         config.MinimumRetryBackoff,
+		MaxRetryBackoff:         config.MaximumRetryBackoff,
+		DialTimeout:             config.DialTimeout,
+		DialerRetries:           config.DialerRetries,
+		DialerRetryTimeout:      config.DialerRetryTimeout,
+		ReadTimeout:             config.ReadTimeout,
+		WriteTimeout:            config.WriteTimeout,
+		ContextTimeoutEnabled:   config.ContextTimeoutEnabled,
+		ReadBufferSize:          config.ReadBufferSize,
+		WriteBufferSize:         config.WriteBufferSize,
+		PoolFIFO:                config.PoolFIFO,
+		PoolSize:                config.PoolSize,
+		MaxConcurrentDials:      config.MaximumConcurrentDials,
+		PoolTimeout:             config.PoolTimeout,
+		MinIdleConns:            config.PoolMinimumIdleConnections,
+		MaxIdleConns:            config.PoolMaximumIdleConnections,
+		MaxActiveConns:          config.PoolMaximumConnections,
+		ConnMaxIdleTime:         config.IdleTimeout,
+		ConnMaxLifetime:         config.ConnectionTimeout,
+		ConnMaxLifetimeJitter:   config.ConnectionLifetimeJitter,
+		TLSConfig:               utils.NewTLSConfig(config.TLS, rootCAs),
+		FailingTimeoutSeconds:   getFailingTimeoutSeconds(config.FailingTimeout),
 	}
 
 	var client redis.Cmdable
@@ -121,7 +124,7 @@ func NewRedisCluster(config *schema.RedisClusterCache, rootCAs *x509.CertPool) (
 
 	options := &redis.ClusterOptions{
 		Addrs:                      addresses,
-		ClientName:                 fmt.Sprintf(driverParameterFmtAppName, utils.Version()),
+		ClientName:                 getClientName(),
 		MaxRedirects:               config.MaximumRedirects,
 		ReadOnly:                   config.RouteByReplica,
 		RouteByLatency:             config.RouteByLatency,
@@ -133,13 +136,13 @@ func NewRedisCluster(config *schema.RedisClusterCache, rootCAs *x509.CertPool) (
 		MinRetryBackoff:            config.MinimumRetryBackoff,
 		MaxRetryBackoff:            config.MaximumRetryBackoff,
 		DialTimeout:                config.DialTimeout,
-		DialerRetries:              0,
-		DialerRetryTimeout:         0,
+		DialerRetries:              config.DialerRetries,
+		DialerRetryTimeout:         config.DialerRetryTimeout,
 		ReadTimeout:                config.ReadTimeout,
 		WriteTimeout:               config.WriteTimeout,
-		ContextTimeoutEnabled:      false,
-		MaxConcurrentDials:         0,
-		PoolFIFO:                   false,
+		ContextTimeoutEnabled:      config.ContextTimeoutEnabled,
+		MaxConcurrentDials:         config.MaximumConcurrentDials,
+		PoolFIFO:                   config.PoolFIFO,
 		PoolSize:                   config.PoolSize,
 		PoolTimeout:                config.PoolTimeout,
 		MinIdleConns:               config.PoolMinimumIdleConnections,
@@ -147,18 +150,30 @@ func NewRedisCluster(config *schema.RedisClusterCache, rootCAs *x509.CertPool) (
 		MaxActiveConns:             config.PoolMaximumConnections,
 		ConnMaxIdleTime:            config.IdleTimeout,
 		ConnMaxLifetime:            config.ConnectionTimeout,
-		ConnMaxLifetimeJitter:      0,
-		ReadBufferSize:             0,
-		WriteBufferSize:            0,
+		ConnMaxLifetimeJitter:      config.ConnectionLifetimeJitter,
+		ReadBufferSize:             config.ReadBufferSize,
+		WriteBufferSize:            config.WriteBufferSize,
 		TLSConfig:                  utils.NewTLSConfig(config.TLS, rootCAs),
 		DisableRoutingPolicies:     false,
-		FailingTimeoutSeconds:      0,
-		MaintNotificationsConfig:   nil,
-		ShardPicker:                nil,
-		ClusterStateReloadInterval: 0,
+		FailingTimeoutSeconds:      getFailingTimeoutSeconds(config.FailingTimeout),
+		ClusterStateReloadInterval: config.ClusterStateReloadInterval,
 	}
 
 	return NewRedis(redis.NewClusterClient(options), "cluster")
+}
+
+// getFailingTimeoutSeconds converts the configured duration into the whole seconds the client expects. A duration
+// below a second which isn't zero is raised to one second so a deliberate value is never silently discarded.
+func getFailingTimeoutSeconds(timeout time.Duration) (seconds int) {
+	if timeout <= 0 {
+		return 0
+	}
+
+	if seconds = int(timeout.Seconds()); seconds == 0 {
+		return 1
+	}
+
+	return seconds
 }
 
 func NewRedis(client redis.Cmdable, variant string) *Redis {
@@ -431,4 +446,8 @@ func getSessionKey(issuer, id string) (key string) {
 	buf.WriteString(id)
 
 	return buf.String()
+}
+
+func getClientName() (name string) {
+	return fmt.Sprintf(driverParameterFmtAppName, strings.Split(utils.Version(), " ")[0])
 }
