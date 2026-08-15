@@ -310,9 +310,6 @@ type Provider interface {
 	// SessionSaveData updates the data and expiration of an existing session.
 	SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error)
 
-	// SessionSetUsername links an existing session to a specific user.
-	SessionSetUsername(ctx context.Context, issuer, id, username string) (err error)
-
 	// SessionDelete removes a session.
 	SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error)
 

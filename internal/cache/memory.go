@@ -117,21 +117,6 @@ func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, e
 	return nil
 }
 
-func (m *Memory) SessionSetUsername(ctx context.Context, issuer, id, username string) (err error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	if item, ok := m.session[m.key(issuer, id)]; ok {
-		m.removeUsername(id, item.username, issuer)
-
-		item.username = username
-	}
-
-	m.setUsername(id, username, issuer)
-
-	return nil
-}
-
 func (m *Memory) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration) (err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()

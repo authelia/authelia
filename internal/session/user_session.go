@@ -8,12 +8,20 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
-// NewDefaultUserSession create a default user session.
-func NewDefaultUserSession() UserSession {
+// NewUserSession creates a user session for the given username. This is the only supported way to give a session a
+// username, as changing it on a live session would strand the repository lookups which refer to the previous value.
+// A session which should belong to a different user must be destroyed and a new one created in its place.
+func NewUserSession(username string) UserSession {
 	return UserSession{
+		Username:       username,
 		KeepMeLoggedIn: false,
 		LastActivity:   0,
 	}
+}
+
+// NewDefaultUserSession create a default anonymous user session.
+func NewDefaultUserSession() UserSession {
+	return NewUserSession("")
 }
 
 // IsAnonymous returns true if the username is empty or the AuthenticationLevel is authentication.NotAuthenticated.
@@ -37,27 +45,28 @@ func (s *UserSession) AuthenticationLevel(passkey2FA bool) authentication.Level 
 	}
 }
 
-// SetOneFactorPassword sets the 1FA AMR's and expected property values for one factor password authentication.
-func (s *UserSession) SetOneFactorPassword(now time.Time, username string, keepMeLoggedIn bool) {
-	s.setOneFactor(now, username, keepMeLoggedIn)
+// SetOneFactorPassword sets the 1FA AMR's and expected property values for one factor password authentication. The
+// session must already have been constructed for the authenticating user via NewUserSession.
+func (s *UserSession) SetOneFactorPassword(now time.Time, keepMeLoggedIn bool) {
+	s.setOneFactor(now, keepMeLoggedIn)
 
 	s.AuthenticationMethodRefs.KnowledgeBasedAuthentication = true
 	s.AuthenticationMethodRefs.UsernameAndPassword = true
 }
 
-// SetOneFactorPasskey sets the 1FA AMR's and expected property values for one factor passkey authentication.
-func (s *UserSession) SetOneFactorPasskey(now time.Time, username string, keepMeLoggedIn, hardware, userPresence, userVerified bool) {
-	s.setOneFactor(now, username, keepMeLoggedIn)
+// SetOneFactorPasskey sets the 1FA AMR's and expected property values for one factor passkey authentication. The
+// session must already have been constructed for the authenticating user via NewUserSession.
+func (s *UserSession) SetOneFactorPasskey(now time.Time, keepMeLoggedIn, hardware, userPresence, userVerified bool) {
+	s.setOneFactor(now, keepMeLoggedIn)
 
 	s.setWebAuthn(hardware, userPresence, userVerified)
 }
 
-func (s *UserSession) setOneFactor(now time.Time, username string, keepMeLoggedIn bool) {
+func (s *UserSession) setOneFactor(now time.Time, keepMeLoggedIn bool) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
 
 	s.KeepMeLoggedIn = keepMeLoggedIn
-	s.Username = username
 
 	s.SetOneFactorReauthenticate(now)
 }

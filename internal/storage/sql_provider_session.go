@@ -40,10 +40,6 @@ func (r SessionRepository) SaveData(ctx context.Context, issuer, id, pid, userna
 	return r.provider.SessionSaveData(ctx, issuer, id, pid, username, expiration, data)
 }
 
-func (r SessionRepository) SetUsername(ctx context.Context, issuer, id, username string) (err error) {
-	return r.provider.SessionSetUsername(ctx, issuer, id, username)
-}
-
 func (r SessionRepository) Delete(ctx context.Context, issuer, id, pid, username string) (err error) {
 	return r.provider.SessionDelete(ctx, issuer, id, pid, username)
 }
@@ -118,15 +114,6 @@ func (p *SQLProvider) SessionSave(ctx context.Context, issuer, id, pid, username
 func (p *SQLProvider) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, data []byte) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionData, p.sessionExpires(expiration), data, issuer, id); err != nil {
 		return fmt.Errorf("error updating session data: %w", err)
-	}
-
-	return nil
-}
-
-// SessionSetUsername links an existing session to a specific user.
-func (p *SQLProvider) SessionSetUsername(ctx context.Context, issuer, id, username string) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionUsername, username, issuer, id); err != nil {
-		return fmt.Errorf("error updating session username: %w", err)
 	}
 
 	return nil

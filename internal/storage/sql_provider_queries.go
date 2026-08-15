@@ -399,11 +399,6 @@ const (
 		SET expiration = ?, data = ?
 		WHERE issuer = ? AND signature = ?;`
 
-	queryFmtUpdateSessionUsername = `
-		UPDATE %s
-		SET username = ?
-		WHERE issuer = ? AND signature = ?;`
-
 	queryFmtUpdateSessionSignature = `
 		UPDATE %s
 		SET signature = ?, expiration = ?

@@ -254,30 +254,6 @@ func (r *Redis) SessionSave(ctx context.Context, issuer, id, pid, username strin
 	return nil
 }
 
-// SessionSetUsername links an existing session to a specific user. The expiry recorded in the index is derived from the
-// remaining TTL of the session itself, as the caller doesn't supply one.
-func (r *Redis) SessionSetUsername(ctx context.Context, issuer, id, username string) (err error) {
-	if username == "" {
-		return nil
-	}
-
-	var ttl time.Duration
-
-	if ttl, err = r.client.TTL(ctx, getSessionKey(issuer, id)).Result(); err != nil {
-		return err
-	}
-
-	switch ttl {
-	case redisTTLNoKey:
-		// The session no longer exists, so there is nothing to index.
-		return nil
-	case redisTTLNoExpiry:
-		ttl = 0
-	}
-
-	return r.client.ZAdd(ctx, getSessionUserKey(issuer, username), redis.Z{Score: getSessionScore(ttl), Member: id}).Err()
-}
-
 // SessionSaveData updates the session data. Every key which refers to the session has its expiry refreshed alongside it,
 // as each is a distinct key with an independent TTL which would otherwise lapse while the session is still alive.
 func (r *Redis) SessionSaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {

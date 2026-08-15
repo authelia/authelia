@@ -35,6 +35,7 @@ type Provider interface {
 // creating new sessions, getting current sessions, saving sessions, and destroying sessions.
 type Strategy interface {
 	GetConfig() (config schema.SessionCookie)
+	New(username string) (userSession UserSession)
 	NewDefault() (userSession UserSession)
 	Get(ctx Context) (session *UserSession, err error)
 	Save(ctx Context, userSession *UserSession) (err error)
@@ -49,7 +50,6 @@ type Repository interface {
 	GetIDsByUsername(ctx context.Context, issuer string, username string) (ids []string, err error)
 	Save(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
 	SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
-	SetUsername(ctx context.Context, issuer string, id string, username string) (err error)
 	Delete(ctx context.Context, issuer string, id string, pid string, username string) (err error)
 	ChangeID(ctx context.Context, issuer string, oldID string, id string, pid string, username string, expiration time.Duration) (err error)
 	GarbageCollection(ctx context.Context) (err error)

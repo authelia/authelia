@@ -498,13 +498,6 @@ func (r *testRepository) SaveData(_ context.Context, issuer, id, _, _ string, ex
 	return nil
 }
 
-func (r *testRepository) SetUsername(_ context.Context, issuer, id, username string) (err error) {
-	usernameKey := r.key(username, issuer)
-	r.usernames[usernameKey] = append(r.usernames[usernameKey], id)
-
-	return nil
-}
-
 func (r *testRepository) Delete(_ context.Context, issuer, id, pid, username string) (err error) {
 	delete(r.data, r.key(id, issuer))
 	delete(r.expirations, r.key(id, issuer))

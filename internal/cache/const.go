@@ -22,14 +22,6 @@ const (
 )
 
 const (
-	// redisTTLNoKey is the TTL reply for a key which does not exist.
-	redisTTLNoKey = time.Duration(-2)
-
-	// redisTTLNoExpiry is the TTL reply for a key which exists but has no associated expiry.
-	redisTTLNoExpiry = time.Duration(-1)
-)
-
-const (
 	redisPrefix           = "authelia:"
 	redisKeySeparator     = ":"
 	redisKeySeparatorSlot = "}" + redisKeySeparator

@@ -19,7 +19,8 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetOneFactorPassword",
 			func(session *UserSession) {
-				session.SetOneFactorPassword(time.Unix(10000, 0), "john", true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), true)
 			},
 			&UserSession{
 				Username:                  "john",
@@ -35,7 +36,8 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetOneFactorPasskey",
 			func(session *UserSession) {
-				session.SetOneFactorPasskey(time.Unix(10000, 0), "john", true, true, true, true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPasskey(time.Unix(10000, 0), true, true, true, true)
 			},
 			&UserSession{
 				Username:                  "john",
@@ -53,7 +55,8 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetTwoFactorPassword",
 			func(session *UserSession) {
-				session.SetOneFactorPasskey(time.Unix(10000, 0), "john", true, true, true, true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPasskey(time.Unix(10000, 0), true, true, true, true)
 				session.SetTwoFactorPassword(time.Unix(20000, 0))
 			},
 			&UserSession{
@@ -75,7 +78,8 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetOneFactorPasswordAndTwoFactorDuo",
 			func(session *UserSession) {
-				session.SetOneFactorPassword(time.Unix(10000, 0), "john", true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), true)
 				session.SetTwoFactorDuo(time.Unix(20000, 0))
 			},
 			&UserSession{

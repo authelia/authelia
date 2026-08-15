@@ -21,6 +21,10 @@ type UserSession struct {
 	CookieDomain string `msg:"d"`
 	PublicID     string `msg:"p"`
 
+	// Username for this session.
+	//
+	// SECURITY NOTE: This value MUST NOT be changed directly except within test files, and should instead be changed
+	// by destroying the old session, and creating a new one.
 	Username string `msg:"u,omitempty"`
 
 	KeepMeLoggedIn bool  `msg:"r"`
