@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set +u
+
+if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" && "${BUILDKITE_AGENT_NAME}" =~ ^tabris[0-9]+$ ]]; then
+  mv authelia-image-coverage.tar.zst authelia-image-coverage-tabris.tar.zst
+  BUILDKITE_S3_DEFAULT_REGION="authelia" BUILDKITE_S3_ENDPOINT=${S3_URL} BUILDKITE_ARTIFACT_UPLOAD_DESTINATION="${S3_BUCKET}" BUILDKITE_S3_ACCESS_KEY_ID="${S3_ACCESS_KEY_ID}" BUILDKITE_S3_SECRET_ACCESS_KEY="${S3_SECRET_ACCESS_KEY}" buildkite-agent artifact upload authelia-image-coverage-tabris.tar.zst
+fi
