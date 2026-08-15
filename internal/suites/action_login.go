@@ -72,14 +72,23 @@ func (rs *RodSession) doLoginOneFactor(t *testing.T, page *rod.Page, username, p
 func (rs *RodSession) doLoginPasskey(t *testing.T, page *rod.Page, keepMeLoggedIn bool, domain, targetURL string) {
 	rs.doVisitLoginPage(t, page, domain, targetURL)
 
-	if keepMeLoggedIn {
-		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
-		require.NoError(t, keepMeLoggedInElement.Click("left", 1))
-	}
-
 	passkeyElement := rs.WaitElementLocatedByID(t, page, "passkey-sign-in-button")
 
 	require.NoError(t, passkeyElement.Click("left", 1))
+
+	rs.doAnswerPasskeyRememberMe(t, page, keepMeLoggedIn)
+}
+
+func (rs *RodSession) doAnswerPasskeyRememberMe(t *testing.T, page *rod.Page, keepMeLoggedIn bool) {
+	id := "dialog-remember-me-no"
+
+	if keepMeLoggedIn {
+		id = "dialog-remember-me-yes"
+	}
+
+	element := rs.WaitElementLocatedByID(t, page, id)
+
+	require.NoError(t, element.Click("left", 1))
 }
 
 // Login 1FA and 2FA subsequently (must already be registered).

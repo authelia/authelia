@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -91,6 +92,30 @@ func (s *PasskeyScenario) TestShouldAuthorizeAfterPasskeyLogin() {
 
 	// And try to reload it again to check the session is kept.
 	s.doVisit(s.T(), s.Context(ctx), targetURL)
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
+}
+
+func (s *PasskeyScenario) TestShouldPromptRememberMeAfterPasskeyAssertion() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+
+	s.doVisitLoginPage(s.T(), s.Context(ctx), BaseDomain, targetURL)
+
+	passkeyElement := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "passkey-sign-in-button")
+	require.NoError(s.T(), passkeyElement.Click("left", 1))
+
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "passkey-remember-me-dialog")
+	s.doAnswerPasskeyRememberMe(s.T(), s.Context(ctx), true)
+
+	s.verifyIsSecondFactorPasswordPage(s.T(), s.Context(ctx))
+	s.doFillPasswordAndClick(s.T(), s.Context(ctx), "password")
+
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 

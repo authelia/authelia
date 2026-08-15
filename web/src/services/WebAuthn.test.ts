@@ -275,7 +275,7 @@ it("forwards the abort signal through GET, assertion POST and passkey POST", asy
     await getWebAuthnOptions(signal);
     expect(axios.get).toHaveBeenLastCalledWith("/webauthn/assertion", { signal });
 
-    await getWebAuthnPasskeyOptions(signal);
+    await getWebAuthnPasskeyOptions(false, signal);
     expect(axios.get).toHaveBeenLastCalledWith("/firstfactor/passkey", { signal });
 
     await postWebAuthnResponse("authResponse" as any, "url", "flow", "flowtype", "sub", "code", signal);
