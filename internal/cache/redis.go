@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
-	"strings"
 )
 
 // The NewRedisStandalone creates a Redis Provider that uses a standalone redis or redis compliant server.
