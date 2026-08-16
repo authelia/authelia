@@ -47,6 +47,176 @@ func TestDatabaseModel_Read(t *testing.T) {
 	assert.EqualError(t, model.Read(f), "could not parse the YAML database: go-yaml load error in scanner (while scanning for the next token) at L2.C1: found character that cannot start any token")
 }
 
+func TestFileUserDatabaseGetUserDetails(t *testing.T) {
+	john := FileUserDatabaseUserDetails{
+		Username:    "john",
+		DisplayName: "John Doe",
+		Email:       "john.doe@authelia.com",
+	}
+
+	users := map[string]FileUserDatabaseUserDetails{"john": john}
+
+	testCases := []struct {
+		name        string
+		users       map[string]FileUserDatabaseUserDetails
+		emails      map[string]string
+		aliases     map[string]string
+		searchEmail bool
+		searchCI    bool
+		have        string
+		expected    FileUserDatabaseUserDetails
+		err         string
+	}{
+		{
+			"ShouldLookupUsername",
+			users,
+			nil,
+			nil,
+			false,
+			false,
+			"john",
+			john,
+			"",
+		},
+		{
+			"ShouldNotLookupUnknownUsername",
+			users,
+			nil,
+			nil,
+			false,
+			false,
+			"harry",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotLookupUsernameWithMismatchedCase",
+			users,
+			nil,
+			nil,
+			false,
+			false,
+			"JOHN",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldLookupEmail",
+			users,
+			map[string]string{"john.doe@authelia.com": "john"},
+			nil,
+			true,
+			false,
+			"JOHN.doe@authelia.com",
+			john,
+			"",
+		},
+		{
+			"ShouldNotLookupEmailWhenSearchEmailDisabled",
+			users,
+			map[string]string{"john.doe@authelia.com": "john"},
+			nil,
+			false,
+			false,
+			"john.doe@authelia.com",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotLookupEmailAliasForUserWhichNoLongerExists",
+			users,
+			map[string]string{"harry.potter@authelia.com": "harry"},
+			nil,
+			true,
+			false,
+			"harry.potter@authelia.com",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldLookupAlias",
+			users,
+			nil,
+			map[string]string{"john": "john"},
+			false,
+			true,
+			"JOHN",
+			john,
+			"",
+		},
+		{
+			"ShouldNotLookupAliasWhenSearchCaseInsensitiveDisabled",
+			users,
+			nil,
+			map[string]string{"john": "john"},
+			false,
+			false,
+			"JOHN",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotLookupAliasForUserWhichNoLongerExists",
+			users,
+			nil,
+			map[string]string{"harry": "harry"},
+			false,
+			true,
+			"HARRY",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotFallbackToAliasWhenEmailAliasForUserWhichNoLongerExists",
+			users,
+			map[string]string{"harry.potter@authelia.com": "harry"},
+			map[string]string{"harry.potter@authelia.com": "john"},
+			true,
+			true,
+			"harry.potter@authelia.com",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+		{
+			"ShouldNotFallbackToUsernameWhenAliasForUserWhichNoLongerExists",
+			users,
+			nil,
+			map[string]string{"john": "harry"},
+			false,
+			true,
+			"john",
+			FileUserDatabaseUserDetails{},
+			"user not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			database := NewFileUserDatabase("", tc.searchEmail, tc.searchCI, nil)
+
+			database.Users = tc.users
+
+			if tc.emails != nil {
+				database.Emails = tc.emails
+			}
+
+			if tc.aliases != nil {
+				database.Aliases = tc.aliases
+			}
+
+			actual, err := database.GetUserDetails(tc.have)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
 func TestFileUserDatabaseShouldNotDeadlockOnSave(t *testing.T) {
 	const (
 		concurrency = 8
