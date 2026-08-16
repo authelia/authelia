@@ -1,4 +1,4 @@
-import { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 
 import { XCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -18,7 +18,7 @@ import {
 } from "@components/UI/Dialog";
 import { Label } from "@components/UI/Label";
 import { RadioGroup, RadioGroupItem } from "@components/UI/RadioGroup";
-import { Step, StepLabel, Stepper } from "@components/UI/Stepper";
+import { Stepper } from "@components/UI/Stepper";
 import { Switch } from "@components/UI/Switch";
 import { GoogleAuthenticator } from "@constants/constants";
 import { useNotifications } from "@contexts/NotificationsContext";
@@ -529,19 +529,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 </DialogHeader>
                 <div className="flex flex-col items-center justify-center text-center">
                     <div className="w-full px-6">
-                        <Stepper activeStep={activeStep}>
-                            {steps.map((label) => {
-                                const stepProps: { completed?: boolean } = {};
-                                const labelProps: {
-                                    optional?: ReactNode;
-                                } = {};
-                                return (
-                                    <Step key={label} {...stepProps}>
-                                        <StepLabel {...labelProps}>{translate(label)}</StepLabel>
-                                    </Step>
-                                );
-                            })}
-                        </Stepper>
+                        <Stepper activeStep={activeStep} steps={steps.map((label) => translate(label))} />
                     </div>
                     <div className="w-full">
                         <div className="flex flex-col items-center justify-center gap-2">{renderStep(activeStep)}</div>

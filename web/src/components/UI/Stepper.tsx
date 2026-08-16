@@ -1,24 +1,19 @@
-import { Children, type ComponentProps, isValidElement } from "react";
+import { type ComponentProps } from "react";
 
 import { Check } from "lucide-react";
 
 import { cn } from "@utils/Styles";
 
-interface StepperProps extends ComponentProps<"div"> {
+interface StepperProps extends Omit<ComponentProps<"div">, "children"> {
     activeStep: number;
-    children: React.ReactNode;
+    steps: readonly string[];
 }
 
-function Stepper({ activeStep, children, className, ...props }: Readonly<StepperProps>) {
-    const steps = Children.toArray(children);
-
+function Stepper({ activeStep, className, steps, ...props }: Readonly<StepperProps>) {
     return (
         <div data-slot="stepper" className={cn("flex w-full items-center justify-center", className)} {...props}>
-            {steps.map((child, index) => (
-                <div
-                    key={isValidElement(child) ? child.key : index}
-                    className={cn("flex items-center", index < steps.length - 1 && "flex-1")}
-                >
+            {steps.map((label, index) => (
+                <div key={label} className={cn("flex items-center", index < steps.length - 1 && "flex-1")}>
                     <div className="flex flex-col items-center gap-1">
                         <div
                             className={cn(
@@ -31,7 +26,9 @@ function Stepper({ activeStep, children, className, ...props }: Readonly<Stepper
                         >
                             {index < activeStep ? <Check className="size-4" /> : index + 1}
                         </div>
-                        {child}
+                        <span data-slot="step-label" className="mt-1 text-xs text-muted-foreground">
+                            {label}
+                        </span>
                     </div>
                     {index < steps.length - 1 && (
                         <div
@@ -47,24 +44,4 @@ function Stepper({ activeStep, children, className, ...props }: Readonly<Stepper
     );
 }
 
-interface StepProps extends ComponentProps<"div"> {
-    completed?: boolean;
-}
-
-function Step({ children, className, ...props }: Readonly<StepProps>) {
-    return (
-        <div data-slot="step" className={cn(className)} {...props}>
-            {children}
-        </div>
-    );
-}
-
-function StepLabel({ children, className, ...props }: Readonly<ComponentProps<"span">>) {
-    return (
-        <span data-slot="step-label" className={cn("mt-1 text-xs text-muted-foreground", className)} {...props}>
-            {children}
-        </span>
-    );
-}
-
-export { Step, StepLabel, Stepper };
+export { Stepper };

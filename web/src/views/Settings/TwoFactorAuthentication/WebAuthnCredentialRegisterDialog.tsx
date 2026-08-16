@@ -1,4 +1,4 @@
-import { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
@@ -15,7 +15,7 @@ import {
 } from "@components/UI/Dialog";
 import { Input } from "@components/UI/Input";
 import { Label } from "@components/UI/Label";
-import { Step, StepLabel, Stepper } from "@components/UI/Stepper";
+import { Stepper } from "@components/UI/Stepper";
 import WebAuthnRegisterIcon from "@components/WebAuthnRegisterIcon";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { AttestationResult, AttestationResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
@@ -249,19 +249,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 </DialogHeader>
                 <div className="flex flex-col items-center justify-center text-center">
                     <div className="w-full">
-                        <Stepper activeStep={activeStep}>
-                            {steps.map((label) => {
-                                const stepProps: { completed?: boolean } = {};
-                                const labelProps: {
-                                    optional?: ReactNode;
-                                } = {};
-                                return (
-                                    <Step key={label} {...stepProps}>
-                                        <StepLabel {...labelProps}>{translate(label)}</StepLabel>
-                                    </Step>
-                                );
-                            })}
-                        </Stepper>
+                        <Stepper activeStep={activeStep} steps={steps.map((label) => translate(label))} />
                     </div>
                     <div className="w-full">{renderStep(activeStep)}</div>
                 </div>

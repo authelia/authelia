@@ -14,7 +14,7 @@ import {
     DialogTitle,
 } from "@components/UI/Dialog";
 import { Separator } from "@components/UI/Separator";
-import { Step, StepLabel, Stepper } from "@components/UI/Stepper";
+import { Stepper } from "@components/UI/Stepper";
 import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
 import { UserSessionElevation } from "@services/UserSessionElevation";
@@ -239,17 +239,10 @@ const SecondFactorDialog = function (props: Props) {
                         )}
                     </DialogDescription>
                 </DialogHeader>
-                <Stepper activeStep={activeStep}>
-                    <Step key={"step-1"}>
-                        <StepLabel>{translate("Select a Method")}</StepLabel>
-                    </Step>
-                    <Step key={"step-2"}>
-                        <StepLabel>{translate("Authenticate")}</StepLabel>
-                    </Step>
-                    <Step key={"step-3"}>
-                        <StepLabel>{translate("Completed")}</StepLabel>
-                    </Step>
-                </Stepper>
+                <Stepper
+                    activeStep={activeStep}
+                    steps={[translate("Select a Method"), translate("Authenticate"), translate("Completed")]}
+                />
                 {renderContent()}
                 <DialogFooter>
                     <Button variant={"outline"} color={"destructive"} disabled={loading} onClick={handleCancelled}>
