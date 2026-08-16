@@ -135,7 +135,7 @@ networks:
 services:
   envoy:
     container_name: 'envoy'
-    image: 'envoyproxy/envoy:v1.24'
+    image: 'envoyproxy/envoy:v1.39.0'
     restart: 'unless-stopped'
     networks:
       net: {}
@@ -234,6 +234,15 @@ static_resources:
                           route:
                             cluster: 'authelia'
                 http_filters:
+                  - name: 'envoy.filters.http.header_mutation'
+                    typed_config:
+                      "@type": 'type.googleapis.com/envoy.extensions.filters.http.header_mutation.v3.HeaderMutation'
+                      mutations:
+                        request_mutations:
+                          - remove: 'remote-user'
+                          - remove: 'remote-groups'
+                          - remove: 'remote-name'
+                          - remove: 'remote-email'
                   - name: 'envoy.filters.http.ext_authz'
                     typed_config:
                       "@type": 'type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz'
@@ -332,6 +341,7 @@ and [Istio](../kubernetes/envoy/istio.md). To see the full list see the
 ## See Also
 
 * [Envoy External Authorization Documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz)
+* [Envoy Header Mutation Documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/header_mutation_filter)
 * [Forwarded Headers]
 
 [Envoy]: https://www.envoyproxy.io/
