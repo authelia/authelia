@@ -47,8 +47,8 @@ it("returns correct avatar for authelia.bearer.authz", () => {
 });
 
 it("returns correct avatar for authelia.pam", () => {
-    render(ScopeAvatar("authelia.pam"));
-    expect(screen.getByTestId("TerminalIcon")).toBeInTheDocument();
+    const { container } = render(ScopeAvatar("authelia.pam"));
+    expectLucideIcon(container, "terminal");
 });
 
 it("returns policy avatar for unknown scope", () => {

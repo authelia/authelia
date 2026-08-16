@@ -76,6 +76,7 @@ func waitUntilAutheliaFrontendRestarted(dockerEnvironment *DockerEnvironment) er
 		180*time.Second,
 		dockerEnvironment,
 		"authelia-frontend",
+		time.Time{},
 		[]string{"Watching for file changes"})
 }
 
