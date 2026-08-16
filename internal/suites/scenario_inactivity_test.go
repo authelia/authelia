@@ -53,8 +53,7 @@ func (s *InactivityScenario) TearDownSuite() {
 }
 
 func (s *InactivityScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *InactivityScenario) TearDownTest() {

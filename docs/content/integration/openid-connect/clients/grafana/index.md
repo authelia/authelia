@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
 - [Grafana]
-  - [v12.3.2](https://github.com/grafana/grafana/releases/tag/v12.3.2)
+  - [v13.1.0](https://github.com/grafana/grafana/releases/tag/v13.1.0)
 
 {{% oidc-common bugs="claims-hydration" %}}
 
@@ -181,7 +181,7 @@ The ways you can configure this rule value is vast, here is a simple example:
 - Everyone else should be a member of the Grafana group 'Viewer'
 
 To achieve the above structure you would use the following `role_attribute_path`:
-`contains(groups[*], 'admin') && 'Admin' || contains(groups[*], 'editor') && 'Editor' || 'Viewer'`
+`contains(groups[], 'admin') && 'Admin' || contains(groups[], 'editor') && 'Editor' || 'Viewer'`
 
 See [Grafana Generic OAuth2 Documentation: Configure role mapping] for more information.
 

@@ -1,9 +1,12 @@
 package middlewares
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
+	"unsafe"
 
 	"github.com/valyala/fasthttp"
 )
@@ -12,83 +15,80 @@ import (
 type AutheliaHandlerFunc func(ctx *AutheliaCtx, rw http.ResponseWriter, r *http.Request)
 
 // NewHTTPToAutheliaHandlerAdaptor creates a new adaptor given the AutheliaHandlerFunc.
-func NewHTTPToAutheliaHandlerAdaptor(h AutheliaHandlerFunc) RequestHandler {
+func NewHTTPToAutheliaHandlerAdaptor(handler AutheliaHandlerFunc) RequestHandler {
 	return func(ctx *AutheliaCtx) {
-		var r http.Request
-
 		body := ctx.PostBody()
-		r.Method = string(ctx.Method())
-		r.Proto = "HTTP/1.1"
-		r.ProtoMajor = 1
-		r.ProtoMinor = 1
-		r.RequestURI = string(ctx.RequestURI())
-		r.ContentLength = int64(len(body))
-		r.Host = string(ctx.Host())
-		r.RemoteAddr = ctx.RemoteAddr().String()
 
-		hdr := make(http.Header)
+		r := &http.Request{
+			Header:        make(http.Header),
+			TLS:           ctx.TLSConnectionState(),
+			Proto:         b2s(ctx.Request.Header.Protocol()),
+			ProtoMinor:    1,
+			ContentLength: int64(len(body)),
+			Method:        b2s(ctx.Method()),
+			Host:          b2s(ctx.Host()),
+			RequestURI:    b2s(ctx.RequestURI()),
+			RemoteAddr:    ctx.RemoteAddr().String(),
+			Body:          io.NopCloser(bytes.NewReader(body)),
+		}
+
+		if r.Proto == strProtoHTTP2 {
+			r.ProtoMajor = 2
+		} else {
+			r.ProtoMajor = 1
+		}
 
 		for k, v := range ctx.Request.Header.All() {
-			sk := string(k)
-			sv := string(v)
+			key := b2s(k)
+			value := b2s(v)
 
-			switch sk {
+			switch key {
 			case fasthttp.HeaderTransferEncoding:
-				r.TransferEncoding = append(r.TransferEncoding, sv)
+				r.TransferEncoding = append(r.TransferEncoding, value)
 			default:
-				hdr.Set(sk, sv)
+				if key == fasthttp.HeaderCookie {
+					value = strings.Clone(value)
+				}
+
+				r.Header.Add(key, value)
 			}
 		}
 
-		r.Header = hdr
-		r.Body = &netHTTPBody{body}
+		var (
+			uri *url.URL
+			err error
+		)
 
-		rURL, err := url.ParseRequestURI(r.RequestURI)
-		if err != nil {
-			ctx.Logger.Errorf("Cannot parse requestURI %q: %s", r.RequestURI, err)
+		if uri, err = url.ParseRequestURI(r.RequestURI); err != nil {
+			ctx.GetLogger().Errorf("Cannot parse requestURI %q: %s", r.RequestURI, err)
 			ctx.RequestCtx.Error("Internal Server Error", fasthttp.StatusInternalServerError)
 
 			return
 		}
 
-		r.URL = rURL
+		r.URL = uri
 
-		var w netHTTPResponseWriter
+		var rw netHTTPResponseWriter
 
-		h(ctx, &w, r.WithContext(ctx))
+		handler(ctx, &rw, r.WithContext(ctx))
 
-		ctx.SetStatusCode(w.StatusCode())
+		ctx.SetStatusCode(rw.StatusCode())
 
-		for k, vv := range w.Header() {
-			for _, v := range vv {
-				ctx.Response.Header.Set(k, v)
+		for key, values := range rw.Header() {
+			for i, value := range values {
+				switch i {
+				case 0:
+					ctx.Response.Header.Set(key, value)
+				default:
+					ctx.Response.Header.Add(key, value)
+				}
 			}
 		}
 
-		_, _ = ctx.Write(w.body)
+		if rw.body != nil {
+			_, _ = ctx.Write(rw.body)
+		}
 	}
-}
-
-type netHTTPBody struct {
-	b []byte
-}
-
-// Read reads the body.
-func (r *netHTTPBody) Read(p []byte) (int, error) {
-	if len(r.b) == 0 {
-		return 0, io.EOF
-	}
-
-	n := copy(p, r.b)
-	r.b = r.b[n:]
-
-	return n, nil
-}
-
-// Close closes the body.
-func (r *netHTTPBody) Close() error {
-	r.b = r.b[:0]
-	return nil
 }
 
 type netHTTPResponseWriter struct {
@@ -124,4 +124,8 @@ func (w *netHTTPResponseWriter) WriteHeader(statusCode int) {
 func (w *netHTTPResponseWriter) Write(p []byte) (int, error) {
 	w.body = append(w.body, p...)
 	return len(p), nil
+}
+
+func b2s(b []byte) string {
+	return unsafe.String(unsafe.SliceData(b), len(b))
 }

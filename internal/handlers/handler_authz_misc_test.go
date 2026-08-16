@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -10,8 +12,11 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -38,6 +43,70 @@ func TestCookieSessionAuthnStrategyFlags(t *testing.T) {
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, []byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+}
+
+func TestHandleGetBasicShouldRejectEmptyCredentialsWithDelay(t *testing.T) {
+	testCases := []struct {
+		Name        string
+		Setup       func(authz *model.Authorization)
+		ExpectError string
+	}{
+		{
+			Name:        "ShouldRejectUnparsedAuthorization",
+			Setup:       nil,
+			ExpectError: "failed to validate parsed credentials of Proxy-Authorization header: the username or password was empty",
+		},
+		{
+			Name: "ShouldRejectNonBasicScheme",
+			Setup: func(authz *model.Authorization) {
+				require.NoError(t, authz.ParseBearer("abc123"))
+			},
+			ExpectError: "failed to validate parsed credentials of Proxy-Authorization header: the username or password was empty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.UserProviderMock.EXPECT().GetDetails(gomock.Any()).Times(0)
+			mock.UserProviderMock.EXPECT().CheckUserPassword(gomock.Any(), gomock.Any()).Times(0)
+
+			authz := model.NewAuthorization()
+
+			if tc.Setup != nil {
+				tc.Setup(authz)
+			}
+
+			authn := &Authn{Level: authentication.NotAuthenticated, Username: anonymous}
+			authn.Header.Authorization = authz
+
+			delayer := &testDelayer{}
+
+			targetURL, err := url.Parse("https://app.example.com/")
+			require.NoError(t, err)
+
+			object := authorization.NewObject(targetURL, fasthttp.MethodGet)
+
+			details, level, err := handleGetBasic(mock.Ctx, delayer, authn, &object, headerProxyAuthorization, DefaultBasicAuthHandler)
+
+			require.EqualError(t, err, tc.ExpectError)
+			assert.Nil(t, details)
+			assert.Equal(t, authentication.NotAuthenticated, level)
+			assert.True(t, delayer.cached)
+		})
+	}
+}
+
+type testDelayer struct {
+	cached bool
+}
+
+func (d *testDelayer) Delay(_ middlewares.TimingContext, _ time.Time, _ *bool) {}
+
+func (d *testDelayer) CachedDelay(_ middlewares.TimingContext, _ time.Time, _, _ *bool) {
+	d.cached = true
 }
 
 func TestHandleVerifyGETAuthorizationBearerResolveUser(t *testing.T) {

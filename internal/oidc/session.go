@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"maps"
 	"net/url"
 	"time"
 
@@ -26,6 +27,14 @@ func NewSessionWithRequestedAt(requestedAt time.Time) (session *Session) {
 	InitializeSessionDefaults(session)
 
 	session.SetRequestedAt(requestedAt.UTC())
+
+	return session
+}
+
+func NewSessionWithIssuerAndRequestedAt(ctx Context, issuer *url.URL, requestedAt time.Time) (session *Session) {
+	session = NewSessionWithRequestedAt(requestedAt)
+
+	session.SetValuesGeneral(ctx, issuer, "", "", nil, time.Time{}, nil, nil)
 
 	return session
 }
@@ -63,6 +72,23 @@ type Session struct {
 	Extra                 map[string]any  `json:"extra"`
 }
 
+// GetSubject returns the subject, if set. This is optional and only used during token introspection.
+func (s *Session) GetSubject() string {
+	if s == nil {
+		return ""
+	}
+
+	if subject := s.DefaultSession.GetSubject(); subject != "" {
+		return subject
+	}
+
+	if s.ClientCredentials && s.ClientID != "" {
+		return s.ClientID
+	}
+
+	return ""
+}
+
 // ValidIssuer returns true if the issuer is valid for this session, false otherwise.
 //
 // The issuer is valid if the session has no issuer or if the issuer matches the issuer in the session.
@@ -92,8 +118,6 @@ func (s *Session) GetJWTHeader() (headers *jwt.Headers) {
 }
 
 // GetJWTClaims returns the jwt.JWTClaimsContainer for the OAuth 2.0 JWT Profile Access Tokens.
-//
-//nolint:gocyclo
 func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 	//nolint:prealloc
 	var (
@@ -115,7 +139,7 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 	}
 
 	claims := &jwt.JWTClaims{
-		Subject:   s.Subject,
+		Subject:   s.GetSubject(),
 		ExpiresAt: s.GetExpiresAt(oauthelia2.AccessToken),
 		IssuedAt:  time.Now().UTC(),
 		Extra:     map[string]any{},
@@ -143,10 +167,6 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 
 	if len(s.ClientID) != 0 {
 		claims.Extra[ClaimClientIdentifier] = s.ClientID
-	}
-
-	if s.ClientCredentials && len(claims.Subject) == 0 && len(s.ClientID) != 0 {
-		claims.Subject = s.ClientID
 	}
 
 	return claims
@@ -214,12 +234,18 @@ func (s *Session) GetIDTokenClaims() (claims *jwt.IDTokenClaims) {
 }
 
 // GetExtraClaims returns the Extra/Unregistered claims for this session.
-func (s *Session) GetExtraClaims() map[string]any {
-	if s.AccessToken == nil {
-		return nil
+func (s *Session) GetExtraClaims() (claims map[string]any) {
+	if s.AccessToken != nil {
+		claims = maps.Clone(s.AccessToken.Claims)
+	} else {
+		claims = map[string]any{}
 	}
 
-	return s.AccessToken.Claims
+	if _, ok := claims[ClaimIssuer]; !ok && s.DefaultSession != nil && s.Claims != nil && s.Claims.Issuer != "" {
+		claims[ClaimIssuer] = s.Claims.Issuer
+	}
+
+	return claims
 }
 
 // Clone copies the OpenIDSession to a new oauthelia2.Session.

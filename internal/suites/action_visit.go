@@ -1,25 +1,61 @@
 package suites
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
-	p, err := rs.WebDriver.MustIncognito().Page(proto.TargetCreateTarget{URL: url})
-	assert.NoError(t, err)
+func (s *RodSuite) doSetupTest(url string) {
+	ctx, cancel := context.WithTimeout(context.Background(), setupTestTimeout)
+	defer cancel()
 
-	return p
+	s.Page = s.doCreateTab(s.T(), url)
+	s.verifyIsHome(s.T(), s.Context(ctx))
+}
+
+func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
+	type tab struct {
+		page *rod.Page
+		err  error
+	}
+
+	created := make(chan tab, 1)
+
+	go func() {
+		browser, err := rs.WebDriver.Incognito()
+		if err != nil {
+			created <- tab{err: err}
+
+			return
+		}
+
+		page, err := browser.Page(proto.TargetCreateTarget{URL: url})
+
+		created <- tab{page: page, err: err}
+	}()
+
+	select {
+	case result := <-created:
+		require.NoError(t, result.err)
+		require.NotNil(t, result.page)
+
+		return result.page
+	case <-time.After(time.Second * 10):
+		require.FailNowf(t, "timeout creating tab", "the tab at '%s' was not created within 10 seconds", url)
+
+		return nil
+	}
 }
 
 func (rs *RodSession) doVisit(t *testing.T, page *rod.Page, url string) {
-	assert.NoError(t, page.Navigate(url))
+	require.NoError(t, page.Navigate(url))
+	require.NoError(t, page.WaitLoad())
 	require.NoError(t, page.WaitStable(time.Millisecond*50))
 }
 

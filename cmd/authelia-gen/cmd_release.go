@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	cmdUseRelease = "release"
+	cmdUseRelease = "release {major|minor|patch}"
 
 	releaseTypeMajor = "major"
 	releaseTypeMinor = "minor"

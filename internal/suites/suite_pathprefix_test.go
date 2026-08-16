@@ -58,8 +58,7 @@ func (s *PathPrefixSuite) TestShouldRenderFrontendWithTrailingSlash() {
 	s.Require().NoError(err)
 	s.RodSession = browser
 
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain)+"/")
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
@@ -81,8 +80,7 @@ func (s *PathPrefixSuite) TestShouldRenderFrontendWithoutTrailingSlash() {
 	s.Require().NoError(err)
 	s.RodSession = browser
 
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))

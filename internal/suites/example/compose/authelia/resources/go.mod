@@ -4,7 +4,7 @@ go 1.25.1
 
 require (
 	github.com/cespare/reflex v0.3.2
-	github.com/go-delve/delve v1.27.0
+	github.com/go-delve/delve v1.27.1
 )
 
 require (
@@ -28,10 +28,10 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	go.starlark.net v0.0.0-20260210143700-b62fd896b91b // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/arch v0.25.0 // indirect
-	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/arch v0.28.0 // indirect
+	golang.org/x/sync v0.22.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260316223853-b6b0c46d1ccd // indirect
 )
 
-replace golang.org/x/net => golang.org/x/net v0.57.0
+replace golang.org/x/net => golang.org/x/net v0.58.0
