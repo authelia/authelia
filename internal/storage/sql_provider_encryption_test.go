@@ -810,6 +810,68 @@ func TestStorageRejectsSwappedTOTPSecrets(t *testing.T) {
 	assert.EqualError(t, err, "error decrypting TOTP secret for user 'john': cipher: message authentication failed")
 }
 
+func TestStorageRejectsSwappedWebAuthnCredentials(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	for _, kid := range []string{"kid-a", "kid-b"} {
+		require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+			CreatedAt:       time.Now().Truncate(time.Second),
+			RPID:            "example.com",
+			Username:        "john",
+			Description:     kid,
+			KID:             model.NewBase64([]byte(kid)),
+			AttestationType: "packed",
+			Attachment:      "cross-platform",
+			PublicKey:       []byte("public-key-" + kid),
+		}))
+	}
+
+	credentials, err := provider.LoadWebAuthnCredentialsByUsername(ctx, "example.com", "john")
+
+	require.NoError(t, err)
+	require.Len(t, credentials, 2)
+
+	_, err = provider.db.ExecContext(ctx, fmt.Sprintf(`UPDATE %s SET public_key = (SELECT public_key FROM %s WHERE description = 'kid-b') WHERE description = 'kid-a';`, tableWebAuthnCredentials, tableWebAuthnCredentials))
+	require.NoError(t, err)
+
+	_, err = provider.LoadWebAuthnCredentialByID(ctx, credentials[0].ID)
+
+	assert.EqualError(t, err, fmt.Sprintf("error decrypting WebAuthn credential public key of credential with id '%d' for user 'john': cipher: message authentication failed", credentials[0].ID))
+}
+
+func TestStorageRejectsWebAuthnCredentialMovedBetweenRelyingParties(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+		CreatedAt:       time.Now().Truncate(time.Second),
+		RPID:            "example.com",
+		Username:        "john",
+		Description:     "moved",
+		KID:             model.NewBase64([]byte("kid-moved")),
+		AttestationType: "packed",
+		Attachment:      "cross-platform",
+		PublicKey:       []byte("public-key-moved"),
+	}))
+
+	credentials, err := provider.LoadWebAuthnCredentialsByUsername(ctx, "example.com", "john")
+
+	require.NoError(t, err)
+	require.Len(t, credentials, 1)
+
+	_, err = provider.db.ExecContext(ctx, fmt.Sprintf(`UPDATE %s SET rpid = ? WHERE id = ?;`, tableWebAuthnCredentials), "other.example.com", credentials[0].ID)
+	require.NoError(t, err)
+
+	_, err = provider.LoadWebAuthnCredentialByID(ctx, credentials[0].ID)
+
+	assert.EqualError(t, err, fmt.Sprintf("error decrypting WebAuthn credential public key of credential with id '%d' for user 'john': cipher: message authentication failed", credentials[0].ID))
+}
+
 func seedAllEncryptedData(t *testing.T, provider *SQLiteProvider, ctx context.Context) {
 	t.Helper()
 

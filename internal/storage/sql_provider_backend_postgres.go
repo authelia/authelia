@@ -305,7 +305,10 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyPeerCertificateFunc(tlsConfig)
 		case config.SSL.Mode == "verify-full":
 			tlsConfig.InsecureSkipVerify = false
-			tlsConfig.ServerName = config.Address.Hostname()
+
+			if config.Address != nil {
+				tlsConfig.ServerName = config.Address.Hostname()
+			}
 		}
 	}
 

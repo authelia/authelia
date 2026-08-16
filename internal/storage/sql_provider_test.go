@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net"
 	"path/filepath"
 	"testing"
@@ -393,13 +394,27 @@ func TestUpdateWebAuthnCredentialSignInRebindsCiphertext(t *testing.T) {
 	require.Len(t, credentials, 1)
 
 	stored := credentials[0]
+
+	var before []byte
+
+	require.NoError(t, provider.db.GetContext(ctx, &before, fmt.Sprintf("SELECT public_key FROM %s WHERE id = ?", tableWebAuthnCredentials), stored.ID))
+
 	stored.RPID = "example.com"
+	stored.SignCount = 42
 
 	require.NoError(t, provider.UpdateWebAuthnCredentialSignIn(ctx, stored))
+
+	var after []byte
+
+	require.NoError(t, provider.db.GetContext(ctx, &after, fmt.Sprintf("SELECT public_key FROM %s WHERE id = ?", tableWebAuthnCredentials), stored.ID))
+
+	assert.NotEqual(t, before, after)
 
 	reloaded, err := provider.LoadWebAuthnCredentialByID(ctx, stored.ID)
 
 	require.NoError(t, err)
+	assert.Equal(t, "example.com", reloaded.RPID)
+	assert.Equal(t, uint32(42), reloaded.SignCount)
 	assert.Equal(t, []byte("fake-public-key"), reloaded.PublicKey)
 }
 

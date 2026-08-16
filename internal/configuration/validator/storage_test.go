@@ -181,6 +181,25 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSMinVersionGreate
 	suite.EqualError(suite.val.Errors()[0], "storage: mysql: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS 1.3 is greater than the maximum version TLS 1.1")
 }
 
+func (suite *StorageSuite) TestShouldNotPanicOnMySQLTLSWithoutAddress() {
+	suite.config.MySQL = &schema.StorageMySQL{
+		StorageSQL: schema.StorageSQL{
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+			TLS:      &schema.TLS{},
+		},
+	}
+
+	suite.Require().NotPanics(func() {
+		ValidateStorage(suite.config, suite.val)
+	})
+
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Require().Len(suite.val.Errors(), 1)
+	suite.EqualError(suite.val.Errors()[0], "storage: mysql: option 'address' is required")
+}
+
 func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDatabaseAreProvided() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{}
 	suite.config.MySQL = nil
