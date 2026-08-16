@@ -2,7 +2,9 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -253,6 +255,201 @@ func TestSchemaMigrateToRowScopedAAD(t *testing.T) {
 			assert.Equal(t, sessionData, session.Session)
 		})
 	}
+}
+
+func TestSchemaMigrateUpToColumnScopedFromLegacy(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "db.sqlite3")
+
+	totpSecret := []byte("JBSWY3DPEHPK3PXP")
+	sessionData := []byte(`{"access":"token"}`)
+
+	ctx := context.Background()
+
+	provider := newTestSQLiteProviderAtPath(t, path)
+
+	require.NoError(t, provider.SchemaMigrate(ctx, true, schemaVersionEncryptionKeyDerivation-1))
+
+	key, aad := provider.keys.encryption, provider.aad
+
+	provider.keys.encryption = utils.DeriveLegacyCryptographicKey([]byte(provider.config.Storage.EncryptionKey))
+	provider.aad = aadNone
+
+	require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+		CreatedAt: time.Now().Truncate(time.Second),
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    totpSecret,
+	}))
+
+	require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, model.OAuth2Session{
+		RequestID: "req-123",
+		Signature: "sig-123",
+		Session:   sessionData,
+	}))
+
+	provider.keys.encryption, provider.aad = key, aad
+
+	require.NoError(t, provider.Close())
+
+	provider = newTestSQLiteProviderAtPath(t, path)
+
+	require.NoError(t, provider.SchemaMigrate(ctx, true, schemaVersionEncryptionKeyDerivation))
+
+	version, err := provider.SchemaVersion(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, schemaVersionEncryptionKeyDerivation, version)
+
+	result, err := provider.SchemaEncryptionCheckKey(ctx, true)
+
+	require.NoError(t, err)
+	assert.False(t, result.InvalidCheckValue)
+
+	for table, tableResult := range result.Tables {
+		assert.NoError(t, tableResult.Error, table)
+		assert.Equal(t, 0, tableResult.Invalid, table)
+	}
+
+	provider.aad = aadColumn
+
+	totp, err := provider.LoadTOTPConfiguration(ctx, "john")
+
+	require.NoError(t, err)
+	assert.Equal(t, totpSecret, totp.Secret)
+
+	session, err := provider.LoadOAuth2Session(ctx, OAuth2SessionTypeAccessToken, "sig-123")
+
+	require.NoError(t, err)
+	assert.Equal(t, sessionData, session.Session)
+
+	require.NoError(t, provider.Close())
+}
+
+func TestSchemaMigrateDownThroughColumnScopedThenBackUp(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "db.sqlite3")
+
+	totpSecret := []byte("JBSWY3DPEHPK3PXP")
+	sessionData := []byte(`{"access":"token"}`)
+
+	ctx := context.Background()
+
+	provider := newTestSQLiteProviderAtPath(t, path)
+
+	require.NoError(t, provider.SchemaMigrate(ctx, true, SchemaLatest))
+
+	require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+		CreatedAt: time.Now().Truncate(time.Second),
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    totpSecret,
+	}))
+
+	require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, model.OAuth2Session{
+		RequestID: "req-123",
+		Signature: "sig-123",
+		Session:   sessionData,
+	}))
+
+	require.NoError(t, provider.Close())
+
+	provider = newTestSQLiteProviderAtPath(t, path)
+
+	require.NoError(t, provider.SchemaMigrate(ctx, false, schemaVersionEncryptionKeyDerivation))
+	require.NoError(t, provider.Close())
+
+	provider = newTestSQLiteProviderAtPath(t, path)
+
+	require.NoError(t, provider.SchemaMigrate(ctx, false, schemaVersionEncryptionKeyDerivation-1))
+
+	version, err := provider.SchemaVersion(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, schemaVersionEncryptionKeyDerivation-1, version)
+
+	result, err := provider.SchemaEncryptionCheckKey(ctx, true)
+
+	require.NoError(t, err)
+	assert.False(t, result.InvalidCheckValue)
+
+	for table, tableResult := range result.Tables {
+		assert.NoError(t, tableResult.Error, table)
+		assert.Equal(t, 0, tableResult.Invalid, table)
+	}
+
+	require.NoError(t, provider.Close())
+
+	provider = newTestSQLiteProviderAtPath(t, path)
+
+	require.NoError(t, provider.SchemaMigrate(ctx, true, SchemaLatest))
+
+	totp, err := provider.LoadTOTPConfiguration(ctx, "john")
+
+	require.NoError(t, err)
+	assert.Equal(t, totpSecret, totp.Secret)
+
+	session, err := provider.LoadOAuth2Session(ctx, OAuth2SessionTypeAccessToken, "sig-123")
+
+	require.NoError(t, err)
+	assert.Equal(t, sessionData, session.Session)
+
+	require.NoError(t, provider.Close())
+}
+
+func TestSchemaMigrateRollbackWithoutTx(t *testing.T) {
+	totpSecret := []byte("JBSWY3DPEHPK3PXP")
+
+	ctx := context.Background()
+
+	provider := newTestSQLiteProvider(t)
+
+	require.NoError(t, provider.SchemaMigrate(ctx, true, SchemaLatest))
+
+	require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+		CreatedAt: time.Now().Truncate(time.Second),
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    totpSecret,
+	}))
+
+	err := provider.schemaMigrateRollbackWithoutTx(ctx, schemaVersionEncryptionKeyDerivation-1, schemaVersionEncryptionAADRowScoped, errors.New("migration failed"))
+
+	assert.EqualError(t, err, "migration rollback complete. rollback caused by: migration failed")
+
+	version, err := provider.SchemaVersion(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, schemaVersionEncryptionKeyDerivation-1, version)
+
+	result, err := provider.SchemaEncryptionCheckKey(ctx, true)
+
+	require.NoError(t, err)
+	assert.False(t, result.InvalidCheckValue)
+
+	for table, tableResult := range result.Tables {
+		assert.NoError(t, tableResult.Error, table)
+		assert.Equal(t, 0, tableResult.Invalid, table)
+	}
+}
+
+func TestSchemaMigrateRollbackWithoutTxShouldErrOnUnknownMigrations(t *testing.T) {
+	ctx := context.Background()
+
+	provider := newTestSQLiteProvider(t)
+
+	require.NoError(t, provider.SchemaMigrate(ctx, true, SchemaLatest))
+
+	err := provider.schemaMigrateRollbackWithoutTx(ctx, SchemaLatest, SchemaLatest, errors.New("migration failed"))
+
+	assert.EqualError(t, err, "error loading migrations from version 2147483647 to version 2147483647 for rollback: current version is same as migration target, no action being taken. rollback caused by: migration failed")
 }
 
 func TestSchemaMigrateDownFromRowScopedAAD(t *testing.T) {

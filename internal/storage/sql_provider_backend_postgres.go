@@ -283,11 +283,13 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 	default:
 		var caCertPool *x509.CertPool
 
-		switch ca {
-		case nil:
+		if globalCACertPool == nil {
+			caCertPool = x509.NewCertPool()
+		} else {
 			caCertPool = globalCACertPool.Clone()
-		default:
-			caCertPool = globalCACertPool.Clone()
+		}
+
+		if ca != nil {
 			caCertPool.AddCert(ca)
 		}
 

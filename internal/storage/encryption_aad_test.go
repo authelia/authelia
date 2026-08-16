@@ -42,6 +42,82 @@ func TestEncryptionAAD(t *testing.T) {
 	}
 }
 
+func TestEncryptionAADIsEncryptionAAD(t *testing.T) {
+	testCases := []struct {
+		name string
+		aad  EncryptionAAD
+	}{
+		{
+			name: "ShouldImplementNone",
+			aad:  aadNone,
+		},
+		{
+			name: "ShouldImplementColumn",
+			aad:  aadColumn,
+		},
+		{
+			name: "ShouldImplementRow",
+			aad:  aadRow,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.True(t, tc.aad.IsEncryptionAAD())
+		})
+	}
+}
+
+func TestAADForSchemaVersion(t *testing.T) {
+	testCases := []struct {
+		name     string
+		version  int
+		expected EncryptionAAD
+	}{
+		{
+			name:     "ShouldReturnNoneForFreshSchema",
+			version:  0,
+			expected: aadNone,
+		},
+		{
+			name:     "ShouldReturnNoneForSchemaOne",
+			version:  1,
+			expected: aadNone,
+		},
+		{
+			name:     "ShouldReturnNoneForSchemaBelowKeyDerivation",
+			version:  schemaVersionEncryptionKeyDerivation - 1,
+			expected: aadNone,
+		},
+		{
+			name:     "ShouldReturnColumnForSchemaKeyDerivation",
+			version:  schemaVersionEncryptionKeyDerivation,
+			expected: aadColumn,
+		},
+		{
+			name:     "ShouldReturnRowForSchemaRowScoped",
+			version:  schemaVersionEncryptionAADRowScoped,
+			expected: aadRow,
+		},
+		{
+			name:     "ShouldReturnRowForSchemaAboveRowScoped",
+			version:  schemaVersionEncryptionAADRowScoped + 1,
+			expected: aadRow,
+		},
+		{
+			name:     "ShouldReturnRowForLatestSchema",
+			version:  SchemaLatest,
+			expected: aadRow,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, aadForSchemaVersion(tc.version))
+		})
+	}
+}
+
 func TestEncryptionAADIssuer(t *testing.T) {
 	testCases := []struct {
 		name     string

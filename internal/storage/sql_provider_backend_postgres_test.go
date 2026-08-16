@@ -259,6 +259,90 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 	}
 }
 
+func TestLoadPostgreSQLLegacyTLSConfig(t *testing.T) {
+	testCases := []struct {
+		name             string
+		mode             string
+		rootCertificate  string
+		globalCACertPool *x509.CertPool
+		nilTLSConfig     bool
+	}{
+		{
+			name:             "ShouldReturnNilOnDisable",
+			mode:             "disable",
+			globalCACertPool: x509.NewCertPool(),
+			nilTLSConfig:     true,
+		},
+		{
+			name:             "ShouldHandleNilGlobalCACertPool",
+			mode:             "require",
+			globalCACertPool: nil,
+		},
+		{
+			name:             "ShouldHandleNilGlobalCACertPoolWithRootCertificate",
+			mode:             "verify-ca",
+			rootCertificate:  "../configuration/test_resources/crypto/ca.rsa.2048.crt",
+			globalCACertPool: nil,
+		},
+		{
+			name:             "ShouldHandleGlobalCACertPool",
+			mode:             "require",
+			globalCACertPool: x509.NewCertPool(),
+		},
+		{
+			name:             "ShouldHandleGlobalCACertPoolWithRootCertificate",
+			mode:             "verify-ca",
+			rootCertificate:  "../configuration/test_resources/crypto/ca.rsa.2048.crt",
+			globalCACertPool: x509.NewCertPool(),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.StoragePostgreSQL{
+				SSL: &schema.StoragePostgreSQLSSL{
+					Mode:            tc.mode,
+					RootCertificate: tc.rootCertificate,
+				},
+			}
+
+			var tlsConfig *tls.Config
+
+			require.NotPanics(t, func() {
+				tlsConfig = loadPostgreSQLLegacyTLSConfig(config, tc.globalCACertPool)
+			})
+
+			if tc.nilTLSConfig {
+				assert.Nil(t, tlsConfig)
+
+				return
+			}
+
+			require.NotNil(t, tlsConfig)
+			assert.NotNil(t, tlsConfig.RootCAs)
+		})
+	}
+}
+
+func TestLoadPostgreSQLLegacyTLSConfigShouldNotMutateGlobalCACertPool(t *testing.T) {
+	globalCACertPool := x509.NewCertPool()
+
+	config := &schema.StoragePostgreSQL{
+		SSL: &schema.StoragePostgreSQLSSL{
+			Mode:            "verify-ca",
+			RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
+		},
+	}
+
+	tlsConfig := loadPostgreSQLLegacyTLSConfig(config, globalCACertPool)
+
+	require.NotNil(t, tlsConfig)
+	require.NotNil(t, tlsConfig.RootCAs)
+
+	assert.True(t, globalCACertPool.Equal(x509.NewCertPool()))
+	assert.False(t, globalCACertPool.Equal(tlsConfig.RootCAs))
+}
+
 func TestDSNPostgreSQLFallbacks(t *testing.T) {
 	mkAddress := func(t *testing.T, raw string) *schema.AddressTCP {
 		t.Helper()

@@ -1359,11 +1359,17 @@ func TestSQLProviderOAuth2SessionAllTypes(t *testing.T) {
 func newTestSQLiteProvider(t *testing.T) *SQLiteProvider {
 	t.Helper()
 
+	return newTestSQLiteProviderAtPath(t, filepath.Join(t.TempDir(), "db.sqlite3"))
+}
+
+func newTestSQLiteProviderAtPath(t *testing.T, path string) *SQLiteProvider {
+	t.Helper()
+
 	config := &schema.Configuration{
 		Storage: schema.Storage{
 			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
-				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+				Path: path,
 			},
 		},
 	}
