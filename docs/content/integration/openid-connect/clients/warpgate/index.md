@@ -101,9 +101,9 @@ sso_providers:
 
 ## See Also
 
-- [Warpgate OpenID Connect Documentation](https://github.com/warp-tech/warpgate/wiki/SSO-Authentication)
+- [Warpgate OpenID Connect Documentation](https://warpgate.null.page/sso/)
 
 [Authelia]: https://www.authelia.com
-[Warpgate]: https://github.com/warp-tech/warpgate
+[Warpgate]: https://warpgate.null.page/
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
