@@ -208,6 +208,53 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 	suite.Len(suite.val.Errors(), 0)
 }
 
+func (suite *StorageSuite) TestShouldNotPanicOnPostgreSQLTLSWithoutAddress() {
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+			TLS:      &schema.TLS{},
+		},
+	}
+	suite.config.MySQL = nil
+
+	suite.Require().NotPanics(func() {
+		ValidateStorage(suite.config, suite.val)
+	})
+
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Require().Len(suite.val.Errors(), 1)
+	suite.EqualError(suite.val.Errors()[0], "storage: postgres: option 'address' is required")
+}
+
+func (suite *StorageSuite) TestShouldNotPanicOnPostgreSQLServerTLSWithoutAddress() {
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		Servers: []schema.StoragePostgreSQLServer{
+			{
+				TLS: &schema.TLS{},
+			},
+		},
+	}
+	suite.config.MySQL = nil
+
+	suite.Require().NotPanics(func() {
+		ValidateStorage(suite.config, suite.val)
+	})
+
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Require().Len(suite.val.Errors(), 1)
+	suite.EqualError(suite.val.Errors()[0], "storage: postgres: servers: #1: option 'address' is required")
+}
+
 func (suite *StorageSuite) TestShouldValidatePostgresSchemaDefault() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{

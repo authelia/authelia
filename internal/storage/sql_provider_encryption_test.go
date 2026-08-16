@@ -156,6 +156,15 @@ func TestSchemaEncryptionChangeKeyWithData(t *testing.T) {
 	}
 }
 
+func TestSchemaEncryptionChangeKeyAtColumnScopedSchema(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+
+	ctx := context.Background()
+
+	require.NoError(t, provider.SchemaMigrate(ctx, true, schemaVersionEncryptionKeyDerivation))
+	require.NoError(t, provider.SchemaEncryptionChangeKey(ctx, "authelia-new-key-not-a-secret-authelia-new-key-not-a-secret"))
+}
+
 func TestSchemaEncryptionChangeKeyShouldRollbackOnCorruptData(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -624,6 +633,122 @@ func TestSchemaEncryptionCheckKeyShouldReportTableQueryErrors(t *testing.T) {
 			assert.Error(t, result.Tables[tc.table].Error)
 		})
 	}
+}
+
+func TestSchemaEncryptionChangeKeyPopulatesRowScopes(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	var values []encEncryption
+
+	require.NoError(t, provider.db.SelectContext(ctx, &values, fmt.Sprintf(queryFmtSelectEncryptionEncryptedData, tableEncryption)))
+	require.NotEmpty(t, values)
+
+	for _, value := range values {
+		assert.NotEmpty(t, value.Name)
+	}
+}
+
+func TestRowScopedAADRejectsSubstitutedCiphertext(t *testing.T) {
+	testCases := []struct {
+		name   string
+		table  string
+		column string
+		rowA   string
+		rowB   string
+	}{
+		{
+			name:   "ShouldRejectSubstitutedTOTPSecret",
+			table:  tableTOTPConfigurations,
+			column: columnSecret,
+			rowA:   "john",
+			rowB:   "harry",
+		},
+		{
+			name:   "ShouldRejectSubstitutedEncryptionValue",
+			table:  tableEncryption,
+			column: columnValue,
+			rowA:   "hmac_key_otc",
+			rowB:   "hmac_key_otp",
+		},
+		{
+			name:   "ShouldRejectSubstitutedOneTimeCode",
+			table:  tableOneTimeCode,
+			column: columnCode,
+			rowA:   "signature-a",
+			rowB:   "signature-b",
+		},
+		{
+			name:   "ShouldRejectSubstitutedCachedData",
+			table:  tableCachedData,
+			column: columnValue,
+			rowA:   "name-a",
+			rowB:   "name-b",
+		},
+	}
+
+	key := make([]byte, 32)
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ciphertext, err := utils.Encrypt([]byte("secret-value"), aadRow.Get(tc.table, tc.column, tc.rowA), key)
+			require.NoError(t, err)
+
+			plaintext, err := utils.Decrypt(ciphertext, aadRow.Get(tc.table, tc.column, tc.rowA), key)
+
+			require.NoError(t, err)
+			assert.Equal(t, []byte("secret-value"), plaintext)
+
+			_, err = utils.Decrypt(ciphertext, aadRow.Get(tc.table, tc.column, tc.rowB), key)
+
+			assert.EqualError(t, err, "cipher: message authentication failed")
+		})
+	}
+}
+
+func TestRowScopedIssuerAADRejectsSubstitutedCredential(t *testing.T) {
+	key := make([]byte, 32)
+
+	ciphertext, err := utils.Encrypt([]byte("public-key"), aadRow.GetIssuer(tableWebAuthnCredentials, "public_key", "kid-a", "example.com"), key)
+	require.NoError(t, err)
+
+	_, err = utils.Decrypt(ciphertext, aadRow.GetIssuer(tableWebAuthnCredentials, "public_key", "kid-b", "example.com"), key)
+
+	assert.EqualError(t, err, "cipher: message authentication failed")
+
+	_, err = utils.Decrypt(ciphertext, aadRow.GetIssuer(tableWebAuthnCredentials, "public_key", "kid-a", "other.example.com"), key)
+
+	assert.EqualError(t, err, "cipher: message authentication failed")
+}
+
+func TestStorageRejectsSwappedTOTPSecrets(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	for _, username := range []string{"john", "harry"} {
+		config := model.TOTPConfiguration{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Username:  username,
+			Issuer:    "example.com",
+			Algorithm: "SHA1",
+			Digits:    6,
+			Period:    30,
+			Secret:    []byte("secret-" + username),
+		}
+
+		require.NoError(t, provider.SaveTOTPConfiguration(ctx, config))
+	}
+
+	_, err := provider.db.ExecContext(ctx, fmt.Sprintf(`UPDATE %s SET secret = (SELECT secret FROM %s WHERE username = 'harry') WHERE username = 'john';`, tableTOTPConfigurations, tableTOTPConfigurations))
+	require.NoError(t, err)
+
+	_, err = provider.LoadTOTPConfiguration(ctx, "john")
+
+	assert.EqualError(t, err, "error decrypting TOTP secret for user 'john': cipher: message authentication failed")
 }
 
 func newTestSQLiteProviderWithEncryption(t *testing.T) *SQLiteProvider {

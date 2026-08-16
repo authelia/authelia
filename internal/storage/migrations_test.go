@@ -17,7 +17,7 @@ import (
 
 const (
 	// This is the latest schema version for the purpose of tests.
-	LatestVersion = 25
+	LatestVersion = 26
 )
 
 func TestShouldObtainCorrectMigrations(t *testing.T) {
@@ -270,7 +270,14 @@ func TestMigrationSpecialUp24(t *testing.T) {
 			ctx := context.Background()
 
 			if tc.seed != nil {
+				key, aad := provider.keys.encryption, provider.aad
+
+				provider.keys.encryption = utils.DeriveLegacyCryptographicKey([]byte(provider.config.Storage.EncryptionKey))
+				provider.aad = aadNone
+
 				tc.seed(t, provider, ctx)
+
+				provider.keys.encryption, provider.aad = key, aad
 			}
 
 			require.NoError(t, migrationSpecialUp24(ctx, provider.db, &provider.SQLProvider, 0, 0, 0, 0))

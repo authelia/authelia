@@ -288,7 +288,13 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnectio
 
 		if migration.Version == 1 && migration.Up {
 			// Add the schema encryption value if upgrading to v1.
-			if err = p.setNewEncryptionCheckValue(ctx, conn, p.keys.encryption); err != nil {
+			key := p.keys.encryption
+
+			if target < schemaVersionEncryptionKeyDerivation {
+				key = utils.DeriveLegacyCryptographicKey([]byte(p.config.Storage.EncryptionKey))
+			}
+
+			if err = p.setNewEncryptionCheckValue(ctx, conn, key, aadForSchemaVersion(target)); err != nil {
 				return err
 			}
 		}
@@ -358,7 +364,7 @@ func (p *SQLProvider) schemaMigrateRollbackWithoutTx(ctx context.Context, prior,
 	}
 
 	for _, migration := range migrations {
-		if err = p.schemaMigrateApply(ctx, p.db, migration, prior, prior); err != nil {
+		if err = p.schemaMigrateApply(ctx, p.db, migration, after, prior); err != nil {
 			return fmt.Errorf("error applying migration version %d to version %d for rollback: %+v. rollback caused by: %w", migration.Before(), migration.After(), err, merr)
 		}
 	}

@@ -123,6 +123,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectMigrations = provider.db.Rebind(provider.sqlSelectMigrations)
 	provider.sqlSelectLatestMigration = provider.db.Rebind(provider.sqlSelectLatestMigration)
 
+	provider.sqlInsertEncryptionValue = provider.db.Rebind(provider.sqlInsertEncryptionValue)
 	provider.sqlSelectEncryptionValue = provider.db.Rebind(provider.sqlSelectEncryptionValue)
 
 	provider.sqlSelectOAuth2ConsentPreConfigurations = provider.db.Rebind(provider.sqlSelectOAuth2ConsentPreConfigurations)
@@ -284,9 +285,9 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 
 		switch ca {
 		case nil:
-			caCertPool = globalCACertPool
+			caCertPool = globalCACertPool.Clone()
 		default:
-			caCertPool = globalCACertPool
+			caCertPool = globalCACertPool.Clone()
 			caCertPool.AddCert(ca)
 		}
 

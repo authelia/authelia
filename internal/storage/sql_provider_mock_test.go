@@ -1339,6 +1339,125 @@ func TestSQLProviderConsumeRevokeOneTimeCodeRowsAffected(t *testing.T) {
 	}
 }
 
+func TestSQLProviderConsumeRevokeIdentityVerificationRowsAffected(t *testing.T) {
+	testCases := []struct {
+		name      string
+		setup     func(db *mocks.MockSQLXDB, result *mocks.MockSQLResult)
+		invoke    func(p *storage.SQLProvider) error
+		expectErr string
+	}{
+		{
+			name: "ShouldErrConsumeWhenRowsAffectedErrors",
+			setup: func(db *mocks.MockSQLXDB, result *mocks.MockSQLResult) {
+				result.EXPECT().RowsAffected().Return(int64(0), errors.New("ra-err"))
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "jti").Return(result, nil)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ConsumeIdentityVerification(context.Background(), "jti", model.NullIP{})
+			},
+			expectErr: "error occurred determining the number of affected rows: ra-err",
+		},
+		{
+			name: "ShouldErrConsumeWhenNoRowsAffected",
+			setup: func(db *mocks.MockSQLXDB, result *mocks.MockSQLResult) {
+				result.EXPECT().RowsAffected().Return(int64(0), nil)
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "jti").Return(result, nil)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ConsumeIdentityVerification(context.Background(), "jti", model.NullIP{})
+			},
+			expectErr: "no rows affected",
+		},
+		{
+			name: "ShouldErrConsumeWhenMultipleRowsAffected",
+			setup: func(db *mocks.MockSQLXDB, result *mocks.MockSQLResult) {
+				result.EXPECT().RowsAffected().Return(int64(2), nil)
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "jti").Return(result, nil)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ConsumeIdentityVerification(context.Background(), "jti", model.NullIP{})
+			},
+			expectErr: "multiple rows affected",
+		},
+		{
+			name: "ShouldSucceedConsumeIdentityVerification",
+			setup: func(db *mocks.MockSQLXDB, result *mocks.MockSQLResult) {
+				result.EXPECT().RowsAffected().Return(int64(1), nil)
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "jti").Return(result, nil)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.ConsumeIdentityVerification(context.Background(), "jti", model.NullIP{})
+			},
+		},
+		{
+			name: "ShouldErrRevokeWhenRowsAffectedErrors",
+			setup: func(db *mocks.MockSQLXDB, result *mocks.MockSQLResult) {
+				result.EXPECT().RowsAffected().Return(int64(0), errors.New("ra-err"))
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "jti").Return(result, nil)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.RevokeIdentityVerification(context.Background(), "jti", model.NullIP{})
+			},
+			expectErr: "error occurred determining the number of affected rows: ra-err",
+		},
+		{
+			name: "ShouldErrRevokeWhenNoRowsAffected",
+			setup: func(db *mocks.MockSQLXDB, result *mocks.MockSQLResult) {
+				result.EXPECT().RowsAffected().Return(int64(0), nil)
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "jti").Return(result, nil)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.RevokeIdentityVerification(context.Background(), "jti", model.NullIP{})
+			},
+			expectErr: "no rows affected",
+		},
+		{
+			name: "ShouldErrRevokeWhenMultipleRowsAffected",
+			setup: func(db *mocks.MockSQLXDB, result *mocks.MockSQLResult) {
+				result.EXPECT().RowsAffected().Return(int64(2), nil)
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "jti").Return(result, nil)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.RevokeIdentityVerification(context.Background(), "jti", model.NullIP{})
+			},
+			expectErr: "multiple rows affected",
+		},
+		{
+			name: "ShouldSucceedRevokeIdentityVerification",
+			setup: func(db *mocks.MockSQLXDB, result *mocks.MockSQLResult) {
+				result.EXPECT().RowsAffected().Return(int64(1), nil)
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), "jti").Return(result, nil)
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.RevokeIdentityVerification(context.Background(), "jti", model.NullIP{})
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			db := mocks.NewMockSQLXDB(ctrl)
+			result := mocks.NewMockSQLResult(ctrl)
+			p := storage.NewSQLProviderForTesting(db)
+
+			if tc.setup != nil {
+				tc.setup(db, result)
+			}
+
+			err := tc.invoke(p)
+
+			if tc.expectErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.expectErr)
+			}
+		})
+	}
+}
+
 func TestSQLProviderUpdateWebAuthnCredentialSignInUsesConn(t *testing.T) {
 	t.Run("ShouldUseConnectionFromContext", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
@@ -1350,7 +1469,8 @@ func TestSQLProviderUpdateWebAuthnCredentialSignInUsesConn(t *testing.T) {
 		conn.EXPECT().ExecContext(gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any(), gomock.Any(),
-			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("boom"))
+			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+			gomock.Any(), gomock.Any()).Return(nil, errors.New("boom"))
 
 		p := storage.NewSQLProviderForTesting(db)
 
@@ -2204,7 +2324,7 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialByIDDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key::example.com"))
 				require.NoError(t, err)
 
 				db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), 7).DoAndReturn(
@@ -2247,7 +2367,7 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialsDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key::example.com"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), 10, 0).DoAndReturn(
@@ -2286,7 +2406,7 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnCredentialsByUsernameDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key::example.com"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), "example.com", "john", false).DoAndReturn(
@@ -2325,7 +2445,7 @@ func TestSQLProviderDecryptErrorPaths(t *testing.T) {
 		{
 			name: "ShouldErrLoadWebAuthnPasskeyCredentialsByUsernameDecryptAttestation",
 			setup: func(db *mocks.MockSQLXDB) {
-				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:example.com:public_key"))
+				validPK, err := encryptForTesting([]byte("public-key"), []byte("authelia:storage:webauthn_credentials:public_key::example.com"))
 				require.NoError(t, err)
 
 				db.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), "example.com", "john", true).DoAndReturn(

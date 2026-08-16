@@ -28,6 +28,7 @@ func NewSQLProviderForTesting(db SQLXDB) *SQLProvider {
 		keys: SQLProviderKeys{
 			encryption: key,
 		},
+		aad: aadRow,
 	}
 }
 
@@ -41,6 +42,7 @@ func NewSQLProviderForTestingWithKey(db SQLXDB, key []byte) *SQLProvider {
 		keys: SQLProviderKeys{
 			encryption: key,
 		},
+		aad: aadRow,
 	}
 }
 
