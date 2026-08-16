@@ -8,6 +8,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -40,6 +41,8 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 
 	for _, provisioner := range provisioners {
 		if service, err := provisioner(rctx); err != nil {
+			shutdown(log, services)
+
 			return fmt.Errorf("error occurred provisioning services: %w", err)
 		} else if service != nil {
 			services = append(services, service)
@@ -63,25 +66,7 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 
 	log.Info("Shutdown initiated")
 
-	wgShutdown := &sync.WaitGroup{}
-
-	log.Tracef("Shutdown of %d services is required", len(services))
-
-	for _, service := range services {
-		wgShutdown.Add(1)
-
-		go func(service Provider) {
-			service.Log().Trace("Shutdown of service initiated")
-
-			service.Shutdown()
-
-			wgShutdown.Done()
-
-			service.Log().Trace("Shutdown of service complete")
-		}(service)
-	}
-
-	wgShutdown.Wait()
+	shutdown(log, services)
 
 	if err = ctx.GetProviders().UserProvider.Close(); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred closing authentication connections")
@@ -98,6 +83,29 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	log.Info("Shutdown complete")
 
 	return nil
+}
+
+// shutdown performs the shutdown of every provided service concurrently, returning when all of them have completed.
+func shutdown(log *logrus.Entry, services []Provider) {
+	wg := &sync.WaitGroup{}
+
+	log.Tracef("Shutdown of %d services is required", len(services))
+
+	for _, service := range services {
+		wg.Add(1)
+
+		go func(service Provider) {
+			defer wg.Done()
+
+			service.Log().Trace("Shutdown of service initiated")
+
+			service.Shutdown()
+
+			service.Log().Trace("Shutdown of service complete")
+		}(service)
+	}
+
+	wg.Wait()
 }
 
 func connectionType(isTLS bool) string {

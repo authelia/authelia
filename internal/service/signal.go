@@ -3,6 +3,7 @@ package service
 import (
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/sirupsen/logrus"
@@ -36,6 +37,7 @@ type Signal struct {
 
 	notify chan os.Signal
 	quit   chan struct{}
+	stop   sync.Once
 }
 
 // ServiceType returns the service type for this service, which is always 'signal'.
@@ -61,16 +63,18 @@ func (service *Signal) Run() (err error) {
 				service.log.WithFields(map[string]any{"signal-received": s.String()}).Debug("Successfully executed service action.")
 			}
 		case <-service.quit:
-			return
+			return nil
 		}
 	}
 }
 
 // Shutdown the ServerService.
 func (service *Signal) Shutdown() {
-	signal.Stop(service.notify)
+	service.stop.Do(func() {
+		signal.Stop(service.notify)
 
-	service.quit <- struct{}{}
+		close(service.quit)
+	})
 }
 
 // Log returns the *logrus.Entry of the ServerService.
