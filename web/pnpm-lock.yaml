@@ -23,7 +23,7 @@ overrides:
   form-data: 4.0.6
   glob: 13.0.6
   import-meta-resolve: 4.2.0
-  js-yaml: 5.2.3
+  js-yaml: 5.3.0
   minimatch: 10.2.6
   nanoid: 3.3.18
   path-to-regexp: 8.4.2
@@ -2605,8 +2605,8 @@ packages:
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
-  js-yaml@5.2.3:
-    resolution: {integrity: sha512-n+mUVyUX5bVv7G/G2zyIHOhdxfuU1dY2NOFzTQUWiMUbFss8b57NFlgCCaggU78wSw5KVS9cllzeLyzyR+n5nw==}
+  js-yaml@5.3.0:
+    resolution: {integrity: sha512-muutsYr+e2+d3rTgUGslq5rxbBlUy3cJ61IsHag2QNDQV+7zXWjkUpmALIajhrlLlrgRUiymj6U3zUr/TMK84Q==}
     hasBin: true
 
   jsdom@27.4.0:
@@ -4520,7 +4520,7 @@ snapshots:
       camelcase: 5.3.1
       find-up: 4.1.0
       get-package-type: 0.1.0
-      js-yaml: 5.2.3
+      js-yaml: 5.3.0
       resolve-from: 5.0.0
 
   '@istanbuljs/schema@0.1.6': {}
@@ -5464,7 +5464,7 @@ snapshots:
   cosmiconfig@8.3.6(typescript@6.0.3):
     dependencies:
       import-fresh: 3.3.1
-      js-yaml: 5.2.3
+      js-yaml: 5.3.0
       parse-json: 5.2.0
       path-type: 4.0.0
     optionalDependencies:
@@ -5474,7 +5474,7 @@ snapshots:
     dependencies:
       env-paths: 2.2.1
       import-fresh: 3.3.1
-      js-yaml: 5.2.3
+      js-yaml: 5.3.0
       parse-json: 5.2.0
     optionalDependencies:
       typescript: 6.0.3
@@ -6477,7 +6477,7 @@ snapshots:
 
   js-tokens@4.0.0: {}
 
-  js-yaml@5.2.3:
+  js-yaml@5.3.0:
     dependencies:
       argparse: 2.0.1
 
