@@ -29,7 +29,3 @@ func handleAuthzGetObjectForwardAuth(ctx AuthzContext) (object authorization.Obj
 
 	return authorization.NewObjectRaw(targetURL, method), nil
 }
-
-func handleAuthzUnauthorizedForwardAuth(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
-	doAuthzRedirect(ctx, authn, redirectionURL, getAuthzRedirectStatusCode(ctx, authn.Object.Method))
-}

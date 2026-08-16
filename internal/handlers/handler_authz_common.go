@@ -10,6 +10,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+func handleAuthzUnauthorizedCommon(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
+	doAuthzRedirect(ctx, authn, redirectionURL, getAuthzRedirectStatusCode(ctx, authn.Object.Method))
+}
+
 func handleAuthzPortalURLLegacy(ctx AuthzContext) (portalURL *url.URL, err error) {
 	if portalURL, err = handleAuthzPortalURLFromQueryLegacy(ctx); err != nil || portalURL != nil {
 		return portalURL, err
