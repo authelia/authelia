@@ -14,9 +14,19 @@ const (
 	logFieldOP        = "op"
 	logFieldProvider  = "provider"
 	logFieldFrequency = "frequency"
+	logFieldInterval  = "interval"
 
-	serviceTypeServer  = "server"
-	serviceTypeWatcher = "watcher"
-	serviceTypeSignal  = "signal"
-	serviceTypeGC      = "gc"
+	serviceTypeServer   = "server"
+	serviceTypeWatcher  = "watcher"
+	serviceTypeSignal   = "signal"
+	serviceTypeGC       = "gc"
+	serviceTypeWatchdog = "watchdog"
+
+	serviceNameSystemd = "systemd"
+	serviceNameReload  = "reload"
+)
+
+const (
+	statusReady    = "Authelia is ready"
+	statusStopping = "Authelia is shutting down"
 )
