@@ -43,21 +43,17 @@ func (r *Cryptographical) BytesCustomErr(n int, charset []byte) (data []byte, er
 		n = DefaultN
 	}
 
-	data = make([]byte, n)
+	if len(charset) == 0 {
+		data = make([]byte, n)
 
-	if _, err = rand.Read(data); err != nil {
-		return nil, err
-	}
-
-	t := len(charset)
-
-	if t > 0 {
-		for i := 0; i < n; i++ {
-			data[i] = charset[data[i]%byte(t)] //nolint:gosec // This is safe.
+		if _, err = rand.Read(data); err != nil {
+			return nil, err
 		}
+
+		return data, nil
 	}
 
-	return data, nil
+	return bytesCharsetErr(rand.Reader, n, charset)
 }
 
 // StringCustomErr is an overload of BytesCustomWithErr which takes a characters string and returns a string.
