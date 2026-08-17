@@ -54,6 +54,8 @@ func (service *Signal) ServiceName() string {
 func (service *Signal) Run() (err error) {
 	signal.Notify(service.notify, service.signals...)
 
+	defer signal.Stop(service.notify)
+
 	for {
 		select {
 		case s := <-service.notify:
