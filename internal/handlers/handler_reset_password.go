@@ -47,6 +47,14 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if err = ctx.RegenerateSession(); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
+
+		ctx.Error(err, messageOperationFailed)
+
+		return
+	}
+
 	token, err = jwt.ParseWithClaims(body.Token, &model.IdentityVerificationClaim{},
 		func(token *jwt.Token) (any, error) {
 			return []byte(ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret), nil
@@ -144,6 +152,14 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.GetLogger().WithError(err).Error(errStrUserSessionData)
 		ctx.SetJSONError(messageUnableToResetPassword)
+
+		return
+	}
+
+	if err = ctx.RegenerateSession(); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
+
+		ctx.Error(err, messageUnableToResetPassword)
 
 		return
 	}
