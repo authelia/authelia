@@ -30,6 +30,14 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayer Delay
 			return
 		}
 
+		if err = ctx.RegenerateSession(); err != nil {
+			ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
+
+			ctx.Error(err, messageOperationFailed)
+
+			return
+		}
+
 		requestTime := time.Now()
 		success := false
 

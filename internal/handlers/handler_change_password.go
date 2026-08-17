@@ -37,6 +37,15 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if err = ctx.RegenerateSession(); err != nil {
+		ctx.GetLogger().WithError(err).
+			Error("Unable to change password for user: failed to regenerate session")
+		ctx.SetJSONError(messageUnableToChangePassword)
+		ctx.SetStatusCode(http.StatusInternalServerError)
+
+		return
+	}
+
 	userSession = *current
 
 	username := userSession.Username
