@@ -382,6 +382,8 @@ const (
 	errFmtSessionLegacyAndWarning     = "session: option 'domain' and option 'cookies' can't be specified at the same time"
 	errFmtSessionSameSite             = "session: option 'same_site' must be one of %s but it's configured as '%s'"
 	errFmtSessionStorage              = "session: option 'storage' must be one of %s but it's configured as '%s'"
+	errFmtSessionSecretRequired       = "session: option 'secret' is required when option 'storage' is configured as '%s'"
+	errStrSessionSecretFallback       = "session: option 'secret' is not configured so the storage option 'encryption_key' has been used to derive the session encryption key instead: it's strongly recommended you explicitly configure this option"
 
 	errFmtCacheMultipleProviders         = "cache: only one provider can be configured at a time but %s are configured"
 	errFmtCacheOptionRequired            = "cache: %s: option '%s' is required"
@@ -532,7 +534,7 @@ var (
 	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
 	validThemeNames                          = []string{"light", "dark", "grey", "oled", auto}
 	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
-	validSessionStorageValues                = []string{"cache", "internal"}
+	validSessionStorageValues                = []string{sessionStorageCache, sessionStorageInternal}
 	validCacheRedisSentinelModes             = []string{"cluster", "failover"}
 	validLogLevels                           = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
 	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}
@@ -583,6 +585,9 @@ const (
 	attrSessionAutheliaURL              = "authelia_url"
 	attrSessionDomain                   = "domain"
 	attrDefaultRedirectionURL           = "default_redirection_url"
+
+	sessionStorageCache    = "cache"
+	sessionStorageInternal = "internal"
 )
 
 var (

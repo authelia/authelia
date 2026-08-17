@@ -76,16 +76,35 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 
 // validateSessionStorage validates the options which determine where and how the session data is persisted.
 func validateSessionStorage(config *schema.Configuration, validator *schema.StructValidator) {
-	// The session data is always encrypted at rest with a key derived from this secret regardless of the storage
-	// provider in use, so it is unconditionally required rather than required only by particular providers.
-	if config.Session.Secret == "" {
-		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "secret"))
-	}
-
 	if config.Session.Storage == "" {
 		config.Session.Storage = schema.DefaultSessionConfiguration.Storage
 	} else if !utils.IsStringInSlice(config.Session.Storage, validSessionStorageValues) {
 		validator.Push(fmt.Errorf(errFmtSessionStorage, utils.StringJoinOr(validSessionStorageValues), config.Session.Storage))
+	}
+
+	validateSessionSecret(config, validator)
+}
+
+func validateSessionSecret(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Session.Secret != "" {
+		return
+	}
+
+	switch config.Session.Storage {
+	case sessionStorageInternal:
+		if config.Storage.EncryptionKey == "" {
+			validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "secret"))
+
+			return
+		}
+
+		config.Session.Secret = config.Storage.EncryptionKey
+
+		validator.PushWarning(errors.New(errStrSessionSecretFallback))
+	case sessionStorageCache:
+		validator.Push(fmt.Errorf(errFmtSessionSecretRequired, sessionStorageCache))
+	default:
+		validator.Push(fmt.Errorf(errFmtSessionOptionRequired, "secret"))
 	}
 }
 

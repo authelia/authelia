@@ -26,6 +26,114 @@ func newDefaultSessionConfig() schema.Configuration {
 	return schema.Configuration{Session: config}
 }
 
+func TestValidateSessionSecret(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     schema.Configuration
+		expected string
+		warns    []string
+		errs     []string
+	}{
+		{
+			"ShouldNotOverrideConfiguredSecret",
+			schema.Configuration{
+				Session: schema.Session{Secret: testJWTSecret, Storage: sessionStorageInternal},
+				Storage: schema.Storage{EncryptionKey: testEncryptionKey},
+			},
+			testJWTSecret,
+			nil,
+			nil,
+		},
+		{
+			"ShouldUseStorageEncryptionKeyWithInternalStorage",
+			schema.Configuration{
+				Session: schema.Session{Storage: sessionStorageInternal},
+				Storage: schema.Storage{EncryptionKey: testEncryptionKey},
+			},
+			testEncryptionKey,
+			[]string{
+				"session: option 'secret' is not configured so the storage option 'encryption_key' has been used to derive the session encryption key instead: it's strongly recommended you explicitly configure this option",
+			},
+			nil,
+		},
+		{
+			"ShouldUseStorageEncryptionKeyWithDefaultStorage",
+			schema.Configuration{
+				Storage: schema.Storage{EncryptionKey: testEncryptionKey},
+			},
+			testEncryptionKey,
+			[]string{
+				"session: option 'secret' is not configured so the storage option 'encryption_key' has been used to derive the session encryption key instead: it's strongly recommended you explicitly configure this option",
+			},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInternalStorageWithoutEncryptionKey",
+			schema.Configuration{
+				Session: schema.Session{Storage: sessionStorageInternal},
+			},
+			"",
+			nil,
+			[]string{
+				"session: option 'secret' is required",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnCacheStorage",
+			schema.Configuration{
+				Session: schema.Session{Storage: sessionStorageCache},
+				Storage: schema.Storage{EncryptionKey: testEncryptionKey},
+			},
+			"",
+			nil,
+			[]string{
+				"session: option 'secret' is required when option 'storage' is configured as 'cache'",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnUnknownStorage",
+			schema.Configuration{
+				Session: schema.Session{Storage: "redis"},
+				Storage: schema.Storage{EncryptionKey: testEncryptionKey},
+			},
+			"",
+			nil,
+			[]string{
+				"session: option 'storage' must be one of 'cache' or 'internal' but it's configured as 'redis'",
+				"session: option 'secret' is required",
+			},
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator.Clear()
+
+			have := tc.have
+
+			validateSessionStorage(&have, validator)
+
+			warns := validator.Warnings()
+			require.Len(t, warns, len(tc.warns))
+
+			for i, err := range warns {
+				assert.EqualError(t, err, tc.warns[i])
+			}
+
+			errs := validator.Errors()
+			require.Len(t, errs, len(tc.errs))
+
+			for i, err := range errs {
+				assert.EqualError(t, err, tc.errs[i])
+			}
+
+			assert.Equal(t, tc.expected, have.Session.Secret)
+		})
+	}
+}
+
 func TestShouldSetDefaultSessionValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultSessionConfig()
