@@ -9,6 +9,8 @@ import (
 	"syscall"
 
 	"golang.org/x/sync/errgroup"
+
+	"github.com/authelia/authelia/v4/internal/systemd"
 )
 
 func RunAll(ctx Context) (err error) {
@@ -50,7 +52,19 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 		group.Go(service.Run)
 	}
 
+	var notifier *systemd.Notifier
+
+	if notifier, err = systemd.NewNotifier(); err != nil {
+		log.WithError(err).Error("Error occurred initializing the service manager notifier")
+	}
+
+	defer notifier.Close()
+
 	log.Info("Startup complete")
+
+	if err = notifier.Ready(statusReady); err != nil {
+		log.WithError(err).Error("Error occurred notifying the service manager startup is complete")
+	}
 
 	select {
 	case s := <-quit:
@@ -62,6 +76,10 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	cancel()
 
 	log.Info("Shutdown initiated")
+
+	if err = notifier.Stopping(statusStopping); err != nil {
+		log.WithError(err).Error("Error occurred notifying the service manager shutdown has been initiated")
+	}
 
 	wgShutdown := &sync.WaitGroup{}
 
