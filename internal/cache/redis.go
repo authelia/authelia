@@ -14,6 +14,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -192,15 +193,21 @@ func (r *Redis) StartupCheck() (err error) {
 	return r.client.Ping(context.Background()).Err()
 }
 
-func (r *Redis) SessionGet(ctx context.Context, issuer, id string) (data []byte, err error) {
+func (r *Redis) SessionGet(ctx context.Context, issuer, id string) (record session.Record, err error) {
+	var data []byte
+
 	if data, err = r.client.Get(ctx, getSessionKey(issuer, id)).Bytes(); err != nil && !errors.Is(err, redis.Nil) {
 		return nil, err
 	}
 
-	return data, nil
+	if len(data) == 0 {
+		return nil, nil
+	}
+
+	return session.NewRecord(id, data), nil
 }
 
-func (r *Redis) SessionGetByPublicID(ctx context.Context, issuer, pid string) (data []byte, err error) {
+func (r *Redis) SessionGetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error) {
 	var id string
 
 	if id, err = r.client.Get(ctx, getSessionPublicKey(issuer, pid)).Result(); err != nil {
@@ -308,7 +315,10 @@ func (r *Redis) SessionDelete(ctx context.Context, issuer, id, pid, username str
 	return nil
 }
 
-func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration) (err error) {
+// SessionChangeID moves a session to a new id. The data is written rather than the old key being renamed, as the caller
+// reseals the session against the id it is stored under and the two must be updated together. A session which no longer
+// exists is not recreated.
+func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	oldKey := getSessionKey(issuer, oldID)
 
 	exists, err := r.client.Exists(ctx, oldKey).Result()
@@ -316,51 +326,52 @@ func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, use
 		return err
 	}
 
-	if exists > 0 {
-		key := getSessionKey(issuer, id)
-		userkey := getSessionUserKey(issuer, username)
+	if exists == 0 {
+		return nil
+	}
 
-		pipe := r.client.TxPipeline()
+	userkey := getSessionUserKey(issuer, username)
 
-		var (
-			zrem *redis.IntCmd
-			zadd *redis.IntCmd
-		)
+	pipe := r.client.TxPipeline()
 
-		rename := pipe.Rename(ctx, oldKey, key)
-		expire := pipe.Expire(ctx, key, expiration)
+	var (
+		zrem *redis.IntCmd
+		zadd *redis.IntCmd
+	)
 
-		set := pipe.Set(ctx, getSessionPublicKey(issuer, pid), id, expiration)
+	del := pipe.Del(ctx, oldKey)
 
-		if username != "" {
-			zrem = pipe.ZRem(ctx, userkey, oldID)
-			zadd = pipe.ZAdd(ctx, userkey, redis.Z{Score: getSessionScore(expiration), Member: id})
-		}
+	set := pipe.Set(ctx, getSessionKey(issuer, id), data, expiration)
+	setpub := pipe.Set(ctx, getSessionPublicKey(issuer, pid), id, expiration)
 
-		if _, err = pipe.Exec(ctx); err != nil {
+	if username != "" {
+		zrem = pipe.ZRem(ctx, userkey, oldID)
+		zadd = pipe.ZAdd(ctx, userkey, redis.Z{Score: getSessionScore(expiration), Member: id})
+	}
+
+	if _, err = pipe.Exec(ctx); err != nil {
+		return err
+	}
+
+	if err = del.Err(); err != nil {
+		return err
+	}
+
+	if err = set.Err(); err != nil {
+		return err
+	}
+
+	if err = setpub.Err(); err != nil {
+		return err
+	}
+
+	if username != "" {
+		if err = zrem.Err(); err != nil {
 			return err
 		}
 
-		if err = rename.Err(); err != nil {
+		if err = zadd.Err(); err != nil {
 			return err
-		}
-
-		if err = expire.Err(); err != nil {
-			return err
-		}
-
-		if err = set.Err(); err != nil {
-			return err
-		}
-
-		if username != "" {
-			if err = zrem.Err(); err != nil {
-				return err
-			}
-
-			if err = zadd.Err(); err != nil {
-				return err
-			}
 		}
 	}
 

@@ -380,12 +380,12 @@ const (
 			DO UPDATE SET public_id = $3, username = $4, expiration = $5, data = $6;`
 
 	queryFmtSelectSession = `
-		SELECT data
+		SELECT signature, data
 		FROM %s
 		WHERE issuer = ? AND signature = ? AND expiration > ?;`
 
 	queryFmtSelectSessionByPublicID = `
-		SELECT data
+		SELECT signature, data
 		FROM %s
 		WHERE issuer = ? AND public_id = ? AND expiration > ?;`
 
@@ -401,7 +401,7 @@ const (
 
 	queryFmtUpdateSessionSignature = `
 		UPDATE %s
-		SET signature = ?, expiration = ?
+		SET signature = ?, expiration = ?, data = ?
 		WHERE issuer = ? AND signature = ?;`
 
 	queryFmtDeleteSession = `

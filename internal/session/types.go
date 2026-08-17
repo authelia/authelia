@@ -58,15 +58,45 @@ type Strategy interface {
 	Destroy(ctx Context) (err error)
 }
 
+// The Record is a session as a Repository holds it. It carries the signature the session is stored against alongside
+// the sealed session itself, as the Codec requires the former to open the latter. A Repository returns a nil Record for
+// a session which doesn't exist or which has expired.
+type Record interface {
+	// GetSessionSignature returns the identifier the session is stored against, which is bound into the additional
+	// authenticated data the session is sealed with.
+	GetSessionSignature() (signature string)
+
+	// GetSessionData returns the sealed session.
+	GetSessionData() (data []byte)
+}
+
+// NewRecord returns a Record for the given signature and sealed session data.
+func NewRecord(signature string, data []byte) (record Record) {
+	return &defaultRecord{signature: signature, data: data}
+}
+
+type defaultRecord struct {
+	signature string
+	data      []byte
+}
+
+func (r *defaultRecord) GetSessionSignature() (signature string) {
+	return r.signature
+}
+
+func (r *defaultRecord) GetSessionData() (data []byte) {
+	return r.data
+}
+
 // The Repository is the backend storage implementation which holds the sessions for the Strategy.
 type Repository interface {
-	Get(ctx context.Context, issuer string, id string) (data []byte, err error)
-	GetByPublicID(ctx context.Context, issuer string, pid string) (data []byte, err error)
+	Get(ctx context.Context, issuer string, id string) (record Record, err error)
+	GetByPublicID(ctx context.Context, issuer string, pid string) (record Record, err error)
 	GetIDsByUsername(ctx context.Context, issuer string, username string) (ids []string, err error)
 	Save(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
 	SaveData(ctx context.Context, issuer string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
 	Delete(ctx context.Context, issuer string, id string, pid string, username string) (err error)
-	ChangeID(ctx context.Context, issuer string, oldID string, id string, pid string, username string, expiration time.Duration) (err error)
+	ChangeID(ctx context.Context, issuer string, oldID string, id string, pid string, username string, expiration time.Duration, data []byte) (err error)
 	GarbageCollection(ctx context.Context) (err error)
 	GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration)
 }
@@ -78,6 +108,6 @@ type Codec interface {
 	GenerateSessionID() (id string, err error)
 	Verify(data []byte, signature string) bool
 	Sign(data []byte) string
-	Seal(domain string, session UserSession) (data []byte, err error)
-	Open(domain string, session *UserSession, src []byte) (err error)
+	Seal(domain, id string, session UserSession) (data []byte, err error)
+	Open(domain string, record Record, session *UserSession) (err error)
 }

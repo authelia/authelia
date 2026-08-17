@@ -9,16 +9,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestMemory_SessionGetExpiry(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Expire   bool
-		Expected []byte
+		Expected session.Record
 	}{
-		{"ShouldReturnDataWhenUnexpired", false, []byte("data")},
-		{"ShouldReturnNoDataWhenExpired", true, nil},
+		{"ShouldReturnRecordWhenUnexpired", false, session.NewRecord("id", []byte("data"))},
+		{"ShouldReturnNoRecordWhenExpired", true, nil},
 	}
 
 	for _, tc := range testCases {
@@ -32,13 +34,13 @@ func TestMemory_SessionGetExpiry(t *testing.T) {
 				provider.session[provider.key("example.com", "id")].expires = time.Now().Add(-time.Second)
 			}
 
-			data, err := provider.SessionGet(ctx, "example.com", "id")
+			record, err := provider.SessionGet(ctx, "example.com", "id")
 			assert.NoError(t, err)
-			assert.Equal(t, tc.Expected, data)
+			assert.Equal(t, tc.Expected, record)
 
-			data, err = provider.SessionGetByPublicID(ctx, "example.com", "pid")
+			record, err = provider.SessionGetByPublicID(ctx, "example.com", "pid")
 			assert.NoError(t, err)
-			assert.Equal(t, tc.Expected, data)
+			assert.Equal(t, tc.Expected, record)
 
 			ids, err := provider.SessionGetIDsByUsername(ctx, "example.com", "john")
 			assert.NoError(t, err)
@@ -60,9 +62,9 @@ func TestMemory_SessionNeverExpiresWithZeroExpiration(t *testing.T) {
 
 	assert.True(t, provider.session[provider.key("example.com", "id")].expires.IsZero())
 
-	data, err := provider.SessionGet(ctx, "example.com", "id")
+	record, err := provider.SessionGet(ctx, "example.com", "id")
 	assert.NoError(t, err)
-	assert.Equal(t, []byte("data"), data)
+	assert.Equal(t, session.NewRecord("id", []byte("data")), record)
 }
 
 func TestMemory_SessionSaveDataRefreshesExpiry(t *testing.T) {
@@ -75,9 +77,9 @@ func TestMemory_SessionSaveDataRefreshesExpiry(t *testing.T) {
 
 	require.NoError(t, provider.SessionSaveData(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("updated")))
 
-	data, err := provider.SessionGet(ctx, "example.com", "id")
+	record, err := provider.SessionGet(ctx, "example.com", "id")
 	assert.NoError(t, err)
-	assert.Equal(t, []byte("updated"), data)
+	assert.Equal(t, session.NewRecord("id", []byte("updated")), record)
 }
 
 func TestMemory_SessionSaveDataNotFound(t *testing.T) {
@@ -121,23 +123,23 @@ func TestMemory_SessionChangeID(t *testing.T) {
 	provider := NewMemory()
 
 	require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
-	require.NoError(t, provider.SessionChangeID(ctx, "example.com", "id", "id2", "pid2", "john", time.Hour))
+	require.NoError(t, provider.SessionChangeID(ctx, "example.com", "id", "id2", "pid2", "john", time.Hour, []byte("resealed")))
 
-	data, err := provider.SessionGet(ctx, "example.com", "id2")
+	record, err := provider.SessionGet(ctx, "example.com", "id2")
 	assert.NoError(t, err)
-	assert.Equal(t, []byte("data"), data)
+	assert.Equal(t, session.NewRecord("id2", []byte("resealed")), record)
 
-	data, err = provider.SessionGet(ctx, "example.com", "id")
+	record, err = provider.SessionGet(ctx, "example.com", "id")
 	assert.NoError(t, err)
-	assert.Nil(t, data)
+	assert.Nil(t, record)
 
-	data, err = provider.SessionGetByPublicID(ctx, "example.com", "pid2")
+	record, err = provider.SessionGetByPublicID(ctx, "example.com", "pid2")
 	assert.NoError(t, err)
-	assert.Equal(t, []byte("data"), data)
+	assert.Equal(t, session.NewRecord("id2", []byte("resealed")), record)
 
-	data, err = provider.SessionGetByPublicID(ctx, "example.com", "pid")
+	record, err = provider.SessionGetByPublicID(ctx, "example.com", "pid")
 	assert.NoError(t, err)
-	assert.Nil(t, data)
+	assert.Nil(t, record)
 
 	assert.Len(t, provider.lookupPublicID, 1)
 	assert.Equal(t, []string{"id2"}, provider.lookupUsername[provider.key("example.com", "john")])
@@ -146,7 +148,7 @@ func TestMemory_SessionChangeID(t *testing.T) {
 func TestMemory_SessionChangeIDMissingSession(t *testing.T) {
 	provider := NewMemory()
 
-	assert.NoError(t, provider.SessionChangeID(context.Background(), "example.com", "id", "id2", "pid2", "john", time.Hour))
+	assert.NoError(t, provider.SessionChangeID(context.Background(), "example.com", "id", "id2", "pid2", "john", time.Hour, []byte("resealed")))
 	assert.Empty(t, provider.session)
 	assert.Empty(t, provider.lookupPublicID)
 	assert.Empty(t, provider.lookupUsername)

@@ -11,6 +11,8 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestRedis_SessionGet(t *testing.T) {
@@ -18,11 +20,11 @@ func TestRedis_SessionGet(t *testing.T) {
 		Name     string
 		Values   map[string]string
 		Err      error
-		Expected []byte
+		Expected session.Record
 		Error    string
 	}{
-		{"ShouldReturnDataWhenPresent", map[string]string{getSessionKey("example.com", "id"): "data"}, nil, []byte("data"), ""},
-		{"ShouldReturnNoDataWhenMissing", nil, nil, nil, ""},
+		{"ShouldReturnRecordWhenPresent", map[string]string{getSessionKey("example.com", "id"): "data"}, nil, session.NewRecord("id", []byte("data")), ""},
+		{"ShouldReturnNoRecordWhenMissing", nil, nil, nil, ""},
 		{"ShouldReturnErrorOnFailure", nil, errors.New("connection refused"), nil, "connection refused"},
 	}
 
@@ -30,15 +32,15 @@ func TestRedis_SessionGet(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			provider := NewRedis(&mockRedisCmdable{values: tc.Values, err: tc.Err}, "standalone")
 
-			data, err := provider.SessionGet(context.Background(), "example.com", "id")
+			record, err := provider.SessionGet(context.Background(), "example.com", "id")
 
 			if tc.Error == "" {
 				assert.NoError(t, err)
-				assert.Equal(t, tc.Expected, data)
 			} else {
 				assert.EqualError(t, err, tc.Error)
-				assert.Nil(t, data)
 			}
+
+			assert.Equal(t, tc.Expected, record)
 		})
 	}
 }
@@ -48,7 +50,7 @@ func TestRedis_SessionGetByPublicID(t *testing.T) {
 		Name     string
 		Values   map[string]string
 		Err      error
-		Expected []byte
+		Expected session.Record
 		Error    string
 	}{
 		{
@@ -57,11 +59,11 @@ func TestRedis_SessionGetByPublicID(t *testing.T) {
 				getSessionPublicKey("example.com", "pid"): "id",
 				getSessionKey("example.com", "id"):        "data",
 			},
-			nil, []byte("data"), "",
+			nil, session.NewRecord("id", []byte("data")), "",
 		},
-		{"ShouldReturnNoDataWhenPublicIDMissing", nil, nil, nil, ""},
+		{"ShouldReturnNoRecordWhenPublicIDMissing", nil, nil, nil, ""},
 		{
-			"ShouldReturnNoDataWhenSessionMissing",
+			"ShouldReturnNoRecordWhenSessionMissing",
 			map[string]string{getSessionPublicKey("example.com", "pid"): "id"},
 			nil, nil, "",
 		},
@@ -72,15 +74,15 @@ func TestRedis_SessionGetByPublicID(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			provider := NewRedis(&mockRedisCmdable{values: tc.Values, err: tc.Err}, "standalone")
 
-			data, err := provider.SessionGetByPublicID(context.Background(), "example.com", "pid")
+			record, err := provider.SessionGetByPublicID(context.Background(), "example.com", "pid")
 
 			if tc.Error == "" {
 				assert.NoError(t, err)
-				assert.Equal(t, tc.Expected, data)
 			} else {
 				assert.EqualError(t, err, tc.Error)
-				assert.Nil(t, data)
 			}
+
+			assert.Equal(t, tc.Expected, record)
 		})
 	}
 }

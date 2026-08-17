@@ -383,6 +383,112 @@ func TestDefaultStrategy_GetShouldRejectSessionSealedForAnotherDomain(t *testing
 	assert.Contains(t, err.Error(), "error occurred decoding session")
 }
 
+func TestDefaultStrategy_GetShouldRejectSessionMovedToAnotherRecord(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+	require.Len(t, repository.data, 1)
+
+	var data []byte
+
+	for _, value := range repository.data {
+		data = value
+	}
+
+	codec := newTestCodec(t)
+	cookie := "a-cookie-value-which-was-never-issued"
+
+	// The session is sealed against the identifier it is stored under, so the same data under a different identifier
+	// must not open even though it was sealed for this domain by this deployment.
+	require.NoError(t, repository.Save(ctx, codec.Sign([]byte(testDomain)), codec.Sign([]byte(cookie)), "a-public-id", testUsername, testExpiration, data))
+
+	ctx.cookies[testName] = cookie
+
+	_, err := strategy.Get(ctx)
+
+	assert.EqualError(t, err, "error occurred decoding session: unable to decrypt session: cipher: message authentication failed")
+}
+
+func TestDefaultStrategy_GetShouldRejectSessionWhenTheBackendReportsAnotherSignature(t *testing.T) {
+	strategy := newTestStrategyWithRepository(t, &mismatchedRepository{testRepository: newTestRepository()}, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	_, err := strategy.Get(ctx)
+
+	assert.EqualError(t, err, "error occurred getting session: signature does not match the session identifier")
+}
+
+func TestRepositoryShouldReturnASignatureWhichOpensASessionFoundByPublicID(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	codec := newTestCodec(t)
+
+	record, err := repository.GetByPublicID(ctx, codec.Sign([]byte(testDomain)), userSession.PublicID)
+
+	require.NoError(t, err)
+	require.NotNil(t, record)
+	require.NotEmpty(t, record.GetSessionData())
+	require.NotEmpty(t, record.GetSessionSignature())
+
+	// A public id lookup is the only way the signature is discovered, as it can't be derived from the public id, and
+	// without it the session it finds can't be opened.
+	actual := &UserSession{}
+
+	require.NoError(t, codec.Open(testDomain, record, actual))
+	assert.Equal(t, testUsername, actual.Username)
+}
+
+func TestDefaultStrategy_RegenerateShouldResealSessionAgainstTheNewIdentifier(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, nil)
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+	require.Len(t, repository.data, 1)
+
+	var sealed []byte
+
+	for _, value := range repository.data {
+		sealed = value
+	}
+
+	require.NoError(t, strategy.Regenerate(ctx))
+	require.Len(t, repository.data, 1)
+
+	var resealed []byte
+
+	for _, value := range repository.data {
+		resealed = value
+	}
+
+	assert.NotEqual(t, sealed, resealed)
+
+	actual, err := strategy.Get(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, testUsername, actual.Username)
+}
+
 func newTestStrategy(t *testing.T, modify func(config *schema.SessionCookie)) Strategy {
 	t.Helper()
 
@@ -406,10 +512,16 @@ func newTestStrategyWithRepository(t *testing.T, repository Repository, modify f
 		modify(&config)
 	}
 
-	codec, err := NewCodec("a-secret-value", []byte("an-hmac-key"), random.NewMathematical())
+	return NewStrategy(config, clock.New(), newTestCodec(t), repository)
+}
+
+func newTestCodec(t *testing.T) Codec {
+	t.Helper()
+
+	codec, err := NewCodec(testSecret, []byte(testHMACKey), random.NewMathematical())
 	require.NoError(t, err)
 
-	return NewStrategy(config, clock.New(), codec, repository)
+	return codec
 }
 
 type testContext struct {
@@ -457,17 +569,27 @@ func (r *testRepository) key(id, issuer string) string {
 	return issuer + ":" + id
 }
 
-func (r *testRepository) Get(_ context.Context, issuer, id string) (data []byte, err error) {
-	return r.data[r.key(id, issuer)], nil
+func (r *testRepository) Get(_ context.Context, issuer, id string) (record Record, err error) {
+	data, ok := r.data[r.key(id, issuer)]
+	if !ok {
+		return nil, nil
+	}
+
+	return NewRecord(id, data), nil
 }
 
-func (r *testRepository) GetByPublicID(_ context.Context, issuer, pid string) (data []byte, err error) {
+func (r *testRepository) GetByPublicID(_ context.Context, issuer, pid string) (record Record, err error) {
 	id, ok := r.publicIDs[r.key(pid, issuer)]
 	if !ok {
 		return nil, nil
 	}
 
-	return r.data[r.key(id, issuer)], nil
+	data, ok := r.data[r.key(id, issuer)]
+	if !ok {
+		return nil, nil
+	}
+
+	return NewRecord(id, data), nil
 }
 
 func (r *testRepository) GetIDsByUsername(_ context.Context, issuer, username string) (ids []string, err error) {
@@ -507,10 +629,14 @@ func (r *testRepository) Delete(_ context.Context, issuer, id, pid, username str
 	return nil
 }
 
-func (r *testRepository) ChangeID(_ context.Context, issuer, oldID, id, pid, username string, expiration time.Duration) (err error) {
+func (r *testRepository) ChangeID(_ context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	oldKey, key := r.key(oldID, issuer), r.key(id, issuer)
 
-	r.data[key] = r.data[oldKey]
+	if _, ok := r.data[oldKey]; !ok {
+		return nil
+	}
+
+	r.data[key] = data
 	r.expirations[key] = expiration
 
 	delete(r.data, oldKey)
@@ -529,7 +655,22 @@ func (r *testRepository) GarbageCollectionFrequency(_ context.Context) (frequenc
 	return 0
 }
 
+// mismatchedRepository reports a signature other than the one it was asked for, which is what a backend serving a
+// session from a record it wasn't fetched from would look like.
+type mismatchedRepository struct {
+	*testRepository
+}
+
+func (r *mismatchedRepository) Get(ctx context.Context, issuer, id string) (record Record, err error) {
+	if record, err = r.testRepository.Get(ctx, issuer, id); err != nil || record == nil {
+		return record, err
+	}
+
+	return NewRecord("a-signature-which-was-not-requested", record.GetSessionData()), nil
+}
+
 var (
 	_ Repository = (*testRepository)(nil)
+	_ Repository = (*mismatchedRepository)(nil)
 	_ Context    = (*testContext)(nil)
 )

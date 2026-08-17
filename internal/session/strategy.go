@@ -102,15 +102,15 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		}
 	}
 
-	if data, err = p.codec.Seal(p.config.Domain, *session); err != nil {
+	sid := p.codec.Sign([]byte(id))
+
+	if data, err = p.codec.Seal(p.config.Domain, sid, *session); err != nil {
 		return fmt.Errorf("error occurred encoding session: %w", err)
 	}
 
 	expiration := p.getExpiration(*session)
 
 	cookie := p.newCookie(id, p.getExpires(expiration))
-
-	sid := p.codec.Sign([]byte(id))
 
 	if err = p.repository.Save(ctx, p.issuer, sid, session.PublicID, session.Username, expiration, data); err != nil {
 		return fmt.Errorf("error occurred saving session to registry: %w", err)
@@ -142,7 +142,13 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 
 	// An anonymous request has no persisted session to rename, so issuing the new identifier is sufficient.
 	if len(oldSID) != 0 {
-		if err = p.repository.ChangeID(ctx, p.issuer, oldSID, sid, session.PublicID, session.Username, expiration); err != nil {
+		var data []byte
+
+		if data, err = p.codec.Seal(p.config.Domain, sid, *session); err != nil {
+			return fmt.Errorf("error occurred encoding session: %w", err)
+		}
+
+		if err = p.repository.ChangeID(ctx, p.issuer, oldSID, sid, session.PublicID, session.Username, expiration, data); err != nil {
 			return fmt.Errorf("error occurred changing session ID: %w", err)
 		}
 	}
@@ -198,23 +204,30 @@ func (p *DefaultStrategy) get(ctx Context) (id string, session *UserSession, err
 		return id, cached, nil
 	}
 
-	var data []byte
+	var record Record
 
-	if data, err = p.repository.Get(ctx, p.issuer, id); err != nil {
+	if record, err = p.repository.Get(ctx, p.issuer, id); err != nil {
 		return id, nil, fmt.Errorf("error occurred getting session from backend: %w", err)
 	}
 
-	// The backend returns no data and no error when the session is unknown or has expired, which is treated the same
+	// The backend returns no record and no error when the session is unknown or has expired, which is treated the same
 	// as an anonymous request rather than an error.
-	if len(data) == 0 {
+	if record == nil || len(record.GetSessionData()) == 0 {
 		p.setCached(ctx, &userSession)
 
 		return id, &userSession, nil
 	}
 
+	// The Codec opens the session against the signature the backend reports, so a backend which reports one other than
+	// the identifier it was asked for would have the session opened against a record it wasn't fetched from. The two
+	// are required to agree so that data moved to another record can't be opened by reporting where it came from.
+	if record.GetSessionSignature() != id {
+		return id, nil, fmt.Errorf("error occurred getting session: signature does not match the session identifier")
+	}
+
 	session = &UserSession{}
 
-	if err = p.codec.Open(p.config.Domain, session, data); err != nil {
+	if err = p.codec.Open(p.config.Domain, record, session); err != nil {
 		return id, nil, fmt.Errorf("error occurred decoding session: %w", err)
 	}
 
