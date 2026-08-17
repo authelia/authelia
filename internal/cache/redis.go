@@ -319,60 +319,16 @@ func (r *Redis) SessionDelete(ctx context.Context, issuer, id, pid, username str
 // reseals the session against the id it is stored under and the two must be updated together. A session which no longer
 // exists is not recreated.
 func (r *Redis) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
-	oldKey := getSessionKey(issuer, oldID)
-
-	exists, err := r.client.Exists(ctx, oldKey).Result()
-	if err != nil {
-		return err
-	}
-
-	if exists == 0 {
-		return nil
-	}
-
-	userkey := getSessionUserKey(issuer, username)
-
-	pipe := r.client.TxPipeline()
-
-	var (
-		zrem *redis.IntCmd
-		zadd *redis.IntCmd
-	)
-
-	del := pipe.Del(ctx, oldKey)
-
-	set := pipe.Set(ctx, getSessionKey(issuer, id), data, expiration)
-	setpub := pipe.Set(ctx, getSessionPublicKey(issuer, pid), id, expiration)
+	keys := []string{getSessionKey(issuer, oldID), getSessionKey(issuer, id), getSessionPublicKey(issuer, pid)}
+	args := []any{data, getSessionExpirationMilliseconds(expiration), id}
 
 	if username != "" {
-		zrem = pipe.ZRem(ctx, userkey, oldID)
-		zadd = pipe.ZAdd(ctx, userkey, redis.Z{Score: getSessionScore(expiration), Member: id})
+		keys = append(keys, getSessionUserKey(issuer, username))
+		args = append(args, oldID, getSessionScore(expiration), id)
 	}
 
-	if _, err = pipe.Exec(ctx); err != nil {
+	if err = sessionChangeIDScript.Run(ctx, r.client, keys, args...).Err(); err != nil {
 		return err
-	}
-
-	if err = del.Err(); err != nil {
-		return err
-	}
-
-	if err = set.Err(); err != nil {
-		return err
-	}
-
-	if err = setpub.Err(); err != nil {
-		return err
-	}
-
-	if username != "" {
-		if err = zrem.Err(); err != nil {
-			return err
-		}
-
-		if err = zadd.Err(); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -411,8 +367,43 @@ func (r *Redis) sessionGarbageCollection(ctx context.Context, client redis.Cmdab
 	return iter.Err()
 }
 
-// getSessionScore converts a relative expiration into the sorted set score the session is indexed under, which is the unix
-// time it expires at. A non-positive expiration never expires and is scored so that it is never pruned.
+var sessionChangeIDScript = redis.NewScript(`
+local ttl = tonumber(ARGV[2])
+
+if redis.call('exists', KEYS[1]) == 0 then
+	return 0
+end
+
+redis.call('del', KEYS[1])
+
+if ttl > 0 then
+	redis.call('set', KEYS[2], ARGV[1], 'px', ttl)
+	redis.call('set', KEYS[3], ARGV[3], 'px', ttl)
+else
+	redis.call('set', KEYS[2], ARGV[1])
+	redis.call('set', KEYS[3], ARGV[3])
+end
+
+if #KEYS > 3 then
+	redis.call('zrem', KEYS[4], ARGV[4])
+	redis.call('zadd', KEYS[4], ARGV[5], ARGV[6])
+end
+
+return 1
+`)
+
+func getSessionExpirationMilliseconds(expiration time.Duration) (milliseconds int64) {
+	if expiration <= 0 {
+		return 0
+	}
+
+	if milliseconds = expiration.Milliseconds(); milliseconds < 1 {
+		return 1
+	}
+
+	return milliseconds
+}
+
 func getSessionScore(expiration time.Duration) (score float64) {
 	if expiration <= 0 {
 		return math.Inf(1)
@@ -421,7 +412,6 @@ func getSessionScore(expiration time.Duration) (score float64) {
 	return float64(time.Now().Add(expiration).Unix())
 }
 
-// getSessionScoreNow returns the current time as the upper bound of a ZRANGEBYSCORE style range, which is inclusive.
 func getSessionScoreNow() (score string) {
 	return strconv.FormatInt(time.Now().Unix(), 10)
 }

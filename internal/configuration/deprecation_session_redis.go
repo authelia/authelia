@@ -77,6 +77,12 @@ func mapSessionRedisAddresses(prefix string, sentinel bool, keys map[string]any)
 		portDefault = schema.DefaultRedisSentinelCachePort
 	}
 
+	if value, ok := keys[keySessionRedisPort]; ok {
+		if _, err = sessionRedisPort(value); err != nil {
+			return err
+		}
+	}
+
 	host, port, err := getHostPort(keySessionRedisHost, keySessionRedisPort, "", portDefault, keys)
 	if err != nil {
 		return err
@@ -103,6 +109,20 @@ func mapSessionRedisAddresses(prefix string, sentinel bool, keys map[string]any)
 		addresses = append(addresses, sessionRedisAddress(host, port))
 	}
 
+	if addresses, err = sessionRedisSentinelNodeAddresses(addresses, keys); err != nil {
+		return err
+	}
+
+	if len(addresses) != 0 {
+		keys[prefix+".addresses"] = addresses
+	}
+
+	return nil
+}
+
+// sessionRedisSentinelNodeAddresses appends the address of each configured sentinel node to addresses, skipping the
+// nodes which have no host as well as those which are already present.
+func sessionRedisSentinelNodeAddresses(addresses []any, keys map[string]any) (result []any, err error) {
 	nodes, _ := keys[keySessionRedisHANodes].([]any)
 
 	for _, node := range nodes {
@@ -119,9 +139,12 @@ func mapSessionRedisAddresses(prefix string, sentinel bool, keys map[string]any)
 		nodePort := uint16(schema.DefaultRedisSentinelCachePort)
 
 		if raw, ok := m["port"]; ok {
-			if parsed, perr := sessionRedisPort(raw); perr != nil {
-				return perr
-			} else if parsed != 0 {
+			parsed, perr := sessionRedisPort(raw)
+			if perr != nil {
+				return nil, perr
+			}
+
+			if parsed != 0 {
 				nodePort = parsed
 			}
 		}
@@ -133,11 +156,7 @@ func mapSessionRedisAddresses(prefix string, sentinel bool, keys map[string]any)
 		}
 	}
 
-	if len(addresses) != 0 {
-		keys[prefix+".addresses"] = addresses
-	}
-
-	return nil
+	return addresses, nil
 }
 
 func sessionRedisAddress(host string, port uint16) string {

@@ -153,6 +153,63 @@ func TestMapSessionRedisToCache(t *testing.T) {
 			"error occurred performing deprecation mapping for the 'session.redis' keys to the 'cache.redis' keys: error occurred converting the port from a string: strconv.ParseUint: parsing \"notaport\": invalid syntax",
 			"",
 		},
+		{
+			"ShouldErrorOnNegativePort",
+			map[string]any{
+				"session.redis.host": "redis.example.com",
+				"session.redis.port": -1,
+			},
+			map[string]any{},
+			"error occurred performing deprecation mapping for the 'session.redis' keys to the 'cache.redis' keys: port -1 is not a valid port number",
+			"",
+		},
+		{
+			"ShouldErrorOnPortAboveTheMaximum",
+			map[string]any{
+				"session.redis.host": "redis.example.com",
+				"session.redis.port": 65536,
+			},
+			map[string]any{},
+			"error occurred performing deprecation mapping for the 'session.redis' keys to the 'cache.redis' keys: port 65536 is not a valid port number",
+			"",
+		},
+		{
+			"ShouldErrorOnNegativeSentinelPort",
+			map[string]any{
+				"session.redis.host":                            "redis.example.com",
+				"session.redis.port":                            -1,
+				"session.redis.high_availability.sentinel_name": "mysentinel",
+			},
+			map[string]any{},
+			"error occurred performing deprecation mapping for the 'session.redis' keys to the 'cache.redis_sentinel' keys: port -1 is not a valid port number",
+			"",
+		},
+		{
+			"ShouldMapTheDefaultPortWhenZero",
+			map[string]any{
+				"session.redis.host": "redis.example.com",
+				"session.redis.port": 0,
+			},
+			map[string]any{
+				"cache.redis.address": "tcp://redis.example.com:6379",
+				"session.storage":     "cache",
+			},
+			"",
+			"configuration keys prefixed with 'session.redis' are deprecated in 4.40.0 and have been replaced by the 'cache.redis' keys: you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0",
+		},
+		{
+			"ShouldMapTheMaximumValidPort",
+			map[string]any{
+				"session.redis.host": "redis.example.com",
+				"session.redis.port": 65535,
+			},
+			map[string]any{
+				"cache.redis.address": "tcp://redis.example.com:65535",
+				"session.storage":     "cache",
+			},
+			"",
+			"configuration keys prefixed with 'session.redis' are deprecated in 4.40.0 and have been replaced by the 'cache.redis' keys: you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0",
+		},
 	}
 
 	for _, tc := range testCases {
