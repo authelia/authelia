@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestStrategyShouldCacheTheSessionForTheRequest(t *testing.T) {
@@ -165,7 +165,7 @@ func newCountingRepository() *countingRepository {
 	return &countingRepository{testRepository: newTestRepository()}
 }
 
-func (r *countingRepository) Get(ctx context.Context, issuer, id string) (data []byte, err error) {
+func (r *countingRepository) Get(ctx context.Context, issuer, id string) (record Record, err error) {
 	r.reads++
 
 	return r.testRepository.Get(ctx, issuer, id)

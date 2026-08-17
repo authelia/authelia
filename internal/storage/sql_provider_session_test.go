@@ -33,12 +33,12 @@ func TestStorageSessionShouldRoundTrip(t *testing.T) {
 	actual, err := provider.SessionGet(ctx, issuer, signature)
 
 	require.NoError(t, err)
-	assert.Equal(t, data, actual)
+	assert.Equal(t, session.NewRecord(signature, data), actual)
 
 	actual, err = provider.SessionGetByPublicID(ctx, issuer, publicID)
 
 	require.NoError(t, err)
-	assert.Equal(t, data, actual)
+	assert.Equal(t, session.NewRecord(signature, data), actual)
 
 	ids, err := provider.SessionGetIDsByUsername(ctx, issuer, username)
 
@@ -49,15 +49,15 @@ func TestStorageSessionShouldRoundTrip(t *testing.T) {
 func TestStorageSessionShouldReturnNoDataWhenUnknown(t *testing.T) {
 	ctx, provider := newTestSessionProvider(t)
 
-	data, err := provider.SessionGet(ctx, "an-issuer", "a-signature-which-does-not-exist")
+	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature-which-does-not-exist")
 
 	require.NoError(t, err)
-	assert.Nil(t, data)
+	assert.Nil(t, record)
 
-	data, err = provider.SessionGetByPublicID(ctx, "an-issuer", "a-public-id-which-does-not-exist")
+	record, err = provider.SessionGetByPublicID(ctx, "an-issuer", "a-public-id-which-does-not-exist")
 
 	require.NoError(t, err)
-	assert.Nil(t, data)
+	assert.Nil(t, record)
 }
 
 func TestStorageSessionShouldNotReturnDataForAnotherIssuer(t *testing.T) {
@@ -65,10 +65,10 @@ func TestStorageSessionShouldNotReturnDataForAnotherIssuer(t *testing.T) {
 
 	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("data")))
 
-	data, err := provider.SessionGet(ctx, "another-issuer", "a-signature")
+	record, err := provider.SessionGet(ctx, "another-issuer", "a-signature")
 
 	require.NoError(t, err)
-	assert.Nil(t, data)
+	assert.Nil(t, record)
 }
 
 func TestStorageSessionShouldNotReturnExpiredData(t *testing.T) {
@@ -76,10 +76,10 @@ func TestStorageSessionShouldNotReturnExpiredData(t *testing.T) {
 
 	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", -time.Hour, []byte("data")))
 
-	data, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
+	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
 
 	require.NoError(t, err)
-	assert.Nil(t, data)
+	assert.Nil(t, record)
 
 	require.NoError(t, provider.SessionGarbageCollection(ctx))
 }
@@ -90,10 +90,10 @@ func TestStorageSessionSaveShouldReplaceExistingSession(t *testing.T) {
 	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("first")))
 	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("second")))
 
-	data, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
+	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
 
 	require.NoError(t, err)
-	assert.Equal(t, []byte("second"), data)
+	assert.Equal(t, session.NewRecord("a-signature", []byte("second")), record)
 }
 
 func TestStorageSessionSaveDataShouldUpdateData(t *testing.T) {
@@ -102,32 +102,32 @@ func TestStorageSessionSaveDataShouldUpdateData(t *testing.T) {
 	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("first")))
 	require.NoError(t, provider.SessionSaveData(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("second")))
 
-	data, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
+	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
 
 	require.NoError(t, err)
-	assert.Equal(t, []byte("second"), data)
+	assert.Equal(t, session.NewRecord("a-signature", []byte("second")), record)
 }
 
 func TestStorageSessionChangeIDShouldMoveSession(t *testing.T) {
 	ctx, provider := newTestSessionProvider(t)
 
 	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "old-signature", "a-public-id", "john", time.Hour, []byte("data")))
-	require.NoError(t, provider.SessionChangeID(ctx, "an-issuer", "old-signature", "new-signature", "a-public-id", "john", time.Hour))
+	require.NoError(t, provider.SessionChangeID(ctx, "an-issuer", "old-signature", "new-signature", "a-public-id", "john", time.Hour, []byte("resealed")))
 
-	data, err := provider.SessionGet(ctx, "an-issuer", "old-signature")
-
-	require.NoError(t, err)
-	assert.Nil(t, data)
-
-	data, err = provider.SessionGet(ctx, "an-issuer", "new-signature")
+	record, err := provider.SessionGet(ctx, "an-issuer", "old-signature")
 
 	require.NoError(t, err)
-	assert.Equal(t, []byte("data"), data)
+	assert.Nil(t, record)
 
-	data, err = provider.SessionGetByPublicID(ctx, "an-issuer", "a-public-id")
+	record, err = provider.SessionGet(ctx, "an-issuer", "new-signature")
 
 	require.NoError(t, err)
-	assert.Equal(t, []byte("data"), data)
+	assert.Equal(t, session.NewRecord("new-signature", []byte("resealed")), record)
+
+	record, err = provider.SessionGetByPublicID(ctx, "an-issuer", "a-public-id")
+
+	require.NoError(t, err)
+	assert.Equal(t, session.NewRecord("new-signature", []byte("resealed")), record)
 }
 
 func TestStorageSessionDeleteShouldRemoveSession(t *testing.T) {
@@ -136,10 +136,10 @@ func TestStorageSessionDeleteShouldRemoveSession(t *testing.T) {
 	require.NoError(t, provider.SessionSave(ctx, "an-issuer", "a-signature", "a-public-id", "john", time.Hour, []byte("data")))
 	require.NoError(t, provider.SessionDelete(ctx, "an-issuer", "a-signature", "a-public-id", "john"))
 
-	data, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
+	record, err := provider.SessionGet(ctx, "an-issuer", "a-signature")
 
 	require.NoError(t, err)
-	assert.Nil(t, data)
+	assert.Nil(t, record)
 }
 
 // TestStorageSessionRepositoryShouldBackSessionStrategy exercises the full 'session.storage: internal' path: a session

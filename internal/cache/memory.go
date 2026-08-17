@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func NewMemory() (memory *Memory) {
@@ -32,7 +34,7 @@ func (m *Memory) StartupCheck() (err error) {
 	return nil
 }
 
-func (m *Memory) SessionGet(ctx context.Context, issuer, id string) (data []byte, err error) {
+func (m *Memory) SessionGet(ctx context.Context, issuer, id string) (record session.Record, err error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -41,10 +43,10 @@ func (m *Memory) SessionGet(ctx context.Context, issuer, id string) (data []byte
 		return nil, nil
 	}
 
-	return item.data, nil
+	return session.NewRecord(item.id, item.data), nil
 }
 
-func (m *Memory) SessionGetByPublicID(ctx context.Context, issuer, pid string) (data []byte, err error) {
+func (m *Memory) SessionGetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -58,7 +60,7 @@ func (m *Memory) SessionGetByPublicID(ctx context.Context, issuer, pid string) (
 		return nil, nil
 	}
 
-	return item.data, nil
+	return session.NewRecord(item.id, item.data), nil
 }
 
 func (m *Memory) SessionGetIDsByUsername(ctx context.Context, issuer, username string) (ids []string, err error) {
@@ -117,7 +119,7 @@ func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, e
 	return nil
 }
 
-func (m *Memory) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration) (err error) {
+func (m *Memory) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -140,6 +142,7 @@ func (m *Memory) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, us
 		item.username = username
 	}
 
+	item.data = data
 	item.id = id
 	item.pid = pid
 	item.expires = sessionExpires(expiration)

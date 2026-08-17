@@ -78,27 +78,27 @@ func (c *SecureCodec) sign(data []byte) []byte {
 	return mac.Sum(nil)
 }
 
-func (c *SecureCodec) Seal(domain string, session UserSession) (data []byte, err error) {
+func (c *SecureCodec) Seal(domain, id string, session UserSession) (data []byte, err error) {
 	raw, err := session.MarshalMsg(nil)
 	if err != nil {
-		return nil, fmt.Errorf("unable to marshal session: %v", err)
+		return nil, fmt.Errorf("unable to marshal session: %w", err)
 	}
 
-	if data, err = utils.Encrypt(raw, getAAD(domain), c.encKey); err != nil {
-		return nil, fmt.Errorf("unable to encrypt session: %v", err)
+	if data, err = utils.Encrypt(raw, getAAD(domain, id), c.encKey); err != nil {
+		return nil, fmt.Errorf("unable to encrypt session: %w", err)
 	}
 
 	return data, nil
 }
 
-func (c *SecureCodec) Open(domain string, session *UserSession, src []byte) (err error) {
-	if len(src) == 0 {
+func (c *SecureCodec) Open(domain string, record Record, session *UserSession) (err error) {
+	if record == nil || len(record.GetSessionData()) == 0 {
 		return nil
 	}
 
 	var data []byte
 
-	if data, err = utils.Decrypt(src, getAAD(domain), c.encKey); err != nil {
+	if data, err = utils.Decrypt(record.GetSessionData(), getAAD(domain, record.GetSessionSignature()), c.encKey); err != nil {
 		return fmt.Errorf("unable to decrypt session: %s", err)
 	}
 
@@ -107,6 +107,6 @@ func (c *SecureCodec) Open(domain string, session *UserSession, src []byte) (err
 	return err
 }
 
-func getAAD(domain string) []byte {
-	return []byte(fmt.Sprintf("authelia:session:%s", domain))
+func getAAD(domain, id string) []byte {
+	return []byte(fmt.Sprintf("authelia:session:v2:%s:%s", domain, id))
 }

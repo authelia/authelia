@@ -15,10 +15,11 @@ type Provider interface {
 
 	// SessionGet should return a session with a matching id (which is a representation of the cookie value hashed using
 	// HMAC-SHA256 and encoded into hexadecimal) and issuer (which is a domain).
-	SessionGet(ctx context.Context, issuer, id string) (data []byte, err error)
+	SessionGet(ctx context.Context, issuer, id string) (record session.Record, err error)
 
-	// SessionGetByPublicID should return a session with a matching public id.
-	SessionGetByPublicID(ctx context.Context, issuer, pid string) (data []byte, err error)
+	// SessionGetByPublicID should return a session with a matching public id, which records the id it is stored against
+	// as the caller has no way to derive it.
+	SessionGetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error)
 
 	// SessionGetIDsByUsername should return all session ids for a given username and issuer (which is a domain).
 	SessionGetIDsByUsername(ctx context.Context, issuer, username string) (ids []string, err error)
@@ -35,8 +36,9 @@ type Provider interface {
 	// SessionDelete should delete a session from the cache, as well as the related lookup information.
 	SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error)
 
-	// SessionChangeID is used to change the cookie value of a session and update the id.
-	SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration) (err error)
+	// SessionChangeID is used to change the cookie value of a session and update the id. The data is written as part of
+	// the move as the caller reseals it against the new id.
+	SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error)
 
 	// SessionGarbageCollection cleans up old session.
 	SessionGarbageCollection(ctx context.Context) (err error)
@@ -54,11 +56,11 @@ type SessionRepository struct {
 	provider Provider
 }
 
-func (s SessionRepository) Get(ctx context.Context, issuer string, id string) (data []byte, err error) {
+func (s SessionRepository) Get(ctx context.Context, issuer string, id string) (record session.Record, err error) {
 	return s.provider.SessionGet(ctx, issuer, id)
 }
 
-func (s SessionRepository) GetByPublicID(ctx context.Context, issuer string, pid string) (data []byte, err error) {
+func (s SessionRepository) GetByPublicID(ctx context.Context, issuer string, pid string) (record session.Record, err error) {
 	return s.provider.SessionGetByPublicID(ctx, issuer, pid)
 }
 
@@ -78,8 +80,8 @@ func (s SessionRepository) Delete(ctx context.Context, issuer string, id string,
 	return s.provider.SessionDelete(ctx, issuer, id, pid, username)
 }
 
-func (s SessionRepository) ChangeID(ctx context.Context, issuer string, oldID string, id string, pid string, username string, expiration time.Duration) (err error) {
-	return s.provider.SessionChangeID(ctx, issuer, oldID, id, pid, username, expiration)
+func (s SessionRepository) ChangeID(ctx context.Context, issuer string, oldID string, id string, pid string, username string, expiration time.Duration, data []byte) (err error) {
+	return s.provider.SessionChangeID(ctx, issuer, oldID, id, pid, username, expiration, data)
 }
 
 func (s SessionRepository) GarbageCollection(ctx context.Context) (err error) {

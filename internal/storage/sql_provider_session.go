@@ -20,11 +20,11 @@ type SessionRepository struct {
 	provider Provider
 }
 
-func (r SessionRepository) Get(ctx context.Context, issuer, id string) (data []byte, err error) {
+func (r SessionRepository) Get(ctx context.Context, issuer, id string) (record session.Record, err error) {
 	return r.provider.SessionGet(ctx, issuer, id)
 }
 
-func (r SessionRepository) GetByPublicID(ctx context.Context, issuer, pid string) (data []byte, err error) {
+func (r SessionRepository) GetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error) {
 	return r.provider.SessionGetByPublicID(ctx, issuer, pid)
 }
 
@@ -44,8 +44,8 @@ func (r SessionRepository) Delete(ctx context.Context, issuer, id, pid, username
 	return r.provider.SessionDelete(ctx, issuer, id, pid, username)
 }
 
-func (r SessionRepository) ChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration) (err error) {
-	return r.provider.SessionChangeID(ctx, issuer, oldID, id, pid, username, expiration)
+func (r SessionRepository) ChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	return r.provider.SessionChangeID(ctx, issuer, oldID, id, pid, username, expiration, data)
 }
 
 func (r SessionRepository) GarbageCollection(ctx context.Context) (err error) {
@@ -60,10 +60,19 @@ var (
 	_ session.Repository = (*SessionRepository)(nil)
 )
 
-// SessionGet returns the session data for the given signature and issuer. A session which does not exist or which has
-// expired returns no data and no error, matching the semantics the session provider expects for anonymous requests.
-func (p *SQLProvider) SessionGet(ctx context.Context, issuer, id string) (data []byte, err error) {
-	if err = p.db.GetContext(ctx, &data, p.sqlSelectSession, issuer, id, time.Now()); err != nil {
+// sessionRow is the shape a session is selected into, which is converted into a session.Record for the caller.
+type sessionRow struct {
+	Signature string `db:"signature"`
+	Data      []byte `db:"data"`
+}
+
+// SessionGet returns the session for the given signature and issuer. A session which does not exist or which has
+// expired returns an empty record and no error, matching the semantics the session provider expects for anonymous
+// requests.
+func (p *SQLProvider) SessionGet(ctx context.Context, issuer, id string) (record session.Record, err error) {
+	var row sessionRow
+
+	if err = p.db.GetContext(ctx, &row, p.sqlSelectSession, issuer, id, time.Now()); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -71,12 +80,14 @@ func (p *SQLProvider) SessionGet(ctx context.Context, issuer, id string) (data [
 		return nil, fmt.Errorf("error selecting session: %w", err)
 	}
 
-	return data, nil
+	return session.NewRecord(row.Signature, row.Data), nil
 }
 
-// SessionGetByPublicID returns the session data for the given public id and issuer.
-func (p *SQLProvider) SessionGetByPublicID(ctx context.Context, issuer, pid string) (data []byte, err error) {
-	if err = p.db.GetContext(ctx, &data, p.sqlSelectSessionByPublicID, issuer, pid, time.Now()); err != nil {
+// SessionGetByPublicID returns the session for the given public id and issuer.
+func (p *SQLProvider) SessionGetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error) {
+	var row sessionRow
+
+	if err = p.db.GetContext(ctx, &row, p.sqlSelectSessionByPublicID, issuer, pid, time.Now()); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -84,7 +95,7 @@ func (p *SQLProvider) SessionGetByPublicID(ctx context.Context, issuer, pid stri
 		return nil, fmt.Errorf("error selecting session by public id: %w", err)
 	}
 
-	return data, nil
+	return session.NewRecord(row.Signature, row.Data), nil
 }
 
 // SessionGetIDsByUsername returns the signatures of every unexpired session belonging to the given username and issuer.
@@ -129,9 +140,10 @@ func (p *SQLProvider) SessionDelete(ctx context.Context, issuer, id, pid, userna
 }
 
 // SessionChangeID changes the signature of an existing session, which is used to regenerate the session identifier
-// without discarding the session itself.
-func (p *SQLProvider) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionSignature, id, p.sessionExpires(expiration), issuer, oldID); err != nil {
+// without discarding the session itself. The data is updated alongside the signature as the caller reseals the session
+// against the signature it is stored under, and the two must never disagree.
+func (p *SQLProvider) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionSignature, id, p.sessionExpires(expiration), data, issuer, oldID); err != nil {
 		return fmt.Errorf("error updating session signature: %w", err)
 	}
 
