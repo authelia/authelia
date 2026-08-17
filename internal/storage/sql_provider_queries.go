@@ -370,8 +370,16 @@ const (
 
 const (
 	queryFmtUpsertSession = `
-		REPLACE INTO %s (issuer, signature, public_id, username, expiration, data)
-		VALUES (?, ?, ?, ?, ?, ?);`
+		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)
+		VALUES (?, ?, ?, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+			public_id = VALUES(public_id), username = VALUES(username), expiration = VALUES(expiration), data = VALUES(data);`
+
+	queryFmtUpsertSessionSQLite = `
+		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)
+		VALUES (?, ?, ?, ?, ?, ?)
+			ON CONFLICT (issuer, signature)
+			DO UPDATE SET public_id = excluded.public_id, username = excluded.username, expiration = excluded.expiration, data = excluded.data;`
 
 	queryFmtUpsertSessionPostgreSQL = `
 		INSERT INTO %s (issuer, signature, public_id, username, expiration, data)

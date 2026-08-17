@@ -84,7 +84,13 @@ func (m *Memory) SessionSave(ctx context.Context, issuer, id, pid, username stri
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	m.session[m.key(issuer, id)] = &itemSession{
+	key := m.key(issuer, id)
+
+	if item, ok := m.session[key]; ok && item.pid != pid {
+		delete(m.lookupPublicID, m.key(issuer, item.pid))
+	}
+
+	m.session[key] = &itemSession{
 		data:     data,
 		id:       id,
 		pid:      pid,

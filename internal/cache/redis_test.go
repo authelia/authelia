@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -129,6 +130,138 @@ func TestRedis_SessionScore(t *testing.T) {
 	}
 }
 
+func TestRedis_SessionChangeID(t *testing.T) {
+	testCases := []struct {
+		Name         string
+		Username     string
+		Expiration   time.Duration
+		Err          error
+		Error        string
+		ExpectedKeys []string
+		Assert       func(t *testing.T, args []any)
+	}{
+		{
+			"ShouldMoveSessionAndUsernameIndexInASingleScript",
+			"john",
+			time.Hour,
+			nil,
+			"",
+			[]string{
+				getSessionKey("example.com", "old"),
+				getSessionKey("example.com", "new"),
+				getSessionPublicKey("example.com", "pid"),
+				getSessionUserKey("example.com", "john"),
+			},
+			func(t *testing.T, args []any) {
+				require.Len(t, args, 6)
+				assert.Equal(t, []byte("resealed"), args[0])
+				assert.Equal(t, int64(3600000), args[1])
+				assert.Equal(t, "new", args[2])
+				assert.Equal(t, "old", args[3])
+				assert.InDelta(t, float64(time.Now().Add(time.Hour).Unix()), args[4], 2)
+				assert.Equal(t, "new", args[5])
+			},
+		},
+		{
+			"ShouldOmitTheUsernameIndexForAnAnonymousSession",
+			"",
+			time.Hour,
+			nil,
+			"",
+			[]string{
+				getSessionKey("example.com", "old"),
+				getSessionKey("example.com", "new"),
+				getSessionPublicKey("example.com", "pid"),
+			},
+			func(t *testing.T, args []any) {
+				require.Len(t, args, 3)
+				assert.Equal(t, []byte("resealed"), args[0])
+				assert.Equal(t, int64(3600000), args[1])
+				assert.Equal(t, "new", args[2])
+			},
+		},
+		{
+			"ShouldNotExpireKeysWhenTheExpirationIsNotPositive",
+			"john",
+			0,
+			nil,
+			"",
+			[]string{
+				getSessionKey("example.com", "old"),
+				getSessionKey("example.com", "new"),
+				getSessionPublicKey("example.com", "pid"),
+				getSessionUserKey("example.com", "john"),
+			},
+			func(t *testing.T, args []any) {
+				require.Len(t, args, 6)
+				assert.Equal(t, int64(0), args[1])
+				assert.True(t, math.IsInf(args[4].(float64), 1))
+			},
+		},
+		{
+			"ShouldReturnErrorOnFailure",
+			"john",
+			time.Hour,
+			errors.New("connection refused"),
+			"connection refused",
+			nil,
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			client := &mockRedisCmdable{err: tc.Err}
+
+			err := NewRedis(client, "standalone").SessionChangeID(context.Background(), "example.com", "old", "new", "pid", tc.Username, tc.Expiration, []byte("resealed"))
+
+			if tc.Error == "" {
+				require.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.Error)
+			}
+
+			if tc.ExpectedKeys != nil {
+				assert.Equal(t, tc.ExpectedKeys, client.evalKeys)
+			}
+
+			if tc.Assert != nil {
+				tc.Assert(t, client.evalArgs)
+			}
+		})
+	}
+}
+
+func TestRedis_SessionChangeIDKeysShareAClusterSlot(t *testing.T) {
+	client := &mockRedisCmdable{}
+
+	require.NoError(t, NewRedis(client, "standalone").SessionChangeID(context.Background(), "example.com", "old", "new", "pid", "john", time.Hour, []byte("resealed")))
+	require.Len(t, client.evalKeys, 4)
+
+	for _, key := range client.evalKeys {
+		assert.Equal(t, "example.com", key[strings.Index(key, "{")+1:strings.Index(key, "}")])
+	}
+}
+
+func TestRedis_SessionExpirationMilliseconds(t *testing.T) {
+	testCases := []struct {
+		Name       string
+		Expiration time.Duration
+		Expected   int64
+	}{
+		{"ShouldConvertAPositiveExpiration", time.Hour, 3600000},
+		{"ShouldNotExpireWhenZero", 0, 0},
+		{"ShouldNotExpireWhenNegative", -time.Hour, 0},
+		{"ShouldRaiseASubMillisecondExpiration", time.Microsecond, 1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, getSessionExpirationMilliseconds(tc.Expiration))
+		})
+	}
+}
+
 func TestRedis_SessionGetIDsByUsername(t *testing.T) {
 	t.Run("ShouldPruneExpiredMembersBeforeReading", func(t *testing.T) {
 		client := &mockRedisCmdable{pipeliner: &mockRedisPipeliner{members: []string{"id1", "id2"}, pruned: map[string]string{}}}
@@ -186,6 +319,21 @@ type mockRedisCmdable struct {
 	scanned   []string
 	pruned    map[string]string
 	pipeliner *mockRedisPipeliner
+	evalKeys  []string
+	evalArgs  []any
+}
+
+func (m *mockRedisCmdable) EvalSha(ctx context.Context, sha1 string, keys []string, args ...any) *redis.Cmd {
+	m.evalKeys = keys
+	m.evalArgs = args
+
+	cmd := redis.NewCmd(ctx, "evalsha", sha1)
+
+	if m.err != nil {
+		cmd.SetErr(m.err)
+	}
+
+	return cmd
 }
 
 func (m *mockRedisCmdable) TTL(ctx context.Context, key string) *redis.DurationCmd {

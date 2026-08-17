@@ -105,6 +105,12 @@ func (service *Collector) Log() *logrus.Entry {
 }
 
 func (service *Collector) collect() {
+	defer func() {
+		if r := recover(); r != nil {
+			service.log.WithError(recoverErr(r)).Error("Critical error caught (recovered) collecting expired records")
+		}
+	}()
+
 	if service.ctx.Err() != nil {
 		return
 	}

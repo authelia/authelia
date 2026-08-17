@@ -118,6 +118,57 @@ func TestMemory_SessionUsernameLookup(t *testing.T) {
 	}
 }
 
+func TestMemory_SessionSavePublicIDLookup(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		PublicID string
+		Retired  bool
+	}{
+		{"ShouldRetireTheLookupOfTheReplacedSession", "pid2", true},
+		{"ShouldPreserveTheLookupWhenThePublicIDIsUnchanged", "pid", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctx := context.Background()
+			provider := NewMemory()
+
+			require.NoError(t, provider.SessionSave(ctx, "example.com", "id", "pid", "john", time.Hour, []byte("data")))
+			require.NoError(t, provider.SessionSave(ctx, "example.com", "id", tc.PublicID, "john", time.Hour, []byte("replaced")))
+
+			record, err := provider.SessionGetByPublicID(ctx, "example.com", tc.PublicID)
+			assert.NoError(t, err)
+			assert.Equal(t, session.NewRecord("id", []byte("replaced")), record)
+
+			record, err = provider.SessionGetByPublicID(ctx, "example.com", "pid")
+			assert.NoError(t, err)
+
+			if tc.Retired {
+				assert.Nil(t, record)
+				assert.Len(t, provider.lookupPublicID, 1)
+			} else {
+				assert.Equal(t, session.NewRecord("id", []byte("replaced")), record)
+			}
+		})
+	}
+}
+
+func TestMemory_SessionSaveDoesNotLeakPublicIDLookups(t *testing.T) {
+	ctx := context.Background()
+	provider := NewMemory()
+
+	for i := 0; i < 100; i++ {
+		require.NoError(t, provider.SessionSave(ctx, "example.com", "id", fmt.Sprintf("pid%d", i), "john", time.Hour, []byte("data")))
+	}
+
+	assert.Len(t, provider.lookupPublicID, 1)
+
+	require.NoError(t, provider.SessionDelete(ctx, "example.com", "id", "pid99", "john"))
+
+	assert.Empty(t, provider.lookupPublicID)
+	assert.Empty(t, provider.session)
+}
+
 func TestMemory_SessionChangeID(t *testing.T) {
 	ctx := context.Background()
 	provider := NewMemory()

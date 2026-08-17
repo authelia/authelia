@@ -92,6 +92,59 @@ func TestCollector_Collect(t *testing.T) {
 	}
 }
 
+func TestCollector_CollectRecoversFromPanic(t *testing.T) {
+	testCases := []struct {
+		Name  string
+		Panic any
+	}{
+		{"ShouldRecoverFromErrorPanic", errors.New("collection panicked")},
+		{"ShouldRecoverFromStringPanic", "collection panicked"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			collector := &mockGarbageCollector{frequency: time.Minute, panic: tc.Panic}
+
+			service := NewCollector("session", collector, newMockServiceCtx())
+
+			assert.NotPanics(t, func() {
+				service.collect()
+			})
+
+			assert.Equal(t, 1, collector.Calls())
+		})
+	}
+}
+
+func TestCollector_RunContinuesAfterPanic(t *testing.T) {
+	collector := &mockGarbageCollector{frequency: time.Millisecond, panic: errors.New("collection panicked"), notify: make(chan struct{}, 1)}
+
+	service := NewCollector("session", collector, newMockServiceCtx())
+
+	done := make(chan error, 1)
+
+	go func() {
+		done <- service.Run()
+	}()
+
+	for i := 0; i < 2; i++ {
+		select {
+		case <-collector.notify:
+		case <-time.After(time.Second * 5):
+			t.Fatal("timeout waiting for collection")
+		}
+	}
+
+	service.Shutdown()
+
+	select {
+	case err := <-done:
+		assert.NoError(t, err)
+	case <-time.After(time.Second * 5):
+		t.Fatal("timeout waiting for shutdown")
+	}
+}
+
 func TestCollector_CollectSkipsWhenContextCancelled(t *testing.T) {
 	collector := &mockGarbageCollector{frequency: time.Minute}
 
@@ -175,6 +228,7 @@ type mockGarbageCollector struct {
 	mu        sync.Mutex
 	frequency time.Duration
 	err       error
+	panic     any
 	calls     int
 	notify    chan struct{}
 }
@@ -194,6 +248,10 @@ func (m *mockGarbageCollector) GarbageCollection(_ context.Context) (err error) 
 		case m.notify <- struct{}{}:
 		default:
 		}
+	}
+
+	if m.panic != nil {
+		panic(m.panic)
 	}
 
 	return m.err

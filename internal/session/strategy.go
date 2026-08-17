@@ -254,7 +254,7 @@ func (p *DefaultStrategy) getCached(ctx Context) (session *UserSession, ok bool)
 		return nil, false
 	}
 
-	value := *cached
+	value := cached.deepCopy()
 
 	return &value, true
 }
@@ -273,7 +273,7 @@ func (p *DefaultStrategy) setCached(ctx Context, session *UserSession) {
 		return
 	}
 
-	value := *session
+	value := session.deepCopy()
 
 	caching.CacheSession(p.config.Domain, &value)
 }
