@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -25,6 +26,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/systemd"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
@@ -497,14 +499,19 @@ func TestRunShouldReturnApplicationReloadWhenAServiceRequestsIt(t *testing.T) {
 		name     string
 		err      error
 		expected error
+		states   []string
 	}{
-		{"ShouldReturnApplicationReload", ErrApplicationReload, ErrApplicationReload},
-		{"ShouldReturnApplicationReloadWhenWrapped", fmt.Errorf("service failed: %w", ErrApplicationReload), ErrApplicationReload},
-		{"ShouldNotReturnOtherErrors", errors.New("a bad thing happened"), nil},
+		{"ShouldReturnApplicationReload", ErrApplicationReload, ErrApplicationReload, []string{systemd.StateReady, systemd.StateReloading}},
+		{"ShouldReturnApplicationReloadWhenWrapped", fmt.Errorf("service failed: %w", ErrApplicationReload), ErrApplicationReload, []string{systemd.StateReady, systemd.StateReloading}},
+		{"ShouldNotReturnOtherErrors", errors.New("a bad thing happened"), nil, []string{systemd.StateReady, systemd.StateStopping}},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			path, received := newTestNotifySocket(t)
+
+			t.Setenv(systemd.EnvNotifySocket, path)
+
 			ctx, cancel := newTestServiceCtx()
 
 			defer cancel()
@@ -520,6 +527,15 @@ func TestRunShouldReturnApplicationReloadWhenAServiceRequestsIt(t *testing.T) {
 				assert.NoError(t, err)
 			} else {
 				assert.ErrorIs(t, err, tc.expected)
+			}
+
+			for _, state := range tc.states {
+				select {
+				case actual := <-received:
+					assert.True(t, strings.HasPrefix(actual, state), "expected '%s' to have the prefix '%s'", actual, state)
+				case <-time.After(time.Second * 5):
+					t.Fatalf("timeout waiting for the '%s' notification", state)
+				}
 			}
 		})
 	}

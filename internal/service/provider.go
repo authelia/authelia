@@ -49,5 +49,6 @@ func GetProvisioners() []Provisioner {
 		ProvisionLoggingSignal,
 		ProvisionApplicationReloadSignal,
 		ProvisionGarbageCollector,
+		ProvisionSystemdWatchdog,
 	}
 }
