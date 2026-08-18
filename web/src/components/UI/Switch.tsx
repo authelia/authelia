@@ -8,6 +8,7 @@ import { cn } from "@utils/Styles";
 
 function Switch({
     className,
+    id,
     size = "default",
     ...props
 }: ComponentProps<typeof SwitchPrimitive.Root> & {
@@ -15,6 +16,8 @@ function Switch({
 }) {
     return (
         <SwitchPrimitive.Root
+            nativeButton
+            render={<button type="button" id={id} />}
             data-slot="switch"
             data-size={size}
             className={cn(

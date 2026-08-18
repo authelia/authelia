@@ -21,7 +21,7 @@ it("renders essential claims as disabled checkboxes", () => {
     render(<DecisionFormClaims claims={null} essential_claims={["sub", "email"]} onChangeChecked={vi.fn()} />);
     const checkboxes = screen.getAllByRole("checkbox");
     expect(checkboxes).toHaveLength(2);
-    checkboxes.forEach((cb) => expect(cb).toHaveAttribute("aria-disabled", "true"));
+    checkboxes.forEach((cb) => expect(cb).toBeDisabled());
 });
 
 it("renders optional claims as checkable checkboxes", () => {
@@ -42,6 +42,6 @@ it("renders both essential and optional claims together", () => {
     render(<DecisionFormClaims claims={["name"]} essential_claims={["sub"]} onChangeChecked={vi.fn()} />);
     const checkboxes = screen.getAllByRole("checkbox");
     expect(checkboxes).toHaveLength(2);
-    expect(checkboxes[0]).toHaveAttribute("aria-disabled", "true");
+    expect(checkboxes[0]).toBeDisabled();
     expect(checkboxes[1]).toBeEnabled();
 });
