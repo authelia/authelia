@@ -273,18 +273,20 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                     <div className="col-span-12 md:col-span-2 xs:col-span-4">
                         <TooltipProvider>
                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        id={"webauthn-credential-add"}
-                                        variant={"outline"}
-                                        color={"primary"}
-                                        onClick={handleRegister}
-                                        disabled={dialogRegisterOpening || dialogRegisterOpen}
-                                    >
-                                        {dialogRegisterOpening ? <Spinner size={20} /> : null}
-                                        {translate("Add")}
-                                    </Button>
-                                </TooltipTrigger>
+                                <TooltipTrigger
+                                    render={
+                                        <Button
+                                            id={"webauthn-credential-add"}
+                                            variant={"outline"}
+                                            color={"primary"}
+                                            onClick={handleRegister}
+                                            disabled={dialogRegisterOpening || dialogRegisterOpen}
+                                        >
+                                            {dialogRegisterOpening ? <Spinner size={20} /> : null}
+                                            {translate("Add")}
+                                        </Button>
+                                    }
+                                />
                                 <TooltipContent>
                                     {translate("Click to add a {{item}} to your account", {
                                         item: translate("WebAuthn Credential"),

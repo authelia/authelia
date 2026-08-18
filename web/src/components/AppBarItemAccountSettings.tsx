@@ -44,20 +44,24 @@ const AppBarItemAccountSettings = function (props: Props) {
             <DropdownMenu>
                 <TooltipProvider>
                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <DropdownMenuTrigger asChild>
-                                <button
-                                    id="account-menu"
-                                    className="ml-4 rounded-full focus:outline-none focus:ring-2 focus:ring-ring"
-                                >
-                                    <Avatar className="size-8">
-                                        <AvatarFallback>
-                                            {props.userInfo.display_name.charAt(0).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                </button>
-                            </DropdownMenuTrigger>
-                        </TooltipTrigger>
+                        <TooltipTrigger
+                            render={
+                                <DropdownMenuTrigger
+                                    render={
+                                        <button
+                                            id="account-menu"
+                                            className="ml-4 rounded-full focus:outline-none focus:ring-2 focus:ring-ring"
+                                        >
+                                            <Avatar className="size-8">
+                                                <AvatarFallback>
+                                                    {props.userInfo.display_name.charAt(0).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </button>
+                                    }
+                                />
+                            }
+                        />
                         <TooltipContent>{translate("Account Settings")}</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

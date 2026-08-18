@@ -18,12 +18,14 @@ const DecisionFormScopes: FC<Props> = (props: Props) => {
             {props.scopes.map((scope: string) => (
                 <TooltipProvider key={scope}>
                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <li id={"scope-" + scope} className="flex items-center gap-3 px-2 py-1">
-                                <span className="shrink-0">{ScopeAvatar(scope)}</span>
-                                <span>{formatScope(translate(`scopes.${scope}`), scope)}</span>
-                            </li>
-                        </TooltipTrigger>
+                        <TooltipTrigger
+                            render={
+                                <li id={"scope-" + scope} className="flex items-center gap-3 px-2 py-1">
+                                    <span className="shrink-0">{ScopeAvatar(scope)}</span>
+                                    <span>{formatScope(translate(`scopes.${scope}`), scope)}</span>
+                                </li>
+                            }
+                        />
                         <TooltipContent>{translate("Scope", { name: scope })}</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

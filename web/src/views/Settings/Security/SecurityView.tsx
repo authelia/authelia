@@ -36,9 +36,7 @@ const PasswordChangeButton = ({ configuration, handleChangePassword, translate }
     return !configuration || configuration.password_change_disabled ? (
         <TooltipProvider>
             <Tooltip>
-                <TooltipTrigger asChild>
-                    <span>{buttonContent}</span>
-                </TooltipTrigger>
+                <TooltipTrigger render={<span>{buttonContent}</span>} />
                 <TooltipContent>{translate("This is disabled by your administrator")}</TooltipContent>
             </Tooltip>
         </TooltipProvider>

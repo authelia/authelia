@@ -30,16 +30,18 @@ const DecisionFormPreConfiguration: FC<Props> = (props: Props) => {
                 <div className="w-full">
                     <TooltipProvider>
                         <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        id="pre-configure"
-                                        checked={preConfigure}
-                                        onCheckedChange={handlePreConfigureChanged}
-                                    />
-                                    <Label htmlFor="pre-configure">{translate("Remember Consent")}</Label>
-                                </div>
-                            </TooltipTrigger>
+                            <TooltipTrigger
+                                render={
+                                    <div className="flex items-center gap-2">
+                                        <Checkbox
+                                            id="pre-configure"
+                                            checked={preConfigure}
+                                            onCheckedChange={handlePreConfigureChanged}
+                                        />
+                                        <Label htmlFor="pre-configure">{translate("Remember Consent")}</Label>
+                                    </div>
+                                }
+                            />
                             <TooltipContent>
                                 {translate("This saves this consent as a pre-configured consent for future use")}
                             </TooltipContent>

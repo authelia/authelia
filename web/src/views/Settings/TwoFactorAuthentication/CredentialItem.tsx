@@ -1,4 +1,4 @@
-import { MouseEvent, ReactNode } from "react";
+import { MouseEvent, ReactElement, ReactNode } from "react";
 
 import { AlertTriangle, Info, Pencil, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -89,17 +89,19 @@ const CredentialItem = function (props: Props) {
                         ) : null}
                         <TooltipProvider>
                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={props.handleDelete}
-                                        id={`${props.id}-delete`}
-                                        aria-label={props.tooltipDelete || translate("Delete")}
-                                    >
-                                        <Trash2 />
-                                    </Button>
-                                </TooltipTrigger>
+                                <TooltipTrigger
+                                    render={
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={props.handleDelete}
+                                            id={`${props.id}-delete`}
+                                            aria-label={props.tooltipDelete || translate("Delete")}
+                                        >
+                                            <Trash2 />
+                                        </Button>
+                                    }
+                                />
                                 <TooltipContent>{props.tooltipDelete}</TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -112,14 +114,14 @@ const CredentialItem = function (props: Props) {
 
 interface TooltipElementProps {
     tooltip?: string;
-    children: ReactNode;
+    children: ReactElement;
 }
 
 const TooltipElement = function (props: TooltipElementProps) {
     return props.tooltip !== undefined && props.tooltip !== "" ? (
         <TooltipProvider>
             <Tooltip>
-                <TooltipTrigger asChild>{props.children}</TooltipTrigger>
+                <TooltipTrigger render={props.children} />
                 <TooltipContent>{props.tooltip}</TooltipContent>
             </Tooltip>
         </TooltipProvider>

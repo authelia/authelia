@@ -122,18 +122,22 @@ const AppBarItemLanguage = function (props: Props) {
             <DropdownMenu>
                 <TooltipProvider>
                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <DropdownMenuTrigger asChild>
-                                <button
-                                    id="language-button"
-                                    className="ml-4 inline-flex items-center rounded-full p-2 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
-                                    aria-haspopup="true"
-                                >
-                                    <Languages className="size-5" />
-                                    <span className="pl-2">{current?.display}</span>
-                                </button>
-                            </DropdownMenuTrigger>
-                        </TooltipTrigger>
+                        <TooltipTrigger
+                            render={
+                                <DropdownMenuTrigger
+                                    render={
+                                        <button
+                                            id="language-button"
+                                            className="ml-4 inline-flex items-center rounded-full p-2 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
+                                            aria-haspopup="true"
+                                        >
+                                            <Languages className="size-5" />
+                                            <span className="pl-2">{current?.display}</span>
+                                        </button>
+                                    }
+                                />
+                            }
+                        />
                         <TooltipContent>{translate("Language")}</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
@@ -156,11 +160,11 @@ const AppBarItemLanguage = function (props: Props) {
                                 key={language.locale}
                                 id={`language-${language.locale}`}
                                 className={props.localeCurrent === language.locale ? "bg-accent" : ""}
-                                onSelect={(e) => {
+                                closeOnClick={language.children.length <= 1}
+                                onClick={() => {
                                     if (language.children.length <= 1) {
                                         handleChange(language);
                                     } else {
-                                        e.preventDefault();
                                         handleCollapse(language.locale);
                                     }
                                 }}
@@ -187,7 +191,7 @@ const AppBarItemLanguage = function (props: Props) {
                                                 className={
                                                     props.localeCurrent === child.locale ? "bg-accent pl-6" : "pl-6"
                                                 }
-                                                onSelect={() => handleChange(child)}
+                                                onClick={() => handleChange(child)}
                                             >
                                                 {child.display} ({child.locale})
                                             </DropdownMenuItem>

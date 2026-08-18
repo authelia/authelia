@@ -8,6 +8,7 @@
     "pnpm": "11"
   },
   "dependencies": {
+    "@base-ui/react": "1.7.0",
     "@fortawesome/fontawesome-svg-core": "7.3.1",
     "@fortawesome/free-regular-svg-icons": "7.3.1",
     "@fortawesome/free-solid-svg-icons": "7.3.1",
@@ -17,20 +18,17 @@
     "broadcast-channel": "7.4.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
-    "get-nonce": "1.0.1",
     "i18next": "26.3.6",
     "i18next-browser-languagedetector": "8.2.1",
     "i18next-http-backend": "4.0.1",
     "lucide-react": "1.31.0",
     "qrcode.react": "4.2.0",
-    "radix-ui": "1.6.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-i18next": "17.0.11",
     "react-router-dom": "7.18.2",
     "react-spinners": "0.17.0",
     "react18-input-otp": "1.1.4",
-    "sonner": "2.0.8",
     "tailwind-merge": "3.6.0",
     "zxcvbn": "4.4.2"
   },

@@ -221,20 +221,22 @@ const OneTimePasswordPanel = function (props: Props) {
                     <div className="col-span-12">
                         <TooltipProvider>
                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <span>
-                                        <Button
-                                            id={"one-time-password-add"}
-                                            variant={"outline"}
-                                            color={"primary"}
-                                            onClick={handleRegister}
-                                            disabled={registered || dialogRegisterOpening || dialogRegisterOpen}
-                                        >
-                                            {dialogRegisterOpening ? <Spinner size={20} /> : null}
-                                            {translate("Add")}
-                                        </Button>
-                                    </span>
-                                </TooltipTrigger>
+                                <TooltipTrigger
+                                    render={
+                                        <span>
+                                            <Button
+                                                id={"one-time-password-add"}
+                                                variant={"outline"}
+                                                color={"primary"}
+                                                onClick={handleRegister}
+                                                disabled={registered || dialogRegisterOpening || dialogRegisterOpen}
+                                            >
+                                                {dialogRegisterOpening ? <Spinner size={20} /> : null}
+                                                {translate("Add")}
+                                            </Button>
+                                        </span>
+                                    }
+                                />
                                 <TooltipContent>
                                     {registered
                                         ? translate("You can only register a single One-Time Password")

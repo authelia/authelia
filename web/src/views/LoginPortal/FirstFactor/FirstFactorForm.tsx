@@ -227,7 +227,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handleRememberMeKeyDown = useCallback(
-        (event: KeyboardEvent<HTMLButtonElement>) => {
+        (event: KeyboardEvent<HTMLElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     focusUsername();

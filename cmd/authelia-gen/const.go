@@ -160,7 +160,7 @@ var (
 		{Name: codeCSPDirectiveDefaultSrc, Value: codeCSPSelf},
 		{Name: "frame-src", Value: codeCSPNone},
 		{Name: "object-src", Value: codeCSPNone},
-		{Name: "style-src", Value: "'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=' 'sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY='"},
+		{Name: "style-src", Value: "'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"},
 		{Name: "frame-ancestors", Value: codeCSPNone},
 		{Name: "base-uri", Value: codeCSPSelf},
 	}

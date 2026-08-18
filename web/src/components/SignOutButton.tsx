@@ -24,17 +24,19 @@ const SignOutButton = function (props: Props) {
 
     return props.tooltip ? (
         <Tooltip>
-            <TooltipTrigger asChild>
-                <Button
-                    id={props.id}
-                    variant={"ghost"}
-                    className="text-sm tracking-wide"
-                    color={"secondary"}
-                    onClick={handleSignOutClick}
-                >
-                    {translate(props.text)}
-                </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+                render={
+                    <Button
+                        id={props.id}
+                        variant={"ghost"}
+                        className="text-sm tracking-wide"
+                        color={"secondary"}
+                        onClick={handleSignOutClick}
+                    >
+                        {translate(props.text)}
+                    </Button>
+                }
+            />
             <TooltipContent>{props.tooltip}</TooltipContent>
         </Tooltip>
     ) : (

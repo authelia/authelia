@@ -302,13 +302,15 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                     <div>
                                         <TooltipProvider>
                                             <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <p className="font-semibold">
-                                                        {response.client_description === ""
-                                                            ? response?.client_id
-                                                            : response.client_description}
-                                                    </p>
-                                                </TooltipTrigger>
+                                                <TooltipTrigger
+                                                    render={
+                                                        <p className="font-semibold">
+                                                            {response.client_description === ""
+                                                                ? response?.client_id
+                                                                : response.client_description}
+                                                        </p>
+                                                    }
+                                                />
                                                 <TooltipContent>
                                                     {translate("Client ID", { client_id: response?.client_id }) ||
                                                         "Client ID: " + response?.client_id}
@@ -335,61 +337,75 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                 <div className="w-full">
                                                     <TooltipProvider>
                                                         <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <div>
-                                                                    <Label htmlFor="password-textfield">
-                                                                        {translate("Password", { ns: "portal" })}
-                                                                    </Label>
-                                                                    <div className="relative">
-                                                                        <Input
-                                                                            id={"password-textfield"}
-                                                                            ref={passwordRef}
-                                                                            onKeyDown={handlePasswordKeyDown}
-                                                                            onKeyUp={handlePasswordKeyUp}
-                                                                            className="pr-10"
-                                                                            error={errorPassword}
-                                                                            disabled={loading}
-                                                                            value={password}
-                                                                            onChange={(v) =>
-                                                                                setPassword(v.target.value)
-                                                                            }
-                                                                            onFocus={() => setErrorPassword(false)}
-                                                                            type={showPassword ? "text" : "password"}
-                                                                            autoComplete={"current-password"}
-                                                                            required
-                                                                        />
-                                                                        <button
-                                                                            type="button"
-                                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
-                                                                            aria-label="toggle password visibility"
-                                                                            onMouseDown={() => setShowPassword(true)}
-                                                                            onMouseUp={() => setShowPassword(false)}
-                                                                            onMouseLeave={() => setShowPassword(false)}
-                                                                            onTouchStart={() => setShowPassword(true)}
-                                                                            onTouchEnd={() => setShowPassword(false)}
-                                                                            onTouchCancel={() => setShowPassword(false)}
-                                                                            onKeyDown={(e) => {
-                                                                                if (e.key === " ") {
-                                                                                    setShowPassword(true);
-                                                                                    e.preventDefault();
+                                                            <TooltipTrigger
+                                                                render={
+                                                                    <div>
+                                                                        <Label htmlFor="password-textfield">
+                                                                            {translate("Password", { ns: "portal" })}
+                                                                        </Label>
+                                                                        <div className="relative">
+                                                                            <Input
+                                                                                id={"password-textfield"}
+                                                                                ref={passwordRef}
+                                                                                onKeyDown={handlePasswordKeyDown}
+                                                                                onKeyUp={handlePasswordKeyUp}
+                                                                                className="pr-10"
+                                                                                error={errorPassword}
+                                                                                disabled={loading}
+                                                                                value={password}
+                                                                                onChange={(v) =>
+                                                                                    setPassword(v.target.value)
                                                                                 }
-                                                                            }}
-                                                                            onKeyUp={(e) => {
-                                                                                if (e.key === " ") {
-                                                                                    setShowPassword(false);
-                                                                                    e.preventDefault();
+                                                                                onFocus={() => setErrorPassword(false)}
+                                                                                type={
+                                                                                    showPassword ? "text" : "password"
                                                                                 }
-                                                                            }}
-                                                                        >
-                                                                            {showPassword ? (
-                                                                                <Eye className="h-5 w-5" />
-                                                                            ) : (
-                                                                                <EyeOff className="h-5 w-5" />
-                                                                            )}
-                                                                        </button>
+                                                                                autoComplete={"current-password"}
+                                                                                required
+                                                                            />
+                                                                            <button
+                                                                                type="button"
+                                                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                                                                                aria-label="toggle password visibility"
+                                                                                onMouseDown={() =>
+                                                                                    setShowPassword(true)
+                                                                                }
+                                                                                onMouseUp={() => setShowPassword(false)}
+                                                                                onMouseLeave={() =>
+                                                                                    setShowPassword(false)
+                                                                                }
+                                                                                onTouchStart={() =>
+                                                                                    setShowPassword(true)
+                                                                                }
+                                                                                onTouchEnd={() =>
+                                                                                    setShowPassword(false)
+                                                                                }
+                                                                                onTouchCancel={() =>
+                                                                                    setShowPassword(false)
+                                                                                }
+                                                                                onKeyDown={(e) => {
+                                                                                    if (e.key === " ") {
+                                                                                        setShowPassword(true);
+                                                                                        e.preventDefault();
+                                                                                    }
+                                                                                }}
+                                                                                onKeyUp={(e) => {
+                                                                                    if (e.key === " ") {
+                                                                                        setShowPassword(false);
+                                                                                        e.preventDefault();
+                                                                                    }
+                                                                                }}
+                                                                            >
+                                                                                {showPassword ? (
+                                                                                    <Eye className="h-5 w-5" />
+                                                                                ) : (
+                                                                                    <EyeOff className="h-5 w-5" />
+                                                                                )}
+                                                                            </button>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            </TooltipTrigger>
+                                                                }
+                                                            />
                                                             <TooltipContent>
                                                                 {translate(
                                                                     "You must reauthenticate to be able to give consent",
@@ -428,23 +444,25 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                         <div className="w-full">
                                             <TooltipProvider>
                                                 <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <span>
-                                                            <Button
-                                                                id={"openid-consent-accept"}
-                                                                className="mx-2 w-full"
-                                                                disabled={!response || passwordMissing || loading}
-                                                                onClick={handleAcceptConsent}
-                                                                variant={"default"}
-                                                                color={"primary"}
-                                                            >
-                                                                {translate("Accept", { ns: "portal" })}
-                                                                {loadingAccept ? (
-                                                                    <Spinner className="ml-2 h-5 w-5" />
-                                                                ) : null}
-                                                            </Button>
-                                                        </span>
-                                                    </TooltipTrigger>
+                                                    <TooltipTrigger
+                                                        render={
+                                                            <span>
+                                                                <Button
+                                                                    id={"openid-consent-accept"}
+                                                                    className="mx-2 w-full"
+                                                                    disabled={!response || passwordMissing || loading}
+                                                                    onClick={handleAcceptConsent}
+                                                                    variant={"default"}
+                                                                    color={"primary"}
+                                                                >
+                                                                    {translate("Accept", { ns: "portal" })}
+                                                                    {loadingAccept ? (
+                                                                        <Spinner className="ml-2 h-5 w-5" />
+                                                                    ) : null}
+                                                                </Button>
+                                                            </span>
+                                                        }
+                                                    />
                                                     <TooltipContent>
                                                         {passwordMissing
                                                             ? translate(
@@ -458,23 +476,25 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                         <div className="w-full">
                                             <TooltipProvider>
                                                 <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <span>
-                                                            <Button
-                                                                id={"openid-consent-deny"}
-                                                                className="mx-2 w-full"
-                                                                disabled={!response || loading}
-                                                                onClick={handleRejectConsent}
-                                                                variant={"default"}
-                                                                color={"secondary"}
-                                                            >
-                                                                {translate("Deny", { ns: "portal" })}
-                                                                {loadingReject ? (
-                                                                    <Spinner className="ml-2 h-5 w-5" />
-                                                                ) : null}
-                                                            </Button>
-                                                        </span>
-                                                    </TooltipTrigger>
+                                                    <TooltipTrigger
+                                                        render={
+                                                            <span>
+                                                                <Button
+                                                                    id={"openid-consent-deny"}
+                                                                    className="mx-2 w-full"
+                                                                    disabled={!response || loading}
+                                                                    onClick={handleRejectConsent}
+                                                                    variant={"default"}
+                                                                    color={"secondary"}
+                                                                >
+                                                                    {translate("Deny", { ns: "portal" })}
+                                                                    {loadingReject ? (
+                                                                        <Spinner className="ml-2 h-5 w-5" />
+                                                                    ) : null}
+                                                                </Button>
+                                                            </span>
+                                                        }
+                                                    />
                                                     <TooltipContent>
                                                         {translate("Deny this consent request")}
                                                     </TooltipContent>

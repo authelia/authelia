@@ -36,7 +36,7 @@ const TypographyWithTooltip = function (props: Props): JSX.Element {
             {props.tooltip ? (
                 <TooltipProvider>
                     <Tooltip>
-                        <TooltipTrigger asChild>{typography}</TooltipTrigger>
+                        <TooltipTrigger render={typography} />
                         <TooltipContent>{props.tooltip}</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

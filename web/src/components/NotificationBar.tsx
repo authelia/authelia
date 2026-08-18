@@ -1,42 +1,41 @@
 import { useEffect, useRef } from "react";
 
-import { toast } from "sonner";
+import { Toast as ToastPrimitive } from "@base-ui/react/toast";
 
-import { Toaster } from "@components/UI/Sonner";
+import { ToastProvider, Toaster } from "@components/UI/Toast";
 import { useNotifications } from "@contexts/NotificationsContext";
 
-const NotificationBar = function () {
+const NotificationToasts = function () {
     const { notification, resetNotification } = useNotifications();
+    const manager = ToastPrimitive.useToastManager();
     const prevNotificationRef = useRef(notification);
 
     useEffect(() => {
         if (notification && notification !== prevNotificationRef.current) {
-            const toastLevelMap = {
-                error: toast.error,
-                info: toast.info,
-                success: toast.success,
-                warning: toast.warning,
-            };
-
-            const toastFn = toastLevelMap[notification.level] ?? toast.info;
             const current = notification;
 
-            toastFn(notification.message, {
-                className: "notification",
-                duration: notification.timeout * 1000,
-                onAutoClose: () => {
+            manager.add({
+                onClose: () => {
                     if (prevNotificationRef.current === current) resetNotification();
                 },
-                onDismiss: () => {
-                    if (prevNotificationRef.current === current) resetNotification();
-                },
+                timeout: notification.timeout * 1000,
+                title: notification.message,
+                type: notification.level,
             });
         }
 
         prevNotificationRef.current = notification;
-    }, [notification, resetNotification]);
+    }, [notification, resetNotification, manager]);
 
-    return <Toaster position="top-right" richColors />;
+    return <Toaster />;
+};
+
+const NotificationBar = function () {
+    return (
+        <ToastProvider>
+            <NotificationToasts />
+        </ToastProvider>
+    );
 };
 
 export default NotificationBar;

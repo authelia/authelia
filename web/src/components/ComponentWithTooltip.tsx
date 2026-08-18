@@ -15,7 +15,7 @@ const ComponentWithTooltip = function (props: Props): JSX.Element {
             {props.render ? (
                 <TooltipProvider>
                     <Tooltip>
-                        <TooltipTrigger asChild>{props.children}</TooltipTrigger>
+                        <TooltipTrigger render={props.children} />
                         <TooltipContent side={props.placement}>{props.title}</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

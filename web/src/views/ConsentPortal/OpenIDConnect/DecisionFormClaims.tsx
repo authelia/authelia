@@ -45,14 +45,16 @@ const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeCheck
                     {essential_claims?.map((claim: string) => (
                         <TooltipProvider key={`${claim}-essential`}>
                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <li className="flex items-center gap-2 px-2 py-1">
-                                        <Checkbox id={`claim-${claim}-essential`} disabled checked />
-                                        <Label htmlFor={`claim-${claim}-essential`}>
-                                            {formatClaim(translate(`claims.${claim}`), claim)}
-                                        </Label>
-                                    </li>
-                                </TooltipTrigger>
+                                <TooltipTrigger
+                                    render={
+                                        <li className="flex items-center gap-2 px-2 py-1">
+                                            <Checkbox id={`claim-${claim}-essential`} disabled checked />
+                                            <Label htmlFor={`claim-${claim}-essential`}>
+                                                {formatClaim(translate(`claims.${claim}`), claim)}
+                                            </Label>
+                                        </li>
+                                    }
+                                />
                                 <TooltipContent>{translate("Claim", { name: claim })}</TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -60,18 +62,20 @@ const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeCheck
                     {availableClaims.map((claim: string) => (
                         <TooltipProvider key={claim}>
                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <li className="flex items-center gap-2 px-2 py-1">
-                                        <Checkbox
-                                            id={"claim-" + claim}
-                                            checked={claimChecked(claim)}
-                                            onCheckedChange={() => handleClaimCheckboxOnChange(claim)}
-                                        />
-                                        <Label htmlFor={"claim-" + claim}>
-                                            {formatClaim(translate(`claims.${claim}`), claim)}
-                                        </Label>
-                                    </li>
-                                </TooltipTrigger>
+                                <TooltipTrigger
+                                    render={
+                                        <li className="flex items-center gap-2 px-2 py-1">
+                                            <Checkbox
+                                                id={"claim-" + claim}
+                                                checked={claimChecked(claim)}
+                                                onCheckedChange={() => handleClaimCheckboxOnChange(claim)}
+                                            />
+                                            <Label htmlFor={"claim-" + claim}>
+                                                {formatClaim(translate(`claims.${claim}`), claim)}
+                                            </Label>
+                                        </li>
+                                    }
+                                />
                                 <TooltipContent>{translate("Claim", { name: claim })}</TooltipContent>
                             </Tooltip>
                         </TooltipProvider>

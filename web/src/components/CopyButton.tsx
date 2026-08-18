@@ -76,16 +76,18 @@ const CopyButton = function (props: Props) {
     ) : (
         <TooltipProvider>
             <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        variant={variant}
-                        onClick={isCopying ? undefined : handleCopyToClipboard}
-                        className={buttonClassName}
-                    >
-                        {icon}
-                        {displayText}
-                    </Button>
-                </TooltipTrigger>
+                <TooltipTrigger
+                    render={
+                        <Button
+                            variant={variant}
+                            onClick={isCopying ? undefined : handleCopyToClipboard}
+                            className={buttonClassName}
+                        >
+                            {icon}
+                            {displayText}
+                        </Button>
+                    }
+                />
                 <TooltipContent>{props.tooltip}</TooltipContent>
             </Tooltip>
         </TooltipProvider>

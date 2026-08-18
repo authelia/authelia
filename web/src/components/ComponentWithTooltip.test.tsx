@@ -32,7 +32,6 @@ it("renders children with tooltip when render is true", () => {
     const child = screen.getByRole("button", { name: "child" });
     expect(child).toBeInTheDocument();
     expect(child).toHaveAttribute("data-slot", "tooltip-trigger");
-    expect(child).toHaveAttribute("data-state");
 });
 
 it("renders with placement prop", () => {

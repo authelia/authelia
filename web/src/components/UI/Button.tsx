@@ -1,7 +1,7 @@
 import { type ComponentProps } from "react";
 
+import { useRender } from "@base-ui/react/use-render";
 import { type VariantProps, cva } from "class-variance-authority";
-import { Slot } from "radix-ui";
 
 import { cn } from "@utils/Styles";
 
@@ -71,30 +71,29 @@ function getColorClasses(variant: string = "default", color: ButtonColor = "defa
 }
 
 function Button({
-    asChild = false,
     className,
     color,
+    render,
     size = "default",
     type,
     variant = "default",
     ...props
 }: ComponentProps<"button"> &
     VariantProps<typeof buttonVariants> & {
-        asChild?: boolean;
         color?: ButtonColor;
+        render?: useRender.RenderProp;
     }) {
-    const Comp = asChild ? Slot.Root : "button";
-
-    return (
-        <Comp
-            data-slot="button"
-            data-variant={variant}
-            data-size={size}
-            className={cn(buttonVariants({ size, variant }), getColorClasses(variant ?? undefined, color), className)}
-            {...(asChild ? { type } : { type: type ?? "button" })}
-            {...props}
-        />
-    );
+    return useRender({
+        props: {
+            className: cn(buttonVariants({ size, variant }), getColorClasses(variant ?? undefined, color), className),
+            "data-size": size,
+            "data-slot": "button",
+            "data-variant": variant,
+            ...(render ? { type } : { type: type ?? "button" }),
+            ...props,
+        },
+        render: render ?? <button />,
+    });
 }
 
 export { Button, buttonVariants };

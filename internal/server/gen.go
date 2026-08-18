@@ -8,6 +8,6 @@ package server
 
 const (
 	placeholderCSPNonce = "${NONCE}"
-	tmplCSPDefault      = "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=' 'sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY='"
-	tmplCSPDevelopment  = "default-src 'self' 'unsafe-eval'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=' 'sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY='"
+	tmplCSPDefault      = "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"
+	tmplCSPDevelopment  = "default-src 'self' 'unsafe-eval'; base-uri 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"
 )

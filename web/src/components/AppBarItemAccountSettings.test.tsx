@@ -28,8 +28,6 @@ const mockUserInfo = {
 };
 
 const openDropdown = (button: HTMLElement) => {
-    fireEvent.pointerDown(button, { button: 0, pointerType: "mouse" });
-    fireEvent.pointerUp(button, { button: 0, pointerType: "mouse" });
     fireEvent.click(button, { button: 0 });
 };
 
