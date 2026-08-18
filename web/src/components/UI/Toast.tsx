@@ -49,6 +49,7 @@ function Toaster({ className, ...props }: ComponentProps<typeof ToastPrimitive.V
                         data-slot="toast"
                         className={cn(
                             "notification flex items-center gap-1.5 rounded-(--radius) border p-4",
+                            "data-[limited]:hidden",
                             "font-sans text-[13px] text-(--toast-ink)",
                             "border-(--toast-edge) bg-(--toast-surface) shadow-[0_4px_12px_rgb(0_0_0/0.1)]",
                             accent,

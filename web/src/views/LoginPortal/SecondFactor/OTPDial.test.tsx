@@ -48,3 +48,19 @@ it("disables input during rate-limited state", () => {
     render(<OTPDial passcode="" state={State.RateLimited} digits={6} period={30} onChange={vi.fn()} />);
     expect(inputs().every((el) => el.disabled)).toBe(true);
 });
+
+it("names the field and marks the failure state for assistive technology", () => {
+    const { container, unmount } = render(
+        <OTPDial passcode="" state={State.Idle} digits={6} period={30} onChange={vi.fn()} />,
+    );
+
+    const labeledBy = inputs()[0].getAttribute("aria-labelledby");
+    expect(labeledBy).toBeTruthy();
+    expect(container.querySelector(`#${CSS.escape(labeledBy!)}`)?.textContent).toBe("Enter One-Time Password");
+    expect(inputs().every((el) => el.getAttribute("aria-labelledby") === labeledBy)).toBe(true);
+    expect(inputs()[0]).toHaveAttribute("aria-invalid", "false");
+    unmount();
+
+    render(<OTPDial passcode="123" state={State.Failure} digits={6} period={30} onChange={vi.fn()} />);
+    expect(inputs().every((el) => el.getAttribute("aria-invalid") === "true")).toBe(true);
+});

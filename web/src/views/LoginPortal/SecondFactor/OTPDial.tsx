@@ -1,6 +1,7 @@
-import { Fragment } from "react";
+import { Fragment, useId } from "react";
 
 import { OTPField } from "@base-ui/react/otp-field";
+import { useTranslation } from "react-i18next";
 
 import SuccessIcon from "@components/SuccessIcon";
 import TimerIcon from "@components/TimerIcon";
@@ -26,6 +27,8 @@ export enum State {
 }
 
 const OTPDial = function (props: Props) {
+    const { t: translate } = useTranslation();
+    const fieldId = useId();
     const disabled =
         props.state === State.InProgress || props.state === State.Success || props.state === State.RateLimited;
 
@@ -40,7 +43,11 @@ const OTPDial = function (props: Props) {
                     props.state === State.Failure && "[&_input]:border-[rgba(255,2,2,0.95)]",
                 )}
             >
+                <label htmlFor={fieldId} className="sr-only">
+                    {translate("Enter One-Time Password")}
+                </label>
                 <OTPField.Root
+                    id={fieldId}
                     length={props.digits}
                     value={props.passcode}
                     onValueChange={props.onChange}
@@ -50,7 +57,11 @@ const OTPDial = function (props: Props) {
                     autoComplete="one-time-code"
                 >
                     {Array.from({ length: props.digits }, (_item, index) => (
-                        <OTPField.Input key={index} autoFocus={index === 0} />
+                        <OTPField.Input
+                            key={index}
+                            autoFocus={index === 0}
+                            aria-invalid={props.state === State.Failure}
+                        />
                     ))}
                 </OTPField.Root>
             </span>
