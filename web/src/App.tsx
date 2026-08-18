@@ -1,7 +1,6 @@
 import { Suspense, lazy } from "react";
 
 import { CSPProvider } from "@base-ui/react/csp-provider";
-import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
 import { useTranslation } from "react-i18next";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
@@ -32,8 +31,6 @@ import {
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
 
-import "@fortawesome/fontawesome-svg-core/styles.css";
-
 const ConsentPortal = lazy(() => import("@views/ConsentPortal/ConsentPortal"));
 const SignOut = lazy(() => import("@views/LoginPortal/SignOut/SignOut"));
 const ResetPasswordStep1 = lazy(() => import("@views/ResetPassword/ResetPasswordStep1"));
@@ -41,8 +38,6 @@ const ResetPasswordStep2 = lazy(() => import("@views/ResetPassword/ResetPassword
 const SettingsRouter = lazy(() => import("@views/Settings/SettingsRouter"));
 const RevokeOneTimeCodeView = lazy(() => import("@views/Revoke/RevokeOneTimeCodeView"));
 const RevokeResetPasswordTokenView = lazy(() => import("@views/Revoke/RevokeResetPasswordTokenView"));
-
-faConfig.autoAddCss = false;
 
 function App() {
     const { i18n } = useTranslation();

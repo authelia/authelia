@@ -100,7 +100,7 @@ function NotRegisteredContainer(props: NotRegisteredContainerProps) {
 
     return (
         <Fragment>
-            <div className="mb-4 flex-[0_0_100%]">
+            <div className="mb-4 flex basis-full justify-center">
                 <InformationIcon />
             </div>
             <p className="text-[#5858ff]">

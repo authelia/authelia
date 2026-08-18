@@ -6,8 +6,8 @@ const Authenticated = function () {
     const { t: translate } = useTranslation();
 
     return (
-        <div id="authenticated-stage">
-            <div className="mb-4 flex-[0_0_100%]">
+        <div id="authenticated-stage" className="flex flex-col items-center">
+            <div className="mb-4">
                 <SuccessIcon />
             </div>
             <p>{translate("Authenticated")}</p>

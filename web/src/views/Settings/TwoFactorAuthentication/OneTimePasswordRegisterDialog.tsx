@@ -492,7 +492,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 return (
                     <div className="col-span-12 py-8">
                         {success ? (
-                            <div className="flex-[0_0_100%] mb-4">
+                            <div className="mb-4 flex justify-center">
                                 <SuccessIcon />
                             </div>
                         ) : (

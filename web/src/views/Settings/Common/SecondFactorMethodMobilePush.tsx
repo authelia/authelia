@@ -227,7 +227,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
     return (
         <Fragment>
             <div className="h-[120px]">
-                <div className="inline-block h-16 w-16">{icon}</div>
+                <div className="inline-block size-17.5">{icon}</div>
                 <div className={state.status === "failure" ? "" : "hidden"}>
                     <Button variant={"ghost"} color={"secondary"} onClick={() => dispatch({ type: "startPush" })}>
                         {translate("Retry")}
