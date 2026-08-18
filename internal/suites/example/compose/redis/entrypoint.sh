@@ -2,7 +2,7 @@
 
 MODE=${1}
 
-cp "/templates/${MODE}.conf" /data/redis.conf
+sed "s/__SUITE_SUBNET__/${SUITE_SUBNET:-192.168.240}/g" "/templates/${MODE}.conf" > /data/redis.conf
 chown -R redis:redis /data
 
 if [ "${MODE}" = "master" ] || [ "${MODE}" = "slave" ]; then

@@ -52,8 +52,7 @@ func (s *TwoFactorTOTPScenario) TearDownSuite() {
 }
 
 func (s *TwoFactorTOTPScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *TwoFactorTOTPScenario) TearDownTest() {

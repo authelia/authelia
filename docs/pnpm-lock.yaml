@@ -9,7 +9,7 @@ overrides:
   '@babel/plugin-transform-modules-systemjs': 7.29.8
   adm-zip: 0.6.0
   brace-expansion: 5.0.9
-  js-yaml: 5.2.3
+  js-yaml: 5.3.0
   nanoid: 6.0.1
   picomatch: 4.0.5
   semver: 7.8.5
@@ -1205,8 +1205,8 @@ packages:
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
-  js-yaml@5.2.3:
-    resolution: {integrity: sha512-n+mUVyUX5bVv7G/G2zyIHOhdxfuU1dY2NOFzTQUWiMUbFss8b57NFlgCCaggU78wSw5KVS9cllzeLyzyR+n5nw==}
+  js-yaml@5.3.0:
+    resolution: {integrity: sha512-muutsYr+e2+d3rTgUGslq5rxbBlUy3cJ61IsHag2QNDQV+7zXWjkUpmALIajhrlLlrgRUiymj6U3zUr/TMK84Q==}
     hasBin: true
 
   jsesc@3.1.0:
@@ -2584,7 +2584,7 @@ snapshots:
   '@changesets/parse@0.4.3':
     dependencies:
       '@changesets/types': 6.1.0
-      js-yaml: 5.2.3
+      js-yaml: 5.3.0
 
   '@changesets/pre@2.0.2':
     dependencies:
@@ -3097,7 +3097,7 @@ snapshots:
 
   js-tokens@4.0.0: {}
 
-  js-yaml@5.2.3:
+  js-yaml@5.3.0:
     dependencies:
       argparse: 2.0.1
 
@@ -3337,7 +3337,7 @@ snapshots:
   read-yaml-file@1.1.0:
     dependencies:
       graceful-fs: 4.2.11
-      js-yaml: 5.2.3
+      js-yaml: 5.3.0
       pify: 4.0.1
       strip-bom: 3.0.0
 

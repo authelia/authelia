@@ -1,6 +1,8 @@
 ---
 services:
   traefik:
+    cpus: 2
+    mem_limit: 1g
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - './example/compose/traefik/config:/config'
@@ -11,16 +13,28 @@ services:
       traefik.http.routers.api.entrypoints: 'https'
       traefik.http.routers.api.service: 'api@internal'
       traefik.http.routers.api.tls: 'true'
-      traefik.http.middlewares.authelia.forwardAuth.address: 'https://authelia-backend:9091${PathPrefix}/api/authz/forward-auth'  # yamllint disable-line rule:line-length
+      traefik.http.middlewares.authelia.forwardAuth.address: 'https://authelia-backend:9091${PathPrefix:-}/api/authz/forward-auth'  # yamllint disable-line rule:line-length
       traefik.http.middlewares.authelia.forwardAuth.tls.insecureSkipVerify: 'true'
       traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader: 'true'
       traefik.http.middlewares.authelia.forwardAuth.maxResponseBodySize: '8192'
       traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'  # yamllint disable-line rule:line-length
     command:
-      - '--configFile=/config/static.yml'
+      - '--api.dashboard=true'
+      - '--api.insecure=false'
+      - '--log.level=DEBUG'
+      - '--accesslog=true'
+      - '--global.sendanonymoususage=false'
+      - '--global.checknewversion=false'
+      - '--entrypoints.https.address=:8080/tcp'
+      - '--serverstransport.insecureskipverify=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--providers.docker.constraints=Label(`com.docker.compose.project`,`${COMPOSE_PROJECT_NAME:-authelia}`)'
+      - '--providers.docker.network=${COMPOSE_PROJECT_NAME:-authelia}_authelianet'
+      - '--providers.file.directory=/config/dynamic/'
+      - '--providers.file.watch=true'
     networks:
       authelianet:
         aliases:
           - login.example.com
-        ipv4_address: 192.168.240.100
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.100
 ...

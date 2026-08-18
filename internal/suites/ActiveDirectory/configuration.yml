@@ -4,6 +4,8 @@ theme: 'grey'
 
 server:
   address: 'tcp://:9091'
+  timeouts:
+    read: '30s'
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'

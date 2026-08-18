@@ -1,5 +1,5 @@
 ---
-openapi: 3.1.0
+openapi: 3.2.0
 info:
   title: Authelia API
   description: >
@@ -16,7 +16,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
   version: 1.0.0
 servers:
-  - url: '{{ .BaseURL | default "https://auth.example.com/" }}'
+  - url: '{{ trimSuffix "/" (.BaseURL | default "https://auth.example.com/") }}'
     description: Authelia API
 tags:
   - name: State
@@ -25,17 +25,25 @@ tags:
     description: Authentication endpoints
   - name: Authorization
     description: Authorization endpoints
+  - name: Utilities
+    description: General utilities used in several operations
+  - name: User Information
+    description: User configuration endpoints
+  - name: User Elevation
+    description: User session elevation endpoints
   {{- if .PasswordReset }}
   - name: Password Reset
     description: Password reset endpoints
-  - name: User Information
-    description: User configuration endpoints
   {{- end }}
   {{- if .PasswordChange }}
   - name: Password Change
     description: Password change endpoint
   {{- end }}
-  {{- if (or .TOTP .WebAuthn .Duo) }}
+  - name: First Factor
+    description: First Factor Authentication
+    externalDocs:
+      url: https://www.authelia.com/configuration/first-factor/introduction/
+  {{- if (or .TOTP .WebAuthn .Duo .Passkeys) }}
   - name: Second Factor
     description: TOTP, WebAuthn and Duo endpoints
     externalDocs:
@@ -54,6 +62,7 @@ tags:
 paths:
   /api/configuration:
     get:
+      operationId: getConfiguration
       tags:
         - State
       summary: Application Configuration
@@ -73,6 +82,7 @@ paths:
         - authelia_auth: []
   /api/configuration/password-policy:
     get:
+      operationId: getPasswordPolicyConfiguration
       tags:
         - State
       summary: Password Policy Configuration
@@ -87,6 +97,7 @@ paths:
                 $ref: '#/components/schemas/handlers.configuration.PasswordPolicyConfigurationBody'
   /api/health:
     head:
+      operationId: headHealth
       tags:
         - State
       summary: Application Health
@@ -95,6 +106,7 @@ paths:
         "200":
           description: Successful Operation
     get:
+      operationId: getHealth
       tags:
         - State
       summary: Application Health
@@ -108,6 +120,7 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.OK'
   /api/state:
     get:
+      operationId: getState
       tags:
         - State
       summary: User Application State
@@ -126,10 +139,15 @@ paths:
   {{- range $name, $config := .EndpointsAuthz }}
   {{- $uri := printf "/api/authz/%s" $name }}
   {{- if (eq $name "legacy") }}{{ $uri = "/api/verify" }}{{ end }}
+  {{- $opidAuthz := "" }}
+  {{- range $part := splitList "-" ($name | replace "/" "-" | replace "." "-" | replace "_" "-") }}
+  {{- if gt (len $part) 0 }}{{ $opidAuthz = printf "%s%s%s" $opidAuthz (upper (slice $part 0 1)) (slice $part 1) }}{{ end }}
+  {{- end }}
   {{ $uri }}:
     {{- if (eq $config.Implementation "Legacy") }}
     {{- range $method := list "get" "head" "options" "post" "put" "patch" "delete" "trace" }}
     {{ $method }}:
+      operationId: {{ $method }}Authz{{ $opidAuthz }}
       tags:
         - Authorization
       summary: Authorization Verification (Legacy)
@@ -137,6 +155,10 @@ paths:
         The legacy authorization verification endpoint provides the ability to verify if a user has the necessary
         permissions to access a specified domain with several proxies. It's generally recommended users use a proxy
         specific endpoint instead.
+
+
+        Any arbitrary sub-path of this endpoint is also routed to the same handler, i.e. `{{ $uri }}/{path}`, which
+        allows proxies that forward the original request path to this endpoint to be supported.
       parameters:
         - name: X-Original-URL
           in: header
@@ -184,22 +206,26 @@ paths:
               description: Username
               schema:
                 type: string
-                example: john
+                examples:
+                  - john
             remote-name:
               description: Name
               schema:
                 type: string
-                example: John Doe
+                examples:
+                  - John Doe
             remote-email:
               description: Email
               schema:
                 type: string
-                example: john.doe@authelia.com
+                examples:
+                  - john.doe@authelia.com
             remote-groups:
               description: Comma separated list of Groups
               schema:
                 type: string
-                example: admin,devs
+                examples:
+                  - admin,devs
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -243,12 +269,17 @@ paths:
     {{- else if (eq $config.Implementation "ExtAuthz") }}
     {{- range $method := list "get" "head" "options" "post" "put" "patch" "delete" "trace" }}
     {{ $method }}:
+      operationId: {{ $method }}Authz{{ $opidAuthz }}
       tags:
         - Authorization
       summary: Authorization Verification (ExtAuthz)
       description: >
         The ExtAuthz authorization verification endpoint provides the ability to verify if a user has the necessary
         permissions to access a specified resource with the Envoy proxy.
+
+
+        Any arbitrary sub-path of this endpoint is also routed to the same handler, i.e. `{{ $uri }}/{path}`, as Envoy
+        forwards the original request path to this endpoint.
       parameters:
         - $ref: '#/components/parameters/forwardedMethodParam'
         - $ref: '#/components/parameters/forwardedProtoParam'
@@ -264,22 +295,26 @@ paths:
               description: Username
               schema:
                 type: string
-                example: john
+                examples:
+                  - john
             remote-name:
               description: Name
               schema:
                 type: string
-                example: John Doe
+                examples:
+                  - John Doe
             remote-email:
               description: Email
               schema:
                 type: string
-                example: john.doe@authelia.com
+                examples:
+                  - john.doe@authelia.com
             remote-groups:
               description: Comma separated list of Groups
               schema:
                 type: string
-                example: admin,devs
+                examples:
+                  - admin,devs
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -320,6 +355,7 @@ paths:
     {{- else if (eq $config.Implementation "ForwardAuth") }}
     {{- range $method := list "get" "head" }}
     {{ $method }}:
+      operationId: {{ $method }}Authz{{ $opidAuthz }}
       tags:
         - Authorization
       summary: Authorization Verification (ForwardAuth)
@@ -340,22 +376,26 @@ paths:
               description: Username
               schema:
                 type: string
-                example: john
+                examples:
+                  - john
             remote-name:
               description: Name
               schema:
                 type: string
-                example: John Doe
+                examples:
+                  - John Doe
             remote-email:
               description: Email
               schema:
                 type: string
-                example: john.doe@authelia.com
+                examples:
+                  - john.doe@authelia.com
             remote-groups:
               description: Comma separated list of Groups
               schema:
                 type: string
-                example: admin,devs
+                examples:
+                  - admin,devs
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -396,6 +436,7 @@ paths:
     {{- else if (eq $config.Implementation "AuthRequest") }}
     {{- range $method := list "get" "head" }}
     {{ $method }}:
+      operationId: {{ $method }}Authz{{ $opidAuthz }}
       tags:
         - Authorization
       summary: Authorization Verification (AuthRequest)
@@ -413,22 +454,26 @@ paths:
               description: Username
               schema:
                 type: string
-                example: john
+                examples:
+                  - john
             remote-name:
               description: Name
               schema:
                 type: string
-                example: John Doe
+                examples:
+                  - John Doe
             remote-email:
               description: Email
               schema:
                 type: string
-                example: john.doe@authelia.com
+                examples:
+                  - john.doe@authelia.com
             remote-groups:
               description: Comma separated list of Groups
               schema:
                 type: string
-                example: admin,devs
+                examples:
+                  - admin,devs
             set-cookie:
               description: Sets a new cookie value
               schema:
@@ -455,7 +500,9 @@ paths:
     {{- end }}
   /api/firstfactor:
     post:
+      operationId: postFirstFactor
       tags:
+        - First Factor
         - Authentication
       summary: Login
       description: >
@@ -474,13 +521,40 @@ paths:
                 $ref: '#/components/schemas/handlers.redirectResponse'
         "401":
           description: Unauthorized
+  /api/firstfactor/reauthenticate:
+    post:
+      operationId: postFirstFactorReauthenticate
+      tags:
+        - First Factor
+        - Authentication
+      summary: Reauthenticate
+      description: >
+        The firstfactor reauthenticate endpoint allows an already authenticated user to prove they still know their
+        password without providing their username.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.bodyFirstFactorReauthenticateRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.redirectResponse'
+        "401":
+          description: Unauthorized
       security:
         - authelia_auth: []
   {{- if .Passkeys }}
   /api/firstfactor/passkey:
     get:
+      operationId: getFirstFactorPasskey
       tags:
         - First Factor
+        - Authentication
       summary: First Factor Authentication - Passkey
       description: >
         The WebAuthn endpoint starts the first factor authentication process with the
@@ -498,11 +572,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
-      security:
-        - authelia_auth: []
     post:
+      operationId: postFirstFactorPasskey
       tags:
         - First Factor
+        - Authentication
       summary: First Factor Authentication - Passkey
       description: >
         The WebAuthn endpoint completes the first factor authentication process with the
@@ -526,13 +600,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
-      security:
-        - authelia_auth: []
   {{- end }}
   /api/checks/safe-redirection:
     post:
+      operationId: postCheckSafeRedirection
       tags:
-        - Authentication
+        - Utilities
       summary: Check whether URI is safe to redirect to.
       description: >
         End users usually needs to be redirected to a target website after authentication. This endpoint aims to check
@@ -555,6 +628,7 @@ paths:
         - authelia_auth: []
   /api/logout:
     post:
+      operationId: postLogout
       tags:
         - Authentication
       summary: Logout
@@ -577,6 +651,7 @@ paths:
   {{- if .PasswordChange }}
   /api/change-password:
     post:
+      operationId: postChangePassword
       tags:
         - Password Change
       summary: Password Change
@@ -602,6 +677,7 @@ paths:
   {{- if .PasswordReset }}
   /api/reset-password/identity/start:
     post:
+      operationId: postResetPasswordIdentityStart
       tags:
         - Password Reset
       summary: Identity Verification Token Creation
@@ -641,6 +717,7 @@ paths:
         - authelia_auth: []
   /api/reset-password/identity/finish:
     post:
+      operationId: postResetPasswordIdentityFinish
       tags:
         - Password Reset
       summary: Identity Verification Token Validation
@@ -679,6 +756,7 @@ paths:
         - authelia_auth: []
   /api/reset-password:
     post:
+      operationId: postResetPassword
       tags:
         - Password Reset
       summary: Password Reset
@@ -715,6 +793,7 @@ paths:
       security:
         - authelia_auth: []
     delete:
+      operationId: deleteResetPassword
       tags:
         - Password Reset
       summary: Password Reset
@@ -751,6 +830,7 @@ paths:
   {{- end }}
   /api/user/info:
     get:
+      operationId: getUserInfo
       tags:
         - User Information
       summary: User Configuration
@@ -769,6 +849,7 @@ paths:
       security:
         - authelia_auth: []
     post:
+      operationId: postUserInfo
       tags:
         - User Information
       summary: User Configuration
@@ -788,6 +869,7 @@ paths:
         - authelia_auth: []
   /api/user/info/2fa_method:
     post:
+      operationId: postUserInfoSecondFactorMethod
       tags:
         - User Information
       summary: User Configuration
@@ -810,6 +892,7 @@ paths:
         - authelia_auth: []
   /api/user/session/elevation:
     get:
+      operationId: getUserSessionElevation
       tags:
         - User Elevation
       summary: User Session Elevation
@@ -828,13 +911,46 @@ paths:
       security:
         - authelia_auth: []
     post:
+      operationId: postUserSessionElevation
       tags:
         - User Elevation
       summary: User Session Elevation
       description: >
         The user session elevation endpoint generates a new One-Time Code for the purpose
         of elevating a user session. The One-Time Code is sent to a users email.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.ElevationStart.Response'
+        "403":
+          description: Forbidden
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
+      security:
+        - authelia_auth: []
+    put:
+      operationId: putUserSessionElevation
+      tags:
+        - User Elevation
+      summary: User Session Elevation
+      description: >
+        The user session elevation endpoint verifies and consumes a One-Time Code, and
+        configures the session elevation.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -846,30 +962,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
-        "403":
-          description: Forbidden
-      security:
-        - authelia_auth: []
-    put:
-      tags:
-        - User Elevation
-      summary: User Session Elevation
-      description: >
-        The user session elevation endpoint verifies and consumes a One-Time Code, and
-        configures the session elevation.
-      responses:
-        "200":
-          description: Successful Operation
+        "400":
+          description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/handlers.ElevationStart.Response'
+                $ref: '#/components/schemas/middlewares.Response.KO'
         "403":
           description: Forbidden
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   /api/user/session/elevation/{id}:
     delete:
+      operationId: deleteUserSessionElevation
       tags:
         - User Elevation
       summary: User Session Elevation
@@ -896,8 +1013,10 @@ paths:
   {{- if .TOTP }}
   /api/secondfactor/totp/register:
     get:
+      operationId: getSecondFactorTOTPRegistration
       tags:
         - Second Factor
+        - Authentication
       summary: TOTP Configuration Register
       description: >
         The TOTP register endpoint provides information important for registering the TOTP
@@ -919,8 +1038,10 @@ paths:
       security:
         - authelia_auth: []
     put:
+      operationId: putSecondFactorTOTPRegistration
       tags:
         - Second Factor
+        - Authentication
       summary: TOTP Configuration Register
       description: >
         The TOTP register endpoint creates a temporary TOTP configuration which must then
@@ -955,8 +1076,10 @@ paths:
       security:
         - authelia_auth: []
     post:
+      operationId: postSecondFactorTOTPRegistration
       tags:
         - Second Factor
+        - Authentication
       summary: TOTP Configuration Register
       description: >
         The TOTP register endpoint provides the validation step for the endpoint where the
@@ -988,8 +1111,10 @@ paths:
       security:
         - authelia_auth: []
     delete:
+      operationId: deleteSecondFactorTOTPRegistration
       tags:
         - Second Factor
+        - Authentication
       summary: TOTP Configuration Register
       description: >
         The TOTP register endpoint removes the temporary TOTP configuration from the
@@ -1011,8 +1136,10 @@ paths:
         - authelia_auth: []
   /api/secondfactor/totp:
     get:
+      operationId: getSecondFactorTOTPConfiguration
       tags:
         - Second Factor
+        - Authentication
       summary: TOTP Configuration
       description: >
         The TOTP endpoint provides information necessary to display the TOTP component to
@@ -1045,8 +1172,10 @@ paths:
       security:
         - authelia_auth: []
     post:
+      operationId: postSecondFactorTOTP
       tags:
         - Second Factor
+        - Authentication
       summary: Second Factor Authentication - TOTP
       description: >
         The TOTP endpoint performs second factor authentication with a TOTP configuration.
@@ -1084,8 +1213,10 @@ paths:
       security:
         - authelia_auth: []
     delete:
+      operationId: deleteSecondFactorTOTP
       tags:
         - Second Factor
+        - Authentication
       summary: Second Factor Authentication - TOTP
       description: >
         The TOTP endpoint deletes the TOTP configuration for the user from the database.
@@ -1108,8 +1239,10 @@ paths:
   {{- if .WebAuthn }}
   /api/secondfactor/webauthn:
     get:
+      operationId: getSecondFactorWebAuthn
       tags:
         - Second Factor
+        - Authentication
       summary: Second Factor Authentication - WebAuthn
       description: >
         The WebAuthn endpoint starts the second factor authentication process with the
@@ -1130,8 +1263,10 @@ paths:
       security:
         - authelia_auth: []
     post:
+      operationId: postSecondFactorWebAuthn
       tags:
         - Second Factor
+        - Authentication
       summary: Second Factor Authentication - WebAuthn
       description: >
         The WebAuthn endpoint completes the second factor authentication process with the
@@ -1157,10 +1292,36 @@ paths:
                 $ref: '#/components/schemas/middlewares.Response.KO'
       security:
         - authelia_auth: []
-  /api/secondfactor/webauthn/register:
-    put:
+  /api/secondfactor/webauthn/credentials:
+    get:
+      operationId: getSecondFactorWebAuthnCredentials
       tags:
         - Second Factor
+        - Authentication
+      summary: WebAuthn Credentials
+      description: >
+        The WebAuthn credentials endpoint returns the list of WebAuthn credentials registered by the user.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webauthn.CredentialsResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+  /api/secondfactor/webauthn/credential/register:
+    put:
+      operationId: putSecondFactorWebAuthnCredentialRegistration
+      tags:
+        - Second Factor
+        - Authentication
       summary: WebAuthn Credential Registration (Attestation)
       description: >
         The WebAuthn Register endpoint checks the intended description is okay and provides
@@ -1200,18 +1361,21 @@ paths:
       security:
         - authelia_auth: []
     post:
+      operationId: postSecondFactorWebAuthnCredentialRegistration
       tags:
         - Second Factor
+        - Authentication
       summary: WebAuthn Credential Registration (Attestation)
       description: >
         The WebAuthn Register endpoint validates the authenticators response and finalizes
-        the WebAuthn registration.
+        the WebAuthn registration. The description for the credential is the one supplied to the PUT method verb for
+        this endpoint.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/webauthn.CredentialAttestationResponse'
+              $ref: '#/components/schemas/webauthn.PublicKeyCredentialAttestation'
       responses:
         "201":
           description: Created
@@ -1234,8 +1398,10 @@ paths:
       security:
         - authelia_auth: []
     delete:
+      operationId: deleteSecondFactorWebAuthnCredentialRegistration
       tags:
         - Second Factor
+        - Authentication
       summary: WebAuthn Credential Registration (Attestation)
       description: >
         The WebAuthn Register endpoint removes all WebAuthn registration data from the
@@ -1257,8 +1423,10 @@ paths:
         - authelia_auth: []
   /api/secondfactor/webauthn/credential/{credentialID}:
     put:
+      operationId: putSecondFactorWebAuthnCredential
       tags:
         - Second Factor
+        - Authentication
       summary: WebAuthn Credential
       description: >
         The WebAuthn credential endpoint updates the description of the specified WebAuthn
@@ -1299,8 +1467,10 @@ paths:
       security:
         - authelia_auth: []
     delete:
+      operationId: deleteSecondFactorWebAuthnCredential
       tags:
         - Second Factor
+        - Authentication
       summary: WebAuthn Credential
       description: >
         The WebAuthn credential endpoint deletes the specified WebAuthn credential from
@@ -1332,8 +1502,10 @@ paths:
   {{- if .Duo }}
   /api/secondfactor/duo:
     get:
+      operationId: getSecondFactorDuo
       tags:
         - Second Factor
+        - Authentication
       summary: Second Factor Authentication - Duo Mobile Push
       description: This endpoint retrieves the users preferred Duo device and method.
       responses:
@@ -1352,8 +1524,10 @@ paths:
       security:
         - authelia_auth: []
     post:
+      operationId: postSecondFactorDuo
       tags:
         - Second Factor
+        - Authentication
       summary: Second Factor Authentication - Duo Mobile Push
       description: This endpoint performs second factor authentication with a Duo Mobile Push.
       requestBody:
@@ -1387,8 +1561,10 @@ paths:
         - authelia_auth: []
   /api/secondfactor/duo_devices:
     get:
+      operationId: getSecondFactorDuoDevices
       tags:
         - Second Factor
+        - Authentication
       summary: Second Factor Authentication - Duo Mobile Push
       description: This endpoint retrieves a users available devices and capabilities from Duo.
       responses:
@@ -1404,8 +1580,10 @@ paths:
         - authelia_auth: []
   /api/secondfactor/duo_device:
     post:
+      operationId: postSecondFactorDuoDevice
       tags:
         - Second Factor
+        - Authentication
       summary: Second Factor Authentication - Duo Mobile Push
       description: This endpoint updates the users preferred Duo device and method.
       requestBody:
@@ -1429,8 +1607,10 @@ paths:
   {{- if .Passkeys }}
   /api/secondfactor/password:
     post:
+      operationId: postSecondFactorPassword
       tags:
         - Second Factor
+        - Authentication
       summary: Second Factor Authentication - Password
       description: This endpoint performs 2FA via the users password.
       requestBody:
@@ -1454,6 +1634,7 @@ paths:
   {{- if .OpenIDConnect }}
   /.well-known/openid-configuration:
     get:
+      operationId: getOpenIDConnectConfiguration
       tags:
         - OpenID Connect 1.0
       summary: OpenID Connect Discovery 1.0 Document
@@ -1473,6 +1654,7 @@ paths:
           description: Internal Server Error
   /.well-known/oauth-authorization-server:
     get:
+      operationId: getOAuth2AuthorizationServerMetadata
       tags:
         - OAuth 2.0
       summary: OAuth 2.0 Authorization Server Metadata
@@ -1492,6 +1674,7 @@ paths:
           description: Internal Server Error
   /jwks.json:
     get:
+      operationId: getOpenIDConnectJSONWebKeySet
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
@@ -1508,6 +1691,7 @@ paths:
                 $ref: '#/components/schemas/jose.spec.JWKs'
   /api/oidc/authorization:
     get:
+      operationId: getOpenIDConnectAuthorization
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
@@ -1516,21 +1700,23 @@ paths:
         This endpoint performs OpenID Connect 1.0 Authorization.
       parameters:
         - in: query
-          name: id
+          name: consent_id
           required: false
           description: The OpenID Connect 1.0 consent workflow ID.
           schema:
             type: string
             format: uuid
             pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-            example: '713ef767-81bc-4a27-9b83-5fe2e101b2b4'
+            examples:
+              - '713ef767-81bc-4a27-9b83-5fe2e101b2b4'
         - in: query
           name: scope
           description: The requested scope.
           required: true
           schema:
             type: string
-            example: 'openid profile groups'
+            examples:
+              - 'openid profile groups'
         - in: query
           name: response_type
           description: The OAuth 2.0 response type.
@@ -1543,7 +1729,8 @@ paths:
           required: true
           schema:
             type: string
-            example: 'app'
+            examples:
+              - 'app'
         - in: query
           name: redirect_uri
           description: >
@@ -1558,7 +1745,8 @@ paths:
           schema:
             type: string
             format: uri
-            example: 'https://app.{{ .Domain | default "example.com" }}'
+            examples:
+              - 'https://app.{{ .Domain | default "example.com" }}'
         - in: query
           name: state
           description: >
@@ -1568,7 +1756,8 @@ paths:
           required: false
           schema:
             type: string
-            example: 'oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f'
+            examples:
+              - 'oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f'
         - in: query
           name: response_mode
           description: >
@@ -1588,7 +1777,8 @@ paths:
           required: false
           schema:
             type: string
-            example: 'TRMLqchoKGQNcooXvBvUy9PtmLdJGf'
+            examples:
+              - 'TRMLqchoKGQNcooXvBvUy9PtmLdJGf'
         - in: query
           name: display
           description: >
@@ -1616,7 +1806,8 @@ paths:
           required: false
           schema:
             type: integer
-            example: 3600
+            examples:
+              - 3600
         - in: query
           name: ui_locales
           description: >
@@ -1628,7 +1819,8 @@ paths:
           required: false
           schema:
             type: string
-            example: 'en-US'
+            examples:
+              - 'en-US'
         - in: query
           name: claims_locales
           description: >
@@ -1638,7 +1830,8 @@ paths:
           required: false
           schema:
             type: string
-            example: 'en-US'
+            examples:
+              - 'en-US'
         - in: query
           name: id_token_hint
           required: false
@@ -1750,7 +1943,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+      security:
+        - authelia_auth: []
     post:
+      operationId: postOpenIDConnectAuthorization
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
@@ -1789,6 +1985,7 @@ paths:
         - authelia_auth: []
   /api/oidc/device-authorization:
     post:
+      operationId: postOAuth2DeviceAuthorization
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
@@ -1812,24 +2009,30 @@ paths:
                 properties:
                   device_code:
                     type: string
-                    example: 'authelia_dc_oqLXXUv2pvCDgBJLBav63ZduL4CxKP7JpYZ6ldHp39Y.u3XxwV3O-uYOA5TSv44iQyB27YjUGawJLlwOMuC770E'
+                    examples:
+                      - 'authelia_dc_oqLXXUv2pvCDgBJLBav63ZduL4CxKP7JpYZ6ldHp39Y.u3XxwV3O-uYOA5TSv44iQyB27YjUGawJLlwOMuC770E'
                   user_code:
                     type: string
-                    example: 'XGQWWFMM'
+                    examples:
+                      - 'XGQWWFMM'
                   verification_uri:
                     type: string
                     format: uri
-                    example: '{{ printf "%sconsent/openid/device-authorization" (.BaseURL | default "https://auth.example.com/") }}'
+                    examples:
+                      - '{{ printf "%sconsent/openid/device-authorization" (.BaseURL | default "https://auth.example.com/") }}'
                   verification_uri_complete:
                     type: string
                     format: uri
-                    example: '{{ printf "%sconsent/openid/device-authorization?user_code=XGQWWFMM" (.BaseURL | default "https://auth.example.com/") }}'
+                    examples:
+                      - '{{ printf "%sconsent/openid/device-authorization?user_code=XGQWWFMM" (.BaseURL | default "https://auth.example.com/") }}'
                   expires_in:
                     type: integer
-                    example: 600
+                    examples:
+                      - 600
                   interval:
                     type: integer
-                    example: 10
+                    examples:
+                      - 10
         "400":
           description: Bad Request
         "500":
@@ -1837,6 +2040,7 @@ paths:
       security:
         - authelia_auth: []
     put:
+      operationId: putOAuth2DeviceAuthorization
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
@@ -1868,6 +2072,7 @@ paths:
         - authelia_auth: []
   /api/oidc/pushed-authorization-request:
     post:
+      operationId: postOAuth2PushedAuthorizationRequest
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
@@ -1901,14 +2106,16 @@ paths:
                       authorization process obtains the authorization request data is at the discretion of the
                       authorization server and is out of scope of this specification. There is no need to make the
                       authorization request data available to other parties via this URI.
-                    example: 'urn:ietf:params:oauth:request_uri:lXtUUGsLrMxI5cogDk6Zk1pc5-Zw95lT4fzY0eAbdiU'
+                    examples:
+                      - 'urn:ietf:params:oauth:request_uri:lXtUUGsLrMxI5cogDk6Zk1pc5-Zw95lT4fzY0eAbdiU'
                   expires_in:
                     type: integer
                     description: >
                       A JSON number that represents the lifetime of the request URI in seconds as a positive integer.
                       The request URI lifetime is at the discretion of the authorization server but will typically be
                       relatively short (e.g., between 5 and 600 seconds).
-                    example: 300
+                    examples:
+                      - 300
         "400":
           description: Bad Request
           content:
@@ -1943,6 +2150,7 @@ paths:
         - openid: []
   /api/oidc/token:
     post:
+      operationId: postOpenIDConnectToken
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
@@ -1969,13 +2177,13 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/openid.spec.AccessResponse'
         "401":
-          description: Forbidden
+          description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "403":
-          description: Unauthorized
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -1990,6 +2198,7 @@ paths:
         - openid: []
   /api/oidc/revocation:
     post:
+      operationId: postOAuth2Revocation
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
@@ -2009,13 +2218,13 @@ paths:
         "200":
           description: OK
         "401":
-          description: Forbidden
+          description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "403":
-          description: Unauthorized
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -2030,6 +2239,7 @@ paths:
         - openid: []
   /api/oidc/introspection:
     post:
+      operationId: postOAuth2Introspection
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
@@ -2058,15 +2268,16 @@ paths:
                   The RFC7519 encoded JWT with the nested 'token_introspection' claim which contains the same structure
                   as the openid.spec.IntrospectionResponse described in this OpenAPI 3.0 specification.
                 type: string
-                example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20vIiwiYXVkIjoiaHR0cHM6Ly9hcHAuZXhhbXBsZS5jb20vcmVzb3VyY2UiLCJpYXQiOjE1MTQ3OTc4OTIsInRva2VuX2ludHJvc3BlY3Rpb24iOnsiYWN0aXZlIjp0cnVlLCJleHAiOjE1MTQ3OTc5NDIsImNsaWVudF9pZCI6ImV4YW1wbGUiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIiwiaWF0IjoxNTE0Nzk3ODIyLCJzdWIiOiI5Y2JhMzJhMC02M2EyLTQyZDUtODNlYi1kZmM3NTc4OGEyMjIiLCJhdWQiOiJodHRwczovL2FwcC5leGFtcGxlLmNvbS9yZXNvdXJjZSIsInVzZXJuYW1lIjoiam9obiJ9fQ.9rN-G3uaj28Geiktfvknl-G6EnZxOGJjpXcemvsllYA'
+                examples:
+                  - 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20vIiwiYXVkIjoiaHR0cHM6Ly9hcHAuZXhhbXBsZS5jb20vcmVzb3VyY2UiLCJpYXQiOjE1MTQ3OTc4OTIsInRva2VuX2ludHJvc3BlY3Rpb24iOnsiYWN0aXZlIjp0cnVlLCJleHAiOjE1MTQ3OTc5NDIsImNsaWVudF9pZCI6ImV4YW1wbGUiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIiwiaWF0IjoxNTE0Nzk3ODIyLCJzdWIiOiI5Y2JhMzJhMC02M2EyLTQyZDUtODNlYi1kZmM3NTc4OGEyMjIiLCJhdWQiOiJodHRwczovL2FwcC5leGFtcGxlLmNvbS9yZXNvdXJjZSIsInVzZXJuYW1lIjoiam9obiJ9fQ.9rN-G3uaj28Geiktfvknl-G6EnZxOGJjpXcemvsllYA'
         "401":
-          description: Forbidden
+          description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
         "403":
-          description: Unauthorized
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -2081,6 +2292,7 @@ paths:
         - openid: []
   /api/oidc/userinfo:
     get:
+      operationId: getOpenIDConnectUserInfo
       tags:
         - OpenID Connect 1.0
       summary: OpenID Connect 1.0 UserInfo Endpoint
@@ -2092,7 +2304,8 @@ paths:
           description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
           schema:
             type: string
-            example: 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
+            examples:
+              - 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
       responses:
         "200":
           description: OK
@@ -2102,14 +2315,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/openid.implementation.Claims.Object'
         "401":
-          description: Forbidden
-        "403":
           description: Unauthorized
+        "403":
+          description: Forbidden
         "500":
           description: Internal Server Error
       security:
         - openid: []
     post:
+      operationId: postOpenIDConnectUserInfo
       tags:
         - OpenID Connect 1.0
       summary: OpenID Connect 1.0 UserInfo Endpoint
@@ -2121,7 +2335,8 @@ paths:
           description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
           schema:
             type: string
-            example: 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
+            examples:
+              - 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -2131,7 +2346,8 @@ paths:
                 access_token:
                   description: The OAuth 2.0 Access Token issued by this OpenID Connect 1.0 Provider.
                   type: string
-                  example: 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
+                  examples:
+                    - 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
       responses:
         "200":
           description: OK
@@ -2141,23 +2357,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/openid.implementation.Claims.Object'
         "401":
-          description: Forbidden
-        "403":
           description: Unauthorized
+        "403":
+          description: Forbidden
         "500":
           description: Internal Server Error
       security:
         - openid: []
   /api/oidc/consent:
     get:
+      operationId: getOpenIDConnectConsent
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
       summary: OpenID Connect 1.0 Consent Information
       description: >
         This endpoint retrieves the consent information about a specific consent ID during the consent workflow.
+
+
+        Either the flow_id or user_code parameter must be provided. The user_code parameter is used by the
+        RFC8628 OAuth 2.0 Device Authorization Grant sub-flow.
       parameters:
-        - $ref: '#/components/parameters/flowIDRequiredParam'
+        - $ref: '#/components/parameters/flowIDParam'
+        - $ref: '#/components/parameters/userCodeParam'
       responses:
         "200":
           description: OK
@@ -2170,12 +2392,19 @@ paths:
       security:
         - authelia_auth: []
     post:
+      operationId: postOpenIDConnectConsent
       tags:
         - OAuth 2.0
         - OpenID Connect 1.0
       summary: OpenID Connect 1.0 Consent Response
       description: >
         This endpoint retrieves the consent response for a specific consent ID during the consent workflow.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/openid.request.consent.body'
       responses:
         "200":
           description: OK
@@ -2317,33 +2546,51 @@ components:
         type: string
         enum:
           - 'basic'
-    flowIDRequiredParam:
+    flowIDParam:
       name: flow_id
       in: query
-      description: The Flow ID that's being requested
-      required: true
+      description: >
+        The Flow ID that's being requested. Required unless the user_code parameter is provided.
+      required: false
       schema:
         type: string
+        format: uuid
+        pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
+        examples:
+          - '713ef767-81bc-4a27-9b83-5fe2e101b2b4'
+    userCodeParam:
+      name: user_code
+      in: query
+      description: >
+        The RFC8628 OAuth 2.0 Device Authorization Grant user code. Required unless the flow_id parameter is provided.
+      required: false
+      schema:
+        type: string
+        examples:
+          - 'XGQWWFMM'
   schemas:
     handlers.checkURIWithinDomainRequestBody:
       type: object
       properties:
         uri:
           type: string
-          example: 'https://secure.{{ .Domain | default "example.com" }}'
+          examples:
+            - 'https://secure.{{ .Domain | default "example.com" }}'
     handlers.checkURIWithinDomainResponseBody:
       type: object
       properties:
         ok:
           type: boolean
-          example: true
+          examples:
+            - true
           description: If redirection URL is safe.
     handlers.configuration.ConfigurationBody:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
@@ -2351,14 +2598,13 @@ components:
               type: array
               description: List of available 2FA methods. If no methods exist 2FA is disabled.
               items:
+                type: string
                 enum:
                   - 'totp'
                   - 'webauthn'
                   - 'mobile_push'
-              example: [totp, webauthn, mobile_push]
-            passkey_login:
-              type: boolean
-              description: Value which indicates if Passkey logins are enabled.
+              examples:
+                - [totp, webauthn, mobile_push]
             password_change_disabled:
               type: boolean
               description: Value which indicates if users are allowed to change their password from account settings.
@@ -2370,7 +2616,8 @@ components:
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
@@ -2395,13 +2642,14 @@ components:
               description: If uppercase characters are required when using the standard mode.
             require_lowercase:
               type: boolean
-              description: If uppercase characters are required when using the standard mode.
+              description: If lowercase characters are required when using the standard mode.
             require_number:
               type: boolean
               description: If numeric characters are required when using the standard mode.
             require_special:
               type: boolean
               description: If special characters are required when using the standard mode.
+    {{- if .Duo }}
     handlers.DuoDeviceBody:
       required:
         - 'device'
@@ -2410,40 +2658,57 @@ components:
       properties:
         device:
           type: string
-          example: ABCDE123456789FGHIJK
+          examples:
+            - ABCDE123456789FGHIJK
         method:
           type: string
-          example: push
+          examples:
+            - push
     handlers.DuoDevicesResponse:
       type: object
       properties:
-        result:
+        status:
           type: string
-          example: auth
-        devices:
-          type: array
-          items:
-            type: object
-            properties:
-              device:
-                type: string
-                example: ABCDE123456789FGHIJK
-              display_name:
-                type: string
-                example: iOS (+XX XXX XXX 123)
-              capabilities:
-                type: array
-                items:
-                  type: string
-                  example: push
-        enroll_url:
-          type: string
-        preferred_device:
-          type: string
-          example: ABCDE123456789FGHIJK
-        preferred_method:
-          type: string
-          example: push
+          examples:
+            - OK
+        data:
+          type: object
+          properties:
+            result:
+              type: string
+              examples:
+                - auth
+            devices:
+              type: array
+              items:
+                type: object
+                properties:
+                  device:
+                    type: string
+                    examples:
+                      - ABCDE123456789FGHIJK
+                  display_name:
+                    type: string
+                    examples:
+                      - iOS (+XX XXX XXX 123)
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+                      examples:
+                        - push
+            enroll_url:
+              type: string
+            preferred_device:
+              type: string
+              examples:
+                - ABCDE123456789FGHIJK
+            preferred_method:
+              type: string
+              examples:
+                - push
+    {{- end }}
+    {{- if .Passkeys }}
     handlers.bodyPasswordRequest:
       required:
         - 'password'
@@ -2451,30 +2716,37 @@ components:
       properties:
         password:
           type: string
-          example: password
+          examples:
+            - password
         targetURL:
           type: string
-          example: 'https://home.{{ .Domain | default "example.com" }}'
+          examples:
+            - 'https://home.{{ .Domain | default "example.com" }}'
         flowID:
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-          example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+          examples:
+            - '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
         flow:
           type: string
-          example: 'openid_connect'
+          examples:
+            - 'openid_connect'
           enum:
             - 'openid_connect'
         subflow:
           description: The name of the subflow if applicable.
           type: string
-          example: 'device_authorization'
+          examples:
+            - 'device_authorization'
           enum:
             - 'device_authorization'
         userCode:
           description: The user code from the Device Authorization Flow if applicable.
           type: string
-          example: 'XGQWWFMM'
+          examples:
+            - 'XGQWWFMM'
+    {{- end }}
     handlers.bodyFirstFactorRequest:
       required:
         - 'username'
@@ -2483,69 +2755,124 @@ components:
       properties:
         username:
           type: string
-          example: john
+          examples:
+            - john
         password:
           type: string
-          example: password
+          examples:
+            - password
         targetURL:
           type: string
-          example: 'https://home.{{ .Domain | default "example.com" }}'
+          examples:
+            - 'https://home.{{ .Domain | default "example.com" }}'
         flowID:
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-          example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+          examples:
+            - '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
         flow:
           type: string
-          example: 'openid_connect'
+          examples:
+            - 'openid_connect'
           enum:
             - 'openid_connect'
         subflow:
           description: The name of the subflow if applicable.
           type: string
-          example: 'device_authorization'
+          examples:
+            - 'device_authorization'
           enum:
             - 'device_authorization'
         userCode:
           description: The user code from the Device Authorization Flow if applicable.
           type: string
-          example: 'XGQWWFMM'
+          examples:
+            - 'XGQWWFMM'
         requestMethod:
           type: string
-          example: GET
+          examples:
+            - GET
         keepMeLoggedIn:
           type: boolean
-          example: true
+          examples:
+            - true
+    handlers.bodyFirstFactorReauthenticateRequest:
+      required:
+        - 'password'
+      type: object
+      properties:
+        password:
+          type: string
+          examples:
+            - password
+        targetURL:
+          type: string
+          examples:
+            - 'https://home.{{ .Domain | default "example.com" }}'
+        requestMethod:
+          type: string
+          examples:
+            - GET
+        flowID:
+          type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
+          examples:
+            - '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+        flow:
+          type: string
+          examples:
+            - 'openid_connect'
+          enum:
+            - 'openid_connect'
+        subflow:
+          description: The name of the subflow if applicable.
+          type: string
+          examples:
+            - 'device_authorization'
+          enum:
+            - 'device_authorization'
+        userCode:
+          description: The user code from the Device Authorization Flow if applicable.
+          type: string
+          examples:
+            - 'XGQWWFMM'
     handlers.logoutRequestBody:
       type: object
       properties:
         targetURL:
           type: string
-          example: 'https://redirect.{{ .Domain | default "example.com" }}'
+          examples:
+            - 'https://redirect.{{ .Domain | default "example.com" }}'
     handlers.logoutResponseBody:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
             safeTargetURL:
               type: boolean
-              example: true
+              examples:
+                - true
     handlers.redirectResponse:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
             redirect:
               type: string
-              example: 'https://home.{{ .Domain | default "example.com" }}'
+              examples:
+                - 'https://home.{{ .Domain | default "example.com" }}'
     {{- if .PasswordChange }}
     handlers.PasswordChangeRequestBody:
       required:
@@ -2556,13 +2883,16 @@ components:
       properties:
         username:
           type: string
-          example: john
+          examples:
+            - john
         old_password:
           type: string
-          example: old_password123
+          examples:
+            - old_password123
         new_password:
           type: string
-          example: new_password456
+          examples:
+            - new_password456
     {{- end }}
     {{- if .PasswordReset }}
     handlers.PasswordResetStep1RequestBody:
@@ -2572,7 +2902,8 @@ components:
       properties:
         username:
           type: string
-          example: john
+          examples:
+            - john
     handlers.PasswordResetStep2RequestBody:
       required:
         - 'password'
@@ -2580,7 +2911,8 @@ components:
       properties:
         password:
           type: string
-          example: password
+          examples:
+            - password
     handlers.PasswordResetBodyDELETE:
       required:
         - 'token'
@@ -2588,59 +2920,6 @@ components:
       properties:
         token:
           type: string
-    {{- end }}
-    {{- if .Duo }}
-    handlers.bodySignDuoRequest:
-      type: object
-      properties:
-        targetURL:
-          type: string
-          example: 'https://secure.{{ .Domain | default "example.com" }}'
-        passcode:
-          type: string
-        flowID:
-          type: string
-          format: uuid
-          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-          example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
-        flow:
-          type: string
-          example: 'openid_connect'
-          enum:
-            - 'openid_connect'
-        subflow:
-          description: The name of the subflow if applicable.
-          type: string
-          example: 'device_authorization'
-          enum:
-            - 'device_authorization'
-        userCode:
-          description: The user code from the Device Authorization Flow if applicable.
-          type: string
-          example: 'XGQWWFMM'
-    {{- end }}
-    handlers.StateResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: OK
-        data:
-          type: object
-          properties:
-            username:
-              type: string
-              example: john
-            authentication_level:
-              type: integer
-              example: 1
-            factor_knowledge:
-              type: boolean
-              description: Indicates the knowledge factor has been satisfied.
-              example: true
-            default_redirection_url:
-              type: string
-              example: 'https://home.{{ .Domain | default "example.com" }}'
     middlewares.IdentityVerificationFinishBody:
       required:
         - 'token'
@@ -2648,61 +2927,145 @@ components:
       properties:
         token:
           type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY
+          examples:
+            - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc5MjU1OTYsImlzcyI6IkF1dGhlbGlhIiwiYWN0aW9uIjoiUmVzZXRQYXNzd29yZCIsInVzZXJuYW1lIjoiQW1pciJ9.636yqRrUCGCe4jsMCsonleX5CYWHncYqZum-YYb6VaY
+    {{- end }}
+    {{- if .Duo }}
+    handlers.bodySignDuoRequest:
+      type: object
+      properties:
+        targetURL:
+          type: string
+          examples:
+            - 'https://secure.{{ .Domain | default "example.com" }}'
+        passcode:
+          type: string
+        flowID:
+          type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
+          examples:
+            - '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+        flow:
+          type: string
+          examples:
+            - 'openid_connect'
+          enum:
+            - 'openid_connect'
+        subflow:
+          description: The name of the subflow if applicable.
+          type: string
+          examples:
+            - 'device_authorization'
+          enum:
+            - 'device_authorization'
+        userCode:
+          description: The user code from the Device Authorization Flow if applicable.
+          type: string
+          examples:
+            - 'XGQWWFMM'
+    {{- end }}
+    handlers.StateResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          examples:
+            - OK
+        data:
+          type: object
+          properties:
+            username:
+              type: string
+              examples:
+                - john
+            authentication_level:
+              type: integer
+              examples:
+                - 1
+            factor_knowledge:
+              type: boolean
+              description: Indicates the knowledge factor has been satisfied.
+              examples:
+                - true
+            default_redirection_url:
+              type: string
+              examples:
+                - 'https://home.{{ .Domain | default "example.com" }}'
     middlewares.Response.API:
       oneOf:
         - $ref: '#/components/schemas/middlewares.Response.OK'
         - $ref: '#/components/schemas/middlewares.Response.KO'
     middlewares.Response.OK:
       type: object
+      required:
+        - 'status'
       properties:
         status:
           enum:
             - 'OK'
           type: string
-          example: 'OK'
+          examples:
+            - 'OK'
         data:
           type: object
           description: 'The data content for the response.'
     middlewares.Response.KO:
       type: object
+      required:
+        - 'status'
       properties:
         status:
           enum:
             - 'KO'
           type: string
-          example: 'KO'
+          examples:
+            - 'KO'
         message:
           type: string
-          example: 'Operation Failed.'
+          examples:
+            - 'Operation Failed.'
     handlers.UserInfo:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
             display_name:
               type: string
-              example: John Doe
+              examples:
+                - John Doe
+            emails:
+              description: The users email addresses in a partially redacted form.
+              type: array
+              items:
+                type: string
+              examples:
+                - ['j******e@{{ .Domain | default "example.com" }}']
             method:
               type: string
               enum:
                 - 'totp'
                 - 'webauthn'
                 - 'mobile_push'
-              example: totp
+              examples:
+                - totp
             has_webauthn:
               type: boolean
-              example: false
+              examples:
+                - false
             has_totp:
               type: boolean
-              example: true
+              examples:
+                - true
             has_duo:
               type: boolean
-              example: true
+              examples:
+                - true
     handlers.UserInfo.MethodBody:
       required:
         - 'method'
@@ -2714,13 +3077,15 @@ components:
             - 'totp'
             - 'webauthn'
             - 'mobile_push'
-          example: totp
+          examples:
+            - totp
     handlers.ElevationStatus.Response:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
@@ -2729,6 +3094,9 @@ components:
               type: boolean
             skip_second_factor:
               description: Indicates if the requirement for a One-Time Code can be skipped if satisfying the 2FA rule.
+              type: boolean
+            can_skip_second_factor:
+              description: Indicates if the user is capable of satisfying the 2FA rule to skip the One-Time Code.
               type: boolean
             factor_knowledge:
               description: Indicates if the knowledge factor of 2FA has been satisfied.
@@ -2739,13 +3107,15 @@ components:
             expires:
               description: The number of seconds the elevation is still valid for.
               type: integer
-              example: 300
+              examples:
+                - 300
     handlers.ElevationStart.Response:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
@@ -2764,7 +3134,8 @@ components:
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
@@ -2772,27 +3143,30 @@ components:
               default: 'SHA1'
               description: The default algorithm for the generated configuration.
               type: string
-              example: 'SHA1'
+              examples:
+                - 'SHA1'
             algorithms:
               default:
                 - 'SHA1'
               description: The allowed algorithm values for the generated configuration.
-              example:
-                - 'SHA1'
+              examples:
+                - - 'SHA1'
               type: array
               items:
                 type: string
             length:
-              default: 30
-              description: The default length value for the generated configuration.
+              default: 6
+              description: The default length (number of digits) value for the generated configuration.
               type: integer
-              example: 30
+              examples:
+                - 6
             lengths:
               default:
                 - 6
-              description: The allowed length values for the generated configuration.
-              example:
-                - 6
+              description: The allowed length (number of digits) values for the generated configuration.
+              examples:
+                - - 6
+                  - 8
               type: array
               items:
                 type: integer
@@ -2800,13 +3174,14 @@ components:
               default: 30
               description: The default period value for the generated configuration.
               type: integer
-              example: 30
+              examples:
+                - 30
             periods:
               default:
                 - 30
               description: The allowed period values for the generated configuration.
-              example:
-                - 30
+              examples:
+                - - 30
               type: array
               items:
                 type: integer
@@ -2817,23 +3192,27 @@ components:
           default: 'SHA1'
           description: The algorithm for the generated configuration.
           type: string
-          example: 'SHA1'
+          examples:
+            - 'SHA1'
         length:
-          default: 30
-          description: The period or length of time for the generated configuration.
-          type: integer
-          example: 30
-        digits:
           default: 6
-          description: The digits for the generated configuration.
+          description: The length (number of digits) for the generated configuration.
           type: integer
-          example: 6
+          examples:
+            - 6
+        period:
+          default: 30
+          description: The period or length of time in seconds for the generated configuration.
+          type: integer
+          examples:
+            - 30
     handlers.TOTPRegisterStartResponse:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
@@ -2849,59 +3228,91 @@ components:
         token:
           description: The value generated by the authenticator.
           type: string
-          example: '123456'
+          examples:
+            - '123456'
     handlers.TOTPConfiguration:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
+            created_at:
+              description: The time the users TOTP configuration was created.
+              type: string
+              format: date-time
+            last_used_at:
+              description: The last time the users TOTP configuration was used, omitted if it has never been used.
+              type: string
+              format: date-time
+            issuer:
+              description: The issuer defined in the users TOTP configuration.
+              type: string
+              examples:
+                - '{{ .Domain | default "example.com" }}'
+            algorithm:
+              description: The algorithm defined in the users TOTP configuration.
+              type: string
+              examples:
+                - 'SHA1'
             period:
               default: 30
-              description: The period defined in the users TOTP configuration
+              description: The period defined in the users TOTP configuration.
               type: integer
-              example: 30
+              examples:
+                - 30
             digits:
               default: 6
-              description: The number of digits defined in the users TOTP configuration
+              description: The number of digits defined in the users TOTP configuration.
               type: integer
-              example: 6
+              examples:
+                - 6
     handlers.bodySignTOTPRequest:
       type: object
       properties:
         token:
           type: string
-          example: '123456'
+          examples:
+            - '123456'
         targetURL:
           type: string
-          example: 'https://secure.{{ .Domain | default "example.com" }}'
+          examples:
+            - 'https://secure.{{ .Domain | default "example.com" }}'
         flowID:
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-          example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+          examples:
+            - '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
         flow:
           type: string
-          example: 'openid_connect'
+          examples:
+            - 'openid_connect'
           enum:
             - 'openid_connect'
         subflow:
           description: The name of the subflow if applicable.
           type: string
-          example: 'device_authorization'
+          examples:
+            - 'device_authorization'
           enum:
             - 'device_authorization'
         userCode:
           description: The user code from the Device Authorization Flow if applicable.
           type: string
-          example: 'XGQWWFMM'
+          examples:
+            - 'XGQWWFMM'
     {{- end }}
-    {{- if .WebAuthn }}
+    {{- if (or .WebAuthn .Passkeys) }}
     webauthn.PublicKeyCredential:
       type: object
+      required:
+        - 'id'
+        - 'rawId'
+        - 'type'
       properties:
         rawId:
           type: string
@@ -2910,50 +3321,48 @@ components:
           type: string
         type:
           type: string
+          examples:
+            - public-key
+          enum:
+            - 'public-key'
     webauthn.AuthenticatorResponse:
       type: object
+      required:
+        - 'clientDataJSON'
       properties:
         clientDataJSON:
           type: string
           contentEncoding: base64url
-    webauthn.CredentialAttestationResponse:
-      type: object
-      properties:
-        credential:
-          allOf:
-            - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
-            - type: object
-              properties:
-                clientExtensionResults:
-                  type: object
-                  properties:
-                    appidExclude:
-                      type: boolean
-                response:
-                  allOf:
-                    - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
-                    - type: object
-                      properties:
-                        attestationObject:
-                          type: string
-                          contentEncoding: base64url
-        description:
-          type: string
-    webauthn.PasskeyCredentialAssertionResponse:
-      allOf:
-        - $ref: '#/components/schemas/webauthn.CredentialAssertionResponse'
-        - type: object
-          properties:
-            requestMethod:
-              type: string
-              example: GET
-            keepMeLoggedIn:
-              type: boolean
-              example: true
-    webauthn.CredentialAssertionResponse:
+    webauthn.PublicKeyCredentialAttestation:
+      description: >
+        The FIDO2 WebAuthn credential creation response as produced by the browser.
       allOf:
         - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
+        - $ref: '#/components/schemas/webauthn.AuthenticationExtensionsClientOutputs'
         - type: object
+          required:
+            - 'response'
+          properties:
+            response:
+              allOf:
+                - $ref: '#/components/schemas/webauthn.AuthenticatorResponse'
+                - $ref: '#/components/schemas/webauthn.Transports'
+                - type: object
+                  required:
+                    - 'attestationObject'
+                  properties:
+                    attestationObject:
+                      type: string
+                      contentEncoding: base64url
+    webauthn.PublicKeyCredentialAssertion:
+      description: >
+        The FIDO2 WebAuthn credential assertion response as produced by the browser.
+      allOf:
+        - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
+        - $ref: '#/components/schemas/webauthn.AuthenticationExtensionsClientOutputs'
+        - type: object
+          required:
+            - 'response'
           properties:
             response:
               allOf:
@@ -2961,47 +3370,65 @@ components:
                 - type: object
                   required:
                     - 'authenticatorData'
-                    - 'clientDataJSON'
                     - 'signature'
                   properties:
                     authenticatorData:
                       type: string
                       contentEncoding: base64url
-                    clientDataJSON:
-                      type: string
-                      contentEncoding: base64url
-                    clientExtensionResults:
-                      type: object
-                      properties:
-                        appid:
-                          type: boolean
-                          example: false
                     signature:
                       type: string
                       contentEncoding: base64url
                     userHandle:
                       type: string
                       contentEncoding: base64url
-                    flowID:
-                      type: string
-                      format: uuid
-                      pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-                      example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
-                    flow:
-                      type: string
-                      example: 'openid_connect'
-                      enum:
-                        - 'openid_connect'
-                    subflow:
-                      description: The name of the subflow if applicable.
-                      type: string
-                      example: 'device_authorization'
-                      enum:
-                        - 'device_authorization'
-                    userCode:
-                      description: The user code from the Device Authorization Flow if applicable.
-                      type: string
-                      example: 'XGQWWFMM'
+    webauthn.CredentialAssertionResponse:
+      type: object
+      required:
+        - 'response'
+      properties:
+        response:
+          $ref: '#/components/schemas/webauthn.PublicKeyCredentialAssertion'
+        targetURL:
+          type: string
+          examples:
+            - 'https://secure.{{ .Domain | default "example.com" }}'
+        flowID:
+          type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
+          examples:
+            - '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+        flow:
+          type: string
+          examples:
+            - 'openid_connect'
+          enum:
+            - 'openid_connect'
+        subflow:
+          description: The name of the subflow if applicable.
+          type: string
+          examples:
+            - 'device_authorization'
+          enum:
+            - 'device_authorization'
+        userCode:
+          description: The user code from the Device Authorization Flow if applicable.
+          type: string
+          examples:
+            - 'XGQWWFMM'
+    webauthn.PasskeyCredentialAssertionResponse:
+      allOf:
+        - $ref: '#/components/schemas/webauthn.CredentialAssertionResponse'
+        - type: object
+          properties:
+            requestMethod:
+              type: string
+              examples:
+                - GET
+            keepMeLoggedIn:
+              type: boolean
+              examples:
+                - true
     webauthn.CredentialUpdateRequest:
       type: object
       properties:
@@ -3013,13 +3440,120 @@ components:
         description:
           description: The description the registered credential will have.
           type: string
-          example: 'My Main Credential'
+          examples:
+            - 'My Main Credential'
+    webauthn.CredentialsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          examples:
+            - OK
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/webauthn.Credential'
+    webauthn.Credential:
+      description: A WebAuthn credential registered by the user.
+      type: object
+      properties:
+        id:
+          description: The identifier of the credential.
+          type: integer
+          examples:
+            - 1
+        created_at:
+          description: The time this credential was created.
+          type: string
+          format: date-time
+        last_used_at:
+          description: The last time this credential was used, omitted if it has never been used.
+          type: string
+          format: date-time
+        rpid:
+          description: The Relying Party ID used to register this credential.
+          type: string
+          examples:
+            - 'auth.{{ .Domain | default "example.com" }}'
+        username:
+          description: The username of the user this credential belongs to.
+          type: string
+          examples:
+            - john
+        description:
+          description: The user description of this credential.
+          type: string
+          examples:
+            - 'My Main Credential'
+        kid:
+          description: The Public Key ID of this credential.
+          type: string
+          contentEncoding: base64
+        aaguid:
+          description: >
+            The Authenticator Attestation Global Unique Identifier of this credential, omitted if it's not known.
+          type: string
+          format: uuid
+        attestation_type:
+          description: The attestation type this credential uses.
+          type: string
+          examples:
+            - 'packed'
+        attestation_format:
+          description: The attestation format this credential uses.
+          type: string
+        attachment:
+          description: The last recorded credential attachment type.
+          type: string
+          examples:
+            - cross-platform
+        transports:
+          description: The last recorded credential transports.
+          type: array
+          items:
+            type: string
+          examples:
+            - - 'usb'
+              - 'nfc'
+        sign_count:
+          description: The last recorded credential sign count.
+          type: integer
+        clone_warning:
+          description: The clone warning status of this credential.
+          type: boolean
+        legacy:
+          description: Indicates this credential may need to be registered again.
+          type: boolean
+        discoverable:
+          description: The discoverable status of this credential.
+          type: boolean
+        present:
+          description: The user presence status of this credential.
+          type: boolean
+        verified:
+          description: The user verification status of this credential.
+          type: boolean
+        backup_eligible:
+          description: The backup eligible status of this credential.
+          type: boolean
+        backup_state:
+          description: The backup state of this credential.
+          type: boolean
+        public_key:
+          description: The credential public key.
+          type: string
+          contentEncoding: base64
+        attestation:
+          description: The credential attestation information for auditing and validation.
+          type: string
+          contentEncoding: base64
     webauthn.PublicKeyCredentialCreationOptions:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
@@ -3049,12 +3583,14 @@ components:
                             type: integer
                           type:
                             type: string
-                            example: public-key
+                            examples:
+                              - public-key
                             enum:
                               - 'public-key'
                     timeout:
                       type: integer
-                      example: 60000
+                      examples:
+                        - 60000
                     excludeCredentials:
                       type: array
                       items:
@@ -3065,13 +3601,15 @@ components:
                       properties:
                         appidExclude:
                           type: string
-                          example: '{{ .BaseURL | default "https://auth.example.com/" }}'
+                          examples:
+                            - '{{ .BaseURL | default "https://auth.example.com/" }}'
     webauthn.PublicKeyCredentialRequestOptions:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
@@ -3084,12 +3622,15 @@ components:
                   properties:
                     challenge:
                       type: string
+                      contentEncoding: base64url
                     timeout:
                       type: integer
-                      example: 60000
+                      examples:
+                        - 60000
                     rpId:
                       type: string
-                      example: 'auth.{{ .Domain | default "example.com" }}'
+                      examples:
+                        - 'auth.{{ .Domain | default "example.com" }}'
                     allowCredentials:
                       type: array
                       items:
@@ -3100,28 +3641,32 @@ components:
                       properties:
                         appid:
                           type: string
-                          example: '{{ .BaseURL | default "https://auth.example.com/" }}'
+                          examples:
+                            - '{{ .BaseURL | default "https://auth.example.com/" }}'
     webauthn.Transports:
       type: object
       properties:
         transports:
           type: array
-          example:
-            - 'usb'
-            - 'nfc'
+          examples:
+            - - 'usb'
+              - 'nfc'
           items:
             type: string
             enum:
               - 'usb'
               - 'nfc'
               - 'ble'
+              - 'smart-card'
+              - 'hybrid'
               - 'internal'
     webauthn.UserVerification:
       type: object
       properties:
         userVerification:
           type: string
-          example: preferred
+          examples:
+            - preferred
           enum:
             - 'required'
             - 'preferred'
@@ -3131,7 +3676,8 @@ components:
       properties:
         attestation:
           type: string
-          example: direct
+          examples:
+            - direct
           enum:
             - 'none'
             - 'indirect'
@@ -3144,13 +3690,15 @@ components:
           properties:
             authenticatorAttachment:
               type: string
-              example: cross-platform
+              examples:
+                - cross-platform
               enum:
                 - 'platform'
                 - 'cross-platform'
             residentKey:
               type: string
-              example: discouraged
+              examples:
+                - discouraged
               enum:
                 - 'discouraged'
                 - 'preferred'
@@ -3170,7 +3718,8 @@ components:
               contentEncoding: base64url
             type:
               type: string
-              example: public-key
+              examples:
+                - public-key
               enum:
                 - 'public-key'
     webauthn.CredentialEntity:
@@ -3215,10 +3764,12 @@ components:
           properties:
             appid:
               type: boolean
-              example: true
+              examples:
+                - true
             appidExclude:
               type: boolean
-              example: false
+              examples:
+                - false
             uvm:
               type: array
               items:
@@ -3229,18 +3780,21 @@ components:
               properties:
                 rk:
                   type: boolean
-                  example: false
+                  examples:
+                    - false
             largeBlob:
               type: object
               properties:
                 supported:
                   type: boolean
-                  example: false
+                  examples:
+                    - false
                 blob:
                   type: string
                 written:
                   type: boolean
-                  example: false
+                  examples:
+                    - false
     {{- end }}
     {{- if .OpenIDConnect }}
     openid.request.consent:
@@ -3248,18 +3802,21 @@ components:
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
             client_id:
               type: string
               description: The identifier of the client for the user to provide consent for.
-              example: 'app'
+              examples:
+                - 'app'
             client_description:
               description: The descriptive name of the client for the user to provide consent for.
               type: string
-              example: 'App Platform'
+              examples:
+                - 'App Platform'
             scopes:
               description: The list of the requested scopes for the user to provide consent for.
               type: array
@@ -3279,7 +3836,8 @@ components:
             pre_configuration:
               description: Indicates if this client supports pre-configuration.
               type: boolean
-              example: true
+              examples:
+                - true
             claims:
               description: List of requested optional claims.
               type: array
@@ -3293,13 +3851,60 @@ components:
             require_login:
               description: If the user must perform a login event before proceeding to provide consent.
               type: boolean
-              example: true
+              examples:
+                - true
+    openid.request.consent.body:
+      description: The consent decision submitted by the user during the consent workflow.
+      type: object
+      properties:
+        flow_id:
+          description: >
+            The identifier of the consent flow session. Required unless the device_authorization subflow is being
+            used, in which case the user_code is used instead.
+          type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
+          examples:
+            - '713ef767-81bc-4a27-9b83-5fe2e101b2b4'
+        client_id:
+          description: The identifier of the client the user is providing consent for.
+          type: string
+          examples:
+            - 'app'
+        consent:
+          description: If the user granted consent for the request.
+          type: boolean
+          examples:
+            - true
+        pre_configure:
+          description: If the user elected to pre-configure this consent for future requests.
+          type: boolean
+          examples:
+            - false
+        claims:
+          description: The list of requested optional claims the user granted.
+          type: array
+          items:
+            type: string
+        subflow:
+          description: The name of the subflow if applicable.
+          type: string
+          examples:
+            - 'device_authorization'
+          enum:
+            - 'device_authorization'
+        user_code:
+          description: The user code from the Device Authorization Flow if applicable.
+          type: string
+          examples:
+            - 'XGQWWFMM'
     openid.response.consent:
       type: object
       properties:
         status:
           type: string
-          example: OK
+          examples:
+            - OK
         data:
           type: object
           properties:
@@ -3308,7 +3913,8 @@ components:
               type: string
               format: uuid
               pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
-              example: '713ef767-81bc-4a27-9b83-5fe2e101b2b4'
+              examples:
+                - '713ef767-81bc-4a27-9b83-5fe2e101b2b4'
             redirect_uri:
               description: The URI the user should be redirected to.
               type: string
@@ -3324,50 +3930,51 @@ components:
       properties:
         authorization_endpoint:
           description: >
-            URL of the OP''s OAuth 2.0 Authorization Endpoint [OpenID.Core].
+            URL of the OP's OAuth 2.0 Authorization Endpoint [OpenID.Core].
             See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/authorization'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/authorization'
         claims_supported:
           description: >
             JSON array containing a list of the Claim Names of the Claims that the OpenID Provider MAY be able to supply
             values for. Note that for privacy or other reasons, this might not be an exhaustive list.
           type: array
-          example:
-            - 'amr'
-            - 'aud'
-            - 'azp'
-            - 'client_id'
-            - 'exp'
-            - 'iat'
-            - 'iss'
-            - 'jti'
-            - 'rat'
-            - 'auth_time'
-            - 'nonce'
-            - 'groups'
-            - 'sub'
-            - 'name'
-            - 'given_name'
-            - 'family_name'
-            - 'middle_name'
-            - 'nickname'
-            - 'preferred_username'
-            - 'profile'
-            - 'picture'
-            - 'website'
-            - 'email'
-            - 'email_verified'
-            - 'alt_emails'
-            - 'gender'
-            - 'birthdate'
-            - 'zoneinfo'
-            - 'locale'
-            - 'phone_number'
-            - 'phone_number_verified'
-            - 'address'
-            - 'updated_at'
+          examples:
+            - - 'amr'
+              - 'aud'
+              - 'azp'
+              - 'client_id'
+              - 'exp'
+              - 'iat'
+              - 'iss'
+              - 'jti'
+              - 'rat'
+              - 'auth_time'
+              - 'nonce'
+              - 'groups'
+              - 'sub'
+              - 'name'
+              - 'given_name'
+              - 'family_name'
+              - 'middle_name'
+              - 'nickname'
+              - 'preferred_username'
+              - 'profile'
+              - 'picture'
+              - 'website'
+              - 'email'
+              - 'email_verified'
+              - 'alt_emails'
+              - 'gender'
+              - 'birthdate'
+              - 'zoneinfo'
+              - 'locale'
+              - 'phone_number'
+              - 'phone_number_verified'
+              - 'address'
+              - 'updated_at'
           items:
             $ref: '#/components/schemas/openid.implementation.Claims.Name'
         code_challenge_methods_supported:
@@ -3378,9 +3985,9 @@ components:
             Challenge Methods" registry [IANA.OAuth.Parameters]. If omitted, the authorization server does not support
             PKCE. See Also: PKCE: https://datatracker.ietf.org/doc/html/rfc7636 IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
           type: array
-          example:
-            - 'S256'
-            - 'plain'
+          examples:
+            - - 'S256'
+              - 'plain'
           items:
             $ref: '#/components/schemas/openid.spec.CodeChallengeMethod'
         grant_types_supported:
@@ -3389,12 +3996,12 @@ components:
             JSON array containing a list of the OAuth 2.0 Grant Type values that this OP supports. Dynamic OpenID
             Providers MUST support the authorization_code and implicit Grant Type values and MAY support other Grant
             Types. If omitted, the default value is ["authorization_code", "implicit"].
-          example:
-            - 'authorization_code'
-            - 'implicit'
-            - 'client_credentials'
-            - 'refresh_token'
-            - 'urn:ietf:params:oauth:grant-type:device_code'
+          examples:
+            - - 'authorization_code'
+              - 'implicit'
+              - 'client_credentials'
+              - 'refresh_token'
+              - 'urn:ietf:params:oauth:grant-type:device_code'
           items:
             $ref: '#/components/schemas/openid.spec.GrantType'
         device_authorization_endpoint:
@@ -3402,14 +4009,16 @@ components:
             URL of the authorization server's device authorization endpoint, as defined in Section 3.1.
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/device-authorization'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/device-authorization'
         introspection_endpoint:
           description: >
-            URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0 Token
+            URL of the authorization server's OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0 Token
             Introspection: https://datatracker.ietf.org/doc/html/rfc7662
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/introspection'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/introspection'
         introspection_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of client authentication methods supported by this introspection endpoint. The
@@ -3421,11 +4030,11 @@ components:
             OAuth 2.0 Authorization Server Metadata - Updated Registration Instructions:
             https://datatracker.ietf.org/doc/html/draft-ietf-oauth-discovery-10#section-7.2
           type: array
-          example:
-            - 'client_secret_post'
-            - 'client_secret_basic'
-            - 'client_secret_jwt'
-            - 'private_key_jwt'
+          examples:
+            - - 'client_secret_post'
+              - 'client_secret_basic'
+              - 'client_secret_jwt'
+              - 'private_key_jwt'
           items:
             $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         introspection_endpoint_auth_signing_alg_values_supported:
@@ -3437,19 +4046,19 @@ components:
             "introspection_endpoint_auth_methods_supported" entry. No default algorithms are implied if this entry is
             omitted. The value "none" MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'HS256'
-            - 'HS384'
-            - 'HS512'
-            - 'RS256'
-            - 'RS384'
-            - 'RS512'
-            - 'PS256'
-            - 'PS384'
-            - 'PS512'
-            - 'ES256'
-            - 'ES384'
-            - 'ES512'
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         issuer:
@@ -3458,7 +4067,8 @@ components:
             If Issuer discovery is supported (see Section 2), this value MUST be identical to the issuer value returned
             by WebFinger. This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
           type: string
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}'
         jwks_uri:
           description: >
             URL of the OP's JSON Web Key Set [JWK] document. This contains the signing key(s) the RP uses to validate
@@ -3470,7 +4080,8 @@ components:
             keys provided. When used, the bare key values MUST still be present and MUST match those in the certificate.
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}jwks.json'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}jwks.json'
         op_policy_uri:
           description:
             URL that the OpenID Provider provides to the person registering the Client to read about the OP's
@@ -3491,34 +4102,29 @@ components:
             exchange for a "request_uri" value usable at the authorization server.
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/par'
-        registration_endpoint:
-          description: >
-            URL of the authorization server''s OAuth 2.0 Dynamic Client Registration endpoint [RFC7591]. See Also:
-            OAuth 2.0 Dynamic Client Registration Protocol: https://datatracker.ietf.org/doc/html/rfc7591
-          type: string
-          format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/registration'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/pushed-authorization-request'
         require_pushed_authorization_requests:
           description: >
             Boolean parameter indicating whether the authorization server accepts authorization request data only via
             PAR. If omitted, the default value is "false".
           type: boolean
-          example: false
+          examples:
+            - false
         response_modes_supported:
           description: >
             JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in
             OAuth 2.0 Multiple Response Type Encoding Practices [OAuth.Responses]. If omitted, the default for Dynamic
             OpenID Providers is ["query", "fragment"].
           type: array
-          example:
-            - 'form_post'
-            - 'query'
-            - 'fragment'
-            - 'jwt'
-            - 'form_post.jwt'
-            - 'query.jwt'
-            - 'fragment.jwt'
+          examples:
+            - - 'form_post'
+              - 'query'
+              - 'fragment'
+              - 'jwt'
+              - 'form_post.jwt'
+              - 'query.jwt'
+              - 'fragment.jwt'
           items:
             $ref: '#/components/schemas/openid.spec.ResponseMode'
         response_types_supported:
@@ -3526,23 +4132,24 @@ components:
             JSON array containing a list of the OAuth 2.0 response_type values that this OP supports.
             Dynamic OpenID Providers MUST support the code, id_token, and the token id_token Response Type values.
           type: array
-          example:
-            - 'code'
-            - 'id_token'
-            - 'token'
-            - 'id_token token'
-            - 'code id_token'
-            - 'code token'
-            - 'code id_token token'
+          examples:
+            - - 'code'
+              - 'id_token'
+              - 'token'
+              - 'id_token token'
+              - 'code id_token'
+              - 'code token'
+              - 'code id_token token'
           items:
             $ref: '#/components/schemas/openid.spec.ResponseType'
         revocation_endpoint:
           description: >
-            URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009].
+            URL of the authorization server's OAuth 2.0 revocation endpoint [RFC7009].
             See Also: OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/revocation'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/revocation'
         revocation_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of client authentication methods supported by this revocation endpoint. The
@@ -3552,12 +4159,12 @@ components:
             IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
             OAuth 2.0 - Client Password: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1
           type: array
-          example:
-            - 'none'
-            - 'client_secret_post'
-            - 'client_secret_basic'
-            - 'client_secret_jwt'
-            - 'private_key_jwt'
+          examples:
+            - - 'none'
+              - 'client_secret_post'
+              - 'client_secret_basic'
+              - 'client_secret_jwt'
+              - 'private_key_jwt'
           items:
             $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         revocation_endpoint_auth_signing_alg_values_supported:
@@ -3569,19 +4176,19 @@ components:
             entry. No default algorithms are implied if this entry is omitted. The value "none" MUST NOT be used.
             See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'HS256'
-            - 'HS384'
-            - 'HS512'
-            - 'RS256'
-            - 'RS384'
-            - 'RS512'
-            - 'PS256'
-            - 'PS384'
-            - 'PS512'
-            - 'ES256'
-            - 'ES384'
-            - 'ES512'
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         scopes_supported:
@@ -3591,14 +4198,14 @@ components:
             when this parameter is used, although those defined in [OpenID.Core] SHOULD be listed, if supported.
             See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749 OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: array
-          example:
-            - 'openid'
-            - 'offline_access'
-            - 'profile'
-            - 'email'
-            - 'address'
-            - 'phone'
-            - 'groups'
+          examples:
+            - - 'openid'
+              - 'offline_access'
+              - 'profile'
+              - 'email'
+              - 'address'
+              - 'phone'
+              - 'groups'
           items:
             $ref: '#/components/schemas/openid.implementation.Scopes.Object'
         service_documentation:
@@ -3607,24 +4214,26 @@ components:
             the OpenID Provider. In particular, if the OpenID Provider does not support Dynamic Client Registration,
             then information on how to register Clients needs to be provided in this documentation.
           type: string
-          example: 'https://authelia.com'
+          examples:
+            - 'https://authelia.com'
         subject_types_supported:
           description: >
             JSON array containing a list of the Subject Identifier types that this OP supports.
             Valid types include pairwise and public.
           type: array
-          example:
-            - 'public'
-            - 'pairwise'
+          examples:
+            - - 'public'
+              - 'pairwise'
           items:
             $ref: '#/components/schemas/openid.spec.SubjectIdentifier'
         token_endpoint:
           description: >
-            URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
+            URL of the OP's OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
             used. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/token'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/token'
         token_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of Client Authentication methods supported by this Token Endpoint. The options
@@ -3634,12 +4243,12 @@ components:
             2.3.1 of OAuth 2.0 [RFC6749]. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749
             OpenID.Core Section 9: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
           type: array
-          example:
-            - 'none'
-            - 'client_secret_post'
-            - 'client_secret_basic'
-            - 'client_secret_jwt'
-            - 'private_key_jwt'
+          examples:
+            - - 'none'
+              - 'client_secret_post'
+              - 'client_secret_basic'
+              - 'client_secret_jwt'
+              - 'private_key_jwt'
           items:
             $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         token_endpoint_auth_signing_alg_values_supported:
@@ -3647,21 +4256,21 @@ components:
             JSON array containing a list of the JWS signing algorithms (alg values) supported by the Token Endpoint for
             the signature on the JWT [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt
             and client_secret_jwt authentication methods. Servers SHOULD support RS256. The value none MUST NOT be used.
-            See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519'
+            See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'HS256'
-            - 'HS384'
-            - 'HS512'
-            - 'RS256'
-            - 'RS384'
-            - 'RS512'
-            - 'PS256'
-            - 'PS384'
-            - 'PS512'
-            - 'ES256'
-            - 'ES384'
-            - 'ES512'
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         ui_locales_supported:
@@ -3669,8 +4278,8 @@ components:
           description: >
             Languages and scripts supported for the user interface, represented as a JSON array of BCP47 [RFC5646]
             language tag values. See Also: BCP47: https://datatracker.ietf.org/doc/html/rfc5646
-          example:
-            - 'en-US'
+          examples:
+            - - 'en-US'
           items:
             type: string
         authorization_response_iss_parameter_supported:
@@ -3678,7 +4287,8 @@ components:
             Boolean parameter indicating whether the authorization server provides the iss parameter in the
             authorization response as defined in Section 2. If omitted, the default value is false.
           type: boolean
-          example: true
+          examples:
+            - true
     openid.spec.Metadata.OpenIDConfiguration:
       type: object
       required:
@@ -3703,30 +4313,34 @@ components:
             type: string
         authorization_endpoint:
           description: >
-            URL of the OP''s OAuth 2.0 Authorization Endpoint [OpenID.Core].
+            URL of the OP's OAuth 2.0 Authorization Endpoint [OpenID.Core].
             See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/authorization'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/authorization'
         backchannel_logout_session_supported:
           description: >
             Boolean value specifying whether the OP can pass a sid (session ID) Claim in the Logout Token to identify
             the RP session with the OP. If supported, the sid Claim is also included in ID Tokens issued by the OP.
             If omitted, the default value is false.
           type: boolean
-          example: false
+          examples:
+            - false
         backchannel_logout_supported:
           description: >
             Boolean value specifying whether the OP supports back-channel logout, with true indicating support. If
             omitted, the default value is false.
           type: boolean
-          example: false
+          examples:
+            - false
         claims_parameter_supported:
           description: >
             Boolean value specifying whether the OP supports use of the claims parameter, with true indicating support.
             If omitted, the default value is false.
           type: boolean
-          example: false
+          examples:
+            - false
         claim_types_supported:
           description: >
             JSON array containing a list of the Claim Types that the OpenID Provider supports. These Claim Types are
@@ -3734,8 +4348,8 @@ components:
             normal, aggregated, and distributed. If omitted, the implementation supports only normal Claims. See Also:
             OpenID.Core Section 5.6: https://openid.net/specs/openid-connect-core-1_0.html#ClaimTypes
           type: array
-          example:
-            - 'normal'
+          examples:
+            - - 'normal'
           items:
             $ref: '#/components/schemas/openid.spec.ClaimType'
         claims_locales_supported:
@@ -3744,8 +4358,8 @@ components:
             [RFC5646] language tag values. Not all languages and scripts are necessarily supported for all Claim values.
             See Also: BCP47: https://datatracker.ietf.org/doc/html/rfc5646
           type: array
-          example:
-            - 'en-US'
+          examples:
+            - - 'en-US'
           items:
             type: string
         claims_supported:
@@ -3753,40 +4367,40 @@ components:
             JSON array containing a list of the Claim Names of the Claims that the OpenID Provider MAY be able to supply
             values for. Note that for privacy or other reasons, this might not be an exhaustive list.
           type: array
-          example:
-            - 'amr'
-            - 'aud'
-            - 'azp'
-            - 'client_id'
-            - 'exp'
-            - 'iat'
-            - 'iss'
-            - 'jti'
-            - 'rat'
-            - 'auth_time'
-            - 'nonce'
-            - 'groups'
-            - 'sub'
-            - 'name'
-            - 'given_name'
-            - 'family_name'
-            - 'middle_name'
-            - 'nickname'
-            - 'preferred_username'
-            - 'profile'
-            - 'picture'
-            - 'website'
-            - 'email'
-            - 'email_verified'
-            - 'alt_emails'
-            - 'gender'
-            - 'birthdate'
-            - 'zoneinfo'
-            - 'locale'
-            - 'phone_number'
-            - 'phone_number_verified'
-            - 'address'
-            - 'updated_at'
+          examples:
+            - - 'amr'
+              - 'aud'
+              - 'azp'
+              - 'client_id'
+              - 'exp'
+              - 'iat'
+              - 'iss'
+              - 'jti'
+              - 'rat'
+              - 'auth_time'
+              - 'nonce'
+              - 'groups'
+              - 'sub'
+              - 'name'
+              - 'given_name'
+              - 'family_name'
+              - 'middle_name'
+              - 'nickname'
+              - 'preferred_username'
+              - 'profile'
+              - 'picture'
+              - 'website'
+              - 'email'
+              - 'email_verified'
+              - 'alt_emails'
+              - 'gender'
+              - 'birthdate'
+              - 'zoneinfo'
+              - 'locale'
+              - 'phone_number'
+              - 'phone_number_verified'
+              - 'address'
+              - 'updated_at'
           items:
             $ref: '#/components/schemas/openid.implementation.Claims.Name'
         prompt_values_supported:
@@ -3804,9 +4418,9 @@ components:
             PKCE. See Also: PKCE: https://datatracker.ietf.org/doc/html/rfc7636 IANA.OAuth.Parameters:
             https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
           type: array
-          example:
-            - 'S256'
-            - 'plain'
+          examples:
+            - - 'S256'
+              - 'plain'
           items:
             $ref: '#/components/schemas/openid.spec.CodeChallengeMethod'
         display_values_supported:
@@ -3815,8 +4429,8 @@ components:
             are described in Section 3.1.2.1 of OpenID Connect Core 1.0 [OpenID.Core]. See Also: OpenID.Core Section
             3.1.2.1: https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
           type: array
-          example:
-            - 'page'
+          examples:
+            - - 'page'
           items:
             $ref: '#/components/schemas/openid.spec.DisplayType'
         frontchannel_logout_session_supported:
@@ -3825,25 +4439,27 @@ components:
             identify the RP session with the OP when the frontchannel_logout_uri is used. If supported, the sid Claim is
             also included in ID Tokens issued by the OP. If omitted, the default value is false.
           type: boolean
-          example: false
+          examples:
+            - false
         frontchannel_logout_supported:
           description: >
             Boolean value specifying whether the OP supports HTTP-based logout, with true indicating support. If
             omitted, the default value is false.
           type: boolean
-          example: false
+          examples:
+            - false
         grant_types_supported:
           description: >
             JSON array containing a list of the OAuth 2.0 Grant Type values that this OP supports. Dynamic OpenID
             Providers MUST support the authorization_code and implicit Grant Type values and MAY support other Grant
             Types. If omitted, the default value is ["authorization_code", "implicit"].
           type: array
-          example:
-            - 'authorization_code'
-            - 'implicit'
-            - 'client_credentials'
-            - 'refresh_token'
-            - 'urn:ietf:params:oauth:grant-type:device_code'
+          examples:
+            - - 'authorization_code'
+              - 'implicit'
+              - 'client_credentials'
+              - 'refresh_token'
+              - 'urn:ietf:params:oauth:grant-type:device_code'
           items:
             $ref: '#/components/schemas/openid.spec.GrantType'
         id_token_encryption_alg_values_supported:
@@ -3852,24 +4468,24 @@ components:
             Token to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516 JWT:
             https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'RSA1_5'
-            - 'RSA-OAEP'
-            - 'RSA-OAEP-256'
-            - 'A128KW'
-            - 'A192KW'
-            - 'A256KW'
-            - 'dir'
-            - 'ECDH-ES'
-            - 'ECDH-ES+A128KW'
-            - 'ECDH-ES+A192KW'
-            - 'ECDH-ES+A256KW'
-            - 'A128GCMKW'
-            - 'A192GCMKW'
-            - 'A256GCMKW'
-            - 'PBES2-HS256+A128KW'
-            - 'PBES2-HS384+A192KW'
-            - 'PBES2-HS512+A256KW'
+          examples:
+            - - 'RSA1_5'
+              - 'RSA-OAEP'
+              - 'RSA-OAEP-256'
+              - 'A128KW'
+              - 'A192KW'
+              - 'A256KW'
+              - 'dir'
+              - 'ECDH-ES'
+              - 'ECDH-ES+A128KW'
+              - 'ECDH-ES+A192KW'
+              - 'ECDH-ES+A256KW'
+              - 'A128GCMKW'
+              - 'A192GCMKW'
+              - 'A256GCMKW'
+              - 'PBES2-HS256+A128KW'
+              - 'PBES2-HS384+A192KW'
+              - 'PBES2-HS512+A256KW'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.alg'
         id_token_encryption_enc_values_supported:
@@ -3878,13 +4494,13 @@ components:
             Token to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
             JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'A128CBC-HS256'
-            - 'A192CBC-HS384'
-            - 'A256CBC-HS512'
-            - 'A128GCM'
-            - 'A192GCM'
-            - 'A256GCM'
+          examples:
+            - - 'A128CBC-HS256'
+              - 'A192CBC-HS384'
+              - 'A256CBC-HS512'
+              - 'A128GCM'
+              - 'A192GCM'
+              - 'A256GCM'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.enc'
         id_token_signing_alg_values_supported:
@@ -3895,19 +4511,19 @@ components:
             (such as when using the Authorization Code Flow).
             See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'HS256'
-            - 'HS384'
-            - 'HS512'
-            - 'RS256'
-            - 'RS384'
-            - 'RS512'
-            - 'PS256'
-            - 'PS384'
-            - 'PS512'
-            - 'ES256'
-            - 'ES384'
-            - 'ES512'
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         device_authorization_endpoint:
@@ -3915,14 +4531,16 @@ components:
             URL of the authorization server's device authorization endpoint, as defined in Section 3.1.
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/device-authorization'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/device-authorization'
         introspection_endpoint:
           description: >
-            URL of the authorization server''s OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0
-            Token Introspection: https://datatracker.ietf.org/doc/html/rfc7662'
+            URL of the authorization server's OAuth 2.0 introspection endpoint [RFC7662]. See Also: OAuth 2.0
+            Token Introspection: https://datatracker.ietf.org/doc/html/rfc7662
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/introspection'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/introspection'
         introspection_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of client authentication methods supported by this introspection endpoint. The
@@ -3934,11 +4552,11 @@ components:
             OAuth 2.0 Authorization Server Metadata - Updated Registration Instructions:
             https://datatracker.ietf.org/doc/html/draft-ietf-oauth-discovery-10#section-7.2
           type: array
-          example:
-            - 'client_secret_post'
-            - 'client_secret_basic'
-            - 'client_secret_jwt'
-            - 'private_key_jwt'
+          examples:
+            - - 'client_secret_post'
+              - 'client_secret_basic'
+              - 'client_secret_jwt'
+              - 'private_key_jwt'
           items:
             $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         introspection_endpoint_auth_signing_alg_values_supported:
@@ -3950,19 +4568,19 @@ components:
             "introspection_endpoint_auth_methods_supported" entry. No default algorithms are implied if this entry is
             omitted. The value "none" MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'HS256'
-            - 'HS384'
-            - 'HS512'
-            - 'RS256'
-            - 'RS384'
-            - 'RS512'
-            - 'PS256'
-            - 'PS384'
-            - 'PS512'
-            - 'ES256'
-            - 'ES384'
-            - 'ES512'
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         issuer:
@@ -3972,7 +4590,8 @@ components:
             by WebFinger. This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}'
         jwks_uri:
           description: >
             URL of the OP's JSON Web Key Set [JWK] document. This contains the signing key(s) the RP uses to validate
@@ -3984,7 +4603,8 @@ components:
             keys provided. When used, the bare key values MUST still be present and MUST match those in the certificate.
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}jwks.json'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}jwks.json'
         op_policy_uri:
           description: >
             URL that the OpenID Provider provides to the person registering the Client to read about the OP's
@@ -4005,14 +4625,8 @@ components:
             exchange for a "request_uri" value usable at the authorization server.
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/par'
-        registration_endpoint:
-          description: >
-            URL of the authorization server''s OAuth 2.0 Dynamic Client Registration endpoint [RFC7591]. See Also:
-            OAuth 2.0 Dynamic Client Registration Protocol: https://datatracker.ietf.org/doc/html/rfc7591
-          type: string
-          format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/registration'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/pushed-authorization-request'
         request_object_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Request
@@ -4020,20 +4634,20 @@ components:
             used both when the Request Object is passed by value (using the request parameter) and when it is passed by
             reference (using the request_uri parameter). Servers SHOULD support none and RS256.
           type: array
-          example:
-            - 'HS256'
-            - 'HS384'
-            - 'HS512'
-            - 'RS256'
-            - 'RS384'
-            - 'RS512'
-            - 'PS256'
-            - 'PS384'
-            - 'PS512'
-            - 'ES256'
-            - 'ES384'
-            - 'ES512'
-            - 'none'
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
+              - 'none'
           items:
             $ref: '#/components/schemas/jose.spec.JWS.None'
         request_object_encryption_alg_values_supported:
@@ -4042,24 +4656,24 @@ components:
             Objects. These algorithms are used both when the Request Object is passed by value and when it is passed by
             reference. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
           type: array
-          example:
-            - 'RSA1_5'
-            - 'RSA-OAEP'
-            - 'RSA-OAEP-256'
-            - 'A128KW'
-            - 'A192KW'
-            - 'A256KW'
-            - 'dir'
-            - 'ECDH-ES'
-            - 'ECDH-ES+A128KW'
-            - 'ECDH-ES+A192KW'
-            - 'ECDH-ES+A256KW'
-            - 'A128GCMKW'
-            - 'A192GCMKW'
-            - 'A256GCMKW'
-            - 'PBES2-HS256+A128KW'
-            - 'PBES2-HS384+A192KW'
-            - 'PBES2-HS512+A256KW'
+          examples:
+            - - 'RSA1_5'
+              - 'RSA-OAEP'
+              - 'RSA-OAEP-256'
+              - 'A128KW'
+              - 'A192KW'
+              - 'A256KW'
+              - 'dir'
+              - 'ECDH-ES'
+              - 'ECDH-ES+A128KW'
+              - 'ECDH-ES+A192KW'
+              - 'ECDH-ES+A256KW'
+              - 'A128GCMKW'
+              - 'A192GCMKW'
+              - 'A256GCMKW'
+              - 'PBES2-HS256+A128KW'
+              - 'PBES2-HS384+A192KW'
+              - 'PBES2-HS512+A256KW'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.alg'
         request_object_encryption_enc_values_supported:
@@ -4069,13 +4683,13 @@ components:
             reference. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
             JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'A128CBC-HS256'
-            - 'A192CBC-HS384'
-            - 'A256CBC-HS512'
-            - 'A128GCM'
-            - 'A192GCM'
-            - 'A256GCM'
+          examples:
+            - - 'A128CBC-HS256'
+              - 'A192CBC-HS384'
+              - 'A256CBC-HS512'
+              - 'A128GCM'
+              - 'A192GCM'
+              - 'A256GCM'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.enc'
         request_parameter_supported:
@@ -4083,40 +4697,44 @@ components:
             OPTIONAL. Boolean value specifying whether the OP supports use of the request parameter, with true
             indicating support. If omitted, the default value is false.
           type: boolean
-          example: true
+          examples:
+            - true
         request_uri_parameter_supported:
           description: >
             Boolean value specifying whether the OP supports use of the request_uri parameter, with true indicating
             support. If omitted, the default value is true.
           type: boolean
-          example: true
+          examples:
+            - true
         require_pushed_authorization_requests:
           description: >
             Boolean parameter indicating whether the authorization server accepts authorization request data only via
             PAR. If omitted, the default value is "false".
           type: boolean
-          example: false
+          examples:
+            - false
         require_request_uri_registration:
           description: >
             Boolean value specifying whether the OP requires any request_uri values used to be pre-registered using the
             request_uris registration parameter. Pre-registration is REQUIRED when the value is true. If omitted, the
             default value is false.
           type: boolean
-          example: false
+          examples:
+            - false
         response_modes_supported:
           description: >
             JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in
             OAuth 2.0 Multiple Response Type Encoding Practices [OAuth.Responses]. If omitted, the default for Dynamic
             OpenID Providers is ["query", "fragment"].
           type: array
-          example:
-            - 'form_post'
-            - 'query'
-            - 'fragment'
-            - 'jwt'
-            - 'form_post.jwt'
-            - 'query.jwt'
-            - 'fragment.jwt'
+          examples:
+            - - 'form_post'
+              - 'query'
+              - 'fragment'
+              - 'jwt'
+              - 'form_post.jwt'
+              - 'query.jwt'
+              - 'fragment.jwt'
           items:
             $ref: '#/components/schemas/openid.spec.ResponseMode'
         response_types_supported:
@@ -4124,23 +4742,24 @@ components:
             JSON array containing a list of the OAuth 2.0 response_type values that this OP supports. Dynamic OpenID
             Providers MUST support the code, id_token, and the token id_token Response Type values.
           type: array
-          example:
-            - 'code'
-            - 'id_token'
-            - 'token'
-            - 'id_token token'
-            - 'code id_token'
-            - 'code token'
-            - 'code id_token token'
+          examples:
+            - - 'code'
+              - 'id_token'
+              - 'token'
+              - 'id_token token'
+              - 'code id_token'
+              - 'code token'
+              - 'code id_token token'
           items:
             $ref: '#/components/schemas/openid.spec.ResponseType'
         revocation_endpoint:
           description: >
-            URL of the authorization server''s OAuth 2.0 revocation endpoint [RFC7009]. See Also:
+            URL of the authorization server's OAuth 2.0 revocation endpoint [RFC7009]. See Also:
             OAuth 2.0 Token Revocation: https://datatracker.ietf.org/doc/html/rfc7009
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/revocation'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/revocation'
         revocation_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of client authentication methods supported by this revocation endpoint. The
@@ -4150,12 +4769,12 @@ components:
             See Also: IANA.OAuth.Parameters: https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml
             OAuth 2.0 - Client Password: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1
           type: array
-          example:
-            - 'none'
-            - 'client_secret_post'
-            - 'client_secret_basic'
-            - 'client_secret_jwt'
-            - 'private_key_jwt'
+          examples:
+            - - 'none'
+              - 'client_secret_post'
+              - 'client_secret_basic'
+              - 'client_secret_jwt'
+              - 'private_key_jwt'
           items:
             $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         revocation_endpoint_auth_signing_alg_values_supported:
@@ -4167,19 +4786,19 @@ components:
             entry. No default algorithms are implied if this entry is omitted. The value "none" MUST NOT be used.
             See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'HS256'
-            - 'HS384'
-            - 'HS512'
-            - 'RS256'
-            - 'RS384'
-            - 'RS512'
-            - 'PS256'
-            - 'PS384'
-            - 'PS512'
-            - 'ES256'
-            - 'ES384'
-            - 'ES512'
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         scopes_supported:
@@ -4190,14 +4809,14 @@ components:
             supported. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749 OpenID.Core:
             https://openid.net/specs/openid-connect-core-1_0.html
           type: array
-          example:
-            - 'openid'
-            - 'offline_access'
-            - 'profile'
-            - 'email'
-            - 'address'
-            - 'phone'
-            - 'groups'
+          examples:
+            - - 'openid'
+              - 'offline_access'
+              - 'profile'
+              - 'email'
+              - 'address'
+              - 'phone'
+              - 'groups'
           items:
             $ref: '#/components/schemas/openid.implementation.Scopes.Object'
         service_documentation:
@@ -4206,24 +4825,26 @@ components:
             the OpenID Provider. In particular, if the OpenID Provider does not support Dynamic Client Registration,
             then information on how to register Clients needs to be provided in this documentation.
           type: string
-          example: 'https://www.authelia.com'
+          examples:
+            - 'https://www.authelia.com'
         subject_types_supported:
           description: >
             JSON array containing a list of the Subject Identifier types that this OP supports. Valid types include
             pairwise and public.
           type: array
-          example:
-            - 'public'
-            - 'pairwise'
+          examples:
+            - - 'public'
+              - 'pairwise'
           items:
             $ref: '#/components/schemas/openid.spec.SubjectIdentifier'
         token_endpoint:
           description: >
-            URL of the OP''s OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
+            URL of the OP's OAuth 2.0 Token Endpoint [OpenID.Core]. This is REQUIRED unless only the Implicit Flow is
             used. See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/token'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/token'
         token_endpoint_auth_methods_supported:
           description: >
             JSON array containing a list of Client Authentication methods supported by this Token Endpoint. The options
@@ -4233,12 +4854,12 @@ components:
             2.3.1 of OAuth 2.0 [RFC6749]. See Also: OAuth 2.0: https://datatracker.ietf.org/doc/html/rfc6749
             OpenID.Core Section 9: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
           type: array
-          example:
-            - 'none'
-            - 'client_secret_post'
-            - 'client_secret_basic'
-            - 'client_secret_jwt'
-            - 'private_key_jwt'
+          examples:
+            - - 'none'
+              - 'client_secret_post'
+              - 'client_secret_basic'
+              - 'client_secret_jwt'
+              - 'private_key_jwt'
           items:
             $ref: '#/components/schemas/openid.spec.ClientAuthMethod'
         token_endpoint_auth_signing_alg_values_supported:
@@ -4248,19 +4869,19 @@ components:
             private_key_jwt and client_secret_jwt authentication methods. Servers SHOULD support RS256.
             The value none MUST NOT be used. See Also: JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'HS256'
-            - 'HS384'
-            - 'HS512'
-            - 'RS256'
-            - 'RS384'
-            - 'RS512'
-            - 'PS256'
-            - 'PS384'
-            - 'PS512'
-            - 'ES256'
-            - 'ES384'
-            - 'ES512'
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         ui_locales_supported:
@@ -4268,18 +4889,19 @@ components:
             Languages and scripts supported for the user interface, represented as a JSON array of BCP47
             [RFC5646] language tag values. See Also: BCP47: https://datatracker.ietf.org/doc/html/rfc5646
           type: array
-          example:
-            - 'en-US'
+          examples:
+            - - 'en-US'
           items:
             type: string
         userinfo_endpoint:
           description: >
-            URL of the OP''s UserInfo Endpoint [OpenID.Core]. This URL MUST use the https scheme and MAY contain port,
+            URL of the OP's UserInfo Endpoint [OpenID.Core]. This URL MUST use the https scheme and MAY contain port,
             path, and query parameter components.
             See Also: OpenID.Core: https://openid.net/specs/openid-connect-core-1_0.html
           type: string
           format: uri
-          example: '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/userinfo'
+          examples:
+            - '{{ .BaseURL | default "https://auth.example.com/" }}api/oidc/userinfo'
         userinfo_signing_alg_values_supported:
           description: >
             JSON array containing a list of the JWS [JWS] signing algorithms (alg values) [JWA] supported by the
@@ -4287,20 +4909,20 @@ components:
             JWS: https://datatracker.ietf.org/doc/html/rfc7515 JWA: https://datatracker.ietf.org/doc/html/rfc7518
             JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'HS256'
-            - 'HS384'
-            - 'HS512'
-            - 'RS256'
-            - 'RS384'
-            - 'RS512'
-            - 'PS256'
-            - 'PS384'
-            - 'PS512'
-            - 'ES256'
-            - 'ES384'
-            - 'ES512'
-            - 'none'
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
+              - 'none'
           items:
             $ref: '#/components/schemas/jose.spec.JWS.None'
         userinfo_encryption_alg_values_supported:
@@ -4310,24 +4932,24 @@ components:
             https://datatracker.ietf.org/doc/html/rfc7516 JWA: https://datatracker.ietf.org/doc/html/rfc7518
             JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'RSA1_5'
-            - 'RSA-OAEP'
-            - 'RSA-OAEP-256'
-            - 'A128KW'
-            - 'A192KW'
-            - 'A256KW'
-            - 'dir'
-            - 'ECDH-ES'
-            - 'ECDH-ES+A128KW'
-            - 'ECDH-ES+A192KW'
-            - 'ECDH-ES+A256KW'
-            - 'A128GCMKW'
-            - 'A192GCMKW'
-            - 'A256GCMKW'
-            - 'PBES2-HS256+A128KW'
-            - 'PBES2-HS384+A192KW'
-            - 'PBES2-HS512+A256KW'
+          examples:
+            - - 'RSA1_5'
+              - 'RSA-OAEP'
+              - 'RSA-OAEP-256'
+              - 'A128KW'
+              - 'A192KW'
+              - 'A256KW'
+              - 'dir'
+              - 'ECDH-ES'
+              - 'ECDH-ES+A128KW'
+              - 'ECDH-ES+A192KW'
+              - 'ECDH-ES+A256KW'
+              - 'A128GCMKW'
+              - 'A192GCMKW'
+              - 'A256GCMKW'
+              - 'PBES2-HS256+A128KW'
+              - 'PBES2-HS384+A192KW'
+              - 'PBES2-HS512+A256KW'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.alg'
         userinfo_encryption_enc_values_supported:
@@ -4336,13 +4958,13 @@ components:
             Endpoint to encode the Claims in a JWT [JWT]. See Also: JWE: https://datatracker.ietf.org/doc/html/rfc7516
             JWA: https://datatracker.ietf.org/doc/html/rfc7518 JWT: https://datatracker.ietf.org/doc/html/rfc7519
           type: array
-          example:
-            - 'A128CBC-HS256'
-            - 'A192CBC-HS384'
-            - 'A256CBC-HS512'
-            - 'A128GCM'
-            - 'A192GCM'
-            - 'A256GCM'
+          examples:
+            - - 'A128CBC-HS256'
+              - 'A192CBC-HS384'
+              - 'A256CBC-HS512'
+              - 'A128GCM'
+              - 'A192GCM'
+              - 'A256GCM'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.enc'
         authorization_signing_alg_values_supported:
@@ -4350,7 +4972,8 @@ components:
             OPTIONAL. A JSON array containing a list of the JWS [RFC7515] signing algorithms (alg values) supported by
             the authorization endpoint to sign the response.
           type: array
-          example: ["RS256"]
+          examples:
+            - ["RS256"]
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         authorization_encryption_alg_values_supported:
@@ -4358,24 +4981,24 @@ components:
             OPTIONAL. A JSON array containing a list of the JWE [RFC7516] encryption algorithms (alg values) supported
             by the authorization endpoint to encrypt the response.
           type: array
-          example:
-            - 'RSA1_5'
-            - 'RSA-OAEP'
-            - 'RSA-OAEP-256'
-            - 'A128KW'
-            - 'A192KW'
-            - 'A256KW'
-            - 'dir'
-            - 'ECDH-ES'
-            - 'ECDH-ES+A128KW'
-            - 'ECDH-ES+A192KW'
-            - 'ECDH-ES+A256KW'
-            - 'A128GCMKW'
-            - 'A192GCMKW'
-            - 'A256GCMKW'
-            - 'PBES2-HS256+A128KW'
-            - 'PBES2-HS384+A192KW'
-            - 'PBES2-HS512+A256KW'
+          examples:
+            - - 'RSA1_5'
+              - 'RSA-OAEP'
+              - 'RSA-OAEP-256'
+              - 'A128KW'
+              - 'A192KW'
+              - 'A256KW'
+              - 'dir'
+              - 'ECDH-ES'
+              - 'ECDH-ES+A128KW'
+              - 'ECDH-ES+A192KW'
+              - 'ECDH-ES+A256KW'
+              - 'A128GCMKW'
+              - 'A192GCMKW'
+              - 'A256GCMKW'
+              - 'PBES2-HS256+A128KW'
+              - 'PBES2-HS384+A192KW'
+              - 'PBES2-HS512+A256KW'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.alg'
         authorization_encryption_enc_values_supported:
@@ -4383,13 +5006,13 @@ components:
             OPTIONAL. A JSON array containing a list of the JWE [RFC7516] encryption algorithms (enc values) supported
             by the authorization endpoint to encrypt the response.
           type: array
-          example:
-            - 'A128CBC-HS256'
-            - 'A192CBC-HS384'
-            - 'A256CBC-HS512'
-            - 'A128GCM'
-            - 'A192GCM'
-            - 'A256GCM'
+          examples:
+            - - 'A128CBC-HS256'
+              - 'A192CBC-HS384'
+              - 'A256CBC-HS512'
+              - 'A128GCM'
+              - 'A192GCM'
+              - 'A256GCM'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.enc'
         authorization_response_iss_parameter_supported:
@@ -4397,25 +5020,26 @@ components:
             Boolean parameter indicating whether the authorization server provides the iss parameter in the
             authorization response as defined in Section 2. If omitted, the default value is false.
           type: boolean
-          example: true
+          examples:
+            - true
         introspection_signing_alg_values_supported:
           description: >
             OPTIONAL. JSON array containing a list of the JWS [RFC7515] signing algorithms (alg values), as defined in
             JWA [RFC7518], supported by the introspection endpoint to sign the response.
           type: array
-          example:
-            - 'HS256'
-            - 'HS384'
-            - 'HS512'
-            - 'RS256'
-            - 'RS384'
-            - 'RS512'
-            - 'ES256'
-            - 'ES384'
-            - 'ES512'
-            - 'PS256'
-            - 'PS384'
-            - 'PS512'
+          examples:
+            - - 'HS256'
+              - 'HS384'
+              - 'HS512'
+              - 'RS256'
+              - 'RS384'
+              - 'RS512'
+              - 'ES256'
+              - 'ES384'
+              - 'ES512'
+              - 'PS256'
+              - 'PS384'
+              - 'PS512'
           items:
             $ref: '#/components/schemas/jose.spec.JWS'
         introspection_encryption_alg_values_supported:
@@ -4424,24 +5048,24 @@ components:
             in JWA [RFC7518], supported by the introspection endpoint to encrypt the content encryption key for
             introspection responses (content key encryption).
           type: array
-          example:
-            - 'RSA1_5'
-            - 'RSA-OAEP'
-            - 'RSA-OAEP-256'
-            - 'A128KW'
-            - 'A192KW'
-            - 'A256KW'
-            - 'dir'
-            - 'ECDH-ES'
-            - 'ECDH-ES+A128KW'
-            - 'ECDH-ES+A192KW'
-            - 'ECDH-ES+A256KW'
-            - 'A128GCMKW'
-            - 'A192GCMKW'
-            - 'A256GCMKW'
-            - 'PBES2-HS256+A128KW'
-            - 'PBES2-HS384+A192KW'
-            - 'PBES2-HS512+A256KW'
+          examples:
+            - - 'RSA1_5'
+              - 'RSA-OAEP'
+              - 'RSA-OAEP-256'
+              - 'A128KW'
+              - 'A192KW'
+              - 'A256KW'
+              - 'dir'
+              - 'ECDH-ES'
+              - 'ECDH-ES+A128KW'
+              - 'ECDH-ES+A192KW'
+              - 'ECDH-ES+A256KW'
+              - 'A128GCMKW'
+              - 'A192GCMKW'
+              - 'A256GCMKW'
+              - 'PBES2-HS256+A128KW'
+              - 'PBES2-HS384+A192KW'
+              - 'PBES2-HS512+A256KW'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.alg'
         introspection_encryption_enc_values_supported:
@@ -4449,13 +5073,13 @@ components:
             OPTIONAL. JSON array containing a list of the JWE [RFC7516] encryption algorithms (enc values), as defined
             in JWA [RFC7518], supported by the introspection endpoint to encrypt the response (content encryption).
           type: array
-          example:
-            - 'A128CBC-HS256'
-            - 'A192CBC-HS384'
-            - 'A256CBC-HS512'
-            - 'A128GCM'
-            - 'A192GCM'
-            - 'A256GCM'
+          examples:
+            - - 'A128CBC-HS256'
+              - 'A192CBC-HS384'
+              - 'A256CBC-HS512'
+              - 'A128GCM'
+              - 'A192GCM'
+              - 'A256GCM'
           items:
             $ref: '#/components/schemas/jose.spec.JWE.enc'
     openid.spec.IntrospectionResponse:
@@ -4487,7 +5111,8 @@ components:
           type: string
           enum:
             - 'bearer'
-          example: 'bearer'
+          examples:
+            - 'bearer'
           description: 'OPTIONAL. Type of the token as defined in Section 5.1 of OAuth 2.0 [RFC6749].'
         exp:
           type: integer
@@ -4684,8 +5309,9 @@ components:
       description: >
         An OpenID Connect 1.0 and OAuth 2.0 error response Note this is a generic error response and may describe a
         possible response for a given endpoint that is not entirely accurate or possible. This is only meant to
-        represent all of the potential response typesThe enum may also not be exhaustive as the relevant specifications
+        represent all of the potential response types. The enum may also not be exhaustive as the relevant specifications
         are incredibly vast.
+      type: object
       required:
         - 'error'
       properties:
@@ -4751,7 +5377,8 @@ components:
             this is the "refresh_token" value returned from the token endpoint
             as defined in OAuth 2.0 [RFC6749], Section 5.1. Other token types
             are outside the scope of this specification.
-          example: 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
+          examples:
+            - 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
           type: string
         token_type_hint:
           description: >
@@ -4767,12 +5394,29 @@ components:
           enum:
             - 'access_token'
             - 'refresh_token'
-          example: 'access_token'
+          examples:
+            - 'access_token'
           type: string
     openid.spec.AccessRequest.ClientAuth:
-      oneOf:
+      description: >
+        The client authentication parameters included in the request body. Clients using the client_secret_basic
+        method authenticate via the Authorization header rather than the request body.
+      anyOf:
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.None'
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.Secret'
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth.JWT'
+    openid.spec.AccessRequest.ClientAuth.None:
+      description: >
+        Client authentication for public clients registered with the 'none' client authentication method.
+      type: object
+      required:
+        - 'client_id'
+      properties:
+        client_id:
+          description: The client identifier as described in Section 2.2 of [RFC6749].
+          examples:
+            - 'my_client'
+          type: string
     openid.spec.AccessRequest.ClientAuth.Secret:
       required:
         - 'client_id'
@@ -4783,7 +5427,8 @@ components:
           description: >
             REQUIRED if the client is not authenticating with the authorization server as described in
             Section 3.2.1. of [RFC6749]. The client identifier as described in Section 2.2 of [RFC6749].
-          example: 'my_client'
+          examples:
+            - 'my_client'
           type: string
         client_secret:
           description: >
@@ -4792,6 +5437,7 @@ components:
           format: password
           type: string
     openid.spec.AccessRequest.ClientAuth.JWT:
+      type: object
       required:
         - 'client_assertion'
         - 'client_assertion_type'
@@ -4800,7 +5446,8 @@ components:
           description: >
             REQUIRED if the client is not authenticating with the authorization server as described in
             Section 3.2.1. of [RFC6749]. The client identifier as described in Section 2.2 of [RFC6749].
-          example: 'my_client'
+          examples:
+            - 'my_client'
           type: string
         client_assertion:
           description: >
@@ -4816,7 +5463,8 @@ components:
           type: string
           enum:
             - 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
-          example: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
+          examples:
+            - 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
     openid.spec.AccessRequest.AuthorizationCodeFlow:
       allOf:
         - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
@@ -4832,15 +5480,18 @@ components:
               type: string
             code:
               description: The Authorization Code.
-              example: 'authelia_ac_VdQ5Ts3BCDtN4X-aCUW6esVl_PmMklup81bqyZ8PQJc.mQ7qgtwQu6_JdXR_OPJX3YDGOATBK6Bt6BgnsndFJQs'
+              examples:
+                - 'authelia_ac_VdQ5Ts3BCDtN4X-aCUW6esVl_PmMklup81bqyZ8PQJc.mQ7qgtwQu6_JdXR_OPJX3YDGOATBK6Bt6BgnsndFJQs'
               type: string
             code_verifier:
               description: The Authorization Code Verifier (PKCE).
-              example: '88a25754f7c0b3b3b88cf6cd4e29e8356b160524fdc1cb329a94471825628fd3'
+              examples:
+                - '88a25754f7c0b3b3b88cf6cd4e29e8356b160524fdc1cb329a94471825628fd3'
               type: string
             redirect_uri:
               description: The original Redirect URI used in the Authorization Request.
-              example: 'https://app.{{ .Domain | default "example.com" }}/oidc/callback'
+              examples:
+                - 'https://app.{{ .Domain | default "example.com" }}/oidc/callback'
               type: string
     openid.spec.AccessRequest.DeviceCodeFlow:
       allOf:
@@ -4857,7 +5508,8 @@ components:
               type: string
             device_code:
               description: The Device Authorization Code.
-              example: 'authelia_dc_oqLXXUv2pvCDgBJLBav63ZduL4CxKP7JpYZ6ldHp39Y.u3XxwV3O-uYOA5TSv44iQyB27YjUGawJLlwOMuC770E'
+              examples:
+                - 'authelia_dc_oqLXXUv2pvCDgBJLBav63ZduL4CxKP7JpYZ6ldHp39Y.u3XxwV3O-uYOA5TSv44iQyB27YjUGawJLlwOMuC770E'
               type: string
     openid.spec.AccessRequest.RefreshTokenFlow:
       allOf:
@@ -4874,7 +5526,8 @@ components:
               type: string
             refresh_token:
               description: The Refresh Token.
-              example: 'authelia_rt_MgALbONdFPIwo3o2QukHry7W451xrO6jza31IS8Vh4M.IArqzOzLwY6HWqom1vmp9DUWBuOQel_fGnRw5MyT-jo'
+              examples:
+                - 'authelia_rt_MgALbONdFPIwo3o2QukHry7W451xrO6jza31IS8Vh4M.IArqzOzLwY6HWqom1vmp9DUWBuOQel_fGnRw5MyT-jo'
               type: string
             scope:
               description: >
@@ -4883,7 +5536,8 @@ components:
                 not originally granted by the resource owner, and if omitted is
                 treated as equal to the scope originally granted by the
                 resource owner.
-              example: 'openid profile groups'
+              examples:
+                - 'openid profile groups'
               type: string
     openid.spec.AccessRequest.ClientCredentialsFlow:
       allOf:
@@ -4904,7 +5558,8 @@ components:
                 not originally granted by the resource owner, and if omitted is
                 treated as equal to the scope originally granted by the
                 resource owner.
-              example: 'openid profile groups'
+              examples:
+                - 'openid profile groups'
               type: string
     openid.spec.AccessResponse:
       type: object
@@ -4915,17 +5570,20 @@ components:
       properties:
         access_token:
           description: The access token issued by the authorization server.
-          example: 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
+          examples:
+            - 'authelia_at_6-8jeA8y9Y744pAHCRwGtJrsD9ABOVWyzL3uWB1ntbI.foaDPNLT0T7VVQ9on5F1rOfHs0Lbc09FGO2xF_pzmNY'
           type: string
         id_token:
           description: The id token issued by the authorization server.
-          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+          examples:
+            - 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
           type: string
         refresh_token:
           description: >
             The refresh token, which can be used to obtain new access tokens using the
             same authorization grant as described in Section 6.
-          example: 'authelia_rt_MgALbONdFPIwo3o2QukHry7W451xrO6jza31IS8Vh4M.IArqzOzLwY6HWqom1vmp9DUWBuOQel_fGnRw5MyT-jo'
+          examples:
+            - 'authelia_rt_MgALbONdFPIwo3o2QukHry7W451xrO6jza31IS8Vh4M.IArqzOzLwY6HWqom1vmp9DUWBuOQel_fGnRw5MyT-jo'
           type: string
         token_type:
           description: >
@@ -4936,7 +5594,8 @@ components:
             type.
           enum:
             - 'bearer'
-          example: 'bearer'
+          examples:
+            - 'bearer'
           type: string
         expires_in:
           description: >
@@ -4945,16 +5604,19 @@ components:
             expire in one hour from the time the response was generated.
             If omitted, the authorization server SHOULD provide the
             expiration time via other means or document the default value.
-          example: 3600
+          examples:
+            - 3600
           type: integer
         state:
           description: Exactly the state value passed in the authorization request if present.
-          example: '5dVZhNfri5XZS6wadskuzUk4MHYCvEcUgidjMeBjsktAhY7EKB'
+          examples:
+            - '5dVZhNfri5XZS6wadskuzUk4MHYCvEcUgidjMeBjsktAhY7EKB'
           type: string
         scope:
           description: >
             The scope of the access token as described by Section 3.3 if it differs from the requested scope.
-          example: 'openid profile groups'
+          examples:
+            - 'openid profile groups'
           type: string
     openid.spec.AuthorizeRequest:
       type: object
@@ -4966,13 +5628,15 @@ components:
       properties:
         scope:
           description: The requested scope.
-          example: 'openid profile groups'
+          examples:
+            - 'openid profile groups'
           type: string
         response_type:
           $ref: '#/components/schemas/openid.spec.ResponseType'
         client_id:
           description: The OAuth 2.0 client identifier.
-          example: 'app'
+          examples:
+            - 'app'
           type: string
         redirect_uri:
           description: >
@@ -4983,7 +5647,8 @@ components:
             that the Client Type is confidential, as defined in Section 2.1 of OAuth 2.0, and provided the OP
             allows the use of http Redirection URIs in this case. The Redirection URI MAY use an alternate
             scheme, such as one that is intended to identify a callback into a native application.
-          example: 'https://app.{{ .Domain | default "example.com" }}'
+          examples:
+            - 'https://app.{{ .Domain | default "example.com" }}'
           type: string
           format: uri
         state:
@@ -4991,7 +5656,8 @@ components:
             Opaque value used to maintain state between the request and the callback. Typically, Cross-Site
             Request Forgery (CSRF, XSRF) mitigation is done by cryptographically binding the value of this
             parameter with a browser cookie.
-          example: 'oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f'
+          examples:
+            - 'oV84Vsy7wyCgRk2h4aZBmXZq4q3g2f'
           type: string
         response_mode:
           $ref: '#/components/schemas/openid.spec.ResponseMode'
@@ -5001,7 +5667,8 @@ components:
             The value is passed through unmodified from the Authentication Request to the ID Token. Sufficient
             entropy MUST be present in the nonce values used to prevent attackers from guessing values. For
             implementation notes, see Section 15.5.2.
-          example: 'TRMLqchoKGQNcooXvBvUy9PtmLdJGf'
+          examples:
+            - 'TRMLqchoKGQNcooXvBvUy9PtmLdJGf'
           type: string
         display:
           $ref: '#/components/schemas/openid.spec.DisplayType'
@@ -5080,25 +5747,18 @@ components:
             algorithm used is RSA1_5.
           type: string
     openid.spec.DeviceAuthorizeRequest:
+      allOf:
+        - $ref: '#/components/schemas/openid.spec.AccessRequest.ClientAuth'
+        - $ref: '#/components/schemas/openid.spec.DeviceAuthorizeRequest.Parameters'
+    openid.spec.DeviceAuthorizeRequest.Parameters:
       type: object
       required:
-        - 'client_id'
-        - 'client_secret'
         - 'scope'
       properties:
-        client_id:
-          description: The OAuth 2.0 client identifier.
-          example: 'app'
-          type: string
-        client_secret:
-          description: >
-            REQUIRED. The client secret. The client MAY omit the
-            parameter if the client secret is an empty string.
-          format: password
-          type: string
         scope:
           description: The requested scope.
-          example: 'openid profile groups'
+          examples:
+            - 'openid profile groups'
           type: string
         acr_values:
           description: >
@@ -5154,7 +5814,8 @@ components:
         - 'popup'
         - 'touch'
         - 'wap'
-      example: 'page'
+      examples:
+        - 'page'
       type: string
     openid.spec.Prompt:
       description: >
@@ -5168,7 +5829,8 @@ components:
         - 'login consent'
         - 'login select_account'
         - 'consent select_account'
-      example: 'none'
+      examples:
+        - 'none'
       type: string
     openid.spec.ResponseType:
       description: The OAuth 2.0 / OpenID Connect 1.0 Response Type.
@@ -5181,7 +5843,8 @@ components:
         - 'id_token token'
         - 'code id_token token'
         - 'none'
-      example: 'code'
+      examples:
+        - 'code'
       type: string
     openid.spec.ResponseMode:
       description: >
@@ -5196,7 +5859,8 @@ components:
         - 'form_post.jwt'
         - 'query.jwt'
         - 'fragment.jwt'
-      example: 'query'
+      examples:
+        - 'query'
       type: string
     openid.spec.GrantType:
       description: The OAuth 2.0 / OpenID Connect 1.0 Grant Type.
@@ -5204,17 +5868,18 @@ components:
         - 'authorization_code'
         - 'refresh_token'
         - 'implicit'
-        - 'password'
         - 'client_credentials'
         - "urn:ietf:params:oauth:grant-type:device_code"
-      example: 'authorization_code'
+      examples:
+        - 'authorization_code'
       type: string
     openid.spec.CodeChallengeMethod:
       description: The RFC7636 Code Challenge Verifier Method.
       enum:
         - 'plain'
         - 'S256'
-      example: 'S256'
+      examples:
+        - 'S256'
       type: string
     openid.spec.ClaimType:
       description: The representation of claims.
@@ -5222,7 +5887,8 @@ components:
         - 'normal'
         - 'aggregated'
         - 'distributed'
-      example: 'normal'
+      examples:
+        - 'normal'
       type: string
     jose.spec.None:
       description: The JSON Web Signature Algorithm
@@ -5294,7 +5960,8 @@ components:
           enum:
             - 'sig'
             - 'enc'
-          example: 'sig'
+          examples:
+            - 'sig'
           type: string
         key_ops:
           description: >
@@ -5302,7 +5969,8 @@ components:
             for which the key is intended to be used. The "key_ops" parameter is
             intended for use cases in which public, private, or symmetric keys
             may be present.
-          example: ['sign']
+          examples:
+            - ['sign']
           type: array
           items:
             enum:
@@ -5396,13 +6064,15 @@ components:
                 The "kty" (key type) parameter identifies the cryptographic algorithm
                 family used with the key.
               type: string
-              example: 'RSA'
+              examples:
+                - 'RSA'
               enum:
                 - 'RSA'
             alg:
               description: The JSON Web Signature Algorithm
               type: string
-              example: 'RS256'
+              examples:
+                - 'RS256'
               enum:
                 - 'RS256'
                 - 'RS384'
@@ -5513,13 +6183,15 @@ components:
                 The "kty" (key type) parameter identifies the cryptographic algorithm
                 family used with the key.
               type: string
-              example: 'EC'
+              examples:
+                - 'EC'
               enum:
                 - 'EC'
             alg:
               description: The JSON Web Signature Algorithm
               type: string
-              example: 'ES256'
+              examples:
+                - 'ES256'
               enum:
                 - 'ES256'
                 - 'ES384'
@@ -5543,7 +6215,8 @@ components:
                 The curve parameter identifies the cryptographic curve used with the key. Curve
                 values from [DSS] used by this specification.
               type: string
-              example: 'P-521'
+              examples:
+                - 'P-521'
               enum:
                 - 'P-256'
                 - 'P-384'
@@ -5583,7 +6256,8 @@ components:
                 The "kty" (key type) parameter identifies the cryptographic algorithm
                 family used with the key.
               type: string
-              example: 'oct'
+              examples:
+                - 'oct'
               enum:
                 - 'oct'
             k:
@@ -5594,7 +6268,7 @@ components:
               type: string
               contentEncoding: base64url
     jose.spec.JWK:
-      type: string
+      description: A key in the JSON Web Key format as defined by RFC7517.
       anyOf:
         - $ref: '#/components/schemas/jose.spec.JWK.RSA'
         - $ref: '#/components/schemas/jose.spec.JWK.RSA.Private'

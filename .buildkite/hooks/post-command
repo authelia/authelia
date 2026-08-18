@@ -47,8 +47,44 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
   fi
 fi
 
+if [[ ${BUILDKITE_LABEL} =~ (:selenium:|:nodejs:) ]] && [[ -n ${BUILDKITE_ANALYTICS_TOKEN} ]]; then
+  echo "--- :buildkite: Upload test results to Test Engine"
+  for RESULTS in test-results-*.json; do
+    [[ -f ${RESULTS} ]] || continue
+
+    JUNIT="${RESULTS%.json}.xml"
+
+    # gotestsum synthesizes a failure when a suite dies without a terminal event, which is what a
+    # `panic: test timed out` looks like in the event stream.
+    if ! gotestsum --junitfile "${JUNIT}" --raw-command -- cat "${RESULTS}" > /dev/null; then
+      echo "Failed to convert ${RESULTS} to JUnit" >&2
+    fi
+
+    [[ -f ${JUNIT} ]] || continue
+
+    curl -sf -X POST \
+      -H "Authorization: Token token=\"${BUILDKITE_ANALYTICS_TOKEN}\"" \
+      -F "data=@${JUNIT}" \
+      -F "format=junit" \
+      -F "run_env[CI]=buildkite" \
+      -F "run_env[key]=${BUILDKITE_BUILD_ID}" \
+      -F "run_env[url]=${BUILDKITE_BUILD_URL}" \
+      -F "run_env[branch]=${BUILDKITE_BRANCH}" \
+      -F "run_env[commit_sha]=${BUILDKITE_COMMIT}" \
+      -F "run_env[number]=${BUILDKITE_BUILD_NUMBER}" \
+      -F "run_env[job_id]=${BUILDKITE_JOB_ID}" \
+      -o /dev/null https://analytics-api.buildkite.com/v1/uploads ||
+      echo "Failed to upload ${JUNIT} to Test Engine" >&2
+  done
+fi
+
+if [[ ${BUILDKITE_LABEL} =~ (:selenium:|:nodejs:) ]] && [[ -d screenshots ]]; then
+  echo "--- :camera_with_flash: Annotating failure screenshots"
+  buildkite-agent annotate --style "error" --context "ctx-screenshots" --append < <(bash .buildkite/annotations/screenshots.sh)
+fi
+
 if [[ ${BUILDKITE_LABEL} =~ :selenium: ]] || [[ ${BUILDKITE_LABEL} =~ :docker:\ Build\ Image ]]; then
-  mapfile -t CONTAINERS < <(docker ps -a -q)
+  mapfile -t CONTAINERS < <(docker ps -a -q --filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME:-authelia}")
   if [[ ${#CONTAINERS[@]} -gt 0 ]]; then
     echo "--- :docker: Remove lingering containers"
     docker rm -f "${CONTAINERS[@]}"
@@ -64,7 +100,7 @@ if [[ ${BUILDKITE_LABEL} =~ :docker:\ Deploy ]]; then
   docker logout ghcr.io
 fi
 
-if [[ ${BUILDKITE_LABEL} == ":grype: Vulnerability Scanning" ]] && [[ ${CI_PRIVATE} == "true" ]]; then
+if [[ ${BUILDKITE_LABEL} == ":grype: Vulnerability Scanning" ]]; then
   docker logout
 fi
 

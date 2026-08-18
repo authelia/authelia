@@ -3,18 +3,22 @@ services:
   # Simulates client 1.
   client-1:
     image: ubuntu/squid:6.6-24.04_edge
+    cpus: 2
+    mem_limit: 1g
     volumes:
       - ./example/compose/squid/squid.conf:/etc/squid/squid.conf
     networks:
       authelianet:
         # Set the IP to be able to query on port 443
-        ipv4_address: 192.168.240.201
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.201
   client-2:
     image: ubuntu/squid:6.6-24.04_edge
+    cpus: 2
+    mem_limit: 1g
     volumes:
       - ./example/compose/squid/squid.conf:/etc/squid/squid.conf
     networks:
       authelianet:
         # Set the IP to be able to query on port 443
-        ipv4_address: 192.168.240.202
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.202
 ...
