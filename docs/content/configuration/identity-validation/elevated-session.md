@@ -81,10 +81,10 @@ entirely. In addition, users who have only performed first factor authentication
 configured are offered the choice to either perform the One-Time Code process or perform second factor authentication
 instead.
 
-Can be combined with the [require_second_factor](#require_second_factor) option to make second factor authentication
-both necessary and sufficient for elevation: users with a configured second factor method must perform second factor
-authentication and are then never asked for a One-Time Code, while users without one perform the One-Time Code process
-as normal.
+This option can be combined with the [require_second_factor](#require_second_factor) option to make second factor
+authentication both necessary and sufficient for elevation: users with a configured second factor method must perform
+second factor authentication and are then never asked for a One-Time Code, while users without one perform the
+One-Time Code process as normal.
 
 The following table summarizes which process users must complete to perform a protected action depending on these two
 options:
