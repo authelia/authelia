@@ -166,13 +166,13 @@ const ResetPasswordStep2 = function () {
                                 onTouchEnd={() => setShowPassword(false)}
                                 onTouchCancel={() => setShowPassword(false)}
                                 onKeyDown={(e) => {
-                                    if (e.key === " ") {
+                                    if (e.key === " " || e.key === "Enter") {
                                         setShowPassword(true);
                                         e.preventDefault();
                                     }
                                 }}
                                 onKeyUp={(e) => {
-                                    if (e.key === " ") {
+                                    if (e.key === " " || e.key === "Enter") {
                                         setShowPassword(false);
                                         e.preventDefault();
                                     }

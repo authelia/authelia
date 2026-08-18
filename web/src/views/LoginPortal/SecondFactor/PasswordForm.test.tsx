@@ -52,5 +52,5 @@ it("shows error when submitting empty password", async () => {
     });
 
     expect(mockPostSecondFactor).not.toHaveBeenCalled();
-    expect(screen.getByLabelText(/Password/)).toHaveClass("border-destructive");
+    expect(screen.getByLabelText(/Password/)).toHaveAttribute("aria-invalid", "true");
 });

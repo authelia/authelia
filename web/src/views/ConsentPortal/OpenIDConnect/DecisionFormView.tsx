@@ -31,7 +31,6 @@ import {
 } from "@services/ConsentOpenIDConnect";
 import { postFirstFactorReauthenticate } from "@services/Password";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
-import { cn } from "@utils/Styles";
 import DecisionFormClaims from "@views/ConsentPortal/OpenIDConnect/DecisionFormClaims";
 import OpenIDConnectConsentDecisionFormPreConfiguration from "@views/ConsentPortal/OpenIDConnect/DecisionFormPreConfiguration";
 import DecisionFormScopes from "@views/ConsentPortal/OpenIDConnect/DecisionFormScopes";
@@ -347,10 +346,8 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                                             ref={passwordRef}
                                                                             onKeyDown={handlePasswordKeyDown}
                                                                             onKeyUp={handlePasswordKeyUp}
-                                                                            className={cn(
-                                                                                "pr-10",
-                                                                                errorPassword && "border-destructive",
-                                                                            )}
+                                                                            className="pr-10"
+                                                                            error={errorPassword}
                                                                             disabled={loading}
                                                                             value={password}
                                                                             onChange={(v) =>

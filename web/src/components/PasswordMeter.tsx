@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import zxcvbn from "zxcvbn";
 
-import { Alert, AlertTitle } from "@components/UI/Alert";
+import { Alert, AlertDescription, AlertTitle } from "@components/UI/Alert";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 
 export interface Props {
@@ -142,7 +142,7 @@ const PasswordMeter = function (props: Props) {
     return (
         <div className="w-full">
             <div
-                className="mt-0.5 transition-[width] duration-500 linear"
+                className="mt-0.5 transition-[width] duration-500 ease-linear"
                 style={{
                     backgroundColor: progressColor[passwordScore],
                     height: "5px",
@@ -156,7 +156,9 @@ const PasswordMeter = function (props: Props) {
                             <p>{feedbackTitle}</p>
                         </AlertTitle>
                     )}
-                    <div className="text-[0.7rem] text-left whitespace-break-spaces">{feedback}</div>
+                    <AlertDescription className="text-[0.7rem] text-left whitespace-break-spaces">
+                        {feedback}
+                    </AlertDescription>
                 </Alert>
             )}
         </div>

@@ -26,12 +26,13 @@ it("renders children without tooltip when render is false", () => {
 it("renders children with tooltip when render is true", () => {
     render(
         <ComponentWithTooltip render={true} title="test">
-            <div>child</div>
+            <button>child</button>
         </ComponentWithTooltip>,
     );
-    expect(screen.getByText("child")).toBeInTheDocument();
-    const child = screen.getByText("child");
-    expect(child.parentElement?.tagName).toBe("SPAN");
+    const child = screen.getByRole("button", { name: "child" });
+    expect(child).toBeInTheDocument();
+    expect(child).toHaveAttribute("data-slot", "tooltip-trigger");
+    expect(child).toHaveAttribute("data-state");
 });
 
 it("renders with placement prop", () => {

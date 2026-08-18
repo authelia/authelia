@@ -13,9 +13,8 @@ export interface Props {
 const AppBarLoginPortal = function (props: Props) {
     return (
         <header className="bg-transparent">
-            <div className="flex-grow" />
             <div className="mx-auto flex items-center px-4 pb-4 pt-2">
-                <div className="flex-grow" />
+                <div className="grow" />
                 <AppBarItemLanguage
                     localeCurrent={props.localeCurrent}
                     localeList={props.localeList}

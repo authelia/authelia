@@ -75,6 +75,7 @@ function Button({
     className,
     color,
     size = "default",
+    type,
     variant = "default",
     ...props
 }: ComponentProps<"button"> &
@@ -90,6 +91,7 @@ function Button({
             data-variant={variant}
             data-size={size}
             className={cn(buttonVariants({ size, variant }), getColorClasses(variant ?? undefined, color), className)}
+            {...(asChild ? { type } : { type: type ?? "button" })}
             {...props}
         />
     );

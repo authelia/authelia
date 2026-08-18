@@ -29,6 +29,7 @@ const ChangePasswordDialog = (props: Props) => {
     const { createErrorNotification, createSuccessNotification } = useNotifications();
 
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [oldPassword, setOldPassword] = useState("");
     const [oldPasswordError, setOldPasswordError] = useState(false);
     const [newPassword, setNewPassword] = useState("");
@@ -75,6 +76,7 @@ const ChangePasswordDialog = (props: Props) => {
         resetCapsLockErrors();
 
         setLoading(false);
+        setSubmitting(false);
     }, [resetPasswordErrors, resetCapsLockErrors]);
 
     const handleClose = useCallback(() => {
@@ -121,6 +123,8 @@ const ChangePasswordDialog = (props: Props) => {
             return;
         }
 
+        setSubmitting(true);
+
         try {
             await postPasswordChange(props.username, oldPassword, newPassword);
             createSuccessNotification(translate("Password changed successfully"));
@@ -128,6 +132,7 @@ const ChangePasswordDialog = (props: Props) => {
         } catch (err) {
             resetPasswordErrors();
             setLoading(false);
+            setSubmitting(false);
             if (axios.isAxiosError(err) && err.response) {
                 switch (err.response.status) {
                     case 400: // Bad Request - Weak Password
@@ -208,7 +213,7 @@ const ChangePasswordDialog = (props: Props) => {
         <Dialog
             open={props.open}
             onOpenChange={(open) => {
-                if (!open) handleClose();
+                if (!open && !submitting) handleClose();
             }}
         >
             <DialogContent className="sm:max-w-xs" showCloseButton={false}>
@@ -318,6 +323,7 @@ const ChangePasswordDialog = (props: Props) => {
                         id={"password-change-dialog-cancel"}
                         variant={"ghost"}
                         color={"destructive"}
+                        disabled={submitting}
                         onClick={handleClose}
                     >
                         {translate("Cancel")}

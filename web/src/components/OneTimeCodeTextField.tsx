@@ -1,4 +1,4 @@
-import { type ComponentProps, type Ref } from "react";
+import { type ComponentProps, type Ref, useId } from "react";
 
 import { Input } from "@components/UI/Input";
 import { Label } from "@components/UI/Label";
@@ -11,11 +11,16 @@ interface OneTimeCodeInputProps extends ComponentProps<"input"> {
 }
 
 const OneTimeCodeTextField = function ({ className, error, inputRef, label, ...props }: OneTimeCodeInputProps) {
+    const id = useId();
+    const inputId = props.id ?? id;
+
     return (
         <div className="flex flex-col gap-1.5">
-            {label ? <Label>{label}</Label> : null}
+            {label ? <Label htmlFor={inputId}>{label}</Label> : null}
             <Input
                 {...props}
+                id={inputId}
+                error={error}
                 ref={inputRef}
                 className={cn(
                     "tracking-[0.5rem] text-center uppercase",

@@ -15,6 +15,7 @@ import (
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/input"
@@ -509,9 +510,11 @@ func updateDevEnvFileForDomain(domain string, dockerEnvironment *DockerEnvironme
 		return err
 	}
 
+	since := time.Now()
+
 	if err = generateDevEnvFile(info); err != nil {
 		return err
 	}
 
-	return waitUntilAutheliaFrontendRestarted(dockerEnvironment)
+	return waitUntilAutheliaFrontendRestarted(dockerEnvironment, since)
 }

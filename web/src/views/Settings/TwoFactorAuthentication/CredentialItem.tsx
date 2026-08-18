@@ -65,6 +65,10 @@ const CredentialItem = function (props: Props) {
                                     size="icon"
                                     onClick={props.handleInformation}
                                     id={`${props.id}-information`}
+                                    aria-label={
+                                        (props.problem ? props.tooltipInformationProblem : props.tooltipInformation) ||
+                                        translate("Information")
+                                    }
                                 >
                                     {props.problem ? <AlertTriangle className="text-amber-500" /> : <Info />}
                                 </Button>
@@ -72,7 +76,13 @@ const CredentialItem = function (props: Props) {
                         ) : null}
                         {props.handleEdit ? (
                             <TooltipElement tooltip={props.tooltipEdit}>
-                                <Button variant="ghost" size="icon" onClick={props.handleEdit} id={`${props.id}-edit`}>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={props.handleEdit}
+                                    id={`${props.id}-edit`}
+                                    aria-label={props.tooltipEdit || translate("Edit")}
+                                >
                                     <Pencil />
                                 </Button>
                             </TooltipElement>
@@ -85,6 +95,7 @@ const CredentialItem = function (props: Props) {
                                         size="icon"
                                         onClick={props.handleDelete}
                                         id={`${props.id}-delete`}
+                                        aria-label={props.tooltipDelete || translate("Delete")}
                                     >
                                         <Trash2 />
                                     </Button>

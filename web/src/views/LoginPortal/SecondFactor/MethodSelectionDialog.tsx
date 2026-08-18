@@ -6,7 +6,7 @@ import FingerTouchIcon from "@components/FingerTouchIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
 import TimerIcon from "@components/TimerIcon";
 import { Button } from "@components/UI/Button";
-import { Dialog, DialogContent, DialogFooter } from "@components/UI/Dialog";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@components/UI/Dialog";
 import { SecondFactorMethod } from "@models/Methods";
 
 export interface Props {
@@ -32,6 +32,7 @@ const MethodSelectionDialog = function (props: Props) {
             }}
         >
             <DialogContent className="sm:max-w-xl text-center" showCloseButton={false}>
+                <DialogTitle className="sr-only">{translate("Methods")}</DialogTitle>
                 <div className="grid grid-cols-1 justify-center gap-3" id="methods-dialog">
                     {props.methods.has(SecondFactorMethod.TOTP) ? (
                         <MethodItem

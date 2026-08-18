@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
+import { setNonce } from "get-nonce";
 import { useTranslation } from "react-i18next";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
@@ -21,6 +22,7 @@ import NotificationsContextProvider from "@contexts/NotificationsContext";
 import ThemeContextProvider from "@contexts/ThemeContext";
 import { getBasePath } from "@utils/BasePath";
 import {
+    getCSPNonce,
     getDuoSelfEnrollment,
     getPasskeyLogin,
     getRememberMe,
@@ -41,6 +43,7 @@ const RevokeOneTimeCodeView = lazy(() => import("@views/Revoke/RevokeOneTimeCode
 const RevokeResetPasswordTokenView = lazy(() => import("@views/Revoke/RevokeResetPasswordTokenView"));
 
 faConfig.autoAddCss = false;
+setNonce(getCSPNonce());
 
 function App() {
     const { i18n } = useTranslation();

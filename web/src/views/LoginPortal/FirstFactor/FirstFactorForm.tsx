@@ -98,6 +98,10 @@ const FirstFactorForm = function (props: Props) {
     };
 
     const handleSignIn = useCallback(async () => {
+        if (loading) {
+            return;
+        }
+
         if (username === "" || password === "") {
             if (username === "") {
                 setUsernameError(true);
@@ -139,6 +143,7 @@ const FirstFactorForm = function (props: Props) {
             focusPassword();
         }
     }, [
+        loading,
         username,
         password,
         props,
@@ -176,6 +181,7 @@ const FirstFactorForm = function (props: Props) {
                     setUsernameError(false);
                     focusPassword();
                 }
+                event.preventDefault();
             }
         },
         [focusPassword, handleSignIn, password.length, username.length],
@@ -326,9 +332,10 @@ const FirstFactorForm = function (props: Props) {
                     <div className="w-full">
                         <Button
                             id="sign-in-button"
+                            type="submit"
                             variant="default"
                             className="w-full"
-                            disabled={disabled}
+                            disabled={disabled || loading}
                             onClick={handleSignIn}
                         >
                             {translate("Sign in")}
@@ -337,16 +344,23 @@ const FirstFactorForm = function (props: Props) {
                     </div>
                     {props.passkeyLogin ? (
                         <PasskeyForm
-                            disabled={props.disabled}
+                            disabled={disabled || loading}
                             rememberMe={props.rememberMe}
                             onAuthenticationError={(err) => createErrorNotification(err.message)}
                             onAuthenticationStart={() => {
                                 setUsername("");
                                 setPassword("");
+                                setLoading(true);
                                 props.onAuthenticationStart();
                             }}
-                            onAuthenticationStop={props.onAuthenticationStop}
-                            onAuthenticationSuccess={props.onAuthenticationSuccess}
+                            onAuthenticationStop={() => {
+                                setLoading(false);
+                                props.onAuthenticationStop();
+                            }}
+                            onAuthenticationSuccess={(url) => {
+                                setLoading(false);
+                                props.onAuthenticationSuccess(url);
+                            }}
                         />
                     ) : null}
                     {props.resetPassword ? (

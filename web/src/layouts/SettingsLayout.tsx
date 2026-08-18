@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@components/UI/Button";
 import { Separator } from "@components/UI/Separator";
-import { Sheet, SheetContent } from "@components/UI/Sheet";
+import { Sheet, SheetContent, SheetTitle } from "@components/UI/Sheet";
 import { EncodedName } from "@constants/constants";
 import {
     IndexRoute,
@@ -65,7 +65,7 @@ const SettingsLayout = function (props: Props) {
             <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
                 <SheetContent side="left" className="p-0" style={{ width: drawerWidth }}>
                     <div className="text-center">
-                        <h6 className="my-4 text-lg font-medium">{translate("Settings")}</h6>
+                        <SheetTitle className="my-4 text-lg font-medium">{translate("Settings")}</SheetTitle>
                         <Separator />
                         <ul className="list-none p-0">
                             {navItems.map((item) => (

@@ -14,7 +14,6 @@ import { useFlow } from "@hooks/Flow";
 import { useQueryParam } from "@hooks/QueryParam";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postSecondFactor } from "@services/Password";
-import { cn } from "@utils/Styles";
 
 export interface Props {
     onAuthenticationSuccess: (_redirectURL: string | undefined) => void;
@@ -117,7 +116,8 @@ const PasswordForm = function (props: Props) {
                             required
                             disabled={loading}
                             value={password}
-                            className={cn("pr-10", passwordError && "border-destructive")}
+                            className="pr-10"
+                            error={passwordError}
                             onChange={(v) => setPassword(v.target.value)}
                             onFocus={() => setPasswordError(false)}
                             type={showPassword ? "text" : "password"}
@@ -136,13 +136,13 @@ const PasswordForm = function (props: Props) {
                             onTouchEnd={() => setShowPassword(false)}
                             onTouchCancel={() => setShowPassword(false)}
                             onKeyDown={(e) => {
-                                if (e.key === " ") {
+                                if (e.key === " " || e.key === "Enter") {
                                     setShowPassword(true);
                                     e.preventDefault();
                                 }
                             }}
                             onKeyUp={(e) => {
-                                if (e.key === " ") {
+                                if (e.key === " " || e.key === "Enter") {
                                     setShowPassword(false);
                                     e.preventDefault();
                                 }

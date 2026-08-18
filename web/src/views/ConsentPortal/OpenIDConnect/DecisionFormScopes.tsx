@@ -20,7 +20,7 @@ const DecisionFormScopes: FC<Props> = (props: Props) => {
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <li id={"scope-" + scope} className="flex items-center gap-3 px-2 py-1">
-                                <span className="flex-shrink-0">{ScopeAvatar(scope)}</span>
+                                <span className="shrink-0">{ScopeAvatar(scope)}</span>
                                 <span>{formatScope(translate(`scopes.${scope}`), scope)}</span>
                             </li>
                         </TooltipTrigger>

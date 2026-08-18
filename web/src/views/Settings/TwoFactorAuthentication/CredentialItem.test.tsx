@@ -41,32 +41,30 @@ it("renders last used when provided", () => {
 });
 
 it("calls handleDelete when delete button is clicked", () => {
-    const { container } = render(<CredentialItem {...baseProps} />);
-    const deleteButton = container.querySelector("#test-credential-delete") as HTMLElement;
+    render(<CredentialItem {...baseProps} />);
+    const deleteButton = screen.getByRole("button", { name: "Delete this" });
     fireEvent.click(deleteButton);
     expect(baseProps.handleDelete).toHaveBeenCalledOnce();
 });
 
 it("renders information button when handleInformation is provided", () => {
     const handleInfo = vi.fn();
-    const { container } = render(
-        <CredentialItem {...baseProps} handleInformation={handleInfo} tooltipInformation="View info" />,
-    );
-    const infoButton = container.querySelector("#test-credential-information") as HTMLElement;
+    render(<CredentialItem {...baseProps} handleInformation={handleInfo} tooltipInformation="View info" />);
+    const infoButton = screen.getByRole("button", { name: "View info" });
     fireEvent.click(infoButton);
     expect(handleInfo).toHaveBeenCalledOnce();
 });
 
 it("renders edit button when handleEdit is provided", () => {
     const handleEdit = vi.fn();
-    const { container } = render(<CredentialItem {...baseProps} handleEdit={handleEdit} tooltipEdit="Edit this" />);
-    const editButton = container.querySelector("#test-credential-edit") as HTMLElement;
+    render(<CredentialItem {...baseProps} handleEdit={handleEdit} tooltipEdit="Edit this" />);
+    const editButton = screen.getByRole("button", { name: "Edit this" });
     fireEvent.click(editButton);
     expect(handleEdit).toHaveBeenCalledOnce();
 });
 
 it("renders problem icon when problem flag is set", () => {
-    const { container } = render(
+    render(
         <CredentialItem
             {...baseProps}
             problem={true}
@@ -74,7 +72,5 @@ it("renders problem icon when problem flag is set", () => {
             tooltipInformationProblem="There is a problem"
         />,
     );
-    const infoButton = container.querySelector("#test-credential-information") as HTMLElement;
-    expect(infoButton).toBeInTheDocument();
-    expect(infoButton.querySelector("svg")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "There is a problem" })).toBeInTheDocument();
 });

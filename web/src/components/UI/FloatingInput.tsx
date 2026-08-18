@@ -7,11 +7,22 @@ interface FloatingInputProps extends ComponentProps<"input"> {
     error?: boolean;
 }
 
-function FloatingInput({ className, error, label, onBlur, onFocus, ref, ...props }: Readonly<FloatingInputProps>) {
+function FloatingInput({
+    className,
+    error,
+    label,
+    onBlur,
+    onChange,
+    onFocus,
+    ref,
+    ...props
+}: Readonly<FloatingInputProps>) {
     const id = useId();
     const inputId = props.id ?? id;
     const [focused, setFocused] = useState(false);
-    const hasValue = props.value !== undefined && props.value !== "";
+    const [value, setValue] = useState(props.defaultValue ?? "");
+    const currentValue = props.value ?? value;
+    const hasValue = currentValue !== undefined && currentValue !== "";
     const isFloating = focused || hasValue;
 
     return (
@@ -37,6 +48,10 @@ function FloatingInput({ className, error, label, onBlur, onFocus, ref, ...props
                 onBlur={(e) => {
                     setFocused(false);
                     onBlur?.(e);
+                }}
+                onChange={(e) => {
+                    setValue(e.target.value);
+                    onChange?.(e);
                 }}
                 {...props}
             />

@@ -26,7 +26,7 @@ const WebAuthnCredentialsDisabledPanel = function () {
                                 "WebAuthn Credentials are widely considered the most secure means of authentication, regardless of if they're used for Multi-Factor Authentication or Passwordless Authentication",
                             )}
                             .
-                        </span>
+                        </span>{" "}
                         <span>
                             {translate(
                                 "The decision to disable WebAuthn Credentials when Multi-Factor Authentication is enabled significantly undermines security and is highly inadvisable",

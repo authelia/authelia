@@ -19,12 +19,17 @@ const NotificationBar = function () {
             };
 
             const toastFn = toastLevelMap[notification.level] ?? toast.info;
+            const current = notification;
 
             toastFn(notification.message, {
                 className: "notification",
                 duration: notification.timeout * 1000,
-                onAutoClose: () => resetNotification(),
-                onDismiss: () => resetNotification(),
+                onAutoClose: () => {
+                    if (prevNotificationRef.current === current) resetNotification();
+                },
+                onDismiss: () => {
+                    if (prevNotificationRef.current === current) resetNotification();
+                },
             });
         }
 
