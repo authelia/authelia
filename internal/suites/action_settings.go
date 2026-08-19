@@ -17,7 +17,7 @@ func (rs *RodSession) doOpenSettings(t *testing.T, page *rod.Page) {
 func (rs *RodSession) doOpenSettingsMenu(t *testing.T, page *rod.Page) {
 	require.NoError(t, page.WaitStable(time.Millisecond*100))
 
-	rs.doHoverAllMuiTooltip(t, page)
+	rs.doDismissTooltips(t, page)
 
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "settings-menu").Click("left", 1))
 

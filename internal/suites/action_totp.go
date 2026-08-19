@@ -49,10 +49,16 @@ func (rs *RodSession) doMustDeleteTOTP(t *testing.T, page *rod.Page, username st
 
 	rs.DeleteOneTimePassword(username)
 
-	has, _, err := page.Has("#one-time-password-add")
+	rs.WaitElementLocatedBySelector(t, page, "#one-time-password-add:not([disabled])")
+}
+
+func (rs *RodSession) doWaitRegisterTOTPDialog(t *testing.T, page *rod.Page) {
+	_, err := page.Race().
+		Element("#dialog-verify-one-time-code").
+		Element("#dialog-next").
+		Do()
 
 	require.NoError(t, err)
-	require.True(t, has)
 }
 
 func (rs *RodSession) doRegisterTOTPStart(t *testing.T, page *rod.Page, username string) {
@@ -61,6 +67,8 @@ func (rs *RodSession) doRegisterTOTPStart(t *testing.T, page *rod.Page, username
 	elementAdd := rs.WaitElementLocatedByID(t, page, "one-time-password-add")
 
 	require.NoError(t, elementAdd.Click("left", 1))
+
+	rs.doWaitRegisterTOTPDialog(t, page)
 
 	rs.doMaybeVerifyIdentity(t, page)
 }
@@ -71,6 +79,8 @@ func (rs *RodSession) doRegisterTOTPStartBadCode(t *testing.T, page *rod.Page, u
 	elementAdd := rs.WaitElementLocatedByID(t, page, "one-time-password-add")
 
 	require.NoError(t, elementAdd.Click("left", 1))
+
+	rs.doWaitRegisterTOTPDialog(t, page)
 
 	if rs.isVerifyIdentityShowing(t, page) {
 		rs.doMustVerifyIdentityBadCode(t, page)
@@ -205,7 +215,7 @@ func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page
 	rs.doRegisterTOTPFinish(t, page, username, credential)
 
 	require.NoError(t, page.WaitStable(time.Millisecond*50))
-	rs.doHoverAllMuiTooltip(t, page)
+	rs.doDismissTooltips(t, page)
 	require.NoError(t, page.WaitStable(time.Millisecond*50))
 
 	rs.doOpenSettingsMenuClickClose(t, page)

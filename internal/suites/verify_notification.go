@@ -40,11 +40,34 @@ const notificationRecorder = `(binding) => {
 	}).observe(document.documentElement, {childList: true, subtree: true});
 }`
 
-func (rs *RodSession) verifyNotificationDisplayed(t *testing.T, page *rod.Page, message string) {
-	el, err := page.ElementR(".notification", message)
+const notificationClaim = `(message) => {
+	const element = Array.from(document.querySelectorAll('.notification'))
+		.find((node) => !node.hasAttribute('data-claimed') && (node.textContent || '').includes(message));
 
-	require.NoError(t, err)
-	require.NotNil(t, el)
+	if (!element) {
+		return false;
+	}
+
+	element.setAttribute('data-claimed', '');
+
+	return true;
+}`
+
+const notificationsObserved = `() => Array.from(document.querySelectorAll('.notification')).map((node) => node.textContent)`
+
+func (rs *RodSession) verifyNotificationDisplayed(t *testing.T, page *rod.Page, message string) {
+	if err := page.Wait(rod.Eval(notificationClaim, message)); err == nil {
+		return
+	}
+
+	observed := "none"
+
+	if result, err := page.Eval(notificationsObserved); err == nil {
+		observed = result.Value.String()
+	}
+
+	require.Failf(t, "Notification was not displayed",
+		"expected a notification containing '%s', observed %s", message, observed)
 }
 
 func (rs *RodSession) verifyNotificationDisplayedDuring(t *testing.T, page *rod.Page, message string, action func()) {
