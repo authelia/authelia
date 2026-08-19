@@ -25,13 +25,14 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		SectorIdentifierURI: config.SectorIdentifierURI,
 		Public:              config.Public,
 
-		Audience:      config.Audience,
-		Scopes:        config.Scopes,
-		RedirectURIs:  config.RedirectURIs,
-		RequestURIs:   config.RequestURIs,
-		GrantTypes:    config.GrantTypes,
-		ResponseTypes: config.ResponseTypes,
-		ResponseModes: []oauthelia2.ResponseModeType{},
+		Audience:               config.Audience,
+		Scopes:                 config.Scopes,
+		RedirectURIs:           config.RedirectURIs,
+		RequestURIs:            config.RequestURIs,
+		PostLogoutRedirectURIs: config.PostLogoutRedirectURIs,
+		GrantTypes:             config.GrantTypes,
+		ResponseTypes:          config.ResponseTypes,
+		ResponseModes:          []oauthelia2.ResponseModeType{},
 
 		ClaimsStrategy: NewCustomClaimsStrategyFromClient(config, c.Scopes, c.ClaimsPolicies),
 
@@ -179,6 +180,11 @@ func (c *RegisteredClient) GetSectorIdentifierURI() (sector string) {
 // GetRedirectURIs returns the RedirectURIs.
 func (c *RegisteredClient) GetRedirectURIs() (redirectURIs []string) {
 	return c.RedirectURIs
+}
+
+// GetPostLogoutRedirectURIs returns the PostLogoutRedirectURIs.
+func (c *RegisteredClient) GetPostLogoutRedirectURIs() (redirectURIs []string) {
+	return c.PostLogoutRedirectURIs
 }
 
 // GetGrantTypes returns the GrantTypes.

@@ -80,7 +80,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 				IssuerPrivateKey: keyRSA2048,
 				CORS: schema.IdentityProvidersOpenIDConnectCORS{
-					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, oidc.EndpointEndSession},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
@@ -106,7 +106,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 				IssuerPrivateKey: keyRSA2048,
 				CORS: schema.IdentityProvidersOpenIDConnectCORS{
-					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, oidc.EndpointEndSession, "invalid_endpoint"},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
@@ -122,7 +122,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', or 'userinfo'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', 'userinfo', or 'end-session'")
 }
 
 //nolint:gosec // Test Credentials.

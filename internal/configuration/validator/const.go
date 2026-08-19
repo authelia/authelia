@@ -585,7 +585,7 @@ var (
 )
 
 var (
-	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
+	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, oidc.EndpointEndSession}
 
 	validOIDCReservedClaims                  = []string{oidc.ClaimJWTID, oidc.ClaimAuthorizedParty, oidc.ClaimClientIdentifier, oidc.ClaimScope, oidc.ClaimScopeNonStandard, oidc.ClaimIssuer, oidc.ClaimSubject, oidc.ClaimAudience, oidc.ClaimSessionID, oidc.ClaimStateHash, oidc.ClaimCodeHash, oidc.ClaimIssuedAt, oidc.ClaimUpdatedAt, oidc.ClaimNotBefore, oidc.ClaimExpirationTime, oidc.ClaimAuthenticationTime, oidc.ClaimAuthenticationMethodsReference, oidc.ClaimAuthenticationContextClassReference, oidc.ClaimNonce}
 	validOIDCReservedCustomizableScopes      = []string{oidc.ScopeAutheliaPAM}

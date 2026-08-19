@@ -14,6 +14,7 @@ import {
     ErrorURI,
 } from "@constants/SearchParams";
 import LoginLayout from "@layouts/LoginLayout";
+
 const CompletionView = () => {
     const { t: translate } = useTranslation(["consent"]);
     const theme = useTheme();
