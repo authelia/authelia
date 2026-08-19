@@ -1,4 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { createInstance } from "i18next";
+import { I18nextProvider } from "react-i18next";
 
 import SignOutButton from "@components/SignOutButton";
 import { TooltipProvider } from "@components/UI/Tooltip";
@@ -18,13 +20,30 @@ it("renders button with translated text", () => {
     expect(screen.getByText("Sign Out")).toBeInTheDocument();
 });
 
-it("renders tooltip when provided", () => {
+it("renders the translated tooltip when opened", async () => {
+    const i18n = createInstance();
+
+    await i18n.init({
+        defaultNS: "portal",
+        lng: "en",
+        resources: { en: { portal: { "Sign out": "Sign out (translated)" } } },
+    });
+
     render(
-        <TooltipProvider>
-            <SignOutButton id="test" text="Sign Out" tooltip="Sign out" />
-        </TooltipProvider>,
+        <I18nextProvider i18n={i18n}>
+            <TooltipProvider>
+                <SignOutButton id="test" text="Sign Out" tooltip="Sign out" />
+            </TooltipProvider>
+        </I18nextProvider>,
     );
-    expect(screen.getByText("Sign Out")).toBeInTheDocument();
+
+    const trigger = screen.getByRole("button");
+
+    fireEvent.focus(trigger);
+    fireEvent.pointerEnter(trigger);
+    fireEvent.mouseEnter(trigger);
+
+    expect(await screen.findByText("Sign out (translated)")).toBeInTheDocument();
 });
 
 it("calls sign out on click", () => {
