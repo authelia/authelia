@@ -101,3 +101,27 @@ it("does not copy again while already copied", async () => {
     fireEvent.click(button);
     expect(mockWriteText).not.toHaveBeenCalled();
 });
+
+it("cancels its pending timeouts when unmounted", async () => {
+    vi.useFakeTimers();
+
+    try {
+        const { unmount } = render(
+            <CopyButton tooltip="copy" value="test">
+                Copy
+            </CopyButton>,
+        );
+
+        fireEvent.click(screen.getByRole("button"));
+
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(vi.getTimerCount()).toBeGreaterThan(0);
+
+        unmount();
+
+        expect(vi.getTimerCount()).toBe(0);
+    } finally {
+        vi.useRealTimers();
+    }
+});

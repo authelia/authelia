@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 import { Check, Copy } from "lucide-react";
 
@@ -27,6 +27,15 @@ const CopyButton = function (props: Props) {
     const [isCopying, setIsCopying] = useState(false);
     const msTimeoutCopying = props.msTimeoutCopying ?? msTimeoutDefaultCopying;
     const msTimeoutCopied = props.msTimeoutCopied ?? msTimeoutDefaultCopied;
+    const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+    useEffect(
+        () => () => {
+            timeoutsRef.current.forEach(clearTimeout);
+            timeoutsRef.current = [];
+        },
+        [],
+    );
 
     const handleCopyToClipboard = () => {
         if (isCopied || !props.value || props.value === "") {
@@ -38,14 +47,15 @@ const CopyButton = function (props: Props) {
 
             await navigator.clipboard.writeText(value);
 
-            setTimeout(() => {
-                setIsCopying(false);
-                setIsCopied(true);
-            }, msTimeoutCopying);
-
-            setTimeout(() => {
-                setIsCopied(false);
-            }, msTimeoutCopied);
+            timeoutsRef.current.push(
+                setTimeout(() => {
+                    setIsCopying(false);
+                    setIsCopied(true);
+                }, msTimeoutCopying),
+                setTimeout(() => {
+                    setIsCopied(false);
+                }, msTimeoutCopied),
+            );
         })(props.value);
     };
 
