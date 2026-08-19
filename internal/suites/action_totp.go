@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/input"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -202,14 +201,40 @@ func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page
 	rs.doOpenSettingsMenuClickClose(t, page)
 }
 
+// otpEntered compares the passcode against the slots that hold it, ignoring the hidden input the field
+// renders alongside them to carry the whole value for autofill.
+const otpEntered = `(passcode) => {
+	const slots = Array.from(document.querySelectorAll('#otp-input input'))
+		.filter((node) => node.getAttribute('aria-hidden') !== 'true');
+
+	return slots.map((node) => node.value).join('') === passcode;
+}`
+
+const otpObserved = `() => Array.from(document.querySelectorAll('#otp-input input'))
+	.filter((node) => node.getAttribute('aria-hidden') !== 'true')
+	.map((node) => node.value || '_')
+	.join('')`
+
 func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, passcode string) {
-	inputs := rs.WaitElementsLocatedByID(t, page, "otp-input input")
+	inputs := rs.WaitElementsLocatedBySelector(t, page, "#otp-input input")
 
-	require.Greater(t, len(inputs), 0)
+	require.NotEmpty(t, inputs)
 
-	for i := 0; i < len(passcode); i++ {
-		err := inputs[i].Type(input.Key(passcode[i]))
-		require.NoError(t, err)
+	// The field routes each key to whichever slot holds focus and advances focus itself, so the passcode
+	// is typed as a whole. Holding a handle per slot and typing a key into each assumes the group
+	// survives the re-render every digit causes, and when it does not the keys are dispatched at nothing:
+	// the passcode never arrives and typing reports no error for it.
+	require.NoError(t, inputs[0].Type(rs.toInputs(passcode)...))
+
+	if err := page.Timeout(elementActionTimeout).Wait(rod.Eval(otpEntered, passcode)); err != nil {
+		observed := "unavailable"
+
+		if result, errEval := page.Eval(otpObserved); errEval == nil {
+			observed = result.Value.Str()
+		}
+
+		require.Failf(t, "One-Time Password was not entered",
+			"expected the field to hold '%s', observed '%s': %v", passcode, observed, err)
 	}
 }
 
