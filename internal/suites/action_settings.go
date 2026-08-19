@@ -12,8 +12,6 @@ func (rs *RodSession) doOpenSettings(t *testing.T, page *rod.Page) {
 }
 
 func (rs *RodSession) doOpenSettingsMenu(t *testing.T, page *rod.Page) {
-	rs.doDismissTooltips(t, page)
-
 	rs.ClickElementLocatedByID(t, page, "settings-menu")
 }
 

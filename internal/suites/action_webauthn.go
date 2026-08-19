@@ -146,8 +146,6 @@ func (rs *RodSession) doWebAuthnCredentialRegister(t *testing.T, page *rod.Page,
 
 	rs.doWebAuthnUpdateCredentials(t, page)
 
-	rs.doDismissTooltips(t, page)
-
 	rs.doOpenSettingsMenuClickClose(t, page)
 }
 

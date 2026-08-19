@@ -197,8 +197,6 @@ func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page
 
 	rs.doRegisterTOTPFinish(t, page, username, credential)
 
-	rs.doDismissTooltips(t, page)
-
 	rs.doOpenSettingsMenuClickClose(t, page)
 }
 
