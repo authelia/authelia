@@ -61,7 +61,8 @@ func (s *LanguageMenuScenario) TestShouldChangePreferredLanguage() {
 
 	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "language-af-ZA")
 
-	s.Assert().NoError(s.WaitStable(time.Millisecond * 20))
+	s.waitElementTextIs(s.T(), s.Context(ctx), "#language-button", "Afrikaans")
+	s.waitElementTextIsNot(s.T(), s.Context(ctx), "#sign-in-button", "SIGN IN")
 
 	text, err = menu.Text()
 	s.Assert().NoError(err)
@@ -77,7 +78,7 @@ func (s *LanguageMenuScenario) TestShouldChangePreferredLanguage() {
 
 	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "language-en")
 
-	s.Assert().NoError(s.WaitStable(time.Millisecond * 20))
+	s.waitElementTextIs(s.T(), s.Context(ctx), "#sign-in-button", "SIGN IN")
 
 	text, err = button.Text()
 	s.Assert().NoError(err)

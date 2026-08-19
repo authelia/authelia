@@ -2,16 +2,13 @@ package suites
 
 import (
 	"testing"
-	"time"
 
 	"github.com/go-rod/rod"
-	"github.com/stretchr/testify/require"
 )
 
 func (rs *RodSession) doOpenSettings(t *testing.T, page *rod.Page) {
 	rs.ClickElementLocatedByID(t, page, "account-menu")
 	rs.ClickElementLocatedByID(t, page, "account-menu-settings")
-	require.NoError(t, page.WaitStable(time.Millisecond*100))
 }
 
 func (rs *RodSession) doOpenSettingsMenu(t *testing.T, page *rod.Page) {

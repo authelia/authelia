@@ -341,6 +341,52 @@ func (rs *RodSession) TypeElementLocatedByID(t *testing.T, page *rod.Page, cssSe
 	})
 }
 
+func (rs *RodSession) waitElementTextIs(t *testing.T, page *rod.Page, selector, expected string) {
+	rs.waitElementText(t, page, selector, expected, true)
+}
+
+func (rs *RodSession) waitElementTextIsNot(t *testing.T, page *rod.Page, selector, unexpected string) {
+	rs.waitElementText(t, page, selector, unexpected, false)
+}
+
+// waitElementText polls the text rod reports for the element, which is the text as rendered and so the
+// same value the assertions read: the components uppercase their labels through a style, which the text
+// in the document does not account for.
+func (rs *RodSession) waitElementText(t *testing.T, page *rod.Page, selector, value string, equal bool) {
+	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionTimeout)
+
+	defer cancel()
+
+	bounded := page.Context(ctx)
+	observed := "unavailable"
+
+	for {
+		if element, err := bounded.Element(selector); err == nil {
+			if text, errText := element.Text(); errText == nil {
+				observed = text
+
+				if (text == value) == equal {
+					return
+				}
+			}
+		}
+
+		select {
+		case <-ctx.Done():
+			if equal {
+				require.Failf(t, "Element did not take the expected text",
+					"selector '%s' expected '%s', observed '%s'", selector, value, observed)
+			} else {
+				require.Failf(t, "Element kept the text it was expected to leave",
+					"selector '%s' was still '%s'", selector, value)
+			}
+
+			return
+		case <-time.After(elementRetryInterval):
+		}
+	}
+}
+
 // doElementAction locates the element and performs the action, repeating both while the element is in
 // a state it is expected to leave: replaced by a re-render, animating in, scrolled out of view, covered
 // or disabled. rod gives up on all of those bar the covered one immediately, and retries that one until
