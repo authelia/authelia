@@ -158,6 +158,20 @@ func (mr *MockLDAPClientMockRecorder) DirSyncAsync(ctx, searchRequest, bufferSiz
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DirSyncAsync", reflect.TypeOf((*MockLDAPClient)(nil).DirSyncAsync), ctx, searchRequest, bufferSize, flags, maxAttrCount, cookie)
 }
 
+// Discovery mocks base method.
+func (m *MockLDAPClient) Discovery() LDAPDiscovery {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Discovery")
+	ret0, _ := ret[0].(LDAPDiscovery)
+	return ret0
+}
+
+// Discovery indicates an expected call of Discovery.
+func (mr *MockLDAPClientMockRecorder) Discovery() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Discovery", reflect.TypeOf((*MockLDAPClient)(nil).Discovery))
+}
+
 // Extended mocks base method.
 func (m *MockLDAPClient) Extended(arg0 *ldap.ExtendedRequest) (*ldap.ExtendedResponse, error) {
 	m.ctrl.T.Helper()
@@ -185,20 +199,6 @@ func (m *MockLDAPClient) ExternalBind() error {
 func (mr *MockLDAPClientMockRecorder) ExternalBind() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExternalBind", reflect.TypeOf((*MockLDAPClient)(nil).ExternalBind))
-}
-
-// Features mocks base method.
-func (m *MockLDAPClient) Discovery() LDAPDiscovery {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Discovery")
-	ret0, _ := ret[0].(LDAPDiscovery)
-	return ret0
-}
-
-// Features indicates an expected call of Features.
-func (mr *MockLDAPClientMockRecorder) Features() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Discovery", reflect.TypeOf((*MockLDAPClient)(nil).Discovery))
 }
 
 // GSSAPIBind mocks base method.
