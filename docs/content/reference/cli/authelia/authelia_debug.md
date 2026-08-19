@@ -2,7 +2,7 @@
 title: "authelia debug"
 description: "Reference for the authelia debug command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2025-04-20T03:35:43+00:00
 draft: false
 images: []
 weight: 905
@@ -47,6 +47,7 @@ authelia debug --help
 
 * [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)
 * [authelia debug expression](authelia_debug_expression.md)	 - Perform a user attribute expression debug operation
+* [authelia debug notification](authelia_debug_notification.md)	 - Perform a notifier debug operation
 * [authelia debug oidc](authelia_debug_oidc.md)	 - Perform a OpenID Connect 1.0 debug operation
 * [authelia debug tls](authelia_debug_tls.md)	 - Perform a TLS debug operation
 

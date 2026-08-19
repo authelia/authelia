@@ -11,6 +11,7 @@ import (
 	"crypto/x509/pkix"
 	"math/big"
 	"net"
+	"net/mail"
 	"os"
 	"path/filepath"
 	"testing"
@@ -42,6 +43,157 @@ func TestNewDebugCmds(t *testing.T) {
 
 	cmd = newDebugTLSCmd(&CmdCtx{})
 	assert.NotNil(t, cmd)
+
+	cmd = newDebugNotificationCmd(&CmdCtx{})
+	assert.NotNil(t, cmd)
+}
+
+func TestDebugNotificationRunE(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(t *testing.T) (*pflag.FlagSet, *schema.Configuration)
+		err      string
+		expected []string
+	}{
+		{
+			"ShouldErrFlagRecipientNotDefined",
+			func(t *testing.T) (*pflag.FlagSet, *schema.Configuration) {
+				flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+				flags.String("subject", "Test", "")
+
+				return flags, &schema.Configuration{}
+			},
+			"flag accessed but not defined: recipient",
+			nil,
+		},
+		{
+			"ShouldErrFlagSubjectNotDefined",
+			func(t *testing.T) (*pflag.FlagSet, *schema.Configuration) {
+				flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+				flags.String("recipient", "test@example.com", "")
+
+				return flags, &schema.Configuration{}
+			},
+			"flag accessed but not defined: subject",
+			nil,
+		},
+		{
+			"ShouldErrInvalidRecipient",
+			func(t *testing.T) (*pflag.FlagSet, *schema.Configuration) {
+				return newNotificationFlags("not-an-email", "Test"), &schema.Configuration{}
+			},
+			"invalid recipient",
+			nil,
+		},
+		{
+			"ShouldErrNoNotifierConfigured",
+			func(t *testing.T) (*pflag.FlagSet, *schema.Configuration) {
+				return newNotificationFlags("test@example.com", "Test"), &schema.Configuration{}
+			},
+			"no notifier is configured",
+			nil,
+		},
+		{
+			"ShouldErrFileSystemStartupCheckFailure",
+			func(t *testing.T) (*pflag.FlagSet, *schema.Configuration) {
+				dir := t.TempDir()
+				regfile := filepath.Join(dir, "regfile")
+				require.NoError(t, os.WriteFile(regfile, []byte("x"), 0o600))
+
+				return newNotificationFlags("test@example.com", "Test"), &schema.Configuration{
+					Notifier: schema.Notifier{
+						FileSystem: &schema.NotifierFileSystem{
+							Filename: filepath.Join(regfile, "sub", "notify.log"),
+						},
+					},
+				}
+			},
+			"notifier startup check failed",
+			nil,
+		},
+		{
+			"ShouldErrSMTPNotifierStartupCheckFailure",
+			func(t *testing.T) (*pflag.FlagSet, *schema.Configuration) {
+				return newNotificationFlags("test@example.com", "Test"), &schema.Configuration{
+					Notifier: schema.Notifier{
+						SMTP: &schema.NotifierSMTP{
+							Address: schema.NewSMTPAddress("smtp", "127.0.0.1", 1),
+							Sender:  mail.Address{Address: "authelia@example.com"},
+						},
+					},
+				}
+			},
+			"notifier startup check failed",
+			nil,
+		},
+		{
+			"ShouldSucceedFileSystemNotifier",
+			func(t *testing.T) (*pflag.FlagSet, *schema.Configuration) {
+				dir := t.TempDir()
+
+				return newNotificationFlags("john.doe@authelia.com", "DebugTest"), &schema.Configuration{
+					Notifier: schema.Notifier{
+						FileSystem: &schema.NotifierFileSystem{Filename: filepath.Join(dir, "notify.log")},
+					},
+				}
+			},
+			"",
+			[]string{
+				"Running notifier startup check...",
+				"Startup check OK.",
+				"Sending test notification to john.doe@authelia.com",
+				"Notification sent successfully.",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			flags, config := tc.setup(t)
+
+			buf := new(bytes.Buffer)
+
+			err := runDebugNotification(buf, flags, config, nil)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+
+				for _, s := range tc.expected {
+					assert.Contains(t, buf.String(), s)
+				}
+			} else {
+				assert.ErrorContains(t, err, tc.err)
+			}
+		})
+	}
+
+	t.Run("ShouldSucceedRunECmd", func(t *testing.T) {
+		dir := t.TempDir()
+
+		cmdCtx := NewCmdCtx()
+		cmdCtx.config = &schema.Configuration{
+			Notifier: schema.Notifier{
+				FileSystem: &schema.NotifierFileSystem{Filename: filepath.Join(dir, "notify.log")},
+			},
+		}
+
+		cmd, buf := newTestCmdWithBuf()
+		cmd.Flags().String("recipient", "john.doe@authelia.com", "")
+		cmd.Flags().String("subject", "Test", "")
+
+		err := cmdCtx.DebugNotificationRunE(cmd, []string{})
+
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Notification sent successfully.")
+	})
+}
+
+func newNotificationFlags(recipient, subject string) *pflag.FlagSet {
+	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	flags.String("recipient", recipient, "")
+	flags.String("subject", subject, "")
+
+	return flags
 }
 
 // testUserDatabaseContent is a minimal user database for testing.
