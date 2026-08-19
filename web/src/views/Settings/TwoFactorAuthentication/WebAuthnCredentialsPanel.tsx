@@ -265,7 +265,7 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                     props.handleRefreshState();
                 }}
             />
-            <Card>
+            <Card id={"webauthn-credentials-panel"} data-loading={props.credentials === undefined ? "true" : "false"}>
                 <CardContent className="grid grid-cols-12 gap-4 p-4">
                     <div className="col-span-12">
                         <h5 className="text-xl font-semibold">{translate("WebAuthn Credentials")}</h5>
@@ -296,7 +296,9 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                         </TooltipProvider>
                     </div>
                     <div className="col-span-12">
-                        {props.credentials === undefined || props.credentials.length === 0 ? (
+                        {props.credentials === undefined ? (
+                            <Spinner size={20} />
+                        ) : props.credentials.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
                                 {translate(
                                     "No WebAuthn Credentials have been registered if you'd like to register one click add",

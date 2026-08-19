@@ -3,7 +3,6 @@ package suites
 import (
 	"bytes"
 	"testing"
-	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
@@ -98,7 +97,7 @@ func (rs *RodSession) doWebAuthnMethodMustSelect(t *testing.T, page *rod.Page) {
 }
 
 func (rs *RodSession) doWebAuthnCredentialMaybeDelete(t *testing.T, page *rod.Page) {
-	require.NoError(t, page.WaitStable(time.Millisecond*100))
+	rs.WaitElementLocatedBySelector(t, page, `#webauthn-credentials-panel[data-loading="false"]`)
 
 	has, _, err := page.Has("#webauthn-credential-0-delete")
 	require.NoError(t, err)

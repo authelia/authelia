@@ -213,7 +213,7 @@ const OneTimePasswordPanel = function (props: Props) {
                     props.handleRefreshState();
                 }}
             />
-            <Card>
+            <Card id={"one-time-password-panel"} data-loading={props.config === undefined ? "true" : "false"}>
                 <CardContent className="grid grid-cols-12 gap-4 p-4">
                     <div className="col-span-12">
                         <h5 className="text-xl font-semibold">{translate("One-Time Password")}</h5>
@@ -247,7 +247,11 @@ const OneTimePasswordPanel = function (props: Props) {
                             </Tooltip>
                         </TooltipProvider>
                     </div>
-                    {props.config === null || props.config === undefined ? (
+                    {props.config === undefined ? (
+                        <div className="col-span-12">
+                            <Spinner size={20} />
+                        </div>
+                    ) : props.config === null ? (
                         <div className="col-span-12">
                             <p className="text-sm text-muted-foreground">
                                 {translate(
