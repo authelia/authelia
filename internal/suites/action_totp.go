@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/input"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -220,11 +221,12 @@ func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, passcode string) 
 
 	require.NotEmpty(t, inputs)
 
-	// The field routes each key to whichever slot holds focus and advances focus itself, so the passcode
-	// is typed as a whole. Holding a handle per slot and typing a key into each assumes the group
-	// survives the re-render every digit causes, and when it does not the keys are dispatched at nothing:
-	// the passcode never arrives and typing reports no error for it.
-	require.NoError(t, inputs[0].Type(rs.toInputs(passcode)...))
+	// A key is typed into each slot in turn. Typing the passcode as a whole into the first slot does not
+	// work: the field takes the key the browser sends to the focused slot but does not carry the rest on
+	// as focus advances, and the field is left empty.
+	for i := 0; i < len(passcode) && i < len(inputs); i++ {
+		require.NoError(t, inputs[i].Type(input.Key(passcode[i])))
+	}
 
 	if err := page.Timeout(elementActionTimeout).Wait(rod.Eval(otpEntered, passcode)); err != nil {
 		observed := "unavailable"
