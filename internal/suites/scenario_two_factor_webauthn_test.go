@@ -134,8 +134,8 @@ func (s *TwoFactorWebAuthnScenario) TestShouldShowCredentialInformation() {
 	s.doOpenSettings(s.T(), s.Context(ctx))
 	s.doOpenSettingsMenuClickTwoFactor(s.T(), s.Context(ctx))
 
-	s.Require().NoError(s.WaitElementLocatedByID(s.T(), s.Context(ctx), "webauthn-credential-0-information").Click("left", 1))
-	s.Require().NoError(s.WaitElementLocatedByID(s.T(), s.Context(ctx), "dialog-close").Click("left", 1))
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "webauthn-credential-0-information")
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "dialog-close")
 }
 
 func (s *TwoFactorWebAuthnScenario) TestShouldDeleteAndRegisterCredential() {

@@ -412,8 +412,7 @@ func (s *PAMSuite) driveDeviceAuthConsent(ctx context.Context, t *testing.T, ver
 	s.doValidateTOTP(t, s.Context(ctx), username)
 	s.verifyIsOpenIDConsentDecisionStage(t, s.Context(ctx))
 
-	require := s.Require()
-	require.NoError(s.WaitElementLocatedByID(t, s.Context(ctx), "openid-consent-accept").Click("left", 1))
+	s.ClickElementLocatedByID(t, s.Context(ctx), "openid-consent-accept")
 
 	s.verifyBodyContains(t, s.Context(ctx), "Consent has been accepted and processed")
 }

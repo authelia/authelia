@@ -39,11 +39,11 @@ func (rs *RodSession) doMaybeDeleteTOTP(t *testing.T, page *rod.Page, username s
 }
 
 func (rs *RodSession) doMustDeleteTOTP(t *testing.T, page *rod.Page, username string) {
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-delete").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "one-time-password-delete")
 
-	rs.doMaybeVerifyIdentity(t, page)
+	rs.doMaybeVerifyIdentity(t, page, "#dialog-delete")
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-delete").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-delete")
 
 	rs.verifyNotificationDisplayed(t, page, "Successfully deleted the One-Time Password")
 
@@ -52,37 +52,20 @@ func (rs *RodSession) doMustDeleteTOTP(t *testing.T, page *rod.Page, username st
 	rs.WaitElementLocatedBySelector(t, page, "#one-time-password-add:not([disabled])")
 }
 
-func (rs *RodSession) doWaitRegisterTOTPDialog(t *testing.T, page *rod.Page) {
-	_, err := page.Race().
-		Element("#dialog-verify-one-time-code").
-		Element("#dialog-next").
-		Do()
-
-	require.NoError(t, err)
-}
-
 func (rs *RodSession) doRegisterTOTPStart(t *testing.T, page *rod.Page, username string) {
 	rs.doMaybeDeleteTOTP(t, page, username)
 
-	elementAdd := rs.WaitElementLocatedByID(t, page, "one-time-password-add")
+	rs.ClickElementLocatedByID(t, page, "one-time-password-add")
 
-	require.NoError(t, elementAdd.Click("left", 1))
-
-	rs.doWaitRegisterTOTPDialog(t, page)
-
-	rs.doMaybeVerifyIdentity(t, page)
+	rs.doMaybeVerifyIdentity(t, page, "#dialog-next")
 }
 
 func (rs *RodSession) doRegisterTOTPStartBadCode(t *testing.T, page *rod.Page, username string) {
 	rs.doMaybeDeleteTOTP(t, page, username)
 
-	elementAdd := rs.WaitElementLocatedByID(t, page, "one-time-password-add")
+	rs.ClickElementLocatedByID(t, page, "one-time-password-add")
 
-	require.NoError(t, elementAdd.Click("left", 1))
-
-	rs.doWaitRegisterTOTPDialog(t, page)
-
-	if rs.isVerifyIdentityShowing(t, page) {
+	if rs.isVerifyIdentityShowing(t, page, "#dialog-next") {
 		rs.doMustVerifyIdentityBadCode(t, page)
 		rs.doMustVerifyIdentity(t, page)
 	}
@@ -120,12 +103,12 @@ func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, inval
 		rs.doRegisterTOTPStart(t, page, username)
 	}
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-advanced").Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-algorithm-"+algorithm).Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-length-"+strconv.Itoa(digits)).Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-period-"+strconv.Itoa(period)).Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "qr-toggle").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "one-time-password-advanced")
+	rs.ClickElementLocatedByID(t, page, "one-time-password-algorithm-"+algorithm)
+	rs.ClickElementLocatedByID(t, page, "one-time-password-length-"+strconv.Itoa(digits))
+	rs.ClickElementLocatedByID(t, page, "one-time-password-period-"+strconv.Itoa(period))
+	rs.ClickElementLocatedByID(t, page, "dialog-next")
+	rs.ClickElementLocatedByID(t, page, "qr-toggle")
 
 	values := rs.doWaitSecretURL(t, page).Query()
 
@@ -163,7 +146,7 @@ func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, inval
 		Algorithm: alg,
 	}
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-next")
 
 	rs.doRegisterTOTPFinish(t, page, username, credential)
 }
@@ -179,8 +162,8 @@ func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page
 	rs.doOpenSettingsMenuClickTwoFactor(t, page)
 	rs.doRegisterTOTPStart(t, page, username)
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "qr-toggle").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-next")
+	rs.ClickElementLocatedByID(t, page, "qr-toggle")
 
 	values := rs.doWaitSecretURL(t, page).Query()
 
@@ -210,13 +193,11 @@ func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page
 		Algorithm: algorithm,
 	}
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-next")
 
 	rs.doRegisterTOTPFinish(t, page, username, credential)
 
-	require.NoError(t, page.WaitStable(time.Millisecond*50))
 	rs.doDismissTooltips(t, page)
-	require.NoError(t, page.WaitStable(time.Millisecond*50))
 
 	rs.doOpenSettingsMenuClickClose(t, page)
 }

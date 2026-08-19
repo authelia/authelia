@@ -251,38 +251,63 @@ func (rs *RodSession) WaitElementLocatedByID(t *testing.T, page *rod.Page, cssSe
 	return rs.WaitElementLocatedBySelector(t, page, "#"+cssSelector)
 }
 
-// ClickElementLocatedBySelector clicks the element matching the CSS selector, locating it again if
-// the document replaced it in the meantime. Locating an element and clicking it are two round trips,
-// and a re-render between them leaves the handle pointing at a node that is no longer in the
-// document, which the click then reports rather than performing.
+// ClickElementLocatedBySelector clicks the element matching the CSS selector, locating it again and
+// retrying while the click cannot be performed. Locating an element and acting on it are two round
+// trips, and the document can move on in between: a re-render leaves the handle pointing at a node no
+// longer in the document, and an element mid transition has no visible shape, sits outside the
+// viewport, or is disabled and so takes no pointer events. rod retries none of these, so a single
+// attempt reports the transient state as a failure rather than waiting for it to pass.
 func (rs *RodSession) ClickElementLocatedBySelector(t *testing.T, page *rod.Page, selector string) {
-	var err error
+	require.NoError(t, rs.retryElementAction(page, selector, func(element *rod.Element) error {
+		return element.Click("left", 1)
+	}))
+}
 
-	for range waitElementsAttempts {
+// ClickElementLocatedByID clicks the element located by an id, retrying while the click cannot be
+// performed.
+func (rs *RodSession) ClickElementLocatedByID(t *testing.T, page *rod.Page, cssSelector string) {
+	rs.ClickElementLocatedBySelector(t, page, "#"+cssSelector)
+}
+
+// TypeElementLocatedByID types into the element located by an id, retrying on the same terms as
+// ClickElementLocatedByID.
+func (rs *RodSession) TypeElementLocatedByID(t *testing.T, page *rod.Page, cssSelector, value string) {
+	require.NoError(t, rs.retryElementAction(page, "#"+cssSelector, func(element *rod.Element) error {
+		return element.Type(rs.toInputs(value)...)
+	}))
+}
+
+// retryElementAction locates the element and performs the action, repeating both until the action
+// succeeds, reports something other than a transient state, or the page context expires.
+func (rs *RodSession) retryElementAction(page *rod.Page, selector string, action func(element *rod.Element) error) (err error) {
+	ctx := page.GetContext()
+
+	for {
 		var element *rod.Element
 
 		if element, err = page.Element(selector); err != nil {
-			break
+			return err
 		}
 
-		if err = element.Click("left", 1); err == nil {
-			return
+		if err = action(element); err == nil || !isTransientElementError(err) {
+			return err
 		}
 
-		if !isDetachedNodeError(err) {
-			break
+		select {
+		case <-ctx.Done():
+			return err
+		case <-time.After(elementRetryInterval):
 		}
-
-		time.Sleep(elementRetryInterval)
 	}
-
-	require.NoError(t, err)
 }
 
-// ClickElementLocatedByID clicks the element located by an id, locating it again if the document
-// replaced it in the meantime.
-func (rs *RodSession) ClickElementLocatedByID(t *testing.T, page *rod.Page, cssSelector string) {
-	rs.ClickElementLocatedBySelector(t, page, "#"+cssSelector)
+// isTransientElementError reports whether the error describes a state the element is expected to leave
+// on its own: a node replaced by a re-render, or one that is not yet interactable because it is
+// animating in, scrolled out of view, covered, or disabled.
+func isTransientElementError(err error) bool {
+	var notInteractable *rod.NotInteractableError
+
+	return isDetachedNodeError(err) || errors.As(err, &notInteractable)
 }
 
 func isDetachedNodeError(err error) bool {
