@@ -62,7 +62,6 @@ const PushNotificationMethod = function (props: Props) {
     const [preferredDevice, setPreferredDevice] = useState<{ device?: string; method?: string }>({});
 
     const { onSignInError, onSignInSuccess } = props;
-    const signInInitiatedRef = useRef(false);
     const stateRef = useRef<null | State>(null);
 
     const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
@@ -277,12 +276,21 @@ const PushNotificationMethod = function (props: Props) {
         [updateDuoDevice, preferredDevice, handleSignIn, setPreferredDevice, props.authenticationLevel],
     );
 
+    const handleSignInRef = useRef(handleSignIn);
+
     useEffect(() => {
-        if (props.authenticationLevel < AuthenticationLevel.TwoFactor && !signInInitiatedRef.current) {
-            signInInitiatedRef.current = true;
-            handleSignIn();
+        handleSignInRef.current = handleSignIn;
+    }, [handleSignIn]);
+
+    const shouldSignIn = props.authenticationLevel < AuthenticationLevel.TwoFactor;
+
+    useEffect(() => {
+        if (!shouldSignIn) {
+            return;
         }
-    }, [props.authenticationLevel, handleSignIn]);
+
+        handleSignInRef.current();
+    }, [shouldSignIn]);
 
     if (state === State.Selection)
         return (
