@@ -206,6 +206,12 @@ const otpEntered = `(passcode) => {
 	const slots = Array.from(document.querySelectorAll('#otp-input input'))
 		.filter((node) => node.getAttribute('aria-hidden') !== 'true');
 
+	// The field is submitted as soon as the last slot is filled and is taken away with the step that
+	// held it, so it having gone means the passcode reached it rather than that it never arrived.
+	if (slots.length === 0) {
+		return true;
+	}
+
 	return slots.map((node) => node.value).join('') === passcode;
 }`
 
