@@ -36,7 +36,7 @@ func newSuitesCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newSuitesListCmd(), newSuitesSetupCmd(), newSuitesTestCmd(), newSuitesTeardownCmd(), newSuitesExternalCmd())
+	cmd.AddCommand(newSuitesListCmd(), newSuitesSetupCmd(), newSuitesTestCmd(), newSuitesTeardownCmd(), newSuitesSlotCmd(), newSuitesExternalCmd())
 
 	return cmd
 }

@@ -379,7 +379,7 @@ func contextDialTimeout(ctx context.Context, fallback time.Duration) time.Durati
 func dialSSHContext(ctx context.Context, addr string, cfg *ssh.ClientConfig) (*ssh.Client, error) {
 	d := &net.Dialer{Timeout: cfg.Timeout}
 
-	conn, err := d.DialContext(ctx, "tcp", addr)
+	conn, err := d.DialContext(ctx, "tcp", ResolveAddr(addr))
 	if err != nil {
 		return nil, err
 	}

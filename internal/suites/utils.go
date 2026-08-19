@@ -3,7 +3,6 @@ package suites
 import (
 	"bufio"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -224,6 +223,32 @@ func (s *BaseSuite) SetupEnvironment() {
 	s.T().Setenv("SUITE_SETUP_ENVIRONMENT", t)
 }
 
+// SuiteTempDir creates a directory inside the directory this process shares with the suite containers, and returns the
+// path this process reaches it at. Pass the result through SuiteTmpContainerPath before handing it to a container.
+// t.TempDir() cannot be used because it honors TMPDIR, which the containers do not share.
+func SuiteTempDir(t *testing.T, pattern string) (dir string) {
+	dir, err := os.MkdirTemp(SuiteTmpPath(), pattern)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_ = os.RemoveAll(dir)
+	})
+
+	return dir
+}
+
+// SuiteTmpContainerPath returns the path a container sees for a file this process reaches at dir, which has to be
+// inside SuiteTmpPath. The containers always see that directory at /tmp while this process may reach it elsewhere, so
+// a path that crosses the boundary has to be translated rather than shared verbatim.
+func SuiteTmpContainerPath(dir string) string {
+	relative, err := filepath.Rel(SuiteTmpPath(), dir)
+	if err != nil {
+		return dir
+	}
+
+	return filepath.Join(suiteTmpPathDefault, relative)
+}
+
 func screenshotPaths(name string) (path, reported string) {
 	suite := strings.ToLower(os.Getenv("SUITE"))
 
@@ -235,7 +260,8 @@ func screenshotPaths(name string) (path, reported string) {
 		return filepath.Join("../..", reported), reported
 	}
 
-	path = filepath.Join(os.TempDir(), "authelia-suites-screenshots", suite, name)
+	// Scoped by compose project so concurrent runs of the same suite on one machine keep their own screenshots.
+	path = filepath.Join(os.TempDir(), "authelia-suites-screenshots", composeProjectName(), suite, name)
 
 	return path, path
 }
@@ -432,11 +458,7 @@ func getDomainEnvInfo(domain string) (info map[string]string, err error) {
 	info = make(map[string]string)
 
 	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec
-			},
-		},
+		Transport: NewHTTPTransport(),
 	}
 
 	var (
