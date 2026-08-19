@@ -35,7 +35,7 @@ notifier:
     timeout: '5s'
     username: 'test'
     password: 'password'
-    sender: "Authelia <admin@{{< sitevar name="domain" nojs="example.com" >}}>"
+    sender: '"Authelia" <admin@{{< sitevar name="domain" nojs="example.com" >}}>'
     identifier: 'localhost'
     subject: "[Authelia] {title}"
     startup_check_address: 'test@{{< sitevar name="domain" nojs="example.com" >}}'
@@ -116,10 +116,10 @@ characters and the user password is changed to this value.
 {{< confkey type="string" required="yes" >}}
 
 The sender is used to construct both the SMTP command `MAIL FROM` and to add the `FROM` header. This address must be
-in [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322#section-3.4) format. This means it must one of two formats:
+in [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322#section-3.4) format. This means it must be one of two formats:
 
 * `jsmith@domain.com`
-* `John Smith <jsmith@domain.com>`
+* `"John Smith" <jsmith@domain.com>`
 
 The `MAIL FROM` command sent to SMTP servers will not include the name portion, this is only set in the `FROM` as per
 specifications.
@@ -135,7 +135,7 @@ reject the message if it's localhost.
 
 {{< confkey type="string" default="[Authelia] {title}" required="no" >}}
 
-This is the subject Authelia will use in the email, it has a single placeholder at present `{title}` which should
+This is the subject Authelia will use in the email; it has a single placeholder at present: `{title}`, which should
 be included in all emails as it is the internal descriptor for the contents of the email.
 
 ### startup_check_address
