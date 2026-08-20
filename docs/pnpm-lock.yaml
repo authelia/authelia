@@ -26,8 +26,8 @@ importers:
         specifier: 4.7.0
         version: 4.7.0
       '@docsearch/js':
-        specifier: 4.7.0
-        version: 4.7.0
+        specifier: 5.0.3
+        version: 5.0.3
       '@tabler/icons':
         specifier: 3.46.0
         version: 3.46.0
@@ -668,8 +668,8 @@ packages:
   '@docsearch/css@4.7.0':
     resolution: {integrity: sha512-Sk5xkdRFeE7PeWjG9l4AfTwdvMfr9wHiwNNCpHXT4v4SNyNMKdHGvEILc31BgaVFGDDNbv5u/a73tofRiwbEZw==}
 
-  '@docsearch/js@4.7.0':
-    resolution: {integrity: sha512-x5lCqu1tetgsJFkjQ6VSocbHldsRkGEgwg5N98Vx21sq/V5wcmj4u226PY9k+TEpIgQ772zlYbPLTPicWyGnpA==}
+  '@docsearch/js@5.0.3':
+    resolution: {integrity: sha512-YimVtMfwXbkfZkT8CYvQATU7vUP0SQPZxtwt/qg4RUT3m9gBYDHRi4Dus3/vlaeMaHU6HiSj0Fh0pM+xRu9CLg==}
 
   '@fullhuman/postcss-purgecss@8.0.0':
     resolution: {integrity: sha512-fSRaBGf6+DYdfQMxedWfnIW8FSYE1LBpgy16jpK1L2vNb1HgeBRRZ+UX4UokNmW7YEAwPdvwkKdYtlkYpH+Aqg==}
@@ -2621,7 +2621,7 @@ snapshots:
 
   '@docsearch/css@4.7.0': {}
 
-  '@docsearch/js@4.7.0': {}
+  '@docsearch/js@5.0.3': {}
 
   '@fullhuman/postcss-purgecss@8.0.0(postcss@8.5.26)':
     dependencies:
