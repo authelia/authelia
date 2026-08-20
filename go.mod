@@ -11,7 +11,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
 	github.com/authelia/otp v1.0.4
-	github.com/duosecurity/duo_api_golang v0.2.0
+	github.com/duosecurity/duo_api_golang v0.3.0
 	github.com/fasthttp/router v1.5.4
 	github.com/fasthttp/session/v2 v2.5.9
 	github.com/fsnotify/fsnotify v1.10.1
