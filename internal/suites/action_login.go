@@ -41,26 +41,22 @@ func (rs *RodSession) doFillFieldUntilSet(t *testing.T, element *rod.Element, va
 func (rs *RodSession) doFillLoginPageAndClick(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
 	usernameElement := rs.WaitElementLocatedByID(t, page, "username-textfield")
 	passwordElement := rs.WaitElementLocatedByID(t, page, "password-textfield")
-	buttonElement := rs.WaitElementLocatedByID(t, page, "sign-in-button")
-
 	rs.doFillFieldUntilSet(t, usernameElement, username)
 	rs.doFillFieldUntilSet(t, passwordElement, password)
 
 	if keepMeLoggedIn {
-		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
-		require.NoError(t, keepMeLoggedInElement.Click("left", 1))
+		rs.ClickElementLocatedByID(t, page, "remember-checkbox")
 	}
 
-	require.NoError(t, buttonElement.Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "sign-in-button")
 }
 
 func (rs *RodSession) doFillPasswordAndClick(t *testing.T, page *rod.Page, password string) {
 	element := rs.WaitElementLocatedByID(t, page, "password-textfield")
-	button := rs.WaitElementLocatedByID(t, page, "sign-in-button")
 
 	rs.doFillFieldUntilSet(t, element, password)
 
-	require.NoError(t, button.Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "sign-in-button")
 }
 
 // Login 1FA.
@@ -73,13 +69,10 @@ func (rs *RodSession) doLoginPasskey(t *testing.T, page *rod.Page, keepMeLoggedI
 	rs.doVisitLoginPage(t, page, domain, targetURL)
 
 	if keepMeLoggedIn {
-		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
-		require.NoError(t, keepMeLoggedInElement.Click("left", 1))
+		rs.ClickElementLocatedByID(t, page, "remember-checkbox")
 	}
 
-	passkeyElement := rs.WaitElementLocatedByID(t, page, "passkey-sign-in-button")
-
-	require.NoError(t, passkeyElement.Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "passkey-sign-in-button")
 }
 
 // Login 1FA and 2FA subsequently (must already be registered).

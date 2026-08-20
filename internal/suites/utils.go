@@ -15,6 +15,7 @@ import (
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/input"
@@ -490,9 +491,10 @@ func generateDevEnvFile(info map[string]string) (err error) {
 	return nil
 }
 
-// updateDevEnvFileForDomain updates web/.env.development.
-// this function only affects local dev environments.
-func updateDevEnvFileForDomain(domain string, setup bool) (err error) {
+// updateDevEnvFileForDomain updates web/.env.development and waits for the
+// Vite dev server to restart after the file change. This function only affects
+// local dev environments.
+func updateDevEnvFileForDomain(domain string, dockerEnvironment *DockerEnvironment) (err error) {
 	if os.Getenv("CI") == t {
 		return nil
 	}
@@ -508,15 +510,11 @@ func updateDevEnvFileForDomain(domain string, setup bool) (err error) {
 		return err
 	}
 
+	since := time.Now()
+
 	if err = generateDevEnvFile(info); err != nil {
 		return err
 	}
 
-	if !setup {
-		if err = waitUntilAutheliaFrontendIsReady(multiCookieDomainDockerEnvironment); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return waitUntilAutheliaFrontendRestarted(dockerEnvironment, since)
 }

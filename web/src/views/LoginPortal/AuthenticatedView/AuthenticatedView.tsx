@@ -1,4 +1,3 @@
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
 import LogoutButton from "@components/LogoutButton";
@@ -19,23 +18,14 @@ const AuthenticatedView = function (props: Props) {
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
             userInfo={props.userInfo}
         >
-            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
-                <Grid size={{ xs: 12 }}>
+            <div className="flex flex-col items-center justify-center">
+                <div className="w-full">
                     <LogoutButton />
-                </Grid>
-                <Grid
-                    size={{ xs: 12 }}
-                    sx={{
-                        border: "1px solid #d6d6d6",
-                        borderRadius: "10px",
-                        marginBottom: (theme) => theme.spacing(2),
-                        marginTop: (theme) => theme.spacing(2),
-                        padding: (theme) => theme.spacing(4),
-                    }}
-                >
+                </div>
+                <div className="my-4 w-full rounded-[10px] border border-[#d6d6d6] p-8">
                     <Authenticated />
-                </Grid>
-            </Grid>
+                </div>
+            </div>
         </MinimalLayout>
     );
 };

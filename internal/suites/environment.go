@@ -70,6 +70,16 @@ func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) erro
 		[]string{"dev server running at", "ready in", "server restarted"})
 }
 
+func waitUntilAutheliaFrontendRestarted(dockerEnvironment *DockerEnvironment, since time.Time) error {
+	return waitUntilServiceLogDetected(
+		5*time.Second,
+		180*time.Second,
+		dockerEnvironment,
+		"authelia-frontend",
+		since,
+		[]string{"Watching for file changes"})
+}
+
 func waitUntilK3DIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
 		5*time.Second,

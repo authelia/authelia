@@ -40,11 +40,22 @@ it("renders panel with title and add button", () => {
     expect(screen.getByText("Add")).toBeInTheDocument();
 });
 
-it("renders not registered message when config is undefined", () => {
-    render(<OneTimePasswordPanel info={undefined} config={undefined} handleRefreshState={vi.fn()} />);
+it("does not claim the One-Time Password is unregistered while it is still loading", () => {
+    const { container } = render(
+        <OneTimePasswordPanel info={undefined} config={undefined} handleRefreshState={vi.fn()} />,
+    );
+    expect(
+        screen.queryByText("The One-Time Password has not been registered if you'd like to register it click add"),
+    ).not.toBeInTheDocument();
+    expect(container.querySelector('[data-loading="true"]')).toBeInTheDocument();
+});
+
+it("renders not registered message when config is null", () => {
+    render(<OneTimePasswordPanel info={undefined} config={null} handleRefreshState={vi.fn()} />);
     expect(
         screen.getByText("The One-Time Password has not been registered if you'd like to register it click add"),
     ).toBeInTheDocument();
+    expect(document.querySelector('[data-loading="false"]')).toBeInTheDocument();
 });
 
 it("renders OTP configuration when config is provided", () => {

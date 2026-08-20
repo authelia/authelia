@@ -1,7 +1,5 @@
 import { Fragment, ReactNode } from "react";
 
-import { Box } from "@mui/material";
-
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export interface Props {
@@ -13,9 +11,9 @@ export interface Props {
 const ComponentOrLoading = function (props: Props) {
     return (
         <Fragment>
-            <Box className={props.ready ? "hidden" : ""}>
+            <div className={props.ready ? "hidden" : ""}>
                 <LoadingPage />
-            </Box>
+            </div>
             {props.ready ? props.children : null}
         </Fragment>
     );
