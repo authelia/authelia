@@ -21,5 +21,5 @@ it("has correct viewbox", () => {
 it("has correct fill", () => {
     render(<PasskeyIcon />);
     const svg = document.querySelector("svg");
-    expect(svg).toHaveAttribute("fill", "#e8eaed");
+    expect(svg).toHaveAttribute("fill", "currentColor");
 });

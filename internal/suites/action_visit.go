@@ -56,7 +56,6 @@ func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
 func (rs *RodSession) doVisit(t *testing.T, page *rod.Page, url string) {
 	require.NoError(t, page.Navigate(url))
 	require.NoError(t, page.WaitLoad())
-	require.NoError(t, page.WaitStable(time.Millisecond*50))
 }
 
 func (rs *RodSession) doVisitAndVerifyOneFactorStep(t *testing.T, page *rod.Page, url string) {

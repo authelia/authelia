@@ -32,7 +32,7 @@ func init() {
 			return err
 		}
 
-		return updateDevEnvFileForDomain(BaseDomain, true)
+		return updateDevEnvFileForDomain(BaseDomain, dockerEnvironment)
 	}
 
 	displayAutheliaLogs := func() error {

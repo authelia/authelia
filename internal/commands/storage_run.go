@@ -441,7 +441,6 @@ func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []s
 	return runStorageSchemaEncryptionCheckKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, verbose)
 }
 
-//nolint:unparam
 func runStorageSchemaEncryptionCheckKey(ctx context.Context, w io.Writer, store storage.Provider, verbose bool) (err error) {
 	var result storage.EncryptionValidationResult
 	if result, err = store.SchemaEncryptionCheckKey(ctx, verbose); err != nil {

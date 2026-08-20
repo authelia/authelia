@@ -1,17 +1,21 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
-import { Check, ContentCopy } from "@mui/icons-material";
-import { Button, CircularProgress, SxProps, Tooltip } from "@mui/material";
+import { Check, Copy } from "lucide-react";
+
+import { Button } from "@components/UI/Button";
+import { Spinner } from "@components/UI/Spinner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
+import { cn } from "@utils/Styles";
 
 export interface Props {
-    variant?: "contained" | "outlined" | "text";
+    variant?: "contained" | "default" | "ghost" | "outline";
     tooltip: string;
     children: ReactNode;
     childrenCopied?: ReactNode;
     value: null | string;
     msTimeoutCopying?: number;
     msTimeoutCopied?: number;
-    sx?: SxProps;
+    className?: string;
     fullWidth?: boolean;
 }
 
@@ -23,6 +27,15 @@ const CopyButton = function (props: Props) {
     const [isCopying, setIsCopying] = useState(false);
     const msTimeoutCopying = props.msTimeoutCopying ?? msTimeoutDefaultCopying;
     const msTimeoutCopied = props.msTimeoutCopied ?? msTimeoutDefaultCopied;
+    const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+    useEffect(
+        () => () => {
+            timeoutsRef.current.forEach(clearTimeout);
+            timeoutsRef.current = [];
+        },
+        [],
+    );
 
     const handleCopyToClipboard = () => {
         if (isCopied || !props.value || props.value === "") {
@@ -34,48 +47,60 @@ const CopyButton = function (props: Props) {
 
             await navigator.clipboard.writeText(value);
 
-            setTimeout(() => {
-                setIsCopying(false);
-                setIsCopied(true);
-            }, msTimeoutCopying);
-
-            setTimeout(() => {
-                setIsCopied(false);
-            }, msTimeoutCopied);
+            timeoutsRef.current.push(
+                setTimeout(() => {
+                    setIsCopying(false);
+                    setIsCopied(true);
+                }, msTimeoutCopying),
+                setTimeout(() => {
+                    setIsCopied(false);
+                }, msTimeoutCopied),
+            );
         })(props.value);
     };
 
-    const variant = props.variant ?? "outlined";
-    const color = isCopied ? "success" : "primary";
+    const variant = props.variant === "contained" ? "default" : (props.variant ?? "outline");
     const displayText = isCopied && props.childrenCopied ? props.childrenCopied : props.children;
 
     let icon;
 
     if (isCopying) {
-        icon = <CircularProgress color="inherit" size={20} />;
+        icon = <Spinner size={20} />;
     } else if (isCopied) {
-        icon = <Check />;
+        icon = <Check className="size-5" />;
     } else {
-        icon = <ContentCopy />;
+        icon = <Copy className="size-5" />;
     }
 
+    const buttonClassName = cn(
+        isCopied && "border-green-500 text-green-600",
+        props.fullWidth && "w-full",
+        props.className,
+    );
+
     return props.value === null || props.value === "" ? (
-        <Button variant={variant} color={color} disabled sx={props.sx} fullWidth={props.fullWidth} startIcon={icon}>
+        <Button variant={variant} disabled className={buttonClassName}>
+            {icon}
             {displayText}
         </Button>
     ) : (
-        <Tooltip title={props.tooltip}>
-            <Button
-                variant={variant}
-                color={color}
-                onClick={isCopying ? undefined : handleCopyToClipboard}
-                sx={props.sx}
-                fullWidth={props.fullWidth}
-                startIcon={icon}
-            >
-                {displayText}
-            </Button>
-        </Tooltip>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger
+                    render={
+                        <Button
+                            variant={variant}
+                            onClick={isCopying ? undefined : handleCopyToClipboard}
+                            className={buttonClassName}
+                        >
+                            {icon}
+                            {displayText}
+                        </Button>
+                    }
+                />
+                <TooltipContent>{props.tooltip}</TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     );
 };
 
