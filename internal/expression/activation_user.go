@@ -3,7 +3,7 @@ package expression
 import (
 	"time"
 
-	"github.com/google/cel-go/interpreter"
+	"cel.dev/cel-go/interpreter"
 )
 
 func NewUserDetailerActivation(parent interpreter.Activation, detailer UserDetailer, updated time.Time) *UserDetailerActivation {
