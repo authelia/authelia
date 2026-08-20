@@ -113,7 +113,7 @@ const SecondFactorForm = function (props: Props) {
                         </Button>
                     ) : null}
                 </div>
-                <div className="my-4 min-w-[300px] rounded-[10px] border border-[#d6d6d6] p-8">
+                <div className="my-4 min-w-[300px] rounded-[10px] border border-border p-8">
                     <Routes>
                         <Route
                             path={SecondFactorPasswordSubRoute}

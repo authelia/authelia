@@ -158,7 +158,8 @@ const ResetPasswordStep2 = function () {
                             <button
                                 type="button"
                                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
-                                aria-label="toggle password visibility"
+                                aria-label={translate("Toggle password visibility")}
+                                aria-pressed={showPassword}
                                 onMouseDown={() => setShowPassword(true)}
                                 onMouseUp={() => setShowPassword(false)}
                                 onMouseLeave={() => setShowPassword(false)}

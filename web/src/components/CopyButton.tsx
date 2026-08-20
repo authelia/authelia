@@ -28,14 +28,27 @@ const CopyButton = function (props: Props) {
     const msTimeoutCopying = props.msTimeoutCopying ?? msTimeoutDefaultCopying;
     const msTimeoutCopied = props.msTimeoutCopied ?? msTimeoutDefaultCopied;
     const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const mountedRef = useRef(true);
 
-    useEffect(
-        () => () => {
+    useEffect(() => {
+        mountedRef.current = true;
+
+        return () => {
+            mountedRef.current = false;
             timeoutsRef.current.forEach(clearTimeout);
             timeoutsRef.current = [];
-        },
-        [],
-    );
+        };
+    }, []);
+
+    const schedule = (callback: () => void, ms: number) => {
+        const handle = setTimeout(() => {
+            timeoutsRef.current = timeoutsRef.current.filter((value) => value !== handle);
+
+            callback();
+        }, ms);
+
+        timeoutsRef.current.push(handle);
+    };
 
     const handleCopyToClipboard = () => {
         if (isCopied || !props.value || props.value === "") {
@@ -45,17 +58,30 @@ const CopyButton = function (props: Props) {
         (async (value: string) => {
             setIsCopying(true);
 
-            await navigator.clipboard.writeText(value);
+            try {
+                await navigator.clipboard.writeText(value);
+            } catch (error) {
+                console.error(error);
 
-            timeoutsRef.current.push(
-                setTimeout(() => {
+                if (mountedRef.current) {
                     setIsCopying(false);
-                    setIsCopied(true);
-                }, msTimeoutCopying),
-                setTimeout(() => {
-                    setIsCopied(false);
-                }, msTimeoutCopied),
-            );
+                }
+
+                return;
+            }
+
+            if (!mountedRef.current) {
+                return;
+            }
+
+            schedule(() => {
+                setIsCopying(false);
+                setIsCopied(true);
+            }, msTimeoutCopying);
+
+            schedule(() => {
+                setIsCopied(false);
+            }, msTimeoutCopied);
         })(props.value);
     };
 

@@ -12,7 +12,7 @@ const LinearProgressBar = function (props: Props) {
         <Progress
             value={props.value}
             className={cn("mt-2 transition-transform duration-200 ease-linear", props.className)}
-            style={{ height: props.height ? props.height : 8 }}
+            style={{ height: props.height ?? 8 }}
         />
     );
 };

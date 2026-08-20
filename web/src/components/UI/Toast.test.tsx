@@ -24,7 +24,7 @@ const roots = () => Array.from(document.querySelectorAll('[data-slot="toast"]'))
 
 it("keeps toasts past the provider limit out of view", async () => {
     render(
-        <ToastProvider>
+        <ToastProvider limit={3}>
             <Queue count={4} />
         </ToastProvider>,
     );

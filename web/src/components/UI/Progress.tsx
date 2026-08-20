@@ -6,13 +6,18 @@ import { cn } from "@utils/Styles";
 
 function Progress({
     className,
+    max,
+    min,
     value,
     ...props
 }: Omit<ComponentProps<typeof ProgressPrimitive.Root>, "value"> & { value?: null | number }) {
-    const percentage = (100 * (value ?? 0)) / (props.max ?? 100);
+    const start = Number.isFinite(min) ? (min as number) : 0;
+    const end = Number.isFinite(max) && (max as number) > start ? (max as number) : start + 100;
+    const current = Number.isFinite(value) ? Math.min(Math.max(value as number, start), end) : null;
+    const percentage = current === null ? 0 : (100 * (current - start)) / (end - start);
 
     return (
-        <ProgressPrimitive.Root data-slot="progress" value={value ?? null} {...props}>
+        <ProgressPrimitive.Root data-slot="progress" min={start} max={end} value={current} {...props}>
             <ProgressPrimitive.Track
                 data-slot="progress-track"
                 className={cn("relative h-2 w-full overflow-hidden rounded-full bg-primary/20", className)}

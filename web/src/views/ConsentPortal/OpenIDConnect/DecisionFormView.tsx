@@ -366,7 +366,11 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                                             <button
                                                                                 type="button"
                                                                                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
-                                                                                aria-label="toggle password visibility"
+                                                                                aria-label={translate(
+                                                                                    "Toggle password visibility",
+                                                                                    { ns: "portal" },
+                                                                                )}
+                                                                                aria-pressed={showPassword}
                                                                                 onMouseDown={() =>
                                                                                     setShowPassword(true)
                                                                                 }
@@ -384,13 +388,19 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                                                     setShowPassword(false)
                                                                                 }
                                                                                 onKeyDown={(e) => {
-                                                                                    if (e.key === " ") {
+                                                                                    if (
+                                                                                        e.key === " " ||
+                                                                                        e.key === "Enter"
+                                                                                    ) {
                                                                                         setShowPassword(true);
                                                                                         e.preventDefault();
                                                                                     }
                                                                                 }}
                                                                                 onKeyUp={(e) => {
-                                                                                    if (e.key === " ") {
+                                                                                    if (
+                                                                                        e.key === " " ||
+                                                                                        e.key === "Enter"
+                                                                                    ) {
                                                                                         setShowPassword(false);
                                                                                         e.preventDefault();
                                                                                     }
@@ -457,7 +467,7 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                                 >
                                                                     {translate("Accept", { ns: "portal" })}
                                                                     {loadingAccept ? (
-                                                                        <Spinner className="ml-2 h-5 w-5" />
+                                                                        <Spinner size={20} className="ml-2 h-5 w-5" />
                                                                     ) : null}
                                                                 </Button>
                                                             </span>
@@ -489,7 +499,7 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                                 >
                                                                     {translate("Deny", { ns: "portal" })}
                                                                     {loadingReject ? (
-                                                                        <Spinner className="ml-2 h-5 w-5" />
+                                                                        <Spinner size={20} className="ml-2 h-5 w-5" />
                                                                     ) : null}
                                                                 </Button>
                                                             </span>

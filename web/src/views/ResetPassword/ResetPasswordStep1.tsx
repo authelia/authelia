@@ -120,7 +120,7 @@ const ResetPasswordStep1 = function () {
                                     className="w-full"
                                     onClick={handleResetClick}
                                 >
-                                    {loading ? <Spinner className="mr-2 h-5 w-5" /> : null}
+                                    {loading ? <Spinner size={20} className="mr-2 h-5 w-5" /> : null}
                                     {translate("Reset")}
                                 </Button>
                             </ComponentWithTooltip>

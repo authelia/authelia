@@ -14,7 +14,7 @@ const AuthenticatedView = function (props: Props) {
 
     return (
         <MinimalLayout
-            id={"authenticated-stage"}
+            id={"authenticated-view"}
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
             userInfo={props.userInfo}
         >
@@ -22,7 +22,7 @@ const AuthenticatedView = function (props: Props) {
                 <div className="w-full">
                     <LogoutButton />
                 </div>
-                <div className="my-4 w-full rounded-[10px] border border-[#d6d6d6] p-8">
+                <div className="my-4 w-full rounded-[10px] border border-border p-8">
                     <Authenticated />
                 </div>
             </div>

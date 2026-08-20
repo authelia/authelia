@@ -69,3 +69,8 @@ it("disables add button when config is provided", () => {
     render(<OneTimePasswordPanel info={undefined} config={config} handleRefreshState={vi.fn()} />);
     expect(screen.getByText("Add").closest("button")).toBeDisabled();
 });
+
+it("disables add button while the configuration is still loading", () => {
+    render(<OneTimePasswordPanel info={undefined} config={undefined} handleRefreshState={vi.fn()} />);
+    expect(screen.getByText("Add").closest("button")).toBeDisabled();
+});

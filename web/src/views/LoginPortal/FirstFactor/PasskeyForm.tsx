@@ -146,7 +146,7 @@ const PasskeyForm = function (props: Props) {
                 >
                     <PasskeyIcon />
                     {translate("Sign in with a passkey")}
-                    {loading ? <Spinner className="ml-2 h-5 w-5" /> : null}
+                    {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
                 </Button>
             </div>
         </Fragment>
