@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"bufio"
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
-	"strconv"
 	"strings"
 	"syscall"
 
@@ -24,8 +24,8 @@ var (
 
 // slotEntry is a working tree and the suite slot it owns.
 type slotEntry struct {
-	Slot int
-	Path string
+	Slot int    `json:"slot"`
+	Path string `json:"path"`
 }
 
 func newSuitesSlotCmd() (cmd *cobra.Command) {
@@ -64,7 +64,7 @@ func cmdSuitesSlotRun(_ *cobra.Command, _ []string) {
 		}
 
 		for _, entry := range entries {
-			fmt.Printf("%d\t%s\n", entry.Slot, entry.Path)
+			fmt.Printf("%d\t%q\n", entry.Slot, entry.Path)
 		}
 	case slotRelease:
 		if err = releaseSlot(tree); err != nil {
@@ -87,7 +87,7 @@ func cmdSuitesSlotRun(_ *cobra.Command, _ []string) {
 func workingTree() (tree string, err error) {
 	output, err := utils.Command("git", "rev-parse", "--show-toplevel").Output()
 	if err == nil {
-		if tree = strings.TrimSpace(string(output)); tree != "" {
+		if tree = strings.TrimSuffix(string(output), "\n"); tree != "" {
 			return resolveSymlinks(tree), nil
 		}
 	}
@@ -141,27 +141,17 @@ func withSlotRegistry(f func(entries []slotEntry) ([]slotEntry, error)) (err err
 		return err
 	}
 
-	var fd *os.File
+	var unlock func()
 
-	if fd, err = os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0600); err != nil {
+	if unlock, err = lockSlotRegistry(path); err != nil {
 		return err
 	}
 
-	defer func() {
-		_ = fd.Close()
-	}()
-
-	if err = syscall.Flock(int(fd.Fd()), syscall.LOCK_EX); err != nil {
-		return fmt.Errorf("error locking slot registry '%s': %w", path, err)
-	}
-
-	defer func() {
-		_ = syscall.Flock(int(fd.Fd()), syscall.LOCK_UN)
-	}()
+	defer unlock()
 
 	var entries []slotEntry
 
-	if entries, err = readSlotEntries(fd); err != nil {
+	if entries, err = readSlotEntries(path); err != nil {
 		return err
 	}
 
@@ -173,38 +163,81 @@ func withSlotRegistry(f func(entries []slotEntry) ([]slotEntry, error)) (err err
 		return nil
 	}
 
-	return writeSlotEntries(fd, entries)
+	return writeSlotEntries(path, entries)
+}
+
+// lockSlotRegistry takes the exclusive lock guarding the registry. The lock lives in a file of its own because the
+// registry is replaced by a rename, and a lock held on a file that has been replaced no longer excludes anybody: the
+// next process opens the new inode and locks that instead.
+func lockSlotRegistry(path string) (unlock func(), err error) {
+	var fd *os.File
+
+	if fd, err = os.OpenFile(path+".lock", os.O_RDWR|os.O_CREATE, 0600); err != nil {
+		return nil, err
+	}
+
+	if err = syscall.Flock(int(fd.Fd()), syscall.LOCK_EX); err != nil {
+		_ = fd.Close()
+
+		return nil, fmt.Errorf("error locking slot registry '%s': %w", path, err)
+	}
+
+	return func() {
+		_ = syscall.Flock(int(fd.Fd()), syscall.LOCK_UN)
+		_ = fd.Close()
+	}, nil
 }
 
 // readSlotEntries parses the registry, dropping entries whose working tree no longer exists so a deleted tree gives its
-// slot back without anyone having to remember to release it.
-func readSlotEntries(fd *os.File) (entries []slotEntry, err error) {
-	if _, err = fd.Seek(0, 0); err != nil {
+// slot back without anyone having to remember to release it. A registry that cannot be read is an error rather than an
+// empty one: treating it as empty would hand out numbers that other working trees are still using.
+func readSlotEntries(path string) (entries []slotEntry, err error) {
+	var data []byte
+
+	if data, err = os.ReadFile(path); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 
-	scanner := bufio.NewScanner(fd)
-
-	for scanner.Scan() {
-		fields := strings.SplitN(scanner.Text(), "\t", 2)
-		if len(fields) != 2 {
-			continue
-		}
-
-		slot, errSlot := strconv.Atoi(fields[0])
-		if errSlot != nil {
-			continue
-		}
-
-		if _, errStat := os.Stat(fields[1]); errStat != nil {
-			continue
-		}
-
-		entries = append(entries, slotEntry{Slot: slot, Path: fields[1]})
+	if len(bytes.TrimSpace(data)) == 0 {
+		return nil, nil
 	}
 
-	if err = scanner.Err(); err != nil {
-		return nil, err
+	var stored []slotEntry
+
+	if err = json.Unmarshal(data, &stored); err != nil {
+		return nil, fmt.Errorf("error parsing slot registry '%s': %w", path, err)
+	}
+
+	slots, paths := make(map[int]bool, len(stored)), make(map[string]bool, len(stored))
+
+	for _, entry := range stored {
+		if entry.Slot < 1 || entry.Path == "" {
+			return nil, fmt.Errorf("error parsing slot registry '%s': the entry for slot %d has no usable working tree", path, entry.Slot)
+		}
+
+		if _, errStat := os.Stat(entry.Path); errStat != nil {
+			if errors.Is(errStat, os.ErrNotExist) {
+				continue
+			}
+
+			log.Warnf("Keeping suite slot %d for '%s' because it could not be checked: %v", entry.Slot, entry.Path, errStat)
+		}
+
+		if slots[entry.Slot] {
+			return nil, fmt.Errorf("error parsing slot registry '%s': slot %d is held by more than one working tree", path, entry.Slot)
+		}
+
+		if paths[entry.Path] {
+			return nil, fmt.Errorf("error parsing slot registry '%s': the working tree '%s' holds more than one slot", path, entry.Path)
+		}
+
+		slots[entry.Slot], paths[entry.Path] = true, true
+
+		entries = append(entries, entry)
 	}
 
 	slices.SortFunc(entries, func(a, b slotEntry) int { return a.Slot - b.Slot })
@@ -212,31 +245,78 @@ func readSlotEntries(fd *os.File) (entries []slotEntry, err error) {
 	return entries, nil
 }
 
-func writeSlotEntries(fd *os.File, entries []slotEntry) (err error) {
-	builder := &strings.Builder{}
+// writeSlotEntries replaces the registry by renaming a complete copy over it, so a process that dies mid-write leaves
+// the previous registry rather than a truncated one. Losing it would free every slot at once.
+func writeSlotEntries(path string, entries []slotEntry) (err error) {
+	var data []byte
 
-	for _, entry := range entries {
-		fmt.Fprintf(builder, "%d\t%s\n", entry.Slot, entry.Path)
-	}
-
-	if err = fd.Truncate(0); err != nil {
+	if data, err = json.Marshal(entries); err != nil {
 		return err
 	}
 
-	if _, err = fd.Seek(0, 0); err != nil {
+	dir := filepath.Dir(path)
+
+	var tmp *os.File
+
+	if tmp, err = os.CreateTemp(dir, "suite-slots"); err != nil {
 		return err
 	}
 
-	_, err = fd.WriteString(builder.String())
+	name := tmp.Name()
 
-	return err
+	defer func() {
+		if err != nil {
+			_ = os.Remove(name)
+		}
+	}()
+
+	if _, err = tmp.Write(append(data, '\n')); err != nil {
+		_ = tmp.Close()
+
+		return err
+	}
+
+	if err = tmp.Sync(); err != nil {
+		_ = tmp.Close()
+
+		return err
+	}
+
+	if err = tmp.Close(); err != nil {
+		return err
+	}
+
+	if err = os.Rename(name, path); err != nil {
+		return err
+	}
+
+	if errSync := syncDirectory(dir); errSync != nil {
+		log.Warnf("Could not flush the slot registry directory '%s': %v", dir, errSync)
+	}
+
+	return nil
+}
+
+// syncDirectory flushes the directory entry, so the rename itself survives a crash rather than only the contents of the
+// file it points at.
+func syncDirectory(dir string) (err error) {
+	var fd *os.File
+
+	if fd, err = os.Open(dir); err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = fd.Close()
+	}()
+
+	return fd.Sync()
 }
 
 func slotEntries() (entries []slotEntry, err error) {
 	err = withSlotRegistry(func(current []slotEntry) ([]slotEntry, error) {
 		entries = current
 
-		// Written back so the pruning of deleted working trees is persisted.
 		return current, nil
 	})
 
