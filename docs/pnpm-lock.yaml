@@ -23,8 +23,8 @@ importers:
   .:
     dependencies:
       '@docsearch/css':
-        specifier: 4.7.0
-        version: 4.7.0
+        specifier: 5.0.3
+        version: 5.0.3
       '@docsearch/js':
         specifier: 4.7.0
         version: 4.7.0
@@ -665,8 +665,8 @@ packages:
   '@changesets/write@0.4.0':
     resolution: {integrity: sha512-CdTLvIOPiCNuH71pyDu3rA+Q0n65cmAbXnwWH84rKGiFumFzkmHNT8KHTMEchcxN+Kl8I54xGUhJ7l3E7X396Q==}
 
-  '@docsearch/css@4.7.0':
-    resolution: {integrity: sha512-Sk5xkdRFeE7PeWjG9l4AfTwdvMfr9wHiwNNCpHXT4v4SNyNMKdHGvEILc31BgaVFGDDNbv5u/a73tofRiwbEZw==}
+  '@docsearch/css@5.0.3':
+    resolution: {integrity: sha512-0ySbB5MsKdRH6+eipZRFGyOUT/kaxtfaG28B5/CBLH9GF9LltXPhlldzkYZa0d1uDxRP0UZjT63krdbzUzYkKA==}
 
   '@docsearch/js@4.7.0':
     resolution: {integrity: sha512-x5lCqu1tetgsJFkjQ6VSocbHldsRkGEgwg5N98Vx21sq/V5wcmj4u226PY9k+TEpIgQ772zlYbPLTPicWyGnpA==}
@@ -2619,7 +2619,7 @@ snapshots:
       human-id: 4.2.0
       prettier: 2.8.8
 
-  '@docsearch/css@4.7.0': {}
+  '@docsearch/css@5.0.3': {}
 
   '@docsearch/js@4.7.0': {}
 
