@@ -37,7 +37,7 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := pamDockerEnvironment.Down()
-		_ = os.Remove("/tmp/db.sqlite3")
+		_ = os.Remove(SuiteTmpPath("db.sqlite3"))
 
 		return err
 	}

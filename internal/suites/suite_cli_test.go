@@ -506,16 +506,16 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Contains(output, "\tCertificate: public.crt")
 
 	// Check the certificates look fine.
-	privateKeyData, err := os.ReadFile("/tmp/private.pem")
+	privateKeyData, err := os.ReadFile(SuiteTmpPath("private.pem"))
 	s.NoError(err)
 
-	certificateData, err := os.ReadFile("/tmp/public.crt")
+	certificateData, err := os.ReadFile(SuiteTmpPath("public.crt"))
 	s.NoError(err)
 
-	privateKeyCAData, err := os.ReadFile("/tmp/ca.private.pem")
+	privateKeyCAData, err := os.ReadFile(SuiteTmpPath("ca.private.pem"))
 	s.NoError(err)
 
-	certificateCAData, err := os.ReadFile("/tmp/ca.public.crt")
+	certificateCAData, err := os.ReadFile(SuiteTmpPath("ca.public.crt"))
 	s.NoError(err)
 
 	s.False(bytes.Equal(privateKeyData, privateKeyCAData))
@@ -796,8 +796,8 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 	_, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--common-name='Authelia Standalone Root Certificate Authority'", "--ca", "--directory=/tmp/"})
 	s.NoError(err)
 
-	s.Require().NoError(os.WriteFile("/tmp/ca.private.bad.pem", []byte("INVALID"), 0600)) //nolint:gosec
-	s.Require().NoError(os.WriteFile("/tmp/ca.public.bad.crt", []byte("INVALID"), 0600))  //nolint:gosec
+	s.Require().NoError(os.WriteFile(SuiteTmpPath("ca.private.bad.pem"), []byte("INVALID"), 0600))
+	s.Require().NoError(os.WriteFile(SuiteTmpPath("ca.public.bad.crt"), []byte("INVALID"), 0600))
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/", "--file.ca-private-key=ca.private.bad.pem", "--directory=/tmp/"})
 	s.NotNil(err)
@@ -809,7 +809,7 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
-	_ = os.Remove("/tmp/db.sqlite3")
+	_ = os.Remove(SuiteTmpPath("db.sqlite3"))
 
 	output, err := s.Exec("authelia-backend", []string{"authelia", "storage", "schema-info", "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
@@ -993,15 +993,16 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		fileInfo os.FileInfo
 	)
 
-	dir := s.T().TempDir()
+	dir := SuiteTempDir(s.T(), "totp")
 
 	qr := filepath.Join(dir, "qr.png")
+	qrContainer := SuiteTmpContainerPath(qr)
 
 	for _, testCase := range testCases {
 		if testCase.png {
-			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.FormatUint(uint64(testCase.config.Period), 10), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path", qr, "--config=/config/configuration.storage.yml"})
+			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.FormatUint(uint64(testCase.config.Period), 10), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path", qrContainer, "--config=/config/configuration.storage.yml"})
 			s.NoError(err)
-			s.Contains(output, fmt.Sprintf(" and saved it as a PNG image at the path '%s'", qr))
+			s.Contains(output, fmt.Sprintf(" and saved it as a PNG image at the path '%s'", qrContainer))
 
 			fileInfo, err = os.Stat(qr)
 			s.NoError(err)
@@ -1022,7 +1023,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		expectedLines = append(expectedLines, config.URI())
 	}
 
-	yml := filepath.Join(dir, "authelia.export.totp.yml")
+	yml := SuiteTmpContainerPath(filepath.Join(dir, "authelia.export.totp.yml"))
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "--file", yml, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
 	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as YAML to the '%s' file\n", len(expectedLines), yml))
@@ -1035,9 +1036,10 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	}
 
 	csv := filepath.Join(dir, "authelia.export.totp.csv")
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "csv", "--file", csv, "--config=/config/configuration.storage.yml"})
+	csvContainer := SuiteTmpContainerPath(csv)
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "csv", "--file", csvContainer, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
-	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as CSV to the '%s' file\n", len(expectedLines), csv))
+	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as CSV to the '%s' file\n", len(expectedLines), csvContainer))
 
 	var data []byte
 
@@ -1050,10 +1052,11 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 	}
 
 	pngs := filepath.Join(dir, "png-qr-codes")
+	pngsContainer := SuiteTmpContainerPath(pngs)
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "png", "--directory", pngs, "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "png", "--directory", pngsContainer, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
-	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configuration as QR codes in PNG format to the '%s' directory\n", len(expectedLines), pngs))
+	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configuration as QR codes in PNG format to the '%s' directory\n", len(expectedLines), pngsContainer))
 
 	for _, testCase := range testCases {
 		fileInfo, err = os.Stat(filepath.Join(pngs, fmt.Sprintf("%s.png", testCase.config.Username)))
@@ -1065,13 +1068,13 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		s.Greater(fileInfo.Size(), int64(1000))
 	}
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", "test", "--period=30", "--algorithm=SHA1", "--digits=6", "--path", qr, "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", "test", "--period=30", "--algorithm=SHA1", "--digits=6", "--path", qrContainer, "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
 	s.Contains(output, "Error: image output filepath already exists")
 }
 
 func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
-	dir := s.T().TempDir()
+	dir := SuiteTempDir(s.T(), "identifiers")
 
 	output, err := s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file=out.yml", "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
@@ -1094,13 +1097,14 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	s.Contains(output, "Error: error occurred writing to file 'out.yml': open out.yml: permission denied")
 
 	out1 := filepath.Join(dir, "1.yml")
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out1, "--config=/config/configuration.storage.yml"})
+	out1Container := SuiteTmpContainerPath(out1)
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out1Container, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
-	s.Contains(output, fmt.Sprintf("Successfully exported %d User Opaque Identifiers as YAML to the '%s' file\n", 1, out1))
+	s.Contains(output, fmt.Sprintf("Successfully exported %d User Opaque Identifiers as YAML to the '%s' file\n", 1, out1Container))
 
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out1, "--config=/config/configuration.storage.yml"})
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out1Container, "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
-	s.Contains(output, fmt.Sprintf("Error: must specify a file that doesn't exist but '%s' exists", out1))
+	s.Contains(output, fmt.Sprintf("Error: must specify a file that doesn't exist but '%s' exists", out1Container))
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector=''", "--identifier=1097c8f8-83f2-4506-8138-5f40e83a1285", "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
@@ -1141,9 +1145,10 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 	s.Equal("openid", export.Identifiers[0].Service)
 
 	out2 := filepath.Join(dir, "2.yml")
-	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out2, "--config=/config/configuration.storage.yml"})
+	out2Container := SuiteTmpContainerPath(out2)
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "export", "--file", out2Container, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
-	s.Contains(output, fmt.Sprintf("Successfully exported %d User Opaque Identifiers as YAML to the '%s' file\n", 2, out2))
+	s.Contains(output, fmt.Sprintf("Successfully exported %d User Opaque Identifiers as YAML to the '%s' file\n", 2, out2Container))
 
 	export = model.UserOpaqueIdentifiersExport{}
 
@@ -1250,7 +1255,7 @@ func (s *CLISuite) TestStorage07CacheMDS3() {
 		err    error
 	)
 
-	dir := s.T().TempDir()
+	dir := SuiteTmpContainerPath(SuiteTempDir(s.T(), "mds3"))
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "--help"})
 	s.NoError(err)

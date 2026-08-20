@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -38,6 +39,19 @@ func SuiteSubnet() string {
 // SuiteAddress returns the address of the given host octet on the suite network.
 func SuiteAddress(octet int) string {
 	return fmt.Sprintf("%s.%d", SuiteSubnet(), octet)
+}
+
+// SuiteTmpPath joins elem onto the directory this process exchanges files with the suite containers through, matching
+// the SUITE_TMP_PATH variable. The containers always see that directory at /tmp; SUITE_TMP is the host directory bound
+// there, and SUITE_TMP_PATH is where this process finds the same content. The three coincide by default and in CI, and
+// differ locally so that concurrent runs on one machine do not write over each other.
+func SuiteTmpPath(elem ...string) string {
+	path := os.Getenv("SUITE_TMP_PATH")
+	if path == "" {
+		path = suiteTmpPathDefault
+	}
+
+	return filepath.Join(append([]string{path}, elem...)...)
 }
 
 func agentContainer() string {

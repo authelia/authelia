@@ -158,6 +158,11 @@ func newBrowser(opts *RodSessionOpts) (shared *sharedBrowser, err error) {
 		Headless(headless).
 		Devtools(!headless && !opts.disableDevtools)
 
+	// Chrome resolves the suite domains from these rules rather than from /etc/hosts, so a browser launched by one
+	// suite reaches that suite's network even while another suite on this machine owns the names in /etc/hosts. The
+	// proxy hostnames the NetworkACL suite dials are resolved the same way.
+	l.Set("host-resolver-rules", HostResolverRules())
+
 	if opts.disableDevtools {
 		l.Set("font-render-hinting", "none")
 		l.Set("disable-lcd-text")
