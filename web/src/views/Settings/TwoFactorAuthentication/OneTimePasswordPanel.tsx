@@ -229,7 +229,12 @@ const OneTimePasswordPanel = function (props: Props) {
                                                 variant={"outline"}
                                                 color={"primary"}
                                                 onClick={handleRegister}
-                                                disabled={registered || dialogRegisterOpening || dialogRegisterOpen}
+                                                disabled={
+                                                    props.config === undefined ||
+                                                    registered ||
+                                                    dialogRegisterOpening ||
+                                                    dialogRegisterOpen
+                                                }
                                             >
                                                 {dialogRegisterOpening ? <Spinner size={20} /> : null}
                                                 {translate("Add")}

@@ -129,6 +129,7 @@ const PasswordForm = function (props: Props) {
                             type="button"
                             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
                             aria-label={translate("Toggle password visibility")}
+                            aria-pressed={showPassword}
                             onMouseDown={() => setShowPassword(true)}
                             onMouseUp={() => setShowPassword(false)}
                             onMouseLeave={() => setShowPassword(false)}
@@ -171,7 +172,7 @@ const PasswordForm = function (props: Props) {
                         onClick={handleSignIn}
                     >
                         {translate("Authenticate", { ns: "settings" })}
-                        {loading ? <Spinner className="ml-2 h-5 w-5" /> : null}
+                        {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
                     </Button>
                 </div>
             </div>

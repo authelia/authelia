@@ -200,6 +200,8 @@ func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page
 	rs.doOpenSettingsMenuClickClose(t, page)
 }
 
+const otpSlotSelector = `#otp-input input:not([aria-hidden="true"])`
+
 // otpEntered compares the passcode against the slots that hold it, ignoring the hidden input the field
 // renders alongside them to carry the whole value for autofill.
 const otpEntered = `(passcode) => {
@@ -221,9 +223,9 @@ const otpObserved = `() => Array.from(document.querySelectorAll('#otp-input inpu
 	.join('')`
 
 func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, passcode string) {
-	inputs := rs.WaitElementsLocatedBySelector(t, page, "#otp-input input")
+	inputs := rs.WaitElementsLocatedBySelector(t, page, otpSlotSelector)
 
-	require.NotEmpty(t, inputs)
+	require.Len(t, inputs, len(passcode))
 
 	// A key is typed into each slot in turn. Typing the passcode as a whole into the first slot does not
 	// work: the field takes the key the browser sends to the focused slot but does not carry the rest on

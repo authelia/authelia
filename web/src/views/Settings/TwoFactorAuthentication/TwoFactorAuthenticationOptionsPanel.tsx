@@ -1,4 +1,4 @@
-import { ChangeEvent, Fragment, useEffect, useMemo, useReducer } from "react";
+import { Fragment, useEffect, useMemo, useReducer } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -67,9 +67,9 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
         });
     }, [props.config, hasMethods, props.info.has_webauthn, props.info.has_totp, props.info.has_duo]);
 
-    const handleMethodAccountChanged = (event: ChangeEvent<HTMLInputElement>) => {
-        if (isMethod2FA(event.target.value)) {
-            const value = toSecondFactorMethod(event.target.value as Method2FA);
+    const handleMethodAccountChanged = (method: string) => {
+        if (isMethod2FA(method)) {
+            const value = toSecondFactorMethod(method as Method2FA);
 
             setPreferred2FAMethod(value)
                 .then(() => {
@@ -85,9 +85,9 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
         }
     };
 
-    const handleMethodBrowserChanged = (event: ChangeEvent<HTMLInputElement>) => {
-        if (isMethod2FA(event.target.value)) {
-            setLocalStorageMethod(toSecondFactorMethod(event.target.value as Method2FA));
+    const handleMethodBrowserChanged = (method: string) => {
+        if (isMethod2FA(method)) {
+            setLocalStorageMethod(toSecondFactorMethod(method as Method2FA));
         }
     };
 

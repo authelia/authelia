@@ -1,5 +1,3 @@
-import { ChangeEvent } from "react";
-
 import { useTranslation } from "react-i18next";
 
 import { Label } from "@components/UI/Label";
@@ -12,25 +10,18 @@ interface Props {
     methods: SecondFactorMethod[];
     method: SecondFactorMethod;
     name: string;
-    handleMethodChanged: (_event: ChangeEvent<HTMLInputElement>) => void;
+    handleMethodChanged: (value: string) => void;
 }
 
 const TwoFactorAuthenticationOptionsMethodsRadioGroup = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-
-    const handleValueChange = (value: string) => {
-        const syntheticEvent = {
-            target: { value },
-        } as ChangeEvent<HTMLInputElement>;
-        props.handleMethodChanged(syntheticEvent);
-    };
 
     return (
         <fieldset>
             <legend className="text-sm font-medium text-muted-foreground mb-3">{translate(props.name)}</legend>
             <RadioGroup
                 value={toMethod2FA(props.method)}
-                onValueChange={handleValueChange}
+                onValueChange={props.handleMethodChanged}
                 className="flex flex-row gap-4"
             >
                 {props.methods.map((value, _index) => {

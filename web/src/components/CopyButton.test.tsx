@@ -125,3 +125,63 @@ it("cancels its pending timeouts when unmounted", async () => {
         vi.useRealTimers();
     }
 });
+
+it("schedules nothing when unmounted while the clipboard write is in flight", async () => {
+    vi.useFakeTimers();
+
+    let resolveWrite: () => void = () => {};
+
+    mockWriteText.mockImplementationOnce(
+        () =>
+            new Promise<void>((resolve) => {
+                resolveWrite = resolve;
+            }),
+    );
+
+    try {
+        const { unmount } = render(
+            <CopyButton tooltip="copy" value="test">
+                Copy
+            </CopyButton>,
+        );
+
+        fireEvent.click(screen.getByRole("button"));
+
+        unmount();
+
+        expect(vi.getTimerCount()).toBe(0);
+
+        resolveWrite();
+
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(vi.getTimerCount()).toBe(0);
+    } finally {
+        vi.useRealTimers();
+    }
+});
+
+it("recovers and stays clickable when the clipboard write is rejected", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    mockWriteText.mockRejectedValueOnce(new Error("permission denied"));
+
+    try {
+        const { container } = render(
+            <CopyButton tooltip="copy" value="test">
+                Copy
+            </CopyButton>,
+        );
+
+        fireEvent.click(screen.getByRole("button"));
+
+        await waitFor(() => expect(consoleError).toHaveBeenCalled());
+        await waitFor(() => expect(container.querySelector('[data-slot="spinner"]')).not.toBeInTheDocument());
+
+        fireEvent.click(screen.getByRole("button"));
+
+        await waitFor(() => expect(mockWriteText).toHaveBeenCalledTimes(2));
+    } finally {
+        consoleError.mockRestore();
+    }
+});

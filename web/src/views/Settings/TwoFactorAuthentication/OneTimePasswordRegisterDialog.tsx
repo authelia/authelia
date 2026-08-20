@@ -279,7 +279,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                     <Fragment>
                         {defaults === null ? (
                             <div className="col-span-12 my-6">
-                                <p>Loading...</p>
+                                <p>{translate("Loading", { ns: "portal" })}</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-12">
@@ -405,39 +405,31 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                             </div>
                         </div>
                         <div className={cn("col-span-12", !showQRCode && "hidden")}>
-                            <div className={cn("inline-block relative", (isLoading || hasErrored) && "blur-sm")}>
+                            <div className="inline-block relative min-h-[216px] min-w-[216px]">
                                 {secretURL ? (
-                                    <a href={secretURL} className="hover:opacity-80">
+                                    <a
+                                        href={secretURL}
+                                        className={cn("hover:opacity-80", (isLoading || hasErrored) && "blur-sm")}
+                                    >
                                         <QRCodeSVG
                                             value={secretURL}
                                             size={200}
                                             className="inline-block my-4 p-2 bg-white"
                                         />
-                                        {isLoading && !hasErrored ? (
-                                            <div
-                                                className="absolute"
-                                                style={{
-                                                    color: "rgba(255, 255, 255, 0.5)",
-                                                    left: "calc(128px - 64px)",
-                                                    top: "calc(128px - 64px)",
-                                                }}
-                                            >
-                                                <div className="size-32 animate-spin rounded-full border-4 border-current border-t-transparent" />
-                                            </div>
-                                        ) : null}
-                                        {hasErrored ? (
-                                            <XCircle
-                                                className="absolute text-red-400"
-                                                style={{
-                                                    fontSize: "8rem",
-                                                    height: "128px",
-                                                    left: "calc(128px - 64px)",
-                                                    top: "calc(128px - 64px)",
-                                                    width: "128px",
-                                                }}
-                                            />
-                                        ) : null}
                                     </a>
+                                ) : null}
+                                {isLoading && !hasErrored ? (
+                                    <div
+                                        className="absolute inset-0 flex items-center justify-center"
+                                        style={{ color: "rgba(255, 255, 255, 0.5)" }}
+                                    >
+                                        <div className="size-32 animate-spin rounded-full border-4 border-current border-t-transparent" />
+                                    </div>
+                                ) : null}
+                                {hasErrored ? (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <XCircle className="size-32 text-red-400" />
+                                    </div>
                                 ) : null}
                             </div>
                         </div>

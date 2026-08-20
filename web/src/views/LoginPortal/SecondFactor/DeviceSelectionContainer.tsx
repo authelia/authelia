@@ -46,7 +46,7 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
     switch (state) {
         case State.DEVICE:
             container = (
-                <div className="grid grid-cols-1 justify-center gap-2" id="device-selection">
+                <div className="grid w-full grid-cols-1 justify-center gap-2" id="device-selection">
                     {props.devices.map((value, index) => {
                         return (
                             <DeviceItem
@@ -62,7 +62,7 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
             break;
         case State.METHOD:
             container = (
-                <div className="grid grid-cols-1 justify-center gap-2" id="method-selection">
+                <div className="grid w-full grid-cols-1 justify-center gap-2" id="method-selection">
                     {device.methods.map((value, index) => {
                         return (
                             <MethodItem
