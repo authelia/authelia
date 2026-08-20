@@ -349,7 +349,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	defer results.Close()
 
 	cmd := utils.CommandWithStdout("bash", "-c", testCmdLine)
-	cmd.Stdout = io.MultiWriter(results, &testOutputWriter{out: os.Stdout})
+	cmd.Stdout = io.MultiWriter(&testOutputWriter{out: os.Stdout}, results)
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 

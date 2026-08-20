@@ -59,6 +59,12 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 	switch {
 	case config.FilePath != "":
+		writers = []io.Writer{}
+
+		if config.KeepStdout {
+			writers = append(writers, os.Stdout)
+		}
+
 		lf = NewFile(config.FilePath)
 
 		if err = lf.Open(); err != nil {
@@ -72,11 +78,7 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 			})
 		}
 
-		writers = []io.Writer{lf}
-
-		if config.KeepStdout {
-			writers = append(writers, os.Stdout)
-		}
+		writers = append(writers, lf)
 	default:
 		writers = []io.Writer{os.Stdout}
 	}
