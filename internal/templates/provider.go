@@ -29,44 +29,33 @@ type Provider struct {
 
 // LoadTemplatedAssets takes an embed.FS and loads each templated asset document into a Template.
 func (p *Provider) LoadTemplatedAssets(fs fs.ReadFileFS) (err error) {
-	var (
-		data []byte
-	)
-
-	if data, err = fs.ReadFile("public_html/index.html"); err != nil {
-		return fmt.Errorf("error occurred loading template 'assets/public_html/index.html': %w", err)
+	if p.templates.asset.index, err = parseTemplatedAsset(fs, AssetPathIndex); err != nil {
+		return err
 	}
 
-	if p.templates.asset.index, err = tt.
-		New("assets/public_html/index.html").
-		Funcs(FuncMap()).
-		Parse(string(data)); err != nil {
-		return fmt.Errorf("error occurred loading template 'assets/public_html/index.html': %w", err)
+	if p.templates.asset.api.index, err = parseTemplatedAsset(fs, AssetPathAPIIndex); err != nil {
+		return err
 	}
 
-	if data, err = fs.ReadFile("public_html/api/index.html"); err != nil {
-		return fmt.Errorf("error occurred loading template 'assets/public_html/api/index.html': %w", err)
-	}
-
-	if p.templates.asset.api.index, err = tt.
-		New("assets/public_html/api/index.html").
-		Funcs(FuncMap()).
-		Parse(string(data)); err != nil {
-		return fmt.Errorf("error occurred loading template 'assets/public_html/api/index.html': %w", err)
-	}
-
-	if data, err = fs.ReadFile("public_html/api/openapi.yml"); err != nil {
-		return fmt.Errorf("error occurred loading template 'assets/public_html/api/openapi.yml': %w", err)
-	}
-
-	if p.templates.asset.api.spec, err = tt.
-		New("assets/public_html/api/openapi.yml").
-		Funcs(FuncMap()).
-		Parse(string(data)); err != nil {
-		return fmt.Errorf("error occurred loading template 'assets/public_html/api/openapi.yml': %w", err)
+	if p.templates.asset.api.spec, err = parseTemplatedAsset(fs, AssetPathAPISpec); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+func parseTemplatedAsset(fs fs.ReadFileFS, asset string) (t *tt.Template, err error) {
+	var data []byte
+
+	if data, err = fs.ReadFile(asset); err != nil {
+		return nil, fmt.Errorf("error occurred loading template '%s%s': %w", assetPathPrefix, asset, err)
+	}
+
+	if t, err = tt.New(assetPathPrefix + asset).Funcs(FuncMap()).Parse(string(data)); err != nil {
+		return nil, fmt.Errorf("error occurred loading template '%s%s': %w", assetPathPrefix, asset, err)
+	}
+
+	return t, nil
 }
 
 // GetAssetIndexTemplate returns a Template used to generate the React index document.

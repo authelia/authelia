@@ -90,7 +90,7 @@ The following section contains various compliance related information.
 
 There is no key individual who if they were incapacitated or unavailable would prevent future operations of the project.
 
-All of the following areas can be reset or are otherwise accessible to all of the members of the [Core Team](#core-team):
+All of the following areas can be reset or are otherwise accessible to all of the members of the [Core Team](../policies/governance.md#core-team):
 
 - Private Keys
 - Access Rights

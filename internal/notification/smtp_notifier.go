@@ -142,7 +142,7 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 		client SMTPClient
 	)
 
-	if msg, err = n.msg(recipient, subject, et, data); err != nil {
+	if msg, err = n.buildMessage(recipient, subject, et, data); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to create envelope: %w", err)
 	}
 
@@ -165,7 +165,7 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 	return nil
 }
 
-func (n *SMTPNotifier) msg(recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (msg *gomail.Msg, err error) {
+func (n *SMTPNotifier) buildMessage(recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (msg *gomail.Msg, err error) {
 	msg = gomail.NewMsg(
 		gomail.WithMIMEVersion(gomail.MIME10),
 		gomail.WithBoundary(n.random.StringCustom(30, random.CharSetAlphaNumeric)),

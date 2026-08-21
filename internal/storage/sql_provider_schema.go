@@ -287,7 +287,6 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnectio
 		}
 
 		if migration.Version == 1 && migration.Up {
-			// Add the schema encryption value if upgrading to v1.
 			key := p.keys.encryption
 
 			if target < schemaVersionEncryptionKeyDerivation {

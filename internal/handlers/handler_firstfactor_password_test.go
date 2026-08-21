@@ -40,13 +40,11 @@ func (s *FirstFactorSuite) TearDownTest() {
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsNil() {
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// No body.
 	s.mock.AssertLastLogMessage(s.T(), "Failed to parse 1FA request body", "unable to parse body: unexpected end of JSON input")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfBodyIsInBadFormat() {
-	// Missing password.
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test"
 	}`)
@@ -353,7 +351,6 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	}`)
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
@@ -403,7 +400,6 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	}`)
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
@@ -457,7 +453,6 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
@@ -539,7 +534,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 	}`)
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
@@ -571,7 +565,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
@@ -605,7 +598,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
 }
 
@@ -648,7 +640,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
 }
 
@@ -685,7 +676,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyWhenBadTargetURL() {
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
@@ -724,7 +714,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyTwoFactorOK() {
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
 }
 
@@ -763,7 +752,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyTwoTwoFactorUnsafe() {
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
 }
 
@@ -802,7 +790,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyTwoTwoFactorSafe() {
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://test.example.com"})
 }
 
@@ -842,7 +829,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantParseUUID(
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred parsing the consent session flow id", map[string]any{"error": "invalid UUID length: 55", "flow": "openid_connect", "flow_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaa-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
@@ -885,7 +871,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetConsent
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred loading the consent session", map[string]any{"error": "failed to obtain", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
@@ -928,7 +913,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectConsentSession
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to process consent session as it has already been responded to", map[string]any{"flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
@@ -974,7 +958,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient(
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred loading the client for the consent session", map[string]any{"error": "invalid_client", "client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
@@ -1036,7 +1019,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://login.example.com:8080/consent/openid/decision?flow=openid_connect&flow_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c"})
 }
 
@@ -1093,7 +1075,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Error occurred getting the original form from the consent session", map[string]any{"error": "invalid URL escape \"%1\"", "client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": "", "username": "test"})
 }
@@ -1152,7 +1133,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds2FA() {
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
 	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.InfoLevel, "OpenID Connect 1.0 client requires 2FA", map[string]any{"client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
@@ -1211,7 +1191,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds1FA() {
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://login.example.com:8080/api/oidc/authorization?consent_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c&grant_type=authorization_code"})
 }
 
@@ -1240,13 +1219,11 @@ func (s *FirstFactorReauthenticateSuite) TearDownTest() {
 func (s *FirstFactorReauthenticateSuite) TestShouldFailIfBodyIsNil() {
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
-	// No body.
 	s.mock.AssertLastLogMessage(s.T(), "Failed to parse 1FA request body", "unable to parse body: unexpected end of JSON input")
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
 func (s *FirstFactorReauthenticateSuite) TestShouldFailIfBodyIsInBadFormat() {
-	// Missing password.
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test"
 	}`)
@@ -1346,17 +1323,6 @@ func (s *FirstFactorReauthenticateSuite) TestShouldCheckBannedUser() {
 	}`)
 
 	gomock.InOrder(
-		/*
-			s.mock.StorageMock.EXPECT().
-				LoadAuthenticationLogs(gomock.Eq(s.mock.Ctx), testValue, gomock.Any(), gomock.Any(), gomock.Any()).
-				Return([]model.AuthenticationAttempt{
-					{Successful: false, Time: s.mock.Clock.Now().Add(-time.Second)},
-					{Successful: false, Time: s.mock.Clock.Now().Add(-time.Second)},
-					{Successful: false, Time: s.mock.Clock.Now().Add(-time.Second)},
-					{Successful: false, Time: s.mock.Clock.Now().Add(-time.Second)},
-				}, nil),
-		*/
-
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(gomock.Eq(s.mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
@@ -1471,7 +1437,6 @@ func (s *FirstFactorReauthenticateSuite) TestShouldSaveUsernameFromAuthenticatio
 	}`)
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
 
@@ -1551,7 +1516,6 @@ func (s *FirstFactorReauthenticateRedirectionSuite) TestShouldRedirectToDefaultU
 	}`)
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
@@ -1572,7 +1536,6 @@ func (s *FirstFactorReauthenticateRedirectionSuite) TestShouldRedirectToDefaultU
 
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
@@ -1595,7 +1558,6 @@ func (s *FirstFactorReauthenticateRedirectionSuite) TestShouldReply200WhenNoTarg
 
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
 }
 
@@ -1627,7 +1589,6 @@ func (s *FirstFactorReauthenticateRedirectionSuite) TestShouldReply200WhenUnsafe
 
 	FirstFactorReauthenticatePOST(nil)(s.mock.Ctx)
 
-	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
 }
 

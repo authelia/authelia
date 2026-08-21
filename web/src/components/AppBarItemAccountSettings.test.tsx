@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import AppBarItemAccountSettings from "@components/AppBarItemAccountSettings";
 import { useFlowPresent } from "@hooks/Flow";
@@ -27,6 +27,10 @@ const mockUserInfo = {
     method: 1,
 };
 
+const openDropdown = (button: HTMLElement) => {
+    fireEvent.click(button, { button: 0 });
+};
+
 it("renders without crashing", () => {
     vi.mocked(useFlowPresent).mockReturnValue(false);
     render(<AppBarItemAccountSettings userInfo={mockUserInfo} />);
@@ -48,7 +52,7 @@ it("opens menu on button click", () => {
     vi.mocked(useFlowPresent).mockReturnValue(false);
     render(<AppBarItemAccountSettings userInfo={mockUserInfo} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     expect(screen.getByText("Settings")).toBeInTheDocument();
     expect(screen.getByText("Logout")).toBeInTheDocument();
 });
@@ -57,7 +61,7 @@ it("renders switch user menu item when flow present", () => {
     vi.mocked(useFlowPresent).mockReturnValue(true);
     render(<AppBarItemAccountSettings userInfo={mockUserInfo} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     expect(screen.getByText("Switch User")).toBeInTheDocument();
 });
 
@@ -65,36 +69,36 @@ it("does not render switch user menu item when flow not present", () => {
     vi.mocked(useFlowPresent).mockReturnValue(false);
     render(<AppBarItemAccountSettings userInfo={mockUserInfo} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     expect(screen.queryByText("Switch User")).not.toBeInTheDocument();
 });
 
-it("navigates to settings on settings click", () => {
+it("navigates to settings on settings click", async () => {
     vi.mocked(useFlowPresent).mockReturnValue(false);
     render(<AppBarItemAccountSettings userInfo={mockUserInfo} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     const settingsItem = screen.getByText("Settings");
     fireEvent.click(settingsItem);
-    expect(mockNavigate).toHaveBeenCalledWith("/settings");
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/settings"));
 });
 
-it("logs out on logout click", () => {
+it("logs out on logout click", async () => {
     vi.mocked(useFlowPresent).mockReturnValue(false);
     render(<AppBarItemAccountSettings userInfo={mockUserInfo} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     const logoutItem = screen.getByText("Logout");
     fireEvent.click(logoutItem);
-    expect(mockDoSignOut).toHaveBeenCalledWith(false);
+    await waitFor(() => expect(mockDoSignOut).toHaveBeenCalledWith(false));
 });
 
-it("switches user on switch user click", () => {
+it("switches user on switch user click", async () => {
     vi.mocked(useFlowPresent).mockReturnValue(true);
     render(<AppBarItemAccountSettings userInfo={mockUserInfo} />);
     const button = screen.getByRole("button");
-    fireEvent.click(button);
+    openDropdown(button);
     const switchItem = screen.getByText("Switch User");
     fireEvent.click(switchItem);
-    expect(mockDoSignOut).toHaveBeenCalledWith(true);
+    await waitFor(() => expect(mockDoSignOut).toHaveBeenCalledWith(true));
 });

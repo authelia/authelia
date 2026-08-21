@@ -448,7 +448,7 @@ func TestX509CertificateChain(t *testing.T) {
 	require.NotNil(t, err)
 	assert.Regexp(t, regexp.MustCompile(`^certificate #1 in chain is invalid after 31536000 but the time is \d+$`), err.Error())
 
-	chain = MustParseX509CertificateChain(x509CertificateRSANotBefore + "\n" + x509CACertificateRSAotBefore)
+	chain = MustParseX509CertificateChain(x509CertificateRSANotBefore + "\n" + x509CACertificateRSANotBefore)
 
 	err = chain.Validate()
 	require.NotNil(t, err)
@@ -1275,7 +1275,7 @@ EmiaOgL8c7+PpSWuUggJLb/JXDYnPtvekH3gPao=
 	*/
 
 	// Valid from 2400 to 2401 (years).
-	x509CACertificateRSAotBefore = `-----BEGIN CERTIFICATE-----
+	x509CACertificateRSANotBefore = `-----BEGIN CERTIFICATE-----
 MIIDBzCCAe+gAwIBAgIQeR2/TbyH9gEzyjuTijMGVzANBgkqhkiG9w0BAQsFADAT
 MREwDwYDVQQKEwhBdXRoZWxpYTAiGA8yNDAwMDEwMTAwMDAwMFoYDzI0MDAxMjMx
 MDAwMDAwWjATMREwDwYDVQQKEwhBdXRoZWxpYTCCASIwDQYJKoZIhvcNAQEBBQAD
@@ -1296,7 +1296,7 @@ apA21VwIrpFg54A=
 -----END CERTIFICATE-----`
 
 	/*
-			// Private Key for x509CACertificateRSAotBefore.
+			// Private Key for x509CACertificateRSANotBefore.
 			x509CAPrivateKeyRSANotBefore = `-----BEGIN RSA PRIVATE KEY-----
 		MIIEpAIBAAKCAQEAnu+lFINdW/A4saaNtl2gbbk52xaCaFUBakUJSJ+i2qivP7P5
 		WDA+e9UOnVxOnTvL6YMkr74Y0E4bWlLkbiivpjUcCVPecakTQViGu0MFCaG+pXTq

@@ -97,6 +97,8 @@ it("calls onClose when Close button is clicked", () => {
             onClick={vi.fn()}
         />,
     );
-    fireEvent.click(screen.getByText("Close"));
+    const closeButtons = screen.getAllByRole("button", { name: "Close" });
+    const footerCloseButton = closeButtons.find((btn) => btn.textContent === "Close")!;
+    fireEvent.click(footerCloseButton);
     expect(onClose).toHaveBeenCalledOnce();
 });

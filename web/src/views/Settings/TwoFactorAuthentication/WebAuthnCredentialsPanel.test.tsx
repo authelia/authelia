@@ -44,6 +44,16 @@ it("renders panel with title and add button", () => {
     expect(screen.getByText("Add")).toBeInTheDocument();
 });
 
+it("does not claim there are no credentials while they are still loading", () => {
+    const { container } = render(
+        <WebAuthnCredentialsPanel info={undefined} credentials={undefined} handleRefreshState={vi.fn()} />,
+    );
+    expect(
+        screen.queryByText("No WebAuthn Credentials have been registered if you'd like to register one click add"),
+    ).not.toBeInTheDocument();
+    expect(container.querySelector('[data-loading="true"]')).toBeInTheDocument();
+});
+
 it("renders no credentials message when credentials is empty", () => {
     render(<WebAuthnCredentialsPanel info={undefined} credentials={[]} handleRefreshState={vi.fn()} />);
     expect(
