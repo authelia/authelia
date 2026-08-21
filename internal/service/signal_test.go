@@ -20,7 +20,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/systemd"
 )
 
-// mockServiceCtx implements ServiceCtx for testing.
 type mockServiceCtx struct {
 	ctx       context.Context
 	config    *schema.Configuration

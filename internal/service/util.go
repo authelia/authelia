@@ -13,12 +13,15 @@ import (
 	"github.com/authelia/authelia/v4/internal/systemd"
 )
 
+// RunAll runs the services from every provisioner returned by GetProvisioners.
 func RunAll(ctx Context) (err error) {
 	provisioners := GetProvisioners()
 
 	return Run(ctx, provisioners...)
 }
 
+// Run provisions and runs the services from the given provisioners until the context is cancelled, a SIGINT or
+// SIGTERM signal is received, or a service terminates.
 func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	cctx, cancel := context.WithCancel(ctx)
 

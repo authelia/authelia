@@ -209,8 +209,8 @@ func ParseX509FromPEM(data []byte) (key any, err error) {
 }
 
 // ParseX509FromPEMRecursive allows returning the appropriate key type given some PEM encoded input.
-// For Keys this is a single value of one of *rsa.PrivateKey, *rsa.PublicKey, *ecdsa.PrivateKey, *ecdsa.PublicKey,
-// ed25519.PrivateKey, or ed25519.PublicKey. For certificates this is
+// For Keys this is a single value of one of *[rsa.PrivateKey], *[rsa.PublicKey], *[ecdsa.PrivateKey], *[ecdsa.PublicKey],
+// [ed25519.PrivateKey], or [ed25519.PublicKey]. For certificates this is
 // either a *X509.Certificate, or a []*X509.Certificate.
 func ParseX509FromPEMRecursive(data []byte) (decoded any, err error) {
 	var (
@@ -296,7 +296,7 @@ func ParsePEMBlock(block *pem.Block) (key any, err error) {
 	}
 }
 
-// AssertToX509Certificate converts an interface to an *x509.Certificate.
+// AssertToX509Certificate converts an interface to an *[x509.Certificate].
 func AssertToX509Certificate(c any) (certificate *x509.Certificate, ok bool) {
 	switch t := c.(type) {
 	case x509.Certificate:
@@ -308,7 +308,7 @@ func AssertToX509Certificate(c any) (certificate *x509.Certificate, ok bool) {
 	}
 }
 
-// IsX509PrivateKey returns true if the provided interface is an rsa.PrivateKey, ecdsa.PrivateKey, or ed25519.PrivateKey.
+// IsX509PrivateKey returns true if the provided interface is an [rsa.PrivateKey], [ecdsa.PrivateKey], or [ed25519.PrivateKey].
 func IsX509PrivateKey(i any) bool {
 	switch i.(type) {
 	case rsa.PrivateKey, *rsa.PrivateKey, ecdsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ed25519.PrivateKey:
@@ -318,7 +318,7 @@ func IsX509PrivateKey(i any) bool {
 	}
 }
 
-// NewTLSConfig generates a tls.Config from a schema.TLS and a x509.CertPool.
+// NewTLSConfig generates a [tls.Config] from a schema.TLS and a [x509.CertPool].
 func NewTLSConfig(config *schema.TLS, rootCAs *x509.CertPool) (tlsConfig *tls.Config) {
 	if config == nil {
 		return nil
@@ -346,12 +346,12 @@ func NewTLSConfig(config *schema.TLS, rootCAs *x509.CertPool) (tlsConfig *tls.Co
 	}
 }
 
-// NewX509CertPool generates a x509.CertPool from the system PKI and the directory specified using the standard factory.
+// NewX509CertPool generates a [x509.CertPool] from the system PKI and the directory specified using the standard factory.
 func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []error, errors []error) {
 	return NewX509CertPoolWithFactory(directory, &StandardX509SystemCertPoolFactory{})
 }
 
-// NewX509CertPoolWithFactory generates a x509.CertPool from the system PKI and the directory specified using a specific
+// NewX509CertPoolWithFactory generates a [x509.CertPool] from the system PKI and the directory specified using a specific
 // factory.
 func NewX509CertPoolWithFactory(directory string, factory X509SystemCertPoolFactory) (certPool *x509.CertPool, warnings []error, errors []error) {
 	if factory == nil {
@@ -420,7 +420,7 @@ func WriteCertificateBytesAsPEMToPath(path string, csr bool, certs ...[]byte) (e
 	return out.Close()
 }
 
-// WriteCertificateBytesAsPEMToWriter writes a certificate/csr to a io.Writer in the PEM format.
+// WriteCertificateBytesAsPEMToWriter writes a certificate/csr to a [io.Writer] in the PEM format.
 func WriteCertificateBytesAsPEMToWriter(wr io.Writer, csr bool, certs ...[]byte) (err error) {
 	blockType := BlockTypeCertificate
 	if csr {
@@ -463,6 +463,7 @@ func WritePEMBlocksToPath(path string, blocks ...*pem.Block) (err error) {
 	return out.Close()
 }
 
+// WritePEMBlocksToWriter encodes the given PEM blocks to the given writer.
 func WritePEMBlocksToWriter(w io.Writer, blocks ...*pem.Block) (err error) {
 	for _, block := range blocks {
 		if err = pem.Encode(w, block); err != nil {
@@ -473,7 +474,7 @@ func WritePEMBlocksToWriter(w io.Writer, blocks ...*pem.Block) (err error) {
 	return nil
 }
 
-// PEMBlockFromX509Key turns a PublicKey or PrivateKey into a pem.Block.
+// PEMBlockFromX509Key turns a PublicKey or PrivateKey into a [pem.Block].
 func PEMBlockFromX509Key(key any, legacy bool) (block *pem.Block, err error) {
 	var (
 		data      []byte
@@ -541,7 +542,7 @@ func PEMBlockFromX509Key(key any, legacy bool) (block *pem.Block, err error) {
 	}, nil
 }
 
-// KeySigAlgorithmFromString returns a x509.PublicKeyAlgorithm and x509.SignatureAlgorithm given a keyAlgorithm and signatureAlgorithm string.
+// KeySigAlgorithmFromString returns a [x509.PublicKeyAlgorithm] and [x509.SignatureAlgorithm] given a keyAlgorithm and signatureAlgorithm string.
 func KeySigAlgorithmFromString(keyAlgorithm, signatureAlgorithm string) (keyAlg x509.PublicKeyAlgorithm, sigAlg x509.SignatureAlgorithm) {
 	keyAlg = PublicKeyAlgorithmFromString(keyAlgorithm)
 
@@ -561,7 +562,7 @@ func KeySigAlgorithmFromString(keyAlgorithm, signatureAlgorithm string) (keyAlg 
 	}
 }
 
-// PublicKeyAlgorithmFromString returns a x509.PublicKeyAlgorithm given an appropriate string.
+// PublicKeyAlgorithmFromString returns a [x509.PublicKeyAlgorithm] given an appropriate string.
 func PublicKeyAlgorithmFromString(algorithm string) (alg x509.PublicKeyAlgorithm) {
 	switch strings.ToUpper(algorithm) {
 	case KeyAlgorithmRSA:
@@ -575,7 +576,7 @@ func PublicKeyAlgorithmFromString(algorithm string) (alg x509.PublicKeyAlgorithm
 	}
 }
 
-// RSASignatureAlgorithmFromString returns a x509.SignatureAlgorithm for the RSA x509.PublicKeyAlgorithm given an
+// RSASignatureAlgorithmFromString returns a [x509.SignatureAlgorithm] for the RSA [x509.PublicKeyAlgorithm] given an
 // algorithm string.
 func RSASignatureAlgorithmFromString(algorithm string) (alg x509.SignatureAlgorithm) {
 	switch strings.ToUpper(algorithm) {
@@ -592,7 +593,7 @@ func RSASignatureAlgorithmFromString(algorithm string) (alg x509.SignatureAlgori
 	}
 }
 
-// ECDSASignatureAlgorithmFromString returns a x509.SignatureAlgorithm for the ECDSA x509.PublicKeyAlgorithm given an
+// ECDSASignatureAlgorithmFromString returns a [x509.SignatureAlgorithm] for the ECDSA [x509.PublicKeyAlgorithm] given an
 // algorithm string.
 func ECDSASignatureAlgorithmFromString(algorithm string) (alg x509.SignatureAlgorithm) {
 	switch strings.ToUpper(algorithm) {
@@ -609,7 +610,7 @@ func ECDSASignatureAlgorithmFromString(algorithm string) (alg x509.SignatureAlgo
 	}
 }
 
-// EllipticCurveFromString turns a string into an elliptic.Curve.
+// EllipticCurveFromString turns a string into an [elliptic.Curve].
 func EllipticCurveFromString(curveString string) (curve elliptic.Curve) {
 	switch strings.ToUpper(curveString) {
 	case EllipticCurveAltP224, EllipticCurveP224:

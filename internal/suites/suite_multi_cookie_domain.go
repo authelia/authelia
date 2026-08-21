@@ -26,7 +26,7 @@ func init() {
 			return err
 		}
 
-		return updateDevEnvFileForDomain(BaseDomain, true)
+		return updateDevEnvFileForDomain(BaseDomain, multiCookieDomainDockerEnvironment)
 	}
 
 	displayAutheliaLogs := func() error {

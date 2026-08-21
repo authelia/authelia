@@ -3,7 +3,6 @@ package suites
 import (
 	"bufio"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/input"
@@ -59,6 +59,7 @@ const diagnosticsResources = `() => JSON.stringify({
 	})),
 }, null, 2)`
 
+// StringToKeys returns the input.Key values which represent the given string.
 func StringToKeys(value string) []input.Key {
 	n := len(value)
 
@@ -142,11 +143,13 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 	}
 }
 
+// SetupSuite performs the setup for this suite.
 func (s *BaseSuite) SetupSuite() {
 	s.SetupLogging()
 	s.SetupEnvironment()
 }
 
+// SetupLogging configures the logging for this suite.
 func (s *BaseSuite) SetupLogging() {
 	if os.Getenv("SUITE_SETUP_LOGGING") == t {
 		return
@@ -174,6 +177,7 @@ func (s *BaseSuite) SetupLogging() {
 	s.T().Setenv("SUITE_SETUP_LOGGING", t)
 }
 
+// SetupEnvironment configures the environment for this suite.
 func (s *BaseSuite) SetupEnvironment() {
 	if s.Name == "" || os.Getenv("SUITE_SETUP_ENVIRONMENT") == t {
 		return
@@ -223,6 +227,32 @@ func (s *BaseSuite) SetupEnvironment() {
 	s.T().Setenv("SUITE_SETUP_ENVIRONMENT", t)
 }
 
+// SuiteTempDir creates a directory inside the directory this process shares with the suite containers, and returns the
+// path this process reaches it at. Pass the result through SuiteTmpContainerPath before handing it to a container.
+// t.TempDir() cannot be used because it honors TMPDIR, which the containers do not share.
+func SuiteTempDir(t *testing.T, pattern string) (dir string) {
+	dir, err := os.MkdirTemp(SuiteTmpPath(), pattern)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_ = os.RemoveAll(dir)
+	})
+
+	return dir
+}
+
+// SuiteTmpContainerPath returns the path a container sees for a file this process reaches at dir, which has to be
+// inside SuiteTmpPath. The containers always see that directory at /tmp while this process may reach it elsewhere, so
+// a path that crosses the boundary has to be translated rather than shared verbatim.
+func SuiteTmpContainerPath(dir string) string {
+	relative, err := filepath.Rel(SuiteTmpPath(), dir)
+	if err != nil {
+		return dir
+	}
+
+	return filepath.Join(suiteTmpPathDefault, relative)
+}
+
 func screenshotPaths(name string) (path, reported string) {
 	suite := strings.ToLower(os.Getenv("SUITE"))
 
@@ -234,7 +264,8 @@ func screenshotPaths(name string) (path, reported string) {
 		return filepath.Join("../..", reported), reported
 	}
 
-	path = filepath.Join(os.TempDir(), "authelia-suites-screenshots", suite, name)
+	// Scoped by compose project so concurrent runs of the same suite on one machine keep their own screenshots.
+	path = filepath.Join(os.TempDir(), "authelia-suites-screenshots", composeProjectName(), suite, name)
 
 	return path, path
 }
@@ -245,7 +276,10 @@ func (s *RodSuite) collectScreenshot(err error, page *rod.Page) {
 
 func (rs *RodSession) collectContainerLogs(test *testing.T, base string) {
 	// The OnError hook prints these too, but it runs in a separate process after the test binary has
-	// exited, so nothing it prints can be associated with the test that failed.
+	// exited, so nothing it prints can be associated with the test that failed. The collected tail is deep
+	// because one configuration rebuild on a shared daemon costs a proxy a debug line per container the
+	// daemon holds, which on its own is as many lines as this used to collect in total. Only the artifact
+	// grows with the depth, since the lines reported inline stay at containerLogTailLines.
 	output, _, err := utils.RunCommandAndReturnOutput(
 		fmt.Sprintf("docker ps --filter label=com.docker.compose.project=%s --format '{{.Names}}'", composeProjectName()),
 	)
@@ -277,6 +311,26 @@ func (rs *RodSession) collectContainerLogs(test *testing.T, base string) {
 	path, _ := screenshotPaths(base + ".containers.log")
 
 	if err = os.WriteFile(path, []byte(builder.String()), 0600); err != nil {
+		log.Debugf("Error writing '%s': %v", path, err)
+	}
+}
+
+func (rs *RodSession) collectProxyAccessLog(base string) {
+	source := SuiteTmpPath(proxyAccessLog())
+
+	data, err := os.ReadFile(source)
+	if err != nil {
+		// Suites that do not run behind a proxy have no such file.
+		log.Debugf("Error reading '%s': %v", source, err)
+
+		return
+	}
+
+	path, _ := screenshotPaths(base + ".access.log")
+
+	// Both paths are named by this package from the name of the running test, and neither carries anything
+	// a request could reach.
+	if err = os.WriteFile(path, data, 0600); err != nil { //nolint:gosec
 		log.Debugf("Error writing '%s': %v", path, err)
 	}
 }
@@ -321,6 +375,7 @@ func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Pa
 	base := strings.NewReplacer("/", "-", " ", "_").Replace(test.Name())
 
 	defer rs.collectContainerLogs(test, base)
+	defer rs.collectProxyAccessLog(base)
 
 	path, reported := screenshotPaths(base + ".png")
 
@@ -362,6 +417,7 @@ func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Pa
 	}
 }
 
+// GetCookieNames returns the names of the cookies currently set in the browser.
 func (s *RodSuite) GetCookieNames() (names []string) {
 	cookies, err := s.Cookies(nil)
 	s.Require().NoError(err)
@@ -373,10 +429,12 @@ func (s *RodSuite) GetCookieNames() (names []string) {
 	return names
 }
 
+// VerifyPageElementAttributeValueBoolean verifies the boolean attribute of the element matching the given selector.
 func (s *RodSuite) VerifyPageElementAttributeValueBoolean(t *testing.T, page *rod.Page, cssSelector, name string, required, value bool) {
 	s.VerifyPageElementAttributeValue(t, page, cssSelector, name, required, strconv.FormatBool(value))
 }
 
+// VerifyPageElementAttributeValue verifies the attribute of the element matching the given selector.
 func (s *RodSuite) VerifyPageElementAttributeValue(t *testing.T, page *rod.Page, cssSelector, name string, required bool, value string) {
 	element := s.WaitElementLocatedByID(t, page, cssSelector)
 
@@ -425,17 +483,11 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 	return nil
 }
 
-// getDomainEnvInfo gets environments variables for specified cookie domain
-// this func makes a http call to https://login.<domain>/devworkflow and is only useful for suite tests.
 func getDomainEnvInfo(domain string) (info map[string]string, err error) {
 	info = make(map[string]string)
 
 	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec
-			},
-		},
+		Transport: NewHTTPTransport(),
 	}
 
 	var (
@@ -469,7 +521,6 @@ func getDomainEnvInfo(domain string) (info map[string]string, err error) {
 	return info, nil
 }
 
-// generateDevEnvFile generates web/.env.development based on opts.
 func generateDevEnvFile(info map[string]string) (err error) {
 	base, _ := os.Getwd()
 	base = strings.TrimSuffix(base, "/internal/suites")
@@ -490,9 +541,7 @@ func generateDevEnvFile(info map[string]string) (err error) {
 	return nil
 }
 
-// updateDevEnvFileForDomain updates web/.env.development.
-// this function only affects local dev environments.
-func updateDevEnvFileForDomain(domain string, setup bool) (err error) {
+func updateDevEnvFileForDomain(domain string, dockerEnvironment *DockerEnvironment) (err error) {
 	if os.Getenv("CI") == t {
 		return nil
 	}
@@ -508,15 +557,11 @@ func updateDevEnvFileForDomain(domain string, setup bool) (err error) {
 		return err
 	}
 
+	since := time.Now()
+
 	if err = generateDevEnvFile(info); err != nil {
 		return err
 	}
 
-	if !setup {
-		if err = waitUntilAutheliaFrontendIsReady(multiCookieDomainDockerEnvironment); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return waitUntilAutheliaFrontendRestarted(dockerEnvironment, since)
 }

@@ -54,7 +54,6 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 	}
 }
 
-// validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
 func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(errors.New(errFmtFileAuthBackendPathNotConfigured))

@@ -57,14 +57,17 @@ type StandardLDAPClientFactory struct {
 	dialer LDAPClientDialer
 }
 
+// Initialize implements the LDAPClientFactory interface.
 func (f *StandardLDAPClientFactory) Initialize() (err error) {
 	return nil
 }
 
+// GetClient implements the LDAPClientFactory interface.
 func (f *StandardLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (client LDAPExtendedClient, err error) {
 	return ldapDialBind(f.log, f.config, f.dialer, f.tls, f.opts, opts...)
 }
 
+// ReleaseClient implements the LDAPClientFactory interface.
 func (f *StandardLDAPClientFactory) ReleaseClient(client LDAPExtendedClient) (err error) {
 	if err = client.Close(); err != nil {
 		return fmt.Errorf("error occurred closing LDAP client: %w", err)
@@ -73,6 +76,7 @@ func (f *StandardLDAPClientFactory) ReleaseClient(client LDAPExtendedClient) (er
 	return nil
 }
 
+// Close implements the LDAPClientFactory interface.
 func (f *StandardLDAPClientFactory) Close() (err error) {
 	return nil
 }
@@ -133,6 +137,7 @@ type PooledLDAPClientFactory struct {
 	closing bool
 }
 
+// Initialize implements the LDAPClientFactory interface.
 func (f *PooledLDAPClientFactory) Initialize() (err error) {
 	if f.pool != nil {
 		return nil
@@ -175,7 +180,6 @@ func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (co
 	return f.acquire(context.Background())
 }
 
-// The dial function dials a new LDAPClient and wraps it as a PooledLDAPClient client.
 func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
 	var client LDAPExtendedClient
 
@@ -265,6 +269,7 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *PooledLD
 	}
 }
 
+// Close implements the LDAPClientFactory interface.
 func (f *PooledLDAPClientFactory) Close() (err error) {
 	f.setClosing()
 

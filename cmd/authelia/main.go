@@ -1,3 +1,4 @@
+// Command authelia is the Authelia daemon which provides authentication and authorization for your applications.
 package main
 
 import (
