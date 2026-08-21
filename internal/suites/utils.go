@@ -272,7 +272,10 @@ func (s *RodSuite) collectScreenshot(err error, page *rod.Page) {
 
 func (rs *RodSession) collectContainerLogs(test *testing.T, base string) {
 	// The OnError hook prints these too, but it runs in a separate process after the test binary has
-	// exited, so nothing it prints can be associated with the test that failed.
+	// exited, so nothing it prints can be associated with the test that failed. The collected tail is deep
+	// because one configuration rebuild on a shared daemon costs a proxy a debug line per container the
+	// daemon holds, which on its own is as many lines as this used to collect in total. Only the artifact
+	// grows with the depth, since the lines reported inline stay at containerLogTailLines.
 	output, _, err := utils.RunCommandAndReturnOutput(
 		fmt.Sprintf("docker ps --filter label=com.docker.compose.project=%s --format '{{.Names}}'", composeProjectName()),
 	)
@@ -304,6 +307,26 @@ func (rs *RodSession) collectContainerLogs(test *testing.T, base string) {
 	path, _ := screenshotPaths(base + ".containers.log")
 
 	if err = os.WriteFile(path, []byte(builder.String()), 0600); err != nil {
+		log.Debugf("Error writing '%s': %v", path, err)
+	}
+}
+
+func (rs *RodSession) collectProxyAccessLog(base string) {
+	source := SuiteTmpPath(proxyAccessLog())
+
+	data, err := os.ReadFile(source)
+	if err != nil {
+		// Suites that do not run behind a proxy have no such file.
+		log.Debugf("Error reading '%s': %v", source, err)
+
+		return
+	}
+
+	path, _ := screenshotPaths(base + ".access.log")
+
+	// Both paths are named by this package from the name of the running test, and neither carries anything
+	// a request could reach.
+	if err = os.WriteFile(path, data, 0600); err != nil { //nolint:gosec
 		log.Debugf("Error writing '%s': %v", path, err)
 	}
 }
@@ -348,6 +371,7 @@ func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Pa
 	base := strings.NewReplacer("/", "-", " ", "_").Replace(test.Name())
 
 	defer rs.collectContainerLogs(test, base)
+	defer rs.collectProxyAccessLog(base)
 
 	path, reported := screenshotPaths(base + ".png")
 
@@ -452,8 +476,6 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 	return nil
 }
 
-// getDomainEnvInfo gets environments variables for specified cookie domain
-// this func makes a http call to https://login.<domain>/devworkflow and is only useful for suite tests.
 func getDomainEnvInfo(domain string) (info map[string]string, err error) {
 	info = make(map[string]string)
 
@@ -512,9 +534,6 @@ func generateDevEnvFile(info map[string]string) (err error) {
 	return nil
 }
 
-// updateDevEnvFileForDomain updates web/.env.development and waits for the
-// Vite dev server to restart after the file change. This function only affects
-// local dev environments.
 func updateDevEnvFileForDomain(domain string, dockerEnvironment *DockerEnvironment) (err error) {
 	if os.Getenv("CI") == t {
 		return nil

@@ -24,6 +24,7 @@ const (
 	elementAttemptTimeout = time.Second
 	elementRetryInterval  = time.Millisecond * 50
 	elementStateTimeout   = time.Second * 5
+	pageRenderTimeout     = time.Second * 5
 	setupTestTimeout      = time.Second * 30
 	waitElementsAttempts  = 10
 )
@@ -354,9 +355,6 @@ func (rs *RodSession) waitElementTextIsNot(t *testing.T, page *rod.Page, selecto
 	rs.waitElementText(t, page, selector, unexpected, false)
 }
 
-// waitElementText polls the text rod reports for the element, which is the text as rendered and so the
-// same value the assertions read: the components uppercase their labels through a style, which the text
-// in the document does not account for.
 func (rs *RodSession) waitElementText(t *testing.T, page *rod.Page, selector, value string, equal bool) {
 	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionTimeout)
 
@@ -367,6 +365,8 @@ func (rs *RodSession) waitElementText(t *testing.T, page *rod.Page, selector, va
 
 	for {
 		if element, err := bounded.Element(selector); err == nil {
+			// rod reports the text as rendered, which is the value the assertions read: the components
+			// uppercase their labels through a style the text in the document does not account for.
 			if text, errText := element.Text(); errText == nil {
 				observed = text
 
@@ -392,11 +392,6 @@ func (rs *RodSession) waitElementText(t *testing.T, page *rod.Page, selector, va
 	}
 }
 
-// doElementAction locates the element and performs the action, repeating both while the element is in
-// a state it is expected to leave: replaced by a re-render, animating in, scrolled out of view, covered
-// or disabled. rod gives up on all of those bar the covered one immediately, and retries that one until
-// its context expires, so the attempt is given a deadline of its own. Without one a single element that
-// never becomes actionable consumes the whole test budget and reports nothing but the expiry.
 func (rs *RodSession) doElementAction(t *testing.T, page *rod.Page, selector string, action func(element *rod.Element) error) {
 	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionTimeout)
 
@@ -456,8 +451,6 @@ func retryElementAction(page *rod.Page, selector string, action func(element *ro
 	}
 }
 
-// preferElementError reports the last state the element was seen in rather than the expiry that ended
-// the attempt, which on its own says nothing about why the element could not be acted on.
 func preferElementError(ctx context.Context, err, last error) error {
 	if last != nil && ctx.Err() != nil {
 		return last
@@ -466,9 +459,8 @@ func preferElementError(ctx context.Context, err, last error) error {
 	return err
 }
 
-// describeElement reads the element state through a context of its own so it still reports when the one
-// the action ran under has expired.
 func describeElement(page *rod.Page, selector string) string {
+	// A context of its own, so the state still reports once the one the action ran under has expired.
 	result, err := page.Context(context.Background()).Timeout(elementStateTimeout).Eval(elementState, selector)
 	if err != nil {
 		return fmt.Sprintf("unavailable: %v", err)
@@ -477,8 +469,6 @@ func describeElement(page *rod.Page, selector string) string {
 	return result.Value.Str()
 }
 
-// isTransientElementError reports whether the error describes a state the element is expected to leave
-// on its own.
 func isTransientElementError(err error) bool {
 	var notInteractable *rod.NotInteractableError
 

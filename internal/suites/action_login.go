@@ -74,7 +74,6 @@ func (rs *RodSession) doLoginPasskey(t *testing.T, page *rod.Page, keepMeLoggedI
 	rs.ClickElementLocatedByID(t, page, "passkey-sign-in-button")
 }
 
-// Login 1FA and 2FA subsequently (must already be registered).
 func (rs *RodSession) doLoginSecondFactorTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, targetURL string) {
 	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, targetURL)
 	rs.verifyIsSecondFactorPage(t, page)

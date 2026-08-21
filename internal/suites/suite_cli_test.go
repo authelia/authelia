@@ -505,7 +505,6 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.Contains(output, "\tPrivate Key: private.pem")
 	s.Contains(output, "\tCertificate: public.crt")
 
-	// Check the certificates look fine.
 	privateKeyData, err := os.ReadFile(SuiteTmpPath("private.pem"))
 	s.NoError(err)
 

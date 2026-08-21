@@ -1,6 +1,7 @@
 package suites
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -52,6 +53,18 @@ func SuiteTmpPath(elem ...string) string {
 	}
 
 	return filepath.Join(append([]string{path}, elem...)...)
+}
+
+func proxyAccessLog() string {
+	return fmt.Sprintf("traefik-access-%s.log", composeProjectName())
+}
+
+func removeProxyAccessLog() {
+	// The proxy appends, and the directory it writes into outlives the containers, so a run would
+	// otherwise collect every run before it.
+	if err := os.Remove(SuiteTmpPath(proxyAccessLog())); err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Debugf("Error removing the previous access log: %v", err)
+	}
 }
 
 func agentContainer() string {
@@ -132,6 +145,8 @@ func (de *DockerEnvironment) Pull(images ...string) error {
 
 // Up spawn a docker environment.
 func (de *DockerEnvironment) Up() error {
+	removeProxyAccessLog()
+
 	command := "up --build -d"
 
 	if os.Getenv("CI") == t {

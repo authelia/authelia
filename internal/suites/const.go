@@ -8,7 +8,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// BaseDomain the base domain.
 var (
 	BaseDomain     = "example.com:8080"
 	Example2DotCom = "example2.com:8080"
@@ -95,7 +94,7 @@ const (
 const (
 	agentAddressOctet        = 10
 	composeProjectDefault    = "authelia"
-	containerLogLines        = 200
+	containerLogLines        = 3000
 	containerLogTailLines    = 15
 	envFileProd              = "/web/.env.production"
 	envFileDev               = "/web/.env.development"
