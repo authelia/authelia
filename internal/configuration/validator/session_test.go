@@ -57,7 +57,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 					SessionCookieCommon: schema.SessionCookieCommon{
 						SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 					},
-					Domain: exampleDotCom,
+					Domain: exampleDotCom, //nolint:staticcheck
 				},
 			},
 			schema.Configuration{
@@ -65,7 +65,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "authelia_session", SameSite: "lax", Expiration: time.Hour, Inactivity: time.Minute, RememberMe: time.Hour * 2,
 					},
-					Domain: exampleDotCom,
+					Domain: exampleDotCom, //nolint:staticcheck
 					Cookies: []schema.SessionCookie{
 						{
 							SessionCookieCommon: schema.SessionCookieCommon{
@@ -183,7 +183,7 @@ func TestShouldSetDefaultSessionDomainsValues(t *testing.T) {
 					SessionCookieCommon: schema.SessionCookieCommon{
 						Name: "", SameSite: "",
 					},
-					Domain:  "",
+					Domain:  "", //nolint:staticcheck
 					Cookies: []schema.SessionCookie{},
 				},
 			},

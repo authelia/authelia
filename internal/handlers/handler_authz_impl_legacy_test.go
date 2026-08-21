@@ -512,7 +512,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 	}
 }
 
-func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() { // TestShouldVerifyAuthBasicArgOk.
+func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() {
 	authz := s.BuildWithDelayer()
 
 	mock := mocks.NewMockAutheliaCtx(s.T())
@@ -569,17 +569,17 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 		setup func(mock *mocks.MockAutheliaCtx)
 	}{
 		{
-			"HeaderAbsent", // TestShouldVerifyAuthBasicArgFailingNoHeader.
+			"HeaderAbsent",
 			nil,
 		},
 		{
-			"HeaderEmpty", // TestShouldVerifyAuthBasicArgFailingEmptyHeader.
+			"HeaderEmpty",
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "")
 			},
 		},
 		{
-			"HeaderIncorrect", // TestShouldVerifyAuthBasicArgFailingWrongHeader.
+			"HeaderIncorrect",
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 			},
@@ -637,7 +637,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 			},
 		},
 		{
-			"IncorrectPassword", // TestShouldVerifyAuthBasicArgFailingWrongPassword.
+			"IncorrectPassword",
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 
@@ -672,7 +672,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 			},
 		},
 		{
-			"NoAccess", // TestShouldVerifyAuthBasicArgFailingWrongPassword.
+			"NoAccess",
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com/")

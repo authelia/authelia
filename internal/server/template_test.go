@@ -3,6 +3,8 @@ package server
 import (
 	"io/fs"
 	"os"
+	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,6 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
@@ -184,6 +187,159 @@ func TestServeTemplatedFile(t *testing.T) {
 	}
 }
 
+const tmplTestPortalIndex = `<!doctype html>
+<html lang="{{ .Language }}">
+    <head>
+        <meta property="csp-nonce" content="{{ .CSPNonce }}" />
+    </head>
+    <body data-theme="{{ .Theme }}" data-rememberme="{{ .RememberMe }}">
+        <div id="root"></div>
+    </body>
+</html>`
+
+var reTestCSPNonce = regexp.MustCompile(`'nonce-([a-zA-Z0-9]{32})'`)
+
+// ReadFilePortalIndex substitutes the portal index template so the per request values can be asserted without having
+// built the frontend.
+type ReadFilePortalIndex struct{}
+
+func (lfs *ReadFilePortalIndex) Open(name string) (fs.File, error) {
+	return assets.Open(name)
+}
+
+func (lfs *ReadFilePortalIndex) ReadFile(name string) ([]byte, error) {
+	switch name {
+	case "public_html/index.html":
+		return []byte(tmplTestPortalIndex), nil
+	default:
+		return assets.ReadFile(name)
+	}
+}
+
+func TestServeTemplatedFileShouldServeIdentityWithPerRequestNonce(t *testing.T) {
+	tmpl, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, tmpl.LoadTemplatedAssets(&ReadFilePortalIndex{}))
+
+	config := &schema.Configuration{Server: schema.DefaultServerConfiguration, Theme: "grey"}
+
+	handler := ServeTemplatedFile(tmpl.GetAssetIndexTemplate(), NewTemplatedFileOptions(config))
+
+	nonces := make([]string, 0, 2)
+
+	for range 2 {
+		mock := mocks.NewMockAutheliaCtx(t)
+
+		mock.Ctx.Configuration.Server = schema.DefaultServerConfiguration
+
+		mock.Ctx.Request.Header.Set(fasthttp.HeaderAcceptEncoding, "br, gzip, deflate")
+		mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+		mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
+
+		handler(mock.Ctx)
+
+		require.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+		// The index is templated per request so it can't be pre-compressed, and it's small enough that compressing it
+		// on the fly isn't worthwhile.
+		assert.Empty(t, mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentEncoding))
+		assert.Contains(t, string(mock.Ctx.Response.Header.ContentType()), "text/html")
+
+		body := string(mock.Ctx.Response.Body())
+
+		assert.Contains(t, body, `data-theme="grey"`)
+
+		matches := reTestCSPNonce.FindStringSubmatch(string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderContentSecurityPolicy)))
+		require.Len(t, matches, 2)
+
+		assert.Contains(t, body, `<meta property="csp-nonce" content="`+matches[1]+`" />`)
+
+		nonces = append(nonces, matches[1])
+
+		mock.Close()
+	}
+
+	assert.NotEqual(t, nonces[0], nonces[1])
+}
+
+// The direct handler test above can't show that the route which actually serves the portal is the templated one, so
+// this drives the registered "/" route to prove the index reaching a client is neither compressed nor shared between
+// requests.
+func TestHandlerMainShouldServeTemplatedIndexUncompressed(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(&ReadFilePortalIndex{}))
+
+	providers := middlewares.NewProvidersBasic()
+	providers.Templates = provider
+
+	config := &schema.Configuration{
+		Server: schema.Server{
+			Address:   schema.DefaultServerConfiguration.Address,
+			Endpoints: schema.DefaultServerConfiguration.Endpoints,
+		},
+		Theme: "grey",
+	}
+
+	handler, err := handlerMain(t.Context(), config, providers)
+
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name           string
+		method         string
+		acceptEncoding string
+	}{
+		{"ShouldServeIdentityToBrotliGET", fasthttp.MethodGet, "br"},
+		{"ShouldServeIdentityToGzipGET", fasthttp.MethodGet, "gzip"},
+		{"ShouldServeIdentityToBrotliHEAD", fasthttp.MethodHead, "br"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			nonces := make([]string, 0, 2)
+
+			for range 2 {
+				ctx := newAssetRequestCtx(tc.method, "/", tc.acceptEncoding)
+
+				ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
+				ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
+
+				handler(ctx)
+
+				require.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
+
+				assert.Empty(t, ctx.Response.Header.Peek(fasthttp.HeaderContentEncoding))
+				assert.Contains(t, string(ctx.Response.Header.ContentType()), "text/html")
+
+				matches := reTestCSPNonce.FindStringSubmatch(string(ctx.Response.Header.Peek(fasthttp.HeaderContentSecurityPolicy)))
+				require.Len(t, matches, 2)
+
+				if tc.method == fasthttp.MethodGet {
+					body := string(ctx.Response.Body())
+
+					assert.Contains(t, body, `data-theme="grey"`)
+					assert.Contains(t, body, `<meta property="csp-nonce" content="`+matches[1]+`" />`)
+				} else {
+					assert.True(t, ctx.Response.SkipBody)
+					assert.Empty(t, ctx.Response.Body())
+
+					contentLength, err := strconv.Atoi(string(ctx.Response.Header.Peek(fasthttp.HeaderContentLength)))
+
+					require.NoError(t, err)
+					assert.Positive(t, contentLength)
+				}
+
+				nonces = append(nonces, matches[1])
+			}
+
+			assert.NotEqual(t, nonces[0], nonces[1])
+		})
+	}
+}
+
 func TestETagRootURL(t *testing.T) {
 	tmpl, err := templates.New(templates.Config{})
 	require.NoError(t, err)
@@ -260,6 +416,7 @@ func TestETagRootURL(t *testing.T) {
 
 			etag := mock.Ctx.Response.Header.Peek("ETag")
 			assert.NotEmpty(t, etag)
+			assert.Regexp(t, `^"[0-9a-f]{40}"$`, string(etag), "etag should be a quoted opaque string")
 		})
 	}
 }

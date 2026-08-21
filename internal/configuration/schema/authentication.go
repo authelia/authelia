@@ -41,15 +41,18 @@ type AuthenticationBackendFile struct {
 	ExtraAttributes map[string]AuthenticationBackendExtraAttribute `koanf:"extra_attributes" yaml:"extra_attributes,omitempty" toml:"extra_attributes,omitempty" json:"extra_attributes,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
+// AuthenticationBackendExtraAttribute represents the configuration of an extra user attribute.
 type AuthenticationBackendExtraAttribute struct {
 	MultiValued bool   `koanf:"multi_valued" yaml:"multi_valued" toml:"multi_valued" json:"multi_valued" jsonschema:"title=Multi-Valued" jsonschema_description:"Defines the attribute as multi-valued."`
 	ValueType   string `koanf:"value_type" yaml:"value_type,omitempty" toml:"value_type,omitempty" json:"value_type,omitempty" jsonschema:"enum=boolean,enum=integer,enum=string,title=Value Type" jsonschema_description:"Defines the value type for the attribute."`
 }
 
+// IsMultiValued returns true if this attribute is multi-valued.
 func (a AuthenticationBackendExtraAttribute) IsMultiValued() (multi bool) {
 	return a.MultiValued
 }
 
+// GetValueType returns the value type of this attribute.
 func (a AuthenticationBackendExtraAttribute) GetValueType() (vtype string) {
 	return a.ValueType
 }
@@ -154,6 +157,7 @@ type AuthenticationBackendLDAP struct {
 	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"password,omitempty" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."`
 }
 
+// AuthenticationBackendLDAPPooling represents the LDAP connection pooling configuration.
 type AuthenticationBackendLDAPPooling struct {
 	Enable  bool          `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"title=Enable,default=false" jsonschema_description:"Enable LDAP connection pooling."`
 	Count   int           `koanf:"count" yaml:"count" toml:"count" json:"count" jsonschema:"title=Count,default=5" jsonschema_description:"The number of connections to keep open for LDAP connection pooling."`
@@ -191,6 +195,7 @@ type AuthenticationBackendLDAPAttributes struct {
 	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
+// AuthenticationBackendLDAPAttributesAttribute represents the configuration of an extra LDAP attribute.
 type AuthenticationBackendLDAPAttributesAttribute struct {
 	Name string `koanf:"name" yaml:"name,omitempty" toml:"name,omitempty" json:"name,omitempty" jsonschema:"title=Name" jsonschema_description:"The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."`
 

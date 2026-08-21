@@ -20,7 +20,7 @@ func NewLevel(policy string) Level {
 	case deny:
 		return Denied
 	}
-	// By default the deny policy applies.
+
 	return Denied
 }
 
@@ -146,6 +146,7 @@ func domainToPrefixSuffix(domain string) (prefix, suffix string) {
 	return parts[0], strings.Join(parts[1:], ".")
 }
 
+// NewSubjects returns the AccessControlSubjects for the given subject rules.
 func NewSubjects(subjectRules [][]string) (subjects []AccessControlSubjects) {
 	return schemaSubjectsToACL(subjectRules)
 }

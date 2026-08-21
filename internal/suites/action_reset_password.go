@@ -9,17 +9,13 @@ import (
 )
 
 func (rs *RodSession) doInitiatePasswordReset(t *testing.T, page *rod.Page, username string) {
-	err := rs.WaitElementLocatedByID(t, page, "reset-password-button").Click("left", 1)
-	require.NoError(t, err)
+	rs.ClickElementLocatedByID(t, page, "reset-password-button")
 
 	require.NoError(t, page.WaitStable(time.Millisecond*100))
 
-	// Fill in username.
-	err = rs.WaitElementLocatedByID(t, page, "username-textfield").Input(username)
+	err := rs.WaitElementLocatedByID(t, page, "username-textfield").Input(username)
 	require.NoError(t, err)
-	// And click on the reset button.
-	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left", 1)
-	require.NoError(t, err)
+	rs.ClickElementLocatedByID(t, page, "reset-button")
 }
 
 func (rs *RodSession) doCompletePasswordReset(t *testing.T, page *rod.Page, newPassword1, newPassword2 string) {
@@ -47,8 +43,7 @@ password2:
 		goto password2
 	}
 
-	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left", 1)
-	require.NoError(t, err)
+	rs.ClickElementLocatedByID(t, page, "reset-button")
 }
 
 func (rs *RodSession) doSuccessfullyCompletePasswordReset(t *testing.T, page *rod.Page, newPassword1, newPassword2 string) {
@@ -63,7 +58,6 @@ func (rs *RodSession) doUnsuccessfulPasswordReset(t *testing.T, page *rod.Page, 
 
 func (rs *RodSession) doResetPassword(t *testing.T, page *rod.Page, username, newPassword1, newPassword2 string, unsuccessful bool) {
 	rs.doInitiatePasswordReset(t, page, username)
-	// then wait for the "email sent notification".
 	rs.verifyMailNotificationDisplayed(t, page)
 
 	if unsuccessful {

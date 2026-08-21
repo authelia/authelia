@@ -1,12 +1,12 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-import { Box, Button } from "@mui/material";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
 import SuccessIcon from "@components/SuccessIcon";
+import { Button } from "@components/UI/Button";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useAbortSignal } from "@hooks/Abort";
 import { useFlow } from "@hooks/Flow";
@@ -62,7 +62,6 @@ const PushNotificationMethod = function (props: Props) {
     const [preferredDevice, setPreferredDevice] = useState<{ device?: string; method?: string }>({});
 
     const { onSignInError, onSignInSuccess } = props;
-    const signInInitiatedRef = useRef(false);
     const stateRef = useRef<null | State>(null);
 
     const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
@@ -277,12 +276,21 @@ const PushNotificationMethod = function (props: Props) {
         [updateDuoDevice, preferredDevice, handleSignIn, setPreferredDevice, props.authenticationLevel],
     );
 
+    const handleSignInRef = useRef(handleSignIn);
+
     useEffect(() => {
-        if (props.authenticationLevel < AuthenticationLevel.TwoFactor && !signInInitiatedRef.current) {
-            signInInitiatedRef.current = true;
-            handleSignIn();
+        handleSignInRef.current = handleSignIn;
+    }, [handleSignIn]);
+
+    const shouldSignIn = props.authenticationLevel < AuthenticationLevel.TwoFactor;
+
+    useEffect(() => {
+        if (!shouldSignIn) {
+            return;
         }
-    }, [props.authenticationLevel, handleSignIn]);
+
+        handleSignInRef.current();
+    }, [shouldSignIn]);
 
     if (state === State.Selection)
         return (
@@ -323,12 +331,12 @@ const PushNotificationMethod = function (props: Props) {
             onSelectClick={handleFetchDuoDevices}
             onRegisterClick={() => window.open(enrollUrl, "_blank", "noopener,noreferrer")}
         >
-            <Box sx={{ display: "inline-block", height: "64px", width: "64px" }}>{icon}</Box>
-            <Box className={state === State.Failure ? "" : "hidden"}>
-                <Button color="secondary" onClick={handleSignIn}>
+            <div className="flex w-full justify-center">{icon}</div>
+            <div className={state === State.Failure ? "" : "hidden"}>
+                <Button variant={"ghost"} color={"secondary"} onClick={handleSignIn}>
                     {translate("Retry")}
                 </Button>
-            </Box>
+            </div>
         </MethodContainer>
     );
 };

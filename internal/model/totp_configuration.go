@@ -14,6 +14,7 @@ import (
 	"github.com/authelia/otp"
 )
 
+// TOTPOptions represents the TOTP options available when registering a TOTP configuration.
 type TOTPOptions struct {
 	Algorithm  string   `json:"algorithm"`
 	Algorithms []string `json:"algorithms"`
@@ -65,7 +66,7 @@ func (c TOTPConfiguration) MarshalJSON() (data []byte, err error) {
 	return json.Marshal(o)
 }
 
-// LastUsed provides LastUsedAt as a *time.Time instead of sql.NullTime.
+// LastUsed provides LastUsedAt as a *[time.Time] instead of [sql.NullTime].
 func (c *TOTPConfiguration) LastUsed() *time.Time {
 	if c.LastUsedAt.Valid {
 		value := time.Unix(c.LastUsedAt.Time.Unix(), int64(c.LastUsedAt.Time.Nanosecond()))
@@ -105,7 +106,7 @@ func (c *TOTPConfiguration) Key() (key *otp.Key, err error) {
 	return otp.NewKeyFromURL(c.URI())
 }
 
-// Image returns the image.Image of the TOTPConfiguration using the Image func from the return of TOTPConfiguration.Key.
+// Image returns the [image.Image] of the TOTPConfiguration using the Image func from the return of TOTPConfiguration.Key.
 func (c *TOTPConfiguration) Image(width, height int) (img image.Image, err error) {
 	var key *otp.Key
 

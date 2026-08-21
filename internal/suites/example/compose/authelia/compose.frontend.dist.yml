@@ -1,7 +1,7 @@
 ---
 services:
   authelia-frontend:
-    image: 'nginx:1.31.3-alpine'
+    image: 'nginx:1.31.4-alpine'
     cpus: 2
     mem_limit: 1g
     volumes:

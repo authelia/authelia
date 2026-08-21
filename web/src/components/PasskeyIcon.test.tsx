@@ -21,5 +21,12 @@ it("has correct viewbox", () => {
 it("has correct fill", () => {
     render(<PasskeyIcon />);
     const svg = document.querySelector("svg");
-    expect(svg).toHaveAttribute("fill", "#e8eaed");
+    expect(svg).toHaveAttribute("fill", "currentColor");
+});
+
+it("is hidden from assistive technology", () => {
+    render(<PasskeyIcon />);
+    const svg = document.querySelector("svg");
+    expect(svg).toHaveAttribute("aria-hidden", "true");
+    expect(svg).toHaveAttribute("focusable", "false");
 });

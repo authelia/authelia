@@ -1,5 +1,6 @@
 package expression
 
+// Attribute name strings.
 const (
 	AttributeUserUsername                          = "username"
 	AttributeUserGroups                            = "groups"

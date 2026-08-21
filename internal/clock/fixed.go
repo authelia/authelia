@@ -31,6 +31,7 @@ func (c *Fixed) After(d time.Duration) <-chan time.Time {
 	return time.After(d)
 }
 
+// AfterFunc waits for the defined duration then calls the given function in its own goroutine.
 func (c *Fixed) AfterFunc(d time.Duration, f func()) *time.Timer {
 	return time.AfterFunc(d, f)
 }

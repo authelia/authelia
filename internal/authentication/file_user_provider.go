@@ -77,6 +77,7 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 	return true, nil
 }
 
+// Close implements the UserProvider interface.
 func (p *FileUserProvider) Close() (err error) {
 	return nil
 }
@@ -111,6 +112,7 @@ func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, er
 	return d.ToUserDetails(), nil
 }
 
+// GetDetailsExtended implements the UserProvider interface.
 func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
 	var d FileUserDatabaseUserDetails
 
@@ -160,6 +162,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	return nil
 }
 
+// ChangePassword implements the UserProvider interface.
 func (p *FileUserProvider) ChangePassword(username string, oldPassword string, newPassword string) (err error) {
 	var details FileUserDatabaseUserDetails
 

@@ -24,7 +24,7 @@ type Mathematical struct {
 	lock *sync.Mutex
 }
 
-// Read implements the io.Reader interface.
+// Read implements the [io.Reader] interface.
 func (r *Mathematical) Read(p []byte) (n int, err error) {
 	r.lock.Lock()
 
@@ -117,7 +117,7 @@ func (r *Mathematical) IntnErr(n int) (output int, err error) {
 	return r.Intn(n), nil
 }
 
-// Int returns a random *big.Int with a maximum of max.
+// Int returns a random *[big.Int] with a maximum of max.
 func (r *Mathematical) Int(max *big.Int) (value *big.Int) {
 	var err error
 	if value, err = r.IntErr(max); err != nil {
@@ -127,7 +127,7 @@ func (r *Mathematical) Int(max *big.Int) (value *big.Int) {
 	return value
 }
 
-// IntErr returns a random *big.Int error combination with a maximum of max.
+// IntErr returns a random *[big.Int] error combination with a maximum of max.
 func (r *Mathematical) IntErr(max *big.Int) (value *big.Int, err error) {
 	if max == nil {
 		return nil, fmt.Errorf("max is required")

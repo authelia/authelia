@@ -16,7 +16,7 @@ func New() Provider {
 // Cryptographical is the production random.Provider which uses crypto/rand.
 type Cryptographical struct{}
 
-// Read implements the io.Reader interface.
+// Read implements the [io.Reader] interface.
 func (r *Cryptographical) Read(p []byte) (n int, err error) {
 	return io.ReadFull(rand.Reader, p)
 }
@@ -111,7 +111,7 @@ func (r *Cryptographical) Intn(n int) (value int) {
 	return value
 }
 
-// IntErr returns a random *big.Int error combination with a maximum of max.
+// IntErr returns a random *[big.Int] error combination with a maximum of max.
 func (r *Cryptographical) IntErr(max *big.Int) (value *big.Int, err error) {
 	if max == nil {
 		return nil, fmt.Errorf("max is required")
@@ -124,7 +124,7 @@ func (r *Cryptographical) IntErr(max *big.Int) (value *big.Int, err error) {
 	return rand.Int(rand.Reader, max)
 }
 
-// Int returns a random *big.Int with a maximum of max.
+// Int returns a random *[big.Int] with a maximum of max.
 func (r *Cryptographical) Int(max *big.Int) (value *big.Int) {
 	var err error
 	if value, err = r.IntErr(max); err != nil {

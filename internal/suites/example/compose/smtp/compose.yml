@@ -20,9 +20,17 @@ services:
       traefik.http.routers.mail.tls: 'true'
       traefik.http.services.mail.loadbalancer.server.port: '8025'
     healthcheck:
-      disable: true
+      test: ['CMD-SHELL', 'nc -z 127.0.0.1 1025 && /mailpit readyz || exit 1']
+      interval: '5s'
+      timeout: '10s'
+      retries: 6
+      start_period: '120s'
     networks:
       authelianet:
         aliases:
           - 'mail.example.com'
+  authelia-backend:
+    depends_on:
+      smtp:
+        condition: service_healthy
 ...

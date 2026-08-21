@@ -1,25 +1,16 @@
 import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import {
-    Alert,
-    AlertTitle,
-    Button,
-    Checkbox,
-    CircularProgress,
-    FormControl,
-    FormControlLabel,
-    IconButton,
-    InputAdornment,
-    Link,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
+import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import { Alert, AlertTitle } from "@components/UI/Alert";
+import { Button } from "@components/UI/Button";
+import { Checkbox } from "@components/UI/Checkbox";
+import { FloatingInput } from "@components/UI/FloatingInput";
+import { Label } from "@components/UI/Label";
+import { Spinner } from "@components/UI/Spinner";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
@@ -107,6 +98,10 @@ const FirstFactorForm = function (props: Props) {
     };
 
     const handleSignIn = useCallback(async () => {
+        if (loading) {
+            return;
+        }
+
         if (username === "" || password === "") {
             if (username === "") {
                 setUsernameError(true);
@@ -148,6 +143,7 @@ const FirstFactorForm = function (props: Props) {
             focusPassword();
         }
     }, [
+        loading,
         username,
         password,
         props,
@@ -175,7 +171,7 @@ const FirstFactorForm = function (props: Props) {
     };
 
     const handleUsernameKeyDown = useCallback(
-        (event: KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLInputElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     setUsernameError(true);
@@ -185,13 +181,14 @@ const FirstFactorForm = function (props: Props) {
                     setUsernameError(false);
                     focusPassword();
                 }
+                event.preventDefault();
             }
         },
         [focusPassword, handleSignIn, password.length, username.length],
     );
 
     const handlePasswordKeyDown = useCallback(
-        (event: KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLInputElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     focusUsername();
@@ -206,7 +203,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handlePasswordKeyUp = useCallback(
-        (event: KeyboardEvent<HTMLDivElement>) => {
+        (event: KeyboardEvent<HTMLInputElement>) => {
             if (password.length <= 1) {
                 setPasswordCapsLock(false);
                 setPasswordCapsLockPartial(false);
@@ -230,7 +227,7 @@ const FirstFactorForm = function (props: Props) {
     );
 
     const handleRememberMeKeyDown = useCallback(
-        (event: KeyboardEvent<HTMLButtonElement>) => {
+        (event: KeyboardEvent<HTMLElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
                     focusUsername();
@@ -245,166 +242,142 @@ const FirstFactorForm = function (props: Props) {
 
     return (
         <LoginLayout id="first-factor-stage" title={translate("Sign in")}>
-            <FormControl id={"form-login"}>
-                <Grid container spacing={2}>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
-                            inputRef={usernameRef}
+            <form id={"form-login"} onSubmit={(e) => e.preventDefault()}>
+                <div className="grid grid-cols-1 gap-5">
+                    <div className="w-full">
+                        <FloatingInput
+                            ref={usernameRef}
                             id="username-textfield"
-                            label={translate("Username")}
-                            variant="outlined"
+                            label={`${translate("Username")} *`}
                             required
                             value={username}
                             error={usernameError}
                             disabled={disabled}
-                            fullWidth
                             onChange={(v) => setUsername(v.target.value)}
                             onFocus={() => setUsernameError(false)}
                             autoCapitalize="none"
                             autoComplete="username"
                             onKeyDown={handleUsernameKeyDown}
                         />
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
-                            inputRef={passwordRef}
+                    </div>
+                    <div className="relative w-full">
+                        <FloatingInput
+                            ref={passwordRef}
                             id="password-textfield"
-                            label={translate("Password")}
-                            variant="outlined"
+                            label={`${translate("Password")} *`}
                             required
-                            fullWidth
                             disabled={disabled}
                             value={password}
                             error={passwordError}
+                            className="pr-10"
                             onChange={(v) => setPassword(v.target.value)}
                             onFocus={() => setPasswordError(false)}
                             type={showPassword ? "text" : "password"}
                             autoComplete="current-password"
                             onKeyDown={handlePasswordKeyDown}
                             onKeyUp={handlePasswordKeyUp}
-                            slotProps={{
-                                input: {
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                aria-label="toggle password visibility"
-                                                edge="end"
-                                                size="large"
-                                                onMouseDown={() => setShowPassword(true)}
-                                                onMouseUp={() => setShowPassword(false)}
-                                                onMouseLeave={() => setShowPassword(false)}
-                                                onTouchStart={() => setShowPassword(true)}
-                                                onTouchEnd={() => setShowPassword(false)}
-                                                onTouchCancel={() => setShowPassword(false)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(true);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                onKeyUp={(e) => {
-                                                    if (e.key === " ") {
-                                                        setShowPassword(false);
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                            >
-                                                {showPassword ? <Visibility /> : <VisibilityOff />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                },
-                            }}
                         />
-                    </Grid>
+                        <button
+                            type="button"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                            aria-label={translate("Toggle password visibility")}
+                            aria-pressed={showPassword}
+                            onMouseDown={() => setShowPassword(true)}
+                            onMouseUp={() => setShowPassword(false)}
+                            onMouseLeave={() => setShowPassword(false)}
+                            onTouchStart={() => setShowPassword(true)}
+                            onTouchEnd={() => setShowPassword(false)}
+                            onTouchCancel={() => setShowPassword(false)}
+                            onKeyDown={(e) => {
+                                if (e.key === " " || e.key === "Enter") {
+                                    setShowPassword(true);
+                                    e.preventDefault();
+                                }
+                            }}
+                            onKeyUp={(e) => {
+                                if (e.key === " " || e.key === "Enter") {
+                                    setShowPassword(false);
+                                    e.preventDefault();
+                                }
+                            }}
+                        >
+                            {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                        </button>
+                    </div>
                     {passwordCapsLock ? (
-                        <Grid size={{ xs: 12 }} marginX={2}>
-                            <Alert severity={"warning"}>
+                        <div className="w-full px-4">
+                            <Alert variant="warning">
                                 <AlertTitle>{translate("Warning")}</AlertTitle>
                                 {passwordCapsLockPartial
                                     ? translate("The password was partially entered with Caps Lock")
                                     : translate("The password was entered with Caps Lock")}
                             </Alert>
-                        </Grid>
+                        </div>
                     ) : null}
                     {props.rememberMe ? (
-                        <Grid
-                            size={{ xs: 12 }}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "row",
-                                marginBottom: (theme) => theme.spacing(-1),
-                                marginTop: (theme) => theme.spacing(-1),
-                            }}
-                        >
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        id="remember-checkbox"
-                                        disabled={disabled}
-                                        checked={rememberMe}
-                                        onChange={handleRememberMeChange}
-                                        onKeyDown={handleRememberMeKeyDown}
-                                        value="rememberMe"
-                                        color="primary"
-                                    />
-                                }
-                                sx={{ flexGrow: 1 }}
-                                label={translate("Remember me")}
-                            />
-                        </Grid>
+                        <div className="-my-2 flex w-full flex-row">
+                            <div className="flex flex-grow items-center gap-2">
+                                <Checkbox
+                                    id="remember-checkbox"
+                                    disabled={disabled}
+                                    checked={rememberMe}
+                                    onCheckedChange={handleRememberMeChange}
+                                    onKeyDown={handleRememberMeKeyDown}
+                                />
+                                <Label htmlFor="remember-checkbox" className="text-base">
+                                    {translate("Remember me")}
+                                </Label>
+                            </div>
+                        </div>
                     ) : null}
-                    <Grid size={{ xs: 12 }}>
+                    <div className="w-full">
                         <Button
                             id="sign-in-button"
-                            variant="contained"
-                            color="primary"
-                            fullWidth={true}
-                            endIcon={loading ? <CircularProgress size={20} /> : null}
-                            disabled={disabled}
+                            type="submit"
+                            variant="default"
+                            className="w-full"
+                            disabled={disabled || loading}
                             onClick={handleSignIn}
                         >
                             {translate("Sign in")}
+                            {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
                         </Button>
-                    </Grid>
+                    </div>
                     {props.passkeyLogin ? (
                         <PasskeyForm
-                            disabled={props.disabled}
+                            disabled={disabled || loading}
                             rememberMe={props.rememberMe}
                             onAuthenticationError={(err) => createErrorNotification(err.message)}
                             onAuthenticationStart={() => {
                                 setUsername("");
                                 setPassword("");
+                                setLoading(true);
                                 props.onAuthenticationStart();
                             }}
-                            onAuthenticationStop={props.onAuthenticationStop}
-                            onAuthenticationSuccess={props.onAuthenticationSuccess}
+                            onAuthenticationStop={() => {
+                                setLoading(false);
+                                props.onAuthenticationStop();
+                            }}
+                            onAuthenticationSuccess={(url) => {
+                                setLoading(false);
+                                props.onAuthenticationSuccess(url);
+                            }}
                         />
                     ) : null}
                     {props.resetPassword ? (
-                        <Grid
-                            size={{ xs: 12 }}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "row",
-                                justifyContent: "flex-end",
-                                marginBottom: (theme) => theme.spacing(-1),
-                                marginTop: (theme) => theme.spacing(-1),
-                            }}
-                        >
-                            <Link
+                        <div className="-my-2 flex w-full flex-row justify-end">
+                            <button
                                 id="reset-password-button"
-                                component="button"
+                                type="button"
+                                className="cursor-pointer py-[13.5px] text-base text-primary underline-offset-4 hover:underline"
                                 onClick={handleResetPasswordClick}
-                                sx={{ cursor: "pointer", paddingBottom: "13.5px", paddingTop: "13.5px" }}
-                                underline="hover"
                             >
                                 {translate("Reset password?")}
-                            </Link>
-                        </Grid>
+                            </button>
+                        </div>
                     ) : null}
-                </Grid>
-            </FormControl>
+                </div>
+            </form>
         </LoginLayout>
     );
 };

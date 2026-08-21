@@ -33,6 +33,7 @@ func NewStore(config *schema.Configuration, provider storage.Provider) (store *S
 	return store
 }
 
+// NewMemoryClientStore returns a new *MemoryClientStore given the provided configuration.
 func NewMemoryClientStore(config *schema.Configuration) (store *MemoryClientStore) {
 	logger := logging.Logger()
 
@@ -284,6 +285,7 @@ func (s *Store) GetOpenIDConnectSession(ctx context.Context, authorizeCode strin
 	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request.GetSession())
 }
 
+// CreateDeviceCodeSession implements the oauth2.DeviceCodeStorage interface.
 func (s *Store) CreateDeviceCodeSession(ctx context.Context, signature string, request oauthelia2.DeviceAuthorizeRequester) (err error) {
 	session, err := model.NewOAuth2DeviceCodeSessionFromRequest(request)
 	if err != nil {
@@ -293,6 +295,7 @@ func (s *Store) CreateDeviceCodeSession(ctx context.Context, signature string, r
 	return s.provider.SaveOAuth2DeviceCodeSession(ctx, session)
 }
 
+// UpdateDeviceCodeSession implements the oauth2.DeviceCodeStorage interface.
 func (s *Store) UpdateDeviceCodeSession(ctx context.Context, signature string, request oauthelia2.DeviceAuthorizeRequester) (err error) {
 	session, err := model.NewOAuth2DeviceCodeSessionFromRequest(request)
 	if err != nil {
@@ -302,6 +305,7 @@ func (s *Store) UpdateDeviceCodeSession(ctx context.Context, signature string, r
 	return s.provider.UpdateOAuth2DeviceCodeSessionData(ctx, session)
 }
 
+// GetDeviceCodeSession implements the oauth2.DeviceCodeStorage interface.
 func (s *Store) GetDeviceCodeSession(ctx context.Context, signature string, session oauthelia2.Session) (request oauthelia2.DeviceAuthorizeRequester, err error) {
 	data, err := s.provider.LoadOAuth2DeviceCodeSession(ctx, signature)
 	if err != nil {
@@ -324,10 +328,12 @@ func (s *Store) GetDeviceCodeSession(ctx context.Context, signature string, sess
 	return r, nil
 }
 
+// InvalidateDeviceCodeSession implements the oauth2.DeviceCodeStorage interface.
 func (s *Store) InvalidateDeviceCodeSession(ctx context.Context, signature string) (err error) {
 	return s.provider.DeactivateOAuth2Session(ctx, storage.OAuth2SessionTypeDeviceAuthorizeCode, signature)
 }
 
+// GetDeviceCodeSessionByUserCode implements the oauth2.DeviceCodeStorage interface.
 func (s *Store) GetDeviceCodeSessionByUserCode(ctx context.Context, signature string, session oauthelia2.Session) (request oauthelia2.DeviceAuthorizeRequester, err error) {
 	data, err := s.provider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, signature)
 	if err != nil {

@@ -19,12 +19,13 @@ cat << EOF
   - label: ":selenium: ${SUITE_NAME} Suite"
     command: "authelia-scripts --log-level debug suites test ${SUITE_NAME} --failfast --headless"
     artifact_paths:
+      - "screenshots/**/*.access.log"
+      - "screenshots/**/*.containers.log"
+      - "screenshots/**/*.html"
+      - "screenshots/**/*.png"
+      - "screenshots/**/*.resources.json"
       - "test-results-*.json"
       - "test-results-*.xml"
-      - "screenshots/**/*.png"
-      - "screenshots/**/*.html"
-      - "screenshots/**/*.resources.json"
-      - "screenshots/**/*.containers.log"
     timeout_in_minutes: ${TIMEOUT}
     retry:
       automatic:

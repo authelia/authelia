@@ -58,7 +58,7 @@ it("calls handleClose on successful update", async () => {
     render(<WebAuthnCredentialEditDialog open={true} credential={credential} handleClose={handleClose} />);
 
     await act(async () => {
-        fireEvent.change(screen.getByLabelText("Description *"), { target: { value: "New Name" } });
+        fireEvent.change(screen.getByLabelText("Description"), { target: { value: "New Name" } });
     });
 
     await act(async () => {
@@ -82,7 +82,7 @@ it("shows error when credential is undefined", async () => {
     render(<WebAuthnCredentialEditDialog open={true} handleClose={vi.fn()} />);
 
     await act(async () => {
-        fireEvent.change(screen.getByLabelText("Description *"), { target: { value: "New Name" } });
+        fireEvent.change(screen.getByLabelText("Description"), { target: { value: "New Name" } });
     });
 
     await act(async () => {

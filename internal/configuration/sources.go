@@ -198,6 +198,7 @@ func (s *FileSource) readFilesDirectory(path string) (files []*File, err error) 
 	return files, nil
 }
 
+// GetBytesFilterNames returns the names of the filters applied to this source.
 func (s *FileSource) GetBytesFilterNames() (names []string) {
 	names = make([]string, len(s.filters))
 
