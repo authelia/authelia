@@ -59,6 +59,7 @@ const diagnosticsResources = `() => JSON.stringify({
 	})),
 }, null, 2)`
 
+// StringToKeys returns the input.Key values which represent the given string.
 func StringToKeys(value string) []input.Key {
 	n := len(value)
 
@@ -142,11 +143,13 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 	}
 }
 
+// SetupSuite performs the setup for this suite.
 func (s *BaseSuite) SetupSuite() {
 	s.SetupLogging()
 	s.SetupEnvironment()
 }
 
+// SetupLogging configures the logging for this suite.
 func (s *BaseSuite) SetupLogging() {
 	if os.Getenv("SUITE_SETUP_LOGGING") == t {
 		return
@@ -174,6 +177,7 @@ func (s *BaseSuite) SetupLogging() {
 	s.T().Setenv("SUITE_SETUP_LOGGING", t)
 }
 
+// SetupEnvironment configures the environment for this suite.
 func (s *BaseSuite) SetupEnvironment() {
 	if s.Name == "" || os.Getenv("SUITE_SETUP_ENVIRONMENT") == t {
 		return
@@ -413,6 +417,7 @@ func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Pa
 	}
 }
 
+// GetCookieNames returns the names of the cookies currently set in the browser.
 func (s *RodSuite) GetCookieNames() (names []string) {
 	cookies, err := s.Cookies(nil)
 	s.Require().NoError(err)
@@ -424,10 +429,12 @@ func (s *RodSuite) GetCookieNames() (names []string) {
 	return names
 }
 
+// VerifyPageElementAttributeValueBoolean verifies the boolean attribute of the element matching the given selector.
 func (s *RodSuite) VerifyPageElementAttributeValueBoolean(t *testing.T, page *rod.Page, cssSelector, name string, required, value bool) {
 	s.VerifyPageElementAttributeValue(t, page, cssSelector, name, required, strconv.FormatBool(value))
 }
 
+// VerifyPageElementAttributeValue verifies the attribute of the element matching the given selector.
 func (s *RodSuite) VerifyPageElementAttributeValue(t *testing.T, page *rod.Page, cssSelector, name string, required bool, value string) {
 	element := s.WaitElementLocatedByID(t, page, cssSelector)
 

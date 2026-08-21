@@ -69,6 +69,7 @@ func NewProviderConfig(config schema.SessionCookie, providerName string, seriali
 	}
 }
 
+// NewProviderSession returns a new *session.Session given the provided configuration and provider.
 func NewProviderSession(pconfig ProviderConfig, provider session.Provider) (p *session.Session, err error) {
 	p = session.New(pconfig.config)
 
@@ -79,6 +80,7 @@ func NewProviderSession(pconfig ProviderConfig, provider session.Provider) (p *s
 	return p, nil
 }
 
+// NewProviderConfigAndSession returns the ProviderConfig and *session.Session for the given cookie configuration.
 func NewProviderConfigAndSession(config schema.SessionCookie, providerName string, serializer Serializer, provider session.Provider) (c ProviderConfig, p *session.Session, err error) {
 	c = NewProviderConfig(config, providerName, serializer)
 
@@ -89,6 +91,7 @@ func NewProviderConfigAndSession(config schema.SessionCookie, providerName strin
 	return c, p, nil
 }
 
+// NewSessionProvider returns the name, provider, and serializer for the given session configuration.
 func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name string, provider session.Provider, serializer Serializer, err error) {
 	switch {
 	case config.Redis != nil:

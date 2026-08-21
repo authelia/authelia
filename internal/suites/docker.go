@@ -192,6 +192,7 @@ func (de *DockerEnvironment) Exec(service string, command []string) (string, err
 	return string(content), err
 }
 
+// ExecWithEnv executes the given command against the given service with the given environment.
 func (de *DockerEnvironment) ExecWithEnv(service string, command []string, env map[string]string) (string, error) {
 	envs := make([]string, 0, len(env))
 

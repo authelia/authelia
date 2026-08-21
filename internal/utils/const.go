@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	// RFC3339Zero is the default value for time.Time.Unix().
+	// RFC3339Zero is the default value for [time.Time.Unix]().
 	RFC3339Zero = int64(-62135596800)
 
 	clean   = "clean"

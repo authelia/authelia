@@ -12,6 +12,7 @@ func NewRandomNullUUID() (uuid.NullUUID, error) {
 	return uuid.NullUUID{UUID: id, Valid: true}, nil
 }
 
+// ParseNullUUID returns the uuid.NullUUID for the given string which is null when the string is empty.
 func ParseNullUUID(in string) (uuid.NullUUID, error) {
 	if in == "" {
 		return uuid.NullUUID{}, nil

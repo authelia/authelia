@@ -1,6 +1,6 @@
 package utils
 
-// BytesJoin is an alternate form of bytes.Join which doesn't use a sep.
+// BytesJoin is an alternate form of [bytes.Join] which doesn't use a sep.
 func BytesJoin(s ...[]byte) (dst []byte) {
 	if len(s) == 0 {
 		return []byte{}

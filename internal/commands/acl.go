@@ -57,6 +57,7 @@ func newAccessControlCheckCommand(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+// AccessControlCheckRunE is the RunE for the authelia access-control check-policy command.
 func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
 	verbose, err := cmd.Flags().GetBool("verbose")
 	if err != nil {

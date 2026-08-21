@@ -6,6 +6,7 @@ linters:
     - forbidigo
     - gocritic
     - gocyclo
+    - godoclint
     - godot
     - gosec
     - misspell
@@ -31,6 +32,12 @@ linters:
       ignore-tests: true
     gocyclo:
       min-complexity: 15
+    godoclint:
+      enable:
+        - no-unused-link
+        - require-doc
+        - require-pkg-doc
+        - require-stdlib-doclink
     godot:
       scope: all
     revive:
@@ -38,6 +45,9 @@ linters:
   exclusions:
     generated: lax
     rules:
+      - linters:
+          - godoclint
+        path: _test\.go$
       - linters:
           - forbidigo
         path: internal/commands/
@@ -66,11 +76,10 @@ linters:
       - third_party$
       - builtin$
       - examples$
+      - internal/mocks
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude-dirs:
-    - internal/mocks
 formatters:
   enable:
     - gofmt

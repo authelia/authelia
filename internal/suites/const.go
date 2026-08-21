@@ -8,12 +8,14 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+// Domains used by the suites.
 var (
 	BaseDomain     = "example.com:8080"
 	Example2DotCom = "example2.com:8080"
 	Example3DotCom = "example3.com:8080"
 )
 
+// Hash algorithm name strings.
 const (
 	SHA1   = "SHA1"
 	SHA256 = "SHA256"

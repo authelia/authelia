@@ -30,6 +30,7 @@ type GitHubTagsJSON struct {
 	Name string `json:"name"`
 }
 
+// GitHubReleasesJSON represents the JSON struct for the GitHub Releases API.
 type GitHubReleasesJSON struct {
 	ID              int              `json:"id"`
 	Name            string           `json:"name"`
@@ -51,6 +52,7 @@ type GitHubReleasesJSON struct {
 	Body            string           `json:"body"`
 }
 
+// GitHubAuthorJSON represents the JSON struct for the author of a GitHub release.
 type GitHubAuthorJSON struct {
 	ID                int    `json:"id"`
 	Login             string `json:"login"`
@@ -80,19 +82,23 @@ type DocsDataMisc struct {
 	HashingAlgorithms DocsDataMiscHashingAlgorithms `json:"hashing_algorithms"`
 }
 
+// DocsDataMiscHashingAlgorithms represents the hashing algorithm documentation data.
 type DocsDataMiscHashingAlgorithms struct {
 	PBKDF2 DocsDataMiscHashingAlgorithmsPBKDF2 `json:"pbkdf2"`
 }
 
+// DocsDataMiscHashingAlgorithmsPBKDF2 represents the PBKDF2 hashing algorithm documentation data.
 type DocsDataMiscHashingAlgorithmsPBKDF2 struct {
 	Variants map[string]DocsDataMiscHashingAlgorithmsVariant `json:"variants"`
 }
 
+// DocsDataMiscHashingAlgorithmsVariant represents the documentation data for a single hashing algorithm variant.
 type DocsDataMiscHashingAlgorithmsVariant struct {
 	FIPS              string `json:"fips"`
 	DefaultIterations string `json:"default_iterations"`
 }
 
+// DocsDataMiscSupport represents the proxy support documentation data.
 type DocsDataMiscSupport struct {
 	Traefik []string `json:"traefik"`
 }
@@ -111,10 +117,12 @@ type ConfigurationKey struct {
 	Env    string `json:"env"`
 }
 
+// Compose represents a docker compose file.
 type Compose struct {
 	Services map[string]ComposeService `json:"services"`
 }
 
+// ComposeService represents a single service in a docker compose file.
 type ComposeService struct {
 	Image string `json:"image"`
 }
@@ -218,12 +226,14 @@ type PackageJSON struct {
 	Version string `json:"version"`
 }
 
+// OpenIDConnectConformanceSuite represents a single OpenID Connect conformance suite.
 type OpenIDConnectConformanceSuite struct {
 	Name    string
 	Plan    OpenIDConnectConformanceSuitePlan
 	Clients []schema.IdentityProvidersOpenIDConnectClient
 }
 
+// OpenIDConnectConformanceSuitePlan represents the test plan for an OpenIDConnectConformanceSuite.
 type OpenIDConnectConformanceSuitePlan struct {
 	Name        string `json:"-"`
 	Alias       string `json:"alias"`
@@ -242,6 +252,7 @@ type OpenIDConnectConformanceSuitePlan struct {
 	EKYCUserinfo              string `json:"ekyc_userinfo,omitempty"`
 }
 
+// OpenIDConnectConformanceSuitePlanVariant represents the variant of an OpenIDConnectConformanceSuitePlan.
 type OpenIDConnectConformanceSuitePlanVariant struct {
 	ServerMetadata           string `json:"server_metadata,omitempty"`
 	ClientRegistration       string `json:"client_registration,omitempty"`
@@ -257,6 +268,7 @@ type OpenIDConnectConformanceSuitePlanVariant struct {
 	OpenID                   string `json:"openid,omitempty"`
 }
 
+// OpenIDConnectConformanceSuitePlanServer represents the server details of an OpenIDConnectConformanceSuitePlan.
 type OpenIDConnectConformanceSuitePlanServer struct {
 	DiscoveryURL          string `json:"discoveryUrl,omitempty"`
 	Issuer                string `json:"issuer,omitempty"`
@@ -268,6 +280,7 @@ type OpenIDConnectConformanceSuitePlanServer struct {
 	LoginHint             string `json:"login_hint,omitempty"`
 }
 
+// OpenIDConnectConformanceSuitePlanClient represents a client registered with an OpenIDConnectConformanceSuitePlan.
 type OpenIDConnectConformanceSuitePlanClient struct {
 	ID                   string `json:"client_id,omitempty"`
 	Secret               string `json:"client_secret,omitempty"`
@@ -281,12 +294,14 @@ type OpenIDConnectConformanceSuitePlanClient struct {
 	JWKS                 string `json:"jwks,omitempty"`
 }
 
+// OpenIDConnectConformanceSuitePlanMutualTLS represents the Mutual TLS details of an OpenIDConnectConformanceSuitePlan.
 type OpenIDConnectConformanceSuitePlanMutualTLS struct {
 	Certificate          string `json:"certificate,omitempty"`
 	Key                  string `json:"key,omitempty"`
 	CertificateAuthority string `json:"ca,omitempty"`
 }
 
+// OpenIDConnectConformanceSuitePlanResource represents the protected resource details of an OpenIDConnectConformanceSuitePlan.
 type OpenIDConnectConformanceSuitePlanResource struct {
 	ResourceURL                 string `json:"resourceUrl"`
 	ResourceURLAccountRequests  string `json:"resourceUrlAccountRequests,omitempty"`

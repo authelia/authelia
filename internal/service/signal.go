@@ -10,6 +10,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 )
 
+// ProvisionLoggingSignal returns a Provider which reopens the log file when the relevant signal is received.
 func ProvisionLoggingSignal(ctx Context) (service Provider, err error) {
 	config := ctx.GetConfiguration()
 

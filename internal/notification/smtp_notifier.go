@@ -210,11 +210,13 @@ func (n *SMTPNotifier) setMessageID(msg *gomail.Msg) {
 	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", pid, rn, rm, rs, n.domain))
 }
 
+// StandardSMTPClientFactory is the standard SMTPClientFactory implementation.
 type StandardSMTPClientFactory struct {
 	config *schema.NotifierSMTP
 	opts   []gomail.Option
 }
 
+// GetClient returns a new SMTPClient.
 func (f *StandardSMTPClientFactory) GetClient() (client SMTPClient, err error) {
 	if client, err = gomail.NewClient(f.config.Address.Hostname(), f.opts...); err != nil {
 		return nil, err

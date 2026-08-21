@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/otp/totp"
 )
 
+// OptionsTOTP represents a registered TOTP credential and its validation options.
 type OptionsTOTP struct {
 	Secret            string
 	ValidationOptions totp.ValidateOpts

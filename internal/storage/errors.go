@@ -40,8 +40,10 @@ var (
 	// the database but the key doesn't appear to be valid.
 	ErrSchemaEncryptionInvalidKey = errors.New("the configured encryption key does not appear to be valid for this database which may occur if the encryption key was changed in the configuration without using the cli to change it in the database")
 
+	// ErrNoRowsAffected is returned when a query which should affect rows affects none.
 	ErrNoRowsAffected = errors.New("no rows affected")
 
+	// ErrMultipleRowsAffected is returned when a query which should affect a single row affects several.
 	ErrMultipleRowsAffected = errors.New("multiple rows affected")
 )
 

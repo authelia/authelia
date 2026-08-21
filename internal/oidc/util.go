@@ -35,28 +35,35 @@ func IsPushedAuthorizedRequestForm(form url.Values, prefix string) (is bool) {
 	return strings.HasPrefix(form.Get(FormParameterRequestURI), prefix)
 }
 
-// SortedSigningAlgs is a sorting type which allows the use of sort.Sort to order a list of OAuth 2.0 Signing Algs.
-// Sorting occurs in the order of from within the RFC's.
+// SortedSigningAlgs is a sorting type which allows the use of [sort.Sort] to order a list of OAuth 2.0 Signing Algs.
+// Algorithms are ordered by family with HMAC first, then RSA, ECDSA, and RSA-PSS, with the none algorithm last and
+// algorithms within a family ordered lexically.
 type SortedSigningAlgs []string
 
+// Len implements the [sort.Interface].
 func (s SortedSigningAlgs) Len() int {
 	return len(s)
 }
 
+// Less implements the [sort.Interface].
 func (s SortedSigningAlgs) Less(i, j int) bool {
 	return isSigningAlgLess(s[i], s[j])
 }
 
+// Swap implements the [sort.Interface].
 func (s SortedSigningAlgs) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
+// SortedJSONWebKey is a sortable group of jose.JSONWebKey.
 type SortedJSONWebKey []jose.JSONWebKey
 
+// Len implements the [sort.Interface].
 func (s SortedJSONWebKey) Len() int {
 	return len(s)
 }
 
+// Less implements the [sort.Interface].
 func (s SortedJSONWebKey) Less(i, j int) bool {
 	if s[i].Algorithm == s[j].Algorithm {
 		return s[i].KeyID < s[j].KeyID
@@ -65,6 +72,7 @@ func (s SortedJSONWebKey) Less(i, j int) bool {
 	return isSigningAlgLess(s[i].Algorithm, s[j].Algorithm)
 }
 
+// Swap implements the [sort.Interface].
 func (s SortedJSONWebKey) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
@@ -460,6 +468,7 @@ func RequestFormRequiresLogin(form url.Values, requested, authenticated time.Tim
 	return false
 }
 
+// ValidateSectorIdentifierURI validates that every redirect URI of a client is included in the document at the sector identifier URI.
 func ValidateSectorIdentifierURI(ctx ClientContext, cache map[string][]string, sectorURI *url.URL, redirectURIs []string) (err error) {
 	var (
 		sectorRedirectURIs []string
@@ -568,7 +577,7 @@ func float64As(value any) (float64, bool) {
 	}
 }
 
-// ParseSpaceDelimitedFromParameter obtains the value of a specific key in a url.Values form returning it as an
+// ParseSpaceDelimitedFromParameter obtains the value of a specific key in a [url.Values] form returning it as an
 // oauth2.Arguments slice using spaces as a delimiter (without empty values).
 func ParseSpaceDelimitedFromParameter(form url.Values, key string) oauthelia2.Arguments {
 	var value string
@@ -582,7 +591,7 @@ func ParseSpaceDelimitedFromParameter(form url.Values, key string) oauthelia2.Ar
 	return oauthelia2.RemoveEmpty(strings.Split(value, " "))
 }
 
-// FormRequiresExplicitConsent evaluates form values in the url.Values format for evidence that the form requires
+// FormRequiresExplicitConsent evaluates form values in the [url.Values] format for evidence that the form requires
 // explicit consent, for example if the client requested explicit consent, or the flow would result in a Refresh Token.
 func FormRequiresExplicitConsent(form url.Values) (required bool) {
 	prompt := ParseSpaceDelimitedFromParameter(form, FormParameterPrompt)
@@ -636,7 +645,7 @@ func RequesterRequiresExplicitConsent(requester oauthelia2.Requester) (required 
 	return false
 }
 
-// FormIsAuthorizeCodeFlow evaluates form values in the url.Values format to see if the flow would result in an
+// FormIsAuthorizeCodeFlow evaluates form values in the [url.Values] format to see if the flow would result in an
 // Authorization Code.
 func FormIsAuthorizeCodeFlow(form url.Values) (is bool) {
 	return ParseSpaceDelimitedFromParameter(form, FormParameterResponseType).Has(ResponseTypeAuthorizationCodeFlow)

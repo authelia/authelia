@@ -19,6 +19,7 @@ type SQLXDB interface {
 	Close() (err error)
 }
 
+// SQLXTx is a SQLXConnection which represents a transaction.
 type SQLXTx interface {
 	SQLXConnection
 
@@ -64,14 +65,17 @@ type SQLXConnection interface {
 	PrepareNamedContext(ctx context.Context, query string) (statement *sqlx.NamedStmt, err error)
 }
 
+// SQLXWrapDB wraps a sqlx.DB so it satisfies the SQLXConnection interface.
 type SQLXWrapDB struct {
 	*sqlx.DB
 }
 
+// Beginx begins a transaction.
 func (db *SQLXWrapDB) Beginx() (tx SQLXTx, err error) {
 	return db.DB.Beginx()
 }
 
+// BeginTxx begins a transaction with the given context and options.
 func (db *SQLXWrapDB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (tx SQLXTx, err error) {
 	return db.DB.BeginTxx(ctx, opts)
 }
@@ -220,6 +224,7 @@ func (s OAuth2SessionType) String() string {
 	}
 }
 
+// AAD returns the additional authenticated data for this session type.
 func (s OAuth2SessionType) AAD() string {
 	switch s {
 	case OAuth2SessionTypePAR:

@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// SchemaEncryptionRotateHMACKey rotates the HMAC key with the given name, truncating the table it protects.
 func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name string) (err error) {
 	var (
 		size  int
@@ -100,6 +101,7 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, rawKey stri
 	return nil
 }
 
+// SchemaEncryptionChangeKeyAdvanced changes the encryption key using the given connection and options.
 func (p *SQLProvider) SchemaEncryptionChangeKeyAdvanced(ctx context.Context, conn SQLXConnection, key []byte, init bool, useDecryptAAD, useEncryptAAD bool) (err error) {
 	encChangeFuncs := []EncryptionChangeKeyFunc{
 		schemaEncryptionChangeKeyOneTimeCode,
