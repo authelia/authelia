@@ -56,6 +56,7 @@ peom = "peom"
 ignore-hidden = false
 extend-exclude = [
     ".git/",
+    ".claude/",
     "*.svg",
     "go.sum",
     "*-lock.yaml",

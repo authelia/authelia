@@ -15,7 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
-// NewSession creates a new empty OpenIDSession struct with the requested at value being time.Now().
+// NewSession creates a new empty OpenIDSession struct with the requested at value being [time.Now]().
 func NewSession() (session *Session) {
 	return NewSessionWithRequestedAt(time.Now())
 }
@@ -31,6 +31,7 @@ func NewSessionWithRequestedAt(requestedAt time.Time) (session *Session) {
 	return session
 }
 
+// NewSessionWithIssuerAndRequestedAt returns a new *Session with the given issuer and requested at time.
 func NewSessionWithIssuerAndRequestedAt(ctx Context, issuer *url.URL, requestedAt time.Time) (session *Session) {
 	session = NewSessionWithRequestedAt(requestedAt)
 
@@ -51,6 +52,7 @@ func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string,
 	return session
 }
 
+// AccessTokenSession represents the headers and claims of an Access Token.
 type AccessTokenSession struct {
 	Headers map[string]any `json:"-"`
 	Claims  map[string]any `json:"-"`
@@ -172,12 +174,14 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 	return claims
 }
 
+// SetValuesFromRequester sets the session values from the given requester.
 func (s *Session) SetValuesFromRequester(requester oauthelia2.Requester) {
 	s.ClientID = requester.GetClient().GetID()
 	s.Claims.AuthorizedParty = requester.GetClient().GetID()
 	s.Claims.Nonce = requester.GetRequestForm().Get(FormParameterNonce)
 }
 
+// SetValuesFromConsentSession sets the session values from the given consent session.
 func (s *Session) SetValuesFromConsentSession(consent *model.OAuth2ConsentSession) {
 	s.SetRequestedAt(consent.RequestedAt)
 
@@ -187,6 +191,7 @@ func (s *Session) SetValuesFromConsentSession(consent *model.OAuth2ConsentSessio
 	s.Claims.Subject = consent.Subject.UUID.String()
 }
 
+// SetValuesGeneral sets the general session values.
 func (s *Session) SetValuesGeneral(ctx Context, issuer *url.URL, kid string, username string, amr []string, authTime time.Time, claims *ClaimsRequests, extra map[string]any) {
 	if issuer != nil {
 		s.Claims.Issuer = issuer.String()

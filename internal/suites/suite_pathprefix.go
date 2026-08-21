@@ -42,6 +42,10 @@ func init() {
 			return err
 		}
 
+		if err = waitUntilProxyRoutesPortal(BaseDomain); err != nil {
+			return err
+		}
+
 		return updateDevEnvFileForDomain(BaseDomain, dockerEnvironment)
 	}
 

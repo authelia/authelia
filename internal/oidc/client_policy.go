@@ -7,6 +7,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+// NewClientAuthorizationPolicy returns a ClientAuthorizationPolicy given a name and its configuration.
 func NewClientAuthorizationPolicy(name string, config schema.IdentityProvidersOpenIDConnectPolicy) (policy ClientAuthorizationPolicy) {
 	policy = ClientAuthorizationPolicy{
 		Name:          name,

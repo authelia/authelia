@@ -199,6 +199,7 @@ func (c *RegisteredClient) GetResponseTypes() (types oauthelia2.Arguments) {
 	return c.ResponseTypes
 }
 
+// GetClaimsStrategy returns the claims strategy for this client.
 func (c *RegisteredClient) GetClaimsStrategy() (strategy ClaimsStrategy) {
 	return c.ClaimsStrategy
 }
@@ -634,6 +635,7 @@ func (c *RegisteredClient) GetRefreshFlowIgnoreOriginalGrantedScopes(ctx context
 	return c.RefreshFlowIgnoreOriginalGrantedScopes
 }
 
+// GetRevokeRefreshTokensExplicit returns the revoke refresh tokens explicit flag for this client.
 func (c *RegisteredClient) GetRevokeRefreshTokensExplicit(ctx context.Context) (explicit bool) {
 	return false
 }
@@ -727,6 +729,7 @@ func (c *RegisteredClient) GetRequestedAudienceImplicit() (implicit bool) {
 	return c.RequestedAudienceMode == ClientRequestedAudienceModeImplicit
 }
 
+// GetEnableDPoPBoundAccessTokens returns true if this client has DPoP bound access tokens enabled.
 func (c *RegisteredClient) GetEnableDPoPBoundAccessTokens() (enable bool) {
 	return c.DPoPBoundAccessTokens
 }
@@ -797,6 +800,7 @@ func (c *RegisteredClient) getGrantTypeLifespan(gt oauthelia2.GrantType) (gtl sc
 	}
 }
 
+// NewUserinfoClient returns a jwt.Client which decorates the given client for the UserInfo endpoint.
 func NewUserinfoClient(client Client) jwt.Client {
 	return &decoratedUserinfoClient{client: client}
 }

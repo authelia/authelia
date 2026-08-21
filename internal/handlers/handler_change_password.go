@@ -10,6 +10,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
+// ChangePasswordPOST handles the change password request.
 func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession

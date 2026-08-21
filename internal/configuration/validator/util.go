@@ -110,6 +110,7 @@ func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicate
 	return
 }
 
+// JWKProperties represents the properties of a JSON Web Key.
 type JWKProperties struct {
 	Use       string
 	Algorithm string

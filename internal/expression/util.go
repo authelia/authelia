@@ -152,6 +152,7 @@ func newAttributeOAuth2AuthorizationRequestClaimValues() cel.EnvOption {
 	return cel.Variable(AttributeOpenIDAuthorizationRequestClaimValues, cel.ListType(cel.DynType))
 }
 
+// IsReservedAttribute returns true if the given attribute name is reserved.
 func IsReservedAttribute(key string) bool {
 	switch key {
 	case AttributeUserUsername, AttributeUserGroups, AttributeUserDisplayName, AttributeUserEmail, AttributeUserEmails,

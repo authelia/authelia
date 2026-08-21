@@ -156,6 +156,15 @@ func TestSchemaEncryptionChangeKeyWithData(t *testing.T) {
 	}
 }
 
+func TestSchemaEncryptionChangeKeyAtColumnScopedSchema(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+
+	ctx := context.Background()
+
+	require.NoError(t, provider.SchemaMigrate(ctx, true, schemaVersionEncryptionKeyDerivation))
+	require.NoError(t, provider.SchemaEncryptionChangeKey(ctx, "authelia-new-key-not-a-secret-authelia-new-key-not-a-secret"))
+}
+
 func TestSchemaEncryptionChangeKeyShouldRollbackOnCorruptData(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -212,6 +221,134 @@ func TestSchemaEncryptionChangeKeyShouldSkipEmptyCachedData(t *testing.T) {
 			require.NoError(t, err)
 
 			require.NoError(t, provider.SchemaEncryptionChangeKey(ctx, "authelia-new-test-key-not-a-secret-authelia-new-key"))
+		})
+	}
+}
+
+func TestSchemaEncryptionChangeKeyShouldErrOnCorruptData(t *testing.T) {
+	testCases := []struct {
+		name   string
+		table  string
+		column string
+		err    string
+	}{
+		{
+			name:   "ShouldErrOnCorruptOneTimeCode",
+			table:  tableOneTimeCode,
+			column: columnCode,
+			err:    "error changing the storage encryption key: error decrypting one-time code with id '1': cipher: message authentication failed",
+		},
+		{
+			name:   "ShouldErrOnCorruptTOTPSecret",
+			table:  tableTOTPConfigurations,
+			column: columnSecret,
+			err:    "error changing the storage encryption key: error decrypting TOTP configuration secret with id '1': cipher: message authentication failed",
+		},
+		{
+			name:   "ShouldErrOnCorruptWebAuthnPublicKey",
+			table:  tableWebAuthnCredentials,
+			column: "public_key",
+			err:    "error changing the storage encryption key: error decrypting WebAuthn credential public key with id '1': cipher: message authentication failed",
+		},
+		{
+			name:   "ShouldErrOnCorruptWebAuthnAttestation",
+			table:  tableWebAuthnCredentials,
+			column: "attestation",
+			err:    "error changing the storage encryption key: error decrypting WebAuthn credential attestation with id '1': cipher: message authentication failed",
+		},
+		{
+			name:   "ShouldErrOnCorruptCachedData",
+			table:  tableCachedData,
+			column: columnValue,
+			err:    "error changing the storage encryption key: error decrypting cached data value id '1': cipher: message authentication failed",
+		},
+		{
+			name:   "ShouldErrOnCorruptOAuth2SessionData",
+			table:  tableOAuth2AccessTokenSession,
+			column: columnSessionData,
+			err:    "error changing the storage encryption key: error decrypting oauth2 access token session data with id '1': cipher: message authentication failed",
+		},
+		{
+			name:   "ShouldErrOnCorruptEncryptionValue",
+			table:  tableEncryption,
+			column: columnValue,
+			err:    "error changing the storage encryption key: error decrypting encryption value with id '1': cipher: message authentication failed",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			seedAllEncryptedData(t, provider, ctx)
+
+			_, err := provider.db.ExecContext(ctx, fmt.Sprintf("UPDATE %s SET %s = ?", tc.table, tc.column), []byte("this-is-not-valid-ciphertext"))
+			require.NoError(t, err)
+
+			assert.EqualError(t, provider.SchemaEncryptionChangeKey(ctx, "authelia-new-test-key-not-a-secret-authelia-new-key"), tc.err)
+
+			var value []byte
+
+			require.NoError(t, provider.db.GetContext(ctx, &value, fmt.Sprintf("SELECT %s FROM %s WHERE id = ?", tc.column, tc.table), 1))
+			assert.Equal(t, []byte("this-is-not-valid-ciphertext"), value)
+		})
+	}
+}
+
+func TestSchemaEncryptionChangeKeyShouldErrOnTableQueryErrors(t *testing.T) {
+	testCases := []struct {
+		name  string
+		table string
+		err   string
+	}{
+		{
+			name:  "ShouldErrOnOneTimeCodeQueryError",
+			table: tableOneTimeCode,
+			err:   "error changing the storage encryption key: sqlx: error in GetContext query: no such table: one_time_code",
+		},
+		{
+			name:  "ShouldErrOnTOTPQueryError",
+			table: tableTOTPConfigurations,
+			err:   "error changing the storage encryption key: sqlx: error in GetContext query: no such table: totp_configurations",
+		},
+		{
+			name:  "ShouldErrOnWebAuthnQueryError",
+			table: tableWebAuthnCredentials,
+			err:   "error changing the storage encryption key: sqlx: error in GetContext query: no such table: webauthn_credentials",
+		},
+		{
+			name:  "ShouldErrOnCachedDataQueryError",
+			table: tableCachedData,
+			err:   "error changing the storage encryption key: error selecting cached data: sqlx: error in SelectContext query: no such table: cached_data",
+		},
+		{
+			name:  "ShouldErrOnOAuth2SessionQueryError",
+			table: tableOAuth2AccessTokenSession,
+			err:   "error changing the storage encryption key: sqlx: error in GetContext query: no such table: oauth2_access_token_session",
+		},
+		{
+			name:  "ShouldErrOnEncryptionQueryError",
+			table: tableEncryption,
+			err:   "error changing the storage encryption key: sqlx: error in GetContext query: no such table: encryption",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProviderWithEncryption(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			_, err := provider.db.ExecContext(ctx, fmt.Sprintf("DROP TABLE %s", tc.table))
+			require.NoError(t, err)
+
+			err = provider.SchemaEncryptionChangeKey(ctx, "authelia-new-test-key-not-a-secret-authelia-new-key")
+
+			assert.EqualError(t, err, tc.err)
 		})
 	}
 }
@@ -369,76 +506,7 @@ func TestSchemaEncryptionChangeKeyWithAllData(t *testing.T) {
 	provider := newProvider(oldKey)
 	require.NoError(t, provider.StartupCheck())
 
-	require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
-		CreatedAt: time.Now().Truncate(time.Second),
-		Username:  "john",
-		Issuer:    "Authelia",
-		Algorithm: "SHA1",
-		Digits:    6,
-		Period:    30,
-		Secret:    []byte("JBSWY3DPEHPK3PXP"),
-	}))
-
-	require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
-		CreatedAt:       time.Now().Truncate(time.Second),
-		RPID:            "example.com",
-		Username:        "john",
-		Description:     "my-key",
-		KID:             model.NewBase64([]byte("kid-1")),
-		AttestationType: "none",
-		Attachment:      "cross-platform",
-		PublicKey:       []byte("fake-public-key"),
-		Attestation:     []byte("fake-attestation"),
-	}))
-
-	_, err := provider.SaveOneTimeCode(ctx, model.OneTimeCode{
-		PublicID:  uuid.Must(uuid.NewRandom()),
-		IssuedAt:  time.Now().Truncate(time.Second),
-		IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
-		ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
-		Username:  "john",
-		Intent:    "reset_password",
-		Code:      []byte("123456"),
-	})
-	require.NoError(t, err)
-
-	require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, model.OAuth2Session{
-		ChallengeID:     model.MustNullUUID(model.NewRandomNullUUID()),
-		RequestID:       "req-123",
-		ClientID:        "test-client",
-		Signature:       "sig-123",
-		Subject:         sql.NullString{Valid: true, String: "john"},
-		Active:          true,
-		RequestedScopes: model.StringSlicePipeDelimited{"openid"},
-		GrantedScopes:   model.StringSlicePipeDelimited{"openid"},
-		Session:         []byte(`{"access":"token"}`),
-	}))
-
-	require.NoError(t, provider.SaveOAuth2DeviceCodeSession(ctx, &model.OAuth2DeviceCodeSession{
-		Signature:         "dev-sig-123",
-		RequestID:         "dev-req-123",
-		ClientID:          "test-client",
-		UserCodeSignature: "user-code-123",
-		Active:            true,
-		RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
-		GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
-		Session:           []byte(`{"device":"code"}`),
-		RequestedAt:       time.Now().Truncate(time.Second),
-	}))
-
-	require.NoError(t, provider.SaveOAuth2PushedAuthorizationSession(ctx, model.OAuth2PushedAuthorizationSession{
-		Signature:   "par-sig-123",
-		RequestID:   "par-req-123",
-		ClientID:    "test-client",
-		RequestedAt: time.Now().Truncate(time.Second),
-		Session:     []byte(`{"par":"session"}`),
-	}))
-
-	require.NoError(t, provider.SaveCachedData(ctx, model.CachedData{
-		Name:      "cache-key",
-		Value:     []byte("cache-value"),
-		Encrypted: true,
-	}))
+	seedAllEncryptedData(t, provider, ctx)
 
 	require.NoError(t, provider.SchemaEncryptionChangeKey(ctx, newKey))
 	require.NoError(t, provider.Close())
@@ -624,6 +692,259 @@ func TestSchemaEncryptionCheckKeyShouldReportTableQueryErrors(t *testing.T) {
 			assert.Error(t, result.Tables[tc.table].Error)
 		})
 	}
+}
+
+func TestSchemaEncryptionChangeKeyPopulatesRowScopes(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	var values []encEncryption
+
+	require.NoError(t, provider.db.SelectContext(ctx, &values, fmt.Sprintf(queryFmtSelectEncryptionEncryptedData, tableEncryption)))
+	require.NotEmpty(t, values)
+
+	for _, value := range values {
+		assert.NotEmpty(t, value.Name)
+	}
+}
+
+func TestRowScopedAADRejectsSubstitutedCiphertext(t *testing.T) {
+	testCases := []struct {
+		name   string
+		table  string
+		column string
+		rowA   string
+		rowB   string
+	}{
+		{
+			name:   "ShouldRejectSubstitutedTOTPSecret",
+			table:  tableTOTPConfigurations,
+			column: columnSecret,
+			rowA:   "john",
+			rowB:   "harry",
+		},
+		{
+			name:   "ShouldRejectSubstitutedEncryptionValue",
+			table:  tableEncryption,
+			column: columnValue,
+			rowA:   "hmac_key_otc",
+			rowB:   "hmac_key_otp",
+		},
+		{
+			name:   "ShouldRejectSubstitutedOneTimeCode",
+			table:  tableOneTimeCode,
+			column: columnCode,
+			rowA:   "signature-a",
+			rowB:   "signature-b",
+		},
+		{
+			name:   "ShouldRejectSubstitutedCachedData",
+			table:  tableCachedData,
+			column: columnValue,
+			rowA:   "name-a",
+			rowB:   "name-b",
+		},
+	}
+
+	key := make([]byte, 32)
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ciphertext, err := utils.Encrypt([]byte("secret-value"), aadRow.Get(tc.table, tc.column, tc.rowA), key)
+			require.NoError(t, err)
+
+			plaintext, err := utils.Decrypt(ciphertext, aadRow.Get(tc.table, tc.column, tc.rowA), key)
+
+			require.NoError(t, err)
+			assert.Equal(t, []byte("secret-value"), plaintext)
+
+			_, err = utils.Decrypt(ciphertext, aadRow.Get(tc.table, tc.column, tc.rowB), key)
+
+			assert.EqualError(t, err, "cipher: message authentication failed")
+		})
+	}
+}
+
+func TestRowScopedIssuerAADRejectsSubstitutedCredential(t *testing.T) {
+	key := make([]byte, 32)
+
+	ciphertext, err := utils.Encrypt([]byte("public-key"), aadRow.GetIssuer(tableWebAuthnCredentials, "public_key", "kid-a", "example.com"), key)
+	require.NoError(t, err)
+
+	_, err = utils.Decrypt(ciphertext, aadRow.GetIssuer(tableWebAuthnCredentials, "public_key", "kid-b", "example.com"), key)
+
+	assert.EqualError(t, err, "cipher: message authentication failed")
+
+	_, err = utils.Decrypt(ciphertext, aadRow.GetIssuer(tableWebAuthnCredentials, "public_key", "kid-a", "other.example.com"), key)
+
+	assert.EqualError(t, err, "cipher: message authentication failed")
+}
+
+func TestStorageRejectsSwappedTOTPSecrets(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	for _, username := range []string{"john", "harry"} {
+		config := model.TOTPConfiguration{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Username:  username,
+			Issuer:    "example.com",
+			Algorithm: "SHA1",
+			Digits:    6,
+			Period:    30,
+			Secret:    []byte("secret-" + username),
+		}
+
+		require.NoError(t, provider.SaveTOTPConfiguration(ctx, config))
+	}
+
+	_, err := provider.db.ExecContext(ctx, fmt.Sprintf(`UPDATE %s SET secret = (SELECT secret FROM %s WHERE username = 'harry') WHERE username = 'john';`, tableTOTPConfigurations, tableTOTPConfigurations))
+	require.NoError(t, err)
+
+	_, err = provider.LoadTOTPConfiguration(ctx, "john")
+
+	assert.EqualError(t, err, "error decrypting TOTP secret for user 'john': cipher: message authentication failed")
+}
+
+func TestStorageRejectsSwappedWebAuthnCredentials(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	for _, kid := range []string{"kid-a", "kid-b"} {
+		require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+			CreatedAt:       time.Now().Truncate(time.Second),
+			RPID:            "example.com",
+			Username:        "john",
+			Description:     kid,
+			KID:             model.NewBase64([]byte(kid)),
+			AttestationType: "packed",
+			Attachment:      "cross-platform",
+			PublicKey:       []byte("public-key-" + kid),
+		}))
+	}
+
+	credentials, err := provider.LoadWebAuthnCredentialsByUsername(ctx, "example.com", "john")
+
+	require.NoError(t, err)
+	require.Len(t, credentials, 2)
+
+	_, err = provider.db.ExecContext(ctx, fmt.Sprintf(`UPDATE %s SET public_key = (SELECT public_key FROM %s WHERE description = 'kid-b') WHERE description = 'kid-a';`, tableWebAuthnCredentials, tableWebAuthnCredentials))
+	require.NoError(t, err)
+
+	_, err = provider.LoadWebAuthnCredentialByID(ctx, credentials[0].ID)
+
+	assert.EqualError(t, err, fmt.Sprintf("error decrypting WebAuthn credential public key of credential with id '%d' for user 'john': cipher: message authentication failed", credentials[0].ID))
+}
+
+func TestStorageRejectsWebAuthnCredentialMovedBetweenRelyingParties(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+		CreatedAt:       time.Now().Truncate(time.Second),
+		RPID:            "example.com",
+		Username:        "john",
+		Description:     "moved",
+		KID:             model.NewBase64([]byte("kid-moved")),
+		AttestationType: "packed",
+		Attachment:      "cross-platform",
+		PublicKey:       []byte("public-key-moved"),
+	}))
+
+	credentials, err := provider.LoadWebAuthnCredentialsByUsername(ctx, "example.com", "john")
+
+	require.NoError(t, err)
+	require.Len(t, credentials, 1)
+
+	_, err = provider.db.ExecContext(ctx, fmt.Sprintf(`UPDATE %s SET rpid = ? WHERE id = ?;`, tableWebAuthnCredentials), "other.example.com", credentials[0].ID)
+	require.NoError(t, err)
+
+	_, err = provider.LoadWebAuthnCredentialByID(ctx, credentials[0].ID)
+
+	assert.EqualError(t, err, fmt.Sprintf("error decrypting WebAuthn credential public key of credential with id '%d' for user 'john': cipher: message authentication failed", credentials[0].ID))
+}
+
+func seedAllEncryptedData(t *testing.T, provider *SQLiteProvider, ctx context.Context) {
+	t.Helper()
+
+	require.NoError(t, provider.SaveTOTPConfiguration(ctx, model.TOTPConfiguration{
+		CreatedAt: time.Now().Truncate(time.Second),
+		Username:  "john",
+		Issuer:    "Authelia",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Secret:    []byte("JBSWY3DPEHPK3PXP"),
+	}))
+
+	require.NoError(t, provider.SaveWebAuthnCredential(ctx, model.WebAuthnCredential{
+		CreatedAt:       time.Now().Truncate(time.Second),
+		RPID:            "example.com",
+		Username:        "john",
+		Description:     "my-key",
+		KID:             model.NewBase64([]byte("kid-1")),
+		AttestationType: "none",
+		Attachment:      "cross-platform",
+		PublicKey:       []byte("fake-public-key"),
+		Attestation:     []byte("fake-attestation"),
+	}))
+
+	_, err := provider.SaveOneTimeCode(ctx, model.OneTimeCode{
+		PublicID:  uuid.Must(uuid.NewRandom()),
+		IssuedAt:  time.Now().Truncate(time.Second),
+		IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+		ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+		Username:  "john",
+		Intent:    "reset_password",
+		Code:      []byte("123456"),
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, model.OAuth2Session{
+		ChallengeID:     model.MustNullUUID(model.NewRandomNullUUID()),
+		RequestID:       "req-123",
+		ClientID:        "test-client",
+		Signature:       "sig-123",
+		Subject:         sql.NullString{Valid: true, String: "john"},
+		Active:          true,
+		RequestedScopes: model.StringSlicePipeDelimited{"openid"},
+		GrantedScopes:   model.StringSlicePipeDelimited{"openid"},
+		Session:         []byte(`{"access":"token"}`),
+	}))
+
+	require.NoError(t, provider.SaveOAuth2DeviceCodeSession(ctx, &model.OAuth2DeviceCodeSession{
+		Signature:         "dev-sig-123",
+		RequestID:         "dev-req-123",
+		ClientID:          "test-client",
+		UserCodeSignature: "user-code-123",
+		Active:            true,
+		RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+		GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+		Session:           []byte(`{"device":"code"}`),
+		RequestedAt:       time.Now().Truncate(time.Second),
+	}))
+
+	require.NoError(t, provider.SaveOAuth2PushedAuthorizationSession(ctx, model.OAuth2PushedAuthorizationSession{
+		Signature:   "par-sig-123",
+		RequestID:   "par-req-123",
+		ClientID:    "test-client",
+		RequestedAt: time.Now().Truncate(time.Second),
+		Session:     []byte(`{"par":"session"}`),
+	}))
+
+	require.NoError(t, provider.SaveCachedData(ctx, model.CachedData{
+		Name:      "cache-key",
+		Value:     []byte("cache-value"),
+		Encrypted: true,
+	}))
 }
 
 func newTestSQLiteProviderWithEncryption(t *testing.T) *SQLiteProvider {

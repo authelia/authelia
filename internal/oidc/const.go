@@ -78,6 +78,7 @@ const (
 	ClaimTokenIntrospection                  = "token_introspection"
 )
 
+// Claim Type strings.
 const (
 	ClaimTypeNormal = "normal"
 )
@@ -93,6 +94,7 @@ const (
 	lifespanVerifiableCredentialsNonceDefault = time.Hour
 )
 
+// Redirect URI prefix strings.
 const (
 	RedirectURIPrefixPushedAuthorizationRequestURN = "urn:ietf:params:oauth:request_uri:"
 )
@@ -165,6 +167,7 @@ const (
 	SigningAlgHMACUsingSHA512 = "HS512"
 )
 
+// JSON Web Encryption Algorithm strings.
 const (
 	EncryptionAlgNone             = "none"
 	EncryptionAlgRSA15            = "RSA1_5"
@@ -186,6 +189,7 @@ const (
 	EncryptionAlgPBES2HS512A256KW = "PBES2-HS512+A256KW"
 )
 
+// JSON Web Encryption content-encryption strings.
 const (
 	EncryptionEncA128CBCHS256 = "A128CBC-HS256"
 	EncryptionEncA192CBCHS384 = "A192CBC-HS384"
@@ -203,6 +207,7 @@ const (
 	SigningAlgPrefixECDSA  = "ES"
 )
 
+// Key Use strings.
 const (
 	KeyUseSignature  = "sig"
 	KeyUseEncryption = "enc"
@@ -220,10 +225,12 @@ const (
 	PKCEChallengeMethodSHA256 = "S256"
 )
 
+// Special Redirect URI strings.
 const (
 	RedirectURISpecialOAuth2InstalledApp = "urn:ietf:wg:oauth:2.0:oob"
 )
 
+// Form Parameter strings.
 const (
 	FormParameterState        = "state"
 	FormParameterClientID     = valueClientID
@@ -240,6 +247,7 @@ const (
 	FormParameterNonce        = valueNonce
 )
 
+// Prompt strings.
 const (
 	PromptConsent       = "consent"
 	PromptLogin         = "login"
@@ -260,10 +268,12 @@ const (
 	JWTHeaderKeyType = "typ"
 )
 
+// JWT Header Type values.
 const (
 	JWTHeaderTypeValueAccessTokenJWT = "at+jwt"
 )
 
+// ID Token Audience Mode strings.
 const (
 	IDTokenAudienceModeSpecification      = "specification"
 	IDTokenAudienceModeExperimentalMerged = "experimental-merged"
@@ -436,6 +446,7 @@ const (
 )
 
 var (
+	// ErrEffectiveIssuer is returned when the effective issuer for a request cannot be determined.
 	ErrEffectiveIssuer = &oauthelia2.RFC6749Error{
 		ErrorField:       "invalid_request",
 		DescriptionField: "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed.",

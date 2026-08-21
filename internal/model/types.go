@@ -37,16 +37,17 @@ func NewBase64(data []byte) Base64 {
 	return Base64{data: data}
 }
 
-// IP is a type specific for storage of a net.IP in the database which can't be NULL.
+// IP is a type specific for storage of a [net.IP] in the database which can't be NULL.
 type IP struct {
 	IP net.IP
 }
 
+// String returns the string representation of this IP.
 func (ip IP) String() string {
 	return ip.IP.String()
 }
 
-// Value is the IP implementation of the databases/sql driver.Valuer.
+// Value is the IP implementation of the database/sql [driver.Valuer].
 func (ip IP) Value() (value driver.Value, err error) {
 	if ip.IP == nil {
 		return nil, fmt.Errorf(errFmtValueNil, ip)
@@ -55,7 +56,7 @@ func (ip IP) Value() (value driver.Value, err error) {
 	return ip.IP.String(), nil
 }
 
-// Scan is the IP implementation of the sql.Scanner.
+// Scan is the IP implementation of the [sql.Scanner].
 func (ip *IP) Scan(src any) (err error) {
 	if src == nil {
 		return fmt.Errorf(errFmtScanNil, ip)
@@ -77,11 +78,12 @@ func (ip *IP) Scan(src any) (err error) {
 	return nil
 }
 
-// NullIP is a type specific for storage of a net.IP in the database which can also be NULL.
+// NullIP is a type specific for storage of a [net.IP] in the database which can also be NULL.
 type NullIP struct {
 	IP net.IP
 }
 
+// String returns the string representation of this NullIP.
 func (ip NullIP) String() string {
 	if ip.IP == nil {
 		return "nil"
@@ -90,7 +92,7 @@ func (ip NullIP) String() string {
 	return ip.IP.String()
 }
 
-// Value is the NullIP implementation of the databases/sql driver.Valuer.
+// Value is the NullIP implementation of the database/sql [driver.Valuer].
 func (ip NullIP) Value() (value driver.Value, err error) {
 	if ip.IP == nil {
 		return nil, nil
@@ -99,7 +101,7 @@ func (ip NullIP) Value() (value driver.Value, err error) {
 	return ip.IP.String(), nil
 }
 
-// Scan is the NullIP implementation of the sql.Scanner.
+// Scan is the NullIP implementation of the [sql.Scanner].
 func (ip *NullIP) Scan(src any) (err error) {
 	if src == nil {
 		ip.IP = nil
@@ -137,12 +139,12 @@ func (b Base64) Bytes() []byte {
 	return b.data
 }
 
-// Value is the Base64 implementation of the databases/sql driver.Valuer.
+// Value is the Base64 implementation of the database/sql [driver.Valuer].
 func (b Base64) Value() (value driver.Value, err error) {
 	return b.String(), nil
 }
 
-// Scan is the Base64 implementation of the sql.Scanner.
+// Scan is the Base64 implementation of the [sql.Scanner].
 func (b *Base64) Scan(src any) (err error) {
 	if src == nil {
 		return fmt.Errorf(errFmtScanNil, b)
@@ -172,7 +174,7 @@ type StartupCheck interface {
 // StringSlicePipeDelimited is a string slice that is stored in the database delimited by pipes.
 type StringSlicePipeDelimited []string
 
-// Scan is the StringSlicePipeDelimited implementation of the sql.Scanner.
+// Scan is the StringSlicePipeDelimited implementation of the [sql.Scanner].
 func (s *StringSlicePipeDelimited) Scan(value any) (err error) {
 	var nullStr sql.NullString
 
@@ -187,12 +189,12 @@ func (s *StringSlicePipeDelimited) Scan(value any) (err error) {
 	return nil
 }
 
-// Value is the StringSlicePipeDelimited implementation of the databases/sql driver.Valuer.
+// Value is the StringSlicePipeDelimited implementation of the database/sql [driver.Valuer].
 func (s StringSlicePipeDelimited) Value() (driver.Value, error) {
 	return utils.StringJoinDelimitedEscaped(s, '|'), nil
 }
 
-// Context is a commonly used context.Context within Authelia.
+// Context is a commonly used [context.Context] within Authelia.
 type Context interface {
 	context.Context
 

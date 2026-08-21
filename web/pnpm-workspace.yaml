@@ -33,7 +33,7 @@ overrides:
   qs: 6.15.3
   react-router: 8.3.0
   semver: 7.8.5
-  vite: 8.2.1
+  vite: 8.2.2
   ws: 8.21.3
   yaml: 2.9.0
 peerDependencyRules:

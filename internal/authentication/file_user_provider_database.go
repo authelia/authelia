@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/expression"
 )
 
+// FileUserProviderDatabase is the interface implemented by the file user provider databases.
 type FileUserProviderDatabase interface {
 	Save() (err error)
 	Load() (err error)
@@ -240,6 +241,7 @@ type FileUserDatabaseUserDetails struct {
 	Extra map[string]any `json:"extra" jsonschema:"title=Extra" jsonschema_description:"The extra attributes for the user."`
 }
 
+// FileUserDatabaseUserDetailsAddressModel represents the address of a user in the file user database.
 type FileUserDatabaseUserDetailsAddressModel struct {
 	StreetAddress string `yaml:"street_address" json:"street_address,omitempty" jsonschema:"title=Street Address" jsonschema_description:"The street address for the user."`
 	Locality      string `yaml:"locality" json:"locality,omitempty" jsonschema:"title=Locality" jsonschema_description:"The locality for the user."`
@@ -434,6 +436,8 @@ type FileDatabaseUserDetailsModel struct {
 	Extra map[string]any `yaml:"extra"`
 }
 
+// ValidateExtra returns an error if any extra attribute of this user does not match its definition.
+//
 //nolint:gocyclo
 func (m FileDatabaseUserDetailsModel) ValidateExtra(username string, extra map[string]expression.ExtraAttribute) (err error) {
 	for name, value := range m.Extra {
@@ -488,6 +492,8 @@ func (m FileDatabaseUserDetailsModel) ValidateExtra(username string, extra map[s
 			default:
 				return fmt.Errorf("error occurred validating extra attributes for user '%s': attribute '%s' has the unknown item type '%T'", username, name, v)
 			}
+
+			return fmt.Errorf("error occurred validating extra attributes for user '%s': attribute '%s' has the known item type '%T' but '[]%s' is the expected type", username, name, v, vt)
 		}
 	}
 

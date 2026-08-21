@@ -58,14 +58,17 @@ type StandardLDAPClientFactory struct {
 	dialer LDAPClientDialer
 }
 
+// Initialize implements the LDAPClientFactory interface.
 func (f *StandardLDAPClientFactory) Initialize() (err error) {
 	return nil
 }
 
+// GetClient implements the LDAPClientFactory interface.
 func (f *StandardLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (client LDAPExtendedClient, err error) {
 	return ldapDialBind(f.log, f.config, f.dialer, f.tls, f.opts, opts...)
 }
 
+// ReleaseClient implements the LDAPClientFactory interface.
 func (f *StandardLDAPClientFactory) ReleaseClient(client LDAPExtendedClient) (err error) {
 	if err = client.Close(); err != nil {
 		return fmt.Errorf("error occurred closing LDAP client: %w", err)
@@ -74,6 +77,7 @@ func (f *StandardLDAPClientFactory) ReleaseClient(client LDAPExtendedClient) (er
 	return nil
 }
 
+// Close implements the LDAPClientFactory interface.
 func (f *StandardLDAPClientFactory) Close() (err error) {
 	return nil
 }

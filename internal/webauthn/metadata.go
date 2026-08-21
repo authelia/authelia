@@ -59,6 +59,7 @@ func newMetadataProviderMemory(config *schema.Configuration) cached.NewFunc {
 	}
 }
 
+// MetaDataProvider is a metadata.Provider which also handles loading and caching the metadata.
 type MetaDataProvider interface {
 	metadata.Provider
 
@@ -71,6 +72,7 @@ type MetaDataProvider interface {
 	Outdated() (outdated bool)
 }
 
+// StoreCachedMetadataProvider is a MetaDataProvider which caches the metadata in the storage provider.
 type StoreCachedMetadataProvider struct {
 	metadata.Provider
 
@@ -90,6 +92,7 @@ type StoreCachedMetadataProvider struct {
 	number int
 }
 
+// StartupCheck implements the model.StartupCheck interface.
 func (p *StoreCachedMetadataProvider) StartupCheck() (err error) {
 	p.mu.Lock()
 
@@ -98,6 +101,7 @@ func (p *StoreCachedMetadataProvider) StartupCheck() (err error) {
 	return p.init()
 }
 
+// GetEntry returns the metadata entry for the given AAGUID.
 func (p *StoreCachedMetadataProvider) GetEntry(ctx context.Context, aaguid uuid.UUID) (entry *metadata.Entry, err error) {
 	p.mu.Lock()
 
@@ -161,6 +165,7 @@ func (p *StoreCachedMetadataProvider) init() (err error) {
 	return p.saveCache(ctx, data)
 }
 
+// Load returns the metadata, loading it from the cache or the MDS3 provider as necessary.
 func (p *StoreCachedMetadataProvider) Load(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
 	p.mu.Lock()
 
@@ -169,6 +174,7 @@ func (p *StoreCachedMetadataProvider) Load(ctx context.Context) (mds *metadata.M
 	return p.load(ctx)
 }
 
+// LoadForce returns the metadata, always loading it from the MDS3 provider.
 func (p *StoreCachedMetadataProvider) LoadForce(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
 	p.mu.Lock()
 
@@ -213,6 +219,7 @@ func (p *StoreCachedMetadataProvider) get(ctx context.Context, current int) (mds
 	return mds, data, nil
 }
 
+// LoadFile returns the metadata loaded from the file at the given path.
 func (p *StoreCachedMetadataProvider) LoadFile(ctx context.Context, path string) (mds *metadata.Metadata, data []byte, err error) {
 	if data, err = os.ReadFile(path); err != nil {
 		return nil, nil, fmt.Errorf("error reading file '%s': %w", path, err)
@@ -233,6 +240,7 @@ func (p *StoreCachedMetadataProvider) LoadFile(ctx context.Context, path string)
 	return mds, data, nil
 }
 
+// LoadCache returns the metadata loaded from the cache.
 func (p *StoreCachedMetadataProvider) LoadCache(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
 	p.mu.Lock()
 
@@ -275,6 +283,7 @@ func (p *StoreCachedMetadataProvider) getCache(ctx context.Context) (mds *metada
 	return mds, cache.Value, nil
 }
 
+// SaveCache saves the given metadata to the cache.
 func (p *StoreCachedMetadataProvider) SaveCache(ctx context.Context, data []byte) (err error) {
 	p.mu.Lock()
 
@@ -315,6 +324,7 @@ func (p *StoreCachedMetadataProvider) configure(mds *metadata.Metadata) (err err
 	return nil
 }
 
+// Outdated returns true if the cached metadata should be updated.
 func (p *StoreCachedMetadataProvider) Outdated() bool {
 	p.mu.Lock()
 
@@ -349,6 +359,7 @@ func (p *StoreCachedMetadataProvider) parse(reader io.Reader) (mds *metadata.Met
 	return mds, nil
 }
 
+// MDS3Provider is a provider which fetches the FIDO Metadata Service 3.0 blob.
 type MDS3Provider interface {
 	FetchMDS3(ctx context.Context, current int) (data []byte, err error)
 }
