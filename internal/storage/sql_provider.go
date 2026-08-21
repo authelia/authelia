@@ -21,7 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewProvider dynamically initializes a storage.Provider given a *schema.Configuration and *x509.CertPool.
+// NewProvider dynamically initializes a storage.Provider given a *schema.Configuration and *[x509.CertPool].
 func NewProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider Provider, err error) {
 	switch {
 	case config.Storage.PostgreSQL != nil:
@@ -907,6 +907,7 @@ func (p *SQLProvider) LoadWebAuthnCredentialsByUsername(ctx context.Context, rpi
 	return credentials, nil
 }
 
+// LoadWebAuthnPasskeyCredentialsByUsername loads all discoverable WebAuthn credential registrations from the storage provider for a given relying party id and username.
 func (p *SQLProvider) LoadWebAuthnPasskeyCredentialsByUsername(ctx context.Context, rpid, username string) (credentials []model.WebAuthnCredential, err error) {
 	switch len(rpid) {
 	case 0:
@@ -1458,6 +1459,7 @@ func (p *SQLProvider) LoadOAuth2Session(ctx context.Context, sessionType OAuth2S
 	return session, nil
 }
 
+// SaveOAuth2DeviceCodeSession saves an OAuth2.0 Device Code session to the storage provider.
 func (p *SQLProvider) SaveOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
 	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
 		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
@@ -1475,6 +1477,7 @@ func (p *SQLProvider) SaveOAuth2DeviceCodeSession(ctx context.Context, session *
 	return nil
 }
 
+// UpdateOAuth2DeviceCodeSession updates an OAuth2.0 Device Code session in the storage provider.
 func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
 	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
 		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
@@ -1496,6 +1499,7 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, session
 	return nil
 }
 
+// UpdateOAuth2DeviceCodeSessionData updates the session data of an OAuth2.0 Device Code session in the storage provider.
 func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
 	if session.Session, err = utils.Encrypt(session.Session, p.aad.Get(OAuth2SessionTypeDeviceAuthorizeCode.AAD(), columnSessionData, session.Signature), p.keys.encryption); err != nil {
 		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
@@ -1511,6 +1515,7 @@ func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, ses
 	return nil
 }
 
+// DeactivateOAuth2DeviceCodeSession deactivates an OAuth2.0 Device Code session in the storage provider given a signature.
 func (p *SQLProvider) DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error) {
 	var result sql.Result
 
@@ -1525,6 +1530,7 @@ func (p *SQLProvider) DeactivateOAuth2DeviceCodeSession(ctx context.Context, sig
 	return nil
 }
 
+// LoadOAuth2DeviceCodeSession loads an OAuth2.0 Device Code session from the storage provider given a signature.
 func (p *SQLProvider) LoadOAuth2DeviceCodeSession(ctx context.Context, signature string) (session *model.OAuth2DeviceCodeSession, err error) {
 	session = &model.OAuth2DeviceCodeSession{}
 
@@ -1539,6 +1545,7 @@ func (p *SQLProvider) LoadOAuth2DeviceCodeSession(ctx context.Context, signature
 	return session, nil
 }
 
+// LoadOAuth2DeviceCodeSessionByUserCode loads an OAuth2.0 Device Code session from the storage provider given a user code signature.
 func (p *SQLProvider) LoadOAuth2DeviceCodeSessionByUserCode(ctx context.Context, signature string) (session *model.OAuth2DeviceCodeSession, err error) {
 	session = &model.OAuth2DeviceCodeSession{}
 
@@ -1654,6 +1661,7 @@ func (p *SQLProvider) AppendAuthenticationLog(ctx context.Context, attempt model
 	return nil
 }
 
+// LoadRegulationRecordsByUser loads the regulation records from the storage provider for a given username.
 func (p *SQLProvider) LoadRegulationRecordsByUser(ctx context.Context, username string, since time.Time, limit int) (records []model.RegulationRecord, err error) {
 	exp := banExpiresExpired{}
 
@@ -1680,6 +1688,7 @@ func (p *SQLProvider) LoadRegulationRecordsByUser(ctx context.Context, username 
 	return records, nil
 }
 
+// SaveBannedUser saves a banned user to the storage provider.
 func (p *SQLProvider) SaveBannedUser(ctx context.Context, ban *model.BannedUser) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertBannedUser, ban.Expires, ban.Username, ban.Source, ban.Reason); err != nil {
 		return fmt.Errorf("error inserting banned user with username '%s' and source '%s' and reason '%s': %w", ban.Username, ban.Source, ban.Reason.String, err)
@@ -1688,6 +1697,7 @@ func (p *SQLProvider) SaveBannedUser(ctx context.Context, ban *model.BannedUser)
 	return nil
 }
 
+// LoadBannedUser loads the bans from the storage provider for a given username.
 func (p *SQLProvider) LoadBannedUser(ctx context.Context, username string) (bans []model.BannedUser, err error) {
 	bans = []model.BannedUser{}
 
@@ -1702,6 +1712,7 @@ func (p *SQLProvider) LoadBannedUser(ctx context.Context, username string) (bans
 	return bans, nil
 }
 
+// LoadBannedUserByID loads a banned user from the storage provider given an id.
 func (p *SQLProvider) LoadBannedUserByID(ctx context.Context, id int) (ban model.BannedUser, err error) {
 	if err = p.db.GetContext(ctx, &ban, p.sqlSelectBannedUserByID, id); err != nil {
 		return model.BannedUser{}, fmt.Errorf("error selecting banned user with id '%d': %w", id, err)
@@ -1710,6 +1721,7 @@ func (p *SQLProvider) LoadBannedUserByID(ctx context.Context, id int) (ban model
 	return ban, nil
 }
 
+// LoadBannedUsers loads a page of banned users from the storage provider.
 func (p *SQLProvider) LoadBannedUsers(ctx context.Context, limit, page int) (bans []model.BannedUser, err error) {
 	bans = []model.BannedUser{}
 
@@ -1724,6 +1736,7 @@ func (p *SQLProvider) LoadBannedUsers(ctx context.Context, limit, page int) (ban
 	return bans, nil
 }
 
+// RevokeBannedUser revokes a banned user in the storage provider given an id.
 func (p *SQLProvider) RevokeBannedUser(ctx context.Context, id int, expired time.Time) (err error) {
 	var result sql.Result
 
@@ -1738,6 +1751,7 @@ func (p *SQLProvider) RevokeBannedUser(ctx context.Context, id int, expired time
 	return nil
 }
 
+// LoadRegulationRecordsByIP loads the regulation records from the storage provider for a given IP.
 func (p *SQLProvider) LoadRegulationRecordsByIP(ctx context.Context, ip model.IP, since time.Time, limit int) (records []model.RegulationRecord, err error) {
 	exp := banExpiresExpired{}
 
@@ -1764,6 +1778,7 @@ func (p *SQLProvider) LoadRegulationRecordsByIP(ctx context.Context, ip model.IP
 	return records, nil
 }
 
+// SaveBannedIP saves a banned IP to the storage provider.
 func (p *SQLProvider) SaveBannedIP(ctx context.Context, ban *model.BannedIP) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertBannedIP, ban.Expires, ban.IP, ban.Source, ban.Reason); err != nil {
 		return fmt.Errorf("error inserting banned ip with ip '%s' and source '%s' and reason '%s': %w", ban.IP, ban.Source, ban.Reason.String, err)
@@ -1772,6 +1787,7 @@ func (p *SQLProvider) SaveBannedIP(ctx context.Context, ban *model.BannedIP) (er
 	return nil
 }
 
+// LoadBannedIP loads the bans from the storage provider for a given IP.
 func (p *SQLProvider) LoadBannedIP(ctx context.Context, ip model.IP) (bans []model.BannedIP, err error) {
 	bans = []model.BannedIP{}
 
@@ -1786,6 +1802,7 @@ func (p *SQLProvider) LoadBannedIP(ctx context.Context, ip model.IP) (bans []mod
 	return bans, nil
 }
 
+// LoadBannedIPByID loads a banned IP from the storage provider given an id.
 func (p *SQLProvider) LoadBannedIPByID(ctx context.Context, id int) (ban model.BannedIP, err error) {
 	if err = p.db.GetContext(ctx, &ban, p.sqlSelectBannedIPByID, id); err != nil {
 		return model.BannedIP{}, fmt.Errorf("error selecting banned ip with id '%d': %w", id, err)
@@ -1794,6 +1811,7 @@ func (p *SQLProvider) LoadBannedIPByID(ctx context.Context, id int) (ban model.B
 	return ban, nil
 }
 
+// LoadBannedIPs loads a page of banned IPs from the storage provider.
 func (p *SQLProvider) LoadBannedIPs(ctx context.Context, limit, page int) (bans []model.BannedIP, err error) {
 	bans = []model.BannedIP{}
 
@@ -1808,6 +1826,7 @@ func (p *SQLProvider) LoadBannedIPs(ctx context.Context, limit, page int) (bans 
 	return bans, nil
 }
 
+// RevokeBannedIP revokes a banned IP in the storage provider given an id.
 func (p *SQLProvider) RevokeBannedIP(ctx context.Context, id int, expired time.Time) (err error) {
 	var result sql.Result
 
@@ -1822,6 +1841,7 @@ func (p *SQLProvider) RevokeBannedIP(ctx context.Context, id int, expired time.T
 	return nil
 }
 
+// SaveCachedData saves cached data to the storage provider.
 func (p *SQLProvider) SaveCachedData(ctx context.Context, data model.CachedData) (err error) {
 	if data.Encrypted {
 		if data.Value, err = utils.Encrypt(data.Value, p.aad.Get(tableCachedData, columnValue, data.Name), p.keys.encryption); err != nil {
@@ -1836,6 +1856,7 @@ func (p *SQLProvider) SaveCachedData(ctx context.Context, data model.CachedData)
 	return nil
 }
 
+// LoadCachedData loads cached data from the storage provider given a name.
 func (p *SQLProvider) LoadCachedData(ctx context.Context, name string) (data *model.CachedData, err error) {
 	data = &model.CachedData{}
 
@@ -1856,6 +1877,7 @@ func (p *SQLProvider) LoadCachedData(ctx context.Context, name string) (data *mo
 	return data, nil
 }
 
+// DeleteCachedData deletes cached data from the storage provider given a name.
 func (p *SQLProvider) DeleteCachedData(ctx context.Context, name string) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlDeleteCachedData, name); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

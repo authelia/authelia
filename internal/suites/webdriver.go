@@ -50,18 +50,22 @@ var (
 	sharedBrowsers      = map[string]*sharedBrowser{}
 )
 
+// RodSessionCredentials represents the credentials available to a RodSession.
 type RodSessionCredentials struct {
 	TOTP *OptionsTOTP
 }
 
+// RodSessionOpts represents the options used to create a RodSession.
 type RodSessionOpts struct {
 	proxy           string
 	provider        RodSuiteCredentialsProvider
 	disableDevtools bool
 }
 
+// RodSessionOpt is a function which configures the RodSessionOpts.
 type RodSessionOpt func(opts *RodSessionOpts) (err error)
 
+// RodSessionWithProxy returns a RodSessionOpt which sets the proxy.
 func RodSessionWithProxy(proxy string) RodSessionOpt {
 	return func(opts *RodSessionOpts) (err error) {
 		opts.proxy = proxy
@@ -70,6 +74,7 @@ func RodSessionWithProxy(proxy string) RodSessionOpt {
 	}
 }
 
+// RodSessionWithCredentials returns a RodSessionOpt which sets the credentials provider.
 func RodSessionWithCredentials(provider RodSuiteCredentialsProvider) RodSessionOpt {
 	return func(opts *RodSessionOpts) (err error) {
 		opts.provider = provider
@@ -88,6 +93,7 @@ func RodSessionWithoutDevtools() RodSessionOpt {
 	}
 }
 
+// NewRodSession returns a new RodSession given the provided options.
 func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 	opts := &RodSessionOpts{}
 

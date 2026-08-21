@@ -26,7 +26,7 @@ func GetDirectoryLanguages(path string) (languages *Languages, err error) {
 	return lng, nil
 }
 
-// GetEmbeddedLanguages returns the available languages info from an embed.FS.
+// GetEmbeddedLanguages returns the available languages info from an [embed.FS].
 func GetEmbeddedLanguages(fs embed.FS) (languages *Languages, err error) {
 	return getLanguages(fs)
 }

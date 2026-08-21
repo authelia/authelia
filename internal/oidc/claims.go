@@ -18,7 +18,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// NewClaimRequests parses the claims request parameter if set from a http.Request form.
+// NewClaimRequests parses the claims request parameter if set from a [http.Request] form.
 func NewClaimRequests(form url.Values) (requests *ClaimsRequests, err error) {
 	var raw string
 
@@ -35,13 +35,16 @@ func NewClaimRequests(form url.Values) (requests *ClaimsRequests, err error) {
 	return requests, nil
 }
 
+// OrderedClaimsRequests is a ClaimsRequests which marshals its claims in a deterministic order.
 type OrderedClaimsRequests OrderedClaimsRequestsRaw
 
+// OrderedClaimsRequestsRaw is the underlying representation of OrderedClaimsRequests.
 type OrderedClaimsRequestsRaw struct {
 	IDToken  OrderedClaimRequests `json:"id_token,omitempty"`
 	UserInfo OrderedClaimRequests `json:"userinfo,omitempty"`
 }
 
+// MarshalJSON returns the JSON encoding of these requests with the claims in a deterministic order.
 func (ocr *OrderedClaimsRequests) MarshalJSON() ([]byte, error) {
 	actual := &OrderedClaimsRequestsRaw{}
 
@@ -68,12 +71,14 @@ func (ocr *OrderedClaimsRequests) MarshalJSON() ([]byte, error) {
 	return json.Marshal(actual)
 }
 
+// Signature returns the signature of the serialized form of these requests.
 func (ocr *OrderedClaimsRequests) Signature() (signature string, err error) {
 	_, signature, err = ocr.Serialized()
 
 	return
 }
 
+// Serialized returns the serialized form of these requests and its signature.
 func (ocr *OrderedClaimsRequests) Serialized() (serialized, signature string, err error) {
 	var data []byte
 
@@ -88,8 +93,10 @@ func (ocr *OrderedClaimsRequests) Serialized() (serialized, signature string, er
 	return string(data), fmt.Sprintf("%x", hash.Sum(nil)), nil
 }
 
+// OrderedClaimRequests is a group of OrderedClaimRequest which marshals in a deterministic order.
 type OrderedClaimRequests []OrderedClaimRequest
 
+// MarshalJSON returns the JSON encoding of these requests with the claims in a deterministic order.
 func (ocr OrderedClaimRequests) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 
@@ -120,6 +127,7 @@ func (ocr OrderedClaimRequests) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// OrderedClaimRequest is a ClaimRequest along with the name of the claim it applies to.
 type OrderedClaimRequest struct {
 	Claim   string
 	Request *ClaimRequest
@@ -131,6 +139,7 @@ type ClaimsRequests struct {
 	UserInfo map[string]*ClaimRequest `json:"userinfo,omitempty"`
 }
 
+// ToOrdered returns these requests as an *OrderedClaimsRequests.
 func (r *ClaimsRequests) ToOrdered() *OrderedClaimsRequests {
 	requests := &OrderedClaimsRequests{}
 
@@ -153,10 +162,12 @@ func (r *ClaimsRequests) ToOrdered() *OrderedClaimsRequests {
 	return requests
 }
 
+// Signature returns the signature of the serialized form of these requests.
 func (r *ClaimsRequests) Signature() (signature string, err error) {
 	return r.ToOrdered().Signature()
 }
 
+// Serialized returns the serialized form of these requests and its signature.
 func (r *ClaimsRequests) Serialized() (serialized, signature string, err error) {
 	return r.ToOrdered().Serialized()
 }
@@ -190,6 +201,7 @@ func (r *ClaimsRequests) MatchesSubject(subject string) (requested string, ok bo
 	return r.stringMatch(subject, ClaimSubject)
 }
 
+// MatchesIssuer returns true if this *ClaimsRequests matches the issuer. i.e. if the claims parameter requires a specific issuer and that value does not match the current value it returns false, otherwise it returns true as well as the issuer value.
 func (r *ClaimsRequests) MatchesIssuer(issuer *url.URL) (requested string, ok bool) {
 	if r == nil {
 		return "", true
@@ -232,6 +244,7 @@ func (r *ClaimsRequests) stringMatch(expected, claim string) (requested string, 
 	return requested, true
 }
 
+// ToSlice returns the names of every requested claim.
 func (r *ClaimsRequests) ToSlice() (claims []string) {
 	var essential []string
 
@@ -293,6 +306,7 @@ type ClaimRequest struct {
 	Values    []any `json:"values,omitempty"`
 }
 
+// String returns the string representation of this claim request.
 func (r *ClaimRequest) String() (value string) {
 	if r == nil {
 		return ""
@@ -387,8 +401,10 @@ func (r *ClaimRequest) Matches(value any) (match bool) {
 	return false
 }
 
+// ClaimResolver is a function which resolves the value of an attribute for a claim request.
 type ClaimResolver func(attribute string, requestedValue any, requestedValues []any) (value any, ok bool)
 
+// ClaimsStrategy is a strategy which validates claims requests and hydrates the claims of the various tokens and endpoints.
 type ClaimsStrategy interface {
 	ValidateClaimsRequests(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, requests *ClaimsRequests) (err error)
 	HydrateIDTokenClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any, implicit bool) (err error)
@@ -398,6 +414,7 @@ type ClaimsStrategy interface {
 	MergeAccessTokenAudienceWithIDTokenAudience() (include bool)
 }
 
+// NewDefaultCustomClaimsStrategy returns a *CustomClaimsStrategy with the default claims policy.
 func NewDefaultCustomClaimsStrategy() (strategy *CustomClaimsStrategy) {
 	return &CustomClaimsStrategy{
 		claimsIDToken:     []string{},
@@ -624,6 +641,7 @@ func (s *CustomClaimsStrategy) HydrateIDTokenClaims(ctx ClaimsStrategyContext, s
 	return nil
 }
 
+// HydrateAccessTokenClaims hydrates an Access Token's extra claims.
 func (s *CustomClaimsStrategy) HydrateAccessTokenClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error) {
 	resolver := ctx.GetProviderUserAttributeResolver()
 

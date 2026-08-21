@@ -65,14 +65,17 @@ type BytesFilter interface {
 	Filter(in []byte) (out []byte, err error)
 }
 
+// ExpandEnvBytesFilter is a BytesFilter which expands environment variables.
 type ExpandEnvBytesFilter struct {
 	log *logrus.Entry
 }
 
+// Name returns the name of this filter.
 func (f *ExpandEnvBytesFilter) Name() (name string) {
 	return filterExpandEnv
 }
 
+// Filter expands the environment variables in the given content.
 func (f *ExpandEnvBytesFilter) Filter(in []byte) (out []byte, err error) {
 	out = []byte(os.Expand(string(in), templates.FuncGetEnv))
 
@@ -85,15 +88,18 @@ func (f *ExpandEnvBytesFilter) Filter(in []byte) (out []byte, err error) {
 	return out, nil
 }
 
+// TemplateBytesFilter is a BytesFilter which executes the content as a Go template.
 type TemplateBytesFilter struct {
 	t   *template.Template
 	log *logrus.Entry
 }
 
+// Name returns the name of this filter.
 func (f *TemplateBytesFilter) Name() (name string) {
 	return filterTemplate
 }
 
+// Filter executes the given content as a Go template.
 func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
 	var t *template.Template
 
@@ -156,7 +162,7 @@ func NewFileFilters(names []string) (filters []BytesFilter, err error) {
 	return filters, nil
 }
 
-// NewExpandEnvFileFilter returns a new BytesFilter which passes the bytes through os.Expand using special env vars.
+// NewExpandEnvFileFilter returns a new BytesFilter which passes the bytes through [os.Expand] using special env vars.
 func NewExpandEnvFileFilter() BytesFilter {
 	return &ExpandEnvBytesFilter{
 		log: logging.Logger().WithFields(map[string]any{filterField: filterExpandEnv}),
