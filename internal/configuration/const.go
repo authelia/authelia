@@ -24,9 +24,8 @@ const (
 )
 
 const (
-	filterField     = "filter"
-	filterTemplate  = "template"
-	filterExpandEnv = "expand-env"
+	filterField    = "filter"
+	filterTemplate = "template"
 )
 
 var (

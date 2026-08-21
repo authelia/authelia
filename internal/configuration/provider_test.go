@@ -350,7 +350,7 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 
 func TestShouldValidateConfigurationWithFiltersWalk(t *testing.T) {
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_walk.yml"}, []BytesFilter{NewTemplateFileFilter()}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_walk.yml"}, []BytesFilter{NewTemplateFileFilter("", "")}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 	assert.NoError(t, err)
 	assert.NotNil(t, config)
 	assert.NotNil(t, keys)
@@ -361,7 +361,7 @@ func TestShouldValidateConfigurationWithFiltersWalk(t *testing.T) {
 
 func TestShouldValidateConfigurationWithFiltersGlob(t *testing.T) {
 	val := schema.NewStructValidator()
-	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_glob.yml"}, []BytesFilter{NewTemplateFileFilter()}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_glob.yml"}, []BytesFilter{NewTemplateFileFilter("", "")}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
 	assert.NoError(t, err)
 	assert.NotNil(t, config)
 	assert.NotNil(t, keys)

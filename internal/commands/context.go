@@ -428,7 +428,7 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 
 	for i, filter := range filters {
 		if filter.Name() == "expand-env" {
-			ctx.log.Warn("Experimental file filter 'expand-env' is deprecated in favor of the 'template' filter and will be removed in v4.40.0")
+			return fmt.Errorf("failed to load deprecated filter 'expand-env': this filter has been removed")
 		}
 
 		ctx.cconfig.filters[i] = filter.Name()
