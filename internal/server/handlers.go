@@ -29,7 +29,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// Replacement for the default error handler in fasthttp.
 func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
 	headerXForwardedFor := []byte(fasthttp.HeaderXForwardedFor)
 
@@ -156,7 +155,6 @@ func handlerMain(ctx context.Context, config *schema.Configuration, providers mi
 
 	r := router.New()
 
-	// Static Assets.
 	r.HEAD("/", bridge(serveIndexHandler))
 	r.GET("/", bridge(serveIndexHandler))
 
@@ -174,7 +172,6 @@ func handlerMain(ctx context.Context, config *schema.Configuration, providers mi
 	r.HEAD("/static/{filepath:*}", handlerPublicHTML)
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 
-	// Locales.
 	r.GET("/locales", bridge(handlerLocalesList))
 
 	r.HEAD("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
@@ -183,7 +180,6 @@ func handlerMain(ctx context.Context, config *schema.Configuration, providers mi
 	r.HEAD("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
 
-	// Swagger.
 	r.HEAD(prefixAPI, bridgeSwagger(serveOpenAPIHandler))
 	r.GET(prefixAPI, bridgeSwagger(serveOpenAPIHandler))
 	r.OPTIONS(prefixAPI, policyCORSPublicGET.HandleOPTIONS)
@@ -259,12 +255,10 @@ func handlerMain(ctx context.Context, config *schema.Configuration, providers mi
 	r.POST("/api/firstfactor/reauthenticate", middleware1FA(handlers.FirstFactorReauthenticatePOST(delayerPassword)))
 	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
 
-	// Only register endpoints if forgot password is not disabled.
 	if !config.AuthenticationBackend.PasswordReset.Disable && config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		rateLimitResetPasswordStart := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.ResetPasswordStart), middlewares.WithRateLimitContext(ctx))
 		rateLimitResetPasswordFinish := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.ResetPasswordFinish), middlewares.WithRateLimitContext(ctx))
 
-		// Password reset related endpoints.
 		r.POST("/api/reset-password/identity/start", middlewareAPI(rateLimitResetPasswordStart(handlers.ResetPasswordIdentityStart)))
 		r.POST("/api/reset-password/identity/finish", middlewareAPI(rateLimitResetPasswordFinish(handlers.ResetPasswordIdentityFinish)))
 
@@ -276,12 +270,10 @@ func handlerMain(ctx context.Context, config *schema.Configuration, providers mi
 		r.POST("/api/change-password", middlewareElevated1FA(handlers.ChangePasswordPOST))
 	}
 
-	// Information about the user.
 	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
 	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
 
-	// User Session Elevation.
 	middlewareElevatePOST := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SessionElevationStart), middlewares.WithRateLimitContext(ctx)), middlewares.Require1FA).
@@ -304,7 +296,6 @@ func handlerMain(ctx context.Context, config *schema.Configuration, providers mi
 			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorTOTP), middlewares.WithRateLimitContext(ctx)), middlewares.Require1FA).
 			Build()
 
-		// TOTP related endpoints.
 		r.GET("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordGET))
 		r.POST("/api/secondfactor/totp", middlewareRateLimitTOTP(handlers.TimeBasedOneTimePasswordPOST))
 		r.DELETE("/api/secondfactor/totp", middlewareElevated1FA(handlers.TOTPConfigurationDELETE))
@@ -325,7 +316,6 @@ func handlerMain(ctx context.Context, config *schema.Configuration, providers mi
 			r.POST("/api/secondfactor/password", middleware1FA(handlers.SecondFactorPasswordPOST(delayerPassword)))
 		}
 
-		// Management of the WebAuthn credentials.
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))
 
 		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPUT))
@@ -336,7 +326,6 @@ func handlerMain(ctx context.Context, config *schema.Configuration, providers mi
 		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialDELETE))
 	}
 
-	// Configure DUO api endpoint only if configuration exists.
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.Provider
 
