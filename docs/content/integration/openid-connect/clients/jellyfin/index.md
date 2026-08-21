@@ -25,9 +25,9 @@ seo:
 - [Authelia]
   - [v4.39.19](https://github.com/authelia/authelia/releases/tag/v4.39.19)
 - [Jellyfin]
-  - [v10.10.7](https://github.com/jellyfin/jellyfin/releases/tag/v10.10.7)
+  - [v10.11.11](https://github.com/jellyfin/jellyfin/releases/tag/v10.11.11)
 - [Jellyfin SSO-Auth Plugin]
-  - [v4.0.0.3](https://github.com/9p4/jellyfin-plugin-sso/releases/tag/v4.0.0.3)
+  - [v4.0.0.4](https://github.com/9p4/jellyfin-plugin-sso/releases/tag/v4.0.0.4)
 
 {{% oidc-common %}}
 
@@ -97,9 +97,9 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-This configuration assumes [Jellyfin](https://jellyfin.org/) administrators are part of the `jellyfin-admins` group, and
-[Jellyfin](https://jellyfin.org/) users are part of the `jellyfin-users` group. Depending on your specific group configuration, you will have
-to adapt the `AdminRoles` and `Roles` nodes respectively. Alternatively you may elect to create a new authorization
+This configuration assumes [Jellyfin](https://jellyfin.org/) administrators are part of the `admins` group, and
+[Jellyfin](https://jellyfin.org/) users are part of the `users` group. Depending on your specific group configuration, you will have
+to adapt the `AdminRoles` and `Roles` nodes respectively (e.g. to `jellyfin-users` and `jellyfin-admins`). Alternatively you may elect to create a new authorization
 policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the [client authorization policy](./../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
 
@@ -142,11 +142,11 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
           <EnableAllFolders>true</EnableAllFolders>
           <EnabledFolders />
           <AdminRoles>
-            <string>jellyfin-admins</string>
+            <string>admins</string>
           </AdminRoles>
           <Roles>
-            <string>jellyfin-users</string>
-            <string>jellyfin-admins</string>
+            <string>users</string>
+            <string>admins</string>
           </Roles>
           <EnableFolderRoles>false</EnableFolderRoles>
           <EnableLiveTvRoles>false</EnableLiveTvRoles>
@@ -161,6 +161,7 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
           </OidScopes>
           <CanonicalLinks></CanonicalLinks>
           <DisableHttps>false</DisableHttps>
+          <DisablePushedAuthorization>true</DisablePushedAuthorization>
           <DoNotValidateEndpoints>false</DoNotValidateEndpoints>
           <DoNotValidateIssuerName>false</DoNotValidateIssuerName>
           <SchemeOverride>https</SchemeOverride>
@@ -188,11 +189,12 @@ To configure the [Jellyfin SSO-Auth Plugin] to utilize Authelia as an [OpenID Co
     - Enabled: Checked
     - Enable Authorization by Plugin: Checked
     - Enable All Folders: Checked
-    - Roles: `jellyfin-users`, `jellyfin-admins`
-    - Admin Roles: `jellyfin-admins`
+    - Roles: `users`, `admins`
+    - Admin Roles: `admins`
     - Role Claim: `groups`
     - Request Additional Scopes: `groups`
     - Set default username claim: `preferred_username`
+    - Disable Pushed Authorization (Insecure). May be needed for Authelia: Checked
     - Scheme Override: `https`
 7. All other options may remain unchecked or unconfigured.
 8. Click `Save`.
