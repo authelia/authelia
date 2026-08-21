@@ -33,7 +33,6 @@ services:
       - '--providers.docker.network=${COMPOSE_PROJECT_NAME:-authelia}_authelianet'
       - '--providers.file.directory=/config/dynamic/'
       - '--providers.file.watch=true'
-      - '--providers.providersthrottleduration=5s'
       - '--serverstransport.insecureskipverify=true'
     networks:
       authelianet:
