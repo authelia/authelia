@@ -117,6 +117,7 @@ func handleMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 	ctx.SetBodyString(fmt.Sprintf("%d %s", fasthttp.StatusMethodNotAllowed, fasthttp.StatusMessage(fasthttp.StatusMethodNotAllowed)))
 }
 
+// RegisterRoutesBridgedFunc is a function which registers routes that require the middleware bridge.
 type RegisterRoutesBridgedFunc = func(r *router.Router, config *schema.Configuration, providers middlewares.Providers, bridge middlewares.Bridge)
 
 //nolint:gocyclo

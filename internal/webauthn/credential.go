@@ -65,6 +65,7 @@ func VerifyCredential(config *schema.WebAuthn, credential *model.WebAuthnCredent
 	return result
 }
 
+// VerifyCredentialResult represents the result of verifying a WebAuthn credential against the configured filters.
 type VerifyCredentialResult struct {
 	Malformed                     bool
 	MissingStatement              bool

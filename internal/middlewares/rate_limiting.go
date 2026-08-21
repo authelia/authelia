@@ -117,8 +117,10 @@ type RateLimitBucketConfig struct {
 	Requests int
 }
 
+// NewRateLimiterFunc is a function type that constructs a RateLimitBucket from a RateLimitBucketConfig.
 type NewRateLimiterFunc func(bucket RateLimitBucketConfig) RateLimitBucket
 
+// RateLimitRequestHandler is a function type invoked when a request exceeds the rate limit, handling the response accordingly.
 type RateLimitRequestHandler = func(ctx *AutheliaCtx, retryAfter time.Duration)
 
 // RateLimiterOptions holds the configurable values for a NewRateLimiter.

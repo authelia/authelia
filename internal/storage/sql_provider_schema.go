@@ -287,12 +287,50 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnectio
 		}
 
 		if migration.Version == 1 && migration.Up {
-			if err = p.setNewEncryptionCheckValue(ctx, conn, p.keys.encryption); err != nil {
+			key := p.keys.encryption
+
+			if target < schemaVersionEncryptionKeyDerivation {
+				key = utils.DeriveLegacyCryptographicKey([]byte(p.config.Storage.EncryptionKey))
+			}
+
+			if err = p.setNewEncryptionCheckValue(ctx, conn, key, aadForSchemaVersion(target)); err != nil {
 				return err
 			}
 		}
 	}
 
+	if p.name == providerMySQL {
+		var tx SQLXTx
+
+		if tx, err = p.db.BeginTxx(ctx, nil); err != nil {
+			return fmt.Errorf("failed to begin transaction: %w", err)
+		}
+
+		if err = p.schemaMigrateApplySpecial(ctx, tx, migration, prior, target); err != nil {
+			_ = tx.Rollback()
+
+			return err
+		}
+
+		if err = tx.Commit(); err != nil {
+			if rerr := tx.Rollback(); rerr != nil {
+				return fmt.Errorf("failed to commit the transaction with: commit error: %w, rollback error: %+v", err, rerr)
+			}
+
+			return fmt.Errorf("failed to commit the transaction but it has been rolled back: commit error: %w", err)
+		}
+	} else if err = p.schemaMigrateApplySpecial(ctx, conn, migration, prior, target); err != nil {
+		return err
+	}
+
+	if err = p.schemaMigrateFinalize(ctx, conn, migration); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) schemaMigrateApplySpecial(ctx context.Context, conn SQLXConnection, migration model.SchemaMigration, prior, target int) (err error) {
 	var (
 		migrationsSpecial []fSchemaMigration
 		ok                bool
@@ -304,16 +342,14 @@ func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnectio
 		migrationsSpecial, ok = migrationsSpecialDown[migration.Version]
 	}
 
-	if ok {
-		for _, special := range migrationsSpecial {
-			if err = special(ctx, conn, p, prior, migration.Before(), migration.After(), target); err != nil {
-				return err
-			}
-		}
+	if !ok {
+		return nil
 	}
 
-	if err = p.schemaMigrateFinalize(ctx, conn, migration); err != nil {
-		return err
+	for _, special := range migrationsSpecial {
+		if err = special(ctx, conn, p, prior, migration.Before(), migration.After(), target); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -357,7 +393,7 @@ func (p *SQLProvider) schemaMigrateRollbackWithoutTx(ctx context.Context, prior,
 	}
 
 	for _, migration := range migrations {
-		if err = p.schemaMigrateApply(ctx, p.db, migration, prior, prior); err != nil {
+		if err = p.schemaMigrateApply(ctx, p.db, migration, after, prior); err != nil {
 			return fmt.Errorf("error applying migration version %d to version %d for rollback: %+v. rollback caused by: %w", migration.Before(), migration.After(), err, merr)
 		}
 	}

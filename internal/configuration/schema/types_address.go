@@ -112,7 +112,7 @@ func NewSMTPAddress(scheme, host string, port uint16) *AddressSMTP {
 	return &AddressSMTP{Address: Address{true, false, -1, port, nil, &url.URL{Scheme: scheme, Host: fmt.Sprintf("%s:%d", host, port)}}}
 }
 
-// NewAddressFromURL returns an *Address and error depending on the ability to parse the *url.URL as an Address.
+// NewAddressFromURL returns an *Address and error depending on the ability to parse the *[url.URL] as an Address.
 func NewAddressFromURL(u *url.URL) (addr *Address, err error) {
 	addr = &Address{
 		url:   u,
@@ -335,7 +335,7 @@ func (a Address) MarshalText() (text []byte, err error) {
 	return []byte(a.String()), nil
 }
 
-// Scheme returns the *url.URL Scheme field.
+// Scheme returns the *[url.URL] Scheme field.
 func (a *Address) Scheme() string {
 	if !a.valid || a.url == nil {
 		return ""
@@ -344,7 +344,7 @@ func (a *Address) Scheme() string {
 	return a.url.Scheme
 }
 
-// Host returns the *url.URL Host field.
+// Host returns the *[url.URL] Host field.
 func (a *Address) Host() string {
 	if !a.valid || a.url == nil {
 		return ""
@@ -353,7 +353,7 @@ func (a *Address) Host() string {
 	return a.url.Host
 }
 
-// Hostname returns the output of the *url.URL Hostname func.
+// Hostname returns the output of the *[url.URL] Hostname func.
 func (a *Address) Hostname() string {
 	if !a.valid || a.url == nil {
 		return ""
@@ -465,7 +465,7 @@ func (a *Address) NetworkAddress() string {
 	return a.url.Host
 }
 
-// Dial creates and returns a dialed net.Conn.
+// Dial creates and returns a dialed [net.Conn].
 func (a *Address) Dial() (net.Conn, error) {
 	if !a.valid || a.url == nil {
 		return nil, fmt.Errorf("address url is nil")

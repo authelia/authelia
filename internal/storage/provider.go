@@ -333,6 +333,7 @@ type Provider interface {
 	CachedDataProvider
 }
 
+// CachedDataProvider is the storage provider interface for cached data.
 type CachedDataProvider interface {
 	// LoadCachedData loads cached data from the database.
 	LoadCachedData(ctx context.Context, name string) (data *model.CachedData, err error)

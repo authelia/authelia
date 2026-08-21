@@ -1,3 +1,4 @@
+// Command authelia-suites manages the environment of an integration suite.
 package main
 
 import (

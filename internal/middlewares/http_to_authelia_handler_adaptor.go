@@ -106,7 +106,7 @@ func (w *netHTTPResponseWriter) StatusCode() int {
 	return w.statusCode
 }
 
-// Header returns the http.Header.
+// Header returns the [http.Header].
 func (w *netHTTPResponseWriter) Header() http.Header {
 	if w.h == nil {
 		w.h = make(http.Header)

@@ -108,6 +108,10 @@ const (
 	// schemaVersionEncryptionKeyDerivation is the schema version at which HKDF key derivation and GCM AAD were
 	// introduced. Databases below this version store encrypted values using the legacy SHA256 key without AAD.
 	schemaVersionEncryptionKeyDerivation = 25
+
+	// schemaVersionEncryptionAADRowScoped is the schema version at which encrypted values became bound to their
+	// individual row. Databases below this version bind values to their table and column only.
+	schemaVersionEncryptionAADRowScoped = 26
 )
 
 var (

@@ -21,6 +21,7 @@ func (s *UserSession) IsAnonymous() bool {
 	return s.AuthenticationLevel(false) == authentication.NotAuthenticated
 }
 
+// AuthenticationLevel returns the authentication.Level for this session.
 func (s *UserSession) AuthenticationLevel(passkey2FA bool) authentication.Level {
 	switch {
 	case s.Username == "":
@@ -61,6 +62,7 @@ func (s *UserSession) setOneFactor(now time.Time, details *authentication.UserDe
 	s.SetOneFactorReauthenticate(now, details)
 }
 
+// SetOneFactorReauthenticate sets the relevant session values when a user reauthenticates with the first factor.
 func (s *UserSession) SetOneFactorReauthenticate(now time.Time, details *authentication.UserDetails) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
@@ -89,6 +91,7 @@ func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, hardware, userPresence
 	s.setWebAuthn(hardware, userPresence, userVerified)
 }
 
+// SetTwoFactorPassword sets the relevant session values when a user authenticates with a password as the second factor.
 func (s *UserSession) SetTwoFactorPassword(now time.Time) {
 	s.setTwoFactor(now)
 
@@ -114,10 +117,12 @@ func (s *UserSession) setWebAuthn(hardware, userPresence, userVerified bool) {
 	s.WebAuthn = nil
 }
 
+// GetFirstFactorAuthn returns the time the first factor authentication occurred.
 func (s *UserSession) GetFirstFactorAuthn() time.Time {
 	return time.Unix(s.FirstFactorAuthnTimestamp, 0).UTC()
 }
 
+// GetSecondFactorAuthn returns the time the second factor authentication occurred.
 func (s *UserSession) GetSecondFactorAuthn() time.Time {
 	return time.Unix(s.SecondFactorAuthnTimestamp, 0).UTC()
 }
@@ -134,6 +139,7 @@ func (s *UserSession) AuthenticatedTime(level authorization.Level) (authenticate
 	}
 }
 
+// LastAuthenticatedTime returns the most recent time either factor was authenticated.
 func (s *UserSession) LastAuthenticatedTime() (authenticated time.Time) {
 	if s.FirstFactorAuthnTimestamp > s.SecondFactorAuthnTimestamp {
 		return s.GetFirstFactorAuthn()
@@ -156,18 +162,22 @@ func (s *UserSession) Identity() Identity {
 	return identity
 }
 
+// GetUsername returns the username.
 func (s *UserSession) GetUsername() (username string) {
 	return s.Username
 }
 
+// GetGroups returns the groups.
 func (s *UserSession) GetGroups() (groups []string) {
 	return s.Groups
 }
 
+// GetDisplayName returns the display name.
 func (s *UserSession) GetDisplayName() (name string) {
 	return s.DisplayName
 }
 
+// GetEmails returns the emails.
 func (s *UserSession) GetEmails() (emails []string) {
 	return s.Emails
 }

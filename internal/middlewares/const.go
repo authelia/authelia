@@ -50,6 +50,7 @@ var (
 	headerXDNSPrefetchControl       = []byte("X-DNS-Prefetch-Control")
 )
 
+// Header value strings.
 const (
 	HeaderCacheControlNotStore = "no-store"
 	HeaderPragmaNoCache        = "no-cache"
@@ -101,6 +102,7 @@ X_AUTHELIA_HEALTHCHECK_PORT=%d
 X_AUTHELIA_HEALTHCHECK_PATH=%s
 `
 
+// User value keys.
 const (
 	UserValueKeyBaseURL int8 = iota
 	UserValueKeyOpenIDConnectResponseModeFormPost
@@ -108,10 +110,12 @@ const (
 	UserValueRateLimitExempt
 )
 
+// Router user value keys.
 const (
 	UserValueRouterKeyExtAuthzPath = "extauthz"
 )
 
+// Startup check log messages and provider names.
 const (
 	LogMessageStartupCheckError      = "Error occurred running a startup check"
 	LogMessageStartupCheckPerforming = "Performing Startup Check"
@@ -125,6 +129,7 @@ const (
 	ProviderNameWebAuthnMetaData = "webauthn-metadata"
 )
 
+// Content Type strings.
 const (
 	ContentTypeApplicationJSON = "application/json; charset=utf-8"
 	ContentTypeApplicationJWT  = "application/jwt; charset=utf-8"

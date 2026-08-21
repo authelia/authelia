@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+// NewRodSuite returns a new *RodSuite with the given name.
 func NewRodSuite(name string) *RodSuite {
 	return &RodSuite{
 		BaseSuite: &BaseSuite{
@@ -24,6 +25,7 @@ type RodSuite struct {
 	RodSuiteCredentialsProvider
 }
 
+// BaseSuite is the base suite which every suite embeds.
 type BaseSuite struct {
 	suite.Suite
 

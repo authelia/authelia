@@ -47,6 +47,7 @@ type StoragePostgreSQL struct {
 	SSL *StoragePostgreSQLSSL `koanf:"ssl" yaml:"ssl,omitempty" toml:"ssl,omitempty" json:"ssl,omitempty" jsonschema:"deprecated,title=SSL"`
 }
 
+// StoragePostgreSQLServer represents the PostgreSQL server configuration.
 type StoragePostgreSQLServer struct {
 	Address *AddressTCP `koanf:"address" yaml:"address,omitempty" toml:"address,omitempty" json:"address,omitempty" jsonschema:"title=Address" jsonschema_description:"The address of the PostgreSQL Server."`
 	TLS     *TLS        `koanf:"tls" yaml:"tls,omitempty" toml:"tls,omitempty" json:"tls,omitempty" jsonschema:"title=TLS" jsonschema_description:"The TLS configuration for the PostgreSQL Server."`

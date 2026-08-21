@@ -27,7 +27,8 @@ type Provider struct {
 	templates Templates
 }
 
-// LoadTemplatedAssets takes an embed.FS and loads each templated asset document into a Template.
+// LoadTemplatedAssets takes an [fs.ReadFileFS], such as an [embed.FS], and loads each templated asset document into
+// a Template.
 func (p *Provider) LoadTemplatedAssets(fs fs.ReadFileFS) (err error) {
 	if p.templates.asset.index, err = parseTemplatedAsset(fs, AssetPathIndex); err != nil {
 		return err
