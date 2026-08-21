@@ -35,8 +35,10 @@ func NewIPRateLimit(exemptStatusCodes []int, bs ...RateLimitBucketConfig) Authel
 	return NewRateLimiter(WithRateLimitBuckets(bs...), WithRateLimitExemptStatusCodes(exemptStatusCodes...))
 }
 
+// NewRateLimiterFunc is a function which returns a RateLimitBucket for the given bucket configuration.
 type NewRateLimiterFunc func(bucket RateLimitBucketConfig) RateLimitBucket
 
+// RateLimitRequestHandler is the handler invoked when a request is rate limited.
 type RateLimitRequestHandler = func(ctx *AutheliaCtx, retryAfter time.Duration)
 
 // RateLimiterOptions holds the configurable values for a NewRateLimiter middleware.

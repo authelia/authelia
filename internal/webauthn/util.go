@@ -44,6 +44,7 @@ func IsCredentialCreationDiscoverable(logger *logrus.Entry, response *protocol.P
 	return false
 }
 
+// ValidateCredentialAllowed returns an error if the given credential is prohibited by the configured filters.
 func ValidateCredentialAllowed(config *schema.WebAuthn, credential *model.WebAuthnCredential) (err error) {
 	if config.Filtering.ProhibitBackupEligibility && credential.BackupEligible {
 		return fmt.Errorf("error checking webauthn credential: filters have been configured which prohibit credentials that are backup eligible")
@@ -68,6 +69,7 @@ func ValidateCredentialAllowed(config *schema.WebAuthn, credential *model.WebAut
 	return nil
 }
 
+// FormatError returns the given error with the WebAuthn specific details included.
 func FormatError(err error) error {
 	out := &protocol.Error{}
 	if errors.As(err, &out) {

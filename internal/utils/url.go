@@ -7,7 +7,7 @@ import (
 )
 
 // URLPathFullClean returns a URL path with the query parameters appended (full path) with the path portion parsed
-// through path.Clean given a *url.URL.
+// through [path.Clean] given a *[url.URL].
 func URLPathFullClean(u *url.URL) (output string) {
 	lengthPath := len(u.Path)
 	lengthQuery := len(u.RawQuery)
@@ -70,7 +70,7 @@ func HasDomainSuffix(domain, domainSuffix string) bool {
 	return false
 }
 
-// EqualURLs returns true if the two *url.URL values are effectively equal taking into consideration web normalization.
+// EqualURLs returns true if the two *[url.URL] values are effectively equal taking into consideration web normalization.
 func EqualURLs(first, second *url.URL) bool {
 	if first == nil && second == nil {
 		return true
@@ -105,7 +105,7 @@ func EqualURLs(first, second *url.URL) bool {
 	return true
 }
 
-// IsURLInSlice returns true if the needle url.URL is in the []url.URL haystack.
+// IsURLInSlice returns true if the needle [url.URL] is in the []url.URL haystack.
 func IsURLInSlice(needle *url.URL, haystack []*url.URL) (has bool) {
 	for i := 0; i < len(haystack); i++ {
 		if EqualURLs(needle, haystack[i]) {

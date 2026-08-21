@@ -12,6 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 )
 
+// ProvisionUsersFileWatcher returns a Provider which watches the file based user database for changes.
 func ProvisionUsersFileWatcher(ctx Context) (service Provider, err error) {
 	config := ctx.GetConfiguration()
 	providers := ctx.GetProviders()

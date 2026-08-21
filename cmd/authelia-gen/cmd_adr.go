@@ -137,10 +137,12 @@ func adrAddRunE(cmd *cobra.Command, args []string) (err error) {
 	return gitadd.Run()
 }
 
+// ArchitectureDesignRecordConfig represents the architecture design record configuration file.
 type ArchitectureDesignRecordConfig struct {
 	NextID int `json:"next_id"`
 }
 
+// ArchitectureDesignRecordTmpl represents the template vars for an architecture design record.
 type ArchitectureDesignRecordTmpl struct {
 	ADR            int
 	Weight         int
