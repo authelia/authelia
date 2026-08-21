@@ -8,6 +8,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // newAnonymousUserDetails returns an empty extended user details value. The embedded *UserDetails is initialized as
@@ -80,65 +81,6 @@ func doAuthzRedirect(ctx AuthzContext, authn *Authn, redirectionURL *url.URL, st
 		ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
 	default:
 		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
-	}
-}
-
-func generateVerifySessionHasUpToDateProfileTraceLogs(ctx AuthzContext, userSession *session.UserSession,
-	details *authentication.UserDetails) {
-	groupsAdded, groupsRemoved := utils.StringSlicesDelta(userSession.Groups, details.Groups)
-	emailsAdded, emailsRemoved := utils.StringSlicesDelta(userSession.Emails, details.Emails)
-	nameDelta := userSession.DisplayName != details.DisplayName
-
-	fields := map[string]any{"username": userSession.Username}
-	msg := "User session groups are current"
-
-	if len(groupsAdded) != 0 || len(groupsRemoved) != 0 {
-		if len(groupsAdded) != 0 {
-			fields["added"] = groupsAdded
-		}
-
-		if len(groupsRemoved) != 0 {
-			fields["removed"] = groupsRemoved
-		}
-
-		msg = "User session groups were updated"
-	}
-
-	ctx.GetLogger().WithFields(fields).Trace(msg)
-
-	if len(emailsAdded) != 0 || len(emailsRemoved) != 0 {
-		if len(emailsAdded) != 0 {
-			fields["added"] = emailsAdded
-		} else {
-			delete(fields, "added")
-		}
-
-		if len(emailsRemoved) != 0 {
-			fields["removed"] = emailsRemoved
-		} else {
-			delete(fields, "removed")
-		}
-
-		msg = "User session emails were updated"
-	} else {
-		msg = "User session emails are current"
-
-		delete(fields, "added")
-		delete(fields, "removed")
-	}
-
-	ctx.GetLogger().WithFields(fields).Trace(msg)
-
-	if nameDelta {
-		ctx.GetLogger().
-			WithFields(map[string]any{
-				"username": userSession.Username,
-				"before":   userSession.DisplayName,
-				"after":    details.DisplayName,
-			}).
-			Trace("User session display name updated")
-	} else {
-		ctx.GetLogger().Trace("User session display name is current")
 	}
 }
 
