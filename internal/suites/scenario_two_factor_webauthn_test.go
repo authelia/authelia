@@ -81,14 +81,11 @@ func (s *TwoFactorWebAuthnScenario) TestShouldAuthorizeSecretAfterTwoFactor() {
 
 	s.doWebAuthnMethodMaybeSelect(s.T(), s.Context(ctx))
 
-	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
-	// Leave the secret.
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// And try to reload it again to check the session is kept.
 	s.doVisit(s.T(), s.Context(ctx), targetURL)
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
