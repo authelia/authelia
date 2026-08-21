@@ -19,51 +19,32 @@ func handleAuthzGetObjectLegacy(ctx AuthzContext) (object authorization.Object, 
 		return object, fmt.Errorf("failed to get target URL: %w", err)
 	}
 
+	descriptor := "header 'X-Forwarded-Method'"
+
 	if method = ctx.XForwardedMethod(); len(method) == 0 {
-		method = ctx.Method()
+		method, descriptor = ctx.Method(), "start line value 'Method'"
 	}
 
 	if hasInvalidMethodCharacters(method) {
-		return object, fmt.Errorf("header 'X-Forwarded-Method' with value '%s' has invalid characters", method)
+		return object, fmt.Errorf("%s with value '%s' has invalid characters", descriptor, method)
 	}
 
 	return authorization.NewObjectRaw(targetURL, method), nil
 }
 
 func handleAuthzUnauthorizedLegacy(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
-	var (
-		statusCode int
-	)
-
 	if authn.Type == AuthnTypeAuthorization {
 		handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 
 		return
 	}
 
-	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || redirectionURL == nil:
-		statusCode = fasthttp.StatusUnauthorized
-	default:
-		switch authn.Object.Method {
-		case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead, "":
-			statusCode = fasthttp.StatusFound
-		default:
-			statusCode = fasthttp.StatusSeeOther
-		}
-	}
-
-	if redirectionURL != nil {
-		ctx.GetLogger().Infof(logFmtAuthzRedirect, authn.Object.URL.String(), authn.Method, authn.Username, statusCode, redirectionURL)
-
-		switch authn.Object.Method {
-		case fasthttp.MethodHead:
-			ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
-		default:
-			ctx.SpecialRedirect(redirectionURL.String(), statusCode)
-		}
-	} else {
-		ctx.GetLogger().Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, statusCode)
+	if redirectionURL == nil {
+		ctx.GetLogger().Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", authn.Object.String(), authn.Method, authn.Username, fasthttp.StatusUnauthorized)
 		ctx.ReplyUnauthorized()
+
+		return
 	}
+
+	doAuthzRedirect(ctx, authn, redirectionURL, getAuthzRedirectStatusCode(ctx, authn.Object.Method))
 }

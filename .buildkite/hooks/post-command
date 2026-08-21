@@ -100,7 +100,7 @@ if [[ ${BUILDKITE_LABEL} =~ :docker:\ Deploy ]]; then
   docker logout ghcr.io
 fi
 
-if [[ ${BUILDKITE_LABEL} == ":grype: Vulnerability Scanning" ]] && [[ ${CI_PRIVATE} == "true" ]]; then
+if [[ ${BUILDKITE_LABEL} == ":grype: Vulnerability Scanning" ]]; then
   docker logout
 fi
 

@@ -37,12 +37,5 @@ func handleAuthzGetObjectAuthRequest(ctx AuthzContext) (object authorization.Obj
 }
 
 func handleAuthzUnauthorizedAuthRequest(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
-	ctx.GetLogger().Infof(logFmtAuthzRedirect, authn.Object.URL.String(), authn.Method, authn.Username, fasthttp.StatusUnauthorized, redirectionURL)
-
-	switch authn.Object.Method {
-	case fasthttp.MethodHead:
-		ctx.SpecialRedirectNoBody(redirectionURL.String(), fasthttp.StatusUnauthorized)
-	default:
-		ctx.SpecialRedirect(redirectionURL.String(), fasthttp.StatusUnauthorized)
-	}
+	doAuthzRedirect(ctx, authn, redirectionURL, fasthttp.StatusUnauthorized)
 }

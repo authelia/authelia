@@ -2,14 +2,18 @@ package suites
 
 import (
 	"testing"
-	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/stretchr/testify/require"
 )
 
-func (rs *RodSession) isVerifyIdentityShowing(t *testing.T, page *rod.Page) bool {
-	require.NoError(t, page.WaitStable(time.Millisecond*200))
+func (rs *RodSession) isVerifyIdentityShowing(t *testing.T, page *rod.Page, otherwise string) bool {
+	_, err := page.Race().
+		Element("#dialog-verify-one-time-code").
+		Element(otherwise).
+		Do()
+
+	require.NoError(t, err)
 
 	has, _, err := page.Has("#dialog-verify-one-time-code")
 	require.NoError(t, err)
@@ -17,8 +21,8 @@ func (rs *RodSession) isVerifyIdentityShowing(t *testing.T, page *rod.Page) bool
 	return has
 }
 
-func (rs *RodSession) doMaybeVerifyIdentity(t *testing.T, page *rod.Page) {
-	if !rs.isVerifyIdentityShowing(t, page) {
+func (rs *RodSession) doMaybeVerifyIdentity(t *testing.T, page *rod.Page, otherwise string) {
+	if !rs.isVerifyIdentityShowing(t, page, otherwise) {
 		return
 	}
 
@@ -26,20 +30,17 @@ func (rs *RodSession) doMaybeVerifyIdentity(t *testing.T, page *rod.Page) {
 }
 
 func (rs *RodSession) doMustVerifyIdentity(t *testing.T, page *rod.Page) {
-	element := rs.WaitElementLocatedByID(t, page, "one-time-code")
 	code := doGetOneTimeCodeFromLastMail(t)
 
-	require.NoError(t, element.Type(rs.toInputs(code)...))
+	rs.TypeElementLocatedByID(t, page, "one-time-code", code)
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-verify").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-verify")
 }
 
 func (rs *RodSession) doMustVerifyIdentityBadCode(t *testing.T, page *rod.Page) {
-	element := rs.WaitElementLocatedByID(t, page, "one-time-code")
+	rs.TypeElementLocatedByID(t, page, "one-time-code", "BADCODE")
 
-	require.NoError(t, element.Type(rs.toInputs("BADCODE")...))
-
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-verify").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-verify")
 
 	rs.verifyNotificationDisplayed(t, page, "The One-Time Code either doesn't match the one generated or an unknown error occurred")
 }

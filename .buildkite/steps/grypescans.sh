@@ -26,12 +26,16 @@ if [[ "${CI_MERGE_QUEUE}" != "true" ]]; then
   fi
 fi
 
+STATUS=0
+
 if [[ -n "${IMAGE}" ]]; then
   echo "--- :grype: Scanning ${IMAGE}"
-  "${grypeCmd[@]}" "${IMAGE}"
+  "${grypeCmd[@]}" "registry:${IMAGE}" || STATUS=1
 fi
 
 for file in *.cdx.json; do
   echo "--- :grype: Scanning ${file/.cdx.json}"
-  "${grypeCmd[@]}" "${file}"
+  "${grypeCmd[@]}" "${file}" || STATUS=1
 done
+
+exit "${STATUS}"

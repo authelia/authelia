@@ -1,4 +1,3 @@
-import { Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import SuccessIcon from "@components/SuccessIcon";
@@ -7,12 +6,12 @@ const Authenticated = function () {
     const { t: translate } = useTranslation();
 
     return (
-        <Box id="authenticated-stage">
-            <Box sx={{ flex: "0 0 100%", marginBottom: (theme) => theme.spacing(2) }}>
+        <div id="authenticated-stage" className="flex flex-col items-center">
+            <div className="mb-4">
                 <SuccessIcon />
-            </Box>
-            <Typography>{translate("Authenticated")}</Typography>
-        </Box>
+            </div>
+            <p>{translate("Authenticated")}</p>
+        </div>
     );
 };
 

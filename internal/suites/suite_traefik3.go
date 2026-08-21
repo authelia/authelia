@@ -44,7 +44,7 @@ func init() {
 			return err
 		}
 
-		return updateDevEnvFileForDomain(BaseDomain, true)
+		return updateDevEnvFileForDomain(BaseDomain, traefik3DockerEnvironment)
 	}
 
 	displayAutheliaLogs := func() error {

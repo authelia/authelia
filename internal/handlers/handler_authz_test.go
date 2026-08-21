@@ -1891,8 +1891,6 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithoutHeaderNoCookie() {
 		s.T().Skip()
 	}
 
-	// Equivalent of TestShouldVerifyAuthBasicArgFailingNoHeader.
-
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	header := NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic")
@@ -1927,8 +1925,6 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithEmptyAuthorizationHeader() {
 	if s.setRequest == nil {
 		s.T().Skip()
 	}
-
-	// Equivalent of TestShouldVerifyAuthBasicArgFailingEmptyHeader.
 
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
@@ -2042,7 +2038,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
-func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() { // TestShouldVerifyAuthBasicArgFailingWrongHeader.
+func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() {
 	if s.setRequest == nil {
 		s.T().Skip()
 	}

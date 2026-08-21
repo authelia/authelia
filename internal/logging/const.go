@@ -71,5 +71,5 @@ const (
 var (
 	stacktrace       sync.Once
 	reFormatFilePath = regexp.MustCompile(`(%d|\{datetime(:([^}]+))?})`)
-	lf               *File
+	logFile          *File
 )

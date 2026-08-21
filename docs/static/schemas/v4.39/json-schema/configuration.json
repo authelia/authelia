@@ -1552,7 +1552,8 @@
               "address",
               "phone",
               "groups",
-              "authelia.bearer.authz"
+              "authelia.bearer.authz",
+              "authelia.pam"
             ]
           },
           "type": "array",
@@ -3545,7 +3546,7 @@
           "type": "string",
           "title": "CSP Template",
           "description": "The Content Security Policy template.",
-          "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"
+          "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s'"
         }
       },
       "additionalProperties": false,

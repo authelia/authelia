@@ -1,46 +1,40 @@
-import { useCallback, useState } from "react";
+import { useEffect, useRef } from "react";
 
-import { Alert, Slide, SlideProps, Snackbar } from "@mui/material";
+import { Toast as ToastPrimitive } from "@base-ui/react/toast";
 
+import { ToastProvider, Toaster } from "@components/UI/Toast";
 import { useNotifications } from "@contexts/NotificationsContext";
-import { Notification } from "@models/Notifications";
 
-type NotificationBarTransitionProps = Omit<SlideProps, "direction">;
+const NotificationToasts = function () {
+    const { notification, resetNotification } = useNotifications();
+    const manager = ToastPrimitive.useToastManager();
+    const prevNotificationRef = useRef(notification);
 
-function NotificationBarTransition(props: Readonly<NotificationBarTransitionProps>) {
-    return <Slide {...props} direction={"left"} />;
-}
+    useEffect(() => {
+        if (notification && notification !== prevNotificationRef.current) {
+            const current = notification;
+
+            manager.add({
+                onClose: () => {
+                    if (prevNotificationRef.current === current) resetNotification();
+                },
+                timeout: notification.timeout * 1000,
+                title: notification.message,
+                type: notification.level,
+            });
+        }
+
+        prevNotificationRef.current = notification;
+    }, [notification, resetNotification, manager]);
+
+    return <Toaster />;
+};
 
 const NotificationBar = function () {
-    const { notification, resetNotification } = useNotifications();
-    const [lastNotification, setLastNotification] = useState<Notification | null>(null);
-
-    if (notification !== null && notification !== lastNotification) {
-        setLastNotification(notification);
-    }
-
-    const handleExited = useCallback(() => {
-        setLastNotification(null);
-    }, []);
-
-    const open = notification !== null;
-    const displayed = notification ?? lastNotification;
-
     return (
-        <Snackbar
-            open={open}
-            anchorOrigin={{ horizontal: "right", vertical: "top" }}
-            autoHideDuration={displayed ? displayed.timeout * 1000 : 10000}
-            onClose={resetNotification}
-            slots={{ transition: NotificationBarTransition }}
-            slotProps={{ transition: { onExited: handleExited } }}
-        >
-            {displayed ? (
-                <Alert severity={displayed.level} variant={"filled"} elevation={6} className={"notification"}>
-                    {displayed.message}
-                </Alert>
-            ) : undefined}
-        </Snackbar>
+        <ToastProvider>
+            <NotificationToasts />
+        </ToastProvider>
     );
 };
 

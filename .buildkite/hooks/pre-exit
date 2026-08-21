@@ -18,6 +18,10 @@ if [[ ! "${BUILDKITE_COMMAND}" =~ buildkite-agent\ pipeline\ upload ]]; then
     docker network ls -q --filter "label=com.docker.compose.project=${PROJECT}" | xargs -r docker network rm
     docker images --filter "reference=${PROJECT}-*" --format '{{.Repository}}:{{.Tag}}' | xargs -r docker rmi -f > /dev/null 2>&1
     [[ -n "${SUITE_IMAGE}" ]] && docker rmi -f "${SUITE_IMAGE}" > /dev/null 2>&1
+
+    if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
+      docker images --filter "reference=authelia/authelia:*" --filter "reference=authelia/authelia-cve:*" --format '{{.Repository}}:{{.Tag}}' | xargs -r docker rmi > /dev/null 2>&1
+    fi
   fi
 fi
 
