@@ -102,8 +102,6 @@ func (service *GarbageCollector) Log() *logrus.Entry {
 	return service.log
 }
 
-// collect performs the garbage collection of a single provider at its required frequency until the service context is
-// cancelled.
 func (service *GarbageCollector) collect(provider middlewares.GarbageCollectorProvider, frequency time.Duration, log *logrus.Entry) {
 	defer func() {
 		if r := recover(); r != nil {

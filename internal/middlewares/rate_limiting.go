@@ -218,10 +218,6 @@ func HandlerRateLimitOpenIDConnect(ctx *AutheliaCtx, retryAfter time.Duration) {
 	ctx.Response.SetBodyRaw(bodyOpenIDConnectRateLimitExceeded)
 }
 
-// newRateLimiterHandler returns the RequestHandler which enforces the given buckets. A request which exceeds any bucket
-// is logged exactly once regardless of how many buckets it exceeded, as rejected requests are by nature the high volume
-// case and a log line per bucket amplifies the volume of an attack. The bucket which is logged is the one which
-// determined the retry after duration i.e. the bucket the client has to wait the longest for.
 func newRateLimiterHandler(next RequestHandler, buckets []RateLimitBucket, handler RateLimitRequestHandler, exemptStatusCodes []int) RequestHandler {
 	isRateLimitExempt := newIsRateLimitExempt(exemptStatusCodes)
 
@@ -364,8 +360,6 @@ func (l *IPRateLimitBucket) FetchCtx(ctx *AutheliaCtx) (limiter *BucketLimiter) 
 	return l.Fetch(ctx.RemoteIP().String())
 }
 
-// new constructs and inserts a new BucketLimiter for the given key. The caller must hold l.mu as a write lock and is
-// responsible for storing the initial value of updated.
 func (l *IPRateLimitBucket) new(ip string) (limiter *BucketLimiter) {
 	limiter = &BucketLimiter{Limiter: rate.NewLimiter(l.r, l.b)}
 
