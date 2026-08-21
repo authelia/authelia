@@ -1,5 +1,3 @@
-import Grid from "@mui/material/Grid";
-
 import { WebAuthnCredential } from "@models/WebAuthn";
 import WebAuthnCredentialItem from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialItem";
 
@@ -12,9 +10,9 @@ interface Props {
 
 const WebAuthnCredentialsGrid = function (props: Props) {
     return (
-        <Grid container spacing={3}>
+        <div className="grid grid-cols-12 gap-6">
             {props.credentials.map((credential, index) => (
-                <Grid size={{ md: 6, xl: 3, xs: 12 }} key={credential.id}>
+                <div className="col-span-12 md:col-span-6 xl:col-span-3" key={credential.id}>
                     <WebAuthnCredentialItem
                         index={index}
                         credential={credential}
@@ -22,9 +20,9 @@ const WebAuthnCredentialsGrid = function (props: Props) {
                         handleEdit={props.handleEdit}
                         handleDelete={props.handleDelete}
                     />
-                </Grid>
+                </div>
             ))}
-        </Grid>
+        </div>
     );
 };
 

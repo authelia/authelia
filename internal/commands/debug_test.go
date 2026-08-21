@@ -44,7 +44,6 @@ func TestNewDebugCmds(t *testing.T) {
 	assert.NotNil(t, cmd)
 }
 
-// testUserDatabaseContent is a minimal user database for testing.
 var testUserDatabaseContent = []byte(`
 users:
   john:
@@ -56,8 +55,6 @@ users:
       - dev
 `)
 
-// newTestFileAuthConfig creates a schema.Configuration with a file-based auth backend
-// pointing at a temp user database file.
 func newTestFileAuthConfig(t *testing.T) *schema.Configuration {
 	t.Helper()
 

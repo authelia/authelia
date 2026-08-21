@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-// validateResponse strictly validates the mode, stratum, and timestamps.
 func validateResponse(req, resp *packet) (err error) {
 	if mode := resp.LeapVersionMode & maskModeValue; mode != modeServer {
 		return fmt.Errorf("the response has mode '%d' but only the server mode '%d' is considered valid", mode, modeServer)
@@ -50,7 +49,6 @@ func timeToSecondsAndFraction(t time.Time) (seconds, fraction uint32) {
 	return uint32(t.Unix() + epochOffset), uint32((int64(t.Nanosecond()) << 32) / 1e9)
 }
 
-// isOffsetTooLarge return true if there is offset of "offset" between two times.
 func isOffsetTooLarge(maxOffset time.Duration, first, second time.Time) (tooLarge bool) {
 	var offset time.Duration
 

@@ -1,6 +1,6 @@
 package expression
 
-import "github.com/google/cel-go/interpreter"
+import "cel.dev/cel-go/interpreter"
 
 func NewMapActivation(parent interpreter.Activation, values map[string]any) *MapActivation {
 	return &MapActivation{

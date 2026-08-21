@@ -8,7 +8,9 @@ RUN yarn global add pnpm@11 && \
     if getent group ${GROUP_ID} >/dev/null; then delgroup "$(getent group ${GROUP_ID} | cut -d: -f1)"; fi && \
     if getent passwd ${USER_ID} >/dev/null; then deluser "$(getent passwd ${USER_ID} | cut -d: -f1)"; fi && \
     addgroup --gid ${GROUP_ID} dev && \
-    adduser --uid ${USER_ID} -G dev -D dev
+    adduser --uid ${USER_ID} -G dev -D dev && \
+    mkdir -p /app/node_modules && \
+    chown ${USER_ID}:${GROUP_ID} /app/node_modules
 
 USER dev
 

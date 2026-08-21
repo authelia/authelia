@@ -7,6 +7,10 @@ export function getEmbeddedVariable(variableName: string) {
     return value;
 }
 
+export function getCSPNonce() {
+    return document.querySelector<HTMLMetaElement>('meta[property="csp-nonce"]')?.content ?? "";
+}
+
 export function getDuoSelfEnrollment() {
     return getEmbeddedVariable("duoselfenrollment") === "true";
 }

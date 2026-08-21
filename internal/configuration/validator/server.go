@@ -41,7 +41,6 @@ func ValidateServerTLS(config *schema.Configuration, validator *schema.StructVal
 	}
 }
 
-// validateServerTLSFileExists checks whether a file exist.
 func validateServerTLSFileExists(name, path string, validator *schema.StructValidator) {
 	var (
 		info os.FileInfo

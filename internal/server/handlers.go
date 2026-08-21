@@ -28,7 +28,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// Replacement for the default error handler in fasthttp.
 func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
 	headerXForwardedFor := []byte(fasthttp.HeaderXForwardedFor)
 
@@ -155,7 +154,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	r := router.New()
 
-	// Static Assets.
 	r.HEAD("/", bridge(serveIndexHandler))
 	r.GET("/", bridge(serveIndexHandler))
 
@@ -173,7 +171,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.HEAD("/static/{filepath:*}", handlerPublicHTML)
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 
-	// Locales.
 	r.GET("/locales", bridge(handlerLocalesList))
 
 	r.HEAD("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
@@ -182,7 +179,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.HEAD("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
 	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
 
-	// Swagger.
 	r.HEAD(prefixAPI, bridgeSwagger(serveOpenAPIHandler))
 	r.GET(prefixAPI, bridgeSwagger(serveOpenAPIHandler))
 	r.OPTIONS(prefixAPI, policyCORSPublicGET.HandleOPTIONS)
@@ -273,7 +269,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.POST("/api/change-password", middlewareElevated1FA(handlers.ChangePasswordPOST))
 	}
 
-	// Information about the user.
 	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
 	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
@@ -320,7 +315,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 			r.POST("/api/secondfactor/password", middleware1FA(handlers.SecondFactorPasswordPOST(delayerPassword)))
 		}
 
-		// Management of the WebAuthn credentials.
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))
 
 		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPUT))
@@ -331,7 +325,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialDELETE))
 	}
 
-	// Configure DUO api endpoint only if configuration exists.
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.Provider
 

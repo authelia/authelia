@@ -494,7 +494,7 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLDefaults() {
 			Password: "pass",
 			Database: "database",
 		},
-		SSL: &schema.StoragePostgreSQLSSL{},
+		SSL: &schema.StoragePostgreSQLSSL{}, //nolint:staticcheck
 	}
 
 	ValidateStorage(suite.config, suite.val)
@@ -519,7 +519,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnTLSAndLegacySSL() {
 			Database: "database",
 			TLS:      &schema.TLS{},
 		},
-		SSL: &schema.StoragePostgreSQLSSL{},
+		SSL: &schema.StoragePostgreSQLSSL{}, //nolint:staticcheck
 	}
 
 	ValidateStorage(suite.config, suite.val)
@@ -541,7 +541,7 @@ func (suite *StorageSuite) TestShouldValidatePostgresDefaultsDontOverrideConfigu
 			Database: "database",
 		},
 		Schema: "authelia",
-		SSL: &schema.StoragePostgreSQLSSL{
+		SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 			Mode: "require",
 		},
 	}
@@ -567,7 +567,7 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
 			Password: "pass",
 			Database: "database",
 		},
-		SSL: &schema.StoragePostgreSQLSSL{
+		SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 			Mode: "unknown",
 		},
 	}

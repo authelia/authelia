@@ -1,8 +1,7 @@
-import { ChangeEvent } from "react";
-
-import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { Label } from "@components/UI/Label";
+import { RadioGroup, RadioGroupItem } from "@components/UI/RadioGroup";
 import { SecondFactorMethod } from "@models/Methods";
 import { toMethod2FA } from "@services/UserInfo";
 
@@ -11,56 +10,59 @@ interface Props {
     methods: SecondFactorMethod[];
     method: SecondFactorMethod;
     name: string;
-    handleMethodChanged: (_event: ChangeEvent<HTMLInputElement>) => void;
+    handleMethodChanged: (value: string) => void;
 }
 
 const TwoFactorAuthenticationOptionsMethodsRadioGroup = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     return (
-        <FormControl>
-            <FormLabel>{translate(props.name)}</FormLabel>
-            <RadioGroup value={toMethod2FA(props.method)} onChange={props.handleMethodChanged} row>
+        <fieldset>
+            <legend className="text-sm font-medium text-muted-foreground mb-3">{translate(props.name)}</legend>
+            <RadioGroup
+                value={toMethod2FA(props.method)}
+                onValueChange={props.handleMethodChanged}
+                className="flex flex-row gap-4"
+            >
                 {props.methods.map((value, _index) => {
                     const v = toMethod2FA(value);
 
                     switch (value) {
                         case SecondFactorMethod.WebAuthn:
                             return (
-                                <FormControlLabel
-                                    id={`method-${props.id}-default-webauthn`}
-                                    control={<Radio />}
-                                    label={translate("WebAuthn")}
+                                <div
                                     key={v}
-                                    value={v}
-                                />
+                                    className="flex items-center gap-2"
+                                    id={`method-${props.id}-default-webauthn`}
+                                >
+                                    <RadioGroupItem value={v} id={`${props.id}-webauthn`} />
+                                    <Label htmlFor={`${props.id}-webauthn`}>{translate("WebAuthn")}</Label>
+                                </div>
                             );
                         case SecondFactorMethod.TOTP:
                             return (
-                                <FormControlLabel
-                                    id={`method-${props.id}-default-one-time-password`}
-                                    control={<Radio />}
-                                    label={translate("One-Time Password")}
+                                <div
                                     key={v}
-                                    value={v}
-                                />
+                                    className="flex items-center gap-2"
+                                    id={`method-${props.id}-default-one-time-password`}
+                                >
+                                    <RadioGroupItem value={v} id={`${props.id}-otp`} />
+                                    <Label htmlFor={`${props.id}-otp`}>{translate("One-Time Password")}</Label>
+                                </div>
                             );
                         case SecondFactorMethod.MobilePush:
                             return (
-                                <FormControlLabel
-                                    id={`method-${props.id}-default-duo`}
-                                    control={<Radio />}
-                                    label={translate("Mobile Push")}
-                                    key={v}
-                                    value={v}
-                                />
+                                <div key={v} className="flex items-center gap-2" id={`method-${props.id}-default-duo`}>
+                                    <RadioGroupItem value={v} id={`${props.id}-duo`} />
+                                    <Label htmlFor={`${props.id}-duo`}>{translate("Mobile Push")}</Label>
+                                </div>
                             );
                         default:
                             return null;
                     }
                 })}
             </RadioGroup>
-        </FormControl>
+        </fieldset>
     );
 };
 

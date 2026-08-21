@@ -60,7 +60,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode: "verify-full",
 						},
 					},
@@ -76,7 +76,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode: "verify-ca",
 						},
 					},
@@ -92,7 +92,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode: "require",
 						},
 					},
@@ -108,7 +108,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode: "disable",
 						},
 					},
@@ -124,7 +124,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
 						},
@@ -141,7 +141,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.crt",
@@ -160,7 +160,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.cert",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.crt",
@@ -179,7 +179,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.crt",
@@ -198,7 +198,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.cert",
@@ -217,7 +217,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.crt",
@@ -236,7 +236,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.pem",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.crt",
