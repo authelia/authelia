@@ -85,6 +85,8 @@ func (m *FileUserDatabase) Load() (err error) {
 
 // LoadAliases performs the loading of alias information from the database.
 func (m *FileUserDatabase) LoadAliases() (err error) {
+	m.Emails, m.Aliases = make(map[string]string, len(m.Users)), make(map[string]string, len(m.Users))
+
 	if m.SearchEmail || m.SearchCI {
 		for k, user := range m.Users {
 			if m.SearchEmail && user.Email != "" {
@@ -167,13 +169,21 @@ func (m *FileUserDatabase) GetUserDetails(username string) (user FileUserDatabas
 
 	if m.SearchEmail {
 		if key, ok := m.Emails[u]; ok {
-			return m.Users[key], nil
+			if user, ok = m.Users[key]; ok {
+				return user, nil
+			}
+
+			return FileUserDatabaseUserDetails{}, ErrUserNotFound
 		}
 	}
 
 	if m.SearchCI {
 		if key, ok := m.Aliases[u]; ok {
-			return m.Users[key], nil
+			if user, ok = m.Users[key]; ok {
+				return user, nil
+			}
+
+			return FileUserDatabaseUserDetails{}, ErrUserNotFound
 		}
 	}
 
