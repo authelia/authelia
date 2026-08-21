@@ -1,26 +1,17 @@
 import { FC, Fragment, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import {
-    Alert,
-    AlertTitle,
-    Box,
-    Button,
-    CircularProgress,
-    FormControl,
-    IconButton,
-    InputAdornment,
-    Tooltip,
-    Typography,
-    useTheme,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
+import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import LogoutButton from "@components/LogoutButton";
 import SwitchUserButton from "@components/SwitchUserButton";
+import { Alert, AlertTitle } from "@components/UI/Alert";
+import { Button } from "@components/UI/Button";
+import { Input } from "@components/UI/Input";
+import { Label } from "@components/UI/Label";
+import { Spinner } from "@components/UI/Spinner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 import { ConsentCompletionSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
 import { Decision, Flow, SubFlow, SubFlowNameDeviceAuthorization } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
@@ -52,7 +43,6 @@ export interface Props {
 
 const DecisionFormView: FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["consent", "portal"]);
-    const theme = useTheme();
 
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useRouterNavigate();
@@ -302,33 +292,38 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                     title={`${translate("Hi", { ns: "portal" })} ${props.userInfo.display_name}`}
                     subtitle={translate("Consent Request")}
                 >
-                    <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
-                        <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
+                    <div className="flex flex-col items-center justify-center">
+                        <div className="w-full pb-4">
                             <LogoutButton /> {" | "} <SwitchUserButton />
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
-                            <Grid container alignItems={"center"} justifyContent={"center"}>
-                                <Grid size={{ xs: 12 }}>
-                                    <Box>
-                                        <Tooltip
-                                            title={
-                                                translate("Client ID", { client_id: response?.client_id }) ||
-                                                "Client ID: " + response?.client_id
-                                            }
-                                        >
-                                            <Typography sx={{ fontWeight: 600 }}>
-                                                {response.client_description === ""
-                                                    ? response?.client_id
-                                                    : response.client_description}
-                                            </Typography>
-                                        </Tooltip>
-                                    </Box>
-                                </Grid>
-                                <Grid size={{ xs: 12 }}>
-                                    <Box>
+                        </div>
+                        <div className="w-full">
+                            <div className="flex flex-col items-center justify-center">
+                                <div className="w-full">
+                                    <div>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger
+                                                    render={
+                                                        <p className="font-semibold">
+                                                            {response.client_description === ""
+                                                                ? response?.client_id
+                                                                : response.client_description}
+                                                        </p>
+                                                    }
+                                                />
+                                                <TooltipContent>
+                                                    {translate("Client ID", { client_id: response?.client_id }) ||
+                                                        "Client ID: " + response?.client_id}
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </div>
+                                </div>
+                                <div className="w-full">
+                                    <div>
                                         {translate("The above application is requesting the following permissions")}:
-                                    </Box>
-                                </Grid>
+                                    </div>
+                                </div>
                                 <DecisionFormScopes scopes={response.scopes} />
                                 <DecisionFormClaims
                                     claims={claims}
@@ -336,39 +331,46 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                     onChangeChecked={(claims) => setClaims(claims)}
                                 />
                                 {response?.require_login ? (
-                                    <Grid size={{ xs: 12 }} marginY={theme.spacing(2)}>
-                                        <FormControl id={"openid-consent-prompt-login"}>
-                                            <Grid container spacing={2}>
-                                                <Grid size={{ xs: 12 }}>
-                                                    <Tooltip
-                                                        title={translate(
-                                                            "You must reauthenticate to be able to give consent",
-                                                        )}
-                                                    >
-                                                        <TextField
-                                                            id={"password-textfield"}
-                                                            label={translate("Password", { ns: "portal" })}
-                                                            variant={"outlined"}
-                                                            inputRef={passwordRef}
-                                                            onKeyDown={handlePasswordKeyDown}
-                                                            onKeyUp={handlePasswordKeyUp}
-                                                            error={errorPassword}
-                                                            disabled={loading}
-                                                            value={password}
-                                                            onChange={(v) => setPassword(v.target.value)}
-                                                            onFocus={() => setErrorPassword(false)}
-                                                            type={showPassword ? "text" : "password"}
-                                                            autoComplete={"current-password"}
-                                                            required
-                                                            fullWidth
-                                                            slotProps={{
-                                                                input: {
-                                                                    endAdornment: (
-                                                                        <InputAdornment position="end">
-                                                                            <IconButton
-                                                                                aria-label="toggle password visibility"
-                                                                                edge="end"
-                                                                                size="large"
+                                    <div className="my-4 w-full">
+                                        <div id={"openid-consent-prompt-login"}>
+                                            <div className="grid grid-cols-1 gap-4">
+                                                <div className="w-full">
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger
+                                                                render={
+                                                                    <div>
+                                                                        <Label htmlFor="password-textfield">
+                                                                            {translate("Password", { ns: "portal" })}
+                                                                        </Label>
+                                                                        <div className="relative">
+                                                                            <Input
+                                                                                id={"password-textfield"}
+                                                                                ref={passwordRef}
+                                                                                onKeyDown={handlePasswordKeyDown}
+                                                                                onKeyUp={handlePasswordKeyUp}
+                                                                                className="pr-10"
+                                                                                error={errorPassword}
+                                                                                disabled={loading}
+                                                                                value={password}
+                                                                                onChange={(v) =>
+                                                                                    setPassword(v.target.value)
+                                                                                }
+                                                                                onFocus={() => setErrorPassword(false)}
+                                                                                type={
+                                                                                    showPassword ? "text" : "password"
+                                                                                }
+                                                                                autoComplete={"current-password"}
+                                                                                required
+                                                                            />
+                                                                            <button
+                                                                                type="button"
+                                                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                                                                                aria-label={translate(
+                                                                                    "Toggle password visibility",
+                                                                                    { ns: "portal" },
+                                                                                )}
+                                                                                aria-pressed={showPassword}
                                                                                 onMouseDown={() =>
                                                                                     setShowPassword(true)
                                                                                 }
@@ -386,34 +388,45 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                                                     setShowPassword(false)
                                                                                 }
                                                                                 onKeyDown={(e) => {
-                                                                                    if (e.key === " ") {
+                                                                                    if (
+                                                                                        e.key === " " ||
+                                                                                        e.key === "Enter"
+                                                                                    ) {
                                                                                         setShowPassword(true);
                                                                                         e.preventDefault();
                                                                                     }
                                                                                 }}
                                                                                 onKeyUp={(e) => {
-                                                                                    if (e.key === " ") {
+                                                                                    if (
+                                                                                        e.key === " " ||
+                                                                                        e.key === "Enter"
+                                                                                    ) {
                                                                                         setShowPassword(false);
                                                                                         e.preventDefault();
                                                                                     }
                                                                                 }}
                                                                             >
                                                                                 {showPassword ? (
-                                                                                    <Visibility />
+                                                                                    <Eye className="h-5 w-5" />
                                                                                 ) : (
-                                                                                    <VisibilityOff />
+                                                                                    <EyeOff className="h-5 w-5" />
                                                                                 )}
-                                                                            </IconButton>
-                                                                        </InputAdornment>
-                                                                    ),
-                                                                },
-                                                            }}
-                                                        />
-                                                    </Tooltip>
-                                                </Grid>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                            />
+                                                            <TooltipContent>
+                                                                {translate(
+                                                                    "You must reauthenticate to be able to give consent",
+                                                                )}
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </div>
                                                 {hasCapsLock ? (
-                                                    <Grid size={{ xs: 12 }} marginX={2}>
-                                                        <Alert severity={"warning"}>
+                                                    <div className="mx-2 w-full">
+                                                        <Alert variant="default">
                                                             <AlertTitle>
                                                                 {translate("Warning", { ns: "portal" })}
                                                             </AlertTitle>
@@ -426,78 +439,88 @@ const DecisionFormView: FC<Props> = (props: Props) => {
                                                                       ns: "portal",
                                                                   })}
                                                         </Alert>
-                                                    </Grid>
+                                                    </div>
                                                 ) : null}
-                                            </Grid>
-                                        </FormControl>
-                                    </Grid>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ) : null}
                                 <OpenIDConnectConsentDecisionFormPreConfiguration
                                     pre_configuration={response.pre_configuration}
                                     onChangePreConfiguration={handlePreConfigureChanged}
                                 />
-                                <Grid size={{ xs: 12 }}>
-                                    <Grid container spacing={1}>
-                                        <Grid size={{ xs: 6 }}>
-                                            <Tooltip
-                                                title={
-                                                    passwordMissing
-                                                        ? translate(
-                                                              "You must reauthenticate to be able to give consent",
-                                                          )
-                                                        : translate("Accept this consent request")
-                                                }
-                                            >
-                                                <span>
-                                                    <Button
-                                                        id={"openid-consent-accept"}
-                                                        sx={{
-                                                            marginLeft: (theme) => theme.spacing(),
-                                                            marginRight: (theme) => theme.spacing(),
-                                                            width: "100%",
-                                                        }}
-                                                        disabled={!response || passwordMissing || loading}
-                                                        onClick={handleAcceptConsent}
-                                                        color={"primary"}
-                                                        variant={"contained"}
-                                                        endIcon={loadingAccept ? <CircularProgress size={20} /> : null}
-                                                    >
-                                                        {translate("Accept", { ns: "portal" })}
-                                                    </Button>
-                                                </span>
-                                            </Tooltip>
-                                        </Grid>
-                                        <Grid size={{ xs: 6 }}>
-                                            <Tooltip title={translate("Deny this consent request")}>
-                                                <span>
-                                                    <Button
-                                                        id={"openid-consent-deny"}
-                                                        sx={{
-                                                            marginLeft: (theme) => theme.spacing(),
-                                                            marginRight: (theme) => theme.spacing(),
-                                                            width: "100%",
-                                                        }}
-                                                        disabled={!response || loading}
-                                                        onClick={handleRejectConsent}
-                                                        color={"secondary"}
-                                                        variant={"contained"}
-                                                        endIcon={loadingReject ? <CircularProgress size={20} /> : null}
-                                                    >
-                                                        {translate("Deny", { ns: "portal" })}
-                                                    </Button>
-                                                </span>
-                                            </Tooltip>
-                                        </Grid>
-                                    </Grid>
-                                </Grid>
-                            </Grid>
-                        </Grid>
-                    </Grid>
+                                <div className="w-full">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="w-full">
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger
+                                                        render={
+                                                            <span>
+                                                                <Button
+                                                                    id={"openid-consent-accept"}
+                                                                    className="mx-2 w-full"
+                                                                    disabled={!response || passwordMissing || loading}
+                                                                    onClick={handleAcceptConsent}
+                                                                    variant={"default"}
+                                                                    color={"primary"}
+                                                                >
+                                                                    {translate("Accept", { ns: "portal" })}
+                                                                    {loadingAccept ? (
+                                                                        <Spinner size={20} className="ml-2 h-5 w-5" />
+                                                                    ) : null}
+                                                                </Button>
+                                                            </span>
+                                                        }
+                                                    />
+                                                    <TooltipContent>
+                                                        {passwordMissing
+                                                            ? translate(
+                                                                  "You must reauthenticate to be able to give consent",
+                                                              )
+                                                            : translate("Accept this consent request")}
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                        <div className="w-full">
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger
+                                                        render={
+                                                            <span>
+                                                                <Button
+                                                                    id={"openid-consent-deny"}
+                                                                    className="mx-2 w-full"
+                                                                    disabled={!response || loading}
+                                                                    onClick={handleRejectConsent}
+                                                                    variant={"default"}
+                                                                    color={"secondary"}
+                                                                >
+                                                                    {translate("Deny", { ns: "portal" })}
+                                                                    {loadingReject ? (
+                                                                        <Spinner size={20} className="ml-2 h-5 w-5" />
+                                                                    ) : null}
+                                                                </Button>
+                                                            </span>
+                                                        }
+                                                    />
+                                                    <TooltipContent>
+                                                        {translate("Deny this consent request")}
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </LoginLayout>
             ) : (
-                <Box>
+                <div>
                     <LoadingPage />
-                </Box>
+                </div>
             )}
         </Fragment>
     );

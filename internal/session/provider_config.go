@@ -34,13 +34,10 @@ func NewProviderConfig(config schema.SessionCookie, providerName string, seriali
 		return bytes
 	}
 
-	// Override the cookie name.
 	c.CookieName = config.Name
 
-	// Set the cookie to the given domain.
 	c.Domain = config.Domain
 
-	// Set the cookie SameSite option.
 	switch config.SameSite {
 	case "strict":
 		c.CookieSameSite = fasthttp.CookieSameSiteStrictMode
@@ -52,7 +49,6 @@ func NewProviderConfig(config schema.SessionCookie, providerName string, seriali
 		c.CookieSameSite = fasthttp.CookieSameSiteLaxMode
 	}
 
-	// Only serve the header over HTTPS.
 	c.Secure = true
 
 	// Ignore the error as it will be handled by validator.
@@ -94,7 +90,6 @@ func NewProviderConfigAndSession(config schema.SessionCookie, providerName strin
 }
 
 func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name string, provider session.Provider, serializer Serializer, err error) {
-	// If redis configuration is provided, then use the redis provider.
 	switch {
 	case config.Redis != nil:
 		serializer = NewEncryptingSerializer(config.Secret)

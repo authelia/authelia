@@ -182,12 +182,12 @@ func FuncMustGetEnv(key string) (string, error) {
 
 // FuncHashSum is a helper function that provides similar functionality to helm sum funcs.
 func FuncHashSum(new func() hash.Hash) func(data string) string {
-	hasher := new()
-
 	return func(data string) string {
-		sum := hasher.Sum([]byte(data))
+		hasher := new()
 
-		return hex.EncodeToString(sum)
+		hasher.Write([]byte(data))
+
+		return hex.EncodeToString(hasher.Sum(nil))
 	}
 }
 

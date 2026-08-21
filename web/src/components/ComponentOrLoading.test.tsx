@@ -15,7 +15,7 @@ it("renders without crashing", () => {
 });
 
 it("renders loading component and does not render children when not ready", () => {
-    const { container } = render(
+    render(
         <ComponentOrLoading ready={false}>
             <div>Child</div>
         </ComponentOrLoading>,
@@ -23,14 +23,14 @@ it("renders loading component and does not render children when not ready", () =
 
     expect(screen.getByText("Loading")).toBeInTheDocument();
 
-    const box = container.querySelector(".MuiBox-root");
-    expect(box).not.toHaveClass("hidden");
+    const wrapper = screen.getByText("Loading").parentElement;
+    expect(wrapper).not.toHaveClass("hidden");
 
     expect(screen.queryByText("Child")).not.toBeInTheDocument();
 });
 
 it("renders children and hides loading component when ready", () => {
-    const { container } = render(
+    render(
         <ComponentOrLoading ready={true}>
             <div>Child</div>
         </ComponentOrLoading>,
@@ -38,8 +38,8 @@ it("renders children and hides loading component when ready", () => {
 
     expect(screen.getByText("Child")).toBeInTheDocument();
 
-    const box = container.querySelector(".MuiBox-root");
-    expect(box).toHaveClass("hidden");
+    const wrapper = screen.getByText("Loading").parentElement;
+    expect(wrapper).toHaveClass("hidden");
 
     expect(screen.getByText("Loading")).toBeInTheDocument();
 });

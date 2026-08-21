@@ -175,7 +175,6 @@ func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (co
 	return f.acquire(context.Background())
 }
 
-// The dial function dials a new LDAPClient and wraps it as a PooledLDAPClient client.
 func (f *PooledLDAPClientFactory) dial() (pooled *PooledLDAPClient, err error) {
 	var client LDAPExtendedClient
 

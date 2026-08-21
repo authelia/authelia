@@ -36,7 +36,7 @@ func newSuitesCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newSuitesListCmd(), newSuitesSetupCmd(), newSuitesTestCmd(), newSuitesTeardownCmd(), newSuitesExternalCmd())
+	cmd.AddCommand(newSuitesListCmd(), newSuitesSetupCmd(), newSuitesTestCmd(), newSuitesTeardownCmd(), newSuitesSlotCmd(), newSuitesExternalCmd())
 
 	return cmd
 }
@@ -154,7 +154,6 @@ func cmdSuitesTestRun(_ *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	// If suite(s) are provided as argument.
 	if len(args) >= 1 {
 		suiteArg := args[0]
 
@@ -349,7 +348,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	defer results.Close()
 
 	cmd := utils.CommandWithStdout("bash", "-c", testCmdLine)
-	cmd.Stdout = io.MultiWriter(results, &testOutputWriter{out: os.Stdout})
+	cmd.Stdout = io.MultiWriter(&testOutputWriter{out: os.Stdout}, results)
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 
@@ -360,8 +359,6 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	cmd.Env = append(cmd.Env, "SUITES_LOG_LEVEL="+log.GetLevel().String())
 
 	testErr := cmd.Run()
-
-	// If the tests failed, run the error hook.
 	if testErr != nil {
 		if err := runOnError(suiteName); err != nil {
 			// Do not return this error to return the test error instead

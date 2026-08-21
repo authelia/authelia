@@ -7,6 +7,7 @@ services:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - './example/compose/traefik/config:/config'
       - './common/pki:/pki'
+      - '${SUITE_TMP:-/tmp}:/tmp'
     labels:
       traefik.enable: 'true'
       traefik.http.routers.api.rule: 'Host(`traefik.example.com`)'
@@ -19,19 +20,20 @@ services:
       traefik.http.middlewares.authelia.forwardAuth.maxResponseBodySize: '8192'
       traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'  # yamllint disable-line rule:line-length
     command:
+      - '--accesslog=true'
+      - '--accesslog.filepath=/tmp/traefik-access-${COMPOSE_PROJECT_NAME:-authelia}.log'
       - '--api.dashboard=true'
       - '--api.insecure=false'
-      - '--log.level=DEBUG'
-      - '--accesslog=true'
-      - '--global.sendanonymoususage=false'
-      - '--global.checknewversion=false'
       - '--entrypoints.https.address=:8080/tcp'
-      - '--serverstransport.insecureskipverify=true'
-      - '--providers.docker.exposedbydefault=false'
+      - '--global.checknewversion=false'
+      - '--global.sendanonymoususage=false'
+      - '--log.level=DEBUG'
       - '--providers.docker.constraints=Label(`com.docker.compose.project`,`${COMPOSE_PROJECT_NAME:-authelia}`)'
+      - '--providers.docker.exposedbydefault=false'
       - '--providers.docker.network=${COMPOSE_PROJECT_NAME:-authelia}_authelianet'
       - '--providers.file.directory=/config/dynamic/'
       - '--providers.file.watch=true'
+      - '--serverstransport.insecureskipverify=true'
     networks:
       authelianet:
         aliases:
