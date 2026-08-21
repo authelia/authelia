@@ -65,9 +65,9 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 			writers = append(writers, os.Stdout)
 		}
 
-		lf = NewFile(config.FilePath)
+		logFile = NewFile(config.FilePath)
 
-		if err = lf.Open(); err != nil {
+		if err = logFile.Open(); err != nil {
 			return err
 		}
 
@@ -78,7 +78,7 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 			})
 		}
 
-		writers = append(writers, lf)
+		writers = append(writers, logFile)
 	default:
 		writers = []io.Writer{os.Stdout}
 	}
@@ -90,11 +90,11 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 // Reopen handles safely reopening the log file.
 func Reopen() (err error) {
-	if lf == nil {
+	if logFile == nil {
 		return fmt.Errorf("error reopening log file: file is not configured or open")
 	}
 
-	return lf.Reopen()
+	return logFile.Reopen()
 }
 
 func setLevelStr(level string, log bool) {

@@ -273,7 +273,6 @@ func prepareHostsFile() {
 	}
 }
 
-// ReadHostsFile reads the hosts file.
 func readHostsFile() ([]byte, error) {
 	bs, err := os.ReadFile("/etc/hosts")
 	if err != nil {

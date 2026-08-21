@@ -92,7 +92,6 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
-	// Search for the 'login' link.
 	err := s.Page.MustSearch("Log in").Click("left", 1)
 	assert.NoError(s.T(), err)
 
@@ -169,7 +168,6 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 
 	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
 
-	// Search for the 'login' link.
 	err := s.Page.MustSearch("Log in").Click("left", 1)
 	assert.NoError(s.T(), err)
 

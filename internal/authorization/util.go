@@ -20,7 +20,7 @@ func NewLevel(policy string) Level {
 	case deny:
 		return Denied
 	}
-	// By default the deny policy applies.
+
 	return Denied
 }
 

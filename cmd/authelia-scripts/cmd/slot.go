@@ -22,7 +22,6 @@ var (
 	slotRelease bool
 )
 
-// slotEntry is a working tree and the suite slot it owns.
 type slotEntry struct {
 	Slot int    `json:"slot"`
 	Path string `json:"path"`

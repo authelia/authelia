@@ -305,7 +305,6 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 	}
 }
 
-// CommonDataWithRememberMe returns a TemplatedFileCommonData with the dynamic options.
 func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, domain, nonce, language, logoOverride, rememberMe string) TemplatedFileCommonData {
 	return TemplatedFileCommonData{
 		Base:                   base,

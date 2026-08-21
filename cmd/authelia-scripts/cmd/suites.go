@@ -154,7 +154,6 @@ func cmdSuitesTestRun(_ *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	// If suite(s) are provided as argument.
 	if len(args) >= 1 {
 		suiteArg := args[0]
 
@@ -360,8 +359,6 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	cmd.Env = append(cmd.Env, "SUITES_LOG_LEVEL="+log.GetLevel().String())
 
 	testErr := cmd.Run()
-
-	// If the tests failed, run the error hook.
 	if testErr != nil {
 		if err := runOnError(suiteName); err != nil {
 			// Do not return this error to return the test error instead

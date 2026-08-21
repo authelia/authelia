@@ -106,7 +106,6 @@ func (s *TwoFactorTOTPScenario) TestShouldAuthorizeSecretAfterTwoFactor() {
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), username, password, false, targetURL)
 
-	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
 	// Leave the secret.

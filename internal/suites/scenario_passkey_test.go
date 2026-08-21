@@ -82,7 +82,6 @@ func (s *PasskeyScenario) TestShouldAuthorizeAfterPasskeyLogin() {
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect password")
 	s.doFillPasswordAndClick(s.T(), s.Context(ctx), "password")
 
-	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
 	// Leave the secret.

@@ -81,7 +81,6 @@ func (s *TwoFactorWebAuthnScenario) TestShouldAuthorizeSecretAfterTwoFactor() {
 
 	s.doWebAuthnMethodMaybeSelect(s.T(), s.Context(ctx))
 
-	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
 	// Leave the secret.

@@ -14,7 +14,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// runningSuiteFile name of the file containing the currently running suite.
 var runningSuiteFile = ".suite"
 
 func init() {
@@ -129,7 +128,6 @@ func setupSuite(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// Create the .suite file.
 	if err := createRunningSuiteFile(suiteName); err != nil {
 		log.Fatal(err)
 	}

@@ -63,7 +63,6 @@ func (s *ResetPasswordScenario) TestShouldResetPassword() {
 	// Try to login with the new password.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "abc", false, BaseDomain, "")
 
-	// Logout.
 	s.doLogout(s.T(), s.Context(ctx))
 
 	// Reset the original password.
