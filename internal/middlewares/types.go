@@ -53,6 +53,8 @@ type Providers struct {
 	UserAttributeResolver expression.UserAttributeResolver
 	MetaDataService       webauthn.MetaDataProvider
 
+	GarbageCollector *GarbageCollector
+
 	Random random.Provider
 	Clock  clock.Provider
 }

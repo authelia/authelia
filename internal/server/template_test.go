@@ -283,7 +283,7 @@ func TestHandlerMainShouldServeTemplatedIndexUncompressed(t *testing.T) {
 		Theme: "grey",
 	}
 
-	handler, err := handlerMain(t.Context(), config, providers)
+	handler, err := handlerMain(config, providers)
 
 	require.NoError(t, err)
 
