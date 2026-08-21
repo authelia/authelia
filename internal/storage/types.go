@@ -77,40 +77,46 @@ func (db *SQLXWrapDB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (tx SQL
 }
 
 // EncryptionChangeKeyFunc handles encryption key changes for a specific table or tables.
-type EncryptionChangeKeyFunc func(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init, useDecryptAAD, useEncryptAAD bool, key []byte) (err error)
+type EncryptionChangeKeyFunc func(ctx context.Context, provider *SQLProvider, conn SQLXConnection, init bool, decrypt, encrypt EncryptionAAD, key []byte) (err error)
 
 // EncryptionCheckKeyFunc handles encryption key checking for a specific table or tables.
-type EncryptionCheckKeyFunc func(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult)
+type EncryptionCheckKeyFunc func(ctx context.Context, provider *SQLProvider, aad EncryptionAAD) (table string, result EncryptionValidationTableResult)
 
 type encOAuth2Session struct {
-	ID      int    `db:"id"`
-	Session []byte `db:"session_data"`
+	ID        int    `db:"id"`
+	Signature string `db:"signature"`
+	Session   []byte `db:"session_data"`
 }
 
 type encWebAuthnCredential struct {
 	ID          int    `db:"id"`
 	RPID        string `db:"rpid"`
+	KID         string `db:"kid"`
 	PublicKey   []byte `db:"public_key"`
 	Attestation []byte `db:"attestation"`
 }
 
 type encCachedData struct {
 	ID    int    `db:"id"`
+	Name  string `db:"name"`
 	Value []byte `db:"value"`
 }
 
 type encTOTPConfiguration struct {
-	ID     int    `db:"id"`
-	Secret []byte `db:"secret"`
+	ID       int    `db:"id"`
+	Username string `db:"username"`
+	Secret   []byte `db:"secret"`
 }
 
 type encOneTimeCode struct {
-	ID   int    `db:"id"`
-	Code []byte `db:"code"`
+	ID        int    `db:"id"`
+	Signature string `db:"signature"`
+	Code      []byte `db:"code"`
 }
 
 type encEncryption struct {
 	ID    int    `db:"id"`
+	Name  string `db:"name"`
 	Value []byte `db:"value"`
 }
 
