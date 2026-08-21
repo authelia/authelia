@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/systemd"
 )
 
 type mockServiceCtx struct {
@@ -161,9 +163,9 @@ func TestSvcSignalLogReOpenFunc(t *testing.T) {
 			expectService: true,
 		},
 		{
-			name:          "ShouldNotCreateServiceWithoutLogPath",
+			name:          "ShouldCreateServiceWithoutLogPath",
 			logFilePath:   "",
-			expectService: false,
+			expectService: true,
 		},
 	}
 
@@ -176,12 +178,74 @@ func TestSvcSignalLogReOpenFunc(t *testing.T) {
 
 			if tc.expectService {
 				require.NotNil(t, service)
-				assert.Equal(t, "log-reload", service.ServiceName())
+				assert.Equal(t, "reload", service.ServiceName())
 				assert.Equal(t, serviceTypeSignal, service.ServiceType())
 			} else {
 				assert.Nil(t, service)
 			}
 		})
+	}
+}
+
+func TestSignalServiceShouldNotifyServiceManagerOnReload(t *testing.T) {
+	testCases := []struct {
+		name        string
+		logFilePath string
+		expected    []string
+	}{
+		{
+			name:        "ShouldNotifyWithoutAction",
+			logFilePath: "",
+			expected:    []string{systemd.StateReloading, systemd.StateReady},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			path, received := newTestNotifySocket(t)
+
+			t.Setenv(systemd.EnvNotifySocket, path)
+
+			mockCtx := newMockServiceCtx()
+			mockCtx.config.Log.FilePath = tc.logFilePath
+
+			provider, err := ProvisionLoggingSignal(mockCtx)
+
+			require.NoError(t, err)
+			require.NotNil(t, provider)
+
+			service, ok := provider.(*Signal)
+
+			require.True(t, ok)
+
+			go func() {
+				_ = service.Run()
+			}()
+
+			service.notify <- syscall.SIGHUP
+
+			assertNotified(t, received, tc.expected, "channel")
+
+			p, err := os.FindProcess(os.Getpid())
+
+			require.NoError(t, err)
+			require.NoError(t, p.Signal(syscall.SIGHUP))
+
+			assertNotified(t, received, tc.expected, "process")
+
+			service.Shutdown()
+		})
+	}
+}
+
+func assertNotified(t *testing.T, received <-chan string, expected []string, source string) {
+	for _, state := range expected {
+		select {
+		case actual := <-received:
+			assert.True(t, strings.HasPrefix(actual, state), "expected '%s' from the %s signal to have the prefix '%s'", actual, source, state)
+		case <-time.After(time.Second * 5):
+			t.Fatalf("timeout waiting for the '%s' notification from the %s signal", state, source)
+		}
 	}
 }
 
