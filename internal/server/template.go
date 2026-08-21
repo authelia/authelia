@@ -2,8 +2,6 @@ package server
 
 import (
 	"bytes"
-	"crypto/sha1" //nolint:gosec
-	"encoding/hex"
 	"fmt"
 	"os"
 	"path"
@@ -169,7 +167,6 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 	etags := map[string][]byte{}
 
-	h := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
 	mu := &sync.Mutex{}
 
 	return func(ctx *middlewares.AutheliaCtx) {
@@ -197,15 +194,9 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 			return
 		}
 
+		etagNew := generateEtag(ctx.Response.Body())
+
 		mu.Lock()
-
-		h.Write(ctx.Response.Body())
-		sum := h.Sum(nil)
-		h.Reset()
-
-		etagNew := make([]byte, hex.EncodedLen(len(sum)))
-
-		hex.Encode(etagNew, sum)
 
 		if !ok || !bytes.Equal(etag, etagNew) {
 			etags[k] = etagNew
