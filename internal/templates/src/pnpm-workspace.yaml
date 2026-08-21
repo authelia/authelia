@@ -24,5 +24,5 @@ overrides:
   rollup: 4.62.4
   sharp: 0.35.3
   socket.io-parser: 4.2.7
-  vite: 8.2.1
+  vite: 8.2.2
   ws: 8.21.3
