@@ -158,18 +158,14 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 
 	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
 
-	// Login one factor.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
 	// Check the user is asked to register a new device.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 
-	// Then register the TOTP factor.
 	s.doOpenSettingsAndRegisterTOTP(s.T(), s.Context(ctx), username)
-	// And logout.
 	s.doLogout(s.T(), s.Context(ctx))
 
-	// Login one factor again.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
 	// now the user should be asked to perform 2FA.

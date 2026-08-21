@@ -81,7 +81,6 @@ func (p *ClientAuthorizationPolicyRule) MatchesSubjects(subject authorization.Su
 		return false
 	}
 
-	// Iterate over the subjects until we find a match (set matchesSubject and break) or until we exit the loop.
 	matchesSubject := false
 
 	for _, rule := range p.Subjects {
@@ -91,7 +90,6 @@ func (p *ClientAuthorizationPolicyRule) MatchesSubjects(subject authorization.Su
 		}
 	}
 
-	// Return false if there is at least one subject defined and none of the subjects match.
 	if len(p.Subjects) != 0 && !matchesSubject {
 		return false
 	}

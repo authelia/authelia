@@ -285,25 +285,21 @@ func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 	}
 }
 
-// newLocalesListHandler handles request for obtaining the available locales in backend.
 func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err error) {
 	var (
 		data []byte
 	)
 
-	// preload embedded locales.
 	localeInfo, err := utils.GetEmbeddedLanguages(locales)
 	if err != nil {
 		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred loading embedded languages: %w", err)
 	}
 
-	// parse embedded locales.
 	data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
 	if err != nil {
 		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred marshaling the locale list: %w", err)
 	}
 
-	// generate etag for embedded locales.
 	etag := generateEtag(data)
 
 	return func(ctx *middlewares.AutheliaCtx) {
@@ -329,7 +325,6 @@ func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err er
 	}, nil
 }
 
-// generateEtag generates a unique etag for specified payload.
 func generateEtag(payload []byte) []byte {
 	sum := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
 	sum.Write(payload)

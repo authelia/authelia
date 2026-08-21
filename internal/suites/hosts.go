@@ -93,7 +93,6 @@ func hostEntriesCookieDomains(ip string) []HostEntry {
 	return entries
 }
 
-// hostAddresses indexes HostEntries by domain.
 func hostAddresses() map[string]string {
 	entries := HostEntries()
 

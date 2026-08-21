@@ -492,7 +492,6 @@ func getDomainEnvInfo(domain string) (info map[string]string, err error) {
 	return info, nil
 }
 
-// generateDevEnvFile generates web/.env.development based on opts.
 func generateDevEnvFile(info map[string]string) (err error) {
 	base, _ := os.Getwd()
 	base = strings.TrimSuffix(base, "/internal/suites")

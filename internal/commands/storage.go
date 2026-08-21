@@ -773,7 +773,6 @@ func newStorageSchemaInfoCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
-// newStorageMigrateCmd returns a new Migration Cmd.
 func newStorageMigrateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     "migrate",

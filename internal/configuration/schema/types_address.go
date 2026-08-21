@@ -386,7 +386,7 @@ func (a *Address) SetPort(port uint16) {
 		return
 	}
 
-	a.setport(port)
+	a.setPort(port)
 }
 
 // Path returns the path.
@@ -474,7 +474,7 @@ func (a *Address) Dial() (net.Conn, error) {
 	return net.Dial(a.Network(), a.NetworkAddress())
 }
 
-func (a *Address) setport(port uint16) {
+func (a *Address) setPort(port uint16) {
 	a.port = port
 	a.url.Host = net.JoinHostPort(a.url.Hostname(), strconv.Itoa(int(port)))
 }
@@ -535,15 +535,15 @@ func (a *Address) validateProtocol() (err error) {
 	case "":
 		switch a.url.Scheme {
 		case AddressSchemeLDAP:
-			a.setport(389)
+			a.setPort(389)
 		case AddressSchemeLDAPS:
-			a.setport(636)
+			a.setPort(636)
 		case AddressSchemeSMTP:
-			a.setport(25)
+			a.setPort(25)
 		case AddressSchemeSUBMISSION:
-			a.setport(587)
+			a.setPort(587)
 		case AddressSchemeSUBMISSIONS:
-			a.setport(465)
+			a.setPort(465)
 		}
 	default:
 		var actualPort uint64
@@ -552,7 +552,7 @@ func (a *Address) validateProtocol() (err error) {
 			return fmt.Errorf("failed to parse port: %w", err)
 		}
 
-		a.setport(uint16(actualPort))
+		a.setPort(uint16(actualPort))
 	}
 
 	return nil
@@ -564,7 +564,7 @@ func (a *Address) validateTCPUDP() (err error) {
 	switch port {
 	case "":
 		if a.url.User == nil {
-			a.setport(0)
+			a.setPort(0)
 		}
 	default:
 		var actualPort uint64
@@ -573,7 +573,7 @@ func (a *Address) validateTCPUDP() (err error) {
 			return fmt.Errorf("failed to parse port: %w", err)
 		}
 
-		a.setport(uint16(actualPort))
+		a.setPort(uint16(actualPort))
 	}
 
 	return nil
