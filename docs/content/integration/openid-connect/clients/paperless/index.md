@@ -23,9 +23,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
 - [Paperless]
-  - [v2.13.5](https://github.com/paperless-ngx/paperless-ngx/releases/tag/v2.13.5)
+  - [v3.0.5](https://github.com/paperless-ngx/paperless-ngx/releases/tag/v3.0.5)
 
 {{% oidc-common %}}
 
