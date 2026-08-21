@@ -85,7 +85,6 @@ func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	return nil
 }
 
-// shutdown performs the shutdown of every provided service concurrently, returning when all of them have completed.
 func shutdown(log *logrus.Entry, services []Provider) {
 	wg := &sync.WaitGroup{}
 

@@ -142,7 +142,6 @@ func (service *FileWatcher) Run() (err error) {
 	}
 }
 
-// handleEvent handles an individual fsnotify.Event triggering a reload of the ReloadableProvider when relevant.
 func (service *FileWatcher) handleEvent(event fsnotify.Event) {
 	log := service.log.WithFields(map[string]any{logFieldFile: event.Name, logFieldOP: event.Op})
 
@@ -179,7 +178,6 @@ func (service *FileWatcher) handleEvent(event fsnotify.Event) {
 	}
 }
 
-// handleError handles an individual error from the underlying watcher.
 func (service *FileWatcher) handleError(err error) {
 	service.log.WithError(err).Error("Error while watching file for changes")
 }
