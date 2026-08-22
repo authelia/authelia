@@ -37,6 +37,7 @@ This example makes the following assumptions:
 - __Provider ID:__ `{{< sitevar name="provider-id" nojs="authelia" >}}`
 - __Client ID:__ `{{< sitevar name="client-id" nojs="wg-portal" >}}`
 - __Client Secret:__ `insecure_secret`
+- __Admin Groupname:__ `{{< sitevar name="admin-group" nojs="admins" >}}`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -68,6 +69,7 @@ identity_providers:
           - 'openid'
           - 'email'
           - 'profile'
+          - 'groups'
         response_types:
           - 'code'
         grant_types:
@@ -95,14 +97,18 @@ auth:
       extra_scopes: 
         - email
         - profile
+        - groups
       field_map:
         user_identifier: preferred_username
         email: email
         firstname: given_name
         lastname: family_name
+        user_groups: groups
+      admin_mapping:
+        admin_group_regex: ^{{< sitevar name="admin-group" nojs="admins" >}}$
 ```
 
-Mapping users to admins by group did not work at the time of writing this.
+If you do not want to map an admin group just omit the *admin_mapping* section.
 
 ## See Also
 
