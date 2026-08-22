@@ -110,7 +110,7 @@ export async function getWebAuthnResult(options: PublicKeyCredentialRequestOptio
     };
 
     try {
-        result.response = await startAuthentication({ optionsJSON: options });
+        result.response = await startAuthentication({ optionsJSON: options, useBrowserAutofill: true });
     } catch (e) {
         const exception = e as DOMException;
         if (exception) {
