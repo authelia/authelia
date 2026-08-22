@@ -61,19 +61,17 @@ func (r *Mathematical) BytesCustomErr(n int, charset []byte) (data []byte, err e
 		n = DefaultN
 	}
 
-	data = make([]byte, n)
+	if len(charset) == 0 {
+		data = make([]byte, n)
 
-	if _, err = r.Read(data); err != nil {
-		return nil, err
+		if _, err = r.Read(data); err != nil {
+			return nil, err
+		}
+
+		return data, nil
 	}
 
-	t := len(charset)
-
-	for i := 0; i < n; i++ {
-		data[i] = charset[data[i]%byte(t)] //nolint:gosec // This is safe.
-	}
-
-	return data, nil
+	return bytesCharsetErr(r, n, charset)
 }
 
 // StringCustomErr is an overload of BytesCustomWithErr which takes a characters string and returns a string.
