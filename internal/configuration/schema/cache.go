@@ -5,12 +5,14 @@ import (
 	"time"
 )
 
+// Cache represents the cache backend configuration.
 type Cache struct {
 	Redis         *RedisCache         `koanf:"redis" yaml:"redis,omitempty" toml:"redis,omitempty" json:"redis,omitempty" jsonschema:"title=Redis Cache" jsonschema_description:"Redis Cache Configuration."`
 	RedisSentinel *RedisSentinelCache `koanf:"redis_sentinel" yaml:"redis_sentinel,omitempty" toml:"redis_sentinel,omitempty" json:"redis_sentinel,omitempty" jsonschema:"title=Redis Sentinel Cache" jsonschema_description:"Redis Sentinel Cache Configuration."`
 	RedisCluster  *RedisClusterCache  `koanf:"redis_cluster" yaml:"redis_cluster,omitempty" toml:"redis_cluster,omitempty" json:"redis_cluster,omitempty" jsonschema:"title=Redis Cluster Cache" jsonschema_description:"Redis Cluster Cache Configuration."`
 }
 
+// RedisCache represents the configuration for a standalone Redis cache backend.
 type RedisCache struct {
 	Address                    *AddressTCP   `koanf:"address" yaml:"address,omitempty" toml:"address,omitempty" json:"address,omitempty" jsonschema:"title=Address" jsonschema_description:"The address for the Redis server to connect to."`
 	Database                   int           `koanf:"database" yaml:"database,omitempty" toml:"database,omitempty" json:"database,omitempty" jsonschema:"title=Database" jsonschema_description:"The database to use for the Redis server."`
@@ -41,6 +43,7 @@ type RedisCache struct {
 	FailingTimeout             time.Duration `koanf:"failing_timeout" yaml:"failing_timeout,omitempty" toml:"failing_timeout,omitempty" json:"failing_timeout,omitempty" jsonschema:"default=15 seconds,title=Failing Timeout" jsonschema_description:"The duration a node is avoided for after being marked as failing."`
 }
 
+// RedisSentinelCache represents the configuration for a Redis Sentinel cache backend.
 type RedisSentinelCache struct {
 	MasterName                 string        `koanf:"master_name" yaml:"master_name,omitempty" toml:"master_name,omitempty" json:"master_name,omitempty" jsonschema:"title=Master Name" jsonschema_description:"The name of the sentinel master."`
 	SentinelUsername           string        `koanf:"sentinel_username" yaml:"sentinel_username,omitempty" toml:"sentinel_username,omitempty" json:"sentinel_username,omitempty" jsonschema:"title=Sentinel Username" jsonschema_description:"The username for the Redis Sentinel connection."`
@@ -79,6 +82,7 @@ type RedisSentinelCache struct {
 	UseDisconnectedReplicas    bool          `koanf:"use_disconnected_replicas" yaml:"use_disconnected_replicas,omitempty" toml:"use_disconnected_replicas,omitempty" json:"use_disconnected_replicas,omitempty" jsonschema:"default=false,title=Use Disconnected Replicas" jsonschema_description:"Allows routing commands to replicas which sentinel reports as disconnected."`
 }
 
+// RedisClusterCache represents the configuration for a Redis Cluster cache backend.
 type RedisClusterCache struct {
 	Addresses                  []*AddressTCP `koanf:"addresses" yaml:"addresses,omitempty" toml:"addresses,omitempty" json:"addresses,omitempty" jsonschema:"title=Addresses" jsonschema_description:"The addresses of the Redis Cluster nodes to connect to."`
 	RouteByReplica             bool          `koanf:"route_by_replica" yaml:"route_by_replica,omitempty" toml:"route_by_replica,omitempty" json:"route_by_replica,omitempty" jsonschema:"title=Route By Replica" jsonschema_description:"Route read-only commands to replica nodes."`

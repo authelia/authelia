@@ -1,5 +1,7 @@
 package authentication
 
+// MustGetUserDetailsExtendedSafe returns the extended details for the given username, always returning a usable value
+// even on error. An anonymous session has no username, so the backend is not consulted and empty details are returned.
 func MustGetUserDetailsExtendedSafe(username string, provider UserProvider) (details UserDetailsExtended, err error) {
 	details = UserDetailsExtended{UserDetails: &UserDetails{}}
 
@@ -38,6 +40,8 @@ func MustGetUserDetailsExtendedCachedSafe(username string, provider UserProvider
 	return *d, err
 }
 
+// MustGetUserDetailsSafe returns the details for the given username, always returning a usable value even on error. An
+// anonymous session has no username, so the backend is not consulted and empty details are returned.
 func MustGetUserDetailsSafe(username string, provider UserProvider) (details UserDetails, err error) {
 	if username == "" {
 		return details, nil

@@ -11,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
+// NewMemory returns a new Memory Provider with its lookups initialized.
 func NewMemory() (memory *Memory) {
 	return &Memory{
 		session:        map[string]*itemSession{},
@@ -30,10 +31,12 @@ type Memory struct {
 	lookupUsername map[string][]string
 }
 
+// StartupCheck implements the Provider interface.
 func (m *Memory) StartupCheck() (err error) {
 	return nil
 }
 
+// SessionGet implements the Provider interface.
 func (m *Memory) SessionGet(ctx context.Context, issuer, id string) (record session.Record, err error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -46,6 +49,7 @@ func (m *Memory) SessionGet(ctx context.Context, issuer, id string) (record sess
 	return session.NewRecord(item.id, item.data), nil
 }
 
+// SessionGetByPublicID implements the Provider interface.
 func (m *Memory) SessionGetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -63,6 +67,7 @@ func (m *Memory) SessionGetByPublicID(ctx context.Context, issuer, pid string) (
 	return session.NewRecord(item.id, item.data), nil
 }
 
+// SessionGetIDsByUsername implements the Provider interface.
 func (m *Memory) SessionGetIDsByUsername(ctx context.Context, issuer, username string) (ids []string, err error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -80,6 +85,7 @@ func (m *Memory) SessionGetIDsByUsername(ctx context.Context, issuer, username s
 	return ids, nil
 }
 
+// SessionSave implements the Provider interface.
 func (m *Memory) SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -108,6 +114,7 @@ func (m *Memory) SessionSave(ctx context.Context, issuer, id, pid, username stri
 
 // SessionSaveData updates the session data. The public id and username are unused as the stored session already records
 // them and its lookups are derived from it rather than expiring independently.
+// SessionSaveData implements the Provider interface.
 func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, data []byte) (err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -125,6 +132,7 @@ func (m *Memory) SessionSaveData(ctx context.Context, issuer, id, _, _ string, e
 	return nil
 }
 
+// SessionChangeID implements the Provider interface.
 func (m *Memory) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -161,6 +169,7 @@ func (m *Memory) SessionChangeID(ctx context.Context, issuer, oldID, id, pid, us
 	return nil
 }
 
+// SessionDelete implements the Provider interface.
 func (m *Memory) SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -176,10 +185,13 @@ func (m *Memory) SessionDelete(ctx context.Context, issuer, id, pid, username st
 	return nil
 }
 
+// SessionGarbageCollectionFrequency implements the Provider interface. Memory does not expire records itself so a
+// non zero frequency is always returned.
 func (m *Memory) SessionGarbageCollectionFrequency(ctx context.Context) (frequency time.Duration) {
 	return sessionGarbageCollectionFrequency
 }
 
+// SessionGarbageCollection implements the Provider interface, removing every expired session and its lookups.
 func (m *Memory) SessionGarbageCollection(ctx context.Context) (err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()

@@ -7,6 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// ProvisionSessionCollector provisions the service which periodically collects expired sessions from the session
+// repository. No service is provisioned when there is no repository, or when the repository expires records itself.
 func ProvisionSessionCollector(ctx Context) (service Provider, err error) {
 	repository := ctx.GetProviders().SessionRepository
 

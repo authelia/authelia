@@ -11,6 +11,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+// NewCachedUserProvider returns a UserProvider which caches the details of the given provider for the given lifespan.
+// The provider is returned unwrapped when the refresh interval requires the details are always retrieved fresh.
 func NewCachedUserProvider(provider UserProvider, lifespan schema.RefreshIntervalDuration) UserProvider {
 	if lifespan.Always() {
 		return provider
@@ -28,6 +30,8 @@ func NewCachedUserProvider(provider UserProvider, lifespan schema.RefreshInterva
 	}
 }
 
+// CachedUserProvider is a UserProvider which decorates another UserProvider with an expiring cache of the user details
+// it retrieves, collapsing concurrent retrievals of the same user into a single backend call.
 type CachedUserProvider struct {
 	UserProvider
 
@@ -209,6 +213,7 @@ func (p *CachedUserProvider) invalidateExtended(username string) {
 	p.extended.Unlock()
 }
 
+// CachedUserDetails is the cache of *UserDetails values keyed by username.
 type CachedUserDetails struct {
 	singleflight.Group
 	sync.Mutex
@@ -216,6 +221,7 @@ type CachedUserDetails struct {
 	values map[string]CachedUserDetailsItem
 }
 
+// CachedUserDetailsExtended is the cache of *UserDetailsExtended values keyed by username.
 type CachedUserDetailsExtended struct {
 	singleflight.Group
 	sync.Mutex
@@ -223,12 +229,14 @@ type CachedUserDetailsExtended struct {
 	values map[string]CachedUserDetailsExtendedItem
 }
 
+// CachedUserDetailsItem is a cached *UserDetails value and the time it expires at.
 type CachedUserDetailsItem struct {
 	*UserDetails
 
 	expires time.Time
 }
 
+// CachedUserDetailsExtendedItem is a cached *UserDetailsExtended value and the time it expires at.
 type CachedUserDetailsExtendedItem struct {
 	*UserDetailsExtended
 
