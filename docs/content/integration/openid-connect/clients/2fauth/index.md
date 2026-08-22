@@ -87,7 +87,7 @@ OPENID_CLIENT_SECRET=insecure_secret
 OPENID_HTTP_VERIFY_SSL_PEER=true
 ```
 
-If you use a self-signed certificate, set *OPENID_HTTP_VERIFY_SSL_PEER* to *false*.
+If you use a self-signed certificate, set *OPENID_HTTP_VERIFY_SSL_PEER* to the filepath of that certificate or to *false* to disable SSL verification completely.
 
 ## See Also
 
