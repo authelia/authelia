@@ -7,6 +7,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
@@ -16,7 +17,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
@@ -55,10 +55,20 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.NTP = ntp.NewProvider(&config.NTP)
 	providers.PasswordPolicy = NewPasswordPolicyProvider(config.PasswordPolicy)
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, providers.Clock)
-	providers.SessionProvider = session.NewProvider(config.Session, caCertPool)
 	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
 	providers.UserAttributeResolver = expression.NewUserAttributes(config)
 	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
+
+	switch {
+	case config.Cache.Redis != nil:
+		providers.Cache = cache.NewRedisStandalone(config.Cache.Redis, caCertPool)
+	case config.Cache.RedisSentinel != nil:
+		providers.Cache = cache.NewRedisSentinel(config.Cache.RedisSentinel, caCertPool)
+	case config.Cache.RedisCluster != nil:
+		providers.Cache = cache.NewRedisCluster(config.Cache.RedisCluster, caCertPool)
+	default:
+		providers.Cache = cache.NewMemory()
+	}
 
 	switch {
 	case config.Notifier.SMTP != nil:
@@ -91,10 +101,13 @@ func NewProvidersBasic() Providers {
 func NewAuthenticationProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider authentication.UserProvider) {
 	switch {
 	case config.AuthenticationBackend.File != nil:
+		// The file provider is already cached and the refresh interval is not necessary.
 		return authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 	case config.AuthenticationBackend.LDAP != nil:
-		return authentication.NewLDAPUserProvider(config.AuthenticationBackend, caCertPool)
+		provider = authentication.NewLDAPUserProvider(config.AuthenticationBackend, caCertPool)
 	default:
 		return nil
 	}
+
+	return authentication.NewCachedUserProvider(provider, config.AuthenticationBackend.RefreshInterval)
 }

@@ -2,6 +2,7 @@ package storage
 
 import (
 	"regexp"
+	"time"
 )
 
 const (
@@ -12,6 +13,7 @@ const (
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"
+	tableSession              = "session"
 	tableTOTPConfigurations   = "totp_configurations"
 	tableTOTPHistory          = "totp_history"
 	tableUserOpaqueIdentifier = "user_opaque_identifier"
@@ -37,6 +39,11 @@ const (
 
 const (
 	tableAADPushedAuthorizationRequestSession = "oauth2_pushed_authorization_session"
+)
+
+const (
+	// sessionGarbageCollectionFrequency is the frequency expired sessions are removed from the session table at.
+	sessionGarbageCollectionFrequency = time.Minute * 5
 )
 
 const (

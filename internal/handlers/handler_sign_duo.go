@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -60,8 +61,9 @@ func DuoPOST(duoAPI duo.Provider) middlewares.RequestHandler {
 			return
 		}
 
-		if err := HandleDuoAuthentication(ctx, &userSession, duoAPI, bodyJSON); err != nil {
+		if err = HandleDuoAuthentication(ctx, &userSession, duoAPI, bodyJSON); err != nil {
 			respondUnauthorized(ctx, messageMFAValidationFailed)
+
 			return
 		}
 	}
@@ -71,7 +73,13 @@ func DuoPOST(duoAPI duo.Provider) middlewares.RequestHandler {
 func PerformDuoAuthentication(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.Provider, device, method, remoteIP string, bodyJSON *bodySignDuoRequest) error {
 	ctx.Logger.Debugf("Starting Duo Auth attempt for '%s' with device '%s' and method '%s' from IP '%s'", userSession.Username, device, method, remoteIP)
 
-	values, err := SetValues(*userSession, device, method, remoteIP, bodyJSON.TargetURL, bodyJSON.Passcode)
+	details, err := ctx.GetUserProvider().GetDetails(userSession.Username)
+	if err != nil {
+		ctx.Logger.Errorf("Failed to get details for Duo Auth Call for user '%s': %+v", userSession.Username, err)
+		return err
+	}
+
+	values, err := SetValues(details, device, method, remoteIP, bodyJSON.TargetURL, bodyJSON.Passcode)
 	if err != nil {
 		ctx.Logger.Errorf("Failed to set values for Duo Auth Call for user '%s': %+v", userSession.Username, err)
 		return err
@@ -324,8 +332,18 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 // HandleAllow handler for successful logins.
 func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, bodyJSON *bodySignDuoRequest) {
 	var (
-		err error
+		details *authentication.UserDetails
+		err     error
 	)
+
+	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username)
+
+		respondUnauthorized(ctx, messageMFAValidationFailed)
+
+		return
+	}
+
 	if err = ctx.RegenerateSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username)
 
@@ -336,7 +354,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 
 	userSession.SetTwoFactorDuo(ctx.GetClock().Now())
 
-	if err = ctx.SaveSession(*userSession); err != nil {
+	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, logFmtActionAuthentication, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -345,16 +363,17 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 	}
 
 	if len(bodyJSON.Flow) > 0 {
-		handleFlowResponse(ctx, userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
+		handleFlowResponse(ctx, userSession, details, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}
 }
 
 // SetValues sets all appropriate Values for the Auth Request.
-func SetValues(userSession session.UserSession, device string, method string, remoteIP string, targetURL string, passcode string) (url.Values, error) {
-	values := url.Values{}
-	values.Set("username", userSession.Username)
+func SetValues(details *authentication.UserDetails, device string, method string, remoteIP string, targetURL string, passcode string) (values url.Values, err error) {
+	values = url.Values{}
+
+	values.Set("username", details.Username)
 	values.Set("ipaddr", remoteIP)
 	values.Set("factor", method)
 
@@ -362,8 +381,8 @@ func SetValues(userSession session.UserSession, device string, method string, re
 	case duo.Push:
 		values.Set("device", device)
 
-		if userSession.DisplayName != "" {
-			values.Set("display_username", userSession.DisplayName)
+		if details.DisplayName != "" {
+			values.Set("display_username", details.DisplayName)
 		}
 
 		if targetURL != "" {
@@ -377,7 +396,7 @@ func SetValues(userSession session.UserSession, device string, method string, re
 		if passcode != "" {
 			values.Set("passcode", passcode)
 		} else {
-			return nil, fmt.Errorf("no passcode received from user: %s", userSession.Username)
+			return nil, fmt.Errorf("no passcode received from user: %s", details.Username)
 		}
 	}
 

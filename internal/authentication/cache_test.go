@@ -1,14 +1,11 @@
 package authentication
 
 import (
-	"context"
 	"crypto/sha256"
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/sirupsen/logrus"
-	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -668,55 +665,4 @@ func FuzzCredentialCacheHMAC_SumNoCollision(f *testing.F) {
 		assert.NotEqual(t, hex1, hex2,
 			"collision: sum(%q, %q) == sum(%q, %q)", user1, pass1, user2, pass2)
 	})
-}
-
-type mockUserProviderConcurrent struct {
-	UserProvider
-
-	valid bool
-	err   error
-}
-
-func (m *mockUserProviderConcurrent) CheckUserPassword(username, password string) (bool, error) {
-	return m.valid, m.err
-}
-
-type mockUserProvider struct {
-	UserProvider
-
-	valid bool
-	err   error
-	calls int
-}
-
-func (m *mockUserProvider) CheckUserPassword(username, password string) (bool, error) {
-	m.calls++
-
-	return m.valid, m.err
-}
-
-type mockContext struct {
-	context.Context
-
-	provider UserProvider
-	clk      clock.Provider
-	logger   *logrus.Entry
-}
-
-func (m *mockContext) GetUserProvider() UserProvider {
-	return m.provider
-}
-
-func (m *mockContext) GetClock() clock.Provider {
-	return m.clk
-}
-
-func (m *mockContext) GetLogger() *logrus.Entry {
-	if m.logger != nil {
-		return m.logger
-	}
-
-	l, _ := test.NewNullLogger()
-
-	return logrus.NewEntry(l)
 }

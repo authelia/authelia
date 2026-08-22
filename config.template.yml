@@ -803,11 +803,14 @@ identity_validation:
 ## Session Provider Configuration
 ##
 ## The session cookies identify the user once logged in.
-## The available providers are: `memory`, `redis`. Memory is the provider unless redis is defined.
 session:
-  ## The secret to encrypt the session data. This is only used with Redis / Redis Sentinel.
+  ## The secret to encrypt the session data.
   ## Secret can also be set using a secret: https://www.authelia.com/c/secrets
   secret: 'insecure_session_secret'
+
+  ## The storage backend sessions are persisted to, either 'internal' (the configured storage provider) or 'cache'
+  ## (the configured cache provider).
+  # storage: 'internal'
 
   ## Cookies configures the list of allowed cookie domains for sessions to be created on.
   ## Undefined values will default to the values below.
@@ -879,22 +882,22 @@ session:
   ## Cookie Session Domain default 'remember_me' value.
   # remember_me: '1M'
 
-  ##
-  ## Redis Provider
-  ##
-  ## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
-  ##
+##
+## Cache Provider Configuration
+##
+## The cache is used by the session provider when the session storage option is set to 'cache'.
+## Only one provider may be configured at a time.
+##
+## Important: Kubernetes (or HA) users must read https://www.authelia.com/t/statelessness
+##
+# cache:
+  ## The standalone Redis provider.
   # redis:
-    # host: '127.0.0.1'
-    # port: 6379
-    ## Use a unix socket instead
-    # host: '/var/run/redis/redis.sock'
+    ## The address of the Redis server in the address common syntax.
+    # address: 'tcp://127.0.0.1:6379'
 
-    ## The connection timeout in the duration common syntax.
-    # timeout: '5 seconds'
-
-    ## The maximum number of retries on a failed command. Set it to 0 to disable retries.
-    # max_retries: 3
+    ## Use a unix socket instead.
+    # address: 'unix:///var/run/redis/redis.sock'
 
     ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
     # username: 'authelia'
@@ -903,18 +906,59 @@ session:
     # password: 'authelia'
 
     ## This is the Redis DB Index https://redis.io/commands/select (sometimes referred to as database number, DB, etc).
-    # database_index: 0
+    # database: 0
+
+    ## The dial timeout in the duration common syntax.
+    # dial_timeout: '5 seconds'
+
+    ## The read timeout in the duration common syntax.
+    # read_timeout: '3 seconds'
+
+    ## The write timeout in the duration common syntax.
+    # write_timeout: '3 seconds'
+
+    ## The maximum number of retries on a failed command. Set it to 0 to disable retries.
+    # maximum_retries: 3
 
     ## The maximum number of concurrent active connections to Redis.
-    # maximum_active_connections: 8
+    # pool_size: 8
 
     ## The target number of idle connections to have open ready for work. Useful when opening connections is slow.
-    # minimum_idle_connections: 0
+    # pool_minimum_idle_connections: 0
+
+
+    ## The maximum number of retry attempts when dialing a connection fails.
+    # dialer_retries: 5
+
+    ## The backoff duration between dial retry attempts in the duration common syntax.
+    # dialer_retry_timeout: '100 milliseconds'
+
+    ## The maximum number of concurrent connection creation goroutines. Defaults to the pool size.
+    # maximum_concurrent_dials: 0
+
+    ## The absolute jitter applied to the connection timeout so connections don't all expire at once.
+    # connection_lifetime_jitter: '6 minutes'
+
+    ## Enables the client respecting context timeouts and deadlines.
+    # context_timeout_enabled: false
+
+    ## Uses a FIFO connection pool rather than a LIFO connection pool.
+    # pool_fifo: false
+
+    ## The size of the read buffer in bytes for each connection.
+    # read_buffer_size: 32768
+
+    ## The size of the write buffer in bytes for each connection.
+    # write_buffer_size: 32768
+
+    ## The duration a node is avoided for after being marked as failing.
+    # failing_timeout: '15 seconds'
+
 
     ## The Redis TLS configuration. If defined will require a TLS connection to the Redis instance(s).
     # tls:
       ## The server subject name to check the servers certificate against during the validation process.
-      ## This option is not required if the certificate has a SAN which matches the host option.
+      ## This option is not required if the certificate has a SAN which matches the address option.
       # server_name: 'myredis.example.com'
 
       ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
@@ -931,49 +975,118 @@ session:
       ## Maximum TLS version for the connection.
       # maximum_version: 'TLS1.3'
 
-      ## The certificate chain used with the private_key if the server requests TLS Client Authentication
-      ## i.e. Mutual TLS.
-      # certificate_chain: |
-        # -----BEGIN CERTIFICATE-----
-        # ...
-        # -----END CERTIFICATE-----
-        # -----BEGIN CERTIFICATE-----
-        # ...
-        # -----END CERTIFICATE-----
+  ## The Redis Sentinel provider. This provides specific options to Redis Sentinel, master_name must be defined.
+  # redis_sentinel:
+    ## Sentinel Master Name.
+    # master_name: 'mysentinel'
 
-      ## The private key used with the certificate_chain if the server requests TLS Client Authentication
-      ## i.e. Mutual TLS.
-      # private_key: |
-        # -----BEGIN PRIVATE KEY-----
-        # ...
-        # -----END PRIVATE KEY-----
+    ## The addresses of the Redis Sentinel nodes in the address common syntax.
+    # addresses:
+      # - 'tcp://sentinel-node1:26379'
+      # - 'tcp://sentinel-node2:26379'
 
-    ## The Redis HA configuration options.
-    ## This provides specific options to Redis Sentinel, sentinel_name must be defined (Master Name).
-    # high_availability:
-      ## Sentinel Name / Master Name.
-      # sentinel_name: 'mysentinel'
+    ## The sentinel mode, either 'failover' or 'cluster'.
+    # sentinel_mode: 'failover'
 
-      ## Specific username for Redis Sentinel. The node username and password is configured above.
-      # sentinel_username: 'sentinel_specific_user'
+    ## Specific username for Redis Sentinel. The node username and password is configured below.
+    # sentinel_username: 'sentinel_specific_user'
 
-      ## Specific password for Redis Sentinel. The node username and password is configured above.
-      # sentinel_password: 'sentinel_specific_pass'
+    ## Specific password for Redis Sentinel. The node username and password is configured below.
+    # sentinel_password: 'sentinel_specific_pass'
 
-      ## The additional nodes to pre-seed the redis provider with (for sentinel).
-      ## If the host in the above section is defined, it will be combined with this list to connect to sentinel.
-      ## For high availability to be used you must have either defined; the host above or at least one node below.
-      # nodes:
-        # - host: 'sentinel-node1'
-        #   port: 6379
-        # - host: 'sentinel-node2'
-        #   port: 6379
+    ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
+    # username: 'authelia'
 
-      ## Choose the host with the lowest latency.
-      # route_by_latency: false
+    ## Password can also be set using a secret: https://www.authelia.com/c/secrets
+    # password: 'authelia'
 
-      ## Choose the host randomly.
-      # route_randomly: false
+    ## Choose the host with the lowest latency.
+    # route_by_latency: false
+
+    ## Choose the host randomly.
+    # route_randomly: false
+
+    ## Routes all commands to replica nodes.
+    # replica_only: false
+
+    ## Allows routing commands to replicas which sentinel reports as disconnected.
+    # use_disconnected_replicas: false
+
+    ## The maximum number of retry attempts when dialing a connection fails.
+    # dialer_retries: 5
+
+    ## The backoff duration between dial retry attempts in the duration common syntax.
+    # dialer_retry_timeout: '100 milliseconds'
+
+    ## The maximum number of concurrent connection creation goroutines. Defaults to the pool size.
+    # maximum_concurrent_dials: 0
+
+    ## The absolute jitter applied to the connection timeout so connections don't all expire at once.
+    # connection_lifetime_jitter: '6 minutes'
+
+    ## Enables the client respecting context timeouts and deadlines.
+    # context_timeout_enabled: false
+
+    ## Uses a FIFO connection pool rather than a LIFO connection pool.
+    # pool_fifo: false
+
+    ## The size of the read buffer in bytes for each connection.
+    # read_buffer_size: 32768
+
+    ## The size of the write buffer in bytes for each connection.
+    # write_buffer_size: 32768
+
+    ## The duration a node is avoided for after being marked as failing.
+    # failing_timeout: '15 seconds'
+
+
+  ## The Redis Cluster provider.
+  # redis_cluster:
+    ## The addresses of the Redis Cluster nodes in the address common syntax.
+    # addresses:
+      # - 'tcp://cluster-node1:6379'
+      # - 'tcp://cluster-node2:6379'
+
+    ## The maximum number of redirects to follow.
+    # maximum_redirects: 3
+
+    ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
+    # username: 'authelia'
+
+    ## Password can also be set using a secret: https://www.authelia.com/c/secrets
+    # password: 'authelia'
+
+
+    ## The interval the cluster state is reloaded at.
+    # cluster_state_reload_interval: '10 seconds'
+
+    ## The maximum number of retry attempts when dialing a connection fails.
+    # dialer_retries: 5
+
+    ## The backoff duration between dial retry attempts in the duration common syntax.
+    # dialer_retry_timeout: '100 milliseconds'
+
+    ## The maximum number of concurrent connection creation goroutines. Defaults to the pool size.
+    # maximum_concurrent_dials: 0
+
+    ## The absolute jitter applied to the connection timeout so connections don't all expire at once.
+    # connection_lifetime_jitter: '6 minutes'
+
+    ## Enables the client respecting context timeouts and deadlines.
+    # context_timeout_enabled: false
+
+    ## Uses a FIFO connection pool rather than a LIFO connection pool.
+    # pool_fifo: false
+
+    ## The size of the read buffer in bytes for each connection.
+    # read_buffer_size: 32768
+
+    ## The size of the write buffer in bytes for each connection.
+    # write_buffer_size: 32768
+
+    ## The duration a node is avoided for after being marked as failing.
+    # failing_timeout: '15 seconds'
+
 
 ##
 ## Regulation Configuration

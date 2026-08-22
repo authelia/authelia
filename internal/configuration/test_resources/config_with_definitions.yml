@@ -163,11 +163,6 @@ session:
     - domain: 'example.com'
       default_redirection_url: 'https://home.example.com:8080/'
       authelia_url: 'https://auth.example.com'
-  redis:
-    host: '127.0.0.1'
-    port: 6379
-    high_availability:
-      sentinel_name: 'test'
 
 regulation:
   max_retries: 3
@@ -186,4 +181,9 @@ notifier:
     username: 'test'
     sender: 'admin@example.com'
     disable_require_tls: true
+cache:
+  redis_sentinel:
+    master_name: 'test'
+    addresses:
+      - 'tcp://127.0.0.1:6379'
 ...

@@ -9,5 +9,5 @@ import (
 func TestGetProvisioners(t *testing.T) {
 	provisioners := GetProvisioners()
 
-	assert.Len(t, provisioners, 5)
+	assert.Len(t, provisioners, 6)
 }

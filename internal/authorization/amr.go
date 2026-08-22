@@ -47,6 +47,10 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 			}
 		}
 
+		if utils.IsStringInSlice(extra, amr.Extra) {
+			continue
+		}
+
 		amr.Extra = append(amr.Extra, extra)
 	}
 

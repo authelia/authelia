@@ -416,7 +416,7 @@ for more information.
 ### Session security
 
 We have a few options to configure the security of a session. The main and most important one is the session secret.
-This is used to encrypt the session data when it is stored in the [Redis](../../configuration/session/redis.md) key value
+This is used to encrypt the session data when it is stored in the [Redis](../../configuration/cache/redis.md) key value
 database. The value of this option should be long and as random as possible. See more in the
 [documentation](../../configuration/session/introduction.md#secret) for this option.
 

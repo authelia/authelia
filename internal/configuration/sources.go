@@ -315,7 +315,7 @@ func (s *SecretsSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) (err
 
 // Load the Source into the SecretsSource koanf.Koanf.
 func (s *SecretsSource) Load(val *schema.StructValidator) (err error) {
-	keyMap := getSecretConfigMap(schema.Keys, s.prefix, s.delimiter, deprecations)
+	keyMap := getSecretConfigMap(schema.Keys, s.prefix, s.delimiter, deprecations, deprecationsMKM)
 
 	return s.koanf.Load(env.Provider(constDelimiter, env.Opt{Prefix: s.prefix, TransformFunc: koanfEnvironmentSecretsCallback(keyMap, val)}), nil)
 }

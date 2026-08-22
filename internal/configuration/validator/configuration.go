@@ -57,6 +57,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateSession(config, validator)
 
+	ValidateCache(config, validator)
+
 	ValidateRegulation(config, validator)
 
 	ValidateServer(config, validator)

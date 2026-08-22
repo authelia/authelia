@@ -10,7 +10,11 @@ import (
 func ProvidersStartupCheck(ctx Context, log bool) (err error) {
 	providers := ctx.GetProviders()
 
-	return providers.StartupChecks(ctx, log)
+	if err = providers.StartupChecks(ctx, log); err != nil {
+		return err
+	}
+
+	return providers.Finalize(ctx)
 }
 
 // ServiceRunAll runs all services given a context.

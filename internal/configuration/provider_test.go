@@ -323,7 +323,12 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 
 			assert.Equal(t, "api-123456789.example.org", config.DuoAPI.Hostname)
 			assert.Equal(t, "smtp://10.10.10.10:1025", config.Notifier.SMTP.Address.String())
-			assert.Equal(t, "10.10.10.10", config.Session.Redis.Host)
+
+			require.NotNil(t, config.Cache.RedisSentinel)
+			assert.Equal(t, "test", config.Cache.RedisSentinel.MasterName)
+			require.Len(t, config.Cache.RedisSentinel.Addresses, 1)
+			assert.Equal(t, "tcp://10.10.10.10:6379", config.Cache.RedisSentinel.Addresses[0].String())
+			assert.Nil(t, config.Cache.Redis)
 
 			require.Len(t, config.IdentityProviders.OIDC.Clients, 4)
 			assert.Equal(t, "$plaintext$example-abc", config.IdentityProviders.OIDC.Clients[0].Secret.String())
@@ -1420,7 +1425,7 @@ func TestConfigurationTemplate(t *testing.T) {
 		doc := regexp.MustCompile(`^\s+?## `)
 		commented := regexp.MustCompile(`^(\s+)?# (.*)$`)
 		uncommented := regexp.MustCompile(`^(\s+)?\w+`)
-		ignore := regexp.MustCompile(`^(\s+)?# host: '/var/run/redis/redis.sock'`)
+		ignore := regexp.MustCompile(`^(\s+)?# address: 'unix:///var/run/redis/redis.sock'`)
 		scanner := bufio.NewScanner(f)
 
 		for scanner.Scan() {

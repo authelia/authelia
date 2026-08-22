@@ -88,7 +88,7 @@ The important sections to consider in initial configuration are as follows:
       [domain](../../configuration/session/introduction.md#domain) and
       [authelia_url](../../configuration/session/introduction.md#authelia_url).
    2. The [secret](../../configuration/session/introduction.md#secret) is the most important, and
-       [redis](../../configuration/session/redis.md) is recommended for production environments.
+       [redis](../../configuration/cache/redis.md) is recommended for production environments.
 5. [notifier](../../configuration/notifications/introduction.md) which is used to send 2FA registration emails etc,
    there is an option for local file delivery but the [SMTP](../../configuration/notifications/smtp.md) option is
    recommended for production and you must only configure one of these.

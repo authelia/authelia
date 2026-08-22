@@ -14,7 +14,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
@@ -62,7 +61,7 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 		},
 	}
 
-	mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+	mock.ResetSessionProvider()
 
 	opts := NewTemplatedFileOptions(&mock.Ctx.Configuration)
 
@@ -157,7 +156,7 @@ func TestServeTemplatedFile(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			mock.ResetSessionProvider()
 
 			opts := NewTemplatedFileOptions(&mock.Ctx.Configuration)
 
@@ -384,7 +383,7 @@ func TestETagRootURL(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.SessionProvider = session.NewProvider(mock.Ctx.Configuration.Session, nil)
+			mock.ResetSessionProvider()
 
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
@@ -396,7 +395,7 @@ func TestETagRootURL(t *testing.T) {
 
 				firstMock.Ctx.Configuration.Server = schema.DefaultServerConfiguration
 				firstMock.Ctx.Configuration.Session = mock.Ctx.Configuration.Session
-				firstMock.Ctx.Providers.SessionProvider = session.NewProvider(firstMock.Ctx.Configuration.Session, nil)
+				firstMock.ResetSessionProvider()
 				firstMock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
 				firstMock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
 				firstMock.Ctx.Request.Header.Set("X-Forwarded-URI", "/api/openapi.yml")

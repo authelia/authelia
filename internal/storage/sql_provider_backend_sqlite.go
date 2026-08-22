@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/mattn/go-sqlite3"
 
@@ -28,6 +29,9 @@ func NewSQLiteProvider(config *schema.Configuration) (provider *SQLiteProvider, 
 
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = querySQLiteSelectExistingTables
+
+	// Specific alterations to this provider.
+	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionSQLite, tableSession)
 
 	return provider, nil
 }

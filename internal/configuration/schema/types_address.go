@@ -140,6 +140,24 @@ func (AddressTCP) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// MarshalYAML marshals the AddressTCP into its string representation, or a null value when it is not valid.
+func (a AddressTCP) MarshalYAML() (any, error) {
+	if !a.valid {
+		return nil, nil
+	}
+
+	return a.String(), nil
+}
+
+// MarshalText marshals the AddressTCP into its string representation, or a null value when it is not valid.
+func (a AddressTCP) MarshalText() ([]byte, error) {
+	if !a.valid {
+		return nil, nil
+	}
+
+	return []byte(a.String()), nil
+}
+
 // AddressUDP is just a type with an underlying type of Address.
 type AddressUDP struct {
 	Address
@@ -152,6 +170,24 @@ func (AddressUDP) JSONSchema() *jsonschema.Schema {
 		Format:  "uri",
 		Pattern: `^(udp[46]?:\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)(\/.*)?$`,
 	}
+}
+
+// MarshalYAML marshals the AddressUDP into its string representation, or a null value when it is not valid.
+func (a AddressUDP) MarshalYAML() (any, error) {
+	if !a.valid {
+		return nil, nil
+	}
+
+	return a.String(), nil
+}
+
+// MarshalText marshals the AddressUDP into its string representation, or a null value when it is not valid.
+func (a AddressUDP) MarshalText() ([]byte, error) {
+	if !a.valid {
+		return nil, nil
+	}
+
+	return []byte(a.String()), nil
 }
 
 // AddressLDAP is just a type with an underlying type of Address.
@@ -168,6 +204,24 @@ func (AddressLDAP) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// MarshalYAML marshals the AddressLDAP into its string representation, or a null value when it is not valid.
+func (a AddressLDAP) MarshalYAML() (any, error) {
+	if !a.valid {
+		return nil, nil
+	}
+
+	return a.String(), nil
+}
+
+// MarshalText marshals the AddressLDAP into its string representation, or a null value when it is not valid.
+func (a AddressLDAP) MarshalText() ([]byte, error) {
+	if !a.valid {
+		return nil, nil
+	}
+
+	return []byte(a.String()), nil
+}
+
 // AddressSMTP is just a type with an underlying type of Address.
 type AddressSMTP struct {
 	Address
@@ -180,6 +234,24 @@ func (AddressSMTP) JSONSchema() *jsonschema.Schema {
 		Format:  "uri",
 		Pattern: `^((smtp|submissions?):\/\/)?([^:\/]*(:\d+)|[^:\/]+(:\d+)?)?$`,
 	}
+}
+
+// MarshalYAML marshals the AddressSMTP into its string representation, or a null value when it is not valid.
+func (a AddressSMTP) MarshalYAML() (any, error) {
+	if !a.valid {
+		return nil, nil
+	}
+
+	return a.String(), nil
+}
+
+// MarshalText marshals the AddressSMTP into its string representation, or a null value when it is not valid.
+func (a AddressSMTP) MarshalText() ([]byte, error) {
+	if !a.valid {
+		return nil, nil
+	}
+
+	return []byte(a.String()), nil
 }
 
 // Address represents an address.
@@ -200,6 +272,24 @@ func (Address) JSONSchema() *jsonschema.Schema {
 		Format:  "uri",
 		Pattern: `^((unix:\/\/)?\/[^?\n]+(\?umask=[0-7]{3,4})?|ldapi:\/\/(\/[^?\n]+)?|(((tcp|udp)(4|6)?|ldaps?|smtp|submissions?):\/\/)?[^:\/]*(:\d+)?(\/.*)?)$`,
 	}
+}
+
+// MarshalYAML marshals the Address into its string representation, or a null value when it is not valid.
+func (a Address) MarshalYAML() (any, error) {
+	if !a.valid {
+		return nil, nil
+	}
+
+	return a.String(), nil
+}
+
+// MarshalText marshals the Address into its string representation, or a null value when it is not valid.
+func (a Address) MarshalText() ([]byte, error) {
+	if !a.valid {
+		return nil, nil
+	}
+
+	return []byte(a.String()), nil
 }
 
 // Valid returns true if the Address is valid.
@@ -323,16 +413,6 @@ func (a *Address) String() string {
 	}
 
 	return a.url.String()
-}
-
-// MarshalYAML marshals the Address into its string representation.
-func (a Address) MarshalYAML() (value any, err error) {
-	return a.String(), nil
-}
-
-// MarshalText marshals the Address into its string representation.
-func (a Address) MarshalText() (text []byte, err error) {
-	return []byte(a.String()), nil
 }
 
 // Scheme returns the *[url.URL] Scheme field.

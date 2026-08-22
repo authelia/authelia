@@ -260,6 +260,45 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 	}
 }
 
+func TestPostgreSQLProviderSessionQueriesShouldUseOrdinalPlaceholders(t *testing.T) {
+	address, err := schema.NewAddress("tcp://localhost:5432")
+	require.NoError(t, err)
+
+	provider, err := NewPostgreSQLProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "testing-key-only",
+			PostgreSQL: &schema.StoragePostgreSQL{
+				StorageSQL: schema.StorageSQL{
+					Address: &schema.AddressTCP{Address: *address},
+				},
+			},
+		},
+	}, x509.NewCertPool())
+	require.NoError(t, err)
+	require.NotNil(t, provider)
+
+	testCases := []struct {
+		name  string
+		query string
+	}{
+		{"ShouldUseOrdinalPlaceholdersForUpsertSession", provider.sqlUpsertSession},
+		{"ShouldUseOrdinalPlaceholdersForSelectSession", provider.sqlSelectSession},
+		{"ShouldUseOrdinalPlaceholdersForSelectSessionByPublicID", provider.sqlSelectSessionByPublicID},
+		{"ShouldUseOrdinalPlaceholdersForSelectSessionSignaturesByUsername", provider.sqlSelectSessionSignaturesByUsername},
+		{"ShouldUseOrdinalPlaceholdersForUpdateSessionData", provider.sqlUpdateSessionData},
+		{"ShouldUseOrdinalPlaceholdersForUpdateSessionSignature", provider.sqlUpdateSessionSignature},
+		{"ShouldUseOrdinalPlaceholdersForDeleteSession", provider.sqlDeleteSession},
+		{"ShouldUseOrdinalPlaceholdersForDeleteSessionExpired", provider.sqlDeleteSessionExpired},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.NotContains(t, tc.query, "?")
+			assert.Contains(t, tc.query, "$1")
+		})
+	}
+}
+
 func TestLoadPostgreSQLLegacyTLSConfig(t *testing.T) {
 	testCases := []struct {
 		name             string

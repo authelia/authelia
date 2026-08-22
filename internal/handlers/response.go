@@ -145,10 +145,10 @@ func HandlePasskeyResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMetho
 	Handle1FAResponse(ctx, targetURI, requestMethod, username, groups)
 }
 
-func handleFlowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, flow, subflow, userCode string) {
+func handleFlowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails, id, flow, subflow, userCode string) {
 	switch flow {
 	case flowNameOpenIDConnect:
-		handleFlowResponseOpenIDConnect(ctx, userSession, id, subflow, userCode)
+		handleFlowResponseOpenIDConnect(ctx, userSession, details, id, subflow, userCode)
 	default:
 		ctx.SetJSONError(messageAuthenticationFailed)
 
@@ -158,12 +158,12 @@ func handleFlowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserS
 	}
 }
 
-func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, subflow, userCode string) {
+func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails, id, subflow, userCode string) {
 	switch subflow {
 	case "":
-		handleFlowResponseOpenIDConnectNoSubflow(ctx, userSession, id, subflow)
+		handleFlowResponseOpenIDConnectNoSubflow(ctx, userSession, details, id, subflow)
 	case flowOpenIDConnectSubFlowNameDeviceAuthorization:
-		handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx, userSession, id, subflow, userCode)
+		handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx, userSession, details, id, subflow, userCode)
 	default:
 		ctx.SetJSONError(messageAuthenticationFailed)
 
@@ -173,7 +173,7 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 	}
 }
 
-func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, subflow string) {
+func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails, id, subflow string) {
 	var (
 		flowID  uuid.UUID
 		client  oidc.Client
@@ -279,7 +279,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		return
 	}
 
-	level := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
+	level := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()})
 
 	switch {
 	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), level), level == authorization.Denied:
@@ -305,7 +305,7 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 	}
 }
 
-func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, subflow, userCode string) {
+func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails, id, subflow, userCode string) {
 	var (
 		issuer    *url.URL
 		signature string
@@ -395,13 +395,13 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 		return
 	}
 
-	handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx, userSession, subflow, userCode, level, client, issuer)
+	handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx, userSession, details, subflow, userCode, level, client, issuer)
 }
 
-func handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, subflow, userCode string, level authentication.Level, client oidc.Client, issuer *url.URL) {
+func handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, details *authentication.UserDetails, subflow, userCode string, level authentication.Level, client oidc.Client, issuer *url.URL) {
 	var err error
 
-	required := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
+	required := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()})
 
 	switch {
 	case authorization.IsAuthLevelSufficient(level, required), required == authorization.Denied:

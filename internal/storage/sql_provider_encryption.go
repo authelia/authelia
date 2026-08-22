@@ -677,6 +677,11 @@ func (p *SQLProvider) setCrypographyKey(ctx context.Context, conn SQLXConnection
 	return key, nil
 }
 
+// LoadHMACKey returns the HMAC key of the given name and size, generating and persisting it when it does not exist.
+func (p *SQLProvider) LoadHMACKey(ctx context.Context, name string, size int) (key []byte, err error) {
+	return p.getHMACKey(ctx, name, size)
+}
+
 func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (key []byte, err error) {
 	var tx SQLXTx
 

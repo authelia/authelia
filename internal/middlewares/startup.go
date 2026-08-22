@@ -1,13 +1,17 @@
 package middlewares
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/authelia/authelia/v4/internal/cache"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -31,8 +35,8 @@ func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 	provider, disable = ctx.GetProviders().StorageProvider, false
 	doStartupCheck(ctx, ProviderNameStorage, provider, nil, disable, log, e.errors)
 
-	provider, disable = ctx.GetProviders().SessionProvider, false
-	doStartupCheck(ctx, ProviderNameSession, provider, nil, disable, log, e.errors)
+	provider, disable = ctx.GetProviders().Cache, false
+	doStartupCheck(ctx, ProviderNameCache, provider, nil, disable, log, e.errors)
 
 	provider, disable = ctx.GetProviders().UserProvider, false
 	doStartupCheck(ctx, ProviderNameUser, provider, nil, disable, log, e.errors)
@@ -57,6 +61,36 @@ func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 	}
 
 	return e.FilterError(filters...)
+}
+
+// Finalize completes the provider construction which depends on other providers, resolving the configured session
+// storage backend and the HMAC key the session provider signs identifiers with.
+func (p *Providers) Finalize(ctx ServiceContext) (err error) {
+	var (
+		repository  session.Repository
+		sessionHMAC []byte
+	)
+
+	switch name := ctx.GetConfiguration().Session.Storage; name {
+	case "internal":
+		repository = storage.NewSessionRepository(p.StorageProvider)
+	case "cache", "":
+		repository = cache.NewSessionRepository(p.Cache)
+	default:
+		return fmt.Errorf("unknown session storage '%s'", name)
+	}
+
+	if sessionHMAC, err = p.StorageProvider.LoadHMACKey(ctx, "session", sha256.BlockSize); err != nil {
+		return err
+	}
+
+	if p.Session, err = session.NewProvider(ctx.GetConfiguration(), sessionHMAC, p.Clock, p.Random, repository); err != nil {
+		return err
+	}
+
+	p.SessionRepository = repository
+
+	return nil
 }
 
 func doStartupCheck(ctx ServiceContext, name string, provider model.StartupCheck, required []string, disabled, log bool, errors map[string]error) {

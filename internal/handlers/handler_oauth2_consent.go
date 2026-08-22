@@ -10,6 +10,7 @@ import (
 
 	"authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -51,24 +52,14 @@ func handleOAuth2ConsentFlowIDGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 
 	var (
 		userSession session.UserSession
-		consent     *model.OAuth2ConsentSession
-		form        url.Values
-		client      oidc.Client
-		handled     bool
+
+		consent *model.OAuth2ConsentSession
+		form    url.Values
+		client  oidc.Client
+		handled bool
 	)
 
-	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldFlowID: flowID.String()}).
-			Error("Error occurred fetching user session")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if _, consent, client, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, flowID); handled {
+	if userSession, _, consent, client, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, flowID); handled {
 		return
 	}
 
@@ -206,12 +197,13 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 
 	var (
 		userSession session.UserSession
+		details     authentication.UserDetails
 		consent     *model.OAuth2ConsentSession
 		client      oidc.Client
 		handled     bool
 	)
 
-	if userSession, consent, client, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, flowID); handled {
+	if userSession, details, consent, client, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, flowID); handled {
 		return
 	}
 
@@ -227,9 +219,9 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
 
-	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}) {
 		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldGroups: userSession.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
+			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldGroups: details.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
 			Error("User is not sufficiently authenticated to provide consent given the client authorization policy")
 
 		ctx.SetJSONError(messageOperationFailed)
@@ -426,6 +418,7 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 	var (
 		signature   string
 		userSession session.UserSession
+		details     authentication.UserDetails
 		device      *model.OAuth2DeviceCodeSession
 		consent     *model.OAuth2ConsentSession
 		client      oidc.Client
@@ -517,9 +510,20 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
 
-	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	if details, err = authentication.MustGetUserDetailsSafe(userSession.Username, ctx.GetUserProvider()); err != nil {
 		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldGroups: userSession.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
+			WithError(err).
+			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
+			Error("Error occurred fetching user details during the Consent Flow stage of the Device Authorization Flow")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}) {
+		ctx.GetLogger().
+			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldGroups: details.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
 			Error("User is not sufficiently authenticated to provide consent given the client authorization policy during the Consent Flow stage of the Device Authorization Flow")
 
 		ctx.SetJSONError(messageOperationFailed)
@@ -635,10 +639,8 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 	}
 }
 
-func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowID uuid.UUID) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client oidc.Client, handled bool) {
-	var (
-		err error
-	)
+func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowID uuid.UUID) (userSession session.UserSession, details authentication.UserDetails, consent *model.OAuth2ConsentSession, client oidc.Client, handled bool) {
+	var err error
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.GetLogger().
 			WithError(err).
@@ -647,7 +649,7 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowI
 
 		ctx.SetJSONError(messageOperationFailed)
 
-		return userSession, nil, nil, true
+		return userSession, details, nil, nil, true
 	}
 
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
@@ -658,7 +660,7 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowI
 
 		ctx.SetJSONError(messageOperationFailed)
 
-		return userSession, nil, nil, true
+		return userSession, details, nil, nil, true
 	}
 
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID); err != nil {
@@ -669,41 +671,51 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowI
 
 		ctx.SetJSONError(messageOperationFailed)
 
-		return userSession, nil, nil, true
+		return userSession, details, nil, nil, true
 	}
 
 	switch {
 	case consent.Responded():
 		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldSubject: consent.Subject.UUID.String(), logging.FieldResponded: consent.RespondedAt.Time.Unix()}).
-			Error("Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the consent session has already been responded to")
+			Error("Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the consent session has already been responded to")
 
 		ctx.SetJSONError(messageOperationFailed)
 
-		return userSession, nil, nil, true
+		return userSession, details, nil, nil, true
 	case !consent.CanGrant(ctx.GetClock().Now()):
 		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldGranted: consent.Granted, logging.FieldExpiration: consent.ExpiresAt.Unix()}).
-			Error("Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the consent session has already been granted or is expired")
+			Error("Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the consent session has already been granted or is expired")
 
 		ctx.SetJSONError(messageOperationFailed)
 
-		return userSession, nil, nil, true
+		return userSession, details, nil, nil, true
 	}
 
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
 
-	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	if details, err = authentication.MustGetUserDetailsSafe(userSession.Username, ctx.GetUserProvider()); err != nil {
 		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldGroups: userSession.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
-			Error("Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the user is not sufficiently authenticated")
+			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldGranted: consent.Granted, logging.FieldExpiration: consent.ExpiresAt.Unix()}).
+			Error("Error occurred performing consent during the Consent Flow stage of the Authorization Flow as an error occurred retrieving user details")
 
 		ctx.SetJSONError(messageOperationFailed)
 
-		return userSession, nil, nil, true
+		return userSession, details, nil, nil, true
 	}
 
-	return userSession, consent, client, false
+	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}) {
+		ctx.GetLogger().
+			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldGroups: details.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
+			Error("Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the user is not sufficiently authenticated")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return userSession, details, nil, nil, true
+	}
+
+	return userSession, details, consent, client, false
 }
 
 func handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx *middlewares.AutheliaCtx, userCode string) (userSession session.UserSession, device *model.OAuth2DeviceCodeSession, client oidc.Client, handled bool) {
@@ -766,9 +778,21 @@ func handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx *middlewares
 
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
 
-	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	var details authentication.UserDetails
+	if details, err = authentication.MustGetUserDetailsSafe(userSession.Username, ctx.GetUserProvider()); err != nil {
 		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldRequestID: device.RequestID, logging.FieldUsername: userSession.Username, logging.FieldGroups: userSession.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
+			WithError(err).
+			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
+			Error("Device Authorization Flow failed to retrieve user details")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}) {
+		ctx.GetLogger().
+			WithFields(map[string]any{logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldRequestID: device.RequestID, logging.FieldUsername: userSession.Username, logging.FieldGroups: details.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
 			Error("Device Authorization Flow failed to retrieve Consent Flow data as the user is not sufficiently authenticated")
 
 		ctx.SetJSONError(messageOperationFailed)
