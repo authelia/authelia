@@ -29,11 +29,11 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := dockerEnvironment.Down()
-		_ = os.Remove("/tmp/db.sqlite3")
-		_ = os.Remove("/tmp/db.sqlite")
-		_ = os.RemoveAll("/tmp/qr/")
-		_ = os.RemoveAll("/tmp/out/")
-		_ = os.Remove("/tmp/qr.png")
+		_ = os.Remove(SuiteTmpPath("db.sqlite3"))
+		_ = os.Remove(SuiteTmpPath("db.sqlite"))
+		_ = os.RemoveAll(SuiteTmpPath("qr"))
+		_ = os.RemoveAll(SuiteTmpPath("out"))
+		_ = os.Remove(SuiteTmpPath("qr.png"))
 
 		return err
 	}
@@ -42,6 +42,7 @@ func init() {
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
+		OnError:         displayAutheliaLogs,
 		TestTimeout:     3 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,

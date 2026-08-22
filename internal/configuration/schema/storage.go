@@ -32,12 +32,12 @@ type StorageSQL struct {
 
 // StorageMySQL represents the configuration of a MySQL database.
 type StorageMySQL struct {
-	StorageSQL `koanf:",squash"`
+	StorageSQL `koanf:",squash" yaml:",inline"`
 }
 
 // StoragePostgreSQL represents the configuration of a PostgreSQL database.
 type StoragePostgreSQL struct {
-	StorageSQL `koanf:",squash"`
+	StorageSQL `koanf:",squash" yaml:",inline"`
 
 	Schema string `koanf:"schema" yaml:"schema,omitempty" toml:"schema,omitempty" json:"schema,omitempty" jsonschema:"default=public,title=Schema" jsonschema_description:"The default schema name to use."`
 
@@ -47,6 +47,7 @@ type StoragePostgreSQL struct {
 	SSL *StoragePostgreSQLSSL `koanf:"ssl" yaml:"ssl,omitempty" toml:"ssl,omitempty" json:"ssl,omitempty" jsonschema:"deprecated,title=SSL"`
 }
 
+// StoragePostgreSQLServer represents the PostgreSQL server configuration.
 type StoragePostgreSQLServer struct {
 	Address *AddressTCP `koanf:"address" yaml:"address,omitempty" toml:"address,omitempty" json:"address,omitempty" jsonschema:"title=Address" jsonschema_description:"The address of the PostgreSQL Server."`
 	TLS     *TLS        `koanf:"tls" yaml:"tls,omitempty" toml:"tls,omitempty" json:"tls,omitempty" jsonschema:"title=TLS" jsonschema_description:"The TLS configuration for the PostgreSQL Server."`

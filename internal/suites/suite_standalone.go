@@ -8,9 +8,9 @@ import (
 var standaloneSuiteName = "Standalone"
 
 func init() {
-	_ = os.MkdirAll("/tmp/authelia/StandaloneSuite/", 0700)
-	_ = os.WriteFile("/tmp/authelia/StandaloneSuite/jwt", []byte("very_important_secret"), 0600)       //nolint:gosec
-	_ = os.WriteFile("/tmp/authelia/StandaloneSuite/session", []byte("unsecure_session_secret"), 0600) //nolint:gosec
+	_ = os.MkdirAll(SuiteTmpPath("authelia/StandaloneSuite"), 0700)
+	_ = os.WriteFile(SuiteTmpPath("authelia/StandaloneSuite/jwt"), []byte("very_important_secret"), 0600)
+	_ = os.WriteFile(SuiteTmpPath("authelia/StandaloneSuite/session"), []byte("unsecure_session_secret"), 0600)
 
 	dockerEnvironment := NewDockerEnvironment([]string{
 		"internal/suites/compose.yml",
@@ -31,7 +31,7 @@ func init() {
 			return err
 		}
 
-		return updateDevEnvFileForDomain(BaseDomain, true)
+		return updateDevEnvFileForDomain(BaseDomain, dockerEnvironment)
 	}
 
 	displayAutheliaLogs := func() error {
@@ -40,7 +40,7 @@ func init() {
 
 	teardown := func(suitePath string) error {
 		err := dockerEnvironment.Down()
-		_ = os.Remove("/tmp/db.sqlite3")
+		_ = os.Remove(SuiteTmpPath("db.sqlite3"))
 
 		return err
 	}

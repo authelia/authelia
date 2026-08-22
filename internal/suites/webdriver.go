@@ -2,17 +2,31 @@ package suites
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/cdp"
 	"github.com/go-rod/rod/lib/input"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/proto"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	elementActionTimeout  = time.Second * 10
+	elementAttemptTimeout = time.Second
+	elementRetryInterval  = time.Millisecond * 50
+	elementStateTimeout   = time.Second * 5
+	pageRenderTimeout     = time.Second * 5
+	setupTestTimeout      = time.Second * 30
+	waitElementsAttempts  = 10
 )
 
 // RodSession binding a chrome session with devtool protocol.
@@ -21,20 +35,37 @@ type RodSession struct {
 	WebDriver *rod.Browser
 
 	RodSuiteCredentialsProvider
+
+	shared   bool
+	contexts []*rod.Browser
 }
 
+type sharedBrowser struct {
+	launcher *launcher.Launcher
+	browser  *rod.Browser
+}
+
+var (
+	sharedBrowsersMutex sync.Mutex
+	sharedBrowsers      = map[string]*sharedBrowser{}
+)
+
+// RodSessionCredentials represents the credentials available to a RodSession.
 type RodSessionCredentials struct {
 	TOTP *OptionsTOTP
 }
 
+// RodSessionOpts represents the options used to create a RodSession.
 type RodSessionOpts struct {
 	proxy           string
 	provider        RodSuiteCredentialsProvider
 	disableDevtools bool
 }
 
+// RodSessionOpt is a function which configures the RodSessionOpts.
 type RodSessionOpt func(opts *RodSessionOpts) (err error)
 
+// RodSessionWithProxy returns a RodSessionOpt which sets the proxy.
 func RodSessionWithProxy(proxy string) RodSessionOpt {
 	return func(opts *RodSessionOpts) (err error) {
 		opts.proxy = proxy
@@ -43,6 +74,7 @@ func RodSessionWithProxy(proxy string) RodSessionOpt {
 	}
 }
 
+// RodSessionWithCredentials returns a RodSessionOpt which sets the credentials provider.
 func RodSessionWithCredentials(provider RodSuiteCredentialsProvider) RodSessionOpt {
 	return func(opts *RodSessionOpts) (err error) {
 		opts.provider = provider
@@ -61,6 +93,7 @@ func RodSessionWithoutDevtools() RodSessionOpt {
 	}
 }
 
+// NewRodSession returns a new RodSession given the provided options.
 func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 	opts := &RodSessionOpts{}
 
@@ -74,6 +107,42 @@ func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 		opts.provider = NewRodSuiteCredentials()
 	}
 
+	if opts.disableDevtools {
+		var shared *sharedBrowser
+
+		if shared, err = newBrowser(opts); err != nil {
+			return nil, err
+		}
+
+		return &RodSession{
+			Launcher:                    shared.launcher,
+			WebDriver:                   shared.browser,
+			RodSuiteCredentialsProvider: opts.provider,
+		}, nil
+	}
+
+	sharedBrowsersMutex.Lock()
+	defer sharedBrowsersMutex.Unlock()
+
+	shared, ok := sharedBrowsers[opts.proxy]
+
+	if !ok {
+		if shared, err = newBrowser(opts); err != nil {
+			return nil, err
+		}
+
+		sharedBrowsers[opts.proxy] = shared
+	}
+
+	return &RodSession{
+		Launcher:                    shared.launcher,
+		WebDriver:                   shared.browser,
+		RodSuiteCredentialsProvider: opts.provider,
+		shared:                      true,
+	}, nil
+}
+
+func newBrowser(opts *RodSessionOpts) (shared *sharedBrowser, err error) {
 	var browserPath string
 
 	if browserPath, err = GetBrowserPath(); err != nil {
@@ -94,7 +163,12 @@ func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 		Bin(browserPath).
 		Proxy(opts.proxy).
 		Headless(headless).
-		Devtools(!opts.disableDevtools)
+		Devtools(!headless && !opts.disableDevtools)
+
+	// Chrome resolves the suite domains from these rules rather than from /etc/hosts, so a browser launched by one
+	// suite reaches that suite's network even while another suite on this machine owns the names in /etc/hosts. The
+	// proxy hostnames the NetworkACL suite dials are resolved the same way.
+	l.Set("host-resolver-rules", HostResolverRules())
 
 	if opts.disableDevtools {
 		l.Set("font-render-hinting", "none")
@@ -113,11 +187,22 @@ func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 
 	browser.MustIgnoreCertErrors(true)
 
-	return &RodSession{
-		Launcher:                    l,
-		WebDriver:                   browser,
-		RodSuiteCredentialsProvider: opts.provider,
-	}, nil
+	return &sharedBrowser{launcher: l, browser: browser}, nil
+}
+
+func closeSharedBrowsers() {
+	sharedBrowsersMutex.Lock()
+	defer sharedBrowsersMutex.Unlock()
+
+	for key, shared := range sharedBrowsers {
+		if err := shared.browser.Close(); err != nil {
+			log.Warnf("Error closing the shared browser: %v", err)
+		}
+
+		shared.launcher.Cleanup()
+
+		delete(sharedBrowsers, key)
+	}
 }
 
 // StartRod create a rod/chromedp session.
@@ -127,14 +212,25 @@ func StartRod() (*RodSession, error) {
 
 // Stop stop the rod/chromedp session.
 func (rs *RodSession) Stop() error {
-	err := rs.WebDriver.Close()
-	if err != nil {
+	for _, incognito := range rs.contexts {
+		if err := incognito.Close(); err != nil {
+			log.Warnf("Error disposing a browser context: %v", err)
+		}
+	}
+
+	rs.contexts = nil
+
+	if rs.shared {
+		return nil
+	}
+
+	if err := rs.WebDriver.Close(); err != nil {
 		return err
 	}
 
 	rs.Launcher.Cleanup()
 
-	return err
+	return nil
 }
 
 // CheckElementExistsLocatedBySelector reports whether at least one element matching the CSS
@@ -170,26 +266,259 @@ func (rs *RodSession) WaitElementLocatedByID(t *testing.T, page *rod.Page, cssSe
 	return rs.WaitElementLocatedBySelector(t, page, "#"+cssSelector)
 }
 
+// errElementValueNotSet reports that the value did not reach the element, which typing does without
+// error when the keys are dispatched at a node the document has already replaced.
+var errElementValueNotSet = errors.New("element value was not set")
+
+// elementState describes why an element could not be acted on. rod names the condition it stopped at
+// but not the cause, and the failure screenshot is taken once the page has settled, by which time the
+// cause has usually gone.
+const elementState = `(selector) => {
+	const element = document.querySelector(selector);
+
+	if (!element) {
+		return 'not in the document';
+	}
+
+	const style = getComputedStyle(element);
+	const rect = element.getBoundingClientRect();
+	const center = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+	const describe = (node) => {
+		if (node === null) {
+			return 'nothing';
+		}
+
+		if (node === element) {
+			return 'itself';
+		}
+
+		const slot = node.getAttribute('data-slot');
+
+		return (node.id ? '#' + node.id : node.tagName.toLowerCase()) + (slot ? '[' + slot + ']' : '');
+	};
+
+	return JSON.stringify({
+		disabled: element.disabled === true,
+		inert: element.closest('[inert], [data-base-ui-inert]') !== null,
+		pointerEvents: style.pointerEvents,
+		visibility: style.visibility,
+		display: style.display,
+		opacity: style.opacity,
+		value: element.value === undefined ? null : element.value,
+		rect: [Math.round(rect.x), Math.round(rect.y), Math.round(rect.width), Math.round(rect.height)],
+		viewport: [innerWidth, innerHeight],
+		topmostAtCenter: describe(center),
+	});
+}`
+
+// ClickElementLocatedBySelector clicks the element matching the CSS selector, locating it again and
+// retrying while the click cannot be performed.
+func (rs *RodSession) ClickElementLocatedBySelector(t *testing.T, page *rod.Page, selector string) {
+	rs.doElementAction(t, page, selector, func(element *rod.Element) error {
+		return element.Click("left", 1)
+	})
+}
+
+// ClickElementLocatedByID clicks the element located by an id, retrying while the click cannot be
+// performed.
+func (rs *RodSession) ClickElementLocatedByID(t *testing.T, page *rod.Page, cssSelector string) {
+	rs.ClickElementLocatedBySelector(t, page, "#"+cssSelector)
+}
+
+// TypeElementLocatedByID types into the element located by an id, retrying on the same terms as
+// ClickElementLocatedByID.
+func (rs *RodSession) TypeElementLocatedByID(t *testing.T, page *rod.Page, cssSelector, value string) {
+	rs.doElementAction(t, page, "#"+cssSelector, func(element *rod.Element) error {
+		// An attempt that failed partway through leaves what it managed to type behind, so the field is
+		// replaced rather than appended to and the value is confirmed before the attempt is accepted.
+		if err := element.SelectAllText(); err != nil {
+			return err
+		}
+
+		if err := element.Type(rs.toInputs(value)...); err != nil {
+			return err
+		}
+
+		property, err := element.Property("value")
+		if err != nil {
+			return err
+		}
+
+		if property.Str() != value {
+			return errElementValueNotSet
+		}
+
+		return nil
+	})
+}
+
+func (rs *RodSession) waitElementTextIs(t *testing.T, page *rod.Page, selector, expected string) {
+	rs.waitElementText(t, page, selector, expected, true)
+}
+
+func (rs *RodSession) waitElementTextIsNot(t *testing.T, page *rod.Page, selector, unexpected string) {
+	rs.waitElementText(t, page, selector, unexpected, false)
+}
+
+func (rs *RodSession) waitElementText(t *testing.T, page *rod.Page, selector, value string, equal bool) {
+	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionTimeout)
+
+	defer cancel()
+
+	bounded := page.Context(ctx)
+	observed := "unavailable"
+
+	for {
+		if element, err := bounded.Element(selector); err == nil {
+			// rod reports the text as rendered, which is the value the assertions read: the components
+			// uppercase their labels through a style the text in the document does not account for.
+			if text, errText := element.Text(); errText == nil {
+				observed = text
+
+				if (text == value) == equal {
+					return
+				}
+			}
+		}
+
+		select {
+		case <-ctx.Done():
+			if equal {
+				require.Failf(t, "Element did not take the expected text",
+					"selector '%s' expected '%s', observed '%s'", selector, value, observed)
+			} else {
+				require.Failf(t, "Element kept the text it was expected to leave",
+					"selector '%s' was still '%s'", selector, value)
+			}
+
+			return
+		case <-time.After(elementRetryInterval):
+		}
+	}
+}
+
+func (rs *RodSession) doElementAction(t *testing.T, page *rod.Page, selector string, action func(element *rod.Element) error) {
+	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionTimeout)
+
+	defer cancel()
+
+	err := retryElementAction(page.Context(ctx), selector, action)
+	if err == nil {
+		return
+	}
+
+	require.Failf(t, "Element action did not succeed",
+		"selector '%s' gave up after %s: %v\nelement state: %s",
+		selector, elementActionTimeout, err, describeElement(page, selector))
+}
+
+func retryElementAction(page *rod.Page, selector string, action func(element *rod.Element) error) error {
+	ctx := page.GetContext()
+
+	// The state the element was last in says why it could not be acted on; the expiry that ends the
+	// attempt says only that it never left that state, so the former is reported in preference.
+	var last error
+
+	for {
+		element, err := page.Element(selector)
+		if err != nil {
+			return preferElementError(ctx, err, last)
+		}
+
+		// Each attempt is capped separately. rod retries a covered element for as long as its context
+		// allows, which would spend the whole budget hovering one handle: the element is re-located
+		// instead, so a node the document replaced while it was covered is not held on to.
+		attempt, cancel := context.WithTimeout(ctx, elementAttemptTimeout)
+		err = action(element.Context(attempt))
+		expired := attempt.Err() != nil
+
+		cancel()
+
+		if err == nil {
+			return nil
+		}
+
+		if !expired && !isTransientElementError(err) {
+			return err
+		}
+
+		// An attempt cut short reports its own expiry rather than the element, so it must not displace
+		// the state a previous attempt saw the element in.
+		if !expired {
+			last = err
+		}
+
+		select {
+		case <-ctx.Done():
+			return preferElementError(ctx, err, last)
+		case <-time.After(elementRetryInterval):
+		}
+	}
+}
+
+func preferElementError(ctx context.Context, err, last error) error {
+	if last != nil && ctx.Err() != nil {
+		return last
+	}
+
+	return err
+}
+
+func describeElement(page *rod.Page, selector string) string {
+	// A context of its own, so the state still reports once the one the action ran under has expired.
+	result, err := page.Context(context.Background()).Timeout(elementStateTimeout).Eval(elementState, selector)
+	if err != nil {
+		return fmt.Sprintf("unavailable: %v", err)
+	}
+
+	return result.Value.Str()
+}
+
+func isTransientElementError(err error) bool {
+	var notInteractable *rod.NotInteractableError
+
+	return isDetachedNodeError(err) || errors.Is(err, errElementValueNotSet) || errors.As(err, &notInteractable)
+}
+
+func isDetachedNodeError(err error) bool {
+	var e *cdp.Error
+
+	return errors.As(err, &e) && strings.Contains(e.Message, "detached")
+}
+
 // WaitElementsLocatedBySelector waits for at least one element matching the CSS selector to
 // appear, then returns all current matches.
 func (rs *RodSession) WaitElementsLocatedBySelector(t *testing.T, page *rod.Page, selector string) rod.Elements {
-	_, err := page.Element(selector)
-	require.NoError(t, err)
+	var (
+		elements rod.Elements
+		err      error
+	)
 
-	elements, err := page.Elements(selector)
+	for range waitElementsAttempts {
+		if _, err = page.Element(selector); err != nil {
+			break
+		}
+
+		if elements, err = page.Elements(selector); err != nil {
+			break
+		}
+
+		if len(elements) != 0 {
+			return elements
+		}
+	}
+
 	require.NoError(t, err)
 	require.NotEmpty(t, elements)
 
 	return elements
 }
 
-// WaitElementsLocatedByID waits for an elements located by an id.
+// WaitElementsLocatedByID waits for at least one element matching the id to appear, then returns
+// all current matches.
 func (rs *RodSession) WaitElementsLocatedByID(t *testing.T, page *rod.Page, cssSelector string) rod.Elements {
-	e, err := page.Elements("#" + cssSelector)
-	require.NoError(t, err)
-	require.NotNil(t, e)
-
-	return e
+	return rs.WaitElementsLocatedBySelector(t, page, "#"+cssSelector)
 }
 
 // WaitForVisualStable blocks until document.fonts.ready resolves and all in-flight images

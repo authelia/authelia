@@ -39,12 +39,13 @@ type IdentityProvidersOpenIDConnect struct {
 	ClaimsPolicies        map[string]IdentityProvidersOpenIDConnectClaimsPolicy `koanf:"claims_policies" yaml:"claims_policies,omitempty" toml:"claims_policies,omitempty" json:"claims_policies,omitempty" jsonschema:"title=Claims Policies" jsonschema_description:"The dictionary of claims policies which can be applied to clients."`
 	Scopes                map[string]IdentityProvidersOpenIDConnectScope        `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes,omitempty" jsonschema:"title=Scopes" jsonschema_description:"List of custom scopes."`
 
-	Discovery IdentityProvidersOpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
+	Discovery IdentityProvidersOpenIDConnectDiscovery `yaml:"-" toml:"-" json:"-"` // MetaData value. Not configurable by users.
 
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" yaml:"issuer_certificate_chain,omitempty" toml:"issuer_certificate_chain,omitempty" json:"issuer_certificate_chain,omitempty" jsonschema:"title=Issuer Certificate Chain,deprecated" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens."`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" yaml:"issuer_private_key,omitempty" toml:"issuer_private_key,omitempty" json:"issuer_private_key,omitempty" jsonschema:"title=Issuer Private Key,deprecated" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens."`
 }
 
+// IdentityProvidersOpenIDConnectClaimsPolicy represents the claims policy configuration.
 type IdentityProvidersOpenIDConnectClaimsPolicy struct {
 	IDToken     []string `koanf:"id_token" yaml:"id_token,omitempty" toml:"id_token,omitempty" json:"id_token,omitempty" jsonschema:"title=ID Token" jsonschema_description:"The list of claims to automatically apply to an ID Token in addition to the specified ID Token Claims."`
 	AccessToken []string `koanf:"access_token" yaml:"access_token,omitempty" toml:"access_token,omitempty" json:"access_token,omitempty" jsonschema:"title=Access Token" jsonschema_description:"The list of claims to automatically apply to an Access Token in addition to the specified Access Token Claims."`
@@ -54,8 +55,10 @@ type IdentityProvidersOpenIDConnectClaimsPolicy struct {
 	CustomClaims IdentityProvidersOpenIDConnectCustomClaims `koanf:"custom_claims" yaml:"custom_claims,omitempty" toml:"custom_claims,omitempty" json:"custom_claims,omitempty" jsonschema:"title=Custom Claims" jsonschema_description:"The custom claims available in this policy in addition to the Standard Claims."`
 }
 
+// IdentityProvidersOpenIDConnectCustomClaims represents the custom claims configuration.
 type IdentityProvidersOpenIDConnectCustomClaims map[string]IdentityProvidersOpenIDConnectCustomClaim
 
+// GetCustomClaimByName returns the custom claim with the given name.
 func (c IdentityProvidersOpenIDConnectCustomClaims) GetCustomClaimByName(name string) IdentityProvidersOpenIDConnectCustomClaim {
 	for _, properties := range c {
 		if properties.Name == name {
@@ -66,11 +69,13 @@ func (c IdentityProvidersOpenIDConnectCustomClaims) GetCustomClaimByName(name st
 	return IdentityProvidersOpenIDConnectCustomClaim{}
 }
 
+// IdentityProvidersOpenIDConnectCustomClaim represents a single custom claim configuration.
 type IdentityProvidersOpenIDConnectCustomClaim struct {
 	Name      string `koanf:"name" yaml:"name" toml:"name,omitempty" json:"name,omitempty" jsonschema:"title=Name" jsonschema_description:"The name of claim."`
 	Attribute string `koanf:"attribute" yaml:"attribute,omitempty" toml:"attribute,omitempty" json:"attribute,omitempty" jsonschema:"title=Attribute" jsonschema_description:"The attribute that populates this claim."`
 }
 
+// IdentityProvidersOpenIDConnectScope represents a single custom scope configuration.
 type IdentityProvidersOpenIDConnectScope struct {
 	Claims []string `koanf:"claims" yaml:"claims,omitempty" toml:"claims,omitempty" json:"claims,omitempty" jsonschema:"title=Claims" jsonschema_description:"The list of claims that this scope includes. When this scope is used by a client the clients claim policy must satisfy every claim."`
 }
@@ -110,8 +115,9 @@ type IdentityProvidersOpenIDConnectDiscovery struct {
 	RequestObjectSymmetricSigEncAlg  bool
 }
 
+// IdentityProvidersOpenIDConnectLifespans represents the token lifespan configuration.
 type IdentityProvidersOpenIDConnectLifespans struct {
-	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash"`
+	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash" yaml:",inline"`
 
 	DeviceCode              time.Duration `koanf:"device_code" yaml:"device_code,omitempty" toml:"device_code,omitempty" json:"device_code,omitempty" jsonschema:"default=10 minutes,title=Device Code Lifespan" jsonschema_description:"The duration an Device Code is valid for."`
 	JWTSecuredAuthorization time.Duration `koanf:"jwt_secured_authorization" yaml:"jwt_secured_authorization,omitempty" toml:"jwt_secured_authorization,omitempty" json:"jwt_secured_authorization,omitempty" jsonschema:"default=5 minutes,title=JARM" jsonschema_description:"Allows tuning the token lifespan for the JWT Secured Authorization Response Modes (JARM)."`
@@ -121,7 +127,7 @@ type IdentityProvidersOpenIDConnectLifespans struct {
 
 // IdentityProvidersOpenIDConnectLifespan allows tuning the lifespans for OpenID Connect 1.0 issued tokens.
 type IdentityProvidersOpenIDConnectLifespan struct {
-	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash"`
+	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash" yaml:",inline"`
 
 	DeviceCode time.Duration `koanf:"device_code" yaml:"device_code,omitempty" toml:"device_code,omitempty" json:"device_code,omitempty" jsonschema:"default=10 minutes,title=Device Code Lifespan" jsonschema_description:"The duration an Device Code is valid for."`
 
@@ -166,7 +172,7 @@ type IdentityProvidersOpenIDConnectClient struct {
 	RequestURIs  IdentityProvidersOpenIDConnectClientURIs `koanf:"request_uris" yaml:"request_uris,omitempty" toml:"request_uris,omitempty" json:"request_uris" jsonschema:"title=Request URIs" jsonschema_description:"List of whitelisted request URIs."`
 
 	Audience      []string `koanf:"audience" yaml:"audience,omitempty" toml:"audience,omitempty" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audiences."`
-	Scopes        []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
+	Scopes        []string `koanf:"scopes" yaml:"scopes,omitempty" toml:"scopes,omitempty" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=profile,enum=email,enum=address,enum=phone,enum=groups,enum=authelia.bearer.authz,enum=authelia.pam,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`
 	GrantTypes    []string `koanf:"grant_types" yaml:"grant_types,omitempty" toml:"grant_types,omitempty" json:"grant_types" jsonschema:"enum=authorization_code,enum=implicit,enum=refresh_token,enum=client_credentials,enum=urn:ietf:params:oauth:grant-type:device_code,uniqueItems,title=Grant Types" jsonschema_description:"The Grant Types this client is allowed to use for the protected endpoints."`
 	ResponseTypes []string `koanf:"response_types" yaml:"response_types,omitempty" toml:"response_types,omitempty" json:"response_types" jsonschema:"enum=code,enum=id_token token,enum=id_token,enum=token,enum=code token,enum=code id_token,enum=code id_token token,uniqueItems,title=Response Types" jsonschema_description:"The Response Types the client is authorized to request."`
 	ResponseModes []string `koanf:"response_modes" yaml:"response_modes,omitempty" toml:"response_modes,omitempty" json:"response_modes" jsonschema:"enum=form_post,enum=form_post.jwt,enum=query,enum=query.jwt,enum=fragment,enum=fragment.jwt,enum=jwt,uniqueItems,title=Response Modes" jsonschema_description:"The Response Modes this client is authorized request."`
@@ -252,6 +258,7 @@ var DefaultOpenIDConnectConfiguration = IdentityProvidersOpenIDConnect{
 	EnforcePKCE: "public_clients_only",
 }
 
+// DefaultOpenIDConnectPolicyConfiguration is the default OpenID Connect 1.0 authorization policy configuration.
 var DefaultOpenIDConnectPolicyConfiguration = IdentityProvidersOpenIDConnectPolicy{
 	DefaultPolicy: policyTwoFactor,
 }

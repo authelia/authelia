@@ -47,8 +47,7 @@ func (s *StandaloneWebDriverSuite) TearDownSuite() {
 }
 
 func (s *StandaloneWebDriverSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *StandaloneWebDriverSuite) TearDownTest() {
@@ -70,7 +69,6 @@ func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsAuthenticatedPage(s.T(), s.Context(ctx))
 }
@@ -87,16 +85,13 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab(
 		page2.MustClose()
 	}()
 
-	// Open second tab with secret page.
 	page2.MustWaitStable()
 
-	// Switch to first, visit the login page and wait for redirection to secret page with secret displayed.
 	s.MustActivate()
 	s.verifyIsHome(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
-	// Switch to second tab and wait for redirection to secret page with secret displayed.
 	page2.MustActivate()
 	s.verifySecretAuthorized(s.T(), page2.Context(ctx))
 }
@@ -115,7 +110,6 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAlreadyAuthenticatedUser() 
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.com:8080", GetLoginBaseURL(BaseDomain)))
 
 	_, err := s.ElementR("h1", "Public resource")
@@ -137,7 +131,6 @@ func (s *StandaloneWebDriverSuite) TestShouldNotRedirectAlreadyAuthenticatedUser
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL(BaseDomain)))
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Redirection was determined to be unsafe and aborted ensure the redirection URL is correct")
 }
@@ -159,21 +152,15 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 
 	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
 
-	// Login one factor.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
-	// Check the user is asked to register a new device.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 
-	// Then register the TOTP factor.
 	s.doOpenSettingsAndRegisterTOTP(s.T(), s.Context(ctx), username)
-	// And logout.
 	s.doLogout(s.T(), s.Context(ctx))
 
-	// Login one factor again.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
-	// now the user should be asked to perform 2FA.
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-method")
 }
 

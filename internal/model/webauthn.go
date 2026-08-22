@@ -186,7 +186,7 @@ func (c *WebAuthnCredential) UpdateAttestationType(credential *webauthn.Credenti
 	c.AttestationType = credential.AttestationType
 }
 
-// DataValueLastUsedAt provides LastUsedAt as a *time.Time instead of sql.NullTime.
+// DataValueLastUsedAt provides LastUsedAt as a *[time.Time] instead of [sql.NullTime].
 func (c *WebAuthnCredential) DataValueLastUsedAt() *time.Time {
 	if c.LastUsedAt.Valid {
 		value := time.Unix(c.LastUsedAt.Time.Unix(), int64(c.LastUsedAt.Time.Nanosecond()))
@@ -208,6 +208,7 @@ func (c *WebAuthnCredential) DataValueAAGUID() *string {
 	return nil
 }
 
+// ToCredential returns the webauthn.Credential representation of this credential.
 func (c *WebAuthnCredential) ToCredential() (credential *webauthn.Credential, err error) {
 	credential = &webauthn.Credential{
 		ID:                c.KID.Bytes(),
@@ -252,6 +253,7 @@ func (c *WebAuthnCredential) ToCredential() (credential *webauthn.Credential, er
 	return credential, nil
 }
 
+// ToData returns the WebAuthnCredentialData representation of this credential.
 func (c *WebAuthnCredential) ToData() WebAuthnCredentialData {
 	o := WebAuthnCredentialData{
 		ID:                c.ID,
@@ -340,6 +342,7 @@ func (c *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
 	c.Transport = strings.Join(o.Transports, ",")
 	c.SignCount = o.SignCount
 	c.CloneWarning = o.CloneWarning
+	c.Legacy = o.Legacy
 	c.Discoverable = o.Discoverable
 	c.Present = o.Present
 	c.Verified = o.Verified
@@ -379,6 +382,7 @@ type WebAuthnCredentialData struct {
 	Attestation       string     `yaml:"attestation" json:"attestation,omitempty" jsonschema:"title=Attestation" jsonschema_description:"The credential attestation information for auditing and validation."`
 }
 
+// ToCredential returns the WebAuthnCredential representation of this data.
 func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential, err error) {
 	credential = &WebAuthnCredential{
 		CreatedAt:         c.CreatedAt,

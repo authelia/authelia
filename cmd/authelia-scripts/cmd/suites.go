@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"sort"
@@ -35,7 +36,7 @@ func newSuitesCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newSuitesListCmd(), newSuitesSetupCmd(), newSuitesTestCmd(), newSuitesTeardownCmd(), newSuitesExternalCmd())
+	cmd.AddCommand(newSuitesListCmd(), newSuitesSetupCmd(), newSuitesTestCmd(), newSuitesTeardownCmd(), newSuitesSlotCmd(), newSuitesExternalCmd())
 
 	return cmd
 }
@@ -153,7 +154,6 @@ func cmdSuitesTestRun(_ *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	// If suite(s) are provided as argument.
 	if len(args) >= 1 {
 		suiteArg := args[0]
 
@@ -329,7 +329,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 		fail = "-failfast"
 	}
 
-	testCmdLine := fmt.Sprintf("go test -count=1 -v ./internal/suites -timeout %s %s ", timeout, fail)
+	testCmdLine := fmt.Sprintf("go test -count=1 -v -json ./internal/suites -timeout %s %s ", timeout, fail)
 
 	if testPattern != "" {
 		testCmdLine += fmt.Sprintf("-run '%s'", testPattern)
@@ -340,8 +340,15 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	log.Infof("Running tests of suite %s...", suiteName)
 	log.Debugf("Running tests with command: %s", testCmdLine)
 
+	results, err := os.Create(fmt.Sprintf(testResultsFileFmt, suiteName))
+	if err != nil {
+		return err
+	}
+
+	defer results.Close()
+
 	cmd := utils.CommandWithStdout("bash", "-c", testCmdLine)
-	cmd.Stdout = os.Stdout
+	cmd.Stdout = io.MultiWriter(&testOutputWriter{out: os.Stdout}, results)
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 
@@ -352,8 +359,6 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	cmd.Env = append(cmd.Env, "SUITES_LOG_LEVEL="+log.GetLevel().String())
 
 	testErr := cmd.Run()
-
-	// If the tests failed, run the error hook.
 	if testErr != nil {
 		if err := runOnError(suiteName); err != nil {
 			// Do not return this error to return the test error instead

@@ -11,8 +11,16 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/net/html"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+const (
+	emailPollInterval = time.Millisecond * 100
+	emailPollTimeout  = time.Second * 5
+)
+
+// EmailMessagesResponse represents the response from the mail server messages endpoint.
 type EmailMessagesResponse struct {
 	Total         int            `json:"total"`
 	Unread        int            `json:"unread"`
@@ -23,6 +31,7 @@ type EmailMessagesResponse struct {
 	Messages      []EmailMessage `json:"messages"`
 }
 
+// EmailMessage represents a single message from the mail server.
 type EmailMessage struct {
 	ID          string    `json:"ID"`
 	MessageID   string    `json:"MessageID"`
@@ -40,11 +49,13 @@ type EmailMessage struct {
 	Snippet     string    `json:"Snippet"`
 }
 
+// Address represents an email address of an EmailMessage.
 type Address struct {
 	Name    string `json:"Name"`
 	Address string `json:"Address"`
 }
 
+// GetContentReader returns a reader for the HTML content of this message.
 func (m *EmailMessage) GetContentReader() (reader io.ReadCloser, err error) {
 	client := NewHTTPClient()
 
@@ -63,6 +74,7 @@ func (m *EmailMessage) GetContentReader() (reader io.ReadCloser, err error) {
 	return resp.Body, nil
 }
 
+// GetContent returns the HTML content of this message.
 func (m *EmailMessage) GetContent() (content []byte, err error) {
 	reader, err := m.GetContentReader()
 
@@ -191,29 +203,39 @@ func doGetNodeAttribute(t *testing.T, node *html.Node, key string) string {
 func doGetLastEmailMessageWithSubject(t *testing.T, subject string) (message EmailMessage) {
 	t.Helper()
 
-	messages := doGetEmailMessages(t)
-
-	for i := len(messages) - 1; i >= 0; i-- {
-		if subject == messages[i].Subject && !messages[i].Read {
-			return messages[i]
+	err := utils.CheckUntil(emailPollInterval, emailPollTimeout, func() (bool, error) {
+		messages, err := doGetEmailMessages()
+		if err != nil {
+			return false, nil
 		}
-	}
 
-	require.Fail(t, "Didn't find the message.")
+		for i := len(messages) - 1; i >= 0; i-- {
+			if subject == messages[i].Subject && !messages[i].Read {
+				message = messages[i]
+
+				return true, nil
+			}
+		}
+
+		return false, nil
+	})
+
+	require.NoError(t, err, "Didn't find the message with subject '%s'.", subject)
 
 	return message
 }
 
-func doGetEmailMessages(t *testing.T) []EmailMessage {
-	t.Helper()
-
+func doGetEmailMessages() (messages []EmailMessage, err error) {
 	var emr EmailMessagesResponse
 
-	res := doHTTPGetQuery(t, fmt.Sprintf("%s/api/v1/messages", MailBaseURL))
+	res, err := doHTTPGetQuery(fmt.Sprintf("%s/api/v1/messages", MailBaseURL))
+	if err != nil {
+		return nil, err
+	}
 
-	err := json.Unmarshal(res, &emr)
+	if err = json.Unmarshal(res, &emr); err != nil {
+		return nil, err
+	}
 
-	require.NoError(t, err)
-
-	return emr.Messages
+	return emr.Messages, nil
 }

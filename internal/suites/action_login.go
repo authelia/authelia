@@ -8,71 +8,57 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const fillFieldAttempts = 10
+
+func (rs *RodSession) doFillFieldUntilSet(t *testing.T, element *rod.Element, value string) {
+	var (
+		text string
+		err  error
+	)
+
+	for i := 0; i < fillFieldAttempts; i++ {
+		if err = element.SelectAllText(); err != nil {
+			break
+		}
+
+		if err = element.Input(value); err != nil {
+			break
+		}
+
+		if text, err = element.Text(); err != nil {
+			break
+		}
+
+		if text == value {
+			return
+		}
+	}
+
+	require.NoError(t, err)
+	require.Equal(t, value, text)
+}
+
 func (rs *RodSession) doFillLoginPageAndClick(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
 	usernameElement := rs.WaitElementLocatedByID(t, page, "username-textfield")
 	passwordElement := rs.WaitElementLocatedByID(t, page, "password-textfield")
-	buttonElement := rs.WaitElementLocatedByID(t, page, "sign-in-button")
-
-username:
-	err := usernameElement.MustSelectAllText().Input(username)
-
-	require.NoError(t, err)
-
-	if usernameElement.MustText() != username {
-		goto username
-	}
-
-password:
-	err = passwordElement.MustSelectAllText().Input(password)
-
-	require.NoError(t, err)
-
-	if passwordElement.MustText() != password {
-		goto password
-	}
+	rs.doFillFieldUntilSet(t, usernameElement, username)
+	rs.doFillFieldUntilSet(t, passwordElement, password)
 
 	if keepMeLoggedIn {
-		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
-		err = keepMeLoggedInElement.Click("left", 1)
-		require.NoError(t, err)
+		rs.ClickElementLocatedByID(t, page, "remember-checkbox")
 	}
 
-click:
-	err = buttonElement.Click("left", 1)
-
-	require.NoError(t, err)
-
-	if buttonElement.MustInteractable() {
-		goto click
-	}
+	rs.ClickElementLocatedByID(t, page, "sign-in-button")
 }
 
 func (rs *RodSession) doFillPasswordAndClick(t *testing.T, page *rod.Page, password string) {
-	var err error
-
 	element := rs.WaitElementLocatedByID(t, page, "password-textfield")
-	button := rs.WaitElementLocatedByID(t, page, "sign-in-button")
 
-password:
-	err = element.MustSelectAllText().Input(password)
+	rs.doFillFieldUntilSet(t, element, password)
 
-	require.NoError(t, err)
-
-	if element.MustText() != password {
-		goto password
-	}
-
-click:
-	err = button.Click("left", 1)
-
-	require.NoError(t, err)
-
-	if button.MustInteractable() {
-		goto click
-	}
+	rs.ClickElementLocatedByID(t, page, "sign-in-button")
 }
 
-// Login 1FA.
 func (rs *RodSession) doLoginOneFactor(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, domain, targetURL string) {
 	rs.doVisitLoginPage(t, page, domain, targetURL)
 	rs.doFillLoginPageAndClick(t, page, username, password, keepMeLoggedIn)
@@ -82,16 +68,12 @@ func (rs *RodSession) doLoginPasskey(t *testing.T, page *rod.Page, keepMeLoggedI
 	rs.doVisitLoginPage(t, page, domain, targetURL)
 
 	if keepMeLoggedIn {
-		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
-		require.NoError(t, keepMeLoggedInElement.Click("left", 1))
+		rs.ClickElementLocatedByID(t, page, "remember-checkbox")
 	}
 
-	passkeyElement := rs.WaitElementLocatedByID(t, page, "passkey-sign-in-button")
-
-	require.NoError(t, passkeyElement.Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "passkey-sign-in-button")
 }
 
-// Login 1FA and 2FA subsequently (must already be registered).
 func (rs *RodSession) doLoginSecondFactorTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, targetURL string) {
 	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, targetURL)
 	rs.verifyIsSecondFactorPage(t, page)
@@ -102,7 +84,6 @@ func (rs *RodSession) doLoginSecondFactorTOTP(t *testing.T, page *rod.Page, user
 	}
 }
 
-// Login 1FA and register 2FA.
 func (rs *RodSession) doLoginAndRegisterTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool) {
 	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, "")
 	rs.doOpenSettingsAndRegisterTOTP(t, page, username)
@@ -110,9 +91,7 @@ func (rs *RodSession) doLoginAndRegisterTOTP(t *testing.T, page *rod.Page, usern
 	rs.verifyIsSecondFactorPage(t, page)
 }
 
-// Register a user with TOTP, logout and then authenticate until TOTP-2FA.
 func (rs *RodSession) doRegisterTOTPAndLogin2FA(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, targetURL string) { //nolint:unparam
-	// Register TOTP secret and logout.
 	rs.doLoginAndRegisterTOTPThenLogout(t, page, username, password)
 	rs.doLoginSecondFactorTOTP(t, page, username, password, keepMeLoggedIn, targetURL)
 }

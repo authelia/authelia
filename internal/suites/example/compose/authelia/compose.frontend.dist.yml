@@ -1,12 +1,14 @@
 ---
 services:
   authelia-frontend:
-    image: 'nginx:1.31.3-alpine'
+    image: 'nginx:1.31.4-alpine'
+    cpus: 2
+    mem_limit: 1g
     volumes:
       - './example/compose/authelia/resources/nginx.conf:/etc/nginx/nginx.conf'
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.authelia_frontend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/`)'  # yamllint disable-line rule:line-length
+      traefik.http.routers.authelia_frontend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix:-}/`)'  # yamllint disable-line rule:line-length
       traefik.http.routers.authelia_frontend.entrypoints: 'https'
       traefik.http.routers.authelia_frontend.tls: 'true'
       traefik.http.services.authelia_frontend.loadbalancer.server.port: '3000'

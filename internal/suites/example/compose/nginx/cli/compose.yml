@@ -1,7 +1,7 @@
 ---
 services:
   nginx-cli:
-    image: nginx:1.31.3-alpine
+    image: nginx:1.31.4-alpine
     volumes:
       - ./example/compose/nginx/cli/nginx.conf:/etc/nginx/nginx.conf
       - ./common/pki:/pki
@@ -11,5 +11,5 @@ services:
           - public.example.com
           - secure.example.com
         # Set the IP to be able to query on port 443
-        ipv4_address: 192.168.240.100
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.100
 ...

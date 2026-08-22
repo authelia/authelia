@@ -3,7 +3,7 @@ export default {
     bracketSpacing: true,
     overrides: [
         {
-            files: ["package.json"],
+            files: ["components.json", "package.json"],
             options: {
                 tabWidth: 2,
             },

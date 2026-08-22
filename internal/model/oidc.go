@@ -273,7 +273,7 @@ type OAuth2ConsentSession struct {
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
 	GrantedClaims     StringSlicePipeDelimited `db:"granted_claims"`
 
-	PreConfiguration sql.NullInt64
+	PreConfiguration sql.NullInt64 `db:"preconfiguration"`
 }
 
 // GetRequestedAt returns the requested at value.
@@ -361,18 +361,22 @@ func (s *OAuth2ConsentSession) GetForm() (form url.Values, err error) {
 	return url.ParseQuery(s.Form)
 }
 
+// GetRequestedScopes returns the requested scopes.
 func (s *OAuth2ConsentSession) GetRequestedScopes() []string {
 	return s.RequestedScopes
 }
 
+// GetGrantedScopes returns the granted scopes.
 func (s *OAuth2ConsentSession) GetGrantedScopes() []string {
 	return s.GrantedScopes
 }
 
+// GetRequestedAudience returns the requested audience.
 func (s *OAuth2ConsentSession) GetRequestedAudience() []string {
 	return s.RequestedAudience
 }
 
+// GetGrantedAudience returns the granted audience.
 func (s *OAuth2ConsentSession) GetGrantedAudience() []string {
 	return s.GrantedAudience
 }
@@ -477,18 +481,22 @@ func (s *OAuth2DeviceCodeSession) GetForm() (form url.Values, err error) {
 	return url.ParseQuery(s.Form)
 }
 
+// GetRequestedScopes returns the requested scopes.
 func (s *OAuth2DeviceCodeSession) GetRequestedScopes() []string {
 	return s.RequestedScopes
 }
 
+// GetGrantedScopes returns the granted scopes.
 func (s *OAuth2DeviceCodeSession) GetGrantedScopes() []string {
 	return s.GrantedScopes
 }
 
+// GetRequestedAudience returns the requested audience.
 func (s *OAuth2DeviceCodeSession) GetRequestedAudience() []string {
 	return s.RequestedAudience
 }
 
+// GetGrantedAudience returns the granted audience.
 func (s *OAuth2DeviceCodeSession) GetGrantedAudience() []string {
 	return s.GrantedAudience
 }
@@ -551,6 +559,7 @@ type OAuth2PushedAuthorizationSession struct {
 	Session              []byte                   `db:"session_data"`
 }
 
+// ToAuthorizeRequest returns the *oauthelia2.AuthorizeRequest this session was created from.
 func (par *OAuth2PushedAuthorizationSession) ToAuthorizeRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.AuthorizeRequest, err error) {
 	if session != nil {
 		if err = json.Unmarshal(par.Session, session); err != nil {

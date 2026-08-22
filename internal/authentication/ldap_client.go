@@ -11,3 +11,11 @@ type LDAPClient struct {
 func (c *LDAPClient) Discovery() (discovery LDAPDiscovery) {
 	return c.discovery
 }
+
+func (c *LDAPClient) setDiscovery(discovery LDAPDiscovery) {
+	c.discovery = discovery
+}
+
+type ldapDiscoverySetter interface {
+	setDiscovery(discovery LDAPDiscovery)
+}

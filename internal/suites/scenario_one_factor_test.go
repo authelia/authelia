@@ -39,8 +39,7 @@ func (s *OneFactorScenario) TearDownSuite() {
 }
 
 func (s *OneFactorScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *OneFactorScenario) TearDownTest() {
@@ -129,7 +128,6 @@ func (s *OneFactorScenario) TestShouldDenyAccessOnForbidden() {
 
 	targetURL := fmt.Sprintf("%s/secret.html", DenyBaseURL)
 	s.doVisit(s.T(), s.Context(ctx), targetURL)
-	s.NoError(s.WaitStable(time.Millisecond * 10))
 
 	s.verifyURLIs(s.T(), s.Context(ctx), targetURL)
 	s.verifyBodyContains(s.T(), s.Context(ctx), "403 Forbidden")

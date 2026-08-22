@@ -12,6 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 )
 
+// ProvisionUsersFileWatcher returns a Provider which watches the file based user database for changes.
 func ProvisionUsersFileWatcher(ctx Context) (service Provider, err error) {
 	config := ctx.GetConfiguration()
 	providers := ctx.GetProviders()
@@ -82,6 +83,10 @@ func NewFileWatcher(name, path string, reload ReloadableProvider, log *logrus.En
 	}
 
 	if err = service.watcher.Add(service.directory); err != nil {
+		if errClose := service.watcher.Close(); errClose != nil {
+			entry.WithError(errClose).Error("Error occurred closing the file watcher")
+		}
+
 		return nil, fmt.Errorf("failed to add path '%s' to watch list: %w", path, err)
 	}
 
@@ -127,43 +132,55 @@ func (service *FileWatcher) Run() (err error) {
 				return nil
 			}
 
-			log := service.log.WithFields(map[string]any{logFieldFile: event.Name, logFieldOP: event.Op})
-
-			if service.file != "" && service.file != filepath.Base(event.Name) {
-				log.Trace("File modification detected to irrelevant file")
-				break
-			}
-
-			switch {
-			case event.Op&fsnotify.Write == fsnotify.Write, event.Op&fsnotify.Create == fsnotify.Create:
-				log.Debug("File modification was detected")
-
-				var reloaded bool
-
-				switch reloaded, err = service.reload.Reload(); {
-				case err != nil:
-					var e errWatcher
-					if errors.As(err, &e) && !e.WatcherReloadErrorCritical() {
-						log.WithError(err).Debug("Reload was triggered but it was skipped")
-					} else {
-						log.WithError(err).Error("Error occurred during reload")
-					}
-				case reloaded:
-					log.Info("Reloaded successfully")
-				default:
-					log.Debug("Reload was triggered but it was skipped")
-				}
-			case event.Op&fsnotify.Remove == fsnotify.Remove:
-				log.Debug("File remove was detected")
-			}
-		case err, ok := <-service.watcher.Errors:
+			service.handleEvent(event)
+		case errWatch, ok := <-service.watcher.Errors:
 			if !ok {
 				return nil
 			}
 
-			service.log.WithError(err).Error("Error while watching file for changes")
+			service.handleError(errWatch)
 		}
 	}
+}
+
+func (service *FileWatcher) handleEvent(event fsnotify.Event) {
+	log := service.log.WithFields(map[string]any{logFieldFile: event.Name, logFieldOP: event.Op})
+
+	if service.file != "" && service.file != filepath.Base(event.Name) {
+		log.Trace("File modification detected to irrelevant file")
+
+		return
+	}
+
+	switch {
+	case event.Op&fsnotify.Write == fsnotify.Write, event.Op&fsnotify.Create == fsnotify.Create:
+		log.Debug("File modification was detected")
+
+		var (
+			reloaded bool
+			err      error
+		)
+
+		switch reloaded, err = service.reload.Reload(); {
+		case err != nil:
+			var e errWatcher
+			if errors.As(err, &e) && !e.WatcherReloadErrorCritical() {
+				log.WithError(err).Debug("Reload was triggered but it was skipped")
+			} else {
+				log.WithError(err).Error("Error occurred during reload")
+			}
+		case reloaded:
+			log.Info("Reloaded successfully")
+		default:
+			log.Debug("Reload was triggered but it was skipped")
+		}
+	case event.Op&fsnotify.Remove == fsnotify.Remove:
+		log.Debug("File remove was detected")
+	}
+}
+
+func (service *FileWatcher) handleError(err error) {
+	service.log.WithError(err).Error("Error while watching file for changes")
 }
 
 // Shutdown the FileWatcher.

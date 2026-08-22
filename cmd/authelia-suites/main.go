@@ -1,3 +1,4 @@
+// Command authelia-suites manages the environment of an integration suite.
 package main
 
 import (
@@ -14,9 +15,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var tmpDirectory = "/tmp/authelia/suites/"
-
-// runningSuiteFile name of the file containing the currently running suite.
 var runningSuiteFile = ".suite"
 
 func init() {
@@ -117,7 +115,7 @@ func setupSuite(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	suiteTmpDirectory := tmpDirectory + suiteName
+	suiteTmpDirectory := suites.SuiteTmpPath("authelia", "suites", suiteName)
 
 	if exist {
 		err := copy.Copy(suiteResourcePath, suiteTmpDirectory)
@@ -131,13 +129,19 @@ func setupSuite(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// Create the .suite file.
 	if err := createRunningSuiteFile(suiteName); err != nil {
 		log.Fatal(err)
 	}
 
 	if err = s.SetUp(suiteTmpDirectory); err != nil {
 		log.Error("Failure during environment deployment.")
+
+		if s.OnError != nil {
+			if errLogs := s.OnError(); errLogs != nil {
+				log.Errorf("Error collecting suite logs: %v", errLogs)
+			}
+		}
+
 		teardownSuite(nil, args)
 		log.Fatal(err)
 	}
@@ -178,7 +182,7 @@ func teardownSuite(cmd *cobra.Command, args []string) {
 
 	s := suites.GlobalRegistry.Get(args[0])
 
-	suiteTmpDirectory := tmpDirectory + args[0]
+	suiteTmpDirectory := suites.SuiteTmpPath("authelia", "suites", args[0])
 	if err := s.TearDown(suiteTmpDirectory); err != nil {
 		log.Fatal(err)
 	}

@@ -52,7 +52,7 @@ func IsStringInSliceF(needle string, haystack []string, isEqual func(needle, ite
 	return false
 }
 
-// IsStringInSliceFold checks if a single string is in a slice of strings but uses strings.EqualFold to compare them.
+// IsStringInSliceFold checks if a single string is in a slice of strings but uses [strings.EqualFold] to compare them.
 func IsStringInSliceFold(needle string, haystack []string) (inSlice bool) {
 	for _, b := range haystack {
 		if strings.EqualFold(b, needle) {
@@ -171,7 +171,7 @@ func URLsFromStringSlice(urls []string) []*url.URL {
 	return result
 }
 
-// OriginFromURL returns an origin url.URL given another url.URL.
+// OriginFromURL returns an origin [url.URL] given another [url.URL].
 func OriginFromURL(u *url.URL) (origin *url.URL) {
 	return &url.URL{
 		Scheme: u.Scheme,
@@ -247,14 +247,17 @@ func JoinAndCanonicalizeHeaders(sep []byte, headers ...string) (joined []byte) {
 	return joined
 }
 
+// StringJoinOr joins the given items with commas and the word 'or' before the final item.
 func StringJoinOr(items []string) string {
 	return StringJoinComma("or", items)
 }
 
+// StringJoinAnd joins the given items with commas and the word 'and' before the final item.
 func StringJoinAnd(items []string) string {
 	return StringJoinComma("and", items)
 }
 
+// StringJoinComma joins the given items with commas and the given word before the final item.
 func StringJoinComma(word string, items []string) string {
 	if word == "" {
 		return StringJoinBuild(",", "", "'", items)
@@ -263,6 +266,7 @@ func StringJoinComma(word string, items []string) string {
 	return StringJoinBuild(",", word, "'", items)
 }
 
+// StringJoinBuild joins the given items with the given separators and quote character.
 func StringJoinBuild(sep, sepFinal, quote string, items []string) string {
 	n := len(items)
 
@@ -305,13 +309,13 @@ func StringJoinBuild(sep, sepFinal, quote string, items []string) string {
 }
 
 // StringHasSuffixFold checks if a string s ends with a suffix without consideration to case. The suffix logic is taken
-// from strings.HasSuffix() to ensure correctness.
+// from [strings.HasSuffix]() to ensure correctness.
 func StringHasSuffixFold(s, suffix string) bool {
 	return len(s) >= len(suffix) && strings.EqualFold(s[len(s)-len(suffix):], suffix)
 }
 
 // StringHasPrefixFold checks if a string s starts with a prefix without consideration to case. The prefix logic is
-// taken from strings.HasPrefix() to ensure correctness.
+// taken from [strings.HasPrefix]() to ensure correctness.
 func StringHasPrefixFold(s, prefix string) bool {
 	return len(s) >= len(prefix) && strings.EqualFold(s[:len(prefix)], prefix)
 }

@@ -14,15 +14,15 @@ overrides:
   fast-uri: 4.1.2
   flatted: 3.4.4
   glob: 13.0.6
-  js-yaml: 5.2.3
+  js-yaml: 5.3.0
   minimatch: 10.2.6
   nanoid: 6.0.1
-  next: 16.2.12
+  next: 16.3.1
   picomatch: 4.0.5
-  postcss: 8.5.25
+  postcss: 8.5.26
   prismjs: 1.30.0
-  rollup: 4.62.4
+  rollup: 4.62.5
   sharp: 0.35.3
   socket.io-parser: 4.2.7
-  vite: 8.2.1
-  ws: 8.21.2
+  vite: 8.2.2
+  ws: 8.21.3

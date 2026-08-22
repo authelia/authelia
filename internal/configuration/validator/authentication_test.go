@@ -120,8 +120,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
 		Algorithm:  schema.SHA512Lower,
-		Iterations: 1000000,
-		SaltLength: 8,
+		Iterations: 1000000, //nolint:staticcheck
+		SaltLength: 8,       //nolint:staticcheck
 	}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
@@ -141,8 +141,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
 		Algorithm:  schema.SHA512Lower,
-		Iterations: 1000000,
-		SaltLength: 8,
+		Iterations: 1000000, //nolint:staticcheck
+		SaltLength: 8,       //nolint:staticcheck
 		SHA2Crypt: schema.AuthenticationBackendFilePasswordSHA2Crypt{
 			Variant:    schema.SHA256Lower,
 			Iterations: 50000,
@@ -167,8 +167,8 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
 		Algorithm:  schema.SHA512Lower,
-		Iterations: 1000000,
-		SaltLength: 64,
+		Iterations: 1000000, //nolint:staticcheck
+		SaltLength: 64,      //nolint:staticcheck
 	}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
@@ -188,11 +188,11 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
 		Algorithm:   "argon2id",
-		Iterations:  4,
-		Memory:      1024,
-		Parallelism: 4,
-		KeyLength:   64,
-		SaltLength:  64,
+		Iterations:  4,    //nolint:staticcheck
+		Memory:      1024, //nolint:staticcheck
+		Parallelism: 4,    //nolint:staticcheck
+		KeyLength:   64,   //nolint:staticcheck
+		SaltLength:  64,   //nolint:staticcheck
 	}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)
@@ -215,11 +215,11 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 
 	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
 		Algorithm:   "argon2id",
-		Iterations:  4,
-		Memory:      1024,
-		Parallelism: 4,
-		KeyLength:   64,
-		SaltLength:  64,
+		Iterations:  4,    //nolint:staticcheck
+		Memory:      1024, //nolint:staticcheck
+		Parallelism: 4,    //nolint:staticcheck
+		KeyLength:   64,   //nolint:staticcheck
+		SaltLength:  64,   //nolint:staticcheck
 		Argon2: schema.AuthenticationBackendFilePasswordArgon2{
 			Variant:     "argon2d",
 			Iterations:  1,
@@ -1488,12 +1488,7 @@ func (suite *LDAPImplementationSuite) EqualImplementationDefaults(expected schem
 	suite.Equal(expected.GroupsFilter, suite.config.LDAP.GroupsFilter)
 	suite.Equal(expected.GroupSearchMode, suite.config.LDAP.GroupSearchMode)
 
-	suite.Equal(expected.Attributes.DistinguishedName, suite.config.LDAP.Attributes.DistinguishedName)
-	suite.Equal(expected.Attributes.Username, suite.config.LDAP.Attributes.Username)
-	suite.Equal(expected.Attributes.DisplayName, suite.config.LDAP.Attributes.DisplayName)
-	suite.Equal(expected.Attributes.Mail, suite.config.LDAP.Attributes.Mail)
-	suite.Equal(expected.Attributes.MemberOf, suite.config.LDAP.Attributes.MemberOf)
-	suite.Equal(expected.Attributes.GroupName, suite.config.LDAP.Attributes.GroupName)
+	suite.Equal(expected.Attributes, suite.config.LDAP.Attributes)
 }
 
 func (suite *LDAPImplementationSuite) NotEqualImplementationDefaults(expected schema.AuthenticationBackendLDAP) {

@@ -42,8 +42,7 @@ func (s *DuoPushWebDriverSuite) TearDownSuite() {
 }
 
 func (s *DuoPushWebDriverSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *DuoPushWebDriverSuite) TearDownTest() {
@@ -134,18 +133,14 @@ func (s *DuoPushWebDriverSuite) TestShouldAutoSelectDevice() {
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
-	// Authenticate.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	// Switch Method where single Device should be selected automatically.
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Re-Login the user.
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
-	// And check the latest method and device is still used.
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
-	// Meaning the authentication is successful.
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
 
@@ -174,24 +169,17 @@ func (s *DuoPushWebDriverSuite) TestShouldSelectDevice() {
 	ConfigureDuoPreAuth(s.T(), PreAuthAPIResponse)
 	ConfigureDuo(s.T(), Allow)
 
-	// Authenticate.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	// Switch Method where Device Selection should open automatically.
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-	// Check for available Device 1.
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "device-12345ABCDEFGHIJ67890")
-	// Test Back button.
 	s.doClickButton(s.T(), s.Context(ctx), "device-selection-back")
-	// then select Device 2 for further use and be redirected.
 	s.doChangeDevice(s.T(), s.Context(ctx), "1234567890ABCDEFGHIJ")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Re-Login the user.
 	s.doLogout(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
-	// And check the latest method and device is still used.
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "push-notification-method")
-	// Meaning the authentication is successful.
 	s.verifyIsHome(s.T(), s.Context(ctx))
 }
 
@@ -289,8 +277,9 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionBypasse
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-	s.doClickButton(s.T(), s.Context(ctx), "selection-link")
-	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Device selection was bypassed by Duo policy")
+	s.verifyNotificationDisplayedDuring(s.T(), s.Context(ctx), "Device selection was bypassed by Duo policy", func() {
+		s.doClickButton(s.T(), s.Context(ctx), "selection-link")
+	})
 }
 
 func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied() {
@@ -310,8 +299,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailSelectionBecauseOfSelectionDenied(
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
-	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "selection-link").Click("left", 1)
-	require.NoError(s.T(), err)
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "selection-link")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Device selection was denied by Duo policy")
 }
 
@@ -420,8 +408,7 @@ func (s *DuoPushDefaultRedirectionSuite) TearDownSuite() {
 }
 
 func (s *DuoPushDefaultRedirectionSuite) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *DuoPushDefaultRedirectionSuite) TearDownTest() {

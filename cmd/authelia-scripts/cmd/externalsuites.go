@@ -3,8 +3,10 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
+	"slices"
 	"sort"
 	"strings"
 	"syscall"
@@ -23,8 +25,6 @@ var (
 	externalUpdateSnapshots bool
 )
 
-// externalSuiteTestEntrypoints maps a registered external suite name to its Go test entry
-// function.
 var externalSuiteTestEntrypoints = map[string]string{
 	"docs":      "TestDocsSuite",
 	"templates": "TestTemplatesSuite",
@@ -124,14 +124,19 @@ func cmdSuitesExternalTestRun(_ *cobra.Command, args []string) {
 	}
 
 	testCmdLine := fmt.Sprintf(
-		"go test -count=1 -v -tags=externalsuites ./internal/suites -timeout %s %s-run '^(%s)$'",
+		"go test -count=1 -v -json -tags=externalsuites ./internal/suites -timeout %s %s-run '^(%s)$'",
 		timeout, failfast, entrypoint,
 	)
 
 	log.Infof("Running external suite %s: %s", suiteName, testCmdLine)
 
+	results, err := os.Create(fmt.Sprintf(testResultsFileFmt, suiteName))
+	if err != nil {
+		log.Fatalf("Error creating the test results file: %v", err)
+	}
+
 	cmd := utils.CommandWithStdout("bash", "-c", testCmdLine)
-	cmd.Stdout = os.Stdout
+	cmd.Stdout = io.MultiWriter(results, &testOutputWriter{out: os.Stdout})
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "SUITES_LOG_LEVEL="+log.GetLevel().String())
@@ -146,6 +151,10 @@ func cmdSuitesExternalTestRun(_ *cobra.Command, args []string) {
 
 	testErr := cmd.Run()
 
+	if err = results.Close(); err != nil {
+		log.Warnf("Error closing the test results file: %v", err)
+	}
+
 	switch {
 	case interrupted:
 		os.Exit(130)
@@ -155,10 +164,8 @@ func cmdSuitesExternalTestRun(_ *cobra.Command, args []string) {
 }
 
 func checkExternalSuiteAvailable(name string) {
-	for _, registered := range suites.ExternalGlobalRegistry.Suites() {
-		if registered == name {
-			return
-		}
+	if slices.Contains(suites.ExternalGlobalRegistry.Suites(), name) {
+		return
 	}
 
 	log.Fatal(errors.New("external suite named " + name + " does not exist"))

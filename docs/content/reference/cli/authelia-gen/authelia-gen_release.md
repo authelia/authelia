@@ -19,7 +19,7 @@ seo:
 Prepare a release by updating version references, accepts one argument of either major, minor, or patch
 
 ```
-authelia-gen release [flags]
+authelia-gen release {major|minor|patch} [flags]
 ```
 
 ### Options

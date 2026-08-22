@@ -3,6 +3,7 @@ package storage
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"os"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
@@ -60,7 +61,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode: "verify-full",
 						},
 					},
@@ -76,7 +77,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode: "verify-ca",
 						},
 					},
@@ -92,7 +93,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode: "require",
 						},
 					},
@@ -108,7 +109,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode: "disable",
 						},
 					},
@@ -124,7 +125,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
 						},
@@ -141,7 +142,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.crt",
@@ -160,7 +161,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.cert",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.crt",
@@ -179,7 +180,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.crt",
@@ -198,7 +199,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.cert",
@@ -217,7 +218,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.crt",
@@ -236,7 +237,7 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
 						},
-						SSL: &schema.StoragePostgreSQLSSL{
+						SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
 							Mode:            "verify-ca",
 							RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.pem",
 							Certificate:     "../configuration/test_resources/crypto/rsa.2048.crt",
@@ -257,6 +258,119 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 			assert.NotNil(t, provider)
 		})
 	}
+}
+
+func TestLoadPostgreSQLLegacyTLSConfig(t *testing.T) {
+	testCases := []struct {
+		name             string
+		mode             string
+		rootCertificate  string
+		globalCACertPool *x509.CertPool
+		nilTLSConfig     bool
+		assert           func(t *testing.T, tlsConfig *tls.Config)
+	}{
+		{
+			name:             "ShouldReturnNilOnDisable",
+			mode:             "disable",
+			globalCACertPool: x509.NewCertPool(),
+			nilTLSConfig:     true,
+		},
+		{
+			name:             "ShouldHandleNilGlobalCACertPool",
+			mode:             "require",
+			globalCACertPool: nil,
+		},
+		{
+			name:             "ShouldHandleNilGlobalCACertPoolWithRootCertificate",
+			mode:             "verify-ca",
+			rootCertificate:  "../configuration/test_resources/crypto/ca.rsa.2048.crt",
+			globalCACertPool: nil,
+		},
+		{
+			name:             "ShouldHandleGlobalCACertPool",
+			mode:             "require",
+			globalCACertPool: x509.NewCertPool(),
+		},
+		{
+			name:             "ShouldHandleGlobalCACertPoolWithRootCertificate",
+			mode:             "verify-ca",
+			rootCertificate:  "../configuration/test_resources/crypto/ca.rsa.2048.crt",
+			globalCACertPool: x509.NewCertPool(),
+		},
+		{
+			name:             "ShouldHandleNilAddressOnVerifyFull",
+			mode:             "verify-full",
+			globalCACertPool: x509.NewCertPool(),
+			assert: func(t *testing.T, tlsConfig *tls.Config) {
+				assert.False(t, tlsConfig.InsecureSkipVerify)
+				assert.Empty(t, tlsConfig.ServerName)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.StoragePostgreSQL{
+				SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
+					Mode:            tc.mode,
+					RootCertificate: tc.rootCertificate,
+				},
+			}
+
+			var tlsConfig *tls.Config
+
+			require.NotPanics(t, func() {
+				tlsConfig = loadPostgreSQLLegacyTLSConfig(config, tc.globalCACertPool)
+			})
+
+			if tc.nilTLSConfig {
+				assert.Nil(t, tlsConfig)
+
+				return
+			}
+
+			require.NotNil(t, tlsConfig)
+			assert.NotNil(t, tlsConfig.RootCAs)
+
+			if tc.assert != nil {
+				tc.assert(t, tlsConfig)
+			}
+		})
+	}
+}
+
+func TestLoadPostgreSQLLegacyTLSConfigShouldNotMutateGlobalCACertPool(t *testing.T) {
+	dataGlobal, err := os.ReadFile("../configuration/test_resources/crypto/ca.rsa.4096.crt")
+	require.NoError(t, err)
+
+	dataRoot, err := os.ReadFile("../configuration/test_resources/crypto/ca.rsa.2048.crt")
+	require.NoError(t, err)
+
+	globalCACertPool := x509.NewCertPool()
+	require.True(t, globalCACertPool.AppendCertsFromPEM(dataGlobal))
+
+	expectedGlobal := x509.NewCertPool()
+	require.True(t, expectedGlobal.AppendCertsFromPEM(dataGlobal))
+
+	expectedRootCAs := x509.NewCertPool()
+	require.True(t, expectedRootCAs.AppendCertsFromPEM(dataGlobal))
+	require.True(t, expectedRootCAs.AppendCertsFromPEM(dataRoot))
+
+	config := &schema.StoragePostgreSQL{
+		SSL: &schema.StoragePostgreSQLSSL{ //nolint:staticcheck
+			Mode:            "verify-ca",
+			RootCertificate: "../configuration/test_resources/crypto/ca.rsa.2048.crt",
+		},
+	}
+
+	tlsConfig := loadPostgreSQLLegacyTLSConfig(config, globalCACertPool)
+
+	require.NotNil(t, tlsConfig)
+	require.NotNil(t, tlsConfig.RootCAs)
+
+	assert.True(t, tlsConfig.RootCAs.Equal(expectedRootCAs))
+	assert.True(t, globalCACertPool.Equal(expectedGlobal))
+	assert.False(t, globalCACertPool.Equal(tlsConfig.RootCAs))
 }
 
 func TestDSNPostgreSQLFallbacks(t *testing.T) {

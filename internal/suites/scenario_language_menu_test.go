@@ -33,8 +33,7 @@ func (s *LanguageMenuScenario) TearDownSuite() {
 }
 
 func (s *LanguageMenuScenario) SetupTest() {
-	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Page)
+	s.doSetupTest(HomeBaseURL)
 }
 
 func (s *LanguageMenuScenario) TearDownTest() {
@@ -53,16 +52,17 @@ func (s *LanguageMenuScenario) TestShouldChangePreferredLanguage() {
 	s.doVisitLoginPage(s.T(), s.Context(ctx), BaseDomain, "")
 
 	menu := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "language-button")
-	s.Assert().NoError(menu.Click("left", 1))
+
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "language-button")
 
 	text, err := menu.Text()
 	s.Assert().NoError(err)
 	s.Assert().Equal("English", text)
 
-	afrikaans := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "language-af-ZA")
-	s.Assert().NoError(afrikaans.Click("left", 1))
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "language-af-ZA")
 
-	s.Assert().NoError(s.WaitStable(time.Millisecond * 20))
+	s.waitElementTextIs(s.T(), s.Context(ctx), "#language-button", "Afrikaans")
+	s.waitElementTextIsNot(s.T(), s.Context(ctx), "#sign-in-button", "SIGN IN")
 
 	text, err = menu.Text()
 	s.Assert().NoError(err)
@@ -74,12 +74,11 @@ func (s *LanguageMenuScenario) TestShouldChangePreferredLanguage() {
 	s.Assert().NoError(err)
 	s.Assert().NotEqual("SIGN IN", text)
 
-	s.Assert().NoError(menu.Click("left", 1))
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "language-button")
 
-	english := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "language-en")
-	s.Assert().NoError(english.Click("left", 1))
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "language-en")
 
-	s.Assert().NoError(s.WaitStable(time.Millisecond * 20))
+	s.waitElementTextIs(s.T(), s.Context(ctx), "#sign-in-button", "SIGN IN")
 
 	text, err = button.Text()
 	s.Assert().NoError(err)

@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/otp/totp"
 )
 
+// OptionsTOTP represents a registered TOTP credential and its validation options.
 type OptionsTOTP struct {
 	Secret            string
 	ValidationOptions totp.ValidateOpts
@@ -26,7 +27,7 @@ func (rs *RodSession) doMaybeDeleteTOTP(t *testing.T, page *rod.Page, username s
 
 	require.NoError(t, ctx.Err())
 
-	require.NoError(t, page.WaitStable(time.Millisecond*50))
+	rs.WaitElementLocatedBySelector(t, page, `#one-time-password-panel[data-loading="false"]`)
 
 	has, _, err := page.Has("#one-time-password-delete")
 	require.NoError(t, err)
@@ -39,40 +40,33 @@ func (rs *RodSession) doMaybeDeleteTOTP(t *testing.T, page *rod.Page, username s
 }
 
 func (rs *RodSession) doMustDeleteTOTP(t *testing.T, page *rod.Page, username string) {
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-delete").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "one-time-password-delete")
 
-	rs.doMaybeVerifyIdentity(t, page)
+	rs.doMaybeVerifyIdentity(t, page, "#dialog-delete")
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-delete").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-delete")
 
 	rs.verifyNotificationDisplayed(t, page, "Successfully deleted the One-Time Password")
 
 	rs.DeleteOneTimePassword(username)
 
-	has, _, err := page.Has("#one-time-password-add")
-
-	require.NoError(t, err)
-	require.True(t, has)
+	rs.WaitElementLocatedBySelector(t, page, "#one-time-password-add:not([disabled])")
 }
 
 func (rs *RodSession) doRegisterTOTPStart(t *testing.T, page *rod.Page, username string) {
 	rs.doMaybeDeleteTOTP(t, page, username)
 
-	elementAdd := rs.WaitElementLocatedByID(t, page, "one-time-password-add")
+	rs.ClickElementLocatedByID(t, page, "one-time-password-add")
 
-	require.NoError(t, elementAdd.Click("left", 1))
-
-	rs.doMaybeVerifyIdentity(t, page)
+	rs.doMaybeVerifyIdentity(t, page, "#dialog-next")
 }
 
 func (rs *RodSession) doRegisterTOTPStartBadCode(t *testing.T, page *rod.Page, username string) {
 	rs.doMaybeDeleteTOTP(t, page, username)
 
-	elementAdd := rs.WaitElementLocatedByID(t, page, "one-time-password-add")
+	rs.ClickElementLocatedByID(t, page, "one-time-password-add")
 
-	require.NoError(t, elementAdd.Click("left", 1))
-
-	if rs.isVerifyIdentityShowing(t, page) {
+	if rs.isVerifyIdentityShowing(t, page, "#dialog-next") {
 		rs.doMustVerifyIdentityBadCode(t, page)
 		rs.doMustVerifyIdentity(t, page)
 	}
@@ -85,7 +79,22 @@ func (rs *RodSession) doRegisterTOTPFinish(t *testing.T, page *rod.Page, usernam
 	rs.doEnterOTP(t, page, passcode)
 	rs.verifyNotificationDisplayed(t, page, "Successfully added the One-Time Password")
 
+	rs.WaitElementLocatedByID(t, page, "one-time-password-delete")
+
 	rs.SetOneTimePassword(username, credential)
+}
+
+func (rs *RodSession) doWaitSecretURL(t *testing.T, page *rod.Page) *url.URL {
+	element, err := page.ElementR("#secret-url", "otpauth://")
+	require.NoError(t, err)
+
+	raw, err := element.Text()
+	require.NoError(t, err)
+
+	secretURL, err := url.Parse(raw)
+	require.NoError(t, err)
+
+	return secretURL
 }
 
 func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, invalid bool, username string, algorithm string, digits, period int) {
@@ -95,22 +104,14 @@ func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, inval
 		rs.doRegisterTOTPStart(t, page, username)
 	}
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-advanced").Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-algorithm-"+algorithm).Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-length-"+strconv.Itoa(digits)).Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-period-"+strconv.Itoa(period)).Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "qr-toggle").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "one-time-password-advanced")
+	rs.ClickElementLocatedByID(t, page, "one-time-password-algorithm-"+algorithm)
+	rs.ClickElementLocatedByID(t, page, "one-time-password-length-"+strconv.Itoa(digits))
+	rs.ClickElementLocatedByID(t, page, "one-time-password-period-"+strconv.Itoa(period))
+	rs.ClickElementLocatedByID(t, page, "dialog-next")
+	rs.ClickElementLocatedByID(t, page, "qr-toggle")
 
-	element := rs.WaitElementLocatedByID(t, page, "secret-url")
-
-	raw, err := element.Text()
-	require.NoError(t, err)
-
-	secretURL, err := url.Parse(raw)
-	require.NoError(t, err)
-
-	values := secretURL.Query()
+	values := rs.doWaitSecretURL(t, page).Query()
 
 	credential := RodSuiteCredentialOneTimePassword{
 		Secret: values.Get("secret"),
@@ -146,7 +147,7 @@ func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, inval
 		Algorithm: alg,
 	}
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-next")
 
 	rs.doRegisterTOTPFinish(t, page, username, credential)
 }
@@ -162,18 +163,10 @@ func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page
 	rs.doOpenSettingsMenuClickTwoFactor(t, page)
 	rs.doRegisterTOTPStart(t, page, username)
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "qr-toggle").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-next")
+	rs.ClickElementLocatedByID(t, page, "qr-toggle")
 
-	secretURLElement := rs.WaitElementLocatedByID(t, page, "secret-url")
-
-	secretURLRaw, err := secretURLElement.Text()
-	require.NoError(t, err)
-
-	secretURL, err := url.Parse(secretURLRaw)
-	require.NoError(t, err)
-
-	values := secretURL.Query()
+	values := rs.doWaitSecretURL(t, page).Query()
 
 	credential.Secret = values.Get("secret")
 
@@ -201,25 +194,56 @@ func (rs *RodSession) doOpenSettingsAndRegisterTOTP(t *testing.T, page *rod.Page
 		Algorithm: algorithm,
 	}
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-next")
 
 	rs.doRegisterTOTPFinish(t, page, username, credential)
-
-	require.NoError(t, page.WaitStable(time.Millisecond*50))
-	rs.doHoverAllMuiTooltip(t, page)
-	require.NoError(t, page.WaitStable(time.Millisecond*50))
 
 	rs.doOpenSettingsMenuClickClose(t, page)
 }
 
+const otpSlotSelector = `#otp-input input:not([aria-hidden="true"])`
+
+// otpEntered compares the passcode against the slots that hold it, ignoring the hidden input the field
+// renders alongside them to carry the whole value for autofill.
+const otpEntered = `(passcode) => {
+	const slots = Array.from(document.querySelectorAll('#otp-input input'))
+		.filter((node) => node.getAttribute('aria-hidden') !== 'true');
+
+	// The field is submitted as soon as the last slot is filled and is taken away with the step that
+	// held it, so it having gone means the passcode reached it rather than that it never arrived.
+	if (slots.length === 0) {
+		return true;
+	}
+
+	return slots.map((node) => node.value).join('') === passcode;
+}`
+
+const otpObserved = `() => Array.from(document.querySelectorAll('#otp-input input'))
+	.filter((node) => node.getAttribute('aria-hidden') !== 'true')
+	.map((node) => node.value || '_')
+	.join('')`
+
 func (rs *RodSession) doEnterOTP(t *testing.T, page *rod.Page, passcode string) {
-	inputs := rs.WaitElementsLocatedByID(t, page, "otp-input input")
+	inputs := rs.WaitElementsLocatedBySelector(t, page, otpSlotSelector)
 
-	require.Greater(t, len(inputs), 0)
+	require.Len(t, inputs, len(passcode))
 
-	for i := 0; i < len(passcode); i++ {
-		err := inputs[i].Type(input.Key(passcode[i]))
-		require.NoError(t, err)
+	// A key is typed into each slot in turn. Typing the passcode as a whole into the first slot does not
+	// work: the field takes the key the browser sends to the focused slot but does not carry the rest on
+	// as focus advances, and the field is left empty.
+	for i := 0; i < len(passcode) && i < len(inputs); i++ {
+		require.NoError(t, inputs[i].Type(input.Key(passcode[i])))
+	}
+
+	if err := page.Timeout(elementActionTimeout).Wait(rod.Eval(otpEntered, passcode)); err != nil {
+		observed := "unavailable"
+
+		if result, errEval := page.Eval(otpObserved); errEval == nil {
+			observed = result.Value.Str()
+		}
+
+		require.Failf(t, "One-Time Password was not entered",
+			"expected the field to hold '%s', observed '%s': %v", passcode, observed, err)
 	}
 }
 

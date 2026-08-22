@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/authelia/authelia/v4/internal/suites"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -59,89 +61,19 @@ func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 		pnpmInstall()
 	}
 
-	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
-	prepareHostsFile()
+	// /etc/hosts is machine wide but the addresses behind those names are per slot, so a slotted shell must not claim
+	// it: the tests resolve the suite domains themselves through suites.HostResolverRules and suites.DialContext, and
+	// leaving the file alone is what keeps an unslotted working tree browsable while a slotted one runs.
+	if slot := os.Getenv("SUITE_SLOT"); slot != "" {
+		bootstrapPrintln("Leaving /etc/hosts alone because this shell holds suite slot " + slot)
+	} else {
+		bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
+		prepareHostsFile()
+	}
 
 	fmt.Println()
 	bootstrapPrintln("Run 'authelia-scripts suites setup Standalone' to start Authelia and visit https://home.example.com:8080.")
 	bootstrapPrintln("More details at https://www.authelia.com/contributing/development/build-and-test/")
-}
-
-var hostEntries = []HostEntry{
-	// For unit tests.
-	{Domain: "local.example.com", IP: "127.0.0.1"},
-
-	// For authelia backend.
-	{Domain: "authelia.example.com", IP: "192.168.240.50"},
-
-	// For common tests.
-	{Domain: "login.example.com", IP: "192.168.240.100"},
-	{Domain: "admin.example.com", IP: "192.168.240.100"},
-	{Domain: "singlefactor.example.com", IP: "192.168.240.100"},
-	{Domain: "deny.example.com", IP: "192.168.240.100"},
-	{Domain: "dev.example.com", IP: "192.168.240.100"},
-	{Domain: "home.example.com", IP: "192.168.240.100"},
-	{Domain: "mx1.mail.example.com", IP: "192.168.240.100"},
-	{Domain: "mx2.mail.example.com", IP: "192.168.240.100"},
-	{Domain: "public.example.com", IP: "192.168.240.100"},
-	{Domain: "secure.example.com", IP: "192.168.240.100"},
-	{Domain: "mail.example.com", IP: "192.168.240.100"},
-	{Domain: "duo.example.com", IP: "192.168.240.100"},
-
-	// For HAProxy suite.
-	{Domain: "haproxy.example.com", IP: "192.168.240.100"},
-
-	// Kubernetes dashboard.
-	{Domain: "kubernetes.example.com", IP: "192.168.240.100"},
-
-	// OIDC tester app.
-	{Domain: "oidc.example.com", IP: "192.168.240.100"},
-	{Domain: "oidc-public.example.com", IP: "192.168.240.100"},
-
-	// For Traefik suite.
-	{Domain: "traefik.example.com", IP: "192.168.240.100"},
-
-	// For testing network ACLs.
-	{Domain: "proxy-client1.example.com", IP: "192.168.240.201"},
-	{Domain: "proxy-client2.example.com", IP: "192.168.240.202"},
-	{Domain: "proxy-client3.example.com", IP: "192.168.240.203"},
-
-	// Redis Replicas.
-	{Domain: "redis-node-0.example.com", IP: "192.168.240.110"},
-	{Domain: "redis-node-1.example.com", IP: "192.168.240.111"},
-	{Domain: "redis-node-2.example.com", IP: "192.168.240.112"},
-
-	// Redis Sentinel Replicas.
-	{Domain: "redis-sentinel-0.example.com", IP: "192.168.240.120"},
-	{Domain: "redis-sentinel-1.example.com", IP: "192.168.240.121"},
-	{Domain: "redis-sentinel-2.example.com", IP: "192.168.240.122"},
-
-	// For PAM suite.
-	{Domain: "ssh.example.com", IP: "192.168.240.130"},
-
-	// For multi cookie domain tests.
-	{Domain: "login.example2.com", IP: "192.168.240.100"},
-	{Domain: "admin.example2.com", IP: "192.168.240.100"},
-	{Domain: "singlefactor.example2.com", IP: "192.168.240.100"},
-	{Domain: "dev.example2.com", IP: "192.168.240.100"},
-	{Domain: "home.example2.com", IP: "192.168.240.100"},
-	{Domain: "mx1.mail.example2.com", IP: "192.168.240.100"},
-	{Domain: "mx2.mail.example2.com", IP: "192.168.240.100"},
-	{Domain: "public.example2.com", IP: "192.168.240.100"},
-	{Domain: "secure.example2.com", IP: "192.168.240.100"},
-	{Domain: "mail.example2.com", IP: "192.168.240.100"},
-	{Domain: "duo.example2.com", IP: "192.168.240.100"},
-	{Domain: "login.example3.com", IP: "192.168.240.100"},
-	{Domain: "admin.example3.com", IP: "192.168.240.100"},
-	{Domain: "singlefactor.example3.com", IP: "192.168.240.100"},
-	{Domain: "dev.example3.com", IP: "192.168.240.100"},
-	{Domain: "home.example3.com", IP: "192.168.240.100"},
-	{Domain: "mx1.mail.example3.com", IP: "192.168.240.100"},
-	{Domain: "mx2.mail.example3.com", IP: "192.168.240.100"},
-	{Domain: "public.example3.com", IP: "192.168.240.100"},
-	{Domain: "secure.example3.com", IP: "192.168.240.100"},
-	{Domain: "mail.example3.com", IP: "192.168.240.100"},
-	{Domain: "duo.example3.com", IP: "192.168.240.100"},
 }
 
 func runCommand(cmd string, args ...string) {
@@ -170,7 +102,7 @@ func checkCommandExist(cmd string, resolutionHint string) {
 }
 
 func createTemporaryDirectory() {
-	err := os.MkdirAll("/tmp/authelia", 0755)
+	err := os.MkdirAll(suites.SuiteTmpPath("authelia"), 0755)
 	if err != nil {
 		panic(err)
 	}
@@ -219,6 +151,48 @@ func shell(cmd string) {
 	runCommand("bash", "-c", cmd)
 }
 
+func hostsLineFields(line string) (ip string, domains []string) {
+	if i := strings.IndexByte(line, '#'); i >= 0 {
+		line = line[:i]
+	}
+
+	fields := strings.Fields(line)
+	if len(fields) < 2 {
+		return "", nil
+	}
+
+	return fields[0], fields[1:]
+}
+
+func hostsLineOnlyWants(domains []string, ip string, addresses map[string]string) bool {
+	for _, domain := range domains {
+		if addresses[domain] != ip {
+			return false
+		}
+	}
+
+	return true
+}
+
+func hostsLineWithout(line, domain string) string {
+	comment := ""
+
+	if i := strings.IndexByte(line, '#'); i >= 0 {
+		comment, line = " "+strings.TrimSpace(line[i:]), line[:i]
+	}
+
+	fields := strings.Fields(line)
+	kept := make([]string, 0, len(fields))
+
+	for _, field := range fields {
+		if field != domain {
+			kept = append(kept, field)
+		}
+	}
+
+	return strings.Join(kept, " ") + comment
+}
+
 func prepareHostsFile() {
 	contentBytes, err := readHostsFile()
 	if err != nil {
@@ -229,26 +203,43 @@ func prepareHostsFile() {
 	toBeAddedLine := make([]string, 0)
 	modified := false
 
-	for _, entry := range hostEntries {
+	entries := suites.HostEntries()
+
+	addresses := make(map[string]string, len(entries))
+
+	for _, entry := range entries {
+		addresses[entry.Domain] = entry.IP
+	}
+
+	for _, entry := range entries {
 		domainInHostFile := false
 
 		for i, line := range lines {
-			domainFound := strings.Contains(line, entry.Domain)
-			ipFound := strings.Contains(line, entry.IP)
+			ip, domains := hostsLineFields(line)
 
-			if domainFound {
-				domainInHostFile = true
-
-				// The IP is not up to date.
-				if ipFound {
-					break
-				} else {
-					lines[i] = entry.IP + " " + entry.Domain
-					modified = true
-
-					break
-				}
+			if !slices.Contains(domains, entry.Domain) {
+				continue
 			}
+
+			domainInHostFile = true
+
+			if ip == entry.IP {
+				break
+			}
+
+			// A line carries one address for every name on it, so rewriting it is only safe when all of those names
+			// are ours and all of them want this address. Otherwise the domain moves to a line of its own and the
+			// rest of the line, including any name we do not manage and any trailing comment, is left alone.
+			if hostsLineOnlyWants(domains, entry.IP, addresses) {
+				lines[i] = strings.Replace(line, ip, entry.IP, 1)
+			} else {
+				lines[i] = hostsLineWithout(line, entry.Domain)
+				toBeAddedLine = append(toBeAddedLine, entry.IP+" "+entry.Domain)
+			}
+
+			modified = true
+
+			break
 		}
 
 		if !domainInHostFile {
@@ -261,7 +252,7 @@ func prepareHostsFile() {
 		modified = true
 	}
 
-	fd, err := os.CreateTemp("/tmp/authelia/", "hosts")
+	fd, err := os.CreateTemp(suites.SuiteTmpPath("authelia"), "hosts")
 	if err != nil {
 		panic(err)
 	}
@@ -282,7 +273,6 @@ func prepareHostsFile() {
 	}
 }
 
-// ReadHostsFile reads the hosts file.
 func readHostsFile() ([]byte, error) {
 	bs, err := os.ReadFile("/etc/hosts")
 	if err != nil {

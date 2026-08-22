@@ -3,17 +3,19 @@ package suites
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-// BaseDomain the base domain.
+// Domains used by the suites.
 var (
 	BaseDomain     = "example.com:8080"
 	Example2DotCom = "example2.com:8080"
 	Example3DotCom = "example3.com:8080"
 )
 
+// Hash algorithm name strings.
 const (
 	SHA1   = "SHA1"
 	SHA256 = "SHA256"
@@ -92,11 +94,21 @@ const (
 )
 
 const (
-	envFileProd        = "/web/.env.production"
-	envFileDev         = "/web/.env.development"
-	namespaceAuthelia  = "authelia"
-	namespaceDashboard = "kubernetes-dashboard"
-	namespaceKube      = "kube-system"
+	agentAddressOctet        = 10
+	composeProjectDefault    = "authelia"
+	containerLogLines        = 3000
+	containerLogTailLines    = 15
+	envFileProd              = "/web/.env.production"
+	envFileDev               = "/web/.env.development"
+	namespaceAuthelia        = "authelia"
+	namespaceDashboard       = "kubernetes-dashboard"
+	namespaceKube            = "kube-system"
+	networkAuthelia          = "authelianet"
+	notificationBinding      = "autheliaNotificationObserved"
+	notificationPollInterval = time.Millisecond * 50
+	redisMasterTimeout       = time.Second * 60
+	suiteSubnetDefault       = "192.168.240"
+	suiteTmpPathDefault      = "/tmp"
 )
 
 var (
@@ -108,7 +120,7 @@ var (
 		Storage: schema.Storage{
 			EncryptionKey: "a_not_so_secure_encryption_key",
 			Local: &schema.StorageLocal{
-				Path: "/tmp/db.sqlite3",
+				Path: SuiteTmpPath("db.sqlite3"),
 			},
 		},
 	}
