@@ -1,6 +1,6 @@
 ---
 title: "Security Assertion Markup Language (SAML) 2.0 Provider"
-description: "Authelia Security Assertion Markup Language (SAML) 2.0 Provider Implementation"
+description: "The Authelia roadmap item for the SAML 2.0 Provider role enhancing interoperability with enterprise identity and access management systems and providers."
 summary: "The Security Assertion Markup Language (SAML) 2.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products."
 date: 2025-03-23T19:03:40+11:00
 draft: false

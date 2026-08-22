@@ -1,6 +1,6 @@
 ---
 title: "PostgreSQL"
-description: "PostgreSQL Configuration"
+description: "Configuring the Authelia PostgreSQL storage provider including the server address, database name, schema, credentials, TLS settings, and connection options."
 summary: "The PostgreSQL storage provider."
 date: 2024-03-14T06:00:14+11:00
 draft: false

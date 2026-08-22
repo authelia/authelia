@@ -1,6 +1,6 @@
 ---
 title: "Time-based One-Time Password"
-description: "Configuring the Time-based One-Time Password Second Factor Method."
+description: "Configuring the Authelia Time-based One-Time Password second factor method including the issuer, algorithm, digit count, period, and allowed skew settings."
 summary: "Authelia supports utilizing Time-based One-Time Passwords as a 2FA method."
 date: 2024-03-14T06:00:14+11:00
 draft: false

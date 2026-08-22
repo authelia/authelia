@@ -1,6 +1,6 @@
 ---
 title: "Troubleshooting"
-description: "This guide describes and helps users provide information during troubleshooting including sanitization etc"
+description: "A reference guide on troubleshooting Authelia issues including collecting logs, sanitizing sensitive information, and providing diagnostic data for support."
 summary: "This guide describes and helps users provide troubleshooting information."
 date: 2024-03-14T06:00:14+11:00
 draft: false

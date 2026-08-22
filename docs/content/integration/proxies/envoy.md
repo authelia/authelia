@@ -1,6 +1,6 @@
 ---
 title: "Envoy"
-description: "An integration guide for Authelia and the Envoy reverse proxy"
+description: "An integration guide for Authelia and the Envoy reverse proxy including external authorization filter configuration examples, deployment tips, and key caveats."
 summary: "A guide on integrating Authelia with the Envoy reverse proxy."
 date: 2024-03-14T06:00:14+11:00
 draft: false

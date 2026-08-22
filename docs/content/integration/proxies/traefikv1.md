@@ -1,6 +1,6 @@
 ---
 title: "Traefik v1"
-description: "An integration guide for Authelia and the Traefik v1 reverse proxy"
+description: "A legacy integration guide for Authelia and the Traefik v1 reverse proxy including ForwardAuth configuration examples and important deprecation notes."
 summary: "A guide on integrating Authelia with the Traefik reverse proxy."
 date: 2024-03-14T06:00:14+11:00
 draft: false
