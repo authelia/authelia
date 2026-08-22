@@ -555,6 +555,11 @@
         "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE"
     },
     {
+        "path": "log.disable_timestamp",
+        "secret": false,
+        "env": "AUTHELIA_LOG_DISABLE_TIMESTAMP"
+    },
+    {
         "path": "log.file_path",
         "secret": false,
         "env": "AUTHELIA_LOG_FILE_PATH"
