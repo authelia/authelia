@@ -5,8 +5,6 @@ import (
 	"math/bits"
 )
 
-// bytesCharsetErr returns random data as bytes with n length which only contains byte values from the provided charset.
-// This is accomplished using rejection sampling instead of the modulo operator.
 func bytesCharsetErr(reader io.Reader, n int, charset []byte) (data []byte, err error) {
 	data = make([]byte, n)
 
