@@ -804,10 +804,12 @@ func (ctx *AutheliaCtx) Value(key any) any {
 	return ctx.RequestCtx.Value(key)
 }
 
+// GetCookie returns the value of the request cookie with the given name.
 func (ctx *AutheliaCtx) GetCookie(name string) string {
 	return string(ctx.Request.Header.Cookie(name))
 }
 
+// SetCookie sets the given cookie on the response.
 func (ctx *AutheliaCtx) SetCookie(cookie *http.Cookie) {
 	setCookie := fasthttp.AcquireCookie()
 

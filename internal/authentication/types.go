@@ -41,7 +41,7 @@ func (d *UserDetails) Addresses() (addresses []mail.Address) {
 	return addresses
 }
 
-// Address returns the first email as a mail.Address formatted with DisplayName as the Name attribute.
+// Address returns the first email as a [mail.Address] formatted with DisplayName as the Name attribute.
 func (d *UserDetails) Address() mail.Address {
 	if len(d.Emails) == 0 {
 		return mail.Address{}

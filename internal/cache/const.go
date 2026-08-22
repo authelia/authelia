@@ -1,3 +1,4 @@
+// Package cache provides the cache backends which store session records, either in process memory or in Redis.
 package cache
 
 import (

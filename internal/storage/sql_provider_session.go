@@ -20,38 +20,47 @@ type SessionRepository struct {
 	provider Provider
 }
 
+// Get implements the session.Repository interface.
 func (r SessionRepository) Get(ctx context.Context, issuer, id string) (record session.Record, err error) {
 	return r.provider.SessionGet(ctx, issuer, id)
 }
 
+// GetByPublicID implements the session.Repository interface.
 func (r SessionRepository) GetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error) {
 	return r.provider.SessionGetByPublicID(ctx, issuer, pid)
 }
 
+// GetIDsByUsername implements the session.Repository interface.
 func (r SessionRepository) GetIDsByUsername(ctx context.Context, issuer, username string) (ids []string, err error) {
 	return r.provider.SessionGetIDsByUsername(ctx, issuer, username)
 }
 
+// Save implements the session.Repository interface.
 func (r SessionRepository) Save(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	return r.provider.SessionSave(ctx, issuer, id, pid, username, expiration, data)
 }
 
+// SaveData implements the session.Repository interface.
 func (r SessionRepository) SaveData(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	return r.provider.SessionSaveData(ctx, issuer, id, pid, username, expiration, data)
 }
 
+// Delete implements the session.Repository interface.
 func (r SessionRepository) Delete(ctx context.Context, issuer, id, pid, username string) (err error) {
 	return r.provider.SessionDelete(ctx, issuer, id, pid, username)
 }
 
+// ChangeID implements the session.Repository interface.
 func (r SessionRepository) ChangeID(ctx context.Context, issuer, oldID, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	return r.provider.SessionChangeID(ctx, issuer, oldID, id, pid, username, expiration, data)
 }
 
+// GarbageCollection implements the session.Repository interface.
 func (r SessionRepository) GarbageCollection(ctx context.Context) (err error) {
 	return r.provider.SessionGarbageCollection(ctx)
 }
 
+// GarbageCollectionFrequency implements the session.Repository interface.
 func (r SessionRepository) GarbageCollectionFrequency(ctx context.Context) (frequency time.Duration) {
 	return r.provider.SessionGarbageCollectionFrequency(ctx)
 }

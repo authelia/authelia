@@ -177,6 +177,8 @@ func getFailingTimeoutSeconds(timeout time.Duration) (seconds int) {
 	return seconds
 }
 
+// NewRedis returns a new Redis Provider for the given client, where the variant records which of the standalone,
+// sentinel, or cluster deployments it was built for.
 func NewRedis(client redis.Cmdable, variant string) *Redis {
 	return &Redis{
 		client:  client,
@@ -184,15 +186,18 @@ func NewRedis(client redis.Cmdable, variant string) *Redis {
 	}
 }
 
+// Redis is a Provider which stores sessions in Redis.
 type Redis struct {
 	client  redis.Cmdable
 	variant string
 }
 
+// StartupCheck implements the Provider interface, pinging the server to confirm it is reachable.
 func (r *Redis) StartupCheck() (err error) {
 	return r.client.Ping(context.Background()).Err()
 }
 
+// SessionGet implements the Provider interface.
 func (r *Redis) SessionGet(ctx context.Context, issuer, id string) (record session.Record, err error) {
 	var data []byte
 
@@ -207,6 +212,7 @@ func (r *Redis) SessionGet(ctx context.Context, issuer, id string) (record sessi
 	return session.NewRecord(id, data), nil
 }
 
+// SessionGetByPublicID implements the Provider interface.
 func (r *Redis) SessionGetByPublicID(ctx context.Context, issuer, pid string) (record session.Record, err error) {
 	var id string
 
@@ -243,6 +249,7 @@ func (r *Redis) SessionGetIDsByUsername(ctx context.Context, issuer, username st
 	return zrange.Result()
 }
 
+// SessionSave implements the Provider interface.
 func (r *Redis) SessionSave(ctx context.Context, issuer, id, pid, username string, expiration time.Duration, data []byte) (err error) {
 	pipe := r.client.TxPipeline()
 
@@ -282,6 +289,7 @@ func (r *Redis) SessionSaveData(ctx context.Context, issuer, id, pid, username s
 	return r.SessionSave(ctx, issuer, id, pid, username, expiration, data)
 }
 
+// SessionDelete implements the Provider interface.
 func (r *Redis) SessionDelete(ctx context.Context, issuer, id, pid, username string) (err error) {
 	pipe := r.client.TxPipeline()
 

@@ -140,6 +140,7 @@ func (AddressTCP) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// MarshalYAML marshals the AddressTCP into its string representation, or a null value when it is not valid.
 func (a AddressTCP) MarshalYAML() (any, error) {
 	if !a.valid {
 		return nil, nil
@@ -148,6 +149,7 @@ func (a AddressTCP) MarshalYAML() (any, error) {
 	return a.String(), nil
 }
 
+// MarshalText marshals the AddressTCP into its string representation, or a null value when it is not valid.
 func (a AddressTCP) MarshalText() ([]byte, error) {
 	if !a.valid {
 		return nil, nil
@@ -170,6 +172,7 @@ func (AddressUDP) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// MarshalYAML marshals the AddressUDP into its string representation, or a null value when it is not valid.
 func (a AddressUDP) MarshalYAML() (any, error) {
 	if !a.valid {
 		return nil, nil
@@ -178,6 +181,7 @@ func (a AddressUDP) MarshalYAML() (any, error) {
 	return a.String(), nil
 }
 
+// MarshalText marshals the AddressUDP into its string representation, or a null value when it is not valid.
 func (a AddressUDP) MarshalText() ([]byte, error) {
 	if !a.valid {
 		return nil, nil
@@ -200,6 +204,7 @@ func (AddressLDAP) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// MarshalYAML marshals the AddressLDAP into its string representation, or a null value when it is not valid.
 func (a AddressLDAP) MarshalYAML() (any, error) {
 	if !a.valid {
 		return nil, nil
@@ -208,6 +213,7 @@ func (a AddressLDAP) MarshalYAML() (any, error) {
 	return a.String(), nil
 }
 
+// MarshalText marshals the AddressLDAP into its string representation, or a null value when it is not valid.
 func (a AddressLDAP) MarshalText() ([]byte, error) {
 	if !a.valid {
 		return nil, nil
@@ -230,6 +236,7 @@ func (AddressSMTP) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// MarshalYAML marshals the AddressSMTP into its string representation, or a null value when it is not valid.
 func (a AddressSMTP) MarshalYAML() (any, error) {
 	if !a.valid {
 		return nil, nil
@@ -238,6 +245,7 @@ func (a AddressSMTP) MarshalYAML() (any, error) {
 	return a.String(), nil
 }
 
+// MarshalText marshals the AddressSMTP into its string representation, or a null value when it is not valid.
 func (a AddressSMTP) MarshalText() ([]byte, error) {
 	if !a.valid {
 		return nil, nil
@@ -266,6 +274,7 @@ func (Address) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// MarshalYAML marshals the Address into its string representation, or a null value when it is not valid.
 func (a Address) MarshalYAML() (any, error) {
 	if !a.valid {
 		return nil, nil
@@ -274,6 +283,7 @@ func (a Address) MarshalYAML() (any, error) {
 	return a.String(), nil
 }
 
+// MarshalText marshals the Address into its string representation, or a null value when it is not valid.
 func (a Address) MarshalText() ([]byte, error) {
 	if !a.valid {
 		return nil, nil

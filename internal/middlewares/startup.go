@@ -63,6 +63,8 @@ func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 	return e.FilterError(filters...)
 }
 
+// Finalize completes the provider construction which depends on other providers, resolving the configured session
+// storage backend and the HMAC key the session provider signs identifiers with.
 func (p *Providers) Finalize(ctx ServiceContext) (err error) {
 	var (
 		repository  session.Repository

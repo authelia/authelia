@@ -10,6 +10,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+// NewStrategy returns a new Strategy for the given session cookie configuration. The issuer is the signature of the
+// Authelia URL, falling back to the cookie domain, which scopes every record this strategy stores.
 func NewStrategy(config schema.SessionCookie, clock clock.Provider, codec Codec, storage Repository) (provider Strategy) {
 	sameSite := newSameSite(config.SameSite)
 
@@ -32,6 +34,8 @@ func NewStrategy(config schema.SessionCookie, clock clock.Provider, codec Codec,
 	}
 }
 
+// DefaultStrategy is the default Strategy which stores the session identifier in a cookie and the session data in a
+// Repository, scoped to a single configured session cookie domain.
 type DefaultStrategy struct {
 	config schema.SessionCookie
 
@@ -45,6 +49,7 @@ type DefaultStrategy struct {
 	repository Repository
 }
 
+// GetConfig returns the session cookie configuration of this strategy.
 func (p *DefaultStrategy) GetConfig() (config schema.SessionCookie) {
 	return p.config
 }
@@ -61,10 +66,13 @@ func (p *DefaultStrategy) New(username string) (userSession UserSession) {
 	return userSession
 }
 
+// NewDefault returns an anonymous session bound to this strategies cookie domain.
 func (p *DefaultStrategy) NewDefault() (userSession UserSession) {
 	return p.New("")
 }
 
+// Get returns the session for the given request, returning an anonymous session when the request has no session
+// cookie or the cookie does not resolve to a readable record.
 func (p *DefaultStrategy) Get(ctx Context) (session *UserSession, err error) {
 	_, session, err = p.get(ctx)
 
@@ -123,6 +131,8 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 	return nil
 }
 
+// Regenerate issues a new session identifier for the current session, preserving the session data and public
+// identifier, which mitigates session fixation across an authentication level change.
 func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 	var (
 		oldSID, id string
@@ -158,6 +168,7 @@ func (p *DefaultStrategy) Regenerate(ctx Context) (err error) {
 	return nil
 }
 
+// Destroy removes the backend record for the current session and instructs the user agent to discard the cookie.
 func (p *DefaultStrategy) Destroy(ctx Context) (err error) {
 	defer ctx.ClearCookie(p.newDeletionCookie())
 

@@ -15,6 +15,8 @@ type Identity struct {
 	DisplayName string
 }
 
+// Context is the request context a Strategy operates against, providing access to the cookies of the request and
+// response.
 type Context interface {
 	context.Context
 
@@ -42,6 +44,7 @@ type CachingContext interface {
 	CacheSession(domain string, session *UserSession)
 }
 
+// Provider resolves the Strategy responsible for a given session cookie domain.
 type Provider interface {
 	GetStrategy(domain string) (strategy Strategy, err error)
 }

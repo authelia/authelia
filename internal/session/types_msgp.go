@@ -77,6 +77,7 @@ type TOTP struct {
 	Expires time.Time `msg:"exp"`
 }
 
+// MessagePackAMR is the MessagePack representation of the authentication method references of a session.
 type MessagePackAMR struct {
 	KnowledgeBasedAuthentication bool     `msg:"kba"`
 	UsernameAndPassword          bool     `msg:"pwd"`
