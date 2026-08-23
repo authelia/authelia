@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.13.1",
+    "node": ">=22.22.0",
     "pnpm": "11"
   },
   "dependencies": {
@@ -22,7 +22,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-i18next": "17.0.12",
-    "react-router-dom": "7.18.2",
+    "react-router": "8.3.0",
     "tailwind-merge": "3.6.0",
     "zxcvbn": "4.4.2"
   },

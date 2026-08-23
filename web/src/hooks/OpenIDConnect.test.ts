@@ -1,9 +1,9 @@
 import { renderHook } from "@testing-library/react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 import { useUserCode } from "@hooks/OpenIDConnect";
 
-vi.mock("react-router-dom", () => ({
+vi.mock("react-router", () => ({
     useSearchParams: vi.fn(),
 }));
 

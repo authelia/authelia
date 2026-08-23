@@ -1,10 +1,10 @@
 import { renderHook } from "@testing-library/react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useSignOut } from "@hooks/SignOut";
 
-vi.mock("react-router-dom", () => ({
+vi.mock("react-router", () => ({
     useSearchParams: vi.fn(),
 }));
 

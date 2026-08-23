@@ -3,7 +3,7 @@ import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from
 import { BroadcastChannel } from "broadcast-channel";
 import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import { Alert, AlertTitle } from "@components/UI/Alert";
 import { Button } from "@components/UI/Button";
