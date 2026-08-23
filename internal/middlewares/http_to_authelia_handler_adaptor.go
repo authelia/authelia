@@ -22,12 +22,12 @@ func NewHTTPToAutheliaHandlerAdaptor(handler AutheliaHandlerFunc) RequestHandler
 		r := &http.Request{
 			Header:        make(http.Header),
 			TLS:           ctx.TLSConnectionState(),
-			Proto:         b2s(ctx.Request.Header.Protocol()),
+			Proto:         bytesToString(ctx.Request.Header.Protocol()),
 			ProtoMinor:    1,
 			ContentLength: int64(len(body)),
-			Method:        b2s(ctx.Method()),
-			Host:          b2s(ctx.Host()),
-			RequestURI:    b2s(ctx.RequestURI()),
+			Method:        bytesToString(ctx.Method()),
+			Host:          bytesToString(ctx.Host()),
+			RequestURI:    bytesToString(ctx.RequestURI()),
 			RemoteAddr:    ctx.RemoteAddr().String(),
 			Body:          io.NopCloser(bytes.NewReader(body)),
 		}
@@ -39,8 +39,8 @@ func NewHTTPToAutheliaHandlerAdaptor(handler AutheliaHandlerFunc) RequestHandler
 		}
 
 		for k, v := range ctx.Request.Header.All() {
-			key := b2s(k)
-			value := b2s(v)
+			key := bytesToString(k)
+			value := bytesToString(v)
 
 			switch key {
 			case fasthttp.HeaderTransferEncoding:
@@ -106,7 +106,7 @@ func (w *netHTTPResponseWriter) StatusCode() int {
 	return w.statusCode
 }
 
-// Header returns the http.Header.
+// Header returns the [http.Header].
 func (w *netHTTPResponseWriter) Header() http.Header {
 	if w.h == nil {
 		w.h = make(http.Header)
@@ -126,6 +126,6 @@ func (w *netHTTPResponseWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func b2s(b []byte) string {
+func bytesToString(b []byte) string {
 	return unsafe.String(unsafe.SliceData(b), len(b))
 }

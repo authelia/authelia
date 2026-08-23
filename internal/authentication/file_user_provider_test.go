@@ -854,6 +854,67 @@ func TestShouldAllowLookupCI(t *testing.T) {
 	})
 }
 
+func TestShouldRegenerateAliasesOnReload(t *testing.T) {
+	testCases := []struct {
+		name            string
+		searchEmail     bool
+		searchCI        bool
+		expectedEmails  map[string]string
+		expectedAliases map[string]string
+	}{
+		{
+			"ShouldRegenerateNothing",
+			false,
+			false,
+			map[string]string{},
+			map[string]string{},
+		},
+		{
+			"ShouldRegenerateEmails",
+			true,
+			false,
+			map[string]string{"john.doe@authelia.com": "john"},
+			map[string]string{},
+		},
+		{
+			"ShouldRegenerateAliases",
+			false,
+			true,
+			map[string]string{},
+			map[string]string{"john": "john"},
+		},
+		{
+			"ShouldRegenerateEmailsAndAliases",
+			true,
+			true,
+			map[string]string{"john.doe@authelia.com": "john"},
+			map[string]string{"john": "john"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContent, func(path string) {
+				database := NewFileUserDatabase(path, tc.searchEmail, tc.searchCI, nil)
+
+				require.NoError(t, database.Load())
+
+				require.NoError(t, os.WriteFile(path, UserDatabaseContentSingleUser, fileAuthenticationMode))
+				require.NoError(t, database.Load())
+
+				assert.Equal(t, tc.expectedEmails, database.Emails)
+				assert.Equal(t, tc.expectedAliases, database.Aliases)
+
+				_, err := database.GetUserDetails("harry")
+				assert.EqualError(t, err, "user not found")
+
+				_, err = database.GetUserDetails("harry.potter@authelia.com")
+				assert.EqualError(t, err, "user not found")
+			})
+		})
+	}
+}
+
 func TestNewFileCryptoHashFromConfig(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -1064,6 +1125,17 @@ users:
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     disabled: true
     email: disabled@authelia.com
+`)
+
+var UserDatabaseContentSingleUser = []byte(`
+users:
+  john:
+    displayname: "John Doe"
+    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
 `)
 
 var UserDatabaseContentExtra = []byte(`

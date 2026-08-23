@@ -81,6 +81,7 @@ type Authn struct {
 	Header HeaderAuthorization
 }
 
+// HeaderAuthorization represents the parsed Authorization header of an authorization request.
 type HeaderAuthorization struct {
 	Authorization *model.Authorization
 	Realm         string
@@ -169,6 +170,7 @@ func (i AuthzImplementation) String() string {
 	}
 }
 
+// AuthzBearerIntrospectionProvider is the provider used to introspect bearer tokens during authorization.
 type AuthzBearerIntrospectionProvider interface {
 	GetRegisteredClient(ctx context.Context, id string) (client oidc.Client, err error)
 	GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceStrategy)

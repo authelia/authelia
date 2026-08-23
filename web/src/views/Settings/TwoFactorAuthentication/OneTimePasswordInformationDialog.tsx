@@ -1,18 +1,17 @@
 import { Fragment } from "react";
 
-import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Divider,
-    Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@components/UI/Dialog";
+import { Separator } from "@components/UI/Separator";
 import { FormatDateHumanReadable } from "@i18n/formats";
 import { UserInfoTOTPConfiguration, toAlgorithmString } from "@models/TOTPConfiguration";
 
@@ -26,21 +25,27 @@ const OneTimePasswordInformationDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     return (
-        <Dialog open={props.open} onClose={props.handleClose} aria-labelledby="one-time-password-info-dialog-title">
-            <DialogTitle id="one-time-password-info-dialog-title">
-                {translate("One-Time Password Information")}
-            </DialogTitle>
-            <DialogContent>
+        <Dialog
+            open={props.open}
+            onOpenChange={(open) => {
+                if (!open) props.handleClose();
+            }}
+        >
+            <DialogContent showCloseButton={false} aria-labelledby="one-time-password-info-dialog-title">
+                <DialogHeader>
+                    <DialogTitle id="one-time-password-info-dialog-title">
+                        {translate("One-Time Password Information")}
+                    </DialogTitle>
+                </DialogHeader>
                 {props.config ? (
                     <Fragment>
-                        <DialogContentText sx={{ mb: 3 }}>
+                        <DialogDescription className="mb-6">
                             {translate("Extended information for One-Time Password")}
-                        </DialogContentText>
-                        <Grid container spacing={2}>
-                            <Grid size={{ md: 3 }} sx={{ display: { md: "block", xs: "none" } }} />
-                            <Grid size={{ xs: 12 }}>
-                                <Divider />
-                            </Grid>
+                        </DialogDescription>
+                        <div className="grid grid-cols-12 gap-4">
+                            <div className="col-span-12">
+                                <Separator />
+                            </div>
                             <PropertyText
                                 name={translate("Algorithm")}
                                 value={translate("{{algorithm}}", {
@@ -78,19 +83,19 @@ const OneTimePasswordInformationDialog = function (props: Props) {
                                         : translate("Never")
                                 }
                             />
-                        </Grid>
+                        </div>
                     </Fragment>
                 ) : (
-                    <DialogContentText sx={{ mb: 3 }}>
+                    <DialogDescription className="mb-6">
                         {translate("The One-Time Password information is not loaded")}
-                    </DialogContentText>
+                    </DialogDescription>
                 )}
+                <DialogFooter>
+                    <Button id={"dialog-close"} variant={"ghost"} color={"primary"} onClick={props.handleClose}>
+                        {translate("Close")}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions>
-                <Button id={"dialog-close"} onClick={props.handleClose}>
-                    {translate("Close")}
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 };
@@ -98,17 +103,14 @@ const OneTimePasswordInformationDialog = function (props: Props) {
 interface PropertyTextProps {
     readonly name: string;
     readonly value: string;
-    readonly xs?: number;
 }
 
 function PropertyText(props: PropertyTextProps) {
     return (
-        <Grid size={{ xs: props.xs ?? 12 }}>
-            <Typography display="inline" sx={{ fontWeight: "bold" }}>
-                {`${props.name}: `}
-            </Typography>
-            <Typography display="inline">{props.value}</Typography>
-        </Grid>
+        <div className="col-span-12">
+            <span className="font-bold">{`${props.name}: `}</span>
+            <span>{props.value}</span>
+        </div>
     );
 }
 

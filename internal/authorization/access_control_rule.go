@@ -81,12 +81,10 @@ func (acr *AccessControlRule) IsMatch(subject Subject, object Object) (match boo
 
 // MatchesDomains returns true if the rule matches the domains.
 func (acr *AccessControlRule) MatchesDomains(subject Subject, object Object) (matches bool) {
-	// If there are no domains in this rule then the domain condition is a match.
 	if len(acr.Domains) == 0 {
 		return true
 	}
 
-	// Iterate over the domains until we find a match (return true) or until we exit the loop (return false).
 	for _, domain := range acr.Domains {
 		if domain.IsMatch(subject, object) {
 			return true
@@ -98,12 +96,10 @@ func (acr *AccessControlRule) MatchesDomains(subject Subject, object Object) (ma
 
 // MatchesResources returns true if the rule matches the resources.
 func (acr *AccessControlRule) MatchesResources(subject Subject, object Object) (matches bool) {
-	// If there are no resources in this rule then the resource condition is a match.
 	if len(acr.Resources) == 0 {
 		return true
 	}
 
-	// Iterate over the resources until we find a match (return true) or until we exit the loop (return false).
 	for _, resource := range acr.Resources {
 		if resource.IsMatch(subject, object) {
 			return true
@@ -115,12 +111,10 @@ func (acr *AccessControlRule) MatchesResources(subject Subject, object Object) (
 
 // MatchesQuery returns true if the rule matches the query arguments.
 func (acr *AccessControlRule) MatchesQuery(object Object) (match bool) {
-	// If there are no query rules in this rule then the query condition is a match.
 	if len(acr.Query) == 0 {
 		return true
 	}
 
-	// Iterate over the queries until we find a match (return true) or until we exit the loop (return false).
 	for _, query := range acr.Query {
 		if query.IsMatch(object) {
 			return true
@@ -132,7 +126,6 @@ func (acr *AccessControlRule) MatchesQuery(object Object) (match bool) {
 
 // MatchesMethods returns true if the rule matches the method.
 func (acr *AccessControlRule) MatchesMethods(object Object) (match bool) {
-	// If there are no methods in this rule then the method condition is a match.
 	if len(acr.Methods) == 0 {
 		return true
 	}
@@ -156,14 +149,12 @@ func (acr *AccessControlRule) MatchesSubjects(subject Subject) (match bool) {
 
 // MatchesSubjectExact returns true if the rule matches the subjects exactly.
 func (acr *AccessControlRule) MatchesSubjectExact(subject Subject) (match bool) {
-	// If there are no subjects in this rule then the subject condition is a match.
 	if len(acr.Subjects) == 0 {
 		return true
 	} else if subject.IsAnonymous() {
 		return false
 	}
 
-	// Iterate over the subjects until we find a match (return true) or until we exit the loop (return false).
 	for _, subjectRule := range acr.Subjects {
 		if subjectRule.IsMatch(subject) {
 			return true

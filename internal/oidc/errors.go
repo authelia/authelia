@@ -35,18 +35,22 @@ var (
 	// ErrConsentMalformedChallengeID is sent when the Consent ID is not a UUID.
 	ErrConsentMalformedChallengeID = oauthelia2.ErrServerError.WithHint("Malformed consent session challenge ID.")
 
+	// ErrClientAuthorizationUserAccessDenied is sent when the user is denied access to a client.
 	ErrClientAuthorizationUserAccessDenied = oauthelia2.ErrAccessDenied.WithHint("The user was denied access to this client.")
 )
 
+// RedirectAuthorizeErrorFieldResponseStrategyConfig is the configuration used by the RedirectAuthorizeErrorFieldResponseStrategy.
 type RedirectAuthorizeErrorFieldResponseStrategyConfig interface {
 	oauthelia2.SendDebugMessagesToClientsProvider
 	GetContext(ctx context.Context) (octx Context)
 }
 
+// RedirectAuthorizeErrorFieldResponseStrategy is a strategy which writes authorization errors to the Authelia error page.
 type RedirectAuthorizeErrorFieldResponseStrategy struct {
 	Config RedirectAuthorizeErrorFieldResponseStrategyConfig
 }
 
+// WriteErrorFieldResponse writes the error response for the given requester.
 func (s *RedirectAuthorizeErrorFieldResponseStrategy) WriteErrorFieldResponse(ctx context.Context, rw http.ResponseWriter, requester oauthelia2.AuthorizeRequester, rfc *oauthelia2.RFC6749Error) {
 	var (
 		issuer *url.URL

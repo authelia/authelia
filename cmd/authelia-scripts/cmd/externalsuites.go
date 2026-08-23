@@ -25,8 +25,6 @@ var (
 	externalUpdateSnapshots bool
 )
 
-// externalSuiteTestEntrypoints maps a registered external suite name to its Go test entry
-// function.
 var externalSuiteTestEntrypoints = map[string]string{
 	"docs":      "TestDocsSuite",
 	"templates": "TestTemplatesSuite",

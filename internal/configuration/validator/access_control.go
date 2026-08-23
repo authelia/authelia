@@ -192,10 +192,12 @@ func IsSubjectValid(subject string) (id string, isValid bool) {
 	}
 }
 
+// IsSubjectValidBasic returns true if the given subject is a valid user or group subject.
 func IsSubjectValidBasic(subject string) (isValid bool) {
 	return strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:")
 }
 
+// IsSubjectValidOAuth20 returns true if the given client id is a registered OAuth 2.0 client.
 func IsSubjectValidOAuth20(config *schema.Configuration, id string) (isValid bool) {
 	if config.IdentityProviders.OIDC == nil || len(config.IdentityProviders.OIDC.Clients) == 0 {
 		return false

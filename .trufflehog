@@ -1,5 +1,6 @@
 ^authelia$
 ^.git\/
+^.claude\/
 ^.github\/workflows\/.*\.yml
 ^.idea\/
 ^.*\/node_modules/.*$

@@ -18,7 +18,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// mockServiceCtx implements ServiceCtx for testing.
 type mockServiceCtx struct {
 	ctx       context.Context
 	config    *schema.Configuration
@@ -243,6 +242,116 @@ func TestLogReopenFiles(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(entries))
+}
+
+func TestSignalRunShouldNotReturnStaleActionError(t *testing.T) {
+	called := make(chan struct{}, 1)
+
+	service := &Signal{
+		name:    "test",
+		signals: []os.Signal{syscall.SIGHUP},
+		action: func() error {
+			called <- struct{}{}
+
+			return errors.New("action failed")
+		},
+		log:    logrus.New().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "test"}),
+		notify: make(chan os.Signal, 1),
+		quit:   make(chan struct{}),
+	}
+
+	errCh := make(chan error, 1)
+
+	go func() {
+		errCh <- service.Run()
+	}()
+
+	service.notify <- syscall.SIGHUP
+
+	select {
+	case <-called:
+	case <-time.After(time.Second):
+		t.Fatal("action was not executed within timeout")
+	}
+
+	service.Shutdown()
+
+	select {
+	case err := <-errCh:
+		assert.NoError(t, err)
+	case <-time.After(time.Second):
+		t.Fatal("service did not shut down within timeout")
+	}
+}
+
+func TestSignalShutdownShouldNotBlock(t *testing.T) {
+	testCases := []struct {
+		name string
+		run  bool
+		n    int
+	}{
+		{
+			name: "ShouldNotBlockWhenRunning",
+			run:  true,
+			n:    1,
+		},
+		{
+			name: "ShouldNotBlockWhenNotRunning",
+			run:  false,
+			n:    1,
+		},
+		{
+			name: "ShouldNotBlockWhenCalledMultipleTimes",
+			run:  true,
+			n:    3,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			service := &Signal{
+				name:    "test",
+				signals: []os.Signal{syscall.SIGHUP},
+				action:  func() error { return nil },
+				log:     logrus.New().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "test"}),
+				notify:  make(chan os.Signal, 1),
+				quit:    make(chan struct{}),
+			}
+
+			errCh := make(chan error, 1)
+
+			if tc.run {
+				go func() {
+					errCh <- service.Run()
+				}()
+			}
+
+			done := make(chan struct{})
+
+			go func() {
+				for i := 0; i < tc.n; i++ {
+					service.Shutdown()
+				}
+
+				close(done)
+			}()
+
+			select {
+			case <-done:
+			case <-time.After(time.Second):
+				t.Fatal("shutdown did not return within timeout")
+			}
+
+			if tc.run {
+				select {
+				case err := <-errCh:
+					assert.NoError(t, err)
+				case <-time.After(time.Second):
+					t.Fatal("service did not shut down within timeout")
+				}
+			}
+		})
+	}
 }
 
 func TestSignalService_Shutdown(t *testing.T) {

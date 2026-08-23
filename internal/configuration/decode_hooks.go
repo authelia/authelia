@@ -56,7 +56,7 @@ func DecodeHooksComposeDefinitions() mapstructure.DecodeHookFunc {
 	)
 }
 
-// StringToMailAddressHookFunc decodes a string into a mail.Address or *mail.Address.
+// StringToMailAddressHookFunc decodes a string into a [mail.Address] or *[mail.Address].
 func StringToMailAddressHookFunc() mapstructure.DecodeHookFuncType {
 	expectedType := reflect.TypeOf(mail.Address{})
 
@@ -102,7 +102,7 @@ func StringToMailAddressHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// StringToURLHookFunc converts string types into a url.URL or *url.URL.
+// StringToURLHookFunc converts string types into a [url.URL] or *[url.URL].
 func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 	expectedType := reflect.TypeOf(url.URL{})
 
@@ -148,6 +148,7 @@ func StringToURLHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
+// DecodeTimeDuration decodes the given data into a [time.Duration].
 func DecodeTimeDuration(f, expectedType reflect.Type, prefixType string, data any) (result time.Duration, err error) {
 	e := reflect.TypeOf(time.Duration(0))
 
@@ -258,7 +259,7 @@ func ToRefreshIntervalDurationHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// ToTimeDurationHookFunc converts string and integer types to a time.Duration.
+// ToTimeDurationHookFunc converts string and integer types to a [time.Duration].
 func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 	expectedType := reflect.TypeOf(time.Duration(0))
 
@@ -301,7 +302,7 @@ func ToTimeDurationHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// StringToRegexpHookFunc decodes a string into a *regexp.Regexp or regexp.Regexp.
+// StringToRegexpHookFunc decodes a string into a *[regexp.Regexp] or [regexp.Regexp].
 func StringToRegexpHookFunc() mapstructure.DecodeHookFuncType {
 	expectedType := reflect.TypeOf(regexp.Regexp{})
 
@@ -462,7 +463,7 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// StringToX509CertificateHookFunc decodes strings to x509.Certificate's.
+// StringToX509CertificateHookFunc decodes strings to [x509.Certificate]'s.
 func StringToX509CertificateHookFunc() mapstructure.DecodeHookFuncType {
 	expectedType := reflect.TypeOf(x509.Certificate{})
 
@@ -652,7 +653,7 @@ func StringToCryptographicKeyHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-// StringToPrivateKeyHookFunc decodes strings to rsa.PrivateKey's and ecdsa.PrivateKey's.
+// StringToPrivateKeyHookFunc decodes strings to *[rsa.PrivateKey], *[ecdsa.PrivateKey], and *[ed25519.PrivateKey] values.
 //
 //nolint:gocyclo
 func StringToPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
@@ -794,6 +795,8 @@ func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
+// StringToIPNetworksHookFunc decodes a string into a group of networks, resolving any named network definitions.
+//
 //nolint:gocyclo
 func StringToIPNetworksHookFunc(definitions map[string][]*net.IPNet) mapstructure.DecodeHookFuncType {
 	expectedType := reflect.TypeOf(net.IPNet{})
