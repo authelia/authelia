@@ -56,12 +56,12 @@ confidence by providing more data on which to base our judgment.
 In addition to the above SAST and DAST tools we also implement several linters which ensure code quality and
 consistency. These linters generally run via [lefthook](https://lefthook.dev/) which is installed as a git hook.
 
-|                               Tool                                |           Area            |                  Purpose                   |
-| :---------------------------------------------------------------: | :-----------------------: | :----------------------------------------: |
-|            [golangci-Lint](https://golangci-lint.run/)            |            Go             |  Code Quality and Consistency of Go Code   |
-|                              ESLint                               | JavaScript and TypeScript | Code Quality and Consistency of JS/TS Code |
-|       [ShellCheck](https://github.com/koalaman/shellcheck)        |        Shell Files        |        Code Quality and Consistency        |
-|        [yamllint](https://github.com/adrienverge/yamllint)        |        YAML Files         |         Consistent YAML Formatting         |
-|             [commitlint](https://commitlint.js.org/)              |            Git            |     Ensure Conformant Commit Messages      |
-|    [TruffleHog](https://github.com/trufflesecurity/trufflehog)    |            All            |     Preventing Secret Commit Accidents     |
-|            [typos](https://github.com/crate-ci/typos)             |            All            |   Preventing Spelling and General Typos    |
+|                            Tool                             |           Area            |                  Purpose                   |
+| :---------------------------------------------------------: | :-----------------------: | :----------------------------------------: |
+|         [golangci-Lint](https://golangci-lint.run/)         |            Go             |  Code Quality and Consistency of Go Code   |
+|                           ESLint                            | JavaScript and TypeScript | Code Quality and Consistency of JS/TS Code |
+|    [ShellCheck](https://github.com/koalaman/shellcheck)     |        Shell Files        |        Code Quality and Consistency        |
+|     [yamllint](https://github.com/adrienverge/yamllint)     |        YAML Files         |         Consistent YAML Formatting         |
+|          [commitlint](https://commitlint.js.org/)           |            Git            |     Ensure Conformant Commit Messages      |
+| [TruffleHog](https://github.com/trufflesecurity/trufflehog) |            All            |     Preventing Secret Commit Accidents     |
+|         [typos](https://github.com/crate-ci/typos)          |            All            |   Preventing Spelling and General Typos    |

@@ -43,7 +43,7 @@ const OneTimePasswordMethod = function (props: Props) {
     const { onSignInError, onSignInSuccess } = props;
     const onSignInErrorCallbackRef = useRef(onSignInError);
     const onSignInSuccessCallbackRef = useRef(onSignInSuccess);
-    const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimitRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
     useEffect(() => {
         onSignInErrorCallbackRef.current = onSignInError;
