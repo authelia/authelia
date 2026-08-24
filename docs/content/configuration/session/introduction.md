@@ -17,7 +17,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ relies on session cookies to authorize user access to various protected websites. This section configures
+**Authelia** relies on session cookies to authorize user access to various protected websites. This section configures
 the session cookie behavior and the domains which Authelia can service authorization requests for.
 
 ## Variables
@@ -53,14 +53,14 @@ session:
 
 There are currently two providers for session storage (three if you count Redis Sentinel as a separate provider):
 
-* Memory (default, stateful, no additional configuration)
-* [Redis](redis.md) (stateless).
-* [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
+- Memory (default, stateful, no additional configuration)
+- [Redis](redis.md) (stateless).
+- [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
 
 ### Kubernetes or High Availability
 
 It's important to note when picking a provider, the stateful providers are not recommended in High Availability
-scenarios like Kubernetes. Each provider has a note beside it indicating it is *stateful* or *stateless* the stateless
+scenarios like Kubernetes. Each provider has a note beside it indicating it is _stateful_ or _stateless_ the stateless
 providers are recommended.
 
 ## Options
@@ -73,7 +73,7 @@ This section describes the individual configuration options.
 
 The secret key used to encrypt session data in Redis.
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters.
 
@@ -178,7 +178,7 @@ If this option is absent you must use the appropriate query parameter or header 
 
 {{< confkey type="string" required="no" >}}
 
-*__Default Value:__ This option takes its default value from the [name](#name) setting above.*
+_**Default Value:** This option takes its default value from the [name](#name) setting above._
 
 The name of the session cookie. By default this is set to the `name` value in the main session configuration section.
 
@@ -186,7 +186,7 @@ The name of the session cookie. By default this is set to the `name` value in th
 
 {{< confkey type="string" required="no" >}}
 
-*__Default Value:__ This option takes its default value from the [same_site](#same_site) setting above.*
+_**Default Value:** This option takes its default value from the [same_site](#same_site) setting above._
 
 Sets the cookies SameSite value. Prior to offering the configuration choice this defaulted to None. The new default is
 Lax. This option is defined in lower-case. So for example if you want to set it to `Strict`, the value in configuration
@@ -202,7 +202,7 @@ state but it's available as an option anyway.
 
 {{< confkey type="string,integer" syntax="duration" required="no" >}}
 
-*__Default Value:__ This option takes its default value from the [inactivity](#inactivity) setting above.*
+_**Default Value:** This option takes its default value from the [inactivity](#inactivity) setting above._
 
 The period of time the user can be inactive for until the session is destroyed. Useful if you want long session timers
 but don't want unused devices to be vulnerable.
@@ -211,7 +211,7 @@ but don't want unused devices to be vulnerable.
 
 {{< confkey type="string,integer" syntax="duration" required="no" >}}
 
-*__Default Value:__ This option takes its default value from the [expiration](#expiration) setting above.*
+_**Default Value:** This option takes its default value from the [expiration](#expiration) setting above._
 
 The period of time before the cookie expires and the session is destroyed. This is overridden by
 [remember_me](#remember_me) when the remember me box is checked.
@@ -220,7 +220,7 @@ The period of time before the cookie expires and the session is destroyed. This 
 
 {{< confkey type="string,integer" syntax="duration" required="no" >}}
 
-*__Default Value:__ This option takes its default value from the [remember_me](#remember_me) setting above.*
+_**Default Value:** This option takes its default value from the [remember_me](#remember_me) setting above._
 
 The period of time before the cookie expires and the session is destroyed when the remember me box is checked. Setting
 this to `-1` disables this feature entirely for this session cookie domain.
@@ -229,4 +229,3 @@ this to `-1` disables this feature entirely for this session cookie domain.
 
 Configuration of this section has an impact on security. You should read notes in
 [security measures](../../overview/security/measures.md#session-security) for more information.
-

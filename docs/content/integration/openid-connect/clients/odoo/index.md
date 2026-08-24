@@ -33,9 +33,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://odoo.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `odoo`
+- **Application Root URL:** `https://odoo.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `odoo`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Odoo] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Odoo] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -98,7 +98,8 @@ To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider, use
    - When Odoo prompt for the new password, select the "Connect with Authelia" button
 
 ## See Also
- - [Odoo Authentication OpenID Connect]
+
+- [Odoo Authentication OpenID Connect]
 
 [Authelia]: https://www.authelia.com
 [Odoo]: https://www.odoo.com

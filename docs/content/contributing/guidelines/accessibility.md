@@ -19,7 +19,6 @@ seo:
 There are no specific guidelines for backend accessibility other than ensuring there are reasonable logging and this is
 extremely subjective.
 
-
 ## Frontend
 
 ### Translations

@@ -16,7 +16,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ allows defining fine-grained rules-based access control policies. This list of rules is tested against
+**Authelia** allows defining fine-grained rules-based access control policies. This list of rules is tested against
 any requests protected by Authelia and defines the level of authentication the user must pass to get authorization to
 the resource.
 

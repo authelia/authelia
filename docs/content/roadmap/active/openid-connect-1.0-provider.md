@@ -51,14 +51,14 @@ how important or difficult to implement they are.
 
 Feature List:
 
-* [User Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent)
-* [Authorization Code Flow](https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowSteps)
-* [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
-* [RS256 Signature Strategy](https://datatracker.ietf.org/doc/html/rfc7518#section-3.1)
-* Per Client Scope/Grant Type/Response Type Restriction
-* Per Client Authorization Policy (1FA/2FA)
-* Per Client List of Valid Redirection URI's
-* [Confidential Client Type](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)
+- [User Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent)
+- [Authorization Code Flow](https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowSteps)
+- [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
+- [RS256 Signature Strategy](https://datatracker.ietf.org/doc/html/rfc7518#section-3.1)
+- Per Client Scope/Grant Type/Response Type Restriction
+- Per Client Authorization Policy (1FA/2FA)
+- Per Client List of Valid Redirection URI's
+- [Confidential Client Type](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)
 
 ### Beta 2
 
@@ -66,12 +66,12 @@ Feature List:
 
 Feature List:
 
-* [Userinfo Endpoint](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo)
-* Parameter Entropy
-* Token/Code Lifespan
-* Client Debug Messages
-* Client Audience
-* [Public Client Type](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)
+- [Userinfo Endpoint](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo)
+- Parameter Entropy
+- Token/Code Lifespan
+- Client Debug Messages
+- Client Audience
+- [Public Client Type](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)
 
 ### Beta 3
 
@@ -79,9 +79,9 @@ Feature List:
 
 Feature List:
 
-* [RFC7636: Proof Key for Code Exchange (PKCE)] for Authorization Code Flow
-* Claims:
-  * `preferred_username` - sending the username in this claim instead of the `sub` claim.
+- [RFC7636: Proof Key for Code Exchange (PKCE)] for Authorization Code Flow
+- Claims:
+  - `preferred_username` - sending the username in this claim instead of the `sub` claim.
 
 ### Beta 4
 
@@ -89,22 +89,22 @@ Feature List:
 
 Feature List:
 
-* Persistent Storage
-  * Tokens
-  * Auditable Information
-  * Subject to User Mapping
-* Opaque [RFC4122] UUID v4's for subject identifiers
-* Support for Pairwise and Plain subject identifier types as per [OpenID Connect Core 1.0 (Subject Identifier Types)]
-  * Utilize the pairwise example method 3 as per [OpenID Connect Core 1.0 (Pairwise Identifier Algorithm)]
-* Claims:
-  * `sub` - replace username with opaque random [RFC4122] UUID v4
-  * `amr` - authentication method references as per [RFC8176]
-  * `azp` - authorized party as per [OpenID Connect Core 1.0 (ID Token)]
-  * `client_id` - the Client ID as per [RFC8693 Section 4.3]
-* [Cross Origin Resource Sharing] (CORS):
-  * Automatically allow all cross-origin requests to the discovery endpoints
-  * Automatically allow all cross-origin requests to the JSON Web Keys endpoint
-  * Optionally allow cross-origin requests to the other endpoints individually
+- Persistent Storage
+  - Tokens
+  - Auditable Information
+  - Subject to User Mapping
+- Opaque [RFC4122] UUID v4's for subject identifiers
+- Support for Pairwise and Plain subject identifier types as per [OpenID Connect Core 1.0 (Subject Identifier Types)]
+  - Utilize the pairwise example method 3 as per [OpenID Connect Core 1.0 (Pairwise Identifier Algorithm)]
+- Claims:
+  - `sub` - replace username with opaque random [RFC4122] UUID v4
+  - `amr` - authentication method references as per [RFC8176]
+  - `azp` - authorized party as per [OpenID Connect Core 1.0 (ID Token)]
+  - `client_id` - the Client ID as per [RFC8693 Section 4.3]
+- [Cross Origin Resource Sharing] (CORS):
+  - Automatically allow all cross-origin requests to the discovery endpoints
+  - Automatically allow all cross-origin requests to the JSON Web Keys endpoint
+  - Optionally allow cross-origin requests to the other endpoints individually
 
 ### Beta 5
 
@@ -112,43 +112,43 @@ Feature List:
 
 Feature List:
 
-* [JWK's backed by X509 Certificate Chains](https://datatracker.ietf.org/doc/html/rfc7517#section-4.7)
-* Hashed Client Secrets
-* Per-Client [Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent) Mode:
-  * Explicit:
-    * The default
-    * Always asks for end-user consent
-  * Implicit:
-    * Not expressly standards compliant
-    * Never asks for end-user consent
-    * Not compatible with the `consent` prompt type
-  * Pre-Configured:
-    * Allows users to save consent sessions for a duration configured by the administrator
-    * Operates nearly identically to the explicit consent mode
+- [JWK's backed by X509 Certificate Chains](https://datatracker.ietf.org/doc/html/rfc7517#section-4.7)
+- Hashed Client Secrets
+- Per-Client [Consent](https://openid.net/specs/openid-connect-core-1_0.html#Consent) Mode:
+  - Explicit:
+    - The default
+    - Always asks for end-user consent
+  - Implicit:
+    - Not expressly standards compliant
+    - Never asks for end-user consent
+    - Not compatible with the `consent` prompt type
+  - Pre-Configured:
+    - Allows users to save consent sessions for a duration configured by the administrator
+    - Operates nearly identically to the explicit consent mode
 
 ### Beta 6
 
 {{< roadmap-status stage="complete" version="v4.38.0" >}}
 
-* [RFC9068: JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens]
-* [RFC9126: OAuth 2.0 Pushed Authorization Requests]
-* [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]
-* [RFC6750: OAuth 2.0 Bearer Token Usage]
-* [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]
-* [JWT Response for OAuth Token Inspection]
-* [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]:
-  * Client Auth Method `client_secret_jwt`
-  * Client Auth Method `private_key_jwt`
-* Per-Client [RFC7636: Proof Key for Code Exchange (PKCE)] Policy
-* Per-Client Token Lifespans
-* [OAuth 2.0 Client Credentials Grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4)
-* Multiple Issuer JWKs:
-  * `RS256`, `RS384`, `RS512`
-  * `PS256`, `PS384`, `PS512`
-  * `ES256`, `ES384`, `ES512`
-* [Client RBAC: Users and Groups](#client-rbac-users-and-groups):
-  * Policies can be mapped to individual clients and reused
-  * Match criteria is only subjects as this is the only effective thing that is deterministic during the life of an
+- [RFC9068: JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens]
+- [RFC9126: OAuth 2.0 Pushed Authorization Requests]
+- [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]
+- [RFC6750: OAuth 2.0 Bearer Token Usage]
+- [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]
+- [JWT Response for OAuth Token Inspection]
+- [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]:
+  - Client Auth Method `client_secret_jwt`
+  - Client Auth Method `private_key_jwt`
+- Per-Client [RFC7636: Proof Key for Code Exchange (PKCE)] Policy
+- Per-Client Token Lifespans
+- [OAuth 2.0 Client Credentials Grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4)
+- Multiple Issuer JWKs:
+  - `RS256`, `RS384`, `RS512`
+  - `PS256`, `PS384`, `PS512`
+  - `ES256`, `ES384`, `ES512`
+- [Client RBAC: Users and Groups](#client-rbac-users-and-groups):
+  - Policies can be mapped to individual clients and reused
+  - Match criteria is only subjects as this is the only effective thing that is deterministic during the life of an
     authorization
 
 ### Beta 7
@@ -162,25 +162,25 @@ This version will contain one or more breaking changes per our
 
 Breaking Changes:
 
-* Default ID Token Claims (related to Claims Handling)
-* Removal of Legacy Endpoints
+- Default ID Token Claims (related to Claims Handling)
+- Removal of Legacy Endpoints
 
 Feature List:
 
-* Prompt Handling
-* Display Handling
-* Claims Handling
-  * Only include the required claims within the minted [ID Token]
-  * Allow clients to use the claims parameter to request the claims which are included in the minted [ID Token]
-  * Allow a user definable claims policy to allow access to custom claims and scopes
-* Attribute Mapping
-  * Custom Claims
-  * Claims Policies
-  * Expression Based Claims
-* Custom Scopes
-* [RFC8628: OAuth 2.0 Device Authorization Grant]
-* [JSON Web Encryption](https://datatracker.ietf.org/doc/html/rfc7516)
-* [Client RBAC: Networks](#client-rbac-networks)
+- Prompt Handling
+- Display Handling
+- Claims Handling
+  - Only include the required claims within the minted [ID Token]
+  - Allow clients to use the claims parameter to request the claims which are included in the minted [ID Token]
+  - Allow a user definable claims policy to allow access to custom claims and scopes
+- Attribute Mapping
+  - Custom Claims
+  - Claims Policies
+  - Expression Based Claims
+- Custom Scopes
+- [RFC8628: OAuth 2.0 Device Authorization Grant]
+- [JSON Web Encryption](https://datatracker.ietf.org/doc/html/rfc7516)
+- [Client RBAC: Networks](#client-rbac-networks)
 
 See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)].
 
@@ -195,33 +195,33 @@ This version will contain one or more breaking changes per our
 
 Breaking Changes:
 
-* Removal of plaintext passwords except in cases that explicitly require them (HMAC-based client auth methods)
-* Rework of Consent Policy
+- Removal of plaintext passwords except in cases that explicitly require them (HMAC-based client auth methods)
+- Rework of Consent Policy
 
 Feature List:
 
-* In-Storage Configuration:
-  * [JSON Web Key Rotation](https://openid.net/specs/openid-connect-messages-1_0-20.html#rotate.sig.keys)
-  * [Multi-Issuer Configuration](#multi-issuer-configuration) (require one per Issuer URL)
-  * Dynamic Client Registration:
-    * Specification Based with Special Opaque Tokens (authelia_dcrt_*) as per
+- In-Storage Configuration:
+  - [JSON Web Key Rotation](https://openid.net/specs/openid-connect-messages-1_0-20.html#rotate.sig.keys)
+  - [Multi-Issuer Configuration](#multi-issuer-configuration) (require one per Issuer URL)
+  - Dynamic Client Registration:
+    - Specification Based with Special Opaque Tokens (authelia_dcrt_*) as per
       [OpenID Connect Dynamic Client Registration 1.0], [RFC7591: OAuth 2.0 Dynamic Client Registration Protocol], and
       [RFC7592: OAuth 2.0 Dynamic Client Registration Management Protocol]
-    * Via the CLI
-    * Import from YAML:
-      * Manual method
-      * Bootstrap method:
-        * Defaults to one time only
-        * Can optionally override the database configuration
-    * Salt (random) and/or Peppered (storage encryption) Client Credentials
-* Subject Sectoring:
-  * Pairwise Pseudonymous Identifier (PPID)
-  * Sector Identifier validation.
+    - Via the CLI
+    - Import from YAML:
+      - Manual method
+      - Bootstrap method:
+        - Defaults to one time only
+        - Can optionally override the database configuration
+    - Salt (random) and/or Peppered (storage encryption) Client Credentials
+- Subject Sectoring:
+  - Pairwise Pseudonymous Identifier (PPID)
+  - Sector Identifier validation.
 
 Potential Feature List:
 
-* Injecting Bearer JSON Web Tokens into Requests (backend authentication)
-* Revoke Tokens on User Logout or Expiration
+- Injecting Bearer JSON Web Tokens into Requests (backend authentication)
+- Revoke Tokens on User Logout or Expiration
 
 ### Beta 9
 
@@ -229,16 +229,16 @@ Potential Feature List:
 
 Feature List:
 
-* [OpenID Connect Session Management 1.0](#openid-connect-session-management-10)
-* [OpenID Connect Back-Channel Logout 1.0](#openid-connect-back-channel-logout-10)
-* [OpenID Connect Front-Channel Logout 1.0](#openid-connect-front-channel-logout-10)
-* [OpenID Connect RP-Initiated Logout 1.0](#openid-connect-rp-initiated-logout-10)
-* [OpenID Connect Client-Initiated Backchannel Authentication Flow 1.0 (CIBA)](#openid-connect-client-initiated-backchannel-authentication-flow-10-ciba)
+- [OpenID Connect Session Management 1.0](#openid-connect-session-management-10)
+- [OpenID Connect Back-Channel Logout 1.0](#openid-connect-back-channel-logout-10)
+- [OpenID Connect Front-Channel Logout 1.0](#openid-connect-front-channel-logout-10)
+- [OpenID Connect RP-Initiated Logout 1.0](#openid-connect-rp-initiated-logout-10)
+- [OpenID Connect Client-Initiated Backchannel Authentication Flow 1.0 (CIBA)](#openid-connect-client-initiated-backchannel-authentication-flow-10-ciba)
 
 Potential Feature List:
 
-* Injecting Bearer JSON Web Tokens into Requests (backend authentication)
-* Revoke Tokens on User Logout or Expiration
+- Injecting Bearer JSON Web Tokens into Requests (backend authentication)
+- Revoke Tokens on User Logout or Expiration
 
 ### General Availability
 
@@ -400,14 +400,11 @@ The `preferred_username` claim was missing and was fixed.
 
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Cross Origin Resource Sharing]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
 [RFC8693 Section 4.3]: https://datatracker.ietf.org/doc/html/rfc8693/#section-4.3
 [RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
-
 [OpenID Connect 1.0 Provider Configuration]: ../../configuration/identity-providers/openid-connect/provider.md
 [OpenID Connect 1.0 Registered Clients]: ../../configuration/identity-providers/openid-connect/clients.md
-
 [OAuth 2.0]: https://oauth.net/2/
 [OpenID Connect 1.0]: https://openid.net/connect/
 [OpenID Connect Dynamic Client Registration 1.0]: https://openid.net/specs/openid-connect-registration-1_0.html
@@ -420,10 +417,8 @@ The `preferred_username` claim was missing and was fixed.
 [OpenID Connect Core 1.0 (Subject Identifier Types)]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [OpenID Connect Core 1.0 (Pairwise Identifier Algorithm)]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)]: https://openid.net/specs/openid-connect-core-1_0.html#ServerMTI
-
 [FAPI 2.0 Security Profile]: https://openid.net/specs/fapi-2_0-security-02.html
 [FAPI 2.0 Attacker Model]: https://openid.net/specs/fapi-attacker-model-2_0-final.html
-
 [RFC7636: Proof Key for Code Exchange (PKCE)]: https://datatracker.ietf.org/doc/html/rfc7636
 [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7523
 [RFC9126: OAuth 2.0 Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126

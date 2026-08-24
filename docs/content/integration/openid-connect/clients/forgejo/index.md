@@ -33,14 +33,14 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://forgejo.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `forgejo`
-- __Client Secret:__ `insecure_secret`
-- __Authentication Name (Forgejo):__ `authelia`:
-    - This option determines the redirect URI in the format of
-      `https://forgejo.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
-      This means if you change this value you need to update the redirect URI.
+- **Application Root URL:** `https://forgejo.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `forgejo`
+- **Client Secret:** `insecure_secret`
+- **Authentication Name (Forgejo):** `authelia`:
+  - This option determines the redirect URI in the format of
+    `https://forgejo.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
+    This means if you change this value you need to update the redirect URI.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Forgejo] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Forgejo] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -102,8 +102,7 @@ To configure [Forgejo] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
    - OpenID Connect Auto Discovery URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
    - Additional scopes: `email profile groups`
 6. Optionally update the following setting to specify which oidc groups have admin access to Forgejo
-    - Claim name providing group names for this source. (Optional)
-
+   - Claim name providing group names for this source. (Optional)
 
 {{< figure src="forgejo.png" alt="Forgejo" width="300" >}}
 
@@ -116,12 +115,12 @@ To configure [Forgejo] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 1. Run `forgejo migrate`.
 2. Run `forgejo admin auth add-oauth --provider=openidConnect --name=authelia --key=forgejo --secret=insecure_secret --auto-discover-url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration --scopes='openid email profile groups'`
 
-
 ### Automatic User Creation
 
 To configure [Forgejo] to perform automatic user creation for the `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` domain via [OpenID Connect 1.0]:
 
 1. Edit the following values in the [Forgejo] `app.ini`:
+
 ```ini
 [openid]
 ENABLE_OPENID_SIGNIN = false
@@ -133,11 +132,14 @@ DISABLE_REGISTRATION                          = false
 ALLOW_ONLY_EXTERNAL_REGISTRATION              = true
 SHOW_REGISTRATION_BUTTON                      = false
 ```
+
 ## Optional Configuration
 
 ### Authelia
-To configure Forgejo to sync ssh public keys from Authelia you can define `sshpubkey` as a multi-valued [Extra Attribute](../../../../reference/guides/attributes.md#extra-attributes) and __combine__ the following configuration with the configuration.yml above.
-``` yaml {title="configuration.yml"}
+
+To configure Forgejo to sync ssh public keys from Authelia you can define `sshpubkey` as a multi-valued [Extra Attribute](../../../../reference/guides/attributes.md#extra-attributes) and **combine** the following configuration with the configuration.yml above.
+
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     claims_policies:
@@ -154,21 +156,23 @@ identity_providers:
         scopes:
           - 'forgejo'
 ```
+
 ### Application
 
 Forgejo configuration largely follows the instructions from [Web GUI](#web-gui) and [CLI](#cli)
 
 #### Web GUI
+
 Follow the instructions in [Web GUI](#web-gui) with the following additions
 
 5. Configure the following options:
    - Additional scopes: `email profile groups forgejo`
    - Public SSH key attribute: `sshpubkey`
 
-
 {{< figure src="forgejo-sshpubkey.png" alt="Forgejo" width="300" >}}
 
 #### CLI
+
 Follow the instructions from [CLI](#cli), and change the following command:
 
 2. Run `forgejo admin auth add-oauth --auto-discover-url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration --name=authelia --provider=openidConnect  --key=forgejo --secret=insecure_secret  --scopes='openid email profile groups forgejo' --attribute-ssh-public-key=sshpubkey`

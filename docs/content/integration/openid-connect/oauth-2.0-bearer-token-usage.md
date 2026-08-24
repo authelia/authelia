@@ -72,7 +72,7 @@ The following protections have been considered:
   not grant any audience (thus making it useless) even if the client has been whitelisted for the particular audience.
 
 For example, if `john` consents to grant the token, and it includes the audience `https://app1.{{< sitevar name="domain" nojs="example.com" >}}`, but the
- user `john` is not normally authorized to visit `https://app1.{{< sitevar name="domain" nojs="example.com" >}}` the token will not grant access to this resource.
+user `john` is not normally authorized to visit `https://app1.{{< sitevar name="domain" nojs="example.com" >}}` the token will not grant access to this resource.
 In addition, if `john` has his access updated via the access control rules, their groups, etc., then this access is
 automatically applied to these tokens.
 
@@ -171,6 +171,7 @@ access_control:
       policy: 'one_factor'
       subject: 'oauth2:client:example-three'
 ```
+
 ### Client Restrictions
 
 In addition to the above protections, this scope **_MUST_** only be configured on clients with strict security rules
@@ -181,16 +182,17 @@ which must be explicitly set:
 2. Have both PAR and PKCE with the `S256` challenge enforced.
 3. Have a list of audiences which represent the resources permitted to be allowed by generated tokens.
 4. Have the `explicit` consent mode.
-5. Only allows the `client_credentials`, or the  `authorization_code` and `refresh_token` grant types.
+5. Only allows the `client_credentials`, or the `authorization_code` and `refresh_token` grant types.
 6. Only allows the `code` response type.
    - This is not relevant for the `client_credentials` grant type.
 7. Only allows the `form_post` or `form_post.jwt` response modes.
    - This is not relevant for the `client_credentials` grant type.
 8. Must either:
-  - Be a public client with the Token Endpoint authentication method `none`. See configuration option
-    `token_endpoint_auth_method`.
-  - Be a confidential client with the Token Endpoint authentication method `client_secret_basic`, `client_secret_jwt`, or
-    `private_key_jwt` configured. See configuration option `token_endpoint_auth_method`.
+
+- Be a public client with the Token Endpoint authentication method `none`. See configuration option
+  `token_endpoint_auth_method`.
+- Be a confidential client with the Token Endpoint authentication method `client_secret_basic`, `client_secret_jwt`, or
+  `private_key_jwt` configured. See configuration option `token_endpoint_auth_method`.
 
 #### Examples
 

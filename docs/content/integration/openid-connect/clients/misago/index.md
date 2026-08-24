@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://misago.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `misago`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://misago.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `misago`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -88,26 +88,26 @@ To configure [Misago] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 1. Sign in to the [Misago] Admin Panel.
 2. Visit `Settings` and click `OAuth 2`.
 3. Configure the following options:
-    1. Basic settings:
-        - Provider name: `authelia`
-        - Client ID: `misago`
-        - Client Secret: `insecure_secret`
-    2. Initializing Login:
-        - Login form URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
-        - Scopes: `openid profile email`
-    3. Retrieving access token:
-        - Access token retrieval URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
-        - Request method: `POST`
-        - JSON path to access token: `access_token`
-    4. Retrieving user data:
-        - User data URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-        - Request method: `GET`
-        - Access token location: `Query string`
-        - Access token name: `access_token`
-    5. User JSON mappings:
-        - User ID path: `sub`
-        - User name path: `name`
-        - User e-mail path: `email`
+   1. Basic settings:
+      - Provider name: `authelia`
+      - Client ID: `misago`
+      - Client Secret: `insecure_secret`
+   2. Initializing Login:
+      - Login form URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+      - Scopes: `openid profile email`
+   3. Retrieving access token:
+      - Access token retrieval URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+      - Request method: `POST`
+      - JSON path to access token: `access_token`
+   4. Retrieving user data:
+      - User data URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+      - Request method: `GET`
+      - Access token location: `Query string`
+      - Access token name: `access_token`
+   5. User JSON mappings:
+      - User ID path: `sub`
+      - User name path: `name`
+      - User e-mail path: `email`
 4. Save the configuration.
 
 {{< figure src="misago-step-2.png" alt="Settings" width="736" style="padding-right: 10px" >}}
@@ -123,6 +123,7 @@ To configure [Misago] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 {{< figure src="misago-step-3-5.png" alt="User JSON mappings" width="736" style="padding-right: 10px" >}}
 
 ---
+
 ## See Also
 
 - [Misago] [OAuth 2 Client Configuration guide](https://misago-project.org/t/oauth-2-client-configuration-guide/1147/)

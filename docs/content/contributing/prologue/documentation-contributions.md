@@ -30,25 +30,25 @@ the [Markdown] file responsible for the document.
 
 ## Viewing Changes
 
-It's relatively easy to run the __Authelia__ website locally to test out the changes you've made.
+It's relatively easy to run the **Authelia** website locally to test out the changes you've made.
 
 ### Requirements
 
-* [git] *(though this can be skipped if you just download the repository)*
-* [Node.js]
-* [pnpm]
+- [git] _(though this can be skipped if you just download the repository)_
+- [Node.js]
+- [pnpm]
 
 ### Directions
 
 The following steps will allow you to run the website on the localhost and view it live in your browser:
 
 1. Run the following commands:
-    ```bash
-    git clone https://github.com/authelia/authelia.git
-    cd authelia/docs
-    pnpm install
-    pnpm dev
-    ```
+   ```bash
+   git clone https://github.com/authelia/authelia.git
+   cd authelia/docs
+   pnpm install
+   pnpm dev
+   ```
 2. Visit [http://localhost:1313/](http://localhost:1313/) in your browser.
 3. Modify pages to see the effects live in your browser.
 
@@ -58,13 +58,13 @@ There are several documentation generators that exist.
 
 Primarily they modify the files in the following locations:
 
-  - [docs/data](https://github.com/authelia/authelia/tree/master/docs/data) which is generated based on various changes
-    throughout the repository.
-  - [docs/content/reference/cli](https://github.com/authelia/authelia/tree/master/docs/content/reference/cli) which is
-    generated based on the changes to the cobra commands.
-  - [docs/static/schemas](https://github.com/authelia/authelia/tree/master/docs/static/schemas) which is generated based
-    on changes to struct tags in [internal/configuration/schema](https://github.com/authelia/authelia/tree/master/internal/configuration/schema)
-    and other struct tags within the repository.
+- [docs/data](https://github.com/authelia/authelia/tree/master/docs/data) which is generated based on various changes
+  throughout the repository.
+- [docs/content/reference/cli](https://github.com/authelia/authelia/tree/master/docs/content/reference/cli) which is
+  generated based on the changes to the cobra commands.
+- [docs/static/schemas](https://github.com/authelia/authelia/tree/master/docs/static/schemas) which is generated based
+  on changes to struct tags in [internal/configuration/schema](https://github.com/authelia/authelia/tree/master/internal/configuration/schema)
+  and other struct tags within the repository.
 
 However the generators also update the [Front Matter](#front-matter) dates of when a document was first created using
 git history.

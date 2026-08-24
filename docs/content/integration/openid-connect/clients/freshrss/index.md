@@ -33,11 +33,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://freshrss.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `freshrss`
-- __Client Secret:__ `insecure_secret`
-- __Port:__ '443'
+- **Application Root URL:** `https://freshrss.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `freshrss`
+- **Client Secret:** `insecure_secret`
+- **Port:** '443'
   - This is the port [FreshRSS] is served over (usually 80 for http and 443 for https) NOT the port of the container.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
@@ -54,7 +54,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [FreshRSS] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [FreshRSS] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

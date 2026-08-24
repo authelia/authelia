@@ -20,7 +20,7 @@ seo:
 
 ## Security
 
-If you believe you have identified a security vulnerability or security related bug with __Authelia__ please view our
+If you believe you have identified a security vulnerability or security related bug with **Authelia** please view our
 [security policy](../policies/security.md).
 
 ## Individual Team Members
@@ -60,7 +60,7 @@ The [Matrix] chat is organized into a space which can be accessed at
 [community:authelia.com](https://matrix.to/#/#community:authelia.com). The space contains the following rooms:
 
 |                                    Room                                     |           Description           |
-|:---------------------------------------------------------------------------:|:-------------------------------:|
+| :-------------------------------------------------------------------------: | :-----------------------------: |
 |      [support:authelia.com](https://matrix.to/#/#support:authelia.com)      |          Support Chat           |
 | [contributing:authelia.com](https://matrix.to/#/#contributing:authelia.com) | Contributing / Development Chat |
 |    [off-topic:authelia.com](https://matrix.to/#/#off-topic:authelia.com)    |         Off Topic Chat          |
