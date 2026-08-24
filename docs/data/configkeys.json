@@ -855,6 +855,11 @@
         "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_DUO_ENABLE"
     },
     {
+        "path": "server.endpoints.rate_limits.second_factor_password.enable",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_PASSWORD_ENABLE"
+    },
+    {
         "path": "server.endpoints.rate_limits.second_factor_totp.enable",
         "secret": false,
         "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_TOTP_ENABLE"

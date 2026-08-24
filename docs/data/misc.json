@@ -7,8 +7,8 @@
     "latest": "4.39.20",
     "support": {
         "traefik": [
-            "v3.7.10",
-            "v2.11.54"
+            "v3.7.11",
+            "v2.11.55"
         ]
     },
     "hashing_algorithms": {
