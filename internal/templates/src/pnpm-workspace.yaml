@@ -2,7 +2,7 @@ allowBuilds:
   esbuild: true
   sharp: true
 overrides:
-  "@babel/traverse": 7.29.8
+  "@babel/traverse": 8.0.4
   ajv: 8.20.0
   fast-uri: 4.1.2
   next: 16.3.2
