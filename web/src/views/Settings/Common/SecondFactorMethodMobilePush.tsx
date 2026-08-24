@@ -68,7 +68,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     const { createErrorNotification } = useNotifications();
 
-    const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimitRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
     useEffect(() => {
         return () => {
