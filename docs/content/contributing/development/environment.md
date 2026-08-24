@@ -49,7 +49,6 @@ If you wish to use these other tools we will not be able to provide support.
 These additional tools are recommended:
 
 * [golangci-lint]
-* [goimports-reviser]
 * [yamllint]
 * [VSCodium] or [GoLand]
 
@@ -116,7 +115,6 @@ this for you and creates the relevant hosts entries. This is automatically execu
 [Docker]: https://docs.docker.com/get-docker/
 [Docker Compose]: https://docs.docker.com/compose/install/
 [golangci-lint]: https://golangci-lint.run/welcome/install/
-[goimports-reviser]: https://github.com/incu6us/goimports-reviser#install
 [yamllint]: https://yamllint.readthedocs.io/en/stable/quickstart.html
 [VSCodium]: https://vscodium.com/
 [GoLand]: https://www.jetbrains.com/go/

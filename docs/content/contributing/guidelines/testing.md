@@ -59,7 +59,6 @@ consistency. These linters generally run via [lefthook](https://lefthook.dev/) w
 |                               Tool                                |           Area            |                  Purpose                   |
 |:-----------------------------------------------------------------:|:-------------------------:|:------------------------------------------:|
 |            [golangci-Lint](https://golangci-lint.run/)            |            Go             |  Code Quality and Consistency of Go Code   |
-| [goimports-reviser](https://github.com/incu6us/goimports-reviser) |            Go             |          Import Order Consistency          |
 |                              ESLint                               | JavaScript and TypeScript | Code Quality and Consistency of JS/TS Code |
 |       [ShellCheck](https://github.com/koalaman/shellcheck)        |        Shell Files        |        Code Quality and Consistency        |
 |        [yamllint](https://github.com/adrienverge/yamllint)        |        YAML Files         |         Consistent YAML Formatting         |

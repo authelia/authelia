@@ -31,4 +31,11 @@ ignore:
       binaries (npm devDependency). Lefthook is a developer/CI git hook runner only; not shipped in any Authelia
       runtime artifact. Scoped by source path so this never accidentally hides findings from Authelia's own
       binaries.
+  - package:
+      location: "**/@typescript/typescript-*/**"
+    reason: |
+      Any dependency (Go stdlib, golang.org/x/* modules, etc.) statically embedded in the TypeScript 7 native
+      compiler binaries (npm devDependency). TypeScript 7 is written in Go and its platform packages ship a
+      prebuilt `tsc`; the compiler only runs at build time and is not shipped in any Authelia runtime artifact.
+      Scoped by source path so this never accidentally hides findings from Authelia's own binaries.
 ...

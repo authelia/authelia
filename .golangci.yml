@@ -82,9 +82,16 @@ issues:
   max-same-issues: 0
 formatters:
   enable:
+    - gci
     - gofmt
     - goimports
   settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(authelia.com,github.com/authelia)
+        - localmodule
     goimports:
       local-prefixes:
         - github.com/authelia/authelia

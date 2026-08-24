@@ -87,7 +87,7 @@ export default defineConfig(({ mode }) => {
         plugins: [
             checkerPlugin({
                 eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx", useFlatConfig: true },
-                typescript: true,
+                typescript: { typescriptPath: "@typescript/native" },
             }),
             istanbulPlugin,
             react(),
