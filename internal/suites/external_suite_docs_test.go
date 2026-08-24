@@ -474,3 +474,36 @@ func countTablesWithoutScrollWrapper(node *html.Node) (tables, bare int) {
 
 	return tables, bare
 }
+
+const documentOverflowJS = `() => {
+	const doc = document.documentElement;
+
+	return doc.scrollWidth - doc.clientWidth;
+}`
+
+func (s *DocsSuite) TestNavbarDoesNotOverflowViewport() {
+	for _, width := range []int{1440, 1280, 1200, 1100, 1024, 992, 768, 390} {
+		s.Run(fmt.Sprintf("%dx800", width), func() {
+			page := s.doCreateTab(s.T(), s.docsURL("/"))
+			defer page.MustClose()
+
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), page)
+			}()
+
+			page = page.Context(ctx)
+
+			page.MustSetViewport(width, 800, 1, false)
+
+			s.WaitElementLocatedByClassName(s.T(), page, "navbar")
+
+			result, err := page.Eval(documentOverflowJS)
+			require.NoError(s.T(), err)
+
+			require.Zero(s.T(), result.Value.Int(), "expected the homepage not to scroll horizontally at %dpx wide", width)
+		})
+	}
+}
