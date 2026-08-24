@@ -1434,3 +1434,116 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 		})
 	}
 }
+
+func TestUserSessionElevationPOSTShouldRegenerateSessionForPreventingSessionFixation(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Configuration.IdentityValidation.ElevatedSession.Characters = 10
+	mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan = time.Minute
+	mock.Ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan = time.Minute
+
+	mock.Ctx.Providers.Clock = &mock.Clock
+	mock.Ctx.Providers.Random = mock.RandomMock
+
+	us, err := mock.Ctx.GetSession()
+
+	require.NoError(t, err)
+
+	us.Username = testUsername
+	us.DisplayName = testDisplayName
+	us.Emails = []string{"john@example.com"}
+
+	us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+	require.NoError(t, mock.Ctx.SaveSession(us))
+
+	gomock.InOrder(
+		mock.RandomMock.EXPECT().
+			Read(gomock.Any()).
+			SetArg(0, []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x22, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15}).
+			Return(16, nil),
+		mock.RandomMock.EXPECT().
+			BytesCustomErr(10, []byte(random.CharSetUnambiguousUpper)).
+			Return([]byte("ABC123ABC1"), nil),
+		mock.StorageMock.EXPECT().
+			SaveOneTimeCode(mock.Ctx, gomock.Any()).
+			Return("abc123", nil),
+		mock.NotifierMock.EXPECT().
+			Send(mock.Ctx, gomock.Any(), "Confirm your identity", gomock.Any(), gomock.Any()).
+			Return(nil),
+	)
+
+	before := string(mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+
+	require.NotEmpty(t, before)
+
+	UserSessionElevationPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.NotEqual(t, before, string(mock.Ctx.Response.Header.PeekCookie("authelia_session")))
+}
+
+func TestUserSessionElevationPUTShouldRegenerateSessionForPreventingSessionFixation(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Configuration.IdentityValidation.ElevatedSession.Characters = 10
+	mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan = time.Minute
+	mock.Ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan = time.Minute
+
+	mock.Ctx.Providers.Clock = &mock.Clock
+	mock.Ctx.Providers.Random = mock.RandomMock
+
+	us, err := mock.Ctx.GetSession()
+
+	require.NoError(t, err)
+
+	us.Username = testUsername
+	us.DisplayName = testDisplayName
+	us.Emails = []string{"john@example.com"}
+
+	us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+	require.NoError(t, mock.Ctx.SaveSession(us))
+
+	code := &model.OneTimeCode{
+		ID:        1,
+		PublicID:  uuid.Must(uuid.Parse("01020304-0506-4722-8910-111213141500")),
+		IssuedAt:  mock.Clock.Now(),
+		IssuedIP:  model.NewIP(mock.Ctx.RemoteIP()),
+		ExpiresAt: mock.Clock.Now().Add(time.Minute),
+		Username:  testUsername,
+		Intent:    model.OTCIntentUserSessionElevation,
+		Code:      []byte("ABC123ABC1"),
+	}
+
+	gomock.InOrder(
+		mock.StorageMock.EXPECT().
+			LoadOneTimeCode(mock.Ctx, testUsername, model.NewIP(mock.Ctx.RemoteIP()), model.OTCIntentUserSessionElevation, "ABC123ABC1").
+			Return(code, nil),
+		mock.StorageMock.EXPECT().
+			ConsumeOneTimeCode(mock.Ctx, code).
+			Return(nil),
+	)
+
+	mock.Ctx.Request.SetBodyString(`{"otc":"ABC123ABC1"}`)
+
+	before := string(mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+
+	require.NotEmpty(t, before)
+
+	UserSessionElevationPUT(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, `{"status":"OK"}`, string(mock.Ctx.Response.Body()))
+	assert.NotEqual(t, before, string(mock.Ctx.Response.Header.PeekCookie("authelia_session")))
+
+	after, err := mock.Ctx.GetSession()
+
+	require.NoError(t, err)
+	require.NotNil(t, after.Elevations.User)
+	assert.Equal(t, mock.Clock.Now().Add(time.Minute), after.Elevations.User.Expires)
+}

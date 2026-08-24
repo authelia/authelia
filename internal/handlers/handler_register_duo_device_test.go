@@ -173,3 +173,72 @@ func TestRunRegisterDuoDeviceSuite(t *testing.T) {
 	s := new(RegisterDuoDeviceSuite)
 	suite.Run(t, s)
 }
+
+func TestDuoDeviceDELETE(t *testing.T) {
+	testCases := []struct {
+		name           string
+		setup          func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		expected       string
+		expectedStatus int
+		expectedf      func(t *testing.T, mock *mocks.MockAutheliaCtx)
+	}{
+		{
+			"ShouldHandleGetSessionError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+			},
+			`{"status":"KO","message":"Authentication failed, please retry later."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+			},
+		},
+		{
+			"ShouldHandleStorageDeleteError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.
+					EXPECT().
+					DeletePreferredDuoDevice(mock.Ctx, "").
+					Return(fmt.Errorf("failed to delete"))
+			},
+			`{"status":"KO","message":"Authentication failed, please retry later."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred deleting the preferred Duo device and method", "failed to delete")
+			},
+		},
+		{
+			"ShouldHandleDelete",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.
+					EXPECT().
+					DeletePreferredDuoDevice(mock.Ctx, "").
+					Return(nil)
+			},
+			`{"status":"OK"}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			if tc.setup != nil {
+				tc.setup(t, mock)
+			}
+
+			DuoDeviceDELETE(mock.Ctx)
+
+			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, tc.expected, string(mock.Ctx.Response.Body()))
+
+			if tc.expectedf != nil {
+				tc.expectedf(t, mock)
+			}
+		})
+	}
+}

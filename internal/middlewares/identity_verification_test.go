@@ -296,6 +296,124 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenCannotBeRemoved
 	assert.Equal(s.T(), "Error occurred consuming the identity verification during the validation phase", s.mock.Hook.LastEntry().Message)
 }
 
+func (s *IdentityVerificationFinishProcess) TestShouldFailIfIssuerCannotBeDetermined() {
+	s.mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
+	s.mock.Ctx.Request.SetBodyString("{\"token\":\"abc\"}")
+
+	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed")
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred determining the issuer", "missing required X-Forwarded-Host header")
+}
+
+func (s *IdentityVerificationFinishProcess) TestShouldFailIfSessionCannotBeRegenerated() {
+	s.mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+	s.mock.Ctx.Request.SetBodyString("{\"token\":\"abc\"}")
+
+	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed")
+	s.mock.AssertLastLogMessage(s.T(), "Unable to regenerate session during identity verification", "unable to regenerate user session: unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+}
+
+func (s *IdentityVerificationFinishProcess) TestShouldRegenerateSessionForPreventingSessionFixation() {
+	token, verification := createToken(s.T(), s.mock, "john", "EXP_ACTION",
+		time.Now().Add(1*time.Minute))
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
+
+	s.mock.StorageMock.EXPECT().
+		FindIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
+		Return(true, nil)
+
+	s.mock.StorageMock.EXPECT().
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(model.NewNullIP(s.mock.Ctx.RemoteIP()))).
+		Return(nil)
+
+	require.NoError(s.T(), s.mock.Ctx.SaveSession(session.NewDefaultUserSession()))
+
+	before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+
+	require.NotEmpty(s.T(), before)
+
+	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
+	assert.NotEqual(s.T(), before, string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")))
+}
+
+func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotValidYet() {
+	claims := createClaims(s.T(), s.mock, uuid.New(), time.Now().Add(1*time.Minute))
+	claims.NotBefore = jwt.NewNumericDate(time.Now().Add(1 * time.Minute))
+
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", createTokenFromClaims(s.T(), claims, jwt.SigningMethodHS256, testJWTSecret)))
+
+	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "The identity verification token is only valid in the future")
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred validating the identity verification token validity period as it appears to only be valid in the future", "token has invalid claims: token is not valid yet")
+}
+
+func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenSignatureIsInvalid() {
+	claims := createClaims(s.T(), s.mock, uuid.New(), time.Now().Add(1*time.Minute))
+
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", createTokenFromClaims(s.T(), claims, jwt.SigningMethodHS256, "not-the-configured-secret")))
+
+	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "The identity verification token has an invalid signature")
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred validating the identity verification token signature", "token signature is invalid: signature is invalid")
+}
+
+func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenSigningAlgorithmIsNotConfigured() {
+	claims := createClaims(s.T(), s.mock, uuid.New(), time.Now().Add(1*time.Minute))
+
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", createTokenFromClaims(s.T(), claims, jwt.SigningMethodHS512, testJWTSecret)))
+
+	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "The identity verification token has an invalid signature")
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred validating the identity verification token signature", "token signature is invalid: signing method HS512 is invalid")
+}
+
+func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIssuerIsInvalid() {
+	claims := createClaims(s.T(), s.mock, uuid.New(), time.Now().Add(1*time.Minute))
+	claims.Issuer = "https://auth.notexample.com"
+
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", createTokenFromClaims(s.T(), claims, jwt.SigningMethodHS256, testJWTSecret)))
+
+	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed")
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred validating the identity verification token", "token has invalid claims: token has invalid issuer")
+}
+
+func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenClaimsAreMalformed() {
+	claims := createClaims(s.T(), s.mock, uuid.New(), time.Now().Add(1*time.Minute))
+	claims.ID = "not-a-uuid"
+
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", createTokenFromClaims(s.T(), claims, jwt.SigningMethodHS256, testJWTSecret)))
+
+	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed")
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred validating the identity verification token claims as they appear to be malformed", "invalid UUID length: 10")
+}
+
+func (s *IdentityVerificationFinishProcess) TestShouldFailIfLookupErrors() {
+	token, verification := createToken(s.T(), s.mock, "john", "EXP_ACTION",
+		time.Now().Add(1*time.Minute))
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
+
+	s.mock.StorageMock.EXPECT().
+		FindIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
+		Return(false, fmt.Errorf("failed to lookup"))
+
+	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed")
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred looking up identity verification during the validation phase", "failed to lookup")
+}
+
 func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete() {
 	token, verification := createToken(s.T(), s.mock, "john", "EXP_ACTION",
 		time.Now().Add(1*time.Minute))
@@ -317,4 +435,26 @@ func (s *IdentityVerificationFinishProcess) TestShouldReturn200OnFinishComplete(
 func TestRunIdentityVerificationFinish(t *testing.T) {
 	s := new(IdentityVerificationFinishProcess)
 	suite.Run(t, s)
+}
+
+func createClaims(t *testing.T, ctx *mocks.MockAutheliaCtx, jti uuid.UUID, expiresAt time.Time) (claims *model.IdentityVerificationClaim) {
+	t.Helper()
+
+	issuerURL, err := ctx.Ctx.IssuerURL()
+	require.NoError(t, err)
+
+	verification := model.NewIdentityVerification(jti, "john", "EXP_ACTION", ctx.Ctx.RemoteIP(), time.Minute*5)
+
+	verification.ExpiresAt = expiresAt
+
+	return verification.ToIdentityVerificationClaim(issuerURL)
+}
+
+func createTokenFromClaims(t *testing.T, claims *model.IdentityVerificationClaim, method jwt.SigningMethod, secret string) (data string) {
+	t.Helper()
+
+	data, err := jwt.NewWithClaims(method, claims).SignedString([]byte(secret))
+	require.NoError(t, err)
+
+	return data
 }

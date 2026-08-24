@@ -13,6 +13,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 )
@@ -346,6 +347,41 @@ func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
+func (s *FetchSuite) TestShouldLogErrorWhenPreferredMethodLookupFails() {
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadPreferred2FAMethod(s.mock.Ctx, gomock.Eq("john")).
+			Return("", fmt.Errorf("failed to lookup")),
+		s.mock.StorageMock.EXPECT().
+			LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
+			Return(model.UserInfo{}, fmt.Errorf("failure")),
+	)
+
+	UserInfoPOST(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed.")
+	assert.Equal(s.T(), "Error occurred looking up the user preferred second factor method while loading the user information", s.mock.Hook.Entries[0].Message)
+}
+
+func (s *FetchSuite) TestShouldLogErrorWhenDefaultPreferredMethodCannotBeSaved() {
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadPreferred2FAMethod(s.mock.Ctx, gomock.Eq("john")).
+			Return("", sql.ErrNoRows),
+		s.mock.StorageMock.EXPECT().
+			SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("")).
+			Return(fmt.Errorf("failed to save")),
+		s.mock.StorageMock.EXPECT().
+			LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
+			Return(model.UserInfo{}, fmt.Errorf("failure")),
+	)
+
+	UserInfoPOST(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed.")
+	assert.Equal(s.T(), "Error occurred saving the user preferred second factor method while loading the user information", s.mock.Hook.Entries[0].Message)
+}
+
 func TestFetchSuite(t *testing.T) {
 	suite.Run(t, &FetchSuite{})
 }
@@ -431,4 +467,45 @@ func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
 
 func TestSaveSuite(t *testing.T) {
 	suite.Run(t, &SaveSuite{})
+}
+
+func TestUserInfoShouldHandleGetSessionError(t *testing.T) {
+	testCases := []struct {
+		name           string
+		handler        func(ctx *middlewares.AutheliaCtx)
+		expectedStatus int
+	}{
+		{
+			"ShouldHandleUserInfoGET",
+			UserInfoGET,
+			fasthttp.StatusForbidden,
+		},
+		{
+			"ShouldHandleUserInfoPOST",
+			UserInfoPOST,
+			fasthttp.StatusForbidden,
+		},
+		{
+			"ShouldHandleMethodPreferencePOST",
+			MethodPreferencePOST,
+			fasthttp.StatusOK,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+
+			tc.handler(mock.Ctx)
+
+			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, `{"status":"KO","message":"Operation failed."}`, string(mock.Ctx.Response.Body()))
+
+			mock.AssertLastLogMessage(t, "Error occurred retrieving user session", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+		})
+	}
 }
