@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.21](https://github.com/authelia/authelia/releases/tag/v4.39.21)
 - [Grafana]
-  - [v12.3.2](https://github.com/grafana/grafana/releases/tag/v12.3.2)
+  - [v13.1.0](https://github.com/grafana/grafana/releases/tag/v13.1.0)
 
 {{% oidc-common bugs="claims-hydration" %}}
 
@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://grafana.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `grafana`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://grafana.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `grafana`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +46,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Grafana] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Grafana] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -176,12 +176,13 @@ you do not wish to automatically do this you can just omit the `role_attribute_p
 `GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH` environment variable.
 
 The ways you can configure this rule value is vast, here is a simple example:
+
 - User's with the authelia group `admin` should be a member of the Grafana group `Admin`
 - User's with the authelia group `editor` should be a member of the Grafana group `Editor`
 - Everyone else should be a member of the Grafana group 'Viewer'
 
 To achieve the above structure you would use the following `role_attribute_path`:
-`contains(groups[*], 'admin') && 'Admin' || contains(groups[*], 'editor') && 'Editor' || 'Viewer'`
+`contains(groups[], 'admin') && 'Admin' || contains(groups[], 'editor') && 'Editor' || 'Viewer'`
 
 See [Grafana Generic OAuth2 Documentation: Configure role mapping] for more information.
 

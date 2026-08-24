@@ -27,14 +27,14 @@ For our commit messages please see our [Commit Message Guidelines](../guidelines
 We implement the following tools that help us abide by our style guide and include the configuration for them inside
 our repository:
 
-* [golangci-lint](https://github.com/golangci/golangci-lint)
-* [yamllint](https://yamllint.readthedocs.io/en/stable/)
-* [eslint](https://eslint.org/)
-* [prettier](https://prettier.io/)
+- [golangci-lint](https://github.com/golangci/golangci-lint)
+- [yamllint](https://yamllint.readthedocs.io/en/stable/)
+- [eslint](https://eslint.org/)
+- [prettier](https://prettier.io/)
 
 ## Exceptions
 
-This is a style __guide__ not a cudgel, there are always going to be exceptions to these guidelines when it makes sense
+This is a style **guide** not a cudgel, there are always going to be exceptions to these guidelines when it makes sense
 not to follow them. One notable exception is the README.md for the repository. The line length of the
 [All Contributors](https://allcontributors.org/) individual sections are longer than 120 characters and it doesn't make
 sense to apply the [line length](#line-length) guidelines.
@@ -49,20 +49,20 @@ when it doesn't make sense to.
 
 This includes but is not limited to the following file types:
 
-* Go (`*.go`)
-* YAML (`*.yml`, `*.yaml`)
-* Markdown (`*.md`)
-* JavaScript (`*.js`)
-* TypeScript (`*.ts`, `*.tsx`)
+- Go (`*.go`)
+- YAML (`*.yml`, `*.yaml`)
+- Markdown (`*.md`)
+- JavaScript (`*.js`)
+- TypeScript (`*.ts`, `*.tsx`)
 
 ### Error Strings
 
 Error messages should follow the standard go format. This format can be found in the [golang code review comments](https://github.com/golang/go/wiki/CodeReviewComments#error-strings)
 however the key points are:
 
-* errors should not start with capital letters (excluding proper nouns, acronyms, or initialism)
-* errors should not end with punctuation
-* these restrictions do not apply to logging, only the error type itself
+- errors should not start with capital letters (excluding proper nouns, acronyms, or initialism)
+- errors should not end with punctuation
+- these restrictions do not apply to logging, only the error type itself
 
 ### Configuration Documentation
 
@@ -79,7 +79,7 @@ Under the configuration example each option in the configuration needs to be doc
 
 The body of the section is to contain paragraphs describing the usage and information specific to that value.
 
-__Example Stylized Icons:__
+**Example Stylized Icons:**
 
 ```html
 {{< print "{{< confkey type=\"string\" default=\"none\" required=\"no\" >}}" >}}

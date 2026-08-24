@@ -35,7 +35,7 @@ metadata about the request (such as the resource and IP address of the user) whi
 ## Default Endpoints
 
 |     Name     |          Path           | [Implementation] |           [Authn Strategies]           |
-|:------------:|:-----------------------:|:----------------:|:--------------------------------------:|
+| :----------: | :---------------------: | :--------------: | :------------------------------------: |
 | forward-auth | /api/authz/forward-auth |  [ForwardAuth]   | [HeaderAuthorization], [CookieSession] |
 |  ext-authz   |  /api/authz/ext-authz   |    [ExtAuthz]    | [HeaderAuthorization], [CookieSession] |
 | auth-request | /api/authz/auth-request |  [AuthRequest]   | [HeaderAuthorization], [CookieSession] |
@@ -48,7 +48,7 @@ metadata collected. All of this metadata is utilized for the purpose of determin
 particular resource.
 
 |     Name     |                   Description                   |
-|:------------:|:-----------------------------------------------:|
+| :----------: | :---------------------------------------------: |
 |    Method    |         The Method Verb of the Request          |
 |    Scheme    |          The URI Scheme of the Request          |
 |   Hostname   |         The URI Hostname of the Request         |
@@ -74,7 +74,7 @@ This is the implementation which supports [Traefik] via the [ForwardAuth Middlew
 #### ForwardAuth Metadata
 
 |     Metadata      |            Source            |            Key            |
-|:-----------------:|:----------------------------:|:-------------------------:|
+| :---------------: | :--------------------------: | :-----------------------: |
 |    Method [^1]    |           [Header]           | `X-Forwarded-Method` [^2] |
 |    Scheme [^1]    |           [Header]           | [X-Forwarded-Proto] [^2]  |
 |   Hostname [^1]   |           [Header]           |  [X-Forwarded-Host] [^2]  |
@@ -85,7 +85,7 @@ This is the implementation which supports [Traefik] via the [ForwardAuth Middlew
 #### ForwardAuth Metadata Alternatives
 
 |     Metadata      | Alternative Type |     Source     |      Key       |
-|:-----------------:|:----------------:|:--------------:|:--------------:|
+| :---------------: | :--------------: | :------------: | :------------: |
 |    Scheme [^1]    |     Fallback     |    [Header]    | Server Scheme  |
 |      IP [^1]      |     Fallback     |   TCP Packet   |   Source IP    |
 | Authelia URL [^1] |     Override     | Query Argument | `authelia_url` |
@@ -97,7 +97,7 @@ This is the implementation which supports [Envoy] via the [HTTP ExtAuthz Filter]
 #### ExtAuthz Metadata
 
 |     Metadata      |            Source            |           Key            |
-|:-----------------:|:----------------------------:|:------------------------:|
+| :---------------: | :--------------------------: | :----------------------: |
 |    Method [^1]    |        _[Start Line]_        |    [HTTP Method] [^2]    |
 |    Scheme [^1]    |           [Header]           | [X-Forwarded-Proto] [^2] |
 |   Hostname [^1]   |           [Header]           |       [Host] [^2]        |
@@ -108,7 +108,7 @@ This is the implementation which supports [Envoy] via the [HTTP ExtAuthz Filter]
 #### ExtAuthz Metadata Alternatives
 
 |     Metadata      | Alternative Type |   Source   |       Key        |
-|:-----------------:|:----------------:|:----------:|:----------------:|
+| :---------------: | :--------------: | :--------: | :--------------: |
 |    Scheme [^1]    |     Fallback     |  [Header]  |  Server Scheme   |
 |      IP [^1]      |     Fallback     | TCP Packet |    Source IP     |
 | Authelia URL [^1] |     Override     |  [Header]  | `X-Authelia-URL` |
@@ -121,7 +121,7 @@ This is the implementation which supports [NGINX] via the [auth_request HTTP mod
 #### AuthRequest Metadata
 
 |     Metadata      |            Source            |           Key            |
-|:-----------------:|:----------------------------:|:------------------------:|
+| :---------------: | :--------------------------: | :----------------------: |
 |    Method [^1]    |           [Header]           | `X-Original-Method` [^2] |
 |    Scheme [^1]    |           [Header]           |  `X-Original-URL` [^2]   |
 |   Hostname [^1]   |           [Header]           |  `X-Original-URL` [^2]   |
@@ -139,7 +139,7 @@ simplifies this process especially for multi-cookie domain deployments.
 #### AuthRequest Metadata Alternatives
 
 |     Metadata      | Alternative Type |     Source     |      Key       |
-|:-----------------:|:----------------:|:--------------:|:--------------:|
+| :---------------: | :--------------: | :------------: | :------------: |
 |      IP [^1]      |     Fallback     |   TCP Packet   |   Source IP    |
 | Authelia URL [^1] |     Override     | Query Argument | `authelia_url` |
 
@@ -155,7 +155,7 @@ in the list exists it is used over those lower in the list.
 {{< /callout >}}
 
 |     Metadata      |     Source     |         Key          |
-|:-----------------:|:--------------:|:--------------------:|
+| :---------------: | :------------: | :------------------: |
 |    Method [^1]    |    [Header]    | `X-Original-Method`  |
 |    Scheme [^1]    |    [Header]    |   `X-Original-URL`   |
 |   Hostname [^1]   |    [Header]    |   `X-Original-URL`   |
@@ -185,8 +185,8 @@ results.
 3. No Authentication
    - This result occurs when the required metadata i.e. headers are absent from the request for the strategy.
    - This result does not cause a short-circuit and:
-      1. The next strategy will be attempted.
-      2. If there is no next strategy the failure action will be applied.
+     1. The next strategy will be attempted.
+     2. If there is no next strategy the failure action will be applied.
 
 ### CookieSession
 
@@ -233,30 +233,31 @@ This strategy uses the [Proxy-Authorization] header to determine the users' iden
 
 ## Footnotes
 
-  [^1]: This is considered required metadata, and must either be provided via the primary metadata source or the
-        alternative source for the request to be considered valid.
-  [^2]: This is considered a required header. If an alternative or fallback source is described this is very likely to
-        be incorrect and cannot be supported.
-  [^3]: This header is not required but the fallback is likely desirable in most scenarios.
+[^1]:
+    This is considered required metadata, and must either be provided via the primary metadata source or the
+    alternative source for the request to be considered valid.
+
+[^2]:
+    This is considered a required header. If an alternative or fallback source is described this is very likely to
+    be incorrect and cannot be supported.
+
+[^3]: This header is not required but the fallback is likely desirable in most scenarios.
 
 [200 OK]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200
 [401 Unauthorized]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
 [407 Proxy Authentication Required]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/407
-
 [NGINX]: https://www.nginx.com/
 [Traefik]: https://traefik.io/traefik/
 [Envoy]: https://www.envoyproxy.io/
 [Caddy]: https://caddyserver.com/
 [Skipper]: https://opensource.zalando.com/skipper/
 [HAProxy]: http://www.haproxy.org/
-
 [HTTP ExtAuthz Filter]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto#envoy-v3-api-msg-extensions-filters-http-ext-authz-v3-extauthz
 [auth_request HTTP module]: https://nginx.org/en/docs/http/ngx_http_auth_request_module.html
 [auth-request lua plugin]: https://github.com/TimWolla/haproxy-auth-request
 [ForwardAuth Middleware]: https://doc.traefik.io/traefik/middlewares/http/forwardauth/
 [forward_auth directive]: https://caddyserver.com/docs/caddyfile/directives/forward_auth
 [webhook auth filter]: https://opensource.zalando.com/skipper/reference/filters/#webhook
-
 [Implementation]: #implementations
 [Authn Strategies]: #authn-strategies
 [ForwardAuth]: #forwardauth
@@ -268,18 +269,15 @@ This strategy uses the [Proxy-Authorization] header to determine the users' iden
 [HeaderLegacy]: #headerlegacy
 [HeaderAuthorization]: #headerauthorization
 [CookieSession]: #cookiesession
-
 [Cookie]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cookie
 [Authorization]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
 [WWW-Authenticate]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate
 [Proxy-Authorization]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization
 [Proxy-Authenticate]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authenticate
-
 [X-Forwarded-Proto]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
 [X-Forwarded-Host]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
 [X-Forwarded-For]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
 [Host]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
-
 [HTTP Method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
 [HTTP Method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
 [Start Line]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#start_line

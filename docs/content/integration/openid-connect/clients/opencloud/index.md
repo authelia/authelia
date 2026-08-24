@@ -32,9 +32,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-- __Client ID:__
+- **Application Root URL:** `https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+- **Client ID:**
   - Web Application: `opencloud`
   - Android App: `opencloud-android`
   - iOS App: `opencloud-ios`
@@ -48,7 +48,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with
+The following YAML configuration is an example **Authelia** [client configuration] for use with
 [openCloud] which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -164,8 +164,8 @@ The current implementation is intended for one-time use cases, such as migrating
 stable long-term desktop client setup until the WebFinger integration is completed.
 {{< /callout >}}
 
-* The desktop client WebFinger integration is currently incomplete (pull request https://github.com/opencloud-eu/desktop/pull/847).
-* Some additional customizations may be needed as noted below.
+- The desktop client WebFinger integration is currently incomplete (pull request https://github.com/opencloud-eu/desktop/pull/847).
+- Some additional customizations may be needed as noted below.
 
 The `groups` scope must be manually added to the authorization link when setting up the desktop client.
 
@@ -306,13 +306,12 @@ directives:
     - '''self'''
     - 'blob:'
 ```
-Refer to [csp.yaml](https://github.com/opencloud-eu/opencloud-compose/blob/main/config/opencloud/csp.yaml)
 
+Refer to [csp.yaml](https://github.com/opencloud-eu/opencloud-compose/blob/main/config/opencloud/csp.yaml)
 
 #### Proxy
 
 When using an external IDP, you need to map groups and roles. Create the following file and save it next to `opencloud.yaml`:
-
 
 In this example the `opencloud-admins` Authelia group maps to the `admin` role in [openCloud]. This is because of the
 `role_claim` value set to `groups`, and the list of mappings in `role_mappings`. Examples also exist for the

@@ -208,8 +208,10 @@ func termReadPasswordWithPrompt(prompt, flag string) (password string, err error
 	return password, nil
 }
 
+// XEnvCLIResult is the result of parsing a configuration value which can be sourced from either the CLI or the environment.
 type XEnvCLIResult int
 
+// XEnvCLIResult values.
 const (
 	XEnvCLIResultCLIExplicit XEnvCLIResult = iota
 	XEnvCLIResultCLIImplicit

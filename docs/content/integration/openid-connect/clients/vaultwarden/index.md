@@ -33,13 +33,13 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://vault.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Root URL:** `https://vault.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
     `https://vault.{{< sitevar name="domain" nojs="example.com" >}}/identity/connect/oidc-signin`.
     This means if you change this value, you need to update the redirect URI.
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `vaultwarden`
-- __Client Secret:__ `insecure_secret`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `vaultwarden`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -55,7 +55,7 @@ within Authelia, renders the value `["user"]` if they are in the `vaultwarden_us
 You can adjust this to your preference to assign a role to the appropriate user groups.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Vaultwarden] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Vaultwarden] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -143,7 +143,6 @@ services:
       - SSO_ROLES_DEFAULT_TO_USER=true
       - SSO_ROLES_TOKEN_PATH=/vaultwarden_roles
 ```
-
 
 ## See Also
 

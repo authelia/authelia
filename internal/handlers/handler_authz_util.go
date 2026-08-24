@@ -1,6 +1,11 @@
 package handlers
 
 import (
+	"fmt"
+	"net/url"
+
+	"github.com/valyala/fasthttp"
+
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -39,6 +44,38 @@ func isAuthzResult(level authentication.Level, required authorization.Level, rul
 		return AuthzResultAuthorized
 	default:
 		return AuthzResultUnauthorized
+	}
+}
+
+func parseAuthzPortalURL(rawURL []byte) (portalURL *url.URL, err error) {
+	if rawURL == nil {
+		return nil, nil
+	}
+
+	return url.ParseRequestURI(string(rawURL))
+}
+
+func getAuthzRedirectStatusCode(ctx AuthzContext, method string) (statusCode int) {
+	if ctx.IsXHR() || !ctx.AcceptsMIME("text/html") {
+		return fasthttp.StatusUnauthorized
+	}
+
+	switch method {
+	case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead, "":
+		return fasthttp.StatusFound
+	default:
+		return fasthttp.StatusSeeOther
+	}
+}
+
+func doAuthzRedirect(ctx AuthzContext, authn *Authn, redirectionURL *url.URL, statusCode int) {
+	ctx.GetLogger().Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
+
+	switch authn.Object.Method {
+	case fasthttp.MethodHead:
+		ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
+	default:
+		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
 	}
 }
 
@@ -98,5 +135,14 @@ func generateVerifySessionHasUpToDateProfileTraceLogs(ctx AuthzContext, userSess
 			Trace("User session display name updated")
 	} else {
 		ctx.GetLogger().Trace("User session display name is current")
+	}
+}
+
+func getSafeAutheliaURL(autheliaURL *url.URL, domain string) (*url.URL, error) {
+	switch {
+	case utils.HasURIDomainSuffix(autheliaURL, domain):
+		return autheliaURL, nil
+	default:
+		return nil, fmt.Errorf("authelia url '%s' is not valid for detected domain '%s' as the url does not have the domain as a suffix", autheliaURL.String(), domain)
 	}
 }

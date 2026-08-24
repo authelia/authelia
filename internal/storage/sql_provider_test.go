@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net"
 	"path/filepath"
 	"testing"
@@ -368,6 +369,55 @@ func TestSQLProviderWebAuthn(t *testing.T) {
 	})
 }
 
+func TestUpdateWebAuthnCredentialSignInRebindsCiphertext(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	credential := model.WebAuthnCredential{
+		CreatedAt:       time.Now().Truncate(time.Second),
+		RPID:            "",
+		Username:        "john",
+		Description:     "rebind",
+		KID:             model.NewBase64([]byte("kid-rebind")),
+		AttestationType: "packed",
+		Attachment:      "cross-platform",
+		PublicKey:       []byte("fake-public-key"),
+	}
+
+	require.NoError(t, provider.SaveWebAuthnCredential(ctx, credential))
+
+	credentials, err := provider.LoadWebAuthnCredentialsByUsername(ctx, "", "john")
+
+	require.NoError(t, err)
+	require.Len(t, credentials, 1)
+
+	stored := credentials[0]
+
+	var before []byte
+
+	require.NoError(t, provider.db.GetContext(ctx, &before, fmt.Sprintf("SELECT public_key FROM %s WHERE id = ?", tableWebAuthnCredentials), stored.ID))
+
+	stored.RPID = "example.com"
+	stored.SignCount = 42
+
+	require.NoError(t, provider.UpdateWebAuthnCredentialSignIn(ctx, stored))
+
+	var after []byte
+
+	require.NoError(t, provider.db.GetContext(ctx, &after, fmt.Sprintf("SELECT public_key FROM %s WHERE id = ?", tableWebAuthnCredentials), stored.ID))
+
+	assert.NotEqual(t, before, after)
+
+	reloaded, err := provider.LoadWebAuthnCredentialByID(ctx, stored.ID)
+
+	require.NoError(t, err)
+	assert.Equal(t, "example.com", reloaded.RPID)
+	assert.Equal(t, uint32(42), reloaded.SignCount)
+	assert.Equal(t, []byte("fake-public-key"), reloaded.PublicKey)
+}
+
 func TestSQLProviderIdentityVerification(t *testing.T) {
 	provider := newTestSQLiteProvider(t)
 	require.NoError(t, provider.StartupCheck())
@@ -421,6 +471,49 @@ func TestSQLProviderIdentityVerification(t *testing.T) {
 		require.NoError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NullIP{}))
 	})
 
+	t.Run("ShouldNotConsumeVerificationTwice", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		verification := model.IdentityVerification{
+			JTI:       jti,
+			IssuedAt:  time.Now().Truncate(time.Second),
+			IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+			Action:    "reset_password",
+			Username:  "john",
+		}
+
+		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
+		require.NoError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NewNullIP(net.ParseIP("127.0.0.1"))))
+		require.EqualError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NewNullIP(net.ParseIP("127.0.0.1"))), "no rows affected")
+	})
+
+	t.Run("ShouldNotConsumeVerificationTwiceWithNullIP", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		verification := model.IdentityVerification{
+			JTI:       jti,
+			IssuedAt:  time.Now().Truncate(time.Second),
+			IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+			Action:    "reset_password",
+			Username:  "john",
+		}
+
+		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
+		require.NoError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NullIP{}))
+		require.EqualError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NullIP{}), "no rows affected")
+	})
+
+	t.Run("ShouldNotConsumeNonExistentVerification", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		require.EqualError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NullIP{}), "no rows affected")
+	})
+
 	t.Run("ShouldRevokeVerification", func(t *testing.T) {
 		jti, err := uuid.NewRandom()
 		require.NoError(t, err)
@@ -436,6 +529,67 @@ func TestSQLProviderIdentityVerification(t *testing.T) {
 
 		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
 		require.NoError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NullIP{}))
+	})
+
+	t.Run("ShouldNotRevokeVerificationTwice", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		verification := model.IdentityVerification{
+			JTI:       jti,
+			IssuedAt:  time.Now().Truncate(time.Second),
+			IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+			Action:    "reset_password",
+			Username:  "john",
+		}
+
+		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
+		require.NoError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NewNullIP(net.ParseIP("127.0.0.1"))))
+		require.EqualError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NewNullIP(net.ParseIP("127.0.0.1"))), "no rows affected")
+	})
+
+	t.Run("ShouldNotRevokeVerificationTwiceWithNullIP", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		verification := model.IdentityVerification{
+			JTI:       jti,
+			IssuedAt:  time.Now().Truncate(time.Second),
+			IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+			Action:    "reset_password",
+			Username:  "john",
+		}
+
+		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
+		require.NoError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NullIP{}))
+		require.EqualError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NullIP{}), "no rows affected")
+	})
+
+	t.Run("ShouldNotRevokeNonExistentVerification", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		require.EqualError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NullIP{}), "no rows affected")
+	})
+
+	t.Run("ShouldConsumeRevokedVerification", func(t *testing.T) {
+		jti, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		verification := model.IdentityVerification{
+			JTI:       jti,
+			IssuedAt:  time.Now().Truncate(time.Second),
+			IssuedIP:  model.NewIP(net.ParseIP("127.0.0.1")),
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+			Action:    "reset_password",
+			Username:  "john",
+		}
+
+		require.NoError(t, provider.SaveIdentityVerification(ctx, verification))
+		require.NoError(t, provider.RevokeIdentityVerification(ctx, jti.String(), model.NullIP{}))
+		require.NoError(t, provider.ConsumeIdentityVerification(ctx, jti.String(), model.NullIP{}))
 	})
 }
 
@@ -1220,11 +1374,17 @@ func TestSQLProviderOAuth2SessionAllTypes(t *testing.T) {
 func newTestSQLiteProvider(t *testing.T) *SQLiteProvider {
 	t.Helper()
 
+	return newTestSQLiteProviderAtPath(t, filepath.Join(t.TempDir(), "db.sqlite3"))
+}
+
+func newTestSQLiteProviderAtPath(t *testing.T, path string) *SQLiteProvider {
+	t.Helper()
+
 	config := &schema.Configuration{
 		Storage: schema.Storage{
 			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
 			Local: &schema.StorageLocal{
-				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+				Path: path,
 			},
 		},
 	}

@@ -61,10 +61,10 @@ The Go helper never writes credentials to logs, zeroes them from memory after us
 
 Regardless of which channel you use, two files get installed:
 
-|               File               |                    Destination                    |
-|:--------------------------------:|:--------------------------------------------------:|
-|         `pam_authelia`           |                `/usr/bin/pam_authelia`             |
-|        `pam_authelia.so`         | `/lib/security/pam_authelia.so` (distro-dependent) |
+|       File        |                    Destination                     |
+| :---------------: | :------------------------------------------------: |
+|  `pam_authelia`   |              `/usr/bin/pam_authelia`               |
+| `pam_authelia.so` | `/lib/security/pam_authelia.so` (distro-dependent) |
 
 The PAM module directory differs between distributions (Debian uses `/lib/x86_64-linux-gnu/security/`, Alpine uses `/lib/security/`, Arch uses `/usr/lib/security/`), so if you are installing manually you may need to locate the directory containing `pam_unix.so` and install `pam_authelia.so` alongside it. The packaged installation methods below handle this automatically.
 
@@ -84,11 +84,11 @@ Alternatively, you can download a specific `.deb` release directly from [github.
 
 Three community packages are maintained in the [Arch Linux AUR](https://aur.archlinux.org/), covering every preference:
 
-|      Package       |                           What it installs                            |                When to pick it                 |
-|:------------------:|:----------------------------------------------------------------------:|:-----------------------------------------------:|
-|  `pam_authelia`    |   Builds from the latest tagged release tarball on your build host    |       Preferred for reproducible builds        |
-| `pam_authelia-bin` |         Installs the prebuilt upstream binary artifact as-is          |    Fastest install, no local toolchain needed    |
-| `pam_authelia-git` |          Tracks the `master` branch of [github.com/authelia/pam](https://github.com/authelia/pam)       | Following unreleased changes or testing patches |
+|      Package       |                                     What it installs                                     |                 When to pick it                 |
+| :----------------: | :--------------------------------------------------------------------------------------: | :---------------------------------------------: |
+|   `pam_authelia`   |             Builds from the latest tagged release tarball on your build host             |        Preferred for reproducible builds        |
+| `pam_authelia-bin` |                   Installs the prebuilt upstream binary artifact as-is                   |   Fastest install, no local toolchain needed    |
+| `pam_authelia-git` | Tracks the `master` branch of [github.com/authelia/pam](https://github.com/authelia/pam) | Following unreleased changes or testing patches |
 
 Install whichever suits you using your AUR helper of choice, for example with [`paru`](https://github.com/Morganamilo/paru):
 
@@ -200,9 +200,9 @@ The following options can be supplied to `pam_authelia.so` in any PAM stack file
 
 The `required` badge on each option below uses one of three values, matching the convention used elsewhere in the Authelia documentation:
 
-- __`yes`__: the option must be set; the module will refuse to authenticate without it.
-- __`no`__: optional; the shown default applies when the option is omitted.
-- __`situational`__: required only under specific configurations (for example [`oauth2-client-id`](#oauth2-client-id) is required when [`method-priority`](#method-priority) contains `device_authorization`, otherwise it is ignored).
+- **`yes`**: the option must be set; the module will refuse to authenticate without it.
+- **`no`**: optional; the shown default applies when the option is omitted.
+- **`situational`**: required only under specific configurations (for example [`oauth2-client-id`](#oauth2-client-id) is required when [`method-priority`](#method-priority) contains `device_authorization`, otherwise it is ignored).
 
 ## Options
 
@@ -212,7 +212,7 @@ The `required` badge on each option below uses one of three values, matching the
 
 The URL of the Authelia server. Must use the `https://` scheme. This is the base URL the Go helper uses for every API call, for example POSTing to `/api/firstfactor`.
 
-__Example:__
+**Example:**
 
 ```text {title="/etc/pam.d/sshd"}
 auth required pam_authelia.so url=https://auth.example.com auth-level=1FA+2FA
@@ -283,13 +283,13 @@ When this option is omitted the module uses whichever 2FA method Authelia has st
 
 {{< confkey type="string" required="situational" >}}
 
-OAuth2 client ID for the Device Authorization grant. __Required__ when [`method-priority`](#method-priority) contains `device_authorization`; ignored otherwise. Must match a client configured on the Authelia side with `grant_types: ['urn:ietf:params:oauth:grant-type:device_code']`. See [Configuring Authelia for the Device Authorization flow](#configuring-authelia-for-the-device-authorization-flow) for the server-side setup.
+OAuth2 client ID for the Device Authorization grant. **Required** when [`method-priority`](#method-priority) contains `device_authorization`; ignored otherwise. Must match a client configured on the Authelia side with `grant_types: ['urn:ietf:params:oauth:grant-type:device_code']`. See [Configuring Authelia for the Device Authorization flow](#configuring-authelia-for-the-device-authorization-flow) for the server-side setup.
 
 ### oauth2-client-secret
 
 {{< confkey type="string" required="situational" >}}
 
-OAuth2 client secret. __Required__ when the client referenced by [`oauth2-client-id`](#oauth2-client-id) is a confidential client (i.e. configured with `token_endpoint_auth_method: 'client_secret_post'` on the Authelia side). Omit this for public clients.
+OAuth2 client secret. **Required** when the client referenced by [`oauth2-client-id`](#oauth2-client-id) is a confidential client (i.e. configured with `token_endpoint_auth_method: 'client_secret_post'` on the Authelia side). Omit this for public clients.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 This secret appears in cleartext in `/etc/pam.d/*` and will be visible to anyone with read access to those files. On most distributions `/etc/pam.d/*` is already `0644` and owned by `root`, but verify that the file is not world-readable if you consider the device-flow client secret sensitive, or use a public client (no secret) instead.
@@ -329,7 +329,7 @@ auth required pam_authelia.so url=https://auth.example.com auth-level=2FA
 [pam_authelia] silently POSTs the same credentials to `/api/firstfactor` (the user is not re-prompted), and upon success prompts for the second factor. This mode is useful when local Unix passwords are the source of truth and Authelia is only consulted for the second factor.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-Because the password captured by `pam_unix.so` is forwarded verbatim to Authelia's first-factor endpoint, the user's __local Unix password must match their Authelia password__. If the two drift out of sync the silent 1FA call to Authelia will fail and the login will be rejected even though `pam_unix.so` already accepted the password. Operators running this mode should either provision the same password in both places when the account is created, or use `1FA+2FA` (described below) instead, which prompts the user once and validates only against Authelia.
+Because the password captured by `pam_unix.so` is forwarded verbatim to Authelia's first-factor endpoint, the user's **local Unix password must match their Authelia password**. If the two drift out of sync the silent 1FA call to Authelia will fail and the login will be rejected even though `pam_unix.so` already accepted the password. Operators running this mode should either provision the same password in both places when the account is created, or use `1FA+2FA` (described below) instead, which prompts the user once and validates only against Authelia.
 {{< /callout >}}
 
 ## `1FA+2FA`: password then second factor
@@ -344,20 +344,20 @@ auth required pam_authelia.so url=https://auth.example.com auth-level=1FA+2FA
 
 For `2FA` and `1FA+2FA`, the module fetches `/api/user/info` to discover which 2FA methods the user has enrolled, then picks one according to [`method-priority`](#method-priority):
 
-|        Method          |                   Endpoint                   |                          User interaction                          |
-|:----------------------:|:---------------------------------------------:|:-------------------------------------------------------------------:|
-|          TOTP          |         `POST /api/secondfactor/totp`         |              Types a 6- or 8-digit code from an authenticator app           |
-|        Duo push        |         `POST /api/secondfactor/duo`          |                      Approves the push on their phone                      |
-| Device Authorization   | `POST /api/oidc/device-authorization` (setup) | Scans the QR code or visits the verification URL, completes Authelia login (1FA and 2FA if required), approves the consent prompt, presses Enter |
-|                        |         `POST /api/oidc/token` (poll)         |                                                                     |
+|        Method        |                   Endpoint                    |                                                                 User interaction                                                                 |
+| :------------------: | :-------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------: |
+|         TOTP         |         `POST /api/secondfactor/totp`         |                                               Types a 6- or 8-digit code from an authenticator app                                               |
+|       Duo push       |         `POST /api/secondfactor/duo`          |                                                         Approves the push on their phone                                                         |
+| Device Authorization | `POST /api/oidc/device-authorization` (setup) | Scans the QR code or visits the verification URL, completes Authelia login (1FA and 2FA if required), approves the consent prompt, presses Enter |
+|                      |         `POST /api/oidc/token` (poll)         |                                                                                                                                                  |
 
 {{< callout context="caution" title="WebAuthn over SSH" icon="outline/alert-triangle" >}}
 [pam_authelia](https://github.com/authelia/pam) cannot drive the direct `/api/secondfactor/webauthn` flow, because FIDO2 authenticators need USB or NFC access to the client host and the SSH keyboard-interactive channel cannot pass an authenticator ceremony through. Behavior depends on what else the user has enrolled and on the `method-priority` setting:
 
-- __WebAuthn is the user's Authelia preference but they also have TOTP or Duo enrolled__, and [`method-priority`](#method-priority) is unset or contains `user` (the default), [pam_authelia](https://github.com/authelia/pam) automatically falls through to TOTP, then Duo, then Device Authorization, and authenticates via the first usable method. No operator intervention needed.
-- __WebAuthn is the user's only enrolled method__: the direct 2FA path fails, but WebAuthn still works via the [Device Authorization flow](#configuring-authelia-for-the-device-authorization-flow). At the verification URL the user is logging in through a real browser at the Authelia portal, so WebAuthn (and any other 2FA method Authelia supports) works normally there. Configure `method-priority=device_authorization` or `method-priority=device_authorization,user` on the PAM stack.
-- __[`method-priority`](#method-priority) is set to an explicit list that excludes both `user` and `device_authorization`__ (for example `method-priority=totp` when the user has only WebAuthn enrolled): authentication fails with `no usable 2FA method for this user`. Either enroll an additional method on the Authelia side or widen the priority list so the module can fall through.
-{{< /callout >}}
+- **WebAuthn is the user's Authelia preference but they also have TOTP or Duo enrolled**, and [`method-priority`](#method-priority) is unset or contains `user` (the default), [pam_authelia](https://github.com/authelia/pam) automatically falls through to TOTP, then Duo, then Device Authorization, and authenticates via the first usable method. No operator intervention needed.
+- **WebAuthn is the user's only enrolled method**: the direct 2FA path fails, but WebAuthn still works via the [Device Authorization flow](#configuring-authelia-for-the-device-authorization-flow). At the verification URL the user is logging in through a real browser at the Authelia portal, so WebAuthn (and any other 2FA method Authelia supports) works normally there. Configure `method-priority=device_authorization` or `method-priority=device_authorization,user` on the PAM stack.
+- **[`method-priority`](#method-priority) is set to an explicit list that excludes both `user` and `device_authorization`** (for example `method-priority=totp` when the user has only WebAuthn enrolled): authentication fails with `no usable 2FA method for this user`. Either enroll an additional method on the Authelia side or widen the priority list so the module can fall through.
+  {{< /callout >}}
 
 # Method priority and the `user` entry
 
@@ -372,12 +372,12 @@ A priority list is a comma-separated list of method identifiers. The module walk
 
 Worked examples:
 
-|               Priority list              |                                            Behavior                                            |
-|:-----------------------------------------:|:------------------------------------------------------------------------------------------------:|
-|                  `totp`                   |              Always TOTP; fail if the user has not enrolled TOTP.              |
-|          `totp,mobile_push,user`          |        Prefer TOTP, then Duo push, then fall back to whatever Authelia stores as the preference.       |
-|        `device_authorization,user`        |         Prefer the Device Authorization flow, fall back to the user's stored preference.          |
-|                  `user`                   |           Always respect the user's Authelia preference (identical to the default behavior).          |
+|        Priority list        |                                         Behavior                                          |
+| :-------------------------: | :---------------------------------------------------------------------------------------: |
+|           `totp`            |                   Always TOTP; fail if the user has not enrolled TOTP.                    |
+|   `totp,mobile_push,user`   | Prefer TOTP, then Duo push, then fall back to whatever Authelia stores as the preference. |
+| `device_authorization,user` |     Prefer the Device Authorization flow, fall back to the user's stored preference.      |
+|           `user`            |    Always respect the user's Authelia preference (identical to the default behavior).     |
 
 # Example PAM configurations
 
@@ -469,10 +469,10 @@ identity_providers:
 
 What each block does:
 
-- __`claims_policies.pam`__: a reusable policy named `pam` with a single custom claim, `authelia.pam.username`, whose value is sourced from the backend's `username` attribute. If your backend's raw username doesn't match the Linux account verbatim (different case, an `@realm` suffix, etc.) anchor the claim at a derived attribute instead; see [Case sensitivity and username normalization](#case-sensitivity-and-username-normalization).
-- __`scopes.authelia.pam`__: a custom OIDC scope named `authelia.pam` that grants the `authelia.pam.username` claim. The name is arbitrary but must match whatever you send via the PAM [`oauth2-scope`](#oauth2-scope) option; `authelia.pam` is the default the Go helper expects.
-- __Client-level `claims_policy: 'pam'`__: attaches the `pam` claims policy to this specific client so the custom claim is actually emitted when a token is issued.
-- __Client-level `scopes: ['openid', 'authelia.pam']`__: the client is only allowed to request these two scopes, matching the PAM module's defaults.
+- **`claims_policies.pam`**: a reusable policy named `pam` with a single custom claim, `authelia.pam.username`, whose value is sourced from the backend's `username` attribute. If your backend's raw username doesn't match the Linux account verbatim (different case, an `@realm` suffix, etc.) anchor the claim at a derived attribute instead; see [Case sensitivity and username normalization](#case-sensitivity-and-username-normalization).
+- **`scopes.authelia.pam`**: a custom OIDC scope named `authelia.pam` that grants the `authelia.pam.username` claim. The name is arbitrary but must match whatever you send via the PAM [`oauth2-scope`](#oauth2-scope) option; `authelia.pam` is the default the Go helper expects.
+- **Client-level `claims_policy: 'pam'`**: attaches the `pam` claims policy to this specific client so the custom claim is actually emitted when a token is issued.
+- **Client-level `scopes: ['openid', 'authelia.pam']`**: the client is only allowed to request these two scopes, matching the PAM module's defaults.
 
 Additional notes:
 
@@ -484,17 +484,17 @@ Once the server-side configuration is in place, reload Authelia and configure th
 
 # Device Authorization identity binding
 
-The Device Authorization flow has a subtle trust gap that [pam_authelia] closes explicitly. The OAuth2 token endpoint has no notion of "which local Linux account asked for this code". If left unchecked, any Authelia account holder who scans a displayed QR code can approve the flow with *their own* credentials, and the token endpoint will issue a valid access token. Without an identity check, the PAM module would accept that token as proof of authentication and let the approver log in as the *requesting* Linux user. [pam_authelia] prevents this by verifying the issued token against the PAM username before returning success.
+The Device Authorization flow has a subtle trust gap that [pam_authelia] closes explicitly. The OAuth2 token endpoint has no notion of "which local Linux account asked for this code". If left unchecked, any Authelia account holder who scans a displayed QR code can approve the flow with _their own_ credentials, and the token endpoint will issue a valid access token. Without an identity check, the PAM module would accept that token as proof of authentication and let the approver log in as the _requesting_ Linux user. [pam_authelia] prevents this by verifying the issued token against the PAM username before returning success.
 
 ## How the check works
 
 After [pam_authelia]'s poll of `/api/oidc/token` returns an access token and ID token, the Go helper runs the following verification steps in order, and fails closed if any step fails:
 
-1. __OIDC discovery__ against the configured Authelia URL, fetching the JWKs document used to verify signatures.
-2. __ID token verification__: signature against the discovery-supplied JWKs, issuer, audience (must equal [`oauth2-client-id`](#oauth2-client-id)), and expiry.
-3. __Userinfo request__: calls `/userinfo` under Bearer authentication with the access token.
-4. __Token substitution defense__: asserts that `userinfo.sub == id_token.sub`. A mismatch here indicates someone swapped an unrelated access token in for one issued during this device flow.
-5. __Username binding__: looks up the `authelia.pam.username` claim in the userinfo response and **case-sensitively** compares it to the Linux username the PAM shim passed to the Go helper on stdin. Missing claim, wrong type, empty value, or any difference fails the login.
+1. **OIDC discovery** against the configured Authelia URL, fetching the JWKs document used to verify signatures.
+2. **ID token verification**: signature against the discovery-supplied JWKs, issuer, audience (must equal [`oauth2-client-id`](#oauth2-client-id)), and expiry.
+3. **Userinfo request**: calls `/userinfo` under Bearer authentication with the access token.
+4. **Token substitution defense**: asserts that `userinfo.sub == id_token.sub`. A mismatch here indicates someone swapped an unrelated access token in for one issued during this device flow.
+5. **Username binding**: looks up the `authelia.pam.username` claim in the userinfo response and **case-sensitively** compares it to the Linux username the PAM shim passed to the Go helper on stdin. Missing claim, wrong type, empty value, or any difference fails the login.
 
 On success the helper writes `device identity verified: claim "authelia.pam.username" == pam username "<user>"` to the debug log and returns `PAM_SUCCESS`. On failure it writes a diagnostic line (for example `authelia identity "jane" does not match pam username "john"`) to stderr and returns `PAM_AUTH_ERR`. There is no partial-success path.
 
@@ -641,20 +641,20 @@ The lowercase form of the error string above is intentional; it matches what the
 
 # Security considerations
 
-- __TLS is always verified.__ There is no insecure or `skip-verify` mode. Connections to Authelia use TLS 1.2 or later, and verification uses the system trust store or the [`ca-cert`](#ca-cert) you provide.
-- __Credentials never reach logs.__ Passwords and 2FA tokens are never written to debug output. The debug log records HTTP status codes and the `status` JSON field from Authelia's responses, but never request or response bodies.
-- __Credentials are zeroed from memory__ after use via `explicit_bzero(3)`.
-- __Device Authorization verification URLs are validated.__ The URL returned by `/api/oidc/device-authorization` must use `https://`, point to the same host as [`url`](#url), and be under 2 KiB. This defends against a compromised or man-in-the-middled Authelia response phishing the user via an attacker-controlled URL rendered as a QR code.
-- __Device Authorization tokens are bound to the requesting Linux username.__ After the token endpoint returns, the Go helper runs OIDC discovery, verifies the ID token, calls `/userinfo`, asserts that `userinfo.sub == id_token.sub`, and case-sensitively compares the custom `authelia.pam.username` claim against the Linux username the shim passed to it. Without this check, any Authelia account holder could approve another user's QR code and end up logged in as them. See [Device Authorization identity binding](#device-authorization-identity-binding) for the full check list and the required server-side `claims_policies` plus custom-scope configuration.
-- __Client secrets live in `/etc/pam.d/*`.__ When using [`oauth2-client-secret`](#oauth2-client-secret) the value appears in plaintext in PAM configuration files. Verify that those files are not world-readable (`0644` owned by `root` is the default on most distributions), or use a public client to avoid the issue.
-- __Client disconnect detection.__ If the SSH client disconnects mid-authentication, the C shim notices via `POLLRDHUP` on the client socket, kills the Go helper with `SIGTERM`, and returns `PAM_AUTH_ERR`. Without this, Device Authorization polling could outlive the SSH session and keep hitting Authelia's token endpoint until the device code expired.
-- __Authelia's regulation still applies.__ Rate limiting, IP-based throttling, and any other [regulation](../../../configuration/security/regulation.md) rules enforced by your Authelia deployment apply to every login attempt through [pam_authelia]. Operators who previously relied on SSH's own per-source-IP penalties should verify that Authelia's regulation config is tuned appropriately.
+- **TLS is always verified.** There is no insecure or `skip-verify` mode. Connections to Authelia use TLS 1.2 or later, and verification uses the system trust store or the [`ca-cert`](#ca-cert) you provide.
+- **Credentials never reach logs.** Passwords and 2FA tokens are never written to debug output. The debug log records HTTP status codes and the `status` JSON field from Authelia's responses, but never request or response bodies.
+- **Credentials are zeroed from memory** after use via `explicit_bzero(3)`.
+- **Device Authorization verification URLs are validated.** The URL returned by `/api/oidc/device-authorization` must use `https://`, point to the same host as [`url`](#url), and be under 2 KiB. This defends against a compromised or man-in-the-middled Authelia response phishing the user via an attacker-controlled URL rendered as a QR code.
+- **Device Authorization tokens are bound to the requesting Linux username.** After the token endpoint returns, the Go helper runs OIDC discovery, verifies the ID token, calls `/userinfo`, asserts that `userinfo.sub == id_token.sub`, and case-sensitively compares the custom `authelia.pam.username` claim against the Linux username the shim passed to it. Without this check, any Authelia account holder could approve another user's QR code and end up logged in as them. See [Device Authorization identity binding](#device-authorization-identity-binding) for the full check list and the required server-side `claims_policies` plus custom-scope configuration.
+- **Client secrets live in `/etc/pam.d/*`.** When using [`oauth2-client-secret`](#oauth2-client-secret) the value appears in plaintext in PAM configuration files. Verify that those files are not world-readable (`0644` owned by `root` is the default on most distributions), or use a public client to avoid the issue.
+- **Client disconnect detection.** If the SSH client disconnects mid-authentication, the C shim notices via `POLLRDHUP` on the client socket, kills the Go helper with `SIGTERM`, and returns `PAM_AUTH_ERR`. Without this, Device Authorization polling could outlive the SSH session and keep hitting Authelia's token endpoint until the device code expired.
+- **Authelia's regulation still applies.** Rate limiting, IP-based throttling, and any other [regulation](../../../configuration/security/regulation.md) rules enforced by your Authelia deployment apply to every login attempt through [pam_authelia]. Operators who previously relied on SSH's own per-source-IP penalties should verify that Authelia's regulation config is tuned appropriately.
 
 # Limitations
 
-- __No WebAuthn / FIDO2 over SSH.__ FIDO2 authenticators require direct USB or NFC access to the client device, which cannot be tunneled through `sshd`'s keyboard-interactive channel.
-- __Device-flow QR codes need a Unicode-capable terminal.__ The QR is rendered with Unicode half-block characters (U+2580, U+2584, U+2588). Terminals that do not render these characters fall back to showing only the verification URL and user code, which still work but defeat the "point your phone at the screen" convenience.
-- __WebAuthn users without a fallback will fail.__ If a user's only enrolled 2FA method is WebAuthn and [`method-priority`](#method-priority) is set to an explicit list that excludes both `user` and `device_authorization`, authentication fails. Enroll an additional TOTP or Duo credential, widen the priority list, or route the user through the Device Authorization flow (see the [WebAuthn over SSH](#authentication-flows) callout in the Authentication flows section for details).
+- **No WebAuthn / FIDO2 over SSH.** FIDO2 authenticators require direct USB or NFC access to the client device, which cannot be tunneled through `sshd`'s keyboard-interactive channel.
+- **Device-flow QR codes need a Unicode-capable terminal.** The QR is rendered with Unicode half-block characters (U+2580, U+2584, U+2588). Terminals that do not render these characters fall back to showing only the verification URL and user code, which still work but defeat the "point your phone at the screen" convenience.
+- **WebAuthn users without a fallback will fail.** If a user's only enrolled 2FA method is WebAuthn and [`method-priority`](#method-priority) is set to an explicit list that excludes both `user` and `device_authorization`, authentication fails. Enroll an additional TOTP or Duo credential, widen the priority list, or route the user through the Device Authorization flow (see the [WebAuthn over SSH](#authentication-flows) callout in the Authentication flows section for details).
 
 # See also
 

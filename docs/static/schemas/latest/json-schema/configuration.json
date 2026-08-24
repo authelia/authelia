@@ -363,7 +363,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "AuthenticationBackendExtraAttribute represents the configuration of an extra user attribute."
     },
     "AuthenticationBackendFile": {
       "properties": {
@@ -983,7 +984,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "AuthenticationBackendLDAPAttributesAttribute represents the configuration of an extra LDAP attribute."
     },
     "AuthenticationBackendLDAPPooling": {
       "properties": {
@@ -1021,7 +1023,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "AuthenticationBackendLDAPPooling represents the LDAP connection pooling configuration."
     },
     "AuthenticationBackendPasswordChange": {
       "properties": {
@@ -1221,7 +1224,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "Definitions represents the definitions which can be referenced elsewhere in the configuration."
     },
     "DuoAPI": {
       "properties": {
@@ -1490,7 +1494,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectClaimsPolicy represents the claims policy configuration."
     },
     "IdentityProvidersOpenIDConnectClient": {
       "properties": {
@@ -2306,7 +2311,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectCustomClaim represents a single custom claim configuration."
     },
     "IdentityProvidersOpenIDConnectCustomClaims": {
       "patternProperties": {
@@ -2314,7 +2320,8 @@
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaim"
         }
       },
-      "type": "object"
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectCustomClaims represents the custom claims configuration."
     },
     "IdentityProvidersOpenIDConnectLifespan": {
       "properties": {
@@ -2596,7 +2603,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectLifespans represents the token lifespan configuration."
     },
     "IdentityProvidersOpenIDConnectPolicy": {
       "properties": {
@@ -2672,7 +2680,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectScope represents a single custom scope configuration."
     },
     "IdentityValidation": {
       "properties": {
@@ -3344,7 +3353,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "ServerEndpointRateLimit represents the rate limiter configuration for a single endpoint."
     },
     "ServerEndpointRateLimitBucket": {
       "properties": {
@@ -3369,7 +3379,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "ServerEndpointRateLimitBucket represents a single rate limit bucket."
     },
     "ServerEndpointRateLimits": {
       "properties": {
@@ -3430,7 +3441,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "ServerEndpointRateLimits represents the rate limiter configuration for each endpoint."
     },
     "ServerEndpoints": {
       "properties": {
@@ -3546,7 +3558,7 @@
           "type": "string",
           "title": "CSP Template",
           "description": "The Content Security Policy template.",
-          "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"
+          "default": "default-src 'self'; base-uri 'self'; connect-src 'self'; frame-ancestors 'none'; frame-src 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'nonce-%s'"
         }
       },
       "additionalProperties": false,
@@ -4139,7 +4151,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "StoragePostgreSQLServer represents the PostgreSQL server configuration."
     },
     "TLS": {
       "properties": {
@@ -4361,7 +4374,8 @@
       "type": "object",
       "required": [
         "expression"
-      ]
+      ],
+      "description": "UserAttribute represents a user attribute definition."
     },
     "WebAuthn": {
       "properties": {
@@ -4466,7 +4480,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "WebAuthnFiltering represents the WebAuthn authenticator filtering configuration."
     },
     "WebAuthnMetadata": {
       "properties": {
@@ -4562,7 +4577,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "WebAuthnMetadata represents the WebAuthn Metadata Service configuration."
     },
     "WebAuthnSelectionCriteria": {
       "properties": {
@@ -4601,7 +4617,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "WebAuthnSelectionCriteria represents the WebAuthn authenticator selection criteria configuration."
     },
     "X509CertificateChain": {
       "type": "string",

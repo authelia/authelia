@@ -13,8 +13,8 @@
     "preview": "vite preview --outDir public"
   },
   "dependencies": {
-    "@docsearch/css": "4.7.0",
-    "@docsearch/js": "4.7.0",
+    "@docsearch/css": "5.0.3",
+    "@docsearch/js": "5.0.3",
     "@tabler/icons": "3.46.0",
     "@thulite/core": "1.5.9",
     "@thulite/doks-core": "1.9.3",
@@ -25,8 +25,8 @@
     "thulite": "2.6.5"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "0.7.0",
-    "@changesets/cli": "2.31.1",
+    "@changesets/changelog-github": "1.0.0",
+    "@changesets/cli": "3.0.1",
     "@fullhuman/postcss-purgecss": "8.0.0",
     "autoprefixer": "10.5.4",
     "basiclightbox": "5.0.4",
@@ -36,7 +36,7 @@
     "postcss": "8.5.26",
     "postcss-cli": "11.0.1",
     "prettier": "3.9.6",
-    "vite": "8.2.1"
+    "vite": "8.2.2"
   },
   "optionalDependencies": {
     "hugo-extended": "0.164.0"
@@ -45,7 +45,7 @@
     "node": ">=24.13.0",
     "pnpm": "11"
   },
-  "packageManager": "pnpm@11.21.0",
+  "packageManager": "pnpm@11.22.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

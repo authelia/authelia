@@ -124,12 +124,20 @@ func adrAddRunE(cmd *cobra.Command, args []string) (err error) {
 
 	config.NextID += 1
 
-	if raw, err = json.Marshal(config); err != nil {
-		return fmt.Errorf("error serializing config: %w", err)
+	var fc *os.File
+
+	if fc, err = os.OpenFile(c, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600); err != nil {
+		return fmt.Errorf("error writing config: %w", err)
 	}
 
-	if err = os.WriteFile(c, raw, 0600); err != nil {
-		return fmt.Errorf("error writing config: %w", err)
+	defer fc.Close()
+
+	encoder := json.NewEncoder(fc)
+
+	encoder.SetIndent("", "  ")
+
+	if err = encoder.Encode(config); err != nil {
+		return fmt.Errorf("error serializing config: %w", err)
 	}
 
 	gitadd := exec.Command("git", "add", fp)
@@ -137,10 +145,12 @@ func adrAddRunE(cmd *cobra.Command, args []string) (err error) {
 	return gitadd.Run()
 }
 
+// ArchitectureDesignRecordConfig represents the architecture design record configuration file.
 type ArchitectureDesignRecordConfig struct {
 	NextID int `json:"next_id"`
 }
 
+// ArchitectureDesignRecordTmpl represents the template vars for an architecture design record.
 type ArchitectureDesignRecordTmpl struct {
 	ADR            int
 	Weight         int

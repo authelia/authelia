@@ -51,6 +51,7 @@ authelia-scripts suites
 * [authelia-scripts suites external](authelia-scripts_suites_external.md)	 - Commands related to external suites management
 * [authelia-scripts suites list](authelia-scripts_suites_list.md)	 - List available suites
 * [authelia-scripts suites setup](authelia-scripts_suites_setup.md)	 - Setup a test suite environment
+* [authelia-scripts suites slot](authelia-scripts_suites_slot.md)	 - Show the suite slot allocated to this working tree
 * [authelia-scripts suites teardown](authelia-scripts_suites_teardown.md)	 - Teardown a test suite environment
 * [authelia-scripts suites test](authelia-scripts_suites_test.md)	 - Run a test suite
 

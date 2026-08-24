@@ -38,10 +38,10 @@ A bug with Adventure Log requires manual adjustments to this guide and those adj
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://adventurelog.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `adventurelog`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://adventurelog.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `adventurelog`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -51,7 +51,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [AdventureLog] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [AdventureLog] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -100,16 +100,15 @@ To configure [AdventureLog] to utilize Authelia as an [OpenID Connect 1.0] Provi
 4. Under Social Applications, click Add.
 5. Configure the following options:
    - Provider: `OpenID Connect`
-   - Provider ID: `authelia`  (_**Note**: this will need to be `adventurelog` until the bug is fixed_)
+   - Provider ID: `authelia` (_**Note**: this will need to be `adventurelog` until the bug is fixed_)
    - Name: `Authelia`
    - Client ID: `adventurelog`
    - Secret Key: `insecure_secret`
    - Settings:
      `{"server_url": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"}`
    - Sites: Select the sites you want to enable OpenID Connect for.
-      (By default, you should add the pre-created `example.com` site.)
+     (By default, you should add the pre-created `example.com` site.)
 6. Press `Save` at the bottom.
-
 
 ## Linking Existing Accounts
 

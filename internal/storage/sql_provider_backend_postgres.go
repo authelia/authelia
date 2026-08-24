@@ -38,7 +38,6 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = queryPostgreSelectExistingTables
 
-	// Specific alterations to this provider.
 	// PostgreSQL doesn't have a UPSERT statement but has an ON CONFLICT operation instead.
 	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDevicePostgreSQL, tableDuoDevices)
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
@@ -123,6 +122,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectMigrations = provider.db.Rebind(provider.sqlSelectMigrations)
 	provider.sqlSelectLatestMigration = provider.db.Rebind(provider.sqlSelectLatestMigration)
 
+	provider.sqlInsertEncryptionValue = provider.db.Rebind(provider.sqlInsertEncryptionValue)
 	provider.sqlSelectEncryptionValue = provider.db.Rebind(provider.sqlSelectEncryptionValue)
 
 	provider.sqlSelectOAuth2ConsentPreConfigurations = provider.db.Rebind(provider.sqlSelectOAuth2ConsentPreConfigurations)
@@ -282,11 +282,13 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 	default:
 		var caCertPool *x509.CertPool
 
-		switch ca {
-		case nil:
-			caCertPool = globalCACertPool
-		default:
-			caCertPool = globalCACertPool
+		if globalCACertPool == nil {
+			caCertPool = x509.NewCertPool()
+		} else {
+			caCertPool = globalCACertPool.Clone()
+		}
+
+		if ca != nil {
 			caCertPool.AddCert(ca)
 		}
 
@@ -302,7 +304,10 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 			tlsConfig.VerifyPeerCertificate = newPostgreSQLVerifyPeerCertificateFunc(tlsConfig)
 		case config.SSL.Mode == "verify-full":
 			tlsConfig.InsecureSkipVerify = false
-			tlsConfig.ServerName = config.Address.Hostname()
+
+			if config.Address != nil {
+				tlsConfig.ServerName = config.Address.Hostname()
+			}
 		}
 	}
 

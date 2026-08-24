@@ -60,7 +60,7 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 	switch {
 	case cookies == 0 && n != 0:
 		validator.PushWarning(errors.New(errFmtSessionDomainLegacy))
-		// Add legacy configuration to the domains list.
+
 		config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
 			SessionCookieCommon: schema.SessionCookieCommon{
 				Name:              config.Session.Name,
@@ -107,7 +107,6 @@ func validateSessionCookieDomains(config *schema.Session, validator *schema.Stru
 	}
 }
 
-// validateSessionDomainName pushes warnings and errors depending on the domain validity.
 func validateSessionDomainName(i int, config *schema.Session, validator *schema.StructValidator) {
 	var d = config.Cookies[i]
 
@@ -159,7 +158,6 @@ func validateSessionExpiration(i int, config *schema.Session) {
 	}
 }
 
-// validateSessionUniqueCookieDomain Check the current domains do not share a root domain with previous domains.
 func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []string, validator *schema.StructValidator) {
 	var d = config.Cookies[i]
 	if utils.IsStringInSliceF(d.Domain, domains, utils.HasDomainSuffix) {
@@ -171,8 +169,6 @@ func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []
 	}
 }
 
-// validateSessionCookiesURLs validates the AutheliaURL and DefaultRedirectionURL.
-//
 //nolint:gocyclo
 func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema.StructValidator) {
 	var d = config.Cookies[i]

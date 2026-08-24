@@ -32,10 +32,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://filerise.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `filerise`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://filerise.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `filerise`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [FileRise] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [FileRise] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -89,10 +89,12 @@ To configure [FileRise] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 2. Select `Admin Panel` from the context menu revealed by clicking your profile icon.
 3. Select `OIDC Configuration & TOTP`.
 4. Enter the following values:
-  - OIDC Provider URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-  - OIDC Client ID: `filerise`
-  - OIDC Client Secret: `insecure_secret`
-  - OIDC Redirect URI: `https://filerise.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/auth.php?oidc=callback`
+
+- OIDC Provider URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+- OIDC Client ID: `filerise`
+- OIDC Client Secret: `insecure_secret`
+- OIDC Redirect URI: `https://filerise.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/auth.php?oidc=callback`
+
 5. Click `Save Settings`.
 
 [Authelia]: https://www.authelia.com

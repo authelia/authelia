@@ -92,21 +92,21 @@ continue to append to the old log file.
 
 #### File Path Examples
 
-__Standard Example:__
+**Standard Example:**
 
 ```yaml {title="configuration.yml"}
 log:
   file_path: '/config/authelia.log'
 ```
 
-__Date Time Example:__
+**Date Time Example:**
 
 ```yaml {title="configuration.yml"}
 log:
   file_path: '/config/authelia.%d.log'
 ```
 
-__Date Time Example (with custom layout):__
+**Date Time Example (with custom layout):**
 
 ```yaml {title="configuration.yml"}
 log:

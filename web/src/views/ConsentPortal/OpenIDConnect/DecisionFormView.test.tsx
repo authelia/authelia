@@ -9,17 +9,6 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("@mui/material", async () => {
-    const actual = await vi.importActual("@mui/material");
-    return {
-        ...actual,
-        useTheme: () => ({
-            palette: { grey: { 600: "#999" } },
-            spacing: (n: number) => `${(n || 1) * 8}px`,
-        }),
-    };
-});
-
 vi.mock("broadcast-channel", () => {
     class MockBroadcastChannel {
         addEventListener = vi.fn();

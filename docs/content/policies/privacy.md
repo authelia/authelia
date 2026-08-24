@@ -24,16 +24,16 @@ seo:
 This section applies to the public website at https://www.authelia.com and does not apply to the _Authelia_ application
 itself.
 
-__TLDR__: We do not use cookies and we do not collect any personal data.
+**TLDR**: We do not use cookies and we do not collect any personal data.
 
 ### Website visitors
 
-* No personal information is collected.
-* No information is stored in the browser.
-* No information is shared with, sent to or sold to third-parties.
-* No information is shared with advertising companies.
-* No information is mined and harvested for personal and behavioral trends.
-* No information is monetized.
+- No personal information is collected.
+- No information is stored in the browser.
+- No information is shared with, sent to or sold to third-parties.
+- No information is shared with advertising companies.
+- No information is mined and harvested for personal and behavioral trends.
+- No information is monetized.
 
 ## Application
 
@@ -43,26 +43,26 @@ _Authelia_ application itself does automatically. Individual installations of _A
 depending on the administrator who deploys the application. It is beyond our ability to include this in our policy and
 you should refer to their privacy policy.
 
-__TLDR__: We collect only information necessary to operate the application and properly perform security audits. This
+**TLDR**: We collect only information necessary to operate the application and properly perform security audits. This
 information is only stored in the local SQL database and is NOT sent to any external service.
 
 ### Application visitors
 
-* Information collected is stored locally in the database and not sent to any external service.
-* No personal information is collected other than:
-  * Username and IP address are recorded and logged for security related events for auditing purposes.
-* The information stored in the browser is:
-  * Cookies:
-    * A session cookie necessary for the application to operate.
-  * Local Storage:
-    * A language preference necessary for the application to operate.
-* No information is shared with, sent to or sold to third-parties.
-* No information is shared with advertising companies.
-* No information is mined and harvested for personal and behavioral trends.
-* No information is monetized.
+- Information collected is stored locally in the database and not sent to any external service.
+- No personal information is collected other than:
+  - Username and IP address are recorded and logged for security related events for auditing purposes.
+- The information stored in the browser is:
+  - Cookies:
+    - A session cookie necessary for the application to operate.
+  - Local Storage:
+    - A language preference necessary for the application to operate.
+- No information is shared with, sent to or sold to third-parties.
+- No information is shared with advertising companies.
+- No information is mined and harvested for personal and behavioral trends.
+- No information is monetized.
 
 ## Contact us
 
 [Contact us](../information/contact.md) if you have any questions.
 
-__Effective Date:__ *16th May 2022*
+**Effective Date:** _16th May 2022_

@@ -9,8 +9,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// AccessControlNetworks represents the networks criteria of an access control rule.
 type AccessControlNetworks []*net.IPNet
 
+// IsMatch returns true if the given subject matches these networks.
 func (a AccessControlNetworks) IsMatch(subject Subject) bool {
 	if len(a) == 0 {
 		return true

@@ -16,17 +16,17 @@ seo:
 
 We officially support the Traefik 2.x Kubernetes ingress controllers. These come in two flavors:
 
-* [Traefik Kubernetes Ingress](https://doc.traefik.io/traefik/providers/kubernetes-ingress/)
-* [Traefik Kubernetes CRD](https://doc.traefik.io/traefik/providers/kubernetes-crd/)
+- [Traefik Kubernetes Ingress](https://doc.traefik.io/traefik/providers/kubernetes-ingress/)
+- [Traefik Kubernetes CRD](https://doc.traefik.io/traefik/providers/kubernetes-crd/)
 
 The [Traefik Proxy documentation](../proxies/traefik.md) may also be useful with this ingress even though it's not
 specific to Kubernetes.
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Variables
 
@@ -55,7 +55,7 @@ that your cluster is configured with the default DNS domain name of `cluster.loc
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 The [Middleware](#middleware) should be applied to an [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) / [IngressRoute](https://doc.traefik.io/traefik/providers/kubernetes-crd/) you wish to protect. It
-__SHOULD NOT__ be applied to the Authelia [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) / [IngressRoute](https://doc.traefik.io/traefik/providers/kubernetes-crd/) itself.
+**SHOULD NOT** be applied to the Authelia [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) / [IngressRoute](https://doc.traefik.io/traefik/providers/kubernetes-crd/) itself.
 {{< /callout >}}
 
 ```yaml {title="middleware.yml"}

@@ -1,25 +1,40 @@
-import { Box, Typography, useTheme } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import { ScaleLoader } from "react-spinners";
+import { cn } from "@utils/Styles";
 
 export interface Props {
     message: string;
 }
 
-const BaseLoadingPage = function (props: Props) {
-    const theme = useTheme();
+const delays = [
+    "[animation-delay:0.1s]",
+    "[animation-delay:0.2s]",
+    "[animation-delay:0.3s]",
+    "[animation-delay:0.4s]",
+    "[animation-delay:0.5s]",
+];
 
+const BaseLoadingPage = function (props: Props) {
     return (
-        <Grid container sx={{ alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-            <Grid sx={{ display: "inline-block", textAlign: "center" }}>
-                <Box padding={theme.spacing(2)}>
-                    <ScaleLoader color={theme.custom.loadingBar} speedMultiplier={1.5} />
-                </Box>
-                <Box padding={theme.spacing(2)}>
-                    <Typography>{props.message}...</Typography>
-                </Box>
-            </Grid>
-        </Grid>
+        <div className="grid min-h-screen items-center justify-center">
+            <div className="inline-block text-center">
+                <div className="p-4">
+                    <span className="inline-flex">
+                        {delays.map((delay) => (
+                            <span
+                                key={delay}
+                                className={cn(
+                                    "mx-0.5 inline-block h-[35px] w-1 rounded-[2px]",
+                                    "bg-[var(--custom-loading-bar)] animate-scale-loader",
+                                    delay,
+                                )}
+                            />
+                        ))}
+                    </span>
+                </div>
+                <div className="p-4">
+                    <p>{props.message}...</p>
+                </div>
+            </div>
+        </div>
     );
 };
 

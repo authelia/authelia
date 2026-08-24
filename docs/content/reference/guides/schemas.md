@@ -42,7 +42,6 @@ Where:
    1. The `latest` version refers to the latest released version of Authelia.
    2. The `next` version refers to the latest commit to the master branch.
 
-
 ### Configuration
 
 **Schema Name:** `configuration`

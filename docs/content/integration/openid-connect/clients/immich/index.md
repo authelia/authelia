@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.0](https://github.com/authelia/authelia/releases/tag/v4.39.0)
 - [Immich]
-  - [v1.132.3](https://github.com/immich-app/immich/releases/tag/v1.132.3)
+  - [v3.1.0](https://github.com/immich-app/immich/releases/tag/v3.1.0)
 
 {{% oidc-common %}}
 
@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://immich.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `immich`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://immich.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `immich`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +46,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Immich] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Immich] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -60,8 +60,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
-        require_pkce: false
-        pkce_challenge_method: ''
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://immich.{{< sitevar name="domain" nojs="example.com" >}}/auth/login'
           - 'https://immich.{{< sitevar name="domain" nojs="example.com" >}}/user-settings'
@@ -76,7 +76,7 @@ identity_providers:
           - 'authorization_code'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_post'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
@@ -90,12 +90,13 @@ To configure [Immich] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 1. Login to [Immich].
 2. Navigate to OAuth Settings.
 3. Configure the following options:
-    - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`.
-    - Client ID: `immich`.
-    - Client Secret: `insecure_secret`.
-    - Scope: `openid profile email`.
-    - Button Text: `Login with Authelia`.
-    - Auto Register: Enable if desired.
+   - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`.
+   - Client ID: `immich`.
+   - Client Secret: `insecure_secret`.
+   - Scope: `openid profile email`.
+   - Token Endpoint Auth Method: `client_secret_basic`.
+   - Button Text: `Login with Authelia`.
+   - Auto Register: Enable if desired.
 4. Press `Save` at the bottom
 
 ## See Also

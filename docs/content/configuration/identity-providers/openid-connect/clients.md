@@ -182,12 +182,13 @@ of this option with the `https://` scheme per the requirements will cause Authel
 {{< /callout >}}
 
 A valid `sector_identifier_uri` will:
-  1. Have the scheme `https://`.
-  2. Be the absolute URI of a JSON document which:
-     1. Is a JSON array of strings (URIs).
-     2. Has every URI registered with this clients [redirect_uris](#redirect_uris) when compared using an exact string
-        match as defined in [OAuth 2.0 Security Best Current Practice Section 2.1].
-     3. May or may not have additional [redirect_uris](#redirect_uris) from other clients.
+
+1. Have the scheme `https://`.
+2. Be the absolute URI of a JSON document which:
+   1. Is a JSON array of strings (URIs).
+   2. Has every URI registered with this clients [redirect_uris](#redirect_uris) when compared using an exact string
+      match as defined in [OAuth 2.0 Security Best Current Practice Section 2.1].
+   3. May or may not have additional [redirect_uris](#redirect_uris) from other clients.
 
 [OAuth 2.0 Security Best Current Practice Section 2.1]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-2.1
 
@@ -205,7 +206,7 @@ the lookup of the subject identifier.
       2. Any client with a differing `sector_identifier_uri`.
 
 In specific but limited scenarios this option is beneficial for privacy reasons. In particular this is useful when the
-party utilizing the *Authelia* [OpenID Connect 1.0] Authorization Server is foreign and not controlled by the user. It would
+party utilizing the _Authelia_ [OpenID Connect 1.0] Authorization Server is foreign and not controlled by the user. It would
 prevent the third party utilizing the subject identifier with another third party in order to track the user.
 
 Keep in mind depending on the other claims they may still be able to perform this tracking and it is not a silver
@@ -336,7 +337,6 @@ should not be used as a crutch for applications which do not implement the most 
 level of access control on their end.
 {{< /callout >}}
 
-
 The authorization policy for this client: either `one_factor`, `two_factor`, or one of the ones configured in the
 provider [authorization_policies](./provider.md#authorization_policies) section.
 
@@ -382,7 +382,7 @@ behavior. This value does not affect the issued ID Tokens as they are always iss
 the audience.
 
 |  Value   |                                                           Description                                                           |
-|:--------:|:-------------------------------------------------------------------------------------------------------------------------------:|
+| :------: | :-----------------------------------------------------------------------------------------------------------------------------: |
 | explicit |            Requires the client explicitly requests an audiences for an audience to be included in the issued tokens             |
 | implicit | Assumes if the client is requesting all audiences it is permitted to request if the audience and resource parameters are absent |
 
@@ -400,7 +400,7 @@ Configures the fallback consent mode. If explicit consent or a condition that re
 setting has no effect. The following table describes the different modes:
 
 |     Value      |                                                                  Description                                                                   |
-|:--------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+| :------------: | :--------------------------------------------------------------------------------------------------------------------------------------------: |
 |      auto      | Automatically determined (default). Uses `explicit` unless [pre_configured_consent_duration] is specified in which case uses `pre-configured`. |
 |    explicit    |                                   Requires the user provide unique explicit consent for every authorization.                                   |
 |    implicit    |    Automatically assumes consent for every authorization, never asking the user if they wish to give consent. See the specific notes below.    |
@@ -1085,7 +1085,7 @@ It's recommended that you specifically configure this when the following options
 otherwise we assume the default value:
 
 |                   Configuration Option                    |        Value        | Default |
-|:---------------------------------------------------------:|:-------------------:|:-------:|
+| :-------------------------------------------------------: | :-----------------: | :-----: |
 | [token_endpoint_auth_method](#token_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [token_endpoint_auth_method](#token_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
@@ -1115,7 +1115,7 @@ It's recommended that you specifically configure this when the following options
 otherwise we assume the default value:
 
 |                        Configuration Option                         |        Value        | Default |
-|:-------------------------------------------------------------------:|:-------------------:|:-------:|
+| :-----------------------------------------------------------------: | :-----------------: | :-----: |
 | [revocation_endpoint_auth_method](#revocation_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [revocation_endpoint_auth_method](#revocation_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
@@ -1145,7 +1145,7 @@ It's recommended that you specifically configure this when the following options
 otherwise we assume the default value:
 
 |                           Configuration Option                            |        Value        | Default |
-|:-------------------------------------------------------------------------:|:-------------------:|:-------:|
+| :-----------------------------------------------------------------------: | :-----------------: | :-----: |
 | [introspection_endpoint_auth_method](#introspection_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [introspection_endpoint_auth_method](#introspection_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
@@ -1176,7 +1176,7 @@ It's recommended that you specifically configure this when the following options
 otherwise we assume the default value:
 
 |                                          Configuration Option                                           |        Value        | Default |
-|:-------------------------------------------------------------------------------------------------------:|:-------------------:|:-------:|
+| :-----------------------------------------------------------------------------------------------------: | :-----------------: | :-----: |
 | [pushed_authorization_request_endpoint_auth_method](#pushed_authorization_request_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [pushed_authorization_request_endpoint_auth_method](#pushed_authorization_request_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
@@ -1297,19 +1297,19 @@ The public key portion of the JSON Web Key.
 The public key the clients use to sign/encrypt the [OpenID Connect 1.0] asserted [JWT]'s. The key is generated by the
 client application or the administrator of the client application.
 
-The key *__MUST__*:
+The key _**MUST**_:
 
-* Be a PEM block encoded in the DER base64 format ([RFC4648]).
-* Be either:
-  * An RSA public key:
-    * Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
-    * Have a key size of at least 2048 bits.
-  * An ECDSA public key:
-    * Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
-    * Use one of the following elliptical curves:
-      * P-256.
-      * P-384.
-      * P-512.
+- Be a PEM block encoded in the DER base64 format ([RFC4648]).
+- Be either:
+  - An RSA public key:
+    - Encoded in conformance to the [PKCS#8] or [PKCS#1] specifications.
+    - Have a key size of at least 2048 bits.
+  - An ECDSA public key:
+    - Encoded in conformance to the [PKCS#8] or [SECG1] specifications.
+    - Use one of the following elliptical curves:
+      - P-256.
+      - P-384.
+      - P-512.
 
 [PKCS#8]: https://datatracker.ietf.org/doc/html/rfc5208
 [PKCS#1]: https://datatracker.ietf.org/doc/html/rfc8017

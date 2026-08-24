@@ -1,10 +1,10 @@
 import { Fragment, ReactNode, useCallback, useEffect, useReducer, useRef } from "react";
 
-import { Box, Button, Link } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
+import { Button } from "@components/UI/Button";
 import { useNotifications } from "@contexts/NotificationsContext";
 import {
     DuoDevicePostRequest,
@@ -68,7 +68,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     const { createErrorNotification } = useNotifications();
 
-    const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimitRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
     useEffect(() => {
         return () => {
@@ -226,20 +226,24 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     return (
         <Fragment>
-            <Box sx={{ height: "120px" }}>
-                <Box sx={{ display: "inline-block", height: "64px", width: "64px" }}>{icon}</Box>
-                <Box className={state.status === "failure" ? "" : "hidden"}>
-                    <Button color="secondary" onClick={() => dispatch({ type: "startPush" })}>
-                        Retry
+            <div className="h-[120px]">
+                <div className="inline-block size-17.5">{icon}</div>
+                <div className={state.status === "failure" ? "" : "hidden"}>
+                    <Button variant={"ghost"} color={"secondary"} onClick={() => dispatch({ type: "startPush" })}>
+                        {translate("Retry")}
                     </Button>
-                </Box>
-            </Box>
+                </div>
+            </div>
             {state.status === "success" ? null : (
-                <Box>
-                    <Link component="button" id="selection-link" onClick={handleSelectDevice} underline="hover">
+                <div>
+                    <button
+                        className="text-primary underline-offset-4 hover:underline bg-transparent border-none cursor-pointer text-sm"
+                        id="selection-link"
+                        onClick={handleSelectDevice}
+                    >
                         {translate("Select a Device")}
-                    </Link>
-                </Box>
+                    </button>
+                </div>
             )}
         </Fragment>
     );

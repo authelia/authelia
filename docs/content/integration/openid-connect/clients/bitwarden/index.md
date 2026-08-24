@@ -32,10 +32,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://bitwarden.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `bitwarden`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://bitwarden.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `bitwarden`
+- **Client Secret:** `insecure_secret`
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 This setup assumes you're using the self-hosted version of Bitwarden. If you're using the SaaS version the `redirect_uris` are either
@@ -50,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Bitwarden] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Bitwarden] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -98,12 +98,14 @@ To configure [Bitwarden] to utilize Authelia as an [OpenID Connect 1.0] Provider
 6. If you're using [Bitwarden] SaaS configure the SSO Identifier per their instructions.
 7. Select `OpenID Connect` for the type.
 8. Enter the following values:
-  - Authority: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-  - Client ID: `bitwarden`
-  - Client Secret: `insecure_secret`
-  - Metadata Address: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-  - OIDC redirect behavior: `Form POST`
-  - Get claims from user info endpoint: Enabled
+
+- Authority: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+- Client ID: `bitwarden`
+- Client Secret: `insecure_secret`
+- Metadata Address: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+- OIDC redirect behavior: `Form POST`
+- Get claims from user info endpoint: Enabled
+
 9. Click Save.
 
 ## See Also

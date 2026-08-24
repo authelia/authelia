@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://warpgate.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `warpgate`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://warpgate.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `warpgate`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -44,7 +44,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Warpgate]
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Warpgate]
 which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -101,9 +101,9 @@ sso_providers:
 
 ## See Also
 
-- [Warpgate OpenID Connect Documentation](https://github.com/warp-tech/warpgate/wiki/SSO-Authentication)
+- [Warpgate OpenID Connect Documentation](https://warpgate.null.page/sso/)
 
 [Authelia]: https://www.authelia.com
-[Warpgate]: https://github.com/warp-tech/warpgate
+[Warpgate]: https://warpgate.null.page/
 [OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

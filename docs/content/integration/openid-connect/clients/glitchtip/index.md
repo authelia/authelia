@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://glitchtip.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `glitchtip`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://glitchtip.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `glitchtip`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -49,7 +49,7 @@ The following instructions assume you've setup a Django Admin / Super User. See 
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Glitchtip] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Glitchtip] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -97,7 +97,7 @@ To configure [Glitchtip] to utilize Authelia as an [OpenID Connect 1.0] Provider
    - Client ID: `glitchtip`
    - Secret Key: `insecure_secret`
    - Settings: `{"server_url":"https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration"}`
-6. Press `Save` at the bottom.
+4. Press `Save` at the bottom.
 
 ## See Also
 

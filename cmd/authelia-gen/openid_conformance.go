@@ -13,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 )
 
+// OpenIDConnectConformanceSuiteBuilder builds an OpenIDConnectConformanceSuite.
 type OpenIDConnectConformanceSuiteBuilder struct {
 	brand         string
 	name          string
@@ -25,6 +26,7 @@ type OpenIDConnectConformanceSuiteBuilder struct {
 	autheliaURL   *url.URL
 }
 
+// Build returns the OpenIDConnectConformanceSuite for this builder.
 func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceSuite {
 	var (
 		apiname, namePrefix, clientIDPrefix, descriptionSuffix string
@@ -185,6 +187,7 @@ func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 	return suite
 }
 
+// MustHash returns the digest of the given value and panics if it fails.
 func MustHash(value string) *schema.PasswordDigest {
 	hash, err := pbkdf2.New()
 	if err != nil {

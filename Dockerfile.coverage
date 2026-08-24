@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:25-alpine@sha256:bdf2cca6fe3dabd014ea60163eca3f0f7015fbd5c7ee1b0e9ccb4ced6eb02ef4 AS builder-frontend
+FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019 AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -10,14 +10,14 @@ COPY --link web ./
 
 # Install the dependencies and build
 RUN \
-	yarn global add pnpm && \
+	npm install -g pnpm && \
 	pnpm install --frozen-lockfile --ignore-scripts && \
 	pnpm coverage
 
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.26.6-bookworm@sha256:116d58cbd88c1297624acc6e967a060012422bacf9930927e23fb719189c6f36 AS builder-backend
+FROM golang:1.27.0-bookworm@sha256:484ef6066fa69acb059fdfeda7ba2b8f7391f2ef6abc6f9b8411e669ebd56466 AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -43,7 +43,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:85a1b29b3ec4cd127032d588623ddf767cdf6325460719b52bd1f77e086e6eb2
+FROM authelia/base:latest@sha256:0428b142038b14179014f6e1651d05842c76df2685d73b198cf6784b14da6368
 
 WORKDIR /app
 

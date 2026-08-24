@@ -596,9 +596,6 @@ func handleVerifyGETAuthorizationBearer(ctx AuthzContext, authn *Authn, object *
 	return handleVerifyGETAuthorizationBearerResolveUser(ctx, username, clientID, ccs, level)
 }
 
-// handleVerifyGETAuthorizationBearerResolveUser turns the result of bearer-token introspection into the final return
-// values for handleVerifyGETAuthorizationBearer. For client-credentials grants (ccs=true) there is no associated user
-// so GetDetails is skipped and the clientID is propagated; for user-bound tokens GetDetails canonicalises the username.
 func handleVerifyGETAuthorizationBearerResolveUser(ctx AuthzContext, username, clientID string, ccs bool, level authentication.Level) (details *authentication.UserDetails, clientIDOut string, ccsOut bool, levelOut authentication.Level, err error) {
 	if ccs {
 		return nil, clientID, ccs, level, nil

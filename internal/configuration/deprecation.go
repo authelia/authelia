@@ -503,6 +503,7 @@ func getHostPort(hostKey, portKey, hostFallback string, portFallback uint16, key
 	return host, port, nil
 }
 
+// GetMultiKeyMappedDeprecationKeys returns the keys of every multi-key mapped deprecation.
 func GetMultiKeyMappedDeprecationKeys() (keys []string) {
 	for _, mkm := range deprecationsMKM {
 		keys = append(keys, mkm.Keys...)

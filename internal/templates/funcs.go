@@ -141,7 +141,7 @@ func FuncB32Dec(input string) (string, error) {
 	return string(data), nil
 }
 
-// FuncExpandEnv is a special version of os.ExpandEnv that excludes secret keys.
+// FuncExpandEnv is a special version of [os.ExpandEnv] that excludes secret keys.
 func FuncExpandEnv(s string) string {
 	return os.Expand(s, FuncGetEnv)
 }
@@ -182,12 +182,12 @@ func FuncMustGetEnv(key string) (string, error) {
 
 // FuncHashSum is a helper function that provides similar functionality to helm sum funcs.
 func FuncHashSum(new func() hash.Hash) func(data string) string {
-	hasher := new()
-
 	return func(data string) string {
-		sum := hasher.Sum([]byte(data))
+		hasher := new()
 
-		return hex.EncodeToString(sum)
+		hasher.Write([]byte(data))
+
+		return hex.EncodeToString(hasher.Sum(nil))
 	}
 }
 
@@ -515,6 +515,7 @@ func FuncSecret(path string) (data string, err error) {
 	return strings.TrimRight(data, "\n"), nil
 }
 
+// WalkInfo represents a single result from the FuncWalk helper function.
 type WalkInfo struct {
 	Path         string
 	AbsolutePath string
@@ -522,6 +523,7 @@ type WalkInfo struct {
 	os.FileInfo
 }
 
+// FuncWalk is a helper function that walks the root path returning the entries which match the given pattern.
 func FuncWalk(root, pattern string, skipDir bool) (infos []WalkInfo, err error) {
 	if root == "" {
 		return nil, fmt.Errorf("error occurred performing walk: root path cannot be empty")
@@ -569,6 +571,7 @@ func FuncWalk(root, pattern string, skipDir bool) (infos []WalkInfo, err error) 
 	return infos, nil
 }
 
+// FuncFromYAML is a helper function that provides similar functionality to the helm fromYaml func.
 func FuncFromYAML(yml string) (object map[string]any, err error) {
 	object = map[string]any{}
 
@@ -579,14 +582,17 @@ func FuncFromYAML(yml string) (object map[string]any, err error) {
 	return object, nil
 }
 
+// FuncToYAML is a helper function that provides similar functionality to the helm toYaml func.
 func FuncToYAML(object any) (yml string, err error) {
 	return FuncToYAMLCustom(object, -1)
 }
 
+// FuncToYAMLPretty is a helper function that provides similar functionality to the helm toYamlPretty func.
 func FuncToYAMLPretty(object any) (yml string, err error) {
 	return FuncToYAMLCustom(object, 2)
 }
 
+// FuncToYAMLCustom is a helper function that provides similar functionality to the helm toYaml func with a custom indent.
 func FuncToYAMLCustom(object any, indent int) (yml string, err error) {
 	var data bytes.Buffer
 
@@ -603,14 +609,17 @@ func FuncToYAMLCustom(object any, indent int) (yml string, err error) {
 	return strings.TrimSuffix(data.String(), "\n"), nil
 }
 
+// FuncAgo is a helper function that provides similar functionality to the helm ago func.
 func FuncAgo(date any) string {
 	return time.Since(convertAnyToTime(date)).Round(time.Second).String()
 }
 
+// FuncDate is a helper function that provides similar functionality to the helm date func.
 func FuncDate(format string, date any) string {
 	return formatTimeWithLocation(format, convertAnyToTime(date), time.Local)
 }
 
+// FuncDateInZone is a helper function that provides similar functionality to the helm dateInZone func.
 func FuncDateInZone(format string, date any, zone string) string {
 	var (
 		location *time.Location
@@ -623,14 +632,17 @@ func FuncDateInZone(format string, date any, zone string) string {
 	return formatTimeWithLocation(format, convertAnyToTime(date), location)
 }
 
+// FuncHTMLDate is a helper function that provides similar functionality to the helm htmlDate func.
 func FuncHTMLDate(date any) string {
 	return formatHTMLTimeWithLocation(convertAnyToTime(date), time.Local)
 }
 
+// FuncHTMLDateInZone is a helper function that provides similar functionality to the helm htmlDateInZone func.
 func FuncHTMLDateInZone(date any, zone string) string {
 	return FuncDateInZone(time.DateOnly, date, zone)
 }
 
+// FuncDuration is a helper function that provides similar functionality to the helm duration func.
 func FuncDuration(sec any) string {
 	var n int64
 
@@ -650,20 +662,24 @@ func FuncDuration(sec any) string {
 	return (time.Duration(n) * time.Second).String()
 }
 
+// FuncToDate is a helper function that provides similar functionality to the helm toDate func.
 func FuncToDate(format, date string) time.Time {
 	t, _ := time.ParseInLocation(format, date, time.Local)
 
 	return t
 }
 
+// FuncMustToDate is a helper function that provides similar functionality to the helm mustToDate func.
 func FuncMustToDate(format, date string) (time.Time, error) {
 	return time.ParseInLocation(format, date, time.Local)
 }
 
+// FuncUnixEpoch is a helper function that provides similar functionality to the helm unixEpoch func.
 func FuncUnixEpoch(date time.Time) string {
 	return strconv.FormatInt(date.Unix(), 10)
 }
 
+// FuncURLQueryArg is a helper function that returns the value of a query argument from the given URI.
 func FuncURLQueryArg(raw, key string) (value string, err error) {
 	uri, err := url.ParseRequestURI(raw)
 	if err != nil {

@@ -33,9 +33,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://node-red.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `node-red`
+- **Application Root URL:** `https://node-red.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `node-red`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -48,7 +48,7 @@ section of the guide.
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Node-RED] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Node-RED] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

@@ -14,32 +14,32 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ and its development workflow can be tested with [Docker] and [Docker Compose] on Linux.
+**Authelia** and its development workflow can be tested with [Docker] and [Docker Compose] on Linux.
 
 ## Prerequisites
 
-In order to build and contribute to __Authelia__, you need to make sure the following are installed in your environment:
+In order to build and contribute to **Authelia**, you need to make sure the following are installed in your environment:
 
-* General:
-  * [git]
-  * [bash]
-  * A modern Linux distribution, Windows and macOS are not officially supported.
-* Backend Development:
-  * [go]:
-    * Minimum is *v1.24.3*.
-    * The toolchain version noted in [go.mod](https://github.com/authelia/authelia/blob/master/go.mod#L5) is the
+- General:
+  - [git]
+  - [bash]
+  - A modern Linux distribution, Windows and macOS are not officially supported.
+- Backend Development:
+  - [go]:
+    - Minimum is _v1.24.3_.
+    - The toolchain version noted in [go.mod](https://github.com/authelia/authelia/blob/master/go.mod#L5) is the
       officially supported version.
-    * We will not officially support old versions of go generally without a very good reason.
-  * [gcc]
-  * [gomock]
-* Frontend Development:
-  * [Node.js] *(v22.15.0 or greater)*.
-  * [pnpm] *(v10.10.0 or greater)*.
-* Integration Suites:
-  * [Docker] *(v28.1.1 or greater)*.
-  * [Docker Compose] *(v2.36.0 or greater)*
-  * [chromium]
-  * [delve]
+    - We will not officially support old versions of go generally without a very good reason.
+  - [gcc]
+  - [gomock]
+- Frontend Development:
+  - [Node.js] _(v22.15.0 or greater)_.
+  - [pnpm] _(v10.10.0 or greater)_.
+- Integration Suites:
+  - [Docker] _(v28.1.1 or greater)_.
+  - [Docker Compose] _(v2.36.0 or greater)_
+  - [chromium]
+  - [delve]
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 We only support docker being installed as a system package. It must not be installed via Snappy or other similar tools.
@@ -48,10 +48,9 @@ If you wish to use these other tools we will not be able to provide support.
 
 These additional tools are recommended:
 
-* [golangci-lint]
-* [goimports-reviser]
-* [yamllint]
-* [VSCodium] or [GoLand]
+- [golangci-lint]
+- [yamllint]
+- [VSCodium] or [GoLand]
 
 ## Certificate
 
@@ -68,7 +67,7 @@ means if you decide to do so.
 4. Trusting additional Root CA's for prolonged periods is not generally a good idea.
 
 If you'd still like to trust the Root CA Certificate it's located (encoded as a PEM) in the main git repository at
- [internal/suites/common/pki/ca/ca.public.crt](https://github.com/authelia/authelia/blob/master/internal/suites/common/pki/ca/ca.public.crt).
+[internal/suites/common/pki/ca/ca.public.crt](https://github.com/authelia/authelia/blob/master/internal/suites/common/pki/ca/ca.public.crt).
 
 ## Context
 
@@ -116,7 +115,6 @@ this for you and creates the relevant hosts entries. This is automatically execu
 [Docker]: https://docs.docker.com/get-docker/
 [Docker Compose]: https://docs.docker.com/compose/install/
 [golangci-lint]: https://golangci-lint.run/welcome/install/
-[goimports-reviser]: https://github.com/incu6us/goimports-reviser#install
 [yamllint]: https://yamllint.readthedocs.io/en/stable/quickstart.html
 [VSCodium]: https://vscodium.com/
 [GoLand]: https://www.jetbrains.com/go/

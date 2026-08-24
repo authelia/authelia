@@ -19,6 +19,7 @@ This section documents Authelia's testing processes and procedures to ensure cod
 ## Types of Testing
 
 Authelia performs multiple types of testing:
+
 - Linting to enforce code quality and uniform style.
 - Unit testing to test code in isolation from other code to protect against regressions and unintended behavior.
 - Integration testing to test the application in combination with various external dependencies including:
@@ -35,11 +36,11 @@ Authelia performs multiple types of testing:
 ### Continuous Integration
 
 Testing is automatically executed on:
+
 - Every push to a branch.
 - Every pull request submission and revision, subject to approval for 3rd party pull requests.
 - Merges to the main branch.
 - Documentation-only changes do not trigger the full test suite.
-
 
 ### Test Execution Pipeline
 
@@ -50,6 +51,7 @@ Testing agents are run on our hosted infrastructure using our [custom runner ima
 ### Test Coverage
 
 Authelia maintains comprehensive code coverage metrics to ensure thorough testing of the codebase:
+
 - Coverage reports are automatically generated for every test run.
 - Current coverage statistics and trends are available on our [Codecov dashboard](https://app.codecov.io/gh/authelia/authelia).
 - Coverage is tracked separately for:
@@ -77,8 +79,6 @@ Authelia maintains comprehensive code coverage metrics to ensure thorough testin
 
 - Test results are automatically reported in pull requests.
 - Release candidates require 100% pass rate.
-
-
 
 [Buildkite]: https://buildkite.com
 [Codecov]: https://app.codecov.io/gh/authelia/authelia

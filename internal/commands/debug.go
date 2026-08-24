@@ -131,6 +131,7 @@ func newDebugOIDCClaimsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+// DebugOIDCClaimsRunE is the RunE for the authelia debug oidc claims command.
 func (ctx *CmdCtx) DebugOIDCClaimsRunE(cmd *cobra.Command, args []string) (err error) {
 	return runDebugOIDCClaims(ctx, cmd.OutOrStdout(), cmd.Flags(), ctx.config, ctx.trusted, args[0])
 }
@@ -238,6 +239,7 @@ func runDebugOIDCClaims(ctx context.Context, w io.Writer, flags *pflag.FlagSet, 
 	return nil
 }
 
+// DebugExpressionRunE is the RunE for the authelia debug expression command.
 func (ctx *CmdCtx) DebugExpressionRunE(cmd *cobra.Command, args []string) (err error) {
 	return runDebugExpression(cmd.OutOrStdout(), ctx.config, ctx.trusted, args[0], strings.Join(args[1:], " "))
 }
@@ -285,6 +287,7 @@ func runDebugExpression(w io.Writer, config *schema.Configuration, caCertPool *x
 	return nil
 }
 
+// DebugTLSRunE is the RunE for the authelia debug tls command.
 func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 	return runDebugTLS(cmd.OutOrStdout(), cmd.Flags(), ctx.trusted, args[0])
 }

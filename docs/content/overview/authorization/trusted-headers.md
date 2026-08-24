@@ -19,4 +19,3 @@ application. This is a very basic means that allows the target application to id
 to Authelia. This like all single-sign on technologies requires support by the protected application.
 
 You can read more about this in the [Trusted Header SSO Integration Guide](../../integration/trusted-header-sso/introduction.md).
-
