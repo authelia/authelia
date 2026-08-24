@@ -21,8 +21,8 @@ processing merges into the [master] branch.
 
 ## Overview
 
-* Ensure the `Allow edits by maintainers` checkbox is checked due to our [Squash Merge](#squash-merge) policy
-* Ensure you avoid a [force push](#force-push) excluding the specific exceptions listed in the
+- Ensure the `Allow edits by maintainers` checkbox is checked due to our [Squash Merge](#squash-merge) policy
+- Ensure you avoid a [force push](#force-push) excluding the specific exceptions listed in the
   [force push section](#force-push)
 
 ## Squash Merge

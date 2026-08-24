@@ -1,40 +1,40 @@
 // Based on: https://github.com/gohugoio/hugoDocs/blob/master/_vendor/github.com/gohugoio/gohugoioTheme/assets/js/tabs.js
 // Put your custom JS code here
-import * as bootstrap from 'bootstrap';
-import { Popover } from 'bootstrap';
+import * as bootstrap from "bootstrap";
+import { Popover } from "bootstrap";
 
 window.bootstrap = bootstrap;
 
-const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new Popover(popoverTriggerEl))
+const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+const popoverList = [...popoverTriggerList].map((popoverTriggerEl) => new Popover(popoverTriggerEl));
 
 const variables = {
   "host": {
-    "type": "string",
-    "value": "",
-    "fallback": "authelia",
+    type: "string",
+    value: "",
+    fallback: "authelia",
   },
   "port": {
-    "type": "number",
-    "value": 0,
-    "fallback": 9091,
+    type: "number",
+    value: 0,
+    fallback: 9091,
   },
   "tls": {
-    "type": "boolean",
-    "value": false,
-    "false": "http",
-    "true": "https",
-    "fallback": false,
+    type: "boolean",
+    value: false,
+    false: "http",
+    true: "https",
+    fallback: false,
   },
   "domain": {
-    "type": "string",
-    "value": "",
-    "fallback": "example.com",
+    type: "string",
+    value: "",
+    fallback: "example.com",
   },
   "subdomain-authelia": {
-    "type": "string",
-    "value": "",
-    "fallback": "auth",
+    type: "string",
+    value: "",
+    fallback: "auth",
   },
 };
 
@@ -51,35 +51,35 @@ const customTabsToggle = (name, event, allTabs, allPanes) => {
 
   if (event.target) {
     event.preventDefault();
-    targetKey = event.currentTarget.getAttribute(`data-toggle-${name}-tab`)
+    targetKey = event.currentTarget.getAttribute(`data-toggle-${name}-tab`);
   } else {
-    targetKey = event
+    targetKey = event;
   }
 
   if (window.localStorage) {
-    window.localStorage.setItem(customTabsStorageName(name), targetKey)
+    window.localStorage.setItem(customTabsStorageName(name), targetKey);
   }
 
   let i;
 
   for (i = 0; i < allTabs.length; i++) {
-    allTabs[i].classList.remove('active');
-    allPanes[i].classList.remove('active');
+    allTabs[i].classList.remove("active");
+    allPanes[i].classList.remove("active");
   }
 
   const selectedTabs = document.querySelectorAll(`[data-toggle-${name}-tab=${targetKey}]`);
   const selectedPanes = document.querySelectorAll(`[data-${name}-pane=${targetKey}]`);
 
   for (i = 0; i < selectedTabs.length; i++) {
-    selectedTabs[i].classList.add('active');
-    selectedPanes[i].classList.add('show', 'active');
+    selectedTabs[i].classList.add("active");
+    selectedPanes[i].classList.add("show", "active");
   }
-}
+};
 
 const customTabsToggleListener = (name, allTabs, allPanes) => {
   return (ev) => {
     customTabsToggle(name, ev, allTabs, allPanes);
-  }
+  };
 };
 
 const customTabsStorageListener = (name) => {
@@ -88,10 +88,10 @@ const customTabsStorageListener = (name) => {
       return;
     }
 
-    if (ev.newValue && ev.newValue !== '') {
+    if (ev.newValue && ev.newValue !== "") {
       customTabsToggle(name, ev.newValue);
     }
-  }
+  };
 };
 
 const customTabsConfigure = (name) => {
@@ -106,15 +106,14 @@ const customTabsConfigure = (name) => {
 
   // If the browser supports localStorage, setup localStorage elements.
   if (window.localStorage) {
-
     // If the preference value exists, make sure those tabs are selected.
     const value = window.localStorage.getItem(customTabsStorageName(name));
     if (value) {
-      customTabsToggle(name, value, allTabs, allPanes)
+      customTabsToggle(name, value, allTabs, allPanes);
     }
 
     // Make sure we listen for storage events for changes to the specific storage key.
-    window.addEventListener('storage', customTabsStorageListener(name));
+    window.addEventListener("storage", customTabsStorageListener(name));
   }
 
   // Create the listener used for click events.
@@ -122,7 +121,7 @@ const customTabsConfigure = (name) => {
 
   // Make sure each tab has the click event listener.
   for (let i = 0; i < allTabs.length; i++) {
-    allTabs[i].addEventListener('click', clickListener)
+    allTabs[i].addEventListener("click", clickListener);
   }
 };
 
@@ -131,7 +130,7 @@ const siteVariableName = (name) => {
 };
 
 const siteVariableReplace = (name, value) => {
-  const elements= document.getElementsByClassName(siteVariableName(name));
+  const elements = document.getElementsByClassName(siteVariableName(name));
 
   if (value === null) {
     console.log(name, "is null");
@@ -141,7 +140,12 @@ const siteVariableReplace = (name, value) => {
 
   if (elements && type) {
     [].slice.call(elements).forEach((element) => {
-      element.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value ? value.toString() : "";
+      element.innerHTML =
+        type === "boolean" ?
+          value ? variables[name].true
+          : variables[name].false
+        : value ? value.toString()
+        : "";
     });
   }
 
@@ -153,7 +157,7 @@ const siteVariableReplace = (name, value) => {
 const siteVariableReplaceDomain = (value) => {
   if (!value) value = "";
 
-  const relements= document.getElementsByClassName(siteVariableName("domain")+"-regex");
+  const relements = document.getElementsByClassName(siteVariableName("domain") + "-regex");
 
   if (relements) {
     [].slice.call(relements).forEach((element) => {
@@ -161,7 +165,7 @@ const siteVariableReplaceDomain = (value) => {
     });
   }
 
-  const delements= document.getElementsByClassName(siteVariableName("domain")+"-dn");
+  const delements = document.getElementsByClassName(siteVariableName("domain") + "-dn");
 
   if (delements) {
     [].slice.call(delements).forEach((item) => {
@@ -178,10 +182,10 @@ const siteVariableStorageListener = (name) => {
       return;
     }
 
-    if (ev.newValue && ev.newValue !== '') {
+    if (ev.newValue && ev.newValue !== "") {
       siteVariableReplace(name, ev.newValue);
     }
-  }
+  };
 };
 
 const siteVariableConfigure = (name, fallback) => {
@@ -194,14 +198,17 @@ const siteVariableConfigure = (name, fallback) => {
     const storage = window.localStorage.getItem(siteVariableName(name));
 
     if (storage) {
-      finalValue = type === "boolean" ? storage === "true" : type === "number" ? parseInt(storage) : storage;
+      finalValue =
+        type === "boolean" ? storage === "true"
+        : type === "number" ? parseInt(storage)
+        : storage;
       siteVariableReplace(name, finalValue);
     } else {
       siteVariableReplace(name, fallback);
     }
 
     // Make sure we listen for storage events for changes to the specific storage key.
-    window.addEventListener('storage', siteVariableStorageListener(name));
+    window.addEventListener("storage", siteVariableStorageListener(name));
   } else {
     siteVariableReplace(name, fallback);
   }
@@ -281,7 +288,7 @@ const siteVariablesConfigure = () => {
 
   document.getElementById("site-variables-toggle").addEventListener("click", () => {
     onSetModalValues();
-  })
+  });
 
   document.getElementById("site-variables-reset").addEventListener("click", () => {
     for (const [name, values] of Object.entries(variables)) {
@@ -289,7 +296,7 @@ const siteVariablesConfigure = () => {
     }
 
     onSetModalValues();
-  })
+  });
 
   save.addEventListener("click", () => {
     for (const [name, values] of Object.entries(variables)) {
@@ -300,7 +307,7 @@ const siteVariablesConfigure = () => {
         variables[name].value = siteVariableSet(name, element.value.trim(), variables[name].value);
       }
     }
-  })
+  });
 
   document.getElementById(siteVariableName("domain")).addEventListener("change", onChangeAutheliaDomain);
   document.getElementById(siteVariableName("domain")).addEventListener("keyup", onChangeAutheliaDomain);
@@ -318,8 +325,8 @@ const siteVariablesConfigure = () => {
 };
 
 // Register the 'env' tab group listeners etc. on page load.
-customTabsConfigure('env');
-customTabsConfigure('session');
+customTabsConfigure("env");
+customTabsConfigure("session");
 
 siteVariablesConfigure();
 
@@ -327,7 +334,7 @@ document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach((dropdownToggle
   const dropdownInstance = new bootstrap.Dropdown(dropdownToggleEl);
   dropdownToggleEl._dropdownInstance = dropdownInstance;
 
-  dropdownToggleEl.addEventListener('click', (e) => {
+  dropdownToggleEl.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
     dropdownInstance.toggle();

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -22,12 +21,14 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 
 	err := ctx.ParseBody(&body)
 	if err != nil {
-		ctx.Error(fmt.Errorf("unable to parse body during logout: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred parsing the logout request body")
+		ctx.SetJSONError(messageOperationFailed)
 	}
 
 	err = ctx.DestroySession()
 	if err != nil {
-		ctx.Error(fmt.Errorf("unable to destroy session during logout: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred destroying the user session during logout")
+		ctx.SetJSONError(messageOperationFailed)
 	}
 
 	redirectionURL, err := url.ParseRequestURI(body.TargetURL)
@@ -41,6 +42,7 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 
 	err = ctx.SetJSONBody(responseBody)
 	if err != nil {
-		ctx.Error(fmt.Errorf("unable to set body during logout: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred setting the logout response body")
+		ctx.SetJSONError(messageOperationFailed)
 	}
 }

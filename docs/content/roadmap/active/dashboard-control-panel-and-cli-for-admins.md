@@ -137,5 +137,3 @@ Manage Access Control rules.
 
 Manage user accounts with either the internal or LDAP authentication backends. Allow for creation, modification, and
 deletion.
-
-

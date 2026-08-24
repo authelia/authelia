@@ -26,11 +26,11 @@ We document the configuration in two ways:
 2. This documentation site. Generally each section of the configuration is in its own section of the documentation
    site. Each configuration option is listed in its relevant section as a heading, under that heading generally are two
    or three colored labels.
-   * The `type` label is purple and indicates the [YAML] value type of the variable. It optionally includes some
+   - The `type` label is purple and indicates the [YAML] value type of the variable. It optionally includes some
      additional information in parentheses.
-   * The `default` label is blue and indicates the default value if you don't define the option at all. This is not the
+   - The `default` label is blue and indicates the default value if you don't define the option at all. This is not the
      same value as you will see in the examples in all instances, it is the value set when blank or undefined.
-   * The `required` label changes color. When required it will be red, when not required it will be green, when the
+   - The `required` label changes color. When required it will be red, when not required it will be green, when the
      required state depends on another configuration value it is yellow.
 
 ## Validation
@@ -46,14 +46,18 @@ syntax is valid.
 
 {{< envTabs "Validate Configuration" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run authelia/authelia:latest authelia config validate --config /config/configuration.yml
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 authelia config validate --config configuration.yml
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 

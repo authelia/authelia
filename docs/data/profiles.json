@@ -70,7 +70,11 @@
     "core": {
       "display": "Core",
       "description": "The Core Team are effectively members of the Maintainers Team with extra responsibilities.",
-      "people": ["clement-michaud", "amir-zarrinkafsh", "james-elliott"],
+      "people": [
+        "clement-michaud",
+        "amir-zarrinkafsh",
+        "james-elliott"
+      ],
       "responsibilities": [
         "All responsibilities of the Maintainers Team",
         "Strategic direction and long-term planning for the project",
@@ -87,7 +91,10 @@
     "maintainers": {
       "display": "Maintainers",
       "description": "The Maintainer Team are traditional repository maintainers.",
-      "people": ["manuel-nunez", "brynn-crowley"],
+      "people": [
+        "manuel-nunez",
+        "brynn-crowley"
+      ],
       "responsibilities": [
         "Review and merge pull requests from external parties",
         "Respond to bug reports, feature requests, discussions, and support chat rooms",

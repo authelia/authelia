@@ -32,10 +32,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://patchmon.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `patchmon`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://patchmon.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `patchmon`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [PatchMon] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [PatchMon] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -85,14 +85,14 @@ To configure [PatchMon] consult the corresponding [documentation](https://docs.p
 
 To configure [PatchMon] to utilize Authelia as an [OpenID Connect 1.0] Provider, configure the following environment variables:
 
-| Environment Variable | Value |
-| --- | --- |
-| `OIDC_ENABLED` | `true` |
-| `OIDC_ISSUER_URL` | `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` |
-| `OIDC_CLIENT_ID` | `patchmon` |
-| `OIDC_CLIENT_SECRET` | `insecure_secret` |
-| `OIDC_REDIRECT_URI` | `https://patchmon.{{< sitevar name="domain" nojs="example.com" >}}/api/v1/auth/oidc/callback` |
-| `OIDC_POST_LOGOUT_URI` | `https://patchmon.{{< sitevar name="domain" nojs="example.com" >}}` |
+| Environment Variable   | Value                                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `OIDC_ENABLED`         | `true`                                                                                                           |
+| `OIDC_ISSUER_URL`      | `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` |
+| `OIDC_CLIENT_ID`       | `patchmon`                                                                                                       |
+| `OIDC_CLIENT_SECRET`   | `insecure_secret`                                                                                                |
+| `OIDC_REDIRECT_URI`    | `https://patchmon.{{< sitevar name="domain" nojs="example.com" >}}/api/v1/auth/oidc/callback`                    |
+| `OIDC_POST_LOGOUT_URI` | `https://patchmon.{{< sitevar name="domain" nojs="example.com" >}}`                                              |
 
 ## See Also
 

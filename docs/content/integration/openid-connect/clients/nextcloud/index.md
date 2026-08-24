@@ -38,10 +38,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://nextcloud.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `nextcloud`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://nextcloud.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `nextcloud`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -76,7 +76,7 @@ appropriate user groups. The expression must return a **string** (not a boolean)
 oidc_login app expects a `?string` type for the `is_admin` attribute.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__
+The following YAML configuration is an example **Authelia**
 [client configuration] for use with [Nextcloud]
 which will operate with the application example:
 
@@ -187,7 +187,7 @@ The following example uses the [Nextcloud OpenID Connect user backend app] which
 
 #### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Nextcloud] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Nextcloud] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -237,7 +237,8 @@ To configure [Nextcloud] and the [Nextcloud OpenID Connect user backend app] to 
    - Scope: openid email profile
 
 2. Add the following to the [Nextcloud] `config.php` configuration:
-``` php
+
+```php
 'user_oidc' => [
   'default_token_endpoint_auth_method' => 'client_secret_post',
   'enrich_login_id_token_with_userinfo' => true,
@@ -252,7 +253,8 @@ To configure [Nextcloud] and the [Nextcloud OpenID Connect user backend app] to 
 1. Run `occ user_oidc:provider Authelia --clientid="nextcloud" --clientsecret="insecure_secret" --discoveryuri="https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
 
 2. Add the following to the [Nextcloud] `config.php` configuration:
-``` php
+
+```php
 'user_oidc' => [
   'default_token_endpoint_auth_method' => 'client_secret_post',
   'enrich_login_id_token_with_userinfo' => true,

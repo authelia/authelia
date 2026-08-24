@@ -64,8 +64,8 @@ const PushNotificationMethod = function (props: Props) {
     const { onSignInError, onSignInSuccess } = props;
     const stateRef = useRef<null | State>(null);
 
-    const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
-    const timeoutSuccessRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimitRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+    const timeoutSuccessRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
     useEffect(() => {
         return () => {

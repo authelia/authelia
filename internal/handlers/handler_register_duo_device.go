@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/duo"
@@ -17,7 +15,9 @@ func DuoDevicesGET(duoAPI duo.Provider) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		userSession, err := ctx.GetSession()
 		if err != nil {
-			ctx.Error(fmt.Errorf("failed to get session data: %w", err), messageMFAValidationFailed)
+			ctx.GetLogger().WithError(err).Error(errStrUserSessionData)
+			ctx.SetJSONError(messageMFAValidationFailed)
+
 			return
 		}
 
@@ -25,7 +25,9 @@ func DuoDevicesGET(duoAPI duo.Provider) middlewares.RequestHandler {
 
 		result, message, devices, enrollURL, err := DuoPreAuth(ctx, &userSession, duoAPI)
 		if err != nil {
-			ctx.Error(fmt.Errorf("duo PreAuth API errored: %w", err), messageMFAValidationFailed)
+			ctx.GetLogger().WithError(err).Error("Error occurred performing the Duo PreAuth API call")
+			ctx.SetJSONError(messageMFAValidationFailed)
+
 			return
 		}
 
@@ -64,7 +66,8 @@ func DuoDevicesGET(duoAPI duo.Provider) middlewares.RequestHandler {
 			SendDuoDevicesResponse(ctx, response)
 
 		default:
-			ctx.Error(fmt.Errorf("duo PreAuth API errored for %s: %s - %s", userSession.Username, result, message), messageMFAValidationFailed)
+			ctx.GetLogger().Errorf("Error occurred performing the Duo PreAuth API call for user '%s' which returned the result '%s' with the message '%s'", userSession.Username, result, message)
+			ctx.SetJSONError(messageMFAValidationFailed)
 		}
 	}
 }
@@ -78,17 +81,23 @@ func DuoDevicePOST(ctx *middlewares.AutheliaCtx) {
 		err         error
 	)
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
-		ctx.Error(err, messageMFAValidationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred parsing the preferred Duo device request body")
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		return
 	}
 
 	if !utils.IsStringInSlice(bodyJSON.Method, duo.PossibleMethods) {
-		ctx.Error(fmt.Errorf("unknown method '%s', it should be one of %s", bodyJSON.Method, strings.Join(duo.PossibleMethods, ", ")), messageMFAValidationFailed)
+		ctx.GetLogger().Errorf("Error occurred setting the preferred Duo device as the method '%s' is unknown, it should be one of %s", bodyJSON.Method, strings.Join(duo.PossibleMethods, ", "))
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		return
 	}
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Error(err, messageMFAValidationFailed)
+		ctx.GetLogger().WithError(err).Error(errStrUserSessionData)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		return
 	}
 
@@ -96,7 +105,9 @@ func DuoDevicePOST(ctx *middlewares.AutheliaCtx) {
 
 	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: userSession.Username, Device: bodyJSON.Device, Method: bodyJSON.Method})
 	if err != nil {
-		ctx.Error(fmt.Errorf("unable to save new preferred Duo device and method: %w", err), messageMFAValidationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred saving the new preferred Duo device and method")
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		return
 	}
 
@@ -110,14 +121,18 @@ func DuoDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 		err         error
 	)
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Error(fmt.Errorf("unable to get session to delete preferred Duo device and method: %w", err), messageMFAValidationFailed)
+		ctx.GetLogger().WithError(err).Error(errStrUserSessionData)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		return
 	}
 
 	ctx.Logger.Debugf("Deleting preferred Duo device and method of user %s", userSession.Username)
 
 	if err = ctx.Providers.StorageProvider.DeletePreferredDuoDevice(ctx, userSession.Username); err != nil {
-		ctx.Error(fmt.Errorf("unable to delete preferred Duo device and method: %w", err), messageMFAValidationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred deleting the preferred Duo device and method")
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		return
 	}
 
@@ -127,6 +142,7 @@ func DuoDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 // SendDuoDevicesResponse sends a JSON response for Duo device operations.
 func SendDuoDevicesResponse(ctx *middlewares.AutheliaCtx, response DuoDevicesResponse) {
 	if err := ctx.SetJSONBody(response); err != nil {
-		ctx.Error(errors.New(errStrRespBody), messageMFAValidationFailed)
+		ctx.GetLogger().WithError(err).Error(errStrRespBody)
+		ctx.SetJSONError(messageMFAValidationFailed)
 	}
 }
