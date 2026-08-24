@@ -23,24 +23,24 @@ seo:
 
 ## Introduction
 
-This is a guide on integration of __Authelia__ and [Seafile] via the trusted header SSO authentication.
+This is a guide on integration of **Authelia** and [Seafile] via the trusted header SSO authentication.
 
 As with all guides in this section it's important you read the [introduction](../introduction.md) first.
 
 ## Tested Versions
 
-* Authelia:
-  * v4.35.5
-* [Seafile] Server:
-  * 9.0.4
+- Authelia:
+  - v4.35.5
+- [Seafile] Server:
+  - 9.0.4
 
 ## Before You Begin
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __User Email Domain:__ `@{{< sitevar name="domain" nojs="example.com" >}}`
+- **Application Root URL:** `https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **User Email Domain:** `@{{< sitevar name="domain" nojs="example.com" >}}`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +50,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 To configure [Seafile] to trust the `Remote-User` and `Remote-Email` header do the following:
 
-1. Configure `seahub_settings.py` and adjust the following  settings:
+1. Configure `seahub_settings.py` and adjust the following settings:
+
 ```python
 ENABLE_REMOTE_USER_AUTHENTICATION = True
 
@@ -82,6 +83,6 @@ REMOTE_USER_ATTRIBUTE_MAP = {
 
 ## See Also
 
-* [Seafile Remote User Docs](https://manual.seafile.com/latest/config/remote_user/)
+- [Seafile Remote User Docs](https://manual.seafile.com/latest/config/remote_user/)
 
 [Seafile]: https://www.seafile.com/

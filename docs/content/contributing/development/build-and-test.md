@@ -16,24 +16,24 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ is built a [React] frontend user portal bundled in a [Go] application which acts as a basic web server for
+**Authelia** is built a [React] frontend user portal bundled in a [Go] application which acts as a basic web server for
 the [React] assets and a dedicated API.
 
 The GitHub repository comes with a CLI dedicated to developers called
 [authelia-scripts](../../reference/cli/authelia-scripts/authelia-scripts.md) which can be setup by looking at
 the [authelia-scripts reference guide](../../reference/cli/authelia-scripts/authelia-scripts.md).
 
-In order to build and contribute to __Authelia__, you need to make sure that you have looked at the
+In order to build and contribute to **Authelia**, you need to make sure that you have looked at the
 [Environment](environment.md) guide to configure your development environment.
 
 ## Get started
 
-In order to ease development, __Authelia__ uses the concept of [suites] to run Authelia from source code so that your
-patches are included. This is a kind of virtual environment running __Authelia__ in a complete ecosystem
-(LDAP, Redis, SQL server). Note that __Authelia__ is hot-reloaded in the environment so that your patches are instantly
+In order to ease development, **Authelia** uses the concept of [suites] to run Authelia from source code so that your
+patches are included. This is a kind of virtual environment running **Authelia** in a complete ecosystem
+(LDAP, Redis, SQL server). Note that **Authelia** is hot-reloaded in the environment so that your patches are instantly
 included.
 
-The next command starts the suite called *Standalone*:
+The next command starts the suite called _Standalone_:
 
 ```bash
 authelia-scripts suites setup Standalone
@@ -46,7 +46,7 @@ application by running the following command on the component you want to monito
 docker logs authelia-authelia-backend-1 -f
 ```
 
-Then, edit the code and observe how __Authelia__ is automatically reloaded.
+Then, edit the code and observe how **Authelia** is automatically reloaded.
 
 ### Unit tests
 
@@ -93,7 +93,7 @@ authelia-scripts suites test
 ```
 
 Also, you don't need to start the suite before testing it. Given you're not running any suite, just use the following
-command to test the *Standalone* suite.
+command to test the _Standalone_ suite.
 
 ```bash
 authelia-scripts suites test Standalone

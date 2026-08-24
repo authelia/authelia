@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://docmost.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `docmost`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://docmost.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `docmost`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -44,7 +44,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Docmost] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Docmost] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -90,12 +90,14 @@ To configure [Docmost] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 5. Select `OpenID (OIDC)` from the dropdown menu.
 6. Copy the `Callback URL` and replace the configured `redirect_uri` value in the Authelia configuration.
 7. Configure the following options:
-  - Display name: `Authelia`
-  - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-  - Client ID: `docmost`
-  - Client Secret: `insecure_secret`
-  - Allow signup: Disabled
-  - Enabled: Enabled
+
+- Display name: `Authelia`
+- Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+- Client ID: `docmost`
+- Client Secret: `insecure_secret`
+- Allow signup: Disabled
+- Enabled: Enabled
+
 8. Press `Save` at the bottom.
 
 ## See Also

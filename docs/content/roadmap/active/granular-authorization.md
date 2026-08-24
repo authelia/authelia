@@ -33,10 +33,10 @@ access control policies that are customizable by administrators.
 
 For example, an administrator could configure Authelia to:
 
-  - Require `hwk` or `swk` for accessing internal company applications
-  - Enforce `mfa` with specific combinations like `hwk` and `otp` for admin portals
-    - Please note that any Authelia administration portal will require an absolute minimum of `mfa`
-  - Allow `pwd` authentication for basic applications but require additional factors for sensitive resources
+- Require `hwk` or `swk` for accessing internal company applications
+- Enforce `mfa` with specific combinations like `hwk` and `otp` for admin portals
+  - Please note that any Authelia administration portal will require an absolute minimum of `mfa`
+- Allow `pwd` authentication for basic applications but require additional factors for sensitive resources
 
 All at the same time as leveraging the already first-class
 [Access Control Rules](../../configuration/security/access-control.md) or the emerging

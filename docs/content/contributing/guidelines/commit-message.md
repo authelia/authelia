@@ -19,12 +19,12 @@ seo:
 
 The reasons for these conventions are as follows:
 
-* simple navigation though git history
-* easier to read git history
+- simple navigation though git history
+- easier to read git history
 
 ## Commit Message Format
 
-Each commit message consists of a __header__, a __body__, and a __footer__.
+Each commit message consists of a **header**, a **body**, and a **footer**.
 
 ```bash
 <header>
@@ -64,58 +64,58 @@ The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is opti
 
 #### Allowed type values:
 
-* __build__ Changes that affect the build system or external dependencies
+- **build** Changes that affect the build system or external dependencies
   (example scopes: bundler, deps, docker, go, npm)
-* __ci__ Changes to our CI configuration files and scripts
+- **ci** Changes to our CI configuration files and scripts
   (example scopes: autheliabot, buildkite, codecov, lefthook, golangci-lint, renovate, reviewdog)
-* __docs__ Documentation only changes
-* __feat__ A new feature
-* __fix__ A bug fix
-* __i18n__ Updating translations or internationalization settings
-* __perf__ A code change that improves performance
-* __refactor__ A code change that neither fixes a bug nor adds a feature
-* __release__ Releasing a new version of Authelia
-* __test__ Adding missing tests or correcting existing tests
+- **docs** Documentation only changes
+- **feat** A new feature
+- **fix** A bug fix
+- **i18n** Updating translations or internationalization settings
+- **perf** A code change that improves performance
+- **refactor** A code change that neither fixes a bug nor adds a feature
+- **release** Releasing a new version of Authelia
+- **test** Adding missing tests or correcting existing tests
 
 #### Allowed scope values:
 
 The scope should be the name of the package affected (as perceived by the person reading the changelog generated from
 commit messages).
 
-* authentication
-* authorization
-* clock
-* commands
-* configuration
-* duo
-* expression
-* handlers
-* logging
-* metrics
-* middlewares
-* mocks
-* model
-* notification
-* ntp
-* oidc
-* random
-* regulation
-* server
-* service
-* session
-* storage
-* suites
-* templates
-* totp
-* utils
-* webauthn
+- authentication
+- authorization
+- clock
+- commands
+- configuration
+- duo
+- expression
+- handlers
+- logging
+- metrics
+- middlewares
+- mocks
+- model
+- notification
+- ntp
+- oidc
+- random
+- regulation
+- server
+- service
+- session
+- storage
+- suites
+- templates
+- totp
+- utils
+- webauthn
 
 There are currently a few exceptions to the "use package name" rule:
 
-* `api`: used for changes that change the openapi specification
-* `cmd`: used for changes to the `authelia|authelia-gen|authelia-scripts|authelia-suites` top level binaries
-* `web`: used for changes to the React based frontend
-* none/empty string: useful for `test`, `refactor` and changes that are done across multiple packages
+- `api`: used for changes that change the openapi specification
+- `cmd`: used for changes to the `authelia|authelia-gen|authelia-scripts|authelia-suites` top level binaries
+- `web`: used for changes to the React based frontend
+- none/empty string: useful for `test`, `refactor` and changes that are done across multiple packages
   (e.g. `test: add missing unit tests`) and for docs changes that are not related to a specific package
   (e.g. `docs: fix typo in tutorial`).
 
@@ -123,15 +123,15 @@ There are currently a few exceptions to the "use package name" rule:
 
 Use the summary field to provide a succinct description of the change:
 
-* use the imperative, present tense: "change" not "changed" nor "changes"
-* don't capitalize the first letter
-* no dot (.) at the end
+- use the imperative, present tense: "change" not "changed" nor "changes"
+- don't capitalize the first letter
+- no dot (.) at the end
 
 ### Commit Message Body
 
 Just as in the summary, use the imperative, present tense: "fix" not "fixed" nor "fixes".
 
-Explain the motivation for the change in the commit message body. This commit message should explain *why* you are
+Explain the motivation for the change in the commit message body. This commit message should explain _why_ you are
 making the change. You can include a comparison of the previous behavior with the new behavior in order to illustrate
 the impact of the change.
 
@@ -160,8 +160,8 @@ If the commit reverts a previous commit, it should begin with `revert:`, followe
 
 The content of the commit message body should contain:
 
-* information about the SHA of the commit being reverted in the following format: `This reverts commit <SHA>`,
-* a clear description of the reason for reverting the commit message.
+- information about the SHA of the commit being reverted in the following format: `This reverts commit <SHA>`,
+- a clear description of the reason for reverting the commit message.
 
 ## Commit Message Examples
 

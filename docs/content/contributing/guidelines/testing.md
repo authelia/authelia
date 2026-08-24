@@ -35,7 +35,7 @@ issues in the code. The rationale for this approach is that, while using multipl
 confidence by providing more data on which to base our judgment.
 
 |                                          Tool                                          |                  Purpose                   |                                                              Notes                                                               |
-|:--------------------------------------------------------------------------------------:|:------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------:|
+| :------------------------------------------------------------------------------------: | :----------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------: |
 |                         [Go Test](https://pkg.go.dev/testing)                          | Coverage, Static and Dynamic Code Analysis | Analysis of Go Code, Executed with `go test -cover`, `go test -race`, and `go test -fuzz` before and on every commit to `master` |
 | [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) | Coverage, Static and Dynamic Code Analysis |                                  Analysis of React Code before and on every commit to `master`                                   |
 |                        [SonarQube](https://www.sonarqube.org/)                         |            Static Code Analysis            |                                   Analysis of All Code before and on every commit to `master`                                    |
@@ -57,7 +57,7 @@ In addition to the above SAST and DAST tools we also implement several linters w
 consistency. These linters generally run via [lefthook](https://lefthook.dev/) which is installed as a git hook.
 
 |                               Tool                                |           Area            |                  Purpose                   |
-|:-----------------------------------------------------------------:|:-------------------------:|:------------------------------------------:|
+| :---------------------------------------------------------------: | :-----------------------: | :----------------------------------------: |
 |            [golangci-Lint](https://golangci-lint.run/)            |            Go             |  Code Quality and Consistency of Go Code   |
 |                              ESLint                               | JavaScript and TypeScript | Code Quality and Consistency of JS/TS Code |
 |       [ShellCheck](https://github.com/koalaman/shellcheck)        |        Shell Files        |        Code Quality and Consistency        |

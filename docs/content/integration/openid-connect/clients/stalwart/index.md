@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://example.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `stalwart`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://example.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `stalwart`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -53,7 +53,7 @@ yourself in order to use it. In this example we issue it to an application that 
 [Stalwart](https://stalw.art) which allows that application to leverage OAuth 2.0 to authenticate on a users behalf.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Stalwart] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Stalwart] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -86,7 +86,7 @@ identity_providers:
 
 ### Application
 
-To configure [Stalwart] there are two methods, using the [Configuration File](#configuration-file),  or using the [Web GUI](#web-gui).
+To configure [Stalwart] there are two methods, using the [Configuration File](#configuration-file), or using the [Web GUI](#web-gui).
 
 #### Configuration File
 
