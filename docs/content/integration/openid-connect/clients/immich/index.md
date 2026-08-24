@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://immich.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `immich`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://immich.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `immich`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +46,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Immich] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Immich] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -90,13 +90,13 @@ To configure [Immich] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 1. Login to [Immich].
 2. Navigate to OAuth Settings.
 3. Configure the following options:
-    - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`.
-    - Client ID: `immich`.
-    - Client Secret: `insecure_secret`.
-    - Scope: `openid profile email`.
-    - Token Endpoint Auth Method: `client_secret_basic`.
-    - Button Text: `Login with Authelia`.
-    - Auto Register: Enable if desired.
+   - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`.
+   - Client ID: `immich`.
+   - Client Secret: `insecure_secret`.
+   - Scope: `openid profile email`.
+   - Token Endpoint Auth Method: `client_secret_basic`.
+   - Button Text: `Login with Authelia`.
+   - Auto Register: Enable if desired.
 4. Press `Save` at the bottom
 
 ## See Also

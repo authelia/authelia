@@ -16,7 +16,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ is a companion of reverse proxies like Traefik (see [supported proxies](../supported-proxies.md) for a full
+**Authelia** is a companion of reverse proxies like Traefik (see [supported proxies](../supported-proxies.md) for a full
 list). It can be seen as an extension of those proxies providing authentication functions and a login portal.
 
 As shown in the following architecture diagram, Authelia is directly connected to the reverse proxy but never directly

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import ComponentWithTooltip from "@components/ComponentWithTooltip";
 import { Button } from "@components/UI/Button";
@@ -19,7 +19,7 @@ const ResetPasswordStep1 = function () {
     const [loading, setLoading] = useState(false);
 
     const [rateLimited, setRateLimited] = useState(false);
-    const timeoutRateLimitRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRateLimitRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
     const { createErrorNotification, createInfoNotification } = useNotifications();
     const navigate = useNavigate();

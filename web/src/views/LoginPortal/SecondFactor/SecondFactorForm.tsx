@@ -2,7 +2,7 @@ import { lazy, useState } from "react";
 
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router";
 
 import LogoutButton from "@components/LogoutButton";
 import SwitchUserButton from "@components/SwitchUserButton";

@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  body-parser: 2.3.0
-  path-to-regexp: 8.4.2
-  qs: 6.15.3
-
 importers:
 
   .:

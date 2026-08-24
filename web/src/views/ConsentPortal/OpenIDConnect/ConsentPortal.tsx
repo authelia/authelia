@@ -1,6 +1,6 @@
 import { FC, lazy } from "react";
 
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router";
 
 import { ConsentDecisionSubRoute, ConsentOpenIDDeviceAuthorizationSubRoute } from "@constants/Routes";
 import { UserInfo } from "@models/UserInfo";

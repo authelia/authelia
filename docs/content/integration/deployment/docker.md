@@ -16,26 +16,26 @@ seo:
 
 The [Docker] container is deployed with the following image names:
 
-* [authelia/authelia](https://hub.docker.com/r/authelia/authelia)
-* [docker.io/authelia/authelia](https://hub.docker.com/r/authelia/authelia)
-* [ghcr.io/authelia/authelia](https://github.com/authelia/authelia/pkgs/container/authelia)
+- [authelia/authelia](https://hub.docker.com/r/authelia/authelia)
+- [docker.io/authelia/authelia](https://hub.docker.com/r/authelia/authelia)
+- [ghcr.io/authelia/authelia](https://github.com/authelia/authelia/pkgs/container/authelia)
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Container
 
 ### Environment Variables
 
 Several environment variables apply specifically to the official container. This table documents them. It is important
-to note these environment variables are specific to the container and have no effect on the *Authelia* daemon itself and
+to note these environment variables are specific to the container and have no effect on the _Authelia_ daemon itself and
 this section is not meant to document the daemon environment variables.
 
 | Name  | Default |                                             Usage                                             |
-|:-----:|:-------:|:---------------------------------------------------------------------------------------------:|
+| :---: | :-----: | :-------------------------------------------------------------------------------------------: |
 | PUID  |    0    | If the container is running as UID 0, it will drop privileges to this UID via the entrypoint  |
 | PGID  |    0    | If the container is running as UID 0, it will drop privileges to this GID via the entrypoint  |
 | UMASK |   N/A   | If set the container will run with the provided UMASK by running the `umask ${UMASK}` command |
@@ -44,7 +44,7 @@ this section is not meant to document the daemon environment variables.
 
 By default the container runs as the configured [Docker] daemon user. Users can control this behavior in several ways.
 
-The first and recommended way is instructing the [Docker] daemon to run the *Authelia* container as another user. See
+The first and recommended way is instructing the [Docker] daemon to run the _Authelia_ container as another user. See
 the [docker run] or [Docker Compose file reference documentation](https://docs.docker.com/compose/compose-file/05-services/#user)
 for more information. The best part of this method is the process will never have privileged access, and the only
 negative is the user must manually configure the filesystem permissions correctly.
@@ -60,28 +60,28 @@ The last method which is beyond our documentation or support is using the
 
 ## Docker Compose
 
-We provide two main [Docker Compose] examples which can be utilized to help test *Authelia* or can be adapted into your
+We provide two main [Docker Compose] examples which can be utilized to help test _Authelia_ or can be adapted into your
 existing [Docker Compose].
 
-* [Unbundled Example](#standalone-example)
-* [Bundle: lite](#lite)
-* [Bundle: local](#local)
+- [Unbundled Example](#standalone-example)
+- [Bundle: lite](#lite)
+- [Bundle: local](#local)
 
 ### Standalone Example
 
-The following examples are [Docker Compose] deployments with just *Authelia* and no bundled applications or
+The following examples are [Docker Compose] deployments with just _Authelia_ and no bundled applications or
 proxies.
 
 It expects the following:
 
-* The file `data/authelia/config/configuration.yml` is present and the configuration file.
-* The directory `data/authelia/secrets/` exists and contain the relevant [secret](../../configuration/methods/secrets.md) files:
-  * A file named `JWT_SECRET` for the [jwt_secret](../../configuration/identity-validation/reset-password.md#jwt_secret)
-  * A file named `SESSION_SECRET` for the [session secret](../../configuration/session/introduction.md#secret)
-  * A file named `STORAGE_PASSWORD` for the [PostgreSQL password secret](../../configuration/storage/postgres.md#password)
-  * A file named `STORAGE_ENCRYPTION_KEY` for the [storage encryption_key secret](../../configuration/storage/introduction.md#encryption_key)
-* You're using PostgreSQL.
-* You have an external network named `net` which is in bridge mode.
+- The file `data/authelia/config/configuration.yml` is present and the configuration file.
+- The directory `data/authelia/secrets/` exists and contain the relevant [secret](../../configuration/methods/secrets.md) files:
+  - A file named `JWT_SECRET` for the [jwt_secret](../../configuration/identity-validation/reset-password.md#jwt_secret)
+  - A file named `SESSION_SECRET` for the [session secret](../../configuration/session/introduction.md#secret)
+  - A file named `STORAGE_PASSWORD` for the [PostgreSQL password secret](../../configuration/storage/postgres.md#password)
+  - A file named `STORAGE_ENCRYPTION_KEY` for the [storage encryption_key secret](../../configuration/storage/introduction.md#encryption_key)
+- You're using PostgreSQL.
+- You have an external network named `net` which is in bridge mode.
 
 #### Using Secrets
 
@@ -189,9 +189,9 @@ cd examples/compose/local
 The bundle setup modifies the `/etc/hosts` file which is performed with `sudo`. Once it is successfully setup you can
 visit the following URL's to see Authelia in action (`example.com` will be replaced by the domain you specified):
 
-* [https://public.example.com](https://public.example.com) - Bypasses Authelia
-* [https://traefik.example.com](https://traefik.example.com) - Secured with Authelia one-factor authentication
-* [https://secure.example.com](https://secure.example.com) - Secured with Authelia two-factor authentication (see note below)
+- [https://public.example.com](https://public.example.com) - Bypasses Authelia
+- [https://traefik.example.com](https://traefik.example.com) - Secured with Authelia one-factor authentication
+- [https://secure.example.com](https://secure.example.com) - Secured with Authelia two-factor authentication (see note below)
 
 You will need to authorize the self-signed certificate upon visiting each domain. To visit
 [https://secure.example.com](https://secure.example.com) you will need to register a device for second factor
@@ -208,13 +208,13 @@ grep -Eo '"https://.*" ' ./authelia/notification.txt.
 #### Running the Proxy on the Host Instead of in a Container
 
 If you wish to run the proxy as a systemd service or other daemon, you will need to adjust the configuration. While this
-configuration is not specific to *Authelia* and is mostly a [Docker] concept we explain this here to help alleviate the
+configuration is not specific to _Authelia_ and is mostly a [Docker] concept we explain this here to help alleviate the
 users asking how to accomplish this. It should be noted that we can't provide documentation or support for every
 architectural choice our users make and you should expect to do your own research to figure this out where possible.
 
 The example below includes the additional `ports` option which must be added in order to allow communication to
-*Authelia* from daemons on the [Docker] host. The other values are used to show context within the
-[Standalone Example](#standalone-example) above. The example allows *Authelia* to be communicated with over the
+_Authelia_ from daemons on the [Docker] host. The other values are used to show context within the
+[Standalone Example](#standalone-example) above. The example allows _Authelia_ to be communicated with over the
 localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your specific needs.
 
 ```yaml {title="compose.yml"}

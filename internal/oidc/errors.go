@@ -21,7 +21,7 @@ var (
 	ErrSubjectCouldNotLookup = oauthelia2.ErrServerError.WithHint("Could not lookup user subject.")
 
 	// ErrConsentCouldNotPerform is sent when the Consent Session couldn't be performed for varying reasons.
-	ErrConsentCouldNotPerform = oauthelia2.ErrServerError.WithHint("Could not perform consent.")
+	ErrConsentCouldNotPerform = oauthelia2.ErrInvalidRequest.WithHint("Could not perform consent. The consent session has already been granted, has expired, or otherwise does not appear to be valid for the authorization request.")
 
 	// ErrConsentCouldNotGenerate is sent when the Consent Session failed to be generated for some reason, usually a failed UUIDv4 generation.
 	ErrConsentCouldNotGenerate = oauthelia2.ErrServerError.WithHint("Could not generate the consent session.")

@@ -32,10 +32,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://wallos.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `wallos`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://wallos.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `wallos`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Wallos] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Wallos] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -84,20 +84,20 @@ To configure [Wallos] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 2. Navigate to the Admin panel.
 3. Scroll down to Security Settings.
 4. Enter `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` in the form and click `Save`.
-4. Scroll up to OIDC Settings.
-5. Click `Enable OIDC/OAuth`.
-6. Configure the following options:
-    - Provider Name: `Authelia`.
-    - Client ID: `wallos`.
-    - Client Secret: `insecure_secret`.
-    - Auth URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`.
-    - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`.
-    - User Info URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`.
-    - Redirect URL: `https://wallos.{{< sitevar name="domain" nojs="example.com" >}}/index.php`.
-    - (Optional) Logout URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout`.
-    - (Default) User Identifier Field: `sub`.
-    - (Default) Scopes: `openid email profile`.
-7. Press `Save` at the bottom.
+5. Scroll up to OIDC Settings.
+6. Click `Enable OIDC/OAuth`.
+7. Configure the following options:
+   - Provider Name: `Authelia`.
+   - Client ID: `wallos`.
+   - Client Secret: `insecure_secret`.
+   - Auth URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`.
+   - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`.
+   - User Info URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`.
+   - Redirect URL: `https://wallos.{{< sitevar name="domain" nojs="example.com" >}}/index.php`.
+   - (Optional) Logout URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout`.
+   - (Default) User Identifier Field: `sub`.
+   - (Default) Scopes: `openid email profile`.
+8. Press `Save` at the bottom.
 
 ## See Also
 

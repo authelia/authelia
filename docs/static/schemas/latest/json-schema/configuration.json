@@ -3404,6 +3404,11 @@
           "title": "Second Factor Duo",
           "description": "Configures the rate limiter which applies to the Duo endpoint which initializes the application authorization flow for the second factor flow."
         },
+        "second_factor_password": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Second Factor Password",
+          "description": "Configures the rate limiter which applies to the Password endpoint for the second factor flow."
+        },
         "session_elevation_start": {
           "$ref": "#/$defs/ServerEndpointRateLimit",
           "title": "Session Elevation Start",

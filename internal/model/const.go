@@ -31,6 +31,13 @@ const (
 	semverRegexpGroupPreRelease = "PreRelease"
 )
 
+// OAuth 2.0 and OpenID Connect 1.0 form parameters used to bind a consent session to a request.
+const (
+	formParameterNonce      = "nonce"
+	formParameterState      = "state"
+	formParameterRequestURI = "request_uri"
+)
+
 // JSON Schema format strings.
 const (
 	FormatJSONSchemaIdentifier         = "https://www.authelia.com/schemas/%s/json-schema/%s.json"

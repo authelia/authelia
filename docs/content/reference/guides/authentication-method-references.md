@@ -19,7 +19,7 @@ Authelia leverages [RFC8176] in a few areas to communicate and control authoriza
 Below is a list of the Authentication Method Reference Values and how we currently support them:
 
 | Value  |                            Description                            |   Factor   | Channel  |
-|:------:|:-----------------------------------------------------------------:|:----------:|:--------:|
+| :----: | :---------------------------------------------------------------: | :--------: | :------: |
 |  mfa   |      User used multiple factors to login (see factor column)      |    N/A     |   N/A    |
 |  mca   |     User used multiple channels to login (see channel column)     |    N/A     |   N/A    |
 |  user  |  User confirmed they were present when using their hardware key   |    N/A     |   N/A    |
@@ -41,6 +41,5 @@ Below is a list of the Authentication Method Reference Values and how we current
 |  tel   |                           _Unsupported_                           |    N/A     |   N/A    |
 |  vbm   |                           _Unsupported_                           |    N/A     |   N/A    |
 |  wia   |                           _Unsupported_                           |    N/A     |   N/A    |
-
 
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176

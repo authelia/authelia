@@ -13,6 +13,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 )
@@ -342,8 +343,43 @@ func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 	UserInfoGET(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to load user information: failure", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred loading the user information", "failure")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
+}
+
+func (s *FetchSuite) TestShouldLogErrorWhenPreferredMethodLookupFails() {
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadPreferred2FAMethod(s.mock.Ctx, gomock.Eq("john")).
+			Return("", fmt.Errorf("failed to lookup")),
+		s.mock.StorageMock.EXPECT().
+			LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
+			Return(model.UserInfo{}, fmt.Errorf("failure")),
+	)
+
+	UserInfoPOST(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed.")
+	assert.Equal(s.T(), "Error occurred looking up the user preferred second factor method while loading the user information", s.mock.Hook.Entries[0].Message)
+}
+
+func (s *FetchSuite) TestShouldLogErrorWhenDefaultPreferredMethodCannotBeSaved() {
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			LoadPreferred2FAMethod(s.mock.Ctx, gomock.Eq("john")).
+			Return("", sql.ErrNoRows),
+		s.mock.StorageMock.EXPECT().
+			SavePreferred2FAMethod(s.mock.Ctx, gomock.Eq("john"), gomock.Eq("")).
+			Return(fmt.Errorf("failed to save")),
+		s.mock.StorageMock.EXPECT().
+			LoadUserInfo(s.mock.Ctx, gomock.Eq("john")).
+			Return(model.UserInfo{}, fmt.Errorf("failure")),
+	)
+
+	UserInfoPOST(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed.")
+	assert.Equal(s.T(), "Error occurred saving the user preferred second factor method while loading the user information", s.mock.Hook.Entries[0].Message)
 }
 
 func TestFetchSuite(t *testing.T) {
@@ -374,7 +410,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenNoBodyProvided() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to parse body: unexpected end of JSON input")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -383,7 +419,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenMalformedBodyProvided() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to parse body: unexpected end of JSON input")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -392,7 +428,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadBodyProvided() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to validate body: method: non zero value required")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -401,7 +437,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unknown or unavailable method 'abc', it should be one of totp, webauthn, mobile_push", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred setting the second factor method preference as the method 'abc' is unknown or unavailable, it should be one of totp, webauthn, mobile_push", "")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -414,7 +450,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to save new preferred 2FA method: Failure", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred saving the new preferred second factor method", "Failure")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -431,4 +467,45 @@ func (s *SaveSuite) TestShouldReturn200WhenMethodIsSuccessfullySaved() {
 
 func TestSaveSuite(t *testing.T) {
 	suite.Run(t, &SaveSuite{})
+}
+
+func TestUserInfoShouldHandleGetSessionError(t *testing.T) {
+	testCases := []struct {
+		name           string
+		handler        func(ctx *middlewares.AutheliaCtx)
+		expectedStatus int
+	}{
+		{
+			"ShouldHandleUserInfoGET",
+			UserInfoGET,
+			fasthttp.StatusForbidden,
+		},
+		{
+			"ShouldHandleUserInfoPOST",
+			UserInfoPOST,
+			fasthttp.StatusForbidden,
+		},
+		{
+			"ShouldHandleMethodPreferencePOST",
+			MethodPreferencePOST,
+			fasthttp.StatusOK,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+
+			tc.handler(mock.Ctx)
+
+			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, `{"status":"KO","message":"Operation failed."}`, string(mock.Ctx.Response.Body()))
+
+			mock.AssertLastLogMessage(t, "Error occurred retrieving user session", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+		})
+	}
 }

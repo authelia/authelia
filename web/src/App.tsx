@@ -2,7 +2,7 @@ import { Suspense, lazy } from "react";
 
 import { CSPProvider } from "@base-ui/react/csp-provider";
 import { useTranslation } from "react-i18next";
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router";
 
 import { TooltipProvider } from "@components/UI/Tooltip";
 import {

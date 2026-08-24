@@ -16,7 +16,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-There are three main methods to deploy *Authelia*.
+There are three main methods to deploy _Authelia_.
 
 1. [Docker](docker.md)
 2. [Kubernetes](../kubernetes/introduction.md)
@@ -24,6 +24,6 @@ There are three main methods to deploy *Authelia*.
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.

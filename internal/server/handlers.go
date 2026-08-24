@@ -313,7 +313,13 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		if config.WebAuthn.EnablePasskeyLogin {
 			r.GET("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyGET))
 			r.POST("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyPOST))
-			r.POST("/api/secondfactor/password", middleware1FA(handlers.SecondFactorPasswordPOST(delayerPassword)))
+
+			middlewareRateLimitPassword := middlewares.NewBridgeBuilder(*config, providers).
+				WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+				WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorPassword), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
+				Build()
+
+			r.POST("/api/secondfactor/password", middlewareRateLimitPassword(handlers.SecondFactorPasswordPOST(delayerPassword)))
 		}
 
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))

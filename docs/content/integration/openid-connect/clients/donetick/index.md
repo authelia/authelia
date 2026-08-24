@@ -32,10 +32,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://donetick.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `donetick`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://donetick.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `donetick`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Donetick] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Donetick] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -133,7 +133,6 @@ oauth2:
 ### Android App
 
 Please note that the Donetick app in version [0.1.34](https://github.com/donetick/donetick/releases/tag/v0.1.34) does not work with OpenID on self-hosted Donetick instances. See [issue #268](https://github.com/donetick/donetick/issues/268) for details.
-
 
 ## See Also
 

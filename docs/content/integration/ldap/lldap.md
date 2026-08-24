@@ -14,15 +14,15 @@ seo:
   noindex: false # false (default) or true
 ---
 
-[LLDAP] is supported by __Authelia__.
+[LLDAP] is supported by **Authelia**.
 
-*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+_**Important:** When using these guides, it's important to recognize that we cannot provide a guide for every possible
 method of deploying an LDAP server. These guides show a suggested setup only, and you need to understand the LDAP
 configuration and customize it to your needs. To-that-end, we include links to the official documentation specific to
-the LDAP implementation throughout this documentation and in the [See Also](#see-also) section.*
+the LDAP implementation throughout this documentation and in the [See Also](#see-also) section._
 
-*__Important:__ This guide makes use of a default configuration. Check the [Defaults](#defaults) section
-and make adjustments according to your needs.*
+_**Important:** This guide makes use of a default configuration. Check the [Defaults](#defaults) section
+and make adjustments according to your needs._
 
 ## Assumptions and Adaptation
 
@@ -41,7 +41,7 @@ The following are the assumptions we make:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [authentication backend configuration] for use with
+The following YAML configuration is an example **Authelia** [authentication backend configuration] for use with
 [lldap] which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -73,7 +73,7 @@ The below tables describes the current attribute defaults for the [lldap] implem
 The following set defaults for the `additional_users_dn` and `additional_groups_dn` values.
 
 |    Users    |   Groups    |
-|:-----------:|:-----------:|
+| :---------: | :---------: |
 | `OU=people` | `OU=groups` |
 
 #### Attribute defaults
@@ -81,9 +81,9 @@ The following set defaults for the `additional_users_dn` and `additional_groups_
 This table describes the attribute defaults for the [lldap] implementation. i.e. the `username_attribute` is described by
 the Username column.
 
-|    Username    | Display Name | Mail | Group Name | Distinguished Name | Member Of |
-|:--------------:|:------------:|:----:|:----------:|:------------------:|:---------:|
-|      uid       |      cn      | mail |     cn     |        N/A         | memberOf  |
+| Username | Display Name | Mail | Group Name | Distinguished Name | Member Of |
+| :------: | :----------: | :--: | :--------: | :----------------: | :-------: |
+|   uid    |      cn      | mail |     cn     |        N/A         | memberOf  |
 
 #### Filter defaults
 
@@ -110,6 +110,7 @@ the following conditions:
 ```
 
 ## See Also
+
 - [LLDAP Client Configuration](https://github.com/lldap/lldap?tab=readme-ov-file#client-configuration)
 
 [Authelia]: https://www.authelia.com

@@ -32,12 +32,12 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://wg-portal.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Provider ID:__ `{{< sitevar name="provider-id" nojs="authelia" >}}`
-- __Client ID:__ `{{< sitevar name="client-id" nojs="wg-portal" >}}`
-- __Client Secret:__ `insecure_secret`
-- __Admin Groupname:__ `{{< sitevar name="admin-group" nojs="admins" >}}`
+- **Application Root URL:** `https://wg-portal.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Provider ID:** `{{< sitevar name="provider-id" nojs="authelia" >}}`
+- **Client ID:** `{{< sitevar name="client-id" nojs="wg-portal" >}}`
+- **Client Secret:** `insecure_secret`
+- **Admin Groupname:** `{{< sitevar name="admin-group" nojs="admins" >}}`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -47,7 +47,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [WG-Portal] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [WG-Portal] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -94,7 +94,7 @@ auth:
       base_url: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
       client_id: {{< sitevar name="client-id" nojs="wg-portal" >}}
       client_secret: insecure_secret
-      extra_scopes: 
+      extra_scopes:
         - email
         - profile
         - groups

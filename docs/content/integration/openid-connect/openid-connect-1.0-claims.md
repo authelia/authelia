@@ -27,8 +27,8 @@ can either be granted individually via:
 Authelia supports several claims related features:
 
 1. The availability of the [Standard Claims] using the appropriate [scopes](#scope-definitions):
-   * These claims come from the standard attributes available in the authentication backends, usually with the attribute
-   of the same name.
+   - These claims come from the standard attributes available in the authentication backends, usually with the attribute
+     of the same name.
 2. The availability of creating your own [custom claims](#custom-claims) and [custom scopes](#custom-scopes).
 3. The ability to create [Custom Attributes] to bolster the [custom claims](#custom-claims) functionality.
 4. The ability to request individual claims by clients with the [Claims Parameter] assuming the client is allowed to
@@ -76,7 +76,7 @@ In the example below we configure 6 elements.
    `extra_claim_name` which comes from the attributes named `attribute_name` and `extra_example` respectively.
 4. The claims `claim_name` and `extra_claim_name` are then made available via the scope named `scope_name`.
 5. The claims policy `custom_claims_policy` is assigned to the client with id `client_example_id`.
-6. The custom scope named `scope_name` is permitted to be requested by the client with id  `client_example_id` via the
+6. The custom scope named `scope_name` is permitted to be requested by the client with id `client_example_id` via the
    registered `scopes` which makes the claims available to the client via the `scope` or `claism` parameters.
 
 ```yaml
@@ -195,18 +195,18 @@ the [OpenID Connect 1.0](https://openid.net/connect/) specification.
 {{< /callout >}}
 
 |  [Claim]  |   JWT Type    | Authelia Attribute | Default Location |                         Description                         |
-|:---------:|:-------------:|:------------------:|:----------------:|:-----------------------------------------------------------:|
+| :-------: | :-----------: | :----------------: | :--------------: | :---------------------------------------------------------: |
 |    iss    |    string     |      hostname      |    [ID Token]    |             The issuer name, determined by URL              |
-|    jti    | string(uuid)  |       *N/A*        |    [ID Token]    |     A [RFC4122] UUID V4 representing the JWT Identifier     |
+|    jti    | string(uuid)  |       _N/A_        |    [ID Token]    |     A [RFC4122] UUID V4 representing the JWT Identifier     |
 |    sub    | string(uuid)  |     opaque id      |    [ID Token]    |    A [RFC4122] UUID V4 linked to the user who logged in     |
-|    aud    | array[string] |       *N/A*        |    [ID Token]    |                          Audience                           |
-|    exp    |    number     |       *N/A*        |    [ID Token]    |                           Expires                           |
-|    iat    |    number     |       *N/A*        |    [ID Token]    |             The time when the token was minted              |
-| auth_time |    number     |       *N/A*        |    [ID Token]    |        The time the user authenticated with Authelia        |
-|   nonce   |    string     |       *N/A*        |    [ID Token]    |        The time the user authenticated with Authelia        |
-|    amr    | array[string] |       *N/A*        |    [ID Token]    | An [RFC8176] list of authentication method reference values |
+|    aud    | array[string] |       _N/A_        |    [ID Token]    |                          Audience                           |
+|    exp    |    number     |       _N/A_        |    [ID Token]    |                           Expires                           |
+|    iat    |    number     |       _N/A_        |    [ID Token]    |             The time when the token was minted              |
+| auth_time |    number     |       _N/A_        |    [ID Token]    |        The time the user authenticated with Authelia        |
+|   nonce   |    string     |       _N/A_        |    [ID Token]    |        The time the user authenticated with Authelia        |
+|    amr    | array[string] |       _N/A_        |    [ID Token]    | An [RFC8176] list of authentication method reference values |
 |    azp    |    string     |    id (client)     |    [ID Token]    |                    The authorized party                     |
-|    rat    |    number     |       *N/A*        |    [UserInfo]    |        The time when the authorization was requested        |
+|    rat    |    number     |       _N/A_        |    [UserInfo]    |        The time when the authorization was requested        |
 |   scope   |    string     |       scopes       |    [UserInfo]    |              Granted scopes (space delimited)               |
 |    scp    | array[string] |       scopes       |    [UserInfo]    |                       Granted scopes                        |
 | client_id |    string     |    id (client)     |    [UserInfo]    |                        The client id                        |
@@ -222,6 +222,7 @@ As per [OpenID Connect 1.0] Section 11 [Offline Access] can only be granted duri
 As per [OpenID Connect 1.0] Section 11, [Offline Access] can only be granted during the [Authorization Code Flow] or a
 [Hybrid Flow]. The [Refresh Token] will only ever be returned by the [Token Endpoint] when all the following are
 true:
+
 1. The client is exchanging a [OAuth 2.0 Authorization Code].
 2. The client is permitted to request [Offline Access], i.e., it is explicitly configured with the `offline_access` scope.
 3. The client is permitted to use [Refresh Tokens] i.e. it is explicitly configured with the `refresh_token`
@@ -244,7 +245,7 @@ from [RFC9700].
 This scope allows the client to access the profile information the authentication backend reports about the user.
 
 |      [Claim]       | JWT Type | Authelia Attribute | Default Location |               Description                |
-|:------------------:|:--------:|:------------------:|:----------------:|:----------------------------------------:|
+| :----------------: | :------: | :----------------: | :--------------: | :--------------------------------------: |
 |        name        |  string  |    display_name    |    [UserInfo]    |          The users display name          |
 |    family_name     |  string  |    family_name     |    [UserInfo]    |          The users family name           |
 |     given_name     |  string  |     given_name     |    [UserInfo]    |           The users given name           |
@@ -264,9 +265,9 @@ This scope allows the client to access the profile information the authenticatio
 This scope allows the client to access the email information the authentication backend reports about the user.
 
 |    [Claim]     |   JWT Type    | Authelia Attribute | Default Location |                        Description                        |
-|:--------------:|:-------------:|:------------------:|:----------------:|:---------------------------------------------------------:|
+| :------------: | :-----------: | :----------------: | :--------------: | :-------------------------------------------------------: |
 |     email      |    string     |      email[0]      |    [UserInfo]    |       The first email address in the list of emails       |
-| email_verified |     bool      |       *N/A*        |    [UserInfo]    | If the email is verified, assumed true for the time being |
+| email_verified |     bool      |       _N/A_        |    [UserInfo]    | If the email is verified, assumed true for the time being |
 |   alt_emails   | array[string] |     email[1:]      |    [UserInfo]    |  All email addresses that are not in the email JWT field  |
 
 ### address
@@ -276,13 +277,13 @@ the [Address Claim](https://openid.net/specs/openid-connect-core-1_0.html#Addres
 the format of this claim.
 
 | [Claim] | JWT Type | Authelia Attribute | Default Location |          Description          |
-|:-------:|:--------:|:------------------:|:----------------:|:-----------------------------:|
+| :-----: | :------: | :----------------: | :--------------: | :---------------------------: |
 | address |  object  |      various       |    [UserInfo]    | The users address information |
 
 The following table indicates the various sub-claims within the address claim.
 
 |    [Claim]     | JWT Type | Authelia Attribute |                       Description                       |
-|:--------------:|:--------:|:------------------:|:-------------------------------------------------------:|
+| :------------: | :------: | :----------------: | :-----------------------------------------------------: |
 | street_address |  string  |   street_address   |                The users street address                 |
 |    locality    |  string  |      locality      |             The users locality such as city             |
 |     region     |  string  |       region       | The users region such as state, province, or prefecture |
@@ -294,7 +295,7 @@ The following table indicates the various sub-claims within the address claim.
 This scope allows the client to access the address information the authentication backend reports about the user.
 
 |        [Claim]        | JWT Type |       Authelia Attribute       | Default Location |                                              Description                                              |
-|:---------------------:|:--------:|:------------------------------:|:----------------:|:-----------------------------------------------------------------------------------------------------:|
+| :-------------------: | :------: | :----------------------------: | :--------------: | :---------------------------------------------------------------------------------------------------: |
 |     phone_number      |  string  | phone_number + phone_extension |    [UserInfo]    | The combination of the users phone number and extension in the format specified in OpenID Connect 1.0 |
 | phone_number_verified | boolean  |              N/A               |    [UserInfo]    |                        Currently returns true if the phone number has a value.                        |
 
@@ -304,7 +305,7 @@ This scope includes the groups the authentication backend reports the user is a 
 [ID Token].
 
 | [Claim] |   JWT Type    | Authelia Attribute | Default Location |                                               Description                                               |
-|:-------:|:-------------:|:------------------:|:----------------:|:-------------------------------------------------------------------------------------------------------:|
+| :-----: | :-----------: | :----------------: | :--------------: | :-----------------------------------------------------------------------------------------------------: |
 | groups  | array[string] |       groups       |    [UserInfo]    | List of user's groups discovered via [authentication](../../configuration/first-factor/introduction.md) |
 
 ### Special Scopes
@@ -334,30 +335,23 @@ Unlike the other special scopes, `authelia.pam` is user-customizable: claims att
 
 [OAuth 2.0]: https://oauth.net/2/
 [OpenID Connect 1.0]: https://openid.net/connect/
-
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4
 [Refresh Token]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
 [Refresh Tokens]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
-
 [Claims]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 [Standard Claims]: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
 [Claim]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 [Offline Access]: https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess
 [UserInfo Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
-
 [Standard Attributes]: ../../reference/guides/attributes.md#standard-attributes
 [Custom Attributes]: ../../reference/guides/attributes.md#custom-attributes
-
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
 [Hybrid Flow]: https://openid.net/specs/openid-connect-core-1_0.html#HybridFlowAuth
 [Refresh Flow]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
-
 [Token Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [UserInfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
-
 [RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
-
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
 [RFC9700]: https://datatracker.ietf.org/doc/html/rfc9700/

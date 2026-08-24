@@ -114,7 +114,7 @@ through the process of setting up [redis ACLs](https://redis.io/topics/acl).
 
 The password for [redis authentication](https://redis.io/commands/auth).
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
@@ -176,7 +176,7 @@ The password for the [redis sentinel] connection. If specified with sentinel_use
 authenticate to the Redis Sentinel with ACL-based authentication. Otherwise, this is used for [requirepass]
 authentication.
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
