@@ -35,11 +35,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://proxmox.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `proxmox`
-- __Client Secret:__ `insecure_secret`
-- __Realm__ `authelia`
+- **Application Root URL:** `https://proxmox.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `proxmox`
+- **Client Secret:** `insecure_secret`
+- **Realm** `authelia`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -49,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Proxmox Virtual Environment] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Proxmox Virtual Environment] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

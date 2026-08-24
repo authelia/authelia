@@ -17,26 +17,26 @@ seo:
   noindex: false # false (default) or true
 ---
 
-[NGINX] is a reverse proxy supported by __Authelia__.
+[NGINX] is a reverse proxy supported by **Authelia**.
 
-*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+_**Important:** When using these guides, it's important to recognize that we cannot provide a guide for every possible
 method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
 configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
-throughout this documentation and in the [See Also](#see-also) section.*
+throughout this documentation and in the [See Also](#see-also) section._
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Requirements
 
-You need the following to run __Authelia__ with [NGINX]:
+You need the following to run **Authelia** with [NGINX]:
 
-* [NGINX] must be built with the `http_auth_request` module which is relatively common
-* [NGINX] must be built with the `http_realip` module which is relatively common
-* [NGINX] must be built with the `http_set_misc` module or the `nginx-mod-http-set-misc` package if you want to use the
+- [NGINX] must be built with the `http_auth_request` module which is relatively common
+- [NGINX] must be built with the `http_realip` module which is relatively common
+- [NGINX] must be built with the `http_set_misc` module or the `nginx-mod-http-set-misc` package if you want to use the
   legacy method and preserve more than one query parameter when redirected to the portal due to a limitation in [NGINX]
 
 ## Trusted Proxies and Integration Security
@@ -47,13 +47,13 @@ In addition to this section which is important to read, you should read the
 and perform the validation steps as part of your regular security validation routine when using this integration.
 {{< /callout >}}
 
-*__Important:__ You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
-Especially if you have never read it before.*
+_**Important:** You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
+Especially if you have never read it before._
 
-*__Important:__ The included example is __NOT__ meant for production use. It's used expressly as an example to showcase
+_**Important:** The included example is **NOT** meant for production use. It's used expressly as an example to showcase
 how you can configure multiple IP ranges. You should customize this example to fit your specific architecture and needs.
 You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
-trust entire subnets unless that subnet only has trusted proxies and no other services.*
+trust entire subnets unless that subnet only has trusted proxies and no other services._
 
 [NGINX]'s `http_realip` module is used to configure the trusted proxies' configuration. In our examples this is
 configured in the `proxy.conf` file. Each `set_realip_from` directive adds a trusted proxy address range to the trusted
@@ -70,22 +70,22 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
-* Deployment Scenario:
-  * Single Host
-  * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
-  * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
-  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+- Deployment Scenario:
+  - Single Host
+  - Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
+  - Proxy is deployed as a Container on a network shared with Authelia
+- The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
+  - You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
-  * You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
-    * you're using a different container name
-    * you deployed the proxy to a different location
-  * You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
-    * you have adjusted the default port in the configuration
-  * You will have to adapt the entire URL if:
-    * Authelia is on a different host to the proxy
-* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
-  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+  - You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
+    - you're using a different container name
+    - you deployed the proxy to a different location
+  - You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
+    - you have adjusted the default port in the configuration
+  - You will have to adapt the entire URL if:
+    - Authelia is on a different host to the proxy
+- All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
+  - This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
 ## Implementation
@@ -112,6 +112,7 @@ configuration as well as the legacy configuration for context.
 
 {{< sessionTabs "Generate Random Password" >}}
 {{< sessionTab "Modern" >}}
+
 ```yaml {title="configuration.yml"}
 session:
   cookies:
@@ -119,13 +120,16 @@ session:
       authelia_url: 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
       default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
+
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
+
 ```yaml {title="configuration.yml"}
 default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 session:
   domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
+
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
 
@@ -205,30 +209,30 @@ services:
 
 Below you will find commented examples of the following configuration:
 
-* [Authelia Portal](#standard-example)
-  * Running in Docker
-  * Has the container name `authelia`
-* [Protected Endpoint (Nextcloud)](#standard-example)
-  * Running in Docker
-  * Has the container name `nextcloud`
-* [Supporting Configuration Snippets](#supporting-configuration-snippets)
-* Assumes the following since we cannot reasonably provide a configuration for every architecture:
-  * [NGINX] is also running in Docker and uses Docker DNS as a
+- [Authelia Portal](#standard-example)
+  - Running in Docker
+  - Has the container name `authelia`
+- [Protected Endpoint (Nextcloud)](#standard-example)
+  - Running in Docker
+  - Has the container name `nextcloud`
+- [Supporting Configuration Snippets](#supporting-configuration-snippets)
+- Assumes the following since we cannot reasonably provide a configuration for every architecture:
+  - [NGINX] is also running in Docker and uses Docker DNS as a
     [resolver](https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver) which is standard
-  * [NGINX] shares a network with the `authelia` and `nextcloud` containers
+  - [NGINX] shares a network with the `authelia` and `nextcloud` containers
 
 ### Assumptions
 
-* Authelia is accessible to [NGINX] process with the hostname `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}` making the URL
+- Authelia is accessible to [NGINX] process with the hostname `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}` making the URL
   `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}`. If this is not the case adjust all instances of this as appropriate.
-* The [NGINX] configuration is in the folder `/config/nginx`. If this is not the case adjust all instances of this as
+- The [NGINX] configuration is in the folder `/config/nginx`. If this is not the case adjust all instances of this as
   appropriate.
-* The URL you wish Authelia to be accessible on is `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`. If this is not the case adjust all
+- The URL you wish Authelia to be accessible on is `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`. If this is not the case adjust all
   instances of this as appropriate.
 
 ### Standard Example
 
-This example is for using the __Authelia__ portal redirection flow on a specific endpoint. It requires you to have the
+This example is for using the **Authelia** portal redirection flow on a specific endpoint. It requires you to have the
 [authelia-location.conf](#authelia-locationconf),
 [authelia-authrequest.conf](#authelia-authrequestconf), and [proxy.conf](#proxyconf) snippets. In the example these
 files exist in the `/config/nginx/snippets/` directory. The `/config/nginx/snippets/ssl.conf` snippet is expected to have
@@ -463,8 +467,8 @@ proxy_set_header Connection "upgrade";
 
 #### authelia-location.conf
 
-*The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by
-`auth_request` and is paired with [authelia-authrequest.conf](#authelia-authrequestconf).*
+_The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by
+`auth_request` and is paired with [authelia-authrequest.conf](#authelia-authrequestconf)._
 
 ```nginx {title="authelia-location.conf"}
 set $upstream_authelia {{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/auth-request;
@@ -503,8 +507,8 @@ location /internal/authelia/authz {
 
 #### authelia-authrequest.conf
 
-*The following snippet is used within a `location` block of a virtual host which uses the appropriate location block
-and is paired with [authelia-location.conf](#authelia-locationconf).*
+_The following snippet is used within a `location` block of a virtual host which uses the appropriate location block
+and is paired with [authelia-location.conf](#authelia-locationconf)._
 
 ```nginx {title="authelia-authrequest.conf"}
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
@@ -543,11 +547,11 @@ error_page 401 =302 $redirection_url;
 
 #### authelia-location-basic.conf
 
-*The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by
+_The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by
 `auth_request` and is paired with [authelia-authrequest-basic.conf](#authelia-authrequest-basicconf). This particular
 snippet is rarely required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
-endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead.*
+endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead._
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This example assumes you configured an authz endpoint with the name `auth-request/basic` and the
@@ -595,11 +599,11 @@ location /internal/authelia/authz/basic {
 
 #### authelia-authrequest-basic.conf
 
-*The following snippet is used within a `location` block of a virtual host which uses the appropriate location block
+_The following snippet is used within a `location` block of a virtual host which uses the appropriate location block
 and is paired with [authelia-location-basic.conf](#authelia-location-basicconf). This particular snippet is rarely
 required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
-endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequestconf) instead.*
+endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequestconf) instead._
 
 ```nginx {title="authelia-authrequest-basic.conf"}
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
@@ -620,11 +624,11 @@ proxy_set_header Remote-Email $email;
 
 #### authelia-location-detect.conf
 
-*The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by
+_The following snippet is used within the `server` block of a virtual host as a supporting endpoint used by
 `auth_request` and is paired with [authelia-authrequest-detect.conf](#authelia-authrequest-detectconf). This particular
 snippet is rarely required. It's only used if you want to conditionally require
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
-endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead.*
+endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead._
 
 ```nginx {title="authelia-location-detect.conf"}
 include /config/nginx/snippets/authelia-location.conf;
@@ -660,11 +664,11 @@ location  /internal/authelia/authz/detect {
 
 #### authelia-authrequest-detect.conf
 
-*The following snippet is used within a `location` block of a virtual host which uses the appropriate location block
+_The following snippet is used within a `location` block of a virtual host which uses the appropriate location block
 and is paired with [authelia-location-detect.conf](#authelia-location-detectconf). This particular snippet is rarely
 required. It's only used if you want to conditionally require
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
-endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequestconf) instead.*
+endpoint. It's recommended to use [authelia-authrequest.conf](#authelia-authrequestconf) instead._
 
 ```nginx {title="authelia-authrequest-detect.conf"}
 ## Send a subrequest to Authelia to verify if the user is authenticated and has permission to access the resource.
@@ -761,9 +765,9 @@ Authelia supports some of the [NGINX] based Kubernetes Ingress. See the
 
 ## See Also
 
-* [NGINX ngx_http_auth_request_module Module Documentation](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html)
-* [NGINX ngx_http_realip_module Module Documentation](https://nginx.org/en/docs/http/ngx_http_realip_module.html)
-* [Forwarded Headers]
+- [NGINX ngx_http_auth_request_module Module Documentation](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html)
+- [NGINX ngx_http_realip_module Module Documentation](https://nginx.org/en/docs/http/ngx_http_realip_module.html)
+- [Forwarded Headers]
 
 [NGINX]: https://www.nginx.com/
 [Forwarded Headers]: forwarded-headers

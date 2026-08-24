@@ -373,7 +373,6 @@ directories and ensure the permissions in a way that adheres to principle of lea
 Should you find the file permissions either too restrictive or not restrictive enough you can override the tmpfiles.d
 configuration by looking at the [Systemd Reference Guide](../../reference/guides/systemd.md).
 
-
 ### OLED Theme
 
 {{< figure src="oled.png" caption="Login Portal OLED Theme" alt="OLED Theme" sizes="50dvh" >}}

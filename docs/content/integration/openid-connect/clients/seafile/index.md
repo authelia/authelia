@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `seafile`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `seafile`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -49,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Seafile] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Seafile] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -124,11 +124,9 @@ OAUTH_ATTRIBUTE_MAP = {
 
 ### Existing Users
 
-When using [Seafile] with external authentication you may have to perform manual steps to achieve this. 
+When using [Seafile] with external authentication you may have to perform manual steps to achieve this.
 
-The [See Also](#see-also) has a link to the [Seafile] `migrating from local user database to external authentication` guide which has been verified to work.  
-
-
+The [See Also](#see-also) has a link to the [Seafile] `migrating from local user database to external authentication` guide which has been verified to work.
 
 ## Additional Steps
 

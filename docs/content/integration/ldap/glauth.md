@@ -14,15 +14,15 @@ seo:
   noindex: false # false (default) or true
 ---
 
-[GLAuth] is supported by __Authelia__.
+[GLAuth] is supported by **Authelia**.
 
-*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+_**Important:** When using these guides, it's important to recognize that we cannot provide a guide for every possible
 method of deploying an LDAP server. These guides show a suggested setup only, and you need to understand the LDAP
 configuration and customize it to your needs. To-that-end, we include links to the official documentation specific to
-the LDAP implementation throughout this documentation and in the [See Also](#see-also) section.*
+the LDAP implementation throughout this documentation and in the [See Also](#see-also) section._
 
-*__Important:__ This guide makes use of a default configuration. Check the [Defaults](#defaults) section
-and make adjustments according to your needs.*
+_**Important:** This guide makes use of a default configuration. Check the [Defaults](#defaults) section
+and make adjustments according to your needs._
 
 ## Assumptions and Adaptation
 
@@ -41,7 +41,7 @@ The following are the assumptions we make:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [authentication backend configuration] for use with
+The following YAML configuration is an example **Authelia** [authentication backend configuration] for use with
 [GLAuth] which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -73,9 +73,9 @@ The below tables describes the current attribute defaults for the [GLAuth] imple
 This table describes the attribute defaults for each implementation. i.e. the username_attribute is described by the
 Username column.
 
-| Implementation  |    Username    | Display Name | Mail | Group Name | Distinguished Name | Member Of |
-|:---------------:|:--------------:|:------------:|:----:|:----------:|:------------------:|:---------:|
-|     glauth      |       cn       | description  | mail |     cn     |        N/A         | memberOf  |
+| Implementation | Username | Display Name | Mail | Group Name | Distinguished Name | Member Of |
+| :------------: | :------: | :----------: | :--: | :--------: | :----------------: | :-------: |
+|     glauth     |    cn    | description  | mail |     cn     |        N/A         | memberOf  |
 
 #### Filter defaults
 
@@ -90,11 +90,13 @@ the following conditions:
   - The [GLAuth] implementation has no suitable attribute for this as far as we're aware.
 
 ##### Users Filter
+
 ```text
 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=posixAccount)(!(accountStatus=inactive)))
 ```
 
 ##### Groups Filter
+
 ```text
 (&(uniqueMember={dn})(objectClass=posixGroup))
 ```

@@ -33,11 +33,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://librechat.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Application Session Secret:__ `insecure_session_secret`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `librechat`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://librechat.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Session Secret:** `insecure_session_secret`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `librechat`
+- **Client Secret:** `insecure_secret`
 
 _**Note:** The application session secret should be randomly generated in a similar fashion to the client secret, but should
 not be the same value as the session secret. Users should refer to LibreChat support for more information._
@@ -50,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [LibreChat] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [LibreChat] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

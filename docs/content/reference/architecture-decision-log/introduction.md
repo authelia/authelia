@@ -39,7 +39,7 @@ Secondarily:
 Each ADR has several key sections.
 
 |      Name       |                             Description                              |
-|:---------------:|:--------------------------------------------------------------------:|
+| :-------------: | :------------------------------------------------------------------: |
 |     Status      |                    The current status of the ADR                     |
 |     Context     | The context surrounding why the ADR is necessary and what it's about |
 | Proposed Design |           The proposed design or designs for consideration           |

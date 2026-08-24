@@ -33,14 +33,14 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://gitea.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `gitea`
-- __Client Secret:__ `insecure_secret`
-- __Authentication Name (Gitea):__ `authelia`:
-    - This option determines the redirect URI in the format of
-      `https://gitea.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
-      This means if you change this value you need to update the redirect URI.
+- **Application Root URL:** `https://gitea.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `gitea`
+- **Client Secret:** `insecure_secret`
+- **Authentication Name (Gitea):** `authelia`:
+  - This option determines the redirect URI in the format of
+    `https://gitea.{{< sitevar name="domain" nojs="example.com" >}}/user/oauth2/<Authentication Name>/callback`.
+    This means if you change this value you need to update the redirect URI.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +50,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Gitea] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Gitea] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -111,12 +111,12 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider, us
 1. Run `gitea migrate`.
 2. Run `gitea admin auth add-oauth --provider=openidConnect --name=authelia --key=gitea --secret=insecure_secret --auto-discover-url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration --scopes='openid email profile'`
 
-
 ### Automatic User Creation
 
 To configure [Gitea] to perform automatic user creation for the `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` domain via [OpenID Connect 1.0]:
 
 1. Edit the following values in the [Gitea] `app.ini`:
+
 ```ini
 [openid]
 ENABLE_OPENID_SIGNIN = false

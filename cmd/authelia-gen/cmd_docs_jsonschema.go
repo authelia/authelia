@@ -301,13 +301,8 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 
 func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err error) {
 	var (
-		data []byte
-		f    *os.File
+		f *os.File
 	)
-
-	if data, err = json.MarshalIndent(schema, "", "  "); err != nil {
-		return err
-	}
 
 	if _, err = os.Stat(filepath.Join(dir, version, pathJSONSchema)); err != nil && os.IsNotExist(err) {
 		if err = os.MkdirAll(filepath.Join(dir, version, pathJSONSchema), 0755); err != nil {
@@ -319,7 +314,11 @@ func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err 
 		return err
 	}
 
-	if _, err = f.Write(data); err != nil {
+	encoder := json.NewEncoder(f)
+
+	encoder.SetIndent("", "  ")
+
+	if err = encoder.Encode(schema); err != nil {
 		return err
 	}
 

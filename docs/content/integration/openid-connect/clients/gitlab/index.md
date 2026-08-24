@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://gitlab.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `gitlab`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://gitlab.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `gitlab`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -52,7 +52,7 @@ have not done this, the default in [GitLab](https://about.gitlab.com/) will requ
 `client_secret_post`.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [GitLab] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [GitLab] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

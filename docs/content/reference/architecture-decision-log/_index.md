@@ -9,4 +9,3 @@ weight: 1000
 sidebar:
   collapsed: true
 ---
-

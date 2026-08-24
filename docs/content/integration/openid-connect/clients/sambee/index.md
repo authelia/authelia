@@ -32,10 +32,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://sambee.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `sambee`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://sambee.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `sambee`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Sambee] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Sambee] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -95,15 +95,19 @@ To configure [Sambee] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 2. Access `Settings`.
 3. Select `Authentication`.
 4. Select one of these values as **Authentication mode**:
-  - `OIDC or password`
-  - `OIDC only`
+
+- `OIDC or password`
+- `OIDC only`
+
 5. Select **Configure OIDC**.
 6. In the OIDC configuration dialog, enter the following values:
-  - Provider name: `Authelia`
-  - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-  - Client ID: `sambee`
-  - Client secret: `insecure_secret`
-  - Scopes: `openid, offline_access, profile, email, groups`
+
+- Provider name: `Authelia`
+- Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+- Client ID: `sambee`
+- Client secret: `insecure_secret`
+- Scopes: `openid, offline_access, profile, email, groups`
+
 7. As **Admission**, select `All authenticated users`.
 8. As **Role assignment**, select `All users are assigned to the same role`.
 9. As **Assigned role**, select `Editor`.
