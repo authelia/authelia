@@ -507,3 +507,39 @@ func (s *DocsSuite) TestNavbarDoesNotOverflowViewport() {
 		})
 	}
 }
+
+func (s *DocsSuite) TestContentDoesNotOverflowViewport() {
+	for _, path := range []string{
+		// Long configuration keys and environment variable names in headings and prose.
+		"/configuration/identity-providers/openid-connect/clients/",
+		"/configuration/identity-providers/openid-connect/provider/",
+		"/configuration/methods/secrets/",
+		"/configuration/miscellaneous/server-endpoint-rate-limits/",
+		"/configuration/second-factor/webauthn/",
+		// Runs of footnote back references joined by non-breaking spaces.
+		"/blog/technical-openid-connect-1.0-nuances/",
+	} {
+		s.Run(strings.Trim(path, "/"), func() {
+			page := s.doCreateTab(s.T(), s.docsURL(path))
+			defer page.MustClose()
+
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), page)
+			}()
+
+			page = page.Context(ctx)
+
+			page.MustSetViewport(390, 844, 1, false)
+
+			s.WaitElementLocatedByClassName(s.T(), page, "content")
+
+			result, err := page.Eval(documentOverflowJS)
+			require.NoError(s.T(), err)
+
+			require.Zero(s.T(), result.Value.Int(), "expected %s not to scroll horizontally at 390px wide", path)
+		})
+	}
+}
