@@ -6,9 +6,9 @@ import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
 
 export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, process.cwd());
+    const env = loadEnv(mode, ".");
     const allowedHosts = env.VITE_ALLOWED_HOSTS ? env.VITE_ALLOWED_HOSTS.split(",") : [];
-    const isCoverage = process.env.VITE_COVERAGE === "true";
+    const isCoverage = env.VITE_COVERAGE === "true";
     const sourcemap = isCoverage ? "inline" : undefined;
 
     const istanbulPlugin = isCoverage
