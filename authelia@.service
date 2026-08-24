@@ -1,7 +1,7 @@
 [Unit]
 Description=Authelia authentication and authorization server
 Documentation=https://www.authelia.com
-After=multi-user.target
+After=network-online.target
 
 [Service]
 User=authelia
