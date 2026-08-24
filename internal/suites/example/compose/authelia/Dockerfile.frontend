@@ -3,7 +3,7 @@ FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781
 ARG USER_ID
 ARG GROUP_ID
 
-RUN yarn global add pnpm@11 && \
+RUN npm install -g pnpm@11 && \
     deluser node && \
     if getent group ${GROUP_ID} >/dev/null; then delgroup "$(getent group ${GROUP_ID} | cut -d: -f1)"; fi && \
     if getent passwd ${USER_ID} >/dev/null; then deluser "$(getent passwd ${USER_ID} | cut -d: -f1)"; fi && \

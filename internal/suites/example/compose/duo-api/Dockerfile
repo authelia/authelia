@@ -4,7 +4,7 @@ WORKDIR /usr/app/src
 
 COPY --link package.json pnpm-lock.yaml ./
 
-RUN yarn global add pnpm && pnpm install --frozen-lockfile --prod
+RUN npm install -g pnpm && pnpm install --frozen-lockfile --prod
 
 EXPOSE 3000
 
