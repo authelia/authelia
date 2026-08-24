@@ -74,7 +74,7 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 	middlewares.IdentityVerificationStart(args, middlewares.NewTimingAttackDelay(10, time.Millisecond*10))(mock.Ctx)
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-	assert.Equal(t, "cannot save", mock.Hook.LastEntry().Message)
+	mock.AssertLastLogMessage(t, "Error occurred saving the identity verification", "cannot save")
 }
 
 func TestShouldFailSendingAnEmail(t *testing.T) {
@@ -98,7 +98,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
-	assert.Equal(t, "no notif", mock.Hook.LastEntry().Message)
+	mock.AssertLastLogMessage(t, "Error occurred sending the identity verification email", "no notif")
 }
 
 func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
@@ -197,7 +197,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfJSONBodyIsMalformed(
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
-	assert.Equal(s.T(), "unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the identity verification request", "unexpected end of JSON input")
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotProvided() {
@@ -205,7 +205,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotProvided()
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
-	assert.Equal(s.T(), "no token provided", s.mock.Hook.LastEntry().Message)
+	assert.Equal(s.T(), "No token was provided for identity verification", s.mock.Hook.LastEntry().Message)
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotFoundInDB() {

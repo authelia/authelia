@@ -46,7 +46,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
 	DuoDevicesGET(duoMock)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
-	assert.Equal(s.T(), "duo PreAuth API errored: Connection error", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred performing the Duo PreAuth API call", "Connection error")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -155,7 +155,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnEmptyMethod() {
 	DuoDevicePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
-	assert.Equal(s.T(), "unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the preferred Duo device request body", "unable to validate body: method: non zero value required")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -165,7 +165,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnEmptyDevice() {
 	DuoDevicePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
-	assert.Equal(s.T(), "unable to validate body: device: non zero value required", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the preferred Duo device request body", "unable to validate body: device: non zero value required")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 

@@ -51,7 +51,13 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	datetime, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
 	mockAuthelia.Clock.Set(datetime)
 
-	config := schema.Configuration{}
+	config := schema.Configuration{
+		IdentityValidation: schema.IdentityValidation{
+			ResetPassword: schema.IdentityValidationResetPassword{
+				JWTAlgorithm: "HS256",
+			},
+		},
+	}
 
 	config.Session.Cookies = []schema.SessionCookie{
 		{

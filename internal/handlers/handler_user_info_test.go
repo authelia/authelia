@@ -342,7 +342,7 @@ func (s *FetchSuite) TestShouldReturnError500WhenStorageFailsToLoad() {
 	UserInfoGET(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to load user information: failure", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred loading the user information", "failure")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -374,7 +374,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenNoBodyProvided() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to parse body: unexpected end of JSON input")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -383,7 +383,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenMalformedBodyProvided() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to parse body: unexpected end of JSON input", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to parse body: unexpected end of JSON input")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -392,7 +392,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadBodyProvided() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to validate body: method: non zero value required", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred parsing the second factor method preference request body", "unable to validate body: method: non zero value required")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -401,7 +401,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenBadMethodProvided() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unknown or unavailable method 'abc', it should be one of totp, webauthn, mobile_push", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred setting the second factor method preference as the method 'abc' is unknown or unavailable, it should be one of totp, webauthn, mobile_push", "")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
@@ -414,7 +414,7 @@ func (s *SaveSuite) TestShouldReturnError500WhenDatabaseFailsToSave() {
 	MethodPreferencePOST(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed.")
-	assert.Equal(s.T(), "unable to save new preferred 2FA method: Failure", s.mock.Hook.LastEntry().Message)
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred saving the new preferred second factor method", "Failure")
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
