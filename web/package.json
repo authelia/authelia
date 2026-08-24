@@ -84,7 +84,7 @@
     "lefthook": "2.1.10",
     "prettier": "3.9.6",
     "tailwindcss": "4.3.3",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "vite": "8.2.2",
     "vite-plugin-checker": "0.14.5",
     "vite-plugin-istanbul": "9.0.1",
