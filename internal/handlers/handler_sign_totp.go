@@ -6,6 +6,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -170,6 +171,16 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var details *authentication.UserDetails
+	if details, err = ctx.GetUserProvider().GetDetails(userSession.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred fetching user details for user", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
 	doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeTOTP, nil)
 
 	if err = ctx.RegenerateSession(); err != nil {
@@ -194,7 +205,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession.SetTwoFactorTOTP(ctx.GetClock().Now())
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -204,7 +215,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if len(bodyJSON.Flow) > 0 {
-		handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
+		handleFlowResponse(ctx, &userSession, details, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

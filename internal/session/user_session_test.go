@@ -19,12 +19,11 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetOneFactorPassword",
 			func(session *UserSession) {
-				session.SetOneFactorPassword(time.Unix(10000, 0), &authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"abc", "123"}}, true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), true)
 			},
 			&UserSession{
 				Username:                  "john",
-				Groups:                    []string{"abc", "123"},
-				Emails:                    []string{"john@example.com"},
 				KeepMeLoggedIn:            true,
 				LastActivity:              10000,
 				FirstFactorAuthnTimestamp: 10000,
@@ -37,12 +36,11 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetOneFactorPasskey",
 			func(session *UserSession) {
-				session.SetOneFactorPasskey(time.Unix(10000, 0), &authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"abc", "123"}}, true, true, true, true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPasskey(time.Unix(10000, 0), true, true, true, true)
 			},
 			&UserSession{
 				Username:                  "john",
-				Groups:                    []string{"abc", "123"},
-				Emails:                    []string{"john@example.com"},
 				KeepMeLoggedIn:            true,
 				LastActivity:              10000,
 				FirstFactorAuthnTimestamp: 10000,
@@ -57,13 +55,12 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetTwoFactorPassword",
 			func(session *UserSession) {
-				session.SetOneFactorPasskey(time.Unix(10000, 0), &authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"abc", "123"}}, true, true, true, true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPasskey(time.Unix(10000, 0), true, true, true, true)
 				session.SetTwoFactorPassword(time.Unix(20000, 0))
 			},
 			&UserSession{
 				Username:                   "john",
-				Groups:                     []string{"abc", "123"},
-				Emails:                     []string{"john@example.com"},
 				KeepMeLoggedIn:             true,
 				LastActivity:               20000,
 				FirstFactorAuthnTimestamp:  10000,
@@ -81,13 +78,12 @@ func TestUserSession_SetFactors(t *testing.T) {
 		{
 			"ShouldSetOneFactorPasswordAndTwoFactorDuo",
 			func(session *UserSession) {
-				session.SetOneFactorPassword(time.Unix(10000, 0), &authentication.UserDetails{Username: "john", Emails: []string{"john@example.com"}, Groups: []string{"abc", "123"}}, true)
+				*session = NewUserSession("john")
+				session.SetOneFactorPassword(time.Unix(10000, 0), true)
 				session.SetTwoFactorDuo(time.Unix(20000, 0))
 			},
 			&UserSession{
 				Username:                   "john",
-				Groups:                     []string{"abc", "123"},
-				Emails:                     []string{"john@example.com"},
 				KeepMeLoggedIn:             true,
 				LastActivity:               20000,
 				FirstFactorAuthnTimestamp:  10000,
@@ -263,34 +259,5 @@ func TestUserSession_SetTwoFactorWebAuthn(t *testing.T) {
 func TestUserSession_Misc(t *testing.T) {
 	session := &UserSession{}
 
-	assert.Equal(t, Identity{}, session.Identity())
-	assert.Equal(t, "", session.GetUsername())
-	assert.Equal(t, "", session.GetDisplayName())
-	assert.Nil(t, session.GetGroups())
-	assert.Nil(t, session.GetEmails())
 	assert.True(t, session.IsAnonymous())
-
-	session.Username = "abc"
-
-	assert.Equal(t, Identity{Username: "abc"}, session.Identity())
-	assert.Equal(t, "abc", session.GetUsername())
-
-	session.DisplayName = "A B C"
-
-	assert.Equal(t, Identity{Username: "abc", DisplayName: "A B C"}, session.Identity())
-	assert.Equal(t, "abc", session.GetUsername())
-	assert.Equal(t, "A B C", session.GetDisplayName())
-
-	session.Emails = []string{"abc@example.com", "xyz@example.com"}
-
-	assert.Equal(t, Identity{Username: "abc", DisplayName: "A B C", Email: "abc@example.com"}, session.Identity())
-	assert.Equal(t, "abc", session.GetUsername())
-	assert.Equal(t, "A B C", session.GetDisplayName())
-	assert.Equal(t, []string{"abc@example.com", "xyz@example.com"}, session.GetEmails())
-
-	session.Groups = []string{"agroup", "bgroup"}
-	assert.Equal(t, "abc", session.GetUsername())
-	assert.Equal(t, "A B C", session.GetDisplayName())
-	assert.Equal(t, []string{"abc@example.com", "xyz@example.com"}, session.GetEmails())
-	assert.Equal(t, []string{"agroup", "bgroup"}, session.GetGroups())
 }

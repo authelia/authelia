@@ -13,7 +13,6 @@ require (
 	github.com/authelia/otp v1.0.4
 	github.com/duosecurity/duo_api_golang v0.3.0
 	github.com/fasthttp/router v1.5.4
-	github.com/fasthttp/session/v2 v2.5.9
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-asn1-ber/asn1-ber v1.5.8
 	github.com/go-crypt/crypt v0.14.15
@@ -37,12 +36,13 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.1
 	github.com/prometheus/client_golang v1.24.1
+	github.com/redis/go-redis/v9 v9.20.0
 	github.com/rpadovani/sqlx-v2 v0.1.2
-	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761
 	github.com/sirupsen/logrus v1.10.1
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.1
+	github.com/tinylib/msgp v1.6.4
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.73.0
 	github.com/weppos/publicsuffix-go v0.50.3
@@ -69,13 +69,11 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/dgraph-io/ristretto v0.2.0 // indirect
-	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/dlclark/regexp2 v1.11.5 // indirect
+	github.com/dlclark/regexp2 v1.12.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/go-crypt/x v0.4.16 // indirect
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/x v0.2.6 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -89,17 +87,15 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/onsi/gomega v1.39.1 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.70.1 // indirect
 	github.com/prometheus/procfs v0.21.1 // indirect
-	github.com/redis/go-redis/v9 v9.18.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761 // indirect
 	github.com/test-go/testify v1.1.4 // indirect
-	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/ysmood/fetchup v0.3.0 // indirect

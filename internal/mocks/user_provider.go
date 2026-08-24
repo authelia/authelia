@@ -98,6 +98,21 @@ func (mr *MockUserProviderMockRecorder) GetDetails(username any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetails", reflect.TypeOf((*MockUserProvider)(nil).GetDetails), username)
 }
 
+// GetDetailsCached mocks base method.
+func (m *MockUserProvider) GetDetailsCached(username string) (*authentication.UserDetails, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDetailsCached", username)
+	ret0, _ := ret[0].(*authentication.UserDetails)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDetailsCached indicates an expected call of GetDetailsCached.
+func (mr *MockUserProviderMockRecorder) GetDetailsCached(username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetailsCached", reflect.TypeOf((*MockUserProvider)(nil).GetDetailsCached), username)
+}
+
 // GetDetailsExtended mocks base method.
 func (m *MockUserProvider) GetDetailsExtended(username string) (*authentication.UserDetailsExtended, error) {
 	m.ctrl.T.Helper()
@@ -111,6 +126,21 @@ func (m *MockUserProvider) GetDetailsExtended(username string) (*authentication.
 func (mr *MockUserProviderMockRecorder) GetDetailsExtended(username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetailsExtended", reflect.TypeOf((*MockUserProvider)(nil).GetDetailsExtended), username)
+}
+
+// GetDetailsExtendedCached mocks base method.
+func (m *MockUserProvider) GetDetailsExtendedCached(username string) (*authentication.UserDetailsExtended, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDetailsExtendedCached", username)
+	ret0, _ := ret[0].(*authentication.UserDetailsExtended)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDetailsExtendedCached indicates an expected call of GetDetailsExtendedCached.
+func (mr *MockUserProviderMockRecorder) GetDetailsExtendedCached(username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetailsExtendedCached", reflect.TypeOf((*MockUserProvider)(nil).GetDetailsExtendedCached), username)
 }
 
 // StartupCheck mocks base method.

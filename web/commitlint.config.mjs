@@ -17,6 +17,7 @@ export default {
                 "authorization",
                 "buildkite",
                 "bundler",
+                "cache",
                 "clock",
                 "cmd",
                 "codecov",

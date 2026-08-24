@@ -54,8 +54,8 @@ session:
 There are currently two providers for session storage (three if you count Redis Sentinel as a separate provider):
 
 * Memory (default, stateful, no additional configuration)
-* [Redis](redis.md) (stateless).
-* [Redis Sentinel](redis.md#high_availability) (stateless, highly available).
+* [Redis](../cache/redis.md) (stateless).
+* [Redis Sentinel](../cache/redis.md#high_availability) (stateless, highly available).
 
 ### Kubernetes or High Availability
 

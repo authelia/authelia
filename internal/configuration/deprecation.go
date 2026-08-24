@@ -337,6 +337,54 @@ var deprecations = map[string]Deprecation{
 	},
 }
 
+var deprecationSessionRedisKeys = []string{
+	"session.redis.host",
+	"session.redis.port",
+	"session.redis.username",
+	"session.redis.password",
+	"session.redis.timeout",
+	"session.redis.max_retries",
+	"session.redis.database_index",
+	"session.redis.maximum_active_connections",
+	"session.redis.minimum_idle_connections",
+	"session.redis.tls.server_name",
+	"session.redis.tls.skip_verify",
+	"session.redis.tls.minimum_version",
+	"session.redis.tls.maximum_version",
+	"session.redis.tls.certificate_chain",
+	"session.redis.tls.private_key",
+	"session.redis.high_availability.sentinel_name",
+	"session.redis.high_availability.sentinel_username",
+	"session.redis.high_availability.sentinel_password",
+	"session.redis.high_availability.route_by_latency",
+	"session.redis.high_availability.route_randomly",
+	"session.redis.high_availability.nodes",
+	"session.redis.high_availability.nodes[].host",
+	"session.redis.high_availability.nodes[].port",
+}
+
+// deprecationSessionRedisOptions maps the options which carry over unchanged in meaning between the deprecated
+// 'session.redis' provider and its replacement, from the suffix of the old key to the suffix of the new key.
+var deprecationSessionRedisOptions = map[string]string{
+	"username":                            "username",
+	"password":                            "password",
+	"database_index":                      "database",
+	"timeout":                             "dial_timeout",
+	"max_retries":                         "maximum_retries",
+	"maximum_active_connections":          "pool_size",
+	"minimum_idle_connections":            "pool_minimum_idle_connections",
+	"tls.server_name":                     "tls.server_name",
+	"tls.skip_verify":                     "tls.skip_verify",
+	"tls.minimum_version":                 "tls.minimum_version",
+	"tls.maximum_version":                 "tls.maximum_version",
+	"tls.certificate_chain":               "tls.certificate_chain",
+	"tls.private_key":                     "tls.private_key",
+	"high_availability.sentinel_username": "sentinel_username",
+	"high_availability.sentinel_password": "sentinel_password",
+	"high_availability.route_by_latency":  "route_by_latency",
+	"high_availability.route_randomly":    "route_randomly",
+}
+
 // MultiKeyMappedDeprecation represents a deprecated configuration key.
 type MultiKeyMappedDeprecation struct {
 	Version model.SemanticVersion
@@ -346,6 +394,12 @@ type MultiKeyMappedDeprecation struct {
 }
 
 var deprecationsMKM = []MultiKeyMappedDeprecation{
+	{
+		Version: model.SemanticVersion{Major: 4, Minor: 40},
+		Keys:    deprecationSessionRedisKeys,
+		NewKey:  keyCacheRedis,
+		MapFunc: mapSessionRedisToCache,
+	},
 	{
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
 		Keys:    []string{"notifier.smtp.host", "notifier.smtp.port"},

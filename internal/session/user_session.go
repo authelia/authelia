@@ -8,12 +8,20 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
-// NewDefaultUserSession create a default user session.
-func NewDefaultUserSession() UserSession {
+// NewUserSession creates a user session for the given username. This is the only supported way to give a session a
+// username, as changing it on a live session would strand the repository lookups which refer to the previous value.
+// A session which should belong to a different user must be destroyed and a new one created in its place.
+func NewUserSession(username string) UserSession {
 	return UserSession{
+		Username:       username,
 		KeepMeLoggedIn: false,
 		LastActivity:   0,
 	}
+}
+
+// NewDefaultUserSession create a default anonymous user session.
+func NewDefaultUserSession() UserSession {
+	return NewUserSession("")
 }
 
 // IsAnonymous returns true if the username is empty or the AuthenticationLevel is authentication.NotAuthenticated.
@@ -37,39 +45,36 @@ func (s *UserSession) AuthenticationLevel(passkey2FA bool) authentication.Level 
 	}
 }
 
-// SetOneFactorPassword sets the 1FA AMR's and expected property values for one factor password authentication.
-func (s *UserSession) SetOneFactorPassword(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
-	s.setOneFactor(now, details, keepMeLoggedIn)
+// SetOneFactorPassword sets the 1FA AMR's and expected property values for one factor password authentication. The
+// session must already have been constructed for the authenticating user via NewUserSession.
+func (s *UserSession) SetOneFactorPassword(now time.Time, keepMeLoggedIn bool) {
+	s.setOneFactor(now, keepMeLoggedIn)
 
 	s.AuthenticationMethodRefs.KnowledgeBasedAuthentication = true
 	s.AuthenticationMethodRefs.UsernameAndPassword = true
 }
 
-// SetOneFactorPasskey sets the 1FA AMR's and expected property values for one factor passkey authentication.
-func (s *UserSession) SetOneFactorPasskey(now time.Time, details *authentication.UserDetails, keepMeLoggedIn, hardware, userPresence, userVerified bool) {
-	s.setOneFactor(now, details, keepMeLoggedIn)
+// SetOneFactorPasskey sets the 1FA AMR's and expected property values for one factor passkey authentication. The
+// session must already have been constructed for the authenticating user via NewUserSession.
+func (s *UserSession) SetOneFactorPasskey(now time.Time, keepMeLoggedIn, hardware, userPresence, userVerified bool) {
+	s.setOneFactor(now, keepMeLoggedIn)
 
 	s.setWebAuthn(hardware, userPresence, userVerified)
 }
 
-func (s *UserSession) setOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
+func (s *UserSession) setOneFactor(now time.Time, keepMeLoggedIn bool) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
 
 	s.KeepMeLoggedIn = keepMeLoggedIn
-	s.Username = details.Username
 
-	s.SetOneFactorReauthenticate(now, details)
+	s.SetOneFactorReauthenticate(now)
 }
 
 // SetOneFactorReauthenticate sets the relevant session values when a user reauthenticates with the first factor.
-func (s *UserSession) SetOneFactorReauthenticate(now time.Time, details *authentication.UserDetails) {
+func (s *UserSession) SetOneFactorReauthenticate(now time.Time) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
-
-	s.DisplayName = details.DisplayName
-	s.Groups = details.Groups
-	s.Emails = details.Emails
 }
 
 // SetTwoFactorTOTP sets the relevant TOTP AMR's and sets the factor to 2FA.
@@ -146,38 +151,4 @@ func (s *UserSession) LastAuthenticatedTime() (authenticated time.Time) {
 	}
 
 	return s.GetSecondFactorAuthn()
-}
-
-// Identity value of the user session.
-func (s *UserSession) Identity() Identity {
-	identity := Identity{
-		Username:    s.Username,
-		DisplayName: s.DisplayName,
-	}
-
-	if len(s.Emails) != 0 {
-		identity.Email = s.Emails[0]
-	}
-
-	return identity
-}
-
-// GetUsername returns the username.
-func (s *UserSession) GetUsername() (username string) {
-	return s.Username
-}
-
-// GetGroups returns the groups.
-func (s *UserSession) GetGroups() (groups []string) {
-	return s.Groups
-}
-
-// GetDisplayName returns the display name.
-func (s *UserSession) GetDisplayName() (name string) {
-	return s.DisplayName
-}
-
-// GetEmails returns the emails.
-func (s *UserSession) GetEmails() (emails []string) {
-	return s.Emails
 }

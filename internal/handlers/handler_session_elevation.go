@@ -95,7 +95,7 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 		if deleted {
 			userSession.Elevations.User = nil
 
-			if err = ctx.SaveSession(userSession); err != nil {
+			if err = ctx.SaveSession(&userSession); err != nil {
 				ctx.Logger.WithError(err).Error("Error occurred retrieving the user session elevation state: error occurred saving the user session data")
 
 				ctx.SetJSONError(messageOperationFailed)
@@ -184,7 +184,15 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 	linkURL.RawQuery = query.Encode()
 	linkURL = linkURL.JoinPath("/revoke/one-time-code")
 
-	identity := userSession.Identity()
+	details, err := ctx.GetUserProvider().GetDetails(userSession.Username)
+	if err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred retrieving the user details", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
 
 	domain, _ := ctx.GetCookieDomain()
 
@@ -192,16 +200,16 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 		Title:              "Confirm your identity",
 		RevocationLinkURL:  linkURL.String(),
 		RevocationLinkText: "Revoke",
-		DisplayName:        identity.DisplayName,
+		DisplayName:        details.DisplayName,
 		RemoteIP:           ctx.RemoteIP().String(),
 		Domain:             domain,
 		OneTimeCode:        string(otp.Code),
 	}
 
-	ctx.Logger.WithFields(map[string]any{"signature": signature, "id": otp.PublicID.String(), "username": identity.Username}).
+	ctx.Logger.WithFields(map[string]any{"signature": signature, "id": otp.PublicID.String(), "username": details.Username}).
 		Debug("Sending an email to user to confirm identity for session elevation")
 
-	if err = ctx.Providers.Notifier.Send(ctx, identity.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data); err != nil {
+	if err = ctx.Providers.Notifier.Send(ctx, details.Address(), data.Title, ctx.Providers.Templates.GetIdentityVerificationOTCEmailTemplate(), data); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred sending the user the notification", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -349,7 +357,7 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		Expires:  ctx.GetClock().Now().Add(ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan),
 	}
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = ctx.SaveSession(&userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

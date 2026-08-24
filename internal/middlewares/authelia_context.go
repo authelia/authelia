@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -309,14 +310,14 @@ func (ctx *AutheliaCtx) GetCookieDomain() (domain string, err error) {
 }
 
 // GetSessionProviderByTargetURI returns the session provider for the Request's domain.
-func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provider *session.Session, err error) {
+func (ctx *AutheliaCtx) GetSessionProviderByTargetURI(targetURL *url.URL) (provider session.Strategy, err error) {
 	domain := ctx.GetCookieDomainFromTargetURI(targetURL)
 
 	if domain == "" {
 		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no configured session cookie domain matches the url '%s'", targetURL)
 	}
 
-	return ctx.Providers.SessionProvider.Get(domain)
+	return ctx.GetCookieDomainSessionProvider(domain)
 }
 
 // GetSessionManagerByTargetURI returns the session manager for the request's domain.
@@ -326,11 +327,11 @@ func (ctx *AutheliaCtx) GetSessionManagerByTargetURI(targetURL *url.URL) (provid
 		return nil, err
 	}
 
-	return session.NewEncapsulatedSession(base, ctx.RequestCtx), nil
+	return session.NewEncapsulatedSession(base, ctx), nil
 }
 
 // GetSessionProvider returns the session provider for the Request's domain.
-func (ctx *AutheliaCtx) GetSessionProvider() (provider *session.Session, err error) {
+func (ctx *AutheliaCtx) GetSessionProvider() (provider session.Strategy, err error) {
 	if ctx.session == nil {
 		var targetURI *url.URL
 
@@ -351,7 +352,7 @@ func (ctx *AutheliaCtx) NewSession() (userSession session.UserSession) {
 	if provider, err := ctx.GetSessionProvider(); err != nil {
 		return session.NewDefaultUserSession()
 	} else {
-		return provider.NewDefaultUserSession()
+		return provider.NewDefault()
 	}
 }
 
@@ -360,62 +361,54 @@ func (ctx *AutheliaCtx) GetSessionConfig() (config schema.SessionCookie) {
 	if provider, err := ctx.GetSessionProvider(); err != nil {
 		return config
 	} else {
-		return provider.Config
+		return provider.GetConfig()
 	}
 }
 
 // GetCookieDomainSessionProvider returns the session provider for the provided domain.
-func (ctx *AutheliaCtx) GetCookieDomainSessionProvider(domain string) (provider *session.Session, err error) {
+func (ctx *AutheliaCtx) GetCookieDomainSessionProvider(domain string) (provider session.Strategy, err error) {
 	if domain == "" {
 		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no configured session cookie domain matches the domain '%s'", domain)
 	}
 
-	if ctx.Providers.SessionProvider == nil {
+	if ctx.Providers.Session == nil {
 		return nil, fmt.Errorf("unable to retrieve session cookie domain provider: no session provider is configured")
 	}
 
-	return ctx.Providers.SessionProvider.Get(domain)
+	return ctx.Providers.Session.GetStrategy(domain)
 }
 
 // GetSession returns the user session provided the cookie provider could be discovered. It is recommended to get the
 // provider itself if you also need to update or destroy sessions.
 func (ctx *AutheliaCtx) GetSession() (userSession session.UserSession, err error) {
-	var provider *session.Session
+	var (
+		provider session.Strategy
+		current  *session.UserSession
+	)
 
 	if provider, err = ctx.GetSessionProvider(); err != nil {
 		return userSession, err
 	}
 
-	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
-		ctx.Logger.Error("Unable to retrieve user session")
-		return provider.NewDefaultUserSession(), nil
+	// The provider validates that the session is bound to this cookie domain, so a failure here means the session is
+	// either unreadable or was moved between domains, both of which are handled by falling back to a new session.
+	if current, err = provider.Get(ctx); err != nil {
+		ctx.Logger.WithError(err).Error("Unable to retrieve user session")
+
+		return provider.NewDefault(), nil
 	}
 
-	if userSession.CookieDomain != provider.Config.Domain {
-		ctx.Logger.Warnf("Destroying session cookie as the cookie domain '%s' does not match the requests detected cookie domain '%s' which may be a sign a user tried to move this cookie from one domain to another", userSession.CookieDomain, provider.Config.Domain)
-
-		if err = provider.DestroySession(ctx.RequestCtx); err != nil {
-			ctx.Logger.WithError(err).Error("Error occurred trying to destroy the session cookie")
-		}
-
-		userSession = provider.NewDefaultUserSession()
-
-		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
-			ctx.Logger.WithError(err).Error("Error occurred trying to save the new session cookie")
-		}
-	}
-
-	return userSession, nil
+	return *current, nil
 }
 
 // SaveSession saves the content of the session.
-func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
+func (ctx *AutheliaCtx) SaveSession(userSession *session.UserSession) (err error) {
 	provider, err := ctx.GetSessionProvider()
 	if err != nil {
 		return fmt.Errorf("unable to save user session: %s", err)
 	}
 
-	return provider.SaveSession(ctx.RequestCtx, userSession)
+	return provider.Save(ctx, userSession)
 }
 
 // RegenerateSession regenerates a user session.
@@ -425,7 +418,7 @@ func (ctx *AutheliaCtx) RegenerateSession() (err error) {
 		return fmt.Errorf("unable to regenerate user session: %s", err)
 	}
 
-	return provider.RegenerateSession(ctx.RequestCtx)
+	return provider.Regenerate(ctx)
 }
 
 // DestroySession destroys a user session.
@@ -435,13 +428,13 @@ func (ctx *AutheliaCtx) DestroySession() (err error) {
 		return fmt.Errorf("unable to destroy user session: %s", err)
 	}
 
-	return provider.DestroySession(ctx.RequestCtx)
+	return provider.Destroy(ctx)
 }
 
 // GetDefaultRedirectionURL retrieves the default redirection URL for the request.
 func (ctx *AutheliaCtx) GetDefaultRedirectionURL() *url.URL {
 	if provider, err := ctx.GetSessionProvider(); err == nil {
-		return provider.Config.DefaultRedirectionURL
+		return provider.GetConfig().DefaultRedirectionURL
 	}
 
 	return nil
@@ -810,3 +803,88 @@ func (ctx *AutheliaCtx) Value(key any) any {
 
 	return ctx.RequestCtx.Value(key)
 }
+
+// GetCookie returns the value of the request cookie with the given name.
+func (ctx *AutheliaCtx) GetCookie(name string) string {
+	return string(ctx.Request.Header.Cookie(name))
+}
+
+// SetCookie sets the given cookie on the response.
+func (ctx *AutheliaCtx) SetCookie(cookie *http.Cookie) {
+	setCookie := fasthttp.AcquireCookie()
+
+	setCookie.SetKey(cookie.Name)
+	setCookie.SetValue(cookie.Value)
+	setCookie.SetDomain(cookie.Domain)
+	setCookie.SetPath(cookie.Path)
+	setCookie.SetSecure(cookie.Secure)
+	setCookie.SetHTTPOnly(cookie.HttpOnly)
+	setCookie.SetPartitioned(cookie.Partitioned)
+	setCookie.SetMaxAge(cookie.MaxAge)
+	setCookie.SetExpire(cookie.Expires)
+
+	switch cookie.SameSite {
+	case http.SameSiteDefaultMode:
+		setCookie.SetSameSite(fasthttp.CookieSameSiteDefaultMode)
+	case http.SameSiteLaxMode:
+		setCookie.SetSameSite(fasthttp.CookieSameSiteLaxMode)
+	case http.SameSiteStrictMode:
+		setCookie.SetSameSite(fasthttp.CookieSameSiteStrictMode)
+	case http.SameSiteNoneMode:
+		setCookie.SetSameSite(fasthttp.CookieSameSiteNoneMode)
+	}
+
+	ctx.Request.Header.SetCookieBytesKV(setCookie.Key(), setCookie.Value())
+	ctx.Response.Header.SetCookie(setCookie)
+
+	fasthttp.ReleaseCookie(setCookie)
+}
+
+// ClearCookie expires the given cookie with the user agent. The cookie is expected to already be expired, and must
+// carry the same name, domain, and path as the cookie being cleared, as user agents key cookies on all three and would
+// otherwise retain the original alongside the expired one.
+func (ctx *AutheliaCtx) ClearCookie(cookie *http.Cookie) {
+	// The request cookie is removed so that reads within the remainder of this request no longer observe it, and the
+	// response cookie is removed so that any value already queued for this name doesn't survive alongside the deletion.
+	ctx.Request.Header.DelCookie(cookie.Name)
+	ctx.Response.Header.DelCookie(cookie.Name)
+
+	//nolint:gosec // The security attributes are carried over from the cookie being cleared, which must match it for the user agent to discard the original.
+	deletion := *cookie
+
+	deletion.Value = ""
+
+	ctx.SetCookie(&deletion)
+}
+
+// CachedSession returns the session retained for the given cookie domain during this request, if there is one. It
+// implements session.CachingContext so a session read by a middleware isn't read again by the handler behind it.
+func (ctx *AutheliaCtx) CachedSession(domain string) (userSession *session.UserSession, ok bool) {
+	if ctx.sessions == nil {
+		return nil, false
+	}
+
+	userSession, ok = ctx.sessions[domain]
+
+	return userSession, ok
+}
+
+// CacheSession retains the session for the given cookie domain for the remainder of this request. A nil session
+// discards what is retained, which the session provider does when it destroys a session.
+func (ctx *AutheliaCtx) CacheSession(domain string, userSession *session.UserSession) {
+	if userSession == nil {
+		delete(ctx.sessions, domain)
+
+		return
+	}
+
+	if ctx.sessions == nil {
+		ctx.sessions = map[string]*session.UserSession{}
+	}
+
+	ctx.sessions[domain] = userSession
+}
+
+var (
+	_ session.CachingContext = (*AutheliaCtx)(nil)
+)

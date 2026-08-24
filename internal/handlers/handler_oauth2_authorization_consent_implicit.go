@@ -8,6 +8,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -15,7 +16,7 @@ import (
 )
 
 func handleOAuth2AuthorizationConsentModeImplicit(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	userSession session.UserSession, subject uuid.UUID,
+	userSession session.UserSession, _ *authentication.UserDetailsExtended, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		consentID uuid.UUID

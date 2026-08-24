@@ -72,14 +72,14 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			rememberMe string
 			baseURL    string
 			domain     string
-			provider   *session.Session
+			provider   session.Strategy
 		)
 
 		baseURL = ctx.TemplateRootURL().String()
 
 		if provider, err = ctx.GetSessionProvider(); err == nil {
-			domain = provider.Config.Domain
-			rememberMe = strconv.FormatBool(!provider.Config.DisableRememberMe)
+			domain = provider.GetConfig().Domain
+			rememberMe = strconv.FormatBool(!provider.GetConfig().DisableRememberMe)
 		}
 
 		data := &bytes.Buffer{}
@@ -129,14 +129,14 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 		var (
 			baseURL  string
 			domain   string
-			provider *session.Session
+			provider session.Strategy
 			err      error
 		)
 
 		baseURL = ctx.TemplateRootURL().String()
 
 		if provider, err = ctx.GetSessionProvider(); err == nil {
-			domain = provider.Config.Domain
+			domain = provider.GetConfig().Domain
 		}
 
 		data := &bytes.Buffer{}

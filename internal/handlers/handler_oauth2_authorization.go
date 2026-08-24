@@ -92,7 +92,7 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	var (
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession
-		provider    *session.Session
+		provider    session.Strategy
 		handled     bool
 	)
 
@@ -104,13 +104,17 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		return
 	}
 
-	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
+	var current *session.UserSession
+
+	if current, err = provider.Get(ctx); err != nil {
 		ctx.GetLogger().Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred obtaining session information: %+v", requester.GetID(), client.GetID(), policy.Name, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the user session."))
 
 		return
 	}
+
+	userSession = *current
 
 	if requester.GetRequestForm().Get(oidc.FormParameterPrompt) == oidc.PromptNone && userSession.IsAnonymous() {
 		ctx.GetLogger().Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the 'prompt' type of 'none' was requested but the user is not logged in", requester.GetID(), client.GetID(), policy.Name)
@@ -120,27 +124,27 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		return
 	}
 
-	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, policy, provider, userSession, rw, r, requester); handled {
+	var details authentication.UserDetailsExtended
+
+	if details, err = authentication.MustGetUserDetailsExtendedSafe(userSession.Username, ctx.GetUserProvider()); err != nil {
+		ctx.GetLogger().WithError(err).WithField("username", userSession.Username).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred looking up user details", requester.GetID(), client.GetID(), policy.Name)
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrLoginRequired)
+
+		return
+	}
+
+	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, policy, provider, userSession, &details, rw, r, requester); handled {
 		return
 	}
 
 	requester.SetRequestedAt(consent.RequestedAt)
 
-	var details *authentication.UserDetailsExtended
-
-	if details, err = ctx.Providers.UserProvider.GetDetailsExtended(userSession.Username); err != nil {
-		ctx.GetLogger().WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred retrieving user details for '%s' from the backend", requester.GetID(), client.GetID(), policy.Name, userSession.Username)
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the users details."))
-
-		return
-	}
-
 	var requests *oidc.ClaimsRequests
 
 	extra := map[string]any{}
 
-	if requests, handled = handleOAuth2AuthorizationClaims(ctx, rw, r, "Authorization", userSession, details, client, requester, issuer, consent, extra); handled {
+	if requests, handled = handleOAuth2AuthorizationClaims(ctx, rw, r, "Authorization", userSession, &details, client, requester, issuer, consent, extra); handled {
 		return
 	}
 
@@ -153,7 +157,7 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	}
 
 	ctx.GetLogger().Tracef("Authorization Request with id '%s' on client with id '%s' using policy '%s' creating session for Authorization Response for subject '%s' with username '%s' with groups: %+v and claims: %+v",
-		requester.GetID(), session.ClientID, policy.Name, session.Subject, session.Username, userSession.Groups, session.Claims)
+		requester.GetID(), session.ClientID, policy.Name, session.Subject, session.Username, details.Groups, session.Claims)
 
 	ctx.GetLogger().WithFields(map[string]any{"id": requester.GetID(), "response_type": requester.GetResponseTypes(), "response_mode": requester.GetResponseMode(), "scope": requester.GetRequestedScopes(), "aud": requester.GetRequestedAudience(), "redirect_uri": requester.GetRedirectURI(), "state": requester.GetState()}).Tracef("Authorization Request is using the following request parameters")
 

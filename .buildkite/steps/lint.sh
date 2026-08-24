@@ -8,9 +8,16 @@
 #                            discovered via git ls-files + shebang scan and
 #                            passed in. Any flag-style arguments (--format=...)
 #                            are forwarded to shellcheck.
-#   lint.sh -flag ...        Anything else is forwarded to reviewdog.
+#   lint.sh -flag ...        Anything else is forwarded to reviewdog. A reporter
+#                            which cannot post because the pull request diff
+#                            exceeds the GitHub API limit falls back to the
+#                            local reporter, see run_reviewdog.
 
 set -uo pipefail
+
+# The GitHub API refuses to return a diff over 20000 lines, which makes any reporter which posts against a pull request
+# fail on a large pull request even when every linter passed. This matches that refusal so it can be retried locally.
+readonly REVIEWDOG_DIFF_TOO_LARGE_RE='diff exceeded the maximum number of lines'
 
 discover_shell_files() {
   # A file is considered a shell script if any of:
@@ -56,6 +63,53 @@ run_shellcheck() {
   fi
 }
 
+run_reviewdog() {
+  local output status skip arg
+  local -a args
+
+  output=$(mktemp)
+
+  reviewdog "$@" 2>&1 | tee "${output}"
+  status=${PIPESTATUS[0]}
+
+  if (( status == 0 )); then
+    rm -f "${output}"
+
+    return 0
+  fi
+
+  if ! grep -qF "${REVIEWDOG_DIFF_TOO_LARGE_RE}" "${output}"; then
+    rm -f "${output}"
+
+    return "${status}"
+  fi
+
+  rm -f "${output}"
+
+  echo "--- :warning: Reporter could not post as the pull request diff exceeds the GitHub API limit, retrying with the local reporter"
+
+  args=()
+  skip=0
+
+  # The reporter is dropped in both its joined and separated forms so it can be replaced below.
+  for arg in "$@"; do
+    if (( skip )); then
+      skip=0
+
+      continue
+    fi
+
+    case "${arg}" in
+      -reporter=*|--reporter=*) continue ;;
+      -reporter|--reporter) skip=1; continue ;;
+    esac
+
+    args+=("${arg}")
+  done
+
+  reviewdog -reporter=local "${args[@]}"
+}
+
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 if [[ $# -eq 0 ]]; then
@@ -83,5 +137,5 @@ elif [[ $1 == "shellcheck" ]]; then
   shift
   run_shellcheck "$@"
 else
-  reviewdog "$@"
+  run_reviewdog "$@"
 fi

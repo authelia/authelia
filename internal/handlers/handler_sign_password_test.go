@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -33,7 +34,7 @@ func (s *HandlerSignPasswordSuite) SetupTest() {
 	userSession.AuthenticationMethodRefs.WebAuthnUserPresence = true
 	userSession.AuthenticationMethodRefs.WebAuthnUserVerified = true
 
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
+	s.Assert().NoError(s.mock.Ctx.SaveSession(&userSession))
 
 	s.mock.Clock.Set(time.Unix(1701295903, 0))
 	s.mock.Ctx.Providers.Clock = &s.mock.Clock
@@ -54,6 +55,10 @@ func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURL() {
 			EXPECT().
 			CheckUserPassword(gomock.Eq("john"), gomock.Eq("123456")).
 			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -89,6 +94,10 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleOpenIDConnect() {
 			EXPECT().
 			CheckUserPassword(gomock.Eq("john"), gomock.Eq("123456")).
 			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -124,6 +133,10 @@ func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURLDelayFunc()
 			EXPECT().
 			CheckUserPassword(gomock.Eq("john"), gomock.Eq("123456")).
 			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
@@ -158,6 +171,10 @@ func (s *HandlerSignPasswordSuite) TestShouldErrorMarkAttempt() {
 			EXPECT().
 			CheckUserPassword(gomock.Eq("john"), gomock.Eq("123456")).
 			Return(true, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
 		s.mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{

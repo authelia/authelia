@@ -99,10 +99,10 @@ other configuration using the environment but instead of loading a file the valu
 [duo_api.integration_key]: ../second-factor/duo.md#integration_key
 [duo_api.secret_key]: ../second-factor/duo.md#secret_key
 [session.secret]: ../session/introduction.md#secret
-[session.redis.password]: ../session/redis.md#password
-[session.redis.tls.certificate_chain]: ../session/redis.md#tls
-[session.redis.tls.private_key]: ../session/redis.md#tls
-[session.redis.high_availability.sentinel_password]: ../session/redis.md#sentinel_password
+[session.redis.password]: ../cache/redis.md#password
+[session.redis.tls.certificate_chain]: ../cache/redis.md#tls
+[session.redis.tls.private_key]: ../cache/redis.md#tls
+[session.redis.high_availability.sentinel_password]: ../cache/redis.md#sentinel_password
 [storage.encryption_key]: ../storage/introduction.md#encryption_key
 [storage.mysql.password]: ../storage/mysql.md#password
 [storage.mysql.tls.certificate_chain]: ../storage/mysql.md#tls

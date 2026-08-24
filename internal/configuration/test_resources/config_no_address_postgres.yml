@@ -137,6 +137,7 @@ access_control:
       policy: 'two_factor'
 
 session:
+  secret: 'insecure_session_secret'
   name: 'authelia_session'
   expiration: '1h'  # 1 hour
   inactivity: '5m'  # 5 minutes

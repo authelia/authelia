@@ -73,7 +73,7 @@ type Authn struct {
 	Method   string
 	ClientID string
 
-	Details authentication.UserDetails
+	Details authentication.UserDetailsExtended
 	Level   authentication.Level
 	Object  authorization.Object
 	Type    AuthnType

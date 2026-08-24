@@ -228,7 +228,7 @@ func TestRequireElevated(t *testing.T) {
 				}
 			}
 
-			require.NoError(t, mock.Ctx.SaveSession(userSession))
+			require.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 			if tc.setup != nil {
 				tc.setup(t, mock)
