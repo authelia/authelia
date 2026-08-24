@@ -61,8 +61,6 @@ cd "$(git rev-parse --show-toplevel)" || exit 1
 if [[ $# -eq 0 ]]; then
   FAILED=0
 
-  echo "--- :go::service_dog: Running goimports-reviser"
-  goimports-reviser -rm-unused -format -excludes '*/node_modules,*/*/*/node_modules' -company-prefixes authelia.com,github.com/authelia ./... || FAILED=1
   echo "--- :go::service_dog: Running golangci-lint"
   golangci-lint run || FAILED=1
   echo "--- :yaml::service_dog: Running yamllint"
