@@ -1,7 +1,7 @@
 import { FC, Fragment, lazy, useEffect } from "react";
 
 import { useTranslation } from "react-i18next";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router";
 
 import { ConsentCompletionSubRoute, ConsentOpenIDSubRoute } from "@constants/Routes";
 import { useNotifications } from "@contexts/NotificationsContext";

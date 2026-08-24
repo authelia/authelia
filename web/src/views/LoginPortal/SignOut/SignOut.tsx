@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import axios from "axios";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 import { IndexRoute } from "@constants/Routes";
 import { RedirectionRestoreURL, RedirectionURL } from "@constants/SearchParams";

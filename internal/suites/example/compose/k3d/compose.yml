@@ -1,7 +1,7 @@
 ---
 services:
   k3d:
-    image: ghcr.io/k3d-io/k3d:5.8.3-dind
+    image: ghcr.io/k3d-io/k3d:5.9.0-dind
     cpus: 8
     mem_limit: 8g
     volumes:

@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 import { Flow, FlowID, RedirectionURL, SubFlow } from "@constants/SearchParams";
 

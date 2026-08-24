@@ -15,15 +15,15 @@
     "react-email": "6.9.2",
     "tailwind-merge": "3.6.0",
     "tailwindcss": "4.3.3",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   },
   "devDependencies": {
     "@radix-ui/colors": "3.0.0",
     "@react-email/ui": "6.9.2",
-    "@types/node": "25.9.5",
+    "@types/node": "26.2.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
-    "eslint": "10.8.1",
+    "eslint": "10.9.0",
     "tsx": "4.23.12",
     "vitest": "4.1.11"
   }
