@@ -5,7 +5,7 @@ docsearch({
   appId: "BIQ7DDWR39",
   indices: ["Production"],
   apiKey: "27590c872bf247526427720080358240",
-  insights: true
+  insights: true,
 });
 
 const onClick = function () {

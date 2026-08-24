@@ -28,12 +28,12 @@ This guide effectively documents the usage of the
    1. It is your responsibility to ensure your templates are up to date. We make no efforts in facilitating this.
 2. We may not be able to offer any direct support in debugging these templates. We only offer support and fixes to
    the official templates.
-3. All templates __*MUST*__ be encoded in UTF-8 with CRLF line endings. The line endings __*MUST NOT*__ be a simple LF.
+3. All templates **_MUST_** be encoded in UTF-8 with CRLF line endings. The line endings **_MUST NOT_** be a simple LF.
 
 ## Template Names
 
 |        Template         |                                             Description                                             |
-|:-----------------------:|:---------------------------------------------------------------------------------------------------:|
+| :---------------------: | :-------------------------------------------------------------------------------------------------: |
 |          Event          |                           Used to render notifications sent about events                            |
 | IdentityVerificationOTC | Used to render notifications sent when stateful validation is required such as managing credentials |
 | IdentityVerificationJWT | Used to render notifications sent when stateless validation is required such as resetting passwords |
@@ -48,7 +48,7 @@ HTML `IdentityVerificationJWT` template.
 In template files, you can use the following placeholders which are automatically injected into the templates:
 
 |         Placeholder         |                    Templates                     |                                                                  Description                                                                   |
-|:---------------------------:|:------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+| :-------------------------: | :----------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------: |
 |      `{{ .LinkURL }}`       | IdentityVerificationJWT, IdentityVerificationOTC |                                            The URL associated with the notification if applicable.                                             |
 |      `{{ .LinkText }}`      | IdentityVerificationJWT, IdentityVerificationOTC |                                 The display value for the URL associated with the notification if applicable.                                  |
 | `{{ .RevocationLinkURL }}`  | IdentityVerificationJWT, IdentityVerificationOTC |                                       The Revocation URL associated with the notification if applicable.                                       |

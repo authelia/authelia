@@ -15,23 +15,28 @@ seo:
 ---
 
 # Introduction
+
 We are going to discuss how to protect backend applications with [Authelia], while still allowing programmatic access to the backend APIs using basic authentication. This pattern is essential when you need both human users (who can use Authelia's web interface) and automated systems (like monitoring tools, CI/CD pipelines, or other services) to access the same protected resources.
 
 # Assumptions
+
 This guide makes the following assumptions:
 
 - [Authelia] is already setup and running with [Traefik] as its proxy. It should be noted that while this guide explicitly uses [Traefik] as its proxy, you can achieve the same end state with other [supported proxies].
 - The backend application you want to protect has no built-in authentication (or authentication is disabled).
 
 ## Core Concepts
+
 There are some concepts that are central to this guide which we will explain here.
 
 ### ForwardAuth
+
 {{< figure src="authforward.webp" caption="Traefik Forward Auth" alt="Flow chart illustrating how AuthForward handles HTTP request authentication" sizes="650px" >}}
 
 [ForwardAuth](https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/forwardauth/) is a way to allow a proxy ([Traefik]) to delegate authorization to an external service. When a client requests a resource protected by a forward auth middleware, Traefik forwards headers and connection information about the initial request to the auth server.
 
 There are two possible responses for the auth server:
+
 - OK: the initial request continues to the resource server (backend application).
 - KO: the initial request is blocked, given a redirect, or a www-authenticate response.
 
@@ -42,6 +47,7 @@ This allows you to centralize authentication logic in Authelia rather than relyi
 [Basic authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Authentication#basic_authentication_scheme) transmits user credentials as a base64 encoded string in the format `username:password` via the `Authorization: Basic <encoded-string>` HTTP header.
 
 ### Service Accounts
+
 Service Accounts are non-human users designed to enable programmatic access to protected resources. Unlike regular user accounts, they typically use long-lived credentials and don't require interactive authentication flows (like [OpenID Connect]).
 
 In our case, Authelia treats service accounts the same as regular users - it doesn't distinguish between them. However, since our default access control policy is `deny`, service accounts will only have access to applications that are explicitly granted through ACL rules. This is important from a security perspective because anyone with service account credentials could potentially log into the Authelia web portal and access any resources that the service account is authorized for.
@@ -54,7 +60,7 @@ In our case, Authelia treats service accounts the same as regular users - it doe
 
 This configuration sets up Traefik to route requests to your application while protecting it with Authelia's ForwardAuth middleware. The router defines which domain should be protected (`myapp.example.com`), the service points to your backend application, and the middleware configuration tells Traefik to validate all requests through Authelia before allowing access to the application.
 
-The `authResponseHeaders` are important but *optional* - they allow Authelia to pass user information (like username, groups, and email) to your backend application, which can be useful for logging or user-specific functionality. See [Trusted Header SSO](../../trusted-header-sso/introduction) for more info.
+The `authResponseHeaders` are important but _optional_ - they allow Authelia to pass user information (like username, groups, and email) to your backend application, which can be useful for logging or user-specific functionality. See [Trusted Header SSO](../../trusted-header-sso/introduction) for more info.
 
 ```yaml{title="/dynamic/myapp.yaml"}
 http:
@@ -118,6 +124,7 @@ These access control rules create different authentication requirements based on
 - Second rule: Users with only the `myapp` group (human users) require two-factor authentication, forcing them to use the web interface to complete the second factor authentication.
 
 The order of these rules matter. Authelia has two important concepts for rule matching:
+
 - [Sequential Order](https://www.authelia.com/configuration/security/access-control/#rule-matching-concept-1-sequential-order): Rules are evaluated sequentially, top to bottom, and the first matching rule will be applied.
 - [Subject Criteria Requires Authentication](../../../configuration/security/access-control.md/#rule-matching-concept-2-subject-criteria-requires-authentication): Authelia can't determine groups or username without the user being authenticated.
 
@@ -151,10 +158,10 @@ If your application needs to know who is accessing it, it can read the [headers 
 3. Both access methods are validated by Authelia, but different ACL rules are applied based on group membership.
 4. Once authenticated, the requests are forwarded to the backend application with additional information in the [headers](../../trusted-header-sso/introduction.md/#response-headers).
 
-
 ## Verification
 
 ### Web Browser Access
+
 1. Navigate to `https://myapp.example.com` in your browser.
 2. You should be redirected to Authelia.
 3. Login as John (or your other user) and complete two-factor authentication.
@@ -169,17 +176,21 @@ curl -u "my-service-account:password" https://myapp.example.com/
 ## Common Use Cases
 
 ### Monitoring and Health Checking
+
 Applications such as [Uptime Kuma] can make use of push-based health checking, ie. an application sends an api request periodically with its current status. If [Uptime Kuma] is behind Authelia (with authentication disabled), you can allow those push api requests using a service account. See [Path Bypass](#path-bypass) for how to bypass specific paths only.
 
 ### Log Shipping
+
 Applications such as [Loki](https://grafana.com/docs/loki/latest/), [Mimir](https://grafana.com/docs/mimir/latest/), [Tempo](https://grafana.com/docs/tempo/latest/), and other log/metric/trace aggregators may not include their own authentication which makes this solution very useful. By configuring collection agents to use basic auth, they can ship logs or metrics to a protected application.
 
 ## Advanced Configs
 
 ### Path Bypass
+
 In the case where you want to bypass certain api paths for service accounts (rather than the entire api), you can achieve this with access_control [resources](../../../configuration/security/access-control.md#resources).
 
 The following example allows the `myapp` service account access to `myapp.example.com/api/push/*` without allowing it to access the entirety of the myapp api.
+
 ```yaml{title=configuration.yaml}
 access_control:
   default_policy: deny
@@ -194,9 +205,11 @@ access_control:
 ```
 
 ### Network-Based Access Control
+
 You can also restrict source ip addresses that service accounts can be used from using the `networks` option in access control. [See Here](../../../configuration/security/access-control.md#networks)
 
 ## Security Considerations
+
 When implementing service accounts for use with Authelia, there are several security practices that should be kept in mind:
 
 - Use a default deny policy wherever possible, this ensures service accounts only access what is explicitly granted.
@@ -206,7 +219,7 @@ When implementing service accounts for use with Authelia, there are several secu
 - Restrict the IP addresses service accounts can be used from whenever possible.
 - Periodically review service accounts in use and remove any unused ones.
 
-[Authelia]:https://authelia.com/
+[Authelia]: https://authelia.com/
 [Traefik]: https://doc.traefik.io/traefik/
 [supported proxies]: ../../proxies/support
 [OpenID Connect]: https://openid.net/developers/how-connect-works/

@@ -40,7 +40,7 @@ available anonymously and that it does not include any overly specific version i
 The attributes that are requested during the RootDSE search are:
 
 |         Attribute         | Importance |                                              Notes                                              |
-|:-------------------------:|:----------:|:-----------------------------------------------------------------------------------------------:|
+| :-----------------------: | :--------: | :---------------------------------------------------------------------------------------------: |
 |       `objectClass`       |    Low     |                           Used to determine if the Vendor is OpenLDAP                           |
 |  `supportedLDAPVersion`   |    High    |                        Used to check the LDAP protocol version supported                        |
 |    `supportedControl`     |    High    |                      Used to convey the controls the LDAP server supports                       |

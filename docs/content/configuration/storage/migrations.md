@@ -29,7 +29,7 @@ For example for version pre1, it is used for all versions between it and the ver
 this instance if you wanted to downgrade to pre1 you would need to use an Authelia binary with version 4.33.0 or higher.
 
 | Schema Version | Authelia Version |                                                    Notes                                                     |
-|:--------------:|:----------------:|:------------------------------------------------------------------------------------------------------------:|
+| :------------: | :--------------: | :----------------------------------------------------------------------------------------------------------: |
 |      pre1      |      4.0.0       |               Downgrading to this version requires you use the --pre1 flag on Authelia 4.37.2                |
 |       1        |      4.33.0      |                                      Initial migration managed version                                       |
 |       2        |      4.34.0      |      WebAuthn - added webauthn_devices table, altered totp_config to include device created/used dates       |

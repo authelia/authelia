@@ -88,20 +88,20 @@ The rules have many configuration options. A rule matches when all criteria of t
 
 A rule defines two primary things:
 
-* the policy applied when all criteria match
-* the matching criteria of the request presented to the reverse proxy
+- the policy applied when all criteria match
+- the matching criteria of the request presented to the reverse proxy
 
 The criteria is broken into several parts:
 
-* [domain]: domain or list of domains targeted by the request.
-* [domain_regex]: regex form of [domain].
-* [resources]: pattern or list of patterns that the path should match.
-* [subject]: the user or group of users to define the policy for.
-* [networks]: the network addresses, ranges (CIDR notation) or groups from where the request originates.
-* [methods]: the http methods used in the request.
+- [domain]: domain or list of domains targeted by the request.
+- [domain_regex]: regex form of [domain].
+- [resources]: pattern or list of patterns that the path should match.
+- [subject]: the user or group of users to define the policy for.
+- [networks]: the network addresses, ranges (CIDR notation) or groups from where the request originates.
+- [methods]: the http methods used in the request.
 
 A rule is matched when all criteria of the rule match. Rules are evaluated in sequential order as per
-[Rule Matching Concept 1]. It's *__strongly recommended__* that individuals read the [Rule Matching](#rule-matching)
+[Rule Matching Concept 1]. It's _**strongly recommended**_ that individuals read the [Rule Matching](#rule-matching)
 section.
 
 [rules]: #rules
@@ -110,24 +110,24 @@ section.
 
 {{< confkey type="list(string)" required="yes" >}}
 
-*__Required:__ This criteria and/or the [domain_regex] criteria are required.*
+_**Required:** This criteria and/or the [domain_regex] criteria are required._
 
 This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of
-strings. When it's a list of strings the rule matches when __any__ of the domains in the list match the request domain.
+strings. When it's a list of strings the rule matches when **any** of the domains in the list match the request domain.
 When used in conjunction with [domain_regex] the rule will match when either the [domain] or the [domain_regex] criteria
 matches.
 
 Rules may start with a few different wildcards:
 
-* The standard wildcard is `*.`, which when in front of a domain means that any subdomain is effectively a match. For
+- The standard wildcard is `*.`, which when in front of a domain means that any subdomain is effectively a match. For
   example `*.{{< sitevar name="domain" nojs="example.com" >}}` would match `abc.{{< sitevar name="domain" nojs="example.com" >}}` and `secure.{{< sitevar name="domain" nojs="example.com" >}}`.
-  When using a wildcard like this the string __must__ be quoted like `'*.{{< sitevar name="domain" nojs="example.com" >}}'`.
-* The user wildcard is `{user}.`, which when in front of a domain dynamically matches the username of the user. For
+  When using a wildcard like this the string **must** be quoted like `'*.{{< sitevar name="domain" nojs="example.com" >}}'`.
+- The user wildcard is `{user}.`, which when in front of a domain dynamically matches the username of the user. For
   example `{user}.{{< sitevar name="domain" nojs="example.com" >}}` would match `fred.{{< sitevar name="domain" nojs="example.com" >}}` if the user logged in was named
-  `fred`. *__Warning:__ this is officially deprecated as the [domain_regex] criteria completely replaces the
+  `fred`. _**Warning:** this is officially deprecated as the [domain_regex] criteria completely replaces the
   functionality in a much more useful way. It is strongly recommended you do not use this as it will be removed in a
-  future version, most likely v5.0.0.*
-* The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
+  future version, most likely v5.0.0._
+- The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
   group in that location. For example `{group}.{{< sitevar name="domain" nojs="example.com" >}}` would match `admins.{{< sitevar name="domain" nojs="example.com" >}}` if the user logged in was
   in the following groups `admins,users,people` because `admins` is in the list.
 
@@ -140,8 +140,8 @@ implementation, and it is not currently a priority.
 
 ##### Examples
 
-*Single domain of `*.{{< sitevar name="domain" nojs="example.com" >}}` matched. All rules in this list are effectively the same rule just expressed in
-different ways.*
+_Single domain of `*.{{< sitevar name="domain" nojs="example.com" >}}` matched. All rules in this list are effectively the same rule just expressed in
+different ways._
 
 ```yaml {title="configuration.yml"}
 access_control:
@@ -153,8 +153,8 @@ access_control:
     policy: 'bypass'
 ```
 
-*Multiple domains matched. These rules will match either `apple.{{< sitevar name="domain" nojs="example.com" >}}` or `banana.{{< sitevar name="domain" nojs="example.com" >}}`. All rules in this
-list are effectively the same rule just expressed in different ways.*
+_Multiple domains matched. These rules will match either `apple.{{< sitevar name="domain" nojs="example.com" >}}` or `banana.{{< sitevar name="domain" nojs="example.com" >}}`. All rules in this
+list are effectively the same rule just expressed in different ways._
 
 ```yaml {title="configuration.yml"}
 access_control:
@@ -167,8 +167,8 @@ access_control:
     policy: 'bypass'
 ```
 
-*Multiple domains matched either via a static domain or via a [domain_regex]. This rule will match
-either `apple.{{< sitevar name="domain" nojs="example.com" >}}`, `pub-data.{{< sitevar name="domain" nojs="example.com" >}}`, or `img-data.{{< sitevar name="domain" nojs="example.com" >}}`.*
+_Multiple domains matched either via a static domain or via a [domain_regex]. This rule will match
+either `apple.{{< sitevar name="domain" nojs="example.com" >}}`, `pub-data.{{< sitevar name="domain" nojs="example.com" >}}`, or `img-data.{{< sitevar name="domain" nojs="example.com" >}}`._
 
 ```yaml {title="configuration.yml"}
 access_control:
@@ -191,10 +191,10 @@ To utilize regex you must escape it properly. See
 [regular expressions](../prologue/common.md#regular-expressions) for more information.
 {{< /callout >}}
 
-*__Required:__ This criteria and/or the [domain] criteria are required.*
+_**Required:** This criteria and/or the [domain] criteria are required._
 
 This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of
-strings. When it's a list of strings the rule matches when __any__ of the domains in the list match the request domain.
+strings. When it's a list of strings the rule matches when **any** of the domains in the list match the request domain.
 When used in conjunction with [domain] the rule will match when either the [domain] or the [domain_regex] criteria matches.
 
 In addition to standard regex patterns this criteria can match some [Named Regex Groups].
@@ -203,10 +203,10 @@ In addition to standard regex patterns this criteria can match some [Named Regex
 
 ##### Examples
 
-*An advanced multiple domain regex example with user/group matching. This will match the user `john` in the groups
+_An advanced multiple domain regex example with user/group matching. This will match the user `john` in the groups
 `example` and `example1`, when the request is made to `user-john.{{< sitevar name="domain" nojs="example.com" >}}`,
 `group-example.{{< sitevar name="domain" nojs="example.com" >}}`, or `group-example1.{{< sitevar name="domain" nojs="example.com" >}}`, it would not match when the
-request is made to `user-fred.{{< sitevar name="domain" nojs="example.com" >}}` or `group-admin.{{< sitevar name="domain" nojs="example.com" >}}`.*
+request is made to `user-fred.{{< sitevar name="domain" nojs="example.com" >}}` or `group-admin.{{< sitevar name="domain" nojs="example.com" >}}`._
 
 ```yaml {title="configuration.yml"}
 access_control:
@@ -217,8 +217,8 @@ access_control:
     policy: 'one_factor'
 ```
 
-*Multiple domains example, one with a static domain and one with a regex domain. This will match requests to
-`protected.{{< sitevar name="domain" nojs="example.com" >}}`, `img-private.{{< sitevar name="domain" nojs="example.com" >}}`, or `data-private.{{< sitevar name="domain" nojs="example.com" >}}`.*
+_Multiple domains example, one with a static domain and one with a regex domain. This will match requests to
+`protected.{{< sitevar name="domain" nojs="example.com" >}}`, `img-private.{{< sitevar name="domain" nojs="example.com" >}}`, or `data-private.{{< sitevar name="domain" nojs="example.com" >}}`._
 
 ```yaml {title="configuration.yml"}
 access_control:
@@ -242,7 +242,7 @@ take when a match is made.
 {{< confkey type="list(list(string))" required="no" >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-This rule criteria __may not__ be used for the [bypass](#bypass) policy the minimum required authentication level to
+This rule criteria **may not** be used for the [bypass](#bypass) policy the minimum required authentication level to
 identify the subject is [one_factor](#one_factor). See [Rule Matching Concept 2](#rule-matching-concept-2-subject-criteria-requires-authentication) for more information.
 {{< /callout >}}
 
@@ -252,7 +252,7 @@ require two-factor authentication to specific users. Subjects must be prefixed w
 specifically match a specific part of a subject.
 
 |   Subject Type   |      Prefix      |                                                                  Description                                                                   |
-|:----------------:|:----------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+| :--------------: | :--------------: | :--------------------------------------------------------------------------------------------------------------------------------------------: |
 |       User       |     `user:`      |                                                        Matches the username of a user.                                                         |
 |      Group       |     `group:`     |                                                Matches if the user has a group with this name.                                                 |
 | OAuth 2.0 Client | `oauth2:client:` | Matches if the request has been authorized via a token issued by a client with the specified id utilizing the `client_credentials` grant type. |
@@ -265,9 +265,9 @@ Additionally each level of these lists does not have to be explicitly defined.
 
 ##### Examples
 
-*Matches when the user has the username `john`, __or__ the user is in the groups `admin` __and__ `app-name`, __or__ the
+_Matches when the user has the username `john`, **or** the user is in the groups `admin` **and** `app-name`, **or** the
 user is in the group `super-admin`. All rules in this list are effectively the same rule just expressed in different
-ways.*
+ways._
 
 ```yaml {title="configuration.yml"}
 access_control:
@@ -286,8 +286,8 @@ access_control:
     - ['group:super-admin']
 ```
 
-*Matches when the user is in the `super-admin` group. All rules in this list are effectively the same rule just
-expressed in different ways.*
+_Matches when the user is in the `super-admin` group. All rules in this list are effectively the same rule just
+expressed in different ways._
 
 ```yaml {title="configuration.yml"}
 access_control:
@@ -323,7 +323,7 @@ The accepted and valid methods for this configuration option are those specified
 relevant methods are listed in this table:
 
 |    RFC    |                        Methods                        |                     Additional Documentation                     |
-|:---------:|:-----------------------------------------------------:|:----------------------------------------------------------------:|
+| :-------: | :---------------------------------------------------: | :--------------------------------------------------------------: |
 | [RFC7231] | GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
 | [RFC5789] |                         PATCH                         | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) |
 | [RFC4918] | PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK  |                                                                  |
@@ -332,7 +332,7 @@ relevant methods are listed in this table:
 
 ##### Examples
 
-*Bypass `OPTIONS` requests to the `{{< sitevar name="domain" nojs="example.com" >}}` domain.*
+_Bypass `OPTIONS` requests to the `{{< sitevar name="domain" nojs="example.com" >}}` domain._
 
 ```yaml {title="configuration.yml"}
 access_control:
@@ -351,7 +351,7 @@ These criteria consist of a list of values which can be an IP Address, network a
 [Network Definition](../definitions/network.md). It matches against the first address in the `X-Forwarded-For` header,
 or if there are none it will fall back to the IP address of the packet TCP source IP address. For this reason, it's
 important for you to configure the proxy server correctly to accurately match requests with these criteria.
-*__Note:__ you may combine CIDR networks with the alias rules as you please.*
+_**Note:** you may combine CIDR networks with the alias rules as you please._
 
 The main use case for this criteria is adjust the security requirements of a resource based on the location of a user.
 You can theoretically consider a specific network to be one of the factors involved in authentication, you can deny
@@ -369,8 +369,8 @@ for administrators to tune the security to their specific needs if desired.
 
 ##### Examples
 
-*Require [two_factor](#two_factor) for all clients other than internal clients and `112.134.145.167`. The first two
-rules in this list are effectively the same rule just expressed in different ways.*
+_Require [two_factor](#two_factor) for all clients other than internal clients and `112.134.145.167`. The first two
+rules in this list are effectively the same rule just expressed in different ways._
 
 ```yaml {title="configuration.yml"}
 definitions:
@@ -422,8 +422,8 @@ likely save you a lot of time if you do it for all resource rules.
 
 ##### Examples
 
-*Applies the [bypass](#bypass) policy when the domain is `app.{{< sitevar name="domain" nojs="example.com" >}}` and the url is `/api`, or starts with either
-`/api/` or `/api?`.*
+_Applies the [bypass](#bypass) policy when the domain is `app.{{< sitevar name="domain" nojs="example.com" >}}` and the url is `/api`, or starts with either
+`/api/` or `/api?`._
 
 ```yaml {title="configuration.yml"}
 access_control:
@@ -467,7 +467,6 @@ The rule operator for this rule. Valid operators can be found in the
 
 If [key](#key) and [value](#value) are specified this defaults to `equal`, otherwise if [key](#key) is specified it
 defaults to `present`.
-
 
 ##### Examples
 
@@ -539,8 +538,8 @@ Rules are matched in sequential order. The first entry in the list where all cri
 Some rule criteria additionally allow for a list of criteria, when one of these criteria in the list match a request that
 criteria is considered a match for that specific rule.
 
-This is particularly __important__ for bypass rules. Bypass rules should generally appear near the top of the rules
-list. However you need to carefully evaluate your rule list __in order__ to see which rule matches a particular
+This is particularly **important** for bypass rules. Bypass rules should generally appear near the top of the rules
+list. However you need to carefully evaluate your rule list **in order** to see which rule matches a particular
 scenario. A comprehensive understanding of how rules apply is also recommended.
 
 For example the following rule will consider requests for either `{{< sitevar name="domain" nojs="example.com" >}}` or any subdomain of
@@ -568,8 +567,8 @@ the second rule for `app.{{< sitevar name="domain" nojs="example.com" >}}` will 
 Rules that have subject reliant elements require authentication to determine if they match. Due to this these rules
 must not be used with the [bypass] policy. The criteria which have subject reliant elements are:
 
-* The [subject] criteria itself
-* The [domain_regex] criteria when it contains the [Named Regex Groups].
+- The [subject] criteria itself
+- The [domain_regex] criteria when it contains the [Named Regex Groups].
 
 In addition if the rule has a subject criteria but all other criteria match then the user will be immediately forwarded
 for authentication if no prior rules match the request per [Rule Matching Concept 1]. This means if you have two
@@ -583,7 +582,7 @@ identical rules, and one of them has a subject based reliant criteria, and the o
 Some criteria allow matching named regex groups. These are the groups we accept:
 
 | Group Name | Match Value | Match Type  |
-|:----------:|:-----------:|:-----------:|
+| :--------: | :---------: | :---------: |
 |    User    |  username   |   Equals    |
 |   Group    |   groups    | Has (Equal) |
 
@@ -599,7 +598,7 @@ should not be compared in a case-sensitive way as per the [RFC4343](https://data
 abstract and [RFC3986 Section 3.2.2](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2).
 
 We do not currently apply any other normalization to usernames or groups when matching these groups. As such it's
-generally *__not recommended__* to use these patterns with usernames or groups which contain characters that are not
+generally _**not recommended**_ to use these patterns with usernames or groups which contain characters that are not
 alphanumeric (including spaces).
 
 [Named Regex Groups]: #named-regex-groups

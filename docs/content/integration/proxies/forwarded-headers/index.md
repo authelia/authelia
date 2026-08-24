@@ -14,8 +14,8 @@ seo:
   noindex: false # false (default) or true
 ---
 
-The`X-Forwarded-*` headers presented to __Authelia__ must be from trusted sources. As such you must ensure that the
-reverse proxies and load balancers utilized with __Authelia__ are configured to remove and replace specific headers when
+The`X-Forwarded-*` headers presented to **Authelia** must be from trusted sources. As such you must ensure that the
+reverse proxies and load balancers utilized with **Authelia** are configured to remove and replace specific headers when
 they come directly from clients and not from proxies in your trusted environment.
 
 Some proxies require users explicitly configure the proxy to trust another proxy, however some implicitly trust all
@@ -52,7 +52,7 @@ box.
 
 #### Remove Client IPs from X-Forwarded-For Header
 
-[Cloudflare] has managed rules with one of them removing client IPs from the X-Forwarded-For header. *__Please Note:__ This is by no means an
+[Cloudflare] has managed rules with one of them removing client IPs from the X-Forwarded-For header. ***Please Note:** This is by no means an
 exhaustive guide on using [Cloudflare] managed transforms, however it's enough to configure this rule which should
 achieve a secure result. Please see the [Cloudflare] documentation on
 [managed transforms](https://developers.cloudflare.com/rules/transform/managed-transforms/) for more information._
@@ -98,7 +98,6 @@ alt="Image of Cloudflare dashboard with steps 4 to 10 labeled"
 width="736"
 caption="Steps 4 - 10: Image of Cloudflare dashboard with steps 4 to 10 labeled for method 2"
 title="Steps 4 - 10: Image of Cloudflare dashboard with steps 4 to 10 labeled for method 2" >}}
-
 
 Cloudflare publishes its IP address ranges publicly at the easy to remember address
 [https://www.cloudflare.com/ips/](https://www.cloudflare.com/ips/). You should use this with the trusted proxies section

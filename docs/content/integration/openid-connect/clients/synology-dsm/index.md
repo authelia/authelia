@@ -42,10 +42,10 @@ up a shared LDAP.
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `synology-dsm`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `synology-dsm`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -55,7 +55,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Synology DSM] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Synology DSM] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -101,15 +101,17 @@ To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provi
 4. Go to `SSO Client`.
 5. Check the `Enable OpenID Connect SSO service` checkbox in the `OpenID Connect SSO Service` section.
 6. Configure the following options:
-  - Profile: `OIDC`
-  - Account type: `Domain/LDAP/local`
-  - Name: `Authelia`
-  - Well Known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-  - Application ID: `synology-dsm`
-  - Application Key: `insecure_secret`
-  - Redirect URL: `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}`
-  - Authorization Scope: `openid profile groups email`
-  - Username Claim: `preferred_username`
+
+- Profile: `OIDC`
+- Account type: `Domain/LDAP/local`
+- Name: `Authelia`
+- Well Known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+- Application ID: `synology-dsm`
+- Application Key: `insecure_secret`
+- Redirect URL: `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}`
+- Authorization Scope: `openid profile groups email`
+- Username Claim: `preferred_username`
+
 7. Save the settings.
 
 {{< figure src="client.png" alt="Synology" width="736" >}}

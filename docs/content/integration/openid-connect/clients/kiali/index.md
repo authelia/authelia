@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://kiali.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `kiali`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://kiali.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `kiali`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +50,7 @@ configuration will likely require configuration of an escape hatch to work aroun
 [Configuration Escape Hatch](#configuration-escape-hatch) for details.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Kiali] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Kiali] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

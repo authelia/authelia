@@ -27,9 +27,9 @@ common scenarios however those using more advanced architectures are likely goin
 help with answering less specific questions about this and it may be possible if provided adequate information more
 specific questions may be answered.
 
-1. Authelia *__MUST__* be served via the `https` scheme. This is not optional even for testing. This is a deliberate
+1. Authelia _**MUST**_ be served via the `https` scheme. This is not optional even for testing. This is a deliberate
    design decision to improve security directly (by using encrypted communication) and indirectly by reducing complexity.
-2. Your proxy configuration for Authelia *__MUST__* include all of the
+2. Your proxy configuration for Authelia _**MUST**_ include all of the
    [Required Headers](../proxies/introduction.md#required-headers).
 3. When using the [Proxy Authorization](../../reference/guides/proxy-authorization.md) the proxy must include all of the
    required headers for the specific implementation that has been configured, similar to the curated examples.
@@ -41,8 +41,8 @@ cookie to determine if a user must be forwarded to the authentication portal.
 
 In addition to the `https` scheme requirement for Authelia itself:
 
-1. Due to the fact a cookie is used, it's an intentional design decision that *__ALL__* applications/domains protected
-   via this method *__MUST__* use secure schemes (`https` and `wss`) for all of their communication.
+1. Due to the fact a cookie is used, it's an intentional design decision that _**ALL**_ applications/domains protected
+   via this method _**MUST**_ use secure schemes (`https` and `wss`) for all of their communication.
 
 ### OpenID Connect 1.0
 
@@ -66,9 +66,9 @@ Some of the values presented in the documentation can automatically be replaced 
 
 ## Configuration
 
-It's important to customize the configuration for *Authelia* in advance of deploying it. The configuration is static and
+It's important to customize the configuration for _Authelia_ in advance of deploying it. The configuration is static and
 not configured via web GUI. You can find a configuration template named {{< github-link path="config.template.yml" >}}
-on GitHub which can be used as a basis for configuration, alternatively *Authelia* will write this template relevant for
+on GitHub which can be used as a basis for configuration, alternatively _Authelia_ will write this template relevant for
 your version the first time it is started. Users should expect that they have to configure elements of this file as part
 of initial setup.
 
@@ -88,7 +88,7 @@ The important sections to consider in initial configuration are as follows:
       [domain](../../configuration/session/introduction.md#domain) and
       [authelia_url](../../configuration/session/introduction.md#authelia_url).
    2. The [secret](../../configuration/session/introduction.md#secret) is the most important, and
-       [redis](../../configuration/session/redis.md) is recommended for production environments.
+      [redis](../../configuration/session/redis.md) is recommended for production environments.
 5. [notifier](../../configuration/notifications/introduction.md) which is used to send 2FA registration emails etc,
    there is an option for local file delivery but the [SMTP](../../configuration/notifications/smtp.md) option is
    recommended for production and you must only configure one of these.
@@ -105,12 +105,12 @@ access_control:
 
 ## Deployment
 
-There are several methods of deploying *Authelia* and we recommend reading the
+There are several methods of deploying _Authelia_ and we recommend reading the
 [Deployment Documentation](../deployment/introduction.md) in order to perform deployment.
 
 ## Proxy Integration
 
-The default method of utilizing *Authelia* is via the [Proxy Integrations](../proxies/introduction.md). It's
+The default method of utilizing _Authelia_ is via the [Proxy Integrations](../proxies/introduction.md). It's
 recommended that you read the relevant [Proxy Integration Documentation](../proxies/introduction.md).
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
@@ -135,5 +135,5 @@ We consider it important to do several things in moving to a production environm
 3. Review the [Security Measures](../../overview/security/measures.md) and
    [Threat Model](../../overview/security/threat-model.md) documentation.
 4. Ensure you have reviewed the [Forwarded Headers](../proxies/forwarded-headers/index.md) documentation to ensure your
-   proxy is not allowing insecure headers to be passed to *Authelia*.
+   proxy is not allowing insecure headers to be passed to _Authelia_.
 5. Review the other [Configuration Options](../../configuration/prologue/introduction.md).

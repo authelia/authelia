@@ -1,21 +1,18 @@
 ---
 # Default config
-tabWidth: 4
-endOfLine: crlf
-singleQuote: true
+tabWidth: 2
+embeddedLanguageFormatting: "off"
+endOfLine: lf
+singleQuote: false
 printWidth: 100000
-trailingComma: none
+trailingComma: all
 bracketSameLine: true
 quoteProps: consistent
 experimentalTernaries: true
 
 # Overridden config
 overrides:
-  - files: ["*.md", "*.json", "*.yaml"]
+  - files: ["*.json"]
     options:
-      tabWidth: 2
-      singleQuote: false
-  - files: ["*.scss"]
-    options:
-      singleQuote: false
+      printWidth: 1
 ...

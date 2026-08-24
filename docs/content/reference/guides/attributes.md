@@ -42,7 +42,7 @@ The standard user attributes are validated against several constraints. This tab
 attribute must satisfy all the constrains not marked as `N/A`.
 
 |    Attribute    | Constraint: Type | Constraint: Multi-Value |   Constraint: Syntax    |
-|:---------------:|:----------------:|:-----------------------:|:-----------------------:|
+| :-------------: | :--------------: | :---------------------: | :---------------------: |
 |    username     |      string      |      Single Valued      |           N/A           |
 |  display_name   |      string      |      Single Valued      |           N/A           |
 |   family_name   |      string      |      Single Valued      |           N/A           |
@@ -97,7 +97,6 @@ authentication_backend:
 
 The following example loads the YAML property `autheliaAttributeName` into the Authelia attribute of the same name,
 treats it as a single-valued property, and considers it a string.
-
 
 ```yaml {title="configuration.yml"}
 authentication_backend:

@@ -9,7 +9,7 @@ $grid-breakpoints: (
   md: 768px,
   lg: 992px,
   xl: 1200px,
-  xxl: 2380px
+  xxl: 2380px,
 );
 
 // Define the maximum width of `.container` for different screen sizes.
@@ -19,9 +19,9 @@ $container-max-widths: (
   md: 720px,
   lg: 960px,
   xl: 1540px,
-  xxl: 2240px
+  xxl: 2240px,
 );
 
-$dark-green: #198754FF;
-$dark-red: #DC3545FF;
+$dark-green: #198754ff;
+$dark-red: #dc3545ff;
 $orange: #fd7e14;

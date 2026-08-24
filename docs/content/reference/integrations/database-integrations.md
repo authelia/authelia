@@ -54,10 +54,10 @@ party.
 3. Must support the `utf8mb4_unicode_520_ci` collation.
 4. Must support maximum index size of no less than 2048 bytes. The default maximum index size for the InnoDB engine is
    3072 bytes on:
-    1. [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html) or later.
-    2. [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/innodb-limits.html) or later provided:
-       1. The [innodb_large_prefix](#innodb-large-prefixes) option is **_ON_**.
-    3. [MariaDB] [10.3](https://mariadb.com/kb/en/innodb-system-variables/#innodb_large_prefix) or later.
+   1. [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html) or later.
+   2. [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/innodb-limits.html) or later provided:
+      1. The [innodb_large_prefix](#innodb-large-prefixes) option is **_ON_**.
+   3. [MariaDB] [10.3](https://mariadb.com/kb/en/innodb-system-variables/#innodb_large_prefix) or later.
 5. Must support ANSI standard time behaviors. See [ANSI standard time behaviors](#ansi-standard-time-behaviors).
 
 We generally perform integration testing against the latest supported version of [MySQL] and [MariaDB], and the latest
@@ -106,7 +106,7 @@ The risk here is that the database may run for an extended period of time unnoti
 corrupt with no visible signs until it's no longer recoverable. This makes it critically important users do not neglect
 this operation or ensure it's happening.
 
-While some [MySQL] or [MariaDB] containers will do this automatically  or give users an option to perform this
+While some [MySQL] or [MariaDB] containers will do this automatically or give users an option to perform this
 automatically, it is strongly recommended that this process is manually done and only done **_after_** doing a backup of
 all databases on the server as is the recommendation from both [MySQL] and [MariaDB].
 

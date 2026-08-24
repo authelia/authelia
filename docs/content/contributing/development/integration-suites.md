@@ -21,17 +21,17 @@ The following document assumes you've completed all the [prerequisites](environm
 bootstrapped the [Authelia Development Context](environment.md#context).
 {{< /callout >}}
 
-__Authelia__ is a single component in interaction with many others in a complete ecosystem. Consequently, testing the
+**Authelia** is a single component in interaction with many others in a complete ecosystem. Consequently, testing the
 features is not as easy as we might think. In order to solve this problem, Authelia came up with the concept of suite
 which is a kind of virtual environment for Authelia and a set of tests. A suite can setup components such as NGINX,
-Redis or MariaDB in which __Authelia__ can run and be tested.
+Redis or MariaDB in which **Authelia** can run and be tested.
 
 This abstraction allows to prepare an environment for manual testing during development and also to craft and run
 integration tests efficiently.
 
 ## Start a suite
 
-Starting a suite called *Standalone* is done with the following command:
+Starting a suite called _Standalone_ is done with the following command:
 
 ```bash
 authelia-scripts suites setup Standalone
@@ -91,16 +91,16 @@ The suites run several concurrent copies of themselves when the Docker daemon is
 optional and falls back to the value used for a single local run, so leaving them all unset gives the behavior
 described above.
 
-| Variable               | Default         | Purpose                                                                                                                                                                                                                                                                                                                                                                                                  |
-|:-----------------------|:----------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `SUITE_SLOT`           | *unset*         | Slot number owned by this agent or working tree. When set, `bootstrap.sh` derives `COMPOSE_PROJECT_NAME`, `SUITE_SUBNET`, `LDAP_ADMIN_PORT`, `ENVOY_ADMIN_PORT` and, outside CI, `SUITE_TMP` and `SUITE_TMP_PATH` from it. A slotted shell also leaves `/etc/hosts` alone.                                                                                                                              |
-| `SUITE_SLOT_AUTO`      | *unset*         | Set to `false` to stop `bootstrap.sh` allocating a slot for this working tree. Has no effect in CI, where the slot is supplied by the agent.                                                                                                                                                                                                                                                            |
-| `COMPOSE_PROJECT_NAME` | `authelia`      | Compose project name. Also scopes the Traefik Docker provider so it only discovers its own containers.                                                                                                                                                                                                                                                                                                   |
-| `SUITE_SUBNET`         | `192.168.240`   | First three octets of the suite network.                                                                                                                                                                                                                                                                                                                                                                 |
-| `SUITE_TMP`            | `/tmp`          | Host directory bound into the suite containers, which always see it at `/tmp`. Give each agent or working tree its own directory, because everything at its top level apart from the agent's own working files is removed when a job finishes.                                                                                                                                                          |
-| `SUITE_TMP_PATH`       | `/tmp`          | Path the test process itself reads and writes that same content through. In CI this stays `/tmp` because `SUITE_TMP` is bound there inside the agent; locally it is set to `SUITE_TMP`, since the test process runs on the host.                                                                                                                                                                        |
-| `SUITE_IMAGE`          | `authelia:dist` | Image the backend runs.                                                                                                                                                                                                                                                                                                                                                                                  |
-| `AGENT_CONTAINER`      | *unset*         | Name of the container the tests run in. When set, that container is attached to the suite network on setup and detached on teardown, so Chrome can reach the portal.                                                                                                                                                                                                                                     |
+| Variable               | Default         | Purpose                                                                                                                                                                                                                                                                    |
+| :--------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SUITE_SLOT`           | _unset_         | Slot number owned by this agent or working tree. When set, `bootstrap.sh` derives `COMPOSE_PROJECT_NAME`, `SUITE_SUBNET`, `LDAP_ADMIN_PORT`, `ENVOY_ADMIN_PORT` and, outside CI, `SUITE_TMP` and `SUITE_TMP_PATH` from it. A slotted shell also leaves `/etc/hosts` alone. |
+| `SUITE_SLOT_AUTO`      | _unset_         | Set to `false` to stop `bootstrap.sh` allocating a slot for this working tree. Has no effect in CI, where the slot is supplied by the agent.                                                                                                                               |
+| `COMPOSE_PROJECT_NAME` | `authelia`      | Compose project name. Also scopes the Traefik Docker provider so it only discovers its own containers.                                                                                                                                                                     |
+| `SUITE_SUBNET`         | `192.168.240`   | First three octets of the suite network.                                                                                                                                                                                                                                   |
+| `SUITE_TMP`            | `/tmp`          | Host directory bound into the suite containers, which always see it at `/tmp`. Give each agent or working tree its own directory, because everything at its top level apart from the agent's own working files is removed when a job finishes.                             |
+| `SUITE_TMP_PATH`       | `/tmp`          | Path the test process itself reads and writes that same content through. In CI this stays `/tmp` because `SUITE_TMP` is bound there inside the agent; locally it is set to `SUITE_TMP`, since the test process runs on the host.                                           |
+| `SUITE_IMAGE`          | `authelia:dist` | Image the backend runs.                                                                                                                                                                                                                                                    |
+| `AGENT_CONTAINER`      | _unset_         | Name of the container the tests run in. When set, that container is attached to the suite network on setup and detached on teardown, so Chrome can reach the portal.                                                                                                       |
 
 ## Running Suites Concurrently
 
@@ -172,7 +172,7 @@ authelia-scripts suites test --headless
 
 ### Run tests of non-running suite
 
-However, if no suite is running yet and you just want to run the tests of a specific suite like *HighAvailability*, you
+However, if no suite is running yet and you just want to run the tests of a specific suite like _HighAvailability_, you
 can do so with the next command:
 
 ```bash
@@ -181,14 +181,14 @@ authelia-scripts suites test HighAvailability
 
 ## Create a new suite
 
-Creating a suite is as easy. Let's take the example of the __Standalone__ suite:
+Creating a suite is as easy. Let's take the example of the **Standalone** suite:
 
-* [internal/suites/suite_standalone.go](https://github.com/authelia/authelia/blob/master/internal/suites/suite_standalone.go) - It
+- [internal/suites/suite_standalone.go](https://github.com/authelia/authelia/blob/master/internal/suites/suite_standalone.go) - It
   defines the setup and teardown phases. It likely uses docker compose to setup the ecosystem. This file also defines
   the timeouts.
-* [internal/suites/suite_standalone_test.go](https://github.com/authelia/authelia/blob/master/internal/suites/suite_standalone_test.go)
+- [internal/suites/suite_standalone_test.go](https://github.com/authelia/authelia/blob/master/internal/suites/suite_standalone_test.go)
   - It defines the set of tests to run against the suite.
-* [internal/suites/Standalone](https://github.com/authelia/authelia/tree/master/internal/suites/Standalone) directory - It contains
+- [internal/suites/Standalone](https://github.com/authelia/authelia/tree/master/internal/suites/Standalone) directory - It contains
   resources required by the suite and likely mounted in the containers.
 
 A suite can also be much more complex like setting up a complete Kubernetes ecosystem. You can check the Kubernetes
