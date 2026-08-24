@@ -331,10 +331,13 @@ const (
 		"configured as '%s'"
 	errFmtAccessControlDefaultPolicyWithoutRules = "access_control: 'default_policy' option '%s' is invalid: when " +
 		"no rules are specified it must be 'two_factor' or 'one_factor'"
-	errFmtAccessControlNetworkGroupIPCIDRInvalid = "access_control: networks: network group '%s' is invalid: the " +
-		"network '%s' is not a valid IP or CIDR notation"
 	errFmtAccessControlWarnNoRulesDefaultPolicy = "access_control: no rules have been specified so the " +
 		"'default_policy' of '%s' is going to be applied to all requests"
+	errFmtAccessControlRuleDomainDeprecatedToken = "access_control: rule #%d: domain #%d: domain '%s' uses a " +
+		"deprecated user or group wildcard which is translated into the regular expression '%s': it's strongly " +
+		"recommended to use the 'domain_regex' option instead as these wildcards only match characters which are " +
+		"valid in a hostname"
+
 	errFmtAccessControlRuleNoDomains                    = "access_control: rule %s: option 'domain' or 'domain_regex' must be present but are both absent"
 	errFmtAccessControlRuleNoPolicy                     = "access_control: rule %s: option 'policy' must be present but it's absent"
 	errFmtAccessControlRuleInvalidPolicy                = "access_control: rule %s: option 'policy' must be one of %s but it's configured as '%s'"
@@ -344,6 +347,9 @@ const (
 		"https://www.authelia.com/c/acl#bypass"
 	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomainRegex = errAccessControlRuleBypassPolicyOptionBypassIs +
 		"not supported when 'domain_regex' option contains the user or group named matches. For more information see: " +
+		"https://www.authelia.com/c/acl-match-concept-2"
+	errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomain = errAccessControlRuleBypassPolicyOptionBypassIs +
+		"not supported when 'domain' option contains the user or group tokens. For more information see: " +
 		"https://www.authelia.com/c/acl-match-concept-2"
 	errFmtAccessControlRuleNetworksInvalid = "access_control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"

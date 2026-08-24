@@ -83,6 +83,52 @@ func (o Object) String() string {
 	return o.URL.String()
 }
 
+// NewObjectMethodURLOrSchemeHostPath creates a new [Object] from the raw method and raw URL, falling back to the raw
+// scheme, host, and path when the raw URL is absent.
+func NewObjectMethodURLOrSchemeHostPath(rawMethod, rawURL, rawScheme, rawHost, rawPath []byte) (object *Object, err error) {
+	if len(rawURL) > 0 {
+		return NewObjectMethodURL(rawMethod, rawURL)
+	}
+
+	return NewObjectMethodSchemeHostPath(rawMethod, rawScheme, rawHost, rawPath)
+}
+
+// NewObjectMethodSchemeHostPath creates a new [Object] from the raw method and the raw scheme, host, and path which are
+// joined to form the request URL.
+func NewObjectMethodSchemeHostPath(rawMethod, rawScheme, rawHost, rawPath []byte) (object *Object, err error) {
+	if len(rawScheme) == 0 {
+		return nil, fmt.Errorf("missing scheme value")
+	}
+
+	if len(rawHost) == 0 {
+		return nil, fmt.Errorf("missing host value")
+	}
+
+	rawURL := utils.BytesJoin(rawScheme, sepSchemeHost, rawHost, rawPath)
+
+	return NewObjectMethodURL(rawMethod, rawURL)
+}
+
+// NewObjectMethodURL creates a new [Object] from the raw method and raw URL, validating the method and applying request
+// URI normalization to the URL.
+func NewObjectMethodURL(rawMethod, rawURL []byte) (object *Object, err error) {
+	var objectURL *url.URL
+
+	if hasInvalidMethodCharacters(rawMethod) {
+		return nil, fmt.Errorf("method header with value '%s' has invalid characters", rawMethod)
+	}
+
+	method := string(rawMethod)
+
+	if objectURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
+		return nil, fmt.Errorf("error occurred parsing object url: %w", err)
+	}
+
+	o := NewObject(objectURL, method)
+
+	return &o, nil
+}
+
 // NewObjectRaw creates a new Object type from a URL and a method header.
 func NewObjectRaw(targetURL *url.URL, method []byte) (object Object) {
 	return NewObject(targetURL, string(method))
@@ -90,11 +136,14 @@ func NewObjectRaw(targetURL *url.URL, method []byte) (object Object) {
 
 // NewObject creates a new Object type from a URL and a method header.
 func NewObject(targetURL *url.URL, method string) (object Object) {
+	targetURL.Scheme = strings.ToLower(targetURL.Scheme)
+	targetURL.Host = strings.ToLower(targetURL.Host)
+
 	return Object{
 		URL:    targetURL,
 		Domain: targetURL.Hostname(),
 		Path:   utils.URLPathFullClean(targetURL),
-		Method: method,
+		Method: strings.ToUpper(method),
 	}
 }
 
@@ -121,4 +170,14 @@ func (r RuleMatchResult) IsMatch() (match bool) {
 // IsPotentialMatch returns true if the rule is potentially a match.
 func (r RuleMatchResult) IsPotentialMatch() (match bool) {
 	return r.MatchDomain && r.MatchResources && r.MatchQuery && r.MatchMethods && r.MatchNetworks && r.MatchSubjects && !r.MatchSubjectsExact
+}
+
+func hasInvalidMethodCharacters(v []byte) bool {
+	for _, c := range v {
+		if (c < 0x41 || c > 0x5A) && (c < 0x61 || c > 0x7A) {
+			return true
+		}
+	}
+
+	return false
 }

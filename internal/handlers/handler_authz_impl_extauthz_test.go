@@ -188,7 +188,7 @@ func (s *ExtAuthzAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 
 func (s *ExtAuthzAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 	for _, method := range testRequestMethods {
-		method += "z"
+		method += "1"
 
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{

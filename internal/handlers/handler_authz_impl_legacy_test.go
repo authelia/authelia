@@ -46,14 +46,14 @@ func TestHandleAuthzGetObjectLegacy(t *testing.T) {
 		},
 		{
 			Name:            "ShouldReturnErrorNamingForwardedMethodWhenItHasInvalidCharacters",
-			ForwardedMethod: "GETz",
+			ForwardedMethod: "GET1",
 			Method:          fasthttp.MethodGet,
-			Error:           "header 'X-Forwarded-Method' with value 'GETz' has invalid characters",
+			Error:           "method header with value 'GET1' has invalid characters",
 		},
 		{
 			Name:   "ShouldReturnErrorNamingStartLineMethodWhenItHasInvalidCharacters",
-			Method: "GETz",
-			Error:  "start line value 'Method' with value 'GETz' has invalid characters",
+			Method: "GET1",
+			Error:  "method header with value 'GET1' has invalid characters",
 		},
 	}
 
@@ -345,7 +345,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 
 func (s *LegacyAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 	for _, method := range testRequestMethods {
-		method += "z"
+		method += "1"
 
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
@@ -796,4 +796,112 @@ func setRequestLegacy(ctx *middlewares.AutheliaCtx, method string, targetURI *ur
 	}
 
 	setRequestXHRValues(ctx, accept, xhr)
+}
+
+func TestHandleAuthzGetObjectLegacyFallbacks(t *testing.T) {
+	testCases := []struct {
+		name           string
+		originalURL    string
+		forwardedHost  string
+		forwardedURI   string
+		host           string
+		requestURI     string
+		expectedDomain string
+		expectedPath   string
+		err            string
+	}{
+		{
+			"ShouldUseOriginalURL",
+			"https://app.example.com/admin",
+			"forwarded.example.com",
+			"/forwarded",
+			"host.example.com",
+			"/start",
+			"app.example.com",
+			"/admin",
+			"",
+		},
+		{
+			"ShouldUseForwardedHeaders",
+			"",
+			"forwarded.example.com",
+			"/forwarded",
+			"host.example.com",
+			"/start",
+			"forwarded.example.com",
+			"/forwarded",
+			"",
+		},
+		{
+			"ShouldFallbackToHostHeaderWhenForwardedHostMissing",
+			"",
+			"",
+			"/forwarded",
+			"host.example.com",
+			"/start",
+			"host.example.com",
+			"/forwarded",
+			"",
+		},
+		{
+			"ShouldFallbackToStartLinePathWhenForwardedURIMissing",
+			"",
+			"forwarded.example.com",
+			"",
+			"host.example.com",
+			"/start",
+			"forwarded.example.com",
+			"/start",
+			"",
+		},
+		{
+			"ShouldFallbackToBothWhenForwardedHeadersMissing",
+			"",
+			"",
+			"",
+			"host.example.com",
+			"/start",
+			"host.example.com",
+			"/start",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.SetMethod(fasthttp.MethodGet)
+			mock.Ctx.Request.SetRequestURI(tc.requestURI)
+			mock.Ctx.Request.SetHost(tc.host)
+
+			mock.Ctx.Request.Header.Del("X-Forwarded-Host")
+			mock.Ctx.Request.Header.Del("X-Forwarded-URI")
+			mock.Ctx.Request.Header.Del("X-Original-URL")
+
+			if tc.originalURL != "" {
+				mock.Ctx.Request.Header.Set("X-Original-URL", tc.originalURL)
+			}
+
+			if tc.forwardedHost != "" {
+				mock.Ctx.Request.Header.Set("X-Forwarded-Host", tc.forwardedHost)
+			}
+
+			if tc.forwardedURI != "" {
+				mock.Ctx.Request.Header.Set("X-Forwarded-URI", tc.forwardedURI)
+			}
+
+			object, err := handleAuthzGetObjectLegacy(mock.Ctx)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedDomain, object.Domain)
+				assert.Equal(t, tc.expectedPath, object.Path)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
 }

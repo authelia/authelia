@@ -1806,7 +1806,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 		s.T().Skip()
 	}
 
-	builder := NewAuthzBuilder().WithImplementationLegacy()
+	builder := s.Builder()
 
 	header := NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic")
 	header.delay = middlewares.NewTimingAttackDelay(1, time.Millisecond).SetMinimumDelay(10).SetRecord(false)
@@ -1857,11 +1857,6 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 			RequestMethod: fasthttp.MethodGet,
 		}
 
-		switch s.implementation {
-		case AuthzImplExtAuthz, AuthzImplForwardAuth:
-			attempt.RequestURI += "/"
-		}
-
 		mock.StorageMock.
 			EXPECT().
 			AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil)
@@ -1891,7 +1886,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithoutHeaderNoCookie() {
 		s.T().Skip()
 	}
 
-	builder := NewAuthzBuilder().WithImplementationLegacy()
+	builder := s.Builder()
 
 	header := NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic")
 	header.delay = middlewares.NewTimingAttackDelay(1, time.Millisecond).SetMinimumDelay(10).SetRecord(false)
@@ -1926,7 +1921,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithEmptyAuthorizationHeader() {
 		s.T().Skip()
 	}
 
-	builder := NewAuthzBuilder().WithImplementationLegacy()
+	builder := s.Builder()
 
 	header := NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic")
 	header.delay = middlewares.NewTimingAttackDelay(1, time.Millisecond).SetMinimumDelay(10).SetRecord(false)
@@ -1963,7 +1958,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 		s.T().Skip()
 	}
 
-	builder := NewAuthzBuilder().WithImplementationLegacy()
+	builder := s.Builder()
 
 	header := NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic")
 	header.delay = middlewares.NewTimingAttackDelay(1, time.Millisecond).SetMinimumDelay(10).SetRecord(false)
@@ -2015,11 +2010,6 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 			RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
 			RequestURI:    "https://one-factor.example.com",
 			RequestMethod: fasthttp.MethodGet,
-		}
-
-		switch s.implementation {
-		case AuthzImplExtAuthz, AuthzImplForwardAuth:
-			attempt.RequestURI += "/"
 		}
 
 		mock.StorageMock.
