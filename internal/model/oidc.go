@@ -381,6 +381,48 @@ func (s *OAuth2ConsentSession) GetGrantedAudience() []string {
 	return s.GrantedAudience
 }
 
+// MatchesRequester returns an error if the requester is not a technical match for this OAuth2ConsentSession. The
+// prefixPAR value must be the Pushed Authorization Request URI prefix as consent sessions generated for a Pushed
+// Authorization Request only record the 'request_uri' and 'client_id' parameters, so only those parameters are
+// compared for such sessions.
+func (s *OAuth2ConsentSession) MatchesRequester(requester oauthelia2.Requester, prefixPAR string) (err error) {
+	if s.ClientID != requester.GetClient().GetID() {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested client id '%s' does not match the requested client id '%s' from the consent session.", requester.GetClient().GetID(), s.ClientID)
+	}
+
+	if !oauthelia2.Arguments(s.RequestedScopes).Matches(requester.GetRequestedScopes()...) {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested scope '%s' does not match the requested scope '%s' from the consent session.", strings.Join(requester.GetRequestedScopes(), " "), strings.Join(s.RequestedScopes, " "))
+	}
+
+	if !oauthelia2.Arguments(s.RequestedAudience).Matches(requester.GetRequestedAudience()...) {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested audience '%s' does not match the requested audience '%s' from the consent session.", strings.Join(requester.GetRequestedAudience(), " "), strings.Join(s.RequestedAudience, " "))
+	}
+
+	var form url.Values
+
+	if form, err = s.GetForm(); err != nil {
+		return oauthelia2.ErrServerError.WithDebugf("Error occurred parsing the consent request form. %v", err)
+	}
+
+	if requestURI := form.Get(formParameterRequestURI); len(prefixPAR) != 0 && strings.HasPrefix(requestURI, prefixPAR) {
+		if requestURI != requester.GetRequestForm().Get(formParameterRequestURI) {
+			return oauthelia2.ErrInvalidRequest.WithDebugf("The requested request uri '%s' does not match the requested request uri '%s' from the consent session.", requester.GetRequestForm().Get(formParameterRequestURI), requestURI)
+		}
+
+		return nil
+	}
+
+	if form.Get(formParameterNonce) != requester.GetRequestForm().Get(formParameterNonce) {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested nonce does not match the requested nonce from the consent session.")
+	}
+
+	if form.Get(formParameterState) != requester.GetRequestForm().Get(formParameterState) {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested state does not match the requested state from the consent session.")
+	}
+
+	return nil
+}
+
 // OAuth2BlacklistedJTI represents a blacklisted JTI used with OAuth2.0.
 type OAuth2BlacklistedJTI struct {
 	ID        int       `db:"id"`
