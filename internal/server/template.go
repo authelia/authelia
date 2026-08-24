@@ -85,7 +85,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		data := &bytes.Buffer{}
 
 		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, rememberMe)); err != nil {
-			ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+			ctx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
 			return
@@ -98,8 +98,8 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
 		default:
 			if _, err = data.WriteTo(ctx.Response.BodyWriter()); err != nil {
-				ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
-				ctx.Logger.WithError(err).Errorf("Error occurred writing body")
+				ctx.GetLogger().WithError(err).Error("Error occurred writing response body")
+				ctx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
 
 				return
 			}
@@ -141,7 +141,7 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 
 		data := &bytes.Buffer{}
 		if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), baseURL, domain, nonce)); err != nil {
-			ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+			ctx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
 			return
@@ -154,7 +154,7 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(data.Len()))
 		default:
 			if _, err = data.WriteTo(ctx.Response.BodyWriter()); err != nil {
-				ctx.RequestCtx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
+				ctx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
 				ctx.Logger.WithError(err).Errorf("Error occurred writing body")
 
 				return
