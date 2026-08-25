@@ -31,7 +31,7 @@
     "start": "vite --host",
     "build": "vite build",
     "coverage": "VITE_COVERAGE=true vite build",
-    "lint": "eslint --format visualstudio --ext .js,.jsx,.ts,.tsx --fix .",
+    "lint": "eslint --format visualstudio --no-warn-ignored --fix",
     "test": "vitest run --coverage",
     "test:watch": "vitest --coverage --ui",
     "test:preview": "vitest-preview",
