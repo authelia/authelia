@@ -1,6 +1,7 @@
 .env
 .netlify
 .hugo_build.lock
+hugo_stats.json
 node_modules
 public
 resources

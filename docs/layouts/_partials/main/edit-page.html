@@ -20,12 +20,13 @@
 
 {{ $filePath := replace .File.Path "\\" "/" }}
 
-{{ $lang := "" }}
+{{ $parts = $parts | append "content" }}
+
 {{ if site.Params.doks.multilingualMode }}
-{{ $lang = .Lang }}
+{{ $parts = $parts | append .Lang }}
 {{ end }}
 
-{{ $parts = $parts | append "content" $lang $filePath }}
+{{ $parts = $parts | append $filePath }}
 
 {{ $url := delimit $parts "/" }}
 
