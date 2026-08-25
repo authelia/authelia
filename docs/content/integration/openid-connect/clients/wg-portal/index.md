@@ -108,7 +108,7 @@ auth:
         admin_group_regex: ^{{< sitevar name="admin-group" nojs="admins" >}}$
 ```
 
-If you do not want to map an admin group just omit the *admin_mapping* section.
+If you do not want to map an admin group just omit the _admin_mapping_ section.
 
 ## See Also
 

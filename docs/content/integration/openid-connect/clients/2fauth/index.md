@@ -46,7 +46,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [2FAuth] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [2FAuth] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -87,7 +87,7 @@ OPENID_CLIENT_SECRET=insecure_secret
 OPENID_HTTP_VERIFY_SSL_PEER=true
 ```
 
-If you use a self-signed certificate, set *OPENID_HTTP_VERIFY_SSL_PEER* to the filepath of that certificate or to *false* to disable SSL verification completely.
+If you use a self-signed certificate, set _OPENID_HTTP_VERIFY_SSL_PEER_ to the filepath of that certificate or to _false_ to disable SSL verification completely.
 
 ## See Also
 

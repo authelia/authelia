@@ -68,7 +68,9 @@ if [[ $# -eq 0 ]]; then
   echo "--- :shellcheck::service_dog: Running shellcheck"
   run_shellcheck || FAILED=1
   echo "--- :eslint::service_dog: Running eslint"
-  cd web && eslint '*/**/*.{js,ts,tsx}' || FAILED=1 && cd ..
+  pnpm -C web exec eslint '*/**/*.{js,ts,tsx}' || FAILED=1
+  echo "--- :prettier::service_dog: Running prettier"
+  pnpm -C docs exec eslint . || FAILED=1
 
   echo "--- :go::service_dog: Lint Runners Completed"
   if [[ ${FAILED} -ne 0 ]]; then
