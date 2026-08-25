@@ -32,11 +32,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://{{< sitevar name="subdomain-2fauth" nojs="2fauth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Provider ID:__ `{{< sitevar name="provider-id" nojs="authelia" >}}`
-- __Client ID:__ `{{< sitevar name="client-id" nojs="2fauth" >}}`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://{{< sitevar name="subdomain-2fauth" nojs="2fauth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Provider ID:** `{{< sitevar name="provider-id" nojs="authelia" >}}`
+- **Client ID:** `{{< sitevar name="client-id" nojs="2fauth" >}}`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
