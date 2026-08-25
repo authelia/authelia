@@ -380,7 +380,7 @@ func (ctx *AutheliaCtx) GetSession() (userSession session.UserSession, err error
 	}
 
 	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
-		ctx.Logger.Error("Unable to retrieve user session")
+		ctx.Logger.WithError(err).Error("Unable to retrieve user session")
 		return provider.NewDefaultUserSession(), nil
 	}
 
