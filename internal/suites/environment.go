@@ -14,6 +14,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// suitesWithTraefikProxy matches suite names that run behind Traefik, which is what writes the access log.
+var suitesWithTraefikProxy = regexp.MustCompile(`^(OIDCTraefik|PathPrefix|Traefik2|Traefik3)$`)
+
 // suitesWithoutFrontend matches suite names that do not include the authelia-frontend service.
 var suitesWithoutFrontend = regexp.MustCompile(`^CLI$`)
 
@@ -70,7 +73,7 @@ func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) erro
 		dockerEnvironment,
 		"authelia-frontend",
 		time.Time{},
-		[]string{"dev server running at", "ready in", "server restarted"})
+		[]string{"ready in"})
 }
 
 func waitUntilAutheliaFrontendRestarted(dockerEnvironment *DockerEnvironment, since time.Time) error {
@@ -80,7 +83,7 @@ func waitUntilAutheliaFrontendRestarted(dockerEnvironment *DockerEnvironment, si
 		dockerEnvironment,
 		"authelia-frontend",
 		since,
-		[]string{"Watching for file changes"})
+		[]string{"server restarted"})
 }
 
 func waitUntilK3DIsReady(dockerEnvironment *DockerEnvironment) error {

@@ -33,7 +33,14 @@ func (s *RodSuite) doSetupTest(url string) {
 	defer cancel()
 
 	s.Page = s.doCreateTab(s.T(), url)
-	s.verifyIsHome(s.T(), s.Context(ctx))
+
+	page := s.Context(ctx)
+
+	require.NoError(s.T(), page.WaitLoad())
+
+	s.doReloadIfRenderWasLost(s.T(), page, url)
+
+	s.verifyIsHome(s.T(), page)
 }
 
 func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
@@ -52,7 +59,21 @@ func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
 			return
 		}
 
-		page, err := browser.Page(proto.TargetCreateTarget{URL: url})
+		page, err := browser.Page(proto.TargetCreateTarget{})
+		if err != nil {
+			created <- tab{err: err}
+
+			return
+		}
+
+		// Installed before the tab reaches its target, because a document that has already loaded cannot
+		// be given the recording afterwards, and the first page of a test is the one these failures land
+		// on: a portal that never renders renders nothing to navigate away from.
+		if _, err = page.EvalOnNewDocument(consoleCollector); err != nil {
+			log.Debugf("Error installing the console collector: %v", err)
+		}
+
+		err = page.Navigate(url)
 
 		created <- tab{page: page, err: err}
 	}()

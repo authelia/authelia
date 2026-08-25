@@ -20,14 +20,34 @@ import (
 )
 
 const (
-	elementActionTimeout  = time.Second * 10
-	elementAttemptTimeout = time.Second
-	elementRetryInterval  = time.Millisecond * 50
-	elementStateTimeout   = time.Second * 5
-	pageRenderTimeout     = time.Second * 5
-	setupTestTimeout      = time.Second * 30
-	waitElementsAttempts  = 10
+	elementActionTimeout          = time.Second * 10
+	elementActionTimeoutDisrupted = time.Second * 30
+	elementAttemptTimeout         = time.Second
+	elementLocateTimeout          = time.Second * 20
+	elementLocateTimeoutDisrupted = time.Second * 45
+	elementRetryInterval          = time.Millisecond * 50
+	elementStateTimeout           = time.Second * 5
+	pageRenderTimeout             = time.Second * 5
+	setupTestTimeout              = time.Second * 30
+	waitElementsAttempts          = 10
 )
+
+var (
+	elementActionBudget = elementActionTimeout
+	elementLocateBudget = elementLocateTimeout
+)
+
+func doWithDisruptedDatastore(fn func()) {
+	previousAction, previousLocate := elementActionBudget, elementLocateBudget
+
+	elementActionBudget, elementLocateBudget = elementActionTimeoutDisrupted, elementLocateTimeoutDisrupted
+
+	defer func() {
+		elementActionBudget, elementLocateBudget = previousAction, previousLocate
+	}()
+
+	fn()
+}
 
 // RodSession binding a chrome session with devtool protocol.
 type RodSession struct {
@@ -249,11 +269,33 @@ func (rs *RodSession) CheckElementExistsLocatedByID(t *testing.T, page *rod.Page
 
 // WaitElementLocatedBySelector waits for an element matching the CSS selector to appear in the DOM.
 func (rs *RodSession) WaitElementLocatedBySelector(t *testing.T, page *rod.Page, selector string) *rod.Element {
-	e, err := page.Element(selector)
-	require.NoError(t, err)
-	require.NotNil(t, e)
+	// Bounded here rather than left to the page's context, which is the whole of what remains of the test.
+	// An element that never appears would otherwise spend the budget every later step still needed and
+	// report only that a deadline passed, naming neither the element nor what it was doing, which is what
+	// a portal that renders nothing looks like from the outside.
+	ctx, cancel := context.WithTimeout(page.GetContext(), elementLocateBudget)
 
-	return e
+	defer cancel()
+
+	found, err := page.Context(ctx).Element(selector)
+	if err != nil {
+		require.FailNowf(t, "Element was not located",
+			"selector '%s' did not appear within %s: %v\nelement state: %s",
+			selector, elementLocateBudget, err, describeElement(page, selector))
+
+		return nil
+	}
+
+	// Rebound onto the page the caller gave, from the object the wait already found. An element carries
+	// the page it was located on and hands it to everything derived from it, so returning it as it stands
+	// would leave a frame descended into afterwards on the context this cancels. Rebinding rather than
+	// looking the element up a second time, because a second lookup can miss one that has since left the
+	// document, which is what a page mid-render does between two states.
+	element, err := page.ElementFromObject(found.Object)
+	require.NoError(t, err)
+	require.NotNil(t, element)
+
+	return element
 }
 
 // WaitElementLocatedByClassName waits for an element located by class name.
@@ -362,7 +404,7 @@ func (rs *RodSession) waitElementTextIsNot(t *testing.T, page *rod.Page, selecto
 }
 
 func (rs *RodSession) waitElementText(t *testing.T, page *rod.Page, selector, value string, equal bool) {
-	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionTimeout)
+	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionBudget)
 
 	defer cancel()
 
@@ -399,7 +441,7 @@ func (rs *RodSession) waitElementText(t *testing.T, page *rod.Page, selector, va
 }
 
 func (rs *RodSession) doElementAction(t *testing.T, page *rod.Page, selector string, action func(element *rod.Element) error) {
-	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionTimeout)
+	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionBudget)
 
 	defer cancel()
 
@@ -410,7 +452,7 @@ func (rs *RodSession) doElementAction(t *testing.T, page *rod.Page, selector str
 
 	require.Failf(t, "Element action did not succeed",
 		"selector '%s' gave up after %s: %v\nelement state: %s",
-		selector, elementActionTimeout, err, describeElement(page, selector))
+		selector, elementActionBudget, err, describeElement(page, selector))
 }
 
 func retryElementAction(page *rod.Page, selector string, action func(element *rod.Element) error) error {

@@ -20,6 +20,7 @@ cat << EOF
     command: "authelia-scripts --log-level debug suites test ${SUITE_NAME} --failfast --headless"
     artifact_paths:
       - "screenshots/**/*.access.log"
+      - "screenshots/**/*.console.json"
       - "screenshots/**/*.containers.log"
       - "screenshots/**/*.html"
       - "screenshots/**/*.png"
