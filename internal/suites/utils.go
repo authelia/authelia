@@ -59,6 +59,39 @@ const diagnosticsResources = `() => JSON.stringify({
 	})),
 }, null, 2)`
 
+const consoleCollector = `(() => {
+	if (window.__diagnostics__) {
+		return;
+	}
+
+	const entries = window.__diagnostics__ = [];
+
+	const record = (kind, text) => {
+		if (entries.length < 200) {
+			entries.push({kind: kind, text: String(text).slice(0, 2000)});
+		}
+	};
+
+	for (const level of ['warn', 'error']) {
+		const original = console[level];
+
+		console[level] = (...args) => {
+			record(level, args.map((arg) => (arg instanceof Error ? (arg.stack || arg.message) : arg)).join(' '));
+			original.apply(console, args);
+		};
+	}
+
+	addEventListener('error', (event) => record('exception', event.error && event.error.stack ? event.error.stack : event.message));
+	addEventListener('unhandledrejection', (event) => record('rejection', event.reason && event.reason.stack ? event.reason.stack : event.reason));
+})()`
+
+const diagnosticsConsole = `() => JSON.stringify({
+	installed: Array.isArray(window.__diagnostics__),
+	entries: window.__diagnostics__ || [],
+}, null, 2)`
+
+var errPageNotCreated = errors.New("the page was not created")
+
 // StringToKeys returns the input.Key values which represent the given string.
 func StringToKeys(value string) []input.Key {
 	n := len(value)
@@ -119,11 +152,17 @@ func GetLoginBaseURLWithFallbackPrefix(baseDomain, fallback string) string {
 }
 
 func (rs *RodSession) collectCoverage(page *rod.Page) {
+	if page == nil {
+		return
+	}
+
 	coverageDir := "../../web/.nyc_output"
 
 	resp, err := page.Eval("() => JSON.stringify(window.__coverage__)")
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("Error collecting coverage: %v", err)
+
+		return
 	}
 
 	coverageData := fmt.Sprintf("%v", resp.Value)
@@ -131,14 +170,14 @@ func (rs *RodSession) collectCoverage(page *rod.Page) {
 	_ = os.MkdirAll(coverageDir, 0775)
 
 	if coverageData != "<nil>" {
-		err = os.WriteFile(fmt.Sprintf("%s/coverage-%s.json", coverageDir, uuid.New().String()), []byte(coverageData), 0664) //nolint:gosec
-		if err != nil {
-			log.Fatal(err)
+		if err = os.WriteFile(fmt.Sprintf("%s/coverage-%s.json", coverageDir, uuid.New().String()), []byte(coverageData), 0664); err != nil { //nolint:gosec
+			log.Errorf("Error writing coverage: %v", err)
+
+			return
 		}
 
-		err = filepath.Walk("../../web/.nyc_output", fixCoveragePath)
-		if err != nil {
-			log.Fatal(err)
+		if err = filepath.Walk("../../web/.nyc_output", fixCoveragePath); err != nil {
+			log.Errorf("Error rewriting coverage paths: %v", err)
 		}
 	}
 }
@@ -301,7 +340,11 @@ func (rs *RodSession) collectContainerLogs(test *testing.T, base string) {
 
 		fmt.Fprintf(&builder, "===== %s =====\n%s\n", name, logs)
 
-		test.Logf("Last %d log lines of '%s':\n%s", containerLogTailLines, name, tailLines(logs, containerLogTailLines))
+		// The watchdog collects without a test to report against, since the timeout it is racing belongs
+		// to the binary rather than to any one test.
+		if test != nil {
+			test.Logf("Last %d log lines of '%s':\n%s", containerLogTailLines, name, tailLines(logs, containerLogTailLines))
+		}
 	}
 
 	if builder.Len() == 0 {
@@ -315,12 +358,15 @@ func (rs *RodSession) collectContainerLogs(test *testing.T, base string) {
 	}
 }
 
-func (rs *RodSession) collectProxyAccessLog(base string) {
+func (rs *RodSession) collectTraefikProxyAccessLog(base string) {
+	if !suitesWithTraefikProxy.MatchString(os.Getenv("SUITE")) {
+		return
+	}
+
 	source := SuiteTmpPath(proxyAccessLog())
 
 	data, err := os.ReadFile(source)
 	if err != nil {
-		// Suites that do not run behind a proxy have no such file.
 		log.Debugf("Error reading '%s': %v", source, err)
 
 		return
@@ -351,6 +397,7 @@ func (rs *RodSession) collectDiagnostics(page *rod.Page, base string) {
 	for name, expression := range map[string]string{
 		base + ".html":           `() => document.documentElement.outerHTML`,
 		base + ".resources.json": diagnosticsResources,
+		base + ".console.json":   diagnosticsConsole,
 	} {
 		path, _ := screenshotPaths(name)
 
@@ -367,22 +414,19 @@ func (rs *RodSession) collectDiagnostics(page *rod.Page, base string) {
 	}
 }
 
-func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Page) {
-	if !test.Failed() && !errors.Is(err, context.DeadlineExceeded) {
-		return
+func (rs *RodSession) collectPage(page *rod.Page, base string) (err error) {
+	// A test that failed before its tab was created has nothing to photograph, and the container logs the
+	// caller collects alongside this are the whole of what such a failure leaves behind.
+	if page == nil {
+		return errPageNotCreated
 	}
 
-	base := strings.NewReplacer("/", "-", " ", "_").Replace(test.Name())
-
-	defer rs.collectContainerLogs(test, base)
-	defer rs.collectProxyAccessLog(base)
-
-	path, reported := screenshotPaths(base + ".png")
+	path, _ := screenshotPaths(base + ".png")
 
 	if err = os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		log.Errorf("Error creating screenshot directory '%s': %v", filepath.Dir(path), err)
 
-		return
+		return err
 	}
 
 	rs.collectDiagnostics(page, base)
@@ -391,16 +435,36 @@ func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Pa
 		log.Debugf("Error labeling the screenshot with the page URL: %v", err)
 	}
 
-	data, err := page.Screenshot(true, nil)
-	if err != nil {
-		log.Errorf("Error capturing screenshot for '%s': %v", test.Name(), err)
+	var data []byte
 
-		return
+	if data, err = page.Screenshot(true, nil); err != nil {
+		log.Errorf("Error capturing screenshot '%s': %v", base, err)
+
+		return err
 	}
 
 	if err = os.WriteFile(path, data, 0600); err != nil {
 		log.Errorf("Error writing screenshot '%s': %v", path, err)
 
+		return err
+	}
+
+	return nil
+}
+
+func (rs *RodSession) collectScreenshot(test *testing.T, err error, page *rod.Page) {
+	if !test.Failed() && !errors.Is(err, context.DeadlineExceeded) {
+		return
+	}
+
+	base := strings.NewReplacer("/", "-", " ", "_").Replace(test.Name())
+
+	defer rs.collectContainerLogs(test, base)
+	defer rs.collectTraefikProxyAccessLog(base)
+
+	_, reported := screenshotPaths(base + ".png")
+
+	if err = rs.collectPage(page, base); err != nil {
 		return
 	}
 
