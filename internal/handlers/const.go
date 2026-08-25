@@ -65,6 +65,7 @@ var (
 const (
 	messageOperationFailed                       = "Operation failed."
 	messageAuthenticationFailed                  = "Authentication failed. Check your credentials."
+	messageAuthenticationFlowExpired              = "The sign-in flow is no longer valid. Please try signing in again."
 	messageUnableToOptionsOneTimePassword        = "Unable to retrieve TOTP registration options."            //nolint:gosec
 	messageUnableToRegisterOneTimePassword       = "Unable to set up one-time password."                      //nolint:gosec
 	messageUnableToDeleteRegisterOneTimePassword = "Unable to delete one-time password registration session." //nolint:gosec
