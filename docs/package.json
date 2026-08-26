@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@docsearch/css": "5.0.4",
-    "@docsearch/js": "5.0.3",
+    "@docsearch/js": "5.0.4",
     "@tabler/icons": "3.46.0",
     "@thulite/core": "1.5.9",
     "@thulite/doks-core": "1.9.3",
