@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/codecov.json
 codecov:
   require_ci_to_pass: true
 
@@ -15,19 +16,19 @@ coverage:
     project:
       default: false
       backend:
-        base: auto
+        target: auto
         threshold: 0.15%
         flags:
           - backend
       frontend:
-        base: auto
+        target: auto
         threshold: 0.15%
         flags:
           - frontend
-  patch:
-    default:
-      target: 90%
-      threshold: 10%
+    patch:
+      default:
+        target: 90%
+        threshold: 10%
 
 flags:
   backend:
@@ -41,17 +42,7 @@ flags:
     paths:
       - "web/"
       - "!web/coverage/"
-      - "!web/src/serviceWorker.ts"
 
 ignore:
   - "**/coverage.txt"
-
-
-parsers:
-  gcov:
-    branch_detection:
-      conditional: true
-      loop: true
-      method: false
-      macro: false
 ...
