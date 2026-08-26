@@ -34,15 +34,29 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
       go tool covdata percent -i=coverage
       go tool covdata textfmt -i=coverage -o coverage.txt
     fi
-    if [[ ${BUILDKITE_AGENT_META_DATA_CODECOV} == "verbose" ]]; then
-      BUILDKITE_AGENT_META_DATA_CODECOV="-v"
+    if ! command -v codecovcli > /dev/null; then
+      echo "codecovcli is not installed on this agent; cannot upload coverage reports" >&2
+      exit 1
     fi
-    codecov -Z -c -f 'coverage*.txt' -n "${NAME}" -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
+
+    CODECOV_GLOBAL_ARGS=()
+    if [[ ${BUILDKITE_AGENT_META_DATA_CODECOV} == "verbose" ]]; then
+      CODECOV_GLOBAL_ARGS+=("-v")
+    fi
+
+    codecovcli "${CODECOV_GLOBAL_ARGS[@]}" upload-process -Z --disable-search -n "${NAME}" -F backend -f coverage.txt
+
     if [[ ! ${NAME} =~ ^(BypassAll|CLI|PAM)$ ]]; then
       if [[ ${BUILDKITE_LABEL} =~ :selenium: ]]; then
         pnpm -C web report
       fi
-      codecov -Z -c -f '!Dockerfile*' -f '!*.go' -f '!*.tar' -f '!*.zst' -n "${NAME}" -F frontend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
+
+      if [[ ! -s web/coverage/lcov.info ]]; then
+        echo "No frontend coverage was recorded at web/coverage/lcov.info" >&2
+        exit 1
+      fi
+
+      codecovcli "${CODECOV_GLOBAL_ARGS[@]}" upload-process -Z --disable-search -n "${NAME}" -F frontend -f web/coverage/lcov.info
     fi
   fi
 fi

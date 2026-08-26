@@ -109,6 +109,7 @@ export default defineConfig(({ mode }) => {
             coverage: {
                 include: ["src"],
                 provider: "istanbul",
+                reporter: ["text", "html", "clover", "json", "lcovonly"],
             },
             environment: "happy-dom",
             globals: true,
