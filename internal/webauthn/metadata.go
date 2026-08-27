@@ -35,7 +35,7 @@ func NewMetaDataProvider(config *schema.Configuration, store storage.CachedDataP
 			handler:     &productionMDS3Provider{},
 		}
 
-		if p.decoder, err = metadata.NewDecoder(metadata.WithIgnoreEntryParsingErrors()); err != nil {
+		if p.decoder, err = metadata.NewDecoder(metadata.WithIgnoreEntryParsingErrors(), metadata.WithRootCertificate(productionMDSRoot)); err != nil {
 			return nil, err
 		}
 
