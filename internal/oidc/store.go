@@ -212,9 +212,12 @@ func (s *Store) GetAccessTokenSession(ctx context.Context, signature string, ses
 	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeAccessToken, signature, session)
 }
 
-// CreateRefreshTokenSession stores the authorization request for a given refresh token.
+// CreateRefreshTokenSession stores the authorization request for a given refresh token. The accessSignature is the
+// signature of the access token issued alongside this refresh token, which a store may record to revoke the pair
+// together during rotation. It is not recorded here as this store tracks the relationship through the request ID
+// shared by both sessions, which is what RotateRefreshToken and the revocation methods key on.
 // This implements a portion of oauth2.RefreshTokenStorage.
-func (s *Store) CreateRefreshTokenSession(ctx context.Context, signature string, request oauthelia2.Requester) (err error) {
+func (s *Store) CreateRefreshTokenSession(ctx context.Context, signature string, accessSignature string, request oauthelia2.Requester) (err error) {
 	return s.saveSession(ctx, storage.OAuth2SessionTypeRefreshToken, signature, request)
 }
 
@@ -232,11 +235,37 @@ func (s *Store) RevokeRefreshToken(ctx context.Context, requestID string) (err e
 	return s.provider.DeactivateOAuth2SessionByRequestID(ctx, storage.OAuth2SessionTypeRefreshToken, requestID)
 }
 
-// RevokeRefreshTokenMaybeGracePeriod revokes an access token as specified in: https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
-// If the token passed to the request is an access token, the server MAY revoke the respective refresh token as well.
+// RotateRefreshToken deactivates the refresh token being exchanged and revokes the access tokens issued from the same
+// authorization grant, so a rotated pair cannot outlive the rotation. This store does not implement a refresh token
+// grace period, so the refresh token is deactivated immediately rather than marked as expiring.
 // This implements a portion of oauth2.TokenRevocationStorage.
-func (s *Store) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) (err error) {
+func (s *Store) RotateRefreshToken(ctx context.Context, requestID string, signature string) (err error) {
+	if err = s.RevokeAccessToken(ctx, requestID); err != nil {
+		return err
+	}
+
 	return s.RevokeRefreshToken(ctx, requestID)
+}
+
+// CreateClient is not implemented as this Authorization Server registers clients from its configuration rather than
+// through RFC 7591 Dynamic Client Registration.
+// This implements a portion of oauthelia2.ClientRegistrationManager.
+func (s *Store) CreateClient(ctx context.Context, client oauthelia2.Client) (err error) {
+	return errClientRegistrationNotSupported
+}
+
+// UpdateClient is not implemented as this Authorization Server registers clients from its configuration rather than
+// through RFC 7592 Dynamic Client Registration Management.
+// This implements a portion of oauthelia2.ClientRegistrationManager.
+func (s *Store) UpdateClient(ctx context.Context, id string, client oauthelia2.Client) (err error) {
+	return errClientRegistrationNotSupported
+}
+
+// DeleteClient is not implemented as this Authorization Server registers clients from its configuration rather than
+// through RFC 7592 Dynamic Client Registration Management.
+// This implements a portion of oauthelia2.ClientRegistrationManager.
+func (s *Store) DeleteClient(ctx context.Context, id string) (err error) {
+	return errClientRegistrationNotSupported
 }
 
 // GetRefreshTokenSession gets the authorization request for a given refresh token.

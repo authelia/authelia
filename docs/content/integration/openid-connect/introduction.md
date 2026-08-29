@@ -169,6 +169,10 @@ parameter):
 |       PS256        |      RSA       |  SHA-256 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |       PS384        |      RSA       |  SHA-384 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |       PS512        |      RSA       |  SHA-512 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
+|      Ed25519       |      OKP       |      SHA-512      | `sig` |                     N/A                      |                        N/A                         |
+|     ML-DSA-44      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
+|     ML-DSA-65      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
+|     ML-DSA-87      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
 |    RSA1_5 [^2]     |      RSA       |        N/A        | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |      RSA-OAEP      |      RSA       |   SHA-1 (MGF1)    | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |    RSA-OAEP-256    |      RSA       |  SHA-256 (MGF1)   | `enc` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
@@ -210,6 +214,10 @@ parameter):
 |       PS256        |      RSA       |  SHA-256 (MGF1)   | `sig` |       `private_key_jwt`        |
 |       PS384        |      RSA       |  SHA-384 (MGF1)   | `sig` |       `private_key_jwt`        |
 |       PS512        |      RSA       |  SHA-512 (MGF1)   | `sig` |       `private_key_jwt`        |
+|      Ed25519       |      OKP       |      SHA-512      | `sig` |       `private_key_jwt`        |
+|     ML-DSA-44      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
+|     ML-DSA-65      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
+|     ML-DSA-87      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
 |    RSA1_5 [^2]     |      RSA       |        N/A        | `enc` |       `private_key_jwt`        |
 |      RSA-OAEP      |      RSA       |   SHA-1 (MGF1)    | `enc` |       `private_key_jwt`        |
 |    RSA-OAEP-256    |      RSA       |  SHA-256 (MGF1)   | `enc` |       `private_key_jwt`        |
@@ -391,6 +399,10 @@ When responding with the Signed [JSON Web Token] the [JSON Web Token] `typ` head
 |      `ES256`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |      `ES384`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |      `ES512`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|     `Ed25519`     | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|    `ML-DSA-44`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|    `ML-DSA-65`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|    `ML-DSA-87`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 
 ## User Information Signing Algorithm
 
@@ -409,6 +421,10 @@ The following table describes the response from the [UserInfo Endpoint] dependin
 |      `ES256`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |      `ES384`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |      `ES512`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|     `Ed25519`     | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|    `ML-DSA-44`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|    `ML-DSA-65`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|    `ML-DSA-87`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 
 ## Endpoint Implementations
 

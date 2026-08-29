@@ -79,6 +79,10 @@ func cmdFlagsCryptoPrivateKeyECDSA(cmd *cobra.Command) {
 func cmdFlagsCryptoPrivateKeyEd25519(cmd *cobra.Command) {
 }
 
+func cmdFlagsCryptoPrivateKeyMLDSA(cmd *cobra.Command) {
+	cmd.Flags().StringP(cmdFlagNameParameters, "b", utils.KeyMLDSAParameters65, "Sets the ML-DSA parameter set which can be ML-DSA-44, ML-DSA-65, or ML-DSA-87")
+}
+
 func cryptoSANsToString(dnsSANs []string, ipSANs []net.IP) (sans []string) {
 	sans = make([]string, len(dnsSANs)+len(ipSANs))
 
@@ -167,6 +171,18 @@ func (ctx *CmdCtx) cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey an
 	case cmdUseEd25519:
 		if _, privateKey, err = ed25519.GenerateKey(ctx.providers.Random); err != nil {
 			return nil, fmt.Errorf("generating Ed25519 private key resulted in an error: %w", err)
+		}
+	case cmdUseMLDSA:
+		var (
+			parameters string
+		)
+
+		if parameters, err = cmd.Flags().GetString(cmdFlagNameParameters); err != nil {
+			return nil, err
+		}
+
+		if privateKey, err = utils.GenerateMLDSAKey(parameters); err != nil {
+			return nil, fmt.Errorf("generating ML-DSA private key resulted in an error: %w", err)
 		}
 	}
 
@@ -339,8 +355,17 @@ func cryptoGetSANsFromCmd(cmd *cobra.Command) (dnsSANs []string, ipSANs []net.IP
 }
 
 func cryptoGetAlgFromCmd(cmd *cobra.Command) (keyAlg x509.PublicKeyAlgorithm, sigAlg x509.SignatureAlgorithm) {
-	sigAlgStr, _ := cmd.Flags().GetString(cmdFlagNameSignature)
+	var sigAlgStr string
+
 	keyAlgStr := cmd.Parent().Use
+
+	// ML-DSA has no choice of hash or padding for a signature, so the parameter set of the key is what selects the
+	// signature algorithm. The signature flag does not apply and is ignored, as it already is for Ed25519.
+	if keyAlgStr == cmdUseMLDSA {
+		sigAlgStr, _ = cmd.Flags().GetString(cmdFlagNameParameters)
+	} else {
+		sigAlgStr, _ = cmd.Flags().GetString(cmdFlagNameSignature)
+	}
 
 	return utils.KeySigAlgorithmFromString(keyAlgStr, sigAlgStr)
 }
@@ -525,10 +550,51 @@ func fmtCryptoHashUse(use string) string {
 	}
 }
 
+// cryptoKeyProperties returns the algorithm specific properties of a private key as they are appended to the property
+// line of the certificate and certificate request output, and whether the legacy PKCS#1 and SECG1 private key formats
+// exist for the key type. Neither Ed25519 nor ML-DSA has a legacy format.
+func cryptoKeyProperties(privateKey any) (properties string, legacy bool) {
+	switch k := privateKey.(type) {
+	case *rsa.PrivateKey:
+		return fmt.Sprintf(", Bits: %d", k.N.BitLen()), true
+	case *ecdsa.PrivateKey:
+		return fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name), true
+	case ed25519.PrivateKey:
+		return "", false
+	default:
+		if parameters, ok := utils.MLDSAParameterSetFromKey(k); ok {
+			return fmt.Sprintf(", Parameters: %s", parameters), false
+		}
+
+		return "", true
+	}
+}
+
+// cryptoKeyAlgorithm returns the algorithm of a private key as it is reported on the key pair output, and whether the
+// legacy PKCS#1 and SECG1 private key formats exist for the key type.
+func cryptoKeyAlgorithm(privateKey any) (algorithm string, legacy bool) {
+	switch k := privateKey.(type) {
+	case *rsa.PrivateKey:
+		return fmt.Sprintf("RSA-%d %d bits", k.Size(), k.N.BitLen()), true
+	case *ecdsa.PrivateKey:
+		return fmt.Sprintf("ECDSA Curve %s", k.Curve.Params().Name), true
+	case ed25519.PrivateKey:
+		return "Ed25519", false
+	default:
+		if parameters, ok := utils.MLDSAParameterSetFromKey(k); ok {
+			return parameters, false
+		}
+
+		return "", true
+	}
+}
+
 func fmtCryptoCertificateUse(use string) string {
 	switch use {
 	case cmdUseEd25519:
 		return "Ed25519"
+	case cmdUseMLDSA:
+		return "ML-DSA"
 	default:
 		return strings.ToUpper(use)
 	}

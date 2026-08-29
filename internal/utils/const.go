@@ -36,6 +36,14 @@ const (
 	KeyAlgorithmRSA     = "RSA"
 	KeyAlgorithmECDSA   = "ECDSA"
 	KeyAlgorithmEd25519 = "ED25519"
+	KeyAlgorithmMLDSA   = "MLDSA"
+)
+
+// ML-DSA parameter set names.
+const (
+	KeyMLDSAParameters44 = "ML-DSA-44"
+	KeyMLDSAParameters65 = "ML-DSA-65"
+	KeyMLDSAParameters87 = "ML-DSA-87"
 
 	HashAlgorithmSHA1   = "SHA1"
 	HashAlgorithmSHA256 = "SHA256"

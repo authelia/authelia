@@ -350,7 +350,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, &oauthelia2.Request{
+	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, "", &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -445,15 +445,19 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(sql.ErrNoRows),
 		s.mock.
 			EXPECT().
+			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7200").
+			Return(nil),
+		s.mock.
+			EXPECT().
 			DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, "65471ccb-d650-4006-a95f-cb4f4e3d7200").
 			Return(nil),
 		s.mock.
 			EXPECT().
-			DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, "65471ccb-d650-4006-a95f-cb4f4e3d7201").
+			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7201").
 			Return(fmt.Errorf("not found")),
 		s.mock.
 			EXPECT().
-			DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, "65471ccb-d650-4006-a95f-cb4f4e3d7202").
+			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7202").
 			Return(sql.ErrNoRows),
 		s.mock.
 			EXPECT().
@@ -498,9 +502,9 @@ func (s *StoreSuite) TestRevokeSessions() {
 	s.EqualError(s.store.RevokeRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201"), "not found")
 	s.EqualError(s.store.RevokeRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202"), "sql: no rows in result set")
 
-	s.NoError(s.store.RevokeRefreshTokenMaybeGracePeriod(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7200", "1"))
-	s.EqualError(s.store.RevokeRefreshTokenMaybeGracePeriod(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201", "2"), "not found")
-	s.EqualError(s.store.RevokeRefreshTokenMaybeGracePeriod(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202", "3"), "sql: no rows in result set")
+	s.NoError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7200", "1"))
+	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201", "2"), "not found")
+	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202", "3"), "not_found")
 
 	s.NoError(s.store.DeletePKCERequestSession(s.ctx, "pkce1"))
 	s.EqualError(s.store.DeletePKCERequestSession(s.ctx, "pkce2"), "not found")

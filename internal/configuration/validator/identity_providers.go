@@ -2,6 +2,7 @@ package validator
 
 import (
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"errors"
 	"fmt"
@@ -511,7 +512,15 @@ func validateOIDCIssuerPrivateKeyPair(i int, config *schema.IdentityProvidersOpe
 		}
 	case *ecdsa.PrivateKey:
 		checkEqualKey = true
+	case ed25519.PrivateKey:
+		checkEqualKey = true
 	default:
+		if utils.IsMLDSAPrivateKey(key) {
+			checkEqualKey = true
+
+			break
+		}
+
 		validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysKeyNotRSAOrECDSA, i+1, config.JSONWebKeys[i].KeyID, key))
 	}
 
@@ -1416,6 +1425,26 @@ func validateOIDDClientSigningAlgs(c int, config *schema.IdentityProvidersOpenID
 	config.Clients[c].AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID = validateOIDDClientSigningAlg(c, config, config.Clients[c].AccessTokenSignedResponseAlg, schema.DefaultOpenIDConnectClientConfiguration.AccessTokenSignedResponseAlg, config.Clients[c].AccessTokenSignedResponseKeyID, attrOIDCAccessTokenPrefix, validator)
 	config.Clients[c].UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID = validateOIDDClientSigningAlg(c, config, config.Clients[c].UserinfoSignedResponseAlg, schema.DefaultOpenIDConnectClientConfiguration.UserinfoSignedResponseAlg, config.Clients[c].UserinfoSignedResponseKeyID, attrOIDCUserinfoPrefix, validator)
 	config.Clients[c].IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID = validateOIDDClientSigningAlg(c, config, config.Clients[c].IntrospectionSignedResponseAlg, schema.DefaultOpenIDConnectClientConfiguration.IntrospectionSignedResponseAlg, config.Clients[c].IntrospectionSignedResponseKeyID, attrOIDCIntrospectionPrefix, validator)
+
+	validateOIDCClientAccessTokenJWTAudience(c, config, validator)
+}
+
+// validateOIDCClientAccessTokenJWTAudience warns when a client issues RFC9068 JWT Profile Access Tokens but has no
+// audience for them to be issued to. RFC9068 Section 2.2 requires the 'aud' claim, and the Authorization Server has
+// nothing to populate it with when neither the client nor the request names an audience, so the token is minted
+// without it. This is a warning rather than an error as a deployment which only introspects its own tokens is
+// unaffected in practice, whereas a resource server validating the token per RFC9068 Section 4 will reject it.
+func validateOIDCClientAccessTokenJWTAudience(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	switch config.Clients[c].AccessTokenSignedResponseAlg {
+	case "", oidc.SigningAlgNone:
+		return
+	}
+
+	if len(config.Clients[c].Audience) != 0 {
+		return
+	}
+
+	validator.PushWarning(fmt.Errorf(errFmtOIDCClientAccessTokenJWTNoAudience, config.Clients[c].ID, config.Clients[c].AccessTokenSignedResponseAlg))
 }
 
 func validateOIDDClientSigningAlg(c int, config *schema.IdentityProvidersOpenIDConnect, alg, defaultAlg, kid, attribute string, validator *schema.StructValidator) (outAlg, outKID string) {

@@ -5,9 +5,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-jose/go-jose/v4"
-
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/token/jose"
 	"authelia.com/provider/oauth2/token/jwt"
 	"authelia.com/provider/oauth2/x/errorsx"
 
@@ -673,6 +672,12 @@ func (c *RegisteredClient) GetJSONWebKeysURI() (uri string) {
 // key.
 func (c *RegisteredClient) GetRequestObjectSigningKeyID() (kid string) {
 	return ""
+}
+
+// GetRequireSignedRequestObject returns false as this implementation exposes no client metadata value which requires
+// an authorization request be provided as a Request Object.
+func (c *RegisteredClient) GetRequireSignedRequestObject() (require bool) {
+	return false
 }
 
 // GetRequestObjectSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request

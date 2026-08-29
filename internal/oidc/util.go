@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/text/language"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
+	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -36,8 +36,8 @@ func IsPushedAuthorizedRequestForm(form url.Values, prefix string) (is bool) {
 }
 
 // SortedSigningAlgs is a sorting type which allows the use of [sort.Sort] to order a list of OAuth 2.0 Signing Algs.
-// Algorithms are ordered by family with HMAC first, then RSA, ECDSA, and RSA-PSS, with the none algorithm last and
-// algorithms within a family ordered lexically.
+// Algorithms are ordered by family with HMAC first, then RSA, ECDSA, Edwards-curve, ML-DSA, and RSA-PSS, with the
+// none algorithm last and algorithms within a family ordered lexically.
 type SortedSigningAlgs []string
 
 // Len implements the [sort.Interface].
@@ -120,6 +120,14 @@ func isSigningAlgLess(i, j string) bool {
 		case ip == SigningAlgPrefixECDSA:
 			return true
 		case jp == SigningAlgPrefixECDSA:
+			return false
+		case ip == SigningAlgPrefixEdDSA:
+			return true
+		case jp == SigningAlgPrefixEdDSA:
+			return false
+		case ip == SigningAlgPrefixMLDSA:
+			return true
+		case jp == SigningAlgPrefixMLDSA:
 			return false
 		default:
 			return false

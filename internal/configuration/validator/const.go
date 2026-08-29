@@ -283,6 +283,11 @@ const (
 		"'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'"
 	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT = errFmtOIDCClientOption +
 		"'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'"
+	errFmtOIDCClientAccessTokenJWTNoAudience = errFmtOIDCClientOption +
+		"'audience' should be configured when option 'access_token_signed_response_alg' is configured to '%s' as " +
+		"RFC9068 requires the 'aud' claim in a JWT Profile Access Token and it is otherwise absent, which will " +
+		"cause a resource server to reject the token; the audience must also be requested, either by the client " +
+		"via the 'audience' parameter or by configuring option 'requested_audience_mode' to 'implicit'"
 	errFmtOIDCClientInvalidSectorIdentifierAbsolute = errFmtOIDCClientOption +
 		"'sector_identifier_uri' with value '%s': should be an absolute URI"
 	errFmtOIDCClientInvalidSectorIdentifierScheme = errFmtOIDCClientOption +
@@ -603,7 +608,7 @@ var (
 	validOIDCClientTokenEndpointAuthMethods                = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
 	validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
-	validOIDCIssuerJWKSigningAlgs                          = []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
+	validOIDCIssuerJWKSigningAlgs                          = append([]string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgEd25519}, oidc.SigningAlgsMLDSA...)
 	validOIDCClientJWKEncryptionKeyAlgs                    = []string{oidc.EncryptionAlgNone, oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW, oidc.EncryptionAlgA128KW, oidc.EncryptionAlgA192KW, oidc.EncryptionAlgA256KW, oidc.EncryptionAlgA128GCMKW, oidc.EncryptionAlgA192GCMKW, oidc.EncryptionAlgA256GCMKW, oidc.EncryptionAlgPBES2HS256A128KW, oidc.EncryptionAlgPBES2HS284A192KW, oidc.EncryptionAlgPBES2HS512A256KW}
 	validOIDCClientJWKContentEncryptionAlgs                = []string{oidc.EncryptionEncA128GCM, oidc.EncryptionEncA192GCM, oidc.EncryptionEncA256GCM, oidc.EncryptionEncA128CBCHS256, oidc.EncryptionEncA192CBCHS384, oidc.EncryptionEncA256CBCHS512}
 

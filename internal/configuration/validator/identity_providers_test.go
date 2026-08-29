@@ -1907,6 +1907,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
 				have.Clients[0].IDTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
 				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].Audience = []string{"https://app.example.com"}
 				have.Clients[0].AuthorizationSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
 
 				have.Discovery.ResponseObjectSigningAlgs = []string{oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
@@ -1964,6 +1965,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].UserinfoSignedResponseKeyID = id + oidc.SigningAlgRSAUsingSHA512
 				have.Clients[0].IDTokenSignedResponseKeyID = id + oidc.SigningAlgECDSAUsingP521AndSHA512
 				have.Clients[0].AccessTokenSignedResponseKeyID = id + oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].Audience = []string{"https://app.example.com"}
 				have.Clients[0].AuthorizationSignedResponseKeyID = id + oidc.SigningAlgECDSAUsingP521AndSHA512
 
 				have.Discovery.ResponseObjectSigningAlgs = []string{oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
@@ -2057,6 +2059,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
 				have.Clients[0].IDTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
 				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].Audience = []string{"https://app.example.com"}
 				have.Clients[0].AuthorizationSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
 
 				have.Discovery.ResponseObjectSigningAlgs = []string{oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
@@ -2090,6 +2093,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgRSAUsingSHA512
 				have.Clients[0].IDTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
 				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
+				have.Clients[0].Audience = []string{"https://app.example.com"}
 				have.Clients[0].AuthorizationSignedResponseAlg = oidc.SigningAlgECDSAUsingP521AndSHA512
 
 				have.Discovery.ResponseObjectSigningAlgs = []string{oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
@@ -2241,6 +2245,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].IDTokenSignedResponseAlg = rs256
 				have.Clients[0].UserinfoSignedResponseAlg = rs256
 				have.Clients[0].AccessTokenSignedResponseAlg = rs256
+				have.Clients[0].Audience = []string{"https://app.example.com"}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
 				assert.Equal(t, rs256, have.Clients[0].IntrospectionSignedResponseAlg)
@@ -2718,7 +2723,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', 'ES512', 'Ed25519', 'ML-DSA-44', 'ML-DSA-65', or 'ML-DSA-87' when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
 				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'",
 				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required",
 			},
@@ -2887,6 +2892,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].IDTokenSignedResponseKeyID = abcabc123
 				have.Clients[0].UserinfoSignedResponseKeyID = abc123abc
 				have.Clients[0].AccessTokenSignedResponseKeyID = abc123abc
+				have.Clients[0].Audience = []string{"https://app.example.com"}
 				have.Clients[0].IntrospectionSignedResponseKeyID = abc123abc
 				have.Discovery.ResponseObjectSigningKeyIDs = []string{abcabc123, abc123abc}
 			},
@@ -2915,6 +2921,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].UserinfoSignedResponseKeyID = "cd"
 				have.Clients[0].IntrospectionSignedResponseKeyID = "ef"
 				have.Clients[0].AccessTokenSignedResponseKeyID = "gh"
+				have.Clients[0].Audience = []string{"https://app.example.com"}
 				have.Discovery.ResponseObjectSigningKeyIDs = []string{"abc123xyz"}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
@@ -3067,6 +3074,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
 				have.Clients[0].AccessTokenEncryptedResponseAlg = oidc.EncryptionAlgECDHES
 				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+				have.Clients[0].Audience = []string{"https://app.example.com"}
 
 				have.Clients[0].AuthorizationEncryptedResponseEnc = ""
 				have.Clients[0].IDTokenEncryptedResponseEnc = ""
@@ -3110,6 +3118,72 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldRaiseWarningOnAccessTokenJWTWithoutAudience",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'audience' should be configured when option 'access_token_signed_response_alg' is configured to 'RS256' as RFC9068 requires the 'aud' claim in a JWT Profile Access Token and it is otherwise absent, which will cause a resource server to reject the token; the audience must also be requested, either by the client via the 'audience' parameter or by configuring option 'requested_audience_mode' to 'implicit'",
+			},
+			nil,
+		},
+		{
+			"ShouldNotRaiseWarningOnAccessTokenJWTWithAudience",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+				have.Clients[0].Audience = []string{"https://app.example.com"}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldNotRaiseWarningOnOpaqueAccessToken",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgNone
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
 			"ShouldRaiseErrorsClientSecretNotPlainText",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
 				have.Clients[0].AuthorizationEncryptedResponseAlg = oidc.EncryptionAlgA128KW
@@ -3121,6 +3195,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
 				have.Clients[0].AccessTokenEncryptedResponseAlg = oidc.EncryptionAlgA128KW
 				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+				have.Clients[0].Audience = []string{"https://app.example.com"}
 
 				have.Clients[0].AuthorizationEncryptedResponseEnc = ""
 				have.Clients[0].IDTokenEncryptedResponseEnc = ""
@@ -3175,6 +3250,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgHMACUsingSHA256
 				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgHMACUsingSHA256
 				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgHMACUsingSHA256
+				have.Clients[0].Audience = []string{"https://app.example.com"}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
 				assert.Equal(t, "", have.Clients[0].AuthorizationEncryptedResponseAlg)
@@ -3545,7 +3621,7 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'use' must be one of 'sig' or 'enc' but it's configured as 'cne'",
-				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' but it's configured as 'bad'",
+				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', 'ES512', 'Ed25519', 'ML-DSA-44', 'ML-DSA-65', or 'ML-DSA-87' but it's configured as 'bad'",
 			},
 		},
 		{
@@ -3923,7 +3999,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 			},
 			[]string{
-				"identity_providers: oidc: jwks: key #1 with key id 'c4c7ca-invalid': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' but it's configured as 'invalid'",
+				"identity_providers: oidc: jwks: key #1 with key id 'c4c7ca-invalid': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', 'ES512', 'Ed25519', 'ML-DSA-44', 'ML-DSA-65', or 'ML-DSA-87' but it's configured as 'invalid'",
 				"identity_providers: oidc: jwks: keys: must at least have one key supporting the 'RS256' algorithm but only has 'invalid'",
 			},
 		},
@@ -4103,7 +4179,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 		},
 		{
-			"ShouldRaiseErrorOnEd25519Keys",
+			"ShouldHandleEd25519Keys",
 			&schema.IdentityProvidersOpenIDConnect{
 				JSONWebKeys: []schema.JWK{
 					{Key: keyEd25519, CertificateChain: certEd25519},
@@ -4111,16 +4187,15 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				JSONWebKeys: []schema.JWK{
-					{Key: keyEd25519, CertificateChain: certEd25519, KeyID: "ca54bd"},
+					{Key: keyEd25519, CertificateChain: certEd25519, Algorithm: oidc.SigningAlgEd25519, Use: oidc.KeyUseSignature, KeyID: "ca54bd-ed25519"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultSigKeyIDs: map[string]string{},
+					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgEd25519: "ca54bd-ed25519"},
 					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
-				"identity_providers: oidc: jwks: key #1 with key id 'ca54bd': option 'use' must be one of 'sig' or 'enc' but it's configured as ''",
-				"identity_providers: oidc: jwks: key #1 with key id 'ca54bd': option 'key' must be a RSA private key or ECDSA private key but it's type is ed25519.PrivateKey",
+				"identity_providers: oidc: jwks: keys: must at least have one key supporting the 'RS256' algorithm but only has 'Ed25519'",
 			},
 		},
 		{

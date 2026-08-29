@@ -9,8 +9,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-jose/go-jose/v4"
 	"github.com/weppos/publicsuffix-go/publicsuffix"
+
+	"authelia.com/provider/oauth2/token/jose"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
@@ -130,7 +131,7 @@ func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err erro
 	case []byte:
 		return nil, fmt.Errorf("symmetric keys are not permitted for signing")
 	case ed25519.PrivateKey, ed25519.PublicKey:
-		return &JWKProperties{}, nil
+		return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgEd25519, -1, nil}, nil
 	case *rsa.PrivateKey:
 		if key.N == nil {
 			return &JWKProperties{oidc.KeyUseSignature, oidc.SigningAlgRSAUsingSHA256, 0, nil}, nil
@@ -166,6 +167,13 @@ func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err erro
 			return &JWKProperties{oidc.KeyUseSignature, "", -1, key.Curve}, nil
 		}
 	default:
+		// An ML-DSA key carries no curve, so the parameter set of the key is what selects the algorithm. It is
+		// matched here rather than in a type case because crypto/mldsa is only present from Go 1.27, and a build
+		// produced by an earlier toolchain must still compile.
+		if alg, ok := oidc.SigningAlgFromMLDSAKey(key); ok {
+			return &JWKProperties{oidc.KeyUseSignature, alg, -1, nil}, nil
+		}
+
 		return nil, fmt.Errorf("the key type '%T' is unknown or not valid for the configuration", key)
 	}
 }
@@ -221,6 +229,12 @@ func jwkCalculateKID(key schema.CryptographicKey, props *JWKProperties, alg stri
 	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey:
 		j.Key = k
 	default:
+		if utils.IsMLDSAPublicKey(k) {
+			j.Key = k
+
+			break
+		}
+
 		return "", nil
 	}
 

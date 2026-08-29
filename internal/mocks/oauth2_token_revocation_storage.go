@@ -56,17 +56,17 @@ func (mr *MockTokenRevocationStorageMockRecorder) CreateAccessTokenSession(ctx, 
 }
 
 // CreateRefreshTokenSession mocks base method.
-func (m *MockTokenRevocationStorage) CreateRefreshTokenSession(ctx context.Context, signature string, request oauth2.Requester) error {
+func (m *MockTokenRevocationStorage) CreateRefreshTokenSession(ctx context.Context, signature, accessSignature string, request oauth2.Requester) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRefreshTokenSession", ctx, signature, request)
+	ret := m.ctrl.Call(m, "CreateRefreshTokenSession", ctx, signature, accessSignature, request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateRefreshTokenSession indicates an expected call of CreateRefreshTokenSession.
-func (mr *MockTokenRevocationStorageMockRecorder) CreateRefreshTokenSession(ctx, signature, request any) *gomock.Call {
+func (mr *MockTokenRevocationStorageMockRecorder) CreateRefreshTokenSession(ctx, signature, accessSignature, request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRefreshTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).CreateRefreshTokenSession), ctx, signature, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRefreshTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).CreateRefreshTokenSession), ctx, signature, accessSignature, request)
 }
 
 // DeleteAccessTokenSession mocks base method.
@@ -155,16 +155,16 @@ func (mr *MockTokenRevocationStorageMockRecorder) RevokeRefreshToken(ctx, reques
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeRefreshToken", reflect.TypeOf((*MockTokenRevocationStorage)(nil).RevokeRefreshToken), ctx, requestID)
 }
 
-// RevokeRefreshTokenMaybeGracePeriod mocks base method.
-func (m *MockTokenRevocationStorage) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID, signature string) error {
+// RotateRefreshToken mocks base method.
+func (m *MockTokenRevocationStorage) RotateRefreshToken(ctx context.Context, requestID, signature string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RevokeRefreshTokenMaybeGracePeriod", ctx, requestID, signature)
+	ret := m.ctrl.Call(m, "RotateRefreshToken", ctx, requestID, signature)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// RevokeRefreshTokenMaybeGracePeriod indicates an expected call of RevokeRefreshTokenMaybeGracePeriod.
-func (mr *MockTokenRevocationStorageMockRecorder) RevokeRefreshTokenMaybeGracePeriod(ctx, requestID, signature any) *gomock.Call {
+// RotateRefreshToken indicates an expected call of RotateRefreshToken.
+func (mr *MockTokenRevocationStorageMockRecorder) RotateRefreshToken(ctx, requestID, signature any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeRefreshTokenMaybeGracePeriod", reflect.TypeOf((*MockTokenRevocationStorage)(nil).RevokeRefreshTokenMaybeGracePeriod), ctx, requestID, signature)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RotateRefreshToken", reflect.TypeOf((*MockTokenRevocationStorage)(nil).RotateRefreshToken), ctx, requestID, signature)
 }

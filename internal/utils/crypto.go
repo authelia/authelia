@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/ecdsa"
@@ -132,16 +133,7 @@ func ConvertDERToPEM(der []byte, blockType PEMBlockType) ([]byte, error) {
 }
 
 func publicKey(privateKey any) any {
-	switch k := privateKey.(type) {
-	case *rsa.PrivateKey:
-		return &k.PublicKey
-	case *ecdsa.PrivateKey:
-		return &k.PublicKey
-	case ed25519.PrivateKey:
-		return k.Public().(ed25519.PublicKey)
-	default:
-		return nil
-	}
+	return PublicKeyFromPrivateKey(privateKey)
 }
 
 // PrivateKeyBuilder interface for a private key builder.
@@ -314,7 +306,9 @@ func IsX509PrivateKey(i any) bool {
 	case rsa.PrivateKey, *rsa.PrivateKey, ecdsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ed25519.PrivateKey:
 		return true
 	default:
-		return false
+		// An ML-DSA private key has no dedicated case as crypto/mldsa only exists from Go 1.27, and this file must
+		// still compile on an earlier toolchain.
+		return IsMLDSAPrivateKey(i)
 	}
 }
 
@@ -528,7 +522,18 @@ func PEMBlockFromX509Key(key any, legacy bool) (block *pem.Block, err error) {
 		blockType = BlockTypeX509CRL
 		data = k.Raw
 	default:
-		err = fmt.Errorf("failed to match key type: %T", k)
+		// An ML-DSA key has no dedicated case as crypto/mldsa only exists from Go 1.27, and this file must still
+		// compile on an earlier toolchain. Both encoders below accept it on a build which has it.
+		switch {
+		case IsMLDSAPrivateKey(k):
+			blockType = BlockTypePKCS8PrivateKey
+			data, err = x509.MarshalPKCS8PrivateKey(k)
+		case IsMLDSAPublicKey(k):
+			blockType = BlockTypePKIXPublicKey
+			data, err = x509.MarshalPKIXPublicKey(k)
+		default:
+			err = fmt.Errorf("failed to match key type: %T", k)
+		}
 	}
 
 	if err != nil {
@@ -558,6 +563,12 @@ func KeySigAlgorithmFromString(keyAlgorithm, signatureAlgorithm string) (keyAlg 
 	case x509.Ed25519:
 		return keyAlg, x509.PureEd25519
 	default:
+		// ML-DSA offers no choice of hash or padding, so the signature algorithm follows from the parameter set
+		// rather than from the signature algorithm string, which is what callers pass here for this key type.
+		if alg, ok := PublicKeyAlgorithmMLDSA(); ok && keyAlg == alg {
+			return keyAlg, MLDSASignatureAlgorithmFromString(signatureAlgorithm)
+		}
+
 		return keyAlg, x509.UnknownSignatureAlgorithm
 	}
 }
@@ -571,6 +582,12 @@ func PublicKeyAlgorithmFromString(algorithm string) (alg x509.PublicKeyAlgorithm
 		return x509.ECDSA
 	case KeyAlgorithmEd25519:
 		return x509.Ed25519
+	case KeyAlgorithmMLDSA:
+		if alg, ok := PublicKeyAlgorithmMLDSA(); ok {
+			return alg
+		}
+
+		return x509.UnknownPublicKeyAlgorithm
 	default:
 		return x509.UnknownPublicKeyAlgorithm
 	}
@@ -636,6 +653,12 @@ func PublicKeyFromPrivateKey(privateKey any) (publicKey any) {
 	case ed25519.PrivateKey:
 		return k.Public().(ed25519.PublicKey)
 	default:
+		// An ML-DSA private key has no dedicated case as crypto/mldsa only exists from Go 1.27, and this file must
+		// still compile on an earlier toolchain.
+		if signer, ok := k.(crypto.Signer); ok && IsMLDSAPrivateKey(k) {
+			return signer.Public()
+		}
+
 		return nil
 	}
 }
