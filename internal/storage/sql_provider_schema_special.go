@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/model"
@@ -61,7 +62,7 @@ func migrationSpecialUp24(ctx context.Context, conn SQLXConnection, provider *SQ
 				continue
 			}
 
-			if err = credential.VerifyAttestationType(); err != nil {
+			if err = credential.VerifyAttestationType(protocol.AttestationPolicy{}, protocol.SignaturePolicy{}); err != nil {
 				continue
 			}
 
