@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/valyala/fasthttp"
 
@@ -94,9 +95,67 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 		creation *protocol.CredentialCreation
 	)
 
+	parameters := []protocol.CredentialParameter{
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgMLDSA44,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgMLDSA65,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgMLDSA87,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgEdDSA,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgES256,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgRS256,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgES384,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgES512,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgRS384,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgRS512,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgPS256,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgPS384,
+		},
+		{
+			Type:      protocol.PublicKeyCredentialType,
+			Algorithm: webauthncose.AlgPS512,
+		},
+	}
+
+	webauthn.CredentialParametersDefault()
+
 	opts := []webauthn.RegistrationOption{
 		webauthn.WithExclusions(user.WebAuthnCredentialDescriptors()),
-		webauthn.WithExtensions(map[string]any{"credProps": true}),
+		webauthn.WithExtensions(webauthn.WithExtensionCredProps()),
+		webauthn.WithCredentialParameters(parameters),
 	}
 
 	data := session.WebAuthn{
