@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set +u
 
-git fetch -q
+git fetch -q --tags --force
 
 if [[ ! "${BUILDKITE_COMMAND}" =~ ^\.buildkite/pipeline.sh ]]; then
   echo "--- :buildkite: Setting up Build environment"
+  # shellcheck source=/dev/null
   source bootstrap.sh
 
   if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]] || [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
