@@ -1429,11 +1429,6 @@ func validateOIDDClientSigningAlgs(c int, config *schema.IdentityProvidersOpenID
 	validateOIDCClientAccessTokenJWTAudience(c, config, validator)
 }
 
-// validateOIDCClientAccessTokenJWTAudience warns when a client issues RFC9068 JWT Profile Access Tokens but has no
-// audience for them to be issued to. RFC9068 Section 2.2 requires the 'aud' claim, and the Authorization Server has
-// nothing to populate it with when neither the client nor the request names an audience, so the token is minted
-// without it. This is a warning rather than an error as a deployment which only introspects its own tokens is
-// unaffected in practice, whereas a resource server validating the token per RFC9068 Section 4 will reject it.
 func validateOIDCClientAccessTokenJWTAudience(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
 	switch config.Clients[c].AccessTokenSignedResponseAlg {
 	case "", oidc.SigningAlgNone:

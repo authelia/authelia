@@ -482,6 +482,21 @@ func (mr *MockStorageMockRecorder) LoadOAuth2PushedAuthorizationSession(ctx, sig
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2PushedAuthorizationSession), ctx, signature)
 }
 
+// LoadOAuth2RefreshTokenSessionAccessSignature mocks base method.
+func (m *MockStorage) LoadOAuth2RefreshTokenSessionAccessSignature(ctx context.Context, signature string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2RefreshTokenSessionAccessSignature", ctx, signature)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2RefreshTokenSessionAccessSignature indicates an expected call of LoadOAuth2RefreshTokenSessionAccessSignature.
+func (mr *MockStorageMockRecorder) LoadOAuth2RefreshTokenSessionAccessSignature(ctx, signature any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2RefreshTokenSessionAccessSignature", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2RefreshTokenSessionAccessSignature), ctx, signature)
+}
+
 // LoadOAuth2Session mocks base method.
 func (m *MockStorage) LoadOAuth2Session(ctx context.Context, sessionType storage.OAuth2SessionType, signature string) (*model.OAuth2Session, error) {
 	m.ctrl.T.Helper()

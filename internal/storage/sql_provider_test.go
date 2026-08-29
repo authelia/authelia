@@ -253,6 +253,39 @@ func TestSQLProviderTransactions(t *testing.T) {
 
 		require.NoError(t, provider.Rollback(ctx))
 	})
+
+	t.Run("ShouldRollbackDiscardWrites", func(t *testing.T) {
+		ctx, err := provider.BeginTX(context.Background())
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{
+			Signature: "tx-rollback-jti",
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+		}))
+
+		require.NoError(t, provider.Rollback(ctx))
+
+		_, err = provider.LoadOAuth2BlacklistedJTI(context.Background(), "tx-rollback-jti")
+
+		assert.EqualError(t, err, "error selecting oauth2 blacklisted JTI with signature 'tx-rollback-jti': sql: no rows in result set")
+	})
+
+	t.Run("ShouldCommitPersistWrites", func(t *testing.T) {
+		ctx, err := provider.BeginTX(context.Background())
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveOAuth2BlacklistedJTI(ctx, model.OAuth2BlacklistedJTI{
+			Signature: "tx-commit-jti",
+			ExpiresAt: time.Now().Add(time.Hour).Truncate(time.Second),
+		}))
+
+		require.NoError(t, provider.Commit(ctx))
+
+		jti, err := provider.LoadOAuth2BlacklistedJTI(context.Background(), "tx-commit-jti")
+
+		require.NoError(t, err)
+		assert.Equal(t, "tx-commit-jti", jti.Signature)
+	})
 }
 
 func TestSQLProviderWebAuthn(t *testing.T) {

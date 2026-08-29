@@ -46,7 +46,7 @@ func cmdFlagsCryptoCertificateGenerate(cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameFileCertificate, "public.crt", "name of the file to export the certificate data to")
 	cmd.Flags().String(cmdFlagNameFileBundleChain, "public.chain.pem", fmt.Sprintf("name of the file to export the certificate chain PEM bundle to when the --%s flag includes 'chain'", cmdFlagNameBundles))
 	cmd.Flags().String(cmdFlagNameFileBundlePrivKeyChain, "private.chain.pem", fmt.Sprintf("name of the file to export the certificate chain and private key PEM bundle to when the --%s flag includes 'priv-chain'", cmdFlagNameBundles))
-	cmd.Flags().StringSlice(cmdFlagNameBundles, nil, "enables generating bundles options are 'chain' and 'privkey-chain'")
+	cmd.Flags().StringSlice(cmdFlagNameBundles, nil, "enables generating bundles options are 'chain' and 'priv-chain'")
 
 	cmd.Flags().StringSlice(cmdFlagNameExtendedUsage, nil, "specify the extended usage types of the certificate")
 
@@ -359,8 +359,6 @@ func cryptoGetAlgFromCmd(cmd *cobra.Command) (keyAlg x509.PublicKeyAlgorithm, si
 
 	keyAlgStr := cmd.Parent().Use
 
-	// ML-DSA has no choice of hash or padding for a signature, so the parameter set of the key is what selects the
-	// signature algorithm. The signature flag does not apply and is ignored, as it already is for Ed25519.
 	if keyAlgStr == cmdUseMLDSA {
 		sigAlgStr, _ = cmd.Flags().GetString(cmdFlagNameParameters)
 	} else {
@@ -550,9 +548,6 @@ func fmtCryptoHashUse(use string) string {
 	}
 }
 
-// cryptoKeyProperties returns the algorithm specific properties of a private key as they are appended to the property
-// line of the certificate and certificate request output, and whether the legacy PKCS#1 and SECG1 private key formats
-// exist for the key type. Neither Ed25519 nor ML-DSA has a legacy format.
 func cryptoKeyProperties(privateKey any) (properties string, legacy bool) {
 	switch k := privateKey.(type) {
 	case *rsa.PrivateKey:
@@ -570,8 +565,6 @@ func cryptoKeyProperties(privateKey any) (properties string, legacy bool) {
 	}
 }
 
-// cryptoKeyAlgorithm returns the algorithm of a private key as it is reported on the key pair output, and whether the
-// legacy PKCS#1 and SECG1 private key formats exist for the key type.
 func cryptoKeyAlgorithm(privateKey any) (algorithm string, legacy bool) {
 	switch k := privateKey.(type) {
 	case *rsa.PrivateKey:

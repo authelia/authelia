@@ -213,12 +213,20 @@ func (s *Store) GetAccessTokenSession(ctx context.Context, signature string, ses
 }
 
 // CreateRefreshTokenSession stores the authorization request for a given refresh token. The accessSignature is the
-// signature of the access token issued alongside this refresh token, which a store may record to revoke the pair
-// together during rotation. It is not recorded here as this store tracks the relationship through the request ID
-// shared by both sessions, which is what RotateRefreshToken and the revocation methods key on.
+// signature of the access token issued alongside this refresh token and is recorded against the session so
+// RotateRefreshToken can revoke exactly that access token when this refresh token is exchanged. It is empty when the
+// refresh token was issued without an access token.
 // This implements a portion of oauth2.RefreshTokenStorage.
 func (s *Store) CreateRefreshTokenSession(ctx context.Context, signature string, accessSignature string, request oauthelia2.Requester) (err error) {
-	return s.saveSession(ctx, storage.OAuth2SessionTypeRefreshToken, signature, request)
+	var session *model.OAuth2Session
+
+	if session, err = model.NewOAuth2SessionFromRequest(signature, request); err != nil {
+		return err
+	}
+
+	session.AccessSignature = accessSignature
+
+	return s.provider.SaveOAuth2Session(ctx, storage.OAuth2SessionTypeRefreshToken, *session)
 }
 
 // DeleteRefreshTokenSession marks the authorization request for a given refresh token as deleted.
@@ -235,13 +243,24 @@ func (s *Store) RevokeRefreshToken(ctx context.Context, requestID string) (err e
 	return s.provider.DeactivateOAuth2SessionByRequestID(ctx, storage.OAuth2SessionTypeRefreshToken, requestID)
 }
 
-// RotateRefreshToken deactivates the refresh token being exchanged and revokes the access tokens issued from the same
-// authorization grant, so a rotated pair cannot outlive the rotation. This store does not implement a refresh token
-// grace period, so the refresh token is deactivated immediately rather than marked as expiring.
-// This implements a portion of oauth2.TokenRevocationStorage.
+// RotateRefreshToken deactivates the refresh token being exchanged and revokes the access token that was issued
+// alongside it, so a rotated pair cannot outlive the rotation.
 func (s *Store) RotateRefreshToken(ctx context.Context, requestID string, signature string) (err error) {
-	if err = s.RevokeAccessToken(ctx, requestID); err != nil {
+	var accessSignature string
+
+	if accessSignature, err = s.provider.LoadOAuth2RefreshTokenSessionAccessSignature(ctx, signature); err != nil {
 		return err
+	}
+
+	switch accessSignature {
+	case "":
+		if err = s.RevokeAccessToken(ctx, requestID); err != nil {
+			return err
+		}
+	default:
+		if err = s.revokeSessionBySignature(ctx, storage.OAuth2SessionTypeAccessToken, accessSignature); err != nil {
+			return err
+		}
 	}
 
 	return s.RevokeRefreshToken(ctx, requestID)

@@ -39,7 +39,7 @@ const (
 	KeyAlgorithmMLDSA   = "MLDSA"
 )
 
-// ML-DSA parameter set names.
+// ML-DSA parameter set names, Algorithm names, Curve names.
 const (
 	KeyMLDSAParameters44 = "ML-DSA-44"
 	KeyMLDSAParameters65 = "ML-DSA-65"

@@ -445,7 +445,11 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(sql.ErrNoRows),
 		s.mock.
 			EXPECT().
-			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7200").
+			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "1").
+			Return("at_paired_1", nil),
+		s.mock.
+			EXPECT().
+			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, "at_paired_1").
 			Return(nil),
 		s.mock.
 			EXPECT().
@@ -453,12 +457,16 @@ func (s *StoreSuite) TestRevokeSessions() {
 			Return(nil),
 		s.mock.
 			EXPECT().
+			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "2").
+			Return("", nil),
+		s.mock.
+			EXPECT().
 			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7201").
 			Return(fmt.Errorf("not found")),
 		s.mock.
 			EXPECT().
-			RevokeOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeAccessToken, "65471ccb-d650-4006-a95f-cb4f4e3d7202").
-			Return(sql.ErrNoRows),
+			LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, "3").
+			Return("", fmt.Errorf("no refresh token session")),
 		s.mock.
 			EXPECT().
 			RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypePKCEChallenge, "pkce1").
@@ -504,7 +512,7 @@ func (s *StoreSuite) TestRevokeSessions() {
 
 	s.NoError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7200", "1"))
 	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7201", "2"), "not found")
-	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202", "3"), "not_found")
+	s.EqualError(s.store.RotateRefreshToken(s.ctx, "65471ccb-d650-4006-a95f-cb4f4e3d7202", "3"), "no refresh token session")
 
 	s.NoError(s.store.DeletePKCERequestSession(s.ctx, "pkce1"))
 	s.EqualError(s.store.DeletePKCERequestSession(s.ctx, "pkce2"), "not found")

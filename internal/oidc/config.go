@@ -55,7 +55,7 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
 		RevokeRefreshTokensExplicit:     true,
 		EnforceRevokeFlowRevokeRefreshTokensExplicitClient: true,
-		EnforceClientAssertionIssuerAudience:               true,
+		EnforceClientAssertionIssuerAudience:               false,
 		ClientCredentialsFlowImplicitGrantRequested:        true,
 		Templates: templates,
 	}

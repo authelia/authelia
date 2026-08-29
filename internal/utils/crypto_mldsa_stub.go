@@ -7,12 +7,6 @@ import (
 	"fmt"
 )
 
-// This file provides the ML-DSA seam for toolchains without crypto/mldsa, which was added in Go 1.27. No parameter
-// set is offered and every hook reports that it did not recognize the key, so a build produced by an earlier
-// toolchain neither generates ML-DSA keys nor claims to understand one.
-//
-// Each identifier here must have a counterpart in crypto_mldsa.go.
-
 // MLDSAParameterSets returns the names of the ML-DSA parameter sets this build supports, which is none of them.
 func MLDSAParameterSets() []string {
 	return nil

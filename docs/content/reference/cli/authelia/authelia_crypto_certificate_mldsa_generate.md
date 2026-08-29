@@ -2,7 +2,7 @@
 title: "authelia crypto certificate mldsa generate"
 description: "Reference for the authelia crypto certificate mldsa generate command."
 lead: ""
-date: 2026-08-29T15:50:22+10:00
+date: 2026-08-29T18:29:41+10:00
 draft: false
 images: []
 weight: 905
@@ -37,7 +37,7 @@ authelia crypto certificate mldsa generate --help
 ### Options
 
 ```
-      --bundles strings                 enables generating bundles options are 'chain' and 'privkey-chain'
+      --bundles strings                 enables generating bundles options are 'chain' and 'priv-chain'
       --ca                              create the certificate as a certificate authority certificate
   -n, --common-name string              certificate common name
       --country strings                 certificate country

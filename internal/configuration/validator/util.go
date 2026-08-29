@@ -167,9 +167,6 @@ func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err erro
 			return &JWKProperties{oidc.KeyUseSignature, "", -1, key.Curve}, nil
 		}
 	default:
-		// An ML-DSA key carries no curve, so the parameter set of the key is what selects the algorithm. It is
-		// matched here rather than in a type case because crypto/mldsa is only present from Go 1.27, and a build
-		// produced by an earlier toolchain must still compile.
 		if alg, ok := oidc.SigningAlgFromMLDSAKey(key); ok {
 			return &JWKProperties{oidc.KeyUseSignature, alg, -1, nil}, nil
 		}

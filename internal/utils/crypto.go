@@ -306,8 +306,6 @@ func IsX509PrivateKey(i any) bool {
 	case rsa.PrivateKey, *rsa.PrivateKey, ecdsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ed25519.PrivateKey:
 		return true
 	default:
-		// An ML-DSA private key has no dedicated case as crypto/mldsa only exists from Go 1.27, and this file must
-		// still compile on an earlier toolchain.
 		return IsMLDSAPrivateKey(i)
 	}
 }
@@ -522,8 +520,6 @@ func PEMBlockFromX509Key(key any, legacy bool) (block *pem.Block, err error) {
 		blockType = BlockTypeX509CRL
 		data = k.Raw
 	default:
-		// An ML-DSA key has no dedicated case as crypto/mldsa only exists from Go 1.27, and this file must still
-		// compile on an earlier toolchain. Both encoders below accept it on a build which has it.
 		switch {
 		case IsMLDSAPrivateKey(k):
 			blockType = BlockTypePKCS8PrivateKey
@@ -563,8 +559,6 @@ func KeySigAlgorithmFromString(keyAlgorithm, signatureAlgorithm string) (keyAlg 
 	case x509.Ed25519:
 		return keyAlg, x509.PureEd25519
 	default:
-		// ML-DSA offers no choice of hash or padding, so the signature algorithm follows from the parameter set
-		// rather than from the signature algorithm string, which is what callers pass here for this key type.
 		if alg, ok := PublicKeyAlgorithmMLDSA(); ok && keyAlg == alg {
 			return keyAlg, MLDSASignatureAlgorithmFromString(signatureAlgorithm)
 		}
@@ -653,8 +647,6 @@ func PublicKeyFromPrivateKey(privateKey any) (publicKey any) {
 	case ed25519.PrivateKey:
 		return k.Public().(ed25519.PublicKey)
 	default:
-		// An ML-DSA private key has no dedicated case as crypto/mldsa only exists from Go 1.27, and this file must
-		// still compile on an earlier toolchain.
 		if signer, ok := k.(crypto.Signer); ok && IsMLDSAPrivateKey(k) {
 			return signer.Public()
 		}
