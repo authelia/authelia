@@ -9,6 +9,7 @@ require (
 	cel.dev/cel-go v0.32.0
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
+	github.com/asaskevich/govalidator/v12 v12.0.0
 	github.com/authelia/jsonschema v0.1.7
 	github.com/authelia/otp v1.0.4
 	github.com/duosecurity/duo_api_golang v0.3.0
