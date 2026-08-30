@@ -141,8 +141,8 @@ importers:
         specifier: 5.5.6
         version: 5.5.6(eslint-config-prettier@10.1.8(eslint@10.9.1(jiti@2.7.0)(supports-color@7.2.0)))(eslint@10.9.1(jiti@2.7.0)(supports-color@7.2.0))(prettier@3.9.6)
       happy-dom:
-        specifier: 20.11.12
-        version: 20.11.12
+        specifier: 20.11.15
+        version: 20.11.15
       lefthook:
         specifier: 2.1.12
         version: 2.1.12
@@ -169,7 +169,7 @@ importers:
         version: 5.2.0(@typescript/typescript6@6.0.2)(supports-color@7.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0))
       vitest:
         specifier: 4.1.11
-        version: 4.1.11(@types/node@26.2.0)(@vitest/coverage-istanbul@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.12)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0))
+        version: 4.1.11(@types/node@26.2.0)(@vitest/coverage-istanbul@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.15)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0))
       vitest-preview:
         specifier: 0.0.3
         version: 0.0.3(@types/node@26.2.0)(jiti@2.7.0)(supports-color@7.2.0)
@@ -2321,8 +2321,8 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  happy-dom@20.11.12:
-    resolution: {integrity: sha512-7+mrTTD+6fOG3dx0URrDLrCX8QDTE+YujSOQD4VPZcYze/yJ0vVhRKaIBTjqlk+R4NetxVz21odnevHYIjIJ+g==}
+  happy-dom@20.11.15:
+    resolution: {integrity: sha512-bj2gQIKzOYB6GAAJ/jrN/IFHQe79MhEOiMAspRRWiKebRoegvGDv2B6eUt8KiZMTEDvx6ri0fAF7Xh/umAUUZA==}
     engines: {node: '>=20.0.0'}
 
   has-bigints@1.1.0:
@@ -4739,7 +4739,7 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
     optionalDependencies:
-      vitest: 4.1.11(@types/node@26.2.0)(@vitest/coverage-istanbul@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.12)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0))
+      vitest: 4.1.11(@types/node@26.2.0)(@vitest/coverage-istanbul@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.15)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0))
 
   '@testing-library/react@16.3.3(@testing-library/dom@10.4.1)(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
@@ -5088,7 +5088,7 @@ snapshots:
       magicast: 0.5.3
       obug: 2.1.4
       tinyrainbow: 3.1.0
-      vitest: 4.1.11(@types/node@26.2.0)(@vitest/coverage-istanbul@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.12)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0))
+      vitest: 4.1.11(@types/node@26.2.0)(@vitest/coverage-istanbul@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.15)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0))
     transitivePeerDependencies:
       - supports-color
 
@@ -5136,7 +5136,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vitest: 4.1.11(@types/node@26.2.0)(@vitest/coverage-istanbul@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.12)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0))
+      vitest: 4.1.11(@types/node@26.2.0)(@vitest/coverage-istanbul@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.15)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0))
 
   '@vitest/utils@4.1.11':
     dependencies:
@@ -6141,7 +6141,7 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  happy-dom@20.11.12:
+  happy-dom@20.11.15:
     dependencies:
       '@types/node': 26.2.0
       '@types/whatwg-mimetype': 3.0.2
@@ -7560,7 +7560,7 @@ snapshots:
       - utf-8-validate
       - yaml
 
-  vitest@4.1.11(@types/node@26.2.0)(@vitest/coverage-istanbul@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.12)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)):
+  vitest@4.1.11(@types/node@26.2.0)(@vitest/coverage-istanbul@4.1.11)(@vitest/ui@4.1.11)(happy-dom@20.11.15)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)):
     dependencies:
       '@vitest/expect': 4.1.11
       '@vitest/mocker': 4.1.11(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0))
@@ -7586,7 +7586,7 @@ snapshots:
       '@types/node': 26.2.0
       '@vitest/coverage-istanbul': 4.1.11(supports-color@7.2.0)(vitest@4.1.11)
       '@vitest/ui': 4.1.11(vitest@4.1.11)
-      happy-dom: 20.11.12
+      happy-dom: 20.11.15
       jsdom: 27.4.0(supports-color@7.2.0)
     transitivePeerDependencies:
       - msw
