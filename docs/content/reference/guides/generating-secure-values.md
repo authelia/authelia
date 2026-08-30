@@ -21,7 +21,7 @@ we provide a convenience layer for this purpose.
 
 ### authelia
 
-The __Authelia__ docker container or CLI binary can be used to generate a random alphanumeric string and output the
+The **Authelia** docker container or CLI binary can be used to generate a random alphanumeric string and output the
 string and the hash at the same time.
 
 Use the `authelia crypto hash generate --help` command or see the [authelia crypto hash generate] reference guide for
@@ -29,14 +29,18 @@ more information on all available options and algorithms.
 
 {{< envTabs "Generate Random Password" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --random --random.length 64 --random.charset alphanumeric
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 authelia crypto hash generate argon2 --random --random.length 64 --random.charset alphanumeric
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
@@ -47,21 +51,25 @@ following methods are merely suggestions.
 
 ### authelia
 
-The __Authelia__ docker container or CLI binary can be used to generate a random alphanumeric string.
+The **Authelia** docker container or CLI binary can be used to generate a random alphanumeric string.
 
 Use the `authelia crypto rand --help` command or see the [authelia crypto rand] reference guide for more information on
 all available options.
 
 {{< envTabs "Generate Random String" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run --rm authelia/authelia:latest authelia crypto rand --length 64 --charset alphanumeric
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 authelia crypto rand --length 64 --charset alphanumeric
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
@@ -88,27 +96,31 @@ Some sections of the configuration need an RSA keypair or an RSA private key. Th
 section explains two such ways. In all instances the output files are as follows:
 
 |  File Name  |   Description   |
-|:-----------:|:---------------:|
+| :---------: | :-------------: |
 | private.pem | RSA Private Key |
 | public.pem  | RSA Public Key  |
 
 ### authelia
 
-The __Authelia__ docker container or CLI binary can be used to generate an RSA keypair.
+The **Authelia** docker container or CLI binary can be used to generate an RSA keypair.
 
 Use the `authelia crypto pair --help` command or see the [authelia crypto pair] reference guide for more
 information on all available options.
 
 {{< envTabs "Generate RSA Key Pair" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto pair rsa generate --directory /keys
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 authelia crypto pair rsa generate
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
@@ -129,13 +141,13 @@ many ways to achieve this, this section explains two such ways.
 In all instances the output files are as follows:
 
 |  File Name  |          Description           |
-|:-----------:|:------------------------------:|
+| :---------: | :----------------------------: |
 | private.pem |        RSA Private Key         |
 | public.crt  | RSA Public Key and Certificate |
 
 ### authelia
 
-The __Authelia__ docker container or binary can be used to generate an RSA self-signed certificate for the
+The **Authelia** docker container or binary can be used to generate an RSA self-signed certificate for the
 domain `example.com`.
 
 Use the `authelia crypto certificate --help` command or see the [authelia crypto certificate] reference guide for more
@@ -143,14 +155,18 @@ information on all available options.
 
 {{< envTabs "Generate RSA Key Pair" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto certificate rsa generate --common-name example.com --directory /keys
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 authelia crypto certificate rsa generate --common-name example.com
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 

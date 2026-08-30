@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://humhub.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `humhub`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://humhub.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `humhub`
+- **Client Secret:** `insecure_secret`
 - The [HumHub] instance you're using was built using the [OIDC Connector](https://github.com/Worteks/humhub-auth-oidc).
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
@@ -47,7 +47,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [HumHub] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [HumHub] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -120,7 +120,7 @@ return [
 
 ## See Also
 
- - [HumHub OpenID Connect Repository](https://github.com/Worteks/humhub-auth-oidc?tab=readme-ov-file)
+- [HumHub OpenID Connect Repository](https://github.com/Worteks/humhub-auth-oidc?tab=readme-ov-file)
 
 [Authelia]: https://www.authelia.com
 [HumHub]: https://www.humhub.com

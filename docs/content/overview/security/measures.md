@@ -24,7 +24,7 @@ A mix of types such as `In-built` and `Manual` means there is an in-built protec
 protection the Administrator can employ.
 
 | Measure Type |                                   Description                                   |
-|:------------:|:-------------------------------------------------------------------------------:|
+| :----------: | :-----------------------------------------------------------------------------: |
 |   In-built   |                  The measure is part of Authelia and automatic                  |
 | Customizable |    The measure can be configured by the Administrator to reduce the security    |
 | Configurable |   The measure can be configured by the Administrator to enhance the security    |
@@ -42,7 +42,7 @@ Authelia is built with several non-default hardening options:
 - Built with use of the procedure linkage table for external function calls which makes Return Oriented Programming
   (ROP) attacks slightly more difficult to execute reliably.
 - Built as a dynamically linked binary with full relocation read-only support, making this and several
-other traditional binary weaknesses significantly more difficult to exploit.
+  other traditional binary weaknesses significantly more difficult to exploit.
 - Built with forced early symbol binding which significantly mitigates overwrite attacks to the global offset table.
 - Built with a reduced memory layout predictability.
 - Built with library function argument object size estimations enabled to ensure unsafe actions are aborted.
@@ -111,7 +111,7 @@ cookie theft:
 1. `HttpOnly` is set, forbidding client-side code like javascript from access to the cookie.
 2. `Secure` is set, forbidding the browser from sending the cookie to sites which do not use the [HTTPS] scheme.
 3. `SameSite` is set to `Lax`, which prevents it being sent over cross-origin requests. An option to adjust this value
-    exists but is not recommended.
+   exists but is not recommended.
 
 Read about these attributes in detail on the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie).
@@ -219,36 +219,49 @@ Expand Key Derivation Function (HKDF) as defined by [RFC5869](https://datatracke
 context and application specific information value of `authelia:kdf:storage:encryption_key:v1`. This is done to
 ensure the key is exactly the right length without losing any entropy from the input.
 
-We use column specific additional authenticated data to harden against swapping data from one table or column into
-another. While at this time there is no known benefit to doing this that does not mean there is no benefit or will not
-be one in the future.
+We use row specific additional authenticated data to harden against moving encrypted data from one table, column, or row
+into another. A value encrypted for one row cannot be decrypted when it is presented as another row's value, even within
+the same table and column. For example a Time-based One-Time Password secret belonging to one user cannot be moved onto
+another user's account, and the two signing keys stored in the `encryption` table cannot be swapped with one another.
 
 The encrypted data in the database with the various AAD's used is as follows:
 
-|               Table               |    Column    |                 Additional Authenticated Data (AAD)                 |                                               Rationale                                                |
-|:---------------------------------:|:------------:|:-------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------:|
-|            encryption             |    value     |                 `authelia:storage:encryption:value`                 | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|            cached_data            |    value     |                `authelia:storage:cached_data:value`                 | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|           one_time_code           |     code     |                `authelia:storage:one_time_code:code`                | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|        totp_configurations        |    secret    |            `authelia:storage:totp_configurations:secret`            | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|       webauthn_credentials        |  public_key  |      `authelia:storage:webauthn_credentials:<rpid>:public_key`      |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
-|       webauthn_credentials        | attestation  |     `authelia:storage:webauthn_credentials:<rpid>:attestation`      |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
-| oauth2_authorization_code_session | session_data |  `authelia:storage:oauth2_authorization_code_session:session_data`  | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|    oauth2_device_code_session     | session_data |     `authelia:storage:oauth2_device_code_session:session_data`      | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|    oauth2_access_token_session    | session_data |     `authelia:storage:oauth2_access_token_session:session_data`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|   oauth2_refresh_token_session    | session_data |    `authelia:storage:oauth2_refresh_token_session:session_data`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|    oauth2_pkce_request_session    | session_data |     `authelia:storage:oauth2_pkce_request_session:session_data`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|   oauth2_openid_connect_session   | session_data |    `authelia:storage:oauth2_openid_connect_session:session_data`    | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
-|        oauth2_par_context         | session_data | `authelia:storage:oauth2_pushed_authorization_session:session_data` | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|               Table               |    Column    |                       Additional Authenticated Data (AAD)                       |                                               Rationale                                                |
+| :-------------------------------: | :----------: | :-----------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
+|            encryption             |    value     |                   `authelia:storage:encryption:value:<name>`                    | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|            cached_data            |    value     |                   `authelia:storage:cached_data:value:<name>`                   | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|           one_time_code           |     code     |                `authelia:storage:one_time_code:code:<signature>`                | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|        totp_configurations        |    secret    |            `authelia:storage:totp_configurations:secret:<username>`             | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|       webauthn_credentials        |  public_key  |         `authelia:storage:webauthn_credentials:public_key:<kid>:<rpid>`         |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+|       webauthn_credentials        | attestation  |        `authelia:storage:webauthn_credentials:attestation:<kid>:<rpid>`         |                     Prevents [Bad Actors](#bad-actors) from compromising security                      |
+| oauth2_authorization_code_session | session_data |  `authelia:storage:oauth2_authorization_code_session:session_data:<signature>`  | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_device_code_session     | session_data |     `authelia:storage:oauth2_device_code_session:session_data:<signature>`      | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_access_token_session    | session_data |     `authelia:storage:oauth2_access_token_session:session_data:<signature>`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|   oauth2_refresh_token_session    | session_data |    `authelia:storage:oauth2_refresh_token_session:session_data:<signature>`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|    oauth2_pkce_request_session    | session_data |     `authelia:storage:oauth2_pkce_request_session:session_data:<signature>`     | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|   oauth2_openid_connect_session   | session_data |    `authelia:storage:oauth2_openid_connect_session:session_data:<signature>`    | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
+|        oauth2_par_context         | session_data | `authelia:storage:oauth2_pushed_authorization_session:session_data:<signature>` | Prevents a [Leaked Database](#leaked-database) or [Bad Actors](#bad-actors) from compromising security |
 
 You will note that the pattern for the additional authenticated data is the same for all tables and columns with a few
-exceptions. The format is `authelia:storage:<table>:<column>` for basically every table and column combination.
+exceptions. The format is `authelia:storage:<table>:<column>:<row>` for basically every table, column, and row
+combination, where the `<row>` placeholder is a value which uniquely identifies the individual row within that table.
 
-The first exception is the `webauthn_credentials` table where the additional authenticated data is different for each domain,
-specifically the `rpid` column is included in the additional authenticated data. If the `rpid` value is `example.com`
-then the `<rpid>` placeholder will be replaced with `example.com` and become
-`authelia:storage:webauthn_credentials:example.com:public_key` for example. This exception is likely to follow for the
-`oauth2_*` tables and the `one_time_code` table in the near future, and `totp_configurations` in v5.
+The value used for the `<row>` placeholder differs per table, and is always a value which never changes for the life of
+the row:
+
+|        Table         | Row Identifier |
+| :------------------: | :------------: |
+|      encryption      |     `name`     |
+|     cached_data      |     `name`     |
+|    one_time_code     |  `signature`   |
+| totp_configurations  |   `username`   |
+| webauthn_credentials |     `kid`      |
+|      `oauth2_*`      |  `signature`   |
+
+The first exception is the `webauthn_credentials` table where the additional authenticated data is additionally different
+for each domain, specifically the `rpid` column is appended after the row identifier. If the `kid` value is `SFVCQQ` and
+the `rpid` value is `example.com` then the additional authenticated data becomes
+`authelia:storage:webauthn_credentials:public_key:SFVCQQ:example.com` for example.
 
 The second exception is the `oauth2_par_context` table where the table name is replaced with
 `oauth2_pushed_authorization_session` which is the name the table will be renamed to in the future.
@@ -258,7 +271,7 @@ column matches the table below. We both ensure the keys are encrypted and use un
 any potential for brute-forcing the key is low.
 
 |     Table     |  Column   |   Key Name   |                         Notes                         |
-|:-------------:|:---------:|:------------:|:-----------------------------------------------------:|
+| :-----------: | :-------: | :----------: | :---------------------------------------------------: |
 | one_time_code | signature | hmac_key_otc |    Used to perform a fast lookup of One-Time Codes    |
 | totp_history  |   step    | hmac_key_otp | Used to save the step of every One-Time Password used |
 
@@ -289,11 +302,11 @@ If you wish to change your encryption key for any reason you can do so using the
    it.
 2. Run the `./authelia storage encryption change-key --help` command.
 3. Stop Authelia.
-   * You can skip this step, however note that any data changed between the time you make the change and the time when
-   you stop Authelia i.e. via user registering a device; will be encrypted with the incorrect key.
+   - You can skip this step, however note that any data changed between the time you make the change and the time when
+     you stop Authelia i.e. via user registering a device; will be encrypted with the incorrect key.
 4. Run the `./authelia storage encryption change-key` command with the appropriate parameters.
-   * The help from step 1 will be useful here. The easiest method to accomplish this is with the `--config`,
-   `--encryption-key`, and `--new-encryption-key` parameters.
+   - The help from step 1 will be useful here. The easiest method to accomplish this is with the `--config`,
+     `--encryption-key`, and `--new-encryption-key` parameters.
 5. Update the encryption key Authelia uses on startup.
 6. Start Authelia.
 
@@ -305,10 +318,10 @@ values.
 As such all SMTP connections require the following:
 
 1. A TLS Connection (StartTLS or implicit) has been negotiated before authentication or sending emails (_unauthenticated
- connections require it as well_)
+   connections require it as well_)
 2. Valid X509 Certificate presented to the client during the TLS handshake
 
-There is an option to disable both of these security measures however they are __not recommended__.
+There is an option to disable both of these security measures however they are **not recommended**.
 
 The following configuration options exist to configure the security level in order of most preferable to least
 preferable:
@@ -433,9 +446,9 @@ consider this cheat sheet mandatory reading before they do so.
 
 #### X-XSS-Protection
 
-__Value:__ N/A
-__Endpoints:__ All
-__Status:__ Unsupported Non-standard
+**Value:** N/A
+**Endpoints:** All
+**Status:** Unsupported Non-standard
 
 We do not include this header as this feature is not present in any modern browser and could introduce vulnerabilities
 if enabled at all. Going forward [CORS], [CORP], CORB, and [COEP] are the standards for browser-centric site security.
@@ -443,18 +456,18 @@ See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Pr
 
 #### X-Content-Type-Options
 
-__Value:__ `nosniff`
-__Endpoints:__ All
-__Status:__ Supported Standard
+**Value:** `nosniff`
+**Endpoints:** All
+**Status:** Supported Standard
 
 Prevents MIME type sniffing. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options) for more information.
 
 #### Referrer-Policy
 
-__Value:__ `strict-origin-when-cross-origin`
-__Endpoints:__ All
-__Status:__ Supported Standard
+**Value:** `strict-origin-when-cross-origin`
+**Endpoints:** All
+**Status:** Supported Standard
 
 Sends only the origin as the referrer in cross-origin requests, but sends the origin, path, and query string in
 same-origin requests. See the
@@ -462,18 +475,18 @@ same-origin requests. See the
 
 #### X-Frame-Options
 
-__Value:__ `DENY`
-__Endpoints:__ All
-__Status:__ Supported Standard
+**Value:** `DENY`
+**Endpoints:** All
+**Status:** Supported Standard
 
 Prevents Authelia rendering in a `frame`, `iframe`, `embed`, or `object` element. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options) for more information.
 
 #### Permissions-Policy
 
-__Value:__ `accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()`
-__Endpoints:__ All
-__Status:__ Supported Standard
+**Value:** `accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(), xr-spatial-tracking=(), interest-cohort=()`
+**Endpoints:** All
+**Status:** Supported Standard
 
 Disables browser features not required by Authelia including the
 [Federated Learning of Cohorts](https://en.wikipedia.org/wiki/Federated_Learning_of_Cohorts). It should be noted while
@@ -484,27 +497,27 @@ more information.
 
 #### X-DNS-Prefetch-Control
 
-__Value:__ `off`
-__Endpoints:__ All
-__Status:__ Non-standard
+**Value:** `off`
+**Endpoints:** All
+**Status:** Non-standard
 
 Prevents browsers from performing a DNS prefetch for links displayed on Authelia pages. Not all browsers support this.
 See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control) for more information.
 
 #### Pragma
 
-__Value:__ `no-cache`
-__Endpoints:__ API
-__Status:__ Supported Standard
+**Value:** `no-cache`
+**Endpoints:** API
+**Status:** Supported Standard
 
 Disables caching of API requests on HTTP/1.0 browsers. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma) for more information.
 
 #### Cache-Control
 
-__Value:__ `no-store`
-__Endpoints:__ API
-__Status:__ Supported Standard
+**Value:** `no-store`
+**Endpoints:** API
+**Status:** Supported Standard
 
 Disables caching responses entirely on HTTP/1.1 browsers. See the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) for more information.

@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { Typography } from "@mui/material";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 import { IndexRoute } from "@constants/Routes";
 import { RedirectionRestoreURL, RedirectionURL } from "@constants/SearchParams";
@@ -86,9 +85,7 @@ const SignOut = function () {
 
     return (
         <MinimalLayout title={translate("Sign out")}>
-            <Typography sx={{ padding: (theme) => theme.spacing() }}>
-                {translate("You're being signed out and redirected")}...
-            </Typography>
+            <p className="p-2">{translate("You're being signed out and redirected")}...</p>
         </MinimalLayout>
     );
 };

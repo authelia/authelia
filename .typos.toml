@@ -36,6 +36,7 @@ Nd = "Nd"
 ND = "ND"
 ba = "ba"
 Ba = "Ba"
+Bve = "Bve"
 BA = "BA"
 ue = "ue"
 Ue = "Ue"
@@ -56,6 +57,7 @@ peom = "peom"
 ignore-hidden = false
 extend-exclude = [
     ".git/",
+    ".claude/",
     "*.svg",
     "go.sum",
     "*-lock.yaml",

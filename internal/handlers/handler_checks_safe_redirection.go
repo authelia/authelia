@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -30,17 +29,23 @@ func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
-		ctx.Error(fmt.Errorf("unable to parse request body: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred parsing the safe redirection request body")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
 	if targetURI, err = url.ParseRequestURI(bodyJSON.URI); err != nil {
-		ctx.Error(fmt.Errorf("unable to determine if uri %s is safe to redirect to: failed to parse URI '%s': %w", bodyJSON.URI, bodyJSON.URI, err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Errorf("Error occurred determining if the URI '%s' is safe to redirect to as it could not be parsed", bodyJSON.URI)
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
 	if err = ctx.SetJSONBody(checkURIWithinDomainResponseBody{OK: ctx.IsSafeRedirectionTargetURI(targetURI)}); err != nil {
-		ctx.Error(fmt.Errorf("unable to create response body: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred setting the safe redirection response body")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 }

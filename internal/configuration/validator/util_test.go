@@ -149,12 +149,12 @@ func TestSchemaJWKGetPropertiesEnc(t *testing.T) {
 			"",
 		},
 		{
-			"ShouldErrForLargeNonStandardSymmetric",
-			func(t *testing.T) any { return make([]byte, 64) },
+			"ShouldErrForNonStandardSymmetricKeyTooShort",
+			func(t *testing.T) any { return make([]byte, 5) },
 			"",
 			"",
 			0,
-			"invalid symmetric key length of 64 but the minimum is 32",
+			"invalid symmetric key length of 5 but the minimum is 32",
 		},
 		{
 			"ShouldReturnEmptyForEd25519PrivateKey",

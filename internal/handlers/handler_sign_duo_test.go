@@ -743,3 +743,70 @@ func TestRunSecondFactorDuoPostSuite(t *testing.T) {
 	s := new(SecondFactorDuoPostSuite)
 	suite.Run(t, s)
 }
+
+func TestDuoGET(t *testing.T) {
+	testCases := []struct {
+		name           string
+		setup          func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		expected       string
+		expectedStatus int
+		expectedf      func(t *testing.T, mock *mocks.MockAutheliaCtx)
+	}{
+		{
+			"ShouldHandleGetSessionError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+			},
+			`{"status":"KO","message":"Authentication failed, please retry later."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+			},
+		},
+		{
+			"ShouldHandleNoPreferredDevice",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.
+					EXPECT().
+					LoadPreferredDuoDevice(mock.Ctx, "").
+					Return(nil, fmt.Errorf("no such device"))
+			},
+			`{"status":"OK","data":{"result":"auth"}}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+		{
+			"ShouldHandlePreferredDevice",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.StorageMock.
+					EXPECT().
+					LoadPreferredDuoDevice(mock.Ctx, "").
+					Return(&model.DuoDevice{Username: testUsername, Device: "12345ABCDEFGHIJ67890", Method: "push"}, nil)
+			},
+			`{"status":"OK","data":{"result":"auth","preferred_device":"12345ABCDEFGHIJ67890","preferred_method":"push"}}`,
+			fasthttp.StatusOK,
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			if tc.setup != nil {
+				tc.setup(t, mock)
+			}
+
+			DuoGET(mock.Ctx)
+
+			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
+			assert.Equal(t, tc.expected, string(mock.Ctx.Response.Body()))
+
+			if tc.expectedf != nil {
+				tc.expectedf(t, mock)
+			}
+		})
+	}
+}

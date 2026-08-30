@@ -14,12 +14,11 @@ INTEGRATION() {
 
 if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
   pnpm -C web install
+  pnpm -C docs install --no-optional
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
-  if [[ "${CI_PRIVATE}" == "true" ]]; then
-    echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-  fi
+  echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
 
   if [[ "${CI_MERGE_QUEUE}" == "true" ]]; then
     PR_NUMBER=$(echo "${BUILDKITE_BRANCH}" | sed -E 's|^gh-readonly-queue/.*/pr-([0-9]+)-.*|\1|')
@@ -41,14 +40,17 @@ if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
   fi
 fi
 
-if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
-  cp -R /buildkite/.local .
-fi
-
 if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
   echo "--- :docker: Extract and load build container"
   mkdir coverage
-  buildkite-agent artifact download "authelia-image-coverage.*" .
+
+  if [[ "${BUILDKITE_AGENT_NAME}" =~ ^tabris[0-9]+$ ]] && \
+     BUILDKITE_S3_DEFAULT_REGION="authelia" BUILDKITE_S3_ENDPOINT="${S3_URL}" BUILDKITE_ARTIFACT_UPLOAD_DESTINATION="${S3_BUCKET}" BUILDKITE_S3_ACCESS_KEY_ID="${S3_ACCESS_KEY_ID}" BUILDKITE_S3_SECRET_ACCESS_KEY="${S3_SECRET_ACCESS_KEY}" buildkite-agent artifact download "authelia-image-coverage-tabris*" . && \
+     mv authelia-image-coverage-tabris.tar.zst authelia-image-coverage.tar.zst; then
+    echo "Using localized coverage image artifact"
+  else
+    buildkite-agent artifact download "authelia-image-coverage.*" .
+  fi
 
   if [[ "${SUITE}" == "Kubernetes" ]]; then
     zstd -d authelia-image-coverage.tar.zst --stdout > ./internal/suites/example/kube/authelia-image-coverage.tar

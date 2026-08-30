@@ -32,11 +32,12 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://wg-portal.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Provider ID:__ `{{< sitevar name="provider-id" nojs="authelia" >}}`
-- __Client ID:__ `{{< sitevar name="client-id" nojs="wg-portal" >}}`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://wg-portal.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Provider ID:** `{{< sitevar name="provider-id" nojs="authelia" >}}`
+- **Client ID:** `{{< sitevar name="client-id" nojs="wg-portal" >}}`
+- **Client Secret:** `insecure_secret`
+- **Admin Groupname:** `{{< sitevar name="admin-group" nojs="admins" >}}`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,7 +47,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [WG-Portal] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [WG-Portal] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -68,6 +69,7 @@ identity_providers:
           - 'openid'
           - 'email'
           - 'profile'
+          - 'groups'
         response_types:
           - 'code'
         grant_types:
@@ -92,17 +94,21 @@ auth:
       base_url: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
       client_id: {{< sitevar name="client-id" nojs="wg-portal" >}}
       client_secret: insecure_secret
-      extra_scopes: 
+      extra_scopes:
         - email
         - profile
+        - groups
       field_map:
         user_identifier: preferred_username
         email: email
         firstname: given_name
         lastname: family_name
+        user_groups: groups
+      admin_mapping:
+        admin_group_regex: ^{{< sitevar name="admin-group" nojs="admins" >}}$
 ```
 
-Mapping users to admins by group did not work at the time of writing this.
+If you do not want to map an admin group just omit the _admin_mapping_ section.
 
 ## See Also
 

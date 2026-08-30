@@ -37,7 +37,7 @@ func NewCmdCtx() *CmdCtx {
 	}
 }
 
-// CmdCtx is a context.Context used for the root command.
+// CmdCtx is a [context.Context] used for the root command.
 type CmdCtx struct {
 	context.Context
 
@@ -83,10 +83,12 @@ func (ctx *CmdCtx) GetProviders() middlewares.Providers {
 	return ctx.providers
 }
 
+// GetClock returns the clock provider.
 func (ctx *CmdCtx) GetClock() (clock clock.Provider) {
 	return ctx.providers.Clock
 }
 
+// GetRandom returns the random provider.
 func (ctx *CmdCtx) GetRandom() (random random.Provider) {
 	return ctx.providers.Random
 }
@@ -96,6 +98,7 @@ func (ctx *CmdCtx) GetConfiguration() *schema.Configuration {
 	return ctx.config
 }
 
+// CheckSchemaVersion returns an error if the storage schema is not at the latest version.
 func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	if ctx.providers.StorageProvider == nil {
 		return fmt.Errorf("storage not loaded")
@@ -162,6 +165,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	return warns, errs
 }
 
+// LoadTrustedCertificatesRunE is a RunE which loads the trusted certificates.
 func (ctx *CmdCtx) LoadTrustedCertificatesRunE(cmd *cobra.Command, args []string) (err error) {
 	var warns, errs []error
 
@@ -255,6 +259,7 @@ func (ctx *CmdCtx) HelperConfigValidateRunE(_ *cobra.Command, _ []string) (err e
 	return nil
 }
 
+// LogConfigure configures the logger from the loaded configuration.
 func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
 	config := ctx.config.Log
 
@@ -284,6 +289,7 @@ func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
 	return nil
 }
 
+// LogProcessCurrentUserRunE is a RunE which logs the user the process is running as.
 func (ctx *CmdCtx) LogProcessCurrentUserRunE(_ *cobra.Command, _ []string) (err error) {
 	var current *user.User
 

@@ -1,6 +1,9 @@
 package suites
 
 import (
+	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -10,6 +13,9 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+// suitesWithTraefikProxy matches suite names that run behind Traefik, which is what writes the access log.
+var suitesWithTraefikProxy = regexp.MustCompile(`^(OIDCTraefik|PathPrefix|Traefik2|Traefik3)$`)
 
 // suitesWithoutFrontend matches suite names that do not include the authelia-frontend service.
 var suitesWithoutFrontend = regexp.MustCompile(`^CLI$`)
@@ -67,7 +73,17 @@ func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) erro
 		dockerEnvironment,
 		"authelia-frontend",
 		time.Time{},
-		[]string{"dev server running at", "ready in", "server restarted"})
+		[]string{"ready in"})
+}
+
+func waitUntilAutheliaFrontendRestarted(dockerEnvironment *DockerEnvironment, since time.Time) error {
+	return waitUntilServiceLogDetected(
+		5*time.Second,
+		180*time.Second,
+		dockerEnvironment,
+		"authelia-frontend",
+		since,
+		[]string{"server restarted"})
 }
 
 func waitUntilK3DIsReady(dockerEnvironment *DockerEnvironment) error {
@@ -132,6 +148,37 @@ func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment, suite string
 
 		log.Info("Samba is ready!")
 	}
+
+	return nil
+}
+
+func waitUntilProxyRoutesPortal(baseDomain string) error {
+	// The proxy discovers the portal from the daemon, and `up --wait` returns once the portal's healthcheck
+	// passes, which is before the proxy has enumerated the daemon and published a route to it. Until that
+	// route exists the proxy answers the portal's host itself, and no wait recovers a test that visits the
+	// error page it serves, because the document loads and the portal is never fetched. The path is
+	// deliberately unprefixed: it is the one route the portal serves outside its own base URL, so it answers
+	// for a suite with a path prefix as well as one without.
+	log.Info("Waiting for the proxy to route the portal...")
+
+	client, target := NewHTTPClient(), LoginBaseURLFmt(baseDomain)+"/api/health"
+
+	if err := utils.CheckUntil(time.Second, 30*time.Second, func() (bool, error) {
+		response, err := client.Get(target)
+		if err != nil {
+			return false, nil
+		}
+
+		defer response.Body.Close()
+
+		_, _ = io.Copy(io.Discard, response.Body)
+
+		return response.StatusCode == http.StatusOK, nil
+	}); err != nil {
+		return fmt.Errorf("the proxy did not route '%s' to the portal: %w", target, err)
+	}
+
+	log.Info("The proxy routes the portal!")
 
 	return nil
 }

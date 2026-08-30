@@ -6,8 +6,8 @@ vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("react-router-dom", async () => {
-    const actual = await vi.importActual("react-router-dom");
+vi.mock("react-router", async () => {
+    const actual = await vi.importActual("react-router");
     return { ...actual, useNavigate: () => vi.fn() };
 });
 
@@ -68,8 +68,8 @@ const defaultProps = {
 
 it("renders login form with username, password, and sign in button", () => {
     render(<FirstFactorForm {...defaultProps} />);
-    expect(screen.getByText("Username")).toBeInTheDocument();
-    expect(screen.getByText("Password")).toBeInTheDocument();
+    expect(screen.getByText(/Username/)).toBeInTheDocument();
+    expect(screen.getByText(/Password/)).toBeInTheDocument();
     expect(screen.getByText("Sign in")).toBeInTheDocument();
 });
 

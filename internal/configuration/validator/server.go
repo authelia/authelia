@@ -41,7 +41,6 @@ func ValidateServerTLS(config *schema.Configuration, validator *schema.StructVal
 	}
 }
 
-// validateServerTLSFileExists checks whether a file exist.
 func validateServerTLSFileExists(name, path string, validator *schema.StructValidator) {
 	var (
 		info os.FileInfo
@@ -287,6 +286,7 @@ func validateServerEndpointsRateLimits(config *schema.Configuration, validator *
 
 	validateServerEndpointsRateLimitDefault("second_factor_totp", &config.Server.Endpoints.RateLimits.SecondFactorTOTP, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorTOTP, validator)
 	validateServerEndpointsRateLimitDefault("second_factor_duo", &config.Server.Endpoints.RateLimits.SecondFactorDuo, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorDuo, validator)
+	validateServerEndpointsRateLimitDefault("second_factor_password", &config.Server.Endpoints.RateLimits.SecondFactorPassword, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorPassword, validator)
 
 	validateServerEndpointsRateLimitDefaultWeighted("session_elevation_start", &config.Server.Endpoints.RateLimits.SessionElevationStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationStart, config.IdentityValidation.ElevatedSession.CodeLifespan, validator)
 	validateServerEndpointsRateLimitDefaultWeighted("session_elevation_finish", &config.Server.Endpoints.RateLimits.SessionElevationFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationFinish, config.IdentityValidation.ElevatedSession.ElevationLifespan, validator)

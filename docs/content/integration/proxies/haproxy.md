@@ -17,29 +17,29 @@ seo:
   noindex: false # false (default) or true
 ---
 
-[HAProxy] is a reverse proxy supported by __Authelia__.
+[HAProxy] is a reverse proxy supported by **Authelia**.
 
-*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+_**Important:** When using these guides, it's important to recognize that we cannot provide a guide for every possible
 method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
 configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
-throughout this documentation and in the [See Also](#see-also) section.*
+throughout this documentation and in the [See Also](#see-also) section._
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Requirements
 
-You need the following to run __Authelia__ with [HAProxy]:
+You need the following to run **Authelia** with [HAProxy]:
 
-* [HAProxy] 1.8.4+ (2.2.0+ recommended)
-  -`USE_LUA=1` set at compile time
-  * [haproxy-lua-http](https://github.com/haproxytech/haproxy-lua-http) must be available within the Lua path
-    * A `json` library within the Lua path (dependency of haproxy-lua-http, usually found as OS package `lua-json`)
-    * With [HAProxy] 2.1.3+ you can use the `lua-prepend-path` configuration option to specify the search path
-  * [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
+- [HAProxy] 1.8.4+ (2.2.0+ recommended)
+  \-`USE_LUA=1` set at compile time
+  - [haproxy-lua-http](https://github.com/haproxytech/haproxy-lua-http) must be available within the Lua path
+    - A `json` library within the Lua path (dependency of haproxy-lua-http, usually found as OS package `lua-json`)
+    - With [HAProxy] 2.1.3+ you can use the `lua-prepend-path` configuration option to specify the search path
+  - [haproxy-auth-request](https://github.com/TimWolla/haproxy-auth-request/blob/master/auth-request.lua)
 
 ## Trusted Proxies and Integration Security
 
@@ -49,13 +49,13 @@ In addition to this section which is important to read, you should read the
 and perform the validation steps as part of your regular security validation routine when using this integration.
 {{< /callout >}}
 
-*__Important:__ You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
-Especially if you have never read it before.*
+_**Important:** You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
+Especially if you have never read it before._
 
-*__Important:__ The included example is __NOT__ meant for production use. It's used expressly as an example to showcase
+_**Important:** The included example is **NOT** meant for production use. It's used expressly as an example to showcase
 how you can configure multiple IP ranges. You should customize this example to fit your specific architecture and needs.
 You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
-trust entire subnets unless that subnet only has trusted proxies and no other services.*
+trust entire subnets unless that subnet only has trusted proxies and no other services._
 
 With [HAProxy] the most convenient method to configure trusted proxies is to create a src ACL from the contents of a
 file. The example utilizes this method and trusted proxies can then easily be added or removed from the ACL file.
@@ -63,16 +63,16 @@ file. The example utilizes this method and trusted proxies can then easily be ad
 [HAProxy] implicitly trusts all external proxies by default so it's important you configure this for a trusted
 environment.
 
-[HAProxy] by default __does__ trust all other proxies. This means it's essential that you configure this correctly.
+[HAProxy] by default **does** trust all other proxies. This means it's essential that you configure this correctly.
 
 In the example we have a `trusted_proxies.src.acl` file which is used by one `http-request del-header X-Forwarded-For`
 line in the main configuration which shows an example of not trusting any proxies or alternatively an example on adding
 the following networks to the trusted proxy list in [HAProxy]:
 
-* 10.0.0.0/8
-* 172.16.0.0/12
-* 192.168.0.0/16
-* fc00::/7
+- 10.0.0.0/8
+- 172.16.0.0/12
+- 192.168.0.0/16
+- fc00::/7
 
 ## Assumptions and Adaptation
 
@@ -84,22 +84,22 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
-* Deployment Scenario:
-  * Single Host
-  * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
-  * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
-  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+- Deployment Scenario:
+  - Single Host
+  - Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
+  - Proxy is deployed as a Container on a network shared with Authelia
+- The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
+  - You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
-  * You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
-    * you're using a different container name
-    * you deployed the proxy to a different location
-  * You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
-    * you have adjusted the default port in the configuration
-  * You will have to adapt the entire URL if:
-    * Authelia is on a different host to the proxy
-  * All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
-    * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+  - You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
+    - you're using a different container name
+    - you deployed the proxy to a different location
+  - You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
+    - you have adjusted the default port in the configuration
+  - You will have to adapt the entire URL if:
+    - Authelia is on a different host to the proxy
+  - All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
+    - This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
       just testing or you want to use that specific domain
 
 ## Implementation
@@ -126,6 +126,7 @@ configuration as well as the legacy configuration for context.
 
 {{< sessionTabs "Generate Random Password" >}}
 {{< sessionTab "Modern" >}}
+
 ```yaml {title="configuration.yml"}
 session:
   cookies:
@@ -133,13 +134,16 @@ session:
       authelia_url: 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
       default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
+
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
+
 ```yaml {title="configuration.yml"}
 default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 session:
   domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
+
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
 
@@ -147,49 +151,49 @@ session:
 
 Below you will find commented examples of the following configuration:
 
-* Authelia Portal
-* Protected Endpoints (Nextcloud)
+- Authelia Portal
+- Protected Endpoints (Nextcloud)
 
 With this configuration you can protect your virtual hosts with Authelia, by following the steps below:
 
 1. Add host(s) to the `protected-frontends` ACLs to support protection with Authelia. You can separate each subdomain
    with a `|` in the regex, for example:
 
-    ```text
-    acl protected-frontends hdr(host) -m reg -i ^(?i)(jenkins|nextcloud|phpmyadmin)\.example\.com
-    ```
+   ```text
+   acl protected-frontends hdr(host) -m reg -i ^(?i)(jenkins|nextcloud|phpmyadmin)\.example\.com
+   ```
 
 2. Add host ACL(s) in the form of `host-service`, this will be utilized to route to the correct
-backend upon successful authentication, for example:
+   backend upon successful authentication, for example:
 
-    ```text
-    acl host-jenkins hdr(host) -i jenkins.{{< sitevar name="domain" nojs="example.com" >}}
-    acl host-nextcloud hdr(host) -i nextcloud.{{< sitevar name="domain" nojs="example.com" >}}
-    acl host-phpmyadmin hdr(host) -i phpmyadmin.{{< sitevar name="domain" nojs="example.com" >}}
-    acl host-heimdall hdr(host) -i heimdall.{{< sitevar name="domain" nojs="example.com" >}}
-    ```
+   ```text
+   acl host-jenkins hdr(host) -i jenkins.{{< sitevar name="domain" nojs="example.com" >}}
+   acl host-nextcloud hdr(host) -i nextcloud.{{< sitevar name="domain" nojs="example.com" >}}
+   acl host-phpmyadmin hdr(host) -i phpmyadmin.{{< sitevar name="domain" nojs="example.com" >}}
+   acl host-heimdall hdr(host) -i heimdall.{{< sitevar name="domain" nojs="example.com" >}}
+   ```
 
 3. Add backend route for your service(s), for example:
 
-    ```text
-    use_backend be_jenkins if host-jenkins
-    use_backend be_nextcloud if host-nextcloud
-    use_backend be_phpmyadmin if host-phpmyadmin
-    use_backend be_heimdall if host-heimdall
-    ```
+   ```text
+   use_backend be_jenkins if host-jenkins
+   use_backend be_nextcloud if host-nextcloud
+   use_backend be_phpmyadmin if host-phpmyadmin
+   use_backend be_heimdall if host-heimdall
+   ```
 
 4. Add backend definitions for your service(s), for example:
 
-    ```text
-    backend be_jenkins
-        server jenkins jenkins:8080
-    backend be_nextcloud
-        server nextcloud nextcloud:443 ssl verify none
-    backend be_phpmyadmin
-        server phpmyadmin phpmyadmin:80
-    backend be_heimdall
-        server heimdall heimdall:443 ssl verify none
-    ```
+   ```text
+   backend be_jenkins
+       server jenkins jenkins:8080
+   backend be_nextcloud
+       server nextcloud nextcloud:443 ssl verify none
+   backend be_phpmyadmin
+       server phpmyadmin phpmyadmin:80
+   backend be_heimdall
+       server heimdall heimdall:443 ssl verify none
+   ```
 
 ### Common
 
@@ -364,8 +368,8 @@ backend be_heimdall
 
 ## See Also
 
-* [HAProxy Auth Request lua plugin Documentation](https://github.com/TimWolla/haproxy-auth-request)
-* [Forwarded Headers]
+- [HAProxy Auth Request lua plugin Documentation](https://github.com/TimWolla/haproxy-auth-request)
+- [Forwarded Headers]
 
 [HAproxy]: https://www.haproxy.org/
 [Forwarded Headers]: forwarded-headers

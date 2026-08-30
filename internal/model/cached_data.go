@@ -2,6 +2,7 @@ package model
 
 import "time"
 
+// CachedData represents a cached data row in the storage provider.
 type CachedData struct {
 	ID        int       `db:"id"`
 	Created   time.Time `db:"created_at"`

@@ -82,23 +82,23 @@ labels or fallback to labels.
 
 Several new password hashing algorithms will be supported in this release. The list of supported algorithms will become:
 
-* Argon2:
-  * Argon2id (previously supported)
-  * Argon2i
-  * Argon2d
-* PBKDF2:
-  * SHA1
-  * SHA224
-  * SHA256
-  * SHA384
-  * SHA512
-* Scrypt:
-  * Scrypt (standard variation)
-  * Yescrypt
-* Bcrypt
-* SHA2 CRYPT:
-  * SHA256
-  * SHA512 (previously supported)
+- Argon2:
+  - Argon2id (previously supported)
+  - Argon2i
+  - Argon2d
+- PBKDF2:
+  - SHA1
+  - SHA224
+  - SHA256
+  - SHA384
+  - SHA512
+- Scrypt:
+  - Scrypt (standard variation)
+  - Yescrypt
+- Bcrypt
+- SHA2 CRYPT:
+  - SHA256
+  - SHA512 (previously supported)
 
 ## Users YAML File Authentication Backend
 
@@ -137,5 +137,5 @@ allow ignoring a specific specification the third party has not implemented corr
 
 We'll be adding the following compatibility features in this release:
 
-* LDAP Servers which do not support querying the RootDSE for supported controls or extensions.
-* SMTP Servers which advertise support for STARTTLS but do not actually support it.
+- LDAP Servers which do not support querying the RootDSE for supported controls or extensions.
+- SMTP Servers which advertise support for STARTTLS but do not actually support it.

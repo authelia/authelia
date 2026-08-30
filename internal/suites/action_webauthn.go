@@ -3,7 +3,6 @@ package suites
 import (
 	"bytes"
 	"testing"
-	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
@@ -93,12 +92,12 @@ func (rs *RodSession) doWebAuthnMethodMaybeSelect(t *testing.T, page *rod.Page) 
 }
 
 func (rs *RodSession) doWebAuthnMethodMustSelect(t *testing.T, page *rod.Page) {
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "methods-button").Click("left", 1))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "webauthn-option").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "methods-button")
+	rs.ClickElementLocatedByID(t, page, "webauthn-option")
 }
 
 func (rs *RodSession) doWebAuthnCredentialMaybeDelete(t *testing.T, page *rod.Page) {
-	require.NoError(t, page.WaitStable(time.Millisecond*100))
+	rs.WaitElementLocatedBySelector(t, page, `#webauthn-credentials-panel[data-loading="false"]`)
 
 	has, _, err := page.Has("#webauthn-credential-0-delete")
 	require.NoError(t, err)
@@ -111,11 +110,11 @@ func (rs *RodSession) doWebAuthnCredentialMaybeDelete(t *testing.T, page *rod.Pa
 }
 
 func (rs *RodSession) doWebAuthnCredentialMustDelete(t *testing.T, page *rod.Page) {
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "webauthn-credential-0-delete").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "webauthn-credential-0-delete")
 
-	rs.doMaybeVerifyIdentity(t, page)
+	rs.doMaybeVerifyIdentity(t, page, "#dialog-delete")
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-delete").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-delete")
 
 	rs.verifyNotificationDisplayed(t, page, "Successfully deleted the WebAuthn Credential")
 
@@ -123,13 +122,13 @@ func (rs *RodSession) doWebAuthnCredentialMustDelete(t *testing.T, page *rod.Pag
 }
 
 func (rs *RodSession) doWebAuthnCredentialRename(t *testing.T, page *rod.Page, description string) {
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "webauthn-credential-0-edit").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "webauthn-credential-0-edit")
 
-	rs.doMaybeVerifyIdentity(t, page)
+	rs.doMaybeVerifyIdentity(t, page, "#webauthn-credential-description")
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "webauthn-credential-description").Type(rs.toInputs(description)...))
+	rs.TypeElementLocatedByID(t, page, "webauthn-credential-description", description)
 
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-update").Click("left", 1))
+	rs.ClickElementLocatedByID(t, page, "dialog-update")
 
 	rs.verifyNotificationDisplayed(t, page, "Successfully updated the WebAuthn Credential")
 }
@@ -137,23 +136,15 @@ func (rs *RodSession) doWebAuthnCredentialRename(t *testing.T, page *rod.Page, d
 func (rs *RodSession) doWebAuthnCredentialRegister(t *testing.T, page *rod.Page, description string) {
 	rs.doWebAuthnCredentialMaybeDelete(t, page)
 
-	elementAdd := rs.WaitElementLocatedByID(t, page, "webauthn-credential-add")
+	rs.ClickElementLocatedByID(t, page, "webauthn-credential-add")
 
-	require.NoError(t, elementAdd.Click("left", 1))
+	rs.doMaybeVerifyIdentity(t, page, "#webauthn-credential-description")
 
-	rs.doMaybeVerifyIdentity(t, page)
-
-	elementDescription := rs.WaitElementLocatedByID(t, page, "webauthn-credential-description")
-
-	require.NoError(t, elementDescription.Type(rs.toInputs(description)...))
-	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
+	rs.TypeElementLocatedByID(t, page, "webauthn-credential-description", description)
+	rs.ClickElementLocatedByID(t, page, "dialog-next")
 	rs.verifyNotificationDisplayed(t, page, "Successfully added the WebAuthn Credential")
 
 	rs.doWebAuthnUpdateCredentials(t, page)
-
-	require.NoError(t, page.WaitStable(time.Millisecond*50))
-	rs.doHoverAllMuiTooltip(t, page)
-	require.NoError(t, page.WaitStable(time.Millisecond*50))
 
 	rs.doOpenSettingsMenuClickClose(t, page)
 }

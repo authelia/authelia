@@ -1,9 +1,11 @@
 package suites
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -38,6 +40,31 @@ func SuiteSubnet() string {
 // SuiteAddress returns the address of the given host octet on the suite network.
 func SuiteAddress(octet int) string {
 	return fmt.Sprintf("%s.%d", SuiteSubnet(), octet)
+}
+
+// SuiteTmpPath joins elem onto the directory this process exchanges files with the suite containers through, matching
+// the SUITE_TMP_PATH variable. The containers always see that directory at /tmp; SUITE_TMP is the host directory bound
+// there, and SUITE_TMP_PATH is where this process finds the same content. The three coincide by default and in CI, and
+// differ locally so that concurrent runs on one machine do not write over each other.
+func SuiteTmpPath(elem ...string) string {
+	path := os.Getenv("SUITE_TMP_PATH")
+	if path == "" {
+		path = suiteTmpPathDefault
+	}
+
+	return filepath.Join(append([]string{path}, elem...)...)
+}
+
+func proxyAccessLog() string {
+	return fmt.Sprintf("traefik-access-%s.log", composeProjectName())
+}
+
+func removeProxyAccessLog() {
+	// The proxy appends, and the directory it writes into outlives the containers, so a run would
+	// otherwise collect every run before it.
+	if err := os.Remove(SuiteTmpPath(proxyAccessLog())); err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Debugf("Error removing the previous access log: %v", err)
+	}
 }
 
 func agentContainer() string {
@@ -118,6 +145,8 @@ func (de *DockerEnvironment) Pull(images ...string) error {
 
 // Up spawn a docker environment.
 func (de *DockerEnvironment) Up() error {
+	removeProxyAccessLog()
+
 	command := "up --build -d"
 
 	if os.Getenv("CI") == t {
@@ -163,6 +192,7 @@ func (de *DockerEnvironment) Exec(service string, command []string) (string, err
 	return string(content), err
 }
 
+// ExecWithEnv executes the given command against the given service with the given environment.
 func (de *DockerEnvironment) ExecWithEnv(service string, command []string, env map[string]string) (string, error) {
 	envs := make([]string, 0, len(env))
 

@@ -6,6 +6,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// ArbitraryDelay returns a middleware which ensures the request takes at least the given duration.
 func ArbitraryDelay(delay time.Duration) Basic {
 	return func(next fasthttp.RequestHandler) (handler fasthttp.RequestHandler) {
 		return func(ctx *fasthttp.RequestCtx) {

@@ -4106,12 +4106,12 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			"ShouldRaiseErrorOnEd25519Keys",
 			&schema.IdentityProvidersOpenIDConnect{
 				JSONWebKeys: []schema.JWK{
-					{Key: keyEd2519, CertificateChain: certEd15519},
+					{Key: keyEd25519, CertificateChain: certEd25519},
 				},
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				JSONWebKeys: []schema.JWK{
-					{Key: keyEd2519, CertificateChain: certEd15519, KeyID: "ca54bd"},
+					{Key: keyEd25519, CertificateChain: certEd25519, KeyID: "ca54bd"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{},
@@ -5409,7 +5409,7 @@ func MustLoadCertificateChain(alg, op string) schema.X509CertificateChain {
 	}
 }
 
-func MustLoadEd15519PrivateKey(mod string, extra ...string) ed25519.PrivateKey {
+func MustLoadEd25519PrivateKey(mod string, extra ...string) ed25519.PrivateKey {
 	decoded := MustLoadCrypto("ED25519", mod, "pem", extra...)
 
 	key, ok := decoded.(ed25519.PrivateKey)
@@ -5465,9 +5465,9 @@ var (
 	keyECDSAP224, keyECDSAP256, keyECDSAP384, keyECDSAP521     *ecdsa.PrivateKey
 	certECDSAP224, certECDSAP256, certECDSAP384, certECDSAP521 schema.X509CertificateChain
 
-	// Ed15519 key / certificate pair.
-	keyEd2519   ed25519.PrivateKey
-	certEd15519 schema.X509CertificateChain
+	// Ed25519 key / certificate pair.
+	keyEd25519  ed25519.PrivateKey
+	certEd25519 schema.X509CertificateChain
 )
 
 func init() {
@@ -5483,7 +5483,7 @@ func init() {
 	certECDSAP384, keyECDSAP384 = MustLoadECDSACertificatePrivateKeyPair("P384")
 	certECDSAP521, keyECDSAP521 = MustLoadECDSACertificatePrivateKeyPair("P521")
 
-	certEd15519, keyEd2519 = MustLoadCertificateChain("Ed25519", ""), MustLoadEd15519PrivateKey("")
+	certEd25519, keyEd25519 = MustLoadCertificateChain("Ed25519", ""), MustLoadEd25519PrivateKey("")
 
 	keyRSA2048Legacy = MustLoadRSAPrivateKey("2048", "legacy")
 }

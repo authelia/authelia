@@ -3,6 +3,7 @@ package service
 import (
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/sirupsen/logrus"
@@ -10,6 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 )
 
+// ProvisionLoggingSignal returns a Provider which reopens the log file when the relevant signal is received.
 func ProvisionLoggingSignal(ctx Context) (service Provider, err error) {
 	config := ctx.GetConfiguration()
 
@@ -36,6 +38,7 @@ type Signal struct {
 
 	notify chan os.Signal
 	quit   chan struct{}
+	stop   sync.Once
 }
 
 // ServiceType returns the service type for this service, which is always 'signal'.
@@ -52,6 +55,8 @@ func (service *Signal) ServiceName() string {
 func (service *Signal) Run() (err error) {
 	signal.Notify(service.notify, service.signals...)
 
+	defer signal.Stop(service.notify)
+
 	for {
 		select {
 		case s := <-service.notify:
@@ -61,16 +66,18 @@ func (service *Signal) Run() (err error) {
 				service.log.WithFields(map[string]any{"signal-received": s.String()}).Debug("Successfully executed service action.")
 			}
 		case <-service.quit:
-			return
+			return nil
 		}
 	}
 }
 
 // Shutdown the ServerService.
 func (service *Signal) Shutdown() {
-	signal.Stop(service.notify)
+	service.stop.Do(func() {
+		signal.Stop(service.notify)
 
-	service.quit <- struct{}{}
+		close(service.quit)
+	})
 }
 
 // Log returns the *logrus.Entry of the ServerService.

@@ -112,6 +112,19 @@ func (s *HighAvailabilityWebDriverSuite) redisReplica(sentinel string) string {
 	return ""
 }
 
+func (s *HighAvailabilityWebDriverSuite) doStartAndSettle(service, observer string) {
+	since := time.Now()
+
+	s.Require().NoError(haDockerEnvironment.Start(service))
+
+	// Reported for anything the sentinel had marked down, so it covers a returning node and a returning
+	// sentinel alike.
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, observer, "-sdown", since))
+
+	// Resolving the master confirms the sentinels agree on one and that the node behind it answers as one.
+	s.redisMaster(observer)
+}
+
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 
@@ -129,8 +142,10 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
 	// returns fails at the first factor.
 	s.redisMaster("redis-sentinel-0")
 
-	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
-	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	doWithDisruptedDatastore(func() {
+		s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
+		s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	})
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisNodeFailure() {
@@ -154,25 +169,25 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.Require().NoError(err)
 
 	defer func() {
-		err = haDockerEnvironment.Start(master)
-		s.Require().NoError(err)
+		s.doStartAndSettle(master, "redis-sentinel-0")
 	}()
 
 	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-0", "+switch-master authelia", since))
 
-	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Context(ctx))
+	doWithDisruptedDatastore(func() {
+		s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+		s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Verify the user is still authenticated.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
-	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+		// Verify the user is still authenticated.
+		s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
+		s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
-	// Then logout and login again to check we can see the secret.
-	s.doLogout(s.T(), s.Context(ctx))
-	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+		s.doLogout(s.T(), s.Context(ctx))
+		s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, fmt.Sprintf("%s/secret.html", SecureBaseURL))
-	s.verifySecretAuthorized(s.T(), s.Context(ctx))
+		s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, fmt.Sprintf("%s/secret.html", SecureBaseURL))
+		s.verifySecretAuthorized(s.T(), s.Context(ctx))
+	})
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisSentinelFailureAndSecondaryRedisNodeFailure() {
@@ -196,27 +211,27 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 	s.Require().NoError(err)
 
 	defer func() {
-		err = haDockerEnvironment.Start("redis-sentinel-0")
-		s.Require().NoError(err)
+		s.doStartAndSettle("redis-sentinel-0", "redis-sentinel-1")
 	}()
 
 	err = haDockerEnvironment.Stop(replica)
 	s.Require().NoError(err)
 
 	defer func() {
-		err = haDockerEnvironment.Start(replica)
-		s.Require().NoError(err)
+		s.doStartAndSettle(replica, "redis-sentinel-1")
 	}()
 
 	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+sdown sentinel", since))
 	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+sdown slave", since))
 
-	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Context(ctx))
+	doWithDisruptedDatastore(func() {
+		s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+		s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Verify the user is still authenticated.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
-	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+		// Verify the user is still authenticated.
+		s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
+		s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	})
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
@@ -236,8 +251,10 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 
 	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "mariadb", "mariadbd: ready for connections", since))
 
-	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
-	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	doWithDisruptedDatastore(func() {
+		s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
+		s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	})
 }
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaRestart() {
@@ -259,19 +276,20 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaResta
 	err = waitUntilAutheliaBackendIsReady(haDockerEnvironment, since)
 	s.Require().NoError(err)
 
-	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
-	s.verifyIsHome(s.T(), s.Context(ctx))
+	doWithDisruptedDatastore(func() {
+		s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
+		s.verifyIsHome(s.T(), s.Context(ctx))
 
-	// Verify the user is still authenticated.
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
-	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+		// Verify the user is still authenticated.
+		s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
+		s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 
-	// Then logout and login again to check the secret is still there.
-	s.doLogout(s.T(), s.Context(ctx))
-	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+		s.doLogout(s.T(), s.Context(ctx))
+		s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
-	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, fmt.Sprintf("%s/secret.html", SecureBaseURL))
-	s.verifySecretAuthorized(s.T(), s.Context(ctx))
+		s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, fmt.Sprintf("%s/secret.html", SecureBaseURL))
+		s.verifySecretAuthorized(s.T(), s.Context(ctx))
+	})
 }
 
 var UserJohn = "john"

@@ -10,6 +10,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+func handleAuthzUnauthorizedCommon(ctx AuthzContext, authn *Authn, redirectionURL *url.URL) {
+	doAuthzRedirect(ctx, authn, redirectionURL, getAuthzRedirectStatusCode(ctx, authn.Object.Method))
+}
+
 func handleAuthzPortalURLLegacy(ctx AuthzContext) (portalURL *url.URL, err error) {
 	if portalURL, err = handleAuthzPortalURLFromQueryLegacy(ctx); err != nil || portalURL != nil {
 		return portalURL, err
@@ -19,42 +23,15 @@ func handleAuthzPortalURLLegacy(ctx AuthzContext) (portalURL *url.URL, err error
 }
 
 func handleAuthzPortalURLFromHeader(ctx AuthzContext) (portalURL *url.URL, err error) {
-	rawURL := ctx.XAutheliaURL()
-	if rawURL == nil {
-		return nil, nil
-	}
-
-	if portalURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
-		return nil, err
-	}
-
-	return portalURL, nil
+	return parseAuthzPortalURL(ctx.XAutheliaURL())
 }
 
 func handleAuthzPortalURLFromQuery(ctx AuthzContext) (portalURL *url.URL, err error) {
-	rawURL := ctx.QueryArgAutheliaURL()
-	if rawURL == nil {
-		return nil, nil
-	}
-
-	if portalURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
-		return nil, err
-	}
-
-	return portalURL, nil
+	return parseAuthzPortalURL(ctx.QueryArgAutheliaURL())
 }
 
 func handleAuthzPortalURLFromQueryLegacy(ctx AuthzContext) (portalURL *url.URL, err error) {
-	rawURL := ctx.GetRequestQueryArgValue(qryArgRD)
-	if rawURL == nil {
-		return nil, nil
-	}
-
-	if portalURL, err = url.ParseRequestURI(string(rawURL)); err != nil {
-		return nil, err
-	}
-
-	return portalURL, nil
+	return parseAuthzPortalURL(ctx.GetRequestQueryArgValue(qryArgRD))
 }
 
 func handleAuthzAuthorizedStandard(ctx AuthzContext, authn *Authn) {

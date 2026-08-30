@@ -20,10 +20,34 @@ import (
 )
 
 const (
-	waitElementsAttempts = 10
-	elementRetryInterval = time.Millisecond * 50
-	setupTestTimeout     = time.Second * 30
+	elementActionTimeout          = time.Second * 10
+	elementActionTimeoutDisrupted = time.Second * 30
+	elementAttemptTimeout         = time.Second
+	elementLocateTimeout          = time.Second * 20
+	elementLocateTimeoutDisrupted = time.Second * 45
+	elementRetryInterval          = time.Millisecond * 50
+	elementStateTimeout           = time.Second * 5
+	pageRenderTimeout             = time.Second * 5
+	setupTestTimeout              = time.Second * 30
+	waitElementsAttempts          = 10
 )
+
+var (
+	elementActionBudget = elementActionTimeout
+	elementLocateBudget = elementLocateTimeout
+)
+
+func doWithDisruptedDatastore(fn func()) {
+	previousAction, previousLocate := elementActionBudget, elementLocateBudget
+
+	elementActionBudget, elementLocateBudget = elementActionTimeoutDisrupted, elementLocateTimeoutDisrupted
+
+	defer func() {
+		elementActionBudget, elementLocateBudget = previousAction, previousLocate
+	}()
+
+	fn()
+}
 
 // RodSession binding a chrome session with devtool protocol.
 type RodSession struct {
@@ -46,18 +70,22 @@ var (
 	sharedBrowsers      = map[string]*sharedBrowser{}
 )
 
+// RodSessionCredentials represents the credentials available to a RodSession.
 type RodSessionCredentials struct {
 	TOTP *OptionsTOTP
 }
 
+// RodSessionOpts represents the options used to create a RodSession.
 type RodSessionOpts struct {
 	proxy           string
 	provider        RodSuiteCredentialsProvider
 	disableDevtools bool
 }
 
+// RodSessionOpt is a function which configures the RodSessionOpts.
 type RodSessionOpt func(opts *RodSessionOpts) (err error)
 
+// RodSessionWithProxy returns a RodSessionOpt which sets the proxy.
 func RodSessionWithProxy(proxy string) RodSessionOpt {
 	return func(opts *RodSessionOpts) (err error) {
 		opts.proxy = proxy
@@ -66,6 +94,7 @@ func RodSessionWithProxy(proxy string) RodSessionOpt {
 	}
 }
 
+// RodSessionWithCredentials returns a RodSessionOpt which sets the credentials provider.
 func RodSessionWithCredentials(provider RodSuiteCredentialsProvider) RodSessionOpt {
 	return func(opts *RodSessionOpts) (err error) {
 		opts.provider = provider
@@ -84,6 +113,7 @@ func RodSessionWithoutDevtools() RodSessionOpt {
 	}
 }
 
+// NewRodSession returns a new RodSession given the provided options.
 func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 	opts := &RodSessionOpts{}
 
@@ -154,6 +184,11 @@ func newBrowser(opts *RodSessionOpts) (shared *sharedBrowser, err error) {
 		Proxy(opts.proxy).
 		Headless(headless).
 		Devtools(!headless && !opts.disableDevtools)
+
+	// Chrome resolves the suite domains from these rules rather than from /etc/hosts, so a browser launched by one
+	// suite reaches that suite's network even while another suite on this machine owns the names in /etc/hosts. The
+	// proxy hostnames the NetworkACL suite dials are resolved the same way.
+	l.Set("host-resolver-rules", HostResolverRules())
 
 	if opts.disableDevtools {
 		l.Set("font-render-hinting", "none")
@@ -234,11 +269,33 @@ func (rs *RodSession) CheckElementExistsLocatedByID(t *testing.T, page *rod.Page
 
 // WaitElementLocatedBySelector waits for an element matching the CSS selector to appear in the DOM.
 func (rs *RodSession) WaitElementLocatedBySelector(t *testing.T, page *rod.Page, selector string) *rod.Element {
-	e, err := page.Element(selector)
-	require.NoError(t, err)
-	require.NotNil(t, e)
+	// Bounded here rather than left to the page's context, which is the whole of what remains of the test.
+	// An element that never appears would otherwise spend the budget every later step still needed and
+	// report only that a deadline passed, naming neither the element nor what it was doing, which is what
+	// a portal that renders nothing looks like from the outside.
+	ctx, cancel := context.WithTimeout(page.GetContext(), elementLocateBudget)
 
-	return e
+	defer cancel()
+
+	found, err := page.Context(ctx).Element(selector)
+	if err != nil {
+		require.FailNowf(t, "Element was not located",
+			"selector '%s' did not appear within %s: %v\nelement state: %s",
+			selector, elementLocateBudget, err, describeElement(page, selector))
+
+		return nil
+	}
+
+	// Rebound onto the page the caller gave, from the object the wait already found. An element carries
+	// the page it was located on and hands it to everything derived from it, so returning it as it stands
+	// would leave a frame descended into afterwards on the context this cancels. Rebinding rather than
+	// looking the element up a second time, because a second lookup can miss one that has since left the
+	// document, which is what a page mid-render does between two states.
+	element, err := page.ElementFromObject(found.Object)
+	require.NoError(t, err)
+	require.NotNil(t, element)
+
+	return element
 }
 
 // WaitElementLocatedByClassName waits for an element located by class name.
@@ -251,38 +308,219 @@ func (rs *RodSession) WaitElementLocatedByID(t *testing.T, page *rod.Page, cssSe
 	return rs.WaitElementLocatedBySelector(t, page, "#"+cssSelector)
 }
 
-// ClickElementLocatedBySelector clicks the element matching the CSS selector, locating it again if
-// the document replaced it in the meantime. Locating an element and clicking it are two round trips,
-// and a re-render between them leaves the handle pointing at a node that is no longer in the
-// document, which the click then reports rather than performing.
-func (rs *RodSession) ClickElementLocatedBySelector(t *testing.T, page *rod.Page, selector string) {
-	var err error
+// errElementValueNotSet reports that the value did not reach the element, which typing does without
+// error when the keys are dispatched at a node the document has already replaced.
+var errElementValueNotSet = errors.New("element value was not set")
 
-	for range waitElementsAttempts {
-		var element *rod.Element
+// elementState describes why an element could not be acted on. rod names the condition it stopped at
+// but not the cause, and the failure screenshot is taken once the page has settled, by which time the
+// cause has usually gone.
+const elementState = `(selector) => {
+	const element = document.querySelector(selector);
 
-		if element, err = page.Element(selector); err != nil {
-			break
-		}
-
-		if err = element.Click("left", 1); err == nil {
-			return
-		}
-
-		if !isDetachedNodeError(err) {
-			break
-		}
-
-		time.Sleep(elementRetryInterval)
+	if (!element) {
+		return 'not in the document';
 	}
 
-	require.NoError(t, err)
+	const style = getComputedStyle(element);
+	const rect = element.getBoundingClientRect();
+	const center = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+	const describe = (node) => {
+		if (node === null) {
+			return 'nothing';
+		}
+
+		if (node === element) {
+			return 'itself';
+		}
+
+		const slot = node.getAttribute('data-slot');
+
+		return (node.id ? '#' + node.id : node.tagName.toLowerCase()) + (slot ? '[' + slot + ']' : '');
+	};
+
+	return JSON.stringify({
+		disabled: element.disabled === true,
+		inert: element.closest('[inert], [data-base-ui-inert]') !== null,
+		pointerEvents: style.pointerEvents,
+		visibility: style.visibility,
+		display: style.display,
+		opacity: style.opacity,
+		value: element.value === undefined ? null : element.value,
+		rect: [Math.round(rect.x), Math.round(rect.y), Math.round(rect.width), Math.round(rect.height)],
+		viewport: [innerWidth, innerHeight],
+		topmostAtCenter: describe(center),
+	});
+}`
+
+// ClickElementLocatedBySelector clicks the element matching the CSS selector, locating it again and
+// retrying while the click cannot be performed.
+func (rs *RodSession) ClickElementLocatedBySelector(t *testing.T, page *rod.Page, selector string) {
+	rs.doElementAction(t, page, selector, func(element *rod.Element) error {
+		return element.Click("left", 1)
+	})
 }
 
-// ClickElementLocatedByID clicks the element located by an id, locating it again if the document
-// replaced it in the meantime.
+// ClickElementLocatedByID clicks the element located by an id, retrying while the click cannot be
+// performed.
 func (rs *RodSession) ClickElementLocatedByID(t *testing.T, page *rod.Page, cssSelector string) {
 	rs.ClickElementLocatedBySelector(t, page, "#"+cssSelector)
+}
+
+// TypeElementLocatedByID types into the element located by an id, retrying on the same terms as
+// ClickElementLocatedByID.
+func (rs *RodSession) TypeElementLocatedByID(t *testing.T, page *rod.Page, cssSelector, value string) {
+	rs.doElementAction(t, page, "#"+cssSelector, func(element *rod.Element) error {
+		// An attempt that failed partway through leaves what it managed to type behind, so the field is
+		// replaced rather than appended to and the value is confirmed before the attempt is accepted.
+		if err := element.SelectAllText(); err != nil {
+			return err
+		}
+
+		if err := element.Type(rs.toInputs(value)...); err != nil {
+			return err
+		}
+
+		property, err := element.Property("value")
+		if err != nil {
+			return err
+		}
+
+		if property.Str() != value {
+			return errElementValueNotSet
+		}
+
+		return nil
+	})
+}
+
+func (rs *RodSession) waitElementTextIs(t *testing.T, page *rod.Page, selector, expected string) {
+	rs.waitElementText(t, page, selector, expected, true)
+}
+
+func (rs *RodSession) waitElementTextIsNot(t *testing.T, page *rod.Page, selector, unexpected string) {
+	rs.waitElementText(t, page, selector, unexpected, false)
+}
+
+func (rs *RodSession) waitElementText(t *testing.T, page *rod.Page, selector, value string, equal bool) {
+	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionBudget)
+
+	defer cancel()
+
+	bounded := page.Context(ctx)
+	observed := "unavailable"
+
+	for {
+		if element, err := bounded.Element(selector); err == nil {
+			// rod reports the text as rendered, which is the value the assertions read: the components
+			// uppercase their labels through a style the text in the document does not account for.
+			if text, errText := element.Text(); errText == nil {
+				observed = text
+
+				if (text == value) == equal {
+					return
+				}
+			}
+		}
+
+		select {
+		case <-ctx.Done():
+			if equal {
+				require.Failf(t, "Element did not take the expected text",
+					"selector '%s' expected '%s', observed '%s'", selector, value, observed)
+			} else {
+				require.Failf(t, "Element kept the text it was expected to leave",
+					"selector '%s' was still '%s'", selector, value)
+			}
+
+			return
+		case <-time.After(elementRetryInterval):
+		}
+	}
+}
+
+func (rs *RodSession) doElementAction(t *testing.T, page *rod.Page, selector string, action func(element *rod.Element) error) {
+	ctx, cancel := context.WithTimeout(page.GetContext(), elementActionBudget)
+
+	defer cancel()
+
+	err := retryElementAction(page.Context(ctx), selector, action)
+	if err == nil {
+		return
+	}
+
+	require.Failf(t, "Element action did not succeed",
+		"selector '%s' gave up after %s: %v\nelement state: %s",
+		selector, elementActionBudget, err, describeElement(page, selector))
+}
+
+func retryElementAction(page *rod.Page, selector string, action func(element *rod.Element) error) error {
+	ctx := page.GetContext()
+
+	// The state the element was last in says why it could not be acted on; the expiry that ends the
+	// attempt says only that it never left that state, so the former is reported in preference.
+	var last error
+
+	for {
+		element, err := page.Element(selector)
+		if err != nil {
+			return preferElementError(ctx, err, last)
+		}
+
+		// Each attempt is capped separately. rod retries a covered element for as long as its context
+		// allows, which would spend the whole budget hovering one handle: the element is re-located
+		// instead, so a node the document replaced while it was covered is not held on to.
+		attempt, cancel := context.WithTimeout(ctx, elementAttemptTimeout)
+		err = action(element.Context(attempt))
+		expired := attempt.Err() != nil
+
+		cancel()
+
+		if err == nil {
+			return nil
+		}
+
+		if !expired && !isTransientElementError(err) {
+			return err
+		}
+
+		// An attempt cut short reports its own expiry rather than the element, so it must not displace
+		// the state a previous attempt saw the element in.
+		if !expired {
+			last = err
+		}
+
+		select {
+		case <-ctx.Done():
+			return preferElementError(ctx, err, last)
+		case <-time.After(elementRetryInterval):
+		}
+	}
+}
+
+func preferElementError(ctx context.Context, err, last error) error {
+	if last != nil && ctx.Err() != nil {
+		return last
+	}
+
+	return err
+}
+
+func describeElement(page *rod.Page, selector string) string {
+	// A context of its own, so the state still reports once the one the action ran under has expired.
+	result, err := page.Context(context.Background()).Timeout(elementStateTimeout).Eval(elementState, selector)
+	if err != nil {
+		return fmt.Sprintf("unavailable: %v", err)
+	}
+
+	return result.Value.Str()
+}
+
+func isTransientElementError(err error) bool {
+	var notInteractable *rod.NotInteractableError
+
+	return isDetachedNodeError(err) || errors.Is(err, errElementValueNotSet) || errors.As(err, &notInteractable)
 }
 
 func isDetachedNodeError(err error) bool {

@@ -20,24 +20,24 @@ seo:
 
 ## Introduction
 
-This is a guide on integration of __Authelia__ and [Organizr] via the trusted header SSO authentication.
+This is a guide on integration of **Authelia** and [Organizr] via the trusted header SSO authentication.
 
 As with all guides in this section it's important you read the [introduction](../introduction.md) first.
 
 ## Tested Versions
 
-* Authelia:
-  * v4.35.5
-* Organizr:
-  * 2.1.1890
+- Authelia:
+  - v4.35.5
+- Organizr:
+  - 2.1.1890
 
 ## Before You Begin
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://organizr.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Reverse Proxy IP:__ `172.16.0.1`
+- **Application Root URL:** `https://organizr.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Reverse Proxy IP:** `172.16.0.1`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 

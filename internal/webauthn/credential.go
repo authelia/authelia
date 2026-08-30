@@ -1,6 +1,7 @@
 package webauthn
 
 import (
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -22,7 +23,7 @@ func VerifyCredential(config *schema.WebAuthn, credential *model.WebAuthnCredent
 	if len(credential.Attestation) == 0 {
 		result.MissingStatement = true
 	} else if c != nil && mds != nil {
-		if err = c.Verify(mds); err != nil {
+		if err = c.Verify(mds, protocol.AttestationPolicy{}, protocol.SignaturePolicy{}); err != nil {
 			result.ErrorMetadataValidation = err
 			result.MetaDataValidationError = true
 		}
@@ -65,6 +66,7 @@ func VerifyCredential(config *schema.WebAuthn, credential *model.WebAuthnCredent
 	return result
 }
 
+// VerifyCredentialResult represents the result of verifying a WebAuthn credential against the configured filters.
 type VerifyCredentialResult struct {
 	Malformed                     bool
 	MissingStatement              bool

@@ -17,6 +17,8 @@ import (
 )
 
 func TestIsCredentialCreationDiscoverable(t *testing.T) {
+	rkTrue, rkFalse := true, false
+
 	testCases := []struct {
 		name     string
 		have     *protocol.ParsedCredentialCreationData
@@ -27,10 +29,8 @@ func TestIsCredentialCreationDiscoverable(t *testing.T) {
 			"ShouldHandleNormativeCase",
 			&protocol.ParsedCredentialCreationData{
 				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						webauthn.ExtensionCredProps: map[string]any{
-							webauthn.ExtensionCredPropsResidentKey: true,
-						},
+					ClientExtensionResults: protocol.AuthenticationExtensionsClientOutputs{
+						CredProps: &protocol.CredentialPropertiesOutput{RK: &rkTrue},
 					},
 				},
 			},
@@ -38,25 +38,23 @@ func TestIsCredentialCreationDiscoverable(t *testing.T) {
 			"Determined Credential Discoverability via Client Extension Results",
 		},
 		{
-			"ShouldReturnFalseWrongType",
+			"ShouldReturnFalseResidentKeyFalse",
 			&protocol.ParsedCredentialCreationData{
 				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						webauthn.ExtensionCredProps: map[string]any{
-							webauthn.ExtensionCredPropsResidentKey: 1,
-						},
+					ClientExtensionResults: protocol.AuthenticationExtensionsClientOutputs{
+						CredProps: &protocol.CredentialPropertiesOutput{RK: &rkFalse},
 					},
 				},
 			},
 			false,
-			"Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension in the Client Extension Results was not a boolean",
+			"Determined Credential Discoverability via Client Extension Results",
 		},
 		{
 			"ShouldReturnFalseNoKey",
 			&protocol.ParsedCredentialCreationData{
 				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						webauthn.ExtensionCredProps: map[string]any{},
+					ClientExtensionResults: protocol.AuthenticationExtensionsClientOutputs{
+						CredProps: &protocol.CredentialPropertiesOutput{},
 					},
 				},
 			},
@@ -64,22 +62,10 @@ func TestIsCredentialCreationDiscoverable(t *testing.T) {
 			"Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension was missing from the Client Extension Results",
 		},
 		{
-			"ShouldReturnFalsePropsWrongType",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						webauthn.ExtensionCredProps: []string{},
-					},
-				},
-			},
-			false,
-			"Assuming Credential Discoverability is false as the 'credProps' extension in the Client Extension Results does not appear to be a dictionary",
-		},
-		{
 			"ShouldReturnFalsePropsNotSet",
 			&protocol.ParsedCredentialCreationData{
 				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{},
+					ClientExtensionResults: protocol.AuthenticationExtensionsClientOutputs{},
 				},
 			},
 			false,

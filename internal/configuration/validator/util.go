@@ -110,6 +110,7 @@ func validateList(values, valid []string, chkDuplicate bool) (invalid, duplicate
 	return
 }
 
+// JWKProperties represents the properties of a JSON Web Key.
 type JWKProperties struct {
 	Use       string
 	Algorithm string
@@ -182,7 +183,7 @@ func schemaJWKGetPropertiesEnc(jwk schema.JWK) (properties *JWKProperties, err e
 		case 128:
 			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgA128GCMKW, n, nil}, nil
 		default:
-			if n > 32 {
+			if n < 32 {
 				return nil, fmt.Errorf("invalid symmetric key length of %d but the minimum is 32", n)
 			}
 

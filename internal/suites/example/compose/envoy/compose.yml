@@ -1,7 +1,7 @@
 ---
 services:
   envoy:
-    image: 'envoyproxy/envoy:v1.39.0'
+    image: 'envoyproxy/envoy:v1.39.1'
     cpus: 2
     mem_limit: 1g
     volumes:

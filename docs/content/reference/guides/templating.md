@@ -122,8 +122,8 @@ See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_
 note that only the functions listed above are supported and while the intention is to make the functions behave exactly
 the same they may not necessarily behave exactly the same.
 
-__*Special Note:* The `env` and `expandenv` function automatically excludes environment variables that start with
-`AUTHELIA_` or `X_AUTHELIA_` and end with one of `KEY`, `SECRET`, `PASSWORD`, `TOKEN`, or `CERTIFICATE_CHAIN`.__
+**_Special Note:_ The `env` and `expandenv` function automatically excludes environment variables that start with
+`AUTHELIA_` or `X_AUTHELIA_` and end with one of `KEY`, `SECRET`, `PASSWORD`, `TOKEN`, or `CERTIFICATE_CHAIN`.**
 
 ### Special Functions
 

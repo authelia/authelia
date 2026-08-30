@@ -112,6 +112,7 @@ const (
 	logFmtErrConsentZeroID           = logFmtConsentPrefix + "could not be processed: the consent id had a zero value"
 	logFmtErrConsentCantGetSubject   = logFmtConsentPrefix + "could not be processed: error occurred retrieving subject identifier for user '%s' and sector identifier '%s': %+v"
 	logFmtErrConsentGenerateError    = logFmtConsentPrefix + "could not be processed: error occurred %s consent: %+v"
+	logFmtErrConsentMatchError       = logFmtConsentPrefix + "could not be processed: error occurred matching the consent session to the request"
 
 	logFmtDbgConsentGenerate                  = logFmtConsentPrefix + "proceeding to generate a new consent session"
 	logFmtDbgConsentAuthenticationSufficiency = logFmtConsentPrefix + "authentication level '%s' is %s for client level '%s'"

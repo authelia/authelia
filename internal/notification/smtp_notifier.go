@@ -142,7 +142,7 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 		client SMTPClient
 	)
 
-	if msg, err = n.msg(recipient, subject, et, data); err != nil {
+	if msg, err = n.buildMessage(recipient, subject, et, data); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to create envelope: %w", err)
 	}
 
@@ -165,7 +165,7 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 	return nil
 }
 
-func (n *SMTPNotifier) msg(recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (msg *gomail.Msg, err error) {
+func (n *SMTPNotifier) buildMessage(recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (msg *gomail.Msg, err error) {
 	msg = gomail.NewMsg(
 		gomail.WithMIMEVersion(gomail.MIME10),
 		gomail.WithBoundary(n.random.StringCustom(30, random.CharSetAlphaNumeric)),
@@ -210,11 +210,13 @@ func (n *SMTPNotifier) setMessageID(msg *gomail.Msg) {
 	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", pid, rn, rm, rs, n.domain))
 }
 
+// StandardSMTPClientFactory is the standard SMTPClientFactory implementation.
 type StandardSMTPClientFactory struct {
 	config *schema.NotifierSMTP
 	opts   []gomail.Option
 }
 
+// GetClient returns a new SMTPClient.
 func (f *StandardSMTPClientFactory) GetClient() (client SMTPClient, err error) {
 	if client, err = gomail.NewClient(f.config.Address.Hostname(), f.opts...); err != nil {
 		return nil, err

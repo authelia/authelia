@@ -21,6 +21,7 @@
 	"Device selection was denied by Duo policy": "Device selection was denied by Duo policy",
 	"Enter One-Time Password": "Enter One-Time Password",
 	"Enter new password": "Enter new password",
+	"Enter your password to confirm your identity": "Enter your password to confirm your identity",
 	"Failed to confirm your identity": "Failed to confirm your identity",
 	"Failed to initiate security key sign in process": "Failed to initiate security key sign in process",
 	"Failed to redirect you": "Failed to redirect you",

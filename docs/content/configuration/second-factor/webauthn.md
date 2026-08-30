@@ -123,7 +123,7 @@ See the [W3C WebAuthn Documentation](https://www.w3.org/TR/webauthn-2/#enum-atte
 Available Options:
 
 |  Value   |                                                                  Description                                                                  |
-|:--------:|:---------------------------------------------------------------------------------------------------------------------------------------------:|
+| :------: | :-------------------------------------------------------------------------------------------------------------------------------------------: |
 |   none   |                                           The client will be instructed not to perform conveyancing                                           |
 | indirect | The client will be instructed to perform conveyancing but the client can choose how to do this including using a third party anonymization CA |
 |  direct  |           The client will be instructed to perform conveyancing with an attestation statement directly signed by the authenticator            |
@@ -172,7 +172,7 @@ Sets the attachment preference for newly created credentials.
 Available Options:
 
 |     Value      |                                           Description                                           |
-|:--------------:|:-----------------------------------------------------------------------------------------------:|
+| :------------: | :---------------------------------------------------------------------------------------------: |
 |    _empty_     | The Authenticators that are available will be shown and the user can pick the specific criteria |
 | cross-platform |     Authenticators that can move from one system to another such as physical security keys      |
 |    platform    |        Authenticators that are part of the platform such as Windows Hello, AppleID, etc         |
@@ -184,7 +184,7 @@ Available Options:
 Sets the discoverability preference. May affect the creation of Passkeys.
 
 |    Value    |                             Description                             |
-|:-----------:|:-------------------------------------------------------------------:|
+| :---------: | :-----------------------------------------------------------------: |
 | discouraged |                     Prefers no discoverability                      |
 |  preferred  | Prefers discoverability and will not error if it's not discoverable |
 |  required   |   Requires discoverability and may error if it's not discoverable   |
@@ -200,7 +200,7 @@ See the [W3C WebAuthn Documentation](https://www.w3.org/TR/webauthn-2/#enum-user
 Available Options:
 
 |    Value    |                                                  Description                                                  |
-|:-----------:|:-------------------------------------------------------------------------------------------------------------:|
+| :---------: | :-----------------------------------------------------------------------------------------------------------: |
 | discouraged |                       The client will be discouraged from asking for user verification                        |
 |  preferred  |          The client if compliant will ask the user for verification if the authenticator supports it          |
 |  required   | The client will ask the user for verification or will fail if the authenticator does not support verification |

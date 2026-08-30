@@ -25,6 +25,65 @@ func TestRunLegacyAuthzSuite(t *testing.T) {
 	suite.Run(t, NewLegacyAuthzSuite())
 }
 
+func TestHandleAuthzGetObjectLegacy(t *testing.T) {
+	testCases := []struct {
+		Name            string
+		ForwardedMethod string
+		Method          string
+		Expected        string
+		Error           string
+	}{
+		{
+			Name:            "ShouldUseForwardedMethod",
+			ForwardedMethod: fasthttp.MethodPost,
+			Method:          fasthttp.MethodGet,
+			Expected:        fasthttp.MethodPost,
+		},
+		{
+			Name:     "ShouldFallbackToStartLineMethod",
+			Method:   fasthttp.MethodPost,
+			Expected: fasthttp.MethodPost,
+		},
+		{
+			Name:            "ShouldReturnErrorNamingForwardedMethodWhenItHasInvalidCharacters",
+			ForwardedMethod: "GETz",
+			Method:          fasthttp.MethodGet,
+			Error:           "header 'X-Forwarded-Method' with value 'GETz' has invalid characters",
+		},
+		{
+			Name:   "ShouldReturnErrorNamingStartLineMethodWhenItHasInvalidCharacters",
+			Method: "GETz",
+			Error:  "start line value 'Method' with value 'GETz' has invalid characters",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.SetMethod(tc.Method)
+			mock.Ctx.Request.Header.Set("X-Original-URL", "https://app.example.com/")
+
+			if tc.ForwardedMethod != "" {
+				mock.Ctx.Request.Header.Set("X-Forwarded-Method", tc.ForwardedMethod)
+			}
+
+			object, err := handleAuthzGetObjectLegacy(mock.Ctx)
+
+			if tc.Error != "" {
+				assert.EqualError(t, err, tc.Error)
+
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.Expected, object.Method)
+		})
+	}
+}
+
 func NewLegacyAuthzSuite() *LegacyAuthzSuite {
 	return &LegacyAuthzSuite{
 		AuthzSuite: &AuthzSuite{
@@ -453,7 +512,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleAllMethodsAllowXHR() {
 	}
 }
 
-func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() { // TestShouldVerifyAuthBasicArgOk.
+func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuth() {
 	authz := s.BuildWithDelayer()
 
 	mock := mocks.NewMockAutheliaCtx(s.T())
@@ -510,17 +569,17 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 		setup func(mock *mocks.MockAutheliaCtx)
 	}{
 		{
-			"HeaderAbsent", // TestShouldVerifyAuthBasicArgFailingNoHeader.
+			"HeaderAbsent",
 			nil,
 		},
 		{
-			"HeaderEmpty", // TestShouldVerifyAuthBasicArgFailingEmptyHeader.
+			"HeaderEmpty",
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "")
 			},
 		},
 		{
-			"HeaderIncorrect", // TestShouldVerifyAuthBasicArgFailingWrongHeader.
+			"HeaderIncorrect",
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 			},
@@ -578,7 +637,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 			},
 		},
 		{
-			"IncorrectPassword", // TestShouldVerifyAuthBasicArgFailingWrongPassword.
+			"IncorrectPassword",
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 
@@ -613,7 +672,7 @@ func (s *LegacyAuthzSuite) TestShouldHandleLegacyBasicAuthFailures() {
 			},
 		},
 		{
-			"NoAccess", // TestShouldVerifyAuthBasicArgFailingWrongPassword.
+			"NoAccess",
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, "Basic am9objpwYXNzd29yZA==")
 				mock.Ctx.Request.Header.Set("X-Original-URL", "https://admin.example.com/")

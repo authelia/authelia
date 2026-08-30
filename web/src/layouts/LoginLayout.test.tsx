@@ -1,12 +1,6 @@
-import { ReactNode } from "react";
-
-import { ThemeProvider } from "@mui/material";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import LoginLayout from "@layouts/LoginLayout";
-import Light from "@themes/Light";
-
-const renderWithTheme = (ui: ReactNode) => render(<ThemeProvider theme={Light}>{ui}</ThemeProvider>);
 
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
@@ -63,7 +57,7 @@ afterEach(() => {
 
 it("renders with default SVG logo", async () => {
     await act(async () => {
-        renderWithTheme(<LoginLayout />);
+        render(<LoginLayout />);
     });
 
     expect(screen.getByTestId("user-svg")).toBeInTheDocument();
@@ -77,7 +71,7 @@ it("renders with image logo when override is enabled", async () => {
     vi.mocked(getLogoOverride).mockReturnValue(true);
 
     await act(async () => {
-        renderWithTheme(<LoginLayout />);
+        render(<LoginLayout />);
     });
 
     expect(screen.getByAltText("Logo")).toBeInTheDocument();
@@ -88,7 +82,7 @@ it("renders with image logo when override is enabled", async () => {
 
 it("renders title and subtitle when provided", async () => {
     await act(async () => {
-        renderWithTheme(<LoginLayout title="Test Title" subtitle="Test Subtitle" />);
+        render(<LoginLayout title="Test Title" subtitle="Test Subtitle" />);
     });
 
     expect(screen.getByTestId("typography-h5")).toHaveTextContent("Test Title");
@@ -97,7 +91,7 @@ it("renders title and subtitle when provided", async () => {
 
 it("does not render title or subtitle when not provided", async () => {
     await act(async () => {
-        renderWithTheme(<LoginLayout />);
+        render(<LoginLayout />);
     });
 
     expect(screen.queryByTestId("typography-h5")).not.toBeInTheDocument();
@@ -106,7 +100,7 @@ it("does not render title or subtitle when not provided", async () => {
 
 it("renders children", async () => {
     await act(async () => {
-        renderWithTheme(
+        render(
             <LoginLayout>
                 <div data-testid="child">Content</div>
             </LoginLayout>,
@@ -120,7 +114,7 @@ it("sets the document title", async () => {
     document.title = "Sentinel Title";
 
     await act(async () => {
-        renderWithTheme(<LoginLayout />);
+        render(<LoginLayout />);
     });
 
     expect(document.title).not.toBe("Sentinel Title");
@@ -129,7 +123,7 @@ it("sets the document title", async () => {
 
 it("calls setLocale when language is changed", async () => {
     await act(async () => {
-        renderWithTheme(<LoginLayout />);
+        render(<LoginLayout />);
     });
 
     await act(async () => {
@@ -145,7 +139,7 @@ it("logs error when locale fetch fails", async () => {
     const { getLocaleInformation } = await import("@services/LocaleInformation");
     vi.mocked(getLocaleInformation).mockRejectedValueOnce(new Error("fetch failed"));
 
-    renderWithTheme(<LoginLayout />);
+    render(<LoginLayout />);
 
     await waitFor(() => {
         expect(console.error).toHaveBeenCalledWith("could not get locale list:", expect.any(Error));

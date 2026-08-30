@@ -35,7 +35,7 @@ issues in the code. The rationale for this approach is that, while using multipl
 confidence by providing more data on which to base our judgment.
 
 |                                          Tool                                          |                  Purpose                   |                                                              Notes                                                               |
-|:--------------------------------------------------------------------------------------:|:------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------:|
+| :------------------------------------------------------------------------------------: | :----------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------: |
 |                         [Go Test](https://pkg.go.dev/testing)                          | Coverage, Static and Dynamic Code Analysis | Analysis of Go Code, Executed with `go test -cover`, `go test -race`, and `go test -fuzz` before and on every commit to `master` |
 | [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) | Coverage, Static and Dynamic Code Analysis |                                  Analysis of React Code before and on every commit to `master`                                   |
 |                        [SonarQube](https://www.sonarqube.org/)                         |            Static Code Analysis            |                                   Analysis of All Code before and on every commit to `master`                                    |
@@ -56,13 +56,12 @@ confidence by providing more data on which to base our judgment.
 In addition to the above SAST and DAST tools we also implement several linters which ensure code quality and
 consistency. These linters generally run via [lefthook](https://lefthook.dev/) which is installed as a git hook.
 
-|                               Tool                                |           Area            |                  Purpose                   |
-|:-----------------------------------------------------------------:|:-------------------------:|:------------------------------------------:|
-|            [golangci-Lint](https://golangci-lint.run/)            |            Go             |  Code Quality and Consistency of Go Code   |
-| [goimports-reviser](https://github.com/incu6us/goimports-reviser) |            Go             |          Import Order Consistency          |
-|                              ESLint                               | JavaScript and TypeScript | Code Quality and Consistency of JS/TS Code |
-|       [ShellCheck](https://github.com/koalaman/shellcheck)        |        Shell Files        |        Code Quality and Consistency        |
-|        [yamllint](https://github.com/adrienverge/yamllint)        |        YAML Files         |         Consistent YAML Formatting         |
-|             [commitlint](https://commitlint.js.org/)              |            Git            |     Ensure Conformant Commit Messages      |
-|    [TruffleHog](https://github.com/trufflesecurity/trufflehog)    |            All            |     Preventing Secret Commit Accidents     |
-|            [typos](https://github.com/crate-ci/typos)             |            All            |   Preventing Spelling and General Typos    |
+|                            Tool                             |           Area            |                  Purpose                   |
+| :---------------------------------------------------------: | :-----------------------: | :----------------------------------------: |
+|         [golangci-Lint](https://golangci-lint.run/)         |            Go             |  Code Quality and Consistency of Go Code   |
+|                           ESLint                            | JavaScript and TypeScript | Code Quality and Consistency of JS/TS Code |
+|    [ShellCheck](https://github.com/koalaman/shellcheck)     |        Shell Files        |        Code Quality and Consistency        |
+|     [yamllint](https://github.com/adrienverge/yamllint)     |        YAML Files         |         Consistent YAML Formatting         |
+|          [commitlint](https://commitlint.js.org/)           |            Git            |     Ensure Conformant Commit Messages      |
+| [TruffleHog](https://github.com/trufflesecurity/trufflehog) |            All            |     Preventing Secret Commit Accidents     |
+|         [typos](https://github.com/crate-ci/typos)          |            All            |   Preventing Spelling and General Typos    |
