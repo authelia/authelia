@@ -575,6 +575,10 @@ func TestCryptoGenPrivateKeyFromCmd(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.parentUse == cmdUseMLDSA && len(utils.MLDSAParameterSets()) == 0 {
+				t.Skip("ML-DSA requires this binary to be built with Go 1.27 or later")
+			}
+
 			cmdCtx := NewCmdCtx()
 
 			parent := &cobra.Command{Use: tc.parentUse}
