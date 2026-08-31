@@ -1,26 +1,56 @@
 [Unit]
-Description=Authelia authentication and authorization server
+Description=Authelia authentication and authorization server (%i)
 Documentation=https://www.authelia.com
-After=multi-user.target
+Wants=network-online.target
+After=network-online.target
 
 [Service]
+Type=exec
 User=authelia
 Group=authelia
-UMask=027
+UMask=0027
 Environment=AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true
+EnvironmentFile=-/etc/authelia/authelia.%i.env
 ExecStart=/usr/bin/authelia --config /etc/authelia/configuration.%i.yml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5s
 SyslogIdentifier=authelia-%i
+
+StateDirectory=authelia/%i
+StateDirectoryMode=0700
+LogsDirectory=authelia/%i
+LogsDirectoryMode=0750
+RuntimeDirectory=authelia/%i
+RuntimeDirectoryMode=0750
+WorkingDirectory=/var/lib/authelia/%i
+
 CapabilityBoundingSet=
+AmbientCapabilities=
 NoNewPrivileges=yes
-RestrictNamespaces=yes
-ProtectHome=true
 PrivateDevices=yes
+PrivateTmp=yes
 PrivateUsers=yes
+ProcSubset=pid
+ProtectClock=yes
 ProtectControlGroups=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
+ProtectProc=invisible
+ProtectSystem=strict
+RemoveIPC=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
 SystemCallArchitectures=native
 SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
 SystemCallErrorNumber=EPERM
 
 [Install]
