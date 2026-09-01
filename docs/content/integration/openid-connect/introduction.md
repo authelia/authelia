@@ -170,6 +170,7 @@ parameter):
 |       PS384        |      RSA       |  SHA-384 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |       PS512        |      RSA       |  SHA-512 (MGF1)   | `sig` |                     N/A                      | Requires an RSA Private Key with 2048 bits or more |
 |      Ed25519       |      OKP       |      SHA-512      | `sig` |                     N/A                      |                        N/A                         |
+|     EdDSA [^5]     |      OKP       |      SHA-512      | `sig` |                     N/A                      |               Deprecated by RFC 9864               |
 |     ML-DSA-44      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
 |     ML-DSA-65      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
 |     ML-DSA-87      |      AKP       |     SHAKE256      | `sig` |                     N/A                      |                Preliminary support                 |
@@ -215,6 +216,7 @@ parameter):
 |       PS384        |      RSA       |  SHA-384 (MGF1)   | `sig` |       `private_key_jwt`        |
 |       PS512        |      RSA       |  SHA-512 (MGF1)   | `sig` |       `private_key_jwt`        |
 |      Ed25519       |      OKP       |      SHA-512      | `sig` |       `private_key_jwt`        |
+|     EdDSA [^5]     |      OKP       |      SHA-512      | `sig` |       `private_key_jwt`        |
 |     ML-DSA-44      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
 |     ML-DSA-65      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
 |     ML-DSA-87      |      AKP       |     SHAKE256      | `sig` |       `private_key_jwt`        |
@@ -400,6 +402,7 @@ When responding with the Signed [JSON Web Token] the [JSON Web Token] `typ` head
 |      `ES384`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |      `ES512`      | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |     `Ed25519`     | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
+|   `EdDSA` [^5]    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |    `ML-DSA-44`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |    `ML-DSA-65`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
 |    `ML-DSA-87`    | [JSON Web Token] | `application/token-introspection+jwt; charset=utf-8` |
@@ -422,6 +425,7 @@ The following table describes the response from the [UserInfo Endpoint] dependin
 |      `ES384`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |      `ES512`      | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |     `Ed25519`     | [JSON Web Token] | `application/jwt; charset=utf-8`  |
+|   `EdDSA` [^5]    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |    `ML-DSA-44`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |    `ML-DSA-65`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
 |    `ML-DSA-87`    | [JSON Web Token] | `application/jwt; charset=utf-8`  |
@@ -633,6 +637,12 @@ either implemented, have our eye on, or are refusing to implement.
     and being removed in [OAuth 2.1](https://oauth.net/2.1/) due to the poor security qualities it has. For these
     reasons Authelia has very intentionally decided not to implement this Grant Type.
 
+[^5]:
+    The `EdDSA` identifier from [RFC8037] does not identify which Edwards curve is in use and [RFC9864] Section 4.1.2
+    has consequently deprecated it in the IANA registry in favor of the fully specified `Ed25519` identifier. Authelia
+    accepts and advertises both identifiers for compatibility, and a key configured with either identifier satisfies a
+    request for the other, however we recommend configuring `Ed25519`.
+
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4
 [Refresh Token]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
@@ -727,6 +737,8 @@ either implemented, have our eye on, or are refusing to implement.
 [RFC7522]: https://datatracker.ietf.org/doc/html/rfc7522
 [RFC9470]: https://datatracker.ietf.org/doc/html/rfc9470
 [RFC9728]: https://datatracker.ietf.org/doc/html/rfc9728
+[RFC8037]: https://datatracker.ietf.org/doc/html/rfc8037
+[RFC9864]: https://datatracker.ietf.org/doc/html/rfc9864
 [Certified OpenID Providers & Profiles]: https://openid.net/certification/#OPENID-OP-P
 [Certified OpenID Providers for Logout Profiles]: https://openid.net/certification/#OPENID-OP-LP
 [OpenID Certified™]: https://openid.net/certification/

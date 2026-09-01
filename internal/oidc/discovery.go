@@ -308,6 +308,7 @@ func SigningAlgValuesSupported(extra ...string) (algs []string) {
 		SigningAlgRSAPSSUsingSHA384,
 		SigningAlgRSAPSSUsingSHA512,
 		SigningAlgEd25519,
+		SigningAlgEdDSA,
 	}
 
 	algs = append(algs, SigningAlgsMLDSA...)

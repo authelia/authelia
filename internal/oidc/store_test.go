@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -897,4 +898,84 @@ func (s *StoreSuite) TestGetDeviceCodeSessionByUserCode() {
 		assert.NoError(t, err)
 		assert.NotNil(t, request)
 	})
+}
+
+func (s *StoreSuite) TestSerializationFailureMapping() {
+	errBusy := fmt.Errorf("error accessing storage: %w", sqlite3.Error{Code: sqlite3.ErrBusy})
+
+	testCases := []struct {
+		name  string
+		setup func()
+		do    func() (err error)
+	}{
+		{
+			name: "ShouldMapCommit",
+			setup: func() {
+				s.mock.EXPECT().Commit(s.ctx).Return(errBusy)
+			},
+			do: func() (err error) {
+				return s.store.Commit(s.ctx)
+			},
+		},
+		{
+			name: "ShouldMapGetRefreshTokenSession",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2Session(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).Return(nil, errBusy)
+			},
+			do: func() (err error) {
+				_, err = s.store.GetRefreshTokenSession(s.ctx, abc, nil)
+
+				return err
+			},
+		},
+		{
+			name: "ShouldMapRotateRefreshToken",
+			setup: func() {
+				s.mock.EXPECT().LoadOAuth2RefreshTokenSessionAccessSignature(s.ctx, abc).Return("", errBusy)
+			},
+			do: func() (err error) {
+				return s.store.RotateRefreshToken(s.ctx, abc, abc)
+			},
+		},
+		{
+			name: "ShouldMapRevokeRefreshToken",
+			setup: func() {
+				s.mock.EXPECT().DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).Return(errBusy)
+			},
+			do: func() (err error) {
+				return s.store.RevokeRefreshToken(s.ctx, abc)
+			},
+		},
+		{
+			name: "ShouldMapDeleteAccessTokenSession",
+			setup: func() {
+				s.mock.EXPECT().RevokeOAuth2Session(s.ctx, storage.OAuth2SessionTypeAccessToken, abc).Return(errBusy)
+			},
+			do: func() (err error) {
+				return s.store.DeleteAccessTokenSession(s.ctx, abc)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup()
+			}
+
+			err := tc.do()
+
+			assert.EqualError(t, err, "The request could not be completed due to concurrent access: error accessing storage: database is locked")
+			assert.ErrorIs(t, err, oauthelia2.ErrSerializationFailure)
+		})
+	}
+}
+
+func (s *StoreSuite) TestSerializationFailureMappingShouldNotAffectOtherErrors() {
+	s.mock.EXPECT().DeactivateOAuth2SessionByRequestID(s.ctx, storage.OAuth2SessionTypeRefreshToken, abc).Return(fmt.Errorf("deactivate error"))
+
+	err := s.store.RevokeRefreshToken(s.ctx, abc)
+
+	assert.EqualError(s.T(), err, "deactivate error")
+	assert.NotErrorIs(s.T(), err, oauthelia2.ErrSerializationFailure)
 }

@@ -504,6 +504,10 @@ See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information. The
 supported values come from the algorithm column with a use of `sig`.
 
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a [JSON Web Key] configured with either identifier satisfies a request for the other,
+however `Ed25519` is recommended.
+
 ### authorization_encrypted_response_key_id
 
 {{< confkey type="string" required="no" >}}
@@ -604,6 +608,10 @@ To be considered valid:
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information. The
 supported values come from the algorithm column with a use of `sig`.
+
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a [JSON Web Key] configured with either identifier satisfies a request for the other,
+however `Ed25519` is recommended.
 
 ### id_token_encrypted_response_key_id
 
@@ -718,6 +726,10 @@ To be considered valid with exclusion of the value `none`:
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information. The
 supported values come from the algorithm column with a use of `sig`.
+
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a [JSON Web Key] configured with either identifier satisfies a request for the other,
+however `Ed25519` is recommended.
 
 ### access_token_encrypted_response_key_id
 
@@ -839,6 +851,10 @@ See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information. The
 supported values come from the algorithm column with a use of `sig`.
 
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a [JSON Web Key] configured with either identifier satisfies a request for the other,
+however `Ed25519` is recommended.
+
 ### userinfo_encrypted_response_key_id
 
 {{< confkey type="string" required="no" >}}
@@ -955,6 +971,10 @@ To be considered valid with exclusion of the value `none`:
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information. The
 supported values come from the algorithm column with a use of `sig`.
+
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a [JSON Web Key] configured with either identifier satisfies a request for the other,
+however `Ed25519` is recommended.
 
 ### introspection_encrypted_response_key_id
 
@@ -1337,6 +1357,7 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [RFC6234]: https://datatracker.ietf.org/doc/html/rfc6234
 [RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648
 [RFC7468]: https://datatracker.ietf.org/doc/html/rfc7468
+[RFC8037]: https://datatracker.ietf.org/doc/html/rfc8037
 [RFC6749 Section 2.1]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.1
 [PKCE]: https://datatracker.ietf.org/doc/html/rfc7636
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth

@@ -194,10 +194,12 @@ const (
 	errFmtOIDCProviderPrivateKeysProperties              = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' failed to get key properties: %w"
 	errFmtOIDCProviderPrivateKeysInvalidOptionOneOf      = "identity_providers: oidc: jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
 	errFmtOIDCProviderPrivateKeysRSAKeyLessThan2048Bits  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
-	errFmtOIDCProviderPrivateKeysKeyNotRSAOrECDSA        = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' must be a RSA private key or ECDSA private key but it's type is %T"
+	errFmtOIDCProviderPrivateKeysKeyNotSupported         = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' must be an RSA private key, ECDSA private key, Ed25519 private key, or ML-DSA private key but it's type is %T"
 	errFmtOIDCProviderPrivateKeysKeyCertificateMismatch  = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the private key provided by option 'key'"
 	errFmtOIDCProviderPrivateKeysCertificateChainInvalid = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCProviderPrivateKeysNoRS256                 = "identity_providers: oidc: jwks: keys: must at least have one key supporting the '%s' algorithm but only has %s"
+	errFmtOIDCProviderSigAlgDeprecated                   = "identity_providers: oidc: option '%s' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
+	errFmtOIDCProviderPrivateKeysSigAlgDeprecated        = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'algorithm' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
 	errFmtOIDCProviderInvalidValue                       = "identity_providers: oidc: option " +
 		errFmtMustBeOneOf
 
@@ -214,9 +216,10 @@ const (
 	errFmtOIDCPolicyInvalidDefaultPolicy = "identity_providers: oidc: authorization_policies: policy '%s': option 'default_policy' must be one of %s but it's configured as '%s'"
 	errFmtOIDCPolicyRuleInvalidPolicy    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'policy' must be one of %s but it's configured as '%s'"
 
-	errFmtOIDCClientsDuplicateID = "identity_providers: oidc: clients: option 'id' must be unique for every client but one or more clients share the following 'id' values %s"
-	errFmtOIDCClientsWithEmptyID = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
-	errFmtOIDCClientsDeprecated  = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"
+	errFmtOIDCClientsDuplicateID     = "identity_providers: oidc: clients: option 'id' must be unique for every client but one or more clients share the following 'id' values %s"
+	errFmtOIDCClientsWithEmptyID     = "identity_providers: oidc: clients: option 'id' is required but was absent on the clients in positions %s"
+	errFmtOIDCClientSigAlgDeprecated = "identity_providers: oidc: clients: client '%s': option '%s' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
+	errFmtOIDCClientsDeprecated      = "identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors"
 
 	errFmtMustOnlyHaveValues                  = "'%s' must only have the values %s "
 	errFmtMustBeConfiguredAs                  = "'%s' must be configured as %s "
@@ -563,6 +566,7 @@ const (
 	attrOIDCGrantTypes                  = "grant_types"
 	attrOIDCRedirectURIs                = "redirect_uris"
 	attrOIDCRequestURIs                 = "request_uris"
+	attrOIDCRequestObjectSigningAlg     = "request_object_signing_alg"
 	attrOIDCTokenAuthMethod             = "token_endpoint_auth_method"
 	attrOIDCTokenAuthSigningAlg         = "token_endpoint_auth_signing_alg"
 	attrOIDCRevocationAuthMethod        = "revocation_endpoint_auth_method"
@@ -608,7 +612,7 @@ var (
 	validOIDCClientTokenEndpointAuthMethods                = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
 	validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
-	validOIDCIssuerJWKSigningAlgs                          = append([]string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgEd25519}, oidc.SigningAlgsMLDSA...)
+	validOIDCIssuerJWKSigningAlgs                          = append([]string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgEd25519, oidc.SigningAlgEdDSA}, oidc.SigningAlgsMLDSA...)
 	validOIDCClientJWKEncryptionKeyAlgs                    = []string{oidc.EncryptionAlgNone, oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW, oidc.EncryptionAlgA128KW, oidc.EncryptionAlgA192KW, oidc.EncryptionAlgA256KW, oidc.EncryptionAlgA128GCMKW, oidc.EncryptionAlgA192GCMKW, oidc.EncryptionAlgA256GCMKW, oidc.EncryptionAlgPBES2HS256A128KW, oidc.EncryptionAlgPBES2HS284A192KW, oidc.EncryptionAlgPBES2HS512A256KW}
 	validOIDCClientJWKContentEncryptionAlgs                = []string{oidc.EncryptionEncA128GCM, oidc.EncryptionEncA192GCM, oidc.EncryptionEncA256GCM, oidc.EncryptionEncA128CBCHS256, oidc.EncryptionEncA192CBCHS384, oidc.EncryptionEncA256CBCHS512}
 

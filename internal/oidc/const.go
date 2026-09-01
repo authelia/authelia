@@ -173,6 +173,7 @@ const (
 	SigningAlgHMACUsingSHA512 = "HS512"
 
 	SigningAlgEd25519 = "Ed25519"
+	SigningAlgEdDSA   = "EdDSA"
 
 	SigningAlgMLDSA44 = "ML-DSA-44"
 	SigningAlgMLDSA65 = "ML-DSA-65"

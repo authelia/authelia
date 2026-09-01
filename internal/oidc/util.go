@@ -35,6 +35,21 @@ func IsPushedAuthorizedRequestForm(form url.Values, prefix string) (is bool) {
 	return strings.HasPrefix(form.Get(FormParameterRequestURI), prefix)
 }
 
+// SigningAlgEdwardsPair returns the paired Edwards-curve JWS algorithm identifier for the given algorithm and true
+// when one exists. RFC 8037 Section 3.1 registers the polymorphic SigningAlgEdDSA and RFC 9864 Section 2.2 registers
+// the fully-specified SigningAlgEd25519 for the same parameter set, so a key configured with either identifier is
+// able to satisfy a request for the other.
+func SigningAlgEdwardsPair(alg string) (paired string, ok bool) {
+	switch alg {
+	case SigningAlgEd25519:
+		return SigningAlgEdDSA, true
+	case SigningAlgEdDSA:
+		return SigningAlgEd25519, true
+	default:
+		return "", false
+	}
+}
+
 // SortedSigningAlgs is a sorting type which allows the use of [sort.Sort] to order a list of OAuth 2.0 Signing Algs.
 // Algorithms are ordered by family with HMAC first, then RSA, ECDSA, Edwards-curve, ML-DSA, and RSA-PSS, with the
 // none algorithm last and algorithms within a family ordered lexically.

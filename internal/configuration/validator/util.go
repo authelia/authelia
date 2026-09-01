@@ -256,10 +256,30 @@ func jwkCalculateKID(key schema.CryptographicKey, props *JWKProperties, alg stri
 
 func getResponseObjectAlgFromKID(config *schema.IdentityProvidersOpenIDConnect, kid, alg string) string {
 	for _, jwk := range config.JSONWebKeys {
-		if kid == jwk.KeyID {
-			return jwk.Algorithm
+		if kid != jwk.KeyID {
+			continue
 		}
+
+		if paired, ok := oidc.SigningAlgEdwardsPair(alg); ok && paired == jwk.Algorithm {
+			return alg
+		}
+
+		return jwk.Algorithm
 	}
 
 	return alg
+}
+
+func appendOIDCSigningAlg(algs []string, alg string) (out []string) {
+	out = algs
+
+	if !utils.IsStringInSlice(alg, out) {
+		out = append(out, alg)
+	}
+
+	if paired, ok := oidc.SigningAlgEdwardsPair(alg); ok && !utils.IsStringInSlice(paired, out) {
+		out = append(out, paired)
+	}
+
+	return out
 }
