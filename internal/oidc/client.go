@@ -6,7 +6,7 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
-	"authelia.com/provider/oauth2/token/jose"
+	"authelia.com/provider/oauth2/token/jose" // TODO: Review adjusting back to upstream if ML-DSA PR #282 is accepted.
 	"authelia.com/provider/oauth2/token/jwt"
 	"authelia.com/provider/oauth2/x/errorsx"
 
