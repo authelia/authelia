@@ -5,7 +5,7 @@ go 1.26.0
 toolchain go1.27.0
 
 require (
-	authelia.com/provider/oauth2 v0.2.40
+	authelia.com/provider/oauth2 v0.3.0
 	cel.dev/cel-go v0.32.0
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
