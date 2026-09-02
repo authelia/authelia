@@ -81,10 +81,7 @@ func (rs *RodSession) doWebAuthnUpdateCredentials(t *testing.T, page *rod.Page) 
 func (rs *RodSession) doWebAuthnMethodMaybeSelect(t *testing.T, page *rod.Page) {
 	_ = rs.WaitElementLocatedByID(t, page, "second-factor-stage")
 
-	has, _, err := page.Has("#one-time-password-method")
-	require.NoError(t, err)
-
-	if !has {
+	if !rs.CheckElementExistsLocatedByID(t, page, "one-time-password-method") {
 		return
 	}
 
@@ -99,10 +96,7 @@ func (rs *RodSession) doWebAuthnMethodMustSelect(t *testing.T, page *rod.Page) {
 func (rs *RodSession) doWebAuthnCredentialMaybeDelete(t *testing.T, page *rod.Page) {
 	rs.WaitElementLocatedBySelector(t, page, `#webauthn-credentials-panel[data-loading="false"]`)
 
-	has, _, err := page.Has("#webauthn-credential-0-delete")
-	require.NoError(t, err)
-
-	if !has {
+	if !rs.CheckElementExistsLocatedByID(t, page, "webauthn-credential-0-delete") {
 		return
 	}
 

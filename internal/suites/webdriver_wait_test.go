@@ -48,7 +48,6 @@ func TestWaitElementLocatedBySelector(t *testing.T) {
 	newPage := func(t *testing.T) *rod.Page {
 		page, err := session.WebDriver.Page(proto.TargetCreateTarget{URL: server.URL})
 		require.NoError(t, err)
-		require.NoError(t, page.WaitLoad())
 
 		return page
 	}

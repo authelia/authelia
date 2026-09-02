@@ -85,7 +85,10 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab(
 		page2.MustClose()
 	}()
 
-	page2.MustWaitStable()
+	// The second tab has to have arrived at the portal before the first one logs in, since what this test
+	// asserts is that the login on the first tab redirects it. Waiting for the page it is expected to be
+	// showing says that; waiting for it to stop changing does not distinguish it from one still in flight.
+	s.verifyIsFirstFactorPage(s.T(), page2.Context(ctx))
 
 	s.MustActivate()
 	s.verifyIsHome(s.T(), s.Context(ctx))
