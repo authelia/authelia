@@ -346,7 +346,7 @@ const FirstFactorForm = function (props: Props) {
                     {props.passkeyLogin ? (
                         <PasskeyForm
                             disabled={disabled || loading}
-                            rememberMe={props.rememberMe}
+                            rememberMe={rememberMe}
                             onAuthenticationError={(err) => createErrorNotification(err.message)}
                             onAuthenticationStart={() => {
                                 setUsername("");

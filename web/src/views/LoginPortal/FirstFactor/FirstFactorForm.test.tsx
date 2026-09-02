@@ -51,7 +51,7 @@ vi.mock("@services/Password", () => ({
 }));
 
 vi.mock("@views/LoginPortal/FirstFactor/PasskeyForm", () => ({
-    default: () => <div data-testid="passkey-form" />,
+    default: (props: any) => <div data-testid="passkey-form" data-remember-me={String(props.rememberMe)} />,
 }));
 
 const defaultProps = {
@@ -86,6 +86,15 @@ it("does not render remember me checkbox when disabled", () => {
 it("renders passkey form when passkey login is enabled", () => {
     render(<FirstFactorForm {...defaultProps} passkeyLogin={true} />);
     expect(screen.getByTestId("passkey-form")).toBeInTheDocument();
+});
+
+it("passes the actual remember-me checkbox state to the passkey form, not the feature flag", () => {
+    // rememberMe on the props is only the flag for whether the checkbox is
+    // shown at all. The checkbox itself starts unchecked, so the passkey
+    // form should be told rememberMe is false even though the feature is
+    // enabled here.
+    render(<FirstFactorForm {...defaultProps} passkeyLogin={true} rememberMe={true} />);
+    expect(screen.getByTestId("passkey-form")).toHaveAttribute("data-remember-me", "false");
 });
 
 it("renders reset password link when enabled", () => {
