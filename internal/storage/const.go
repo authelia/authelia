@@ -86,6 +86,18 @@ const (
 )
 
 const (
+	dsnFmtSQLite = "%s?_txlock=immediate"
+)
+
+const (
+	codeMySQLLockWaitTimeout uint16 = 1205
+	codeMySQLLockDeadlock    uint16 = 1213
+
+	codePostgresSerializationFailure = "40001"
+	codePostgresDeadlockDetected     = "40P01"
+)
+
+const (
 	// SchemaLatest represents the value expected for a "migrate to latest" migration. It's the maximum 32bit signed integer.
 	SchemaLatest = 2147483647
 )

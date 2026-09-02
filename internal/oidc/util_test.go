@@ -14,6 +14,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestSigningAlgEdwardsPair(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected string
+		ok       bool
+	}{
+		{name: "ShouldPairEd25519WithEdDSA", have: SigningAlgEd25519, expected: SigningAlgEdDSA, ok: true},
+		{name: "ShouldPairEdDSAWithEd25519", have: SigningAlgEdDSA, expected: SigningAlgEd25519, ok: true},
+		{name: "ShouldNotPairRS256", have: SigningAlgRSAUsingSHA256, expected: "", ok: false},
+		{name: "ShouldNotPairMLDSA44", have: SigningAlgMLDSA44, expected: "", ok: false},
+		{name: "ShouldNotPairNone", have: SigningAlgNone, expected: "", ok: false},
+		{name: "ShouldNotPairEmpty", have: "", expected: "", ok: false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			paired, ok := SigningAlgEdwardsPair(tc.have)
+
+			assert.Equal(t, tc.ok, ok)
+			assert.Equal(t, tc.expected, paired)
+		})
+	}
+}
+
 func TestSortedSigningAlgs(t *testing.T) {
 	testCases := []struct {
 		name     string

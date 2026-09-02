@@ -57,5 +57,6 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       24       |     4.39.20      |          WebAuthn adjustments, rename attestation_type to attestation_format, add attestation_type.          |
 |       25       |     4.39.21      |    Adjusted storage encryption implementation to include HKDF for key derivation and column-specific AADs    |
 |       26       |     4.39.21      | Adjusted storage encryption AADs to be specific to the individual column and row rather than just the column |
+|       27       |     4.39.21      |                    Included Access Token Session Signature in Refresh Token Session Table                    |
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068

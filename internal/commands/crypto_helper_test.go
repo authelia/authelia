@@ -536,16 +536,49 @@ func TestCryptoGenPrivateKeyFromCmd(t *testing.T) {
 			},
 		},
 		{
+			"ShouldGenerateMLDSA44Key",
+			cmdUseMLDSA,
+			map[string]string{cmdFlagNameParameters: "ML-DSA-44"},
+			"",
+			func(t *testing.T, key any) {
+				parameters, ok := utils.MLDSAParameterSetFromKey(key)
+				assert.True(t, ok)
+				assert.Equal(t, utils.KeyMLDSAParameters44, parameters)
+			},
+		},
+		{
+			"ShouldGenerateMLDSA87KeyFromBareLevel",
+			cmdUseMLDSA,
+			map[string]string{cmdFlagNameParameters: "87"},
+			"",
+			func(t *testing.T, key any) {
+				parameters, ok := utils.MLDSAParameterSetFromKey(key)
+				assert.True(t, ok)
+				assert.Equal(t, utils.KeyMLDSAParameters87, parameters)
+			},
+		},
+		{
 			"ShouldErrECDSAInvalidCurve",
 			cmdUseECDSA,
 			map[string]string{cmdFlagNameCurve: "P999"},
 			"invalid curve 'P999' was specified",
 			nil,
 		},
+		{
+			"ShouldErrMLDSAInvalidParameters",
+			cmdUseMLDSA,
+			map[string]string{cmdFlagNameParameters: "ML-DSA-99"},
+			"invalid parameters 'ML-DSA-99' were specified: parameters must be 'ML-DSA-44', 'ML-DSA-65', or 'ML-DSA-87'",
+			nil,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.parentUse == cmdUseMLDSA && len(utils.MLDSAParameterSets()) == 0 {
+				t.Skip("ML-DSA requires this binary to be built with Go 1.27 or later")
+			}
+
 			cmdCtx := NewCmdCtx()
 
 			parent := &cobra.Command{Use: tc.parentUse}
@@ -560,6 +593,8 @@ func TestCryptoGenPrivateKeyFromCmd(t *testing.T) {
 				cmdFlagsCryptoPrivateKeyECDSA(cmd)
 			case cmdUseEd25519:
 				cmdFlagsCryptoPrivateKeyEd25519(cmd)
+			case cmdUseMLDSA:
+				cmdFlagsCryptoPrivateKeyMLDSA(cmd)
 			}
 
 			for k, v := range tc.flags {
@@ -602,6 +637,19 @@ func TestCryptoGenPrivateKeyFromCmd(t *testing.T) {
 		_, err := cmdCtx.cryptoGenPrivateKeyFromCmd(cmd)
 
 		assert.EqualError(t, err, "flag accessed but not defined: curve")
+	})
+
+	t.Run("ShouldErrWhenMLDSAParametersFlagNotDefined", func(t *testing.T) {
+		cmdCtx := NewCmdCtx()
+
+		parent := &cobra.Command{Use: cmdUseMLDSA}
+		cmd := &cobra.Command{Use: "generate"}
+
+		parent.AddCommand(cmd)
+
+		_, err := cmdCtx.cryptoGenPrivateKeyFromCmd(cmd)
+
+		assert.EqualError(t, err, "flag accessed but not defined: parameters")
 	})
 }
 
