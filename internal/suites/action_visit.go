@@ -3,6 +3,7 @@ package suites
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,7 +17,17 @@ import (
 // module graph unresolved: the document reaches readyState complete and nothing renders or is fetched
 // again. The lost response is what separates that page from one that is merely slow, and it reports a
 // zero status against a zero body. Pages that are not the portal have no root and count as rendered.
+//
+// A document that has not finished loading has no root either, and the responses this looks at are the
+// ones it is still waiting on, so it has to be told apart from a page that never has a root. Reported
+// separately from a pending render because only the latter is the page taking too long to draw: the
+// caller gives loading whatever time the page context allows, the same as waiting on the load event did,
+// and holds the render budget for the question this is actually asking.
 const pageRenderState = `() => {
+	if (document.readyState !== 'complete') {
+		return 'loading';
+	}
+
 	const root = document.getElementById('root');
 
 	if (root === null || root.innerHTML.length !== 0) {
@@ -35,8 +46,6 @@ func (s *RodSuite) doSetupTest(url string) {
 	s.Page = s.doCreateTab(s.T(), url)
 
 	page := s.Context(ctx)
-
-	require.NoError(s.T(), page.WaitLoad())
 
 	s.doReloadIfRenderWasLost(s.T(), page, url)
 
@@ -73,7 +82,7 @@ func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
 			log.Debugf("Error installing the console collector: %v", err)
 		}
 
-		err = page.Navigate(url)
+		err = rs.doNavigate(page, url)
 
 		created <- tab{page: page, err: err}
 	}()
@@ -91,9 +100,22 @@ func (rs *RodSession) doCreateTab(t *testing.T, url string) *rod.Page {
 	}
 }
 
+func (rs *RodSession) doNavigate(page *rod.Page, url string) error {
+	err := page.Navigate(url)
+
+	// Chrome reports this when its certificate verifier is reconfigured while a request is already in
+	// flight, which it only does while it is still starting: both occurrences in CI were the first
+	// navigation a suite made, within half a second of the suite beginning. Sent again rather than
+	// failing a test against a browser that had not finished coming up.
+	if err != nil && strings.Contains(err.Error(), "net::ERR_CERT_VERIFIER_CHANGED") {
+		return page.Navigate(url)
+	}
+
+	return err
+}
+
 func (rs *RodSession) doVisit(t *testing.T, page *rod.Page, url string) {
-	require.NoError(t, page.Navigate(url))
-	require.NoError(t, page.WaitLoad())
+	require.NoError(t, rs.doNavigate(page, url))
 
 	rs.doReloadIfRenderWasLost(t, page, url)
 }
@@ -106,7 +128,6 @@ func (rs *RodSession) doReloadIfRenderWasLost(t *testing.T, page *rod.Page, url 
 	log.Warnf("The page at '%s' lost a response it needed to render, fetching it again once", url)
 
 	require.NoError(t, page.Reload())
-	require.NoError(t, page.WaitLoad())
 }
 
 func (rs *RodSession) renderWasLost(page *rod.Page) bool {
@@ -117,7 +138,20 @@ func (rs *RodSession) renderWasLost(page *rod.Page) bool {
 		if err != nil {
 			// The page carries the deadline of the test that owns it, and that test reports its expiry
 			// against the element it was waiting for, which names the failure better than this can.
-			return false
+			if page.GetContext().Err() != nil {
+				return false
+			}
+
+			// Anything else is the execution context going away underneath the probe, which is what a
+			// navigation committing looks like from here. The next document is the one being asked
+			// about, so wait for it rather than reporting on the one that has just gone.
+			if time.Now().After(deadline) {
+				return false
+			}
+
+			time.Sleep(elementRetryInterval)
+
+			continue
 		}
 
 		state := value.Value.Str()
@@ -126,7 +160,12 @@ func (rs *RodSession) renderWasLost(page *rod.Page) bool {
 			return false
 		}
 
-		if time.Now().After(deadline) {
+		// The budget is for the render, not for the load in front of it, so it only starts once the
+		// responses this reports on have all been settled one way or the other. A document that never
+		// finishes is left to the page context, which the failing element reports against.
+		if state == "loading" {
+			deadline = time.Now().Add(pageRenderTimeout)
+		} else if time.Now().After(deadline) {
 			return state == "lost"
 		}
 

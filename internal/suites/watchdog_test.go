@@ -4,11 +4,13 @@
 package suites
 
 import (
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/go-rod/rod/lib/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -108,4 +110,50 @@ func TestDiscardWatchdogArtifacts(t *testing.T) {
 
 		watchdogTimer, watchdogDone = nil, nil
 	})
+}
+
+// The external suites ask for a browser of their own rather than a shared one, which is a different path
+// out of NewRodSession and used to leave that browser out of what the watchdog could reach: a run that
+// expired reported no pages and wrote nothing at all, which is the state the suites it covers were in.
+func TestCollectWatchdogArtifactsCapturesAnUnsharedBrowser(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping browser test in short mode")
+	}
+
+	t.Setenv("SUITE", "WatchdogUnit")
+	t.Setenv("CI", "")
+
+	session, err := NewRodSession(RodSessionWithoutDevtools())
+	require.NoError(t, err)
+
+	t.Cleanup(func() { _ = session.Stop() })
+
+	page, err := session.WebDriver.Page(proto.TargetCreateTarget{
+		URL: "data:text/html," + url.PathEscape(`<html><body><div id="captured">captured</div></body></html>`),
+	})
+	require.NoError(t, err)
+
+	session.WaitElementLocatedByID(t, page, "captured")
+
+	base := "TIMEOUT-WATCHDOGUNIT"
+
+	t.Cleanup(func() {
+		pattern, _ := screenshotPaths(base + "*")
+
+		matches, _ := filepath.Glob(pattern)
+
+		for _, match := range matches {
+			_ = os.Remove(match)
+		}
+
+		watchdogMutex.Lock()
+		watchdogCollected = ""
+		watchdogMutex.Unlock()
+	})
+
+	collectWatchdogArtifacts()
+
+	shot, _ := screenshotPaths(base + "-page-0.png")
+
+	assert.FileExists(t, shot, "a browser that was not shared is captured when the run runs out of time")
 }
