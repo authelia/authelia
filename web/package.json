@@ -14,7 +14,7 @@
     "broadcast-channel": "7.4.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
-    "i18next": "26.4.0",
+    "i18next": "26.4.1",
     "i18next-browser-languagedetector": "8.2.1",
     "i18next-http-backend": "4.0.1",
     "lucide-react": "1.37.0",
