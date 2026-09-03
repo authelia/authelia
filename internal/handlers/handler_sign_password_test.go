@@ -295,6 +295,20 @@ func (s *HandlerSignPasswordSuite) TestShouldErrorBadRequestBody() {
 	s.AssertLastLogMessage("Failed to parse 1FA request body", "unable to parse body: unexpected end of JSON input")
 }
 
+func TestSecondFactorPasswordPOSTShouldErrorSessionProviderUnavailable(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+	mock.Ctx.Request.SetBody([]byte(`{"password":"123456"}`))
+
+	SecondFactorPasswordPOST(nil)(mock.Ctx)
+
+	mock.Assert401KO(t, "Authentication failed. Check your credentials.")
+
+	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to get session provider during 2FA attempt", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+}
+
 func TestRunHandlerSignPasswordSuite(t *testing.T) {
 	suite.Run(t, new(HandlerSignPasswordSuite))
 }

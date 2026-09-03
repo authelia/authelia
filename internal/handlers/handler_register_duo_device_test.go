@@ -12,6 +12,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/duo"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -169,6 +170,54 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnEmptyDevice() {
 	assert.Equal(s.T(), logrus.ErrorLevel, s.mock.Hook.LastEntry().Level)
 }
 
+func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnrollWhenNoSupportedDevices() {
+	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	response := duo.PreAuthResponse{}
+	response.Result = auth
+	response.Devices = []duo.Device{{Capabilities: []string{"unsupported"}, Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"}}
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
+
+	DuoDevicesGET(duoMock)(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: enroll})
+}
+
+func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnUnknownPreAuthResult() {
+	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
+
+	values := url.Values{}
+	values.Set("username", "john")
+
+	response := duo.PreAuthResponse{}
+	response.Result = "not-a-result"
+	response.StatusMessage = "a status message"
+
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
+
+	DuoDevicesGET(duoMock)(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
+	s.Assert().Equal("Error occurred performing the Duo PreAuth API call for user 'john' which returned the result 'not-a-result' with the message 'a status message'", s.mock.Hook.LastEntry().Message)
+}
+
+func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnSaveError() {
+	s.mock.Ctx.Request.SetBodyString("{\"device\":\"1234567890123456\", \"method\":\"push\"}")
+	s.mock.StorageMock.EXPECT().
+		SavePreferredDuoDevice(gomock.Eq(s.mock.Ctx), gomock.Eq(model.DuoDevice{Username: "john", Device: "1234567890123456", Method: "push"})).
+		Return(fmt.Errorf("failed to save"))
+
+	DuoDevicePOST(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), messageMFAValidationFailed)
+
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred saving the new preferred Duo device and method", "failed to save")
+}
+
 func TestRunRegisterDuoDeviceSuite(t *testing.T) {
 	s := new(RegisterDuoDeviceSuite)
 	suite.Run(t, s)
@@ -239,6 +288,50 @@ func TestDuoDeviceDELETE(t *testing.T) {
 			if tc.expectedf != nil {
 				tc.expectedf(t, mock)
 			}
+		})
+	}
+}
+
+func TestDuoDevicesRegistrationSessionErrors(t *testing.T) {
+	testCases := []struct {
+		name    string
+		handler middlewares.RequestHandler
+		setup   func(mock *mocks.MockAutheliaCtx)
+	}{
+		{
+			name:    "DuoDevicesGET",
+			handler: DuoDevicesGET(nil),
+		},
+		{
+			name:    "DuoDevicePOST",
+			handler: DuoDevicePOST,
+			setup: func(mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.SetBodyString(`{"device":"1234567890123456","method":"push"}`)
+			},
+		},
+		{
+			name:    "DuoDeviceDELETE",
+			handler: DuoDeviceDELETE,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name+"ShouldHandleSessionProviderError", func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+
+			if tc.setup != nil {
+				tc.setup(mock)
+			}
+
+			tc.handler(mock.Ctx)
+
+			mock.Assert200KO(t, messageMFAValidationFailed)
+
+			AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), errStrUserSessionData, "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
 		})
 	}
 }

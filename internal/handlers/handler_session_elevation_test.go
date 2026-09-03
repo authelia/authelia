@@ -548,6 +548,26 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred creating user session elevation One-Time Code challenge: error occurred retrieving the user session data", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
 			},
 		},
+		{
+			"ShouldHandleIssuerError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
+			},
+			`{"status":"KO","message":"Operation failed."}`,
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred determining issuer", "missing required X-Forwarded-Host header")
+			},
+		},
 	}
 
 	for _, tc := range testCases {
