@@ -168,12 +168,10 @@ type ConformanceRunner struct {
 	planID  string
 	modules []ConformancePlanModule
 	names   []string
+	debug   bool
+	trace   *ConformanceTrace
 
-	// debug is whether each module's trace is recorded.
-	debug bool
-
-	// trace is the trace of the module being run. Modules run one at a time, so it is replaced as each begins.
-	trace *ConformanceTrace
+	relyingParty *conformanceRelyingParty
 }
 
 // NewConformanceRunner returns a ConformanceRunner for one plan. browser may be nil only when no module in modules
@@ -250,7 +248,13 @@ func (r *ConformanceRunner) run(ctx context.Context, name string, module Conform
 	}
 
 	if state == conformanceStatusWaiting {
-		if err = r.interact(ctx, id, override); err != nil {
+		if r.relyingParty != nil {
+			err = r.signInWithProvider(ctx, id, module.TestModule)
+		} else {
+			err = r.interact(ctx, id, override)
+		}
+
+		if err != nil {
 			outcome.Err = err
 		}
 	}

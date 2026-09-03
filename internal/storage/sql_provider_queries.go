@@ -261,6 +261,50 @@ const (
 )
 
 const (
+	queryFmtSelectExternalIdentityLinkBySubject = `
+		SELECT id, created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature
+		FROM %s
+		WHERE type = ? AND issuer = ? AND subject = ?;`
+
+	queryFmtSelectExternalIdentityLinksByUsername = `
+		SELECT id, created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature
+		FROM %s
+		WHERE username = ?
+		ORDER BY created_at;`
+
+	queryFmtSelectExternalIdentityLinkByID = `
+		SELECT id, created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature
+		FROM %s
+		WHERE id = ?;`
+
+	queryFmtSelectExternalIdentityLinks = `
+		SELECT id, created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature
+		FROM %s;`
+
+	queryFmtInsertExternalIdentityLink = `
+		INSERT INTO %s (created_at, last_used_at, type, provider, issuer, subject, username, remote_username, email, signature)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpdateExternalIdentityLinkSignature = `
+		UPDATE %s
+		SET signature = ?
+		WHERE id = ?;`
+
+	queryFmtDeleteExternalIdentityLinkByID = `
+		DELETE FROM %s
+		WHERE id = ?;`
+
+	queryFmtUpdateExternalIdentityLinkSignIn = `
+		UPDATE %s
+		SET last_used_at = ?
+		WHERE id = ?;`
+
+	queryFmtDeleteExternalIdentityLinkByUsernameAndID = `
+		DELETE FROM %s
+		WHERE username = ? AND id = ?;`
+)
+
+const (
 	queryFmtUpsertDuoDevice = `
 		REPLACE INTO %s (username, device, method)
 		VALUES (?, ?, ?);`

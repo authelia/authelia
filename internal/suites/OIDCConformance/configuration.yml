@@ -12,6 +12,18 @@ server:
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
+  endpoints:
+    rate_limits:
+      # Every Relying Party module of both plans starts an external login and completes its callback from the same
+      # address within seconds of the last, which is exactly what the default limits exist to refuse.
+      external_identity_start:
+        buckets:
+          - period: '1 minute'
+            requests: 1000
+      external_identity_callback:
+        buckets:
+          - period: '1 minute'
+            requests: 1000
 
 log:
   level: 'debug'

@@ -140,6 +140,13 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectUserOpaqueIdentifiers:           fmt.Sprintf(queryFmtSelectUserOpaqueIdentifiers, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifierBySignature: fmt.Sprintf(queryFmtSelectUserOpaqueIdentifierBySignature, tableUserOpaqueIdentifier),
 
+		sqlInsertExternalIdentityLink:                fmt.Sprintf(queryFmtInsertExternalIdentityLink, tableUserExternalIdentityLinks),
+		sqlSelectExternalIdentityLinkBySubject:       fmt.Sprintf(queryFmtSelectExternalIdentityLinkBySubject, tableUserExternalIdentityLinks),
+		sqlSelectExternalIdentityLinksByUsername:     fmt.Sprintf(queryFmtSelectExternalIdentityLinksByUsername, tableUserExternalIdentityLinks),
+		sqlSelectExternalIdentityLinkByID:            fmt.Sprintf(queryFmtSelectExternalIdentityLinkByID, tableUserExternalIdentityLinks),
+		sqlUpdateExternalIdentityLinkSignIn:          fmt.Sprintf(queryFmtUpdateExternalIdentityLinkSignIn, tableUserExternalIdentityLinks),
+		sqlDeleteExternalIdentityLinkByUsernameAndID: fmt.Sprintf(queryFmtDeleteExternalIdentityLinkByUsernameAndID, tableUserExternalIdentityLinks),
+
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
@@ -317,6 +324,14 @@ type SQLProvider struct {
 	sqlSelectUserOpaqueIdentifiers           string
 	sqlSelectUserOpaqueIdentifierBySignature string
 
+	// Table: user_external_identity_links.
+	sqlInsertExternalIdentityLink                string
+	sqlSelectExternalIdentityLinkBySubject       string
+	sqlSelectExternalIdentityLinksByUsername     string
+	sqlSelectExternalIdentityLinkByID            string
+	sqlUpdateExternalIdentityLinkSignIn          string
+	sqlDeleteExternalIdentityLinkByUsernameAndID string
+
 	// Table: migrations.
 	sqlInsertMigration       string
 	sqlSelectMigrations      string
@@ -406,6 +421,8 @@ type SQLProviderKeys struct {
 	encryption []byte
 	otcHMAC    []byte
 	otpHMAC    []byte
+
+	externalIdentityLinkHMAC []byte
 }
 
 func (p *SQLProvider) conn(ctx context.Context) (conn SQLXConnection) {
@@ -464,6 +481,10 @@ func (p *SQLProvider) StartupCheck() (err error) {
 
 	if p.keys.otpHMAC, err = p.getHMACOneTimePassword(ctx); err != nil {
 		return fmt.Errorf("failed to initialize the hmac one-time password signature key during startup: %w", err)
+	}
+
+	if p.keys.externalIdentityLinkHMAC, err = p.getHMACExternalIdentityLink(ctx); err != nil {
+		return fmt.Errorf("failed to initialize the hmac external identity link signature key during startup: %w", err)
 	}
 
 	return nil
@@ -604,6 +625,97 @@ func (p *SQLProvider) LoadUserOpaqueIdentifierBySignature(ctx context.Context, s
 	}
 
 	return subject, nil
+}
+
+// SaveExternalIdentityLink saves an external identity link to the storage provider. The link is signed as it is saved,
+// so any signature it carries is replaced.
+func (p *SQLProvider) SaveExternalIdentityLink(ctx context.Context, link model.ExternalIdentityLink) (err error) {
+	link.Signature = p.externalIdentityLinkHMACSignature(&link)
+
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertExternalIdentityLink,
+		link.CreatedAt, link.LastUsedAt, link.Type, link.Provider, link.Issuer, link.Subject, link.Username, link.RemoteUsername, link.Email, link.Signature); err != nil {
+		return fmt.Errorf("error inserting external identity link for user '%s': %w", link.Username, err)
+	}
+
+	return nil
+}
+
+// LoadExternalIdentityLinkBySubject loads an external identity link by the provider type, issuer, and subject. The link is
+// only returned when all three match and its signature is valid.
+func (p *SQLProvider) LoadExternalIdentityLinkBySubject(ctx context.Context, providerType, issuer, subject string) (link *model.ExternalIdentityLink, err error) {
+	link = &model.ExternalIdentityLink{}
+
+	if err = p.conn(ctx).GetContext(ctx, link, p.sqlSelectExternalIdentityLinkBySubject, providerType, issuer, subject); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoExternalIdentityLink
+		}
+
+		return nil, fmt.Errorf("error selecting external identity link with type '%s' and issuer '%s': %w", providerType, issuer, err)
+	}
+
+	if err = p.verifyExternalIdentityLink(link); err != nil {
+		return nil, err
+	}
+
+	return link, nil
+}
+
+// LoadExternalIdentityLinksByUsername loads all external identity links for a user. The links are only returned when
+// every one of their signatures is valid.
+func (p *SQLProvider) LoadExternalIdentityLinksByUsername(ctx context.Context, username string) (links []model.ExternalIdentityLink, err error) {
+	if err = p.conn(ctx).SelectContext(ctx, &links, p.sqlSelectExternalIdentityLinksByUsername, username); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoExternalIdentityLink
+		}
+
+		return nil, fmt.Errorf("error selecting external identity links for user '%s': %w", username, err)
+	}
+
+	for i := range links {
+		if err = p.verifyExternalIdentityLink(&links[i]); err != nil {
+			return nil, err
+		}
+	}
+
+	return links, nil
+}
+
+// LoadExternalIdentityLinkByID loads an external identity link by its id. The link is only returned when its signature
+// is valid.
+func (p *SQLProvider) LoadExternalIdentityLinkByID(ctx context.Context, id int) (link *model.ExternalIdentityLink, err error) {
+	link = &model.ExternalIdentityLink{}
+
+	if err = p.conn(ctx).GetContext(ctx, link, p.sqlSelectExternalIdentityLinkByID, id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoExternalIdentityLink
+		}
+
+		return nil, fmt.Errorf("error selecting external identity link with id '%d': %w", id, err)
+	}
+
+	if err = p.verifyExternalIdentityLink(link); err != nil {
+		return nil, err
+	}
+
+	return link, nil
+}
+
+// UpdateExternalIdentityLinkSignIn updates the last used timestamp of an external identity link.
+func (p *SQLProvider) UpdateExternalIdentityLinkSignIn(ctx context.Context, id int, lastUsedAt time.Time) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateExternalIdentityLinkSignIn, lastUsedAt, id); err != nil {
+		return fmt.Errorf("error updating external identity link with id '%d': %w", id, err)
+	}
+
+	return nil
+}
+
+// DeleteExternalIdentityLink deletes an external identity link owned by the given user.
+func (p *SQLProvider) DeleteExternalIdentityLink(ctx context.Context, username string, id int) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteExternalIdentityLinkByUsernameAndID, username, id); err != nil {
+		return fmt.Errorf("error deleting external identity link with id '%d' for user '%s': %w", id, username, err)
+	}
+
+	return nil
 }
 
 // SaveTOTPConfiguration save a TOTP configuration of a given user in the storage provider.

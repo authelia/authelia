@@ -5,10 +5,12 @@
 package suites
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -22,6 +24,9 @@ import (
 const (
 	emailPollInterval = time.Millisecond * 100
 	emailPollTimeout  = time.Second * 5
+
+	emailSubjectConfirmIdentity = "[Authelia] Confirm your identity"
+	emailRecipientPollInterval  = time.Millisecond * 500
 )
 
 // EmailMessagesResponse represents the response from the mail server messages endpoint.
@@ -146,7 +151,7 @@ func doGetEmailNodeID(t *testing.T, subject, id string) (node *html.Node) {
 func doGetOneTimeCodeFromLastMail(t *testing.T) string {
 	t.Helper()
 
-	element := doGetEmailNodeID(t, "[Authelia] Confirm your identity", "one-time-code")
+	element := doGetEmailNodeID(t, emailSubjectConfirmIdentity, "one-time-code")
 
 	require.NotNil(t, element)
 	require.NotNil(t, element.FirstChild)
@@ -242,4 +247,72 @@ func doGetEmailMessages() (messages []EmailMessage, err error) {
 	}
 
 	return emr.Messages, nil
+}
+
+func doAwaitOneTimeCodeForRecipient(ctx context.Context, recipient string, timeout time.Duration) (code string, err error) {
+	deadline := time.Now().Add(timeout)
+
+	for time.Now().Before(deadline) {
+		if ctx.Err() != nil {
+			return "", ctx.Err()
+		}
+
+		if code, err = findOneTimeCodeForRecipient(recipient); err == nil && code != "" {
+			return code, nil
+		}
+
+		time.Sleep(emailRecipientPollInterval)
+	}
+
+	if err == nil {
+		err = fmt.Errorf("no unread '%s' email was sent to '%s' within %s", emailSubjectConfirmIdentity, recipient, timeout)
+	}
+
+	return "", err
+}
+
+func findOneTimeCodeForRecipient(recipient string) (code string, err error) {
+	messages, err := doGetEmailMessages()
+	if err != nil {
+		return "", err
+	}
+
+	for i := len(messages) - 1; i >= 0; i-- {
+		message := messages[i]
+
+		if message.Subject != emailSubjectConfirmIdentity || message.Read || !isEmailAddressedTo(message, recipient) {
+			continue
+		}
+
+		reader, err := message.GetContentReader()
+		if err != nil {
+			return "", err
+		}
+
+		node, err := html.Parse(reader)
+
+		_ = reader.Close()
+
+		if err != nil {
+			return "", err
+		}
+
+		if element := getHTMLNodeWithID(node, "one-time-code"); element != nil && element.FirstChild != nil {
+			return strings.TrimSpace(element.FirstChild.Data), nil
+		}
+
+		return "", fmt.Errorf("the '%s' email sent to '%s' has no one-time code", emailSubjectConfirmIdentity, recipient)
+	}
+
+	return "", nil
+}
+
+func isEmailAddressedTo(message EmailMessage, recipient string) bool {
+	for _, address := range message.To {
+		if strings.EqualFold(address.Address, recipient) {
+			return true
+		}
+	}
+
+	return false
 }

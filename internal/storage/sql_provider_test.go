@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -146,6 +147,291 @@ func TestSQLProviderUserOpaqueIdentifier(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Nil(t, loaded)
+	})
+}
+
+func TestSQLProviderExternalIdentityLinks(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	var linkID int
+
+	t.Run("ShouldSaveAndLoadLinkBySubject", func(t *testing.T) {
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt:      time.Now().Truncate(time.Second),
+			Type:           "openid_connect",
+			Provider:       "example",
+			Issuer:         "https://op.example.com",
+			Subject:        "abc123",
+			Username:       "john",
+			RemoteUsername: sql.NullString{Valid: true, String: "john@op"},
+			Email:          sql.NullString{Valid: true, String: "john@op.example.com"},
+		}))
+
+		loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "abc123")
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, "john", loaded.Username)
+		assert.Equal(t, "example", loaded.Provider)
+		assert.Equal(t, "https://op.example.com", loaded.Issuer)
+		assert.Equal(t, "abc123", loaded.Subject)
+		assert.Equal(t, "openid_connect", loaded.Type)
+		assert.True(t, loaded.RemoteUsername.Valid)
+		assert.Equal(t, "john@op", loaded.RemoteUsername.String)
+		assert.True(t, loaded.Email.Valid)
+		assert.Equal(t, "john@op.example.com", loaded.Email.String)
+		assert.False(t, loaded.LastUsedAt.Valid)
+
+		linkID = loaded.ID
+	})
+
+	t.Run("ShouldRejectDuplicateIssuerSubject", func(t *testing.T) {
+		err := provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "other",
+			Issuer:    "https://op.example.com",
+			Subject:   "abc123",
+			Username:  "jane",
+		})
+
+		require.EqualError(t, err, "error inserting external identity link for user 'jane': UNIQUE constraint failed: user_external_identity_links.type, user_external_identity_links.issuer, user_external_identity_links.subject")
+	})
+
+	t.Run("ShouldRejectDuplicateUsernameProvider", func(t *testing.T) {
+		err := provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "example",
+			Issuer:    "https://op2.example.com",
+			Subject:   "def456",
+			Username:  "john",
+		})
+
+		require.EqualError(t, err, "error inserting external identity link for user 'john': UNIQUE constraint failed: user_external_identity_links.username, user_external_identity_links.provider")
+	})
+
+	t.Run("ShouldLoadLinkByID", func(t *testing.T) {
+		loaded, err := provider.LoadExternalIdentityLinkByID(ctx, linkID)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, "john", loaded.Username)
+		assert.Equal(t, linkID, loaded.ID)
+	})
+
+	t.Run("ShouldSaveAndLoadLinksByUsername", func(t *testing.T) {
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "openid_connect",
+			Provider:  "other",
+			Issuer:    "https://op3.example.com",
+			Subject:   "ghi789",
+			Username:  "john",
+		}))
+
+		links, err := provider.LoadExternalIdentityLinksByUsername(ctx, "john")
+
+		require.NoError(t, err)
+		require.Len(t, links, 2)
+		assert.Equal(t, "example", links[0].Provider)
+		assert.Equal(t, "other", links[1].Provider)
+	})
+
+	t.Run("ShouldReturnEmptyForUnknownUsername", func(t *testing.T) {
+		links, err := provider.LoadExternalIdentityLinksByUsername(ctx, "nobody")
+
+		require.NoError(t, err)
+		assert.Empty(t, links)
+	})
+
+	t.Run("ShouldUpdateSignIn", func(t *testing.T) {
+		now := time.Now().Truncate(time.Second)
+
+		require.NoError(t, provider.UpdateExternalIdentityLinkSignIn(ctx, linkID, now))
+
+		loaded, err := provider.LoadExternalIdentityLinkByID(ctx, linkID)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.True(t, loaded.LastUsedAt.Valid)
+		assert.WithinDuration(t, now, loaded.LastUsedAt.Time, time.Second)
+	})
+
+	t.Run("ShouldReturnErrNoExternalIdentityLinkWhenSubjectAbsent", func(t *testing.T) {
+		loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "missing")
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no external identity link found")
+	})
+
+	t.Run("ShouldReturnErrNoExternalIdentityLinkWhenTypeDiffers", func(t *testing.T) {
+		loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "discord", "https://op.example.com", "abc123")
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no external identity link found")
+	})
+
+	t.Run("ShouldAllowTheSameIssuerAndSubjectForADifferentType", func(t *testing.T) {
+		require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Type:      "plex",
+			Provider:  "plex",
+			Issuer:    "https://op.example.com",
+			Subject:   "abc123",
+			Username:  "jane",
+		}))
+
+		loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "plex", "https://op.example.com", "abc123")
+
+		require.NoError(t, err)
+		assert.Equal(t, "jane", loaded.Username)
+		assert.Equal(t, "plex", loaded.Type)
+	})
+
+	t.Run("ShouldReturnErrNoExternalIdentityLinkWhenIDAbsent", func(t *testing.T) {
+		loaded, err := provider.LoadExternalIdentityLinkByID(ctx, 999999)
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no external identity link found")
+	})
+
+	t.Run("ShouldNotDeleteLinkForWrongUsername", func(t *testing.T) {
+		require.NoError(t, provider.DeleteExternalIdentityLink(ctx, "jane", linkID))
+
+		loaded, err := provider.LoadExternalIdentityLinkByID(ctx, linkID)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+	})
+
+	t.Run("ShouldDeleteLinkScopedToUser", func(t *testing.T) {
+		require.NoError(t, provider.DeleteExternalIdentityLink(ctx, "john", linkID))
+
+		loaded, err := provider.LoadExternalIdentityLinkByID(ctx, linkID)
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no external identity link found")
+	})
+}
+
+func TestSQLProviderExternalIdentityLinkSignature(t *testing.T) {
+	testCases := []struct {
+		name   string
+		column string
+		value  string
+	}{
+		{"ShouldRejectTamperedType", "type", "discord"},
+		{"ShouldRejectTamperedProvider", "provider", "other"},
+		{"ShouldRejectTamperedIssuer", "issuer", "https://evil.example.com"},
+		{"ShouldRejectTamperedSubject", "subject", "evil"},
+		{"ShouldRejectTamperedUsername", "username", "admin"},
+		{"ShouldRejectTamperedSignature", "signature", strings.Repeat("0", 128)},
+		{"ShouldRejectEmptySignature", "signature", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := newTestSQLiteProvider(t)
+			require.NoError(t, provider.StartupCheck())
+
+			ctx := context.Background()
+
+			require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+				CreatedAt: time.Now().Truncate(time.Second),
+				Type:      "openid_connect",
+				Provider:  "example",
+				Issuer:    "https://op.example.com",
+				Subject:   "abc123",
+				Username:  "john",
+			}))
+
+			loaded, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "abc123")
+			require.NoError(t, err)
+			require.Len(t, loaded.Signature, 128)
+
+			_, err = provider.db.ExecContext(ctx, fmt.Sprintf("UPDATE user_external_identity_links SET %s = ? WHERE id = ?;", tc.column), tc.value, loaded.ID)
+			require.NoError(t, err)
+
+			providerType, issuer, subject, username := "openid_connect", "https://op.example.com", "abc123", "john"
+
+			switch tc.column {
+			case "type":
+				providerType = tc.value
+			case "issuer":
+				issuer = tc.value
+			case "subject":
+				subject = tc.value
+			case "username":
+				username = tc.value
+			}
+
+			link, err := provider.LoadExternalIdentityLinkBySubject(ctx, providerType, issuer, subject)
+			assert.Nil(t, link)
+			assert.ErrorIs(t, err, ErrExternalIdentityLinkSignatureInvalid)
+
+			link, err = provider.LoadExternalIdentityLinkByID(ctx, loaded.ID)
+			assert.Nil(t, link)
+			assert.ErrorIs(t, err, ErrExternalIdentityLinkSignatureInvalid)
+
+			links, err := provider.LoadExternalIdentityLinksByUsername(ctx, username)
+			assert.Nil(t, links)
+			assert.ErrorIs(t, err, ErrExternalIdentityLinkSignatureInvalid)
+		})
+	}
+
+	t.Run("ShouldNotProduceTheSameSignatureForShiftedValues", func(t *testing.T) {
+		key := []byte("key")
+
+		a := externalIdentityLinkSignature(key, &model.ExternalIdentityLink{Provider: "example", Issuer: "https://op.example.com/a", Subject: "b", Username: "john"})
+		b := externalIdentityLinkSignature(key, &model.ExternalIdentityLink{Provider: "example", Issuer: "https://op.example.com/", Subject: "ab", Username: "john"})
+
+		assert.NotEqual(t, a, b)
+	})
+
+	t.Run("ShouldRotateKeySigningValidLinksAndDeletingInvalidLinks", func(t *testing.T) {
+		provider := newTestSQLiteProvider(t)
+		require.NoError(t, provider.StartupCheck())
+
+		ctx := context.Background()
+
+		for _, subject := range []string{"valid", "invalid"} {
+			require.NoError(t, provider.SaveExternalIdentityLink(ctx, model.ExternalIdentityLink{
+				CreatedAt: time.Now().Truncate(time.Second),
+				Type:      "openid_connect",
+				Provider:  subject,
+				Issuer:    "https://op.example.com",
+				Subject:   subject,
+				Username:  "john",
+			}))
+		}
+
+		_, err := provider.db.ExecContext(ctx, "UPDATE user_external_identity_links SET username = ? WHERE subject = ?;", "admin", "invalid")
+		require.NoError(t, err)
+
+		before, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "valid")
+		require.NoError(t, err)
+
+		previous := provider.keys.externalIdentityLinkHMAC
+
+		require.NoError(t, provider.SchemaEncryptionRotateHMACKey(ctx, "external_identity_link"))
+
+		assert.NotEqual(t, previous, provider.keys.externalIdentityLinkHMAC)
+
+		after, err := provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "valid")
+		require.NoError(t, err)
+		assert.Equal(t, before.ID, after.ID)
+		assert.NotEqual(t, before.Signature, after.Signature)
+
+		_, err = provider.LoadExternalIdentityLinkBySubject(ctx, "openid_connect", "https://op.example.com", "invalid")
+		assert.ErrorIs(t, err, ErrNoExternalIdentityLink)
+
+		key, err := provider.getHMACExternalIdentityLink(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, provider.keys.externalIdentityLinkHMAC, key)
 	})
 }
 

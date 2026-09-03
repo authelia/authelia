@@ -219,6 +219,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		AssetPath:               config.Server.AssetPath,
 		DuoSelfEnrollment:       strFalse,
 		PasskeyLogin:            strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
+		ExternalIdentityLogin:   strconv.FormatBool(config.AuthenticationBackend.ExternalIdentity != nil && len(config.AuthenticationBackend.ExternalIdentity.Providers) != 0),
 		RememberMe:              strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:           strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL:  config.AuthenticationBackend.PasswordReset.CustomURL.String(),
@@ -254,6 +255,7 @@ type TemplatedFileOptions struct {
 	AssetPath              string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
+	ExternalIdentityLogin  string
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
@@ -290,6 +292,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
+		ExternalIdentityLogin:  options.ExternalIdentityLogin,
 		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
@@ -310,6 +313,7 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
+		ExternalIdentityLogin:  options.ExternalIdentityLogin,
 		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
@@ -349,6 +353,7 @@ type TemplatedFileCommonData struct {
 	LogoOverride           string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
+	ExternalIdentityLogin  string
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string

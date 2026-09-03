@@ -28,6 +28,8 @@ func TestNewConfiguration(t *testing.T) {
 			paths: []string{"../../internal/configuration/test_resources/config.webauthn.yml"},
 			keys: []string{
 				"regulation.max_retries",
+				"server.endpoints.rate_limits.external_identity_callback.enable",
+				"server.endpoints.rate_limits.external_identity_start.enable",
 				"server.endpoints.rate_limits.openid_connect_introspection.enable",
 				"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
 				"server.endpoints.rate_limits.openid_connect_revocation.enable",
@@ -105,6 +107,8 @@ func TestNewConfiguration(t *testing.T) {
 				"server.endpoints.authz.forward-auth.authn_strategies[].name",
 				"server.endpoints.authz.forward-auth.implementation",
 				"server.endpoints.authz.legacy.implementation",
+				"server.endpoints.rate_limits.external_identity_callback.enable",
+				"server.endpoints.rate_limits.external_identity_start.enable",
 				"server.endpoints.rate_limits.openid_connect_introspection.enable",
 				"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable",
 				"server.endpoints.rate_limits.openid_connect_revocation.enable",

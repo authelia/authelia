@@ -29,4 +29,10 @@ const (
 
 	// NameImplicitFormPost is the builder name of the Implicit OP profile using the form post response mode.
 	NameImplicitFormPost = "implicit-form-post"
+
+	// NameRelyingPartyBasic is the builder name of the Basic RP profile.
+	NameRelyingPartyBasic = "rp-basic"
+
+	// NameRelyingPartyBasicFormPost is the builder name of the Basic RP profile using the form post response mode.
+	NameRelyingPartyBasicFormPost = "rp-basic-form-post"
 )

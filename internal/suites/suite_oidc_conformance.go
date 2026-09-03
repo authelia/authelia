@@ -47,6 +47,10 @@ type OIDCConformancePlanFile struct {
 
 	// Plan is the plan body, sent as the request body.
 	Plan conformance.Plan `json:"plan"`
+
+	// Provider is the id of the external provider Authelia signs in with for a Relying Party plan, and is empty for an
+	// OpenID Provider plan. It is what decides how the plan's modules are driven.
+	Provider string `json:"provider,omitempty"`
 }
 
 type oidcConformanceClients struct {
@@ -55,6 +59,12 @@ type oidcConformanceClients struct {
 			Clients []schema.IdentityProvidersOpenIDConnectClient `yaml:"clients"`
 		} `yaml:"oidc"`
 	} `yaml:"identity_providers"`
+
+	AuthenticationBackend struct {
+		ExternalIdentity struct {
+			Providers []schema.AuthenticationBackendExternalIdentityProvider `yaml:"providers"`
+		} `yaml:"external_identity"`
+	} `yaml:"authentication_backend"`
 }
 
 func oidcConformanceGenerate() (err error) {
@@ -72,6 +82,7 @@ func oidcConformanceGenerate() (err error) {
 
 	clients := &oidcConformanceClients{}
 	clients.IdentityProviders.OIDC.Clients = []schema.IdentityProvidersOpenIDConnectClient{}
+	clients.AuthenticationBackend.ExternalIdentity.Providers = []schema.AuthenticationBackendExternalIdentityProvider{}
 
 	var plans []OIDCConformancePlanFile
 
@@ -86,6 +97,17 @@ func oidcConformanceGenerate() (err error) {
 
 		clients.IdentityProviders.OIDC.Clients = append(clients.IdentityProviders.OIDC.Clients, suite.Clients...)
 		plans = append(plans, OIDCConformancePlanFile{Name: builder.Name, PlanName: suite.Plan.Name, Variant: suite.Plan.Variant, Plan: suite.Plan})
+	}
+
+	for _, builder := range conformance.RelyingPartyBuilders(version, "authelia", suiteURL, autheliaURL) {
+		suite := builder.Build()
+
+		if release != "" {
+			suite.Plan.Description = builder.Description(release)
+		}
+
+		clients.AuthenticationBackend.ExternalIdentity.Providers = append(clients.AuthenticationBackend.ExternalIdentity.Providers, suite.Providers...)
+		plans = append(plans, OIDCConformancePlanFile{Name: builder.Name, PlanName: suite.Plan.Name, Variant: suite.Plan.Variant, Plan: suite.Plan, Provider: builder.ProviderID()})
 	}
 
 	if err = oidcConformanceWriteYAML(SuiteTmpPath(oidcConformanceClientsFile), clients); err != nil {
@@ -244,6 +266,6 @@ func init() {
 		TestTimeout:     8 * time.Minute,
 		TearDown:        teardown,
 		TearDownTimeout: 1 * time.Minute,
-		Description:     "This suite runs the OpenID Foundation conformance suite against Authelia for every profile Authelia is OpenID Certified for.",
+		Description:     "This suite runs the OpenID Foundation conformance suite against Authelia for every OpenID Provider profile Authelia is OpenID Certified for, and for the Relying Party profiles Authelia's external identity provider support is tested against.",
 	})
 }

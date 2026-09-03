@@ -336,6 +336,28 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialDELETE))
 	}
 
+	if config.AuthenticationBackend.ExternalIdentity != nil && len(config.AuthenticationBackend.ExternalIdentity.Providers) != 0 {
+		middlewareRateLimitOpenIDConnectStart := middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.ExternalIdentityStart), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()).
+			Build()
+
+		middlewareRateLimitOpenIDConnectCallback := middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.ExternalIdentityCallback), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()).
+			Build()
+
+		r.GET("/api/firstfactor/external-identity", middlewareAPI(handlers.FirstFactorExternalIdentityProvidersGET))
+		r.POST("/api/firstfactor/external-identity/{provider}", middlewareRateLimitOpenIDConnectStart(handlers.FirstFactorExternalIdentityPOST))
+		r.GET("/api/firstfactor/external-identity/{provider}/callback", middlewareRateLimitOpenIDConnectCallback(handlers.FirstFactorExternalIdentityCallbackGET))
+		r.POST("/api/firstfactor/external-identity/{provider}/callback", middlewareRateLimitOpenIDConnectCallback(handlers.FirstFactorExternalIdentityCallbackPOST))
+
+		r.GET("/api/user/external-identity/links", middleware1FA(handlers.UserExternalIdentityLinksGET))
+		r.PUT("/api/user/external-identity/link", middlewareElevated1FA(handlers.UserExternalIdentityLinkPUT))
+		r.DELETE("/api/user/external-identity/link/pending", middleware1FA(handlers.UserExternalIdentityLinkPendingDELETE))
+		r.DELETE("/api/user/external-identity/link/{linkID}", middlewareElevated1FA(handlers.UserExternalIdentityLinkDELETE))
+	}
+
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.Provider
 

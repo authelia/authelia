@@ -36,6 +36,7 @@ export default {
                 "docker",
                 "duo",
                 "expression",
+                "externalidentity",
                 "go",
                 "golangci-lint",
                 "handlers",

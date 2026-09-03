@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -22,6 +23,61 @@ import (
 
 // MethodList is the list of available methods.
 type MethodList = []string
+
+// bodyGETExternalIdentityProviders is the response body for the external identity provider list.
+type bodyGETExternalIdentityProviders struct {
+	Providers []bodyExternalIdentityProvider `json:"providers"`
+}
+
+// bodyExternalIdentityProvider is a single external identity provider in the login page list.
+type bodyExternalIdentityProvider struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// bodyPOSTExternalIdentityStart is the request body for starting an external identity login.
+type bodyPOSTExternalIdentityStart struct {
+	TargetURL      string `json:"targetURL"`
+	RequestMethod  string `json:"requestMethod"`
+	KeepMeLoggedIn bool   `json:"keepMeLoggedIn"`
+	Language       string `json:"language"`
+}
+
+// bodyPOSTExternalIdentityStartResponse is the response body for starting an external identity login.
+type bodyPOSTExternalIdentityStartResponse struct {
+	AuthorizationURL string `json:"authorization_url"`
+}
+
+// bodyGETExternalIdentityLinks is the response body for the linked accounts settings page.
+type bodyGETExternalIdentityLinks struct {
+	Links   []bodyExternalIdentityLink   `json:"links"`
+	Pending *bodyExternalIdentityPending `json:"pending,omitempty"`
+}
+
+// bodyExternalIdentityLink is an established link between a local account and an external identity. The provider's
+// display name accompanies its identifier so the settings page can name the provider the same way the pending panel
+// and the accept and decline notifications do.
+type bodyExternalIdentityLink struct {
+	ID             int        `json:"id"`
+	CreatedAt      time.Time  `json:"created_at"`
+	LastUsedAt     *time.Time `json:"last_used_at,omitempty"`
+	Provider       string     `json:"provider"`
+	ProviderName   string     `json:"provider_name"`
+	Issuer         string     `json:"issuer"`
+	Subject        string     `json:"subject"`
+	RemoteUsername string     `json:"remote_username,omitempty"`
+}
+
+// bodyExternalIdentityPending is the proposed link awaiting the user's decision.
+type bodyExternalIdentityPending struct {
+	Provider       string `json:"provider"`
+	ProviderName   string `json:"provider_name"`
+	Issuer         string `json:"issuer"`
+	Subject        string `json:"subject"`
+	RemoteUsername string `json:"remote_username,omitempty"`
+	DisplayName    string `json:"display_name,omitempty"`
+	Email          string `json:"email,omitempty"`
+}
 
 type configurationBody struct {
 	AvailableMethods       MethodList `json:"available_methods"`
