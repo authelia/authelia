@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.21](https://github.com/authelia/authelia/releases/tag/v4.39.21)
+  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
 - [Wallos]
   - [v4.9.6](https://github.com/ellite/Wallos/releases/tag/v4.9.6)
 

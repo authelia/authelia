@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.21](https://github.com/authelia/authelia/releases/tag/v4.39.21)
+  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
 - [Ryot]
   - [v8.9.0](https://github.com/IgnisDa/ryot/releases/tag/v8.9.0)
 

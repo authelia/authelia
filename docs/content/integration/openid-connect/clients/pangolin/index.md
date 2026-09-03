@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.21](https://github.com/authelia/authelia/releases/tag/v4.39.21)
+  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
 - [Pangolin]
   - [v1.14.1](https://github.com/fosrl/pangolin/releases/tag/1.14.1)
 

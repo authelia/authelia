@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.21](https://github.com/authelia/authelia/releases/tag/v4.39.21)
+  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
 - [OpenProject]
   - [v15.4.2](https://www.openproject.org/docs/release-notes/#1550)
 
