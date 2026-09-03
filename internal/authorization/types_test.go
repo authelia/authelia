@@ -36,56 +36,6 @@ func TestShouldCreateNewObjectFromRaw(t *testing.T) {
 	assert.Equal(t, fasthttp.MethodGet, object.Method)
 }
 
-func TestShouldCleanURL(t *testing.T) {
-	testCases := []struct {
-		have     string
-		havePath string
-		method   string
-
-		expectedScheme, expectedDomain, expectedPath, expectedPathClean string
-	}{
-		{"https://a.com", "/a/../t", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/..%2f/t", fasthttp.MethodGet, "https", "a.com", "/a/..//t", "/t"},
-		{"https://a.com", "/a/..%2ft", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/..%2F/t", fasthttp.MethodGet, "https", "a.com", "/a/..//t", "/t"},
-		{"https://a.com", "/a/..%2Ft", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/..%2Ft", fasthttp.MethodGet, "https", "a.com", "/a/../t", "/t"},
-		{"https://a.com", "/a/%2F..%2Ft", fasthttp.MethodGet, "https", "a.com", "/a//../t", "/t"},
-		{"https://a.com", "/a/%2F%2e%2e%2Ft", fasthttp.MethodGet, "https", "a.com", "/a//../t", "/t"},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.have, func(t *testing.T) {
-			have, err := url.ParseRequestURI(tc.have + tc.havePath)
-			require.NoError(t, err)
-
-			object := NewObject(have, tc.method)
-
-			assert.Equal(t, tc.expectedScheme, object.URL.Scheme)
-			assert.Equal(t, tc.expectedDomain, object.Domain)
-			assert.Equal(t, tc.expectedPath, object.URL.Path)
-			assert.Equal(t, tc.expectedPathClean, object.Path)
-			assert.Equal(t, tc.method, object.Method)
-
-			have, err = url.ParseRequestURI(tc.have)
-			require.NoError(t, err)
-
-			path, err := url.ParseRequestURI(tc.havePath)
-			require.NoError(t, err)
-
-			have.Path, have.RawQuery = path.Path, path.RawQuery
-
-			object = NewObject(have, tc.method)
-
-			assert.Equal(t, tc.expectedScheme, object.URL.Scheme)
-			assert.Equal(t, tc.expectedDomain, object.Domain)
-			assert.Equal(t, tc.expectedPath, object.URL.Path)
-			assert.Equal(t, tc.expectedPathClean, object.Path)
-			assert.Equal(t, tc.method, object.Method)
-		})
-	}
-}
-
 func TestRuleMatchResult_IsPotentialMatch(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -120,4 +70,252 @@ func TestTypesMisc(t *testing.T) {
 	object := &Object{URL: nil}
 
 	assert.Equal(t, "", object.String())
+}
+
+func TestNewObjectMethodURL(t *testing.T) {
+	testCases := []struct {
+		name           string
+		method         string
+		rawURL         string
+		expectedMethod string
+		expectedDomain string
+		expectedPath   string
+		err            string
+	}{
+		{
+			"ShouldAllowEmptyMethod",
+			"",
+			"https://app.example.com/",
+			"",
+			"app.example.com",
+			"/",
+			"",
+		},
+		{
+			"ShouldNormalizeLowercaseMethod",
+			"get",
+			"https://app.example.com/",
+			fasthttp.MethodGet,
+			"app.example.com",
+			"/",
+			"",
+		},
+		{
+			"ShouldNormalizeMixedCaseMethod",
+			"GeT",
+			"https://app.example.com/",
+			fasthttp.MethodGet,
+			"app.example.com",
+			"/",
+			"",
+		},
+		{
+			"ShouldAllowUppercaseMethod",
+			fasthttp.MethodPost,
+			"https://app.example.com/",
+			fasthttp.MethodPost,
+			"app.example.com",
+			"/",
+			"",
+		},
+		{
+			"ShouldNormalizeSchemeAndHost",
+			fasthttp.MethodGet,
+			"HTTPS://APP.EXAMPLE.COM/Path",
+			fasthttp.MethodGet,
+			"app.example.com",
+			"/Path",
+			"",
+		},
+		{
+			"ShouldRejectMethodWithDigit",
+			"GET1",
+			"https://app.example.com/",
+			"",
+			"",
+			"",
+			"method header with value 'GET1' has invalid characters",
+		},
+		{
+			"ShouldRejectMethodWithSpace",
+			"GET ",
+			"https://app.example.com/",
+			"",
+			"",
+			"",
+			"method header with value 'GET ' has invalid characters",
+		},
+		{
+			"ShouldRejectInvalidURL",
+			fasthttp.MethodGet,
+			"notaurl",
+			"",
+			"",
+			"",
+			"error occurred parsing object url: parse \"notaurl\": invalid URI for request",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			object, err := NewObjectMethodURL([]byte(tc.method), []byte(tc.rawURL))
+
+			if tc.err == "" {
+				require.NoError(t, err)
+				require.NotNil(t, object)
+
+				assert.Equal(t, tc.expectedMethod, object.Method)
+				assert.Equal(t, tc.expectedDomain, object.Domain)
+				assert.Equal(t, tc.expectedPath, object.Path)
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, object)
+			}
+		})
+	}
+}
+
+func TestNewObjectMethodSchemeHostPath(t *testing.T) {
+	testCases := []struct {
+		name          string
+		scheme        []byte
+		host          []byte
+		path          []byte
+		expected      string
+		expectedPath  string
+		expectedClean string
+		err           string
+	}{
+		{
+			"ShouldParseFullURL",
+			[]byte("https"), []byte("example.com"), []byte("/path?query=value"),
+			"https://example.com/path?query=value", "", "/path?query=value", "",
+		},
+		{
+			"ShouldParseWithoutURI",
+			[]byte("https"), []byte("example.com"), nil,
+			"https://example.com", "", ".", "",
+		},
+		{
+			"ShouldParseHTTP",
+			[]byte("http"), []byte("example.com:8080"), []byte("/"),
+			"http://example.com:8080/", "", "/", "",
+		},
+		{
+			"ShouldPreserveUnnormalizedDotDotSegments",
+			[]byte("https"), []byte("example.com"), []byte("/foo/../bar"),
+			"https://example.com/foo/../bar", "/foo/../bar", "/bar", "",
+		},
+		{
+			"ShouldPreserveUnnormalizedSingleDotSegments",
+			[]byte("https"), []byte("example.com"), []byte("/foo/./bar"),
+			"https://example.com/foo/./bar", "/foo/./bar", "/foo/bar", "",
+		},
+		{
+			"ShouldPreserveTraversalToRoot",
+			[]byte("https"), []byte("example.com"), []byte("/../../etc/passwd"),
+			"https://example.com/../../etc/passwd", "/../../etc/passwd", "/etc/passwd", "",
+		},
+		{
+			"ShouldPreserveEncodedDotSegments",
+			[]byte("https"), []byte("example.com"), []byte("/%2e%2e/secret"),
+			"https://example.com/%2e%2e/secret", "/../secret", "/secret", "",
+		},
+		{
+			"ShouldPreserveEncodedDotSegmentsMidPath",
+			[]byte("https"), []byte("example.com"), []byte("/foo/%2e%2e/bar"),
+			"https://example.com/foo/%2e%2e/bar", "/foo/../bar", "/bar", "",
+		},
+		{
+			"ShouldPreserveEncodedSlashInTraversal",
+			[]byte("https"), []byte("example.com"), []byte("/foo/..%2fbar"),
+			"https://example.com/foo/..%2fbar", "/foo/../bar", "/bar", "",
+		},
+		{
+			"ShouldPreserveDotSegmentBetweenEncodedSlashes",
+			[]byte("https"), []byte("example.com"), []byte("/foo%2f..%2fbar"),
+			"https://example.com/foo%2f..%2fbar", "/foo/../bar", "/bar", "",
+		},
+		{
+			"ShouldPreserveDotSegmentBetweenUppercaseEncodedSlashes",
+			[]byte("https"), []byte("example.com"), []byte("/foo%2F..%2Fbar"),
+			"https://example.com/foo%2F..%2Fbar", "/foo/../bar", "/bar", "",
+		},
+		{
+			"ShouldPreserveEncodedDotSegmentBetweenEncodedSlashes",
+			[]byte("https"), []byte("example.com"), []byte("/foo%2f%2e%2e%2fbar"),
+			"https://example.com/foo%2f%2e%2e%2fbar", "/foo/../bar", "/bar", "",
+		},
+		{
+			"ShouldPreserveFullyEncodedTraversal",
+			[]byte("https"), []byte("example.com"), []byte("/%2e%2e%2f%2e%2e%2fetc%2fpasswd"),
+			"https://example.com/%2e%2e%2f%2e%2e%2fetc%2fpasswd", "/../../etc/passwd", "/etc/passwd", "",
+		},
+		{
+			"ShouldPreserveEncodedSlashesAroundDotSegment",
+			[]byte("https"), []byte("example.com"), []byte("/%2f..%2f"),
+			"https://example.com/%2f..%2f", "//../", "//", "",
+		},
+		{
+			"ShouldPreserveEncodedSpace",
+			[]byte("https"), []byte("example.com"), []byte("/path%20with%20space"),
+			"https://example.com/path%20with%20space", "/path with space", "/path with space", "",
+		},
+		{
+			"ShouldPreserveDoubleSlash",
+			[]byte("https"), []byte("example.com"), []byte("/foo//bar"),
+			"https://example.com/foo//bar", "/foo//bar", "/foo/bar", "",
+		},
+		{
+			"ShouldErrorOnMissingScheme",
+			nil, []byte("example.com"), []byte("/"),
+			"", "", "", "missing scheme value",
+		},
+		{
+			"ShouldErrorOnEmptyScheme",
+			[]byte(""), []byte("example.com"), []byte("/"),
+			"", "", "", "missing scheme value",
+		},
+		{
+			"ShouldErrorOnMissingHost",
+			[]byte("https"), nil, []byte("/"),
+			"", "", "", "missing host value",
+		},
+		{
+			"ShouldErrorOnEmptyHost",
+			[]byte("https"), []byte(""), []byte("/"),
+			"", "", "", "missing host value",
+		},
+		{
+			"ShouldErrorOnInvalidControlCharacter",
+			[]byte("https"), []byte("example.com"), []byte("/path\x00"),
+			"", "", "", "error occurred parsing object url: parse \"https://example.com/path\\x00\": net/url: invalid control character in URL",
+		},
+		{
+			"ShouldErrorOnInvalidCharacterInHost",
+			[]byte("https"), []byte("exa mple.com"), []byte("/"),
+			"", "", "", "error occurred parsing object url: parse \"https://exa mple.com/\": invalid character \" \" in host name",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			object, err := NewObjectMethodSchemeHostPath([]byte(fasthttp.MethodGet), tc.scheme, tc.host, tc.path)
+
+			if tc.err == "" {
+				require.NoError(t, err)
+				require.NotNil(t, object)
+
+				assert.Equal(t, tc.expected, object.URL.String())
+				assert.Equal(t, tc.expectedClean, object.Path)
+
+				if tc.expectedPath != "" {
+					assert.Equal(t, tc.expectedPath, object.URL.Path)
+				}
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, object)
+			}
+		})
+	}
 }

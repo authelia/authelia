@@ -30,8 +30,13 @@ pre-commit:
       group:
         parallel: true
         jobs:
+          - name: docs
+            run: pnpm -s lint {staged_files} && echo "0 issues."
+            root: "docs/"
+            stage_fixed: true
+
           - name: eslint
-            run: pnpm -s lint && echo "0 issues."
+            run: pnpm -s lint {staged_files} && echo "0 issues."
             root: "web/"
             glob: "*.{js,jsx,ts,tsx}"
             stage_fixed: true

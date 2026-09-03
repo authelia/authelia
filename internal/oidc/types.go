@@ -6,9 +6,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-jose/go-jose/v4"
-
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"

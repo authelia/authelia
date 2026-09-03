@@ -1,7 +1,12 @@
 ---
 runner:
+  docs:
+    cmd: pnpm -C docs exec eslint --format rdjson .
+    format: rdjson
+    level: error
+
   eslint:
-    cmd: cd web && pnpm eslint --format rdjson --ext '*/**/*.{js,jsx,ts,tsx}' .
+    cmd: pnpm -C web exec eslint --format rdjson .
     format: rdjson
     level: error
 
@@ -13,18 +18,18 @@ runner:
       - '%C%.%#'
     level: error
 
-  typos:
-    cmd: typos --format brief .
-    errorformat:
-      - '%f:%l:%c: %m'
-    level: error
-
   shellcheck:
     cmd: .buildkite/steps/lint.sh shellcheck --format=gcc
     errorformat:
       - '%f:%l:%c: %trror: %m'
       - '%f:%l:%c: %tarning: %m'
       - '%f:%l:%c: %tote: %m'
+    level: error
+
+  typos:
+    cmd: typos --format brief .
+    errorformat:
+      - '%f:%l:%c: %m'
     level: error
 
   yamllint:

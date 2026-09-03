@@ -61,7 +61,7 @@ func NewHTTPToAutheliaHandlerAdaptor(handler AutheliaHandlerFunc) RequestHandler
 
 		if uri, err = url.ParseRequestURI(r.RequestURI); err != nil {
 			ctx.GetLogger().Errorf("Cannot parse requestURI %q: %s", r.RequestURI, err)
-			ctx.RequestCtx.Error("Internal Server Error", fasthttp.StatusInternalServerError)
+			ctx.Error("Internal Server Error", fasthttp.StatusInternalServerError)
 
 			return
 		}

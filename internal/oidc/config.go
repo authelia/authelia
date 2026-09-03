@@ -55,6 +55,7 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
 		RevokeRefreshTokensExplicit:     true,
 		EnforceRevokeFlowRevokeRefreshTokensExplicitClient: true,
+		EnforceClientAssertionIssuerAudience:               false,
 		ClientCredentialsFlowImplicitGrantRequested:        true,
 		Templates: templates,
 	}
@@ -99,7 +100,13 @@ type Config struct {
 	DPoPAllowedJWSAlgorithms []string
 	DPoPClockSkew            time.Duration
 	DPoPNonceLifespan        time.Duration
+	DPoPProofLifespan        time.Duration
 	DPoPStrategy             oauthelia2.DPoPStrategy
+
+	EnforceClientAssertionIssuerAudience bool
+
+	BackChannelLogoutLifespan    time.Duration
+	BackChannelLogoutConcurrency int
 
 	JWTScopeField  jwt.JWTScopeFieldEnum
 	JWTMaxDuration time.Duration
@@ -180,6 +187,7 @@ type StrategyConfig struct {
 	TokenEndpointClientAuth         oauthelia2.EndpointClientAuthStrategy
 	RevocationEndpointClientAuth    oauthelia2.EndpointClientAuthStrategy
 	IntrospectionEndpointClientAuth oauthelia2.EndpointClientAuthStrategy
+	IDTokenValidation               oauthelia2.TokenValidationStrategy
 }
 
 // JWTAccessTokenConfig represents the JWT Access Token config.
@@ -232,6 +240,22 @@ type HandlersConfig struct {
 	RFC8628DeviceAuthorizeEndpoint oauthelia2.RFC8628DeviceAuthorizeEndpointHandlers
 
 	RFC8628UserAuthorizeEndpoint oauthelia2.RFC8628UserAuthorizeEndpointHandlers
+
+	// AuthorizeEndpointBinding is a list of handlers which bind a sender-constrained credential to an authorization
+	// response.
+	AuthorizeEndpointBinding oauthelia2.AuthorizeEndpointBindingHandlers
+
+	// TokenEndpointBinding is a list of handlers which bind a sender-constrained credential to a token response.
+	TokenEndpointBinding oauthelia2.TokenEndpointBindingHandlers
+
+	// RFC7591ClientRegistrationEndpoint is a list of handlers that are called before the RFC 7591 Dynamic Client
+	// Registration endpoint is served. It is empty as this Authorization Server does not serve that endpoint.
+	RFC7591ClientRegistrationEndpoint oauthelia2.RFC7591ClientRegistrationEndpointHandlers
+
+	// RFC7592ClientConfigurationEndpoint is a list of handlers that are called before the RFC 7592 Dynamic Client
+	// Registration Management endpoint is served. It is empty as this Authorization Server does not serve that
+	// endpoint.
+	RFC7592ClientConfigurationEndpoint oauthelia2.RFC7592ClientConfigurationEndpointHandlers
 }
 
 // GrantTypeJWTBearerConfig holds specific oauthelia2.Configurator information for the JWT Bearer Grant Type.
@@ -1005,6 +1029,190 @@ func (c *Config) GetDPoPNonceLifespan(ctx context.Context) (lifespan time.Durati
 // GetDPoPStrategy returns the DPoP strategy.
 func (c *Config) GetDPoPStrategy(ctx context.Context) (strategy oauthelia2.DPoPStrategy) {
 	return c.DPoPStrategy
+}
+
+// GetMTLSEnabled returns false as RFC 8705 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens is
+// not implemented by this Authorization Server. Returning true here would have the provider offer confirmation
+// methods and client authentication paths which nothing in this implementation can satisfy.
+func (c *Config) GetMTLSEnabled(ctx context.Context) (enabled bool) {
+	return false
+}
+
+// GetAllowedIntrospectionAudiences returns the audiences an Access Token used to authenticate a request to the
+// introspection endpoint may carry. An empty list is not a disabled check: it makes the provider expect the URL the
+// request was made to instead, which is the behavior this implementation has always had as it exposes no
+// configuration for this value.
+func (c *Config) GetAllowedIntrospectionAudiences(ctx context.Context) (audiences []string) {
+	return nil
+}
+
+// GetDPoPProofLifespan returns the DPoP proof lifespan, which together with the clock skew fixes the window a proof
+// is accepted in.
+func (c *Config) GetDPoPProofLifespan(ctx context.Context) (lifespan time.Duration) {
+	if c.DPoPProofLifespan <= 0 {
+		return lifespanDPoPProofDefault
+	}
+
+	return c.DPoPProofLifespan
+}
+
+// GetMTLSEnforce returns false as RFC 8705 is not implemented by this Authorization Server.
+func (c *Config) GetMTLSEnforce(ctx context.Context) (enforce bool) {
+	return false
+}
+
+// GetMTLSClientCertificateHeader returns an empty string as RFC 8705 is not implemented by this Authorization Server,
+// which per the provider contract means a forwarded client certificate is never read.
+func (c *Config) GetMTLSClientCertificateHeader(ctx context.Context) (header string) {
+	return ""
+}
+
+// GetAllowedIntrospectionScopes returns the scopes an Access Token used to authenticate a request to the
+// introspection endpoint may carry. No configuration exposes this value so the provider default of no additional
+// scope requirement applies.
+func (c *Config) GetAllowedIntrospectionScopes(ctx context.Context) (scopes []string) {
+	return nil
+}
+
+// GetIntrospectionEndpointClientAuthDisabled returns false as the introspection endpoint always requires client
+// authentication in this implementation.
+func (c *Config) GetIntrospectionEndpointClientAuthDisabled(ctx context.Context) (disabled bool) {
+	return false
+}
+
+// GetEnforceClientAssertionIssuerAudience returns whether a JWT client authentication assertion must carry this
+// server's issuer identifier as the sole value of its 'aud' claim. This is off by default as the tightening lives in
+// draft-ietf-oauth-rfc7523bis while the published RFC 7523 permits the token endpoint URL.
+func (c *Config) GetEnforceClientAssertionIssuerAudience(ctx context.Context) (enforce bool) {
+	return c.EnforceClientAssertionIssuerAudience
+}
+
+// GetRequireSignedRequestObject returns false as this Authorization Server does not globally require an
+// authorization request to be provided as a Request Object.
+func (c *Config) GetRequireSignedRequestObject(ctx context.Context) (require bool) {
+	return false
+}
+
+// GetRequireSignedRequestObjectSkipPushedAuthorizationRequests returns false as no global Request Object requirement
+// is configured for it to exempt.
+func (c *Config) GetRequireSignedRequestObjectSkipPushedAuthorizationRequests(ctx context.Context) (skip bool) {
+	return false
+}
+
+// GetIDTokenValidationStrategy returns the ID Token validation strategy used by RP-Initiated Logout. It has no
+// default and may be nil.
+func (c *Config) GetIDTokenValidationStrategy(ctx context.Context) (strategy oauthelia2.TokenValidationStrategy) {
+	return c.Strategy.IDTokenValidation
+}
+
+// GetBackChannelLogoutTokenStrategy returns the Back-Channel Logout token strategy. It is nil as this Authorization
+// Server does not implement OpenID Connect Back-Channel Logout 1.0.
+func (c *Config) GetBackChannelLogoutTokenStrategy(ctx context.Context) (strategy oauthelia2.BackChannelLogoutTokenStrategy) {
+	return nil
+}
+
+// GetBackChannelLogoutLifespan returns the lifespan of a Back-Channel Logout Token.
+func (c *Config) GetBackChannelLogoutLifespan(ctx context.Context) (lifespan time.Duration) {
+	if c.BackChannelLogoutLifespan <= 0 {
+		return lifespanBackChannelLogoutDefault
+	}
+
+	return c.BackChannelLogoutLifespan
+}
+
+// GetBackChannelLogoutConcurrency returns the number of Back-Channel Logout requests performed concurrently.
+func (c *Config) GetBackChannelLogoutConcurrency(ctx context.Context) (n int) {
+	if c.BackChannelLogoutConcurrency <= 0 {
+		return backChannelLogoutConcurrencyDefault
+	}
+
+	return c.BackChannelLogoutConcurrency
+}
+
+// GetAuthorizeEndpointBindingHandlers returns the authorization endpoint binding handlers. None are registered as
+// this Authorization Server implements no sender-constraining binding at that endpoint.
+func (c *Config) GetAuthorizeEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.AuthorizeEndpointBindingHandlers) {
+	return c.Handlers.AuthorizeEndpointBinding
+}
+
+// GetTokenEndpointBindingHandlers returns the token endpoint binding handlers. None are registered as this
+// Authorization Server implements no sender-constraining binding at that endpoint beyond DPoP, which the provider
+// wires itself.
+func (c *Config) GetTokenEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.TokenEndpointBindingHandlers) {
+	return c.Handlers.TokenEndpointBinding
+}
+
+// The RFC 7591 Dynamic Client Registration and RFC 7592 Dynamic Client Registration Management surfaces below are
+// deliberately inert. This Authorization Server registers clients from its configuration, so no registration endpoint
+// is served: the handler lists are empty, which is what stops the provider routing to them, and the remaining values
+// describe an endpoint which does not exist. The Store reports the same by refusing to create, update, or delete a
+// client.
+
+// GetRFC7591ClientRegistrationEndpointURL returns an empty string as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationEndpointURL(ctx context.Context) (endpoint string) {
+	return ""
+}
+
+// GetRFC7591ClientRegistrationGlobalSecret returns no secret as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationGlobalSecret(ctx context.Context) (secret []byte, err error) {
+	return nil, nil
+}
+
+// GetRFC7591ClientRegistrationRotatedGlobalSecrets returns no secrets as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationRotatedGlobalSecrets(ctx context.Context) (secrets [][]byte, err error) {
+	return nil, nil
+}
+
+// GetRFC7591ClientSecretLifespan returns zero as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientSecretLifespan(ctx context.Context) (lifespan time.Duration) {
+	return 0
+}
+
+// GetRFC7591ClientRegistrationStrategy returns nil as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationStrategy(ctx context.Context) (strategy oauthelia2.ClientRegistrationStrategy) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationMetadataStrategy returns nil as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationMetadataStrategy(ctx context.Context) (strategy oauthelia2.ClientRegistrationMetadataStrategy) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationEndpointAuthStrategy returns nil as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationEndpointAuthStrategy(ctx context.Context) (strategy oauthelia2.ClientRegistrationEndpointAuthStrategy) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationValidators returns no validators as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationValidators(ctx context.Context) (validators []oauthelia2.ClientRegistrationValidator) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationEndpointAudiences returns no audiences as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationEndpointAudiences(ctx context.Context) (audiences []string) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationScopes returns no scopes as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationScopes(ctx context.Context) (scopes []string) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationGrantTypes returns no grant types as no RFC 7591 registration endpoint is served.
+func (c *Config) GetRFC7591ClientRegistrationGrantTypes(ctx context.Context) (grantTypes []string) {
+	return nil
+}
+
+// GetRFC7591ClientRegistrationEndpointHandlers returns no handlers, which is what prevents the provider serving an
+// RFC 7591 registration endpoint.
+func (c *Config) GetRFC7591ClientRegistrationEndpointHandlers(ctx context.Context) (handlers oauthelia2.RFC7591ClientRegistrationEndpointHandlers) {
+	return c.Handlers.RFC7591ClientRegistrationEndpoint
+}
+
+// GetRFC7592ClientConfigurationEndpointHandlers returns no handlers, which is what prevents the provider serving an
+// RFC 7592 client configuration endpoint.
+func (c *Config) GetRFC7592ClientConfigurationEndpointHandlers(ctx context.Context) (handlers oauthelia2.RFC7592ClientConfigurationEndpointHandlers) {
+	return c.Handlers.RFC7592ClientConfigurationEndpoint
 }
 
 // GetContext returns the OpenID Connect 1.0 Context from the given context.

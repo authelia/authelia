@@ -61,6 +61,7 @@ type ServerEndpointRateLimits struct {
 	ResetPasswordFinish                     ServerEndpointRateLimit `koanf:"reset_password_finish" yaml:"reset_password_finish,omitempty" toml:"reset_password_finish,omitempty" json:"reset_password_finish,omitempty" jsonschema:"title=Reset Password Finish" jsonschema_description:"Configures the rate limiter which applies to endpoints which consume tokens for the reset password flow."`
 	SecondFactorTOTP                        ServerEndpointRateLimit `koanf:"second_factor_totp" yaml:"second_factor_totp,omitempty" toml:"second_factor_totp,omitempty" json:"second_factor_totp,omitempty" jsonschema:"title=Second Factor TOTP" jsonschema_description:"Configures the rate limiter which applies to the TOTP endpoint code submissions for the second factor flow."`
 	SecondFactorDuo                         ServerEndpointRateLimit `koanf:"second_factor_duo" yaml:"second_factor_duo,omitempty" toml:"second_factor_duo,omitempty" json:"second_factor_duo,omitempty" jsonschema:"title=Second Factor Duo" jsonschema_description:"Configures the rate limiter which applies to the Duo endpoint which initializes the application authorization flow for the second factor flow."`
+	SecondFactorPassword                    ServerEndpointRateLimit `koanf:"second_factor_password" yaml:"second_factor_password,omitempty" toml:"second_factor_password,omitempty" json:"second_factor_password,omitempty" jsonschema:"title=Second Factor Password" jsonschema_description:"Configures the rate limiter which applies to the Password endpoint for the second factor flow."`
 	SessionElevationStart                   ServerEndpointRateLimit `koanf:"session_elevation_start" yaml:"session_elevation_start,omitempty" toml:"session_elevation_start,omitempty" json:"session_elevation_start,omitempty" jsonschema:"title=Session Elevation Start" jsonschema_description:"Configures the rate limiter which applies to the Elevated Session endpoint which initializes the code generation and notification for the elevated session flow."`
 	SessionElevationFinish                  ServerEndpointRateLimit `koanf:"session_elevation_finish" yaml:"session_elevation_finish,omitempty" toml:"session_elevation_finish,omitempty" json:"session_elevation_finish,omitempty" jsonschema:"title=Session Elevation Finish" jsonschema_description:"Configures the rate limiter which applies to the Elevated Session endpoint which consumes the code for the elevated session flow."`
 	OpenIDConnectToken                      ServerEndpointRateLimit `koanf:"openid_connect_token" yaml:"openid_connect_token,omitempty" toml:"openid_connect_token,omitempty" json:"openid_connect_token,omitempty" jsonschema:"title=OpenID Connect Token" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Token Endpoint."`
@@ -163,6 +164,12 @@ var DefaultServerConfiguration = Server{
 					{Period: 1 * time.Minute, Requests: 30},
 					{Period: 2 * time.Minute, Requests: 40},
 					{Period: 10 * time.Minute, Requests: 50},
+				},
+			},
+			SecondFactorPassword: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 5 * time.Minute, Requests: 30},
+					{Period: 60 * time.Minute, Requests: 40},
 				},
 			},
 			SecondFactorDuo: ServerEndpointRateLimit{

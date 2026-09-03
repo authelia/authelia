@@ -199,6 +199,10 @@ for more information. The `Algorithm` column lists supported values, the `Key` c
 [key](#key) type constraints that exist for the algorithm, and the `JWK Default Conditions` column briefly explains the
 conditions under which it's the default algorithm.
 
+The deprecated `EdDSA` identifier is accepted as an alternative to `Ed25519` for compatibility with clients
+implementing [RFC8037], and a key configured with either identifier satisfies a request for the other, however
+`Ed25519` is recommended.
+
 At least one `RSA256` key must be provided.
 
 #### key
@@ -756,6 +760,7 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
 [Token Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [JWT]: https://datatracker.ietf.org/doc/html/rfc7519
+[RFC8037]: https://datatracker.ietf.org/doc/html/rfc8037
 [RFC6234]: https://datatracker.ietf.org/doc/html/rfc6234
 [RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648
 [RFC7468]: https://datatracker.ietf.org/doc/html/rfc7468

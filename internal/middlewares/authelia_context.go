@@ -73,13 +73,6 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 	return methods
 }
 
-// Error reply with an error and display the stack trace in the logs.
-func (ctx *AutheliaCtx) Error(err error, message string) {
-	ctx.SetJSONError(message)
-
-	ctx.Logger.Error(err)
-}
-
 // SetJSONError sets the body of the response to an JSON error KO message.
 func (ctx *AutheliaCtx) SetJSONError(message string) {
 	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); err != nil {
@@ -387,7 +380,7 @@ func (ctx *AutheliaCtx) GetSession() (userSession session.UserSession, err error
 	}
 
 	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
-		ctx.Logger.Error("Unable to retrieve user session")
+		ctx.Logger.WithError(err).Error("Unable to retrieve user session")
 		return provider.NewDefaultUserSession(), nil
 	}
 

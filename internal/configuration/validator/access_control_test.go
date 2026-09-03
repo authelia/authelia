@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 
@@ -44,7 +45,7 @@ func (suite *AccessControl) TestShouldValidateEitherDomainsOrDomainsRegex() {
 			Policy:  "bypass",
 		},
 		{
-			DomainsRegex: []regexp.Regexp{*domainsRegex},
+			DomainsRegex: []schema.RegexpCI{{Regexp: *domainsRegex}},
 			Policy:       "bypass",
 		},
 		{
@@ -298,7 +299,7 @@ func (suite *AccessControl) TestShouldValidateBasicSubject() {
 func (suite *AccessControl) TestShouldRaiseErrorBypassWithSubjectDomainRegexGroup() {
 	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
-			DomainsRegex: MustCompileRegexps([]string{`^(?P<User>\w+)\.example\.com$`}),
+			DomainsRegex: MustCompileRegexps([]string{`(?i)^(?P<User>\w+)\.example\.com$`}),
 			Policy:       "bypass",
 		},
 	}
@@ -309,6 +310,72 @@ func (suite *AccessControl) TestShouldRaiseErrorBypassWithSubjectDomainRegexGrou
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: rule #1: 'policy' option 'bypass' is not supported when 'domain_regex' option contains the user or group named matches. For more information see: https://www.authelia.com/c/acl-match-concept-2")
+}
+
+func (suite *AccessControl) TestShouldRaiseErrorBypassWithSubjectDomainToken() {
+	testCases := []struct {
+		name    string
+		domain  string
+		pattern string
+	}{
+		{"ShouldRaiseErrorForUserToken", "{user}.example.com", `(?i)^(?P<User>[a-z0-9-]+(?:\.[a-z0-9-]+)*)\.example\.com$`},
+		{"ShouldRaiseErrorForGroupToken", "{group}.example.com", `(?i)^(?P<Group>[a-z0-9-]+)\.example\.com$`},
+		{"ShouldRaiseErrorForUpperCaseUserToken", "{USER}.example.com", `(?i)^(?P<User>[a-z0-9-]+(?:\.[a-z0-9-]+)*)\.example\.com$`},
+	}
+
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.Configuration{AccessControl: schema.AccessControl{
+				DefaultPolicy: "deny",
+				Rules: []schema.AccessControlRule{
+					{
+						Domains: []string{tc.domain},
+						Policy:  "bypass",
+					},
+				},
+			}}
+
+			ValidateRules(config, validator)
+
+			require.Len(t, validator.Warnings(), 1)
+			require.Len(t, validator.Errors(), 1)
+
+			assert.EqualError(t, validator.Warnings()[0], fmt.Sprintf(errFmtAccessControlRuleDomainDeprecatedToken, 1, 1, tc.domain, tc.pattern))
+			assert.EqualError(t, validator.Errors()[0], fmt.Sprintf(errAccessControlRuleBypassPolicyInvalidWithSubjectsWithGroupDomain, ruleDescriptor(1, config.AccessControl.Rules[0])))
+		})
+	}
+}
+
+func (suite *AccessControl) TestShouldNotRaiseErrorNonBypassWithSubjectDomainToken() {
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
+		{
+			Domains: []string{"{user}.example.com"},
+			Policy:  "one_factor",
+		},
+	}
+
+	ValidateRules(suite.config, suite.validator)
+
+	suite.Require().Len(suite.validator.Warnings(), 1)
+	suite.Require().Len(suite.validator.Errors(), 0)
+
+	suite.Assert().EqualError(suite.validator.Warnings()[0], fmt.Sprintf(errFmtAccessControlRuleDomainDeprecatedToken, 1, 1, "{user}.example.com", `(?i)^(?P<User>[a-z0-9-]+(?:\.[a-z0-9-]+)*)\.example\.com$`))
+}
+
+func (suite *AccessControl) TestShouldNotWarnDeprecatedTokenForOrdinaryDomains() {
+	suite.config.AccessControl.Rules = []schema.AccessControlRule{
+		{
+			Domains: []string{"app.example.com", "*.example.com"},
+			Policy:  "one_factor",
+		},
+	}
+
+	ValidateRules(suite.config, suite.validator)
+
+	suite.Require().Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 0)
 }
 
 func (suite *AccessControl) TestShouldSetQueryDefaults() {
@@ -458,11 +525,11 @@ func TestAccessControl(t *testing.T) {
 	suite.Run(t, new(AccessControl))
 }
 
-func MustCompileRegexps(exps []string) (regexps []regexp.Regexp) {
-	regexps = make([]regexp.Regexp, len(exps))
+func MustCompileRegexps(exps []string) (regexps []schema.RegexpCI) {
+	regexps = make([]schema.RegexpCI, len(exps))
 
 	for i, exp := range exps {
-		regexps[i] = *regexp.MustCompile(exp)
+		regexps[i] = schema.RegexpCI{Regexp: *regexp.MustCompile(exp)}
 	}
 
 	return regexps

@@ -4,15 +4,22 @@
 package suites
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/net/html"
+	"golang.org/x/sync/errgroup"
 )
 
 type DocsSuite struct {
@@ -119,7 +126,6 @@ func (s *DocsSuite) TestHomepageVisualSnapshot() {
 	page.MustSetViewport(1280, 800, 1, false)
 
 	require.NoError(s.T(), page.Navigate(s.docsURL("/")))
-	require.NoError(s.T(), page.WaitLoad())
 
 	s.WaitElementLocatedByClassName(s.T(), page, "navbar")
 	s.WaitForVisualStable(s.T(), page)
@@ -272,4 +278,267 @@ func (s *DocsSuite) TestOpenIDConnectProviderShortcodes() {
 
 	text := span.MustText()
 	require.Contains(s.T(), text, "example.com", "expected example.com nojs default in span.site-variable-domain, got %q", text)
+}
+
+const tableScrollWrapperClass = "table-responsive"
+
+const tableOverflowJS = `() => {
+	const doc = document.documentElement;
+
+	const scroller = (el) => {
+		for (let node = el.parentElement; node; node = node.parentElement) {
+			const overflowX = getComputedStyle(node).overflowX;
+
+			if (overflowX === 'auto' || overflowX === 'scroll' || overflowX === 'hidden') {
+				return node;
+			}
+		}
+
+		return null;
+	};
+
+	return {
+		clientWidth: doc.clientWidth,
+		tables: [...document.querySelectorAll('table')].map((table) => {
+			const box = scroller(table);
+
+			return {
+				scrolls: box !== null,
+				right: Math.round((box || table).getBoundingClientRect().right),
+				width: Math.round(table.getBoundingClientRect().width),
+			};
+		}),
+	};
+}`
+
+func (s *DocsSuite) TestTablesAreWrappedInScrollContainers() {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	_, index := s.httpFetch(ctx, "/search-index.json")
+
+	var entries []struct {
+		Permalink string `json:"permalink"`
+	}
+
+	require.NoError(s.T(), json.Unmarshal(index, &entries))
+	require.NotEmpty(s.T(), entries, "expected the search index to list at least one page")
+
+	var (
+		mutex     sync.Mutex
+		unwrapped []string
+		tables    int
+	)
+
+	client := &http.Client{Timeout: s.timeout}
+
+	group, groupCtx := errgroup.WithContext(ctx)
+	group.SetLimit(8)
+
+	for _, entry := range entries {
+		permalink := entry.Permalink
+
+		group.Go(func() error {
+			body, err := fetchPage(groupCtx, client, s.docsURL(permalink))
+			if err != nil {
+				return err
+			}
+
+			doc, err := html.Parse(bytes.NewReader(body))
+			if err != nil {
+				return fmt.Errorf("error parsing %s: %w", permalink, err)
+			}
+
+			found, bare := countTablesWithoutScrollWrapper(doc)
+
+			mutex.Lock()
+
+			tables += found
+
+			if bare != 0 {
+				unwrapped = append(unwrapped, fmt.Sprintf("%s (%d)", permalink, bare))
+			}
+
+			mutex.Unlock()
+
+			return nil
+		})
+	}
+
+	require.NoError(s.T(), group.Wait())
+
+	require.NotZero(s.T(), tables, "expected the documentation to contain tables, the check is meaningless otherwise")
+	require.Empty(s.T(), unwrapped, "expected every table to be wrapped in a .%s container, %d were not: %s", tableScrollWrapperClass, len(unwrapped), strings.Join(unwrapped, ", "))
+}
+
+func (s *DocsSuite) TestWideTablesDoNotOverflowViewport() {
+	for _, path := range []string{
+		// The page from https://github.com/authelia/authelia/discussions/12831.
+		"/overview/security/measures/",
+		"/configuration/methods/environment/",
+		"/configuration/prologue/common/",
+		"/integration/openid-connect/introduction/",
+		// Renders its table as raw HTML rather than Markdown.
+		"/reference/integrations/time-based-one-time-password-apps/",
+	} {
+		for _, viewport := range []struct {
+			width, height int
+		}{
+			{1280, 800},
+			{390, 844},
+		} {
+			s.Run(fmt.Sprintf("%s/%dx%d", strings.Trim(path, "/"), viewport.width, viewport.height), func() {
+				page := s.doCreateTab(s.T(), s.docsURL(path))
+				defer page.MustClose()
+
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+				defer func() {
+					cancel()
+					s.collectScreenshot(ctx.Err(), page)
+				}()
+
+				page = page.Context(ctx)
+
+				page.MustSetViewport(viewport.width, viewport.height, 1, false)
+
+				s.WaitElementLocatedBySelector(s.T(), page, "table")
+
+				result, err := page.Eval(tableOverflowJS)
+				require.NoError(s.T(), err)
+
+				clientWidth := result.Value.Get("clientWidth").Int()
+				tables := result.Value.Get("tables").Arr()
+
+				require.NotEmpty(s.T(), tables, "expected at least one table on %s", path)
+
+				for i, table := range tables {
+					require.True(s.T(), table.Get("scrolls").Bool(), "expected table %d on %s to sit inside a horizontal scroll container", i, path)
+					require.LessOrEqual(s.T(), table.Get("right").Int(), clientWidth, "expected the scroll container of table %d on %s (table width %d) not to reach past the %dpx document edge", i, path, table.Get("width").Int(), clientWidth)
+				}
+			})
+		}
+	}
+}
+
+func fetchPage(ctx context.Context, client *http.Client, url string) (body []byte, err error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("expected 200 fetching %s, got %d", url, resp.StatusCode)
+	}
+
+	return io.ReadAll(resp.Body)
+}
+
+func countTablesWithoutScrollWrapper(node *html.Node) (tables, bare int) {
+	var walk func(node *html.Node, wrapped bool)
+
+	walk = func(node *html.Node, wrapped bool) {
+		if node.Type == html.ElementNode {
+			switch node.Data {
+			case "table":
+				tables++
+
+				if !wrapped {
+					bare++
+				}
+			default:
+				for _, attribute := range node.Attr {
+					if attribute.Key == "class" && slices.Contains(strings.Fields(attribute.Val), tableScrollWrapperClass) {
+						wrapped = true
+
+						break
+					}
+				}
+			}
+		}
+
+		for child := node.FirstChild; child != nil; child = child.NextSibling {
+			walk(child, wrapped)
+		}
+	}
+
+	walk(node, false)
+
+	return tables, bare
+}
+
+const documentOverflowJS = `() => {
+	const doc = document.documentElement;
+
+	return doc.scrollWidth - doc.clientWidth;
+}`
+
+func (s *DocsSuite) TestNavbarDoesNotOverflowViewport() {
+	for _, width := range []int{1440, 1280, 1200, 1100, 1024, 992, 768, 390} {
+		s.Run(fmt.Sprintf("%dx800", width), func() {
+			page := s.doCreateTab(s.T(), s.docsURL("/"))
+			defer page.MustClose()
+
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), page)
+			}()
+
+			page = page.Context(ctx)
+
+			page.MustSetViewport(width, 800, 1, false)
+
+			s.WaitElementLocatedByClassName(s.T(), page, "navbar")
+
+			result, err := page.Eval(documentOverflowJS)
+			require.NoError(s.T(), err)
+
+			require.Zero(s.T(), result.Value.Int(), "expected the homepage not to scroll horizontally at %dpx wide", width)
+		})
+	}
+}
+
+func (s *DocsSuite) TestContentDoesNotOverflowViewport() {
+	for _, path := range []string{
+		// Long configuration keys and environment variable names in headings and prose.
+		"/configuration/identity-providers/openid-connect/clients/",
+		"/configuration/identity-providers/openid-connect/provider/",
+		"/configuration/methods/secrets/",
+		"/configuration/miscellaneous/server-endpoint-rate-limits/",
+		"/configuration/second-factor/webauthn/",
+		// Runs of footnote back references joined by non-breaking spaces.
+		"/blog/technical-openid-connect-1.0-nuances/",
+	} {
+		s.Run(strings.Trim(path, "/"), func() {
+			page := s.doCreateTab(s.T(), s.docsURL(path))
+			defer page.MustClose()
+
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+			defer func() {
+				cancel()
+				s.collectScreenshot(ctx.Err(), page)
+			}()
+
+			page = page.Context(ctx)
+
+			page.MustSetViewport(390, 844, 1, false)
+
+			s.WaitElementLocatedByClassName(s.T(), page, "content")
+
+			result, err := page.Eval(documentOverflowJS)
+			require.NoError(s.T(), err)
+
+			require.Zero(s.T(), result.Value.Int(), "expected %s not to scroll horizontally at 390px wide", path)
+		})
+	}
 }

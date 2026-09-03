@@ -42,17 +42,17 @@ func (m *MockPKCERequestStorage) EXPECT() *MockPKCERequestStorageMockRecorder {
 }
 
 // CreatePKCERequestSession mocks base method.
-func (m *MockPKCERequestStorage) CreatePKCERequestSession(ctx context.Context, signature string, requester oauth2.Requester) error {
+func (m *MockPKCERequestStorage) CreatePKCERequestSession(ctx context.Context, signature string, request oauth2.Requester) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePKCERequestSession", ctx, signature, requester)
+	ret := m.ctrl.Call(m, "CreatePKCERequestSession", ctx, signature, request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreatePKCERequestSession indicates an expected call of CreatePKCERequestSession.
-func (mr *MockPKCERequestStorageMockRecorder) CreatePKCERequestSession(ctx, signature, requester any) *gomock.Call {
+func (mr *MockPKCERequestStorageMockRecorder) CreatePKCERequestSession(ctx, signature, request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePKCERequestSession", reflect.TypeOf((*MockPKCERequestStorage)(nil).CreatePKCERequestSession), ctx, signature, requester)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePKCERequestSession", reflect.TypeOf((*MockPKCERequestStorage)(nil).CreatePKCERequestSession), ctx, signature, request)
 }
 
 // DeletePKCERequestSession mocks base method.
