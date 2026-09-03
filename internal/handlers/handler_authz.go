@@ -68,8 +68,15 @@ type AuthzContext interface {
 	// XForwardedHost should return the X-Forwarded-Host header of the request.
 	XForwardedHost() (host []byte)
 
+	// GetXForwardedHost should return the X-Forwarded-Host header of the request falling back to the Host header.
+	GetXForwardedHost() (host []byte)
+
 	// XForwardedURI should return the X-Forwarded-URI header of the request.
 	XForwardedURI() (uri []byte)
+
+	// GetXForwardedURI should return the X-Forwarded-URI header of the request falling back to the start line request
+	// path.
+	GetXForwardedURI() (uri []byte)
 
 	// XOriginalMethod should return the X-Original-Method header of the request.
 	XOriginalMethod() (method []byte)

@@ -54,7 +54,7 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			username: true,
 			groups:   true,
 			ip:       true,
-			err:      "parse \"http://%@#(*$@()#*&$invalid\": invalid character \"#\" in host name",
+			err:      "error occurred parsing object url: parse \"http://%@#(*$@()#*&$invalid\": invalid character \"#\" in host name",
 		},
 		{
 			name:     "ShouldErrorOnMissingMethodFlag",
@@ -332,10 +332,9 @@ func TestAccessControlCheckRunE(t *testing.T) {
 }
 
 func TestAccessControlCheckWriteOutput(t *testing.T) {
-	u, err := url.ParseRequestURI("https://example.com/path?query=1")
+	object, err := authorization.NewObjectMethodURL([]byte(fasthttp.MethodGet), []byte("https://example.com/path?query=1"))
 	require.NoError(t, err)
 
-	object := authorization.NewObject(u, fasthttp.MethodGet)
 	subject := authorization.Subject{
 		Username: "alice",
 		Groups:   []string{"grp1", "grp2"},
@@ -496,8 +495,7 @@ func TestAccessControlCheckWriteOutput(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
 
-			err := runAccessControlCheck(&buf, object, subject, tc.results, tc.defaultPolicy, tc.verbose)
-			assert.NoError(t, err)
+			assert.NoError(t, runAccessControlCheck(&buf, *object, subject, tc.results, tc.defaultPolicy, tc.verbose))
 
 			out := buf.String()
 

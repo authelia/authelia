@@ -69,7 +69,7 @@ func (s *AuthRequestAuthzSuite) TestShouldHandleAllMethodsDeny() {
 
 func (s *AuthRequestAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 	for _, method := range testRequestMethods {
-		method += "z"
+		method += "1"
 
 		s.T().Run(fmt.Sprintf("OriginalMethod%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
@@ -422,4 +422,75 @@ func setRequestAuthRequest(ctx *middlewares.AutheliaCtx, method string, targetUR
 	}
 
 	setRequestXHRValues(ctx, accept, xhr)
+}
+
+func TestHandleAuthzGetObjectAuthRequest(t *testing.T) {
+	testCases := []struct {
+		name           string
+		method         string
+		originalURL    string
+		expectedMethod string
+		err            string
+	}{
+		{
+			"ShouldUseOriginalMethod",
+			fasthttp.MethodPost,
+			"https://app.example.com/",
+			fasthttp.MethodPost,
+			"",
+		},
+		{
+			"ShouldNormalizeLowercaseOriginalMethod",
+			"post",
+			"https://app.example.com/",
+			fasthttp.MethodPost,
+			"",
+		},
+		{
+			"ShouldRejectEmptyOriginalMethod",
+			"",
+			"https://app.example.com/",
+			"",
+			"header 'X-Original-Method' is empty",
+		},
+		{
+			"ShouldRejectEmptyOriginalURL",
+			fasthttp.MethodGet,
+			"",
+			"",
+			"header 'X-Original-URL' is empty",
+		},
+		{
+			"ShouldRejectOriginalMethodWithInvalidCharacters",
+			"GET1",
+			"https://app.example.com/",
+			"",
+			"method header with value 'GET1' has invalid characters",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			if tc.originalURL != "" {
+				mock.Ctx.Request.Header.Set("X-Original-URL", tc.originalURL)
+			}
+
+			if tc.method != "" {
+				mock.Ctx.Request.Header.Set("X-Original-Method", tc.method)
+			}
+
+			object, err := handleAuthzGetObjectAuthRequest(mock.Ctx)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedMethod, object.Method)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
 }

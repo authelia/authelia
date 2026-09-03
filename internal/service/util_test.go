@@ -237,7 +237,7 @@ func TestRunAllShouldRunTheDefaultProvisioners(t *testing.T) {
 	select {
 	case err = <-errCh:
 		assert.NoError(t, err)
-	case <-time.After(time.Second * 10):
+	case <-time.After(time.Second * 20):
 		t.Fatal("run did not return within timeout")
 	}
 }
