@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.21](https://github.com/authelia/authelia/releases/tag/v4.39.21)
 - [Open WebUI]
   - [v0.6.13](https://github.com/open-webui/open-webui/releases/tag/v0.6.13)
 
