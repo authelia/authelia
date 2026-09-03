@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
-    "@simplewebauthn/browser": "13.3.0",
+    "@simplewebauthn/browser": "14.0.0",
     "axios": "1.20.0",
     "broadcast-channel": "7.4.0",
     "class-variance-authority": "0.7.1",
