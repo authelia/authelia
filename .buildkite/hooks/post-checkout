@@ -1,7 +1,22 @@
 #!/usr/bin/env bash
 set +u
 
-git fetch -q --tags --force
+if [[ "$(git rev-parse --is-shallow-repository)" == "true" ]]; then
+  if ! git fetch -q --unshallow; then
+    echo "failed to deepen the shallow checkout"
+    exit 1
+  fi
+fi
+
+if ! git fetch -q --tags --force; then
+  echo "failed to fetch tags from origin"
+  exit 1
+fi
+
+if ! git describe --tags --abbrev=0 > /dev/null 2>&1; then
+  echo "no tag reachable from ${BUILDKITE_COMMIT}"
+  exit 1
+fi
 
 if [[ ! "${BUILDKITE_COMMAND}" =~ ^\.buildkite/pipeline.sh ]]; then
   echo "--- :buildkite: Setting up Build environment"
