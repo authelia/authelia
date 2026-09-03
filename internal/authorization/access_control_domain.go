@@ -17,7 +17,7 @@ func NewAccessControlDomain(domain string) (subjects bool, rule AccessControlDom
 	case strings.HasPrefix(domain, "*."):
 		m.Wildcard = true
 		m.Name = domain[1:]
-	case strings.HasPrefix(domain, DomainTokenUser), strings.HasPrefix(domain, DomainTokenGroup):
+	case strings.HasPrefix(domain, domainTokenUser), strings.HasPrefix(domain, domainTokenGroup):
 		pattern, _ := DomainTokenPattern(domain)
 
 		return NewAccessControlDomainRegex(*regexp.MustCompile(pattern))
@@ -34,10 +34,10 @@ func DomainTokenPattern(domain string) (pattern string, ok bool) {
 	domain = strings.ToLower(domain)
 
 	switch {
-	case strings.HasPrefix(domain, DomainTokenUser):
-		return fmt.Sprintf(patternDomainUser, regexp.QuoteMeta(domain[len(DomainTokenUser):])), true
-	case strings.HasPrefix(domain, DomainTokenGroup):
-		return fmt.Sprintf(patternDomainGroup, regexp.QuoteMeta(domain[len(DomainTokenGroup):])), true
+	case strings.HasPrefix(domain, domainTokenUser):
+		return fmt.Sprintf(patternDomainUser, regexp.QuoteMeta(domain[len(domainTokenUser):])), true
+	case strings.HasPrefix(domain, domainTokenGroup):
+		return fmt.Sprintf(patternDomainGroup, regexp.QuoteMeta(domain[len(domainTokenGroup):])), true
 	default:
 		return "", false
 	}

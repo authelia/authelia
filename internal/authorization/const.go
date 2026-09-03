@@ -51,21 +51,14 @@ const (
 )
 
 const (
-	// patternDomainUser is the pattern the DomainTokenUser token is translated into. The subexp matches one or
-	// more hostname labels as a username is permitted to contain periods.
+	// patternDomainUser subexp matches one or more hostname labels as a username is permitted to contain periods.
 	patternDomainUser = `(?i)^(?P<User>[a-z0-9-]+(?:\.[a-z0-9-]+)*)%s$`
 
-	// patternDomainGroup is the pattern the DomainTokenGroup token is translated into. The subexp matches a
-	// single hostname label.
+	// patternDomainGroup subexp matches a single hostname label.
 	patternDomainGroup = `(?i)^(?P<Group>[a-z0-9-]+)%s$`
-)
 
-const (
-	// DomainTokenUser is the token in a domain criteria which is translated into a pattern matching the username.
-	DomainTokenUser = "{user}"
-
-	// DomainTokenGroup is the token in a domain criteria which is translated into a pattern matching a group.
-	DomainTokenGroup = "{group}"
+	domainTokenUser  = "{user}"
+	domainTokenGroup = "{group}"
 )
 
 var (
@@ -74,7 +67,7 @@ var (
 
 	// IdentityDomainTokens is a list of the domain criteria tokens which are translated into patterns matching the
 	// identity of the subject.
-	IdentityDomainTokens = []string{DomainTokenUser, DomainTokenGroup}
+	IdentityDomainTokens = []string{domainTokenUser, domainTokenGroup}
 )
 
 const traceFmtACLHitMiss = "ACL %s Position %d for subject %s and object %s (method %s, policy %s)"
