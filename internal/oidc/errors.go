@@ -37,6 +37,11 @@ var (
 
 	// ErrClientAuthorizationUserAccessDenied is sent when the user is denied access to a client.
 	ErrClientAuthorizationUserAccessDenied = oauthelia2.ErrAccessDenied.WithHint("The user was denied access to this client.")
+
+	// errClientRegistrationNotSupported is returned by the client registration management methods of the Store. This
+	// Authorization Server registers clients from its configuration and serves neither the RFC 7591 registration
+	// endpoint nor the RFC 7592 management endpoint, so these methods are unreachable in practice.
+	errClientRegistrationNotSupported = oauthelia2.ErrNotFound.WithHint("Dynamic Client Registration is not supported by this Authorization Server.")
 )
 
 // RedirectAuthorizeErrorFieldResponseStrategyConfig is the configuration used by the RedirectAuthorizeErrorFieldResponseStrategy.

@@ -1353,10 +1353,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Discovery Response Signing Algorithm",
-          "description": "The Algorithm this provider uses to sign the Discovery and Metadata Document responses.",
+          "description": "The Algorithm this provider uses to sign the Discovery and Metadata Document responses. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "discovery_signed_response_key_id": {
@@ -1720,10 +1725,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Authorization Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead.",
           "default": "RS256"
         },
         "authorization_signed_response_key_id": {
@@ -1793,10 +1803,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "ID Token Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the ID Token objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the ID Token objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead.",
           "default": "RS256"
         },
         "id_token_signed_response_key_id": {
@@ -1867,10 +1882,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Access Token Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Access Token objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Access Token objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "access_token_signed_response_key_id": {
@@ -1941,10 +1961,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Userinfo Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Userinfo objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Userinfo objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "userinfo_signed_response_key_id": {
@@ -2015,10 +2040,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Introspection Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Introspection objects that it generates and responds with. i.e. the JWS 'alg' value.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Introspection objects that it generates and responds with. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead.",
           "default": "none"
         },
         "introspection_signed_response_key_id": {
@@ -2086,10 +2116,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Request Object Signing Algorithm",
-          "description": "The JOSE signing algorithm (JWS) this client must use to sign Request Objects that it uses. i.e. the JWS 'alg' value."
+          "description": "The JOSE signing algorithm (JWS) this client must use to sign Request Objects that it uses. i.e. the JWS 'alg' value. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead."
         },
         "request_object_encryption_alg": {
           "type": "string",
@@ -2162,10 +2197,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Token Endpoint Auth Signing Algorithm",
-          "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead."
         },
         "revocation_endpoint_auth_method": {
           "type": "string",
@@ -2196,10 +2236,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Revocation Endpoint Auth Signing Algorithm",
-          "description": "The Revocation Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Revocation Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead."
         },
         "introspection_endpoint_auth_method": {
           "type": "string",
@@ -2230,10 +2275,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Introspection Endpoint Auth Signing Algorithm",
-          "description": "The Introspection Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Introspection Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead."
         },
         "pushed_authorization_request_endpoint_auth_method": {
           "type": "string",
@@ -2264,10 +2314,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Pushed Authorization Request Endpoint Auth Signing Algorithm",
-          "description": "The Pushed Authorization Request Endpoint Auth Signing Algorithm the provider accepts for this client."
+          "description": "The Pushed Authorization Request Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead."
         },
         "allow_multiple_auth_methods": {
           "type": "boolean",
@@ -2839,10 +2894,15 @@
             "ES512",
             "PS256",
             "PS384",
-            "PS512"
+            "PS512",
+            "Ed25519",
+            "EdDSA",
+            "ML-DSA-44",
+            "ML-DSA-65",
+            "ML-DSA-87"
           ],
           "title": "Algorithm",
-          "description": "The Algorithm of this JWK."
+          "description": "The Algorithm of this JWK. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favour of 'Ed25519' which is recommended instead."
         },
         "key": {
           "type": "string",

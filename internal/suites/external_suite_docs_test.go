@@ -126,7 +126,6 @@ func (s *DocsSuite) TestHomepageVisualSnapshot() {
 	page.MustSetViewport(1280, 800, 1, false)
 
 	require.NoError(s.T(), page.Navigate(s.docsURL("/")))
-	require.NoError(s.T(), page.WaitLoad())
 
 	s.WaitElementLocatedByClassName(s.T(), page, "navbar")
 	s.WaitForVisualStable(s.T(), page)

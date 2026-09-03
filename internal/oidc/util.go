@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/text/language"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
+	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -35,9 +35,24 @@ func IsPushedAuthorizedRequestForm(form url.Values, prefix string) (is bool) {
 	return strings.HasPrefix(form.Get(FormParameterRequestURI), prefix)
 }
 
+// SigningAlgEdwardsPair returns the paired Edwards-curve JWS algorithm identifier for the given algorithm and true
+// when one exists. RFC 8037 Section 3.1 registers the polymorphic SigningAlgEdDSA and RFC 9864 Section 2.2 registers
+// the fully-specified SigningAlgEd25519 for the same parameter set, so a key configured with either identifier is
+// able to satisfy a request for the other.
+func SigningAlgEdwardsPair(alg string) (paired string, ok bool) {
+	switch alg {
+	case SigningAlgEd25519:
+		return SigningAlgEdDSA, true
+	case SigningAlgEdDSA:
+		return SigningAlgEd25519, true
+	default:
+		return "", false
+	}
+}
+
 // SortedSigningAlgs is a sorting type which allows the use of [sort.Sort] to order a list of OAuth 2.0 Signing Algs.
-// Algorithms are ordered by family with HMAC first, then RSA, ECDSA, and RSA-PSS, with the none algorithm last and
-// algorithms within a family ordered lexically.
+// Algorithms are ordered by family with HMAC first, then RSA, ECDSA, Edwards-curve, ML-DSA, and RSA-PSS, with the
+// none algorithm last and algorithms within a family ordered lexically.
 type SortedSigningAlgs []string
 
 // Len implements the [sort.Interface].
@@ -120,6 +135,14 @@ func isSigningAlgLess(i, j string) bool {
 		case ip == SigningAlgPrefixECDSA:
 			return true
 		case jp == SigningAlgPrefixECDSA:
+			return false
+		case ip == SigningAlgPrefixEdDSA:
+			return true
+		case jp == SigningAlgPrefixEdDSA:
+			return false
+		case ip == SigningAlgPrefixMLDSA:
+			return true
+		case jp == SigningAlgPrefixMLDSA:
 			return false
 		default:
 			return false

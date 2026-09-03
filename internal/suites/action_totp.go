@@ -29,10 +29,7 @@ func (rs *RodSession) doMaybeDeleteTOTP(t *testing.T, page *rod.Page, username s
 
 	rs.WaitElementLocatedBySelector(t, page, `#one-time-password-panel[data-loading="false"]`)
 
-	has, _, err := page.Has("#one-time-password-delete")
-	require.NoError(t, err)
-
-	if !has {
+	if !rs.CheckElementExistsLocatedByID(t, page, "one-time-password-delete") {
 		return
 	}
 

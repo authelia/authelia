@@ -1307,8 +1307,12 @@ func (s *CLISuite) TestStorage07CacheMDS3() {
 	}
 
 	output, err = s.ExecWithEnv("authelia-backend", append([]string{"authelia", "storage", "cache", "mds3", "update"}, updateArgs...), env)
-	s.NoError(err)
-	s.Regexp(reUpdated, output)
+
+	// Fatal because the version and date are read out of this output below. An update that did not happen,
+	// which is what an expired or rotated signing chain upstream looks like from here, otherwise reaches
+	// that read with nothing captured and panics, taking the rest of the suite with it.
+	s.Require().NoError(err)
+	s.Require().Regexp(reUpdated, output)
 
 	matches := reUpdated.FindStringSubmatch(output)
 

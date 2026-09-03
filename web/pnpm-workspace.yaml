@@ -6,6 +6,7 @@ overrides:
   js-yaml: 5.4.1
   minimatch: 10.2.6
   picomatch: 4.0.7
+  qs: 6.16.0
   semver: 7.8.5
   vite: 8.2.2
 peerDependencyRules:

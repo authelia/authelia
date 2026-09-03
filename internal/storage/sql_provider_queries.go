@@ -498,6 +498,18 @@ const (
 		active, revoked, form_data, session_data)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
+	//nolint:gosec // Not a Credential.
+	queryFmtInsertOAuth2RefreshTokenSession = `
+		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at,
+		requested_scopes, granted_scopes, requested_audience, granted_audience,
+		active, revoked, form_data, session_data, access_signature)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtSelectOAuth2RefreshTokenSessionAccessSignature = `
+		SELECT access_signature
+		FROM %s
+		WHERE signature = ?;`
+
 	queryFmtRevokeOAuth2Session = `
 		UPDATE %s
 		SET revoked = TRUE

@@ -5,8 +5,7 @@ import (
 	"crypto"
 	"sort"
 
-	"github.com/go-jose/go-jose/v4"
-
+	"authelia.com/provider/oauth2/token/jose"
 	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -107,10 +106,31 @@ func (i *Issuer) GetPublicJSONWebKeys(ctx Context) (jwks *jose.JSONWebKeySet) {
 
 // GetIssuerJWK returns the JSON Web Key which matches the given kid, alg, and use.
 func (i *Issuer) GetIssuerJWK(ctx context.Context, kid, alg, use string) (jwk *jose.JSONWebKey, err error) {
-	return jwt.SearchJWKS(i.jwks, kid, alg, use, false)
+	return i.searchJWKS(kid, alg, use, false)
 }
 
 // GetIssuerStrictJWK returns the JSON Web Key which strictly matches the given kid, alg, and use.
 func (i *Issuer) GetIssuerStrictJWK(ctx context.Context, kid, alg, use string) (jwk *jose.JSONWebKey, err error) {
-	return jwt.SearchJWKS(i.jwks, kid, alg, use, true)
+	return i.searchJWKS(kid, alg, use, true)
+}
+
+func (i *Issuer) searchJWKS(kid, alg, use string, strict bool) (jwk *jose.JSONWebKey, err error) {
+	if jwk, err = jwt.SearchJWKS(i.jwks, kid, alg, use, strict); err == nil {
+		return jwk, nil
+	}
+
+	paired, ok := SigningAlgEdwardsPair(alg)
+	if !ok {
+		return nil, err
+	}
+
+	pairedJWK, pairedErr := jwt.SearchJWKS(i.jwks, kid, paired, use, strict)
+	if pairedErr != nil {
+		return nil, err
+	}
+
+	edwards := *pairedJWK
+	edwards.Algorithm = alg
+
+	return &edwards, nil
 }

@@ -228,6 +228,11 @@ type Provider interface {
 	// RevokeOAuth2Session marks an OAuth2.0 session as revoked in the storage provider.
 	RevokeOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (err error)
 
+	// LoadOAuth2RefreshTokenSessionAccessSignature loads the signature of the access token issued alongside the
+	// refresh token with the given signature. The signature is empty when the refresh token was issued without an
+	// access token, and for a session stored before the access token signature was recorded.
+	LoadOAuth2RefreshTokenSessionAccessSignature(ctx context.Context, signature string) (accessSignature string, err error)
+
 	// RevokeOAuth2SessionByRequestID marks an OAuth2.0 session as revoked in the storage provider.
 	RevokeOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 

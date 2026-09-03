@@ -66,6 +66,8 @@ type sharedBrowser struct {
 }
 
 var (
+	liveBrowsersMutex   sync.Mutex
+	liveBrowsers        = map[*rod.Browser]struct{}{}
 	sharedBrowsersMutex sync.Mutex
 	sharedBrowsers      = map[string]*sharedBrowser{}
 )
@@ -207,7 +209,36 @@ func newBrowser(opts *RodSessionOpts) (shared *sharedBrowser, err error) {
 
 	browser.MustIgnoreCertErrors(true)
 
+	registerLiveBrowser(browser)
+
 	return &sharedBrowser{launcher: l, browser: browser}, nil
+}
+
+func registerLiveBrowser(browser *rod.Browser) {
+	liveBrowsersMutex.Lock()
+	defer liveBrowsersMutex.Unlock()
+
+	liveBrowsers[browser] = struct{}{}
+}
+
+func forgetLiveBrowser(browser *rod.Browser) {
+	liveBrowsersMutex.Lock()
+	defer liveBrowsersMutex.Unlock()
+
+	delete(liveBrowsers, browser)
+}
+
+func liveBrowsersSnapshot() []*rod.Browser {
+	liveBrowsersMutex.Lock()
+	defer liveBrowsersMutex.Unlock()
+
+	browsers := make([]*rod.Browser, 0, len(liveBrowsers))
+
+	for browser := range liveBrowsers {
+		browsers = append(browsers, browser)
+	}
+
+	return browsers
 }
 
 func closeSharedBrowsers() {
@@ -215,6 +246,8 @@ func closeSharedBrowsers() {
 	defer sharedBrowsersMutex.Unlock()
 
 	for key, shared := range sharedBrowsers {
+		forgetLiveBrowser(shared.browser)
+
 		if err := shared.browser.Close(); err != nil {
 			log.Warnf("Error closing the shared browser: %v", err)
 		}
@@ -243,6 +276,8 @@ func (rs *RodSession) Stop() error {
 	if rs.shared {
 		return nil
 	}
+
+	forgetLiveBrowser(rs.WebDriver)
 
 	if err := rs.WebDriver.Close(); err != nil {
 		return err

@@ -2,9 +2,6 @@ package commands
 
 import (
 	"bytes"
-	"crypto/ecdsa"
-	"crypto/ed25519"
-	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
 	"io"
@@ -78,6 +75,7 @@ func newCryptoCertificateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newCryptoCertificateSubCmd(ctx, cmdUseRSA),
 		newCryptoCertificateSubCmd(ctx, cmdUseECDSA),
 		newCryptoCertificateSubCmd(ctx, cmdUseEd25519),
+		newCryptoCertificateSubCmd(ctx, cmdUseMLDSA),
 	)
 
 	return cmd
@@ -132,6 +130,10 @@ func newCryptoCertificateRequestCmd(ctx *CmdCtx, algorithm string) (cmd *cobra.C
 		cmd.Example = cmdAutheliaCryptoCertificateEd25519RequestExample
 
 		cmdFlagsCryptoPrivateKeyEd25519(cmd)
+	case cmdUseMLDSA:
+		cmd.Example = cmdAutheliaCryptoCertificateMLDSARequestExample
+
+		cmdFlagsCryptoPrivateKeyMLDSA(cmd)
 	}
 
 	return cmd
@@ -152,6 +154,7 @@ func newCryptoPairCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newCryptoPairSubCmd(ctx, cmdUseRSA),
 		newCryptoPairSubCmd(ctx, cmdUseECDSA),
 		newCryptoPairSubCmd(ctx, cmdUseEd25519),
+		newCryptoPairSubCmd(ctx, cmdUseMLDSA),
 	)
 
 	return cmd
@@ -171,6 +174,8 @@ func newCryptoPairSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		example = cmdAutheliaCryptoPairECDSAExample
 	case cmdUseEd25519:
 		example = cmdAutheliaCryptoPairEd25519Example
+	case cmdUseMLDSA:
+		example = cmdAutheliaCryptoPairMLDSAExample
 	}
 
 	cmd = &cobra.Command{
@@ -223,6 +228,10 @@ func newCryptoGenerateCmd(ctx *CmdCtx, category, algorithm string) (cmd *cobra.C
 			cmd.Example = cmdAutheliaCryptoCertificateEd25519GenerateExample
 
 			cmdFlagsCryptoPrivateKeyEd25519(cmd)
+		case cmdUseMLDSA:
+			cmd.Example = cmdAutheliaCryptoCertificateMLDSAGenerateExample
+
+			cmdFlagsCryptoPrivateKeyMLDSA(cmd)
 		}
 	case cmdUsePair:
 		cmdFlagsCryptoPairGenerate(cmd)
@@ -243,6 +252,10 @@ func newCryptoGenerateCmd(ctx *CmdCtx, category, algorithm string) (cmd *cobra.C
 			cmd.Example = cmdAutheliaCryptoPairEd25519GenerateExample
 
 			cmdFlagsCryptoPrivateKeyEd25519(cmd)
+		case cmdUseMLDSA:
+			cmd.Example = cmdAutheliaCryptoPairMLDSAGenerateExample
+
+			cmdFlagsCryptoPrivateKeyMLDSA(cmd)
 		}
 	}
 
@@ -370,8 +383,6 @@ func (ctx *CmdCtx) CryptoGenerateRunE(cmd *cobra.Command, args []string) (err er
 }
 
 // CryptoCertificateRequestRunE is the RunE for the authelia crypto certificate request command.
-//
-//nolint:gocyclo
 func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		template                                      *x509.CertificateRequest
@@ -410,15 +421,11 @@ func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) 
 
 	_, _ = fmt.Fprintf(buf, "\tSignature Algorithm: %s, Public Key Algorithm: %s", template.SignatureAlgorithm, template.PublicKeyAlgorithm)
 
-	switch k := privateKey.(type) {
-	case *rsa.PrivateKey:
-		_, _ = fmt.Fprintf(buf, ", Bits: %d", k.N.BitLen())
-	case *ecdsa.PrivateKey:
-		_, _ = fmt.Fprintf(buf, ", Elliptic Curve: %s", k.Curve.Params().Name)
-	case ed25519.PrivateKey:
-		// Legacy format is not available for Ed25519.
-		legacy = false
-	}
+	properties, legacyKey := cryptoKeyProperties(privateKey)
+
+	legacy = legacy && legacyKey
+
+	buf.WriteString(properties)
 
 	_, _ = fmt.Fprintf(buf, "\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", "))
 
@@ -537,15 +544,11 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 
 	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s", template.IsCA, false, template.SignatureAlgorithm, template.PublicKeyAlgorithm)
 
-	switch k := privateKey.(type) {
-	case *rsa.PrivateKey:
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), ", Bits: %d", k.N.BitLen())
-	case *ecdsa.PrivateKey:
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), ", Elliptic Curve: %s", k.Curve.Params().Name)
-	case ed25519.PrivateKey:
-		// Legacy format is not available for Ed25519.
-		legacy = false
-	}
+	properties, legacyKey := cryptoKeyProperties(privateKey)
+
+	legacy = legacy && legacyKey
+
+	_, _ = fmt.Fprint(cmd.OutOrStdout(), properties)
 
 	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", "))
 
@@ -640,16 +643,12 @@ func runCryptoPairGenerate(w io.Writer, legacy bool, privateKey any, dir, privat
 
 	buf.WriteString("Generating key pair\n\n")
 
-	switch k := privateKey.(type) {
-	case *rsa.PrivateKey:
-		_, _ = fmt.Fprintf(buf, "\tAlgorithm: RSA-%d %d bits\n\n", k.Size(), k.N.BitLen())
-	case *ecdsa.PrivateKey:
-		_, _ = fmt.Fprintf(buf, "\tAlgorithm: ECDSA Curve %s\n\n", k.Curve.Params().Name)
-	case ed25519.PrivateKey:
-		buf.WriteString("\tAlgorithm: Ed25519\n\n")
+	algorithm, legacyKey := cryptoKeyAlgorithm(privateKey)
 
-		// Legacy format is not available for Ed25519.
-		legacy = false
+	legacy = legacy && legacyKey
+
+	if algorithm != "" {
+		_, _ = fmt.Fprintf(buf, "\tAlgorithm: %s\n\n", algorithm)
 	}
 
 	privateKeyPaths := []string{filepath.Base(privateKeyPath)}

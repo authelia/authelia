@@ -437,6 +437,7 @@ type OAuth2Session struct {
 	RequestID         string                   `db:"request_id"`
 	ClientID          string                   `db:"client_id"`
 	Signature         string                   `db:"signature"`
+	AccessSignature   string                   `db:"access_signature"`
 	RequestedAt       time.Time                `db:"requested_at"`
 	Subject           sql.NullString           `db:"subject"`
 	RequestedScopes   StringSlicePipeDelimited `db:"requested_scopes"`

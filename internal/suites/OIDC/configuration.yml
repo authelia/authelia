@@ -103,6 +103,9 @@ identity_providers:
           - 'client_credentials'
         token_endpoint_auth_method: 'client_secret_post'
         access_token_signed_response_alg: 'RS256'
+        requested_audience_mode: 'implicit'
+        audience:
+          - 'https://app.example.com'
 access_control:
   default_policy: 'deny'
   rules:

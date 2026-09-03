@@ -15,7 +15,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.27.0-bookworm@sha256:ded31c68586d2e49e760acc2e65a884b23d032e9bbbed0ae0c55abd3fcaf4452 AS builder-backend
+FROM golang:1.27.1-bookworm@sha256:648f440f42a0958804efb24df176f806f9d353b41f1c0627f666428e40310f6b AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -41,7 +41,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:76657c6ca0eba779ddfd78430dc163158aa995bdaeda1d57408ee48e5d19c114
+FROM authelia/base:latest@sha256:1cd9167c0a1a8f829cce4d63d8d3c80c945a1fe80291ada2d4f9a659e736fcb7
 
 WORKDIR /app
 
