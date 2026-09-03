@@ -1,0 +1,70 @@
+---
+certificates_directory: '/certs/'
+
+server:
+  address: 'tcp://:9091'
+  timeouts:
+    read: '30s'
+  tls:
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
+
+log:
+  level: 'debug'
+
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  local:
+    path: '/config/db.sqlite'
+
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'unsecure_secret'
+
+session:
+  secret: 'unsecure_session_secret'
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
+
+authentication_backend:
+  file:
+    path: '/config/users.yml'
+  openid_connect:
+    providers:
+      - id: 'upstream'
+        name: 'Upstream'
+        issuer: 'https://auth-upstream.example.com:8080'
+        client_id: 'authelia-rp'
+        client_secret: 'foobar'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+
+totp:
+  disable_reuse_security_policy: true
+
+# No rule requires a second factor, so the portal reports no available second factor methods and a password login
+# completes the authentication the policy requires. That is what lets the portal resume a linking flow immediately
+# after the login rather than sending the user to a second factor first.
+access_control:
+  default_policy: 'deny'
+  rules:
+    - domain: 'home.example.com'
+      policy: 'bypass'
+    - domain: 'public.example.com'
+      policy: 'bypass'
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
+    - domain: 'secure.example.com'
+      policy: 'one_factor'
+...

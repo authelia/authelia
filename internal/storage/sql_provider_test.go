@@ -145,6 +145,142 @@ func TestSQLProviderUserOpaqueIdentifier(t *testing.T) {
 	})
 }
 
+func TestSQLProviderOpenIDConnectLinks(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	var linkID int
+
+	t.Run("ShouldSaveAndLoadLinkBySubject", func(t *testing.T) {
+		require.NoError(t, provider.SaveOpenIDConnectLink(ctx, model.OpenIDConnectLink{
+			CreatedAt:      time.Now().Truncate(time.Second),
+			Provider:       "example",
+			Issuer:         "https://op.example.com",
+			Subject:        "abc123",
+			Username:       "john",
+			RemoteUsername: sql.NullString{Valid: true, String: "john@op"},
+		}))
+
+		loaded, err := provider.LoadOpenIDConnectLinkBySubject(ctx, "https://op.example.com", "abc123")
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, "john", loaded.Username)
+		assert.Equal(t, "example", loaded.Provider)
+		assert.Equal(t, "https://op.example.com", loaded.Issuer)
+		assert.Equal(t, "abc123", loaded.Subject)
+		assert.True(t, loaded.RemoteUsername.Valid)
+		assert.Equal(t, "john@op", loaded.RemoteUsername.String)
+		assert.False(t, loaded.LastUsedAt.Valid)
+
+		linkID = loaded.ID
+	})
+
+	t.Run("ShouldRejectDuplicateIssuerSubject", func(t *testing.T) {
+		err := provider.SaveOpenIDConnectLink(ctx, model.OpenIDConnectLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Provider:  "other",
+			Issuer:    "https://op.example.com",
+			Subject:   "abc123",
+			Username:  "jane",
+		})
+
+		require.EqualError(t, err, "error inserting OpenID Connect 1.0 link for user 'jane': UNIQUE constraint failed: user_openid_connect_links.issuer, user_openid_connect_links.subject")
+	})
+
+	t.Run("ShouldRejectDuplicateUsernameProvider", func(t *testing.T) {
+		err := provider.SaveOpenIDConnectLink(ctx, model.OpenIDConnectLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Provider:  "example",
+			Issuer:    "https://op2.example.com",
+			Subject:   "def456",
+			Username:  "john",
+		})
+
+		require.EqualError(t, err, "error inserting OpenID Connect 1.0 link for user 'john': UNIQUE constraint failed: user_openid_connect_links.username, user_openid_connect_links.provider")
+	})
+
+	t.Run("ShouldLoadLinkByID", func(t *testing.T) {
+		loaded, err := provider.LoadOpenIDConnectLinkByID(ctx, linkID)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, "john", loaded.Username)
+		assert.Equal(t, linkID, loaded.ID)
+	})
+
+	t.Run("ShouldSaveAndLoadLinksByUsername", func(t *testing.T) {
+		require.NoError(t, provider.SaveOpenIDConnectLink(ctx, model.OpenIDConnectLink{
+			CreatedAt: time.Now().Truncate(time.Second),
+			Provider:  "other",
+			Issuer:    "https://op3.example.com",
+			Subject:   "ghi789",
+			Username:  "john",
+		}))
+
+		links, err := provider.LoadOpenIDConnectLinksByUsername(ctx, "john")
+
+		require.NoError(t, err)
+		require.Len(t, links, 2)
+		assert.Equal(t, "example", links[0].Provider)
+		assert.Equal(t, "other", links[1].Provider)
+	})
+
+	t.Run("ShouldReturnEmptyForUnknownUsername", func(t *testing.T) {
+		links, err := provider.LoadOpenIDConnectLinksByUsername(ctx, "nobody")
+
+		require.NoError(t, err)
+		assert.Empty(t, links)
+	})
+
+	t.Run("ShouldUpdateSignIn", func(t *testing.T) {
+		now := time.Now().Truncate(time.Second)
+
+		require.NoError(t, provider.UpdateOpenIDConnectLinkSignIn(ctx, linkID, now))
+
+		loaded, err := provider.LoadOpenIDConnectLinkByID(ctx, linkID)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.True(t, loaded.LastUsedAt.Valid)
+		assert.WithinDuration(t, now, loaded.LastUsedAt.Time, time.Second)
+	})
+
+	t.Run("ShouldReturnErrNoOpenIDConnectLinkWhenSubjectAbsent", func(t *testing.T) {
+		loaded, err := provider.LoadOpenIDConnectLinkBySubject(ctx, "https://op.example.com", "missing")
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no OpenID Connect 1.0 link found")
+	})
+
+	t.Run("ShouldReturnErrNoOpenIDConnectLinkWhenIDAbsent", func(t *testing.T) {
+		loaded, err := provider.LoadOpenIDConnectLinkByID(ctx, 999999)
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no OpenID Connect 1.0 link found")
+	})
+
+	t.Run("ShouldNotDeleteLinkForWrongUsername", func(t *testing.T) {
+		require.NoError(t, provider.DeleteOpenIDConnectLink(ctx, "jane", linkID))
+
+		loaded, err := provider.LoadOpenIDConnectLinkByID(ctx, linkID)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+	})
+
+	t.Run("ShouldDeleteLinkScopedToUser", func(t *testing.T) {
+		require.NoError(t, provider.DeleteOpenIDConnectLink(ctx, "john", linkID))
+
+		loaded, err := provider.LoadOpenIDConnectLinkByID(ctx, linkID)
+
+		assert.Nil(t, loaded)
+		require.EqualError(t, err, "no OpenID Connect 1.0 link found")
+	})
+}
+
 func TestSQLProviderTOTPConfiguration(t *testing.T) {
 	provider := newTestSQLiteProvider(t)
 	require.NoError(t, provider.StartupCheck())

@@ -39,6 +39,7 @@ export default {
                 "npm",
                 "ntp",
                 "oidc",
+                "oidcrp",
                 "random",
                 "regulation",
                 "renovate",

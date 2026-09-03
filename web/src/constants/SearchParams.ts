@@ -33,3 +33,5 @@ export const ErrorURI: string = "error_uri";
 export const FlowNameOpenIDConnect: string = "openid_connect";
 
 export const SubFlowNameDeviceAuthorization: string = "device_authorization";
+
+export const OpenIDConnectLinkProvider: string = "link_provider";

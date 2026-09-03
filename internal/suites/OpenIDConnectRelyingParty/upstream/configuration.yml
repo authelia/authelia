@@ -1,0 +1,67 @@
+---
+certificates_directory: '/certs/'
+
+server:
+  address: 'tcp://:9091'
+  timeouts:
+    read: '30s'
+  tls:
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
+
+log:
+  level: 'debug'
+
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  local:
+    path: '/config/db.sqlite'
+
+notifier:
+  filesystem:
+    filename: '/config/notification.txt'
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'unsecure_secret'
+
+# The cookie domain and name are deliberately distinct from the instance under test. Both instances answer for names
+# under 'example.com' and a shared cookie name on the parent domain would have each overwrite the other's session.
+session:
+  secret: 'unsecure_upstream_session_secret'
+  cookies:
+    - name: 'authelia_upstream_session'
+      domain: 'auth-upstream.example.com'
+      authelia_url: 'https://auth-upstream.example.com:8080'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+
+authentication_backend:
+  file:
+    path: '/config/users.yml'
+
+access_control:
+  default_policy: 'one_factor'
+
+identity_providers:
+  oidc:
+    enable_client_debug_messages: true
+    hmac_secret: 'IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm'
+    jwks:
+      - key: {{ secret "/pki/private.oidc.pem" | mindent 10 "|" | msquote }}
+        certificate_chain: {{ secret "/pki/public.oidc.chain.pem" | mindent 10 "|" | msquote }}
+    clients:
+      - client_id: 'authelia-rp'
+        client_name: 'Authelia Relying Party'
+        client_secret: '$pbkdf2-sha512$310000$EniFUo2z8Yjw3op3lrtuyA$xhopyOyffx2TqsQvEhoMSo1sxywIvJV8HZw/zdf62xtyryY/nkNkdcUV82r.xtd5NuyvZo7DPkOlcffM/Wvsmw'  # yamllint disable-line rule:line-length
+        authorization_policy: 'one_factor'
+        consent_mode: 'implicit'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+        redirect_uris:
+          - 'https://login.example.com:8080/api/firstfactor/openid-connect/upstream/callback'
+...

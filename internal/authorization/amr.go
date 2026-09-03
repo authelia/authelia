@@ -64,7 +64,45 @@ type AuthenticationMethodsReferences struct {
 	WebAuthnSoftware             bool
 	WebAuthnUserPresence         bool
 	WebAuthnUserVerified         bool
-	Extra                        []string
+
+	FederatedIdentity bool
+
+	Extra []string
+}
+
+// Merge returns the union of this AuthenticationMethodsReferences and another. Every boolean value is the logical OR
+// of the two values, and the Extra values of both are appended in order provided they are not already present.
+func (r AuthenticationMethodsReferences) Merge(other AuthenticationMethodsReferences) (merged AuthenticationMethodsReferences) {
+	merged = AuthenticationMethodsReferences{
+		KnowledgeBasedAuthentication: r.KnowledgeBasedAuthentication || other.KnowledgeBasedAuthentication,
+		UsernameAndPassword:          r.UsernameAndPassword || other.UsernameAndPassword,
+		TOTP:                         r.TOTP || other.TOTP,
+		Duo:                          r.Duo || other.Duo,
+		WebAuthn:                     r.WebAuthn || other.WebAuthn,
+		WebAuthnHardware:             r.WebAuthnHardware || other.WebAuthnHardware,
+		WebAuthnSoftware:             r.WebAuthnSoftware || other.WebAuthnSoftware,
+		WebAuthnUserPresence:         r.WebAuthnUserPresence || other.WebAuthnUserPresence,
+		WebAuthnUserVerified:         r.WebAuthnUserVerified || other.WebAuthnUserVerified,
+		FederatedIdentity:            r.FederatedIdentity || other.FederatedIdentity,
+	}
+
+	for _, extra := range r.Extra {
+		if utils.IsStringInSlice(extra, merged.Extra) {
+			continue
+		}
+
+		merged.Extra = append(merged.Extra, extra)
+	}
+
+	for _, extra := range other.Extra {
+		if utils.IsStringInSlice(extra, merged.Extra) {
+			continue
+		}
+
+		merged.Extra = append(merged.Extra, extra)
+	}
+
+	return merged
 }
 
 // FactorKnowledge returns true if a "something you know" factor of authentication was used.

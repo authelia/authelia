@@ -45,6 +45,9 @@ type UserSession struct {
 	RefreshTTL time.Time
 
 	Elevations Elevations
+
+	OpenIDConnect        *OpenIDConnectFlow
+	OpenIDConnectPending *OpenIDConnectPending
 }
 
 // TOTP holds the TOTP registration session data.
@@ -80,4 +83,29 @@ type Elevation struct {
 	ID       int
 	RemoteIP net.IP
 	Expires  time.Time
+}
+
+// OpenIDConnectFlow holds the in-flight OpenID Connect 1.0 Relying Party authorization state. It never leaves the
+// server-side session store.
+type OpenIDConnectFlow struct {
+	Provider       string
+	State          string
+	Nonce          string
+	CodeVerifier   string
+	TargetURL      string
+	RequestMethod  string
+	KeepMeLoggedIn bool
+	Expires        time.Time
+}
+
+// OpenIDConnectPending holds validated claims from an unlinked external identity awaiting the user's decision. It
+// holds no tokens.
+type OpenIDConnectPending struct {
+	Provider       string
+	Issuer         string
+	Subject        string
+	RemoteUsername string
+	DisplayName    string
+	Email          string
+	Expires        time.Time
 }

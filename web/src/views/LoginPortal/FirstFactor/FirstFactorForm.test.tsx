@@ -60,6 +60,7 @@ const defaultProps = {
     onAuthenticationStop: vi.fn(),
     onAuthenticationSuccess: vi.fn(),
     onChannelStateChange: vi.fn(),
+    openIDConnectLogin: false,
     passkeyLogin: false,
     rememberMe: false,
     resetPassword: false,

@@ -423,12 +423,13 @@ func TestETagRootURL(t *testing.T) {
 
 func TestNewTemplatedFileOptions(t *testing.T) {
 	testCases := []struct {
-		name                   string
-		config                 *schema.Configuration
-		expectedResetPassword  string
-		expectedPasswordChange string
-		expectedTheme          string
-		expectedPasskeyLogin   string
+		name                       string
+		config                     *schema.Configuration
+		expectedResetPassword      string
+		expectedPasswordChange     string
+		expectedTheme              string
+		expectedPasskeyLogin       string
+		expectedOpenIDConnectLogin string
 	}{
 		{
 			"ShouldReturnDefaultOptions",
@@ -436,6 +437,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"true",
 			"",
+			"false",
 			"false",
 		},
 		{
@@ -451,6 +453,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"",
 			"false",
+			"false",
 		},
 		{
 			"ShouldEnablePasskeyLogin",
@@ -463,6 +466,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"",
 			"true",
+			"false",
 		},
 		{
 			"ShouldSetTheme",
@@ -472,6 +476,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"true",
 			"true",
 			"dark",
+			"false",
 			"false",
 		},
 		{
@@ -487,6 +492,37 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			"false",
 			"",
 			"false",
+			"false",
+		},
+		{
+			"ShouldEnableOpenIDConnectLogin",
+			&schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					OpenIDConnect: &schema.AuthenticationBackendOpenIDConnect{
+						Providers: []schema.AuthenticationBackendOpenIDConnectProvider{
+							{ID: "example", Name: "Example", Issuer: "https://example.com"},
+						},
+					},
+				},
+			},
+			"true",
+			"true",
+			"",
+			"false",
+			"true",
+		},
+		{
+			"ShouldNotEnableOpenIDConnectLoginWithoutProviders",
+			&schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					OpenIDConnect: &schema.AuthenticationBackendOpenIDConnect{},
+				},
+			},
+			"true",
+			"true",
+			"",
+			"false",
+			"false",
 		},
 	}
 
@@ -499,6 +535,7 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			assert.Equal(t, tc.expectedPasswordChange, opts.PasswordChange)
 			assert.Equal(t, tc.expectedTheme, opts.Theme)
 			assert.Equal(t, tc.expectedPasskeyLogin, opts.PasskeyLogin)
+			assert.Equal(t, tc.expectedOpenIDConnectLogin, opts.OpenIDConnectLogin)
 		})
 	}
 }
@@ -532,6 +569,7 @@ func TestTemplatedFileOptionsCommonData(t *testing.T) {
 			assert.Equal(t, "nonce123", data.CSPNonce)
 			assert.Equal(t, "en", data.Language)
 			assert.Equal(t, tc.expectedRM, data.RememberMe)
+			assert.Equal(t, opts.OpenIDConnectLogin, data.OpenIDConnectLogin)
 		})
 	}
 }

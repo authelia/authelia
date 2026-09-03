@@ -46,4 +46,5 @@ document.body.dataset.resetpasswordcustomurl = "";
 document.body.dataset.privacypolicyurl = "";
 document.body.dataset.privacypolicyaccept = "false";
 document.body.dataset.passkeylogin = "true";
+document.body.dataset.openidconnectlogin = "false";
 document.body.dataset.theme = "light";

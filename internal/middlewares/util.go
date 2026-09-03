@@ -14,6 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/oidcrp"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -52,6 +53,7 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	}
 
 	providers.Authorizer = authorization.NewAuthorizer(config)
+	providers.OpenIDConnectRelyingParty = oidcrp.NewProviders(config.AuthenticationBackend.OpenIDConnect, caCertPool)
 	providers.NTP = ntp.NewProvider(&config.NTP)
 	providers.PasswordPolicy = NewPasswordPolicyProvider(config.PasswordPolicy)
 	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, providers.Clock)

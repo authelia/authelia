@@ -332,6 +332,27 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.DELETE("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialDELETE))
 	}
 
+	if config.AuthenticationBackend.OpenIDConnect != nil && len(config.AuthenticationBackend.OpenIDConnect.Providers) != 0 {
+		middlewareRateLimitOpenIDConnectStart := middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.OpenIDConnectRelyingPartyStart), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()).
+			Build()
+
+		middlewareRateLimitOpenIDConnectCallback := middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.OpenIDConnectRelyingPartyCallback), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()).
+			Build()
+
+		r.GET("/api/firstfactor/openid-connect", middlewareAPI(handlers.FirstFactorOpenIDConnectProvidersGET))
+		r.POST("/api/firstfactor/openid-connect/{provider}", middlewareRateLimitOpenIDConnectStart(handlers.FirstFactorOpenIDConnectPOST))
+		r.GET("/api/firstfactor/openid-connect/{provider}/callback", middlewareRateLimitOpenIDConnectCallback(handlers.FirstFactorOpenIDConnectCallbackGET))
+
+		r.GET("/api/user/openid-connect/links", middleware1FA(handlers.UserOpenIDConnectLinksGET))
+		r.PUT("/api/user/openid-connect/link", middlewareElevated1FA(handlers.UserOpenIDConnectLinkPUT))
+		r.DELETE("/api/user/openid-connect/link/pending", middleware1FA(handlers.UserOpenIDConnectLinkPendingDELETE))
+		r.DELETE("/api/user/openid-connect/link/{linkID}", middlewareElevated1FA(handlers.UserOpenIDConnectLinkDELETE))
+	}
+
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.Provider
 

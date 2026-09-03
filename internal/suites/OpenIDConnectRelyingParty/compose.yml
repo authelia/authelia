@@ -1,0 +1,12 @@
+---
+services:
+  authelia-backend:
+    volumes:
+      - './OpenIDConnectRelyingParty/configuration.yml:/config/configuration.yml'
+      - './OpenIDConnectRelyingParty/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+  authelia-frontend:
+    environment:
+      VITE_ALLOWED_HOSTS: 'auth-upstream.example.com'
+...

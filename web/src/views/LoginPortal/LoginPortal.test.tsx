@@ -36,11 +36,15 @@ vi.mock("@contexts/NotificationsContext", () => ({
 }));
 
 vi.mock("@hooks/QueryParam", () => ({
-    useQueryParam: () => null,
+    useQueryParam: (param: string) => mockQueryParams[param],
 }));
 
 vi.mock("@hooks/Redirector", () => ({
-    useRedirector: () => vi.fn(),
+    useRedirector: () => mockRedirector,
+}));
+
+vi.mock("@services/OpenIDConnectRelyingParty", () => ({
+    postOpenIDConnectStart: (...args: unknown[]) => mockPostOpenIDConnectStart(...args),
 }));
 
 vi.mock("@hooks/RouterNavigate", () => ({
@@ -77,9 +81,14 @@ vi.mock("@views/LoginPortal/SecondFactor/SecondFactorForm", () => ({
 
 const mockNavigate = vi.fn();
 const mockCreateErrorNotification = vi.fn();
+const mockRedirector = vi.fn();
+const mockPostOpenIDConnectStart = vi.fn();
+
+let mockQueryParams: Record<string, string | undefined> = {};
 
 const defaultProps = {
     duoSelfEnrollment: false,
+    openIDConnectLogin: false,
     passkeyLogin: false,
     rememberMe: true,
     resetPassword: true,
@@ -110,6 +119,9 @@ beforeEach(() => {
     vi.mocked(useUserInfoPOST).mockReturnValue([undefined, vi.fn(), false, undefined]);
     mockNavigate.mockClear();
     mockCreateErrorNotification.mockClear();
+    mockRedirector.mockClear();
+    mockPostOpenIDConnectStart.mockReset();
+    mockQueryParams = {};
 });
 
 it("renders loading page when state is not loaded", () => {
@@ -336,6 +348,112 @@ it("localStorageMethod overrides userInfo.method", async () => {
         expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
     expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/webauthn");
+});
+
+it("resumes the OpenID Connect linking flow when the parameter is present", async () => {
+    mockQueryParams = { link_provider: "google" };
+    mockPostOpenIDConnectStart.mockResolvedValue({ authorization_url: "https://op.example.com/authorize?x=1" });
+
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 2, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useConfiguration).mockReturnValue([
+        { available_methods: new Set([1]), password_change_disabled: false, password_reset_disabled: false },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useUserInfoPOST).mockReturnValue([
+        { display_name: "test", emails: [], has_duo: false, has_totp: true, has_webauthn: false, method: 1 },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(mockRedirector).toHaveBeenCalledWith("https://op.example.com/authorize?x=1"));
+
+    expect(mockPostOpenIDConnectStart).toHaveBeenCalledWith("google", {
+        keepMeLoggedIn: false,
+        requestMethod: undefined,
+        targetURL: undefined,
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+});
+
+it("does not resume the OpenID Connect linking flow when the parameter is absent", async () => {
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 2, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useConfiguration).mockReturnValue([
+        { available_methods: new Set([1]), password_change_disabled: false, password_reset_disabled: false },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useUserInfoPOST).mockReturnValue([
+        { display_name: "test", emails: [], has_duo: false, has_totp: true, has_webauthn: false, method: 1 },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+
+    expect(mockPostOpenIDConnectStart).not.toHaveBeenCalled();
+    expect(mockRedirector).not.toHaveBeenCalled();
+});
+
+it("does not resume the OpenID Connect linking flow while a second factor is owed", async () => {
+    mockQueryParams = { link_provider: "google" };
+    mockPostOpenIDConnectStart.mockResolvedValue({ authorization_url: "https://op.example.com/authorize?x=1" });
+
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useConfiguration).mockReturnValue([
+        { available_methods: new Set([1]), password_change_disabled: false, password_reset_disabled: false },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useUserInfoPOST).mockReturnValue([
+        { display_name: "test", emails: [], has_duo: false, has_totp: true, has_webauthn: false, method: 1 },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/totp"));
+
+    expect(mockPostOpenIDConnectStart).not.toHaveBeenCalled();
+    expect(mockRedirector).not.toHaveBeenCalled();
 });
 
 it("fetchStateError triggers createErrorNotification", async () => {

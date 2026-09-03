@@ -72,6 +72,7 @@
 	"Settings": "Settings",
 	"Sign in": "Sign in",
 	"Sign in with a passkey": "Sign in with a passkey",
+	"Sign in with {{name}}": "Sign in with {{name}}",
 	"Sign out": "Sign out",
 	"Successfully revoked the One-Time Code": "Successfully revoked the One-Time Code",
 	"Successfully revoked the Token": "Successfully revoked the Token",

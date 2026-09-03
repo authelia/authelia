@@ -16,6 +16,8 @@ type AuthenticationBackend struct {
 	// The file authentication backend configuration.
 	File *AuthenticationBackendFile `koanf:"file" yaml:"file,omitempty" toml:"file,omitempty" json:"file,omitempty" jsonschema:"title=File Backend" jsonschema_description:"The file authentication backend configuration."`
 	LDAP *AuthenticationBackendLDAP `koanf:"ldap" yaml:"ldap,omitempty" toml:"ldap,omitempty" json:"ldap,omitempty" jsonschema:"title=LDAP Backend" jsonschema_description:"The LDAP authentication backend configuration."`
+
+	OpenIDConnect *AuthenticationBackendOpenIDConnect `koanf:"openid_connect" yaml:"openid_connect,omitempty" toml:"openid_connect,omitempty" json:"openid_connect,omitempty" jsonschema:"title=OpenID Connect 1.0 Relying Party" jsonschema_description:"The OpenID Connect 1.0 Relying Party configuration."`
 }
 
 // AuthenticationBackendPasswordChange represents the configuration related to password reset functionality.

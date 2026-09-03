@@ -136,6 +136,13 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectUserOpaqueIdentifiers:           fmt.Sprintf(queryFmtSelectUserOpaqueIdentifiers, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifierBySignature: fmt.Sprintf(queryFmtSelectUserOpaqueIdentifierBySignature, tableUserOpaqueIdentifier),
 
+		sqlInsertOpenIDConnectLink:                fmt.Sprintf(queryFmtInsertOpenIDConnectLink, tableUserOpenIDConnectLinks),
+		sqlSelectOpenIDConnectLinkBySubject:       fmt.Sprintf(queryFmtSelectOpenIDConnectLinkBySubject, tableUserOpenIDConnectLinks),
+		sqlSelectOpenIDConnectLinksByUsername:     fmt.Sprintf(queryFmtSelectOpenIDConnectLinksByUsername, tableUserOpenIDConnectLinks),
+		sqlSelectOpenIDConnectLinkByID:            fmt.Sprintf(queryFmtSelectOpenIDConnectLinkByID, tableUserOpenIDConnectLinks),
+		sqlUpdateOpenIDConnectLinkSignIn:          fmt.Sprintf(queryFmtUpdateOpenIDConnectLinkSignIn, tableUserOpenIDConnectLinks),
+		sqlDeleteOpenIDConnectLinkByUsernameAndID: fmt.Sprintf(queryFmtDeleteOpenIDConnectLinkByUsernameAndID, tableUserOpenIDConnectLinks),
+
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
@@ -312,6 +319,14 @@ type SQLProvider struct {
 	sqlSelectUserOpaqueIdentifier            string
 	sqlSelectUserOpaqueIdentifiers           string
 	sqlSelectUserOpaqueIdentifierBySignature string
+
+	// Table: user_openid_connect_links.
+	sqlInsertOpenIDConnectLink                string
+	sqlSelectOpenIDConnectLinkBySubject       string
+	sqlSelectOpenIDConnectLinksByUsername     string
+	sqlSelectOpenIDConnectLinkByID            string
+	sqlUpdateOpenIDConnectLinkSignIn          string
+	sqlDeleteOpenIDConnectLinkByUsernameAndID string
 
 	// Table: migrations.
 	sqlInsertMigration       string
@@ -600,6 +615,77 @@ func (p *SQLProvider) LoadUserOpaqueIdentifierBySignature(ctx context.Context, s
 	}
 
 	return subject, nil
+}
+
+// SaveOpenIDConnectLink saves an OpenID Connect 1.0 account link to the storage provider.
+func (p *SQLProvider) SaveOpenIDConnectLink(ctx context.Context, link model.OpenIDConnectLink) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertOpenIDConnectLink,
+		link.CreatedAt, link.LastUsedAt, link.Provider, link.Issuer, link.Subject, link.Username, link.RemoteUsername); err != nil {
+		return fmt.Errorf("error inserting OpenID Connect 1.0 link for user '%s': %w", link.Username, err)
+	}
+
+	return nil
+}
+
+// LoadOpenIDConnectLinkBySubject loads an OpenID Connect 1.0 account link by the issuer and subject pair.
+func (p *SQLProvider) LoadOpenIDConnectLinkBySubject(ctx context.Context, issuer, subject string) (link *model.OpenIDConnectLink, err error) {
+	link = &model.OpenIDConnectLink{}
+
+	if err = p.conn(ctx).GetContext(ctx, link, p.sqlSelectOpenIDConnectLinkBySubject, issuer, subject); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoOpenIDConnectLink
+		}
+
+		return nil, fmt.Errorf("error selecting OpenID Connect 1.0 link with issuer '%s': %w", issuer, err)
+	}
+
+	return link, nil
+}
+
+// LoadOpenIDConnectLinksByUsername loads all OpenID Connect 1.0 account links for a user.
+func (p *SQLProvider) LoadOpenIDConnectLinksByUsername(ctx context.Context, username string) (links []model.OpenIDConnectLink, err error) {
+	if err = p.conn(ctx).SelectContext(ctx, &links, p.sqlSelectOpenIDConnectLinksByUsername, username); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoOpenIDConnectLink
+		}
+
+		return nil, fmt.Errorf("error selecting OpenID Connect 1.0 links for user '%s': %w", username, err)
+	}
+
+	return links, nil
+}
+
+// LoadOpenIDConnectLinkByID loads an OpenID Connect 1.0 account link by its id.
+func (p *SQLProvider) LoadOpenIDConnectLinkByID(ctx context.Context, id int) (link *model.OpenIDConnectLink, err error) {
+	link = &model.OpenIDConnectLink{}
+
+	if err = p.conn(ctx).GetContext(ctx, link, p.sqlSelectOpenIDConnectLinkByID, id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoOpenIDConnectLink
+		}
+
+		return nil, fmt.Errorf("error selecting OpenID Connect 1.0 link with id '%d': %w", id, err)
+	}
+
+	return link, nil
+}
+
+// UpdateOpenIDConnectLinkSignIn updates the last used timestamp of an OpenID Connect 1.0 account link.
+func (p *SQLProvider) UpdateOpenIDConnectLinkSignIn(ctx context.Context, id int, lastUsedAt time.Time) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOpenIDConnectLinkSignIn, lastUsedAt, id); err != nil {
+		return fmt.Errorf("error updating OpenID Connect 1.0 link with id '%d': %w", id, err)
+	}
+
+	return nil
+}
+
+// DeleteOpenIDConnectLink deletes an OpenID Connect 1.0 account link owned by the given user.
+func (p *SQLProvider) DeleteOpenIDConnectLink(ctx context.Context, username string, id int) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteOpenIDConnectLinkByUsernameAndID, username, id); err != nil {
+		return fmt.Errorf("error deleting OpenID Connect 1.0 link with id '%d' for user '%s': %w", id, username, err)
+	}
+
+	return nil
 }
 
 // SaveTOTPConfiguration save a TOTP configuration of a given user in the storage provider.

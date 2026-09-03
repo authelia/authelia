@@ -257,6 +257,37 @@ const (
 )
 
 const (
+	queryFmtSelectOpenIDConnectLinkBySubject = `
+		SELECT id, created_at, last_used_at, provider, issuer, subject, username, remote_username
+		FROM %s
+		WHERE issuer = ? AND subject = ?;`
+
+	queryFmtSelectOpenIDConnectLinksByUsername = `
+		SELECT id, created_at, last_used_at, provider, issuer, subject, username, remote_username
+		FROM %s
+		WHERE username = ?
+		ORDER BY created_at;`
+
+	queryFmtSelectOpenIDConnectLinkByID = `
+		SELECT id, created_at, last_used_at, provider, issuer, subject, username, remote_username
+		FROM %s
+		WHERE id = ?;`
+
+	queryFmtInsertOpenIDConnectLink = `
+		INSERT INTO %s (created_at, last_used_at, provider, issuer, subject, username, remote_username)
+		VALUES (?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpdateOpenIDConnectLinkSignIn = `
+		UPDATE %s
+		SET last_used_at = ?
+		WHERE id = ?;`
+
+	queryFmtDeleteOpenIDConnectLinkByUsernameAndID = `
+		DELETE FROM %s
+		WHERE username = ? AND id = ?;`
+)
+
+const (
 	queryFmtUpsertDuoDevice = `
 		REPLACE INTO %s (username, device, method)
 		VALUES (?, ?, ?);`

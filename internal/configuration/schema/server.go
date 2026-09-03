@@ -69,6 +69,8 @@ type ServerEndpointRateLimits struct {
 	OpenIDConnectUserInfo                   ServerEndpointRateLimit `koanf:"openid_connect_userinfo" yaml:"openid_connect_userinfo,omitempty" toml:"openid_connect_userinfo,omitempty" json:"openid_connect_userinfo,omitempty" jsonschema:"title=OpenID Connect UserInfo" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 UserInfo Endpoint."`
 	OpenIDConnectIntrospection              ServerEndpointRateLimit `koanf:"openid_connect_introspection" yaml:"openid_connect_introspection,omitempty" toml:"openid_connect_introspection,omitempty" json:"openid_connect_introspection,omitempty" jsonschema:"title=OpenID Connect Introspection" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Introspection Endpoint."`
 	OpenIDConnectRevocation                 ServerEndpointRateLimit `koanf:"openid_connect_revocation" yaml:"openid_connect_revocation,omitempty" toml:"openid_connect_revocation,omitempty" json:"openid_connect_revocation,omitempty" jsonschema:"title=OpenID Connect Revocation" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."`
+	OpenIDConnectRelyingPartyStart          ServerEndpointRateLimit `koanf:"openid_connect_relying_party_start" yaml:"openid_connect_relying_party_start,omitempty" toml:"openid_connect_relying_party_start,omitempty" json:"openid_connect_relying_party_start,omitempty" jsonschema:"title=OpenID Connect Relying Party Start" jsonschema_description:"Configures the rate limiter which applies to the endpoint that initializes an external OpenID Connect 1.0 login."`
+	OpenIDConnectRelyingPartyCallback       ServerEndpointRateLimit `koanf:"openid_connect_relying_party_callback" yaml:"openid_connect_relying_party_callback,omitempty" toml:"openid_connect_relying_party_callback,omitempty" json:"openid_connect_relying_party_callback,omitempty" jsonschema:"title=OpenID Connect Relying Party Callback" jsonschema_description:"Configures the rate limiter which applies to the redirect URI endpoint for external OpenID Connect 1.0 logins."`
 }
 
 // ServerEndpointRateLimit represents the rate limiter configuration for a single endpoint.
@@ -230,6 +232,20 @@ var DefaultServerConfiguration = Server{
 					{Period: 2 * time.Minute, Requests: 40},
 					{Period: 10 * time.Minute, Requests: 50},
 					{Period: time.Hour, Requests: 100},
+				},
+			},
+			OpenIDConnectRelyingPartyStart: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 10},
+					{Period: 10 * time.Minute, Requests: 30},
+					{Period: time.Hour, Requests: 60},
+				},
+			},
+			OpenIDConnectRelyingPartyCallback: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 10},
+					{Period: 10 * time.Minute, Requests: 30},
+					{Period: time.Hour, Requests: 60},
 				},
 			},
 		},

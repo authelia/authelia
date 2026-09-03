@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/oidcrp"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -38,20 +39,21 @@ type AutheliaCtx struct {
 
 // Providers contain all provider provided to Authelia.
 type Providers struct {
-	Authorizer            *authorization.Authorizer
-	SessionProvider       *session.Provider
-	Regulator             *regulation.Regulator
-	OpenIDConnect         *oidc.OpenIDConnectProvider
-	Metrics               metrics.Provider
-	NTP                   *ntp.Provider
-	UserProvider          authentication.UserProvider
-	StorageProvider       storage.Provider
-	Notifier              notification.Notifier
-	Templates             *templates.Provider
-	TOTP                  totp.Provider
-	PasswordPolicy        PasswordPolicyProvider
-	UserAttributeResolver expression.UserAttributeResolver
-	MetaDataService       webauthn.MetaDataProvider
+	Authorizer                *authorization.Authorizer
+	SessionProvider           *session.Provider
+	Regulator                 *regulation.Regulator
+	OpenIDConnect             *oidc.OpenIDConnectProvider
+	OpenIDConnectRelyingParty *oidcrp.Providers
+	Metrics                   metrics.Provider
+	NTP                       *ntp.Provider
+	UserProvider              authentication.UserProvider
+	StorageProvider           storage.Provider
+	Notifier                  notification.Notifier
+	Templates                 *templates.Provider
+	TOTP                      totp.Provider
+	PasswordPolicy            PasswordPolicyProvider
+	UserAttributeResolver     expression.UserAttributeResolver
+	MetaDataService           webauthn.MetaDataProvider
 
 	GarbageCollector *GarbageCollector
 
