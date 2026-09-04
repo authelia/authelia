@@ -363,6 +363,7 @@ func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession se
 		ExpiresAt: sql.NullTime{Time: ctx.GetClock().Now().Add(client.GetConsentPolicy().Duration), Valid: true},
 		Scopes:    consent.GrantedScopes,
 		Audience:  consent.GrantedAudience,
+		Resource:  consent.GrantedResource,
 	}
 
 	var (
