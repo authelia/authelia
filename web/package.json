@@ -64,7 +64,7 @@
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.6",
+    "@types/react-dom": "19.2.7",
     "@types/zxcvbn": "4.4.5",
     "@typescript-eslint/eslint-plugin": "8.69.0",
     "@typescript-eslint/parser": "8.69.0",
