@@ -15,8 +15,8 @@ importers:
   .:
     dependencies:
       '@docsearch/css':
-        specifier: 5.0.4
-        version: 5.0.4
+        specifier: 5.0.5
+        version: 5.0.5
       '@docsearch/js':
         specifier: 5.0.4
         version: 5.0.4
@@ -690,8 +690,8 @@ packages:
     resolution: {integrity: sha512-y7/yvZ2TPAnR9+jnc00klvNNLkJiXFFrQA/hlLCcxA9a2A4zQIOimyFQ9XfwYKiGD1fb5GY8vbKIIgO8d5Tb2A==}
     engines: {node: '>= 20.12.0'}
 
-  '@docsearch/css@5.0.4':
-    resolution: {integrity: sha512-Bg2VmrPbhBmqKBrt6FL8bvd66f9IaU448Ip9K+elLlX2rivtV5FvBJq7iGsMvvj42etsdJe6VqisoTKZMv0Qdg==}
+  '@docsearch/css@5.0.5':
+    resolution: {integrity: sha512-0ETIihH1MKPzIcTZjjJsXGpheg53ZIuQ7mETXZVTnRDxK8BEbUz62IBSz0RuhGa6G3jxMVzWkVKenj7Ru4vUcA==}
 
   '@docsearch/js@5.0.4':
     resolution: {integrity: sha512-eKoVwAWKWXYPDZiDXBX4g1RVQnvHHCX91+Z+1ZEJuHPkZjTANk+L4/9t6xM5wxiiNcwD6YjfDMhcE/99sWT4SA==}
@@ -2958,7 +2958,7 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
 
-  '@docsearch/css@5.0.4': {}
+  '@docsearch/css@5.0.5': {}
 
   '@docsearch/js@5.0.4': {}
 
