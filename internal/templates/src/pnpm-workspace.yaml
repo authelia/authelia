@@ -5,4 +5,4 @@ overrides:
   "@babel/traverse": 8.0.4
   fast-uri: 4.1.4
   next: 16.3.4
-  postcss: 8.5.27
+  postcss: 8.5.28
