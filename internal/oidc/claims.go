@@ -845,6 +845,10 @@ func GrantScopeAudienceConsent(r oauthelia2.Requester, consent *model.OAuth2Cons
 	for _, audience := range consent.GrantedAudience {
 		r.GrantAudience(audience)
 	}
+
+	for _, resource := range consent.GrantedResource {
+		r.GrantResource(resource)
+	}
 }
 
 // GetAudienceFromClaims retrieves the various formats of the 'aud' claim and returns them as a []string.

@@ -462,6 +462,29 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 			},
 		},
 		{
+			"ShouldHandleRequestedResource",
+			nil,
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedResource: []string{"https://api.example.com", "https://api.example.com/v2"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				Resource:          []string{"https://api.example.com", "https://api.example.com/v2"},
+			},
+		},
+		{
 			"ShouldHandleStandardPreConfiguration",
 			&oidc.RegisteredClient{
 				ID:            myclient,
