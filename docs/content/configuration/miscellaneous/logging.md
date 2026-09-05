@@ -26,6 +26,7 @@ The logging section tunes the logging settings.
 log:
   level: 'info'
   format: 'text'
+  disable_timestamp: false
   file_path: ''
   keep_stdout: false
 ```
@@ -70,6 +71,18 @@ log:
 ```text
 time="2020-01-01T00:00:00+11:00" level=info msg="Logging severity set to info"
 time="2020-01-01T00:00:00+11:00" level=info msg="Authelia is listening for non-TLS connections on 0.0.0.0:{{< sitevar name="port" nojs="9091" >}}"
+```
+
+### disable_timestamp
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Omits the timestamp from each log entry. This is useful when the destination receiving the logs records a timestamp of
+its own, such as the systemd journal or syslog, where it would otherwise be recorded twice.
+
+```yaml {title="configuration.yml"}
+log:
+  disable_timestamp: true
 ```
 
 ### file_path
