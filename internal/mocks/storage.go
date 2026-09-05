@@ -74,6 +74,21 @@ func (mr *MockStorageMockRecorder) BeginTX(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTX", reflect.TypeOf((*MockStorage)(nil).BeginTX), ctx)
 }
 
+// CheckAndSetOAuth2DPoPProofUsed mocks base method.
+func (m *MockStorage) CheckAndSetOAuth2DPoPProofUsed(ctx context.Context, jti, htm, htu string, exp, now time.Time) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckAndSetOAuth2DPoPProofUsed", ctx, jti, htm, htu, exp, now)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckAndSetOAuth2DPoPProofUsed indicates an expected call of CheckAndSetOAuth2DPoPProofUsed.
+func (mr *MockStorageMockRecorder) CheckAndSetOAuth2DPoPProofUsed(ctx, jti, htm, htu, exp, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAndSetOAuth2DPoPProofUsed", reflect.TypeOf((*MockStorage)(nil).CheckAndSetOAuth2DPoPProofUsed), ctx, jti, htm, htu, exp, now)
+}
+
 // Close mocks base method.
 func (m *MockStorage) Close() error {
 	m.ctrl.T.Helper()
@@ -184,6 +199,34 @@ func (m *MockStorage) DeleteCachedData(ctx context.Context, name string) error {
 func (mr *MockStorageMockRecorder) DeleteCachedData(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCachedData", reflect.TypeOf((*MockStorage)(nil).DeleteCachedData), ctx, name)
+}
+
+// DeleteExpiredOAuth2DPoPNonces mocks base method.
+func (m *MockStorage) DeleteExpiredOAuth2DPoPNonces(ctx context.Context, now time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExpiredOAuth2DPoPNonces", ctx, now)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExpiredOAuth2DPoPNonces indicates an expected call of DeleteExpiredOAuth2DPoPNonces.
+func (mr *MockStorageMockRecorder) DeleteExpiredOAuth2DPoPNonces(ctx, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredOAuth2DPoPNonces", reflect.TypeOf((*MockStorage)(nil).DeleteExpiredOAuth2DPoPNonces), ctx, now)
+}
+
+// DeleteExpiredOAuth2DPoPProofs mocks base method.
+func (m *MockStorage) DeleteExpiredOAuth2DPoPProofs(ctx context.Context, now time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExpiredOAuth2DPoPProofs", ctx, now)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExpiredOAuth2DPoPProofs indicates an expected call of DeleteExpiredOAuth2DPoPProofs.
+func (mr *MockStorageMockRecorder) DeleteExpiredOAuth2DPoPProofs(ctx, now any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredOAuth2DPoPProofs", reflect.TypeOf((*MockStorage)(nil).DeleteExpiredOAuth2DPoPProofs), ctx, now)
 }
 
 // DeletePreferredDuoDevice mocks base method.
@@ -435,6 +478,21 @@ func (m *MockStorage) LoadOAuth2ConsentSessionByChallengeID(ctx context.Context,
 func (mr *MockStorageMockRecorder) LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentSessionByChallengeID", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentSessionByChallengeID), ctx, challengeID)
+}
+
+// LoadOAuth2DPoPNonce mocks base method.
+func (m *MockStorage) LoadOAuth2DPoPNonce(ctx context.Context, signature string) (*model.OAuth2DPoPNonce, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2DPoPNonce", ctx, signature)
+	ret0, _ := ret[0].(*model.OAuth2DPoPNonce)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2DPoPNonce indicates an expected call of LoadOAuth2DPoPNonce.
+func (mr *MockStorageMockRecorder) LoadOAuth2DPoPNonce(ctx, signature any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2DPoPNonce", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2DPoPNonce), ctx, signature)
 }
 
 // LoadOAuth2DeviceCodeSession mocks base method.
@@ -1049,6 +1107,20 @@ func (m *MockStorage) SaveOAuth2ConsentSessionResponse(ctx context.Context, cons
 func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionResponse(ctx, consent, rejection any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2ConsentSessionResponse", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2ConsentSessionResponse), ctx, consent, rejection)
+}
+
+// SaveOAuth2DPoPNonce mocks base method.
+func (m *MockStorage) SaveOAuth2DPoPNonce(ctx context.Context, nonce model.OAuth2DPoPNonce) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2DPoPNonce", ctx, nonce)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2DPoPNonce indicates an expected call of SaveOAuth2DPoPNonce.
+func (mr *MockStorageMockRecorder) SaveOAuth2DPoPNonce(ctx, nonce any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2DPoPNonce", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2DPoPNonce), ctx, nonce)
 }
 
 // SaveOAuth2DeviceCodeSession mocks base method.

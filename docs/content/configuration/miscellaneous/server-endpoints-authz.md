@@ -96,9 +96,20 @@ the [reference guide](../../reference/guides/proxy-authorization.md#authn-strate
 
 {{< confkey type="list(string)" default="Basic" required="no" >}}
 
-The list of schemes allowed on this endpoint. Options are `Basic`, and `Bearer`. This option is only applicable to the
-`HeaderAuthorization`, `HeaderProxyAuthorization`, and `HeaderAuthRequestProxyAuthorization` strategies and unavailable
-with the `legacy` endpoint which only uses `Basic`.
+The list of schemes allowed on this endpoint. Options are `Basic`, `Bearer`, and `DPoP`. This option is only applicable
+to the `HeaderAuthorization`, `HeaderProxyAuthorization`, and `HeaderAuthRequestProxyAuthorization` strategies and
+unavailable with the `legacy` endpoint which only uses `Basic`.
+
+The `Bearer` and `DPoP` schemes both present an OAuth 2.0 Access Token issued by the
+[OpenID Connect 1.0 Provider](../identity-providers/openid-connect/provider.md), however the `DPoP` scheme additionally
+requires the token to be bound to a proof-of-possession key in accordance with
+[RFC9449](https://datatracker.ietf.org/doc/html/rfc9449) which requires the
+[dpop](../identity-providers/openid-connect/provider.md#dpop) provider option to be enabled.
+
+*__Important Note:__ this option defaults to `['Basic']`. A request which uses a scheme this endpoint does not list is
+not rejected, it's treated as if it carried no authorization at all and is therefore handled as an anonymous request.
+Endpoints which are expected to accept `Bearer` or `DPoP` tokens must therefore explicitly list those schemes,
+otherwise the token is silently ignored.*
 
 #### scheme_basic_cache_lifespan
 

@@ -296,6 +296,27 @@ type Provider interface {
 	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
 
 	/*
+		Implementation for OAuth2.0 DPoP.
+	*/
+
+	// CheckAndSetOAuth2DPoPProofUsed atomically determines if an OAuth2.0 DPoP proof identified by the 'jti' claim, the
+	// HTTP method, and the normalized target URI is currently recorded as used and, when it isn't, records it as used
+	// until exp.
+	CheckAndSetOAuth2DPoPProofUsed(ctx context.Context, jti, htm, htu string, exp, now time.Time) (used bool, err error)
+
+	// DeleteExpiredOAuth2DPoPProofs removes every OAuth2.0 DPoP proof replay record which expired at or before now.
+	DeleteExpiredOAuth2DPoPProofs(ctx context.Context, now time.Time) (err error)
+
+	// SaveOAuth2DPoPNonce saves an OAuth2.0 DPoP nonce to the storage provider.
+	SaveOAuth2DPoPNonce(ctx context.Context, nonce model.OAuth2DPoPNonce) (err error)
+
+	// LoadOAuth2DPoPNonce loads an OAuth2.0 DPoP nonce from the storage provider.
+	LoadOAuth2DPoPNonce(ctx context.Context, signature string) (nonce *model.OAuth2DPoPNonce, err error)
+
+	// DeleteExpiredOAuth2DPoPNonces removes every OAuth2.0 DPoP nonce which expired at or before now.
+	DeleteExpiredOAuth2DPoPNonces(ctx context.Context, now time.Time) (err error)
+
+	/*
 		Implementation for Schema controls.
 	*/
 

@@ -5550,6 +5550,157 @@ func TestValidateOIDCClientSectorIdentifierURI(t *testing.T) {
 	}
 }
 
+func TestValidateIdentityProvidersShouldValidateClientDPoPBoundAccessTokens(t *testing.T) {
+	testCases := []struct {
+		Name    string
+		Have    schema.IdentityProvidersOpenIDConnectDPoP
+		Clients []schema.IdentityProvidersOpenIDConnectClient
+		Errors  []string
+	}{
+		{
+			"ShouldNotRaiseErrorWhenDisabledAndNotBound",
+			schema.IdentityProvidersOpenIDConnectDPoP{},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}},
+			},
+			nil,
+		},
+		{
+			"ShouldNotRaiseErrorWhenEnabledAndBound",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}, DPoPBoundAccessTokens: true},
+			},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorWhenDisabledAndBound",
+			schema.IdentityProvidersOpenIDConnectDPoP{},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}, DPoPBoundAccessTokens: true},
+			},
+			[]string{"identity_providers: oidc: clients: client 'test': option 'dpop_bound_access_tokens' can't be enabled when the 'identity_providers: oidc: dpop: enabled' option is disabled"},
+		},
+		{
+			"ShouldRaiseErrorPerClientWhenDisabledAndBound",
+			schema.IdentityProvidersOpenIDConnectDPoP{},
+			[]schema.IdentityProvidersOpenIDConnectClient{
+				{ID: "test", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}, DPoPBoundAccessTokens: true},
+				{ID: "other", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}},
+				{ID: "another", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}, DPoPBoundAccessTokens: true},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'dpop_bound_access_tokens' can't be enabled when the 'identity_providers: oidc: dpop: enabled' option is disabled",
+				"identity_providers: oidc: clients: client 'another': option 'dpop_bound_access_tokens' can't be enabled when the 'identity_providers: oidc: dpop: enabled' option is disabled",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:  "abcdefghijklmnopqrstuvwxyz123456",
+						JSONWebKeys: []schema.JWK{{Key: keyRSA2048, CertificateChain: certRSA2048}},
+						DPoP:        tc.Have,
+						Clients:     tc.Clients,
+					},
+				},
+			}
+
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+			errs := validator.Errors()
+
+			require.Len(t, errs, len(tc.Errors))
+
+			for i, expected := range tc.Errors {
+				assert.EqualError(t, errs[i], expected)
+			}
+		})
+	}
+}
+
+func TestValidateIdentityProvidersShouldSetDefaultDPoPValues(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     schema.IdentityProvidersOpenIDConnectDPoP
+		Expected schema.IdentityProvidersOpenIDConnectDPoP
+		Errors   []string
+	}{
+		{
+			"ShouldSetDefaults",
+			schema.IdentityProvidersOpenIDConnectDPoP{},
+			schema.IdentityProvidersOpenIDConnectDPoP{NonceLifespan: time.Minute * 5, ClockSkew: time.Second * 30},
+			nil,
+		},
+		{
+			"ShouldNotOverrideConfigured",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: time.Minute, ClockSkew: time.Second * 10},
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: time.Minute, ClockSkew: time.Second * 10},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnNegativeNonceLifespan",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: -time.Minute},
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: -time.Minute, ClockSkew: time.Second * 30},
+			[]string{"identity_providers: oidc: dpop: option 'nonce_lifespan' must be a positive duration but it's configured as '-1m0s'"},
+		},
+		{
+			"ShouldRaiseErrorOnNegativeClockSkew",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, ClockSkew: -time.Second},
+			schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true, NonceLifespan: time.Minute * 5, ClockSkew: -time.Second},
+			[]string{"identity_providers: oidc: dpop: option 'clock_skew' must be a positive duration but it's configured as '-1s'"},
+		},
+		{
+			"ShouldRaiseErrorOnEnforcedWithoutEnabled",
+			schema.IdentityProvidersOpenIDConnectDPoP{Enforced: true},
+			schema.IdentityProvidersOpenIDConnectDPoP{Enforced: true, NonceLifespan: time.Minute * 5, ClockSkew: time.Second * 30},
+			[]string{"identity_providers: oidc: dpop: option 'enforced' can't be enabled when option 'enabled' is disabled"},
+		},
+		{
+			"ShouldRaiseErrorOnNonceEnforcedWithoutEnabled",
+			schema.IdentityProvidersOpenIDConnectDPoP{NonceEnforced: true},
+			schema.IdentityProvidersOpenIDConnectDPoP{NonceEnforced: true, NonceLifespan: time.Minute * 5, ClockSkew: time.Second * 30},
+			[]string{"identity_providers: oidc: dpop: option 'nonce_enforced' can't be enabled when option 'enabled' is disabled"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:  "abcdefghijklmnopqrstuvwxyz123456",
+						JSONWebKeys: []schema.JWK{{Key: keyRSA2048, CertificateChain: certRSA2048}},
+						DPoP:        tc.Have,
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{ID: "test", Secret: tOpenIDConnectPlainTextClientSecret, RedirectURIs: []string{"https://app.example.com"}},
+						},
+					},
+				},
+			}
+
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
+
+			assert.Equal(t, tc.Expected, config.IdentityProviders.OIDC.DPoP)
+
+			errs := validator.Errors()
+
+			require.Len(t, errs, len(tc.Errors))
+
+			for i, expected := range tc.Errors {
+				assert.EqualError(t, errs[i], expected)
+			}
+		})
+	}
+}
+
 func MustDecodeSecret(value string) *schema.PasswordDigest {
 	if secret, err := schema.DecodePasswordDigest(value); err != nil {
 		panic(err)

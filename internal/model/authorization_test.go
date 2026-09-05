@@ -179,6 +179,113 @@ func TestAuthorization_Parse(t *testing.T) {
 	}
 }
 
+func TestAuthorizationShouldParseDPoPScheme(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     string
+		Expected AuthorizationScheme
+		Value    string
+		Err      string
+	}{
+		{
+			"ShouldParseDPoP",
+			"DPoP abc123",
+			AuthorizationSchemeDPoP,
+			"abc123",
+			"",
+		},
+		{
+			"ShouldParseDPoPLowercase",
+			"dpop abc123",
+			AuthorizationSchemeDPoP,
+			"abc123",
+			"",
+		},
+		{
+			"ShouldRejectEmptyDPoPValue",
+			"DPoP ",
+			AuthorizationSchemeNone,
+			"",
+			"invalid value: bearer scheme value must not be empty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			authz := NewAuthorization()
+
+			err := authz.Parse(tc.Have)
+
+			if tc.Err != "" {
+				assert.EqualError(t, err, tc.Err)
+
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.Expected, authz.Scheme())
+			assert.Equal(t, tc.Value, authz.Value())
+		})
+	}
+}
+
+func TestAuthorizationShouldEncodeDPoPScheme(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     string
+		Expected string
+	}{
+		{
+			"ShouldEncodeDPoP",
+			"DPoP abc123",
+			"DPoP abc123",
+		},
+		{
+			"ShouldEncodeDPoPLowercase",
+			"dpop abc123",
+			"DPoP abc123",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			authz := NewAuthorization()
+
+			assert.NoError(t, authz.Parse(tc.Have))
+
+			assert.Equal(t, tc.Expected, authz.EncodeHeader())
+		})
+	}
+}
+
+func TestNewAuthorizationSchemesShouldIncludeDPoP(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     []string
+		Expected AuthorizationSchemes
+	}{
+		{
+			"ShouldParseDPoP",
+			[]string{"dpop"},
+			AuthorizationSchemes{AuthorizationSchemeDPoP},
+		},
+		{
+			"ShouldParseDPoPAnyCase",
+			[]string{"DPoP"},
+			AuthorizationSchemes{AuthorizationSchemeDPoP},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			actual := NewAuthorizationSchemes(tc.Have...)
+
+			assert.Equal(t, tc.Expected, actual)
+			assert.True(t, actual.Has(AuthorizationSchemeDPoP))
+		})
+	}
+}
+
 func TestAuthorization_ParsBasic(t *testing.T) {
 	testCases := []struct {
 		name     string

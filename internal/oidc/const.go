@@ -97,6 +97,12 @@ const (
 )
 
 const (
+	// frequencyGarbageCollectionOAuth2DPoP is the period between collections of the expired rows of the OAuth 2.0 DPoP
+	// tables. The rows are small and short lived so the exact period only bounds how many expired rows can accumulate.
+	frequencyGarbageCollectionOAuth2DPoP = time.Minute * 30
+)
+
+const (
 	backChannelLogoutConcurrencyDefault = 10
 )
 
@@ -286,6 +292,18 @@ const (
 // JWT Header Type values.
 const (
 	JWTHeaderTypeValueAccessTokenJWT = "at+jwt"
+)
+
+// RFC9449 DPoP HTTP header names and authentication scheme.
+const (
+	// HeaderDPoP is the header the RFC9449 proof JWT is transmitted in.
+	HeaderDPoP = "DPoP"
+
+	// HeaderDPoPNonce is the header a server provided RFC9449 nonce is transmitted in.
+	HeaderDPoPNonce = "DPoP-Nonce"
+
+	// SchemeDPoP is the RFC9449 authentication scheme a DPoP bound Access Token is presented with.
+	SchemeDPoP = "DPoP"
 )
 
 // ID Token Audience Mode strings.

@@ -979,3 +979,112 @@ func (s *StoreSuite) TestSerializationFailureMappingShouldNotAffectOtherErrors()
 	assert.EqualError(s.T(), err, "deactivate error")
 	assert.NotErrorIs(s.T(), err, oauthelia2.ErrSerializationFailure)
 }
+
+func (s *StoreSuite) TestCheckAndSetDPoPProofUsed() {
+	exp := time.Unix(1700000000, 0).UTC()
+
+	htu := "https://auth.example.com/api/oidc/token"
+
+	s.T().Run("ShouldReturnUnusedForFreshProof", func(t *testing.T) {
+		s.mock.EXPECT().CheckAndSetOAuth2DPoPProofUsed(s.ctx, "jti", "POST", htu, exp, gomock.Any()).Return(false, nil)
+
+		used, err := s.store.CheckAndSetDPoPProofUsed(s.ctx, "jti", "jkt", "nonce", "POST", htu, exp)
+
+		assert.NoError(t, err)
+		assert.False(t, used)
+	})
+
+	s.T().Run("ShouldReturnUsedForReplayedProof", func(t *testing.T) {
+		s.mock.EXPECT().CheckAndSetOAuth2DPoPProofUsed(s.ctx, "jti", "POST", htu, exp, gomock.Any()).Return(true, nil)
+
+		used, err := s.store.CheckAndSetDPoPProofUsed(s.ctx, "jti", "jkt", "nonce", "POST", htu, exp)
+
+		assert.NoError(t, err)
+		assert.True(t, used)
+	})
+
+	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
+		s.mock.EXPECT().CheckAndSetOAuth2DPoPProofUsed(s.ctx, "jti", "POST", htu, exp, gomock.Any()).Return(false, fmt.Errorf("check error"))
+
+		used, err := s.store.CheckAndSetDPoPProofUsed(s.ctx, "jti", "jkt", "nonce", "POST", htu, exp)
+
+		assert.EqualError(t, err, "check error")
+		assert.False(t, used)
+	})
+
+	s.T().Run("ShouldNotKeyOnThumbprint", func(t *testing.T) {
+		s.mock.EXPECT().CheckAndSetOAuth2DPoPProofUsed(s.ctx, "jti", "POST", htu, exp, gomock.Any()).Return(true, nil)
+
+		used, err := s.store.CheckAndSetDPoPProofUsed(s.ctx, "jti", "other", "nonce", "POST", htu, exp)
+
+		assert.NoError(t, err)
+		assert.True(t, used)
+	})
+
+	s.T().Run("ShouldNotKeyOnNonce", func(t *testing.T) {
+		s.mock.EXPECT().CheckAndSetOAuth2DPoPProofUsed(s.ctx, "jti", "POST", htu, exp, gomock.Any()).Return(true, nil)
+
+		used, err := s.store.CheckAndSetDPoPProofUsed(s.ctx, "jti", "jkt", "other", "POST", htu, exp)
+
+		assert.NoError(t, err)
+		assert.True(t, used)
+	})
+}
+
+func (s *StoreSuite) TestCreateDPoPNonce() {
+	exp := time.Unix(1700000000, 0).UTC()
+
+	nonce := model.OAuth2DPoPNonce{Signature: model.NewOAuth2DPoPNonceSignature("nonce"), ExpiresAt: exp}
+
+	s.T().Run("ShouldSaveNonce", func(t *testing.T) {
+		s.mock.EXPECT().SaveOAuth2DPoPNonce(s.ctx, nonce).Return(nil)
+
+		assert.NoError(t, s.store.CreateDPoPNonce(s.ctx, "nonce", exp))
+	})
+
+	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
+		s.mock.EXPECT().SaveOAuth2DPoPNonce(s.ctx, nonce).Return(fmt.Errorf("save error"))
+
+		assert.EqualError(t, s.store.CreateDPoPNonce(s.ctx, "nonce", exp), "save error")
+	})
+}
+
+func (s *StoreSuite) TestIsDPoPNonceValid() {
+	signature := model.NewOAuth2DPoPNonceSignature("nonce")
+
+	s.T().Run("ShouldBeValidWhenUnexpired", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DPoPNonce(s.ctx, signature).Return(&model.OAuth2DPoPNonce{Signature: signature, ExpiresAt: time.Now().Add(time.Minute)}, nil)
+
+		valid, err := s.store.IsDPoPNonceValid(s.ctx, "nonce")
+
+		assert.NoError(t, err)
+		assert.True(t, valid)
+	})
+
+	s.T().Run("ShouldNotBeValidWhenExpired", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DPoPNonce(s.ctx, signature).Return(&model.OAuth2DPoPNonce{Signature: signature, ExpiresAt: time.Now().Add(-time.Minute)}, nil)
+
+		valid, err := s.store.IsDPoPNonceValid(s.ctx, "nonce")
+
+		assert.NoError(t, err)
+		assert.False(t, valid)
+	})
+
+	s.T().Run("ShouldNotBeValidWhenUnknown", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DPoPNonce(s.ctx, signature).Return(nil, fmt.Errorf("error selecting oauth2 dpop nonce with signature '%s': %w", signature, sql.ErrNoRows))
+
+		valid, err := s.store.IsDPoPNonceValid(s.ctx, "nonce")
+
+		assert.NoError(t, err)
+		assert.False(t, valid)
+	})
+
+	s.T().Run("ShouldErrOnStorageFailure", func(t *testing.T) {
+		s.mock.EXPECT().LoadOAuth2DPoPNonce(s.ctx, signature).Return(nil, fmt.Errorf("load error"))
+
+		valid, err := s.store.IsDPoPNonceValid(s.ctx, "nonce")
+
+		assert.EqualError(t, err, "load error")
+		assert.False(t, valid)
+	})
+}

@@ -107,6 +107,7 @@ identity_providers:
         introspection_endpoint_auth_signing_alg: 'RS256'
         pushed_authorization_request_endpoint_auth_method: 'client_secret_basic'
         pushed_authorization_request_endpoint_auth_signing_alg: 'RS256'
+        dpop_bound_access_tokens: false
         jwks_uri: ''
         jwks:
           - key_id: 'example'
@@ -1213,6 +1214,12 @@ Per the text:
 {{< callout context="danger" title="RFC6749: Section 2.3" icon="outline/alert-octagon" >}}
 The client MUST NOT use more than one authentication method in each request.
 {{< /callout >}}
+
+### dpop_bound_access_tokens
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enforces DPoP bound Access Tokens for this client.
 
 ### jwks_uri
 

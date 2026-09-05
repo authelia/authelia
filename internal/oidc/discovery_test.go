@@ -328,3 +328,80 @@ func TestNewOpenIDConnectWellKnownConfiguration_Copy(t *testing.T) {
 
 	assert.Equal(t, config.OAuth2WellKnownConfiguration, y)
 }
+
+func TestNewOpenIDConnectWellKnownConfiguration_CopyDemonstratingProofOfPossessionEnabled(t *testing.T) {
+	expected := []string{
+		oidc.SigningAlgRSAUsingSHA256,
+		oidc.SigningAlgRSAUsingSHA384,
+		oidc.SigningAlgRSAUsingSHA512,
+		oidc.SigningAlgECDSAUsingP256AndSHA256,
+		oidc.SigningAlgECDSAUsingP384AndSHA384,
+		oidc.SigningAlgECDSAUsingP521AndSHA512,
+		oidc.SigningAlgRSAPSSUsingSHA256,
+		oidc.SigningAlgRSAPSSUsingSHA384,
+		oidc.SigningAlgRSAPSSUsingSHA512,
+	}
+
+	config := oidc.NewOpenIDConnectWellKnownConfiguration(&schema.IdentityProvidersOpenIDConnect{
+		DPoP: schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true},
+	})
+
+	require.NotNil(t, config.OAuth2DemonstratingProofOfPossessionDiscoveryOptions)
+	assert.Equal(t, expected, config.DPoPSigningAlgValuesSupported)
+
+	actual := config.Copy()
+
+	require.NotNil(t, actual.OAuth2DemonstratingProofOfPossessionDiscoveryOptions)
+	assert.Equal(t, expected, actual.DPoPSigningAlgValuesSupported)
+
+	data, err := json.Marshal(&actual)
+	require.NoError(t, err)
+
+	decoded := oidc.OpenIDConnectWellKnownConfiguration{}
+
+	require.NoError(t, json.Unmarshal(data, &decoded))
+
+	require.NotNil(t, decoded.OAuth2DemonstratingProofOfPossessionDiscoveryOptions)
+	assert.Equal(t, expected, decoded.DPoPSigningAlgValuesSupported)
+}
+
+func TestOAuth2WellKnownConfiguration_Copy_DemonstratingProofOfPossession(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     *oidc.OAuth2DemonstratingProofOfPossessionDiscoveryOptions
+		Expected *oidc.OAuth2DemonstratingProofOfPossessionDiscoveryOptions
+	}{
+		{
+			"ShouldRetainSigningAlgValues",
+			&oidc.OAuth2DemonstratingProofOfPossessionDiscoveryOptions{
+				DPoPSigningAlgValuesSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256},
+			},
+			&oidc.OAuth2DemonstratingProofOfPossessionDiscoveryOptions{
+				DPoPSigningAlgValuesSupported: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256},
+			},
+		},
+		{
+			"ShouldRetainNil",
+			nil,
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			config := oidc.OAuth2WellKnownConfiguration{
+				OAuth2DemonstratingProofOfPossessionDiscoveryOptions: tc.Have,
+			}
+
+			actual := config.Copy()
+
+			assert.Equal(t, tc.Expected, actual.OAuth2DemonstratingProofOfPossessionDiscoveryOptions)
+
+			if tc.Have == nil {
+				return
+			}
+
+			require.NotSame(t, tc.Have, actual.OAuth2DemonstratingProofOfPossessionDiscoveryOptions)
+		})
+	}
+}

@@ -141,6 +141,7 @@ const (
 const (
 	SchemeBasic  = "basic"
 	SchemeBearer = "bearer"
+	SchemeDPoP   = "dpop"
 )
 
 // Authz values.

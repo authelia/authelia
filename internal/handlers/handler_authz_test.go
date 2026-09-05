@@ -1,19 +1,25 @@
 package handlers
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"database/sql"
 	"fmt"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
+	"authelia.com/provider/oauth2/token/jose"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -143,6 +149,24 @@ func (s *AuthzSuite) BuilderWithBearerScheme() (builder *AuthzBuilder) {
 		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(proxyAuthHeader, NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
 	case AuthzImplLegacy:
 		return NewAuthzBuilder().WithImplementationLegacy().WithStrategies(legacyHeader, NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	default:
+		s.T().FailNow()
+	}
+
+	return nil
+}
+
+func (s *AuthzSuite) BuilderWithDPoPScheme() (builder *AuthzBuilder) {
+	header := NewHeaderAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String(), model.AuthorizationSchemeDPoP.String())
+	header.delay = middlewares.NewTimingAttackDelay(1, time.Millisecond).SetMinimumDelay(10).SetRecord(false)
+
+	switch s.implementation {
+	case AuthzImplExtAuthz:
+		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(header, NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	case AuthzImplForwardAuth:
+		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(header, NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	case AuthzImplAuthRequest:
+		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(header, NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
 	default:
 		s.T().FailNow()
 	}
@@ -1272,6 +1296,240 @@ func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeClientCreden
 	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
 	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+}
+
+func (s *AuthzSuite) TestShouldValidateDPoPProofsUsingBearerAuthorization() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	const (
+		schemeBearer = "Bearer"
+		targetURI    = "https://one-factor.example.com/api"
+		unusableJKT  = "D6Nq0uHi1xL9fbLBu6xVGvKtOsBqiOxfHy_hOZlLzHM"
+	)
+
+	testCases := []struct {
+		Name              string
+		Bound             bool
+		Scheme            string
+		Proof             bool
+		Duplicate         bool
+		NonceEnforced     bool
+		ExpectedStatus    int
+		ExpectedChallenge string
+		ExpectedNonce     bool
+	}{
+		{
+			Name:              "ShouldRejectBoundTokenPresentedAsBearer",
+			Bound:             true,
+			Scheme:            schemeBearer,
+			ExpectedStatus:    fasthttp.StatusUnauthorized,
+			ExpectedChallenge: oidc.SchemeDPoP + " ",
+		},
+		{
+			Name:              "ShouldRejectBoundTokenPresentedAsBearerWithValidProof",
+			Bound:             true,
+			Scheme:            schemeBearer,
+			Proof:             true,
+			ExpectedStatus:    fasthttp.StatusUnauthorized,
+			ExpectedChallenge: oidc.SchemeDPoP + " ",
+		},
+		{
+			Name:              "ShouldRejectBoundTokenPresentedAsDPoPWithDuplicateProofHeaders",
+			Bound:             true,
+			Scheme:            oidc.SchemeDPoP,
+			Proof:             true,
+			Duplicate:         true,
+			ExpectedStatus:    fasthttp.StatusUnauthorized,
+			ExpectedChallenge: oidc.SchemeDPoP + " ",
+		},
+		{
+			Name:              "ShouldRejectUnboundTokenPresentedAsDPoP",
+			Scheme:            oidc.SchemeDPoP,
+			ExpectedStatus:    fasthttp.StatusUnauthorized,
+			ExpectedChallenge: oidc.SchemeDPoP + " ",
+		},
+		{
+			Name:              "ShouldRejectBoundTokenPresentedAsDPoPWithoutProof",
+			Bound:             true,
+			Scheme:            oidc.SchemeDPoP,
+			ExpectedStatus:    fasthttp.StatusUnauthorized,
+			ExpectedChallenge: oidc.SchemeDPoP + " ",
+		},
+		{
+			Name:              "ShouldChallengeBoundTokenPresentedAsDPoPWithProofMissingNonce",
+			Bound:             true,
+			Scheme:            oidc.SchemeDPoP,
+			Proof:             true,
+			NonceEnforced:     true,
+			ExpectedStatus:    fasthttp.StatusUnauthorized,
+			ExpectedChallenge: oidc.SchemeDPoP + " ",
+			ExpectedNonce:     true,
+		},
+		{
+			Name:           "ShouldAllowBoundTokenPresentedAsDPoPWithValidProof",
+			Bound:          true,
+			Scheme:         oidc.SchemeDPoP,
+			Proof:          true,
+			ExpectedStatus: fasthttp.StatusOK,
+		},
+		{
+			Name:           "ShouldAllowUnboundTokenPresentedAsBearer",
+			Scheme:         schemeBearer,
+			ExpectedStatus: fasthttp.StatusOK,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.Name, func(t *testing.T) {
+			authz := s.BuilderWithDPoPScheme().Build()
+
+			s.ApplyTestDelayer(authz)
+
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			setUpMockClock(mock)
+
+			target := s.RequireParseRequestURI(targetURI)
+
+			audience := []string{targetURI, targetURI + "/"}
+
+			mock.Ctx.Configuration.IdentityProviders = schema.IdentityProviders{
+				OIDC: &schema.IdentityProvidersOpenIDConnect{
+					HMACSecret: "abcdefghijklmnopqrstuvwxyz123456",
+					Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+						BearerAuthorization: true,
+					},
+					DPoP: schema.IdentityProvidersOpenIDConnectDPoP{
+						Enabled:       true,
+						ClockSkew:     time.Minute,
+						NonceEnforced: tc.NonceEnforced,
+						NonceLifespan: time.Minute,
+					},
+					Clients: []schema.IdentityProvidersOpenIDConnectClient{
+						{
+							ID:                  "test-dpop-client",
+							Scopes:              []string{oidc.ScopeAutheliaBearerAuthz},
+							Audience:            audience,
+							GrantTypes:          []string{oidc.GrantTypeClientCredentials},
+							AuthorizationPolicy: "one_factor",
+						},
+					},
+				},
+			}
+
+			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
+
+			client, err := mock.Ctx.Providers.OpenIDConnect.GetRegisteredClient(mock.Ctx, "test-dpop-client")
+			require.NoError(t, err)
+
+			var (
+				key *ecdsa.PrivateKey
+				jkt string
+			)
+
+			switch {
+			case tc.Proof:
+				key, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				require.NoError(t, err)
+
+				jkt, err = fjwt.ThumbprintJWK(&jose.JSONWebKey{Key: key.Public()})
+				require.NoError(t, err)
+			case tc.Bound:
+				jkt = unusableJKT
+			}
+
+			now := mock.Ctx.Providers.Clock.Now()
+
+			oidcSession := &oidc.Session{
+				ClientID:          "test-dpop-client",
+				ClientCredentials: true,
+				DPoPJWKThumbprint: jkt,
+				DefaultSession: &openid.DefaultSession{
+					Headers: &fjwt.Headers{Extra: map[string]any{}},
+					Claims: &fjwt.IDTokenClaims{
+						Issuer:   "https://auth.example.com",
+						Subject:  "test-dpop-client",
+						IssuedAt: fjwt.NewNumericDate(now),
+						Extra:    map[string]any{},
+					},
+					RequestedAt: now,
+				},
+			}
+
+			requester := &oauthelia2.AccessRequest{
+				GrantTypes: oauthelia2.Arguments{oidc.GrantTypeClientCredentials},
+				Request: oauthelia2.Request{
+					ID:                "request-dpop",
+					RequestedAt:       now,
+					Client:            client,
+					RequestedScope:    oauthelia2.Arguments{oidc.ScopeAutheliaBearerAuthz},
+					GrantedScope:      oauthelia2.Arguments{oidc.ScopeAutheliaBearerAuthz},
+					RequestedAudience: oauthelia2.Arguments(audience),
+					GrantedAudience:   oauthelia2.Arguments(audience),
+					Session:           oidcSession,
+					Form:              url.Values{},
+				},
+			}
+
+			token, signature, err := mock.Ctx.Providers.OpenIDConnect.Strategy.Core.GenerateAccessToken(mock.Ctx, requester)
+			require.NoError(t, err)
+
+			oauthSession, err := model.NewOAuth2SessionFromRequest(signature, requester)
+			require.NoError(t, err)
+
+			s.setRequest(mock.Ctx, fasthttp.MethodGet, target, true, false)
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderAuthorization, tc.Scheme+" "+token)
+
+			if tc.Proof {
+				proof := newTestDPoPProof(t, key, fasthttp.MethodGet, targetURI, token)
+
+				mock.Ctx.Request.Header.Set(oidc.HeaderDPoP, proof)
+
+				if tc.Duplicate {
+					mock.Ctx.Request.Header.Add(oidc.HeaderDPoP, proof)
+				}
+			}
+
+			if tc.Proof && tc.Scheme == oidc.SchemeDPoP && !tc.Duplicate {
+				if tc.NonceEnforced {
+					mock.StorageMock.EXPECT().
+						SaveOAuth2DPoPNonce(gomock.Any(), gomock.Any()).
+						Return(nil)
+				} else {
+					mock.StorageMock.EXPECT().
+						CheckAndSetOAuth2DPoPProofUsed(gomock.Any(), gomock.Any(), gomock.Eq(fasthttp.MethodGet), gomock.Eq(targetURI), gomock.Any(), gomock.Any()).
+						Return(false, nil)
+				}
+			}
+
+			mock.StorageMock.EXPECT().
+				LoadOAuth2Session(gomock.Eq(mock.Ctx), gomock.Eq(storage.OAuth2SessionTypeAccessToken), gomock.Eq(signature)).
+				Return(oauthSession, nil)
+
+			authz.Handler(mock.Ctx)
+
+			assert.Equal(t, tc.ExpectedStatus, mock.Ctx.Response.StatusCode())
+
+			challenge := string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+
+			if tc.ExpectedChallenge == "" {
+				assert.Equal(t, "", challenge)
+			} else {
+				assert.True(t, strings.HasPrefix(challenge, tc.ExpectedChallenge), challenge)
+			}
+
+			if tc.ExpectedNonce {
+				assert.NotEmpty(t, string(mock.Ctx.Response.Header.Peek(oidc.HeaderDPoPNonce)))
+			} else {
+				assert.Empty(t, string(mock.Ctx.Response.Header.Peek(oidc.HeaderDPoPNonce)))
+			}
+		})
+	}
 }
 
 func (s *AuthzSuite) TestShouldRejectBearerSchemeClientCredentialsWithoutBearerAuthzScope() {

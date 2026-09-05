@@ -48,6 +48,8 @@ func (a *Authorization) EncodeHeader() string {
 	switch a.scheme {
 	case AuthorizationSchemeNone:
 		return ""
+	case AuthorizationSchemeDPoP:
+		return fmt.Sprintf("DPoP %s", a.value)
 	case AuthorizationSchemeBasic, AuthorizationSchemeBearer:
 		return fmt.Sprintf("%s %s", cases.Title(language.English).String(a.scheme.String()), a.value)
 	default:
@@ -153,6 +155,12 @@ func (a *Authorization) Parse(raw string) (err error) {
 		}
 
 		a.scheme = AuthorizationSchemeBearer
+	case AuthorizationSchemeDPoP.String():
+		if err = a.parseSchemeBearer(value); err != nil {
+			return err
+		}
+
+		a.scheme = AuthorizationSchemeDPoP
 	default:
 		return fmt.Errorf("invalid scheme: scheme with name '%s' is unknown", s)
 	}
@@ -221,6 +229,8 @@ func NewAuthorizationSchemes(schemes ...string) AuthorizationSchemes {
 			s = append(s, AuthorizationSchemeBasic)
 		case AuthorizationSchemeBearer.String():
 			s = append(s, AuthorizationSchemeBearer)
+		case AuthorizationSchemeDPoP.String():
+			s = append(s, AuthorizationSchemeDPoP)
 		}
 	}
 
@@ -251,6 +261,8 @@ func (s AuthorizationScheme) String() string {
 		return "basic"
 	case AuthorizationSchemeBearer:
 		return "bearer"
+	case AuthorizationSchemeDPoP:
+		return "dpop"
 	default:
 		return ""
 	}
@@ -261,4 +273,5 @@ const (
 	AuthorizationSchemeNone AuthorizationScheme = iota
 	AuthorizationSchemeBasic
 	AuthorizationSchemeBearer
+	AuthorizationSchemeDPoP
 )
