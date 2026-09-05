@@ -95,6 +95,8 @@ const ResetPasswordStep2 = function () {
     const doResetPassword = async () => {
         setPassword1("");
         setPassword2("");
+        setErrorPassword1(false);
+        setErrorPassword2(false);
 
         if (password1 === "" || password2 === "") {
             if (password1 === "") {
@@ -129,6 +131,8 @@ const ResetPasswordStep2 = function () {
             } else {
                 createErrorNotification(translate("There was an issue resetting the password"));
             }
+
+            setFormDisabled(false);
         }
     };
 
