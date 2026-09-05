@@ -28,7 +28,8 @@ function DecisionFormRequest({ claims, collapsible, onChangeClaims, response }: 
         <CardContent className="flex flex-col gap-5 px-4 py-5">
             <DecisionFormScopes scopes={response.scopes} />
             <DecisionFormClaims
-                claims={claims}
+                claims={response.claims}
+                checked={claims}
                 essential_claims={response.essential_claims}
                 onChangeChecked={onChangeClaims}
             />
@@ -39,7 +40,7 @@ function DecisionFormRequest({ claims, collapsible, onChangeClaims, response }: 
 
     const empty =
         (response.scopes?.length ?? 0) === 0 &&
-        claims.length === 0 &&
+        (response.claims?.length ?? 0) === 0 &&
         (response.essential_claims?.length ?? 0) === 0 &&
         (response.audience?.length ?? 0) === 0 &&
         (response.resource?.length ?? 0) === 0;

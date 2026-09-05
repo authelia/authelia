@@ -41,13 +41,22 @@ it("does not truncate a colon delimited custom scope to its suffix", () => {
 });
 
 it("renders a known claim with its description", () => {
-    render(<DecisionFormClaims claims={["email"]} essential_claims={null} onChangeChecked={vi.fn()} />);
+    render(
+        <DecisionFormClaims claims={["email"]} checked={["email"]} essential_claims={null} onChangeChecked={vi.fn()} />,
+    );
 
     expect(screen.getByText("E-mail Address")).toBeInTheDocument();
 });
 
 it("does not truncate a colon delimited custom claim to its suffix", () => {
-    render(<DecisionFormClaims claims={["urn:example:role"]} essential_claims={null} onChangeChecked={vi.fn()} />);
+    render(
+        <DecisionFormClaims
+            claims={["urn:example:role"]}
+            checked={["urn:example:role"]}
+            essential_claims={null}
+            onChangeChecked={vi.fn()}
+        />,
+    );
 
     expect(screen.queryByText("role")).not.toBeInTheDocument();
     expect(screen.getByText("Urn:example:role")).toBeInTheDocument();
@@ -67,13 +76,22 @@ it("does not repeat a custom scope that is already its own label", () => {
 });
 
 it("does not repeat a custom claim that differs from its label only by case", () => {
-    render(<DecisionFormClaims claims={["urn:example:role"]} essential_claims={null} onChangeChecked={vi.fn()} />);
+    render(
+        <DecisionFormClaims
+            claims={["urn:example:role"]}
+            checked={["urn:example:role"]}
+            essential_claims={null}
+            onChangeChecked={vi.fn()}
+        />,
+    );
 
     expect(screen.getAllByText(/urn:example:role/i)).toHaveLength(1);
 });
 
 it("shows the raw claim beside a described claim", () => {
-    render(<DecisionFormClaims claims={["email"]} essential_claims={null} onChangeChecked={vi.fn()} />);
+    render(
+        <DecisionFormClaims claims={["email"]} checked={["email"]} essential_claims={null} onChangeChecked={vi.fn()} />,
+    );
 
     expect(screen.getByText("E-mail Address")).toBeInTheDocument();
     expect(screen.getByText("email")).toBeInTheDocument();

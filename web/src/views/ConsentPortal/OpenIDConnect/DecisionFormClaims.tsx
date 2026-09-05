@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -10,14 +10,14 @@ import DecisionFormSection, { DecisionFormSectionItem } from "@views/ConsentPort
 export interface Props {
     onChangeChecked: (_claims: string[]) => void;
     claims: null | string[];
+    checked: string[];
     essential_claims: null | string[];
 }
 
-function DecisionFormClaims({ claims, essential_claims, onChangeChecked }: Props) {
+function DecisionFormClaims({ checked, claims, essential_claims, onChangeChecked }: Props) {
     const { t: translate } = useTranslation(["consent"]);
 
-    const [availableClaims] = useState(() => claims || []);
-    const checked = useMemo(() => claims || [], [claims]);
+    const availableClaims = useMemo(() => claims || [], [claims]);
 
     const handleClaimCheckboxOnChange = (claim: string) => {
         const checking = !checked.includes(claim);

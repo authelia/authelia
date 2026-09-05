@@ -103,6 +103,43 @@ it("does not render a disclosure when there is nothing to disclose", () => {
     expect(screen.queryByRole("button", { name: "Show request details" })).not.toBeInTheDocument();
 });
 
+it("renders a disclosure when every optional claim is deselected", () => {
+    render(
+        <DecisionFormRequest
+            collapsible
+            response={response({ audience: [], essential_claims: null, resource: null, scopes: [] })}
+            claims={[]}
+            onChangeClaims={vi.fn()}
+        />,
+    );
+
+    expect(screen.getByRole("button", { name: "Show request details" })).toBeInTheDocument();
+});
+
+it("keeps deselected claims listed after the request details are reopened", () => {
+    const { rerender } = render(
+        <DecisionFormRequest
+            response={response({ claims: ["name", "picture"] })}
+            claims={["name", "picture"]}
+            onChangeClaims={vi.fn()}
+        />,
+    );
+
+    rerender(
+        <DecisionFormRequest
+            collapsible
+            response={response({ claims: ["name", "picture"] })}
+            claims={["picture"]}
+            onChangeClaims={vi.fn()}
+        />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Show request details" }));
+
+    expect(document.getElementById("claim-name")).toBeInTheDocument();
+    expect(document.getElementById("claim-picture")).toBeInTheDocument();
+});
+
 it("reports claim changes", () => {
     const onChangeClaims = vi.fn();
 
