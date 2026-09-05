@@ -58,6 +58,7 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       25       |     4.39.21      |    Adjusted storage encryption implementation to include HKDF for key derivation and column-specific AADs    |
 |       26       |     4.39.21      | Adjusted storage encryption AADs to be specific to the individual column and row rather than just the column |
 |       27       |     4.39.21      |                    Included Access Token Session Signature in Refresh Token Session Table                    |
-|       28       |     4.39.21      |           Fix the Access Token Session Signature column length in the Refresh Token Session Table            |
+|       28       |     4.39.22      |           Fix the Access Token Session Signature column length in the Refresh Token Session Table            |
+|       29       |     4.39.23      |                       OAuth 2.0 Resource Indicators recorded separately from Audience                        |
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068

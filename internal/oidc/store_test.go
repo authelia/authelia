@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -142,6 +143,127 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 
 	assert.True(t, validClient)
 	assert.False(t, invalidClient)
+}
+
+func TestOAuth2SessionGrantedResourceRoundTripsThroughStore(t *testing.T) {
+	ctx := context.Background()
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientname,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
+			},
+		},
+	}, provider)
+
+	requester := &oauthelia2.Request{
+		ID:                "req-resource-e2e",
+		Client:            &oidc.RegisteredClient{ID: myclient},
+		RequestedScope:    oauthelia2.Arguments{oidc.ScopeOpenID},
+		RequestedAudience: oauthelia2.Arguments{"aud-a"},
+		Session:           &oidc.Session{},
+	}
+
+	consent := &model.OAuth2ConsentSession{
+		GrantedScopes:   model.StringSlicePipeDelimited{oidc.ScopeOpenID},
+		GrantedAudience: model.StringSlicePipeDelimited{"aud-a"},
+		GrantedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
+	}
+
+	oidc.GrantScopeAudienceConsent(requester, consent)
+
+	require.NoError(t, s.CreateAccessTokenSession(ctx, "sig-resource-e2e", requester))
+
+	loaded, err := s.GetAccessTokenSession(ctx, "sig-resource-e2e", &oidc.Session{})
+
+	require.NoError(t, err)
+	assert.Equal(t, oauthelia2.Arguments{oidc.ScopeOpenID}, loaded.GetGrantedScopes())
+	assert.Equal(t, oauthelia2.Arguments{"aud-a"}, loaded.GetGrantedAudience())
+	assert.Equal(t, oauthelia2.Arguments{"https://api.example.com"}, loaded.GetGrantedResource())
+}
+
+func TestOAuth2DeviceCodeSessionGrantedResourceRoundTripsThroughStore(t *testing.T) {
+	ctx := context.Background()
+
+	provider, err := storage.NewSQLiteProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "authelia-test-key-not-a-secret-authelia-test-key-not-a-secret",
+			Local: &schema.StorageLocal{
+				Path: filepath.Join(t.TempDir(), "db.sqlite3"),
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NoError(t, provider.StartupCheck())
+
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientname,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
+			},
+		},
+	}, provider)
+
+	requester := &oauthelia2.DeviceAuthorizeRequest{
+		Request: oauthelia2.Request{
+			ID:                "req-resource-e2e-device",
+			Client:            &oidc.RegisteredClient{ID: myclient},
+			RequestedScope:    oauthelia2.Arguments{oidc.ScopeOpenID},
+			RequestedAudience: oauthelia2.Arguments{"aud-a"},
+			Session:           &oidc.Session{},
+		},
+		DeviceCodeSignature: "sig-resource-e2e-device",
+	}
+
+	consent := &model.OAuth2ConsentSession{
+		GrantedScopes:   model.StringSlicePipeDelimited{oidc.ScopeOpenID},
+		GrantedAudience: model.StringSlicePipeDelimited{"aud-a"},
+		GrantedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
+	}
+
+	oidc.GrantScopeAudienceConsent(requester, consent)
+
+	require.NoError(t, s.CreateDeviceCodeSession(ctx, requester.DeviceCodeSignature, requester))
+
+	loaded, err := s.GetDeviceCodeSession(ctx, requester.DeviceCodeSignature, &oidc.Session{})
+
+	require.NoError(t, err)
+	assert.Equal(t, oauthelia2.Arguments{oidc.ScopeOpenID}, loaded.GetGrantedScopes())
+	assert.Equal(t, oauthelia2.Arguments{"aud-a"}, loaded.GetGrantedAudience())
+	assert.Equal(t, oauthelia2.Arguments{"https://api.example.com"}, loaded.GetGrantedResource())
 }
 
 func TestStoreSuite(t *testing.T) {

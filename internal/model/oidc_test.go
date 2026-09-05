@@ -605,6 +605,8 @@ func TestNewOAuth2DeviceCodeSessionFromRequest(t *testing.T) {
 				assert.Equal(t, tc.expected.RequestedScopes, model.StringSlicePipeDelimited(actual.GetRequestedScopes()))
 				assert.Equal(t, tc.expected.GrantedAudience, model.StringSlicePipeDelimited(actual.GetGrantedAudience()))
 				assert.Equal(t, tc.expected.RequestedAudience, model.StringSlicePipeDelimited(actual.GetRequestedAudience()))
+				assert.Equal(t, tc.expected.GrantedResource, model.StringSlicePipeDelimited(actual.GetGrantedResource()))
+				assert.Equal(t, tc.expected.RequestedResource, model.StringSlicePipeDelimited(actual.GetRequestedResource()))
 
 				form, err := actual.GetForm()
 				assert.NoError(t, err)
@@ -809,17 +811,75 @@ func TestOAuth2ConsentPreConfig(t *testing.T) {
 
 	assert.False(t, config.CanConsent())
 
-	assert.False(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}))
+	assert.False(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}, nil))
 
 	config.Scopes = []string{oidc.ScopeProfile}
 
-	assert.False(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}))
+	assert.False(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}, nil))
 
 	config.Audience = []string{"abc"}
 
-	assert.True(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}))
+	assert.True(t, config.HasExactGrants([]string{oidc.ScopeProfile}, []string{"abc"}, nil))
 
 	assert.False(t, config.HasClaimsSignature("abc"))
+}
+
+func TestOAuth2ConsentPreConfigHasExactGrants(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Config   model.OAuth2ConsentPreConfig
+		Scopes   []string
+		Audience []string
+		Resource []string
+		Expected bool
+	}{
+		{
+			Name:     "ShouldMatchWhenResourceMatches",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}, Resource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com"},
+			Expected: true,
+		},
+		{
+			Name:     "ShouldNotMatchADifferentResource",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}, Resource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://b.example.com"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldNotMatchAStoredEmptyResourceAgainstARequestedOne",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldMatchAStoredEmptyResourceAgainstNoRequestedResource",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: nil,
+			Expected: true,
+		},
+		{
+			Name:     "ShouldNotMatchWhenOnlyTheResourceDiffers",
+			Config:   model.OAuth2ConsentPreConfig{Scopes: model.StringSlicePipeDelimited{"openid"}, Audience: model.StringSlicePipeDelimited{"aud-a"}, Resource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com", "https://b.example.com"},
+			Expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, tc.Config.HasExactGrants(tc.Scopes, tc.Audience, tc.Resource))
+		})
+	}
 }
 
 func TestOAuth2ConsentSessionMatchesRequester(t *testing.T) {
@@ -1015,6 +1075,32 @@ func TestOAuth2ConsentSessionMatchesRequester(t *testing.T) {
 			},
 			Err:   "invalid_request",
 			Debug: "The requested audience 'b' does not match the requested audience 'a' from the consent session.",
+		},
+		{
+			Name:   "ShouldMatchWhenRequestedResourceIsEqual",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedResource: []string{"https://rs.example.com"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedResource: []string{"https://rs.example.com"},
+			},
+		},
+		{
+			Name:      "ShouldMatchWhenRequestedResourceIsEmpty",
+			Have:      &model.OAuth2ConsentSession{ClientID: "test"},
+			Prefix:    prefixPAR,
+			Requester: &oauthelia2.Request{Client: &oidc.RegisteredClient{ID: "test"}},
+		},
+		{
+			Name:   "ShouldNotMatchDifferentRequestedResource",
+			Have:   &model.OAuth2ConsentSession{ClientID: "test", RequestedResource: []string{"https://rs.example.com"}},
+			Prefix: prefixPAR,
+			Requester: &oauthelia2.Request{
+				Client:            &oidc.RegisteredClient{ID: "test"},
+				RequestedResource: []string{"https://other.example.com"},
+			},
+			Err:   "invalid_request",
+			Debug: "The requested resource 'https://other.example.com' does not match the requested resource 'https://rs.example.com' from the consent session.",
 		},
 		{
 			Name:   "ShouldNotMatchDifferentNonce",
@@ -1282,16 +1368,25 @@ func TestOAuth2ConsentSession(t *testing.T) {
 	assert.Equal(t, []string(nil), session.GetRequestedScopes())
 	assert.Equal(t, []string(nil), session.GetGrantedAudience())
 	assert.Equal(t, []string(nil), session.GetRequestedAudience())
+	assert.Equal(t, []string(nil), session.GetGrantedResource())
+	assert.Equal(t, []string(nil), session.GetRequestedResource())
 
 	session.GrantedScopes = []string{"abc1"}
 	session.RequestedScopes = []string{"abc2"}
 	session.GrantedAudience = []string{"abc3"}
 	session.RequestedAudience = []string{"abc4"}
+	session.GrantedResource = []string{"abc5"}
+	session.RequestedResource = []string{"abc6"}
 
 	assert.Equal(t, []string{"abc1"}, session.GetGrantedScopes())
 	assert.Equal(t, []string{"abc2"}, session.GetRequestedScopes())
 	assert.Equal(t, []string{"abc3"}, session.GetGrantedAudience())
 	assert.Equal(t, []string{"abc4"}, session.GetRequestedAudience())
+	assert.Equal(t, []string{"abc5"}, session.GetGrantedResource())
+	assert.Equal(t, []string{"abc6"}, session.GetRequestedResource())
+
+	session.GrantedResource = nil
+	session.RequestedResource = nil
 
 	session.GrantScope("abc")
 	assert.Equal(t, []string{"abc1", "abc"}, session.GetGrantedScopes())
@@ -1318,15 +1413,15 @@ func TestOAuth2ConsentSession(t *testing.T) {
 
 	assert.False(t, session.CanGrant(before))
 
-	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}))
+	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}, nil))
 
 	session.GrantedScopes = model.StringSlicePipeDelimited{oidc.ScopeOpenID}
 
-	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}))
+	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}, nil))
 
 	session.GrantedAudience = model.StringSlicePipeDelimited{"abc"}
 
-	assert.True(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}))
+	assert.True(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}, nil))
 
 	session.GrantedScopes = nil
 	session.GrantedAudience = nil
@@ -1376,6 +1471,64 @@ func TestOAuth2ConsentSession(t *testing.T) {
 	assert.Equal(t, sql.NullTime{Time: now, Valid: true}, session.RespondedAt)
 }
 
+func TestOAuth2ConsentSessionHasExactGrants(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Session  model.OAuth2ConsentSession
+		Scopes   []string
+		Audience []string
+		Resource []string
+		Expected bool
+	}{
+		{
+			Name:     "ShouldMatchWhenResourceMatches",
+			Session:  model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{"openid"}, GrantedAudience: model.StringSlicePipeDelimited{"aud-a"}, GrantedResource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com"},
+			Expected: true,
+		},
+		{
+			Name:     "ShouldNotMatchADifferentResource",
+			Session:  model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{"openid"}, GrantedAudience: model.StringSlicePipeDelimited{"aud-a"}, GrantedResource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://b.example.com"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldNotMatchAStoredEmptyResourceAgainstARequestedOne",
+			Session:  model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{"openid"}, GrantedAudience: model.StringSlicePipeDelimited{"aud-a"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com"},
+			Expected: false,
+		},
+		{
+			Name:     "ShouldMatchAStoredEmptyResourceAgainstNoRequestedResource",
+			Session:  model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{"openid"}, GrantedAudience: model.StringSlicePipeDelimited{"aud-a"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: nil,
+			Expected: true,
+		},
+		{
+			Name:     "ShouldNotMatchWhenOnlyTheResourceDiffers",
+			Session:  model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{"openid"}, GrantedAudience: model.StringSlicePipeDelimited{"aud-a"}, GrantedResource: model.StringSlicePipeDelimited{"https://a.example.com"}},
+			Scopes:   []string{"openid"},
+			Audience: []string{"aud-a"},
+			Resource: []string{"https://a.example.com", "https://b.example.com"},
+			Expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, tc.Session.HasExactGrants(tc.Scopes, tc.Audience, tc.Resource))
+		})
+	}
+}
+
 func TestMisc(t *testing.T) {
 	jti := model.NewOAuth2BlacklistedJTI("abc", time.Unix(10000, 0).UTC())
 
@@ -1388,6 +1541,196 @@ func TestMisc(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, session)
+}
+
+func TestOAuth2ResourceSurvivesRehydration(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Resource model.StringSlicePipeDelimited
+		Expected oauthelia2.Arguments
+	}{
+		{
+			Name:     "ShouldRestoreASingleResource",
+			Resource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			Expected: oauthelia2.Arguments{"https://api.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreMultipleResources",
+			Resource: model.StringSlicePipeDelimited{"https://a.example.com", "https://b.example.com"},
+			Expected: oauthelia2.Arguments{"https://a.example.com", "https://b.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreAnEmptyResource",
+			Resource: nil,
+			Expected: oauthelia2.Arguments(nil),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			defer ctrl.Finish()
+
+			store := mocks.NewMockOAuth2Storage(ctrl)
+
+			store.EXPECT().GetClient(context.TODO(), "test-client").Return(&oidc.RegisteredClient{ID: "test-client"}, nil)
+
+			session := &model.OAuth2Session{
+				RequestID:         "req-1",
+				ClientID:          "test-client",
+				RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+				GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+				RequestedAudience: model.StringSlicePipeDelimited{"aud-a"},
+				GrantedAudience:   model.StringSlicePipeDelimited{"aud-a"},
+				RequestedResource: tc.Resource,
+				GrantedResource:   tc.Resource,
+				Session:           []byte("{}"),
+			}
+
+			request, err := session.ToRequest(context.TODO(), oidc.NewSession(), store)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Expected, request.GetRequestedResource())
+			assert.Equal(t, tc.Expected, request.GetGrantedResource())
+			assert.Equal(t, oauthelia2.Arguments{"aud-a"}, request.GetRequestedAudience())
+		})
+	}
+}
+
+func TestOAuth2DeviceCodeResourceSurvivesRehydration(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Resource model.StringSlicePipeDelimited
+		Expected oauthelia2.Arguments
+	}{
+		{
+			Name:     "ShouldRestoreASingleResource",
+			Resource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			Expected: oauthelia2.Arguments{"https://api.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreMultipleResources",
+			Resource: model.StringSlicePipeDelimited{"https://a.example.com", "https://b.example.com"},
+			Expected: oauthelia2.Arguments{"https://a.example.com", "https://b.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreAnEmptyResource",
+			Resource: nil,
+			Expected: oauthelia2.Arguments(nil),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			defer ctrl.Finish()
+
+			store := mocks.NewMockOAuth2Storage(ctrl)
+
+			store.EXPECT().GetClient(context.TODO(), "test-client").Return(&oidc.RegisteredClient{ID: "test-client"}, nil)
+
+			session := &model.OAuth2DeviceCodeSession{
+				RequestID:         "req-1",
+				ClientID:          "test-client",
+				RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+				GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+				RequestedAudience: model.StringSlicePipeDelimited{"aud-a"},
+				GrantedAudience:   model.StringSlicePipeDelimited{"aud-a"},
+				RequestedResource: tc.Resource,
+				GrantedResource:   tc.Resource,
+				Session:           []byte("{}"),
+			}
+
+			request, err := session.ToRequest(context.TODO(), oidc.NewSession(), store)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Expected, request.GetRequestedResource())
+			assert.Equal(t, tc.Expected, request.GetGrantedResource())
+			assert.Equal(t, oauthelia2.Arguments{"aud-a"}, request.GetRequestedAudience())
+		})
+	}
+}
+
+func TestOAuth2PARResourceSurvivesRehydration(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Resource model.StringSlicePipeDelimited
+		Expected oauthelia2.Arguments
+	}{
+		{
+			Name:     "ShouldRestoreASingleResource",
+			Resource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			Expected: oauthelia2.Arguments{"https://api.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreMultipleResources",
+			Resource: model.StringSlicePipeDelimited{"https://a.example.com", "https://b.example.com"},
+			Expected: oauthelia2.Arguments{"https://a.example.com", "https://b.example.com"},
+		},
+		{
+			Name:     "ShouldRestoreAnEmptyResource",
+			Resource: nil,
+			Expected: oauthelia2.Arguments(nil),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			defer ctrl.Finish()
+
+			store := mocks.NewMockOAuth2Storage(ctrl)
+
+			store.EXPECT().GetClient(context.TODO(), "test-client").Return(&oidc.RegisteredClient{ID: "test-client"}, nil)
+
+			par := &model.OAuth2PushedAuthorizationSession{
+				RequestID: "req-1",
+				ClientID:  "test-client",
+				Scopes:    model.StringSlicePipeDelimited{"openid"},
+				Audience:  model.StringSlicePipeDelimited{"aud-a"},
+				Resource:  tc.Resource,
+				Session:   []byte("{}"),
+			}
+
+			request, err := par.ToAuthorizeRequest(context.TODO(), oidc.NewSession(), store)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.Expected, request.GetRequestedResource())
+			assert.Equal(t, oauthelia2.Arguments{"aud-a"}, request.GetRequestedAudience())
+		})
+	}
+}
+
+func TestOAuth2ConsentSessionGrantResource(t *testing.T) {
+	testCases := []struct {
+		Name      string
+		Requested model.StringSlicePipeDelimited
+		Expected  model.StringSlicePipeDelimited
+	}{
+		{
+			Name:      "ShouldGrantTheRequestedResource",
+			Requested: model.StringSlicePipeDelimited{"https://api.example.com"},
+			Expected:  model.StringSlicePipeDelimited{"https://api.example.com"},
+		},
+		{
+			Name:      "ShouldGrantNothingWhenNoneRequested",
+			Requested: nil,
+			Expected:  nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			consent := &model.OAuth2ConsentSession{RequestedResource: tc.Requested}
+
+			consent.GrantResource()
+
+			assert.Equal(t, tc.Expected, consent.GrantedResource)
+		})
+	}
 }
 
 func MustParseRequestURI(t *testing.T, uri string) (parsed *url.URL) {

@@ -3833,6 +3833,11 @@ components:
               type: array
               items:
                 type: string
+            resource:
+              description: The list of the requested resource indicators for the user to provide consent for.
+              type: array
+              items:
+                type: string
             pre_configuration:
               description: Indicates if this client supports pre-configuration.
               type: boolean
