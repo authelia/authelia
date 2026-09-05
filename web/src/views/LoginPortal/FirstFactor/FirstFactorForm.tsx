@@ -21,6 +21,9 @@ import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
+export const isExpiredFlowError = (err: unknown) => {
+    return err instanceof Error && err.message.includes("no longer valid");
+};
 
 export interface Props {
     disabled: boolean;
@@ -136,6 +139,26 @@ const FirstFactorForm = function (props: Props) {
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
+
+            if (isExpiredFlowError(err)) {
+                // The submitted credentials were correct, but the sign-in flow is no
+                // longer valid (e.g. the flow_id was already responded to or the
+                // consent session expired). The authentication itself succeeded, so
+                // informing the user their password was incorrect would be misleading.
+                // Redirect to a clean sign-in page without flow parameters so they
+                // can sign in again and avoid looping on the expired flow.
+                const url = new URL(window.location.href);
+                url.searchParams.delete("flow");
+                url.searchParams.delete("flowID");
+                url.searchParams.delete("subflow");
+
+                setLoading(false);
+                props.onAuthenticationStop();
+                window.location.href = url.toString();
+
+                return;
+            }
+
             createErrorNotification(translate("Incorrect username or password"));
             setLoading(false);
             props.onAuthenticationStop();
