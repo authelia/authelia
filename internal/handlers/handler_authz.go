@@ -213,20 +213,23 @@ func (authz *Authz) Handler(ctx AuthzContext) {
 	if err != nil {
 		authn.Object = object
 
-		if !ruleHasSubject && required != authorization.Bypass {
-			switch {
-			case strategy == nil:
-				ctx.ReplyUnauthorized()
-			case strategy.HeaderStrategy():
-				ctx.GetLogger().WithError(err).Error("Error occurred while attempting to authenticate a request")
+		if !ruleHasSubject {
+			switch required {
+			case authorization.Bypass:
+				ctx.GetLogger().WithError(err).Debug("The matched rule was a bypass rule however an error occurred processing the authorization request")
+			default:
+				switch {
+				case strategy == nil:
+					ctx.ReplyUnauthorized()
+				case strategy.HeaderStrategy():
+					ctx.GetLogger().WithError(err).Error("Error occurred while attempting to authenticate a request")
 
-				strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
+					strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
 
-				return
+					return
+				}
 			}
 		}
-
-		ctx.GetLogger().WithError(err).Debug("Error occurred while attempting to authenticate a request but the matched rule was a bypass rule")
 	}
 
 	switch isAuthzResult(authn.Level, required, ruleHasSubject) {

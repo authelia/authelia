@@ -633,10 +633,9 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 	}
 
 	audience := []string{object.URL.String()}
-	strategy := provider.GetAudienceStrategy(ctx)
 
-	if err = strategy(oauthelia2.JoinGrantedAudienceAndResource(requester.GetGrantedAudience(), requester.GetGrantedResource()), audience); err != nil {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("token does not contain a valid audience for the url '%s' with the error: %w", audience[0], err)
+	if !oidc.AudienceMatchesRequester(provider.GetAudienceStrategy(ctx), provider.GetResourceStrategy(ctx), requester, audience) {
+		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("the granted audience and resource does not match the request to '%s'", audience[0])
 	}
 
 	fsession := requester.GetSession()
@@ -659,8 +658,8 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("client id '%s' is registered but does not permit the '%s' scope", osession.ClientID, oidc.ScopeAutheliaBearerAuthz)
 	}
 
-	if err = strategy(client.GetAudience(), audience); err != nil {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("client id '%s' is registered but does not permit an audience for the url '%s' with the error: %w", osession.ClientID, audience[0], err)
+	if !oidc.AudienceMatchesGrantedAudienceOrResource(provider.GetAudienceStrategy(ctx), client.GetAudience(), provider.GetResourceStrategy(ctx), client.GetAudience(), audience) {
+		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("client id '%s' is registered but does not permit an audience for the url '%s'", osession.ClientID, audience[0])
 	}
 
 	if osession.DefaultSession == nil || osession.Claims == nil {

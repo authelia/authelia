@@ -12,6 +12,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 )
 
 func TestSigningAlgEdwardsPair(t *testing.T) {
@@ -490,6 +492,239 @@ func TestFloat64Match(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.result, float64Match(tc.expected, tc.value, tc.values))
+		})
+	}
+}
+
+func TestAudienceMatchesGrantedAudienceOrResource(t *testing.T) {
+	testCases := []struct {
+		name      string
+		audience  oauthelia2.Arguments
+		resource  oauthelia2.Arguments
+		requested []string
+		expected  bool
+	}{
+		{
+			"ShouldMatchExactGrantedAudience",
+			oauthelia2.Arguments{"https://app.example.com"},
+			nil,
+			[]string{"https://app.example.com"},
+			true,
+		},
+		{
+			"ShouldMatchExactGrantedAudienceWithPath",
+			oauthelia2.Arguments{"https://app.example.com/api"},
+			nil,
+			[]string{"https://app.example.com/api"},
+			true,
+		},
+		{
+			"ShouldNotMatchGrantedAudienceByPrefix",
+			oauthelia2.Arguments{"https://app.example.com"},
+			nil,
+			[]string{"https://app.example.com/api"},
+			false,
+		},
+		{
+			"ShouldMatchGrantedResourceExact",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com/api"},
+			[]string{"https://app.example.com/api"},
+			true,
+		},
+		{
+			"ShouldMatchGrantedResourceByPathPrefix",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com"},
+			[]string{"https://app.example.com/api/v1/users"},
+			true,
+		},
+		{
+			"ShouldMatchGrantedResourceByPathPrefixWithTrailingSlash",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com/api/"},
+			[]string{"https://app.example.com/api/v1"},
+			true,
+		},
+		{
+			"ShouldMatchGrantedResourceWithTrailingSlashAgainstBarePath",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com/api/"},
+			[]string{"https://app.example.com/api"},
+			true,
+		},
+		{
+			"ShouldNotMatchGrantedResourceOnPartialSegment",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com/api"},
+			[]string{"https://app.example.com/apiv2"},
+			false,
+		},
+		{
+			"ShouldNotMatchGrantedResourceParentPath",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com/api"},
+			[]string{"https://app.example.com/"},
+			false,
+		},
+		{
+			"ShouldNotMatchGrantedResourceDifferentHost",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com"},
+			[]string{"https://other.example.com/api"},
+			false,
+		},
+		{
+			"ShouldNotMatchGrantedResourceDifferentScheme",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com"},
+			[]string{"http://app.example.com/api"},
+			false,
+		},
+		{
+			"ShouldNotMatchGrantedResourceDifferentPort",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com"},
+			[]string{"https://app.example.com:8443/api"},
+			false,
+		},
+		{
+			"ShouldMatchGrantedResourceWhenGrantedAudienceDoesNot",
+			oauthelia2.Arguments{"https://other.example.com"},
+			oauthelia2.Arguments{"https://app.example.com"},
+			[]string{"https://app.example.com/api"},
+			true,
+		},
+		{
+			"ShouldMatchAnyOfMultipleGrantedResources",
+			nil,
+			oauthelia2.Arguments{"https://other.example.com", "https://app.example.com/api"},
+			[]string{"https://app.example.com/api/v1"},
+			true,
+		},
+		{
+			"ShouldNotMatchWhenOnlySomeRequestedAudiencesMatch",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com"},
+			[]string{"https://app.example.com/api", "https://other.example.com/api"},
+			false,
+		},
+		{
+			"ShouldNotMatchWithoutGrants",
+			nil,
+			nil,
+			[]string{"https://app.example.com"},
+			false,
+		},
+		{
+			"ShouldMatchEmptyRequestedAudience",
+			nil,
+			nil,
+			nil,
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, AudienceMatchesGrantedAudienceOrResource(oauthelia2.DefaultAudienceStrategy, tc.audience, oauthelia2.DefaultResourceStrategy, tc.resource, tc.requested))
+		})
+	}
+}
+
+func TestAudienceMatchesGrantedAudienceOrResourceExactStrategies(t *testing.T) {
+	testCases := []struct {
+		name      string
+		audience  oauthelia2.Arguments
+		resource  oauthelia2.Arguments
+		requested []string
+		expected  bool
+	}{
+		{
+			"ShouldMatchExactGrantedAudience",
+			oauthelia2.Arguments{"https://app.example.com/api"},
+			nil,
+			[]string{"https://app.example.com/api"},
+			true,
+		},
+		{
+			"ShouldNotMatchPrefixWithExactAudienceStrategy",
+			oauthelia2.Arguments{"https://app.example.com"},
+			nil,
+			[]string{"https://app.example.com/api"},
+			false,
+		},
+		{
+			"ShouldStillMatchPrefixViaResourceStrategy",
+			oauthelia2.Arguments{"https://app.example.com"},
+			oauthelia2.Arguments{"https://app.example.com"},
+			[]string{"https://app.example.com/api"},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, AudienceMatchesGrantedAudienceOrResource(oauthelia2.ExactAudienceStrategy, tc.audience, oauthelia2.DefaultResourceStrategy, tc.resource, tc.requested))
+		})
+	}
+}
+
+func TestAudienceMatchesRequester(t *testing.T) {
+	testCases := []struct {
+		name      string
+		audience  oauthelia2.Arguments
+		resource  oauthelia2.Arguments
+		requested []string
+		expected  bool
+	}{
+		{
+			"ShouldMatchGrantedAudience",
+			oauthelia2.Arguments{"https://app.example.com"},
+			nil,
+			[]string{"https://app.example.com"},
+			true,
+		},
+		{
+			"ShouldMatchGrantedResourceByPathPrefix",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com"},
+			[]string{"https://app.example.com/api/v1"},
+			true,
+		},
+		{
+			"ShouldMatchGrantedResourceExact",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com/api"},
+			[]string{"https://app.example.com/api"},
+			true,
+		},
+		{
+			"ShouldNotMatchGrantedResourceSibling",
+			nil,
+			oauthelia2.Arguments{"https://app.example.com/api"},
+			[]string{"https://app.example.com/admin"},
+			false,
+		},
+		{
+			"ShouldNotMatchWithoutGrants",
+			nil,
+			nil,
+			[]string{"https://app.example.com"},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			requester := &oauthelia2.AccessRequest{
+				Request: oauthelia2.Request{
+					GrantedAudience: tc.audience,
+					GrantedResource: tc.resource,
+				},
+			}
+
+			assert.Equal(t, tc.expected, AudienceMatchesRequester(oauthelia2.DefaultAudienceStrategy, oauthelia2.DefaultResourceStrategy, requester, tc.requested))
 		})
 	}
 }
