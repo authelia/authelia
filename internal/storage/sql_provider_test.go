@@ -786,7 +786,18 @@ func TestSQLProviderOAuth2ConsentSession(t *testing.T) {
 		loaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
 		require.NoError(t, err)
 
+		loaded.GrantedScopes = model.StringSlicePipeDelimited{"openid", "profile"}
+		loaded.GrantedAudience = model.StringSlicePipeDelimited{"aud-a"}
+		loaded.GrantedResource = model.StringSlicePipeDelimited{"https://api.example.com"}
+
 		require.NoError(t, provider.SaveOAuth2ConsentSessionResponse(ctx, loaded, true))
+
+		reloaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
+		require.NoError(t, err)
+		require.NotNil(t, reloaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"openid", "profile"}, reloaded.GrantedScopes)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, reloaded.GrantedAudience)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, reloaded.GrantedResource)
 	})
 
 	t.Run("ShouldSaveConsentGranted", func(t *testing.T) {
@@ -1402,6 +1413,209 @@ func TestSQLProviderOAuth2SessionAllTypes(t *testing.T) {
 			assert.False(t, loaded.Active)
 		})
 	}
+}
+
+func TestSQLProviderOAuth2ResourceColumns(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	testCases := []struct {
+		Name   string
+		table  string
+		column string
+	}{
+		{"ShouldHaveAccessTokenSessionRequestedResource", "oauth2_access_token_session", "requested_resource"},
+		{"ShouldHaveAccessTokenSessionGrantedResource", "oauth2_access_token_session", "granted_resource"},
+		{"ShouldHaveAuthorizationCodeSessionRequestedResource", "oauth2_authorization_code_session", "requested_resource"},
+		{"ShouldHaveAuthorizationCodeSessionGrantedResource", "oauth2_authorization_code_session", "granted_resource"},
+		{"ShouldHaveOpenIDConnectSessionRequestedResource", "oauth2_openid_connect_session", "requested_resource"},
+		{"ShouldHaveOpenIDConnectSessionGrantedResource", "oauth2_openid_connect_session", "granted_resource"},
+		{"ShouldHavePKCERequestSessionRequestedResource", "oauth2_pkce_request_session", "requested_resource"},
+		{"ShouldHavePKCERequestSessionGrantedResource", "oauth2_pkce_request_session", "granted_resource"},
+		{"ShouldHaveRefreshTokenSessionRequestedResource", "oauth2_refresh_token_session", "requested_resource"},
+		{"ShouldHaveRefreshTokenSessionGrantedResource", "oauth2_refresh_token_session", "granted_resource"},
+		{"ShouldHaveDeviceCodeSessionRequestedResource", "oauth2_device_code_session", "requested_resource"},
+		{"ShouldHaveDeviceCodeSessionGrantedResource", "oauth2_device_code_session", "granted_resource"},
+		{"ShouldHaveConsentSessionRequestedResource", "oauth2_consent_session", "requested_resource"},
+		{"ShouldHaveConsentSessionGrantedResource", "oauth2_consent_session", "granted_resource"},
+		{"ShouldHaveParContextResource", "oauth2_par_context", "resource"},
+		{"ShouldHaveConsentPreConfigurationResource", "oauth2_consent_preconfiguration", "resource"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			var n int
+
+			err := provider.db.GetContext(ctx, &n, "SELECT COUNT(*) FROM pragma_table_info(?) WHERE name = ?", tc.table, tc.column)
+
+			require.NoError(t, err)
+			assert.Equal(t, 1, n)
+		})
+	}
+}
+
+func TestSQLProviderOAuth2ResourceRoundTrip(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	t.Run("ShouldRoundTripConsentSessionResource", func(t *testing.T) {
+		challenge, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		subject, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveUserOpaqueIdentifier(ctx, model.UserOpaqueIdentifier{
+			Service:    "openid",
+			SectorID:   "example.com",
+			Username:   "resource-consent",
+			Identifier: subject,
+		}))
+
+		consent := model.OAuth2ConsentSession{
+			ChallengeID:       challenge,
+			ClientID:          "test-client",
+			Subject:           uuid.NullUUID{UUID: subject, Valid: true},
+			RequestedAt:       time.Unix(1700000000, 0),
+			ExpiresAt:         time.Unix(1700003600, 0),
+			Form:              "",
+			RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+			GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+			RequestedAudience: model.StringSlicePipeDelimited{"aud-a"},
+			GrantedAudience:   model.StringSlicePipeDelimited{"aud-a"},
+			RequestedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			GrantedResource:   model.StringSlicePipeDelimited{"https://api.example.com"},
+		}
+
+		require.NoError(t, provider.SaveOAuth2ConsentSession(ctx, &consent))
+
+		loaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challenge)
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.RequestedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.GrantedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, loaded.RequestedAudience)
+	})
+
+	t.Run("ShouldRoundTripOAuth2SessionResource", func(t *testing.T) {
+		sig, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		session := model.OAuth2Session{
+			ChallengeID:       model.MustNullUUID(model.NewRandomNullUUID()),
+			RequestID:         "req-" + sig.String(),
+			ClientID:          "test-client",
+			Signature:         sig.String(),
+			Subject:           sql.NullString{Valid: true, String: "john"},
+			Active:            true,
+			RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+			GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+			RequestedAudience: model.StringSlicePipeDelimited{"aud-a"},
+			GrantedAudience:   model.StringSlicePipeDelimited{"aud-a"},
+			RequestedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			GrantedResource:   model.StringSlicePipeDelimited{"https://api.example.com"},
+			Session:           []byte("{}"),
+		}
+
+		require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, session))
+
+		loaded, err := provider.LoadOAuth2Session(ctx, OAuth2SessionTypeAccessToken, sig.String())
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.RequestedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.GrantedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, loaded.RequestedAudience)
+	})
+
+	t.Run("ShouldRoundTripDeviceCodeSessionResource", func(t *testing.T) {
+		session := &model.OAuth2DeviceCodeSession{
+			Signature:         "dev-resource-sig",
+			RequestID:         "dev-resource-req",
+			ClientID:          "test-client",
+			UserCodeSignature: "dev-resource-user-code",
+			Active:            true,
+			RequestedScopes:   model.StringSlicePipeDelimited{"openid"},
+			GrantedScopes:     model.StringSlicePipeDelimited{"openid"},
+			RequestedAudience: model.StringSlicePipeDelimited{"aud-a"},
+			GrantedAudience:   model.StringSlicePipeDelimited{"aud-a"},
+			RequestedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
+			GrantedResource:   model.StringSlicePipeDelimited{"https://api.example.com"},
+			Session:           []byte("{}"),
+			RequestedAt:       time.Unix(1700000000, 0),
+		}
+
+		require.NoError(t, provider.SaveOAuth2DeviceCodeSession(ctx, session))
+
+		loaded, err := provider.LoadOAuth2DeviceCodeSession(ctx, "dev-resource-sig")
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.RequestedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.GrantedResource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, loaded.RequestedAudience)
+	})
+
+	t.Run("ShouldRoundTripPushedAuthorizationSessionResource", func(t *testing.T) {
+		par := model.OAuth2PushedAuthorizationSession{
+			Signature:   "par-resource-sig",
+			RequestID:   "par-resource-req",
+			ClientID:    "test-client",
+			RequestedAt: time.Unix(1700000000, 0),
+			Audience:    model.StringSlicePipeDelimited{"aud-a"},
+			Resource:    model.StringSlicePipeDelimited{"https://api.example.com"},
+			Session:     []byte("{}"),
+		}
+
+		require.NoError(t, provider.SaveOAuth2PushedAuthorizationSession(ctx, par))
+
+		loaded, err := provider.LoadOAuth2PushedAuthorizationSession(ctx, "par-resource-sig")
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.Resource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, loaded.Audience)
+	})
+
+	t.Run("ShouldRoundTripConsentPreConfigResource", func(t *testing.T) {
+		subject, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		config := model.OAuth2ConsentPreConfig{
+			ClientID:  "test-client-resource",
+			Subject:   subject,
+			CreatedAt: time.Unix(1700000000, 0),
+			Scopes:    model.StringSlicePipeDelimited{"openid"},
+			Audience:  model.StringSlicePipeDelimited{"aud-a"},
+			Resource:  model.StringSlicePipeDelimited{"https://api.example.com"},
+		}
+
+		id, err := provider.SaveOAuth2ConsentPreConfiguration(ctx, config)
+
+		require.NoError(t, err)
+		assert.Greater(t, id, int64(0))
+
+		rows, err := provider.LoadOAuth2ConsentPreConfigurations(ctx, "test-client-resource", subject, time.Unix(1700000000, 0))
+
+		require.NoError(t, err)
+		require.NotNil(t, rows)
+
+		defer rows.Close()
+
+		require.True(t, rows.Next())
+
+		loaded, err := rows.Get()
+
+		require.NoError(t, err)
+		require.NotNil(t, loaded)
+		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, loaded.Resource)
+		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, loaded.Audience)
+	})
 }
 
 func newTestSQLiteProvider(t *testing.T) *SQLiteProvider {

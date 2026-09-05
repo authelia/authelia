@@ -224,11 +224,11 @@ func TestSchemaMigrateToRowScopedAAD(t *testing.T) {
 				Secret:    totpSecret,
 			}))
 
-			require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, model.OAuth2Session{
+			saveLegacyOAuth2AccessTokenSession(t, ctx, provider, model.OAuth2Session{
 				RequestID: "req-123",
 				Signature: "sig-123",
 				Session:   sessionData,
-			}))
+			})
 
 			provider.keys.encryption, provider.aad = key, aad
 
@@ -284,11 +284,11 @@ func TestSchemaMigrateUpToColumnScopedFromLegacy(t *testing.T) {
 		Secret:    totpSecret,
 	}))
 
-	require.NoError(t, provider.SaveOAuth2Session(ctx, OAuth2SessionTypeAccessToken, model.OAuth2Session{
+	saveLegacyOAuth2AccessTokenSession(t, ctx, provider, model.OAuth2Session{
 		RequestID: "req-123",
 		Signature: "sig-123",
 		Session:   sessionData,
-	}))
+	})
 
 	provider.keys.encryption, provider.aad = key, aad
 
@@ -320,10 +320,9 @@ func TestSchemaMigrateUpToColumnScopedFromLegacy(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, totpSecret, totp.Secret)
 
-	session, err := provider.LoadOAuth2Session(ctx, OAuth2SessionTypeAccessToken, "sig-123")
+	decrypted := loadLegacyOAuth2AccessTokenSessionData(t, ctx, provider, "sig-123")
 
-	require.NoError(t, err)
-	assert.Equal(t, sessionData, session.Session)
+	assert.Equal(t, sessionData, decrypted)
 
 	require.NoError(t, provider.Close())
 }
@@ -507,4 +506,48 @@ func TestSchemaMigrateDownFromRowScopedAAD(t *testing.T) {
 			}
 		})
 	}
+}
+
+// saveLegacyOAuth2AccessTokenSession inserts an OAuth2.0 access token session using only the columns that predate
+// the resource indicator columns added by a later migration. It exists so tests that pin the schema at an older
+// version can still write a row without relying on provider.SaveOAuth2Session, which always targets the current
+// (latest) column set.
+func saveLegacyOAuth2AccessTokenSession(t *testing.T, ctx context.Context, provider *SQLiteProvider, session model.OAuth2Session) {
+	t.Helper()
+
+	var err error
+
+	session.Session, err = utils.Encrypt(session.Session, provider.aad.Get(OAuth2SessionTypeAccessToken.AAD(), columnSessionData, session.Signature), provider.keys.encryption)
+	require.NoError(t, err)
+
+	query := fmt.Sprintf(`
+		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at,
+		requested_scopes, granted_scopes, requested_audience, granted_audience,
+		active, revoked, form_data, session_data)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, tableOAuth2AccessTokenSession)
+
+	_, err = provider.db.ExecContext(ctx, query,
+		session.ChallengeID, session.RequestID, session.ClientID, session.Signature,
+		session.Subject, session.RequestedAt, session.RequestedScopes, session.GrantedScopes,
+		session.RequestedAudience, session.GrantedAudience,
+		session.Active, session.Revoked, session.Form, session.Session)
+	require.NoError(t, err)
+}
+
+// loadLegacyOAuth2AccessTokenSessionData reads and decrypts the session_data column of an OAuth2.0 access token
+// session directly, without going through provider.LoadOAuth2Session, whose SELECT always targets the current
+// (latest) column set and so cannot be used against a schema pinned at an older version.
+func loadLegacyOAuth2AccessTokenSessionData(t *testing.T, ctx context.Context, provider *SQLiteProvider, signature string) []byte {
+	t.Helper()
+
+	var encrypted []byte
+
+	query := fmt.Sprintf(`SELECT session_data FROM %s WHERE signature = ?;`, tableOAuth2AccessTokenSession)
+
+	require.NoError(t, provider.db.GetContext(ctx, &encrypted, query, signature))
+
+	decrypted, err := utils.Decrypt(encrypted, provider.aad.Get(OAuth2SessionTypeAccessToken.AAD(), columnSessionData, signature), provider.keys.encryption)
+	require.NoError(t, err)
+
+	return decrypted
 }

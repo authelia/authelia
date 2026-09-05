@@ -1372,6 +1372,162 @@ func (s *AuthzSuite) TestShouldRejectBearerSchemeClientCredentialsWithoutBearerA
 	}
 }
 
+func (s *AuthzSuite) bearerSchemeClientCredentialsResourceScenario(target string, audience, resource []string) (statusCode int) {
+	authz := s.BuilderWithBearerScheme().Build()
+
+	s.ApplyTestDelayer(authz)
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	setUpMockClock(mock)
+
+	targetURI := s.RequireParseRequestURI(target)
+
+	mock.Ctx.Configuration.IdentityProviders = schema.IdentityProviders{
+		OIDC: &schema.IdentityProvidersOpenIDConnect{
+			HMACSecret: "abcdefghijklmnopqrstuvwxyz123456",
+			Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+				BearerAuthorization: true,
+			},
+			Clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "test-ccs-client",
+					Scopes:              []string{oidc.ScopeAutheliaBearerAuthz},
+					Audience:            audience,
+					GrantTypes:          []string{oidc.GrantTypeClientCredentials},
+					AuthorizationPolicy: "one_factor",
+				},
+			},
+		},
+	}
+
+	mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
+
+	client, err := mock.Ctx.Providers.OpenIDConnect.GetRegisteredClient(mock.Ctx, "test-ccs-client")
+	s.Require().NoError(err)
+
+	now := mock.Ctx.Providers.Clock.Now()
+
+	session := &oidc.Session{
+		ClientID:          "test-ccs-client",
+		ClientCredentials: true,
+		DefaultSession: &openid.DefaultSession{
+			Headers: &fjwt.Headers{Extra: map[string]any{}},
+			Claims: &fjwt.IDTokenClaims{
+				Issuer:   "https://auth.example.com",
+				Subject:  "test-ccs-client",
+				IssuedAt: fjwt.NewNumericDate(now),
+				Extra:    map[string]any{},
+			},
+			RequestedAt: now,
+		},
+	}
+
+	requester := &oauthelia2.AccessRequest{
+		GrantTypes: oauthelia2.Arguments{oidc.GrantTypeClientCredentials},
+		Request: oauthelia2.Request{
+			ID:                "request-ccs-resource",
+			RequestedAt:       now,
+			Client:            client,
+			RequestedScope:    oauthelia2.Arguments{oidc.ScopeAutheliaBearerAuthz},
+			GrantedScope:      oauthelia2.Arguments{oidc.ScopeAutheliaBearerAuthz},
+			RequestedResource: oauthelia2.Arguments(resource),
+			GrantedResource:   oauthelia2.Arguments(resource),
+			Session:           session,
+			Form:              url.Values{},
+		},
+	}
+
+	token, signature, err := mock.Ctx.Providers.OpenIDConnect.Strategy.Core.GenerateAccessToken(mock.Ctx, requester)
+	s.Require().NoError(err)
+
+	oauthSession, err := model.NewOAuth2SessionFromRequest(signature, requester)
+	s.Require().NoError(err)
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Bearer "+token)
+
+	mock.StorageMock.EXPECT().
+		LoadOAuth2Session(gomock.Eq(mock.Ctx), gomock.Eq(storage.OAuth2SessionTypeAccessToken), gomock.Eq(signature)).
+		Return(oauthSession, nil)
+
+	authz.Handler(mock.Ctx)
+
+	return mock.Ctx.Response.StatusCode()
+}
+
+func (s *AuthzSuite) ExpectedBearerRejectionStatusCode() (statusCode int) {
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		return fasthttp.StatusUnauthorized
+	default:
+		return fasthttp.StatusProxyAuthRequired
+	}
+}
+
+func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndicatorPrefix() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api/v1/users",
+		[]string{"https://one-factor.example.com"},
+		[]string{"https://one-factor.example.com"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldAuthenticateAsClientUsingBearerSchemeResourceIndicatorPrefixWithPath() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(fasthttp.StatusOK, s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/api/v1/users",
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorOutsideGrantedPrefix() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/admin",
+		[]string{"https://one-factor.example.com"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorOnPartialPathSegment() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/apiv2",
+		[]string{"https://one-factor.example.com"},
+		[]string{"https://one-factor.example.com/api"},
+	))
+}
+
+func (s *AuthzSuite) TestShouldRejectBearerSchemeResourceIndicatorNotPermittedByClientAudience() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	s.Equal(s.ExpectedBearerRejectionStatusCode(), s.bearerSchemeClientCredentialsResourceScenario(
+		"https://one-factor.example.com/admin",
+		[]string{"https://one-factor.example.com/api"},
+		[]string{"https://one-factor.example.com"},
+	))
+}
+
 func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {
 	if s.setRequest == nil {
 		s.T().Skip()

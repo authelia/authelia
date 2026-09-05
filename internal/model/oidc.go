@@ -32,8 +32,10 @@ func NewOAuth2ConsentSessionWithForm(expires time.Time, subject uuid.UUID, r oau
 		ExpiresAt:         expires,
 		RequestedScopes:   StringSlicePipeDelimited(r.GetRequestedScopes()),
 		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
+		RequestedResource: StringSlicePipeDelimited(r.GetRequestedResource()),
 		GrantedScopes:     StringSlicePipeDelimited(r.GetGrantedScopes()),
 		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
+		GrantedResource:   StringSlicePipeDelimited(r.GetGrantedResource()),
 	}
 
 	if consent.ChallengeID, err = uuid.NewRandom(); err != nil {
@@ -97,7 +99,9 @@ func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (sess
 		RequestedScopes:   StringSlicePipeDelimited(requested),
 		GrantedScopes:     StringSlicePipeDelimited(granted),
 		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
+		RequestedResource: StringSlicePipeDelimited(r.GetRequestedResource()),
 		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
+		GrantedResource:   StringSlicePipeDelimited(r.GetGrantedResource()),
 		Active:            true,
 		Revoked:           false,
 		Form:              r.GetRequestForm().Encode(),
@@ -154,7 +158,9 @@ func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester
 		RequestedScopes:   StringSlicePipeDelimited(requested),
 		GrantedScopes:     StringSlicePipeDelimited(granted),
 		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
+		RequestedResource: StringSlicePipeDelimited(r.GetRequestedResource()),
 		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
+		GrantedResource:   StringSlicePipeDelimited(r.GetGrantedResource()),
 		Active:            true,
 		Revoked:           false,
 		Form:              r.GetRequestForm().Encode(),
@@ -192,6 +198,7 @@ func NewOAuth2PushedAuthorizationSession(contextID string, r oauthelia2.Authoriz
 		RequestedAt:          r.GetRequestedAt(),
 		Scopes:               StringSlicePipeDelimited(r.GetRequestedScopes()),
 		Audience:             StringSlicePipeDelimited(r.GetRequestedAudience()),
+		Resource:             StringSlicePipeDelimited(r.GetRequestedResource()),
 		HandledResponseTypes: handled,
 		ResponseMode:         string(r.GetResponseMode()),
 		DefaultResponseMode:  string(r.GetDefaultResponseMode()),
@@ -214,21 +221,28 @@ type OAuth2ConsentPreConfig struct {
 
 	Scopes   StringSlicePipeDelimited `db:"scopes"`
 	Audience StringSlicePipeDelimited `db:"audience"`
+	Resource StringSlicePipeDelimited `db:"resource"`
 
 	RequestedClaims sql.NullString           `db:"requested_claims"`
 	SignatureClaims sql.NullString           `db:"signature_claims"`
 	GrantedClaims   StringSlicePipeDelimited `db:"granted_claims"`
 }
 
-// HasExactGrants returns true if the granted audience and scopes of this consent pre-configuration matches exactly with
-// another audience and set of scopes.
-func (s *OAuth2ConsentPreConfig) HasExactGrants(scopes, audience []string) (has bool) {
-	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience)
+// HasExactGrants returns true if the granted audience, resource and scopes of this consent
+// pre-configuration matches exactly with another audience, resource and set of scopes.
+func (s *OAuth2ConsentPreConfig) HasExactGrants(scopes, audience, resource []string) (has bool) {
+	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience) && s.HasExactGrantedResource(resource)
 }
 
 // HasExactGrantedAudience returns true if the granted audience of this consent matches exactly with another audience.
 func (s *OAuth2ConsentPreConfig) HasExactGrantedAudience(audience []string) (has bool) {
 	return !utils.IsStringSlicesDifferent(s.Audience, audience)
+}
+
+// HasExactGrantedResource returns true if the granted resource indicators of this consent matches
+// exactly with another set of resource indicators.
+func (s *OAuth2ConsentPreConfig) HasExactGrantedResource(resource []string) (has bool) {
+	return !utils.IsStringSlicesDifferent(s.Resource, resource)
 }
 
 // HasExactGrantedScopes returns true if the granted scopes of this consent matches exactly with another set of scopes.
@@ -271,6 +285,8 @@ type OAuth2ConsentSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	RequestedResource StringSlicePipeDelimited `db:"requested_resource"`
+	GrantedResource   StringSlicePipeDelimited `db:"granted_resource"`
 	GrantedClaims     StringSlicePipeDelimited `db:"granted_claims"`
 
 	PreConfiguration sql.NullInt64 `db:"preconfiguration"`
@@ -319,15 +335,26 @@ func (s *OAuth2ConsentSession) GrantAudience() {
 	s.GrantedAudience = s.RequestedAudience
 }
 
-// HasExactGrants returns true if the granted audience and scopes of this consent matches exactly with another
-// audience and set of scopes.
-func (s *OAuth2ConsentSession) HasExactGrants(scopes, audience []string) (has bool) {
-	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience)
+// GrantResource grants all of the requested resource indicators.
+func (s *OAuth2ConsentSession) GrantResource() {
+	s.GrantedResource = s.RequestedResource
+}
+
+// HasExactGrants returns true if the granted audience, resource and scopes of this consent matches
+// exactly with another audience, resource and set of scopes.
+func (s *OAuth2ConsentSession) HasExactGrants(scopes, audience, resource []string) (has bool) {
+	return s.HasExactGrantedScopes(scopes) && s.HasExactGrantedAudience(audience) && s.HasExactGrantedResource(resource)
 }
 
 // HasExactGrantedAudience returns true if the granted audience of this consent matches exactly with another audience.
 func (s *OAuth2ConsentSession) HasExactGrantedAudience(audience []string) (has bool) {
 	return !utils.IsStringSlicesDifferent(s.GrantedAudience, audience)
+}
+
+// HasExactGrantedResource returns true if the granted resource indicators of this consent matches
+// exactly with another set of resource indicators.
+func (s *OAuth2ConsentSession) HasExactGrantedResource(resource []string) (has bool) {
+	return !utils.IsStringSlicesDifferent(s.GrantedResource, resource)
 }
 
 // HasExactGrantedScopes returns true if the granted scopes of this consent matches exactly with another set of scopes.
@@ -398,6 +425,10 @@ func (s *OAuth2ConsentSession) MatchesRequester(requester oauthelia2.Requester, 
 		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested audience '%s' does not match the requested audience '%s' from the consent session.", strings.Join(requester.GetRequestedAudience(), " "), strings.Join(s.RequestedAudience, " "))
 	}
 
+	if !oauthelia2.Arguments(s.RequestedResource).Matches(requester.GetRequestedResource()...) {
+		return oauthelia2.ErrInvalidRequest.WithDebugf("The requested resource '%s' does not match the requested resource '%s' from the consent session.", strings.Join(requester.GetRequestedResource(), " "), strings.Join(s.RequestedResource, " "))
+	}
+
 	var form url.Values
 
 	if form, err = s.GetForm(); err != nil {
@@ -444,6 +475,8 @@ type OAuth2Session struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	RequestedResource StringSlicePipeDelimited `db:"requested_resource"`
+	GrantedResource   StringSlicePipeDelimited `db:"granted_resource"`
 	Active            bool                     `db:"active"`
 	Revoked           bool                     `db:"revoked"`
 	Form              string                   `db:"form_data"`
@@ -487,6 +520,8 @@ func (s *OAuth2Session) ToRequest(ctx context.Context, session oauthelia2.Sessio
 		GrantedScope:      oauthelia2.Arguments(s.GrantedScopes),
 		RequestedAudience: oauthelia2.Arguments(s.RequestedAudience),
 		GrantedAudience:   oauthelia2.Arguments(s.GrantedAudience),
+		RequestedResource: oauthelia2.Arguments(s.RequestedResource),
+		GrantedResource:   oauthelia2.Arguments(s.GrantedResource),
 		Form:              values,
 		Session:           session,
 	}, nil
@@ -508,6 +543,8 @@ type OAuth2DeviceCodeSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	RequestedResource StringSlicePipeDelimited `db:"requested_resource"`
+	GrantedResource   StringSlicePipeDelimited `db:"granted_resource"`
 	Active            bool                     `db:"active"`
 	Revoked           bool                     `db:"revoked"`
 	Form              string                   `db:"form_data"`
@@ -573,6 +610,8 @@ func (s *OAuth2DeviceCodeSession) ToRequest(ctx context.Context, session oauthel
 			GrantedScope:      oauthelia2.Arguments(s.GrantedScopes),
 			RequestedAudience: oauthelia2.Arguments(s.RequestedAudience),
 			GrantedAudience:   oauthelia2.Arguments(s.GrantedAudience),
+			RequestedResource: oauthelia2.Arguments(s.RequestedResource),
+			GrantedResource:   oauthelia2.Arguments(s.GrantedResource),
 			Form:              values,
 			Session:           session,
 		},
@@ -594,6 +633,7 @@ type OAuth2PushedAuthorizationSession struct {
 	RequestedAt          time.Time                `db:"requested_at"`
 	Scopes               StringSlicePipeDelimited `db:"scopes"`
 	Audience             StringSlicePipeDelimited `db:"audience"`
+	Resource             StringSlicePipeDelimited `db:"resource"`
 	HandledResponseTypes StringSlicePipeDelimited `db:"handled_response_types"`
 	ResponseMode         string                   `db:"response_mode"`
 	DefaultResponseMode  string                   `db:"response_mode_default"`
@@ -631,6 +671,7 @@ func (par *OAuth2PushedAuthorizationSession) ToAuthorizeRequest(ctx context.Cont
 		Client:            client,
 		RequestedScope:    oauthelia2.Arguments(par.Scopes),
 		RequestedAudience: oauthelia2.Arguments(par.Audience),
+		RequestedResource: oauthelia2.Arguments(par.Resource),
 		Form:              form,
 		Session:           session,
 	}

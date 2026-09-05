@@ -253,9 +253,9 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 		}
 	}
 
-	scopes, audience := requester.GetRequestedScopes(), requester.GetRequestedAudience()
+	scopes, audience, resource := requester.GetRequestedScopes(), requester.GetRequestedAudience(), requester.GetRequestedResource()
 
-	log := ctx.GetLogger().WithFields(map[string]any{"scopes": scopes, "claims": serialized, "audience": audience, "client_id": client.GetID()})
+	log := ctx.GetLogger().WithFields(map[string]any{"scopes": scopes, "claims": serialized, "audience": audience, "resource": resource, "client_id": client.GetID()})
 
 	for rows.Next() {
 		if config, err = rows.Get(); err != nil {
@@ -268,8 +268,8 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 			continue
 		}
 
-		if !config.HasExactGrants(scopes, audience) {
-			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration has scopes '%s' and audience '%s' which does not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "))
+		if !config.HasExactGrants(scopes, audience, resource) {
+			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration has scopes '%s', audience '%s', and resource '%s' which does not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "), strings.Join(config.Resource, " "))
 
 			continue
 		}
@@ -285,7 +285,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 		return config, nil
 	}
 
-	ctx.GetLogger().Debugf(logFmtDbgConsentPreConfUnsuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(scopes, " "), strings.Join(audience, " "))
+	ctx.GetLogger().Debugf(logFmtDbgConsentPreConfUnsuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(scopes, " "), strings.Join(audience, " "), strings.Join(resource, " "))
 
 	return nil, nil
 }
