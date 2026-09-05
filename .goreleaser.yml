@@ -11,9 +11,10 @@ before:
         bash -c 'cat > postinstall.sh <<EOF
         #!/bin/sh
 
-        sed -i -e "s/u!/u /" /usr/lib/sysusers.d/authelia.conf
         systemd-sysusers
         systemd-tmpfiles --create
+
+        [ -d /run/systemd/system ] && systemctl daemon-reload >/dev/null 2>&1 || true
 
         EOF
         chmod +x postinstall.sh'
@@ -163,6 +164,8 @@ nfpms:
         type: config|noreplace
         file_info:
           mode: 0440  # yamllint disable-line rule:octal-values
+          owner: root
+          group: authelia
       - src: authelia.service
         dst: /usr/lib/systemd/system/authelia.service
       - src: authelia@.service
@@ -170,9 +173,9 @@ nfpms:
       - src: authelia.sysusers.conf
         dst: /usr/lib/sysusers.d/authelia.conf
       - src: authelia.tmpfiles.conf
-        dst: /usr/lib/tmpfiles.d/authelia.conf
+        dst: /usr/lib/tmpfiles.d/10-authelia.conf
       - src: authelia.tmpfiles.config.conf
-        dst: /usr/lib/tmpfiles.d/authelia-config.conf
+        dst: /usr/lib/tmpfiles.d/20-authelia-config.conf
     scripts:
       postinstall: postinstall.sh
     deb:
