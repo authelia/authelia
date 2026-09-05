@@ -812,6 +812,100 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidTokenLength() {
 	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': expected code length is 6 or 8 but the user provided code was 3 characters in length", "")
 }
 
+func (s *HandlerSignTOTPSuite) TestShouldHandleExistsHistoryWithDisableReusePolicy() {
+	config := model.TOTPConfiguration{ID: 1, Username: testUsername, Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+
+	s.mock.Ctx.Configuration.TOTP.DisableReuseSecurityPolicy = true
+
+	gomock.InOrder(
+		s.mock.StorageMock.
+			EXPECT().
+			LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
+			Return(&config, nil),
+		s.mock.TOTPMock.
+			EXPECT().
+			Validate(s.mock.Ctx, gomock.Eq("123456"), gomock.Eq(&config)).
+			Return(true, getStepTOTP(s.mock.Ctx, -1), nil),
+		s.mock.StorageMock.
+			EXPECT().
+			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
+				Username:   testUsername,
+				Successful: true,
+				Banned:     false,
+				Time:       s.mock.Clock.Now(),
+				Type:       regulation.AuthTypeTOTP,
+				RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
+			})).
+			Return(nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(nil),
+	)
+
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{Token: "123456"})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), redirectResponse{Redirect: "https://www.example.com"})
+
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.AllEntries()[0], "User has reused a Time-based One Time Password with the given step but the policy to disable reuse is disabled", nil)
+}
+
+func (s *HandlerSignTOTPSuite) TestShouldHandleFlow() {
+	config := model.TOTPConfiguration{ID: 1, Username: testUsername, Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
+
+	gomock.InOrder(
+		s.mock.StorageMock.
+			EXPECT().
+			LoadTOTPConfiguration(s.mock.Ctx, gomock.Any()).
+			Return(&config, nil),
+		s.mock.TOTPMock.
+			EXPECT().
+			Validate(s.mock.Ctx, gomock.Eq("123456"), gomock.Eq(&config)).
+			Return(true, getStepTOTP(s.mock.Ctx, -1), nil),
+		s.mock.StorageMock.
+			EXPECT().
+			ExistsTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveTOTPHistory(s.mock.Ctx, testUsername, uint64(1701295890)).
+			Return(nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
+				Username:   testUsername,
+				Successful: true,
+				Banned:     false,
+				Time:       s.mock.Clock.Now(),
+				Type:       regulation.AuthTypeTOTP,
+				RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
+			})).
+			Return(nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(nil),
+	)
+
+	bodyBytes, err := json.Marshal(bodySignTOTPRequest{Token: "123456", Flow: "not-a-flow"})
+	s.Require().NoError(err)
+	s.mock.Ctx.Request.SetBody(bodyBytes)
+
+	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), messageAuthenticationFailed)
+
+	s.AssertLastLogMessage("Failed to find flow handler for the given flow parameters", "")
+}
+
 func TestRunHandlerSignTOTPSuite(t *testing.T) {
 	suite.Run(t, new(HandlerSignTOTPSuite))
 }

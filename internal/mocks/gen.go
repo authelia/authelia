@@ -13,6 +13,8 @@ package mocks
 //go:generate mockgen -package mocks -destination duo_api.go -mock_names Provider=MockDuoProvider github.com/authelia/authelia/v4/internal/duo Provider
 //go:generate mockgen -package mocks -destination duo_base_api.go -mock_names BaseProvider=MockDuoBaseProvider github.com/authelia/authelia/v4/internal/duo BaseProvider
 //go:generate mockgen -package mocks -destination random.go -mock_names Provider=MockRandom github.com/authelia/authelia/v4/internal/random Provider
+//go:generate mockgen -package mocks -destination oidc_client.go -mock_names Client=MockOIDCClient github.com/authelia/authelia/v4/internal/oidc Client
+//go:generate mockgen -package mocks -destination oidc_claims_strategy.go -mock_names ClaimsStrategy=MockClaimsStrategy github.com/authelia/authelia/v4/internal/oidc ClaimsStrategy
 
 // External Mocks.
 

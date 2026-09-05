@@ -114,6 +114,19 @@ func TestLogoutPOST(t *testing.T) {
 	}
 }
 
+func TestLogoutPOSTShouldHandleSessionDestroyError(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+	mock.Ctx.Request.SetBodyString(`{}`)
+
+	LogoutPOST(mock.Ctx)
+
+	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred destroying the user session during logout", "unable to destroy user session: unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+}
+
 func TestRunLogoutSuite(t *testing.T) {
 	s := new(LogoutSuite)
 	suite.Run(t, s)

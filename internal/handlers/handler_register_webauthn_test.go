@@ -12,6 +12,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -894,6 +895,50 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				assert.Nil(t, us.WebAuthn)
 
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error comparing the response to the WebAuthn session data", "Error validating the authenticator response (verification_error): RP Hash mismatch. Expected a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d2125586ce1947 and Received 0c6ca0839c3a5683557833f618a2556665df2a088964787d53850b4ad4d3bedc")
+			},
+		},
+		{
+			"ShouldHandleCredentialFilteringError",
+			&schema.DefaultWebAuthnConfiguration,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Configuration.WebAuthn.Filtering.ProhibitedAAGUIDs = []uuid.UUID{uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708"))}
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.Username = testUsername
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.WebAuthn = &session.WebAuthn{
+					Description: "test",
+					SessionData: &webauthn.SessionData{
+						Challenge:        "aq_AXdvsDMsKW_1aY31XQhU17ZMg1i0TK013DwukB2U",
+						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
+						Expires:          time.Now().Add(time.Minute),
+						UserVerification: "preferred",
+						CredParams:       parameters,
+						Extensions:       protocol.SessionExtensions{Requested: []string{protocol.ExtensionCredProps}},
+					},
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				gomock.InOrder(
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnUser(mock.Ctx, "login.example.com", testUsername).
+						Return(&model.WebAuthnUser{ID: 1, RPID: "login.example.com", Username: testUsername, UserID: string(decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="))}, nil),
+					mock.StorageMock.
+						EXPECT().
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, "login.example.com", testUsername).
+						Return(nil, nil),
+				)
+			},
+			dataPOSTGood,
+			`{"status":"KO","message":"Unable to register your security key."}`,
+			fasthttp.StatusForbidden,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn registration challenge for user 'john': error occurred processing the credential filtering", "error checking webauthn credential: filters have been configured which prohibit the AAGUID '01020304-0506-0708-0102-030405060708' from registration")
 			},
 		},
 	}

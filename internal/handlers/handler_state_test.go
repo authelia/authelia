@@ -11,6 +11,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 type StateGetSuite struct {
@@ -90,6 +91,39 @@ func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 	assert.Equal(s.T(), []byte("application/json; charset=utf-8"), s.mock.Ctx.Response.Header.ContentType())
 	assert.Equal(s.T(), expectedBody, actualBody)
+}
+
+func (s *StateGetSuite) TestShouldReturnForbiddenWhenSessionProviderUnavailable() {
+	s.mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "unknown.example.org")
+
+	StateGET(s.mock.Ctx)
+
+	assert.Equal(s.T(), fasthttp.StatusForbidden, s.mock.Ctx.Response.StatusCode())
+
+	require.NotNil(s.T(), s.mock.Hook.LastEntry())
+	assert.Equal(s.T(), "Error occurred retrieving user session", s.mock.Hook.LastEntry().Message)
+}
+
+func (s *StateGetSuite) TestShouldOmitDefaultRedirectionURLWhenNotConfigured() {
+	config := s.mock.Ctx.Configuration.Session
+
+	config.Cookies[0].DefaultRedirectionURL = nil
+
+	s.mock.Ctx.Providers.SessionProvider = session.NewProvider(config, nil)
+
+	StateGET(s.mock.Ctx)
+
+	type Response struct {
+		Status string
+		Data   StateResponse
+	}
+
+	actualBody := Response{}
+
+	require.NoError(s.T(), json.Unmarshal(s.mock.Ctx.Response.Body(), &actualBody))
+
+	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
+	assert.Equal(s.T(), "", actualBody.Data.DefaultRedirectionURL)
 }
 
 func TestRunStateGetSuite(t *testing.T) {

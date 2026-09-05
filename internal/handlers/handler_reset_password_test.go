@@ -477,6 +477,17 @@ func TestResetPasswordPOST(t *testing.T) {
 				assert.Nil(t, us.PasswordResetUsername)
 			},
 		},
+		{
+			"ShouldHandleGetSessionError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+			},
+			`{"status":"KO","message":"Unable to reset your password."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), errStrUserSessionData, "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -595,6 +606,21 @@ func TestResetPasswordIdentityVerificationFinish(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, us.PasswordResetUsername)
 	assert.Equal(t, testUsername, *us.PasswordResetUsername)
+}
+
+func TestResetPasswordIdentityVerificationFinishShouldHandleGetSessionError(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+
+	resetPasswordIdentityVerificationFinish(mock.Ctx, testUsername)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	assert.Equal(t, `{"status":"OK"}`, string(mock.Ctx.Response.Body()))
+
+	AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Unable to get session to enable password reset in session for user ''", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
 }
 
 func newTestIdentityVerificationClaim(t *testing.T, mock *mocks.MockAutheliaCtx, jti uuid.UUID, action string) *model.IdentityVerificationClaim {
