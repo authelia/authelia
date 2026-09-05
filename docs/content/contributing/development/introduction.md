@@ -1,6 +1,6 @@
 ---
 title: "Development"
-description: "An introduction into contributing to the Authelia project via development."
+description: "An introduction to contributing to the Authelia project via development covering the discussion process, guidelines, and licensing under the repository license."
 summary: "An introduction into contributing to the Authelia project via development."
 date: 2024-03-14T06:00:14+11:00
 draft: false

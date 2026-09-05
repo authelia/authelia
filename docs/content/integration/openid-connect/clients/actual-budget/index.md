@@ -1,6 +1,6 @@
 ---
 title: "Actual Budget"
-description: "Integrating Actual Budget with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Actual Budget with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-01-25T12:36:00+11:00
 draft: false

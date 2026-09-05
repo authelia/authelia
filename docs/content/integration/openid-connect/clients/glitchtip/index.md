@@ -1,6 +1,6 @@
 ---
 title: "Glitchtip"
-description: "Integrating Glitchtip with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Glitchtip with the Authelia OpenID Connect 1.0 Provider for single sign-on (SSO) with configuration examples and available options."
 summary: ""
 date: 2025-04-26T11:03:16+00:00
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "Wallos"
-description: "Integrating Wallos with the Authelia OpenID Connect 1.0 Provider."
+description: "A guide on integrating Wallos with the Authelia OpenID Connect 1.0 Provider with configuration examples and an outline of the available options for SSO."
 summary: ""
 date: 2025-08-19T20:35:59+02:00
 draft: false

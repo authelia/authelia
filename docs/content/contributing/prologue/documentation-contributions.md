@@ -1,6 +1,6 @@
 ---
 title: "Documentation Contributions"
-description: "Information on contributing documentation to the Authelia project."
+description: "Information on contributing documentation to the Authelia project including how to edit pages, run the site locally, and understand the front matter fields."
 summary: "Authelia has great documentation however there are always things that can be added. This section describes the contribution process for the documentation even though it's incredibly easy."
 date: 2024-03-14T06:00:14+11:00
 draft: false

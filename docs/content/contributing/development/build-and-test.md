@@ -1,6 +1,6 @@
 ---
 title: "Building and Testing"
-description: "Building and Testing Authelia."
+description: "A guide to building and testing Authelia from source covering unit tests, integration suites, and manually building the Go binary with the React frontend."
 summary: "This section covers the build process and how to perform tests in development."
 date: 2024-03-14T06:00:14+11:00
 draft: false

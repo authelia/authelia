@@ -1,6 +1,6 @@
 ---
 title: "Commit Message"
-description: "Authelia Development Commit Message Guidelines"
+description: "Authelia development commit message guidelines covering the conventional commit format with required types, scopes, header, body, and footer structure."
 lead: "This section covers the git commit message guidelines we use for development."
 date: 2021-01-30T19:29:07+11:00
 draft: false

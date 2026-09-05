@@ -1,6 +1,6 @@
 ---
 title: "Contact"
-description: "Drop us an email."
+description: "Contact information for the Authelia team including GitHub Discussions, Matrix chat, email, security vulnerability reporting, and team member contact details."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
 draft: false

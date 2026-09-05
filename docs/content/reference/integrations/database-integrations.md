@@ -1,6 +1,6 @@
 ---
 title: "Database Integrations"
-description: "A database integration reference guide"
+description: "A reference guide on supported database integrations for Authelia including PostgreSQL, MySQL, MariaDB, and SQLite3 version support and recommendations."
 summary: "This section contains a database integration reference guide for Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

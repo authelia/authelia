@@ -1,6 +1,6 @@
 ---
 title: "First Factor"
-description: "Authelia utilizes the standard username and password combination for first factor authentication."
+description: "An overview of Authelia's first factor authentication which uses standard username and password credentials with support for LDAP and YAML file user databases."
 summary: "Authelia utilizes the standard username and password combination for first factor authentication."
 date: 2024-03-14T06:00:14+11:00
 draft: false

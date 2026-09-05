@@ -1,6 +1,6 @@
 ---
 title: "Identity Validation"
-description: "Identity Validation Configuration"
+description: "An introduction to configuring Authelia identity validation methods used to verify user identity before performing privileged actions or password resets."
 summary: "Authelia uses multiple methods to verify the identity of users to prevent a malicious user from performing actions on behalf of them. This section describes these methods."
 date: 2024-03-14T06:00:14+11:00
 draft: false

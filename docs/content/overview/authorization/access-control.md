@@ -1,6 +1,6 @@
 ---
 title: "Access Control"
-description: "Access Control is the main authorization system in Authelia."
+description: "An overview of Authelia's access control rule-based authorization system allowing fine-grained policies based on domain, path, user, group, network, and method."
 summary: "Access Control is the main authorization system in Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false

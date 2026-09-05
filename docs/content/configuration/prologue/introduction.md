@@ -1,6 +1,6 @@
 ---
 title: "Prologue"
-description: "An introduction into configuring Authelia."
+description: "An introduction to configuring Authelia covering the documentation structure, configuration validation, environment variable overrides, and option formatting."
 summary: "An introduction into configuring Authelia."
 date: 2024-03-14T06:00:14+11:00
 draft: false
