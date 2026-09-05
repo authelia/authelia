@@ -1,7 +1,7 @@
 ---
 services:
   traefik:
-    image: 'traefik:v3.7.12'
+    image: 'traefik:v3.7.13'
     cpus: 2
     mem_limit: 1g
     environment:
