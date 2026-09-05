@@ -1,4 +1,4 @@
-import { FC, lazy } from "react";
+import { lazy } from "react";
 
 import { Route, Routes } from "react-router";
 
@@ -15,7 +15,7 @@ export interface Props {
     state: AutheliaState;
 }
 
-const ConsentPortal: FC<Props> = (props: Props) => {
+function ConsentPortal(props: Props) {
     return (
         <Routes>
             <Route
@@ -28,6 +28,6 @@ const ConsentPortal: FC<Props> = (props: Props) => {
             />
         </Routes>
     );
-};
+}
 
 export default ConsentPortal;

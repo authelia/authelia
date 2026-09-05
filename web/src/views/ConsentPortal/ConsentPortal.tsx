@@ -1,4 +1,4 @@
-import { FC, Fragment, lazy, useEffect } from "react";
+import { Fragment, lazy, useEffect } from "react";
 
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router";
@@ -14,7 +14,7 @@ import LoadingPage from "@views/LoadingPage/LoadingPage";
 const OpenIDConnect = lazy(() => import("@views/ConsentPortal/OpenIDConnect/ConsentPortal"));
 const CompletionView = lazy(() => import("@views/ConsentPortal/CompletionView"));
 
-const ConsentPortal: FC = () => {
+function ConsentPortal() {
     const { t: translate } = useTranslation();
 
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
@@ -51,14 +51,14 @@ const ConsentPortal: FC = () => {
             {loading || !state ? <LoadingPage /> : <ConsentPortalRouter userInfo={userInfo} state={state} />}
         </Fragment>
     );
-};
+}
 
 interface RouterProps {
     userInfo?: UserInfo;
     state: AutheliaState;
 }
 
-const ConsentPortalRouter: FC<RouterProps> = (props: RouterProps) => {
+function ConsentPortalRouter(props: RouterProps) {
     return (
         <Routes>
             <Route
@@ -68,6 +68,6 @@ const ConsentPortalRouter: FC<RouterProps> = (props: RouterProps) => {
             <Route path={ConsentCompletionSubRoute} element={<CompletionView />} />
         </Routes>
     );
-};
+}
 
 export default ConsentPortal;

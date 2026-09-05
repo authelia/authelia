@@ -1,11 +1,11 @@
-import { FC, Fragment, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
 import { Checkbox } from "@components/UI/Checkbox";
 import { Label } from "@components/UI/Label";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 import { formatClaim } from "@services/ConsentOpenIDConnect";
+import DecisionFormSection, { DecisionFormSectionItem } from "@views/ConsentPortal/OpenIDConnect/DecisionFormSection";
 
 export interface Props {
     onChangeChecked: (_claims: string[]) => void;
@@ -13,7 +13,7 @@ export interface Props {
     essential_claims: null | string[];
 }
 
-const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeChecked }: Props) => {
+function DecisionFormClaims({ claims, essential_claims, onChangeChecked }: Props) {
     const { t: translate } = useTranslation(["consent"]);
 
     const [availableClaims] = useState(() => claims || []);
@@ -36,54 +36,63 @@ const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeCheck
         [checked],
     );
 
+    const label = useCallback(
+        (claim: string) => formatClaim(translate(`claims.${claim}`, { nsSeparator: false }), claim),
+        [translate],
+    );
+
+    const identifier = useCallback(
+        (claim: string) => (label(claim).toLowerCase() === claim.toLowerCase() ? null : claim),
+        [label],
+    );
+
     const hasClaims = (essential_claims && essential_claims.length > 0) || availableClaims.length > 0;
 
+    if (!hasClaims) {
+        return null;
+    }
+
     return (
-        <Fragment>
-            {hasClaims ? (
-                <ul className="my-3 list-none rounded-md bg-card p-2">
-                    {essential_claims?.map((claim: string) => (
-                        <TooltipProvider key={`${claim}-essential`}>
-                            <Tooltip>
-                                <TooltipTrigger
-                                    render={
-                                        <li className="flex items-center gap-2 px-2 py-1">
-                                            <Checkbox id={`claim-${claim}-essential`} disabled checked />
-                                            <Label htmlFor={`claim-${claim}-essential`}>
-                                                {formatClaim(translate(`claims.${claim}`), claim)}
-                                            </Label>
-                                        </li>
-                                    }
-                                />
-                                <TooltipContent>{translate("Claim", { name: claim })}</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    ))}
-                    {availableClaims.map((claim: string) => (
-                        <TooltipProvider key={claim}>
-                            <Tooltip>
-                                <TooltipTrigger
-                                    render={
-                                        <li className="flex items-center gap-2 px-2 py-1">
-                                            <Checkbox
-                                                id={"claim-" + claim}
-                                                checked={claimChecked(claim)}
-                                                onCheckedChange={() => handleClaimCheckboxOnChange(claim)}
-                                            />
-                                            <Label htmlFor={"claim-" + claim}>
-                                                {formatClaim(translate(`claims.${claim}`), claim)}
-                                            </Label>
-                                        </li>
-                                    }
-                                />
-                                <TooltipContent>{translate("Claim", { name: claim })}</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    ))}
-                </ul>
-            ) : null}
-        </Fragment>
+        <DecisionFormSection
+            id={"openid-consent-claims"}
+            title={translate("Information Shared")}
+            description={translate("The information about you the application will receive")}
+        >
+            {essential_claims?.map((claim: string) => (
+                <DecisionFormSectionItem
+                    key={`${claim}-essential`}
+                    icon={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
+                    identifier={identifier(claim)}
+                    actions={
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[0.625rem] font-medium tracking-wide text-muted-foreground uppercase">
+                            {translate("Required")}
+                        </span>
+                    }
+                >
+                    <Label htmlFor={`claim-${claim}-essential`} className="text-sm">
+                        {label(claim)}
+                    </Label>
+                </DecisionFormSectionItem>
+            ))}
+            {availableClaims.map((claim: string) => (
+                <DecisionFormSectionItem
+                    key={claim}
+                    icon={
+                        <Checkbox
+                            id={`claim-${claim}`}
+                            checked={claimChecked(claim)}
+                            onCheckedChange={() => handleClaimCheckboxOnChange(claim)}
+                        />
+                    }
+                    identifier={identifier(claim)}
+                >
+                    <Label htmlFor={`claim-${claim}`} className="text-sm">
+                        {label(claim)}
+                    </Label>
+                </DecisionFormSectionItem>
+            ))}
+        </DecisionFormSection>
     );
-};
+}
 
 export default DecisionFormClaims;
