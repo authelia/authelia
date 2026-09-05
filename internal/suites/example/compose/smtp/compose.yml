@@ -1,7 +1,7 @@
 ---
 services:
   smtp:
-    image: 'axllent/mailpit:v1.31.0'
+    image: 'axllent/mailpit:v1.31.1'
     cpus: 2
     mem_limit: 1g
     volumes:
