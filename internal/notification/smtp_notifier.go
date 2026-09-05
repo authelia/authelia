@@ -5,12 +5,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net"
 	"net/mail"
 	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
 	gomail "github.com/wneessen/go-mail"
+	"golang.org/x/net/proxy"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -66,6 +68,7 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		gomail.WithHELO(config.Identifier),
 		gomail.WithoutNoop(),
 		gomail.WithPort(int(config.Address.Port())),
+		gomail.WithDialContextFunc(newSMTPDialContextFunc(config, configTLS)),
 	)
 
 	var domain string
@@ -96,6 +99,31 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		tls:    configTLS,
 		log:    log,
 		opts:   opts,
+	}
+}
+
+// newSMTPDialContextFunc implements a custom dialer in order to support connection proxying.
+func newSMTPDialContextFunc(config *schema.NotifierSMTP, configTLS *tls.Config) gomail.DialContextFunc {
+	return func(ctx context.Context, network, address string) (conn net.Conn, err error) {
+		if conn, err = proxy.Dial(ctx, network, address); err != nil {
+			return nil, err
+		}
+
+		if !config.Address.IsExplicitlySecure() {
+			return conn, nil
+		}
+
+		// go-mail only applies implicit TLS itself when using the built-in dialer.
+		// Implement this around the proxied dialer.
+		tlsConn := tls.Client(conn, configTLS)
+
+		if err = tlsConn.HandshakeContext(ctx); err != nil {
+			_ = conn.Close()
+
+			return nil, err
+		}
+
+		return tlsConn, nil
 	}
 }
 
