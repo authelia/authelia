@@ -565,7 +565,7 @@ func ldapDialBindOpts(log *logrus.Entry, config *schema.AuthenticationBackendLDA
 		discovery:      discovery,
 	}
 
-	if tls != nil && !config.Address.IsExplicitlySecure() && config.StartTLS {
+	if tls != nil && !config.Address.IsExplicitlySecure() && (client.Discovery().Extensions.TLS || config.StartTLS) {
 		if err = client.StartTLS(tls); err != nil {
 			_ = client.Close()
 
