@@ -435,7 +435,7 @@ func TestWebAuthnNewWebAuthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T)
 	w, err := ctx.Ctx.GetWebAuthnProvider()
 
 	assert.Nil(t, w)
-	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
+	assert.EqualError(t, err, "error occurred determining the origin for the request: missing required X-Forwarded-Host header")
 }
 
 func TestWebAuthnHandlerDiscoverableLogin(t *testing.T) {

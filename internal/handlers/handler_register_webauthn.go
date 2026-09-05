@@ -8,24 +8,25 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
-	"github.com/go-webauthn/webauthn/webauthn"
+	gowebauthn "github.com/go-webauthn/webauthn/webauthn"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
-	iwebauthn "github.com/authelia/authelia/v4/internal/webauthn"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // WebAuthnRegistrationPUT returns the attestation challenge from the server.
 func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 	var (
-		w           *webauthn.WebAuthn
+		provider    *webauthn.Provider
 		user        *model.WebAuthnUser
 		userSession session.UserSession
 		bodyJSON    bodyRegisterWebAuthnPUTRequest
 		err         error
 	)
+
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge: %s", errStrUserSessionData)
 
@@ -62,7 +63,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if w, err = ctx.GetWebAuthnProvider(); err != nil {
+	if provider, err = ctx.GetWebAuthnProvider(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred provisioning the configuration", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
@@ -71,7 +72,7 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
+	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, provider.WebAuthn.Config.RPID); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -150,20 +151,18 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 		},
 	}
 
-	webauthn.CredentialParametersDefault()
-
-	opts := []webauthn.RegistrationOption{
-		webauthn.WithExclusions(user.WebAuthnCredentialDescriptors()),
-		webauthn.WithExtensions(webauthn.WithExtensionCredProps()),
-		webauthn.WithCredentialParameters(parameters),
+	opts := []gowebauthn.RegistrationOption{
+		gowebauthn.WithExclusions(user.WebAuthnCredentialDescriptors()),
+		gowebauthn.WithExtensions(gowebauthn.WithExtensionCredProps()),
+		gowebauthn.WithCredentialParameters(parameters),
 	}
 
 	data := session.WebAuthn{
 		Description: bodyJSON.Description,
 	}
 
-	if creation, data.SessionData, err = w.BeginRegistration(user, opts...); err != nil {
-		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred starting the registration session", userSession.Username)
+	if creation, data.SessionData, err = provider.BeginRegistration(user, opts...); err != nil {
+		ctx.Logger.WithError(webauthn.FormatError(err)).Errorf("Error occurred generating a WebAuthn registration challenge for user '%s': error occurred starting the registration session", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -195,15 +194,15 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 // WebAuthnRegistrationPOST processes the attestation challenge response from the client.
 func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	var (
-		err  error
-		w    *webauthn.WebAuthn
-		user *model.WebAuthnUser
+		err      error
+		provider *webauthn.Provider
+		user     *model.WebAuthnUser
 
 		userSession session.UserSession
 
 		response *protocol.ParsedCredentialCreationData
 
-		c *webauthn.Credential
+		c *gowebauthn.Credential
 	)
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge: %s", errStrUserSessionData)
@@ -241,7 +240,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 	}()
 
 	if response, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(ctx.PostBody())); err != nil {
-		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrReqBodyParse)
+		ctx.Logger.WithError(webauthn.FormatError(err)).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': %s", userSession.Username, errStrReqBodyParse)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -249,7 +248,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if w, err = ctx.GetWebAuthnProvider(); err != nil {
+	if provider, err = ctx.GetWebAuthnProvider(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred provisioning the configuration", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
@@ -258,7 +257,7 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
+	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, provider.WebAuthn.Config.RPID); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
@@ -267,8 +266,8 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if c, err = w.CreateCredential(user, *userSession.WebAuthn.SessionData, response); err != nil {
-		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error comparing the response to the WebAuthn session data", userSession.Username)
+	if c, err = provider.CreateCredential(user, *userSession.WebAuthn.SessionData, response); err != nil {
+		ctx.Logger.WithError(webauthn.FormatError(err)).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error comparing the response to the WebAuthn session data", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -276,11 +275,11 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	credential := model.NewWebAuthnCredential(ctx, w.Config.RPID, userSession.Username, userSession.WebAuthn.Description, c)
+	credential := model.NewWebAuthnCredential(ctx, provider.WebAuthn.Config.RPID, userSession.Username, userSession.WebAuthn.Description, c)
 
-	credential.Discoverable = iwebauthn.IsCredentialCreationDiscoverable(ctx.Logger, response)
+	credential.Discoverable = webauthn.IsCredentialCreationDiscoverable(ctx.Logger, response)
 
-	if err = iwebauthn.ValidateCredentialAllowed(&ctx.Configuration.WebAuthn, &credential); err != nil {
+	if err = webauthn.ValidateCredentialAllowed(&ctx.Configuration.WebAuthn, &credential); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred processing the credential filtering", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

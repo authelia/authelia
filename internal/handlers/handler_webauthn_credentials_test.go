@@ -124,7 +124,7 @@ func TestWebAuthnCredentialsGET(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials for user 'john': error occurred attempting to retrieve origin", "failed to parse X-Forwarded Headers: parse \"haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK://login.example.com:8080/\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred loading WebAuthn credentials for user 'john': error occurred attempting to retrieve the WebAuthn RP provider", "error occurred determining the origin for the request: failed to parse X-Forwarded Headers: parse \"haoiu123!J@#*()!@HJ$!@*(OJOIFQJNW()D@JE()_@JK://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{
@@ -347,7 +347,7 @@ func TestWebAuthnCredentialsPUT(t *testing.T) {
 			`{"status":"KO","message":"Operation failed."}`,
 			fasthttp.StatusForbidden,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred determining the origin for the request", "failed to parse X-Forwarded Headers: parse \"##!@#!@://login.example.com:8080/\": invalid URI for request")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred modifying WebAuthn credential for user 'john': error occurred attempting to retrieve the WebAuthn RP provider", "error occurred determining the origin for the request: failed to parse X-Forwarded Headers: parse \"##!@#!@://login.example.com:8080/\": invalid URI for request")
 			},
 		},
 		{
