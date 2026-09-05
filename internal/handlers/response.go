@@ -24,29 +24,59 @@ import (
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
 func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string) {
-	var err error
-
-	if len(targetURI) == 0 {
-		defaultRedirectionURL := ctx.GetDefaultRedirectionURL()
-
-		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && defaultRedirectionURL != nil {
-			if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
-				ctx.GetLogger().Errorf("Unable to set default redirection URL in body: %s", err)
-			}
-		} else {
-			ctx.ReplyOK()
-		}
+	uri, def, err := resolve1FATargetURI(ctx, targetURI, requestMethod, username, groups)
+	if err != nil {
+		ctx.SetJSONError(messageAuthenticationFailed)
 
 		return
+	}
+
+	if len(uri) == 0 {
+		ctx.ReplyOK()
+
+		return
+	}
+
+	if err = ctx.SetJSONBody(redirectResponse{Redirect: uri}); err != nil {
+		if def {
+			ctx.GetLogger().Errorf("Unable to set default redirection URL in body: %s", err)
+		} else {
+			ctx.GetLogger().Errorf("Unable to set redirection URL in body: %s", err)
+		}
+	}
+}
+
+// Handle1FARedirect issues a 302 to the validated post-authentication target for flows which are driven by a browser
+// redirect rather than an API call.
+func Handle1FARedirect(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string) {
+	uri := determine1FATargetURI(ctx, targetURI, requestMethod, username, groups)
+
+	if len(uri) == 0 {
+		uri = pathRoot
+	}
+
+	ctx.SpecialRedirect(uri, fasthttp.StatusFound)
+}
+
+func determine1FATargetURI(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string) (uri string) {
+	uri, _, _ = resolve1FATargetURI(ctx, targetURI, requestMethod, username, groups)
+
+	return uri
+}
+
+func resolve1FATargetURI(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string) (uri string, def bool, err error) {
+	if len(targetURI) == 0 {
+		uri = default1FATargetURI(ctx)
+
+		return uri, len(uri) != 0, nil
 	}
 
 	var object *authorization.Object
 
 	if object, err = authorization.NewObjectMethodURL([]byte(requestMethod), []byte(targetURI)); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Error occurred parsing the target URL '%s'", targetURI)
-		ctx.SetJSONError(messageAuthenticationFailed)
 
-		return
+		return "", false, err
 	}
 
 	_, requiredLevel := ctx.Providers.Authorizer.GetRequiredLevel(
@@ -61,34 +91,31 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 
 	if requiredLevel == authorization.TwoFactor {
 		ctx.GetLogger().Warnf("%s requires 2FA, cannot be redirected yet", object.URL)
-		ctx.ReplyOK()
 
-		return
+		return "", false, nil
 	}
 
 	if !ctx.IsSafeRedirectionTargetURI(object.URL) {
 		ctx.GetLogger().Debugf("Redirection URL %s is not safe", object.URL)
 
-		defaultRedirectionURL := ctx.GetDefaultRedirectionURL()
+		uri = default1FATargetURI(ctx)
 
-		if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && defaultRedirectionURL != nil {
-			if err = ctx.SetJSONBody(redirectResponse{Redirect: defaultRedirectionURL.String()}); err != nil {
-				ctx.GetLogger().Errorf("Unable to set default redirection URL in body: %s", err)
-			}
-
-			return
-		}
-
-		ctx.ReplyOK()
-
-		return
+		return uri, len(uri) != 0, nil
 	}
 
 	ctx.GetLogger().Debugf("Redirection URL %s is safe", object.URL)
 
-	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI}); err != nil {
-		ctx.GetLogger().Errorf("Unable to set redirection URL in body: %s", err)
+	return targetURI, false, nil
+}
+
+func default1FATargetURI(ctx *middlewares.AutheliaCtx) (uri string) {
+	defaultRedirectionURL := ctx.GetDefaultRedirectionURL()
+
+	if !ctx.Providers.Authorizer.IsSecondFactorEnabled() && defaultRedirectionURL != nil {
+		return defaultRedirectionURL.String()
 	}
+
+	return ""
 }
 
 // Handle2FAResponse handle the redirection upon 2FA authentication.

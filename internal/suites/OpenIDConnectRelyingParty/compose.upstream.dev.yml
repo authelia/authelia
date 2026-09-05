@@ -1,0 +1,38 @@
+---
+services:
+  authelia-upstream-backend:
+    cpus: 2
+    mem_limit: 1g
+    environment:
+      GOMAXPROCS: '2'
+      CGO_ENABLED: '1'
+      X_AUTHELIA_CONFIG: '/config/configuration.yml'
+      X_AUTHELIA_CONFIG_FILTERS: 'template'
+      AUTHELIA_SERVER_DISABLE_HEALTHCHECK: 'true'
+    build:
+      context: 'example/compose/authelia'
+      dockerfile: 'Dockerfile.backend'
+      args:
+        USER_ID: '${USER_ID}'
+        GROUP_ID: '${GROUP_ID}'
+    # The instance under test owns './authelia' in the shared working directory, so this one is run straight from
+    # source rather than through the hot reloading entrypoint which would write over that binary.
+    command: ['sh', '-c', 'while true; do go run -tags=dev ./cmd/authelia; sleep 3; done']
+    working_dir: '/app'
+    volumes:
+      - './example/compose/authelia/resources:/resources'
+      - '../..:/app:cached'
+      - '${GOPATH}:/go:cached'
+      - './OpenIDConnectRelyingParty/upstream/configuration.yml:/config/configuration.yml'
+      - './OpenIDConnectRelyingParty/upstream/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+    networks:
+      authelianet: {}
+  authelia-backend:
+    # Discovery of the external provider happens while the instance under test starts, so the provider has to be
+    # there first. The development backend retries indefinitely, so this only orders the start.
+    depends_on:
+      authelia-upstream-backend:
+        condition: 'service_started'
+...

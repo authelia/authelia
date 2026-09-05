@@ -1,0 +1,31 @@
+---
+services:
+  authelia-upstream-backend:
+    image: '${SUITE_IMAGE:-authelia:dist}'
+    cpus: 2
+    mem_limit: 1g
+    environment:
+      GOMAXPROCS: '2'
+      X_AUTHELIA_CONFIG: '/config/configuration.yml'
+      X_AUTHELIA_CONFIG_FILTERS: 'template'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --quiet --no-check-certificate --tries=1 --spider https://localhost:9091/api/health || exit 1']  # yamllint disable-line rule:line-length
+      interval: '5s'
+      timeout: '5s'
+      retries: 6
+      start_period: '90s'
+    volumes:
+      - './OpenIDConnectRelyingParty/upstream/configuration.yml:/config/configuration.yml'
+      - './OpenIDConnectRelyingParty/upstream/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+    restart: 'always'
+    networks:
+      authelianet: {}
+  authelia-backend:
+    # Discovery of the external provider happens while the instance under test starts, so the provider has to be
+    # serving its metadata before this one is started.
+    depends_on:
+      authelia-upstream-backend:
+        condition: 'service_healthy'
+...

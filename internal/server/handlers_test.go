@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,6 +14,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
@@ -360,6 +362,114 @@ func TestHandlerMainWithOptionalFeatures(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.NotNil(t, handler)
+		})
+	}
+}
+
+// TestHandlerMainOpenIDConnectLinkRoutes drives the real registered router (not a hand-built stand-in) to prove two
+// things about the OpenID Connect 1.0 relying party link management routes which a handler unit test cannot: that
+// DELETE /api/user/openid-connect/link/pending resolves to the pending decline handler rather than the id delete
+// handler with linkID == "pending", and that the accept (PUT) and id delete (DELETE) routes are actually wired
+// behind the elevated session middleware rather than the plain first factor one. An anonymous request is enough to
+// tell these apart: middleware1FA replies with a plain text "403 Forbidden" body while middlewareElevated1FA replies
+// with a JSON body carrying "first_factor":true, so the two failure shapes reveal which middleware a route actually
+// runs behind.
+func TestHandlerMainOpenIDConnectLinkRoutes(t *testing.T) {
+	provider, err := templates.New(templates.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, provider.LoadTemplatedAssets(assets))
+
+	config := &schema.Configuration{
+		Server: schema.Server{
+			Address:   schema.DefaultServerConfiguration.Address,
+			Endpoints: schema.DefaultServerConfiguration.Endpoints,
+		},
+		Session: schema.Session{
+			Cookies: []schema.SessionCookie{
+				{
+					SessionCookieCommon: schema.SessionCookieCommon{
+						Name:       "authelia_session",
+						RememberMe: schema.DefaultSessionConfiguration.RememberMe,
+						Expiration: schema.DefaultSessionConfiguration.Expiration,
+					},
+					Domain:                "example.com",
+					DefaultRedirectionURL: &url.URL{Scheme: "https", Host: "www.example.com"},
+					AutheliaURL:           &url.URL{Scheme: "https", Host: "login.example.com"},
+				},
+			},
+		},
+		AuthenticationBackend: schema.AuthenticationBackend{
+			OpenIDConnect: &schema.AuthenticationBackendOpenIDConnect{
+				Providers: []schema.AuthenticationBackendOpenIDConnectProvider{
+					{ID: "example", Name: "Example", Issuer: "https://op.example.com"},
+				},
+			},
+		},
+	}
+
+	providers := middlewares.NewProvidersBasic()
+	providers.Random = random.NewMathematical()
+	providers.Templates = provider
+	providers.SessionProvider = session.NewProvider(config.Session, nil)
+
+	handler, err := handlerMain(config, providers)
+
+	require.NoError(t, err)
+	require.NotNil(t, handler)
+
+	testCases := []struct {
+		Name                 string
+		Method               string
+		Path                 string
+		ExpectedStatusCode   int
+		ExpectedContentType  string
+		ExpectedBodyContains string
+	}{
+		{
+			"ShouldRoutePendingDeclineToThePlainFirstFactorMiddleware",
+			fasthttp.MethodDelete,
+			"/api/user/openid-connect/link/pending",
+			fasthttp.StatusForbidden,
+			"text/plain; charset=utf-8",
+			"403 Forbidden",
+		},
+		{
+			"ShouldRouteIDDeleteToTheElevatedMiddleware",
+			fasthttp.MethodDelete,
+			"/api/user/openid-connect/link/123",
+			fasthttp.StatusForbidden,
+			"application/json; charset=utf-8",
+			`"first_factor":true`,
+		},
+		{
+			"ShouldRouteAcceptToTheElevatedMiddleware",
+			fasthttp.MethodPut,
+			"/api/user/openid-connect/link",
+			fasthttp.StatusForbidden,
+			"application/json; charset=utf-8",
+			`"first_factor":true`,
+		},
+		{
+			"ShouldRouteLinksListToThePlainFirstFactorMiddleware",
+			fasthttp.MethodGet,
+			"/api/user/openid-connect/links",
+			fasthttp.StatusForbidden,
+			"text/plain; charset=utf-8",
+			"403 Forbidden",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			ctx := newAssetRequestCtx(tc.Method, tc.Path, "")
+			ctx.Request.Header.SetHost("login.example.com")
+
+			handler(ctx)
+
+			assert.Equal(t, tc.ExpectedStatusCode, ctx.Response.StatusCode())
+			assert.Equal(t, tc.ExpectedContentType, string(ctx.Response.Header.ContentType()))
+			assert.Contains(t, string(ctx.Response.Body()), tc.ExpectedBodyContains)
 		})
 	}
 }

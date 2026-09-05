@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"time"
 
 	"github.com/valyala/fasthttp"
 
@@ -40,14 +41,19 @@ var (
 )
 
 const (
-	queryArgRD        = "rd"
-	queryArgRM        = "rm"
-	queryArgAuth      = "auth"
-	queryArgConsentID = "consent_id"
-	queryArgFlow      = "flow"
-	queryArgSubflow   = "subflow"
-	queryArgUserCode  = oidc.FormParameterUserCode
-	queryArgFlowID    = oidc.FormParameterFlowID
+	queryArgRD           = "rd"
+	queryArgRM           = "rm"
+	queryArgAuth         = "auth"
+	queryArgConsentID    = "consent_id"
+	queryArgFlow         = "flow"
+	queryArgSubflow      = "subflow"
+	queryArgUserCode     = oidc.FormParameterUserCode
+	queryArgFlowID       = oidc.FormParameterFlowID
+	queryArgState        = oidc.FormParameterState
+	queryArgCode         = "code"
+	queryArgISS          = "iss"
+	queryArgError        = "error"
+	queryArgLinkProvider = "link_provider"
 )
 
 var (
@@ -76,6 +82,11 @@ const (
 	messageIncorrectPassword                     = "Incorrect Password"
 	messageMFAValidationFailed                   = "Authentication failed, please retry later."
 	messagePasswordWeak                          = "Your supplied password does not meet the password policy requirements."
+	messageOpenIDConnectLoginFailed              = "Could not start the external login."
+	messageOpenIDConnectLinkFailed               = "Unable to link the external account."
+	messageOpenIDConnectLinkNonePending          = "There is no external account awaiting a decision."
+	messageOpenIDConnectLinkConflict             = "That external account is already linked."
+	messageOpenIDConnectUnlinkFailed             = "Unable to remove the external account link."
 )
 
 const (
@@ -95,6 +106,8 @@ const (
 	logFmtErrSessionSave          = "Could not save session with the %s during %s %s for user '%s'"
 	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
+
+	logFmtErrOpenIDConnectCallback = "Error occurred handling an external OpenID Connect 1.0 callback"
 )
 
 const (
@@ -158,10 +171,22 @@ var ldapPasswordComplexityErrors = []string{
 }
 
 const (
-	errStrReqBodyParse        = "error parsing the request body"
-	errStrRespBody            = "error occurred writing the response body"
-	errStrUserSessionData     = "error occurred retrieving the user session data"
-	errStrUserSessionDataSave = "error occurred saving the user session data"
+	errStrReqBodyParse                 = "error parsing the request body"
+	errStrRespBody                     = "error occurred writing the response body"
+	errStrUserSessionData              = "error occurred retrieving the user session data"
+	errStrUserSessionDataSave          = "error occurred saving the user session data"
+	errStrOpenIDConnectProviderUnknown = "the external provider is not configured"
+	errStrSessionProvider              = "error occurred retrieving the session provider"
+)
+
+const (
+	timeoutOpenIDConnectFlow    = time.Minute * 3
+	timeoutOpenIDConnectPending = time.Minute * 15
+)
+
+const (
+	pathRoot                        = "/"
+	pathOpenIDConnectLinkedAccounts = "/settings/openid-connect"
 )
 
 var (

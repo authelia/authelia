@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -18,6 +19,60 @@ import (
 
 // MethodList is the list of available methods.
 type MethodList = []string
+
+// bodyGETOpenIDConnectProviders is the response body for the external OpenID Connect 1.0 provider list.
+type bodyGETOpenIDConnectProviders struct {
+	Providers []bodyOpenIDConnectProvider `json:"providers"`
+}
+
+// bodyOpenIDConnectProvider is a single external OpenID Connect 1.0 provider in the login page list.
+type bodyOpenIDConnectProvider struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// bodyPOSTOpenIDConnectStart is the request body for starting an external OpenID Connect 1.0 login.
+type bodyPOSTOpenIDConnectStart struct {
+	TargetURL      string `json:"targetURL"`
+	RequestMethod  string `json:"requestMethod"`
+	KeepMeLoggedIn bool   `json:"keepMeLoggedIn"`
+}
+
+// bodyPOSTOpenIDConnectStartResponse is the response body for starting an external OpenID Connect 1.0 login.
+type bodyPOSTOpenIDConnectStartResponse struct {
+	AuthorizationURL string `json:"authorization_url"`
+}
+
+// bodyGETOpenIDConnectLinks is the response body for the linked accounts settings page.
+type bodyGETOpenIDConnectLinks struct {
+	Links   []bodyOpenIDConnectLink   `json:"links"`
+	Pending *bodyOpenIDConnectPending `json:"pending,omitempty"`
+}
+
+// bodyOpenIDConnectLink is an established link between a local account and an external identity. The provider's
+// display name accompanies its identifier so the settings page can name the provider the same way the pending panel
+// and the accept and decline notifications do.
+type bodyOpenIDConnectLink struct {
+	ID             int        `json:"id"`
+	CreatedAt      time.Time  `json:"created_at"`
+	LastUsedAt     *time.Time `json:"last_used_at,omitempty"`
+	Provider       string     `json:"provider"`
+	ProviderName   string     `json:"provider_name"`
+	Issuer         string     `json:"issuer"`
+	Subject        string     `json:"subject"`
+	RemoteUsername string     `json:"remote_username,omitempty"`
+}
+
+// bodyOpenIDConnectPending is the proposed link awaiting the user's decision.
+type bodyOpenIDConnectPending struct {
+	Provider       string `json:"provider"`
+	ProviderName   string `json:"provider_name"`
+	Issuer         string `json:"issuer"`
+	Subject        string `json:"subject"`
+	RemoteUsername string `json:"remote_username,omitempty"`
+	DisplayName    string `json:"display_name,omitempty"`
+	Email          string `json:"email,omitempty"`
+}
 
 type configurationBody struct {
 	AvailableMethods       MethodList `json:"available_methods"`

@@ -4,6 +4,8 @@ var defaults = map[string]any{
 	"regulation.max_retries": 3,
 	"server.endpoints.rate_limits.openid_connect_introspection.enable":                true,
 	"server.endpoints.rate_limits.openid_connect_pushed_authorization_request.enable": true,
+	"server.endpoints.rate_limits.openid_connect_relying_party_callback.enable":       true,
+	"server.endpoints.rate_limits.openid_connect_relying_party_start.enable":          true,
 	"server.endpoints.rate_limits.openid_connect_revocation.enable":                   true,
 	"server.endpoints.rate_limits.openid_connect_token.enable":                        true,
 	"server.endpoints.rate_limits.openid_connect_userinfo.enable":                     true,

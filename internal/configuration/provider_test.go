@@ -212,6 +212,36 @@ func TestShouldHaveEndpointSubPath(t *testing.T) {
 	assert.Contains(t, config.Server.Endpoints.Authz, "auth-request/basic")
 }
 
+func TestShouldEnableOpenIDConnectRelyingPartyRateLimitsByDefault(t *testing.T) {
+	testCases := []struct {
+		Name string
+	}{
+		{Name: "ShouldApplyEnableAndBucketDefaultsWhenOmitted"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			val := schema.NewStructValidator()
+
+			_, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+			require.NoError(t, err)
+
+			validator.ValidateServer(config, val)
+
+			assert.Len(t, val.Errors(), 0)
+			assert.Len(t, val.Warnings(), 0)
+
+			assert.True(t, config.Server.Endpoints.RateLimits.OpenIDConnectRelyingPartyStart.Enable)
+			assert.NotEmpty(t, config.Server.Endpoints.RateLimits.OpenIDConnectRelyingPartyStart.Buckets)
+			assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectRelyingPartyStart.Buckets, config.Server.Endpoints.RateLimits.OpenIDConnectRelyingPartyStart.Buckets)
+
+			assert.True(t, config.Server.Endpoints.RateLimits.OpenIDConnectRelyingPartyCallback.Enable)
+			assert.NotEmpty(t, config.Server.Endpoints.RateLimits.OpenIDConnectRelyingPartyCallback.Buckets)
+			assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.RateLimits.OpenIDConnectRelyingPartyCallback.Buckets, config.Server.Endpoints.RateLimits.OpenIDConnectRelyingPartyCallback.Buckets)
+		})
+	}
+}
+
 func TestShouldConfigureRefreshIntervalDisable(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")

@@ -52,6 +52,10 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 	if config.LDAP != nil {
 		validateLDAPAuthenticationBackend(config, validator)
 	}
+
+	if config.OpenIDConnect != nil {
+		ValidateAuthenticationBackendOpenIDConnect(config.OpenIDConnect, validator)
+	}
 }
 
 func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {

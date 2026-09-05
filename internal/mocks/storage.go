@@ -186,6 +186,20 @@ func (mr *MockStorageMockRecorder) DeleteCachedData(ctx, name any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCachedData", reflect.TypeOf((*MockStorage)(nil).DeleteCachedData), ctx, name)
 }
 
+// DeleteOpenIDConnectLink mocks base method.
+func (m *MockStorage) DeleteOpenIDConnectLink(ctx context.Context, username string, id int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteOpenIDConnectLink", ctx, username, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteOpenIDConnectLink indicates an expected call of DeleteOpenIDConnectLink.
+func (mr *MockStorageMockRecorder) DeleteOpenIDConnectLink(ctx, username, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOpenIDConnectLink", reflect.TypeOf((*MockStorage)(nil).DeleteOpenIDConnectLink), ctx, username, id)
+}
+
 // DeletePreferredDuoDevice mocks base method.
 func (m *MockStorage) DeletePreferredDuoDevice(ctx context.Context, username string) error {
 	m.ctrl.T.Helper()
@@ -570,6 +584,51 @@ func (m *MockStorage) LoadOneTimeCodeBySignature(ctx context.Context, signature 
 func (mr *MockStorageMockRecorder) LoadOneTimeCodeBySignature(ctx, signature any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOneTimeCodeBySignature", reflect.TypeOf((*MockStorage)(nil).LoadOneTimeCodeBySignature), ctx, signature)
+}
+
+// LoadOpenIDConnectLinkByID mocks base method.
+func (m *MockStorage) LoadOpenIDConnectLinkByID(ctx context.Context, id int) (*model.OpenIDConnectLink, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOpenIDConnectLinkByID", ctx, id)
+	ret0, _ := ret[0].(*model.OpenIDConnectLink)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOpenIDConnectLinkByID indicates an expected call of LoadOpenIDConnectLinkByID.
+func (mr *MockStorageMockRecorder) LoadOpenIDConnectLinkByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOpenIDConnectLinkByID", reflect.TypeOf((*MockStorage)(nil).LoadOpenIDConnectLinkByID), ctx, id)
+}
+
+// LoadOpenIDConnectLinkBySubject mocks base method.
+func (m *MockStorage) LoadOpenIDConnectLinkBySubject(ctx context.Context, issuer, subject string) (*model.OpenIDConnectLink, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOpenIDConnectLinkBySubject", ctx, issuer, subject)
+	ret0, _ := ret[0].(*model.OpenIDConnectLink)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOpenIDConnectLinkBySubject indicates an expected call of LoadOpenIDConnectLinkBySubject.
+func (mr *MockStorageMockRecorder) LoadOpenIDConnectLinkBySubject(ctx, issuer, subject any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOpenIDConnectLinkBySubject", reflect.TypeOf((*MockStorage)(nil).LoadOpenIDConnectLinkBySubject), ctx, issuer, subject)
+}
+
+// LoadOpenIDConnectLinksByUsername mocks base method.
+func (m *MockStorage) LoadOpenIDConnectLinksByUsername(ctx context.Context, username string) ([]model.OpenIDConnectLink, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOpenIDConnectLinksByUsername", ctx, username)
+	ret0, _ := ret[0].([]model.OpenIDConnectLink)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOpenIDConnectLinksByUsername indicates an expected call of LoadOpenIDConnectLinksByUsername.
+func (mr *MockStorageMockRecorder) LoadOpenIDConnectLinksByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOpenIDConnectLinksByUsername", reflect.TypeOf((*MockStorage)(nil).LoadOpenIDConnectLinksByUsername), ctx, username)
 }
 
 // LoadPreferred2FAMethod mocks base method.
@@ -1108,6 +1167,20 @@ func (mr *MockStorageMockRecorder) SaveOneTimeCode(ctx, code any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOneTimeCode", reflect.TypeOf((*MockStorage)(nil).SaveOneTimeCode), ctx, code)
 }
 
+// SaveOpenIDConnectLink mocks base method.
+func (m *MockStorage) SaveOpenIDConnectLink(ctx context.Context, link model.OpenIDConnectLink) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOpenIDConnectLink", ctx, link)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOpenIDConnectLink indicates an expected call of SaveOpenIDConnectLink.
+func (mr *MockStorageMockRecorder) SaveOpenIDConnectLink(ctx, link any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOpenIDConnectLink", reflect.TypeOf((*MockStorage)(nil).SaveOpenIDConnectLink), ctx, link)
+}
+
 // SavePreferred2FAMethod mocks base method.
 func (m *MockStorage) SavePreferred2FAMethod(ctx context.Context, username, method string) error {
 	m.ctrl.T.Helper()
@@ -1407,6 +1480,20 @@ func (m *MockStorage) UpdateOAuth2PushedAuthorizationSession(ctx context.Context
 func (mr *MockStorageMockRecorder) UpdateOAuth2PushedAuthorizationSession(ctx, par any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2PushedAuthorizationSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2PushedAuthorizationSession), ctx, par)
+}
+
+// UpdateOpenIDConnectLinkSignIn mocks base method.
+func (m *MockStorage) UpdateOpenIDConnectLinkSignIn(ctx context.Context, id int, lastUsedAt time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOpenIDConnectLinkSignIn", ctx, id, lastUsedAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOpenIDConnectLinkSignIn indicates an expected call of UpdateOpenIDConnectLinkSignIn.
+func (mr *MockStorageMockRecorder) UpdateOpenIDConnectLinkSignIn(ctx, id, lastUsedAt any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOpenIDConnectLinkSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateOpenIDConnectLinkSignIn), ctx, id, lastUsedAt)
 }
 
 // UpdateTOTPConfigurationSignIn mocks base method.

@@ -103,7 +103,8 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 
 		userSession := provider.NewDefaultUserSession()
 
-		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
+		// Reset all values from the previous session before regenerating the cookie. Nothing survives the
+		// authentication boundary, including any external OpenID Connect 1.0 state.
 		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionReset, regulation.AuthType1FA, details.Username)
 

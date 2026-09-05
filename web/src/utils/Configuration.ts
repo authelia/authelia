@@ -31,6 +31,10 @@ export function getPasskeyLogin() {
     return getEmbeddedVariable("passkeylogin") === "true";
 }
 
+export function getOpenIDConnectLogin() {
+    return getEmbeddedVariable("openidconnectlogin") === "true";
+}
+
 export function getResetPasswordCustomURL() {
     return getEmbeddedVariable("resetpasswordcustomurl");
 }

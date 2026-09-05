@@ -96,6 +96,21 @@ const (
 	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
+	errFmtOIDCRPProvidersRequired      = "authentication_backend: openid_connect: option 'providers' is required but it's not configured"
+	errFmtOIDCRPProviderID             = "authentication_backend: openid_connect: providers: provider #%d: option 'id' must match the pattern '%s' but it's configured as '%s'"
+	errFmtOIDCRPProviderIDDuplicate    = "authentication_backend: openid_connect: providers: provider '%s': option 'id' must be unique but it's configured multiple times"
+	errFmtOIDCRPProviderOptionRequired = "authentication_backend: openid_connect: providers: provider '%s': option '%s' is required but it's not configured"
+	errFmtOIDCRPProviderIssuerScheme   = "authentication_backend: openid_connect: providers: provider '%s': option 'issuer' must have the 'https' scheme but it's configured as '%s'"
+	errFmtOIDCRPProviderIssuerParse    = "authentication_backend: openid_connect: providers: provider '%s': option 'issuer' must be a valid URL but it could not be parsed: %w"
+	errFmtOIDCRPProviderAlg            = "authentication_backend: openid_connect: providers: provider '%s': option 'id_token_signed_response_alg' must be one of %s but it's configured as '%s'"
+	errFmtOIDCRPProviderAuthMethod     = "authentication_backend: openid_connect: providers: provider '%s': option 'token_endpoint_auth_method' must be one of %s but it's configured as '%s'"
+	errFmtOIDCRPProviderPKCE           = "authentication_backend: openid_connect: providers: provider '%s': pkce: option 'challenge_method' must be 'S256' but it's configured as '%s'"
+	errFmtOIDCRPProviderEndpoint       = "authentication_backend: openid_connect: providers: provider '%s': endpoints: option '%s' is required when discovery is disabled but it's not configured"
+	errFmtOIDCRPProviderEndpointJWKS   = "authentication_backend: openid_connect: providers: provider '%s': endpoints: option 'jwks' is required when discovery is disabled and no 'jwks' are configured but it's not configured"
+	errFmtOIDCRPProviderEndpointScheme = "authentication_backend: openid_connect: providers: provider '%s': endpoints: option '%s' must have the 'https' scheme but it's configured as '%s'"
+	errFmtOIDCRPProviderEndpointParse  = "authentication_backend: openid_connect: providers: provider '%s': endpoints: option '%s' must be a valid URL but it could not be parsed: %w"
+	errFmtOIDCRPProviderSecretRequired = "authentication_backend: openid_connect: providers: provider '%s': option 'client_secret' is required when the 'token_endpoint_auth_method' is '%s' but it's not configured"
+
 	errFmtFileAuthBackendPathNotConfigured              = "authentication_backend: file: option 'path' is required"
 	errFmtFileAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: file: extra_attributes: %s: option 'value_type' is required"
 	errFmtFileAuthBackendExtraAttributeValueType        = "authentication_backend: file: extra_attributes: %s: option 'value_type' must be one of 'string', 'integer', or 'boolean' but it's configured as '%s'"

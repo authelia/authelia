@@ -81,6 +81,13 @@ var MX2MailBaseURL = fmt.Sprintf("https://mx2.mail.%s", BaseDomain)
 // OIDCBaseURL the base URL of the oidc domain.
 var OIDCBaseURL = fmt.Sprintf("https://oidc.%s", BaseDomain)
 
+// UpstreamBaseURL the base URL of the second Authelia instance which acts as the external OpenID Connect 1.0
+// Provider in the OpenIDConnectRelyingParty suite.
+var UpstreamBaseURL = fmt.Sprintf("https://auth-upstream.%s", BaseDomain)
+
+// LinkedAccountsURL the URL of the Linked Accounts settings page.
+var LinkedAccountsURL = fmt.Sprintf("%s/settings/openid-connect", LoginBaseURL)
+
 // DuoBaseURL the base URL of the Duo configuration API.
 var DuoBaseURL = "https://duo.example.com"
 

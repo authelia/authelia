@@ -215,6 +215,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		AssetPath:               config.Server.AssetPath,
 		DuoSelfEnrollment:       strFalse,
 		PasskeyLogin:            strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
+		OpenIDConnectLogin:      strconv.FormatBool(config.AuthenticationBackend.OpenIDConnect != nil && len(config.AuthenticationBackend.OpenIDConnect.Providers) != 0),
 		RememberMe:              strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:           strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL:  config.AuthenticationBackend.PasswordReset.CustomURL.String(),
@@ -250,6 +251,7 @@ type TemplatedFileOptions struct {
 	AssetPath              string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
+	OpenIDConnectLogin     string
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
@@ -286,6 +288,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
+		OpenIDConnectLogin:     options.OpenIDConnectLogin,
 		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
@@ -306,6 +309,7 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
+		OpenIDConnectLogin:     options.OpenIDConnectLogin,
 		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
@@ -345,6 +349,7 @@ type TemplatedFileCommonData struct {
 	LogoOverride           string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
+	OpenIDConnectLogin     string
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string

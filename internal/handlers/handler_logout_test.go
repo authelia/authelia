@@ -10,6 +10,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 type LogoutSuite struct {
@@ -110,6 +111,46 @@ func TestLogoutPOST(t *testing.T) {
 			if tc.expectedf != nil {
 				tc.expectedf(t, mock)
 			}
+		})
+	}
+}
+
+func TestOpenIDConnectStateDoesNotSurviveLogout(t *testing.T) {
+	testCases := []struct {
+		Name string
+	}{
+		{Name: "ShouldClearFlowAndPendingOnLogout"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			userSession, err := mock.Ctx.GetSession()
+			require.NoError(t, err)
+
+			userSession.Username = "john"
+			userSession.OpenIDConnect = &session.OpenIDConnectFlow{Provider: "example"}
+			userSession.OpenIDConnectPending = &session.OpenIDConnectPending{Provider: "example"}
+
+			require.NoError(t, mock.Ctx.SaveSession(userSession))
+
+			userSession, err = mock.Ctx.GetSession()
+			require.NoError(t, err)
+			require.NotNil(t, userSession.OpenIDConnect)
+			require.NotNil(t, userSession.OpenIDConnectPending)
+			assert.Equal(t, "example", userSession.OpenIDConnect.Provider)
+			assert.Equal(t, "example", userSession.OpenIDConnectPending.Provider)
+
+			LogoutPOST(mock.Ctx)
+
+			userSession, err = mock.Ctx.GetSession()
+			require.NoError(t, err)
+
+			assert.Nil(t, userSession.OpenIDConnect)
+			assert.Nil(t, userSession.OpenIDConnectPending)
 		})
 	}
 }

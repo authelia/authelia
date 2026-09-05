@@ -1,4 +1,4 @@
-import { Fragment, ReactNode, lazy, useCallback, useEffect, useState } from "react";
+import { Fragment, ReactNode, lazy, useCallback, useEffect, useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 import { Route, Routes, useLocation } from "react-router";
@@ -12,7 +12,7 @@ import {
     SecondFactorTOTPSubRoute,
     SecondFactorWebAuthnSubRoute,
 } from "@constants/Routes";
-import { RedirectionURL } from "@constants/SearchParams";
+import { OpenIDConnectLinkProvider, RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useConfiguration } from "@hooks/Configuration";
@@ -22,6 +22,7 @@ import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
+import { postOpenIDConnectStart } from "@services/OpenIDConnectRelyingParty";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
@@ -32,6 +33,7 @@ const SecondFactorForm = lazy(() => import("@views/LoginPortal/SecondFactor/Seco
 
 export interface Props {
     duoSelfEnrollment: boolean;
+    openIDConnectLogin: boolean;
     passkeyLogin: boolean;
     rememberMe: boolean;
     resetPassword: boolean;
@@ -44,9 +46,12 @@ const RedirectionErrorMessage =
 const LoginPortal = function (props: Props) {
     const location = useLocation();
     const redirectionURL = useQueryParam(RedirectionURL);
+    const requestMethod = useQueryParam(RequestMethod);
+    const linkProvider = useQueryParam(OpenIDConnectLinkProvider);
     const { createErrorNotification } = useNotifications();
     const [firstFactorDisabled, setFirstFactorDisabled] = useState(true);
     const [broadcastRedirect, setBroadcastRedirect] = useState(false);
+    const linkStartedRef = useRef(false);
     const redirector = useRedirector();
     const { localStorageMethod } = useLocalStorageMethodContext();
     const { t: translate } = useTranslation();
@@ -86,16 +91,44 @@ const LoginPortal = function (props: Props) {
         }
     }, [fetchUserInfoError, createErrorNotification, translate]);
 
+    const authenticationComplete =
+        state !== undefined &&
+        ((configuration?.available_methods?.size === 0 &&
+            state.authentication_level >= AuthenticationLevel.OneFactor) ||
+            state.authentication_level === AuthenticationLevel.TwoFactor);
+
+    const handleOpenIDConnectLink = useCallback(async () => {
+        if (!linkProvider || linkStartedRef.current || !authenticationComplete) {
+            return false;
+        }
+
+        linkStartedRef.current = true;
+
+        try {
+            const response = await postOpenIDConnectStart(linkProvider, {
+                keepMeLoggedIn: false,
+                requestMethod,
+                targetURL: redirectionURL,
+            });
+
+            redirector(response.authorization_url);
+        } catch (err) {
+            console.error(err);
+
+            linkStartedRef.current = false;
+
+            return false;
+        }
+
+        return true;
+    }, [linkProvider, authenticationComplete, requestMethod, redirectionURL, redirector]);
+
     const handleRedirection = useCallback(async () => {
         if (!redirectionURL) {
             return false;
         }
 
-        const shouldRedirect =
-            (configuration?.available_methods?.size === 0 &&
-                state!.authentication_level >= AuthenticationLevel.OneFactor) ||
-            state!.authentication_level === AuthenticationLevel.TwoFactor ||
-            broadcastRedirect;
+        const shouldRedirect = authenticationComplete || broadcastRedirect;
 
         if (!shouldRedirect) {
             return false;
@@ -113,7 +146,7 @@ const LoginPortal = function (props: Props) {
         }
 
         return true;
-    }, [redirectionURL, configuration, state, broadcastRedirect, redirector, createErrorNotification, translate]);
+    }, [redirectionURL, authenticationComplete, broadcastRedirect, redirector, createErrorNotification, translate]);
 
     const handleAuthenticationNavigation = useCallback(() => {
         if (state!.authentication_level === AuthenticationLevel.Unauthenticated) {
@@ -144,6 +177,11 @@ const LoginPortal = function (props: Props) {
                 return;
             }
 
+            const resumed = await handleOpenIDConnectLink();
+            if (resumed) {
+                return;
+            }
+
             const redirected = await handleRedirection();
             if (redirected) {
                 return;
@@ -164,6 +202,7 @@ const LoginPortal = function (props: Props) {
         localStorageMethod,
         translate,
         handleAuthenticationNavigation,
+        handleOpenIDConnectLink,
         handleRedirection,
     ]);
 
@@ -193,6 +232,7 @@ const LoginPortal = function (props: Props) {
                     <ComponentOrLoading ready={firstFactorReady}>
                         <FirstFactorForm
                             disabled={firstFactorDisabled}
+                            openIDConnectLogin={props.openIDConnectLogin}
                             passkeyLogin={props.passkeyLogin}
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}

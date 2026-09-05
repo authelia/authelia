@@ -53,6 +53,27 @@ func TestHandle1FAResponse(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldNotRedirectToUnsafeTargetURI",
+			"https://evil.example.org/",
+			fasthttp.MethodGet,
+			`{"status":"OK"}`,
+			nil,
+		},
+		{
+			"ShouldNotRedirectToTargetURIRequiringTwoFactor",
+			"https://two-factor.example.com/",
+			fasthttp.MethodGet,
+			`{"status":"OK"}`,
+			nil,
+		},
+		{
+			"ShouldNotRedirectWithoutTargetURI",
+			"",
+			fasthttp.MethodGet,
+			`{"status":"OK"}`,
+			nil,
+		},
+		{
 			"ShouldHandleInvalidRequestMethod",
 			"https://app.example.com/",
 			"GET1",

@@ -66,6 +66,28 @@ func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment, since
 		[]string{"Startup complete"})
 }
 
+func waitUntilAutheliaUpstreamBackendIsReady(dockerEnvironment *DockerEnvironment) error {
+	if os.Getenv("CI") == t {
+		return nil
+	}
+
+	log.Info("Waiting for Authelia (Upstream Provider) to be ready...")
+
+	if err := waitUntilServiceLogDetected(
+		5*time.Second,
+		180*time.Second,
+		dockerEnvironment,
+		"authelia-upstream-backend",
+		time.Time{},
+		[]string{"Startup complete"}); err != nil {
+		return err
+	}
+
+	log.Info("Authelia (Upstream Provider) is ready!")
+
+	return nil
+}
+
 func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
 		5*time.Second,

@@ -20,10 +20,12 @@ import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
+import OpenIDConnectForm from "@views/LoginPortal/FirstFactor/OpenIDConnectForm";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 
 export interface Props {
     disabled: boolean;
+    openIDConnectLogin: boolean;
     passkeyLogin: boolean;
     rememberMe: boolean;
     resetPassword: boolean;
@@ -363,6 +365,9 @@ const FirstFactorForm = function (props: Props) {
                                 props.onAuthenticationSuccess(url);
                             }}
                         />
+                    ) : null}
+                    {props.openIDConnectLogin ? (
+                        <OpenIDConnectForm disabled={disabled || loading} rememberMe={props.rememberMe} />
                     ) : null}
                     {props.resetPassword ? (
                         <div className="-my-2 flex w-full flex-row justify-end">

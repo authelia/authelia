@@ -238,6 +238,110 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 	}
 }
 
+func TestAuthenticationMethodsReferences_FederatedIdentity(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     authorization.AuthenticationMethodsReferences
+		Expected []string
+	}{
+		{
+			Name:     "ShouldNotMarshalAnyValueForFederatedIdentityAlone",
+			Have:     authorization.AuthenticationMethodsReferences{FederatedIdentity: true},
+			Expected: nil,
+		},
+		{
+			Name:     "ShouldNotAddAnyValueForFederatedIdentityAlongsideOtherValues",
+			Have:     authorization.AuthenticationMethodsReferences{FederatedIdentity: true, UsernameAndPassword: true, TOTP: true},
+			Expected: []string{"pwd", "otp", "mfa"},
+		},
+		{
+			Name:     "ShouldNotAddAnyValueForFederatedIdentityAlongsideExtraValues",
+			Have:     authorization.AuthenticationMethodsReferences{FederatedIdentity: true, Extra: []string{"face"}},
+			Expected: []string{"face"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			without := tc.Have
+			without.FederatedIdentity = false
+
+			assert.Equal(t, tc.Expected, tc.Have.MarshalRFC8176())
+			assert.Equal(t, without.MarshalRFC8176(), tc.Have.MarshalRFC8176())
+		})
+	}
+}
+
+func TestAuthenticationMethodsReferences_FederatedIdentityPredicates(t *testing.T) {
+	have := authorization.AuthenticationMethodsReferences{FederatedIdentity: true}
+
+	assert.False(t, have.FactorKnowledge())
+	assert.False(t, have.FactorPossession())
+	assert.False(t, have.MultiFactorAuthentication())
+	assert.False(t, have.ChannelBrowser())
+	assert.False(t, have.ChannelService())
+	assert.False(t, have.MultiChannelAuthentication())
+	assert.Empty(t, have.MarshalRFC8176())
+}
+
+func TestAuthenticationMethodsReferences_Merge(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     authorization.AuthenticationMethodsReferences
+		Other    authorization.AuthenticationMethodsReferences
+		Expected authorization.AuthenticationMethodsReferences
+	}{
+		{
+			Name:     "ShouldMergeEmptyValues",
+			Have:     authorization.AuthenticationMethodsReferences{},
+			Other:    authorization.AuthenticationMethodsReferences{},
+			Expected: authorization.AuthenticationMethodsReferences{},
+		},
+		{
+			Name:     "ShouldRetainTheOriginalValuesWhenTheOtherIsEmpty",
+			Have:     authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, KnowledgeBasedAuthentication: true, Extra: []string{"abc"}},
+			Other:    authorization.AuthenticationMethodsReferences{},
+			Expected: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, KnowledgeBasedAuthentication: true, Extra: []string{"abc"}},
+		},
+		{
+			Name:     "ShouldAdoptTheOtherValuesWhenTheOriginalIsEmpty",
+			Have:     authorization.AuthenticationMethodsReferences{},
+			Other:    authorization.AuthenticationMethodsReferences{TOTP: true, Extra: []string{"abc"}},
+			Expected: authorization.AuthenticationMethodsReferences{TOTP: true, Extra: []string{"abc"}},
+		},
+		{
+			Name:     "ShouldPerformALogicalOrOfEveryBooleanValue",
+			Have:     authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, WebAuthn: true, WebAuthnSoftware: true, WebAuthnUserPresence: true},
+			Other:    authorization.AuthenticationMethodsReferences{KnowledgeBasedAuthentication: true, TOTP: true, Duo: true, WebAuthn: true, WebAuthnHardware: true, WebAuthnUserVerified: true, FederatedIdentity: true},
+			Expected: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, KnowledgeBasedAuthentication: true, TOTP: true, Duo: true, WebAuthn: true, WebAuthnHardware: true, WebAuthnSoftware: true, WebAuthnUserPresence: true, WebAuthnUserVerified: true, FederatedIdentity: true},
+		},
+		{
+			Name:     "ShouldRetainFederatedIdentityFromTheOriginal",
+			Have:     authorization.AuthenticationMethodsReferences{FederatedIdentity: true},
+			Other:    authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, TOTP: true},
+			Expected: authorization.AuthenticationMethodsReferences{FederatedIdentity: true, UsernameAndPassword: true, TOTP: true},
+		},
+		{
+			Name:     "ShouldNotDuplicateExtraValues",
+			Have:     authorization.AuthenticationMethodsReferences{Extra: []string{"abc", "123"}},
+			Other:    authorization.AuthenticationMethodsReferences{Extra: []string{"123", "xyz"}},
+			Expected: authorization.AuthenticationMethodsReferences{Extra: []string{"abc", "123", "xyz"}},
+		},
+		{
+			Name:     "ShouldNotDuplicateExtraValuesWithinTheSameValue",
+			Have:     authorization.AuthenticationMethodsReferences{Extra: []string{"abc", "abc"}},
+			Other:    authorization.AuthenticationMethodsReferences{Extra: []string{"abc"}},
+			Expected: authorization.AuthenticationMethodsReferences{Extra: []string{"abc"}},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, tc.Have.Merge(tc.Other))
+		})
+	}
+}
+
 type testAMRWant struct {
 	FactorKnowledge, FactorPossession, MultiFactorAuthentication bool
 	ChannelBrowser, ChannelService, MultiChannelAuthentication   bool
