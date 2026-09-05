@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 
-import { completeResetPasswordProcess } from "@services/ResetPassword";
+import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
 import ResetPasswordStep2 from "@views/ResetPassword/ResetPasswordStep2";
 
 vi.mock("react-i18next", () => ({
@@ -111,4 +111,32 @@ it("does not repeat the process when re-rendered with the same token", async () 
     );
 
     await waitFor(() => expect(completeResetPasswordProcess).toHaveBeenCalledTimes(1));
+});
+
+it("re-enables the form when the reset fails", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    vi.mocked(resetPassword).mockRejectedValue(new Error("There was an issue resetting the password"));
+
+    render(
+        <MemoryRouter>
+            <ResetPasswordStep2 />
+        </MemoryRouter>,
+    );
+
+    const password1 = screen.getByLabelText("New password");
+    const password2 = screen.getByLabelText("Repeat new password");
+    const reset = screen.getByRole("button", { name: "Reset" });
+
+    await waitFor(() => expect(reset).not.toBeDisabled());
+
+    fireEvent.change(password1, { target: { value: "password123" } });
+    fireEvent.change(password2, { target: { value: "password123" } });
+    fireEvent.click(reset);
+
+    await waitFor(() => expect(resetPassword).toHaveBeenCalledWith("password123"));
+
+    await waitFor(() => expect(reset).not.toBeDisabled());
+    expect(password1).not.toBeDisabled();
+    expect(password2).not.toBeDisabled();
 });
