@@ -5,7 +5,7 @@
   "type": "module",
   "engines": {
     "node": ">=22.22.0",
-    "pnpm": "11"
+    "pnpm": "12"
   },
   "dependencies": {
     "@base-ui/react": "1.8.0",
