@@ -546,6 +546,7 @@ func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, 
 	if session != nil {
 		body.Scopes = session.GetRequestedScopes()
 		body.Audience = session.GetRequestedAudience()
+		body.Resource = session.GetRequestedResource()
 
 		var (
 			claims *ClaimsRequests

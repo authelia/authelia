@@ -981,7 +981,7 @@ func (c *Config) GetTokenEndpointClientAuthStrategy(ctx context.Context) (strate
 // GetRevocationEndpointClientAuthStrategy returns the Revocation Endpoint client authentication strategy.
 func (c *Config) GetRevocationEndpointClientAuthStrategy(ctx context.Context) (strategy oauthelia2.EndpointClientAuthStrategy) {
 	if c.Strategy.RevocationEndpointClientAuth == nil {
-		c.Strategy.RevocationEndpointClientAuth = &oauthelia2.TokenEndpointClientAuthStrategy{}
+		c.Strategy.RevocationEndpointClientAuth = &oauthelia2.RevocationEndpointClientAuthStrategy{}
 	}
 
 	return c.Strategy.RevocationEndpointClientAuth
@@ -990,7 +990,7 @@ func (c *Config) GetRevocationEndpointClientAuthStrategy(ctx context.Context) (s
 // GetIntrospectionEndpointClientAuthStrategy returns the Introspection Endpoint client authentication strategy.
 func (c *Config) GetIntrospectionEndpointClientAuthStrategy(ctx context.Context) (strategy oauthelia2.EndpointClientAuthStrategy) {
 	if c.Strategy.IntrospectionEndpointClientAuth == nil {
-		c.Strategy.IntrospectionEndpointClientAuth = &oauthelia2.TokenEndpointClientAuthStrategy{}
+		c.Strategy.IntrospectionEndpointClientAuth = &oauthelia2.IntrospectionEndpointClientAuthStrategy{}
 	}
 
 	return c.Strategy.IntrospectionEndpointClientAuth

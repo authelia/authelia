@@ -605,6 +605,8 @@ func TestNewOAuth2DeviceCodeSessionFromRequest(t *testing.T) {
 				assert.Equal(t, tc.expected.RequestedScopes, model.StringSlicePipeDelimited(actual.GetRequestedScopes()))
 				assert.Equal(t, tc.expected.GrantedAudience, model.StringSlicePipeDelimited(actual.GetGrantedAudience()))
 				assert.Equal(t, tc.expected.RequestedAudience, model.StringSlicePipeDelimited(actual.GetRequestedAudience()))
+				assert.Equal(t, tc.expected.GrantedResource, model.StringSlicePipeDelimited(actual.GetGrantedResource()))
+				assert.Equal(t, tc.expected.RequestedResource, model.StringSlicePipeDelimited(actual.GetRequestedResource()))
 
 				form, err := actual.GetForm()
 				assert.NoError(t, err)
@@ -1366,16 +1368,25 @@ func TestOAuth2ConsentSession(t *testing.T) {
 	assert.Equal(t, []string(nil), session.GetRequestedScopes())
 	assert.Equal(t, []string(nil), session.GetGrantedAudience())
 	assert.Equal(t, []string(nil), session.GetRequestedAudience())
+	assert.Equal(t, []string(nil), session.GetGrantedResource())
+	assert.Equal(t, []string(nil), session.GetRequestedResource())
 
 	session.GrantedScopes = []string{"abc1"}
 	session.RequestedScopes = []string{"abc2"}
 	session.GrantedAudience = []string{"abc3"}
 	session.RequestedAudience = []string{"abc4"}
+	session.GrantedResource = []string{"abc5"}
+	session.RequestedResource = []string{"abc6"}
 
 	assert.Equal(t, []string{"abc1"}, session.GetGrantedScopes())
 	assert.Equal(t, []string{"abc2"}, session.GetRequestedScopes())
 	assert.Equal(t, []string{"abc3"}, session.GetGrantedAudience())
 	assert.Equal(t, []string{"abc4"}, session.GetRequestedAudience())
+	assert.Equal(t, []string{"abc5"}, session.GetGrantedResource())
+	assert.Equal(t, []string{"abc6"}, session.GetRequestedResource())
+
+	session.GrantedResource = nil
+	session.RequestedResource = nil
 
 	session.GrantScope("abc")
 	assert.Equal(t, []string{"abc1", "abc"}, session.GetGrantedScopes())

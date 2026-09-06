@@ -408,6 +408,16 @@ func (s *OAuth2ConsentSession) GetGrantedAudience() []string {
 	return s.GrantedAudience
 }
 
+// GetRequestedResource returns the requested resource.
+func (s *OAuth2ConsentSession) GetRequestedResource() []string {
+	return s.RequestedResource
+}
+
+// GetGrantedResource returns the granted resource.
+func (s *OAuth2ConsentSession) GetGrantedResource() []string {
+	return s.GrantedResource
+}
+
 // MatchesRequester returns an error if the requester is not a technical match for this OAuth2ConsentSession. The
 // prefixPAR value must be the Pushed Authorization Request URI prefix as consent sessions generated for a Pushed
 // Authorization Request only record the 'request_uri' and 'client_id' parameters, so only those parameters are
@@ -579,6 +589,16 @@ func (s *OAuth2DeviceCodeSession) GetRequestedAudience() []string {
 // GetGrantedAudience returns the granted audience.
 func (s *OAuth2DeviceCodeSession) GetGrantedAudience() []string {
 	return s.GrantedAudience
+}
+
+// GetRequestedResource returns the requested resource.
+func (s *OAuth2DeviceCodeSession) GetRequestedResource() []string {
+	return s.RequestedResource
+}
+
+// GetGrantedResource returns the granted resource.
+func (s *OAuth2DeviceCodeSession) GetGrantedResource() []string {
+	return s.GrantedResource
 }
 
 // ToRequest converts an OAuth2Session into a oauthelia2.Request given an oauthelia2.Session and oauthelia2.Storage.
