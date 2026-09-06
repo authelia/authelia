@@ -263,23 +263,29 @@ function DecisionFormView({ state, userInfo }: Props) {
     }, []);
 
     const [, submitDecision] = useActionState(async (_: null, data: FormData) => {
-        switch (data.get(FieldDecision)) {
-            case DecisionDeny:
-                await handleReject();
+        try {
+            switch (data.get(FieldDecision)) {
+                case DecisionDeny:
+                    await handleReject();
 
-                break;
-            case DecisionAuthenticate:
-                await handleAuthenticate();
+                    break;
+                case DecisionAuthenticate:
+                    await handleAuthenticate();
 
-                break;
-            case DecisionCancel:
-                handleCancel();
+                    break;
+                case DecisionCancel:
+                    handleCancel();
 
-                break;
-            default:
-                await handleAccept();
+                    break;
+                default:
+                    await handleAccept();
 
-                break;
+                    break;
+            }
+        } catch (err) {
+            console.error(err);
+
+            createErrorNotification(translate("An unexpected error occurred", { ns: "portal" }));
         }
 
         return null;

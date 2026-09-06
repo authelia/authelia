@@ -97,7 +97,6 @@ function DecisionFormReauthentication({ disabled, error, failure, onChange, ref,
                 <InputGroupAddon align={"inline-end"}>
                     <InputGroupButton
                         size={"icon-sm"}
-                        tabIndex={-1}
                         aria-label={translate("Toggle password visibility", { ns: "portal" })}
                         aria-pressed={showPassword}
                         onMouseDown={() => setShowPassword(true)}

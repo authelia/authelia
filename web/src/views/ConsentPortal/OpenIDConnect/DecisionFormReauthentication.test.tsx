@@ -85,6 +85,12 @@ it("reveals the password while the toggle is held with the keyboard", () => {
     expect(screen.getByLabelText("Password")).toHaveAttribute("type", "password");
 });
 
+it("keeps the reveal toggle reachable with the keyboard", () => {
+    render(<DecisionFormReauthentication value={"secret"} error={false} disabled={false} onChange={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: "Toggle password visibility" })).not.toHaveAttribute("tabindex", "-1");
+});
+
 it("reveals the password while the toggle is held on touch devices", () => {
     render(<DecisionFormReauthentication value={"secret"} error={false} disabled={false} onChange={vi.fn()} />);
 

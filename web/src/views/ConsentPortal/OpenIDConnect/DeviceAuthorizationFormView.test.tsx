@@ -27,14 +27,6 @@ vi.mock("@constants/Routes", () => ({
     IndexRoute: "/",
 }));
 
-vi.mock("@constants/SearchParams", () => ({
-    Flow: "flow",
-    FlowNameOpenIDConnect: "openid-connect",
-    SubFlow: "subflow",
-    SubFlowNameDeviceAuthorization: "device-authorization",
-    UserCode: "user_code",
-}));
-
 vi.mock("@layouts/LoginLayout", () => ({
     default: (props: any) => <div data-testid="login-layout">{props.children}</div>,
 }));
@@ -58,8 +50,8 @@ const expectedQuery = (code: string) => {
     const query = new URLSearchParams();
 
     query.set("user_code", code);
-    query.set("flow", "openid-connect");
-    query.set("subflow", "device-authorization");
+    query.set("flow", "openid_connect");
+    query.set("subflow", "device_authorization");
 
     return query;
 };
@@ -151,10 +143,14 @@ it("strips whitespace from a pasted code", async () => {
     expect(screen.getByLabelText("Code")).toHaveValue("BGKMRTVX");
 });
 
-it("limits the code to the generated length", () => {
+it("limits the code to the generated length", async () => {
     renderView();
 
-    expect(screen.getByLabelText("Code")).toHaveAttribute("maxlength", "8");
+    await act(async () => {
+        fireEvent.change(screen.getByLabelText("Code"), { target: { value: " BGKM RTVX ZZZZ" } });
+    });
+
+    expect(screen.getByLabelText("Code")).toHaveValue("BGKMRTVX");
 });
 
 it("asks touch keyboards for the correct casing", () => {

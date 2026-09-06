@@ -26,7 +26,7 @@ import LoginLayout from "@layouts/LoginLayout";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
-const normalizeUserCode = (value: string) => value.toUpperCase().replace(/\s+/g, "");
+const normalizeUserCode = (value: string) => value.toUpperCase().replace(/\s+/g, "").slice(0, UserCodeLength);
 
 export interface Props {
     state: AutheliaState;
@@ -129,7 +129,6 @@ function DeviceAuthorizationFormView({ state }: Props) {
                                 value={code}
                                 onChange={(event) => setCode(normalizeUserCode(event.target.value))}
                                 className="text-center indent-[0.2em] font-mono text-lg tracking-[0.2em] uppercase"
-                                maxLength={UserCodeLength}
                                 autoCapitalize={"characters"}
                                 autoComplete={"one-time-code"}
                                 spellCheck={false}

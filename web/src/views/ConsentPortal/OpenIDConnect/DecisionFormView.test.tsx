@@ -419,6 +419,30 @@ it("notifies the user when the rejection has no redirect target", async () => {
     expect(mocks.createErrorNotification).toHaveBeenCalledWith("Failed to redirect you");
 });
 
+it("notifies the user when the acceptance fails", async () => {
+    vi.mocked(postConsentResponseAccept).mockRejectedValue(new Error("network"));
+
+    await renderLoaded();
+
+    await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
+    });
+
+    expect(mocks.createErrorNotification).toHaveBeenCalledWith("An unexpected error occurred");
+});
+
+it("notifies the user when the rejection fails", async () => {
+    vi.mocked(postConsentResponseReject).mockRejectedValue(new Error("network"));
+
+    await renderLoaded();
+
+    await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /Deny/ }));
+    });
+
+    expect(mocks.createErrorNotification).toHaveBeenCalledWith("An unexpected error occurred");
+});
+
 it("does not render the reauthentication prompt before a decision is made", async () => {
     await renderLoaded(response({ require_login: true }));
 
