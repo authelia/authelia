@@ -110,9 +110,11 @@ Server.
 The granted audience is matched against the requested resource as an exact case-sensitive string match. i.e. if the
 granted audience contains an exact match for the requested resource it will be considered a valid token for the request.
 
-The granted resources are matched against the requested resource as a case-sensitive prefix match. i.e. if the granted
-resources contains a string which is a prefix for the requested resource it will be considered a valid token for the
-request.
+The granted resources are matched against the requested resource as a URI comparison. Both values are parsed as URLs,
+and the granted resource is only a match when its scheme and host are exactly equal to those of the requested resource,
+and its path is either equal to the requested path or a prefix of it terminating on a path boundary. Query strings are
+not considered as part of this comparison. For example a granted resource with the path `/api` matches a requested
+resource with the path `/api` or `/api/example`, but does not match one with the path `/apiv2`.
 
 ### Authorization Endpoint Configuration
 
