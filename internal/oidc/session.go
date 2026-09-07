@@ -275,6 +275,7 @@ func ConsentGrantImplicit(consent *model.OAuth2ConsentSession, claims []string, 
 // requirements around consent like not allowing access to a refresh token unless the user has explicitly consented.
 func ConsentGrant(consent *model.OAuth2ConsentSession, explicit bool, claims []string) {
 	consent.GrantAudience()
+	consent.GrantResource()
 	consent.GrantClaims(claims)
 
 	if explicit {

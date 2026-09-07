@@ -305,6 +305,7 @@ type ConsentGetResponseBody struct {
 	ClientDescription string   `json:"client_description"`
 	Scopes            []string `json:"scopes"`
 	Audience          []string `json:"audience"`
+	Resource          []string `json:"resource"`
 	PreConfiguration  bool     `json:"pre_configuration"`
 	Claims            []string `json:"claims"`
 	EssentialClaims   []string `json:"essential_claims"`
@@ -1123,9 +1124,11 @@ type RequesterFormSession interface {
 
 	GetRequestedScopes() []string
 	GetRequestedAudience() []string
+	GetRequestedResource() []string
 
 	GetGrantedScopes() []string
 	GetGrantedAudience() []string
+	GetGrantedResource() []string
 }
 
 // Number is a constraint which permits any integer or floating point type.

@@ -635,7 +635,7 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 	audience := []string{object.URL.String()}
 	strategy := provider.GetAudienceStrategy(ctx)
 
-	if err = strategy(requester.GetGrantedAudience(), audience); err != nil {
+	if err = strategy(oauthelia2.JoinGrantedAudienceAndResource(requester.GetGrantedAudience(), requester.GetGrantedResource()), audience); err != nil {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("token does not contain a valid audience for the url '%s' with the error: %w", audience[0], err)
 	}
 

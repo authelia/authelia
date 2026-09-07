@@ -117,6 +117,7 @@ it("renders consent form with scopes, claims, and pre-configuration when consent
         essential_claims: [],
         pre_configuration: true,
         require_login: false,
+        resource: [],
         scopes: ["openid", "profile"],
     });
 

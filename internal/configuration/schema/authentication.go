@@ -294,7 +294,6 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 		FamilyName:        ldapAttrSurname,
 		GivenName:         ldapAttrGivenName,
 		MiddleName:        ldapAttrMiddleName,
-		Website:           "wWWHomePage",
 		Mail:              ldapAttrMail,
 		PhoneNumber:       "telephoneNumber",
 		StreetAddress:     "streetAddress",
