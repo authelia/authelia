@@ -1,0 +1,59 @@
+dn: CN=authelia-employee-number,CN=Schema,CN=Configuration,DC=X
+changetype: add
+objectClass: top
+objectClass: attributeSchema
+cn: authelia-employee-number
+attributeID: 1.2.840.113556.1.8000.2554.65001.1
+attributeSyntax: 2.5.5.9
+oMSyntax: 2
+isSingleValued: TRUE
+searchFlags: 1
+showInAdvancedViewOnly: TRUE
+adminDescription: Employee number for testing
+adminDisplayName: authelia-employee-number
+lDAPDisplayName: autheliaEmployeeNumber
+
+dn: CN=authelia-test-flag,CN=Schema,CN=Configuration,DC=X
+changetype: add
+objectClass: top
+objectClass: attributeSchema
+cn: authelia-test-flag
+attributeID: 1.2.840.113556.1.8000.2554.65001.2
+attributeSyntax: 2.5.5.8
+oMSyntax: 1
+isSingleValued: TRUE
+searchFlags: 1
+showInAdvancedViewOnly: TRUE
+adminDescription: Test flag for testing
+adminDisplayName: authelia-test-flag
+lDAPDisplayName: autheliaTestFlag
+
+dn: CN=authelia-employee-type,CN=Schema,CN=Configuration,DC=X
+changetype: add
+objectClass: top
+objectClass: attributeSchema
+cn: authelia-employee-type
+attributeID: 1.2.840.113556.1.8000.2554.65001.3
+attributeSyntax: 2.5.5.12
+oMSyntax: 64
+isSingleValued: TRUE
+searchFlags: 1
+showInAdvancedViewOnly: TRUE
+adminDescription: Employee type for testing
+adminDisplayName: authelia-employee-type
+lDAPDisplayName: autheliaEmployeeType
+
+dn: CN=authelia-tags,CN=Schema,CN=Configuration,DC=X
+changetype: add
+objectClass: top
+objectClass: attributeSchema
+cn: authelia-tags
+attributeID: 1.2.840.113556.1.8000.2554.65001.4
+attributeSyntax: 2.5.5.12
+oMSyntax: 64
+isSingleValued: FALSE
+searchFlags: 1
+showInAdvancedViewOnly: TRUE
+adminDescription: Tags for testing
+adminDisplayName: authelia-tags
+lDAPDisplayName: autheliaTags

@@ -37,16 +37,12 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
     };
 
     const handleUpdate = () => {
-        const description = credentialDescription.trim();
-
-        if (description.length === 0) {
+        if (credentialDescription.length === 0) {
             setErrorDescription(true);
-
-            return;
+        } else {
+            handleEdit(credentialDescription).catch(console.error);
+            props.handleClose();
         }
-
-        handleEdit(description).catch(console.error);
-        props.handleClose();
         handleReset();
     };
 
@@ -150,7 +146,7 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                         id={"dialog-update"}
                         variant={"ghost"}
                         color={"primary"}
-                        disabled={credentialDescription.trim().length === 0}
+                        disabled={credentialDescription.length === 0}
                         onClick={handleUpdate}
                     >
                         {translate("Update")}

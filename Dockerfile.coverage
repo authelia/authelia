@@ -5,18 +5,12 @@ FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f
 
 WORKDIR /node/src/app
 
-ENV \
-    SHELL="/bin/sh" \
-    PNPM_HOME="/usr/local"
-
 COPY --link web ./
 
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-	wget -qO /tmp/pnpm-install.sh https://get.pnpm.io/install.sh && \
-    echo '3a6b531bfa164f5cac7c8db261cb2eb7bf929d7b8efb3a4eae82425507050e91 /tmp/pnpm-install.sh' | sha256sum -c - && \
-    ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
-    pnpm install --frozen-lockfile --ignore-scripts --store-dir /pnpm/store && \
-    pnpm coverage
+	npm install -g pnpm@12 && \
+	pnpm install --frozen-lockfile --ignore-scripts --store-dir /pnpm/store && \
+	pnpm coverage
 
 # =======================================
 # ===== Build image for the backend =====
@@ -47,7 +41,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:983784a935adf6f55c11e31fc36852e2372199c7548175108f89687e0ecfa3d3
+FROM authelia/base:latest@sha256:d66b4711d2f02210cf3d665726ee26f67e952686e5b765e8447ef05682b97b9c
 
 WORKDIR /app
 

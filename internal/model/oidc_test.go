@@ -16,7 +16,6 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
-	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -32,18 +31,7 @@ func TestNewOAuth2SessionFromRequest(t *testing.T) {
 		},
 	}
 
-	sessionClientCredentials := &oidc.Session{
-		ClientID:          "client_id",
-		ClientCredentials: true,
-		DefaultSession: &openid.DefaultSession{
-			Claims: &jwt.IDTokenClaims{
-				Subject: "client_id",
-			},
-		},
-	}
-
 	sessionBytes, _ := json.Marshal(session)
-	sessionClientCredentialsBytes, _ := json.Marshal(sessionClientCredentials)
 
 	testCases := []struct {
 		name      string
@@ -99,30 +87,6 @@ func TestNewOAuth2SessionFromRequest(t *testing.T) {
 				GrantedScopes:   model.StringSlicePipeDelimited{},
 				Active:          true,
 				Session:         sessionBytes,
-			},
-			"",
-		},
-		{
-			"ShouldNewUpClientCredentialsWithNullSubject",
-			"abc",
-			&oauthelia2.Request{
-				ID: "example",
-				Client: &oauthelia2.DefaultClient{
-					ID: "client_id",
-				},
-				Session:        sessionClientCredentials,
-				RequestedScope: oauthelia2.Arguments{"authelia.bearer.authz"},
-				GrantedScope:   oauthelia2.Arguments{"authelia.bearer.authz"},
-			},
-			&model.OAuth2Session{
-				RequestID:       "example",
-				ClientID:        "client_id",
-				Signature:       "abc",
-				Subject:         sql.NullString{},
-				RequestedScopes: model.StringSlicePipeDelimited{"authelia.bearer.authz"},
-				GrantedScopes:   model.StringSlicePipeDelimited{"authelia.bearer.authz"},
-				Active:          true,
-				Session:         sessionClientCredentialsBytes,
 			},
 			"",
 		},

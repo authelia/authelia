@@ -19,7 +19,6 @@ func DuoGET(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.GetLogger().WithError(err).Error(errStrUserSessionData)
 		ctx.SetJSONError(messageMFAValidationFailed)

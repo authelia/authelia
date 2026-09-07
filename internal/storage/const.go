@@ -9,6 +9,7 @@ const (
 	tableBannedUser           = "banned_user"
 	tableBannedIP             = "banned_ip"
 	tableCachedData           = "cached_data"
+	tableUserMetadata         = "user_metadata"
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"

@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"net/url"
+	"time"
 
 	"golang.org/x/text/language"
 )
@@ -16,6 +17,7 @@ type User struct {
 	GivenName      string        `koanf:"given_name" yaml:"given_name,omitempty" toml:"given_name,omitempty" json:"given_name,omitempty"`
 	MiddleName     string        `koanf:"middle_name" yaml:"middle_name,omitempty" toml:"middle_name,omitempty" json:"middle_name,omitempty"`
 	FamilyName     string        `koanf:"family_name" yaml:"family_name,omitempty" toml:"family_name,omitempty" json:"family_name,omitempty"`
+	CommonName     string        `koanf:"common_name" yaml:"common_name,omitempty" toml:"common_name,omitempty" json:"common_name,omitempty"`
 	Nickname       string        `koanf:"nickname" yaml:"nickname,omitempty" toml:"nickname,omitempty" json:"nickname,omitempty"`
 	Gender         string        `koanf:"gender" yaml:"gender,omitempty" toml:"gender,omitempty" json:"gender,omitempty"`
 	Birthdate      string        `koanf:"birthdate" yaml:"birthdate,omitempty" toml:"birthdate,omitempty" json:"birthdate,omitempty"`
@@ -30,6 +32,16 @@ type User struct {
 	Address *UserAddress `koanf:"address" yaml:"address,omitempty" toml:"address,omitempty" json:"address,omitempty"`
 
 	Extra map[string]any `koanf:"extra" yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty"`
+
+	Password string `koanf:"password" yaml:"password,omitempty" toml:"password,omitempty" json:"-"`
+
+	LastLoggedIn       *time.Time `koanf:"last_logged_in" yaml:"last_logged_in,omitempty" toml:"last_logged_in,omitempty" json:"last_logged_in,omitempty"`
+	LastPasswordChange *time.Time `koanf:"last_password_change" yaml:"last_password_change,omitempty" toml:"last_password_change,omitempty" json:"last_password_change,omitempty"`
+	UserCreatedAt      *time.Time `koanf:"user_created_at" yaml:"user_created_at,omitempty" toml:"user_created_at,omitempty" json:"user_created_at,omitempty"`
+	Method             string     `koanf:"method" yaml:"method,omitempty" toml:"method,omitempty" json:"method,omitempty"`
+	HasTOTP            bool       `koanf:"has_totp" yaml:"has_totp,omitempty" toml:"has_totp,omitempty" json:"has_totp,omitempty"`
+	HasWebAuthn        bool       `koanf:"has_webauthn" yaml:"has_webauthn,omitempty" toml:"has_webauthn,omitempty" json:"has_webauthn,omitempty"`
+	HasDuo             bool       `koanf:"has_duo" yaml:"has_duo,omitempty" toml:"has_duo,omitempty" json:"has_duo,omitempty"`
 }
 
 // UserAddress represents the address details of a User.

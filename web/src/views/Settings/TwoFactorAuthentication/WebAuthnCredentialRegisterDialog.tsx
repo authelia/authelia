@@ -130,9 +130,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
         }
 
         (async function () {
-            const trimmed = description.trim();
-
-            if (trimmed.length === 0 || trimmed.length > 64) {
+            if (description.length === 0 || description.length > 64) {
                 setErrorDescription(true);
                 createErrorNotification(
                     translate("The Description must be more than 1 character and less than 64 characters"),
@@ -141,7 +139,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 return;
             }
 
-            const res = await getWebAuthnRegistrationOptions(trimmed);
+            const res = await getWebAuthnRegistrationOptions(description);
 
             switch (res.status) {
                 case 200:

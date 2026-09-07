@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"encoding/json"
 	"net/mail"
 	"net/url"
 	"testing"
@@ -311,4 +312,212 @@ func TestUserDetailsExtended(t *testing.T) {
 			assert.Equal(t, tc.extra, tc.have.GetExtra())
 		})
 	}
+}
+
+func TestUserDetailsExtended_MarshalJSON(t *testing.T) {
+	tag, err := language.Parse("en-US")
+	require.NoError(t, err)
+
+	have := &UserDetailsExtended{
+		GivenName:  "john",
+		FamilyName: "smith",
+		Profile:    &url.URL{Scheme: "https", Host: "example.com", Path: "/profile"},
+		Picture:    &url.URL{Scheme: "https", Host: "example1.com"},
+		Website:    &url.URL{Scheme: "https", Host: "example2.com"},
+		Locale:     &tag,
+		UserDetails: &UserDetails{
+			Username: "john",
+			Emails:   []string{"john@example.com"},
+		},
+		Password: "supersecret",
+	}
+
+	data, err := json.Marshal(have)
+	require.NoError(t, err)
+
+	assert.NotContains(t, string(data), "supersecret")
+	assert.NotContains(t, string(data), `"password"`)
+
+	var raw map[string]any
+
+	require.NoError(t, json.Unmarshal(data, &raw))
+
+	assert.Equal(t, "https://example.com/profile", raw["profile"])
+	assert.Equal(t, "https://example1.com", raw["picture"])
+	assert.Equal(t, "https://example2.com", raw["website"])
+	assert.Equal(t, "en-US", raw["locale"])
+	assert.Equal(t, "john", raw["given_name"])
+	assert.Equal(t, "smith", raw["family_name"])
+	assert.Equal(t, "john", raw["username"])
+	assert.Equal(t, []any{"john@example.com"}, raw["mail"])
+}
+
+func TestUserDetailsExtended_UnmarshalJSON(t *testing.T) {
+	testCases := []struct {
+		name    string
+		data    string
+		err     string
+		asserts func(t *testing.T, d *UserDetailsExtended)
+	}{
+		{
+			"ShouldUnmarshalFullObject",
+			`{
+				"username": "john",
+				"given_name": "john",
+				"family_name": "smith",
+				"mail": "john@example.com",
+				"profile": "https://example.com/profile",
+				"picture": "https://example1.com",
+				"website": "https://example2.com",
+				"locale": "en-US",
+				"password": "supersecret"
+			}`,
+			"",
+			func(t *testing.T, d *UserDetailsExtended) {
+				assert.Equal(t, "john", d.GivenName)
+				assert.Equal(t, "smith", d.FamilyName)
+				assert.Equal(t, "supersecret", d.Password)
+				assert.Equal(t, []string{"john@example.com"}, d.Emails)
+				assert.Equal(t, "https://example.com/profile", stringURL(d.Profile))
+				assert.Equal(t, "https://example1.com", stringURL(d.Picture))
+				assert.Equal(t, "https://example2.com", stringURL(d.Website))
+				require.NotNil(t, d.Locale)
+				assert.Equal(t, "en-US", d.Locale.String())
+			},
+		},
+		{
+			"ShouldUnmarshalMailArray",
+			`{"mail": ["john@example.com", "other@example.com"]}`,
+			"",
+			func(t *testing.T, d *UserDetailsExtended) {
+				assert.Equal(t, []string{"john@example.com", "other@example.com"}, d.Emails)
+			},
+		},
+		{
+			"ShouldHandleEmptyMailString",
+			`{"mail": ""}`,
+			"",
+			func(t *testing.T, d *UserDetailsExtended) {
+				assert.Nil(t, d.UserDetails)
+			},
+		},
+		{
+			"ShouldHandleNoSpecialFields",
+			`{"gender": "male"}`,
+			"",
+			func(t *testing.T, d *UserDetailsExtended) {
+				assert.Equal(t, "male", d.Gender)
+				assert.Empty(t, d.Password)
+				assert.Nil(t, d.Profile)
+				assert.Nil(t, d.Picture)
+				assert.Nil(t, d.Website)
+				assert.Nil(t, d.Locale)
+			},
+		},
+		{
+			"ShouldErrorOnInvalidPassword",
+			`{"password": 123}`,
+			"invalid password:",
+			nil,
+		},
+		{
+			"ShouldErrorOnInvalidProfileType",
+			`{"profile": 123}`,
+			"invalid profile:",
+			nil,
+		},
+		{
+			"ShouldErrorOnInvalidPictureType",
+			`{"picture": 123}`,
+			"invalid picture:",
+			nil,
+		},
+		{
+			"ShouldErrorOnInvalidWebsiteType",
+			`{"website": 123}`,
+			"invalid website:",
+			nil,
+		},
+		{
+			"ShouldErrorOnInvalidLocaleType",
+			`{"locale": 123}`,
+			"invalid locale:",
+			nil,
+		},
+		{
+			"ShouldErrorOnInvalidLocaleValue",
+			`{"locale": "!!!not-a-locale!!!"}`,
+			"invalid locale:",
+			nil,
+		},
+		{
+			"ShouldErrorOnInvalidMailType",
+			`{"mail": 123}`,
+			"mail must be a string or array of strings:",
+			nil,
+		},
+		{
+			"ShouldErrorOnMalformedJSON",
+			`{`,
+			"unexpected end of JSON input",
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			d := &UserDetailsExtended{}
+
+			err := json.Unmarshal([]byte(tc.data), d)
+
+			if tc.err != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.err)
+
+				return
+			}
+
+			require.NoError(t, err)
+
+			if tc.asserts != nil {
+				tc.asserts(t, d)
+			}
+		})
+	}
+}
+
+func TestUserDetailsExtended_JSONRoundTrip(t *testing.T) {
+	tag, err := language.Parse("en-US")
+	require.NoError(t, err)
+
+	have := &UserDetailsExtended{
+		GivenName:  "john",
+		FamilyName: "smith",
+		Profile:    &url.URL{Scheme: "https", Host: "example.com", Path: "/profile"},
+		Picture:    &url.URL{Scheme: "https", Host: "example1.com"},
+		Website:    &url.URL{Scheme: "https", Host: "example2.com"},
+		Locale:     &tag,
+		UserDetails: &UserDetails{
+			Username: "john",
+			Emails:   []string{"john@example.com"},
+		},
+		Extra: map[string]any{"example": "value"},
+	}
+
+	data, err := json.Marshal(have)
+	require.NoError(t, err)
+
+	result := &UserDetailsExtended{}
+
+	require.NoError(t, json.Unmarshal(data, result))
+
+	assert.Equal(t, have.GivenName, result.GivenName)
+	assert.Equal(t, have.FamilyName, result.FamilyName)
+	assert.Equal(t, have.GetProfile(), result.GetProfile())
+	assert.Equal(t, have.GetPicture(), result.GetPicture())
+	assert.Equal(t, have.GetWebsite(), result.GetWebsite())
+	assert.Equal(t, have.GetLocale(), result.GetLocale())
+	assert.Equal(t, have.Emails, result.Emails)
+	assert.Equal(t, have.Extra, result.Extra)
+	assert.Empty(t, result.Password)
 }
