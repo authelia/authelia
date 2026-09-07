@@ -3,7 +3,7 @@ FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f
 ARG USER_ID
 ARG GROUP_ID
 
-RUN npm install -g pnpm@11 && \
+RUN npm install -g pnpm@12 && \
     deluser node && \
     if getent group ${GROUP_ID} >/dev/null; then delgroup "$(getent group ${GROUP_ID} | cut -d: -f1)"; fi && \
     if getent passwd ${USER_ID} >/dev/null; then deluser "$(getent passwd ${USER_ID} | cut -d: -f1)"; fi && \

@@ -50,9 +50,9 @@
   },
   "engines": {
     "node": ">=24.13.0",
-    "pnpm": "11"
+    "pnpm": "12"
   },
-  "packageManager": "pnpm@11.25.0",
+  "packageManager": "pnpm@12.3.4",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
