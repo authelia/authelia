@@ -51,6 +51,18 @@ func (a *ActiveDirectoryUserManagement) AddUser(userData *UserDetailsExtended) (
 		return fmt.Errorf("unable to build DN for user '%s': %w", userData.Username, err)
 	}
 
+	var dn *ldap.DN
+
+	if dn, err = ldap.ParseDN(userDN); err != nil {
+		return fmt.Errorf("unable to parse DN for user '%s': %w", userData.Username, err)
+	}
+
+	if len(dn.RDNs) > 0 && len(dn.RDNs[0].Attributes) > 0 {
+		if rdn := dn.RDNs[0].Attributes[0]; strings.EqualFold(rdn.Type, ldapAttrCommonName) {
+			userData.CommonName = rdn.Value
+		}
+	}
+
 	addRequest := ldap.NewAddRequest(userDN, nil)
 
 	addRequest.Attribute(ldapAttrObjectClass, a.GetDefaultUserObjectClasses())
