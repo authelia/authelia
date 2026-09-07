@@ -4,19 +4,13 @@ set -u
 DIRECTORY="unset"
 GROUP="unset"
 PREFIX="authelia/"
-TAG="unset"
 CREATED=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 SOURCE="https://github.com/authelia/authelia"
 
-if [[ "${BUILDKITE_BRANCH}" =~ ^renovate- ]]; then
-  TAG="renovate"
-elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-  TAG="${BUILDKITE_BRANCH}"
-elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-  TAG="PR${BUILDKITE_PULL_REQUEST}"
-elif [[ "${BUILDKITE_BRANCH}" == "master" ]] && [[ "${BUILDKITE_PULL_REQUEST}" == "false" ]]; then
-  TAG="latest"
-fi
+# shellcheck source=.buildkite/lib/resolve_tag.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/resolve_tag.sh"
+TAG=$(resolve_tag)
+[[ -z "${TAG}" ]] && TAG="unset"
 
 if [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-duo" ]]; then
   DIRECTORY="internal/suites/example/compose/duo-api"
@@ -29,6 +23,9 @@ elif [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-samba" ]]; then
   GROUP="samba-deployments"
 fi
 
+# used to determine when an image needs to be rebuilt
+REVISION=$(git log -1 --format=%H -- "${DIRECTORY}")
+
 cat << EOF
 steps:
   - label: ":docker: Build and Deploy"
@@ -36,7 +33,7 @@ steps:
       - "cd ${DIRECTORY}"
       - "docker build \
           --tag ${PREFIX}${BUILDKITE_PIPELINE_NAME}:${TAG} \
-          --label org.opencontainers.image.revision=${BUILDKITE_COMMIT} \
+          --label org.opencontainers.image.revision=${REVISION} \
           --label org.opencontainers.image.created=${CREATED} \
           --label org.opencontainers.image.source=${SOURCE} \
           --label com.authelia.ci.build-url=${BUILDKITE_BUILD_URL} \

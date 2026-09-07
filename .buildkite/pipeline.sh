@@ -12,9 +12,31 @@ bypass_check() {
   git diff --name-only "${1}" | sed -rn "${BYPASS_REGEX}" && echo true || echo false
 }
 
+# shellcheck source=.buildkite/lib/resolve_tag.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/resolve_tag.sh"
+
+image_needs_build() {
+  local dir="${1}" image="${2}" tag last_commit published_revision
+
+  tag=$(resolve_tag)
+  [[ -z "${tag}" ]] && return 0
+
+  last_commit=$(git log -1 --format=%H -- "${dir}")
+  [[ -z "${last_commit}" ]] && return 0
+
+  published_revision=$(docker buildx imagetools inspect "${image}:${tag}" --format '{{ index (index .Image "linux/amd64").Config.Labels "org.opencontainers.image.revision" }}' 2> /dev/null)
+
+  [[ -n "${published_revision}" ]] && [[ "${published_revision}" == "${last_commit}" ]] && return 1
+
+  return 0
+}
+
 BUILD_DUO="false"
 BUILD_HAPROXY="false"
 BUILD_SAMBA="false"
+USE_DUO="false"
+USE_HAPROXY="false"
+USE_SAMBA="false"
 CI_BYPASS="false"
 CI_MERGE_QUEUE="false"
 CI_MERGE_QUEUE_BYPASS="false"
@@ -28,9 +50,14 @@ if [[ ${DIVERGED} == 0 ]] && [[ ${BUILDKITE_TAG} == "" ]]; then
     BASE_REF=$(git merge-base origin/master HEAD)
   fi
 
-  changed "${BASE_REF}" "internal/suites/example/compose/duo-api/" && BUILD_DUO="true"
-  changed "${BASE_REF}" "internal/suites/example/compose/haproxy/" && BUILD_HAPROXY="true"
-  changed "${BASE_REF}" "internal/suites/example/compose/samba/" && BUILD_SAMBA="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/duo-api/" && USE_DUO="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/haproxy/" && USE_HAPROXY="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/samba/" && USE_SAMBA="true"
+
+  [[ ${USE_DUO} == "true" ]] && image_needs_build "internal/suites/example/compose/duo-api/" "authelia/integration-duo" && BUILD_DUO="true"
+  [[ ${USE_HAPROXY} == "true" ]] && image_needs_build "internal/suites/example/compose/haproxy/" "authelia/integration-haproxy" && BUILD_HAPROXY="true"
+  [[ ${USE_SAMBA} == "true" ]] && image_needs_build "internal/suites/example/compose/samba/" "authelia/integration-samba" && BUILD_SAMBA="true"
+
   CI_BYPASS=$(bypass_check "${BASE_REF}")
 
   if [[ ${CI_BYPASS} == "true" ]]; then
@@ -60,6 +87,9 @@ env:
   BUILD_DUO: ${BUILD_DUO}
   BUILD_HAPROXY: ${BUILD_HAPROXY}
   BUILD_SAMBA: ${BUILD_SAMBA}
+  USE_DUO: ${USE_DUO}
+  USE_HAPROXY: ${USE_HAPROXY}
+  USE_SAMBA: ${USE_SAMBA}
   CI_BYPASS: ${CI_BYPASS}
   CI_MERGE_QUEUE: ${CI_MERGE_QUEUE}
   CI_MERGE_QUEUE_BYPASS: ${CI_MERGE_QUEUE_BYPASS}
