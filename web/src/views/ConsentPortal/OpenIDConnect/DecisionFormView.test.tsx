@@ -131,6 +131,22 @@ const renderLoaded = async (body: any = response(), level: AuthenticationLevel =
     return utils;
 };
 
+const acceptToReauthentication = async () => {
+    await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
+    });
+
+    await screen.findByRole("button", { name: /Cancel/ });
+};
+
+const cancelReauthentication = async () => {
+    await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /Cancel/ }));
+    });
+
+    await screen.findByRole("button", { name: /Accept/ });
+};
+
 beforeEach(() => {
     vi.clearAllMocks();
 
@@ -475,9 +491,7 @@ it("allows the rejection without a password", async () => {
 it("reveals the reauthentication prompt when the request is accepted", async () => {
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     expect(document.getElementById("openid-consent-prompt-login")).toBeInTheDocument();
     expect(screen.getByLabelText("Password")).toBeInTheDocument();
@@ -486,9 +500,7 @@ it("reveals the reauthentication prompt when the request is accepted", async () 
 it("does not post the consent when the acceptance only opens the reauthentication prompt", async () => {
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     expect(postConsentResponseAccept).not.toHaveBeenCalled();
     expect(postFirstFactorReauthenticate).not.toHaveBeenCalled();
@@ -497,9 +509,7 @@ it("does not post the consent when the acceptance only opens the reauthenticatio
 it("collapses the request details when the reauthentication prompt opens", async () => {
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     expect(document.getElementById("openid-consent-scopes")).not.toBeInTheDocument();
     expect(screen.getByTestId("openid-consent-client-name")).toHaveTextContent("Test Client");
@@ -508,9 +518,7 @@ it("collapses the request details when the reauthentication prompt opens", async
 it("allows the collapsed request details to be reopened", async () => {
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.click(screen.getByRole("button", { name: "Show request details" }));
@@ -522,9 +530,7 @@ it("allows the collapsed request details to be reopened", async () => {
 it("replaces the decisions with a submission and a cancellation", async () => {
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     expect(screen.getByRole("button", { name: /Submit/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Cancel/ })).toBeInTheDocument();
@@ -535,9 +541,7 @@ it("replaces the decisions with a submission and a cancellation", async () => {
 it("focuses the password field when the reauthentication prompt opens", async () => {
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await waitFor(() => expect(screen.getByLabelText("Password")).toHaveFocus());
 });
@@ -553,9 +557,7 @@ it("reauthenticates and then accepts when the password is submitted", async () =
 
     await waitFor(() => expect(screen.getByTestId("login-layout")).toBeInTheDocument());
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.change(screen.getByLabelText("Password"), { target: { value: "password" } });
@@ -583,9 +585,7 @@ it("reports an incorrect password inline and allows another attempt", async () =
 
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.change(screen.getByLabelText("Password"), { target: { value: "wrong" } });
@@ -606,9 +606,7 @@ it("does not notify separately when the password is incorrect", async () => {
 
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.change(screen.getByLabelText("Password"), { target: { value: "wrong" } });
@@ -634,9 +632,7 @@ it("accepts on a second attempt after an incorrect password", async () => {
 
     await waitFor(() => expect(screen.getByTestId("login-layout")).toBeInTheDocument());
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.change(screen.getByLabelText("Password"), { target: { value: "wrong" } });
@@ -662,9 +658,7 @@ it("clears the failure once a new password is typed", async () => {
 
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.change(screen.getByLabelText("Password"), { target: { value: "wrong" } });
@@ -689,9 +683,7 @@ it("reports inline when a login is still required after reauthenticating", async
 
     await waitFor(() => expect(screen.getByTestId("login-layout")).toBeInTheDocument());
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.change(screen.getByLabelText("Password"), { target: { value: "password" } });
@@ -708,13 +700,9 @@ it("reports inline when a login is still required after reauthenticating", async
 it("returns to the decision when the reauthentication is cancelled", async () => {
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Cancel/ }));
-    });
+    await cancelReauthentication();
 
     expect(screen.getByRole("button", { name: /Accept/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Deny/ })).toBeInTheDocument();
@@ -725,21 +713,15 @@ it("returns to the decision when the reauthentication is cancelled", async () =>
 it("discards the password when the reauthentication is cancelled", async () => {
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.change(screen.getByLabelText("Password"), { target: { value: "password" } });
     });
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Cancel/ }));
-    });
+    await cancelReauthentication();
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     expect(screen.getByLabelText("Password")).toHaveValue("");
 });
@@ -749,9 +731,7 @@ it("discards the failure when the reauthentication is cancelled", async () => {
 
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.change(screen.getByLabelText("Password"), { target: { value: "wrong" } });
@@ -761,13 +741,9 @@ it("discards the failure when the reauthentication is cancelled", async () => {
         fireEvent.click(screen.getByRole("button", { name: /Submit/ }));
     });
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Cancel/ }));
-    });
+    await cancelReauthentication();
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
@@ -775,9 +751,7 @@ it("discards the failure when the reauthentication is cancelled", async () => {
 it("does not submit the reauthentication without a password", async () => {
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.click(screen.getByRole("button", { name: /Submit/ }));
@@ -798,9 +772,7 @@ it("shows a spinner on the submitting button while reauthenticating", async () =
 
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.change(screen.getByLabelText("Password"), { target: { value: "password" } });
@@ -889,9 +861,7 @@ it("forwards the subflow when reauthenticating during a device authorization", a
 
     await waitFor(() => expect(screen.getByTestId("login-layout")).toBeInTheDocument());
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     await act(async () => {
         fireEvent.change(screen.getByLabelText("Password"), { target: { value: "password" } });
@@ -923,9 +893,7 @@ it("gives the acceptance the filled treatment and the denial the outlined one", 
 it("gives the submission the filled treatment and the cancellation the outlined one", async () => {
     await renderLoaded(response({ require_login: true }));
 
-    await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
-    });
+    await acceptToReauthentication();
 
     expect(screen.getByRole("button", { name: /Submit/ })).toHaveAttribute("data-variant", "default");
     expect(screen.getByRole("button", { name: /Cancel/ })).toHaveAttribute("data-variant", "outline");
