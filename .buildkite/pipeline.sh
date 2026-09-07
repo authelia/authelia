@@ -12,8 +12,20 @@ bypass_check() {
   git diff --name-only "${1}" | sed -rn "${BYPASS_REGEX}" && echo true || echo false
 }
 
-# shellcheck source=.buildkite/lib/resolve_tag.sh
+# shellcheck source=.buildkite/lib/resolve_tag.sh disable=SC1091 # external-sources is disabled repo-wide
 source "$(dirname "${BASH_SOURCE[0]}")/lib/resolve_tag.sh"
+
+extract_tag_override() {
+  local name="${1}"
+
+  [[ "${BUILDKITE_MESSAGE}" =~ \[${name}\ tag:([^]]+)\] ]] && echo "${BASH_REMATCH[1]}"
+}
+
+force_build() {
+  local name="${1}"
+
+  [[ "${BUILDKITE_MESSAGE}" =~ \[${name}\ build\] ]] && echo "true" || echo "false"
+}
 
 image_needs_build() {
   local dir="${1}" image="${2}" tag last_commit published_revision
@@ -31,12 +43,23 @@ image_needs_build() {
   return 0
 }
 
+image_exists() {
+  local image="${1}" tag="${2}"
+
+  [[ -z "${tag}" ]] && return 1
+
+  docker buildx imagetools inspect "${image}:${tag}" > /dev/null 2>&1
+}
+
 BUILD_DUO="false"
 BUILD_HAPROXY="false"
 BUILD_SAMBA="false"
 USE_DUO="false"
 USE_HAPROXY="false"
 USE_SAMBA="false"
+DUO_TAG_OVERRIDE=""
+HAPROXY_TAG_OVERRIDE=""
+SAMBA_TAG_OVERRIDE=""
 CI_BYPASS="false"
 CI_MERGE_QUEUE="false"
 CI_MERGE_QUEUE_BYPASS="false"
@@ -54,9 +77,43 @@ if [[ ${DIVERGED} == 0 ]] && [[ ${BUILDKITE_TAG} == "" ]]; then
   changed "${BASE_REF}" "internal/suites/example/compose/haproxy/" && USE_HAPROXY="true"
   changed "${BASE_REF}" "internal/suites/example/compose/samba/" && USE_SAMBA="true"
 
-  [[ ${USE_DUO} == "true" ]] && image_needs_build "internal/suites/example/compose/duo-api/" "authelia/integration-duo" && BUILD_DUO="true"
-  [[ ${USE_HAPROXY} == "true" ]] && image_needs_build "internal/suites/example/compose/haproxy/" "authelia/integration-haproxy" && BUILD_HAPROXY="true"
-  [[ ${USE_SAMBA} == "true" ]] && image_needs_build "internal/suites/example/compose/samba/" "authelia/integration-samba" && BUILD_SAMBA="true"
+  DUO_TAG_OVERRIDE=$(extract_tag_override "duo")
+  HAPROXY_TAG_OVERRIDE=$(extract_tag_override "haproxy")
+  SAMBA_TAG_OVERRIDE=$(extract_tag_override "samba")
+
+  FORCE_BUILD_DUO=$(force_build "duo")
+  FORCE_BUILD_HAPROXY=$(force_build "haproxy")
+  FORCE_BUILD_SAMBA=$(force_build "samba")
+
+  if [[ -n "${DUO_TAG_OVERRIDE}" ]]; then
+    USE_DUO="true"
+    { [[ ${FORCE_BUILD_DUO} == "true" ]] || ! image_exists "authelia/integration-duo" "${DUO_TAG_OVERRIDE}"; } && BUILD_DUO="true"
+  elif [[ ${FORCE_BUILD_DUO} == "true" ]]; then
+    USE_DUO="true"
+    BUILD_DUO="true"
+  elif [[ ${USE_DUO} == "true" ]] && image_needs_build "internal/suites/example/compose/duo-api/" "authelia/integration-duo"; then
+    BUILD_DUO="true"
+  fi
+
+  if [[ -n "${HAPROXY_TAG_OVERRIDE}" ]]; then
+    USE_HAPROXY="true"
+    { [[ ${FORCE_BUILD_HAPROXY} == "true" ]] || ! image_exists "authelia/integration-haproxy" "${HAPROXY_TAG_OVERRIDE}"; } && BUILD_HAPROXY="true"
+  elif [[ ${FORCE_BUILD_HAPROXY} == "true" ]]; then
+    USE_HAPROXY="true"
+    BUILD_HAPROXY="true"
+  elif [[ ${USE_HAPROXY} == "true" ]] && image_needs_build "internal/suites/example/compose/haproxy/" "authelia/integration-haproxy"; then
+    BUILD_HAPROXY="true"
+  fi
+
+  if [[ -n "${SAMBA_TAG_OVERRIDE}" ]]; then
+    USE_SAMBA="true"
+    { [[ ${FORCE_BUILD_SAMBA} == "true" ]] || ! image_exists "authelia/integration-samba" "${SAMBA_TAG_OVERRIDE}"; } && BUILD_SAMBA="true"
+  elif [[ ${FORCE_BUILD_SAMBA} == "true" ]]; then
+    USE_SAMBA="true"
+    BUILD_SAMBA="true"
+  elif [[ ${USE_SAMBA} == "true" ]] && image_needs_build "internal/suites/example/compose/samba/" "authelia/integration-samba"; then
+    BUILD_SAMBA="true"
+  fi
 
   CI_BYPASS=$(bypass_check "${BASE_REF}")
 
@@ -90,6 +147,9 @@ env:
   USE_DUO: ${USE_DUO}
   USE_HAPROXY: ${USE_HAPROXY}
   USE_SAMBA: ${USE_SAMBA}
+  DUO_TAG_OVERRIDE: ${DUO_TAG_OVERRIDE}
+  HAPROXY_TAG_OVERRIDE: ${HAPROXY_TAG_OVERRIDE}
+  SAMBA_TAG_OVERRIDE: ${SAMBA_TAG_OVERRIDE}
   CI_BYPASS: ${CI_BYPASS}
   CI_MERGE_QUEUE: ${CI_MERGE_QUEUE}
   CI_MERGE_QUEUE_BYPASS: ${CI_MERGE_QUEUE_BYPASS}
@@ -163,6 +223,7 @@ cat << EOF
         BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
         BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
+        TAG_OVERRIDE: "${DUO_TAG_OVERRIDE}"
 
 EOF
 fi
@@ -178,6 +239,7 @@ cat << EOF
         BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
         BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
+        TAG_OVERRIDE: "${HAPROXY_TAG_OVERRIDE}"
 
 EOF
 fi
@@ -193,6 +255,7 @@ cat << EOF
         BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
         BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
+        TAG_OVERRIDE: "${SAMBA_TAG_OVERRIDE}"
 
 EOF
 fi

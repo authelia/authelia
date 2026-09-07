@@ -7,9 +7,10 @@ PREFIX="authelia/"
 CREATED=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 SOURCE="https://github.com/authelia/authelia"
 
-# shellcheck source=.buildkite/lib/resolve_tag.sh
+# shellcheck source=.buildkite/lib/resolve_tag.sh disable=SC1091 # external-sources is disabled repo-wide
 source "$(dirname "${BASH_SOURCE[0]}")/lib/resolve_tag.sh"
 TAG=$(resolve_tag)
+[[ -n "${TAG_OVERRIDE:-}" ]] && TAG="${TAG_OVERRIDE}"
 [[ -z "${TAG}" ]] && TAG="unset"
 
 if [[ "${BUILDKITE_PIPELINE_NAME}" == "integration-duo" ]]; then

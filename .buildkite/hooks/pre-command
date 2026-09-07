@@ -3,7 +3,9 @@
 set +u
 
 INTEGRATION() {
-  if [[ "${BUILDKITE_BRANCH}" =~ ^renovate- ]]; then
+  if [[ -n "${OVERRIDE}" ]]; then
+    sed -i "s/${CONTAINER}/${CONTAINER}:${OVERRIDE}/" "${FILE}"
+  elif [[ "${BUILDKITE_BRANCH}" =~ ^renovate- ]]; then
     sed -i "s/${CONTAINER}/${CONTAINER}:renovate/" "${FILE}"
   elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
     sed -i "s/${CONTAINER}/${CONTAINER}:${BUILDKITE_BRANCH}/" "${FILE}"
@@ -75,21 +77,25 @@ if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then
   USE_FLAG=""
   CONTAINER=""
   FILE=""
+  OVERRIDE=""
   case "${SUITE}" in
     DuoPush)
       USE_FLAG="${USE_DUO}"
       CONTAINER="integration-duo"
       FILE="internal/suites/example/compose/duo-api/compose.yml"
+      OVERRIDE="${DUO_TAG_OVERRIDE}"
       ;;
     HAProxy)
       USE_FLAG="${USE_HAPROXY}"
       CONTAINER="integration-haproxy"
       FILE="internal/suites/example/compose/haproxy/compose.yml"
+      OVERRIDE="${HAPROXY_TAG_OVERRIDE}"
       ;;
     ActiveDirectory)
       USE_FLAG="${USE_SAMBA}"
       CONTAINER="integration-samba"
       FILE="internal/suites/example/compose/samba/compose.yml"
+      OVERRIDE="${SAMBA_TAG_OVERRIDE}"
       ;;
   esac
   [[ "${USE_FLAG}" == "true" ]] && INTEGRATION
