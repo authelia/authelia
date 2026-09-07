@@ -78,6 +78,9 @@ function DecisionFormView({ state, userInfo }: Props) {
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
     const passwordRef = useRef<HTMLInputElement | null>(null);
+    const responseRef = useRef<ConsentGetResponseBody | undefined>(undefined);
+
+    responseRef.current = response;
 
     useEffect(() => {
         if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
@@ -137,6 +140,8 @@ function DecisionFormView({ state, userInfo }: Props) {
     );
 
     const submitAcceptance = useCallback(async () => {
+        const response = responseRef.current;
+
         if (!response) {
             return;
         }
@@ -170,13 +175,14 @@ function DecisionFormView({ state, userInfo }: Props) {
         navigateCompletion,
         preConfigure,
         redirect,
-        response,
         subflow,
         translate,
         userCode,
     ]);
 
     const handleAccept = useCallback(async () => {
+        const response = responseRef.current;
+
         if (!response) {
             return;
         }
@@ -188,9 +194,11 @@ function DecisionFormView({ state, userInfo }: Props) {
         }
 
         await submitAcceptance();
-    }, [response, submitAcceptance]);
+    }, [submitAcceptance]);
 
     const handleAuthenticate = useCallback(async () => {
+        const response = responseRef.current;
+
         if (!response) {
             return;
         }
@@ -231,7 +239,7 @@ function DecisionFormView({ state, userInfo }: Props) {
         }
 
         await submitAcceptance();
-    }, [flow, flowID, focusPassword, loginChannel, password, response, subflow, submitAcceptance, translate, userCode]);
+    }, [flow, flowID, focusPassword, loginChannel, password, subflow, submitAcceptance, translate, userCode]);
 
     const handleCancel = useCallback(() => {
         setStep("decision");
@@ -241,6 +249,8 @@ function DecisionFormView({ state, userInfo }: Props) {
     }, []);
 
     const handleReject = useCallback(async () => {
+        const response = responseRef.current;
+
         if (!response) {
             return;
         }
@@ -254,7 +264,7 @@ function DecisionFormView({ state, userInfo }: Props) {
         } else {
             createErrorNotification(translate("Failed to redirect you", { ns: "portal" }));
         }
-    }, [createErrorNotification, flowID, navigateCompletion, redirect, response, subflow, translate, userCode]);
+    }, [createErrorNotification, flowID, navigateCompletion, redirect, subflow, translate, userCode]);
 
     const handlePasswordChange = useCallback((value: string) => {
         setErrorPassword(false);

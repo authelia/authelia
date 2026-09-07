@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
 
+import axios from "axios";
 import { XCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
@@ -191,7 +192,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 setSecretValue(secret.base32_secret);
             } catch (err) {
                 console.error(err);
-                if ((err as Error).message.includes("Request failed with status code 403")) {
+                if (axios.isAxiosError(err) && err.response?.status === 403) {
                     createErrorNotification(
                         translate("You must use the code from the same device and browser that initiated the process"),
                     );

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import OneTimePasswordInformationDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordInformationDialog";
 
@@ -50,4 +50,13 @@ it("calls handleClose when close button is clicked", () => {
     render(<OneTimePasswordInformationDialog config={config} open={true} handleClose={handleClose} />);
     fireEvent.click(screen.getByText("Close"));
     expect(handleClose).toHaveBeenCalledOnce();
+});
+
+it("closes when Escape is pressed", async () => {
+    const handleClose = vi.fn();
+    render(<OneTimePasswordInformationDialog open={true} config={config} handleClose={handleClose} />);
+
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+
+    await waitFor(() => expect(handleClose).toHaveBeenCalled());
 });
