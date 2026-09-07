@@ -325,3 +325,116 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenNotificationFails(t *tes
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }
+
+func TestChangePasswordPOST_ShouldFailWhenSessionProviderUnavailable(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
+
+	ChangePasswordPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusInternalServerError, mock.Ctx.Response.StatusCode())
+
+	errResponse := mock.GetResponseError(t)
+	assert.Equal(t, "KO", errResponse.Status)
+	assert.Equal(t, messageUnableToChangePassword, errResponse.Message)
+
+	mock.AssertLastLogMessage(t, "Unable to change password for user: error occurred retrieving session provider", "unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+}
+
+func TestChangePasswordPOST_ShouldFailWhenAuthenticationFails(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	userSession, err := mock.Ctx.GetSession()
+	assert.NoError(t, err)
+
+	userSession.Username = testUsername
+
+	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+
+	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
+	assert.NoError(t, err)
+	mock.Ctx.Request.SetBody(bodyBytes)
+
+	mock.Ctx.Providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(schema.PasswordPolicy{})
+
+	mock.UserProviderMock.EXPECT().
+		ChangePassword(testUsername, testPasswordOld, testPasswordNew).
+		Return(authentication.ErrAuthenticationFailed)
+
+	ChangePasswordPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+
+	errResponse := mock.GetResponseError(t)
+	assert.Equal(t, "KO", errResponse.Status)
+	assert.Equal(t, messageOperationFailed, errResponse.Message)
+
+	mock.AssertLastLogMessage(t, "Unable to change password for user as authentication failed for the user", "authentication failed")
+}
+
+func TestChangePasswordPOST_ShouldFailWhenChangePasswordErrorIsUnknown(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	userSession, err := mock.Ctx.GetSession()
+	assert.NoError(t, err)
+
+	userSession.Username = testUsername
+
+	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+
+	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
+	assert.NoError(t, err)
+	mock.Ctx.Request.SetBody(bodyBytes)
+
+	mock.Ctx.Providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(schema.PasswordPolicy{})
+
+	mock.UserProviderMock.EXPECT().
+		ChangePassword(testUsername, testPasswordOld, testPasswordNew).
+		Return(fmt.Errorf("ldap: connection refused"))
+
+	ChangePasswordPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusInternalServerError, mock.Ctx.Response.StatusCode())
+
+	errResponse := mock.GetResponseError(t)
+	assert.Equal(t, "KO", errResponse.Status)
+	assert.Equal(t, messageOperationFailed, errResponse.Message)
+
+	mock.AssertLastLogMessage(t, "Unable to change password for user for an unknown reason", "ldap: connection refused")
+}
+
+func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserDetailsAreUnavailable(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	userSession, err := mock.Ctx.GetSession()
+	assert.NoError(t, err)
+
+	userSession.Username = testUsername
+
+	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+
+	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
+	assert.NoError(t, err)
+	mock.Ctx.Request.SetBody(bodyBytes)
+
+	mock.Ctx.Providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(schema.PasswordPolicy{})
+
+	mock.UserProviderMock.EXPECT().
+		ChangePassword(testUsername, testPasswordOld, testPasswordNew).
+		Return(nil)
+
+	mock.UserProviderMock.EXPECT().
+		GetDetails(testUsername).
+		Return(nil, fmt.Errorf("user not found"))
+
+	ChangePasswordPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+	mock.AssertLastLogMessage(t, "Error occurred retrieving user details", "user not found")
+}

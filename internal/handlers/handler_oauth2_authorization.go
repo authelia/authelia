@@ -22,12 +22,13 @@ import (
 func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		issuer    *url.URL
-		requester oauthelia2.AuthorizeRequester
 		responder oauthelia2.AuthorizeResponder
 		client    oidc.Client
 		policy    oidc.ClientAuthorizationPolicy
 		err       error
 	)
+
+	var requester oauthelia2.AuthorizeRequester = oauthelia2.NewAuthorizeRequest()
 
 	if issuer, err = ctx.IssuerURL(); err != nil {
 		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
@@ -40,6 +41,8 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	}
 
 	if requester, err = ctx.Providers.OpenIDConnect.NewAuthorizeRequest(ctx, r); requester == nil {
+		requester = oauthelia2.NewAuthorizeRequest()
+
 		err = oauthelia2.ErrServerError.WithDebug("The requester was nil.")
 
 		ctx.GetLogger().Errorf("Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
