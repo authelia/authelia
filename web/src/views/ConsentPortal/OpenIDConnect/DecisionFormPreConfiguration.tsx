@@ -1,56 +1,42 @@
-import { FC, Fragment, useEffect, useState } from "react";
-
 import { useTranslation } from "react-i18next";
 
-import { Checkbox } from "@components/UI/Checkbox";
+import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from "@components/UI/Item";
 import { Label } from "@components/UI/Label";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
+import { Switch } from "@components/UI/Switch";
 
 export interface Props {
-    pre_configuration: boolean;
+    checked: boolean;
     onChangePreConfiguration: (_value: boolean) => void;
+    pre_configuration: boolean;
 }
 
-const DecisionFormPreConfiguration: FC<Props> = (props: Props) => {
+function DecisionFormPreConfiguration({ checked, onChangePreConfiguration, pre_configuration }: Props) {
     const { t: translate } = useTranslation(["consent"]);
 
-    const [preConfigure, setPreConfigure] = useState(false);
-
-    const handlePreConfigureChanged = () => {
-        setPreConfigure((preConfigure) => !preConfigure);
-    };
-
-    useEffect(() => {
-        props.onChangePreConfiguration(preConfigure);
-    }, [preConfigure, props]);
+    if (!pre_configuration) {
+        return null;
+    }
 
     return (
-        <Fragment>
-            {props.pre_configuration ? (
-                <div className="w-full">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger
-                                render={
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox
-                                            id="pre-configure"
-                                            checked={preConfigure}
-                                            onCheckedChange={handlePreConfigureChanged}
-                                        />
-                                        <Label htmlFor="pre-configure">{translate("Remember Consent")}</Label>
-                                    </div>
-                                }
-                            />
-                            <TooltipContent>
-                                {translate("This saves this consent as a pre-configured consent for future use")}
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-            ) : null}
-        </Fragment>
+        <Item variant={"muted"} size={"sm"} className="w-full text-left">
+            <ItemContent>
+                <ItemTitle>
+                    <Label htmlFor="pre-configure">{translate("Remember Consent")}</Label>
+                </ItemTitle>
+                <ItemDescription className="text-xs">
+                    {translate("This saves this consent as a pre-configured consent for future use")}
+                </ItemDescription>
+            </ItemContent>
+            <ItemActions>
+                <Switch
+                    id="pre-configure"
+                    checked={checked}
+                    onCheckedChange={(value) => onChangePreConfiguration(value)}
+                    aria-label={translate("Remember Consent")}
+                />
+            </ItemActions>
+        </Item>
     );
-};
+}
 
 export default DecisionFormPreConfiguration;

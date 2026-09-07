@@ -37,7 +37,7 @@ const SignOutButton = function (props: Props) {
                     </Button>
                 }
             />
-            <TooltipContent>{translate(props.tooltip)}</TooltipContent>
+            <TooltipContent sideOffset={8}>{translate(props.tooltip)}</TooltipContent>
         </Tooltip>
     ) : (
         <Button
