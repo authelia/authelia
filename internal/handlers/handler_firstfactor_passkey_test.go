@@ -407,6 +407,9 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
 						})).
 						Return(nil),
+					mock.StorageMock.EXPECT().
+						UpdateUserSignInDateByUsername(mock.Ctx, gomock.Eq(testUsername)).
+						Return(nil),
 				)
 			},
 			have:           dataReqGood,
@@ -511,6 +514,9 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 							Type:       regulation.AuthTypePasskey,
 							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
 						})).
+						Return(nil),
+					mock.StorageMock.EXPECT().
+						UpdateUserSignInDateByUsername(mock.Ctx, gomock.Eq(testUsername)).
 						Return(nil),
 				)
 			},
@@ -1123,6 +1129,9 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
 						})).
 						Return(nil),
+					mock.StorageMock.EXPECT().
+						UpdateUserSignInDateByUsername(mock.Ctx, gomock.Eq(testUsername)).
+						Return(nil),
 				)
 			},
 			have:           dataReqGoodKLI,
@@ -1227,6 +1236,9 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
 						})).
 						Return(fmt.Errorf("error marking auth")),
+					mock.StorageMock.EXPECT().
+						UpdateUserSignInDateByUsername(mock.Ctx, gomock.Eq(testUsername)).
+						Return(nil),
 				)
 			},
 			have:           dataReqGood,
