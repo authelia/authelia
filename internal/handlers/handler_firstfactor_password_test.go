@@ -1538,6 +1538,11 @@ func (s *FirstFactorReauthenticateSuite) TestShouldNotFailIfAuthenticationMarkFa
 			Groups:   []string{"dev", "admins"},
 		}, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq(testValue)).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"password": "hello"
 	}`)
@@ -1571,6 +1576,11 @@ func (s *FirstFactorReauthenticateSuite) TestShouldSaveUsernameFromAuthenticatio
 	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -1645,6 +1655,11 @@ func (s *FirstFactorReauthenticateRedirectionSuite) SetupTest() {
 	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq(testValue)).
 		Return(nil)
 }
 
