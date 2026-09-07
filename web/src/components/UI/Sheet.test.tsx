@@ -63,11 +63,16 @@ describe("rendering", () => {
         expect(screen.queryByText("Close")).not.toBeInTheDocument();
     });
 
-    it.each(["left", "right", "top", "bottom"] as const)("renders on the %s side", async (side) => {
+    it.each([
+        ["left", "left-0", "border-r"],
+        ["right", "right-0", "border-l"],
+        ["top", "top-0", "border-b"],
+        ["bottom", "bottom-0", "border-t"],
+    ] as const)("renders on the %s side", async (side, position, border) => {
         renderSheet(null, { side });
 
         await screen.findByText("Title");
-        expect(document.querySelector('[data-slot="sheet-content"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-slot="sheet-content"]')).toHaveClass(position, border);
     });
 
     it("merges a custom class name", async () => {
