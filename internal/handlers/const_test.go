@@ -80,8 +80,7 @@ const testOIDCClientCredentialsID = "client-credentials"
 
 const (
 	testOIDCAuthorizationCodeID = "authorization-code"
-	//nolint:gosec // This is a redirection URI, not a credential.
-	testOIDCRedirectURI = "https://app.example.com/oidc/callback"
+	testOIDCRedirectURI = "https://app.example.com/oidc/callback" //nolint:gosec // This is a redirection URI, not a credential.
 )
 
 const testOIDCDeviceCodeID = "device-code"
