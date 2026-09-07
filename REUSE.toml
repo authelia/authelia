@@ -1,0 +1,143 @@
+version = 1
+
+SPDX-PackageName = "Authelia"
+SPDX-PackageSupplier = "Authelia <team@authelia.com>"
+SPDX-PackageDownloadLocation = "https://github.com/authelia/authelia"
+
+[[annotations]]
+path = "docs/data/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Authelia"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "docs/layouts/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Authelia"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "Dockerfile.*"
+precedence = "closest"
+SPDX-FileCopyrightText = "2016 Authelia"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Authelia itself. Every file in the repository is covered by this entry unless a
+# more specific entry below overrides it; the last matching entry wins.
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Authelia"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Third party source.
+#
+# Derived from the Go standard library's sync.Map.
+[[annotations]]
+path = "internal/session/memory/stdlib.go"
+precedence = "override"
+SPDX-FileCopyrightText = "2016 The Go Authors"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+# The HAProxy auth-request Lua module used by the HAProxy integration suite.
+[[annotations]]
+path = "internal/suites/example/compose/haproxy/auth-request.lua"
+precedence = "override"
+SPDX-FileCopyrightText = "2018 Tim Düsterhus"
+SPDX-License-Identifier = "MIT"
+
+# The HAProxy Lua HTTP library used by the HAProxy integration suite.
+[[annotations]]
+path = "internal/suites/example/compose/haproxy/http.lua"
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "2017-2020 Adis Nezirović <anezirovic@haproxy.com>",
+  "2017-2020 HAProxy Technologies, LLC.",
+]
+SPDX-License-Identifier = "Apache-2.0"
+
+# The Liberation font used to produce deterministic screenshots in the integration suites.
+[[annotations]]
+path = [
+  "internal/suites/testdata/fonts/LICENSE",
+  "internal/suites/testdata/fonts/LiberationSans-Regular.ttf",
+]
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "2010 Google Corporation",
+  "2012 Red Hat, Inc.",
+]
+SPDX-License-Identifier = "OFL-1.1"
+
+# Third party marks.
+#
+# These are reproduced nominatively to refer to the products and organizations they
+# represent. See LICENSES/LicenseRef-Trademark.txt.
+[[annotations]]
+path = "docs/static/images/logos/caddy.png"
+precedence = "override"
+SPDX-FileCopyrightText = "Stack Holdings GmbH"
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "docs/static/images/logos/docker.logo.png"
+precedence = "override"
+SPDX-FileCopyrightText = "Docker, Inc."
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = [
+  "docs/static/images/logos/envoy.png",
+  "docs/static/images/logos/kubernetes.png",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "The Linux Foundation"
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "docs/static/images/logos/haproxy.png"
+precedence = "override"
+SPDX-FileCopyrightText = "HAProxy Technologies, LLC."
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "docs/static/images/logos/nginx.png"
+precedence = "override"
+SPDX-FileCopyrightText = "F5, Inc."
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "docs/static/images/logos/traefik.png"
+precedence = "override"
+SPDX-FileCopyrightText = "Traefik Labs"
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = [
+  "docs/static/svgs/logos/azure.svg",
+  "docs/static/svgs/logos/microsoft.svg",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Microsoft Corporation"
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = [
+  "docs/static/svgs/logos/goland.svg",
+  "docs/static/svgs/logos/intellij-idea.svg",
+  "docs/static/svgs/logos/jetbrains.svg",
+  "docs/static/svgs/logos/webstorm.svg",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "JetBrains s.r.o."
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+# The OpenID Certified mark.
+[[annotations]]
+path = [
+  "docs/static/images/oid-certification.jpg",
+  "docs/static/images/oid-map.png",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "OpenID Foundation"
+SPDX-License-Identifier = "LicenseRef-Trademark"

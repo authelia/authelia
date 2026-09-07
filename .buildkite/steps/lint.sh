@@ -71,6 +71,8 @@ if [[ $# -eq 0 ]]; then
   pnpm -C web exec eslint '*/**/*.{js,ts,tsx}' || FAILED=1
   echo "--- :prettier::service_dog: Running prettier"
   pnpm -C docs exec eslint . || FAILED=1
+  echo "--- :copyright::service_dog: Running reuse"
+  reuse lint --lines || FAILED=1
 
   echo "--- :go::service_dog: Lint Runners Completed"
   if [[ ${FAILED} -ne 0 ]]; then

@@ -65,3 +65,4 @@ consistency. These linters generally run via [lefthook](https://lefthook.dev/) w
 |          [commitlint](https://commitlint.js.org/)           |            Git            |     Ensure Conformant Commit Messages      |
 | [TruffleHog](https://github.com/trufflesecurity/trufflehog) |            All            |     Preventing Secret Commit Accidents     |
 |         [typos](https://github.com/crate-ci/typos)          |            All            |   Preventing Spelling and General Typos    |
+|              [REUSE](https://reuse.software/)               |            All            |     Licensing and Copyright Compliance     |

@@ -37,4 +37,11 @@ runner:
     errorformat:
       - '%f:%l:%c: %m'
     level: error
+
+  reuse:
+    # reuse reports 'path: message' with no position, so a 1:1 position is added for reviewdog.
+    cmd: reuse lint --lines | sed -e 's|^\([^:]*\):|\1:1:1:|'
+    errorformat:
+      - '%f:%l:%c: %m'
+    level: error
 ...
