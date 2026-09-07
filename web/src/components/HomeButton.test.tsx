@@ -27,3 +27,15 @@ it("navigates on click", () => {
     fireEvent.click(button);
     expect(mockNavigate).toHaveBeenCalledWith("/", false, false, false);
 });
+
+it("renders as an outlined button rather than a bare ghost", () => {
+    render(<HomeButton />);
+
+    expect(screen.getByRole("button")).toHaveAttribute("data-variant", "outline");
+});
+
+it("renders a home icon alongside the label", () => {
+    const { container } = render(<HomeButton />);
+
+    expect(container.querySelector("svg")).toBeInTheDocument();
+});

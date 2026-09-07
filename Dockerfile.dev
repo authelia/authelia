@@ -8,7 +8,7 @@ WORKDIR /node/src/app
 COPY --link web ./
 
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-	npm install -g pnpm@11 && \
+	npm install -g pnpm@12 && \
 	pnpm install --frozen-lockfile --ignore-scripts --store-dir /pnpm/store && \
 	pnpm coverage
 
@@ -41,7 +41,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM authelia/base:latest@sha256:1cd9167c0a1a8f829cce4d63d8d3c80c945a1fe80291ada2d4f9a659e736fcb7
+FROM authelia/base:latest@sha256:980547e7ea48f7c3ebc41c0d0cd4709c1604bacd14c56763d2088f9ef678f52e
 
 WORKDIR /app
 

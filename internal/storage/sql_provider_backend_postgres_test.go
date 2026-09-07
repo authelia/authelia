@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"os"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
@@ -597,5 +599,40 @@ func TestDSNConfigPostgreSQLHostPort(t *testing.T) {
 			assert.Equal(t, tc.hexpected, host)
 			assert.Equal(t, tc.pexpected, port)
 		})
+	}
+}
+
+func TestNewPostgreSQLProviderShouldRebindAllQueries(t *testing.T) {
+	address, err := schema.NewAddress("tcp://localhost:5432")
+	require.NoError(t, err)
+
+	provider, err := NewPostgreSQLProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "testing-key-only",
+			PostgreSQL: &schema.StoragePostgreSQL{
+				StorageSQL: schema.StorageSQL{
+					Address: &schema.AddressTCP{Address: *address},
+				},
+			},
+		},
+	}, x509.NewCertPool())
+
+	require.NoError(t, err)
+	require.NotNil(t, provider)
+
+	value := reflect.ValueOf(provider.SQLProvider)
+	typed := value.Type()
+
+	for i := range typed.NumField() {
+		field := typed.Field(i)
+
+		if field.Type.Kind() != reflect.String || !strings.HasPrefix(field.Name, "sql") {
+			continue
+		}
+
+		query := value.Field(i).String()
+
+		assert.NotEmpty(t, query, "field %s does not have a query assigned to it", field.Name)
+		assert.NotContains(t, query, "?", "field %s contains a '?' placeholder which PostgreSQL does not support, it must either be rebound via (*sqlx.DB).Rebind or assigned a PostgreSQL specific query", field.Name)
 	}
 }
