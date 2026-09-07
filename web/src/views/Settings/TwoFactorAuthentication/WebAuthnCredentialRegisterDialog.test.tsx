@@ -123,6 +123,22 @@ describe("description validation", () => {
         expect(getOptionsMock).not.toHaveBeenCalled();
     });
 
+    it("rejects a description that is only whitespace", async () => {
+        renderDialog();
+
+        fireEvent.change(getDescription(), { target: { value: "   " } });
+
+        clickNext();
+
+        await waitFor(() =>
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith(
+                "The Description must be more than 1 character and less than 64 characters",
+            ),
+        );
+        expect(getDescription()).toHaveAttribute("aria-invalid", "true");
+        expect(getOptionsMock).not.toHaveBeenCalled();
+    });
+
     it("rejects a description longer than 64 characters", async () => {
         renderDialog();
 
