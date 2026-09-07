@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
+git fetch --quiet origin master
+DIVERGED=$(git merge-base origin/master HEAD > /dev/null; echo $?)
 
 BYPASS_REGEX='/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}'
 
@@ -24,12 +25,12 @@ if [[ ${DIVERGED} == 0 ]] && [[ ${BUILDKITE_TAG} == "" ]]; then
   if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
     BASE_REF="HEAD~1"
   else
-    BASE_REF=$(git merge-base --fork-point origin/master)
+    BASE_REF=$(git merge-base origin/master HEAD)
   fi
 
-  changed "${BASE_REF}" "internal/suites/example/compose/duo-api/Dockerfile" && BUILD_DUO="true"
-  changed "${BASE_REF}" "internal/suites/example/compose/haproxy/Dockerfile" && BUILD_HAPROXY="true"
-  changed "${BASE_REF}" "internal/suites/example/compose/samba/Dockerfile" && BUILD_SAMBA="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/duo-api/" && BUILD_DUO="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/haproxy/" && BUILD_HAPROXY="true"
+  changed "${BASE_REF}" "internal/suites/example/compose/samba/" && BUILD_SAMBA="true"
   CI_BYPASS=$(bypass_check "${BASE_REF}")
 
   if [[ ${CI_BYPASS} == "true" ]]; then
