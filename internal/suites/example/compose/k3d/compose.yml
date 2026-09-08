@@ -9,6 +9,7 @@ services:
       - './example/kube/authelia/configs/configuration.yml:/configmaps/authelia/configuration.yml'
       - './common/pki:/configmaps/authelia/ssl'
       - './example/compose/ldap/ldif:/configmaps/ldap'
+      - './example/compose/ldap/schema:/configmaps/ldap-schema'
       - './example/compose/nginx/backend:/configmaps/nginx-backend'
       - '../../coverage:/coverage'
     privileged: true

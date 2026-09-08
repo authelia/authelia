@@ -35,7 +35,7 @@ spec:
             - name: LDAP_ADDITIONAL_MODULES
               value: memberof
             - name: LDAP_ADDITIONAL_SCHEMAS
-              value: openldap
+              value: openldap,authelia
             - name: LDAP_FORCE_RECONFIGURE
               value: "true"
             - name: LDAP_TLS_VERIFY_CLIENT
@@ -43,10 +43,16 @@ spec:
           volumeMounts:
             - name: ldap-config
               mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom
+            - name: ldap-schema
+              mountPath: /container/service/slapd/assets/config/bootstrap/schema/custom
       volumes:
         - name: ldap-config
           hostPath:
             path: /configmaps/ldap
+            type: Directory
+        - name: ldap-schema
+          hostPath:
+            path: /configmaps/ldap-schema
             type: Directory
 ...
 ---
