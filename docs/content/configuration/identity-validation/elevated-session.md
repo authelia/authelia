@@ -92,6 +92,6 @@ options:
 |          Configuration          |          User With a Second Factor Method           | User Without a Second Factor Method |
 |:-------------------------------:|:---------------------------------------------------:|:-----------------------------------:|
 |      both options disabled      |                    One-Time Code                    |            One-Time Code            |
-|  `skip_second_factor` enabled   |   One-Time Code *or* second factor authentication   |            One-Time Code            |
-| `require_second_factor` enabled |  second factor authentication *and* One-Time Code   |            One-Time Code            |
-|      both options enabled       |            second factor authentication             |            One-Time Code            |
+|  `skip_second_factor` enabled   |   One-Time Code *or* Second Factor Authentication   |            One-Time Code            |
+| `require_second_factor` enabled |  Second Factor Authentication *and* One-Time Code   |            One-Time Code            |
+|      both options enabled       |            Second Factor Authentication             |            One-Time Code            |
