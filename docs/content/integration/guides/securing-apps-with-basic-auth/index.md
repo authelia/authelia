@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Securing Applications with Basic Auth"
 description: "Learn how to protect applications using Authelia's ForwardAuth while enabling API access through Basic Authentication and service accounts."
 summary: "A comprehensive guide for adding authentication to unprotected applications using Authelia and Traefik, with support for both web users and programmatic API access via service accounts."

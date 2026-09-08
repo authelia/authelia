@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "First Factor"
 description: "Authelia utilizes the standard username and password combination for first factor authentication."
 summary: "Authelia utilizes the standard username and password combination for first factor authentication."

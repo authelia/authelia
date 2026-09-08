@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia crypto hash generate argon2"
 description: "Reference for the authelia crypto hash generate argon2 command."
 lead: ""

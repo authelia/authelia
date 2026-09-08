@@ -5,28 +5,47 @@ SPDX-PackageSupplier = "Authelia <team@authelia.com>"
 SPDX-PackageDownloadLocation = "https://github.com/authelia/authelia"
 
 [[annotations]]
-path = "docs/data/**"
-precedence = "aggregate"
-SPDX-FileCopyrightText = "2016 Authelia"
-SPDX-License-Identifier = "Apache-2.0"
-
-[[annotations]]
-path = "docs/layouts/**"
-precedence = "aggregate"
-SPDX-FileCopyrightText = "2016 Authelia"
-SPDX-License-Identifier = "Apache-2.0"
-
-[[annotations]]
-path = "Dockerfile.*"
-precedence = "closest"
-SPDX-FileCopyrightText = "2016 Authelia"
-SPDX-License-Identifier = "Apache-2.0"
-
-# Authelia itself. Every file in the repository is covered by this entry unless a
-# more specific entry below overrides it; the last matching entry wins.
-[[annotations]]
 path = "**"
+precedence = "closest"
+
+[[annotations]]
+path = [
+	".all-contributorsrc",
+	".buildkite/annotations/bypass",
+	".buildkite/annotations/draft",
+	".buildkite/annotations/merge-queue",
+	".renovaterc",
+	"cmd/authelia-gen/templates/dot_commitlintrc.cjs.tmpl",
+	"cmd/dev/**",
+	"CITATION.cff",
+	"docs/content/reference/architecture-decision-log/.adr.config.json",
+	"docs/data/**",
+	"docs/layouts/**",
+	"docs/static/.well-known/matrix/server",
+	"docs/static/keys/**",
+	"internal/authentication/*_mock_test.go",
+	"internal/configuration/test_resources/**",
+	"internal/mocks/**",
+	"internal/storage/migrations/**",
+	"internal/suites/common/pki/**",
+	"internal/suites/example/compose/authelia/resources/reflex.conf",
+]
 precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Authelia"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "web/src/components/UI/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 shadcn"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = [
+	"Dockerfile",
+	"Dockerfile.*",
+]
+precedence = "closest"
 SPDX-FileCopyrightText = "2016 Authelia"
 SPDX-License-Identifier = "Apache-2.0"
 
@@ -83,6 +102,12 @@ SPDX-License-Identifier = "LicenseRef-Trademark"
 path = "docs/static/images/logos/docker.logo.png"
 precedence = "override"
 SPDX-FileCopyrightText = "Docker, Inc."
+SPDX-License-Identifier = "LicenseRef-Trademark"
+
+[[annotations]]
+path = "web/src/assets/images/applestore-badge.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "Apple, Inc."
 SPDX-License-Identifier = "LicenseRef-Trademark"
 
 [[annotations]]

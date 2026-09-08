@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia-gen docs manage adr add"
 description: "Reference for the authelia-gen docs manage adr add command."
 lead: ""

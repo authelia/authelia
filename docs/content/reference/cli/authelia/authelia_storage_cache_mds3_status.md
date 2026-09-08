@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia storage cache mds3 status"
 description: "Reference for the authelia storage cache mds3 status command."
 lead: ""

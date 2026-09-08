@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "SMTP"
 description: "Configuring the SMTP Notifications Settings."
 summary: "Authelia can send emails to users through an SMTP server. This section describes how to configure this."

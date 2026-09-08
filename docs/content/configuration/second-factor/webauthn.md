@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "WebAuthn"
 description: "Configuring the WebAuthn Second Factor Method."
 summary: "WebAuthn is the modern browser security key specification that Authelia supports. This section describes configuring it."

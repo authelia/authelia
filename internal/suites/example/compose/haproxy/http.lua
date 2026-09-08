@@ -1,28 +1,6 @@
---
--- HTTP 1.1 library for HAProxy Lua modules
---
--- The library is loosely modeled after Python's Requests Library
--- using the same field names and very similar calling conventions for
--- "HTTP verb" methods (where we use Lua specific named parameter support)
---
--- In addition to client side, the library also supports server side request
--- parsing, where we utilize HAProxy Lua API for all heavy lifting.
---
---
--- Copyright (c) 2017-2020. Adis Nezirović <anezirovic@haproxy.com>
--- Copyright (c) 2017-2020. HAProxy Technologies, LLC.
---
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
---
---    http://www.apache.org/licenses/LICENSE-2.0
---
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Copyright (C) 2017-2020. Adis Nezirović <anezirovic@haproxy.com>
+-- Copyright (C) 2017-2020. HAProxy Technologies, LLC.
+-- SPDX-FileCopyrightText: 2026 Authelia
 --
 -- SPDX-License-Identifier: Apache-2.0
 

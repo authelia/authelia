@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Log"
 description: "Configuring the Log Settings."
 summary: "Authelia performs logging to various locations. This section describes how to configure and tune this."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Granular Authorization"
 description: "Authelia Granular Authorization Implementation"
 summary: "Implementation of a Granular Authorization framework will make the Authorization experience more tailored to complex requirements."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Trusted Header SSO"
 description: "Trusted Header SSO Integration"
 summary: "An introduction into integrating Authelia with an application which implements authentication via trusted headers."

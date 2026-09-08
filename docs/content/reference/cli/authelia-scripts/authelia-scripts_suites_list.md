@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia-scripts suites list"
 description: "Reference for the authelia-scripts suites list command."
 lead: ""

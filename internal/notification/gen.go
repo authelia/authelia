@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package notification
 
 //go:generate mockgen -write_package_comment=false -package notification -destination smtp_client_mock_test.go -mock_names SMTPClient=MockSMTPClient github.com/authelia/authelia/v4/internal/notification SMTPClient

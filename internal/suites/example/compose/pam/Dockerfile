@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Builds the pam_authelia Go binary and the pam_authelia.so C shim by cloning
 # https://github.com/authelia/pam at the specified ref. Override at build time
 # to pin a branch, tag, or commit for local testing:

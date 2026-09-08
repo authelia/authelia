@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { ReactNode, createContext, use, useCallback, useMemo, useState } from "react";
 
 import NotificationBar from "@components/NotificationBar";

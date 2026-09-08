@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia storage bans user revoke"
 description: "Reference for the authelia storage bans user revoke command."
 lead: ""

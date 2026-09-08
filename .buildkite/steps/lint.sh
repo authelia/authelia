@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Usage:
 #   lint.sh                  Run every linter (CI linting step entrypoint).
 #   lint.sh shellcheck ...   Run shellcheck. With file args, those files are

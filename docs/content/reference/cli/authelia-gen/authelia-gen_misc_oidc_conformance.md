@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia-gen misc oidc conformance"
 description: "Reference for the authelia-gen misc oidc conformance command."
 lead: ""

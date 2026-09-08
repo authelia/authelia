@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Accessibility"
 description: "Authelia Development Accessibility Guidelines"
 summary: "This section covers the accessibility guidelines we aim to respect during development."

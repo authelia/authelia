@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia-gen misc locale-move"
 description: "Reference for the authelia-gen misc locale-move command."
 lead: ""

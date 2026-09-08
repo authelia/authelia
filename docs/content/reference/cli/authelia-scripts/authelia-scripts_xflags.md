@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia-scripts xflags"
 description: "Reference for the authelia-scripts xflags command."
 lead: ""

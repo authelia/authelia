@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia crypto pair ecdsa"
 description: "Reference for the authelia crypto pair ecdsa command."
 lead: ""

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia storage user totp import"
 description: "Reference for the authelia storage user totp import command."
 lead: ""

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { ReactNode, useEffect, useRef, useState } from "react";
 
 import { Check, Copy } from "lucide-react";

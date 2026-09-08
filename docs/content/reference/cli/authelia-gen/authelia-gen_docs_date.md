@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia-gen docs date"
 description: "Reference for the authelia-gen docs date command."
 lead: ""

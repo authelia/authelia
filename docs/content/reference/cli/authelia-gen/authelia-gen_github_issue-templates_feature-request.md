@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia-gen github issue-templates feature-request"
 description: "Reference for the authelia-gen github issue-templates feature-request command."
 lead: ""

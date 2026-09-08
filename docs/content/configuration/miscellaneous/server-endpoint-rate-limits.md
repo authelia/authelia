@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Server Endpoint Rate Limits"
 description: "Configuring the Server Authz Endpoint Settings."
 summary: "Authelia supports several authorization endpoints on the internal web server. This section describes how to configure and tune them."

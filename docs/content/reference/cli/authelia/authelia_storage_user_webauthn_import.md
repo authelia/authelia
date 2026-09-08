@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia storage user webauthn import"
 description: "Reference for the authelia storage user webauthn import command."
 lead: ""

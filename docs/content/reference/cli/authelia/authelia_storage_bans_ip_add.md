@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "authelia storage bans ip add"
 description: "Reference for the authelia storage bans ip add command."
 lead: ""
