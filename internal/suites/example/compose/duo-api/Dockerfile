@@ -6,7 +6,7 @@ ENV \
     SHELL="/bin/sh" \
     PNPM_HOME="/usr/local"
 
-COPY --link package.json pnpm-lock.yaml ./
+COPY --link package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 RUN ENV="/root/.profile" sh -c 'wget -qO- https://get.pnpm.io/install.sh | sh -' && pnpm install --frozen-lockfile --prod
 
