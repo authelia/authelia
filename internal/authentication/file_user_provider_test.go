@@ -496,6 +496,114 @@ func TestFileUserProviderShouldNotDeadlockOnUpdatePassword(t *testing.T) {
 	}
 }
 
+type concurrentSaveDetectingDatabase struct {
+	FileUserProviderDatabase
+
+	mu         sync.Mutex
+	busy       bool
+	overlapped bool
+}
+
+func (d *concurrentSaveDetectingDatabase) Save() (err error) {
+	d.mu.Lock()
+	if d.busy {
+		d.overlapped = true
+	}
+
+	d.busy = true
+	d.mu.Unlock()
+
+	time.Sleep(5 * time.Millisecond)
+
+	err = d.FileUserProviderDatabase.Save()
+
+	d.mu.Lock()
+	d.busy = false
+	d.mu.Unlock()
+
+	return err
+}
+
+func TestFileUserProviderConcurrentWritesShouldSerializeSave(t *testing.T) {
+	const (
+		concurrency = 10
+		timeout     = 30 * time.Second
+	)
+
+	WithDatabase(t, UserDatabaseContent, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		require.NoError(t, provider.StartupCheck())
+
+		detector := &concurrentSaveDetectingDatabase{FileUserProviderDatabase: provider.database}
+		provider.database = detector
+
+		done := make(chan struct{})
+
+		go func() {
+			defer close(done)
+
+			wg := &sync.WaitGroup{}
+
+			for i := 0; i < concurrency; i++ {
+				wg.Add(1)
+
+				go func() {
+					defer wg.Done()
+
+					_ = provider.ChangePassword("john", "password", "apple123")
+				}()
+
+				wg.Add(1)
+
+				go func() {
+					defer wg.Done()
+
+					_ = provider.UpdatePassword("harry", "apple123")
+				}()
+
+				wg.Add(1)
+
+				go func(i int) {
+					defer wg.Done()
+
+					username := fmt.Sprintf("concurrent%d", i)
+
+					_ = provider.Management.AddUser(&UserDetailsExtended{
+						UserDetails: &UserDetails{
+							Username:    username,
+							DisplayName: username,
+							Emails:      []string{username + "@example.com"},
+						},
+						Password: "apple123",
+					})
+				}(i)
+
+				wg.Add(1)
+
+				go func() {
+					defer wg.Done()
+
+					_ = provider.DeleteUser("bob")
+				}()
+			}
+
+			wg.Wait()
+		}()
+
+		select {
+		case <-done:
+		case <-time.After(timeout):
+			t.Fatalf("deadlock detected: the concurrent workload did not complete within %s", timeout)
+		}
+
+		assert.False(t, detector.overlapped, "two Save() calls ran concurrently: writes are not properly serialized by the provider mutex")
+	})
+}
+
 func TestShouldChangePassword(t *testing.T) {
 	testCases := []struct {
 		name        string
