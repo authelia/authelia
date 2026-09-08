@@ -50,9 +50,24 @@ const (
 	subexpNameGroup = "Group"
 )
 
+const (
+	// patternDomainUser subexp matches one or more hostname labels as a username is permitted to contain periods.
+	patternDomainUser = `(?i)^(?P<User>[a-z0-9-]+(?:\.[a-z0-9-]+)*)%s$`
+
+	// patternDomainGroup subexp matches a single hostname label.
+	patternDomainGroup = `(?i)^(?P<Group>[a-z0-9-]+)%s$`
+
+	domainTokenUser  = "{user}"
+	domainTokenGroup = "{group}"
+)
+
 var (
 	// IdentitySubexpNames is a list of valid regex subexp names.
 	IdentitySubexpNames = []string{subexpNameUser, subexpNameGroup}
+
+	// IdentityDomainTokens is a list of the domain criteria tokens which are translated into patterns matching the
+	// identity of the subject.
+	IdentityDomainTokens = []string{domainTokenUser, domainTokenGroup}
 )
 
 const traceFmtACLHitMiss = "ACL %s Position %d for subject %s and object %s (method %s, policy %s)"
@@ -166,4 +181,8 @@ const (
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRShortMessageService = "sms"
+)
+
+var (
+	sepSchemeHost = []byte("://")
 )

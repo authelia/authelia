@@ -98,23 +98,18 @@ func loadMigrations(providerName string, prior, target int) (migrations []model.
 func skipMigration(up bool, target, prior int, migration *model.SchemaMigration) (skip bool) {
 	if up {
 		if !migration.Up {
-			// Skip if we wanted an Up migration but it isn't an Up migration.
 			return true
 		}
 
 		if migration.Version > target || migration.Version <= prior {
-			// Skip if the migration version is greater than the target or less than or equal to the previous version.
 			return true
 		}
 	} else {
 		if migration.Up {
-			// Skip if we didn't want an Up migration but it is an Up migration.
 			return true
 		}
 
 		if migration.Version <= target || migration.Version > prior {
-			// Skip the migration if we want to go down and the migration version is less than or equal to the target
-			// or greater than the previous version.
 			return true
 		}
 	}

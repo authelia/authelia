@@ -114,7 +114,7 @@ If the scheme is `ldapi` it must be followed by an absolute path to an existing 
 user/group the Authelia process is running as has the appropriate permissions to access. For example if the socket is
 located at `/var/run/slapd.sock` the address should be `ldapi:///var/run/slapd.sock`.
 
-__Examples:__
+**Examples:**
 
 ```yaml {title="configuration.yml"}
 authentication_backend:
@@ -147,7 +147,7 @@ The timeout for dialing an LDAP connection.
 {{< confkey type="boolean" default="false" required="no" >}}
 
 Enables use of the LDAP StartTLS process which is not commonly used. You should only configure this if you know you need
-it. The initial connection will be over plain text, and *Authelia* will try to upgrade it with the LDAP server. LDAPS
+it. The initial connection will be over plain text, and _Authelia_ will try to upgrade it with the LDAP server. LDAPS
 URL's are slightly more secure.
 
 ### tls
@@ -159,7 +159,6 @@ If defined this option controls the TLS connection verification parameters for t
 By default Authelia uses the system certificate trust for TLS certificate verification of TLS connections and the
 [certificates_directory](../miscellaneous/introduction.md#certificates_directory) global option can be used to augment
 this.
-
 
 ### pooling
 
@@ -266,8 +265,8 @@ referrals to be followed when performing write operations.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-*__WARNING:__ This option is strongly discouraged. Please consider disabling unauthenticated binding to your LDAP
-server and utilizing a service account.*
+_**WARNING:** This option is strongly discouraged. Please consider disabling unauthenticated binding to your LDAP
+server and utilizing a service account._
 
 Permits binding to the server without a password. For this option to be enabled both the [password](#password)
 configuration option must be blank and the [password_reset disable](introduction.md#disable) option must be `true`.
@@ -284,7 +283,7 @@ The distinguished name of the user paired with the password to bind with for loo
 
 The password paired with the [user](#user) used to bind to the LDAP server for lookup and password change operations.
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
@@ -317,7 +316,7 @@ This option is technically required however the [implementation](#implementation
 default negating this requirement. Refer to the [attribute defaults](../../integration/ldap) of your implementation for more information.
 {{< /callout >}}
 
-The directory server attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}` [placeholder].
+The directory server attribute that maps to the username in _Authelia_. This must contain the `{username_attribute}` [placeholder].
 
 #### display_name
 

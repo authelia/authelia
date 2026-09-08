@@ -35,10 +35,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://peertube.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `peertube`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://peertube.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `peertube`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -58,7 +58,7 @@ To install the [OpenID Connect Plugin] for [PeerTube] via the Web GUI:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [PeerTube] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [PeerTube] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

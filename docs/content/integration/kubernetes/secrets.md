@@ -18,9 +18,9 @@ The following serve as examples of how to inject secrets into the Authelia conta
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Creation
 
@@ -105,7 +105,7 @@ data:
 ### Kustomize
 
 The following example is a [Kustomize](https://kustomize.io/) example which can be utilized with `kubectl apply -k`. The
-files listed in the `secretGenerator` section  of the `kustomization.yaml` must exist and contain the contents of your
+files listed in the `secretGenerator` section of the `kustomization.yaml` must exist and contain the contents of your
 desired secret value.
 
 ```yaml {title="kustomization.yaml"}

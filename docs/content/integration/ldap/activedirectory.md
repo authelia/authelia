@@ -14,15 +14,15 @@ seo:
   noindex: false # false (default) or true
 ---
 
-[Active Directory] is supported by __Authelia__.
+[Active Directory] is supported by **Authelia**.
 
-*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+_**Important:** When using these guides, it's important to recognize that we cannot provide a guide for every possible
 method of deploying an LDAP server. These guides show a suggested setup only, and you need to understand the LDAP
 configuration and customize it to your needs. To-that-end, we include links to the official documentation specific to
-the LDAP implementation throughout this documentation and in the [See Also](#see-also) section.*
+the LDAP implementation throughout this documentation and in the [See Also](#see-also) section._
 
-*__Important:__ This guide makes use of a default configuration. Check the [Defaults](#defaults) section
-and make adjustments according to your needs.*
+_**Important:** This guide makes use of a default configuration. Check the [Defaults](#defaults) section
+and make adjustments according to your needs._
 
 ## Assumptions and Adaptation
 
@@ -41,7 +41,7 @@ The following are the assumptions we make:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [authentication backend configuration] for use with
+The following YAML configuration is an example **Authelia** [authentication backend configuration] for use with
 [Active Directory] which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -74,7 +74,7 @@ This table describes the attribute defaults for each implementation. i.e. the us
 Username column.
 
 |    Username    | Display Name | Mail | Group Name | Distinguished Name | Member Of |
-|:--------------:|:------------:|:----:|:----------:|:------------------:|:---------:|
+| :------------: | :----------: | :--: | :--------: | :----------------: | :-------: |
 | sAMAccountName | displayName  | mail |     cn     | distinguishedName  | memberOf  |
 
 #### Filter defaults
@@ -104,7 +104,7 @@ the following conditions:
 ##### Microsoft Active Directory sAMAccountType
 
 | Account Type Value |               Description               |               Equivalent Filter                |
-|:------------------:|:---------------------------------------:|:----------------------------------------------:|
+| :----------------: | :-------------------------------------: | :--------------------------------------------: |
 |     268435456      | Global/Universal Security Group Objects |                      N/A                       |
 |     536870912      |   Domain Local Security Group Objects   |                      N/A                       |
 |     805306368      |          Normal User Accounts           | `(&(objectCategory=person)(objectClass=user))` |

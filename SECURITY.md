@@ -10,8 +10,9 @@ decisions are made with security being the priority and we always aim to impleme
 1. Reports that include a severity rating must use the CVSSv4 rating system.
 2. Reporters that use Generative Artificial Intelligence in any part of discovery of a vulnerability, providing
    information about a vulnerability, providing a proof-of-concept for a vulnerability, or providing a suggested fix
-   to a vulnerability must fully disclose the use of Generative Artificial Intelligence as well as how it was used for
-   which parts of the process. Please read the full [Artificial Intelligence Policy] for more information.
+   to a vulnerability must abide by the [Artificial Intelligence Policy]. This includes abiding by the conversational
+   area of the repository rule which effectively only allows using it to generate code, and full disclosure of the use
+   of Generative Artificial Intelligence. Please read the full [Artificial Intelligence Policy] for more information.
 3. Reporters that are aware of specific requirements to trigger a vulnerability such as configurations or architectures
    should include this information in their report.
 4. The report and interactions in the report are subject to the [Code of Conduct].
@@ -54,7 +55,7 @@ vulnerabilities and issues within the __Authelia__ code base.
 ### Chat
 
 If you wish to chat directly instead of sending an email please use one of the
-[chat options](../information/contact.md#chat) to direct / private message one of the [core team] members.
+[chat options] to direct / private message one of the [core team] members.
 
 Please avoid this method unless absolutely necessary. We generally prefer that users use either the
 [GitHub Security](#github-security) or [Email](#email) option rather than this option as it both allows multiple team
@@ -112,10 +113,10 @@ willing to make a financial contribution towards this then please feel free to c
 [coordinated vulnerability disclosure]: https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure
 [security advisory]: https://github.com/authelia/authelia/security/advisories
 [report a vulnerability]: https://github.com/authelia/authelia/security/advisories/new
-[core team]: https://www.authelia.com/information/about/#core-team
+[core team]: https://www.authelia.com/policies/governance/#core-team
 [all contributors]: https://github.com/authelia/authelia/blob/master/README.md#contribute
 [Artificial Intelligence Policy]: https://www.authelia.com/policies/artificial-intelligence/
-[Translations Section of the Artificial Intelligence Policy]: https://www.authelia.com/policies/artificial-intelligence/#translation
+[Translation Section of the Artificial Intelligence Policy]: https://www.authelia.com/policies/artificial-intelligence/#translation
 [Code of Conduct]: https://www.authelia.com/policies/code-of-conduct/
 [Matrix]: https://www.authelia.com/information/contact/#matrix
 [Discord]: https://www.authelia.com/information/contact/#discord

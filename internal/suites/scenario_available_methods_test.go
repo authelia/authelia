@@ -56,9 +56,7 @@ func (s *AvailableMethodsScenario) TestShouldCheckAvailableMethods() {
 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 
-	methodsButton := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "methods-button")
-	err := methodsButton.Click("left", 1)
-	s.Assert().NoError(err)
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "methods-button")
 
 	methodsDialog := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "methods-dialog")
 	options, err := methodsDialog.Elements(".method-option")

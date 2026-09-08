@@ -311,10 +311,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		userSession.RefreshTTL = ctx.GetClock().Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 	}
 
-	// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data.
 	keepMeLoggedIn := !provider.Config.DisableRememberMe && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
 
-	// Set the cookie to expire if remember me is enabled and the user has asked us to.
 	if keepMeLoggedIn {
 		if err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe); err != nil {
 			ctx.SetStatusCode(fasthttp.StatusForbidden)

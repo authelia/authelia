@@ -17,7 +17,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-----
+---
 
 The intended audience of this article is those curious about some of the design choices Authelia has recently made
 surrounding _Claims_[^1], as well as those trying to navigate implementation of the specifications. I suspect some who are
@@ -52,7 +52,7 @@ Several of these concepts are heavily linked together and in my opinion once you
 interacts with the others, there is a sort of orchestral design behind each of them; it's almost like the specification
 designers actually put a lot of thought into this.
 
-----
+---
 
 ## Access Tokens and ID Tokens
 
@@ -140,7 +140,7 @@ specific endpoints and actions in a fairly explicitly expressed way.
 This concept of what kinds of things these tokens can access specifically in [OpenID Connect 1.0] is going to be touched
 on later, specifically when discussing _Claims_[^1] availability.
 
-----
+---
 
 ## Claim Stability and Uniqueness: The effect on Identity Binding
 
@@ -195,7 +195,7 @@ The third function of these _Claims_[^1] is to provide the _Relying Party_[^13] 
 _Resource Owner_[^8] who already has a bound identity. For example updating their contact details. This leads naturally
 into the next concept.
 
-----
+---
 
 ## Claims Availability
 
@@ -295,76 +295,93 @@ _ID Token_[^3]. It's just too powerful not to use it.
 
 ## Footnotes
 
-[^1]: A Claim is some information that has been asserted about an Entity such as an _End-User_[^9] or
-_Resource Owner_[^8]. This is also specifically defined in the [OpenID Connect 1.0 Core Terminology] as well as the
-[Claims] section which describes them in detail.
+[^1]:
+    A Claim is some information that has been asserted about an Entity such as an _End-User_[^9] or
+    _Resource Owner_[^8]. This is also specifically defined in the [OpenID Connect 1.0 Core Terminology] as well as the
+    [Claims] section which describes them in detail.
 
-[^2]: An Access Token is traditionally an opaque token which is described in
-[Section 1.4 of RFC6749](https://datatracker.ietf.org/doc/html/rfc6749#section-1.4) or sometimes a _JSON Web Token_[^4]
-which is either completely proprietary or described in [RFC9068](https://datatracker.ietf.org/doc/html/rfc9068). The
-Access Token is used to access resources.
+[^2]:
+    An Access Token is traditionally an opaque token which is described in
+    [Section 1.4 of RFC6749](https://datatracker.ietf.org/doc/html/rfc6749#section-1.4) or sometimes a _JSON Web Token_[^4]
+    which is either completely proprietary or described in [RFC9068](https://datatracker.ietf.org/doc/html/rfc9068). The
+    Access Token is used to access resources.
 
-[^3]: An ID Token otherwise known as an Identity Token is a _JSON Web Token_[^4] which is described in
-[ID Token Section of OpenID Connect 1.0 Core](https://openid.net/specs/openid-connect-core-1_0.html#IDToken).
-The ID Token is intentionally designed to identify a unique user and has a strictly defined format and contents.
-This is also specifically defined in the [OpenID Connect 1.0 Core Terminology].
+[^3]:
+    An ID Token otherwise known as an Identity Token is a _JSON Web Token_[^4] which is described in
+    [ID Token Section of OpenID Connect 1.0 Core](https://openid.net/specs/openid-connect-core-1_0.html#IDToken).
+    The ID Token is intentionally designed to identify a unique user and has a strictly defined format and contents.
+    This is also specifically defined in the [OpenID Connect 1.0 Core Terminology].
 
-[^4]: A JSON Web Token or JWT has multiple serialization forms, in our usages of them currently we use the compact
-serialization and this is what we're referring to. The JSON Web Token (when signed, not encrypted) itself consists of
-three distinct parts, the header which contains important metadata about the token format, the body which contains the
-_Claims_[^1], and the signature which is a cryptographic hash of the other two parts. Both the header and the body are
-minimized JSON objects which are Base64 URL encoded. JSON Web Tokens are described in detail in
-[RFC7519](https://datatracker.ietf.org/doc/html/rfc7519).
+[^4]:
+    A JSON Web Token or JWT has multiple serialization forms, in our usages of them currently we use the compact
+    serialization and this is what we're referring to. The JSON Web Token (when signed, not encrypted) itself consists of
+    three distinct parts, the header which contains important metadata about the token format, the body which contains the
+    _Claims_[^1], and the signature which is a cryptographic hash of the other two parts. Both the header and the body are
+    minimized JSON objects which are Base64 URL encoded. JSON Web Tokens are described in detail in
+    [RFC7519](https://datatracker.ietf.org/doc/html/rfc7519).
 
 [^5]: The Authorization Server has the role of authorizing access to resources held on the _Resource Server_[^6].
 
-[^6]: The Resource Server has the role of holding resources which must be granted access to by the _Resource Owner_[^8]
-which is validated by the _Authorization Server_[^5].
+[^6]:
+    The Resource Server has the role of holding resources which must be granted access to by the _Resource Owner_[^8]
+    which is validated by the _Authorization Server_[^5].
 
-[^7]: The Authorization Code Flow is a flow which returns an Authorization Code in the Authorization Response. This
-Authorization Code is short lived, and is exchanged at the Token Endpoint along with any client authentication
-requirements for the minted tokens.
+[^7]:
+    The Authorization Code Flow is a flow which returns an Authorization Code in the Authorization Response. This
+    Authorization Code is short lived, and is exchanged at the Token Endpoint along with any client authentication
+    requirements for the minted tokens.
 
-[^8]: The Resource Owner is the owner of the information being requested, this is typically the user, but also can be
-the _Relying Party_[^13].
+[^8]:
+    The Resource Owner is the owner of the information being requested, this is typically the user, but also can be
+    the _Relying Party_[^13].
 
-[^9]: The End-User is the human participant. This is a type of _Resource Owner_[^8]. This is also specifically defined
-in the [OpenID Connect 1.0 Core Terminology].
+[^9]:
+    The End-User is the human participant. This is a type of _Resource Owner_[^8]. This is also specifically defined
+    in the [OpenID Connect 1.0 Core Terminology].
 
-[^10]: The User Information Endpoint is an OAuth 2.0 secured endpoint that has information about a _Resource Owner_[^8]
-commonly referred to as a user. You can read more about the User Information Endpoint by reading the
-[UserInfo Endpoint Section of OpenID Connect 1.0 Core](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo).
+[^10]:
+    The User Information Endpoint is an OAuth 2.0 secured endpoint that has information about a _Resource Owner_[^8]
+    commonly referred to as a user. You can read more about the User Information Endpoint by reading the
+    [UserInfo Endpoint Section of OpenID Connect 1.0 Core](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo).
 
-[^11]: The Introspection Endpoint is used to obtain information about an Access Token regardless of the format. You
-can read more about Token Introspection in [RFC7662](https://datatracker.ietf.org/doc/html/rfc7662).
+[^11]:
+    The Introspection Endpoint is used to obtain information about an Access Token regardless of the format. You
+    can read more about Token Introspection in [RFC7662](https://datatracker.ietf.org/doc/html/rfc7662).
 
-[^12]: The Revocation Endpoint is used to revoke an Access Token and/or _Refresh Token_[^19]. You
-can read more about Token Revocation in [RFC7009](https://datatracker.ietf.org/doc/html/rfc7009).
+[^12]:
+    The Revocation Endpoint is used to revoke an Access Token and/or _Refresh Token_[^19]. You
+    can read more about Token Revocation in [RFC7009](https://datatracker.ietf.org/doc/html/rfc7009).
 
-[^13]: The Relying Party is the party which relies on the OpenID Connect 1.0 Provider to process the Authorization Flow
-and the _Resource Owner_[^8] to grant access to the information.
+[^13]:
+    The Relying Party is the party which relies on the OpenID Connect 1.0 Provider to process the Authorization Flow
+    and the _Resource Owner_[^8] to grant access to the information.
 
-[^14]: The Scope defines specific actions a token is permitted to do or information they have access to. In
-[OpenID Connect 1.0] the most common use for them is to define as set of _Claims_[^1] the token can access. You can read more
-about Scopes in the [OAuth Defining Scopes Explainer](https://www.oauth.com/oauth2-servers/scope/defining-scopes/).
+[^14]:
+    The Scope defines specific actions a token is permitted to do or information they have access to. In
+    [OpenID Connect 1.0] the most common use for them is to define as set of _Claims_[^1] the token can access. You can read more
+    about Scopes in the [OAuth Defining Scopes Explainer](https://www.oauth.com/oauth2-servers/scope/defining-scopes/).
 
-[^15]: The Audience describes the intended recipients of a token (especially a _JSON Web Token_[^4]). This is
-represented as either a single string or an array of strings which either contain URIs or some other uniquely
-identifiable name for the recipient. This is stored in the `aud` _Claim_[^1] of a _JSON Web Token_[^4] if applicable.
+[^15]:
+    The Audience describes the intended recipients of a token (especially a _JSON Web Token_[^4]). This is
+    represented as either a single string or an array of strings which either contain URIs or some other uniquely
+    identifiable name for the recipient. This is stored in the `aud` _Claim_[^1] of a _JSON Web Token_[^4] if applicable.
 
-[^16]: The Implicit Flow is a flow which directly returns the requested tokens within the Authorization Response. It does
-not exchange any short-lived code for the requested tokens. This flow is traditionally less secure due to the fact no
-client authentication occurs in order to obtain the tokens. The Implicit Flow is described in detail in the
-[Implicit Flow Section of OpenID Connect 1.0 Core](https://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth).
-This is also specifically defined in the [OpenID Connect 1.0 Core Terminology].
+[^16]:
+    The Implicit Flow is a flow which directly returns the requested tokens within the Authorization Response. It does
+    not exchange any short-lived code for the requested tokens. This flow is traditionally less secure due to the fact no
+    client authentication occurs in order to obtain the tokens. The Implicit Flow is described in detail in the
+    [Implicit Flow Section of OpenID Connect 1.0 Core](https://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth).
+    This is also specifically defined in the [OpenID Connect 1.0 Core Terminology].
 
-[^17]: The Response Mode describes how the Authorization Endpoint responds to Authorization Requests. There are three
-primary modes; `query` which redirects the _Resource Owner_[^8] with the response in the URI query parameters,
-`fragment` which redirects the _Resource Owner_[^8] with the response in the URI fragment parameters, and `form_post`
-which performs a `POST` request with the response in the request body.
+[^17]:
+    The Response Mode describes how the Authorization Endpoint responds to Authorization Requests. There are three
+    primary modes; `query` which redirects the _Resource Owner_[^8] with the response in the URI query parameters,
+    `fragment` which redirects the _Resource Owner_[^8] with the response in the URI fragment parameters, and `form_post`
+    which performs a `POST` request with the response in the request body.
 
-[^18]: The Refresh Token Flow is a flow which exchanges a _Refresh Token_[^19] at the Token Endpoint for new tokens with
-the same security characteristics or narrowed security characteristics.
+[^18]:
+    The Refresh Token Flow is a flow which exchanges a _Refresh Token_[^19] at the Token Endpoint for new tokens with
+    the same security characteristics or narrowed security characteristics.
 
 [^19]: The Refresh Token is typically a completely opaque token which can be used to reissue other tokens.
 

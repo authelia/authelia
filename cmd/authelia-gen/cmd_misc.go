@@ -247,12 +247,14 @@ func doOIDCConformanceSuitePostPlan(client *http.Client, base *url.URL, plan str
 	return nil
 }
 
+// RequestHeaderTransport is a [http.RoundTripper] which sets additional headers on every request.
 type RequestHeaderTransport struct {
 	http.RoundTripper
 
 	headers map[string]string
 }
 
+// RoundTrip implements the [http.RoundTripper] interface.
 func (t *RequestHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	for k, v := range t.headers {
 		req.Header.Set(k, v)
@@ -261,6 +263,7 @@ func (t *RequestHeaderTransport) RoundTrip(req *http.Request) (*http.Response, e
 	return t.RoundTripper.RoundTrip(req)
 }
 
+// OpenIDConnectClients represents the OpenID Connect 1.0 clients portion of a configuration file.
 type OpenIDConnectClients struct {
 	IdentityProviders struct {
 		OIDC struct {

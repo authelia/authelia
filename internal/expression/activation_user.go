@@ -3,9 +3,10 @@ package expression
 import (
 	"time"
 
-	"github.com/google/cel-go/interpreter"
+	"cel.dev/cel-go/interpreter"
 )
 
+// NewUserDetailerActivation returns a *UserDetailerActivation for the given user details.
 func NewUserDetailerActivation(parent interpreter.Activation, detailer UserDetailer, updated time.Time) *UserDetailerActivation {
 	return &UserDetailerActivation{
 		parent: parent,
@@ -16,11 +17,15 @@ func NewUserDetailerActivation(parent interpreter.Activation, detailer UserDetai
 	}
 }
 
+// UserDetailerActivation is an interpreter.Activation which resolves the standard user attributes, falling back to
+// the extra attributes of the user and then to the parent activation.
 type UserDetailerActivation struct {
 	parent   interpreter.Activation
 	detailer ExtendedUserDetailer
 }
 
+// ResolveName returns the value of the named attribute.
+//
 //nolint:gocyclo
 func (a *UserDetailerActivation) ResolveName(name string) (object any, found bool) {
 	switch name {
@@ -148,6 +153,7 @@ func (a *UserDetailerActivation) address() (address map[string]any) {
 	return address
 }
 
+// Parent returns the parent activation.
 func (a *UserDetailerActivation) Parent() interpreter.Activation {
 	return a.parent
 }

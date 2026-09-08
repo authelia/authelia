@@ -4,10 +4,6 @@ import NotificationBar from "@components/NotificationBar";
 import { NotificationsContext, NotificationsContextValue } from "@contexts/NotificationsContext";
 import { Notification } from "@models/Notifications";
 
-vi.mock("@mui/material/Slide", () => ({
-    default: ({ children, in: isIn }: { children: React.ReactElement; in?: boolean }) => (isIn ? children : children),
-}));
-
 const testNotification: Notification = {
     level: "success",
     message: "Test notification",
@@ -33,41 +29,18 @@ it("renders without crashing", () => {
     );
 });
 
-it("displays notification message and level correctly", async () => {
-    render(
-        <NotificationsContext value={{ ...baseContextValue, isActive: true, notification: testNotification }}>
-            <NotificationBar />
-        </NotificationsContext>,
-    );
-
-    const alert = screen.getByRole("alert");
-    const message = await screen.findByText(testNotification.message);
-
-    expect(alert).toHaveClass(
-        `MuiAlert-filled${testNotification.level.charAt(0).toUpperCase() + testNotification.level.substring(1)}`,
-        { exact: false },
-    );
-    expect(message).toHaveTextContent(testNotification.message);
-});
-
-it("retains notification styling during close transition", () => {
+it("displays notification message correctly", async () => {
     const { rerender } = render(
-        <NotificationsContext value={{ ...baseContextValue, isActive: true, notification: testNotification }}>
+        <NotificationsContext value={baseContextValue}>
             <NotificationBar />
         </NotificationsContext>,
     );
-
-    expect(screen.getByRole("alert")).toHaveClass("MuiAlert-filledSuccess", { exact: false });
-    expect(screen.getByText(testNotification.message)).toBeInTheDocument();
 
     rerender(
-        <NotificationsContext value={{ ...baseContextValue, isActive: false, notification: null }}>
+        <NotificationsContext value={{ ...baseContextValue, isActive: true, notification: testNotification }}>
             <NotificationBar />
         </NotificationsContext>,
     );
 
-    const alert = screen.getByRole("alert");
-
-    expect(alert).toHaveClass("MuiAlert-filledSuccess", { exact: false });
-    expect(screen.getByText(testNotification.message)).toBeInTheDocument();
+    expect(await screen.findByText(testNotification.message)).toBeInTheDocument();
 });

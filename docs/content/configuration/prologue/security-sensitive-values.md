@@ -39,7 +39,6 @@ There are three special ways to achieve this goal:
    - Can't be used keys located within lists.
    - Does include the value in the environment which is slightly less secure.
 
-
 ## Template Example
 
 This explains option 2 in the context of using it specifically for secret values. For more information on templating

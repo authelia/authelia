@@ -17,12 +17,12 @@ seo:
   noindex: false # false (default) or true
 ---
 
-[Traefik] is a reverse proxy supported by __Authelia__.
+[Traefik] is a reverse proxy supported by **Authelia**.
 
-*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+_**Important:** When using these guides, it's important to recognize that we cannot provide a guide for every possible
 method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
 configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
-throughout this documentation and in the [See Also](#see-also) section.*
+throughout this documentation and in the [See Also](#see-also) section._
 
 ## Requirements
 
@@ -40,9 +40,9 @@ with at the current time:
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Trusted Proxies and Integration Security
 
@@ -52,13 +52,13 @@ In addition to this section which is important to read, you should read the
 and perform the validation steps as part of your regular security validation routine when using this integration.
 {{< /callout >}}
 
-*__Important:__ You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
-Especially if you have never read it before.*
+_**Important:** You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
+Especially if you have never read it before._
 
-*__Important:__ The included example is __NOT__ meant for production use. It's used expressly as an example to showcase
+_**Important:** The included example is **NOT** meant for production use. It's used expressly as an example to showcase
 how you can configure multiple IP ranges. You should customize this example to fit your specific architecture and needs.
 You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
-trust entire subnets unless that subnet only has trusted proxies and no other services.*
+trust entire subnets unless that subnet only has trusted proxies and no other services._
 
 [Traefik] by default doesn't trust any other proxies requiring explicit configuration of which proxies are trusted
 and removes potentially fabricated headers that are likely to lead to security issues, and it is difficult to configure
@@ -67,10 +67,10 @@ this incorrectly. This is an important security feature that is common with prox
 In the example we have four commented lines which configure `trustedIPs` which show an example on adding the following
 networks to the trusted proxy list in [Traefik]:
 
-* 10.0.0.0/8
-* 172.16.0.0/12
-* 192.168.0.0/16
-* fc00::/7
+- 10.0.0.0/8
+- 172.16.0.0/12
+- 192.168.0.0/16
+- fc00::/7
 
 See the [Entry Points](https://doc.traefik.io/traefik/routing/entrypoints) documentation for more information.
 
@@ -98,6 +98,7 @@ configuration as well as the legacy configuration for context.
 
 {{< sessionTabs "Generate Random Password" >}}
 {{< sessionTab "Modern" >}}
+
 ```yaml {title="configuration.yml"}
 session:
   cookies:
@@ -105,13 +106,16 @@ session:
       authelia_url: 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
       default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
+
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
+
 ```yaml {title="configuration.yml"}
 default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 session:
   domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
+
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
 
@@ -119,10 +123,10 @@ session:
 
 Below you will find commented examples of the following docker deployment:
 
-* [Traefik]
-* Authelia portal
-* Protected endpoint (Nextcloud)
-* Protected endpoint with [Authorization] header for basic authentication (Heimdall)
+- [Traefik]
+- Authelia portal
+- Protected endpoint (Nextcloud)
+- Protected endpoint with [Authorization] header for basic authentication (Heimdall)
 
 The below configuration looks to provide examples of running [Traefik] 3.x with labels to protect your endpoint
 (Nextcloud in this case).
@@ -140,22 +144,22 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
-* Deployment Scenario:
-  * Single Host
-  * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
-  * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
-  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+- Deployment Scenario:
+  - Single Host
+  - Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
+  - Proxy is deployed as a Container on a network shared with Authelia
+- The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
+  - You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
-  * You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
-    * you're using a different container name
-    * you deployed the proxy to a different location
-  * You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
-    * you have adjusted the default port in the configuration
-  * You will have to adapt the entire URL if:
-    * Authelia is on a different host to the proxy
-* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
-  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+  - You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
+    - you're using a different container name
+    - you deployed the proxy to a different location
+  - You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
+    - you have adjusted the default port in the configuration
+  - You will have to adapt the entire URL if:
+    - Authelia is on a different host to the proxy
+- All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
+  - This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
 ### Docker Compose
@@ -282,12 +286,12 @@ services:
 This example uses a `compose.yml` similar to the one above however it has two major differences:
 
 1. A majority of the configuration is in YAML instead of the `labels` section of the `compose.yml` file.
-2. It connects to __Authelia__ over TLS with client certificates which ensures that [Traefik] is a proxy
-   authorized to communicate with __Authelia__. This expects that the
+2. It connects to **Authelia** over TLS with client certificates which ensures that [Traefik] is a proxy
+   authorized to communicate with **Authelia**. This expects that the
    [Server TLS](../../configuration/miscellaneous/server.md#tls) section is configured correctly.
-   * The client certificates can easily be disabled by commenting the `cert` and `key` options in the `http.middlewares`
+   - The client certificates can easily be disabled by commenting the `cert` and `key` options in the `http.middlewares`
      section for the `forwardAuth` middlewares and the `certificates` in the `http.serversTransports` section.
-   * The TLS communication can be disabled by commenting the entire `tls` section in the `http.middlewares` section for
+   - The TLS communication can be disabled by commenting the entire `tls` section in the `http.middlewares` section for
      all `forwardAuth` middlewares, adjusting the `authelia` router in the `http.routers` section to use the
      `authelia-net@docker` service, and commenting the `authelia` service in the `http.service` section.
 
@@ -552,14 +556,14 @@ call Authelia's `/api/verify?auth=basic` endpoint to force a switch to the [Auth
 
 ### Middleware authelia@docker not found
 
-If [Traefik] and __Authelia__ are defined in different docker compose stacks you may experience an issue where [Traefik]
+If [Traefik] and **Authelia** are defined in different docker compose stacks you may experience an issue where [Traefik]
 complains that: `middleware authelia@docker not found`.
 
 This can be avoided a couple different ways:
 
-1. Ensure __Authelia__ container is up before [Traefik] is started:
-   * Utilize the [depends_on](https://docs.docker.com/compose/compose-file/#depends_on) option
-2. Define the __Authelia__ middleware on your [Traefik] container. See the below example.
+1. Ensure **Authelia** container is up before [Traefik] is started:
+   - Utilize the [depends_on](https://docs.docker.com/compose/compose-file/#depends_on) option
+2. Define the **Authelia** middleware on your [Traefik] container. See the below example.
 
 ```yaml {title="compose.yml"}
 traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
@@ -573,10 +577,10 @@ traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Remote-User,
 
 ## See Also
 
-* [Traefik ForwardAuth Documentation](https://doc.traefik.io/traefik/middlewares/http/forwardauth/)
-* [Traefik Forwarded Headers Documentation](https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers)
-* [Traefik Proxy Protocol Documentation](https://doc.traefik.io/traefik/routing/entrypoints/#proxyprotocol)
-* [Forwarded Headers]
+- [Traefik ForwardAuth Documentation](https://doc.traefik.io/traefik/middlewares/http/forwardauth/)
+- [Traefik Forwarded Headers Documentation](https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers)
+- [Traefik Proxy Protocol Documentation](https://doc.traefik.io/traefik/routing/entrypoints/#proxyprotocol)
+- [Forwarded Headers]
 
 [docker compose]: https://docs.docker.com/compose/
 [Traefik]: https://docs.traefik.io/

@@ -55,11 +55,13 @@ type ServerHeaders struct {
 	CSPTemplate CSPTemplate `koanf:"csp_template" yaml:"csp_template,omitempty" toml:"csp_template,omitempty" json:"csp_template,omitempty" jsonschema:"title=CSP Template" jsonschema_description:"The Content Security Policy template."`
 }
 
+// ServerEndpointRateLimits represents the rate limiter configuration for each endpoint.
 type ServerEndpointRateLimits struct {
 	ResetPasswordStart                      ServerEndpointRateLimit `koanf:"reset_password_start" yaml:"reset_password_start,omitempty" toml:"reset_password_start,omitempty" json:"reset_password_start,omitempty" jsonschema:"title=Reset Password Start" jsonschema_description:"Configures the rate limiter which applies to the endpoint that initializes the reset password flow."`
 	ResetPasswordFinish                     ServerEndpointRateLimit `koanf:"reset_password_finish" yaml:"reset_password_finish,omitempty" toml:"reset_password_finish,omitempty" json:"reset_password_finish,omitempty" jsonschema:"title=Reset Password Finish" jsonschema_description:"Configures the rate limiter which applies to endpoints which consume tokens for the reset password flow."`
 	SecondFactorTOTP                        ServerEndpointRateLimit `koanf:"second_factor_totp" yaml:"second_factor_totp,omitempty" toml:"second_factor_totp,omitempty" json:"second_factor_totp,omitempty" jsonschema:"title=Second Factor TOTP" jsonschema_description:"Configures the rate limiter which applies to the TOTP endpoint code submissions for the second factor flow."`
 	SecondFactorDuo                         ServerEndpointRateLimit `koanf:"second_factor_duo" yaml:"second_factor_duo,omitempty" toml:"second_factor_duo,omitempty" json:"second_factor_duo,omitempty" jsonschema:"title=Second Factor Duo" jsonschema_description:"Configures the rate limiter which applies to the Duo endpoint which initializes the application authorization flow for the second factor flow."`
+	SecondFactorPassword                    ServerEndpointRateLimit `koanf:"second_factor_password" yaml:"second_factor_password,omitempty" toml:"second_factor_password,omitempty" json:"second_factor_password,omitempty" jsonschema:"title=Second Factor Password" jsonschema_description:"Configures the rate limiter which applies to the Password endpoint for the second factor flow."`
 	SessionElevationStart                   ServerEndpointRateLimit `koanf:"session_elevation_start" yaml:"session_elevation_start,omitempty" toml:"session_elevation_start,omitempty" json:"session_elevation_start,omitempty" jsonschema:"title=Session Elevation Start" jsonschema_description:"Configures the rate limiter which applies to the Elevated Session endpoint which initializes the code generation and notification for the elevated session flow."`
 	SessionElevationFinish                  ServerEndpointRateLimit `koanf:"session_elevation_finish" yaml:"session_elevation_finish,omitempty" toml:"session_elevation_finish,omitempty" json:"session_elevation_finish,omitempty" jsonschema:"title=Session Elevation Finish" jsonschema_description:"Configures the rate limiter which applies to the Elevated Session endpoint which consumes the code for the elevated session flow."`
 	OpenIDConnectToken                      ServerEndpointRateLimit `koanf:"openid_connect_token" yaml:"openid_connect_token,omitempty" toml:"openid_connect_token,omitempty" json:"openid_connect_token,omitempty" jsonschema:"title=OpenID Connect Token" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Token Endpoint."`
@@ -69,11 +71,13 @@ type ServerEndpointRateLimits struct {
 	OpenIDConnectRevocation                 ServerEndpointRateLimit `koanf:"openid_connect_revocation" yaml:"openid_connect_revocation,omitempty" toml:"openid_connect_revocation,omitempty" json:"openid_connect_revocation,omitempty" jsonschema:"title=OpenID Connect Revocation" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."`
 }
 
+// ServerEndpointRateLimit represents the rate limiter configuration for a single endpoint.
 type ServerEndpointRateLimit struct {
 	Enable  bool                            `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"default=true,title=Enable" jsonschema_description:"Enables the rate limiter for this endpoint."`
 	Buckets []ServerEndpointRateLimitBucket `koanf:"buckets" yaml:"buckets,omitempty" toml:"buckets,omitempty" json:"buckets,omitempty" jsonschema:"title=Buckets" jsonschema_description:"The list of rate limit buckets."`
 }
 
+// ServerEndpointRateLimitBucket represents a single rate limit bucket.
 type ServerEndpointRateLimitBucket struct {
 	Period   time.Duration `koanf:"period" yaml:"period,omitempty" toml:"period,omitempty" json:"period,omitempty" jsonschema:"title=Period" jsonschema_description:"The period of time this rate limit bucket applies to."`
 	Requests int           `koanf:"requests" yaml:"requests" toml:"requests" json:"requests" jsonschema:"title=Requests" jsonschema_description:"The number of requests allowed in this rate limit bucket for the configured period before the rate limit kicks in."`
@@ -160,6 +164,12 @@ var DefaultServerConfiguration = Server{
 					{Period: 1 * time.Minute, Requests: 30},
 					{Period: 2 * time.Minute, Requests: 40},
 					{Period: 10 * time.Minute, Requests: 50},
+				},
+			},
+			SecondFactorPassword: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 5 * time.Minute, Requests: 30},
+					{Period: 60 * time.Minute, Requests: 40},
 				},
 			},
 			SecondFactorDuo: ServerEndpointRateLimit{

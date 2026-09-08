@@ -20,6 +20,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -32,14 +33,34 @@ var (
 )
 
 func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
+	return newEmbeddedHandler(assets, assetsRoot)
+}
+
+func newEmbeddedHandler(embedFS embed.FS, root string) fasthttp.RequestHandler {
 	etags := map[string][]byte{}
 
-	getEmbedETags(assets, assetsRoot, etags)
+	getEmbedETags(embedFS, root, etags)
+
+	encoded := getEmbedCompressed(embedFS, root)
 
 	return func(ctx *fasthttp.RequestCtx) {
-		p := path.Join(assetsRoot, string(ctx.Path()))
+		p := path.Join(root, string(ctx.Path()))
 
-		if etag, ok := etags[p]; ok {
+		var variant *compressedAsset
+
+		if variants, ok := encoded[p]; ok {
+			ctx.Response.Header.SetBytesKV(headerVary, headerValueVaryAcceptEncoding)
+
+			variant = getAcceptedCompressedAsset(ctx, variants)
+		}
+
+		etag, ok := etags[p]
+
+		if variant != nil {
+			etag, ok = variant.etag, true
+		}
+
+		if ok {
 			ctx.Response.Header.SetBytesKV(headerETag, etag)
 			ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
 
@@ -54,7 +75,10 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 			data []byte
 			err  error
 		)
-		if data, err = assets.ReadFile(p); err != nil {
+
+		if variant != nil {
+			data = variant.data
+		} else if data, err = embedFS.ReadFile(p); err != nil {
 			hfsHandleErr(ctx, err)
 
 			return
@@ -69,6 +93,10 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 		}
 
 		ctx.SetContentType(contentType)
+
+		if variant != nil {
+			ctx.Response.Header.SetBytesKV(headerContentEncoding, variant.encoding)
+		}
 
 		switch {
 		case ctx.IsHead():
@@ -114,7 +142,6 @@ func newLocalesPathResolver() (handler func(ctx *middlewares.AutheliaCtx) (suppo
 		}
 	}
 
-	// generate list of macro to micro locale aliases.
 	var languagesInfo *utils.Languages
 
 	if languagesInfo, err = utils.GetEmbeddedLanguages(locales); err != nil {
@@ -274,6 +301,131 @@ func getEmbedETags(embedFS embed.FS, root string, etags map[string][]byte) {
 	}
 }
 
+type compressedAsset struct {
+	encoding []byte
+	etag     []byte
+	data     []byte
+}
+
+func isPreCompressible(p string) bool {
+	return utils.IsStringInSlice(path.Ext(p), extsCompressible) && !utils.IsStringInSlice(p, templates.AssetPathsTemplated)
+}
+
+func getEmbedCompressed(embedFS embed.FS, root string) (encoded map[string][]compressedAsset) {
+	encoded = map[string][]compressedAsset{}
+
+	_ = fs.WalkDir(embedFS, root, func(p string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() || !isPreCompressible(p) {
+			return nil
+		}
+
+		var data []byte
+
+		// Files which are unreadable are handled by the request handler, and files which are tiny aren't worth
+		// compressing as the framing overhead outweighs the saving.
+		if data, err = embedFS.ReadFile(p); err != nil || len(data) < compressionMinSize {
+			return nil
+		}
+
+		// Ordered by preference, since the first variant the client accepts is the one served.
+		for _, variant := range []compressedAsset{
+			{encoding: encodingBrotli, data: fasthttp.AppendBrotliBytesLevel(nil, data, compressionLevelBrotli)},
+			{encoding: encodingGzip, data: fasthttp.AppendGzipBytesLevel(nil, data, compressionLevelGzip)},
+		} {
+			if len(variant.data) >= len(data) {
+				continue
+			}
+
+			variant.etag = generateEtag(variant.data)
+
+			encoded[p] = append(encoded[p], variant)
+		}
+
+		return nil
+	})
+
+	return encoded
+}
+
+func getAcceptedCompressedAsset(ctx *fasthttp.RequestCtx, variants []compressedAsset) (variant *compressedAsset) {
+	header := ctx.Request.Header.PeekBytes(headerAcceptEncoding)
+
+	if len(header) == 0 {
+		return nil
+	}
+
+	// A quality of zero is a refusal, so the comparison also excludes the codings the client has explicitly ruled out.
+	// Ties keep the earlier variant since the slice is ordered by our own preference.
+	var quality float64
+
+	for i := range variants {
+		if q := getAcceptEncodingQuality(header, variants[i].encoding); q > quality {
+			variant, quality = &variants[i], q
+		}
+	}
+
+	return variant
+}
+
+func getAcceptEncodingQuality(header, coding []byte) (quality float64) {
+	var element []byte
+
+	for len(header) != 0 {
+		if i := bytes.IndexByte(header, ','); i >= 0 {
+			element, header = header[:i], header[i+1:]
+		} else {
+			element, header = header, nil
+		}
+
+		name, q := element, 1.0
+
+		if i := bytes.IndexByte(element, ';'); i >= 0 {
+			name, q = element[:i], getAcceptEncodingParamsQuality(element[i+1:])
+		}
+
+		switch name = bytes.TrimSpace(name); {
+		case bytes.EqualFold(name, coding):
+			return q
+		case bytes.Equal(name, encodingWildcard):
+			// A coding the header names explicitly takes precedence over the wildcard, so the wildcard is only
+			// remembered as a fallback and the scan continues in case the coding is named later on.
+			quality = q
+		}
+	}
+
+	return quality
+}
+
+func getAcceptEncodingParamsQuality(params []byte) float64 {
+	var param []byte
+
+	for len(params) != 0 {
+		if i := bytes.IndexByte(params, ';'); i >= 0 {
+			param, params = params[:i], params[i+1:]
+		} else {
+			param, params = params, nil
+		}
+
+		i := bytes.IndexByte(param, '=')
+
+		if i < 0 || !bytes.EqualFold(bytes.TrimSpace(param[:i]), paramQuality) {
+			continue
+		}
+
+		// A malformed or out of range quality is treated as a refusal rather than guessed at, which just means the
+		// identity representation is served.
+		quality, err := strconv.ParseFloat(string(bytes.TrimSpace(param[i+1:])), 64)
+
+		if err != nil || quality < 0 || quality > 1 {
+			return 0
+		}
+
+		return quality
+	}
+
+	return 1
+}
+
 func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
@@ -285,25 +437,21 @@ func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 	}
 }
 
-// newLocalesListHandler handles request for obtaining the available locales in backend.
 func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err error) {
 	var (
 		data []byte
 	)
 
-	// preload embedded locales.
 	localeInfo, err := utils.GetEmbeddedLanguages(locales)
 	if err != nil {
 		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred loading embedded languages: %w", err)
 	}
 
-	// parse embedded locales.
 	data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
 	if err != nil {
 		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred marshaling the locale list: %w", err)
 	}
 
-	// generate etag for embedded locales.
 	etag := generateEtag(data)
 
 	return func(ctx *middlewares.AutheliaCtx) {
@@ -329,10 +477,11 @@ func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err er
 	}, nil
 }
 
-// generateEtag generates a unique etag for specified payload.
 func generateEtag(payload []byte) []byte {
 	sum := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
 	sum.Write(payload)
 
-	return []byte(fmt.Sprintf("%x", sum.Sum(nil)))
+	// The digest is wrapped in double quotes as an ETag is an opaque quoted string, and an unquoted value is liable
+	// to be dropped or rewritten by intermediaries.
+	return []byte(fmt.Sprintf(`"%x"`, sum.Sum(nil)))
 }

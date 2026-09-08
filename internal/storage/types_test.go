@@ -130,7 +130,7 @@ func TestGetAAD(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, []byte(tc.expected), getAAD(tc.table, tc.column))
+			assert.Equal(t, []byte(tc.expected), aadColumn.Get(tc.table, tc.column, ""))
 		})
 	}
 }
@@ -149,11 +149,11 @@ func TestGetIssuerAAD(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, []byte(tc.expected), getIssuerAAD(tableWebAuthnCredentials, tc.column, tc.issuer))
+			assert.Equal(t, []byte(tc.expected), aadColumn.GetIssuer(tableWebAuthnCredentials, tc.column, "", tc.issuer))
 		})
 	}
 
-	assert.NotEqual(t, getIssuerAAD(tableWebAuthnCredentials, "public_key", "a.example.com"), getIssuerAAD(tableWebAuthnCredentials, "public_key", "b.example.com"))
+	assert.NotEqual(t, aadColumn.GetIssuer(tableWebAuthnCredentials, "public_key", "", "a.example.com"), aadColumn.GetIssuer(tableWebAuthnCredentials, "public_key", "", "b.example.com"))
 }
 
 func TestBanExpiresExpiredExpiration(t *testing.T) {

@@ -1,28 +1,28 @@
 ---
 ignore:
-  - vulnerability: CVE-2025-60876
+  - vulnerability: CVE-2026-38753
     package:
       name: busybox
-      version: 1.37.0
+      version: 1.38.0
       type: binary
     reason: |
-      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.37.0
+      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.38.0
       so grype still flags it, but the vulnerable code paths have been backported.
-  - vulnerability: CVE-2024-58251
+  - vulnerability: CVE-2026-38754
     package:
       name: busybox
-      version: 1.37.0
+      version: 1.38.0
       type: binary
     reason: |
-      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.37.0
+      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.38.0
       so grype still flags it, but the vulnerable code paths have been backported.
-  - vulnerability: CVE-2025-46394
+  - vulnerability: CVE-2026-38755
     package:
       name: busybox
-      version: 1.37.0
+      version: 1.38.0
       type: binary
     reason: |
-      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.37.0
+      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.38.0
       so grype still flags it, but the vulnerable code paths have been backported.
   - package:
       location: "**/lefthook*/**"
@@ -31,4 +31,11 @@ ignore:
       binaries (npm devDependency). Lefthook is a developer/CI git hook runner only; not shipped in any Authelia
       runtime artifact. Scoped by source path so this never accidentally hides findings from Authelia's own
       binaries.
+  - package:
+      location: "**/@typescript/typescript-*/**"
+    reason: |
+      Any dependency (Go stdlib, golang.org/x/* modules, etc.) statically embedded in the TypeScript 7 native
+      compiler binaries (npm devDependency). TypeScript 7 is written in Go and its platform packages ship a
+      prebuilt `tsc`; the compiler only runs at build time and is not shipped in any Authelia runtime artifact.
+      Scoped by source path so this never accidentally hides findings from Authelia's own binaries.
 ...

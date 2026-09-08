@@ -35,9 +35,10 @@ For generic sanitization information see the [Troubleshooting Sanitization guide
 
 ### Security Sensitive Information
 
-*__Important:__ this file may contain sensitive information which should be sanitized manually before sharing it
+_**Important:** this file may contain sensitive information which should be sanitized manually before sharing it
 anywhere with anyone. Sensitive information can vary wildly but some of the key areas that may be sensitive when
-exporting this for troubleshooting with Authelia are:*
+exporting this for troubleshooting with Authelia are:_
+
 - `Cookie` request header
 - `Set-Cookie` response header
 - Data sent to the following endpoints:

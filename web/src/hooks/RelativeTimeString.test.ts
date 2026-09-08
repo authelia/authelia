@@ -70,9 +70,13 @@ it("returns 0 seconds ago for current date", () => {
     expect(result).toBe("0 seconds ago");
 });
 
-it("returns never for exactly one year", () => {
-    const date = new Date(Date.now() - 31536000 * 1000);
-    const result = getRelativeTimeString(date);
+it("returns never for null", () => {
+    const result = getRelativeTimeString(null);
+    expect(result).toBe("never");
+});
+
+it("returns never for undefined", () => {
+    const result = getRelativeTimeString(undefined);
     expect(result).toBe("never");
 });
 

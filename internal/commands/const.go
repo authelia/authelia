@@ -664,11 +664,15 @@ This subcommand allows generating an %s private key and %s.`
 
 	cmdAutheliaCryptoCertificateEd25519GenerateExample = `authelia crypto certificate ed25519 request --help`
 
+	cmdAutheliaCryptoCertificateMLDSAGenerateExample = `authelia crypto certificate mldsa generate --help`
+
 	cmdAutheliaCryptoCertificateRSARequestExample = `authelia crypto certificate rsa request --help`
 
 	cmdAutheliaCryptoCertificateECDSARequestExample = `authelia crypto certificate ecdsa request --help`
 
 	cmdAutheliaCryptoCertificateEd25519RequestExample = `authelia crypto certificate ed25519 request --help`
+
+	cmdAutheliaCryptoCertificateMLDSARequestExample = `authelia crypto certificate mldsa request --help`
 
 	cmdAutheliaCryptoPairShort = "Perform key pair cryptographic operations"
 
@@ -690,6 +694,8 @@ This subcommand allows performing %s key pair cryptographic tasks.`
 
 	cmdAutheliaCryptoPairEd25519Example = `authelia crypto pair ed25519 --help`
 
+	cmdAutheliaCryptoPairMLDSAExample = `authelia crypto pair mldsa --help`
+
 	fmtCmdAutheliaCryptoPairGenerateShort = "Generate a cryptographic %s key pair"
 
 	fmtCmdAutheliaCryptoPairGenerateLong = `Generate a cryptographic %s key pair.
@@ -701,6 +707,8 @@ This subcommand allows generating an %s key pair.`
 	cmdAutheliaCryptoPairECDSAGenerateExample = `authelia crypto pair ecdsa generate --help`
 
 	cmdAutheliaCryptoPairEd25519GenerateExample = `authelia crypto pair ed25519 generate --help`
+
+	cmdAutheliaCryptoPairMLDSAGenerateExample = `authelia crypto pair mldsa generate --help`
 
 	cmdAutheliaDebugShort = "Perform debug functions"
 
@@ -784,8 +792,9 @@ const (
 	cmdFlagNameNotAfter  = "not-after"
 	cmdFlagNameDuration  = "duration"
 
-	cmdFlagNameBits  = "bits"
-	cmdFlagNameCurve = "curve"
+	cmdFlagNameBits       = "bits"
+	cmdFlagNameCurve      = "curve"
+	cmdFlagNameParameters = "parameters"
 
 	cmdFlagNamePassword         = "password"
 	cmdFlagNameRandom           = "random"
@@ -880,6 +889,7 @@ const (
 	cmdUseRSA         = "rsa"
 	cmdUseECDSA       = "ecdsa"
 	cmdUseEd25519     = "ed25519"
+	cmdUseMLDSA       = "mldsa"
 	cmdUseUser        = "user"
 	cmdUseIP          = "ip"
 )

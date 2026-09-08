@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-jose/go-jose/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/token/jose"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -459,6 +459,29 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				ClientDescription: myclientname,
 				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
 				Audience:          []string{"https://example.com"},
+			},
+		},
+		{
+			"ShouldHandleRequestedResource",
+			nil,
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedResource: []string{"https://api.example.com", "https://api.example.com/v2"},
+			},
+			url.Values{
+				oidc.FormParameterState:        []string{"123"},
+				oidc.FormParameterScope:        []string{fmt.Sprintf("%s %s", oidc.ScopeOpenID, oidc.ScopeProfile)},
+				oidc.FormParameterResponseType: []string{oidc.ResponseTypeAuthorizationCodeFlow},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				Resource:          []string{"https://api.example.com", "https://api.example.com/v2"},
 			},
 		},
 		{

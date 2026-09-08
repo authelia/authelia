@@ -47,12 +47,15 @@ func NewBan(ban BanType, value string, expires *time.Time) *Ban {
 	}
 }
 
+// Ban represents the outcome of a ban check, holding the ban type which may be none or unknown, and the user or IP
+// the ban applies to.
 type Ban struct {
 	ban     BanType
 	value   string
 	expires *time.Time
 }
 
+// IsBanned returns true if this ban is in effect.
 func (b *Ban) IsBanned() bool {
 	if b == nil {
 		return false
@@ -66,6 +69,7 @@ func (b *Ban) IsBanned() bool {
 	}
 }
 
+// Value returns the banned value i.e. the username or IP.
 func (b *Ban) Value() string {
 	if b == nil {
 		return ""
@@ -74,6 +78,7 @@ func (b *Ban) Value() string {
 	return b.value
 }
 
+// Type returns the BanType of this ban.
 func (b *Ban) Type() BanType {
 	if b == nil {
 		return BanTypeNone
@@ -82,6 +87,7 @@ func (b *Ban) Type() BanType {
 	return b.ban
 }
 
+// Expires returns the time this ban expires, or nil if it does not expire.
 func (b *Ban) Expires() *time.Time {
 	if b == nil {
 		return nil
@@ -90,6 +96,7 @@ func (b *Ban) Expires() *time.Time {
 	return b.expires
 }
 
+// FormatExpires returns the formatted string representation of the time this ban expires.
 func (b *Ban) FormatExpires() string {
 	if b == nil || b.expires == nil {
 		return FormatExpiresLong(nil)
@@ -98,8 +105,10 @@ func (b *Ban) FormatExpires() string {
 	return FormatExpiresLong(b.expires)
 }
 
+// BanType represents the type of a Ban.
 type BanType int
 
+// BanType values.
 const (
 	BanTypeNone BanType = iota
 	BanTypeUnknown

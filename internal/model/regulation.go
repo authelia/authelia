@@ -18,11 +18,13 @@ type AuthenticationAttempt struct {
 	RequestMethod string    `db:"request_method"`
 }
 
+// RegulationRecord represents an authentication attempt record used by the regulator.
 type RegulationRecord struct {
 	Time       time.Time `db:"time"`
 	Successful bool      `db:"successful"`
 }
 
+// BannedUser represents a banned user row in the storage provider.
 type BannedUser struct {
 	ID       int            `db:"id"`
 	Time     time.Time      `db:"time"`
@@ -34,6 +36,7 @@ type BannedUser struct {
 	Reason   sql.NullString `db:"reason"`
 }
 
+// BannedIP represents a banned IP row in the storage provider.
 type BannedIP struct {
 	ID      int            `db:"id"`
 	Time    time.Time      `db:"time"`

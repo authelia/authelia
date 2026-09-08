@@ -2,6 +2,7 @@
 
 package utils
 
+// Build information.
 const (
 	Dev = false
 )

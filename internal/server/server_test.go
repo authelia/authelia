@@ -120,7 +120,6 @@ func TestShouldServeOverTLSWhenClientHasProperRootCA(t *testing.T) {
 	c, err := x509.ParseCertificate(block.Bytes)
 	require.NoError(t, err)
 
-	// Create a root CA for the client to properly validate server cert.
 	rootCAs := x509.NewCertPool()
 	rootCAs.AddCert(c)
 
@@ -166,7 +165,6 @@ func TestShouldRaiseWhenMutualTLSIsConfiguredAndClientIsNotAuthenticated(t *test
 	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
-	// Create a root CA for the client to properly validate server cert.
 	rootCAs := x509.NewCertPool()
 	rootCAs.AddCert(certificateContext.Certificates[0].Certificate)
 
@@ -207,7 +205,6 @@ func TestShouldServeProperlyWhenMutualTLSIsConfiguredAndClientIsAuthenticated(t 
 	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("https://local.example.com:%d/api/notfound", tlsServerContext.Port()), nil)
 	require.NoError(t, err)
 
-	// Create a root CA for the client to properly validate server cert.
 	rootCAs := x509.NewCertPool()
 	rootCAs.AddCert(certificateContext.Certificates[0].Certificate)
 
@@ -425,7 +422,7 @@ func NewTLSServerContext(configuration schema.Configuration) (serverContext *TLS
 		return nil, err
 	}
 
-	s, listener, _, _, err := New(context.Background(), &configuration, providers)
+	s, listener, _, _, err := New(&configuration, providers)
 	if err != nil {
 		return nil, err
 	}

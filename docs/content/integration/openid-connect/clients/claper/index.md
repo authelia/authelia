@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
 - [Claper]
   - [v2.3.3](https://github.com/ClaperCo/Claper/releases/tag/v2.3.3)
 
@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://claper.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `claper`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://claper.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `claper`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -55,7 +55,7 @@ In addition due to the enforcement of both PKCE using SHA256 and Pushed Authoriz
 secure.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Claper] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Claper] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

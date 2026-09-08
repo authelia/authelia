@@ -2,10 +2,16 @@ package middlewares
 
 import (
 	"context"
+	"fmt"
 	"net"
+	"runtime"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -118,7 +124,7 @@ func TestWithRateLimitConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			middleware := NewRateLimiter(WithRateLimitConfig(tc.config), WithRateLimitContext(t.Context()))
+			middleware := NewRateLimiter(WithRateLimitConfig(tc.config)).Middleware()
 			require.NotNil(t, middleware)
 
 			handler := middleware(func(ctx *AutheliaCtx) {
@@ -173,7 +179,7 @@ func TestIPRateLimitBucketFetch(t *testing.T) {
 				Requests: 10,
 			}).(*IPRateLimitBucket)
 
-			var first *RateLimiter
+			var first *BucketLimiter
 
 			for i, key := range tc.keys {
 				limiter := bucket.Fetch(key)
@@ -206,50 +212,177 @@ func TestIPRateLimitBucketFetchCtx(t *testing.T) {
 	assert.Same(t, limiter, bucket.Fetch("192.168.1.1"))
 }
 
-func TestIPRateLimitBucketGC(t *testing.T) {
+func TestIPRateLimitBucketFetchCtxKeysByFullAddress(t *testing.T) {
 	testCases := []struct {
-		name          string
-		period        time.Duration
-		updateAge     time.Duration
-		expectedCount int
+		name string
+		a    string
+		b    string
 	}{
 		{
-			"ShouldNotGCRecentEntries",
-			time.Hour,
-			0,
-			1,
+			"ShouldSeparateIPv4Addresses",
+			"192.168.1.1",
+			"192.168.1.2",
 		},
 		{
-			"ShouldGCExpiredEntries",
-			time.Millisecond,
-			-time.Second,
-			0,
+			"ShouldSeparateIPv6AddressesWithinTheSamePrefix",
+			"2001:db8::1",
+			"2001:db8::2",
 		},
 		{
-			"ShouldHandleEmptyBucket",
-			time.Second,
-			0,
-			0,
+			"ShouldSeparateIPv6AddressesInDifferentPrefixes",
+			"2001:db8:0:1::1",
+			"2001:db8:0:2::1",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			bucket := NewIPRateLimitBucket(RateLimitBucketConfig{
-				Period:   tc.period,
+				Period:   time.Second,
 				Requests: 10,
 			}).(*IPRateLimitBucket)
 
-			if tc.name != "ShouldHandleEmptyBucket" {
+			a := bucket.FetchCtx(newTestAutheliaCtx(tc.a))
+			b := bucket.FetchCtx(newTestAutheliaCtx(tc.b))
+
+			require.NotNil(t, a)
+			require.NotNil(t, b)
+
+			assert.NotSame(t, a, b)
+			assert.Same(t, a, bucket.Fetch(tc.a))
+			assert.Same(t, b, bucket.Fetch(tc.b))
+			assert.Len(t, bucket.bucket, 2)
+		})
+	}
+}
+
+func TestIPRateLimitBucketGC(t *testing.T) {
+	testCases := []struct {
+		Name        string
+		Period      time.Duration
+		Requests    int
+		Setup       func(t *testing.T, bucket *IPRateLimitBucket, now time.Time)
+		ExpectedLen int
+	}{
+		{
+			Name:     "ShouldNotGCRecentEntries",
+			Period:   time.Hour,
+			Requests: 10,
+			Setup: func(t *testing.T, bucket *IPRateLimitBucket, now time.Time) {
 				limiter := bucket.Fetch("192.168.1.1")
-				if tc.updateAge != 0 {
-					limiter.updated.Store(time.Now().UTC().Add(tc.updateAge).UnixNano())
-				}
+
+				require.NotNil(t, limiter)
+
+				limiter.updated.Store(now.UnixNano())
+			},
+			ExpectedLen: 1,
+		},
+		{
+			Name:     "ShouldGCExpiredEntries",
+			Period:   time.Millisecond,
+			Requests: 10,
+			Setup: func(t *testing.T, bucket *IPRateLimitBucket, now time.Time) {
+				limiter := bucket.Fetch("192.168.1.1")
+
+				require.NotNil(t, limiter)
+
+				limiter.updated.Store(now.Add(-time.Second).UnixNano())
+			},
+			ExpectedLen: 0,
+		},
+		{
+			Name:        "ShouldHandleEmptyBucket",
+			Period:      time.Second,
+			Requests:    10,
+			Setup:       nil,
+			ExpectedLen: 0,
+		},
+		{
+			Name:     "ShouldNotGCExhaustedEntryAfterOneIdlePeriod",
+			Period:   time.Minute,
+			Requests: 5,
+			Setup: func(t *testing.T, bucket *IPRateLimitBucket, now time.Time) {
+				drained := now.Add(-2 * time.Minute)
+				limiter := bucket.Fetch("192.168.1.1")
+
+				require.True(t, limiter.AllowN(drained, 5))
+				require.False(t, limiter.AllowN(drained, 1))
+
+				limiter.updated.Store(drained.UnixNano())
+			},
+			ExpectedLen: 1,
+		},
+		{
+			Name:     "ShouldNotGCPartiallyRefilledEntry",
+			Period:   time.Minute,
+			Requests: 5,
+			Setup: func(t *testing.T, bucket *IPRateLimitBucket, now time.Time) {
+				drained := now.Add(-2 * time.Minute)
+				limiter := bucket.Fetch("192.168.1.1")
+
+				require.True(t, limiter.AllowN(drained, 4))
+
+				limiter.updated.Store(drained.UnixNano())
+			},
+			ExpectedLen: 1,
+		},
+		{
+			Name:     "ShouldGCFullyRefilledEntry",
+			Period:   time.Minute,
+			Requests: 5,
+			Setup: func(t *testing.T, bucket *IPRateLimitBucket, now time.Time) {
+				drained := now.Add(-2 * time.Hour)
+				limiter := bucket.Fetch("192.168.1.1")
+
+				require.True(t, limiter.AllowN(drained, 5))
+
+				limiter.updated.Store(drained.UnixNano())
+			},
+			ExpectedLen: 0,
+		},
+		{
+			Name:     "ShouldGCEntryWithZeroPeriod",
+			Period:   0,
+			Requests: 5,
+			Setup: func(t *testing.T, bucket *IPRateLimitBucket, now time.Time) {
+				limiter := bucket.Fetch("192.168.1.1")
+
+				require.True(t, limiter.AllowN(now, 5))
+
+				limiter.updated.Store(now.Add(-time.Second).UnixNano())
+			},
+			ExpectedLen: 0,
+		},
+		{
+			Name:     "ShouldGCEntryWithZeroRequests",
+			Period:   time.Second,
+			Requests: 0,
+			Setup: func(t *testing.T, bucket *IPRateLimitBucket, now time.Time) {
+				limiter := bucket.Fetch("192.168.1.1")
+
+				require.False(t, limiter.AllowN(now, 1))
+				require.Equal(t, 0.0, limiter.TokensAt(now))
+
+				limiter.updated.Store(now.Add(-time.Minute).UnixNano())
+			},
+			ExpectedLen: 0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			bucket := NewIPRateLimitBucket(RateLimitBucketConfig{
+				Period:   tc.Period,
+				Requests: tc.Requests,
+			}).(*IPRateLimitBucket)
+
+			if tc.Setup != nil {
+				tc.Setup(t, bucket, time.Now().UTC())
 			}
 
-			bucket.GC()
+			bucket.GarbageCollection()
 
-			assert.Len(t, bucket.bucket, tc.expectedCount)
+			assert.Len(t, bucket.bucket, tc.ExpectedLen)
 		})
 	}
 }
@@ -282,7 +415,7 @@ func TestNewRateLimiterMiddleware(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			nextCalled := false
 
-			middleware := NewRateLimiter(WithRateLimitBuckets(tc.buckets...), WithRateLimitContext(t.Context()))
+			middleware := NewRateLimiter(WithRateLimitBuckets(tc.buckets...)).Middleware()
 
 			handler := middleware(func(ctx *AutheliaCtx) {
 				nextCalled = true
@@ -309,7 +442,7 @@ func TestNewRateLimiterRetryAfterHeader(t *testing.T) {
 	middleware := NewRateLimiter(WithRateLimitBuckets(RateLimitBucketConfig{
 		Period:   time.Minute,
 		Requests: 1,
-	}), WithRateLimitContext(t.Context()))
+	})).Middleware()
 
 	handler := middleware(func(ctx *AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusOK)
@@ -326,11 +459,92 @@ func TestNewRateLimiterRetryAfterHeader(t *testing.T) {
 	assert.NotEmpty(t, ctx2.Response.Header.Peek(fasthttp.HeaderRetryAfter))
 }
 
+func TestNewRateLimiterLogsOncePerRateLimitedRequest(t *testing.T) {
+	testCases := []struct {
+		Name            string
+		Buckets         []RateLimitBucketConfig
+		Requests        int
+		ExpectedEntries int
+		ExpectedBucket  int
+		ExpectedDelay   float64
+	}{
+		{
+			Name:            "ShouldNotLogWhenWithinLimits",
+			Buckets:         []RateLimitBucketConfig{{Period: time.Minute, Requests: 2}},
+			Requests:        2,
+			ExpectedEntries: 0,
+		},
+		{
+			Name:            "ShouldLogOnceForSingleBucket",
+			Buckets:         []RateLimitBucketConfig{{Period: time.Minute, Requests: 1}},
+			Requests:        2,
+			ExpectedEntries: 1,
+			ExpectedBucket:  1,
+			ExpectedDelay:   60,
+		},
+		{
+			Name: "ShouldLogOnceWhenEveryBucketExceeded",
+			Buckets: []RateLimitBucketConfig{
+				{Period: time.Minute, Requests: 1},
+				{Period: 2 * time.Minute, Requests: 1},
+				{Period: 10 * time.Minute, Requests: 1},
+			},
+			Requests:        2,
+			ExpectedEntries: 1,
+			ExpectedBucket:  3,
+			ExpectedDelay:   600,
+		},
+		{
+			Name: "ShouldLogOnceForEachRateLimitedRequest",
+			Buckets: []RateLimitBucketConfig{
+				{Period: time.Minute, Requests: 1},
+				{Period: 2 * time.Minute, Requests: 1},
+			},
+			Requests:        4,
+			ExpectedEntries: 3,
+			ExpectedBucket:  2,
+			ExpectedDelay:   120,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			middleware := NewRateLimiter(WithRateLimitBuckets(tc.Buckets...)).Middleware()
+
+			handler := middleware(func(ctx *AutheliaCtx) {
+				ctx.SetStatusCode(fasthttp.StatusOK)
+			})
+
+			logger, hook := test.NewNullLogger()
+
+			logger.SetLevel(logrus.TraceLevel)
+
+			for range tc.Requests {
+				ctx := newTestAutheliaCtx("10.0.0.1")
+				ctx.Logger = logrus.NewEntry(logger)
+
+				handler(ctx)
+			}
+
+			entries := hook.AllEntries()
+
+			require.Len(t, entries, tc.ExpectedEntries)
+
+			for _, entry := range entries {
+				assert.Equal(t, logrus.WarnLevel, entry.Level)
+				assert.Equal(t, "Rate Limit Exceeded", entry.Message)
+				assert.Equal(t, tc.ExpectedBucket, entry.Data["bucket"])
+				assert.InDelta(t, tc.ExpectedDelay, entry.Data["delay"], 1)
+			}
+		})
+	}
+}
+
 func TestNewRateLimiterDifferentIPs(t *testing.T) {
 	middleware := NewRateLimiter(WithRateLimitBuckets(RateLimitBucketConfig{
 		Period:   time.Minute,
 		Requests: 1,
-	}), WithRateLimitContext(t.Context()))
+	})).Middleware()
 
 	handler := middleware(func(ctx *AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusOK)
@@ -349,7 +563,7 @@ func TestNewRateLimiterMultipleBuckets(t *testing.T) {
 	middleware := NewRateLimiter(WithRateLimitBuckets(
 		RateLimitBucketConfig{Period: time.Minute, Requests: 2},
 		RateLimitBucketConfig{Period: time.Hour, Requests: 5},
-	), WithRateLimitContext(t.Context()))
+	)).Middleware()
 
 	handler := middleware(func(ctx *AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusOK)
@@ -370,7 +584,7 @@ func TestNewRateLimiterNilHandler(t *testing.T) {
 	middleware := NewRateLimiter(WithRateLimitErrorHandler(nil), WithRateLimitBuckets(RateLimitBucketConfig{
 		Period:   time.Minute,
 		Requests: 1,
-	}), WithRateLimitContext(t.Context()))
+	})).Middleware()
 
 	handler := middleware(func(ctx *AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusOK)
@@ -402,8 +616,7 @@ func TestNewRateLimiterCustomHandler(t *testing.T) {
 			Period:   time.Minute,
 			Requests: 1,
 		}),
-		WithRateLimitContext(t.Context()),
-	)
+	).Middleware()
 
 	handler := middleware(func(ctx *AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusOK)
@@ -468,8 +681,7 @@ func TestNewRateLimiterExemptStatusCodes(t *testing.T) {
 					Requests: tc.BucketRequests,
 				}),
 				WithRateLimitExemptStatusCodes(tc.ExemptStatuses...),
-				WithRateLimitContext(t.Context()),
-			)
+			).Middleware()
 
 			handler := middleware(func(ctx *AutheliaCtx) {
 				ctx.SetStatusCode(nextStatus)
@@ -485,6 +697,142 @@ func TestNewRateLimiterExemptStatusCodes(t *testing.T) {
 	}
 }
 
+func TestNewRateLimiterUserValueExempt(t *testing.T) {
+	testCases := []struct {
+		Name             string
+		ExemptStatuses   []int
+		BucketRequests   int
+		ExemptRequests   []bool
+		ExpectedStatuses []int
+	}{
+		{
+			Name:             "ShouldNotConsumeTokensForExemptUserValueWithoutExemptStatusCodes",
+			ExemptStatuses:   nil,
+			BucketRequests:   2,
+			ExemptRequests:   []bool{true, true, true, true},
+			ExpectedStatuses: []int{fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusOK},
+		},
+		{
+			Name:             "ShouldConsumeTokensForNonExemptUserValueWithoutExemptStatusCodes",
+			ExemptStatuses:   nil,
+			BucketRequests:   2,
+			ExemptRequests:   []bool{false, false, false},
+			ExpectedStatuses: []int{fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusTooManyRequests},
+		},
+		{
+			Name:             "ShouldMixExemptAndNonExemptUserValues",
+			ExemptStatuses:   nil,
+			BucketRequests:   2,
+			ExemptRequests:   []bool{true, false, true, false, false},
+			ExpectedStatuses: []int{fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusOK, fasthttp.StatusTooManyRequests},
+		},
+		{
+			Name:             "ShouldEnforceLimitForExemptUserValueWhenBucketAlreadyFull",
+			ExemptStatuses:   nil,
+			BucketRequests:   1,
+			ExemptRequests:   []bool{false, true},
+			ExpectedStatuses: []int{fasthttp.StatusOK, fasthttp.StatusTooManyRequests},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			var exempt bool
+
+			middleware := NewRateLimiter(
+				WithRateLimitBuckets(RateLimitBucketConfig{
+					Period:   time.Minute,
+					Requests: tc.BucketRequests,
+				}),
+				WithRateLimitExemptStatusCodes(tc.ExemptStatuses...),
+			).Middleware()
+
+			handler := middleware(func(ctx *AutheliaCtx) {
+				ctx.SetStatusCode(fasthttp.StatusOK)
+
+				if exempt {
+					ctx.SetUserValue(UserValueRateLimitExempt, true)
+				}
+			})
+
+			for i, expected := range tc.ExpectedStatuses {
+				exempt = tc.ExemptRequests[i]
+				ctx := newTestAutheliaCtx("10.0.0.1")
+				handler(ctx)
+				assert.Equal(t, expected, ctx.Response.StatusCode(), "request %d", i+1)
+			}
+		})
+	}
+}
+
+func TestNewIsRateLimitExempt(t *testing.T) {
+	testCases := []struct {
+		Name              string
+		ExemptStatusCodes []int
+		UserValue         any
+		StatusCode        int
+		Expected          bool
+	}{
+		{
+			Name:              "ShouldReturnFalseWhenNoUserValueAndStatusNotExempt",
+			ExemptStatusCodes: []int{fasthttp.StatusOK},
+			UserValue:         nil,
+			StatusCode:        fasthttp.StatusUnauthorized,
+			Expected:          false,
+		},
+		{
+			Name:              "ShouldReturnTrueWhenStatusExempt",
+			ExemptStatusCodes: []int{fasthttp.StatusOK},
+			UserValue:         nil,
+			StatusCode:        fasthttp.StatusOK,
+			Expected:          true,
+		},
+		{
+			Name:              "ShouldReturnTrueWhenUserValueTrue",
+			ExemptStatusCodes: nil,
+			UserValue:         true,
+			StatusCode:        fasthttp.StatusUnauthorized,
+			Expected:          true,
+		},
+		{
+			Name:              "ShouldReturnFalseWhenUserValueFalse",
+			ExemptStatusCodes: nil,
+			UserValue:         false,
+			StatusCode:        fasthttp.StatusUnauthorized,
+			Expected:          false,
+		},
+		{
+			Name:              "ShouldIgnoreNonBoolUserValue",
+			ExemptStatusCodes: nil,
+			UserValue:         "true",
+			StatusCode:        fasthttp.StatusUnauthorized,
+			Expected:          false,
+		},
+		{
+			Name:              "ShouldReturnTrueWhenUserValueTrueAndStatusExempt",
+			ExemptStatusCodes: []int{fasthttp.StatusOK},
+			UserValue:         true,
+			StatusCode:        fasthttp.StatusOK,
+			Expected:          true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			isRateLimitExempt := newIsRateLimitExempt(tc.ExemptStatusCodes)
+
+			ctx := newTestAutheliaCtx("10.0.0.1")
+			ctx.Response.SetStatusCode(tc.StatusCode)
+
+			if tc.UserValue != nil {
+				ctx.SetUserValue(UserValueRateLimitExempt, tc.UserValue)
+			}
+
+			assert.Equal(t, tc.Expected, isRateLimitExempt(ctx))
+		})
+	}
+}
+
 func TestHandlerRateLimitAPI(t *testing.T) {
 	ctx := newTestAutheliaCtx("192.168.1.1")
 
@@ -494,6 +842,102 @@ func TestHandlerRateLimitAPI(t *testing.T) {
 	assert.Contains(t, body, "Too Many Requests")
 	assert.Equal(t, fasthttp.StatusTooManyRequests, ctx.Response.StatusCode())
 	assert.NotEmpty(t, ctx.Response.Header.Peek(fasthttp.HeaderRetryAfter))
+}
+
+func TestHandlerRateLimitOpenIDConnect(t *testing.T) {
+	testCases := []struct {
+		name       string
+		retryAfter time.Duration
+		expected   string
+	}{
+		{
+			"ShouldRenderWholeSeconds",
+			time.Second * 30,
+			"30",
+		},
+		{
+			"ShouldRoundPartialSecondsUp",
+			time.Millisecond * 1500,
+			"2",
+		},
+		{
+			"ShouldRenderSubSecondAsOne",
+			time.Millisecond,
+			"1",
+		},
+		{
+			"ShouldRenderZero",
+			0,
+			"0",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := newTestAutheliaCtx("192.168.1.1")
+
+			HandlerRateLimitOpenIDConnect(ctx, tc.retryAfter)
+
+			assert.Equal(t, fasthttp.StatusTooManyRequests, ctx.Response.StatusCode())
+			assert.Equal(t, tc.expected, string(ctx.Response.Header.Peek(fasthttp.HeaderRetryAfter)))
+			assert.Equal(t, HeaderCacheControlNotStore, string(ctx.Response.Header.Peek(fasthttp.HeaderCacheControl)))
+			assert.Equal(t, HeaderPragmaNoCache, string(ctx.Response.Header.Peek(fasthttp.HeaderPragma)))
+			assert.Equal(t, ContentTypeApplicationJSON, string(ctx.Response.Header.Peek(fasthttp.HeaderContentType)))
+			assert.JSONEq(t, `{"error":"temporarily_unavailable","error_description":"Too many requests. The endpoint is temporarily unavailable. Try again later."}`, string(ctx.Response.Body()))
+		})
+	}
+}
+
+func TestIPRateLimitBucketFetchIsRaceFree(t *testing.T) {
+	const (
+		keys = 32
+		n    = 16
+	)
+
+	bucket := NewIPRateLimitBucket(RateLimitBucketConfig{
+		Period:   time.Second,
+		Requests: 10,
+	}).(*IPRateLimitBucket)
+
+	limiters := make([][]*BucketLimiter, keys)
+
+	var ready atomic.Int64
+
+	wg := &sync.WaitGroup{}
+
+	for k := range keys {
+		limiters[k] = make([]*BucketLimiter, n)
+
+		key := fmt.Sprintf("192.168.1.%d", k)
+
+		for i := range n {
+			wg.Add(1)
+
+			go func() {
+				defer wg.Done()
+
+				ready.Add(1)
+
+				for ready.Load() < keys*n {
+					runtime.Gosched()
+				}
+
+				limiters[k][i] = bucket.Fetch(key)
+			}()
+		}
+	}
+
+	wg.Wait()
+
+	for k := range keys {
+		require.NotNil(t, limiters[k][0])
+
+		for i := range n {
+			assert.Same(t, limiters[k][0], limiters[k][i])
+		}
+	}
+
+	assert.Len(t, bucket.bucket, keys)
 }
 
 func TestNewIPRateLimitBucket(t *testing.T) {
@@ -528,11 +972,65 @@ func TestIPRateLimitBucketGCMultipleEntries(t *testing.T) {
 
 	assert.Len(t, bucket.bucket, 2)
 
-	bucket.GC()
+	bucket.GarbageCollection()
 
 	assert.Len(t, bucket.bucket, 1)
 	assert.Contains(t, bucket.bucket, "192.168.1.1")
 	assert.NotContains(t, bucket.bucket, "10.0.0.1")
+}
+
+func TestIPRateLimitBucketGCDoesNotResetExhaustedLimiter(t *testing.T) {
+	bucket := NewIPRateLimitBucket(RateLimitBucketConfig{
+		Period:   time.Minute,
+		Requests: 5,
+	}).(*IPRateLimitBucket)
+
+	now := time.Now().UTC()
+	drained := now.Add(-2 * time.Minute)
+
+	limiter := bucket.Fetch("10.0.0.1")
+
+	require.True(t, limiter.AllowN(drained, 5))
+	require.False(t, limiter.AllowN(drained, 1))
+
+	limiter.updated.Store(drained.UnixNano())
+
+	bucket.GarbageCollection()
+
+	require.Len(t, bucket.bucket, 1)
+
+	assert.Same(t, limiter, bucket.Fetch("10.0.0.1"))
+	assert.False(t, limiter.AllowN(now, 5))
+	assert.InDelta(t, 2.0, limiter.TokensAt(now), 0.01)
+}
+
+func TestIPRateLimitBucketGCEvictsRefilledLimiters(t *testing.T) {
+	bucket := NewIPRateLimitBucket(RateLimitBucketConfig{
+		Period:   time.Minute,
+		Requests: 5,
+	}).(*IPRateLimitBucket)
+
+	now := time.Now().UTC()
+
+	exhausted := bucket.Fetch("10.0.0.1")
+	refilled := bucket.Fetch("10.0.0.2")
+	untouched := bucket.Fetch("10.0.0.3")
+
+	require.True(t, exhausted.AllowN(now.Add(-2*time.Minute), 5))
+	require.True(t, refilled.AllowN(now.Add(-2*time.Hour), 5))
+
+	exhausted.updated.Store(now.Add(-2 * time.Minute).UnixNano())
+	refilled.updated.Store(now.Add(-2 * time.Hour).UnixNano())
+	untouched.updated.Store(now.Add(-2 * time.Minute).UnixNano())
+
+	require.Len(t, bucket.bucket, 3)
+
+	bucket.GarbageCollection()
+
+	assert.Len(t, bucket.bucket, 1)
+	assert.Contains(t, bucket.bucket, "10.0.0.1")
+	assert.NotContains(t, bucket.bucket, "10.0.0.2")
+	assert.NotContains(t, bucket.bucket, "10.0.0.3")
 }
 
 func TestIPRateLimitBucketFetchRefreshesUpdated(t *testing.T) {
@@ -549,21 +1047,169 @@ func TestIPRateLimitBucketFetchRefreshesUpdated(t *testing.T) {
 	assert.WithinDuration(t, time.Now().UTC(), time.Unix(0, limiter.updated.Load()).UTC(), time.Second)
 }
 
-func TestRunRateLimitGCExitsOnContextCancel(t *testing.T) {
+func TestNewRateLimiterRegistersWithCollector(t *testing.T) {
+	testCases := []struct {
+		name      string
+		collector *GarbageCollector
+		buckets   []RateLimitBucketConfig
+		expected  int
+	}{
+		{
+			"ShouldRegisterOnceWithBuckets",
+			NewGarbageCollector(),
+			[]RateLimitBucketConfig{
+				{Period: time.Minute, Requests: 10},
+				{Period: time.Hour, Requests: 20},
+			},
+			1,
+		},
+		{
+			"ShouldRegisterWithoutBuckets",
+			NewGarbageCollector(),
+			nil,
+			1,
+		},
+		{
+			"ShouldHandleNilCollector",
+			nil,
+			[]RateLimitBucketConfig{
+				{Period: time.Minute, Requests: 10},
+			},
+			0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			limiter := NewRateLimiter(WithRateLimitBuckets(tc.buckets...), WithRateLimitCollector(tc.collector))
+
+			require.NotNil(t, limiter)
+			assert.NotNil(t, limiter.Middleware())
+			assert.Equal(t, tc.expected, tc.collector.Len())
+		})
+	}
+}
+
+func TestRateLimiterGarbageCollectionFrequency(t *testing.T) {
+	testCases := []struct {
+		name     string
+		buckets  []RateLimitBucketConfig
+		expected time.Duration
+	}{
+		{
+			"ShouldReturnShortestPeriod",
+			[]RateLimitBucketConfig{
+				{Period: time.Hour, Requests: 100},
+				{Period: time.Minute, Requests: 10},
+				{Period: time.Minute * 10, Requests: 50},
+			},
+			time.Minute,
+		},
+		{
+			"ShouldReturnOnlyPeriod",
+			[]RateLimitBucketConfig{
+				{Period: time.Minute * 15, Requests: 10},
+			},
+			time.Minute * 15,
+		},
+		{
+			"ShouldReturnZeroWithoutBuckets",
+			nil,
+			0,
+		},
+		{
+			"ShouldIgnoreZeroPeriods",
+			[]RateLimitBucketConfig{
+				{Period: 0, Requests: 10},
+				{Period: time.Minute * 5, Requests: 10},
+			},
+			time.Minute * 5,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			limiter := NewRateLimiter(WithRateLimitBuckets(tc.buckets...))
+
+			assert.Equal(t, tc.expected, limiter.GarbageCollectionFrequency(t.Context()))
+		})
+	}
+}
+
+func TestRateLimiterGarbageCollection(t *testing.T) {
+	limiter := NewRateLimiter(WithRateLimitBuckets(
+		RateLimitBucketConfig{Period: time.Minute, Requests: 10},
+		RateLimitBucketConfig{Period: time.Hour, Requests: 20},
+	))
+
+	require.Len(t, limiter.buckets, 2)
+
+	for _, bucket := range limiter.buckets {
+		b := bucket.(*IPRateLimitBucket)
+
+		b.Fetch("192.168.1.1").updated.Store(time.Now().UTC().Add(-2 * time.Hour).UnixNano())
+		b.Fetch("192.168.1.2")
+	}
+
+	require.NoError(t, limiter.GarbageCollection(t.Context()))
+
+	for _, bucket := range limiter.buckets {
+		b := bucket.(*IPRateLimitBucket)
+
+		assert.Len(t, b.bucket, 1)
+		assert.NotContains(t, b.bucket, "192.168.1.1")
+	}
+}
+
+func TestRateLimiterGarbageCollectionCancelledContext(t *testing.T) {
+	limiter := NewRateLimiter(WithRateLimitBuckets(RateLimitBucketConfig{Period: time.Minute, Requests: 10}))
+
+	bucket := limiter.buckets[0].(*IPRateLimitBucket)
+
+	bucket.Fetch("192.168.1.1").updated.Store(time.Now().UTC().Add(-2 * time.Hour).UnixNano())
+
 	ctx, cancel := context.WithCancel(t.Context())
-
-	done := make(chan struct{})
-
-	go func() {
-		runRateLimitGC(ctx, nil, time.Hour)
-		close(done)
-	}()
 
 	cancel()
 
-	select {
-	case <-done:
-	case <-time.After(time.Second):
-		t.Fatal("runRateLimitGC did not exit after context cancel")
+	assert.EqualError(t, limiter.GarbageCollection(ctx), "context canceled")
+	assert.Len(t, bucket.bucket, 1)
+}
+
+func TestRateLimiterGarbageCollectionDoesNotResetLimits(t *testing.T) {
+	limiter := NewRateLimiter(WithRateLimitBuckets(RateLimitBucketConfig{Period: time.Minute, Requests: 2}))
+
+	handler := limiter.Middleware()(func(ctx *AutheliaCtx) {
+		ctx.SetStatusCode(fasthttp.StatusOK)
+	})
+
+	for range 2 {
+		ctx := newTestAutheliaCtx("10.0.0.1")
+
+		handler(ctx)
+
+		require.Equal(t, fasthttp.StatusOK, ctx.Response.StatusCode())
 	}
+
+	ctx := newTestAutheliaCtx("10.0.0.1")
+
+	handler(ctx)
+
+	require.Equal(t, fasthttp.StatusTooManyRequests, ctx.Response.StatusCode())
+
+	bucket := limiter.buckets[0].(*IPRateLimitBucket)
+
+	require.Len(t, bucket.bucket, 1)
+
+	bucket.bucket["10.0.0.1"].updated.Store(time.Now().UTC().Add(-2 * time.Minute).UnixNano())
+
+	require.NoError(t, limiter.GarbageCollection(t.Context()))
+
+	assert.Len(t, bucket.bucket, 1)
+
+	ctx = newTestAutheliaCtx("10.0.0.1")
+
+	handler(ctx)
+
+	assert.Equal(t, fasthttp.StatusTooManyRequests, ctx.Response.StatusCode())
 }

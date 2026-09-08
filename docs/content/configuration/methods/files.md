@@ -19,7 +19,7 @@ seo:
 There are several options which affect the loading of files:
 
 |           Name           |            Argument             |    Environment Variable     |                                    Description                                     |
-|:------------------------:|:-------------------------------:|:---------------------------:|:----------------------------------------------------------------------------------:|
+| :----------------------: | :-----------------------------: | :-------------------------: | :--------------------------------------------------------------------------------: |
 |   Configuration Paths    |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
 | [Filters](#file-filters) | `--config.experimental.filters` | `X_AUTHELIA_CONFIG_FILTERS` |   A list of filters applied to every file from the Files or Directories options    |
 
@@ -51,19 +51,23 @@ misconfiguration scenarios it's not perfect. Each file type has recommended meth
 
 ### YAML
 
-*Authelia* loads `configuration.yml` as the configuration if you just run it. You can override this behavior with the
+_Authelia_ loads `configuration.yml` as the configuration if you just run it. You can override this behavior with the
 following syntax:
 
 {{< envTabs "Validate Configuration" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run authelia/authelia:latest authelia --config config.custom.yml
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 authelia --config config.custom.yml
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
@@ -84,6 +88,7 @@ the last one to be specified is the one that takes precedence. Example:
 
 {{< envTabs "Run With Multiple Configurations" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run -d authelia/authelia:latest authelia --config configuration.yml --config config-acl.yml --config config-other.yml
 ```
@@ -91,8 +96,10 @@ docker run -d authelia/authelia:latest authelia --config configuration.yml --con
 ```bash
 docker run -d authelia/authelia:latest authelia --config configuration.yml,config-acl.yml,config-other.yml
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 authelia --config configuration.yml --config config-acl.yml --config config-other.yml
 ```
@@ -100,6 +107,7 @@ authelia --config configuration.yml --config config-acl.yml --config config-othe
 ```bash
 authelia --config configuration.yml,config-acl.yml,config-other.yml
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
@@ -192,7 +200,7 @@ File filters exist which allow modification of all configuration files after rea
 filesystem but before parsing their content. Unless explicitly specified these filters are _**NOT**_ covered by our
 [Standard Versioning Policy](../../policies/versioning.md) and
 
-There __*WILL*__ be a point where:
+There **_WILL_** be a point where:
 
 - The name of the CLI argument will change (we suggest using the environment variable which will not)
 - The `expand-env` filter will be removed as it's deprecated
@@ -217,27 +225,35 @@ Examples:
 
 {{< envTabs "Filters By Argument" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run -d authelia/authelia:latest authelia --config /config/configuration.yml --config.experimental.filters template
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 authelia --config /config/configuration.yml --config.experimental.filters template
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 
 {{< envTabs "Filters By Environment" >}}
 {{< envTab "Docker" >}}
+
 ```bash
 docker run -d -e X_AUTHELIA_CONFIG_FILTERS=template -e X_AUTHELIA_CONFIG=/config/configuration.yml authelia/authelia:latest authelia
 ```
+
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
+
 ```bash
 X_AUTHELIA_CONFIG_FILTERS=template X_AUTHELIA_CONFIG=/config/configuration.yml authelia
 ```
+
 {{< /envTab >}}
 {{< /envTabs >}}
 

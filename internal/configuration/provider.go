@@ -44,6 +44,7 @@ func LoadAdvanced(val *schema.StructValidator, path string, result any, definiti
 	return koanfGetKeys(final), nil
 }
 
+// LoadDefinitions loads the definitions from the given sources.
 func LoadDefinitions(val *schema.StructValidator, sources ...Source) (definitions *schema.Definitions, err error) {
 	ko := koanf.NewWithConf(koanf.Conf{Delim: constDelimiter, StrictMerge: false})
 

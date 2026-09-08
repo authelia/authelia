@@ -18,10 +18,10 @@ func NewAccessControlResource(pattern regexp.Regexp) (subjects bool, rule Access
 	}
 
 	if iuser != -1 || igroup != -1 {
-		return true, AccessControlResource{RegexpGroupStringSubjectMatcher{pattern, iuser, igroup}}
+		return true, AccessControlResource{Matcher: RegexpGroupStringSubjectMatcher{pattern, iuser, igroup}}
 	}
 
-	return false, AccessControlResource{RegexpStringSubjectMatcher{pattern}}
+	return false, AccessControlResource{Matcher: RegexpStringSubjectMatcher{pattern}}
 }
 
 // AccessControlResource represents an ACL resource that matches without named groups.

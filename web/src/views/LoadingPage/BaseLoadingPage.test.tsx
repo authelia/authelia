@@ -2,27 +2,20 @@ import { render, screen } from "@testing-library/react";
 
 import BaseLoadingPage from "@views/LoadingPage/BaseLoadingPage";
 
-vi.mock("react-spinners", () => ({
-    ScaleLoader: () => <div data-testid="scale-loader" />,
-}));
-
-vi.mock("@mui/material", async () => {
-    const actual = await vi.importActual("@mui/material");
-    return {
-        ...actual,
-        useTheme: () => ({
-            custom: { loadingBar: "#000" },
-            spacing: (n: number) => `${(n || 1) * 8}px`,
-        }),
-    };
-});
-
 it("renders the loading message", () => {
     render(<BaseLoadingPage message="Please wait" />);
     expect(screen.getByText("Please wait...")).toBeInTheDocument();
 });
 
-it("renders the scale loader", () => {
+it("renders the loading bars", () => {
+    const { container } = render(<BaseLoadingPage message="Loading" />);
+    expect(container.querySelectorAll(".animate-scale-loader")).toHaveLength(5);
+});
+
+it("does not inject a stylesheet to animate them", () => {
+    const before = document.head.querySelectorAll("style").length;
+
     render(<BaseLoadingPage message="Loading" />);
-    expect(screen.getByTestId("scale-loader")).toBeInTheDocument();
+
+    expect(document.head.querySelectorAll("style")).toHaveLength(before);
 });

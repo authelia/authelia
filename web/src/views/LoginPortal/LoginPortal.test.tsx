@@ -1,5 +1,5 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useNotifications } from "@contexts/NotificationsContext";
@@ -7,7 +7,15 @@ import { useConfiguration } from "@hooks/Configuration";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoPOST } from "@hooks/UserInfo";
+import { checkSafeRedirection } from "@services/SafeRedirection";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
+
+const mocks = vi.hoisted(() => ({
+    fetchState: vi.fn(),
+    fetchUserInfo: vi.fn(),
+    redirectionURL: null as null | string,
+    redirector: vi.fn(),
+}));
 
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
@@ -36,11 +44,11 @@ vi.mock("@contexts/NotificationsContext", () => ({
 }));
 
 vi.mock("@hooks/QueryParam", () => ({
-    useQueryParam: () => null,
+    useQueryParam: () => mocks.redirectionURL,
 }));
 
 vi.mock("@hooks/Redirector", () => ({
-    useRedirector: () => vi.fn(),
+    useRedirector: () => mocks.redirector,
 }));
 
 vi.mock("@hooks/RouterNavigate", () => ({
@@ -68,11 +76,31 @@ vi.mock("@views/LoginPortal/AuthenticatedView/AuthenticatedView", () => ({
 }));
 
 vi.mock("@views/LoginPortal/FirstFactor/FirstFactorForm", () => ({
-    default: () => <div data-testid="first-factor-form" />,
+    default: (props: any) => (
+        <div data-testid="first-factor-form" data-disabled={String(props.disabled)}>
+            <button data-testid="ff-start" onClick={() => props.onAuthenticationStart()} />
+            <button data-testid="ff-stop" onClick={() => props.onAuthenticationStop()} />
+            <button
+                data-testid="ff-success-redirect"
+                onClick={() => props.onAuthenticationSuccess("https://example.com")}
+            />
+            <button data-testid="ff-success-plain" onClick={() => props.onAuthenticationSuccess(undefined)} />
+            <button data-testid="ff-channel" onClick={() => props.onChannelStateChange()} />
+        </div>
+    ),
 }));
 
 vi.mock("@views/LoginPortal/SecondFactor/SecondFactorForm", () => ({
-    default: () => <div data-testid="second-factor-form" />,
+    default: (props: any) => (
+        <div data-testid="second-factor-form" data-level={props.authenticationLevel}>
+            <button data-testid="sf-method-changed" onClick={() => props.onMethodChanged()} />
+            <button
+                data-testid="sf-success-redirect"
+                onClick={() => props.onAuthenticationSuccess("https://example.com")}
+            />
+            <button data-testid="sf-success-plain" onClick={() => props.onAuthenticationSuccess(undefined)} />
+        </div>
+    ),
 }));
 
 const mockNavigate = vi.fn();
@@ -105,9 +133,14 @@ beforeEach(() => {
         localStorageMethodAvailable: false,
         setLocalStorageMethod: vi.fn(),
     });
-    vi.mocked(useAutheliaState).mockReturnValue([undefined, vi.fn(), false, undefined]);
+    vi.mocked(useAutheliaState).mockReturnValue([undefined, mocks.fetchState, false, undefined]);
     vi.mocked(useConfiguration).mockReturnValue([undefined, vi.fn(), false, undefined]);
-    vi.mocked(useUserInfoPOST).mockReturnValue([undefined, vi.fn(), false, undefined]);
+    vi.mocked(useUserInfoPOST).mockReturnValue([undefined, mocks.fetchUserInfo, false, undefined]);
+    mocks.redirectionURL = null;
+    mocks.redirector.mockClear();
+    mocks.fetchState.mockClear();
+    mocks.fetchUserInfo.mockClear();
+    vi.mocked(checkSafeRedirection).mockReset();
     mockNavigate.mockClear();
     mockCreateErrorNotification.mockClear();
 });
@@ -389,5 +422,305 @@ it("fetchUserInfoError triggers createErrorNotification", async () => {
 
     await waitFor(() => {
         expect(mockCreateErrorNotification).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("safe redirection", () => {
+    const unauthenticated = { authentication_level: 0, factor_knowledge: false, username: "test" };
+    const twoFactor = { authentication_level: 2, factor_knowledge: true, username: "test" };
+    const oneFactor = { authentication_level: 1, factor_knowledge: true, username: "test" };
+
+    const userInfo = {
+        display_name: "test",
+        emails: [],
+        has_duo: false,
+        has_totp: true,
+        has_webauthn: false,
+        method: 1,
+    };
+
+    function renderPortal(route = "/") {
+        return render(
+            <MemoryRouter initialEntries={[route]}>
+                <LoginPortal {...defaultProps} />
+            </MemoryRouter>,
+        );
+    }
+
+    it("redirects to a safe target once fully authenticated", async () => {
+        mocks.redirectionURL = "https://app.example.com";
+        vi.mocked(checkSafeRedirection).mockResolvedValue({ ok: true } as any);
+        vi.mocked(useAutheliaState).mockReturnValue([twoFactor, mocks.fetchState, false, undefined]);
+
+        renderPortal();
+
+        await waitFor(() => expect(mocks.redirector).toHaveBeenCalledWith("https://app.example.com"));
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it("notifies when the target is rejected as unsafe", async () => {
+        mocks.redirectionURL = "https://evil.example.com";
+        vi.mocked(checkSafeRedirection).mockResolvedValue({ ok: false } as any);
+        vi.mocked(useAutheliaState).mockReturnValue([twoFactor, mocks.fetchState, false, undefined]);
+
+        renderPortal();
+
+        await waitFor(() => expect(mockCreateErrorNotification).toHaveBeenCalled());
+        expect(mocks.redirector).not.toHaveBeenCalled();
+    });
+
+    it("notifies when the safety check throws", async () => {
+        mocks.redirectionURL = "https://app.example.com";
+        vi.mocked(checkSafeRedirection).mockRejectedValue(new Error("boom"));
+        vi.mocked(useAutheliaState).mockReturnValue([twoFactor, mocks.fetchState, false, undefined]);
+
+        renderPortal();
+
+        await waitFor(() => expect(mockCreateErrorNotification).toHaveBeenCalled());
+        expect(mocks.redirector).not.toHaveBeenCalled();
+    });
+
+    it("redirects at one factor level when no second factor methods exist", async () => {
+        mocks.redirectionURL = "https://app.example.com";
+        vi.mocked(checkSafeRedirection).mockResolvedValue({ ok: true } as any);
+        vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
+        vi.mocked(useConfiguration).mockReturnValue([
+            { available_methods: new Set(), password_change_disabled: false, password_reset_disabled: false },
+            vi.fn(),
+            false,
+            undefined,
+        ]);
+        vi.mocked(useUserInfoPOST).mockReturnValue([userInfo, mocks.fetchUserInfo, false, undefined]);
+
+        renderPortal();
+
+        await waitFor(() => expect(mocks.redirector).toHaveBeenCalledWith("https://app.example.com"));
+    });
+
+    it("does not redirect while still unauthenticated", async () => {
+        mocks.redirectionURL = "https://app.example.com";
+        vi.mocked(checkSafeRedirection).mockResolvedValue({ ok: true } as any);
+        vi.mocked(useAutheliaState).mockReturnValue([unauthenticated, mocks.fetchState, false, undefined]);
+
+        renderPortal();
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/"));
+        expect(mocks.redirector).not.toHaveBeenCalled();
+    });
+
+    it("does not check safety without a redirection URL", async () => {
+        vi.mocked(useAutheliaState).mockReturnValue([twoFactor, mocks.fetchState, false, undefined]);
+
+        renderPortal();
+
+        await waitFor(() => expect(mocks.fetchState).toHaveBeenCalled());
+        expect(checkSafeRedirection).not.toHaveBeenCalled();
+    });
+});
+
+describe("first factor callbacks", () => {
+    const unauthenticated = { authentication_level: 0, factor_knowledge: false, username: "test" };
+
+    function renderUnauthenticated() {
+        vi.mocked(useAutheliaState).mockReturnValue([unauthenticated, mocks.fetchState, false, undefined]);
+
+        return render(
+            <MemoryRouter initialEntries={["/"]}>
+                <LoginPortal {...defaultProps} />
+            </MemoryRouter>,
+        );
+    }
+
+    it("renders the first factor form once the state resolves", async () => {
+        renderUnauthenticated();
+        expect(await screen.findByTestId("first-factor-form")).toBeInTheDocument();
+    });
+
+    it("enables the form once the state resolves", async () => {
+        renderUnauthenticated();
+
+        await waitFor(() => expect(screen.getByTestId("first-factor-form")).toHaveAttribute("data-disabled", "false"));
+    });
+
+    it("disables the form while authentication is in progress", async () => {
+        renderUnauthenticated();
+        await screen.findByTestId("first-factor-form");
+
+        fireEvent.click(screen.getByTestId("ff-start"));
+
+        await waitFor(() => expect(screen.getByTestId("first-factor-form")).toHaveAttribute("data-disabled", "true"));
+
+        fireEvent.click(screen.getByTestId("ff-stop"));
+
+        await waitFor(() => expect(screen.getByTestId("first-factor-form")).toHaveAttribute("data-disabled", "false"));
+    });
+
+    it("redirects on a successful sign in that carries a redirect", async () => {
+        renderUnauthenticated();
+        await screen.findByTestId("first-factor-form");
+
+        fireEvent.click(screen.getByTestId("ff-success-redirect"));
+
+        await waitFor(() => expect(mocks.redirector).toHaveBeenCalledWith("https://example.com"));
+    });
+
+    it("refetches the state on a successful sign in without a redirect", async () => {
+        renderUnauthenticated();
+        await screen.findByTestId("first-factor-form");
+
+        mocks.fetchState.mockClear();
+        fireEvent.click(screen.getByTestId("ff-success-plain"));
+
+        await waitFor(() => expect(mocks.fetchState).toHaveBeenCalled());
+        expect(mocks.redirector).not.toHaveBeenCalled();
+    });
+
+    it("refetches the state when another tab signs in", async () => {
+        renderUnauthenticated();
+        await screen.findByTestId("first-factor-form");
+
+        mocks.fetchState.mockClear();
+        fireEvent.click(screen.getByTestId("ff-channel"));
+
+        await waitFor(() => expect(mocks.fetchState).toHaveBeenCalled());
+    });
+});
+
+describe("second factor route", () => {
+    const oneFactor = { authentication_level: 1, factor_knowledge: true, username: "test" };
+    const userInfo = {
+        display_name: "test",
+        emails: [],
+        has_duo: false,
+        has_totp: true,
+        has_webauthn: false,
+        method: 1,
+    };
+
+    function renderSecondFactor() {
+        vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
+        vi.mocked(useConfiguration).mockReturnValue([
+            { available_methods: new Set([1]), password_change_disabled: false, password_reset_disabled: false },
+            vi.fn(),
+            false,
+            undefined,
+        ]);
+        vi.mocked(useUserInfoPOST).mockReturnValue([userInfo, mocks.fetchUserInfo, false, undefined]);
+
+        return render(
+            <MemoryRouter initialEntries={["/2fa/totp"]}>
+                <LoginPortal {...defaultProps} />
+            </MemoryRouter>,
+        );
+    }
+
+    it("renders the second factor form", async () => {
+        renderSecondFactor();
+        expect(await screen.findByTestId("second-factor-form")).toHaveAttribute("data-level", "1");
+    });
+
+    it("refetches the user info when the method changes", async () => {
+        renderSecondFactor();
+        await screen.findByTestId("second-factor-form");
+
+        mocks.fetchUserInfo.mockClear();
+        fireEvent.click(screen.getByTestId("sf-method-changed"));
+
+        await waitFor(() => expect(mocks.fetchUserInfo).toHaveBeenCalled());
+    });
+
+    it("redirects on a successful second factor with a redirect", async () => {
+        renderSecondFactor();
+        await screen.findByTestId("second-factor-form");
+
+        fireEvent.click(screen.getByTestId("sf-success-redirect"));
+
+        await waitFor(() => expect(mocks.redirector).toHaveBeenCalledWith("https://example.com"));
+    });
+
+    it("refetches the state on a successful second factor without a redirect", async () => {
+        renderSecondFactor();
+        await screen.findByTestId("second-factor-form");
+
+        mocks.fetchState.mockClear();
+        fireEvent.click(screen.getByTestId("sf-success-plain"));
+
+        await waitFor(() => expect(mocks.fetchState).toHaveBeenCalled());
+    });
+
+    it("renders nothing without the user info", async () => {
+        vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
+        vi.mocked(useConfiguration).mockReturnValue([
+            { available_methods: new Set([1]), password_change_disabled: false, password_reset_disabled: false },
+            vi.fn(),
+            false,
+            undefined,
+        ]);
+
+        render(
+            <MemoryRouter initialEntries={["/2fa/totp"]}>
+                <LoginPortal {...defaultProps} />
+            </MemoryRouter>,
+        );
+
+        // Flush the lazy route import so the absence assertion cannot pass vacuously.
+        await act(async () => {});
+
+        expect(screen.queryByTestId("second-factor-form")).not.toBeInTheDocument();
+    });
+});
+
+describe("authenticated route", () => {
+    const userInfo = {
+        display_name: "test",
+        emails: [],
+        has_duo: false,
+        has_totp: true,
+        has_webauthn: false,
+        method: 1,
+    };
+
+    it("renders the authenticated view", async () => {
+        vi.mocked(useAutheliaState).mockReturnValue([
+            { authentication_level: 1, factor_knowledge: true, username: "test" },
+            mocks.fetchState,
+            false,
+            undefined,
+        ]);
+        vi.mocked(useConfiguration).mockReturnValue([
+            { available_methods: new Set(), password_change_disabled: false, password_reset_disabled: false },
+            vi.fn(),
+            false,
+            undefined,
+        ]);
+        vi.mocked(useUserInfoPOST).mockReturnValue([userInfo, mocks.fetchUserInfo, false, undefined]);
+
+        render(
+            <MemoryRouter initialEntries={["/authenticated"]}>
+                <LoginPortal {...defaultProps} />
+            </MemoryRouter>,
+        );
+
+        expect(await screen.findByTestId("authenticated-view")).toBeInTheDocument();
+    });
+
+    it("renders nothing without the user info", async () => {
+        vi.mocked(useAutheliaState).mockReturnValue([
+            { authentication_level: 1, factor_knowledge: true, username: "test" },
+            mocks.fetchState,
+            false,
+            undefined,
+        ]);
+
+        render(
+            <MemoryRouter initialEntries={["/authenticated"]}>
+                <LoginPortal {...defaultProps} />
+            </MemoryRouter>,
+        );
+
+        // Flush the lazy route import so the absence assertion cannot pass vacuously.
+        await act(async () => {});
+
+        expect(screen.queryByTestId("authenticated-view")).not.toBeInTheDocument();
     });
 });

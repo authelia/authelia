@@ -81,8 +81,9 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 // NewProvidersBasic returns a new Providers with the simple providers.
 func NewProvidersBasic() Providers {
 	return Providers{
-		Clock:  clock.New(),
-		Random: random.New(),
+		GarbageCollector: NewGarbageCollector(),
+		Clock:            clock.New(),
+		Random:           random.New(),
 	}
 }
 

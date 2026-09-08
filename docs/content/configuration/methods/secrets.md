@@ -18,7 +18,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-Configuration of *Authelia* requires several secrets and passwords. Even if they can be set in the configuration file or
+Configuration of _Authelia_ requires several secrets and passwords. Even if they can be set in the configuration file or
 standard environment variables, the recommended way to set secrets is to use this configuration method as described below.
 
 See the [security](#security) section for more information.
@@ -56,7 +56,7 @@ For more information on [File Filters](files.md#file-filters) including how to e
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 While this method is the third layer of the layered configuration model as described by the
-[introduction](introduction.md#layers), this layer is special in as much as *Authelia* will not start if you define
+[introduction](introduction.md#layers), this layer is special in as much as _Authelia_ will not start if you define
 a secret as well as any other configuration method.
 {{< /callout >}}
 
@@ -70,7 +70,7 @@ configuration in a logically secure way.
 
 ## Environment variables
 
-A secret value can be loaded by *Authelia* when the configuration key ends with one of the following words: `key`,
+A secret value can be loaded by _Authelia_ when the configuration key ends with one of the following words: `key`,
 `secret`, `password`, `token` or `certificate_chain`.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
@@ -82,12 +82,12 @@ the OpenID Connect 1.0 Provider, the cookies section of in session, and the auth
 
 If you take the expected environment variable for the configuration option with the `_FILE` suffix at the end. The value
 of these environment variables must be the path of a file that is readable by the Authelia process, if they are not,
-*Authelia* will fail to load. Authelia will automatically remove the newlines from the end of the files contents.
+_Authelia_ will fail to load. Authelia will automatically remove the newlines from the end of the files contents.
 
 For instance the LDAP password can be defined in the configuration
-at the path __authentication_backend.ldap.password__, so this password
+at the path **authentication_backend.ldap.password**, so this password
 could alternatively be set using the environment variable called
-__AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE__.
+**AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE**.
 
 Here is the list of the environment variables which are considered secrets and can be defined. Please note that only
 secrets can be loaded into the configuration if they end with one of the suffixes above, you can set the value of any

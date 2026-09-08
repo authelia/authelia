@@ -9,6 +9,7 @@ yaml-files:
   - '.yamllint'
 
 ignore: |
+  .claude/
   api/openapi.yml
   dist/public_html/api/openapi.yml
   docs/pnpm-lock.yaml

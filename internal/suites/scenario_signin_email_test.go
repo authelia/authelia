@@ -1,7 +1,5 @@
 package suites
 
-// This scenario is used to test sign in using the user email address.
-
 import (
 	"context"
 	"fmt"

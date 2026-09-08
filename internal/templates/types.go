@@ -6,13 +6,14 @@ import (
 	tt "text/template"
 )
 
-// Templates is the struct which holds all the *template.Template values.
+// Templates is the struct which holds all the *[html/template.Template] and *[text/template.Template] values.
 type Templates struct {
 	notification NotificationTemplates
 	asset        AssetTemplates
 	oidc         OpenIDConnectTemplates
 }
 
+// OpenIDConnectTemplates holds the templates used by the OpenID Connect 1.0 handlers.
 type OpenIDConnectTemplates struct {
 	formpost *th.Template
 }
@@ -36,7 +37,7 @@ type NotificationTemplates struct {
 	event                   *EmailTemplate
 }
 
-// Template covers shared implementations between the text and html template.Template.
+// Template covers shared implementations between [text/template.Template] and [html/template.Template].
 type Template interface {
 	Execute(wr io.Writer, data any) error
 	ExecuteTemplate(wr io.Writer, name string, data any) error

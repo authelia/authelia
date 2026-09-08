@@ -75,7 +75,7 @@ use a standard TCP transport and typically enforce StartTLS.
 
 [docs-security-smtp-port]: ../../overview/security/measures.md#smtp-ports
 
-__Examples:__
+**Examples:**
 
 ```yaml {title="configuration.yml"}
 notifier:
@@ -107,7 +107,7 @@ The username sent for authentication with the SMTP server. Paired with the passw
 
 The password paired with the [username](#username) sent for authentication with the SMTP server.
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
@@ -118,8 +118,8 @@ characters and the user password is changed to this value.
 The sender is used to construct both the SMTP command `MAIL FROM` and to add the `FROM` header. This address must be
 in [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322#section-3.4) format. This means it must one of two formats:
 
-* `jsmith@domain.com`
-* `John Smith <jsmith@domain.com>`
+- `jsmith@domain.com`
+- `John Smith <jsmith@domain.com>`
 
 The `MAIL FROM` command sent to SMTP servers will not include the name portion, this is only set in the `FROM` as per
 specifications.
@@ -142,7 +142,7 @@ be included in all emails as it is the internal descriptor for the contents of t
 
 {{< confkey type="string" default="test@authelia.com" required="no" >}}
 
-__Authelia__ checks the SMTP server is valid at startup, one of the checks requires we ask the SMTP server if it can
+**Authelia** checks the SMTP server is valid at startup, one of the checks requires we ask the SMTP server if it can
 send an email from us to a specific address, this is that address. No email is actually sent in the process. It is fine
 to leave this as is, but you can customize it if you have issues or you desire to.
 
@@ -166,7 +166,7 @@ configuration.
 
 Some SMTP servers ignore SMTP specifications and claim to support STARTTLS when they in fact do not.
 For security reasons Authelia refuses to send messages to these servers.
-This option disables this measure and is enabled  *__AT YOUR OWN RISK__*. It's *__strongly recommended__*
+This option disables this measure and is enabled _**AT YOUR OWN RISK**_. It's _**strongly recommended**_
 that instead of enabling this option you either fix the issue with the SMTP server's configuration or
 have the administrators of the server fix it. If the issue can't be fixed via the SMTP server configuration we recommend
 lodging an issue with the authors of the SMTP server.
@@ -177,7 +177,7 @@ See [security] for more information.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-This setting completely disables HTML formatting of emails and only sends text emails. __Authelia__ by default sends
+This setting completely disables HTML formatting of emails and only sends text emails. **Authelia** by default sends
 mixed emails which contain both HTML and text so this option is rarely necessary.
 
 ### tls

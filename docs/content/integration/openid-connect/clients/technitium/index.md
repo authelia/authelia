@@ -21,8 +21,8 @@ seo:
 
 ## Tested Versions
 
-* [Authelia] v4.39.x
-* [Technitium DNS Server] v15.2
+- [Authelia] v4.39.x
+- [Technitium DNS Server] v15.2
 
 ## Before You Begin
 
@@ -33,11 +33,11 @@ apply, in particular regarding generating a [client secret](../../introduction.m
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://dns.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `technitium`
-* __Client Secret:__ `insecure_secret`
-* 
+- **Application Root URL:** `https://dns.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `technitium`
+- **Client Secret:** `insecure_secret`
+-
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -47,7 +47,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Technitium] which will operate with the application example:
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Technitium] which will operate with the application example:
 
 ```yaml
 identity_providers:
@@ -99,10 +99,10 @@ To configure Technitium DNS Server to use Authelia as an OpenID Connect 1.0 Prov
 1. Sign in to the Technitium web console with a **local administrator** account (keep one for break-glass).
 2. Go to **Administration** → **Sessions** → **Single Sign-On (SSO)** and enable it.
 3. Configure:
-   * **Metadata Address:** `https://auth.example.com/.well-known/openid-configuration`
-   * **Client ID:** `technitium`
-   * **Client Secret:** the secret you generated
-   * **Scopes:** `openid`, `profile`, `email`, `groups`, `technitium_roles`
+   - **Metadata Address:** `https://auth.example.com/.well-known/openid-configuration`
+   - **Client ID:** `technitium`
+   - **Client Secret:** the secret you generated
+   - **Scopes:** `openid`, `profile`, `email`, `groups`, `technitium_roles`
 4. **Group Map:** add a mapping — Remote Group `dns-admins` → Local Group `Administrators`.
 5. Enable **Allow New User Sign Up** and **Allow Sign Up Only For Mapped Users** (so only members of a mapped group are auto-provisioned).
 6. **Save Config** (Technitium restarts its web service automatically).
@@ -110,15 +110,15 @@ To configure Technitium DNS Server to use Authelia as an OpenID Connect 1.0 Prov
 The redirect URI Technitium uses is `https://<your-console-host>/sso/callback` — it is shown on the SSO settings page; ensure it matches the `redirect_uris` in the Authelia client.
 
 {{< callout context="danger" title="Back-channel name resolution (common pitfall)" icon="outline/alert-triangle" >}}
-Technitium DNS Server resolves **its own outbound requests** (the OIDC discovery, token, and JWKS back-channel) using **its own DNS engine**, *not* the operating system's `/etc/hosts` or stub resolver. If your Authelia URL (`auth.example.com`) is **internal-only** (split-horizon / no public record), Technitium will report **"Failed to reach SSO provider"** even though `curl` from the same host succeeds.
+Technitium DNS Server resolves **its own outbound requests** (the OIDC discovery, token, and JWKS back-channel) using **its own DNS engine**, _not_ the operating system's `/etc/hosts` or stub resolver. If your Authelia URL (`auth.example.com`) is **internal-only** (split-horizon / no public record), Technitium will report **"Failed to reach SSO provider"** even though `curl` from the same host succeeds.
 
 **Fix:** make the Authelia hostname resolvable **by Technitium itself** — e.g. add an internal authoritative record for `auth.example.com` on the Technitium server (or via its configured forwarder/conditional path), and confirm with `dig +short @127.0.0.1 auth.example.com` on the Technitium host returning the correct internal IP. Also ensure Technitium can reach the Authelia endpoint on TCP 443.
 {{< /callout >}}
 
 ## See Also
 
-* [Technitium DNS Server Documentation](https://technitium.com/dns/)
-* [Authelia OpenID Connect 1.0 Provider Configuration](../../../../configuration/identity-providers/openid-connect/provider.md)
+- [Technitium DNS Server Documentation](https://technitium.com/dns/)
+- [Authelia OpenID Connect 1.0 Provider Configuration](../../../../configuration/identity-providers/openid-connect/provider.md)
 
 [Authelia]: https://www.authelia.com
 [Technitium DNS Server]: https://technitium.com/dns/

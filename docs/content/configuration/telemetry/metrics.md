@@ -9,7 +9,7 @@ weight: 109200
 toc: true
 ---
 
-*Authelia* allows administrators to configure a [Prometheus] Metrics Exporter.
+_Authelia_ allows administrators to configure a [Prometheus] Metrics Exporter.
 
 ## Configuration
 

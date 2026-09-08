@@ -19,12 +19,12 @@ seo:
 
 The reasons for these conventions are as follows:
 
-* simple navigation though git history
-* easier to read git history
+- simple navigation though git history
+- easier to read git history
 
 ## Commit Message Format
 
-Each commit message consists of a __header__, a __body__, and a __footer__.
+Each commit message consists of a **header**, a **body**, and a **footer**.
 
 ```bash
 <header>
@@ -59,7 +59,7 @@ The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is opti
 
 #### Allowed type values:
 {{ range .Types.Details }}
-* __{{ .Name }}__ {{ .Description }}
+- **{{ .Name }}** {{ .Description }}
 {{- if .Scopes }}
   (example scopes: {{ join ", " .Scopes }})
 {{- end }}
@@ -70,14 +70,14 @@ The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is opti
 The scope should be the name of the package affected (as perceived by the person reading the changelog generated from
 commit messages).
 {{ range .Scopes.Packages }}
-* {{ . }}
+- {{ . }}
 {{- end }}
 
 There are currently a few exceptions to the "use package name" rule:
 {{ range .Scopes.Extra }}
-* `{{ .Name }}`: {{ .Description }}
+- `{{ .Name }}`: {{ .Description }}
 {{- end }}
-* none/empty string: useful for `test`, `refactor` and changes that are done across multiple packages
+- none/empty string: useful for `test`, `refactor` and changes that are done across multiple packages
   (e.g. `test: add missing unit tests`) and for docs changes that are not related to a specific package
   (e.g. `docs: fix typo in tutorial`).
 
@@ -85,15 +85,15 @@ There are currently a few exceptions to the "use package name" rule:
 
 Use the summary field to provide a succinct description of the change:
 
-* use the imperative, present tense: "change" not "changed" nor "changes"
-* don't capitalize the first letter
-* no dot (.) at the end
+- use the imperative, present tense: "change" not "changed" nor "changes"
+- don't capitalize the first letter
+- no dot (.) at the end
 
 ### Commit Message Body
 
 Just as in the summary, use the imperative, present tense: "fix" not "fixed" nor "fixes".
 
-Explain the motivation for the change in the commit message body. This commit message should explain *why* you are
+Explain the motivation for the change in the commit message body. This commit message should explain _why_ you are
 making the change. You can include a comparison of the previous behavior with the new behavior in order to illustrate
 the impact of the change.
 
@@ -122,8 +122,8 @@ If the commit reverts a previous commit, it should begin with `revert:`, followe
 
 The content of the commit message body should contain:
 
-* information about the SHA of the commit being reverted in the following format: `This reverts commit <SHA>`,
-* a clear description of the reason for reverting the commit message.
+- information about the SHA of the commit being reverted in the following format: `This reverts commit <SHA>`,
+- a clear description of the reason for reverting the commit message.
 
 ## Commit Message Examples
 

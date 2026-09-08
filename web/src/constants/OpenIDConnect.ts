@@ -1,3 +1,5 @@
+export const UserCodeLength: number = 8;
+
 export const ScopeOpenID: string = "openid";
 
 export const ScopeOfflineAccess: string = "offline_access";

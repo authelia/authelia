@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
 - [Apache Guacamole]
   - [v1.5.5](https://guacamole.apache.org/releases/1.5.5/)
 
@@ -33,9 +33,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `guacamole`
+- **Application Root URL:** `https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `guacamole`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Apache Guacamole] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Apache Guacamole] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -82,7 +82,7 @@ Before configuring or using [OpenID Connect 1.0] with [Apache Guacamole] you mus
 [openid extension](https://guacamole.apache.org/doc/gug/openid-auth.html#installing-support-for-openid-connect) is
 installed.
 
-To configure [Apache Guacamole]  there is one method, using the [Configuration File](#configuration-file).
+To configure [Apache Guacamole] there is one method, using the [Configuration File](#configuration-file).
 
 #### Configuration File
 

@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
 - [Pangolin]
   - [v1.14.1](https://github.com/fosrl/pangolin/releases/tag/1.14.1)
 
@@ -33,9 +33,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `pangolin`
-- __Client Secret:__ `insecure_secret`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `pangolin`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Pangolin] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Pangolin] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

@@ -1,6 +1,6 @@
 import { Fragment, MouseEvent, useState } from "react";
 
-import { QrCode2 } from "@mui/icons-material";
+import { QrCode } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
@@ -29,7 +29,7 @@ const OneTimePasswordCredentialItem = function (props: Props) {
             />
             <CredentialItem
                 id={"one-time-password"}
-                icon={<QrCode2 fontSize="large" />}
+                icon={<QrCode className="size-7" />}
                 description={props.config.issuer}
                 qualifier={``}
                 created_at={props.config.created_at}

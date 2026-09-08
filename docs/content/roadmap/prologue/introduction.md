@@ -47,7 +47,7 @@ The active items are things we're actively working on and are priorities for dev
 2. [Granular Authorization](../active/granular-authorization.md)
 3. [Internationalization or Multilingual Support](../complete/internationalization.md)
 4. [Multiple Domain Protection](../active/multi-domain-protection.md)
-5. [Control Panel / Dashboard for User  Settings](../active/dashboard-control-panel-for-users.md)
+5. [Control Panel / Dashboard for User Settings](../active/dashboard-control-panel-for-users.md)
 6. [Control Panel / Dashboard and CLI for Administration Settings](../active/dashboard-control-panel-and-cli-for-admins.md)
 
 ### Complete

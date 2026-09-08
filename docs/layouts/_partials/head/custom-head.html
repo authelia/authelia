@@ -1,1 +1,9 @@
 <!-- Custom head -->
+{{ if site.Params.add_ons.docSearch -}}
+{{/* @docsearch/css is compiled output, not Sass source, and since v5 it ships Media Queries Level 4
+     range syntax which libsass can't parse. Link the modal bundle through the asset pipeline instead
+     of importing it into scss/app.scss. head/custom-head renders after head/stylesheet, so the
+     cascade order matches the @import this replaced. */}}
+{{ $docsearch := resources.Get "css/docsearch/modal.css" | resources.Fingerprint "sha512" -}}
+<link rel="stylesheet" href="{{ $docsearch.RelPermalink }}" integrity="{{ $docsearch.Data.Integrity }}" crossorigin="anonymous">
+{{ end -}}

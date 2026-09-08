@@ -15,3 +15,8 @@ it("renders the authenticated stage with success icon", () => {
     expect(screen.getByText("Authenticated")).toBeInTheDocument();
     expect(screen.getByTestId("success-icon")).toBeInTheDocument();
 });
+
+it("carries the identifier the suites wait for", () => {
+    const { container } = render(<Authenticated />);
+    expect(container.querySelector("#authenticated-stage")).toBeInTheDocument();
+});

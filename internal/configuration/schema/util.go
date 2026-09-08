@@ -1,5 +1,6 @@
 package schema
 
+// PBKDF2VariantDefaultIterations returns the default number of iterations for the given PBKDF2 variant.
 func PBKDF2VariantDefaultIterations(variant string) int {
 	switch variant {
 	case SHA512Lower, "":

@@ -16,7 +16,7 @@ func New() Provider {
 // Cryptographical is the production random.Provider which uses crypto/rand.
 type Cryptographical struct{}
 
-// Read implements the io.Reader interface.
+// Read implements the [io.Reader] interface.
 func (r *Cryptographical) Read(p []byte) (n int, err error) {
 	return io.ReadFull(rand.Reader, p)
 }
@@ -43,21 +43,17 @@ func (r *Cryptographical) BytesCustomErr(n int, charset []byte) (data []byte, er
 		n = DefaultN
 	}
 
-	data = make([]byte, n)
+	if len(charset) == 0 {
+		data = make([]byte, n)
 
-	if _, err = rand.Read(data); err != nil {
-		return nil, err
-	}
-
-	t := len(charset)
-
-	if t > 0 {
-		for i := 0; i < n; i++ {
-			data[i] = charset[data[i]%byte(t)] //nolint:gosec // This is safe.
+		if _, err = rand.Read(data); err != nil {
+			return nil, err
 		}
+
+		return data, nil
 	}
 
-	return data, nil
+	return bytesCharsetErr(rand.Reader, n, charset)
 }
 
 // StringCustomErr is an overload of BytesCustomWithErr which takes a characters string and returns a string.
@@ -115,7 +111,7 @@ func (r *Cryptographical) Intn(n int) (value int) {
 	return value
 }
 
-// IntErr returns a random *big.Int error combination with a maximum of max.
+// IntErr returns a random *[big.Int] error combination with a maximum of max.
 func (r *Cryptographical) IntErr(max *big.Int) (value *big.Int, err error) {
 	if max == nil {
 		return nil, fmt.Errorf("max is required")
@@ -128,7 +124,7 @@ func (r *Cryptographical) IntErr(max *big.Int) (value *big.Int, err error) {
 	return rand.Int(rand.Reader, max)
 }
 
-// Int returns a random *big.Int with a maximum of max.
+// Int returns a random *[big.Int] with a maximum of max.
 func (r *Cryptographical) Int(max *big.Int) (value *big.Int) {
 	var err error
 	if value, err = r.IntErr(max); err != nil {

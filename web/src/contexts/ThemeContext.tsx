@@ -1,10 +1,8 @@
 import { ReactNode, createContext, use, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
-import { Theme, ThemeProvider } from "@mui/material";
-
 import { LocalStorageThemeName } from "@constants/LocalStorage";
 import { localStorageAvailable, setLocalStorage } from "@services/LocalStorage";
-import * as themes from "@themes/index";
+import { ThemeNameAuto, ThemeNameDark, ThemeNameGrey, ThemeNameLight, ThemeNameOled } from "@themes/index";
 import { getTheme } from "@utils/Configuration";
 
 const MediaQueryDarkMode = "(prefers-color-scheme: dark)";
@@ -16,7 +14,6 @@ export interface Props {
 }
 
 export interface ValueProps {
-    theme: Theme;
     themeName: string;
     setThemeName: (_value: string) => void;
 }
@@ -25,7 +22,9 @@ export default function ThemeContextProvider(props: Props) {
     const [themeName, setThemeName] = useState(() => GetCurrentThemeName());
     const prefersDark = useSyncExternalStore(subscribePrefersDark, getPrefersDarkSnapshot, getPrefersDarkSnapshot);
 
-    const theme = useMemo(() => ThemeFromName(themeName, prefersDark), [themeName, prefersDark]);
+    useEffect(() => {
+        document.documentElement.dataset.theme = ResolveThemeName(themeName, prefersDark);
+    }, [themeName, prefersDark]);
 
     useEffect(() => {
         const listener = (ev: StorageEvent) => {
@@ -56,17 +55,12 @@ export default function ThemeContextProvider(props: Props) {
     const value = useMemo(
         () => ({
             setThemeName: callback,
-            theme,
             themeName,
         }),
-        [callback, theme, themeName],
+        [callback, themeName],
     );
 
-    return (
-        <ThemeContext value={value}>
-            <ThemeWrapper>{props.children}</ThemeWrapper>
-        </ThemeContext>
-    );
+    return <ThemeContext value={value}>{props.children}</ThemeContext>;
 }
 
 export function useThemeContext() {
@@ -78,10 +72,20 @@ export function useThemeContext() {
     return context;
 }
 
-function ThemeWrapper(props: Props) {
-    const { theme } = useThemeContext();
-
-    return <ThemeProvider theme={theme}>{props.children}</ThemeProvider>;
+function ResolveThemeName(name: string, prefersDark: boolean): string {
+    switch (name) {
+        case ThemeNameLight:
+            return "light";
+        case ThemeNameDark:
+            return "dark";
+        case ThemeNameGrey:
+            return "grey";
+        case ThemeNameOled:
+            return "oled";
+        case ThemeNameAuto:
+        default:
+            return prefersDark ? "dark" : "light";
+    }
 }
 
 function GetCurrentThemeName() {
@@ -107,20 +111,4 @@ function subscribePrefersDark(listener: () => void): () => void {
 
 function getPrefersDarkSnapshot(): boolean {
     return globalThis.matchMedia?.(MediaQueryDarkMode).matches ?? false;
-}
-
-function ThemeFromName(name: string, prefersDark: boolean) {
-    switch (name) {
-        case themes.ThemeNameLight:
-            return themes.Light;
-        case themes.ThemeNameDark:
-            return themes.Dark;
-        case themes.ThemeNameGrey:
-            return themes.Grey;
-        case themes.ThemeNameOled:
-            return themes.Oled;
-        case themes.ThemeNameAuto:
-        default:
-            return prefersDark ? themes.Dark : themes.Light;
-    }
 }

@@ -67,6 +67,7 @@ Here is what Authelia's portal looks like:
 This is a list of the key features of Authelia:
 
 * [OpenID Connect 1.0 / OAuth 2.0](#openid-connect-10--oauth-20)
+* Post-Quantum Cryptography
 * Several second factor methods:
   * **[Security Keys](https://www.authelia.com/overview/authentication/security-key/)** that support
     [FIDO2]&nbsp;[WebAuthn] with devices like a [YubiKey].

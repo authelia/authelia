@@ -2,7 +2,7 @@
 title: "authelia crypto pair"
 description: "Reference for the authelia crypto pair command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 905
@@ -48,5 +48,6 @@ authelia crypto pair --help
 * [authelia crypto](authelia_crypto.md)	 - Perform cryptographic operations
 * [authelia crypto pair ecdsa](authelia_crypto_pair_ecdsa.md)	 - Perform ECDSA key pair cryptographic operations
 * [authelia crypto pair ed25519](authelia_crypto_pair_ed25519.md)	 - Perform Ed25519 key pair cryptographic operations
+* [authelia crypto pair mldsa](authelia_crypto_pair_mldsa.md)	 - Perform ML-DSA key pair cryptographic operations
 * [authelia crypto pair rsa](authelia_crypto_pair_rsa.md)	 - Perform RSA key pair cryptographic operations
 

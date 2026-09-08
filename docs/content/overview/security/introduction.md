@@ -16,16 +16,16 @@ seo:
   noindex: false # false (default) or true
 ---
 
-The __Authelia__ team takes security very seriously. Because __Authelia__ is intended as a security product a lot of
+The **Authelia** team takes security very seriously. Because **Authelia** is intended as a security product a lot of
 decisions are made with security being the priority and we always aim to implement security by design.
 
 ## Coordinated vulnerability disclosure
 
-__Authelia__ follows the [coordinated vulnerability disclosure] model when dealing with security vulnerabilities. This
-was previously known as responsible disclosure. We strongly urge anyone reporting vulnerabilities to __Authelia__ or any
+**Authelia** follows the [coordinated vulnerability disclosure] model when dealing with security vulnerabilities. This
+was previously known as responsible disclosure. We strongly urge anyone reporting vulnerabilities to **Authelia** or any
 other project to follow this model as it is considered as a best practice by many in the security industry.
 
-If you believe you have identified a security vulnerability or security related bug with __Authelia__ please make every
+If you believe you have identified a security vulnerability or security related bug with **Authelia** please make every
 effort to contact us privately using one of the [contact options](../../policies/security.md#contact-options) below.
 Please do not open an issue, do not notify us in public, and do not disclose this issue to third parties.
 

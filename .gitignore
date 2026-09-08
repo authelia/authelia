@@ -4,11 +4,15 @@
 .github/_/
 .lefthook-local.yml
 
+# Agent worktrees, which are checkouts of this repository nested inside it
+.claude/worktrees/
+
 # Nodejs modules
 .pnpm-store/
 node_modules/
 
 # Coverage reports
+web/.vitest/
 web/html/
 coverage/
 .nyc_output/

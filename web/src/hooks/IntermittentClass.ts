@@ -10,7 +10,7 @@ export function useIntermittentClass(
     const [firstTime, setFirstTime] = useState(true);
 
     useEffect(() => {
-        let timeout: NodeJS.Timeout;
+        let timeout: ReturnType<typeof setTimeout>;
 
         if (firstTime) {
             if (startMillisecond && startMillisecond > 0) {

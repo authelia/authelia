@@ -41,18 +41,22 @@ func (d *UserDetails) Addresses() (addresses []mail.Address) {
 	return addresses
 }
 
+// GetUsername returns the username.
 func (d *UserDetails) GetUsername() (username string) {
 	return d.Username
 }
 
+// GetGroups returns the groups.
 func (d *UserDetails) GetGroups() (groups []string) {
 	return d.Groups
 }
 
+// GetDisplayName returns the display name.
 func (d *UserDetails) GetDisplayName() (name string) {
 	return d.DisplayName
 }
 
+// GetEmails returns the emails.
 func (d *UserDetails) GetEmails() (emails []string) {
 	return d.Emails
 }
@@ -79,46 +83,57 @@ type UserDetailsExtended struct {
 	*UserDetails
 }
 
+// GetGivenName returns the given name.
 func (d *UserDetailsExtended) GetGivenName() (given string) {
 	return d.GivenName
 }
 
+// GetFamilyName returns the family name.
 func (d *UserDetailsExtended) GetFamilyName() (family string) {
 	return d.FamilyName
 }
 
+// GetMiddleName returns the middle name.
 func (d *UserDetailsExtended) GetMiddleName() (middle string) {
 	return d.MiddleName
 }
 
+// GetNickname returns the nickname.
 func (d *UserDetailsExtended) GetNickname() (nickname string) {
 	return d.Nickname
 }
 
+// GetProfile returns the profile URL as a string.
 func (d *UserDetailsExtended) GetProfile() (profile string) {
 	return stringURL(d.Profile)
 }
 
+// GetPicture returns the picture URL as a string.
 func (d *UserDetailsExtended) GetPicture() (picture string) {
 	return stringURL(d.Picture)
 }
 
+// GetWebsite returns the website URL as a string.
 func (d *UserDetailsExtended) GetWebsite() (website string) {
 	return stringURL(d.Website)
 }
 
+// GetGender returns the gender.
 func (d *UserDetailsExtended) GetGender() (gender string) {
 	return d.Gender
 }
 
+// GetBirthdate returns the birthdate.
 func (d *UserDetailsExtended) GetBirthdate() (birthdate string) {
 	return d.Birthdate
 }
 
+// GetZoneInfo returns the zone information.
 func (d *UserDetailsExtended) GetZoneInfo() (info string) {
 	return d.ZoneInfo
 }
 
+// GetLocale returns the locale as a string.
 func (d *UserDetailsExtended) GetLocale() (locale string) {
 	if d.Locale == nil {
 		return ""
@@ -127,14 +142,17 @@ func (d *UserDetailsExtended) GetLocale() (locale string) {
 	return d.Locale.String()
 }
 
+// GetPhoneNumber returns the phone number without the extension.
 func (d *UserDetailsExtended) GetPhoneNumber() (number string) {
 	return d.PhoneNumber
 }
 
+// GetPhoneExtension returns the phone extension.
 func (d *UserDetailsExtended) GetPhoneExtension() (extension string) {
 	return d.PhoneExtension
 }
 
+// GetPhoneNumberRFC3966 returns the phone number and extension formatted as per RFC3966.
 func (d *UserDetailsExtended) GetPhoneNumberRFC3966() (number string) {
 	if d.PhoneNumber == "" {
 		return ""
@@ -147,6 +165,7 @@ func (d *UserDetailsExtended) GetPhoneNumberRFC3966() (number string) {
 	return fmt.Sprintf("%s;ext=%s", d.PhoneNumber, d.PhoneExtension)
 }
 
+// GetStreetAddress returns the street address.
 func (d *UserDetailsExtended) GetStreetAddress() (address string) {
 	if d.Address == nil {
 		return ""
@@ -155,6 +174,7 @@ func (d *UserDetailsExtended) GetStreetAddress() (address string) {
 	return d.Address.StreetAddress
 }
 
+// GetLocality returns the locality.
 func (d *UserDetailsExtended) GetLocality() (locality string) {
 	if d.Address == nil {
 		return ""
@@ -163,6 +183,7 @@ func (d *UserDetailsExtended) GetLocality() (locality string) {
 	return d.Address.Locality
 }
 
+// GetRegion returns the region.
 func (d *UserDetailsExtended) GetRegion() (region string) {
 	if d.Address == nil {
 		return ""
@@ -171,6 +192,7 @@ func (d *UserDetailsExtended) GetRegion() (region string) {
 	return d.Address.Region
 }
 
+// GetPostalCode returns the postal code.
 func (d *UserDetailsExtended) GetPostalCode() (postcode string) {
 	if d.Address == nil {
 		return ""
@@ -179,6 +201,7 @@ func (d *UserDetailsExtended) GetPostalCode() (postcode string) {
 	return d.Address.PostalCode
 }
 
+// GetCountry returns the country.
 func (d *UserDetailsExtended) GetCountry() (country string) {
 	if d.Address == nil {
 		return ""
@@ -187,6 +210,7 @@ func (d *UserDetailsExtended) GetCountry() (country string) {
 	return d.Address.Country
 }
 
+// GetExtra returns the extra attributes.
 func (d *UserDetailsExtended) GetExtra() (extra map[string]any) {
 	return d.Extra
 }
@@ -250,6 +274,7 @@ type LDAPDiscovery struct {
 	Vendor     LDAPDiscoveryVendor
 }
 
+// Strings returns the string representations of the discovered extensions, controls, features, and SASL mechanisms.
 func (d LDAPDiscovery) Strings() (extensions, controls, features, saslMechanisms string) {
 	if !d.Successful {
 		return none, none, none, none
@@ -277,6 +302,7 @@ type LDAPDiscoveryExtensions struct {
 	WhoAmI    bool
 }
 
+// String returns the string representation of the discovered extension OIDs.
 func (s LDAPDiscoveryExtensions) String() string {
 	if len(s.OIDs) == 0 {
 		return none
@@ -293,6 +319,7 @@ type LDAPDiscoveryControls struct {
 	MsftPwdPolHintsDeprecated bool
 }
 
+// String returns the string representation of the discovered control OIDs.
 func (s LDAPDiscoveryControls) String() string {
 	if len(s.OIDs) == 0 {
 		return none
@@ -306,6 +333,7 @@ type LDAPDiscoveryFeatures struct {
 	OIDs []string
 }
 
+// String returns the string representation of the discovered feature OIDs.
 func (s LDAPDiscoveryFeatures) String() string {
 	if len(s.OIDs) == 0 {
 		return none
@@ -314,6 +342,7 @@ func (s LDAPDiscoveryFeatures) String() string {
 	return strings.Join(s.OIDs, ", ")
 }
 
+// LDAPDiscoveryVendor represents the vendor information a server discloses.
 type LDAPDiscoveryVendor struct {
 	Name                  string
 	Version               string
@@ -349,6 +378,7 @@ func (l Level) String() string {
 	}
 }
 
+// Context represents the context used by the authentication backends.
 type Context interface {
 	context.Context
 
@@ -357,6 +387,7 @@ type Context interface {
 	GetClock() clock.Provider
 }
 
+// NewPoolCtxErr returns a PoolErr which wraps the given error, or nil if the given error is nil.
 func NewPoolCtxErr(err error) error {
 	if err == nil {
 		return nil
@@ -372,23 +403,28 @@ func NewPoolCtxErr(err error) error {
 	return &PoolErr{err: err}
 }
 
+// PoolErr is an error which occurred while obtaining a client from a client pool.
 type PoolErr struct {
 	err             error
 	isDeadlineError bool
 }
 
+// Error returns the string representation of the underlying error.
 func (e *PoolErr) Error() string {
 	return e.err.Error()
 }
 
+// Is returns true if the underlying error matches the target error.
 func (e *PoolErr) Is(target error) bool {
 	return errors.Is(e.err, target)
 }
 
+// Unwrap returns the underlying error.
 func (e *PoolErr) Unwrap() error {
 	return e.err
 }
 
+// IsDeadlineError returns true if the underlying error was a context deadline error.
 func (e *PoolErr) IsDeadlineError() bool {
 	return e.isDeadlineError
 }
@@ -408,6 +444,7 @@ type LDAPBaseClient interface {
 	WhoAmI(controls []ldap.Control) (result *ldap.WhoAmIResult, err error)
 }
 
+// LDAPExtendedClient is an extended version of the LDAPBaseClient which also performs discovery.
 type LDAPExtendedClient interface {
 	LDAPBaseClient
 

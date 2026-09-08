@@ -56,7 +56,7 @@ required.
 Configures the address for the NTP Server. The address itself is a connector and the scheme must be `udp`,
 `udp4`, or `udp6`.
 
-__Examples:__
+**Examples:**
 
 ```yaml {title="configuration.yml"}
 ntp:
@@ -103,7 +103,6 @@ option. See the [FAQ](#why-should-this-check-not-be-disabled) for more informati
 Setting this to true will allow Authelia to start and just log an error instead of exiting. The default is that if
 Authelia can contact the NTP server successfully, and the time reported by the server is greater than what is configured
 in [max_desync](#max_desync) that Authelia fails to start and logs a fatal error.
-
 
 ## Frequently Asked Questions
 

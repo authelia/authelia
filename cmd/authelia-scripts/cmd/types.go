@@ -9,12 +9,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// HostEntry represents an entry in /etc/hosts.
-type HostEntry struct {
-	Domain string
-	IP     string
-}
-
 // DockerImages represents some of the data from the docker images API.
 type DockerImages []DockerImage
 

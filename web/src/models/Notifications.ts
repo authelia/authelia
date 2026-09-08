@@ -1,7 +1,7 @@
-import { AlertColor } from "@mui/material";
+export type NotificationLevel = "error" | "info" | "success" | "warning";
 
 export interface Notification {
     message: string;
-    level: AlertColor;
+    level: NotificationLevel;
     timeout: number;
 }

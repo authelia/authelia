@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/valyala/fasthttp"
@@ -33,15 +32,19 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	if _, err = ctx.Providers.StorageProvider.LoadPreferred2FAMethod(ctx, userSession.Username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, ""); err != nil {
-				ctx.Error(fmt.Errorf("unable to load user information: error occurred trying to save the users preferred 2FA method: %w", err), messageOperationFailed)
+				ctx.GetLogger().WithError(err).Error("Error occurred saving the user preferred second factor method while loading the user information")
+				ctx.SetJSONError(messageOperationFailed)
 			}
 		} else {
-			ctx.Error(fmt.Errorf("unable to load user information: error occurred trying to lookup the users preferred 2FA method: %w", err), messageOperationFailed)
+			ctx.GetLogger().WithError(err).Error("Error occurred looking up the user preferred second factor method while loading the user information")
+			ctx.SetJSONError(messageOperationFailed)
 		}
 	}
 
 	if userInfo, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username); err != nil {
-		ctx.Error(fmt.Errorf("unable to load user information: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred loading the user information")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
@@ -51,7 +54,9 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 
 	if changed = userInfo.SetDefaultPreferred2FAMethod(ctx.AvailableSecondFactorMethods(), ctx.Configuration.Default2FAMethod); changed {
 		if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, userInfo.Method); err != nil {
-			ctx.Error(fmt.Errorf("unable to save user two factor method: %w", err), messageOperationFailed)
+			ctx.GetLogger().WithError(err).Error("Error occurred saving the user preferred second factor method")
+			ctx.SetJSONError(messageOperationFailed)
+
 			return
 		}
 	}
@@ -93,7 +98,9 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 
 	userInfo, err := ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
 	if err != nil {
-		ctx.Error(fmt.Errorf("unable to load user information: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred loading the user information")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
@@ -119,27 +126,32 @@ func MethodPreferencePOST(ctx *middlewares.AutheliaCtx) {
 		err         error
 	)
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
-
-		ctx.Error(err, messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred retrieving user session")
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
-		ctx.Error(err, messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred parsing the second factor method preference request body")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
 	if !utils.IsStringInSlice(bodyJSON.Method, ctx.AvailableSecondFactorMethods()) {
-		ctx.Error(fmt.Errorf("unknown or unavailable method '%s', it should be one of %s", bodyJSON.Method, strings.Join(ctx.AvailableSecondFactorMethods(), ", ")), messageOperationFailed)
+		ctx.GetLogger().Errorf("Error occurred setting the second factor method preference as the method '%s' is unknown or unavailable, it should be one of %s", bodyJSON.Method, strings.Join(ctx.AvailableSecondFactorMethods(), ", "))
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
 	ctx.Logger.Debugf("Save new preferred 2FA method of user %s to %s", userSession.Username, bodyJSON.Method)
 
 	if err = ctx.Providers.StorageProvider.SavePreferred2FAMethod(ctx, userSession.Username, bodyJSON.Method); err != nil {
-		ctx.Error(fmt.Errorf("unable to save new preferred 2FA method: %w", err), messageOperationFailed)
+		ctx.GetLogger().WithError(err).Error("Error occurred saving the new preferred second factor method")
+		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 

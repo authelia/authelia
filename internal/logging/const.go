@@ -13,6 +13,7 @@ const (
 	FormatJSON = "json"
 )
 
+// LogLevel represents a log level in the configuration.
 type LogLevel string
 
 // Log Level values.
@@ -24,6 +25,7 @@ const (
 	LevelError = "error"
 )
 
+// Level returns the logrus.Level for this LogLevel.
 func (l LogLevel) Level() logrus.Level {
 	switch l {
 	case LevelError:
@@ -71,5 +73,5 @@ const (
 var (
 	stacktrace       sync.Once
 	reFormatFilePath = regexp.MustCompile(`(%d|\{datetime(:([^}]+))?})`)
-	lf               *File
+	logFile          *File
 )

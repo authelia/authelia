@@ -32,10 +32,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://express.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `expressjs-example`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://express.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `expressjs-example`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -50,7 +50,7 @@ may also use the associated libraries so the configurations may be adaptable to 
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Express.js] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Express.js] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

@@ -33,11 +33,11 @@ seo:
 
 This example makes the following assumptions:
 
-- __Domain Root URL:__ `https://{{< sitevar name="domain" nojs="example.com" >}}`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Account:__ `user@{{< sitevar name="domain" nojs="example.com" >}}`
-- __Client ID:__ `tailscale`
-- __Client Secret:__ `insecure_secret`
+- **Domain Root URL:** `https://{{< sitevar name="domain" nojs="example.com" >}}`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Account:** `user@{{< sitevar name="domain" nojs="example.com" >}}`
+- **Client ID:** `tailscale`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -47,7 +47,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Tailscale] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Tailscale] which will
 operate with the above example:
 
 ```yaml {title="configuration.yml"}
@@ -107,7 +107,6 @@ implementations). The following steps are necessary to get Tailscale working wit
    **Note:** Make sure that the `href` URL matches the `issuer` URL returned from the Authelia OIDC discovery endpoint
 7. On the next screen you will need to add your client ID & secret configured in Authelia to finish the OIDC provider registration in [Tailscale]. See the following example screenshot: \
    {{< figure src="tailscale_signup_2.png" alt="Tailscale Signup Screen 2" width="300" >}}
-
 
 ## See Also
 

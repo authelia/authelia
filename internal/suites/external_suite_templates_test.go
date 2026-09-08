@@ -128,10 +128,10 @@ func (s *TemplatesSuite) previewText(outer *rod.Page, readySelector, selector st
 }
 
 func (s *TemplatesSuite) openPreviewFrame(outer *rod.Page, readySelector string) *rod.Page {
-	// react-email has rendered the element matching readySelector. Callers should prefer previewText,
-	// which additionally recovers from the document being swapped after the descent.
 	s.WaitElementLocatedBySelector(s.T(), outer, "iframe")
 
+	// readySelector is only present once react-email has finished populating the preview iframe, so
+	// waiting on it is what stops a partial or empty srcdoc being captured.
 	outer.MustWait(`(sel) => {
 		const f = document.querySelector('iframe');
 		return !!(f && f.contentDocument && f.contentDocument.querySelector(sel));
@@ -228,9 +228,9 @@ func (s *TemplatesSuite) TestEventRenders() {
 	}
 }
 
-// injectEmbeddedFont rewrites srcdoc to force Liberation Sans via a data-URL @font-face so
-// visual snapshots rasterize from the same outlines on every host.
 func (s *TemplatesSuite) injectEmbeddedFont(repoRoot, srcdoc string) string {
+	// Forcing one font through the document means visual snapshots rasterize from the same outlines
+	// on every host.
 	fontPath := filepath.Join(repoRoot, "internal", "suites", "testdata", "fonts", "LiberationSans-Regular.ttf")
 
 	fontBytes, err := os.ReadFile(fontPath)
@@ -257,10 +257,6 @@ html, body, * {
 	return style + srcdoc
 }
 
-// runTemplateSnapshot renders the template's srcdoc in a clean tab with an embedded font
-// and asserts it against the committed baseline. readySelector identifies an element that
-// is only present once react-email has finished populating the preview iframe — waiting on
-// it prevents capturing a partial or empty srcdoc.
 func (s *TemplatesSuite) runTemplateSnapshot(slug, readySelector, snapshotName string) {
 	outer := s.doCreateTab(s.T(), s.templatesURL("/preview/"+slug))
 	defer outer.MustClose()

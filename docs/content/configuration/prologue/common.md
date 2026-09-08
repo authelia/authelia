@@ -46,13 +46,14 @@ usage_example:
 The base type for this syntax is a string, and it also handles integers however this is discouraged.
 
 If you supply an integer, it is considered a representation of seconds. If you supply a string, it parses the string in
-blocks of quantities and units (number followed by a unit letter).  For example `5h` indicates a quantity of 5 units
+blocks of quantities and units (number followed by a unit letter). For example `5h` indicates a quantity of 5 units
 of `h`.
 
 The following is ignored or stripped from the input:
-  - all spaces
-  - leading zeros
-  - the word `and`
+
+- all spaces
+- leading zeros
+- the word `and`
 
 While you can use multiple of these blocks in combination, we suggest keeping it simple and use a single value. In
 addition it's important to note that the format while somewhat human readable still requires you closely follow the
@@ -64,7 +65,7 @@ The following is a legend for the unit formats available in this syntax. The lon
 v4.38.0 or newer.
 
 |     Unit     | Short Unit |   Human Readable Long Unit    |
-|:------------:|:----------:|:-----------------------------:|
+| :----------: | :--------: | :---------------------------: |
 |    Years     |    `y`     |        `year`, `years`        |
 |    Months    |    `M`     |       `month`, `months`       |
 |    Weeks     |    `w`     |        `week`, `weeks`        |
@@ -76,11 +77,11 @@ v4.38.0 or newer.
 
 #### Examples
 
-|     Desired Value     |    Configuration Examples (Short)     |     Configuration Examples (Long)      |
-|:---------------------:|:-------------------------------------:|:--------------------------------------:|
-| 1 hour and 30 minutes | `90m` or `1h30m` or `5400` or `5400s` |        `1 hour and 30 minutes`         |
-|         1 day         | `1d` or `24h` or `86400` or `86400s`  |                `1 day`                 |
-|       10 hours        | `10h` or `600m` or `9h60m` or `36000` |               `10 hours`               |
+|     Desired Value     |    Configuration Examples (Short)     | Configuration Examples (Long) |
+| :-------------------: | :-----------------------------------: | :---------------------------: |
+| 1 hour and 30 minutes | `90m` or `1h30m` or `5400` or `5400s` |    `1 hour and 30 minutes`    |
+|         1 day         | `1d` or `24h` or `86400` or `86400s`  |            `1 day`            |
+|       10 hours        | `10h` or `600m` or `9h60m` or `36000` |          `10 hours`           |
 
 ### Address
 
@@ -94,10 +95,9 @@ The address type is a string that indicates how to configure a listener (i.e. li
 Some schemes support parameters, this table describes them.
 
 | Parameter | Listeners | Connectors |                                                                                                           Purpose                                                                                                            |
-|:---------:|:---------:|:----------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :-------: | :-------: | :--------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 |  `umask`  |    Yes    |     No     |                                             Sets the umask prior to creating the socket and restores it after creating it. The value must be an octal number with 3 or 4 digits.                                             |
 |  `path`   |    Yes    |     No     | Sets the path variable to configure the subpath, specifically for a unix socket but technically works for TCP as well. Note that this should just be the alphanumeric portion it should not be prefixed with a forward slash |
-
 
 #### Format
 
@@ -208,7 +208,7 @@ scheme must be one of the following (the listeners and connectors columns indica
 respective address type):
 
 |    Scheme     | Listeners | Connectors | Default Port |                                     Notes                                      |
-|:-------------:|:---------:|:----------:|:------------:|:------------------------------------------------------------------------------:|
+| :-----------: | :-------: | :--------: | :----------: | :----------------------------------------------------------------------------: |
 |     `tcp`     |    Yes    |    Yes     |     N/A      |          Standard TCP Socket which allows IPv4 and/or IPv6 addresses           |
 |    `tcp4`     |    Yes    |    Yes     |     N/A      |              Standard TCP Socket which allows only IPv4 addresses              |
 |    `tcp6`     |    Yes    |    Yes     |     N/A      |              Standard TCP Socket which allows only IPv6 addresses              |
@@ -272,7 +272,7 @@ We support a network syntax which unmarshalls strings into a network range. The 
 notation and assumes a single host (adapted as /32 for IPv4 and /128 for IPv6) if the CIDR suffix is absent.
 
 |                  Example                  |                    CIDR                    |                                       Range                                       |
-|:-----------------------------------------:|:------------------------------------------:|:---------------------------------------------------------------------------------:|
+| :---------------------------------------: | :----------------------------------------: | :-------------------------------------------------------------------------------: |
 |                192.168.0.1                |               192.168.0.1/32               |                                    192.168.0.1                                    |
 |              192.168.1.0/24               |               192.168.1.0/24               |                            192.168.1.0 - 192.168.1.255                            |
 |              192.168.2.1/24               |               192.168.2.0/24               |                            192.168.2.0 - 192.168.2.255                            |
@@ -436,4 +436,3 @@ This contains links to historical anchors.
 ##### Duration Notation Format
 
 See [duration common syntax](#duration).
-

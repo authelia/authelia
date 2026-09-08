@@ -42,7 +42,11 @@ func init() {
 			return err
 		}
 
-		return updateDevEnvFileForDomain(BaseDomain, true)
+		if err = waitUntilProxyRoutesPortal(BaseDomain); err != nil {
+			return err
+		}
+
+		return updateDevEnvFileForDomain(BaseDomain, dockerEnvironment)
 	}
 
 	displayAutheliaLogs := func() error {
@@ -59,7 +63,7 @@ func init() {
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
-		TestTimeout:     2 * time.Minute,
+		TestTimeout:     150 * time.Second,
 		TearDown:        teardown,
 		TearDownTimeout: 2 * time.Minute,
 	})

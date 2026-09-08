@@ -17,12 +17,12 @@ seo:
   noindex: false # false (default) or true
 ---
 
-[Traefik] v1 is a reverse proxy formally supported by __Authelia__.
+[Traefik] v1 is a reverse proxy formally supported by **Authelia**.
 
-*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+_**Important:** When using these guides, it's important to recognize that we cannot provide a guide for every possible
 method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
 configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
-throughout this documentation and in the [See Also](#see-also) section.*
+throughout this documentation and in the [See Also](#see-also) section._
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 Traefik formally has removed support for this version of Traefik. As such we no longer formally support it either. This
@@ -31,9 +31,9 @@ guide will remain at least for a time as a form of legacy support.
 
 ## Get started
 
-It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+It's **_strongly recommended_** that users setting up _Authelia_ for the first time take a look at our
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
-bootstrapping *Authelia*.
+bootstrapping _Authelia_.
 
 ## Trusted Proxies and Integration Security
 
@@ -43,13 +43,13 @@ In addition to this section which is important to read, you should read the
 and perform the validation steps as part of your regular security validation routine when using this integration.
 {{< /callout >}}
 
-*__Important:__ You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
-Especially if you have never read it before.*
+_**Important:** You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
+Especially if you have never read it before._
 
-*__Important:__ The included example is __NOT__ meant for production use. It's used expressly as an example to showcase
+_**Important:** The included example is **NOT** meant for production use. It's used expressly as an example to showcase
 how you can configure multiple IP ranges. You should customize this example to fit your specific architecture and needs.
 You should only include the specific IP address ranges of the trusted proxies within your architecture and should not
-trust entire subnets unless that subnet only has trusted proxies and no other services.*
+trust entire subnets unless that subnet only has trusted proxies and no other services._
 
 [Traefik] by default doesn't trust any other proxies requiring explicit configuration of which proxies are trusted
 and removes potentially fabricated headers that are likely to lead to security issues, and it is difficult to configure
@@ -58,10 +58,10 @@ this incorrectly. This is an important security feature that is common with prox
 In the example we have four commented lines which configure `TrustedIPs` which show an example on adding the following
 networks to the trusted proxy list in [Traefik]:
 
-* 10.0.0.0/8
-* 172.16.0.0/12
-* 192.168.0.0/16
-* fc00::/7
+- 10.0.0.0/8
+- 172.16.0.0/12
+- 192.168.0.0/16
+- fc00::/7
 
 ## Assumptions and Adaptation
 
@@ -73,22 +73,22 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
-* Deployment Scenario:
-  * Single Host
-  * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
-  * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
-  * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
+- Deployment Scenario:
+  - Single Host
+  - Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
+  - Proxy is deployed as a Container on a network shared with Authelia
+- The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
+  - You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
-  * You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
-    * you're using a different container name
-    * you deployed the proxy to a different location
-  * You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
-    * you have adjusted the default port in the configuration
-  * You will have to adapt the entire URL if:
-    * Authelia is on a different host to the proxy
-* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
-  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+  - You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
+    - you're using a different container name
+    - you deployed the proxy to a different location
+  - You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
+    - you have adjusted the default port in the configuration
+  - You will have to adapt the entire URL if:
+    - Authelia is on a different host to the proxy
+- All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
+  - This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
 ## Implementation
@@ -115,6 +115,7 @@ configuration as well as the legacy configuration for context.
 
 {{< sessionTabs "Generate Random Password" >}}
 {{< sessionTab "Modern" >}}
+
 ```yaml {title="configuration.yml"}
 session:
   cookies:
@@ -122,13 +123,16 @@ session:
       authelia_url: 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
       default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
+
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
+
 ```yaml {title="configuration.yml"}
 default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 session:
   domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
+
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
 
@@ -136,10 +140,10 @@ session:
 
 Below you will find commented examples of the following docker deployment:
 
-* [Traefik] 1.x
-* Authelia portal
-* Protected endpoint (Nextcloud)
-* Protected endpoint with `Authorization` header for basic authentication (Heimdall)
+- [Traefik] 1.x
+- Authelia portal
+- Protected endpoint (Nextcloud)
+- Protected endpoint with `Authorization` header for basic authentication (Heimdall)
 
 The below configuration looks to provide examples of running [Traefik] v1 with labels to protect your endpoint
 (Nextcloud in this case).
@@ -150,7 +154,7 @@ for your [Traefik] setup as this is not covered in the example below.
 ### Basic Authentication
 
 Authelia provides the means to be able to authenticate your first factor via the `Proxy-Authorization` header.
-Given that this is not compatible with [Traefik] 1.x you can call the __Authelia__ `/api/verify` endpoint with the
+Given that this is not compatible with [Traefik] 1.x you can call the **Authelia** `/api/verify` endpoint with the
 `auth=basic` query parameter to force a switch to the `Authentication` header.
 
 #### compose.yml
@@ -243,9 +247,9 @@ services:
 
 ## See Also
 
-* [Traefik v1 Documentation](https://doc.traefik.io/traefik/v1.7/)
-* [Traefik v1 All Available Options](https://doc.traefik.io/traefik/v1.7/configuration/entrypoints/#all-available-options)
-* [Forwarded Headers]
+- [Traefik v1 Documentation](https://doc.traefik.io/traefik/v1.7/)
+- [Traefik v1 All Available Options](https://doc.traefik.io/traefik/v1.7/configuration/entrypoints/#all-available-options)
+- [Forwarded Headers]
 
 [Traefik]: https://docs.traefik.io/v1.7/
 [Forwarded Headers]: forwarded-headers

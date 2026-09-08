@@ -26,7 +26,6 @@ The following is guidance on versions of [Redis] supported.
 When it comes to [Redis Standalone] we support the versions supported by [Redis] themselves which can be found in the
 [Redis release cycle] documentation. This is typically the latest available version.
 
-
 ### Sentinel
 
 When it comes to [Redis Sentinel] we support the versions supported by [Redis] themselves which can be found in the

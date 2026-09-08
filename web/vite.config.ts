@@ -1,3 +1,4 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 import checkerPlugin from "vite-plugin-checker";
@@ -5,9 +6,9 @@ import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
 
 export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, process.cwd());
+    const env = loadEnv(mode, ".");
     const allowedHosts = env.VITE_ALLOWED_HOSTS ? env.VITE_ALLOWED_HOSTS.split(",") : [];
-    const isCoverage = process.env.VITE_COVERAGE === "true";
+    const isCoverage = env.VITE_COVERAGE === "true";
     const sourcemap = isCoverage ? "inline" : undefined;
 
     const istanbulPlugin = isCoverage
@@ -46,10 +47,6 @@ export default defineConfig(({ mode }) => {
 
                             const last = chunkInfo.moduleIds.at(-1);
 
-                            if (last?.includes("@mui/")) {
-                                return `static/js/mui.[name].[hash].js`;
-                            }
-
                             if (last) {
                                 const regexp = /authelia\/web\/src\/([a-zA-Z]+)\/([a-zA-Z]+)/;
                                 const match = regexp.exec(last);
@@ -87,17 +84,15 @@ export default defineConfig(({ mode }) => {
             },
             sourcemap,
         },
-        optimizeDeps: {
-            include: ["@emotion/react", "@emotion/styled"],
-        },
         plugins: [
             checkerPlugin({
                 eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx", useFlatConfig: true },
-                typescript: true,
+                typescript: { typescriptPath: "@typescript/native" },
             }),
             istanbulPlugin,
             react(),
             svgr(),
+            tailwindcss(),
         ],
         resolve: {
             tsconfigPaths: true,

@@ -1,0 +1,1 @@
+ALTER TABLE oauth2_refresh_token_session DROP COLUMN access_signature;

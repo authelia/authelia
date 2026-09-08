@@ -34,7 +34,7 @@ likely result in an error or even worse misconfiguration.
 
 Please see the
 [Kubernetes Integration: Enable Service Links](../../integration/kubernetes/introduction.md#enable-service-links)
-documentation for specific requirements for using *Authelia* with Kubernetes.
+documentation for specific requirements for using _Authelia_ with Kubernetes.
 
 ## Mapping
 

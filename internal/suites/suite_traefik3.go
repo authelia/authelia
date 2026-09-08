@@ -44,7 +44,11 @@ func init() {
 			return err
 		}
 
-		return updateDevEnvFileForDomain(BaseDomain, true)
+		if err = waitUntilProxyRoutesPortal(BaseDomain); err != nil {
+			return err
+		}
+
+		return updateDevEnvFileForDomain(BaseDomain, traefik3DockerEnvironment)
 	}
 
 	displayAutheliaLogs := func() error {

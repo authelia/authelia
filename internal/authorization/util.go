@@ -20,7 +20,7 @@ func NewLevel(policy string) Level {
 	case deny:
 		return Denied
 	}
-	// By default the deny policy applies.
+
 	return Denied
 }
 
@@ -88,9 +88,9 @@ func ruleAddDomain(domainRules []string, rule *AccessControlRule) {
 	}
 }
 
-func ruleAddDomainRegex(exps []regexp.Regexp, rule *AccessControlRule) {
-	for _, exp := range exps {
-		subjects, r := NewAccessControlDomainRegex(exp)
+func ruleAddDomainRegex(patterns []regexp.Regexp, rule *AccessControlRule) {
+	for _, p := range patterns {
+		subjects, r := NewAccessControlDomainRegex(p)
 
 		rule.Domains = append(rule.Domains, r)
 
@@ -146,6 +146,7 @@ func domainToPrefixSuffix(domain string) (prefix, suffix string) {
 	return parts[0], strings.Join(parts[1:], ".")
 }
 
+// NewSubjects returns the AccessControlSubjects for the given subject rules.
 func NewSubjects(subjectRules [][]string) (subjects []AccessControlSubjects) {
 	return schemaSubjectsToACL(subjectRules)
 }

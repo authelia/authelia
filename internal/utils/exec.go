@@ -124,7 +124,6 @@ func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 
 // RunCommandWithTimeout run a command with timeout.
 func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
-	// Start a process.
 	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
 	}

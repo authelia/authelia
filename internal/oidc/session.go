@@ -15,7 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
-// NewSession creates a new empty OpenIDSession struct with the requested at value being time.Now().
+// NewSession creates a new empty OpenIDSession struct with the requested at value being [time.Now]().
 func NewSession() (session *Session) {
 	return NewSessionWithRequestedAt(time.Now())
 }
@@ -31,6 +31,7 @@ func NewSessionWithRequestedAt(requestedAt time.Time) (session *Session) {
 	return session
 }
 
+// NewSessionWithIssuerAndRequestedAt returns a new *Session with the given issuer and requested at time.
 func NewSessionWithIssuerAndRequestedAt(ctx Context, issuer *url.URL, requestedAt time.Time) (session *Session) {
 	session = NewSessionWithRequestedAt(requestedAt)
 
@@ -51,6 +52,7 @@ func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string,
 	return session
 }
 
+// AccessTokenSession represents the headers and claims of an Access Token.
 type AccessTokenSession struct {
 	Headers map[string]any `json:"-"`
 	Claims  map[string]any `json:"-"`
@@ -72,7 +74,9 @@ type Session struct {
 	Extra                 map[string]any  `json:"extra"`
 }
 
-// GetSubject returns the subject, if set. This is optional and only used during token introspection.
+// GetSubject returns the subject, if set. This is optional and only used during token introspection and to determine
+// the 'sub' claim of tokens. It falls back to the client identifier for the Client Credentials Flow which has no
+// end-user. Use GetStorageSubject when persisting the subject of a session.
 func (s *Session) GetSubject() string {
 	if s == nil {
 		return ""
@@ -87,6 +91,19 @@ func (s *Session) GetSubject() string {
 	}
 
 	return ""
+}
+
+// GetStorageSubject returns the subject of the authenticated end-user, if any, for storage purposes.
+//
+// Unlike GetSubject this never falls back to the client identifier as the Client Credentials Flow does not have an
+// end-user. The storage layer records this value in columns which have a foreign key relationship with the
+// user_opaque_identifier table, so anything other than an opaque identifier of a known user must be NULL.
+func (s *Session) GetStorageSubject() (subject string) {
+	if s == nil {
+		return ""
+	}
+
+	return s.DefaultSession.GetSubject()
 }
 
 // ValidIssuer returns true if the issuer is valid for this session, false otherwise.
@@ -172,12 +189,14 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 	return claims
 }
 
+// SetValuesFromRequester sets the session values from the given requester.
 func (s *Session) SetValuesFromRequester(requester oauthelia2.Requester) {
 	s.ClientID = requester.GetClient().GetID()
 	s.Claims.AuthorizedParty = requester.GetClient().GetID()
 	s.Claims.Nonce = requester.GetRequestForm().Get(FormParameterNonce)
 }
 
+// SetValuesFromConsentSession sets the session values from the given consent session.
 func (s *Session) SetValuesFromConsentSession(consent *model.OAuth2ConsentSession) {
 	s.SetRequestedAt(consent.RequestedAt)
 
@@ -187,6 +206,7 @@ func (s *Session) SetValuesFromConsentSession(consent *model.OAuth2ConsentSessio
 	s.Claims.Subject = consent.Subject.UUID.String()
 }
 
+// SetValuesGeneral sets the general session values.
 func (s *Session) SetValuesGeneral(ctx Context, issuer *url.URL, kid string, username string, amr []string, authTime time.Time, claims *ClaimsRequests, extra map[string]any) {
 	if issuer != nil {
 		s.Claims.Issuer = issuer.String()
@@ -270,6 +290,7 @@ func ConsentGrantImplicit(consent *model.OAuth2ConsentSession, claims []string, 
 // requirements around consent like not allowing access to a refresh token unless the user has explicitly consented.
 func ConsentGrant(consent *model.OAuth2ConsentSession, explicit bool, claims []string) {
 	consent.GrantAudience()
+	consent.GrantResource()
 	consent.GrantClaims(claims)
 
 	if explicit {

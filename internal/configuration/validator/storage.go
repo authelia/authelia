@@ -113,9 +113,12 @@ func validatePostgreSQLConfiguration(config *schema.StoragePostgreSQL, validator
 		validator.Push(errors.New(errFmtStoragePostgreSQLInvalidSSLAndTLSConfig))
 	case config.TLS != nil:
 		configDefaultTLS := &schema.TLS{
-			ServerName:     config.Address.Hostname(),
 			MinimumVersion: schema.DefaultPostgreSQLStorageConfiguration.TLS.MinimumVersion,
 			MaximumVersion: schema.DefaultPostgreSQLStorageConfiguration.TLS.MaximumVersion,
+		}
+
+		if config.Address != nil {
+			configDefaultTLS.ServerName = config.Address.Hostname()
 		}
 
 		if err := ValidateTLSConfig(config.TLS, configDefaultTLS); err != nil {
@@ -153,8 +156,10 @@ func validatePostgreSQLConfigurationServers(config *schema.StoragePostgreSQL, va
 		}
 
 		if server.TLS != nil {
-			configDefaultTLS := &schema.TLS{
-				ServerName: server.Address.Hostname(),
+			configDefaultTLS := &schema.TLS{}
+
+			if server.Address != nil {
+				configDefaultTLS.ServerName = server.Address.Hostname()
 			}
 
 			if config.TLS != nil {

@@ -437,7 +437,6 @@ func (p *LDAPUserProvider) searchReferrals(request *ldap.SearchRequest, result *
 }
 
 func (p *LDAPUserProvider) getUserProfile(client LDAPExtendedClient, username string) (profile *ldapUserProfile, err error) {
-	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
 		1, 0, false, p.resolveUsersFilter(username), p.usersAttributes, nil,
@@ -510,7 +509,6 @@ func (p *LDAPUserProvider) getUserProfileResultToProfile(username string, entry 
 }
 
 func (p *LDAPUserProvider) getUserProfileExtended(client LDAPExtendedClient, username string) (profile *ldapUserProfileExtended, err error) {
-	// Search for the given username.
 	request := ldap.NewSearchRequest(
 		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
 		1, 0, false, p.resolveUsersFilter(username), p.usersAttributesExtended, nil,

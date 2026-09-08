@@ -73,10 +73,10 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	extensions := map[string]any{}
+	var extensions []webauthn.ExtensionOption
 
 	if user.HasFIDOU2F() {
-		extensions["appid"] = w.Config.RPOrigins[0]
+		extensions = append(extensions, webauthn.WithExtensionAppID(w.Config.RPOrigins[0]))
 	}
 
 	var opts = []webauthn.LoginOption{
@@ -85,7 +85,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if len(extensions) != 0 {
-		opts = append(opts, webauthn.WithAssertionExtensions(extensions))
+		opts = append(opts, webauthn.WithAssertionExtensions(extensions...))
 	}
 
 	var (

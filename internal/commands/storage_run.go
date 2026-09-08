@@ -137,6 +137,7 @@ func (ctx *CmdCtx) ConfigValidateStorageRunE(_ *cobra.Command, _ []string) (err 
 	return nil
 }
 
+// StorageCacheDeleteRunE returns the RunE for the authelia storage cache delete commands.
 func (ctx *CmdCtx) StorageCacheDeleteRunE(name, description string) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		defer func() {
@@ -163,6 +164,7 @@ func runStorageCacheDelete(ctx context.Context, w io.Writer, store storage.Provi
 	return nil
 }
 
+// StorageCacheMDS3StatusRunE is the RunE for the authelia storage cache mds3 status command.
 func (ctx *CmdCtx) StorageCacheMDS3StatusRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {
@@ -215,6 +217,7 @@ func runStorageCacheMDS3Status(ctx context.Context, w io.Writer, store storage.P
 	return nil
 }
 
+// StorageCacheMDS3DumpRunE is the RunE for the authelia storage cache mds3 dump command.
 func (ctx *CmdCtx) StorageCacheMDS3DumpRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {
@@ -279,6 +282,7 @@ func runStorageCacheMDS3Dump(ctx context.Context, w io.Writer, store storage.Pro
 	return nil
 }
 
+// StorageCacheMDS3UpdateRunE is the RunE for the authelia storage cache mds3 update command.
 func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {
@@ -421,6 +425,7 @@ func runStorageSchemaEncryptionRotateKey(ctx context.Context, w io.Writer, store
 	return nil
 }
 
+// StorageSchemaEncryptionCheckRunE is the RunE for the authelia storage encryption check command.
 func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {
@@ -441,7 +446,6 @@ func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []s
 	return runStorageSchemaEncryptionCheckKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, verbose)
 }
 
-//nolint:unparam
 func runStorageSchemaEncryptionCheckKey(ctx context.Context, w io.Writer, store storage.Provider, verbose bool) (err error) {
 	var result storage.EncryptionValidationResult
 	if result, err = store.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
@@ -756,6 +760,7 @@ func runStorageSchemaInfo(ctx context.Context, w io.Writer, store storage.Provid
 	return nil
 }
 
+// StorageBansListRunE returns the RunE for the authelia storage bans list commands.
 func (ctx *CmdCtx) StorageBansListRunE(use string) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		defer func() {
@@ -865,6 +870,7 @@ func runStorageBansListUser(ctx context.Context, w io.Writer, store storage.Prov
 	return tw.Flush()
 }
 
+// StorageBansRevokeRunE returns the RunE for the authelia storage bans revoke commands.
 func (ctx *CmdCtx) StorageBansRevokeRunE(use string) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		defer func() {
@@ -987,6 +993,7 @@ func runStorageBansRevokeUser(ctx context.Context, w io.Writer, store storage.Pr
 	return tw.Flush()
 }
 
+// StorageBansAddRunE returns the RunE for the authelia storage bans add commands.
 func (ctx *CmdCtx) StorageBansAddRunE(use string) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		defer func() {
@@ -1104,6 +1111,7 @@ func runStorageBansAddUser(ctx context.Context, w io.Writer, store storage.Provi
 	return nil
 }
 
+// StorageUserWebAuthnExportRunE is the RunE for the authelia storage user webauthn export command.
 func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, _ []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {
@@ -1186,6 +1194,7 @@ func runStorageUserWebAuthnExport(ctx context.Context, w io.Writer, store storag
 	return nil
 }
 
+// StorageUserWebAuthnImportRunE is the RunE for the authelia storage user webauthn import command.
 func (ctx *CmdCtx) StorageUserWebAuthnImportRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {
@@ -1683,6 +1692,7 @@ func runStorageUserTOTPExport(ctx context.Context, w io.Writer, store storage.Pr
 	return nil
 }
 
+// StorageUserTOTPImportRunE is the RunE for the authelia storage user totp import command.
 func (ctx *CmdCtx) StorageUserTOTPImportRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {
@@ -1736,6 +1746,7 @@ func runStorageUserTOTPImport(ctx context.Context, w io.Writer, store storage.Pr
 	return nil
 }
 
+// StorageUserTOTPExportURIRunE is the RunE for the authelia storage user totp export uri command.
 func (ctx *CmdCtx) StorageUserTOTPExportURIRunE(cmd *cobra.Command, _ []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {
@@ -1787,6 +1798,7 @@ func runStorageUserTOTPExportURI(ctx context.Context, w io.Writer, store storage
 	return nil
 }
 
+// StorageUserTOTPExportCSVRunE is the RunE for the authelia storage user totp export csv command.
 func (ctx *CmdCtx) StorageUserTOTPExportCSVRunE(cmd *cobra.Command, _ []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {
@@ -1846,6 +1858,7 @@ func runStorageUserTOTPExportCSV(ctx context.Context, w io.Writer, store storage
 	return nil
 }
 
+// StorageUserTOTPExportPNGRunE is the RunE for the authelia storage user totp export png command.
 func (ctx *CmdCtx) StorageUserTOTPExportPNGRunE(cmd *cobra.Command, _ []string) (err error) {
 	defer func() {
 		if err := ctx.providers.StorageProvider.Close(); err != nil {

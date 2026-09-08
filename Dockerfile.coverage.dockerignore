@@ -21,4 +21,3 @@ bootstrap.sh
 
 # Overrides
 !.healthcheck.env
-!.local

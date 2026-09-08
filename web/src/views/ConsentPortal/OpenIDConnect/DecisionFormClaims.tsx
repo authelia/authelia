@@ -1,29 +1,31 @@
-import { ChangeEvent, FC, Fragment, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
-import { Box, Checkbox, FormControlLabel, List, Tooltip } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
+import { Checkbox } from "@components/UI/Checkbox";
+import { Label } from "@components/UI/Label";
 import { formatClaim } from "@services/ConsentOpenIDConnect";
+import DecisionFormSection, { DecisionFormSectionItem } from "@views/ConsentPortal/OpenIDConnect/DecisionFormSection";
 
 export interface Props {
     onChangeChecked: (_claims: string[]) => void;
     claims: null | string[];
+    checked: string[];
     essential_claims: null | string[];
 }
 
-const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeChecked }: Props) => {
+function DecisionFormClaims({ checked, claims, essential_claims, onChangeChecked }: Props) {
     const { t: translate } = useTranslation(["consent"]);
 
-    const checked = useMemo(() => claims || [], [claims]);
+    const availableClaims = useMemo(() => claims || [], [claims]);
 
-    const handleClaimCheckboxOnChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const checking = !checked.includes(event.target.value);
+    const handleClaimCheckboxOnChange = (claim: string) => {
+        const checking = !checked.includes(claim);
 
         if (checking) {
-            onChangeChecked([...checked, event.target.value]);
+            onChangeChecked([...checked, claim]);
         } else {
-            onChangeChecked(checked.filter((value) => value !== event.target.value));
+            onChangeChecked(checked.filter((value) => value !== claim));
         }
     };
 
@@ -34,50 +36,63 @@ const DecisionFormClaims: FC<Props> = ({ claims, essential_claims, onChangeCheck
         [checked],
     );
 
-    const hasClaims = essential_claims || claims;
+    const label = useCallback(
+        (claim: string) => formatClaim(translate(`claims.${claim}`, { nsSeparator: false }), claim),
+        [translate],
+    );
+
+    const identifier = useCallback(
+        (claim: string) => (label(claim).toLowerCase() === claim.toLowerCase() ? null : claim),
+        [label],
+    );
+
+    const hasClaims = (essential_claims && essential_claims.length > 0) || availableClaims.length > 0;
+
+    if (!hasClaims) {
+        return null;
+    }
 
     return (
-        <Fragment>
-            {hasClaims ? (
-                <Grid size={{ xs: 12 }}>
-                    <Box sx={{ textAlign: "center" }}>
-                        <List
-                            sx={{
-                                backgroundColor: (theme) => theme.palette.background.paper,
-                                display: "inline-block",
-                                marginBottom: (theme) => theme.spacing(2),
-                                marginTop: (theme) => theme.spacing(2),
-                            }}
-                        >
-                            {essential_claims?.map((claim: string) => (
-                                <Tooltip key={`${claim}-essential`} title={translate("Claim", { name: claim })}>
-                                    <FormControlLabel
-                                        control={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
-                                        label={formatClaim(translate(`claims.${claim}`), claim)}
-                                    />
-                                </Tooltip>
-                            ))}
-                            {claims?.map((claim: string) => (
-                                <Tooltip key={claim} title={translate("Claim", { name: claim })}>
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                id={"claim-" + claim}
-                                                value={claim}
-                                                checked={claimChecked(claim)}
-                                                onChange={handleClaimCheckboxOnChange}
-                                            />
-                                        }
-                                        label={formatClaim(translate(`claims.${claim}`), claim)}
-                                    />
-                                </Tooltip>
-                            ))}
-                        </List>
-                    </Box>
-                </Grid>
-            ) : null}
-        </Fragment>
+        <DecisionFormSection
+            id={"openid-consent-claims"}
+            title={translate("Information Shared")}
+            description={translate("The information about you the application will receive")}
+        >
+            {essential_claims?.map((claim: string) => (
+                <DecisionFormSectionItem
+                    key={`${claim}-essential`}
+                    icon={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
+                    identifier={identifier(claim)}
+                    actions={
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[0.625rem] font-medium tracking-wide text-muted-foreground uppercase">
+                            {translate("Required")}
+                        </span>
+                    }
+                >
+                    <Label htmlFor={`claim-${claim}-essential`} className="text-sm">
+                        {label(claim)}
+                    </Label>
+                </DecisionFormSectionItem>
+            ))}
+            {availableClaims.map((claim: string) => (
+                <DecisionFormSectionItem
+                    key={claim}
+                    icon={
+                        <Checkbox
+                            id={`claim-${claim}`}
+                            checked={claimChecked(claim)}
+                            onCheckedChange={() => handleClaimCheckboxOnChange(claim)}
+                        />
+                    }
+                    identifier={identifier(claim)}
+                >
+                    <Label htmlFor={`claim-${claim}`} className="text-sm">
+                        {label(claim)}
+                    </Label>
+                </DecisionFormSectionItem>
+            ))}
+        </DecisionFormSection>
     );
-};
+}
 
 export default DecisionFormClaims;

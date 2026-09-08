@@ -23,5 +23,3 @@ may now support some that were not previously supported, or in rare cases they m
 did.
 
 {{< table-totp-support >}}
-
-

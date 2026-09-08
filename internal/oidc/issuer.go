@@ -5,17 +5,18 @@ import (
 	"crypto"
 	"sort"
 
-	"github.com/go-jose/go-jose/v4"
-
+	"authelia.com/provider/oauth2/token/jose"
 	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+// NewIssuer returns a new *Issuer given the provided JSON Web Keys.
 func NewIssuer(keys []schema.JWK) (issuer *Issuer) {
 	return &Issuer{jwks: NewJSONWebKeySet(keys), kid: NewIssuerDefaultKeyID(keys)}
 }
 
+// NewIssuerDefaultKeyID returns the key id of the default signing key in the provided JSON Web Keys.
 func NewIssuerDefaultKeyID(keys []schema.JWK) (kid string) {
 	for _, key := range keys {
 		if key.Use != KeyUseSignature || key.Algorithm != SigningAlgRSAUsingSHA256 {
@@ -28,6 +29,7 @@ func NewIssuerDefaultKeyID(keys []schema.JWK) (kid string) {
 	return ""
 }
 
+// NewJSONWebKeySet returns a *jose.JSONWebKeySet given the provided JSON Web Keys.
 func NewJSONWebKeySet(jwks []schema.JWK) (jwkSet *jose.JSONWebKeySet) {
 	if len(jwks) == 0 {
 		return nil
@@ -44,6 +46,7 @@ func NewJSONWebKeySet(jwks []schema.JWK) (jwkSet *jose.JSONWebKeySet) {
 	return &jose.JSONWebKeySet{Keys: keys}
 }
 
+// NewJSONWebKeySetPublic returns a *jose.JSONWebKeySet with only the public portion of the provided JSON Web Keys.
 func NewJSONWebKeySetPublic(jwks []schema.JWK) (jwkSet *jose.JSONWebKeySet) {
 	keys := make([]jose.JSONWebKey, len(jwks))
 
@@ -58,6 +61,7 @@ func NewJSONWebKeySetPublic(jwks []schema.JWK) (jwkSet *jose.JSONWebKeySet) {
 	return &jose.JSONWebKeySet{Keys: keys}
 }
 
+// NewJSONWebKey returns a jose.JSONWebKey given the provided JSON Web Key.
 func NewJSONWebKey(key schema.JWK) (jwk jose.JSONWebKey) {
 	jwk = jose.JSONWebKey{
 		Key:                         key.Key,
@@ -72,6 +76,7 @@ func NewJSONWebKey(key schema.JWK) (jwk jose.JSONWebKey) {
 	return jwk
 }
 
+// Issuer holds the JSON Web Key Set used to issue tokens along with the default key id.
 type Issuer struct {
 	kid  string
 	jwks *jose.JSONWebKeySet
@@ -86,6 +91,7 @@ func (i *Issuer) GetKeyID(ctx context.Context, kid, alg string) string {
 	return i.kid
 }
 
+// GetPublicJSONWebKeys returns the public portion of the JSON Web Key Set.
 func (i *Issuer) GetPublicJSONWebKeys(ctx Context) (jwks *jose.JSONWebKeySet) {
 	keys := make([]jose.JSONWebKey, len(i.jwks.Keys))
 
@@ -98,10 +104,33 @@ func (i *Issuer) GetPublicJSONWebKeys(ctx Context) (jwks *jose.JSONWebKeySet) {
 	}
 }
 
+// GetIssuerJWK returns the JSON Web Key which matches the given kid, alg, and use.
 func (i *Issuer) GetIssuerJWK(ctx context.Context, kid, alg, use string) (jwk *jose.JSONWebKey, err error) {
-	return jwt.SearchJWKS(i.jwks, kid, alg, use, false)
+	return i.searchJWKS(kid, alg, use, false)
 }
 
+// GetIssuerStrictJWK returns the JSON Web Key which strictly matches the given kid, alg, and use.
 func (i *Issuer) GetIssuerStrictJWK(ctx context.Context, kid, alg, use string) (jwk *jose.JSONWebKey, err error) {
-	return jwt.SearchJWKS(i.jwks, kid, alg, use, true)
+	return i.searchJWKS(kid, alg, use, true)
+}
+
+func (i *Issuer) searchJWKS(kid, alg, use string, strict bool) (jwk *jose.JSONWebKey, err error) {
+	if jwk, err = jwt.SearchJWKS(i.jwks, kid, alg, use, strict); err == nil {
+		return jwk, nil
+	}
+
+	paired, ok := SigningAlgEdwardsPair(alg)
+	if !ok {
+		return nil, err
+	}
+
+	pairedJWK, pairedErr := jwt.SearchJWKS(i.jwks, kid, paired, use, strict)
+	if pairedErr != nil {
+		return nil, err
+	}
+
+	edwards := *pairedJWK
+	edwards.Algorithm = alg
+
+	return &edwards, nil
 }

@@ -2,7 +2,6 @@
 services:
   authelia-frontend:
     cpus: 2
-    mem_limit: 4g
     build:
       context: 'example/compose/authelia'
       dockerfile: 'Dockerfile.frontend'
@@ -16,6 +15,7 @@ services:
       - './example/compose/authelia/resources/:/resources'
       - '../../web:/app'
       - '~/.local/share/pnpm/store:/app/.pnpm-store'
+      - '/app/node_modules'
     labels:
       traefik.enable: 'true'
       traefik.http.routers.authelia_frontend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix:-}/`)'  # yamllint disable-line rule:line-length

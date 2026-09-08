@@ -442,13 +442,15 @@ func TestShouldReturnCheckServerSearchErrorPooled(t *testing.T) {
 		mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
 		searchOIDs,
 		clientBind,
+		mockClient.EXPECT().IsClosing().Return(false),
+		mockClient.EXPECT().Search(gomock.Any()).Return(nil, errors.New("could not perform the search")),
+		mockClient.EXPECT().Close().Return(nil),
 		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClientSecond, nil),
 		mockClientSecond.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
 		mockClientSecond.EXPECT().Search(gomock.Any()).Return(&ldap.SearchResult{}, nil),
 		clientBindSecond,
+		mockClientSecond.EXPECT().IsClosing().Return(false),
 		mockClientSecond.EXPECT().Close().Return(nil),
-		mockClient.EXPECT().IsClosing().Return(false),
-		mockClient.EXPECT().Close().Return(nil),
 	)
 
 	assert.NoError(t, provider.StartupCheck())
@@ -537,11 +539,13 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 		mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
 		NewRootDSESearchRequest(mockClient, fmt.Errorf("failed")),
 		clientBind,
+		mockClient.EXPECT().IsClosing().Return(false),
+		NewRootDSESearchRequest(mockClient, fmt.Errorf("failed")),
+		mockClient.EXPECT().Close().Return(nil),
 		mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).Return(mockClient, nil),
 		mockClient.EXPECT().SetTimeout(gomock.Eq(time.Second*0)),
 		NewRootDSESearchRequest(mockClient, fmt.Errorf("failed")),
 		clientBindSecond,
-		mockClient.EXPECT().Close().Return(nil),
 		mockClient.EXPECT().IsClosing().Return(false),
 		mockClient.EXPECT().Close().Return(nil),
 	)

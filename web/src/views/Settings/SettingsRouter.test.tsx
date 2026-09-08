@@ -1,5 +1,5 @@
 import { act, render } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 
 import { useAutheliaState } from "@hooks/State";
 import SettingsRouter from "@views/Settings/SettingsRouter";

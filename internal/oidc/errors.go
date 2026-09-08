@@ -21,7 +21,7 @@ var (
 	ErrSubjectCouldNotLookup = oauthelia2.ErrServerError.WithHint("Could not lookup user subject.")
 
 	// ErrConsentCouldNotPerform is sent when the Consent Session couldn't be performed for varying reasons.
-	ErrConsentCouldNotPerform = oauthelia2.ErrServerError.WithHint("Could not perform consent.")
+	ErrConsentCouldNotPerform = oauthelia2.ErrInvalidRequest.WithHint("Could not perform consent. The consent session has already been granted, has expired, or otherwise does not appear to be valid for the authorization request.")
 
 	// ErrConsentCouldNotGenerate is sent when the Consent Session failed to be generated for some reason, usually a failed UUIDv4 generation.
 	ErrConsentCouldNotGenerate = oauthelia2.ErrServerError.WithHint("Could not generate the consent session.")
@@ -35,18 +35,27 @@ var (
 	// ErrConsentMalformedChallengeID is sent when the Consent ID is not a UUID.
 	ErrConsentMalformedChallengeID = oauthelia2.ErrServerError.WithHint("Malformed consent session challenge ID.")
 
+	// ErrClientAuthorizationUserAccessDenied is sent when the user is denied access to a client.
 	ErrClientAuthorizationUserAccessDenied = oauthelia2.ErrAccessDenied.WithHint("The user was denied access to this client.")
+
+	// errClientRegistrationNotSupported is returned by the client registration management methods of the Store. This
+	// Authorization Server registers clients from its configuration and serves neither the RFC 7591 registration
+	// endpoint nor the RFC 7592 management endpoint, so these methods are unreachable in practice.
+	errClientRegistrationNotSupported = oauthelia2.ErrNotFound.WithHint("Dynamic Client Registration is not supported by this Authorization Server.")
 )
 
+// RedirectAuthorizeErrorFieldResponseStrategyConfig is the configuration used by the RedirectAuthorizeErrorFieldResponseStrategy.
 type RedirectAuthorizeErrorFieldResponseStrategyConfig interface {
 	oauthelia2.SendDebugMessagesToClientsProvider
 	GetContext(ctx context.Context) (octx Context)
 }
 
+// RedirectAuthorizeErrorFieldResponseStrategy is a strategy which writes authorization errors to the Authelia error page.
 type RedirectAuthorizeErrorFieldResponseStrategy struct {
 	Config RedirectAuthorizeErrorFieldResponseStrategyConfig
 }
 
+// WriteErrorFieldResponse writes the error response for the given requester.
 func (s *RedirectAuthorizeErrorFieldResponseStrategy) WriteErrorFieldResponse(ctx context.Context, rw http.ResponseWriter, requester oauthelia2.AuthorizeRequester, rfc *oauthelia2.RFC6749Error) {
 	var (
 		issuer *url.URL

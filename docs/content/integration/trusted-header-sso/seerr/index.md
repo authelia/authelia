@@ -23,26 +23,26 @@ seo:
 
 ## Introduction
 
-This is a guide on integration of __Authelia__ and [Seerr] via the trusted header SSO authentication.
+This is a guide on integration of **Authelia** and [Seerr] via the trusted header SSO authentication.
 
 As with all guides in this section it's important you read the [introduction](../introduction.md) first.
 
 ## Tested Versions
 
-* Authelia:
-  * v4.39.18
-* [Seerr] Server
+- Authelia:
+  - v4.39.18
+- [Seerr] Server
 
 ## Before You Begin
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://seerr.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __User Email Domain:__ `@{{< sitevar name="domain" nojs="example.com" >}}`
-* Seerr has been initialized already with a user to configure this. Trusted header SSO **cannot** be used to auto-create users.
-* Trusted header SSO can only be used when trust proxy is enabled.
-* This feature will only work if a list of trusted proxies is provided.
+- **Application Root URL:** `https://seerr.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **User Email Domain:** `@{{< sitevar name="domain" nojs="example.com" >}}`
+- Seerr has been initialized already with a user to configure this. Trusted header SSO **cannot** be used to auto-create users.
+- Trusted header SSO can only be used when trust proxy is enabled.
+- This feature will only work if a list of trusted proxies is provided.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 

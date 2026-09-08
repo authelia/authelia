@@ -18,7 +18,7 @@ seo:
 ---
 
 |                  Proxy                  | [Implementation] |                 [Standard](#standard)                 |                                [Kubernetes](#kubernetes)                                 |   [XHR Redirect](#xhr-redirect)   | [Request Method](#request-method) |
-|:---------------------------------------:|:----------------:|:-----------------------------------------------------:|:----------------------------------------------------------------------------------------:|:---------------------------------:|:---------------------------------:|
+| :-------------------------------------: | :--------------: | :---------------------------------------------------: | :--------------------------------------------------------------------------------------: | :-------------------------------: | :-------------------------------: |
 |     [Traefik] ([guide](/i/traefik))     |  [ForwardAuth]   |   {{% support support="full" link="/i/traefik" %}}    |  {{% support support="full" link="../../integration/kubernetes/traefik-ingress.md" %}}   |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
 |       [Caddy] ([guide](/i/caddy))       |  [ForwardAuth]   |    {{% support support="full" link="/i/caddy" %}}     |                            {{% support support="unknown" %}}                             |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
 |       [Envoy] ([guide](/i/envoy))       |    [ExtAuthz]    |    {{% support support="full" link="/i/envoy" %}}     | {{% support support="full" link="../../integration/kubernetes/envoy/introduction.md" %}} | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
@@ -39,7 +39,7 @@ seo:
 Legend:
 
 |               Icon                |                  Meaning                  |
-|:---------------------------------:|:-----------------------------------------:|
+| :-------------------------------: | :---------------------------------------: |
 |  {{% support support="full" %}}   |                 Supported                 |
 | {{% support support="unknown" %}} |                  Unknown                  |
 | {{% support support="partial" %}} | Partially Supported and/or Legacy Support |
@@ -52,8 +52,8 @@ Legend:
 
 Standard support includes the essential features in securing an application with Authelia such as:
 
-* Redirecting users to the Authelia portal if they are not authenticated.
-* Redirecting users to the target application after authentication has occurred successfully.
+- Redirecting users to the Authelia portal if they are not authenticated.
+- Redirecting users to the target application after authentication has occurred successfully.
 
 It does not include actually running Authelia as a service behind the proxy, any proxy should be compatible with serving
 the Authelia portal itself. Standard support is only important for protected applications.

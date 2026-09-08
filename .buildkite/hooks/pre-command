@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
-
 set +u
 
+# shellcheck source=/dev/null
+source "$(dirname "${BASH_SOURCE[0]}")/../libs/common.sh"
+
 INTEGRATION() {
-  if [[ "${BUILDKITE_BRANCH}" =~ ^renovate- ]]; then
-    sed -i "s/${CONTAINER}/${CONTAINER}:renovate/" "${FILE}"
-  elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ ! "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-    sed -i "s/${CONTAINER}/${CONTAINER}:${BUILDKITE_BRANCH}/" "${FILE}"
-  elif [[ "${BUILDKITE_BRANCH}" != "master" ]] && [[ "${BUILDKITE_BRANCH}" =~ .*:.* ]]; then
-    sed -i "s/${CONTAINER}/${CONTAINER}:PR${BUILDKITE_PULL_REQUEST}/" "${FILE}"
+  resolve_tag_suffix
+
+  if [[ -n "${TAG_SUFFIX}" ]]; then
+    sed -i "s/${CONTAINER}/${CONTAINER}:${TAG_SUFFIX}/" "${FILE}"
+    echo "Integration container tag: ${CONTAINER}:${TAG_SUFFIX}"
+  else
+    echo "Integration container tag: ${CONTAINER} (no suffix applied)"
   fi
 }
 
 if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
   pnpm -C web install
+  pnpm -C docs install --no-optional
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
@@ -37,10 +41,6 @@ if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
   else
     buildkite-agent artifact download "*.cdx.json" .
   fi
-fi
-
-if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
-  cp -R /buildkite/.local .
 fi
 
 if [[ "${BUILDKITE_LABEL}" =~ :selenium: ]]; then

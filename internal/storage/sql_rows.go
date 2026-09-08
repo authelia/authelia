@@ -13,6 +13,12 @@ type ConsentPreConfigRows struct {
 	rows *sqlx.Rows
 }
 
+// NewConsentPreConfigRows returns a *ConsentPreConfigRows for the given *sqlx.Rows. It exists so consumers outside of
+// this package, notably test doubles of the Provider, can produce a value which iterates like the real thing.
+func NewConsentPreConfigRows(rows *sqlx.Rows) *ConsentPreConfigRows {
+	return &ConsentPreConfigRows{rows: rows}
+}
+
 // Next is the row iterator.
 func (r *ConsentPreConfigRows) Next() bool {
 	if r.rows == nil {

@@ -61,88 +61,19 @@ func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 		pnpmInstall()
 	}
 
-	bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
-	prepareHostsFile()
+	// /etc/hosts is machine wide but the addresses behind those names are per slot, so a slotted shell must not claim
+	// it: the tests resolve the suite domains themselves through suites.HostResolverRules and suites.DialContext, and
+	// leaving the file alone is what keeps an unslotted working tree browsable while a slotted one runs.
+	if slot := os.Getenv("SUITE_SLOT"); slot != "" {
+		bootstrapPrintln("Leaving /etc/hosts alone because this shell holds suite slot " + slot)
+	} else {
+		bootstrapPrintln("Preparing /etc/hosts to serve subdomains of example.com...")
+		prepareHostsFile()
+	}
 
 	fmt.Println()
 	bootstrapPrintln("Run 'authelia-scripts suites setup Standalone' to start Authelia and visit https://home.example.com:8080.")
 	bootstrapPrintln("More details at https://www.authelia.com/contributing/development/build-and-test/")
-}
-
-func hostEntries() []HostEntry {
-	backend := suites.SuiteAddress(50)
-	portal := suites.SuiteAddress(100)
-	ssh := suites.SuiteAddress(130)
-
-	entries := []HostEntry{
-		// For unit tests.
-		{Domain: "local.example.com", IP: "127.0.0.1"},
-
-		// For authelia backend.
-		{Domain: "authelia.example.com", IP: backend},
-
-		// For common tests.
-		{Domain: "login.example.com", IP: portal},
-		{Domain: "admin.example.com", IP: portal},
-		{Domain: "singlefactor.example.com", IP: portal},
-		{Domain: "deny.example.com", IP: portal},
-		{Domain: "dev.example.com", IP: portal},
-		{Domain: "home.example.com", IP: portal},
-		{Domain: "mx1.mail.example.com", IP: portal},
-		{Domain: "mx2.mail.example.com", IP: portal},
-		{Domain: "public.example.com", IP: portal},
-		{Domain: "secure.example.com", IP: portal},
-		{Domain: "mail.example.com", IP: portal},
-		{Domain: "duo.example.com", IP: portal},
-
-		// For HAProxy suite.
-		{Domain: "haproxy.example.com", IP: portal},
-
-		// Kubernetes dashboard.
-		{Domain: "kubernetes.example.com", IP: portal},
-
-		// OIDC tester app.
-		{Domain: "oidc.example.com", IP: portal},
-		{Domain: "oidc-public.example.com", IP: portal},
-
-		// For Traefik suite.
-		{Domain: "traefik.example.com", IP: portal},
-
-		// For testing network ACLs.
-		{Domain: "proxy-client1.example.com", IP: suites.SuiteAddress(201)},
-		{Domain: "proxy-client2.example.com", IP: suites.SuiteAddress(202)},
-		{Domain: "proxy-client3.example.com", IP: suites.SuiteAddress(203)},
-
-		// Redis Replicas.
-		{Domain: "redis-node-0.example.com", IP: suites.SuiteAddress(110)},
-		{Domain: "redis-node-1.example.com", IP: suites.SuiteAddress(111)},
-		{Domain: "redis-node-2.example.com", IP: suites.SuiteAddress(112)},
-
-		// Redis Sentinel Replicas.
-		{Domain: "redis-sentinel-0.example.com", IP: suites.SuiteAddress(120)},
-		{Domain: "redis-sentinel-1.example.com", IP: suites.SuiteAddress(121)},
-		{Domain: "redis-sentinel-2.example.com", IP: suites.SuiteAddress(122)},
-
-		// For PAM suite.
-		{Domain: "ssh.example.com", IP: ssh},
-	}
-
-	return slices.Concat(entries, hostEntriesCookieDomains(portal))
-}
-
-func hostEntriesCookieDomains(ip string) []HostEntry {
-	domains := []string{"example2.com", "example3.com"}
-	subdomains := []string{"login", "admin", "singlefactor", "dev", "home", "mx1.mail", "mx2.mail", "public", "secure", "mail", "duo"}
-
-	entries := make([]HostEntry, 0, len(domains)*len(subdomains))
-
-	for _, domain := range domains {
-		for _, subdomain := range subdomains {
-			entries = append(entries, HostEntry{Domain: subdomain + "." + domain, IP: ip})
-		}
-	}
-
-	return entries
 }
 
 func runCommand(cmd string, args ...string) {
@@ -171,7 +102,7 @@ func checkCommandExist(cmd string, resolutionHint string) {
 }
 
 func createTemporaryDirectory() {
-	err := os.MkdirAll("/tmp/authelia", 0755)
+	err := os.MkdirAll(suites.SuiteTmpPath("authelia"), 0755)
 	if err != nil {
 		panic(err)
 	}
@@ -272,7 +203,7 @@ func prepareHostsFile() {
 	toBeAddedLine := make([]string, 0)
 	modified := false
 
-	entries := hostEntries()
+	entries := suites.HostEntries()
 
 	addresses := make(map[string]string, len(entries))
 
@@ -321,7 +252,7 @@ func prepareHostsFile() {
 		modified = true
 	}
 
-	fd, err := os.CreateTemp("/tmp/authelia/", "hosts")
+	fd, err := os.CreateTemp(suites.SuiteTmpPath("authelia"), "hosts")
 	if err != nil {
 		panic(err)
 	}
@@ -342,7 +273,6 @@ func prepareHostsFile() {
 	}
 }
 
-// ReadHostsFile reads the hosts file.
 func readHostsFile() ([]byte, error) {
 	bs, err := os.ReadFile("/etc/hosts")
 	if err != nil {

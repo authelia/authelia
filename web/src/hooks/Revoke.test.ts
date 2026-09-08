@@ -1,9 +1,9 @@
 import { renderHook } from "@testing-library/react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 import { useID, useToken } from "@hooks/Revoke";
 
-vi.mock("react-router-dom", () => ({
+vi.mock("react-router", () => ({
     useSearchParams: vi.fn(),
 }));
 

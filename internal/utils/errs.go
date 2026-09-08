@@ -5,14 +5,17 @@ import (
 	"runtime"
 )
 
-// ErrSliceSortAlphabetical is a helper type that can be used with sort.Sort to sort a slice of errors in alphabetical
-// order. Usage is simple just do sort.Sort(ErrSliceSortAlphabetical([]error{})).
+// ErrSliceSortAlphabetical is a helper type that can be used with [sort.Sort] to sort a slice of errors in alphabetical
+// order. Usage is simple just do [sort.Sort](ErrSliceSortAlphabetical([]error{})).
 type ErrSliceSortAlphabetical []error
 
+// Len implements the [sort.Interface].
 func (s ErrSliceSortAlphabetical) Len() int { return len(s) }
 
+// Less implements the [sort.Interface].
 func (s ErrSliceSortAlphabetical) Less(i, j int) bool { return s[i].Error() < s[j].Error() }
 
+// Swap implements the [sort.Interface].
 func (s ErrSliceSortAlphabetical) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 // GetExpectedErrTxt returns error text for expected errs. THIS IS A TEST UTILITY FUNCTION.

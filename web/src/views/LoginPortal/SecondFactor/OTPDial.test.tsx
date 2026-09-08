@@ -2,12 +2,6 @@ import { render, screen } from "@testing-library/react";
 
 import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
 
-vi.mock("react18-input-otp", () => ({
-    default: (props: any) => (
-        <div data-testid="otp-input" data-disabled={props.isDisabled} data-num-inputs={props.numInputs} />
-    ),
-}));
-
 vi.mock("@components/SuccessIcon", () => ({
     default: () => <div data-testid="success-icon" />,
 }));
@@ -25,9 +19,14 @@ vi.mock("@views/LoginPortal/SecondFactor/IconWithContext", () => ({
     ),
 }));
 
+const inputs = () =>
+    Array.from(document.querySelectorAll("#otp-input input")).filter(
+        (el) => el.getAttribute("aria-hidden") !== "true",
+    ) as HTMLInputElement[];
+
 it("renders OTP input with correct digit count", () => {
     render(<OTPDial passcode="" state={State.Idle} digits={6} period={30} onChange={vi.fn()} />);
-    expect(screen.getByTestId("otp-input")).toHaveAttribute("data-num-inputs", "6");
+    expect(inputs()).toHaveLength(6);
 });
 
 it("renders timer icon in idle state", () => {
@@ -42,10 +41,26 @@ it("renders success icon in success state", () => {
 
 it("disables input during in-progress state", () => {
     render(<OTPDial passcode="" state={State.InProgress} digits={6} period={30} onChange={vi.fn()} />);
-    expect(screen.getByTestId("otp-input")).toHaveAttribute("data-disabled", "true");
+    expect(inputs().every((el) => el.disabled)).toBe(true);
 });
 
 it("disables input during rate-limited state", () => {
     render(<OTPDial passcode="" state={State.RateLimited} digits={6} period={30} onChange={vi.fn()} />);
-    expect(screen.getByTestId("otp-input")).toHaveAttribute("data-disabled", "true");
+    expect(inputs().every((el) => el.disabled)).toBe(true);
+});
+
+it("names the field and marks the failure state for assistive technology", () => {
+    const { container, unmount } = render(
+        <OTPDial passcode="" state={State.Idle} digits={6} period={30} onChange={vi.fn()} />,
+    );
+
+    const labeledBy = inputs()[0].getAttribute("aria-labelledby");
+    expect(labeledBy).toBeTruthy();
+    expect(container.querySelector(`#${CSS.escape(labeledBy!)}`)?.textContent).toBe("Enter One-Time Password");
+    expect(inputs().every((el) => el.getAttribute("aria-labelledby") === labeledBy)).toBe(true);
+    expect(inputs()[0]).toHaveAttribute("aria-invalid", "false");
+    unmount();
+
+    render(<OTPDial passcode="123" state={State.Failure} digits={6} period={30} onChange={vi.fn()} />);
+    expect(inputs().every((el) => el.getAttribute("aria-invalid") === "true")).toBe(true);
 });

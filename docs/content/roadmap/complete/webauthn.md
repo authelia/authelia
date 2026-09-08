@@ -34,12 +34,12 @@ due to how important or difficult to implement they are.
 
 Implement [WebAuthn] as a replacement for [FIDO U2F] with backwards compatibility.
 
-|                       Setting                        |     Value      |                                                                Effect                                                                |
-|:----------------------------------------------------:|:--------------:|:------------------------------------------------------------------------------------------------------------------------------------:|
-|              [Conveyancing Preference]               |    indirect    | Configurable: ask users to permit collection of the AAGUID, this is like a model number, this GUID will be stored in the SQL storage |
-|           [User Verification Requirement]            |   preferred    |                           Configurable: ask the browser to prompt for the users PIN or other verification                            |
-|              [Resident Key Requirement]              |  discouraged   |                                       See the [passwordless login stage](#passwordless-login)                                        |
-|              [Authenticator Attachment]              | cross-platform |                                   See the [platform authenticator stage](#platform-authenticator)                                    |
+|             Setting             |     Value      |                                                                Effect                                                                |
+| :-----------------------------: | :------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
+|    [Conveyancing Preference]    |    indirect    | Configurable: ask users to permit collection of the AAGUID, this is like a model number, this GUID will be stored in the SQL storage |
+| [User Verification Requirement] |   preferred    |                           Configurable: ask the browser to prompt for the users PIN or other verification                            |
+|   [Resident Key Requirement]    |  discouraged   |                                       See the [passwordless login stage](#passwordless-login)                                        |
+|   [Authenticator Attachment]    | cross-platform |                                   See the [platform authenticator stage](#platform-authenticator)                                    |
 
 ### Multi Device Registration
 
@@ -80,7 +80,6 @@ registration.
 [Resident Key Requirement]: https://www.w3.org/TR/webauthn-2/#enum-residentKeyRequirement
 [Authenticator Attachment]: https://www.w3.org/TR/webauthn-2/#enum-attachment
 [FIDO AppID Extension]: https://www.w3.org/TR/webauthn-2/#sctn-appid-extension
-
 [Windows Hello]: https://support.microsoft.com/en-us/windows/learn-about-windows-hello-and-set-it-up-dae28983-8242-bb2a-d3d1-87c9d265a5f0
 [TouchID]: https://support.apple.com/en-us/HT201371
 [FaceID]: https://support.apple.com/en-au/HT208109

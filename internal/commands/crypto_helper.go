@@ -46,7 +46,7 @@ func cmdFlagsCryptoCertificateGenerate(cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameFileCertificate, "public.crt", "name of the file to export the certificate data to")
 	cmd.Flags().String(cmdFlagNameFileBundleChain, "public.chain.pem", fmt.Sprintf("name of the file to export the certificate chain PEM bundle to when the --%s flag includes 'chain'", cmdFlagNameBundles))
 	cmd.Flags().String(cmdFlagNameFileBundlePrivKeyChain, "private.chain.pem", fmt.Sprintf("name of the file to export the certificate chain and private key PEM bundle to when the --%s flag includes 'priv-chain'", cmdFlagNameBundles))
-	cmd.Flags().StringSlice(cmdFlagNameBundles, nil, "enables generating bundles options are 'chain' and 'privkey-chain'")
+	cmd.Flags().StringSlice(cmdFlagNameBundles, nil, "enables generating bundles options are 'chain' and 'priv-chain'")
 
 	cmd.Flags().StringSlice(cmdFlagNameExtendedUsage, nil, "specify the extended usage types of the certificate")
 
@@ -77,6 +77,10 @@ func cmdFlagsCryptoPrivateKeyECDSA(cmd *cobra.Command) {
 }
 
 func cmdFlagsCryptoPrivateKeyEd25519(cmd *cobra.Command) {
+}
+
+func cmdFlagsCryptoPrivateKeyMLDSA(cmd *cobra.Command) {
+	cmd.Flags().StringP(cmdFlagNameParameters, "b", utils.KeyMLDSAParameters65, "Sets the ML-DSA parameter set which can be ML-DSA-44, ML-DSA-65, or ML-DSA-87")
 }
 
 func cryptoSANsToString(dnsSANs []string, ipSANs []net.IP) (sans []string) {
@@ -167,6 +171,18 @@ func (ctx *CmdCtx) cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey an
 	case cmdUseEd25519:
 		if _, privateKey, err = ed25519.GenerateKey(ctx.providers.Random); err != nil {
 			return nil, fmt.Errorf("generating Ed25519 private key resulted in an error: %w", err)
+		}
+	case cmdUseMLDSA:
+		var (
+			parameters string
+		)
+
+		if parameters, err = cmd.Flags().GetString(cmdFlagNameParameters); err != nil {
+			return nil, err
+		}
+
+		if privateKey, err = utils.GenerateMLDSAKey(parameters); err != nil {
+			return nil, fmt.Errorf("generating ML-DSA private key resulted in an error: %w", err)
 		}
 	}
 
@@ -339,8 +355,15 @@ func cryptoGetSANsFromCmd(cmd *cobra.Command) (dnsSANs []string, ipSANs []net.IP
 }
 
 func cryptoGetAlgFromCmd(cmd *cobra.Command) (keyAlg x509.PublicKeyAlgorithm, sigAlg x509.SignatureAlgorithm) {
-	sigAlgStr, _ := cmd.Flags().GetString(cmdFlagNameSignature)
+	var sigAlgStr string
+
 	keyAlgStr := cmd.Parent().Use
+
+	if keyAlgStr == cmdUseMLDSA {
+		sigAlgStr, _ = cmd.Flags().GetString(cmdFlagNameParameters)
+	} else {
+		sigAlgStr, _ = cmd.Flags().GetString(cmdFlagNameSignature)
+	}
 
 	return utils.KeySigAlgorithmFromString(keyAlgStr, sigAlgStr)
 }
@@ -525,10 +548,46 @@ func fmtCryptoHashUse(use string) string {
 	}
 }
 
+func cryptoKeyProperties(privateKey any) (properties string, legacy bool) {
+	switch k := privateKey.(type) {
+	case *rsa.PrivateKey:
+		return fmt.Sprintf(", Bits: %d", k.N.BitLen()), true
+	case *ecdsa.PrivateKey:
+		return fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name), true
+	case ed25519.PrivateKey:
+		return "", false
+	default:
+		if parameters, ok := utils.MLDSAParameterSetFromKey(k); ok {
+			return fmt.Sprintf(", Parameters: %s", parameters), false
+		}
+
+		return "", true
+	}
+}
+
+func cryptoKeyAlgorithm(privateKey any) (algorithm string, legacy bool) {
+	switch k := privateKey.(type) {
+	case *rsa.PrivateKey:
+		return fmt.Sprintf("RSA-%d %d bits", k.Size(), k.N.BitLen()), true
+	case *ecdsa.PrivateKey:
+		return fmt.Sprintf("ECDSA Curve %s", k.Curve.Params().Name), true
+	case ed25519.PrivateKey:
+		return "Ed25519", false
+	default:
+		if parameters, ok := utils.MLDSAParameterSetFromKey(k); ok {
+			return parameters, false
+		}
+
+		return "", true
+	}
+}
+
 func fmtCryptoCertificateUse(use string) string {
 	switch use {
 	case cmdUseEd25519:
 		return "Ed25519"
+	case cmdUseMLDSA:
+		return "ML-DSA"
 	default:
 		return strings.ToUpper(use)
 	}

@@ -53,10 +53,13 @@ type Providers struct {
 	UserAttributeResolver expression.UserAttributeResolver
 	MetaDataService       webauthn.MetaDataProvider
 
+	GarbageCollector *GarbageCollector
+
 	Random random.Provider
 	Clock  clock.Provider
 }
 
+// Context represents the context used by the middlewares.
 type Context interface {
 	GetClock() (clock clock.Provider)
 	GetRandom() (random random.Provider)
@@ -68,6 +71,7 @@ type Context interface {
 	context.Context
 }
 
+// ServiceContext represents the context used by the services.
 type ServiceContext interface {
 	GetClock() (clock clock.Provider)
 	GetRandom() (random random.Provider)

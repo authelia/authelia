@@ -186,7 +186,7 @@ func (s *ForwardAuthAuthzSuite) TestShouldHandleAllMethodsXHRDeny() {
 
 func (s *ForwardAuthAuthzSuite) TestShouldHandleInvalidMethodCharsDeny() {
 	for _, method := range testRequestMethods {
-		method += "z"
+		method += "1"
 
 		s.T().Run(fmt.Sprintf("Method%s", method), func(t *testing.T) {
 			for _, targetURI := range []*url.URL{
@@ -531,4 +531,57 @@ func setRequestForwardAuth(ctx *middlewares.AutheliaCtx, method string, targetUR
 	}
 
 	setRequestXHRValues(ctx, accept, xhr)
+}
+
+func TestHandleAuthzGetObjectForwardAuth(t *testing.T) {
+	testCases := []struct {
+		name           string
+		method         string
+		expectedMethod string
+		err            string
+	}{
+		{
+			"ShouldUseForwardedMethod",
+			fasthttp.MethodPost,
+			fasthttp.MethodPost,
+			"",
+		},
+		{
+			"ShouldNormalizeLowercaseForwardedMethod",
+			"post",
+			fasthttp.MethodPost,
+			"",
+		},
+		{
+			"ShouldRejectEmptyForwardedMethod",
+			"",
+			"",
+			"header 'X-Forwarded-Method' is empty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+			mock.Ctx.Request.Header.Set("X-Forwarded-Host", "app.example.com")
+			mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
+
+			if tc.method != "" {
+				mock.Ctx.Request.Header.Set("X-Forwarded-Method", tc.method)
+			}
+
+			object, err := handleAuthzGetObjectForwardAuth(mock.Ctx)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedMethod, object.Method)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
 }

@@ -11,6 +11,7 @@ var defaults = map[string]any{
 	"server.endpoints.rate_limits.reset_password_finish.enable":                       true,
 	"server.endpoints.rate_limits.second_factor_totp.enable":                          true,
 	"server.endpoints.rate_limits.second_factor_duo.enable":                           true,
+	"server.endpoints.rate_limits.second_factor_password.enable":                      true,
 	"server.endpoints.rate_limits.session_elevation_start.enable":                     true,
 	"server.endpoints.rate_limits.session_elevation_finish.enable":                    true,
 	"webauthn.selection_criteria.discoverability":                                     "preferred",

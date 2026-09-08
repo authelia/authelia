@@ -19,6 +19,7 @@ seo:
 This feature will pave the way to adding lots of useful user facing features.
 
 It will be important when we implement:
+
 - WebAuthn features like passwordless authentication allowing users to intentionally register a passwordless credential.
 - Session management features.
 - Many other user self-service related features.

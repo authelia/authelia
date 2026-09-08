@@ -48,15 +48,19 @@ it("renders children", async () => {
     expect(screen.getByTestId("child")).toBeInTheDocument();
 });
 
-it("renders navigation items in drawer", async () => {
+it("renders navigation items", async () => {
     await act(async () => {
         render(<SettingsLayout />);
+    });
+
+    await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
     });
 
     expect(screen.getByText("Overview")).toBeInTheDocument();
     expect(screen.getByText("Security")).toBeInTheDocument();
     expect(screen.getByText("Two-Factor Authentication")).toBeInTheDocument();
-    expect(screen.getByText("Close")).toBeInTheDocument();
+    expect(screen.getAllByText("Close").length).toBeGreaterThanOrEqual(1);
 });
 
 it("sets the document title", async () => {
@@ -67,21 +71,13 @@ it("sets the document title", async () => {
     expect(document.title).toContain("Settings");
 });
 
-it("opens drawer when menu button is clicked", async () => {
+it("navigates when a nav item is clicked", async () => {
     await act(async () => {
         render(<SettingsLayout />);
     });
 
     await act(async () => {
         fireEvent.click(screen.getByLabelText("open drawer"));
-    });
-
-    expect(screen.getByRole("presentation")).toBeInTheDocument();
-});
-
-it("navigates when a nav item is clicked", async () => {
-    await act(async () => {
-        render(<SettingsLayout />);
     });
 
     await act(async () => {
@@ -103,6 +99,10 @@ it("does not navigate when the selected nav item is clicked", async () => {
     });
 
     await act(async () => {
+        fireEvent.click(screen.getByLabelText("open drawer"));
+    });
+
+    await act(async () => {
         fireEvent.click(screen.getByText("Overview"));
     });
 
@@ -113,42 +113,4 @@ it("does not navigate when the selected nav item is clicked", async () => {
         value: { pathname: "/" },
         writable: true,
     });
-});
-
-it("does not close drawer on Tab keydown event", async () => {
-    await act(async () => {
-        render(<SettingsLayout />);
-    });
-
-    await act(async () => {
-        fireEvent.click(screen.getByLabelText("open drawer"));
-    });
-
-    const drawerContent = screen.getByText("Overview").closest("[role='presentation']")!;
-
-    await act(async () => {
-        const event = new KeyboardEvent("keydown", { bubbles: true, key: "Tab" });
-        drawerContent.dispatchEvent(event);
-    });
-
-    expect(screen.getByRole("presentation")).toBeInTheDocument();
-});
-
-it("does not close drawer on Shift keydown event", async () => {
-    await act(async () => {
-        render(<SettingsLayout />);
-    });
-
-    await act(async () => {
-        fireEvent.click(screen.getByLabelText("open drawer"));
-    });
-
-    const drawerContent = screen.getByText("Overview").closest("[role='presentation']")!;
-
-    await act(async () => {
-        const event = new KeyboardEvent("keydown", { bubbles: true, key: "Shift" });
-        drawerContent.dispatchEvent(event);
-    });
-
-    expect(screen.getByRole("presentation")).toBeInTheDocument();
 });

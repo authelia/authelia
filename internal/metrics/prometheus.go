@@ -34,21 +34,23 @@ type Prometheus struct {
 	authn2FACounter     *prometheus.CounterVec
 }
 
+// GetRegisterer returns the prometheus.Registerer.
 func (r *Prometheus) GetRegisterer() prometheus.Registerer {
 	return r.registry
 }
 
+// GetGatherer returns the prometheus.Gatherer.
 func (r *Prometheus) GetGatherer() prometheus.Gatherer {
 	return r.registry
 }
 
-// RecordRequest takes the statusCode string, requestMethod string, and the elapsed time.Duration to record the request and request duration metrics.
+// RecordRequest takes the statusCode string, requestMethod string, and the elapsed [time.Duration] to record the request and request duration metrics.
 func (r *Prometheus) RecordRequest(statusCode, requestMethod string, elapsed time.Duration) {
 	r.reqCounter.WithLabelValues(statusCode, requestMethod).Inc()
 	r.reqDuration.WithLabelValues(statusCode).Observe(elapsed.Seconds())
 }
 
-// RecordRequestOpenIDConnect takes the statusCode string, requestMethod string, and the elapsed time.Duration to record the request and request duration metrics.
+// RecordRequestOpenIDConnect takes the endpoint string, statusCode string, and the elapsed [time.Duration] to record the OpenID Connect 1.0 request duration metrics.
 func (r *Prometheus) RecordRequestOpenIDConnect(endpoint, statusCode string, elapsed time.Duration) {
 	r.reqDurationOIDC.WithLabelValues(endpoint, statusCode).Observe(elapsed.Seconds())
 }
@@ -70,7 +72,7 @@ func (r *Prometheus) RecordAuthn(success, banned bool, authType string) {
 	}
 }
 
-// RecordAuthenticationDuration takes the statusCode string, requestMethod string, and the elapsed time.Duration to record the request and request duration metrics.
+// RecordAuthenticationDuration takes the success bool and the elapsed [time.Duration] to record the authentication duration metrics.
 func (r *Prometheus) RecordAuthenticationDuration(success bool, elapsed time.Duration) {
 	r.authnDuration.WithLabelValues(strconv.FormatBool(success)).Observe(elapsed.Seconds())
 }

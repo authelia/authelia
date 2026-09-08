@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.20](https://github.com/authelia/authelia/releases/tag/v4.39.20)
+  - [v4.39.22](https://github.com/authelia/authelia/releases/tag/v4.39.22)
 - [Unreal Engine]
   - [v5.6](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-5-6-release-notes)
 
@@ -33,9 +33,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://unreal-engine.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `unreal-engine`
+- **Application Root URL:** `https://unreal-engine.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `unreal-engine`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Unreal Engine] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Unreal Engine] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}

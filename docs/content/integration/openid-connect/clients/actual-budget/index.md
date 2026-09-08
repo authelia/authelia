@@ -33,13 +33,13 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Application Root URL:** `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-        `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/login`.
-        This means if you change this value, you need to update the redirect URI.
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `actual-budget`
-- __Client Secret:__ `insecure_secret`
+    `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+    This means if you change this value, you need to update the redirect URI.
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `actual-budget`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -49,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Actual Budget] which
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Actual Budget] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}

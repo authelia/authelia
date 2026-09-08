@@ -25,6 +25,7 @@ type WebAuthn struct {
 	Metadata          WebAuthnMetadata          `koanf:"metadata" yaml:"metadata,omitempty" toml:"metadata,omitempty" json:"metadata,omitempty" jsonschema:"title=Metadata" jsonschema_description:"WebAuthn Metadata Service settings."`
 }
 
+// WebAuthnMetadata represents the WebAuthn Metadata Service configuration.
 type WebAuthnMetadata struct {
 	Enabled bool `koanf:"enabled" yaml:"enabled" toml:"enabled" json:"enabled" jsonschema:"default=false,title=Enabled" jsonschema_description:"Enables the use of the WebAuthn Metadata Service."`
 
@@ -39,12 +40,14 @@ type WebAuthnMetadata struct {
 	ValidateStatusProhibited []metadata.AuthenticatorStatus `koanf:"validate_status_prohibited" yaml:"validate_status_prohibited,omitempty" toml:"validate_status_prohibited,omitempty" json:"validate_status_prohibited,omitempty" jsonschema:"enum=FIDO_NOT_CERTIFIED,enum=FIDO_CERTIFIED,enum=USER_VERIFICATION_BYPASS,enum=ATTESTATION_KEY_COMPROMISE,enum=USER_KEY_REMOTE_COMPROMISE,enum=USER_KEY_PHYSICAL_COMPROMISE,enum=UPDATE_AVAILABLE,enum=REVOKED,enum=SELF_ASSERTION_SUBMITTED,enum=FIDO_CERTIFIED_L1,enum=FIDO_CERTIFIED_L1plus,enum=FIDO_CERTIFIED_L2,enum=FIDO_CERTIFIED_L2plus,enum=FIDO_CERTIFIED_L3,enum=FIDO_CERTIFIED_L3plus,title=Validate Status (Prohibited Statuses)" jsonschema_description:"WebAuthn Authenticator status validation can prohibit certain statuses. Generally this is discouraged as the defaults are safe."`
 }
 
+// WebAuthnSelectionCriteria represents the WebAuthn authenticator selection criteria configuration.
 type WebAuthnSelectionCriteria struct {
 	Attachment       protocol.AuthenticatorAttachment     `koanf:"attachment" yaml:"attachment,omitempty" toml:"attachment,omitempty" json:"attachment,omitempty" jsonschema:"default=,enum=,enum=platform,enum=cross-platform,title=Attachment" jsonschema_description:"WebAuthn Authenticator attachment preference."`
 	Discoverability  protocol.ResidentKeyRequirement      `koanf:"discoverability" yaml:"discoverability,omitempty" toml:"discoverability,omitempty" json:"discoverability,omitempty" jsonschema:"default=preferred,enum=discouraged,enum=preferred,enum=required,title=Discoverability Selection" jsonschema_description:"The default discoverable preference when registering WebAuthn credentials."`
 	UserVerification protocol.UserVerificationRequirement `koanf:"user_verification" yaml:"user_verification,omitempty" toml:"user_verification,omitempty" json:"user_verification,omitempty" jsonschema:"default=preferred,enum=discouraged,enum=preferred,enum=required,title=User Verification" jsonschema_description:"The default user verification preference for all WebAuthn credentials."`
 }
 
+// WebAuthnFiltering represents the WebAuthn authenticator filtering configuration.
 type WebAuthnFiltering struct {
 	ProhibitBackupEligibility bool        `koanf:"prohibit_backup_eligibility" yaml:"prohibit_backup_eligibility" toml:"prohibit_backup_eligibility" json:"prohibit_backup_eligibility" jsonschema:"default=false,title=Prohibit Backup Eligibility" jsonschema_description:"Prohibits registering authenticators which claim backup eligibility i.e. exporting credentials off of the device."`
 	PermittedAAGUIDs          []uuid.UUID `koanf:"permitted_aaguids" yaml:"permitted_aaguids,omitempty" toml:"permitted_aaguids,omitempty" json:"permitted_aaguids,omitempty" jsonschema:"title=Permitted AAGUIDs" jsonschema_description:"List of allowed WebAuthn AAGUIDs. No other authenticator can be registered."`

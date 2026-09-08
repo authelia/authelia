@@ -1,6 +1,6 @@
-import { FC, lazy } from "react";
+import { lazy } from "react";
 
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router";
 
 import { ConsentDecisionSubRoute, ConsentOpenIDDeviceAuthorizationSubRoute } from "@constants/Routes";
 import { UserInfo } from "@models/UserInfo";
@@ -15,7 +15,7 @@ export interface Props {
     state: AutheliaState;
 }
 
-const ConsentPortal: FC<Props> = (props: Props) => {
+function ConsentPortal(props: Props) {
     return (
         <Routes>
             <Route
@@ -28,6 +28,6 @@ const ConsentPortal: FC<Props> = (props: Props) => {
             />
         </Routes>
     );
-};
+}
 
 export default ConsentPortal;

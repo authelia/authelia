@@ -17,7 +17,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-The __Authelia__ team aims to abide by the [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) policy. This
+The **Authelia** team aims to abide by the [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) policy. This
 means that we use the format `<major>.<minor>.<patch>` for our version numbers, where a change to `major` denotes a
 breaking change which will likely require user interaction to upgrade, `minor` which denotes a new feature, and `patch`
 denotes a fix.
@@ -109,5 +109,3 @@ Notable examples:
 
 - [OpenID Connect 1.0](../configuration/identity-providers/openid-connect/provider.md)
 - [File Filters](../configuration/methods/files.md#file-filters)
-
-

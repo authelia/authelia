@@ -14,14 +14,14 @@ seo:
   noindex: false # false (default) or true
 ---
 
-No telemetry data is collected by any *Authelia* binaries, tooling, etc by default and all telemetry data is intended
-to be used by administrators of their individual *Authelia* installs.
+No telemetry data is collected by any _Authelia_ binaries, tooling, etc by default and all telemetry data is intended
+to be used by administrators of their individual _Authelia_ installs.
 
 ## Metrics
 
 ### Prometheus
 
-*Authelia* supports exporting [Prometheus] metrics. These metrics are served on a separate port at the `/metrics` path
+_Authelia_ supports exporting [Prometheus] metrics. These metrics are served on a separate port at the `/metrics` path
 when configured. If metrics are enabled the metrics listener listens on `:9959` as per the officially
 [registered port] unless configured otherwise.
 
@@ -36,15 +36,14 @@ when configured. If metrics are enabled the metrics listener listens on `:9959` 
     - targets: ['{{< sitevar name="host" nojs="authelia" >}}:9959']
 ```
 
-*Notes: Replace '{{< sitevar name="host" nojs="authelia" >}}' with the URL or IP of your Authelia container.*
-
+_Notes: Replace '{{< sitevar name="host" nojs="authelia" >}}' with the URL or IP of your Authelia container._
 
 #### Recorded Metrics
 
 ##### Vectored Counters
 
 |        Name         |           Vectors           |       Description        |
-|:-------------------:|:---------------------------:|:------------------------:|
+| :-----------------: | :-------------------------: | :----------------------: |
 |       request       |      `code`, `method`       |       All Requests       |
 |        authz        |           `code`            |      Authz Requests      |
 |        authn        |     `success`, `banned`     |   Authn Requests (1FA)   |
@@ -54,7 +53,7 @@ when configured. If metrics are enabled the metrics listener listens on `:9959` 
 ##### Vectored Histograms
 
 |              Name               |      Vectors       |                                                    Buckets                                                    |
-|:-------------------------------:|:------------------:|:-------------------------------------------------------------------------------------------------------------:|
+| :-----------------------------: | :----------------: | :-----------------------------------------------------------------------------------------------------------: |
 |         authn_duration          |     `success`      | .0005, .00075, .001, .005, .01, .025, .05, .075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 1, 5, 10, 15, 30, 60 |
 |        request_duration         |       `code`       |                   .005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20, 30, 40, 50, 60                    |
 | request_duration_openid_connect | `endpoint`, `code` |                   .005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20, 30, 40, 50, 60                    |
@@ -105,7 +104,7 @@ importing an existing one.
 
 #### Community Dashboard
 
-*Authelia* provides a community-maintained [Grafana] dashboard, which is intended to serve as an example to explore
+_Authelia_ provides a community-maintained [Grafana] dashboard, which is intended to serve as an example to explore
 the available metrics.
 
 ##### Installation
@@ -116,4 +115,3 @@ To import the dashboard into [Grafana], either download the JSON file
 [Prometheus]: https://prometheus.io/
 [Grafana]: https://grafana.com/
 [registered port]: https://github.com/prometheus/prometheus/wiki/Default-port-allocations
-

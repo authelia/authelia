@@ -13,7 +13,7 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
-// NewCredentialCacheHMAC creates a new CredentialCacheHMAC with a given hash.Hash func and lifespan.
+// NewCredentialCacheHMAC creates a new CredentialCacheHMAC with a given [hash.Hash] func and lifespan.
 func NewCredentialCacheHMAC(h func() hash.Hash, lifespan time.Duration) *CredentialCacheHMAC {
 	secret := make([]byte, h().BlockSize())
 
@@ -41,6 +41,7 @@ type CredentialCacheHMAC struct {
 	values map[string]CachedCredential
 }
 
+// Check returns true if the given password is valid for the given username, and true if the result was cached.
 func (c *CredentialCacheHMAC) Check(ctx Context, username, password string) (valid, cached bool, err error) {
 	var (
 		key string
@@ -154,6 +155,7 @@ func (c *CredentialCacheHMAC) put(ctx Context, username string, value []byte) (e
 	return nil
 }
 
+// FlightResult is the result of a credential check shared between duplicate in-flight checks.
 type FlightResult struct {
 	Valid  bool
 	Cached bool

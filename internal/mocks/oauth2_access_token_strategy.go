@@ -56,9 +56,9 @@ func (mr *MockAccessTokenStrategyMockRecorder) AccessTokenSignature(ctx, token a
 }
 
 // GenerateAccessToken mocks base method.
-func (m *MockAccessTokenStrategy) GenerateAccessToken(ctx context.Context, requester oauth2.Requester) (string, string, error) {
+func (m *MockAccessTokenStrategy) GenerateAccessToken(ctx context.Context, request oauth2.Requester) (string, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateAccessToken", ctx, requester)
+	ret := m.ctrl.Call(m, "GenerateAccessToken", ctx, request)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -66,9 +66,9 @@ func (m *MockAccessTokenStrategy) GenerateAccessToken(ctx context.Context, reque
 }
 
 // GenerateAccessToken indicates an expected call of GenerateAccessToken.
-func (mr *MockAccessTokenStrategyMockRecorder) GenerateAccessToken(ctx, requester any) *gomock.Call {
+func (mr *MockAccessTokenStrategyMockRecorder) GenerateAccessToken(ctx, request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateAccessToken", reflect.TypeOf((*MockAccessTokenStrategy)(nil).GenerateAccessToken), ctx, requester)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateAccessToken", reflect.TypeOf((*MockAccessTokenStrategy)(nil).GenerateAccessToken), ctx, request)
 }
 
 // IsOpaqueAccessToken mocks base method.
@@ -86,15 +86,15 @@ func (mr *MockAccessTokenStrategyMockRecorder) IsOpaqueAccessToken(ctx, token an
 }
 
 // ValidateAccessToken mocks base method.
-func (m *MockAccessTokenStrategy) ValidateAccessToken(ctx context.Context, requester oauth2.Requester, token string) error {
+func (m *MockAccessTokenStrategy) ValidateAccessToken(ctx context.Context, request oauth2.Requester, token string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ValidateAccessToken", ctx, requester, token)
+	ret := m.ctrl.Call(m, "ValidateAccessToken", ctx, request, token)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ValidateAccessToken indicates an expected call of ValidateAccessToken.
-func (mr *MockAccessTokenStrategyMockRecorder) ValidateAccessToken(ctx, requester, token any) *gomock.Call {
+func (mr *MockAccessTokenStrategyMockRecorder) ValidateAccessToken(ctx, request, token any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateAccessToken", reflect.TypeOf((*MockAccessTokenStrategy)(nil).ValidateAccessToken), ctx, requester, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateAccessToken", reflect.TypeOf((*MockAccessTokenStrategy)(nil).ValidateAccessToken), ctx, request, token)
 }

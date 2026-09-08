@@ -98,18 +98,18 @@ possible.
 
 1. Only replace the purchased portion of domains:
    - For example if you have `auth.abc123.com` and `app.abc123.com` they
-   should become `auth.example.com` and `app.example.com`, i.e. replace all instances of `abc123.com` with `example.com`.
+     should become `auth.example.com` and `app.example.com`, i.e. replace all instances of `abc123.com` with `example.com`.
 2. Make sure value replaced is replaced with a unique value:
    - For example if you replace `abc123.com` with `example.com` DO NOT replace any other value other than `abc123.com` with
-   `example.com`. The same rule applies to IP addresses, usernames, and groups.
+     `example.com`. The same rule applies to IP addresses, usernames, and groups.
 3. Make sure the value replaced is replaced across logs, configuration, and any references:
    - For example if you replace `abc123.com` with `example.com` in your configuration, make exactly the same replacement
-   for the log files.
+     for the log files.
 4. Make sure this consistency is followed for all communication regarding a single issue.
 
 ### Multiple Domains
 
-*__Replacement Value:__* `example#.com` (where `#` is a unique number per domain)
+_**Replacement Value:**_ `example#.com` (where `#` is a unique number per domain)
 
 In instances where there are multiple domains it's recommended these domains are replaced with `example1.com`,
 `example2.com`, etc.

@@ -171,7 +171,8 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "description": "FileUserDatabaseUserDetailsAddressModel represents the address of a user in the file user database."
     },
     "PasswordDigest": {
       "type": "string",

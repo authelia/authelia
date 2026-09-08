@@ -1,6 +1,7 @@
-import { Button } from "@mui/material";
+import { House } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@components/UI/Button";
 import { IndexRoute } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
@@ -16,7 +17,8 @@ const HomeButton = function () {
     };
 
     return (
-        <Button id={"home-button"} color={"secondary"} onClick={handleHomeClick}>
+        <Button id={"home-button"} variant={"outline"} color={"default"} onClick={handleHomeClick}>
+            <House />
             {translate("Home")}
         </Button>
     );

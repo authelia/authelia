@@ -9,10 +9,12 @@ import (
 	"golang.org/x/text/language"
 )
 
+// NewAuthorization returns a new empty Authorization.
 func NewAuthorization() *Authorization {
 	return &Authorization{}
 }
 
+// Authorization represents a parsed Authorization or Proxy-Authorization header value.
 type Authorization struct {
 	parsed    bool
 	scheme    AuthorizationScheme
@@ -22,18 +24,22 @@ type Authorization struct {
 	password  string
 }
 
+// SchemeRaw returns the scheme exactly as it appeared in the parsed header value.
 func (a *Authorization) SchemeRaw() string {
 	return a.rawscheme
 }
 
+// Scheme returns the parsed AuthorizationScheme.
 func (a *Authorization) Scheme() AuthorizationScheme {
 	return a.scheme
 }
 
+// Value returns the value portion of the parsed header value.
 func (a *Authorization) Value() string {
 	return a.value
 }
 
+// EncodeHeader returns the header value representation of this Authorization.
 func (a *Authorization) EncodeHeader() string {
 	if !a.parsed {
 		return ""
@@ -49,6 +55,7 @@ func (a *Authorization) EncodeHeader() string {
 	}
 }
 
+// Basic returns the username and password provided the parsed scheme is the basic scheme.
 func (a *Authorization) Basic() (username, password string) {
 	if !a.parsed {
 		return "", ""
@@ -62,6 +69,7 @@ func (a *Authorization) Basic() (username, password string) {
 	}
 }
 
+// BasicUsername returns the username provided the parsed scheme is the basic scheme.
 func (a *Authorization) BasicUsername() (username string) {
 	if !a.parsed {
 		return ""
@@ -75,6 +83,7 @@ func (a *Authorization) BasicUsername() (username string) {
 	}
 }
 
+// ParseBasic parses the given username and password as the basic scheme.
 func (a *Authorization) ParseBasic(username, password string) (err error) {
 	if a.parsed {
 		return fmt.Errorf("invalid state: this scheme has already performed a parse action")
@@ -98,6 +107,7 @@ func (a *Authorization) ParseBasic(username, password string) (err error) {
 	return nil
 }
 
+// ParseBearer parses the given token as the bearer scheme.
 func (a *Authorization) ParseBearer(bearer string) (err error) {
 	if a.parsed {
 		return fmt.Errorf("invalid state: this scheme has already performed a parse action")
@@ -114,6 +124,7 @@ func (a *Authorization) ParseBearer(bearer string) (err error) {
 	return nil
 }
 
+// Parse parses the given raw header value.
 func (a *Authorization) Parse(raw string) (err error) {
 	if a.parsed {
 		return fmt.Errorf("invalid state: this scheme has already performed a parse action")
@@ -195,10 +206,12 @@ func (a *Authorization) validateSchemeBearerValue(bearer string) (err error) {
 	}
 }
 
+// ParseBytes parses the given raw header value as a byte slice.
 func (a *Authorization) ParseBytes(raw []byte) (err error) {
 	return a.Parse(string(raw))
 }
 
+// NewAuthorizationSchemes returns the AuthorizationSchemes for the given raw scheme names.
 func NewAuthorizationSchemes(schemes ...string) AuthorizationSchemes {
 	var s AuthorizationSchemes
 
@@ -214,8 +227,10 @@ func NewAuthorizationSchemes(schemes ...string) AuthorizationSchemes {
 	return s
 }
 
+// AuthorizationSchemes represents a group of AuthorizationScheme values.
 type AuthorizationSchemes []AuthorizationScheme
 
+// Has returns true if the given AuthorizationScheme is in this group.
 func (s AuthorizationSchemes) Has(scheme AuthorizationScheme) bool {
 	for _, value := range s {
 		if scheme == value {
@@ -226,8 +241,10 @@ func (s AuthorizationSchemes) Has(scheme AuthorizationScheme) bool {
 	return false
 }
 
+// AuthorizationScheme represents the scheme of an Authorization header value.
 type AuthorizationScheme int
 
+// String returns the string representation of this AuthorizationScheme.
 func (s AuthorizationScheme) String() string {
 	switch s {
 	case AuthorizationSchemeBasic:
@@ -239,6 +256,7 @@ func (s AuthorizationScheme) String() string {
 	}
 }
 
+// AuthorizationScheme values.
 const (
 	AuthorizationSchemeNone AuthorizationScheme = iota
 	AuthorizationSchemeBasic

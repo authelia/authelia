@@ -302,7 +302,7 @@ subjects:
     namespace: kubernetes-dashboard
 ...
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: IngressRouteTCP
 metadata:
   name: kubernetes-dashboard-ingress
@@ -320,7 +320,7 @@ spec:
 ...
 # Traefik Dashboard
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: traefik-dashboard-ingress
@@ -336,7 +336,7 @@ spec:
           kind: TraefikService
 ...
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: ServersTransport
 metadata:
   name: skipverify

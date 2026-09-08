@@ -89,39 +89,39 @@ Here are some key areas of focus (specifically surrounding SSO):
 1. Finish the OpenID Connect 1.0 implementation. The certification is great but there are a few things on my mind that
    ideally need to be addressed before we remove the experimental / beta status, most of which are traditionally
    breaking changes:
-    - Consent Policies need to be reworked. Specifically we should make them reusable like other policies, and we should
-      ensure it clearly represents only the default behavior when the client does not request something that explicitly
-      requires some behavior. For example the prompt parameter can require the display of a login, account selection,
-      consent, or require nothing is shown visually to the user.
-    - We need to implement multi-issuer configuration to compliment the multi-domain configuration. Each domain should
-      require an explicit OpenID Connect 1.0 configuration if you want to use it on that domain.
-    - Database Storage of Issuers and Clients. This has become an obvious requirement. We don't want to remove the
-      option for users to configure this via the config file but there are several features that will rely on it being
-      an option.
+   - Consent Policies need to be reworked. Specifically we should make them reusable like other policies, and we should
+     ensure it clearly represents only the default behavior when the client does not request something that explicitly
+     requires some behavior. For example the prompt parameter can require the display of a login, account selection,
+     consent, or require nothing is shown visually to the user.
+   - We need to implement multi-issuer configuration to compliment the multi-domain configuration. Each domain should
+     require an explicit OpenID Connect 1.0 configuration if you want to use it on that domain.
+   - Database Storage of Issuers and Clients. This has become an obvious requirement. We don't want to remove the
+     option for users to configure this via the config file but there are several features that will rely on it being
+     an option.
 2. Implement High-Impact OpenID Connect 1.0 Specification Extensions:
    - We plan to implement several impactful extensions; many of which should be straightforward, though we can reassess
      if needed (I don't think we want to delay OpenID Connect 1.0 Relying Party support too long):
-       - Dynamic Client Registration (Dynamic OP Profile)
-       - Session Management (Session OP Profile)
-       - Front-Channel Logout (Front-Channel OP Profile)
-       - Back-Channel Logout (Back-Channel OP Profile)
-       - RP-Initiated Logout (RP-Initiated OP Profile)
-       - Client Initiated Backchannel Authentication Flow (3rd Party-Init OP Profile)
-       - OAuth 2.0 Token Exchange
+     - Dynamic Client Registration (Dynamic OP Profile)
+     - Session Management (Session OP Profile)
+     - Front-Channel Logout (Front-Channel OP Profile)
+     - Back-Channel Logout (Back-Channel OP Profile)
+     - RP-Initiated Logout (RP-Initiated OP Profile)
+     - Client Initiated Backchannel Authentication Flow (3rd Party-Init OP Profile)
+     - OAuth 2.0 Token Exchange
 3. In No Particular Order:
    - Fully implement authentication method references:
-       - By allowing customized authorization policies using authentication method references we unlock a large future
-         potential for Authelia and allow administrators fine-grained control over authorization.
+     - By allowing customized authorization policies using authentication method references we unlock a large future
+       potential for Authelia and allow administrators fine-grained control over authorization.
    - WebFinger
    - [Federated Credential Management (FedCM)](https://www.w3.org/TR/fedcm/)
    - Implement the OpenID Connect 1.0 Relying Party role:
-      - Allow users to link their social accounts to other OpenID Connect 1.0 Providers, and subsequently sign in with
-        them.
-      - Allow administrators to configure trusting the authentication method references from these providers allowing
-        seamless SSO, and for those that are untrusted only assume the password was provided.
+     - Allow users to link their social accounts to other OpenID Connect 1.0 Providers, and subsequently sign in with
+       them.
+     - Allow administrators to configure trusting the authentication method references from these providers allowing
+       seamless SSO, and for those that are untrusted only assume the password was provided.
    - [SAML 2.0](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0.html):
-      - This is a widely requested feature and we will absolutely implement it. We just wanted to ensure we had a strong
-        foundation before we do so.
+     - This is a widely requested feature and we will absolutely implement it. We just wanted to ensure we had a strong
+       foundation before we do so.
 
 # Specification Support
 

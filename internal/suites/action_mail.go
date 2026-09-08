@@ -20,6 +20,7 @@ const (
 	emailPollTimeout  = time.Second * 5
 )
 
+// EmailMessagesResponse represents the response from the mail server messages endpoint.
 type EmailMessagesResponse struct {
 	Total         int            `json:"total"`
 	Unread        int            `json:"unread"`
@@ -30,6 +31,7 @@ type EmailMessagesResponse struct {
 	Messages      []EmailMessage `json:"messages"`
 }
 
+// EmailMessage represents a single message from the mail server.
 type EmailMessage struct {
 	ID          string    `json:"ID"`
 	MessageID   string    `json:"MessageID"`
@@ -47,11 +49,13 @@ type EmailMessage struct {
 	Snippet     string    `json:"Snippet"`
 }
 
+// Address represents an email address of an EmailMessage.
 type Address struct {
 	Name    string `json:"Name"`
 	Address string `json:"Address"`
 }
 
+// GetContentReader returns a reader for the HTML content of this message.
 func (m *EmailMessage) GetContentReader() (reader io.ReadCloser, err error) {
 	client := NewHTTPClient()
 
@@ -70,6 +74,7 @@ func (m *EmailMessage) GetContentReader() (reader io.ReadCloser, err error) {
 	return resp.Body, nil
 }
 
+// GetContent returns the HTML content of this message.
 func (m *EmailMessage) GetContent() (content []byte, err error) {
 	reader, err := m.GetContentReader()
 

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import TwoFactorAuthenticationOptionsMethodsRadioGroup from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsMethodsRadioGroup";
 
@@ -36,4 +36,22 @@ it("renders correct number of radio buttons", () => {
         />,
     );
     expect(screen.getAllByRole("radio")).toHaveLength(2);
+});
+
+it("reports the selected method as the value itself", () => {
+    const handleMethodChanged = vi.fn();
+
+    render(
+        <TwoFactorAuthenticationOptionsMethodsRadioGroup
+            id="test"
+            methods={[1, 2]}
+            method={1}
+            name="Default Method"
+            handleMethodChanged={handleMethodChanged}
+        />,
+    );
+
+    fireEvent.click(screen.getAllByRole("radio")[1]);
+
+    expect(handleMethodChanged).toHaveBeenCalledWith("2");
 });

@@ -19,7 +19,7 @@ configure your applications to use Authelia as an [OpenID Connect 1.0 Provider](
 currently operate as an [OpenID Connect 1.0 Relying Party](https://openid.net/connect/). This like all single-sign on
 technologies requires support by the protected application.
 
-See the [OpenID Connect 1.0 Provider Configuration Guide](../../configuration/identity-providers/openid-connect/provider.md),  and the
+See the [OpenID Connect 1.0 Provider Configuration Guide](../../configuration/identity-providers/openid-connect/provider.md), and the
 [OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md) for more information.
 
 ## Protocol Support

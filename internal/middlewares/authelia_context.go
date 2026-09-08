@@ -73,13 +73,6 @@ func (ctx *AutheliaCtx) AvailableSecondFactorMethods() (methods []string) {
 	return methods
 }
 
-// Error reply with an error and display the stack trace in the logs.
-func (ctx *AutheliaCtx) Error(err error, message string) {
-	ctx.SetJSONError(message)
-
-	ctx.Logger.Error(err)
-}
-
 // SetJSONError sets the body of the response to an JSON error KO message.
 func (ctx *AutheliaCtx) SetJSONError(message string) {
 	if err := ctx.ReplyJSON(ErrorResponse{Status: "KO", Message: message}, 0); err != nil {
@@ -265,6 +258,7 @@ func (ctx *AutheliaCtx) GetCookieDomainFromTargetURI(targetURI *url.URL) string 
 	return ""
 }
 
+// GetCookieConfigFromAutheliaURL returns the session cookie configuration which matches the given Authelia URL.
 func (ctx *AutheliaCtx) GetCookieConfigFromAutheliaURL(autheliaURL *url.URL) (cookie schema.SessionCookie) {
 	if len(ctx.Configuration.Session.Cookies) == 1 && ctx.Configuration.Session.Cookies[0].AutheliaURL == nil {
 		return ctx.Configuration.Session.Cookies[0]
@@ -386,7 +380,7 @@ func (ctx *AutheliaCtx) GetSession() (userSession session.UserSession, err error
 	}
 
 	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
-		ctx.Logger.Error("Unable to retrieve user session")
+		ctx.Logger.WithError(err).Error("Unable to retrieve user session")
 		return provider.NewDefaultUserSession(), nil
 	}
 
@@ -521,7 +515,7 @@ func (ctx *AutheliaCtx) RemoteIP() net.IP {
 }
 
 // GetXForwardedURL returns the parsed X-Forwarded-Proto, X-Forwarded-Host, and X-Forwarded-URI request header as a
-// *url.URL.
+// *[url.URL].
 func (ctx *AutheliaCtx) GetXForwardedURL() (requestURI *url.URL, err error) {
 	forwardedProto, forwardedHost, forwardedURI := ctx.XForwardedProto(), ctx.GetXForwardedHost(), ctx.GetXForwardedURI()
 
@@ -538,7 +532,7 @@ func (ctx *AutheliaCtx) GetXForwardedURL() (requestURI *url.URL, err error) {
 	return requestURI, nil
 }
 
-// GetXOriginalURL returns the parsed X-OriginalURL request header as a *url.URL.
+// GetXOriginalURL returns the parsed X-OriginalURL request header as a *[url.URL].
 func (ctx *AutheliaCtx) GetXOriginalURL() (requestURI *url.URL, err error) {
 	value := ctx.XOriginalURL()
 
@@ -793,13 +787,14 @@ func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) 
 	return webauthn.New(config)
 }
 
+// RecordAuthenticationDuration records the duration of an authentication attempt with the metrics provider.
 func (ctx *AutheliaCtx) RecordAuthenticationDuration(success bool, elapsed time.Duration) {
 	if ctx.Providers.Metrics != nil {
 		ctx.Providers.Metrics.RecordAuthenticationDuration(success, elapsed)
 	}
 }
 
-// Value is a shaded method of context.Context which returns the AutheliaCtx struct if the key is the internal key
+// Value is a shaded method of [context.Context] which returns the AutheliaCtx struct if the key is the internal key
 // otherwise it returns the shaded value.
 func (ctx *AutheliaCtx) Value(key any) any {
 	if key == model.CtxKeyAutheliaCtx {

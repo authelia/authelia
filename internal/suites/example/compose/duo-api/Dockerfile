@@ -1,10 +1,17 @@
-FROM node:25-alpine@sha256:bdf2cca6fe3dabd014ea60163eca3f0f7015fbd5c7ee1b0e9ccb4ced6eb02ef4
+FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3
 
 WORKDIR /usr/app/src
 
-COPY --link package.json pnpm-lock.yaml ./
+ENV \
+    SHELL="/bin/sh" \
+    PNPM_HOME="/usr/local"
 
-RUN yarn global add pnpm && pnpm install --frozen-lockfile --prod
+COPY --link package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+RUN wget -qO /tmp/pnpm-install.sh https://get.pnpm.io/install.sh && \
+    echo '3a6b531bfa164f5cac7c8db261cb2eb7bf929d7b8efb3a4eae82425507050e91 /tmp/pnpm-install.sh' | sha256sum -c - && \
+    ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
+    pnpm install --frozen-lockfile --prod
 
 EXPOSE 3000
 

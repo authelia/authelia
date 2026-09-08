@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://wordpress.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `wordpress`
-- __Client Secret:__ `insecure_secret`
+- **Application Root URL:** `https://wordpress.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Authelia Root URL:** `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- **Client ID:** `wordpress`
+- **Client Secret:** `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -55,7 +55,7 @@ To install the [OpenID Connect Generic Client Plugin] for [WordPress] via the We
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [WordPress] which will
+The following YAML configuration is an example **Authelia** [client configuration] for use with [WordPress] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

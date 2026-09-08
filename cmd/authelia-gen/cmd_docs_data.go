@@ -105,7 +105,7 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 
 	encoder := json.NewEncoder(f)
 
-	encoder.SetIndent("", "    ")
+	encoder.SetIndent("", "  ")
 
 	if err = encoder.Encode(data); err != nil {
 		return fmt.Errorf("failed to encode json data: %w", err)
@@ -171,7 +171,7 @@ func docsKeysRunE(cmd *cobra.Command, args []string) (err error) {
 
 	encoder := json.NewEncoder(f)
 
-	encoder.SetIndent("", "    ")
+	encoder.SetIndent("", "  ")
 
 	if err = encoder.Encode(data); err != nil {
 		return fmt.Errorf("failed to encode json data: %w", err)

@@ -20,7 +20,7 @@ Rule operators are effectively words which alter the behavior of particular acce
 is a guide on their use.
 
 |   Operator    |                             Effect                             |
-|:-------------:|:--------------------------------------------------------------:|
+| :-----------: | :------------------------------------------------------------: |
 |    `equal`    |   Matches when the item value is equal to the provided value   |
 |  `not equal`  | Matches when the item value is not equal to the provided value |
 |   `present`   |        Matches when the item is present with any value         |
@@ -28,15 +28,14 @@ is a guide on their use.
 |   `pattern`   |        Matches when the item matches the regex pattern         |
 | `not pattern` |     Matches when the item doesn't match the regex pattern      |
 
-
 ## Multi-level Logical Criteria
 
 Criteria which is described as multi-level logical criteria indicates that it is a list of lists. The first level i.e.
 the list least indented to the right will be referred to the `OR-list`, and the list most indented to the right will be
 referred to the `AND-list`.
 
-The OR-list matches if any of the criteria from it's AND-list's matches; in other words, a *__logical OR__*. The
-AND-list matches if all of it's criteria matches the given request; in other words, a *__logical AND__*.
+The OR-list matches if any of the criteria from it's AND-list's matches; in other words, a _**logical OR**_. The
+AND-list matches if all of it's criteria matches the given request; in other words, a _**logical AND**_.
 
 In addition to these rules, if the AND-list only needs one item, it can be represented without the second level.
 
