@@ -1,0 +1,3 @@
+[[IgnoredVulns]]
+id = "GO-2026-5932"
+reason = "Package golang.org/x/crypto/openpgp is not imported or utilized"
