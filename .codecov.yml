@@ -30,9 +30,6 @@ coverage:
         target: 90%
         threshold: 10%
 
-fixes:
-  - "src/::web/src/"
-
 flags:
   backend:
     paths:
