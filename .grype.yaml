@@ -1,28 +1,28 @@
 ---
 ignore:
-  - vulnerability: CVE-2025-60876
+  - vulnerability: CVE-2026-38753
     package:
       name: busybox
-      version: 1.37.0
+      version: 1.38.0
       type: binary
     reason: |
-      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.37.0
+      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.38.0
       so grype still flags it, but the vulnerable code paths have been backported.
-  - vulnerability: CVE-2024-58251
+  - vulnerability: CVE-2026-38754
     package:
       name: busybox
-      version: 1.37.0
+      version: 1.38.0
       type: binary
     reason: |
-      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.37.0
+      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.38.0
       so grype still flags it, but the vulnerable code paths have been backported.
-  - vulnerability: CVE-2025-46394
+  - vulnerability: CVE-2026-38755
     package:
       name: busybox
-      version: 1.37.0
+      version: 1.38.0
       type: binary
     reason: |
-      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.37.0
+      Explicitly patched in authelia/base. The reported version string is unchanged from upstream busybox 1.38.0
       so grype still flags it, but the vulnerable code paths have been backported.
   - package:
       location: "**/lefthook*/**"

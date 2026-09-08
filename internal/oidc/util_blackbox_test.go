@@ -2,6 +2,7 @@ package oidc_test
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/text/language"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -19,6 +21,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -612,6 +615,38 @@ func TestHydrateClientCredentialsFlowSessionWithAccessRequest(t *testing.T) {
 			assert.Equal(t, tc.expected, session)
 		})
 	}
+}
+
+func TestHydrateClientCredentialsFlowSessionStorageSubject(t *testing.T) {
+	ctx := &TestContext{
+		Context: context.Background(),
+		Clock:   clock.NewFixed(time.Unix(1000, 0).UTC()),
+		IssuerURLFunc: func() (issuerURL *url.URL, err error) {
+			return url.ParseRequestURI("https://auth.example.com")
+		},
+	}
+
+	client := &oidc.RegisteredClient{ID: "23add1af-8de6-4b3c-af5a-9b944d81b073"}
+
+	session := &oidc.Session{DefaultSession: &openid.DefaultSession{}}
+
+	require.NoError(t, oidc.HydrateClientCredentialsFlowSessionWithAccessRequest(ctx, client, session))
+
+	assert.Equal(t, client.ID, session.GetSubject())
+	assert.Equal(t, client.ID, session.GetJWTClaims().(*fjwt.JWTClaims).Subject)
+
+	requester := &oauthelia2.AccessRequest{
+		Request: oauthelia2.Request{
+			ID:      "63cf1164-7853-4b23-addd-5cf6ab583de0",
+			Client:  client,
+			Session: session,
+		},
+	}
+
+	actual, err := model.NewOAuth2SessionFromRequest("cRUYb9-yb-BqCEmnBDBzTIzHCcGSBv0Kh_HrqxTFmm4", requester)
+
+	require.NoError(t, err)
+	assert.Equal(t, sql.NullString{}, actual.Subject)
 }
 
 func TestInitializeSessionDefaults(t *testing.T) {

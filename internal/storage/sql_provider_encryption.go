@@ -227,6 +227,8 @@ func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProv
 		}
 	}
 
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableOneTimeCode)
+
 	return nil
 }
 
@@ -266,6 +268,8 @@ func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, c
 			return fmt.Errorf("error updating TOTP configuration secret with id '%d': %w", c.ID, err)
 		}
 	}
+
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableTOTPConfigurations)
 
 	return nil
 }
@@ -317,6 +321,8 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 		}
 	}
 
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableWebAuthnCredentials)
+
 	return nil
 }
 
@@ -350,6 +356,8 @@ func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvi
 			return fmt.Errorf("error updating cached data encrypted columns with id '%d': %w", d.ID, err)
 		}
 	}
+
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, len(caches), tableCachedData)
 
 	return nil
 }
@@ -387,6 +395,8 @@ func schemaEncryptionChangeKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType)
 				return fmt.Errorf("error updating oauth2 %s session data with id '%d': %w", typeOAuth2Session.String(), s.ID, err)
 			}
 		}
+
+		provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, typeOAuth2Session.Table())
 
 		return nil
 	}
@@ -434,6 +444,8 @@ func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvi
 			return fmt.Errorf("error updating encryption value with id '%d': %w", c.ID, err)
 		}
 	}
+
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableEncryption)
 
 	return nil
 }

@@ -70,6 +70,8 @@ const (
 	logFmtMigrationFromTo   = "Storage schema migration from %s to %s is being attempted"
 	logFmtMigrationComplete = "Storage schema migration from %s to %s is complete"
 	logFmtErrClosingConn    = "Error occurred closing SQL connection: %v"
+
+	logFmtEncryptionChangeKeyTableComplete = "Finished re-encrypting %d row(s) in table '%s'"
 )
 
 const (

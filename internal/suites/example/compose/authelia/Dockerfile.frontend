@@ -3,7 +3,13 @@ FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f
 ARG USER_ID
 ARG GROUP_ID
 
-RUN npm install -g pnpm@11 && \
+ENV \
+    SHELL="/bin/sh" \
+    PNPM_HOME="/usr/local"
+
+RUN wget -qO /tmp/pnpm-install.sh https://get.pnpm.io/install.sh && \
+    echo '3a6b531bfa164f5cac7c8db261cb2eb7bf929d7b8efb3a4eae82425507050e91 /tmp/pnpm-install.sh' | sha256sum -c - && \
+    ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
     deluser node && \
     if getent group ${GROUP_ID} >/dev/null; then delgroup "$(getent group ${GROUP_ID} | cut -d: -f1)"; fi && \
     if getent passwd ${USER_ID} >/dev/null; then deluser "$(getent passwd ${USER_ID} | cut -d: -f1)"; fi && \

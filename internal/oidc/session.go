@@ -74,7 +74,9 @@ type Session struct {
 	Extra                 map[string]any  `json:"extra"`
 }
 
-// GetSubject returns the subject, if set. This is optional and only used during token introspection.
+// GetSubject returns the subject, if set. This is optional and only used during token introspection and to determine
+// the 'sub' claim of tokens. It falls back to the client identifier for the Client Credentials Flow which has no
+// end-user. Use GetStorageSubject when persisting the subject of a session.
 func (s *Session) GetSubject() string {
 	if s == nil {
 		return ""
@@ -89,6 +91,19 @@ func (s *Session) GetSubject() string {
 	}
 
 	return ""
+}
+
+// GetStorageSubject returns the subject of the authenticated end-user, if any, for storage purposes.
+//
+// Unlike GetSubject this never falls back to the client identifier as the Client Credentials Flow does not have an
+// end-user. The storage layer records this value in columns which have a foreign key relationship with the
+// user_opaque_identifier table, so anything other than an opaque identifier of a known user must be NULL.
+func (s *Session) GetStorageSubject() (subject string) {
+	if s == nil {
+		return ""
+	}
+
+	return s.DefaultSession.GetSubject()
 }
 
 // ValidIssuer returns true if the issuer is valid for this session, false otherwise.
@@ -275,6 +290,7 @@ func ConsentGrantImplicit(consent *model.OAuth2ConsentSession, claims []string, 
 // requirements around consent like not allowing access to a refresh token unless the user has explicitly consented.
 func ConsentGrant(consent *model.OAuth2ConsentSession, explicit bool, claims []string) {
 	consent.GrantAudience()
+	consent.GrantResource()
 	consent.GrantClaims(claims)
 
 	if explicit {

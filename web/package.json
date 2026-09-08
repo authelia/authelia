@@ -5,10 +5,10 @@
   "type": "module",
   "engines": {
     "node": ">=22.22.0",
-    "pnpm": "11"
+    "pnpm": "12"
   },
   "dependencies": {
-    "@base-ui/react": "1.7.0",
+    "@base-ui/react": "1.8.0",
     "@simplewebauthn/browser": "14.0.0",
     "axios": "1.20.0",
     "broadcast-channel": "7.4.0",
@@ -17,7 +17,7 @@
     "i18next": "26.4.2",
     "i18next-browser-languagedetector": "8.2.1",
     "i18next-http-backend": "4.0.2",
-    "lucide-react": "1.40.0",
+    "lucide-react": "1.42.0",
     "qrcode.react": "4.2.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -58,7 +58,7 @@
   "devDependencies": {
     "@commitlint/cli": "21.2.2",
     "@commitlint/config-conventional": "21.2.2",
-    "@eslint-react/eslint-plugin": "5.18.7",
+    "@eslint-react/eslint-plugin": "5.19.0",
     "@limegrass/eslint-plugin-import-alias": "1.6.1",
     "@tailwindcss/vite": "4.3.3",
     "@testing-library/jest-dom": "7.0.1",
@@ -70,9 +70,9 @@
     "@typescript-eslint/parser": "8.69.0",
     "@typescript/native": "npm:typescript@7.0.2",
     "@vitejs/plugin-react": "6.1.1",
-    "@vitest/coverage-istanbul": "4.1.11",
-    "@vitest/ui": "4.1.11",
-    "eslint": "10.9.1",
+    "@vitest/coverage-istanbul": "5.0.0",
+    "@vitest/ui": "5.0.0",
+    "eslint": "10.10.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-formatter-visualstudio": "9.0.1",
@@ -89,7 +89,7 @@
     "vite-plugin-checker": "0.14.5",
     "vite-plugin-istanbul": "9.0.1",
     "vite-plugin-svgr": "5.2.0",
-    "vitest": "4.1.11",
+    "vitest": "5.0.0",
     "vitest-preview": "0.0.3"
   }
 }
