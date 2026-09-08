@@ -383,6 +383,41 @@ describe("edge cases", () => {
         expect(screen.getByTestId("success-icon")).toBeInTheDocument();
 
         expect(handleClosed).not.toHaveBeenCalled();
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1500);
+        });
+
+        expect(handleClosed).toHaveBeenCalledTimes(1);
+        expect(handleClosed).toHaveBeenCalledWith(true, true);
+    });
+
+    it("ignores a cancellation while the success delay is pending", async () => {
+        vi.useFakeTimers();
+
+        const handleClosed = vi.fn();
+        renderDialog({ handleClosed });
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("One-Time Password"));
+        });
+
+        await act(async () => {
+            fireEvent.click(screen.getByTestId("otp-success"));
+        });
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("Cancel"));
+        });
+
+        expect(handleClosed).not.toHaveBeenCalled();
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1500);
+        });
+
+        expect(handleClosed).toHaveBeenCalledTimes(1);
+        expect(handleClosed).toHaveBeenCalledWith(true, true);
     });
 
     it("renders success when reaching the completion step from the push method", async () => {

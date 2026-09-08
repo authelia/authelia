@@ -109,6 +109,9 @@ const SecondFactorDialog = function (props: Props) {
     );
 
     const handleCancelled = () => {
+        // A success is already scheduled to close the dialog, so a cancellation must not report a conflicting result.
+        if (closing) return;
+
         handleClose(false, false);
     };
 
@@ -258,7 +261,12 @@ const SecondFactorDialog = function (props: Props) {
                 />
                 {renderContent()}
                 <DialogFooter>
-                    <Button variant={"outline"} color={"destructive"} disabled={loading} onClick={handleCancelled}>
+                    <Button
+                        variant={"outline"}
+                        color={"destructive"}
+                        disabled={loading || closing}
+                        onClick={handleCancelled}
+                    >
                         {translate("Cancel")}
                     </Button>
                 </DialogFooter>
