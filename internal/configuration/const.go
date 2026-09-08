@@ -3,6 +3,7 @@ package configuration
 import (
 	"errors"
 	"math"
+	"regexp"
 	"time"
 )
 
@@ -80,6 +81,10 @@ var (
 	secretSuffix          = []string{"key", "secret", "password", "token", "certificate_chain"}
 	secretExclusionPrefix = []string{"identity_providers.oidc.lifespans."}
 	secretExclusionExact  = []string{"server.tls.key", "authentication_backend.disable_reset_password", "tls_key"}
+)
+
+var (
+	rePatternFLags = regexp.MustCompile(`^\((?P<Pattern>\?[imsU-]+\))`)
 )
 
 var (

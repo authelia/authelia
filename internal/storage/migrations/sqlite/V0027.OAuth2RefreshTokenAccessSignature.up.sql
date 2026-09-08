@@ -1,4 +1,4 @@
-ALTER TABLE oauth2_refresh_token_session ADD COLUMN access_signature VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE oauth2_refresh_token_session ADD COLUMN access_signature VARCHAR(768) NOT NULL DEFAULT '';
 
 UPDATE oauth2_refresh_token_session
 SET access_signature = COALESCE((

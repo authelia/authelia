@@ -359,6 +359,43 @@ func TestShouldValidateConfigurationWithFiltersWalk(t *testing.T) {
 	assert.Len(t, val.Warnings(), 0)
 }
 
+func TestShouldValidateConfigurationWithRegexACL(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_regex.yml"}, []BytesFilter{NewTemplateFileFilter()}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	assert.NoError(t, err)
+	assert.NotNil(t, config)
+	assert.NotNil(t, keys)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	require.Len(t, config.AccessControl.Rules, 6)
+
+	assert.True(t, config.AccessControl.Rules[0].Resources[0].MatchString("/example/com/"))
+	assert.False(t, config.AccessControl.Rules[0].Resources[0].MatchString("/Example/com/"))
+	assert.Equal(t, "^/example/.*$", config.AccessControl.Rules[0].Resources[0].String())
+
+	assert.True(t, config.AccessControl.Rules[1].Resources[0].MatchString("/example/com/"))
+	assert.True(t, config.AccessControl.Rules[1].Resources[0].MatchString("/Example/com/"))
+	assert.Equal(t, "(?i)^/example/.*$", config.AccessControl.Rules[1].Resources[0].String())
+
+	assert.True(t, config.AccessControl.Rules[2].Resources[0].MatchString("/example/com/"))
+	assert.False(t, config.AccessControl.Rules[2].Resources[0].MatchString("/Example/com/"))
+	assert.Equal(t, "(?-i)^/example/.*$", config.AccessControl.Rules[2].Resources[0].String())
+
+	assert.True(t, config.AccessControl.Rules[3].DomainsRegex[0].MatchString("regex.example.com"))
+	assert.True(t, config.AccessControl.Rules[3].DomainsRegex[0].MatchString("rEgex.example.com"))
+	assert.Equal(t, "(?i)^regex\\.example\\.com$", config.AccessControl.Rules[3].DomainsRegex[0].String())
+
+	assert.True(t, config.AccessControl.Rules[4].DomainsRegex[0].MatchString("regex.example.com"))
+	assert.True(t, config.AccessControl.Rules[4].DomainsRegex[0].MatchString("rEgex.example.com"))
+	assert.Equal(t, "(?i)^regex\\.example\\.com$", config.AccessControl.Rules[4].DomainsRegex[0].String())
+
+	assert.True(t, config.AccessControl.Rules[5].DomainsRegex[0].MatchString("regex.example.com"))
+	assert.False(t, config.AccessControl.Rules[5].DomainsRegex[0].MatchString("rEgex.example.com"))
+	assert.Equal(t, "(?-i)^regex\\.example\\.com$", config.AccessControl.Rules[5].DomainsRegex[0].String())
+}
+
 func TestShouldValidateConfigurationWithFiltersGlob(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSourcesFiltered([]string{"./test_resources/config_glob.yml"}, []BytesFilter{NewTemplateFileFilter()}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -1236,7 +1273,7 @@ func TestShouldErrOnParseInvalidRegex(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshaling configuration: decoding failed due to the following error(s):\n\n'access_control.rules[0].domain_regex[0]' could not decode '^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshaling configuration: decoding failed due to the following error(s):\n\n'access_control.rules[0].domain_regex[0]' could not decode '^\\K(public|public2).example.com$' to a schema.RegexpCI: error parsing regexp: invalid escape sequence: `\\K`")
 }
 
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {

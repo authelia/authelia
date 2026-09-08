@@ -61,8 +61,8 @@ The following protections have been considered:
     authentication level of 1FA and when it comes to matching a subject rule a special subject type `oauth2:client:<id>`
     will match the token instead of a user or groups (where `<id>` is the registered client id). See
     [Access Control Configuration](#access-control-configuration).
-  - The audience of the token is also considered and if the token does not have an audience which is an exact match or
-    the prefix of the URL being requested, the authorization will automatically be denied.
+  - The granted audience and resources of the token are also considered as per
+    [Audience and Resource Request](#audience-and-resource-request) and if they do not match the request is rejected.
 - At this time, each request using this scheme will cause a lookup to be performed on the authentication backend.
 - Specific changes to the client registration will result in the authorization being denied, such as:
   - The client is no longer registered.
@@ -87,12 +87,34 @@ The following recommendations should be considered by users who use this authori
   purpose unless you have specific performance issues. We would rather find the cause of the performance issues and
   improve them in an instance where they are noticed.
 
-### Audience Request
+### Audience and Resource Request
 
-While not explicitly part of the specifications, the `audience` parameter can be used during the Authorization Request
-phase of the Authorization Code Grant Flow or the Access Token Request phase of the Client Credentials Grant Flow. The
-specification leaves it up to Authorization Server policy specifically how audiences are granted, and this seems like a
-common practice.
+The audience is essential to determine the authorization of the token being used. This can either be determined using
+the granted audience or the granted resources. The granted audience can be affected in two ways, the `audience`
+parameter and the users consent if relevant, or the clients `requested_audience_policy`; specifically when the
+`requested_audience_policy` is `implicit` the permitted audience values are automatically assumed to be the requested
+audience when no explicit requested audience is available. The granted resources however can only be affected by the
+`resource` request parameter and the users consent if relevant.
+
+The users consent plays a part when the Authorization Code Flow is used and the user is presented a consent dialog. At
+this time the user automatically grants all requested audience and requested resources, however at a future date they
+will be permitted to unselect any specific values they determine to be undesirable.
+
+It should be noted that the `audience` request parameter is largely defined by
+[RFC8693: OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693) and the `resource` parameter is
+defined by [RFC8707: Resource Indicators for OAuth 2.0](https://datatracker.ietf.org/doc/html/rfc8707). How the
+`audience` request parameter operates outside of the Token Exchange Grant is largely undefined however the way we use it
+is common across the industry and is an entirely permitted decision delegated to the Authorization Server and Resource
+Server.
+
+The granted audience is matched against the requested resource as an exact case-sensitive string match. i.e. if the
+granted audience contains an exact match for the requested resource it will be considered a valid token for the request.
+
+The granted resources are matched against the requested resource as a URI comparison. Both values are parsed as URLs,
+and the granted resource is only a match when its scheme and host are exactly equal to those of the requested resource,
+and its path is either equal to the requested path or a prefix of it terminating on a path boundary. Query strings are
+not considered as part of this comparison. For example a granted resource with the path `/api` matches a requested
+resource with the path `/api` or `/api/example`, but does not match one with the path `/apiv2`.
 
 ### Authorization Endpoint Configuration
 

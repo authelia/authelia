@@ -1,4 +1,4 @@
-import { Fragment, lazy, useCallback, useLayoutEffect, useReducer } from "react";
+import { Fragment, lazy, useCallback, useEffect, useLayoutEffect, useReducer, useRef } from "react";
 
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
@@ -85,6 +85,17 @@ const SecondFactorDialog = function (props: Props) {
     const [state, dispatch] = useReducer(reducer, initialState);
     const { activeStep, closing, loading, method, open } = state;
 
+    const timeoutSuccessRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutSuccessRef.current !== null) {
+                clearTimeout(timeoutSuccessRef.current);
+                timeoutSuccessRef.current = null;
+            }
+        };
+    }, []);
+
     const resetState = useCallback(() => {
         dispatch({ type: "reset" });
     }, []);
@@ -98,6 +109,9 @@ const SecondFactorDialog = function (props: Props) {
     );
 
     const handleCancelled = () => {
+        // A success is already scheduled to close the dialog, so a cancellation must not report a conflicting result.
+        if (closing) return;
+
         handleClose(false, false);
     };
 
@@ -128,7 +142,9 @@ const SecondFactorDialog = function (props: Props) {
         dispatch({ payload: true, type: "setClosing" });
         dispatch({ payload: 2, type: "setActiveStep" });
 
-        setTimeout(() => {
+        timeoutSuccessRef.current = setTimeout(() => {
+            timeoutSuccessRef.current = null;
+
             handleClose(true, true);
         }, 1500);
     }, [handleClose]);
@@ -245,7 +261,12 @@ const SecondFactorDialog = function (props: Props) {
                 />
                 {renderContent()}
                 <DialogFooter>
-                    <Button variant={"outline"} color={"destructive"} disabled={loading} onClick={handleCancelled}>
+                    <Button
+                        variant={"outline"}
+                        color={"destructive"}
+                        disabled={loading || closing}
+                        onClick={handleCancelled}
+                    >
                         {translate("Cancel")}
                     </Button>
                 </DialogFooter>

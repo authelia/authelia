@@ -12,6 +12,7 @@
 node_modules/
 
 # Coverage reports
+web/.vitest/
 web/html/
 coverage/
 .nyc_output/

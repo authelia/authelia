@@ -22,12 +22,13 @@ import (
 func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		issuer    *url.URL
-		requester oauthelia2.AuthorizeRequester
 		responder oauthelia2.AuthorizeResponder
 		client    oidc.Client
 		policy    oidc.ClientAuthorizationPolicy
 		err       error
 	)
+
+	var requester oauthelia2.AuthorizeRequester = oauthelia2.NewAuthorizeRequest()
 
 	if issuer, err = ctx.IssuerURL(); err != nil {
 		rfc := oidc.ErrEffectiveIssuer.WithWrap(err)
@@ -40,6 +41,8 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	}
 
 	if requester, err = ctx.Providers.OpenIDConnect.NewAuthorizeRequest(ctx, r); requester == nil {
+		requester = oauthelia2.NewAuthorizeRequest()
+
 		err = oauthelia2.ErrServerError.WithDebug("The requester was nil.")
 
 		ctx.GetLogger().Errorf("Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
@@ -149,13 +152,13 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
 	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
-		session.Claims.Audience = append([]string{clientID}, requester.GetGrantedAudience()...)
+		session.Claims.Audience = append([]string{clientID}, oauthelia2.JoinGrantedAudienceAndResource(requester.GetGrantedAudience(), requester.GetGrantedResource())...)
 	}
 
 	ctx.GetLogger().Tracef("Authorization Request with id '%s' on client with id '%s' using policy '%s' creating session for Authorization Response for subject '%s' with username '%s' with groups: %+v and claims: %+v",
 		requester.GetID(), session.ClientID, policy.Name, session.Subject, session.Username, userSession.Groups, session.Claims)
 
-	ctx.GetLogger().WithFields(map[string]any{"id": requester.GetID(), "response_type": requester.GetResponseTypes(), "response_mode": requester.GetResponseMode(), "scope": requester.GetRequestedScopes(), "aud": requester.GetRequestedAudience(), "redirect_uri": requester.GetRedirectURI(), "state": requester.GetState()}).Tracef("Authorization Request is using the following request parameters")
+	ctx.GetLogger().WithFields(map[string]any{"id": requester.GetID(), "response_type": requester.GetResponseTypes(), "response_mode": requester.GetResponseMode(), "scope": requester.GetRequestedScopes(), "aud": requester.GetRequestedAudience(), "resource": requester.GetRequestedResource(), "redirect_uri": requester.GetRedirectURI(), "state": requester.GetState()}).Tracef("Authorization Request is using the following request parameters")
 
 	if responder, err = ctx.Providers.OpenIDConnect.NewAuthorizeResponse(ctx, requester, session); err != nil {
 		ctx.GetLogger().Errorf("Authorization Response for Request with id '%s' on client with id '%s' using policy '%s' could not be created: %s", requester.GetID(), clientID, policy.Name, oauthelia2.ErrorToDebugRFC6749Error(err))

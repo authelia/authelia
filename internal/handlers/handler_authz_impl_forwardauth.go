@@ -2,30 +2,23 @@ package handlers
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
 func handleAuthzGetObjectForwardAuth(ctx AuthzContext) (object authorization.Object, err error) {
-	protocol, host, uri := ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()
-
 	var (
-		targetURL *url.URL
-		method    []byte
+		method          []byte
+		requestedObject *authorization.Object
 	)
-
-	if targetURL, err = getRequestURIFromForwardedHeaders(protocol, host, uri); err != nil {
-		return object, fmt.Errorf("failed to get target URL: %w", err)
-	}
 
 	if method = ctx.XForwardedMethod(); len(method) == 0 {
 		return object, fmt.Errorf("header 'X-Forwarded-Method' is empty")
 	}
 
-	if hasInvalidMethodCharacters(method) {
-		return object, fmt.Errorf("header 'X-Forwarded-Method' with value '%s' has invalid characters", method)
+	if requestedObject, err = authorization.NewObjectMethodSchemeHostPath(method, ctx.XForwardedProto(), ctx.XForwardedHost(), ctx.XForwardedURI()); err != nil {
+		return object, err
 	}
 
-	return authorization.NewObjectRaw(targetURL, method), nil
+	return *requestedObject, nil
 }

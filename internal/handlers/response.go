@@ -40,9 +40,9 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 		return
 	}
 
-	var targetURL *url.URL
+	var object *authorization.Object
 
-	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
+	if object, err = authorization.NewObjectMethodURL([]byte(requestMethod), []byte(targetURI)); err != nil {
 		ctx.GetLogger().WithError(err).Errorf("Error occurred parsing the target URL '%s'", targetURI)
 		ctx.SetJSONError(messageAuthenticationFailed)
 
@@ -55,19 +55,19 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 			Groups:   groups,
 			IP:       ctx.RemoteIP(),
 		},
-		authorization.NewObject(targetURL, requestMethod))
+		*object)
 
 	ctx.GetLogger().Debugf("Required level for the URL %s is %s", targetURI, requiredLevel)
 
 	if requiredLevel == authorization.TwoFactor {
-		ctx.GetLogger().Warnf("%s requires 2FA, cannot be redirected yet", targetURI)
+		ctx.GetLogger().Warnf("%s requires 2FA, cannot be redirected yet", object.URL)
 		ctx.ReplyOK()
 
 		return
 	}
 
-	if !ctx.IsSafeRedirectionTargetURI(targetURL) {
-		ctx.GetLogger().Debugf("Redirection URL %s is not safe", targetURI)
+	if !ctx.IsSafeRedirectionTargetURI(object.URL) {
+		ctx.GetLogger().Debugf("Redirection URL %s is not safe", object.URL)
 
 		defaultRedirectionURL := ctx.GetDefaultRedirectionURL()
 
@@ -84,7 +84,7 @@ func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, u
 		return
 	}
 
-	ctx.GetLogger().Debugf("Redirection URL %s is safe", targetURI)
+	ctx.GetLogger().Debugf("Redirection URL %s is safe", object.URL)
 
 	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURI}); err != nil {
 		ctx.GetLogger().Errorf("Unable to set redirection URL in body: %s", err)

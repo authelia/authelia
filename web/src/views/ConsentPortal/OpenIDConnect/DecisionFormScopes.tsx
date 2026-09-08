@@ -1,37 +1,42 @@
-import { FC } from "react";
-
 import { useTranslation } from "react-i18next";
 
 import { ScopeAvatar } from "@components/OpenIDConnect";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/UI/Tooltip";
 import { formatScope } from "@services/ConsentOpenIDConnect";
+import DecisionFormSection, { DecisionFormSectionItem } from "@views/ConsentPortal/OpenIDConnect/DecisionFormSection";
 
 export interface Props {
-    scopes: string[];
+    scopes?: null | string[];
 }
 
-const DecisionFormScopes: FC<Props> = (props: Props) => {
+function DecisionFormScopes({ scopes }: Props) {
     const { t: translate } = useTranslation(["consent"]);
 
+    if (!scopes || scopes.length === 0) {
+        return null;
+    }
+
     return (
-        <ul className="mt-4 mb-1 list-none rounded-md bg-card p-2">
-            {props.scopes.map((scope: string) => (
-                <TooltipProvider key={scope}>
-                    <Tooltip>
-                        <TooltipTrigger
-                            render={
-                                <li id={"scope-" + scope} className="flex items-center gap-3 px-2 py-1">
-                                    <span className="shrink-0">{ScopeAvatar(scope)}</span>
-                                    <span>{formatScope(translate(`scopes.${scope}`), scope)}</span>
-                                </li>
-                            }
-                        />
-                        <TooltipContent>{translate("Scope", { name: scope })}</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            ))}
-        </ul>
+        <DecisionFormSection
+            id={"openid-consent-scopes"}
+            title={translate("Requested Permissions")}
+            description={translate("The actions the application will be allowed to perform on your behalf")}
+        >
+            {scopes.map((scope: string) => {
+                const label = formatScope(translate(`scopes.${scope}`, { nsSeparator: false }), scope);
+
+                return (
+                    <DecisionFormSectionItem
+                        key={scope}
+                        id={`scope-${scope}`}
+                        icon={ScopeAvatar(scope)}
+                        identifier={label.toLowerCase() === scope.toLowerCase() ? null : scope}
+                    >
+                        <span className="text-sm">{label}</span>
+                    </DecisionFormSectionItem>
+                );
+            })}
+        </DecisionFormSection>
     );
-};
+}
 
 export default DecisionFormScopes;

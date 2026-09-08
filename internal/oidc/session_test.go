@@ -445,12 +445,14 @@ func TestConsentGrant(t *testing.T) {
 			consent := &model.OAuth2ConsentSession{
 				RequestedScopes:   tc.requestedScopes,
 				RequestedAudience: model.StringSlicePipeDelimited{"https://example.com"},
+				RequestedResource: model.StringSlicePipeDelimited{"https://api.example.com"},
 			}
 
 			oidc.ConsentGrant(consent, tc.explicit, tc.claims)
 
 			assert.Equal(t, model.StringSlicePipeDelimited(tc.expectedScopes), consent.GrantedScopes)
 			assert.Equal(t, model.StringSlicePipeDelimited{"https://example.com"}, consent.GrantedAudience)
+			assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, consent.GrantedResource)
 
 			if tc.expectedClaims != nil {
 				assert.Equal(t, model.StringSlicePipeDelimited(tc.expectedClaims), consent.GrantedClaims)
@@ -497,6 +499,41 @@ func TestConsentGrantImplicit(t *testing.T) {
 			assert.True(t, consent.Subject.Valid)
 			assert.Equal(t, subject, consent.Subject.UUID)
 			assert.True(t, consent.RespondedAt.Valid)
+		})
+	}
+}
+
+func TestSession_GetStorageSubject(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.Session
+		expected string
+	}{
+		{
+			"ShouldReturnEmptyWhenSessionNil",
+			nil,
+			"",
+		},
+		{
+			"ShouldReturnEmptyWhenDefaultSessionNil",
+			&oidc.Session{},
+			"",
+		},
+		{
+			"ShouldReturnSubject",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{Subject: "john"}},
+			"john",
+		},
+		{
+			"ShouldNotReturnClientIDForClientCredentials",
+			&oidc.Session{ClientID: "example", ClientCredentials: true, DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{Subject: "example"}}},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetStorageSubject())
 		})
 	}
 }

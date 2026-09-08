@@ -307,13 +307,93 @@ func (s *IdentityVerificationFinishProcess) TestShouldFailIfIssuerCannotBeDeterm
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfSessionCannotBeRegenerated() {
+	token, verification := createToken(s.T(), s.mock, "john", "EXP_ACTION",
+		time.Now().Add(1*time.Minute))
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
+
 	s.mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
-	s.mock.Ctx.Request.SetBodyString("{\"token\":\"abc\"}")
+
+	s.mock.StorageMock.EXPECT().
+		FindIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
+		Return(true, nil)
 
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Operation failed")
 	s.mock.AssertLastLogMessage(s.T(), "Unable to regenerate session during identity verification", "unable to regenerate user session: unable to retrieve session cookie domain provider: no configured session cookie domain matches the url 'https://auth.notexample.com'")
+}
+
+func (s *IdentityVerificationFinishProcess) TestShouldNotRegenerateSessionBeforeTokenIsValidated() {
+	testCases := []struct {
+		name  string
+		setup func(t *testing.T)
+	}{
+		{
+			"ShouldNotRegenerateOnMalformedToken",
+			func(t *testing.T) {
+				s.mock.Ctx.Request.SetBodyString("{\"token\":\"abc\"}")
+			},
+		},
+		{
+			"ShouldNotRegenerateOnExpiredToken",
+			func(t *testing.T) {
+				token, _ := createToken(s.T(), s.mock, "john", "EXP_ACTION", time.Now().Add(-1*time.Minute))
+				s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
+			},
+		},
+		{
+			"ShouldNotRegenerateOnInvalidSignature",
+			func(t *testing.T) {
+				claims := createClaims(s.T(), s.mock, uuid.New(), time.Now().Add(1*time.Minute))
+				s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", createTokenFromClaims(s.T(), claims, jwt.SigningMethodHS256, "not-the-configured-secret")))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			s.SetupTest()
+
+			defer s.TearDownTest()
+
+			require.NoError(t, s.mock.Ctx.SaveSession(session.NewDefaultUserSession()))
+
+			before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+
+			require.NotEmpty(t, before)
+
+			tc.setup(t)
+
+			middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+			assert.Equal(t, before, string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")))
+		})
+	}
+}
+
+func (s *IdentityVerificationFinishProcess) TestShouldRegenerateSessionBeforeConsumingToken() {
+	token, verification := createToken(s.T(), s.mock, "john", "EXP_ACTION",
+		time.Now().Add(1*time.Minute))
+	s.mock.Ctx.Request.SetBodyString(fmt.Sprintf("{\"token\":\"%s\"}", token))
+
+	s.mock.StorageMock.EXPECT().
+		FindIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String())).
+		Return(true, nil)
+
+	s.mock.StorageMock.EXPECT().
+		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(model.NewNullIP(s.mock.Ctx.RemoteIP()))).
+		Return(fmt.Errorf("cannot consume"))
+
+	require.NoError(s.T(), s.mock.Ctx.SaveSession(session.NewDefaultUserSession()))
+
+	before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+
+	require.NotEmpty(s.T(), before)
+
+	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
+
+	s.mock.Assert200KO(s.T(), "Operation failed")
+	assert.NotEqual(s.T(), before, string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")))
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldRegenerateSessionForPreventingSessionFixation() {
