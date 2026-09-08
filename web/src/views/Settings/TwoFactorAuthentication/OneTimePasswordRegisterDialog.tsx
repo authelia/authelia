@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import axios from "axios";
 import { XCircle } from "lucide-react";
@@ -73,6 +73,16 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
     const [dialState, setDialState] = useState(State.Idle);
     const [showQRCode, setShowQRCode] = useState(true);
     const [success, setSuccess] = useState(false);
+    const timeoutSuccessRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutSuccessRef.current !== null) {
+                clearTimeout(timeoutSuccessRef.current);
+                timeoutSuccessRef.current = null;
+            }
+        };
+    }, []);
 
     const resetStates = useCallback(() => {
         if (defaults) {
@@ -110,7 +120,9 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
     const handleFinished = useCallback(() => {
         setSuccess(true);
 
-        setTimeout(() => {
+        timeoutSuccessRef.current = setTimeout(() => {
+            timeoutSuccessRef.current = null;
+
             createSuccessNotification(
                 translate("Successfully {{action}} the {{item}}", {
                     action: translate("added"),

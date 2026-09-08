@@ -526,3 +526,36 @@ describe("step guards", () => {
         expect(getTOTPOptionsMock).toHaveBeenCalledTimes(1);
     });
 });
+
+describe("cleanup", () => {
+    it("clears the completion timer on unmount", async () => {
+        vi.useFakeTimers();
+
+        const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+
+        const { unmount } = renderDialog();
+
+        await vi.waitFor(() => expect(screen.getByText("To begin select next")).toBeInTheDocument());
+        next();
+        await vi.waitFor(() => expect(getTOTPSecretMock).toHaveBeenCalled());
+        next();
+        await vi.waitFor(() => expect(screen.getByTestId("otp-dial")).toBeInTheDocument());
+
+        fireEvent.click(screen.getByTestId("otp-enter-full"));
+
+        await vi.waitFor(() => expect(screen.getByTestId("success-icon")).toBeInTheDocument());
+
+        // Identify the component's own completion timer rather than any timer React happens to clear.
+        const index = setTimeoutSpy.mock.calls.findIndex(([, timeout]) => timeout === 750);
+
+        expect(index).toBeGreaterThanOrEqual(0);
+
+        const timerID = setTimeoutSpy.mock.results[index].value;
+
+        const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
+
+        unmount();
+
+        expect(clearTimeoutSpy).toHaveBeenCalledWith(timerID);
+    });
+});

@@ -370,3 +370,31 @@ describe("dismissal", () => {
         expect(handleClosed).toHaveBeenCalledWith(false);
     });
 });
+
+describe("cleanup", () => {
+    it("clears the success timer on unmount", async () => {
+        vi.useFakeTimers();
+
+        const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+
+        const { unmount } = renderDialog();
+
+        await vi.waitFor(() => expect(screen.getByText("Verify")).toBeInTheDocument());
+        fireEvent.change(getCode(), { target: { value: "123456" } });
+        clickVerify();
+
+        await vi.waitFor(() => expect(screen.getByTestId("success-icon")).toBeInTheDocument());
+
+        const index = setTimeoutSpy.mock.calls.findIndex(([, timeout]) => timeout === 750);
+
+        expect(index).toBeGreaterThanOrEqual(0);
+
+        const timerID = setTimeoutSpy.mock.results[index].value;
+
+        const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
+
+        unmount();
+
+        expect(clearTimeoutSpy).toHaveBeenCalledWith(timerID);
+    });
+});

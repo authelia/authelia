@@ -406,3 +406,36 @@ describe("edge cases", () => {
         expect(handleClosed).toHaveBeenCalledWith(true, true);
     });
 });
+
+describe("cleanup", () => {
+    it("clears the success timer on unmount", async () => {
+        vi.useFakeTimers();
+
+        const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+
+        const { unmount } = renderDialog();
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("One-Time Password"));
+        });
+
+        await act(async () => {
+            fireEvent.click(screen.getByTestId("otp-success"));
+        });
+
+        expect(screen.getByTestId("success-icon")).toBeInTheDocument();
+
+        // Identify the component's own success timer rather than any timer React happens to clear.
+        const index = setTimeoutSpy.mock.calls.findIndex(([, timeout]) => timeout === 1500);
+
+        expect(index).toBeGreaterThanOrEqual(0);
+
+        const timerID = setTimeoutSpy.mock.results[index].value;
+
+        const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
+
+        unmount();
+
+        expect(clearTimeoutSpy).toHaveBeenCalledWith(timerID);
+    });
+});
