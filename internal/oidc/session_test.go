@@ -502,3 +502,38 @@ func TestConsentGrantImplicit(t *testing.T) {
 		})
 	}
 }
+
+func TestSession_GetStorageSubject(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *oidc.Session
+		expected string
+	}{
+		{
+			"ShouldReturnEmptyWhenSessionNil",
+			nil,
+			"",
+		},
+		{
+			"ShouldReturnEmptyWhenDefaultSessionNil",
+			&oidc.Session{},
+			"",
+		},
+		{
+			"ShouldReturnSubject",
+			&oidc.Session{DefaultSession: &openid.DefaultSession{Subject: "john"}},
+			"john",
+		},
+		{
+			"ShouldNotReturnClientIDForClientCredentials",
+			&oidc.Session{ClientID: "example", ClientCredentials: true, DefaultSession: &openid.DefaultSession{Claims: &jwt.IDTokenClaims{Subject: "example"}}},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.GetStorageSubject())
+		})
+	}
+}
