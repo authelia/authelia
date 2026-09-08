@@ -227,7 +227,7 @@ func schemaEncryptionChangeKeyOneTimeCode(ctx context.Context, provider *SQLProv
 		}
 	}
 
-	provider.log.Infof(logFmtEncryptionChangeKeyTableComplete, count, tableOneTimeCode)
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableOneTimeCode)
 
 	return nil
 }
@@ -269,7 +269,7 @@ func schemaEncryptionChangeKeyTOTP(ctx context.Context, provider *SQLProvider, c
 		}
 	}
 
-	provider.log.Infof(logFmtEncryptionChangeKeyTableComplete, count, tableTOTPConfigurations)
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableTOTPConfigurations)
 
 	return nil
 }
@@ -321,7 +321,7 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 		}
 	}
 
-	provider.log.Infof(logFmtEncryptionChangeKeyTableComplete, count, tableWebAuthnCredentials)
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableWebAuthnCredentials)
 
 	return nil
 }
@@ -357,7 +357,7 @@ func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvi
 		}
 	}
 
-	provider.log.Infof(logFmtEncryptionChangeKeyTableComplete, len(caches), tableCachedData)
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, len(caches), tableCachedData)
 
 	return nil
 }
@@ -396,7 +396,7 @@ func schemaEncryptionChangeKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType)
 			}
 		}
 
-		provider.log.Infof(logFmtEncryptionChangeKeyTableComplete, count, typeOAuth2Session.Table())
+		provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, typeOAuth2Session.Table())
 
 		return nil
 	}
@@ -445,7 +445,7 @@ func schemaEncryptionChangeKeyEncryption(ctx context.Context, provider *SQLProvi
 		}
 	}
 
-	provider.log.Infof(logFmtEncryptionChangeKeyTableComplete, count, tableEncryption)
+	provider.log.Debugf(logFmtEncryptionChangeKeyTableComplete, count, tableEncryption)
 
 	return nil
 }
