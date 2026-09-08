@@ -71,7 +71,7 @@ func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (sess
 		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the session type OpenIDSession was expected but the type '%T' was used", r.GetSession())
 	}
 
-	subject = sql.NullString{String: s.GetSubject()}
+	subject = sql.NullString{String: s.GetStorageSubject()}
 
 	subject.Valid = len(subject.String) > 0
 
@@ -127,7 +127,7 @@ func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester
 		return nil, fmt.Errorf("failed to create new *model.OAuth2DeviceCodeSession: the session type OpenIDSession was expected but the type '%T' was used", r.GetSession())
 	}
 
-	subject = sql.NullString{String: s.GetSubject()}
+	subject = sql.NullString{String: s.GetStorageSubject()}
 
 	subject.Valid = len(subject.String) > 0
 
@@ -728,4 +728,5 @@ type OpenIDSession interface {
 	oauthelia2.Session
 
 	GetChallengeID() uuid.NullUUID
+	GetStorageSubject() (subject string)
 }
