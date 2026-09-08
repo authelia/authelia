@@ -1,5 +1,6 @@
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
+import axios from "axios";
 import { XCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
@@ -72,6 +73,16 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
     const [dialState, setDialState] = useState(State.Idle);
     const [showQRCode, setShowQRCode] = useState(true);
     const [success, setSuccess] = useState(false);
+    const timeoutSuccessRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutSuccessRef.current !== null) {
+                clearTimeout(timeoutSuccessRef.current);
+                timeoutSuccessRef.current = null;
+            }
+        };
+    }, []);
 
     const resetStates = useCallback(() => {
         if (defaults) {
@@ -109,7 +120,9 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
     const handleFinished = useCallback(() => {
         setSuccess(true);
 
-        setTimeout(() => {
+        timeoutSuccessRef.current = setTimeout(() => {
+            timeoutSuccessRef.current = null;
+
             createSuccessNotification(
                 translate("Successfully {{action}} the {{item}}", {
                     action: translate("added"),
@@ -191,7 +204,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 setSecretValue(secret.base32_secret);
             } catch (err) {
                 console.error(err);
-                if ((err as Error).message.includes("Request failed with status code 403")) {
+                if (axios.isAxiosError(err) && err.response?.status === 403) {
                     createErrorNotification(
                         translate("You must use the code from the same device and browser that initiated the process"),
                     );

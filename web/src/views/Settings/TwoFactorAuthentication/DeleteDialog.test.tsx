@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import DeleteDialog from "@views/Settings/TwoFactorAuthentication/DeleteDialog";
 
@@ -31,4 +31,13 @@ it("calls onConfirm when remove button is clicked", () => {
 it("does not render content when closed", () => {
     render(<DeleteDialog open={false} title="Delete" text="Sure?" onConfirm={vi.fn()} onCancel={vi.fn()} />);
     expect(screen.queryByText("Delete")).not.toBeInTheDocument();
+});
+
+it("cancels when Escape is pressed", async () => {
+    const onCancel = vi.fn();
+    render(<DeleteDialog open={true} title="Delete" text="Sure?" onConfirm={vi.fn()} onCancel={onCancel} />);
+
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+
+    await waitFor(() => expect(onCancel).toHaveBeenCalled());
 });
