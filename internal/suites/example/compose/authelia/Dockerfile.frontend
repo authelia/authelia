@@ -7,7 +7,9 @@ ENV \
     SHELL="/bin/sh" \
     PNPM_HOME="/usr/local"
 
-RUN ENV="/root/.profile" sh -c 'wget -qO- https://get.pnpm.io/install.sh | sh -' && \
+RUN wget -qO /tmp/pnpm-install.sh https://get.pnpm.io/install.sh && \
+    echo '3a6b531bfa164f5cac7c8db261cb2eb7bf929d7b8efb3a4eae82425507050e91 /tmp/pnpm-install.sh' | sha256sum -c - && \
+    ENV="/root/.profile" sh /tmp/pnpm-install.sh && \
     deluser node && \
     if getent group ${GROUP_ID} >/dev/null; then delgroup "$(getent group ${GROUP_ID} | cut -d: -f1)"; fi && \
     if getent passwd ${USER_ID} >/dev/null; then deluser "$(getent passwd ${USER_ID} | cut -d: -f1)"; fi && \
