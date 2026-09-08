@@ -216,11 +216,12 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 
 	details.Password = schema.NewPasswordDigest(digest)
 
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	p.database.SetUserDetails(details.Username, &details)
 
-	p.mutex.Lock()
 	p.setTimeoutReload(time.Now())
-	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
 		return err
@@ -266,11 +267,12 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 
 	details.Password = schema.NewPasswordDigest(digest)
 
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	p.database.SetUserDetails(details.Username, &details)
 
-	p.mutex.Lock()
 	p.setTimeoutReload(time.Now())
-	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
 		return fmt.Errorf("%w : %v", ErrOperationFailed, err)

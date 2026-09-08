@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-crypt/crypt/algorithm"
 
@@ -342,7 +343,7 @@ func (f *FileUserManagement) UpdateUserWithMask(username string, userData *UserD
 
 	f.provider.database.SetUserDetails(username, &updatedDetails)
 
-	f.provider.setTimeoutReload(f.provider.timeoutReload)
+	f.provider.setTimeoutReload(time.Now())
 
 	if err := f.provider.database.Save(); err != nil {
 		return fmt.Errorf("unable to save user '%s': %w", username, err)
@@ -452,11 +453,12 @@ func (f *FileUserManagement) AddUser(userData *UserDetailsExtended) (err error) 
 		}
 	}
 
+	f.provider.mutex.Lock()
+	defer f.provider.mutex.Unlock()
+
 	f.provider.database.SetUserDetails(details.Username, &details)
 
-	f.provider.mutex.Lock()
-	f.provider.setTimeoutReload(f.provider.timeoutReload)
-	f.provider.mutex.Unlock()
+	f.provider.setTimeoutReload(time.Now())
 
 	if err = f.provider.database.Save(); err != nil {
 		return fmt.Errorf("failed to save user '%s': %w", userData.Username, err)
@@ -472,11 +474,12 @@ func (f *FileUserManagement) DeleteUser(username string) (err error) {
 		return fmt.Errorf("unable to retrieve user for deletion of user '%s': %w", username, err)
 	}
 
+	f.provider.mutex.Lock()
+	defer f.provider.mutex.Unlock()
+
 	f.provider.database.DeleteUserDetails(username)
 
-	f.provider.mutex.Lock()
-	f.provider.setTimeoutReload(f.provider.timeoutReload)
-	f.provider.mutex.Unlock()
+	f.provider.setTimeoutReload(time.Now())
 
 	if err = f.provider.database.Save(); err != nil {
 		return fmt.Errorf("unable to delete user '%s': %w", username, err)
