@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Warpgate]
-  - [v0.9.1](https://github.com/warp-tech/warpgate/releases/tag/v0.9.1)
+  - [v0.28.5](https://github.com/warp-tech/warpgate/releases/tag/v0.28.5)
 
 {{% oidc-common %}}
 
@@ -71,7 +71,7 @@ identity_providers:
           - 'authorization_code'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 ### Application
