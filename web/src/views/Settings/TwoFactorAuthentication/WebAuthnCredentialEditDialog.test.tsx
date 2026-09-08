@@ -181,12 +181,41 @@ describe("description field", () => {
         expect(handleClose).not.toHaveBeenCalled();
     });
 
-    it("leaves the field valid after an empty update attempt", async () => {
+    it("marks the field invalid after an empty update attempt", async () => {
         render(<WebAuthnCredentialEditDialog open={true} credential={credential} handleClose={vi.fn()} />);
 
         fireEvent.keyDown(screen.getByLabelText("Description"), { key: "Enter" });
 
-        await waitFor(() => expect(screen.getByLabelText("Description")).not.toHaveAttribute("aria-invalid", "true"));
+        await waitFor(() => expect(screen.getByLabelText("Description")).toHaveAttribute("aria-invalid", "true"));
+    });
+
+    it("rejects a description that is only whitespace", async () => {
+        const { updateUserWebAuthnCredential } = await import("@services/WebAuthn");
+
+        const handleClose = vi.fn();
+        render(<WebAuthnCredentialEditDialog open={true} credential={credential} handleClose={handleClose} />);
+
+        fireEvent.change(screen.getByLabelText("Description"), { target: { value: "   " } });
+        fireEvent.keyDown(screen.getByLabelText("Description"), { key: "Enter" });
+
+        await waitFor(() => expect(screen.getByLabelText("Description")).toHaveAttribute("aria-invalid", "true"));
+        expect(updateUserWebAuthnCredential).not.toHaveBeenCalled();
+        expect(handleClose).not.toHaveBeenCalled();
+    });
+
+    it("trims the description before updating", async () => {
+        const { updateUserWebAuthnCredential } = await import("@services/WebAuthn");
+        vi.mocked(updateUserWebAuthnCredential).mockResolvedValue({ data: { status: "OK" } } as any);
+
+        render(<WebAuthnCredentialEditDialog open={true} credential={credential} handleClose={vi.fn()} />);
+
+        fireEvent.change(screen.getByLabelText("Description"), { target: { value: "  Renamed  " } });
+
+        await act(async () => {
+            fireEvent.keyDown(screen.getByLabelText("Description"), { key: "Enter" });
+        });
+
+        expect(updateUserWebAuthnCredential).toHaveBeenCalledWith("abc123", "Renamed");
     });
 
     it("truncates a description longer than 30 characters", async () => {
