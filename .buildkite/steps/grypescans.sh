@@ -7,7 +7,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/../libs/common.sh"
 ciTag="${BUILDKITE_TAG}"
 dockerImageName="authelia/authelia"
 masterBranch="master"
-grypeCmd=(grype -f low)
+grypeCmd=(grype -f low --only-fixed)
 
 if [[ "${CI_PRIVATE}" == "true" ]]; then
   dockerImageName="${dockerImageName}-cve"
