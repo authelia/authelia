@@ -1,15 +1,8 @@
 #!/usr/bin/env bash
-DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
+# shellcheck source=/dev/null
+source "$(dirname "${BASH_SOURCE[0]}")/libs/common.sh"
 
 BYPASS_REGEX='/^(CODE_OF_CONDUCT\.md|CONTRIBUTING\.md|README\.md|SECURITY\.md|crowdin\.yml|\.all-contributorsrc|\.editorconfig|\.github\/.*|docs\/.*|cmd\/authelia-gen\/templates\/.*|examples\/.*)/!{q1}'
-
-changed() {
-  git diff --name-only "${1}" | grep -q "^${2}"
-}
-
-bypass_check() {
-  git diff --name-only "${1}" | sed -rn "${BYPASS_REGEX}" && echo true || echo false
-}
 
 BUILD_DUO="false"
 BUILD_HAPROXY="false"
@@ -20,17 +13,13 @@ CI_MERGE_QUEUE_BYPASS="false"
 CI_PRIVATE="false"
 LINT_REPORTER="github-check"
 
-if [[ ${DIVERGED} == 0 ]] && [[ ${BUILDKITE_TAG} == "" ]]; then
-  if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
-    BASE_REF="HEAD~1"
-  else
-    BASE_REF=$(git merge-base --fork-point origin/master)
-  fi
+resolve_base_ref
 
+if [[ "${BASE_REF_OK}" == "true" ]] && [[ "${BUILDKITE_TAG}" == "" ]]; then
   changed "${BASE_REF}" "internal/suites/example/compose/duo-api/Dockerfile" && BUILD_DUO="true"
   changed "${BASE_REF}" "internal/suites/example/compose/haproxy/Dockerfile" && BUILD_HAPROXY="true"
   changed "${BASE_REF}" "internal/suites/example/compose/samba/Dockerfile" && BUILD_SAMBA="true"
-  CI_BYPASS=$(bypass_check "${BASE_REF}")
+  CI_BYPASS=$(bypass_check "${BASE_REF}" "${BYPASS_REGEX}")
 
   if [[ ${CI_BYPASS} == "true" ]]; then
     buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/bypass
@@ -45,7 +34,7 @@ fi
 if [[ ${BUILDKITE_BRANCH} =~ ^gh-readonly-queue/.* ]]; then
   CI_BYPASS="true"
   CI_MERGE_QUEUE="true"
-  CI_MERGE_QUEUE_BYPASS=$(bypass_check "HEAD^..HEAD")
+  CI_MERGE_QUEUE_BYPASS=$(bypass_check "HEAD^..HEAD" "${BYPASS_REGEX}")
   buildkite-agent annotate --style "info" --context "ctx-info" < .buildkite/annotations/merge-queue
 fi
 
