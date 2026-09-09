@@ -909,6 +909,51 @@ func TestAddress_SocketHostname(t *testing.T) {
 	}
 }
 
+func TestAddress_HostnameLiteral(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     Address
+		expected string
+	}{
+		{
+			"ShouldReturnHostname",
+			Address{true, false, -1, 80, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "examplea:80"}},
+			"examplea",
+		},
+		{
+			"ShouldReturnIPv4",
+			Address{true, false, -1, 80, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "127.0.0.1:80"}},
+			"127.0.0.1",
+		},
+		{
+			"ShouldReturnIPv6WithBrackets",
+			Address{true, false, -1, 80, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "[::1]:80"}},
+			"[::1]",
+		},
+		{
+			"ShouldReturnIPv6ExpandedWithBrackets",
+			Address{true, false, -1, 80, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "[2001:db8::1]:80"}},
+			"[2001:db8::1]",
+		},
+		{
+			"ShouldReturnNothingInvalid",
+			Address{false, false, -1, 80, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "[::1]:80"}},
+			"",
+		},
+		{
+			"ShouldReturnNothingNil",
+			Address{true, false, -1, 80, nil, nil},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.HostnameLiteral())
+		})
+	}
+}
+
 func TestAddress_Path(t *testing.T) {
 	testCases := []struct {
 		name     string

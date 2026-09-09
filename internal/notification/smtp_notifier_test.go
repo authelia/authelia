@@ -11,8 +11,10 @@ import (
 	"fmt"
 	th "html/template"
 	"net/mail"
+	"strings"
 	"testing"
 	tt "text/template"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -87,6 +89,59 @@ func TestNewSMTPNotifier(t *testing.T) {
 			if tc.validate != nil {
 				tc.validate(t, notifier)
 			}
+		})
+	}
+}
+
+func TestStandardSMTPClientFactory_GetClient(t *testing.T) {
+	testCases := []struct {
+		name     string
+		address  *schema.AddressSMTP
+		expected string
+	}{
+		{
+			"ShouldHandleHostname",
+			schema.NewSMTPAddress("submission", "example.com", 587),
+			"example.com:587",
+		},
+		{
+			"ShouldHandleIPv4",
+			schema.NewSMTPAddress("smtp", "127.0.0.1", 1025),
+			"127.0.0.1:1025",
+		},
+		{
+			"ShouldHandleIPv6",
+			schema.NewSMTPAddress("smtp", "[::1]", 1025),
+			"[::1]:1025",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.NotifierSMTP{
+				Address:    tc.address,
+				Identifier: "localhost",
+				Username:   "admin",
+				Password:   "password",
+				Timeout:    time.Second * 5,
+				TLS:        &schema.TLS{},
+			}
+
+			notifier := NewSMTPNotifier(config, nil)
+			require.NotNil(t, notifier)
+
+			client, err := notifier.factory.GetClient()
+			require.NoError(t, err)
+			require.NotNil(t, client)
+
+			assert.Equal(t, tc.expected, client.ServerAddr())
+
+			host := strings.TrimSuffix(client.ServerAddr(), fmt.Sprintf(":%d", tc.address.Port()))
+
+			auth, ok := NewOpportunisticSMTPAuth(config).(*OpportunisticSMTPAuth)
+			require.True(t, ok)
+
+			assert.Equal(t, host, auth.host)
 		})
 	}
 }
