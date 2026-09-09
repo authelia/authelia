@@ -89,7 +89,7 @@ func TestSortCmds(t *testing.T) {
 		{
 			"ShouldSortRootCmd",
 			newRootCmd(),
-			[]string{"code", "commit-lint", "github", "locales", "misc", "release {major|minor|patch}", "docs"},
+			[]string{"code", "commit-lint", "contributors", "github", "locales", "misc", "release {major|minor|patch}", "docs"},
 		},
 		{
 			"ShouldSortDocsCmd",

@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: Contributors
+
+# The all-contributors bot maintains .all-contributorsrc alone, so the card the README displays is
+# regenerated here and committed onto the branch of the pull request that changed the roster. A push
+# made with the workflow token starts no workflow run, so this cannot retrigger itself.
+on:
+  pull_request:
+    paths:
+      - '.all-contributorsrc'
+      - 'cmd/authelia-gen/cmd_contributors.go'
+
+permissions: {}
+
+jobs:
+  card:
+    name: Generate Card
+    runs-on: ubuntu-latest
+    # A pull request from a fork is given a read only token, which cannot commit the card back.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: write
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1  # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v7.0.0
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Generate Card
+        run: go run ./cmd/authelia-gen contributors
+
+      - name: Commit Card
+        env:
+          # The token is handed to the one push rather than persisted into the checkout, and the
+          # branch is passed as an environment variable as its name is contributor controlled.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.head_ref }}
+        # yamllint disable rule:indentation
+        run: |
+          if git diff --quiet -- docs/static/images/contributors.svg; then
+            echo 'The contributors card is already up to date.'
+            exit 0
+          fi
+
+          git config user.name 'autheliabot'
+          git config user.email 'autheliabot@users.noreply.github.com'
+          git add docs/static/images/contributors.svg
+          git commit -m 'docs: regenerate contributors card'
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "HEAD:${BRANCH}"
+        # yamllint enable rule:indentation
+...

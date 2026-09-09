@@ -40,6 +40,10 @@ const (
 	fileDocsStaticJSONSchemasExportsWebAuthn    = "exports.webauthn"
 	fileDocsStaticJSONSchemasExportsIdentifiers = "exports.identifiers"
 
+	dirDocsStaticImages              = "images"
+	fileDocsStaticImagesContributors = "contributors.svg"
+	fileAllContributors              = ".all-contributorsrc"
+
 	fileGitHubIssueTemplateFR = ".github/ISSUE_TEMPLATE/feature-request.yml"
 	fileGitHubIssueTemplateBR = ".github/ISSUE_TEMPLATE/bug-report.yml"
 )
@@ -94,6 +98,7 @@ const (
 	cmdUseCommitLint             = "commit-lint"
 	cmdUseCode                   = "code"
 	cmdUseCodeScripts            = "scripts"
+	cmdUseContributors           = "contributors"
 	cmdUseKeys                   = "keys"
 	cmdUseServer                 = "server"
 )
@@ -178,3 +183,41 @@ var (
 		{Name: codeCSPDirectiveDefaultSrc, Value: codeCSPDevelopmentDefaultSrc},
 	}
 )
+
+const (
+	contributorsWidth             = 800
+	contributorsPadding           = 40
+	contributorsColumns           = 7
+	contributorsAvatar            = 56
+	contributorsGridTop           = 120
+	contributorsRowHeight         = 106
+	contributorsMaxEmoji          = 4
+	contributorsMaxName           = 16
+	contributorsAvatarSize        = 112
+	contributorsAvatarQuality     = 68
+	contributorsAvatarConcurrency = 12
+
+	contributorsEmojiKey  = "https://allcontributors.org/en/reference/emoji-key/"
+	contributorsFont      = "'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+	contributorsEmojiFont = "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif"
+)
+
+// contributorsEmoji maps the all-contributors contribution types to the emoji from their key.
+var contributorsEmoji = map[string]string{
+	"code":        "\U0001F4BB",
+	"doc":         "\U0001F4D6",
+	"ideas":       "\U0001F914",
+	"maintenance": "\U0001F6A7",
+	"question":    "\U0001F4AC",
+	"review":      "\U0001F440",
+	"test":        "⚠️",
+	"mentoring":   "\U0001F9D1\u200d\U0001F3EB",
+	"infra":       "\U0001F687",
+	"design":      "\U0001F3A8",
+	"userTesting": "\U0001F4D3",
+	"tool":        "\U0001F527",
+	"research":    "\U0001F52C",
+	"bug":         "\U0001F41B",
+	"security":    "\U0001F6E1️",
+	"translation": "\U0001F30D",
+}

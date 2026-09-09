@@ -68,6 +68,7 @@ func newRootCmd() *cobra.Command {
 
 	cmd.AddCommand(
 		newCodeCmd(),
+		newContributorsCmd(),
 		newDocsCmd(),
 		newGitHubCmd(),
 		newLocalesCmd(),
@@ -98,6 +99,10 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 		}
 
 		if cmd.Use == cmdUseRoot && subCmd.Use == cmdUseMisc {
+			continue
+		}
+
+		if cmd.Use == cmdUseRoot && subCmd.Use == cmdUseContributors {
 			continue
 		}
 
