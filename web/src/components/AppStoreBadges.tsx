@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import AppleStore from "@assets/images/applestore-badge.svg";
 import GooglePlay from "@assets/images/googleplay-badge.svg";
 import { cn } from "@utils/Styles";

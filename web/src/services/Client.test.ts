@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import axios from "axios";
 
 import { hasServiceError, toData, toDataRateLimited } from "@services/Api";

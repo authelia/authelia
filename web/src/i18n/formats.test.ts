@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { FormatDateHumanReadable } from "@i18n/formats";
 
 it("exports date format with expected properties", () => {
