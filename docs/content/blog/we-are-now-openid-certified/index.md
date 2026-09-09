@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "We are now OpenID Certified™"
 summary: "This is a very important and exciting milestone for the Authelia project."
 date: 2025-05-18T21:35:50+10:00

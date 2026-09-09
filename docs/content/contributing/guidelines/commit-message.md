@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Commit Message"
 description: "Authelia Development Commit Message Guidelines"
 lead: "This section covers the git commit message guidelines we use for development."

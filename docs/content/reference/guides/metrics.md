@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Telemetry"
 description: "A reference guide on the telemetry collection"
 summary: "This section contains reference documentation for Authelia's telemetry systems."

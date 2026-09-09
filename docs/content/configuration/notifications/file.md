@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "File System"
 description: "Configuring the File Notifications Settings."
 summary: "Authelia can save notifications to a file. This section describes how to configure this."

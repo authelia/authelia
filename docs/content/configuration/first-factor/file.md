@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "File"
 description: "File"
 summary: "Authelia supports a file based first factor user provider. This section describes configuring this."

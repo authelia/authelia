@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Log Messages"
 description: "A collection of log message reference information"
 summary: "This section contains log message references for Authelia."
