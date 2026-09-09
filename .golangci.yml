@@ -44,6 +44,8 @@ linters:
         - require-stdlib-doclink
     godot:
       scope: all
+      exclude:
+        - '^\s*SPDX-'
     revive:
       confidence: 0.8
   exclusions:
