@@ -24,9 +24,7 @@ path = [
 	"docs/layouts/**",
 	"docs/static/.well-known/matrix/server",
 	"docs/static/keys/**",
-	"internal/authentication/*_mock_test.go",
 	"internal/configuration/test_resources/**",
-	"internal/mocks/**",
 	"internal/storage/migrations/**",
 	"internal/suites/common/pki/**",
 	"internal/suites/example/compose/authelia/resources/reflex.conf",
@@ -46,21 +44,6 @@ path = "internal/session/memory/stdlib.go"
 precedence = "override"
 SPDX-FileCopyrightText = "2016 The Go Authors"
 SPDX-License-Identifier = "BSD-3-Clause"
-
-[[annotations]]
-path = "internal/suites/example/compose/haproxy/auth-request.lua"
-precedence = "override"
-SPDX-FileCopyrightText = "2018 Tim Düsterhus"
-SPDX-License-Identifier = "MIT"
-
-[[annotations]]
-path = "internal/suites/example/compose/haproxy/http.lua"
-precedence = "override"
-SPDX-FileCopyrightText = [
-  "2017-2020 Adis Nezirović <anezirovic@haproxy.com>",
-  "2017-2020 HAProxy Technologies, LLC.",
-]
-SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
 path = [
