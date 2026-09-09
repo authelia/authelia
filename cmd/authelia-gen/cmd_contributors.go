@@ -18,6 +18,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -86,7 +87,51 @@ func getContributors(path string) (contributors []Contributor, err error) {
 		return nil, err
 	}
 
+	for _, contributor := range config.Contributors {
+		if err = validateAvatarURL(contributor.AvatarURL); err != nil {
+			return nil, fmt.Errorf("error occurred validating contributor '%s': %w", contributor.Login, err)
+		}
+
+		if err = validateProfileURL(contributor.Profile); err != nil {
+			return nil, fmt.Errorf("error occurred validating contributor '%s': %w", contributor.Login, err)
+		}
+	}
+
 	return config.Contributors, nil
+}
+
+// validateAvatarURL rejects an avatar the generator should not fetch. The roster is a file in the
+// repository, so the URLs it holds are input rather than trusted values, and an avatar is fetched
+// during generation.
+func validateAvatarURL(raw string) (err error) {
+	var parsed *url.URL
+
+	if parsed, err = url.Parse(raw); err != nil {
+		return fmt.Errorf("avatar url could not be parsed: %w", err)
+	}
+
+	if parsed.Scheme != schemeHTTPS || parsed.Host != contributorsAvatarHost {
+		return fmt.Errorf("avatar url must be %s on %s but is '%s'", schemeHTTPS, contributorsAvatarHost, raw)
+	}
+
+	return nil
+}
+
+// validateProfileURL rejects a profile the generator should not link. A profile is a contributor
+// supplied value which becomes an anchor in an SVG the documentation site serves, so a scheme which
+// executes rather than navigates must not reach it.
+func validateProfileURL(raw string) (err error) {
+	var parsed *url.URL
+
+	if parsed, err = url.Parse(raw); err != nil {
+		return fmt.Errorf("profile url could not be parsed: %w", err)
+	}
+
+	if parsed.Scheme != schemeHTTP && parsed.Scheme != schemeHTTPS {
+		return fmt.Errorf("profile url must be %s or %s but is '%s'", schemeHTTP, schemeHTTPS, raw)
+	}
+
+	return nil
 }
 
 // getContributorAvatars fetches each avatar at the density the card draws it, flattens any
@@ -95,7 +140,16 @@ func getContributors(path string) (contributors []Contributor, err error) {
 func getContributorAvatars(contributors []Contributor) (avatars []string, err error) {
 	avatars = make([]string, len(contributors))
 
-	client := &http.Client{Timeout: time.Second * 30}
+	client := &http.Client{
+		Timeout: time.Second * 30,
+		CheckRedirect: func(req *http.Request, via []*http.Request) (err error) {
+			if len(via) >= contributorsAvatarRedirects {
+				return fmt.Errorf("stopped after %d redirects", contributorsAvatarRedirects)
+			}
+
+			return validateAvatarURL(req.URL.String())
+		},
+	}
 
 	group := &errgroup.Group{}
 	group.SetLimit(contributorsAvatarConcurrency)
