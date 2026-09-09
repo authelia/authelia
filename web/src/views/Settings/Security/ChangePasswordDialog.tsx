@@ -8,9 +8,11 @@ import { Button } from "@components/UI/Button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@components/UI/Dialog";
 import { Input } from "@components/UI/Input";
 import { Label } from "@components/UI/Label";
+import { PasswordVisibilityToggle } from "@components/UI/PasswordVisibilityToggle";
 import { Spinner } from "@components/UI/Spinner";
 import { useNotifications } from "@contexts/NotificationsContext";
 import useCheckCapsLock from "@hooks/CapsLock";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { postPasswordChange } from "@services/ChangePassword";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
@@ -27,6 +29,8 @@ const ChangePasswordDialog = (props: Props) => {
     const { t: translate } = useTranslation(["settings", "portal"]);
 
     const { createErrorNotification, createSuccessNotification } = useNotifications();
+    const { showPassword: showOldPassword, toggleProps: oldPasswordToggleProps } = usePasswordVisibility();
+    const { showPassword: showNewPassword, toggleProps: newPasswordToggleProps } = usePasswordVisibility();
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -225,24 +229,31 @@ const ChangePasswordDialog = (props: Props) => {
                         <Label htmlFor="old-password" className="sr-only">
                             {translate("Old Password")}
                         </Label>
-                        <Input
-                            ref={oldPasswordRef}
-                            id="old-password"
-                            placeholder={translate("Old Password") + " *"}
-                            required
-                            value={oldPassword}
-                            error={oldPasswordError}
-                            disabled={disabled}
-                            className="w-full"
-                            onChange={(v) => setOldPassword(v.target.value)}
-                            onFocus={() => setOldPasswordError(false)}
-                            type="password"
-                            autoCapitalize="off"
-                            autoComplete="off"
-                            onKeyDown={handleOldPWKeyDown}
-                            onKeyUp={useCheckCapsLock(setIsCapsLockOnOldPW)}
-                            onBlur={() => setIsCapsLockOnOldPW(false)}
-                        />
+                        <div className="relative">
+                            <Input
+                                ref={oldPasswordRef}
+                                id="old-password"
+                                placeholder={translate("Old Password") + " *"}
+                                required
+                                value={oldPassword}
+                                error={oldPasswordError}
+                                disabled={disabled}
+                                className="w-full pr-10"
+                                onChange={(v) => setOldPassword(v.target.value)}
+                                onFocus={() => setOldPasswordError(false)}
+                                type={showOldPassword ? "text" : "password"}
+                                autoCapitalize="off"
+                                autoComplete="off"
+                                onKeyDown={handleOldPWKeyDown}
+                                onKeyUp={useCheckCapsLock(setIsCapsLockOnOldPW)}
+                                onBlur={() => setIsCapsLockOnOldPW(false)}
+                            />
+                            <PasswordVisibilityToggle
+                                label={translate("Toggle password visibility", { ns: "portal" })}
+                                showPassword={showOldPassword}
+                                {...oldPasswordToggleProps}
+                            />
+                        </div>
                         <p
                             className={cn(
                                 "text-xs mt-1 h-4",
@@ -256,24 +267,31 @@ const ChangePasswordDialog = (props: Props) => {
                         <Label htmlFor="new-password" className="sr-only">
                             {translate("New Password")}
                         </Label>
-                        <Input
-                            ref={newPasswordRef}
-                            id="new-password"
-                            placeholder={translate("New Password") + " *"}
-                            required
-                            error={newPasswordError}
-                            className="w-full"
-                            disabled={disabled}
-                            value={newPassword}
-                            onChange={(v) => setNewPassword(v.target.value)}
-                            onFocus={() => setNewPasswordError(false)}
-                            type="password"
-                            autoCapitalize="off"
-                            autoComplete="off"
-                            onKeyDown={handleNewPWKeyDown}
-                            onKeyUp={useCheckCapsLock(setIsCapsLockOnNewPW)}
-                            onBlur={() => setIsCapsLockOnNewPW(false)}
-                        />
+                        <div className="relative">
+                            <Input
+                                ref={newPasswordRef}
+                                id="new-password"
+                                placeholder={translate("New Password") + " *"}
+                                required
+                                error={newPasswordError}
+                                className="w-full pr-10"
+                                disabled={disabled}
+                                value={newPassword}
+                                onChange={(v) => setNewPassword(v.target.value)}
+                                onFocus={() => setNewPasswordError(false)}
+                                type={showNewPassword ? "text" : "password"}
+                                autoCapitalize="off"
+                                autoComplete="off"
+                                onKeyDown={handleNewPWKeyDown}
+                                onKeyUp={useCheckCapsLock(setIsCapsLockOnNewPW)}
+                                onBlur={() => setIsCapsLockOnNewPW(false)}
+                            />
+                            <PasswordVisibilityToggle
+                                label={translate("Toggle password visibility", { ns: "portal" })}
+                                showPassword={showNewPassword}
+                                {...newPasswordToggleProps}
+                            />
+                        </div>
                         <p
                             className={cn(
                                 "text-xs mt-1 h-4",
@@ -290,24 +308,31 @@ const ChangePasswordDialog = (props: Props) => {
                         <Label htmlFor="repeat-new-password" className="sr-only">
                             {translate("Repeat New Password")}
                         </Label>
-                        <Input
-                            ref={repeatNewPasswordRef}
-                            id="repeat-new-password"
-                            placeholder={translate("Repeat New Password") + " *"}
-                            required
-                            error={repeatNewPasswordError}
-                            className="w-full"
-                            disabled={disabled}
-                            value={repeatNewPassword}
-                            onChange={(v) => setRepeatNewPassword(v.target.value)}
-                            onFocus={() => setRepeatNewPasswordError(false)}
-                            type="password"
-                            autoCapitalize="off"
-                            autoComplete="off"
-                            onKeyDown={handleRepeatNewPWKeyDown}
-                            onKeyUp={useCheckCapsLock(setIsCapsLockOnRepeatNewPW)}
-                            onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
-                        />
+                        <div className="relative">
+                            <Input
+                                ref={repeatNewPasswordRef}
+                                id="repeat-new-password"
+                                placeholder={translate("Repeat New Password") + " *"}
+                                required
+                                error={repeatNewPasswordError}
+                                className="w-full pr-10"
+                                disabled={disabled}
+                                value={repeatNewPassword}
+                                onChange={(v) => setRepeatNewPassword(v.target.value)}
+                                onFocus={() => setRepeatNewPasswordError(false)}
+                                type={showNewPassword ? "text" : "password"}
+                                autoCapitalize="off"
+                                autoComplete="off"
+                                onKeyDown={handleRepeatNewPWKeyDown}
+                                onKeyUp={useCheckCapsLock(setIsCapsLockOnRepeatNewPW)}
+                                onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
+                            />
+                            <PasswordVisibilityToggle
+                                label={translate("Toggle password visibility", { ns: "portal" })}
+                                showPassword={showNewPassword}
+                                {...newPasswordToggleProps}
+                            />
+                        </div>
                         <p
                             className={cn(
                                 "text-xs mt-1 h-4",

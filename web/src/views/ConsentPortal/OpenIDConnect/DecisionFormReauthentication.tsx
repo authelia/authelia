@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Alert, AlertTitle } from "@components/UI/Alert";
 import { Field, FieldError, FieldLabel } from "@components/UI/Field";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@components/UI/InputGroup";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { IsCapsLockModified } from "@services/CapsLock";
 
 export interface Props {
@@ -22,7 +23,7 @@ function DecisionFormReauthentication({ disabled, error, failure, onChange, ref,
 
     const failureId = useId();
 
-    const [showPassword, setShowPassword] = useState(false);
+    const { showPassword, toggleProps } = usePasswordVisibility();
     const [hasCapsLock, setHasCapsLock] = useState(false);
     const [isCapsLockPartial, setIsCapsLockPartial] = useState(false);
 
@@ -49,20 +50,6 @@ function DecisionFormReauthentication({ disabled, error, failure, onChange, ref,
         },
         [value.length],
     );
-
-    const handleToggleKeyDown = useCallback((event: KeyboardEvent<HTMLButtonElement>) => {
-        if (event.key === " " || event.key === "Enter") {
-            setShowPassword(true);
-            event.preventDefault();
-        }
-    }, []);
-
-    const handleToggleKeyUp = useCallback((event: KeyboardEvent<HTMLButtonElement>) => {
-        if (event.key === " " || event.key === "Enter") {
-            setShowPassword(false);
-            event.preventDefault();
-        }
-    }, []);
 
     const invalid = error || !!failure;
     const showCapsLock = hasCapsLock && value.length !== 0;
@@ -98,15 +85,7 @@ function DecisionFormReauthentication({ disabled, error, failure, onChange, ref,
                     <InputGroupButton
                         size={"icon-sm"}
                         aria-label={translate("Toggle password visibility", { ns: "portal" })}
-                        aria-pressed={showPassword}
-                        onMouseDown={() => setShowPassword(true)}
-                        onMouseUp={() => setShowPassword(false)}
-                        onMouseLeave={() => setShowPassword(false)}
-                        onTouchStart={() => setShowPassword(true)}
-                        onTouchEnd={() => setShowPassword(false)}
-                        onTouchCancel={() => setShowPassword(false)}
-                        onKeyDown={handleToggleKeyDown}
-                        onKeyUp={handleToggleKeyUp}
+                        {...toggleProps}
                     >
                         {showPassword ? <Eye /> : <EyeOff />}
                     </InputGroupButton>

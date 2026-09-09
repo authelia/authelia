@@ -50,57 +50,24 @@ it("disables the password input while submitting", () => {
     expect(screen.getByLabelText("Password")).toBeDisabled();
 });
 
-it("reveals the password while the toggle is held", () => {
+it("reveals the password on click and hides it again on a second click", () => {
     render(<DecisionFormReauthentication value={"secret"} error={false} disabled={false} onChange={vi.fn()} />);
 
     const toggle = screen.getByRole("button", { name: "Toggle password visibility" });
 
-    fireEvent.mouseDown(toggle);
+    fireEvent.click(toggle);
     expect(screen.getByLabelText("Password")).toHaveAttribute("type", "text");
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
 
-    fireEvent.mouseUp(toggle);
+    fireEvent.click(toggle);
     expect(screen.getByLabelText("Password")).toHaveAttribute("type", "password");
-});
-
-it("hides the password again when the pointer leaves the toggle", () => {
-    render(<DecisionFormReauthentication value={"secret"} error={false} disabled={false} onChange={vi.fn()} />);
-
-    const toggle = screen.getByRole("button", { name: "Toggle password visibility" });
-
-    fireEvent.mouseDown(toggle);
-    fireEvent.mouseLeave(toggle);
-
-    expect(screen.getByLabelText("Password")).toHaveAttribute("type", "password");
-});
-
-it("reveals the password while the toggle is held with the keyboard", () => {
-    render(<DecisionFormReauthentication value={"secret"} error={false} disabled={false} onChange={vi.fn()} />);
-
-    const toggle = screen.getByRole("button", { name: "Toggle password visibility" });
-
-    fireEvent.keyDown(toggle, { key: " " });
-    expect(screen.getByLabelText("Password")).toHaveAttribute("type", "text");
-
-    fireEvent.keyUp(toggle, { key: " " });
-    expect(screen.getByLabelText("Password")).toHaveAttribute("type", "password");
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
 });
 
 it("keeps the reveal toggle reachable with the keyboard", () => {
     render(<DecisionFormReauthentication value={"secret"} error={false} disabled={false} onChange={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "Toggle password visibility" })).not.toHaveAttribute("tabindex", "-1");
-});
-
-it("reveals the password while the toggle is held on touch devices", () => {
-    render(<DecisionFormReauthentication value={"secret"} error={false} disabled={false} onChange={vi.fn()} />);
-
-    const toggle = screen.getByRole("button", { name: "Toggle password visibility" });
-
-    fireEvent.touchStart(toggle);
-    expect(screen.getByLabelText("Password")).toHaveAttribute("type", "text");
-
-    fireEvent.touchEnd(toggle);
-    expect(screen.getByLabelText("Password")).toHaveAttribute("type", "password");
 });
 
 it("warns when the password was entered with caps lock", () => {
