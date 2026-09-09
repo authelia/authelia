@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Time-based OTP Applications"
 description: "A Time-based OTP Application integration reference guide"
 summary: "This section contains a Time-based OTP Application integration reference guide for Authelia."

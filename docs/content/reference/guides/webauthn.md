@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "WebAuthn"
 description: "A reference guide on various WebAuthn features and topics"
 summary: "This section contains reference documentation for Authelia's WebAuthn implementation and capabilities."

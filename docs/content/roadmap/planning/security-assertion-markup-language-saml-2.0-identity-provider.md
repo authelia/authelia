@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Security Assertion Markup Language (SAML) 2.0 Provider"
 description: "Authelia Security Assertion Markup Language (SAML) 2.0 Provider Implementation"
 summary: "The Security Assertion Markup Language (SAML) 2.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products."

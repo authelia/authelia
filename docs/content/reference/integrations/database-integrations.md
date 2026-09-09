@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Database Integrations"
 description: "A database integration reference guide"
 summary: "This section contains a database integration reference guide for Authelia."

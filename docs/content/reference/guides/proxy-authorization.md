@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Proxy Authorization"
 description: "A reference guide on Proxy Authorization implementations"
 summary: "This section contains reference guide on Proxy Authorization implementations Authelia supports."
