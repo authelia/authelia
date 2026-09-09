@@ -39,15 +39,20 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
       go tool covdata percent -i=coverage
       go tool covdata textfmt -i=coverage -o coverage.txt
     fi
+
+    CODECOV_GLOBAL_ARGS=()
     if [[ ${BUILDKITE_AGENT_META_DATA_CODECOV} == "verbose" ]]; then
-      BUILDKITE_AGENT_META_DATA_CODECOV="-v"
+      CODECOV_GLOBAL_ARGS+=("-v")
     fi
-    codecov -Z -c -f 'coverage*.txt' -n "${NAME}" -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
+
+    codecovcli "${CODECOV_GLOBAL_ARGS[@]}" upload-process -Z --plugin noop --disable-search -n "${NAME}" -F backend -f 'coverage*.txt'
+
     if [[ ! ${NAME} =~ ^(BypassAll|CLI|PAM)$ ]]; then
       if [[ ${BUILDKITE_LABEL} =~ :selenium: ]]; then
         pnpm -C web report
       fi
-      codecov -Z -c -f '!Dockerfile*' -f '!*.go' -f '!*.tar' -f '!*.zst' -n "${NAME}" -F frontend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
+
+      codecovcli "${CODECOV_GLOBAL_ARGS[@]}" upload-process -Z --plugin noop -n "${NAME}" --dir web -F frontend
     fi
   fi
 fi

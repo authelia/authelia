@@ -7,6 +7,7 @@ allowBuilds:
   sharp: true
 overrides:
   "@babel/traverse": 8.0.4
+  baseline-browser-mapping: 2.11.21
   fast-uri: 4.1.4
   next: 16.3.4
   postcss: 8.5.28

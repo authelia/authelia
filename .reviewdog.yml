@@ -31,7 +31,7 @@ runner:
     level: error
 
   typos:
-    cmd: typos --format brief .
+    cmd: .buildkite/steps/lint.sh typos .
     errorformat:
       - '%f:%l:%c: %m'
     level: error
