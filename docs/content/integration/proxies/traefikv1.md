@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Traefik v1"
 description: "An integration guide for Authelia and the Traefik v1 reverse proxy"
 summary: "A guide on integrating Authelia with the Traefik reverse proxy."
