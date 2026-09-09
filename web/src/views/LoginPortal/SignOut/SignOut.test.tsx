@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { act, render, screen, waitFor } from "@testing-library/react";
 
 import { signOut } from "@services/SignOut";
