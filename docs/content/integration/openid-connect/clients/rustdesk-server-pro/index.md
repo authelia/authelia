@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "RustDesk Server Pro"
 description: "Integrating RustDesk Server Pro with the Authelia OpenID Connect 1.0 Provider."
 summary: ""

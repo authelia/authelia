@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Authentication"
 description: "An overview of a authentication."
 summary: "An overview of a authentication."
