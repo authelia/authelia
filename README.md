@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Authelia
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 <p align="center">
   <img src="https://www.authelia.com/images/authelia-title.png" width="350" title="Authelia">
 </p>
