@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package schema
 
 // PBKDF2VariantDefaultIterations returns the default number of iterations for the given PBKDF2 variant.
