@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -209,11 +210,51 @@ func (s *BaseSuite) SetupLogging() {
 
 	log.SetLevel(l)
 
+	if isTest2JSON() {
+		log.SetOutput(&test2JSONWriter{out: os.Stderr})
+	}
+
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors: true,
 	})
 
 	s.T().Setenv("SUITE_SETUP_LOGGING", t)
+}
+
+// isTest2JSON returns true if the test binary output is being converted by cmd/internal/test2json. The
+// go command injects -test.v=test2json when -json is used, however the flag cannot be read back via the
+// flag package as -v appends a second -test.v=true which takes precedence, so the arguments are checked
+// directly.
+func isTest2JSON() bool {
+	return slices.Contains(os.Args, "-test.v=test2json")
+}
+
+// markEscape is the escape mark consumed by cmd/internal/test2json. Control bytes a test writes directly
+// to stderr rather than via t.Log must be escaped with it, otherwise test2json elides them, stripping the
+// ESC from ANSI sequences and leaving the remainder as literal text in the log.
+const markEscape = 0x1b
+
+// test2JSONWriter escapes the test2json escape mark so ANSI sequences survive `go test -json`.
+type test2JSONWriter struct {
+	out io.Writer
+}
+
+func (w *test2JSONWriter) Write(p []byte) (n int, err error) {
+	buf := make([]byte, 0, len(p))
+
+	for _, b := range p {
+		if b == markEscape {
+			buf = append(buf, markEscape)
+		}
+
+		buf = append(buf, b)
+	}
+
+	if _, err = w.out.Write(buf); err != nil {
+		return 0, err
+	}
+
+	return len(p), nil
 }
 
 // SetupEnvironment configures the environment for this suite.
