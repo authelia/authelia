@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { ReactNode, createContext, use, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { LocalStorageThemeName } from "@constants/LocalStorage";

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import AppBarItemAccountSettings from "@components/AppBarItemAccountSettings";
 import AppBarItemLanguage from "@components/AppBarItemLanguage";
 import { Language } from "@models/LocaleInformation";

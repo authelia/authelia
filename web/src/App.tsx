@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { Suspense, lazy } from "react";
 
 import { CSPProvider } from "@base-ui/react/csp-provider";

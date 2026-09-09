@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 /**
  * @module RelativeTimeString
  * @description This module provides utilities for generating and updating relative time strings.
