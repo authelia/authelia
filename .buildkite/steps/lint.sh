@@ -8,6 +8,8 @@
 #                            discovered via git ls-files + shebang scan and
 #                            passed in. Any flag-style arguments (--format=...)
 #                            are forwarded to shellcheck.
+#   lint.sh typos ...        Run typos, reporting an abnormal exit as a finding
+#                            so reviewdog does not discard the reason.
 #   lint.sh -flag ...        Anything else is forwarded to reviewdog.
 
 set -uo pipefail
@@ -56,6 +58,28 @@ run_shellcheck() {
   fi
 }
 
+run_typos() {
+  local err rc
+  err=$(mktemp)
+  typos --threads 4 --format brief "$@" 2>"${err}"
+  rc=$?
+
+  # 0 is clean and 2 is typos found; anything else is typos itself failing.
+  # reviewdog discards a runner's stderr and any stdout that does not match the
+  # errorformat, so re-emit the reason as a finding or it is lost entirely.
+  if [ ${rc} -ne 0 ] && [ ${rc} -ne 2 ]; then
+    if [ -s "${err}" ]; then
+      sed -e "s|^|.reviewdog.yml:1:1: typos failed (exit ${rc}): |" "${err}"
+    else
+      echo ".reviewdog.yml:1:1: typos failed (exit ${rc}) without writing a reason"
+    fi
+  fi
+
+  rm -f "${err}"
+
+  return ${rc}
+}
+
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 if [[ $# -eq 0 ]]; then
@@ -82,6 +106,9 @@ if [[ $# -eq 0 ]]; then
 elif [[ $1 == "shellcheck" ]]; then
   shift
   run_shellcheck "$@"
+elif [[ $1 == "typos" ]]; then
+  shift
+  run_typos "$@"
 else
   reviewdog "$@"
 fi
