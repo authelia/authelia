@@ -5,12 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -210,7 +210,7 @@ func (s *BaseSuite) SetupLogging() {
 
 	log.SetLevel(l)
 
-	if f := flag.Lookup("test.v"); f != nil && f.Value.String() == "test2json" {
+	if isTest2JSON() {
 		log.SetOutput(&test2JSONWriter{out: os.Stderr})
 	}
 
@@ -219,6 +219,14 @@ func (s *BaseSuite) SetupLogging() {
 	})
 
 	s.T().Setenv("SUITE_SETUP_LOGGING", t)
+}
+
+// isTest2JSON returns true if the test binary output is being converted by cmd/internal/test2json. The
+// go command injects -test.v=test2json when -json is used, however the flag cannot be read back via the
+// flag package as -v appends a second -test.v=true which takes precedence, so the arguments are checked
+// directly.
+func isTest2JSON() bool {
+	return slices.Contains(os.Args, "-test.v=test2json")
 }
 
 // markEscape is the escape mark consumed by cmd/internal/test2json. Control bytes a test writes directly
