@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Time-based One-Time Password"
 description: "Configuring the Time-based One-Time Password Second Factor Method."
 summary: "Authelia supports utilizing Time-based One-Time Passwords as a 2FA method."

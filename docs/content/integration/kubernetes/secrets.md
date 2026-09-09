@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Secrets"
 description: "A guide to using secrets when integrating Authelia with Kubernetes."
 summary: "A guide to using secrets when integrating Authelia with Kubernetes."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Server"
 description: "Configuring the Server Settings."
 summary: "Authelia runs an internal web server. This section describes how to configure and tune this."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Chart"
 description: "A guide to using the Authelia helm chart to integrate Authelia with Kubernetes"
 summary: "A guide to using the Authelia helm chart to integrate Authelia with Kubernetes."

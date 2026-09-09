@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "MySQL"
 description: "MySQL Configuration"
 summary: "The MySQL storage provider which supports both MySQL and MariaDB."
