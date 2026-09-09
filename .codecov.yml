@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 # yaml-language-server: $schema=https://json.schemastore.org/codecov.json
 codecov:

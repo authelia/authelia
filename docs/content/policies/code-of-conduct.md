@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Code of Conduct"
 description: "The Code of Conduct that all community members must agree to abide by."
 summary: "The Code of Conduct that all community members must agree to abide by."

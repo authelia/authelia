@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Security Key and Passkeys"
 description: "Authelia utilizes WebAuthn Credentials as one of it's second factor authentication methods and a passwordless login method via Passkeys."
 summary: "Authelia utilizes WebAuthn Credentials as one of it's second factor authentication methods and a passwordless login method via Passkeys."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Frequently Asked Questions"
 description: "Frequently Asked Questions regarding integrating the Authelia Trusted Header SSO implementation with applications"
 summary: "Frequently Asked Questions regarding integrating the Authelia Trusted Header SSO implementation with applications."

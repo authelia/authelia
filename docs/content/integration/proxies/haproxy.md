@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "HAProxy"
 description: "An integration guide for Authelia and the HAProxy reverse proxy"
 summary: "A guide on integrating Authelia with the HAProxy reverse proxy."

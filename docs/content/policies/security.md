@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Security Policy"
 description: "The Authelia Security Policy which is essential reading for reporting security issues"
 summary: ""

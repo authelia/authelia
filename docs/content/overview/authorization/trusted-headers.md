@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Trusted Headers SSO"
 description: "Trusted Headers SSO is a simple header authorization framework supported by Authelia."
 summary: "Trusted Headers is a simple header authorization framework supported by Authelia."

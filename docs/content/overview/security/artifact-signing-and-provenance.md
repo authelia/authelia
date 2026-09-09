@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Artifact Signing and Provenance"
 description: "An overview of Authelia's Artifact Signing and Provenance."
 summary: "An overview of Authelia's Artifact Signing and Provenance."

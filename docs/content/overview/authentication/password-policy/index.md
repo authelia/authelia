@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Password Policy"
 description: "Authelia implements a password policy feature."
 summary: "Authelia implements a password policy feature."
