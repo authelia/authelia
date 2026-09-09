@@ -329,7 +329,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 		fail = "-failfast"
 	}
 
-	testCmdLine := fmt.Sprintf("go test -count=1 -v -json ./internal/suites -timeout %s %s ", timeout, fail)
+	testCmdLine := fmt.Sprintf("go test -count=1 -json ./internal/suites -timeout %s %s ", timeout, fail)
 
 	if testPattern != "" {
 		testCmdLine += fmt.Sprintf("-run '%s'", testPattern)
