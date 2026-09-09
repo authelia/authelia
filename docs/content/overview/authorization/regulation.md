@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Regulation"
 description: "Regulation of failed attempts is an important function of an IAM system."
 summary: "Regulation of failed attempts is an important function of an IAM system."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Privacy Policy"
 description: "We do not use cookies and we do not collect any personal data."
 summary: ""
