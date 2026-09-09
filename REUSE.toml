@@ -15,9 +15,9 @@ path = [
 	".buildkite/annotations/draft",
 	".buildkite/annotations/merge-queue",
 	".renovaterc",
+	"CITATION.cff",
 	"cmd/authelia-gen/templates/dot_commitlintrc.cjs.tmpl",
 	"cmd/dev/**",
-	"CITATION.cff",
 	"docs/content/reference/architecture-decision-log/.adr.config.json",
 	"docs/content/reference/cli/**",
 	"docs/data/**",
@@ -32,7 +32,7 @@ path = [
 	"internal/suites/example/compose/authelia/resources/reflex.conf",
 ]
 precedence = "aggregate"
-SPDX-FileCopyrightText = "2016 Authelia"
+SPDX-FileCopyrightText = "2026 Authelia"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
