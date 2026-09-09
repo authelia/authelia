@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Usage:
 #   lint.sh                  Run every linter (CI linting step entrypoint).
 #   lint.sh shellcheck ...   Run shellcheck. With file args, those files are
@@ -95,6 +99,8 @@ if [[ $# -eq 0 ]]; then
   pnpm -C web exec eslint '*/**/*.{js,ts,tsx}' || FAILED=1
   echo "--- :prettier::service_dog: Running prettier"
   pnpm -C docs exec eslint . || FAILED=1
+  echo "--- :copyright::service_dog: Running reuse"
+  reuse lint --lines || FAILED=1
 
   echo "--- :go::service_dog: Lint Runners Completed"
   if [[ ${FAILED} -ne 0 ]]; then
