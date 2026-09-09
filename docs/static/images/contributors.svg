@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="2048" viewBox="0 0 800 2048" role="img" aria-label="Authelia contributors">
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="2154" viewBox="0 0 800 2154" role="img" aria-label="Authelia contributors">
   <style>
     .bg { fill: #ffffff } .rule { fill: #e4e4e7 } .edge { stroke: #e4e4e7 }
     .title { fill: #18181b } .muted { fill: #71717a } .name { fill: #3f3f46 }
@@ -10,13 +10,13 @@
     }
   </style>
   <defs>
-    <clipPath id="card"><rect x="0" y="0" width="800" height="2048" rx="12" /></clipPath>
+    <clipPath id="card"><rect x="0" y="0" width="800" height="2154" rx="12" /></clipPath>
     <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
   </defs>
   <g clip-path="url(#card)">
-    <rect x="0" y="0" width="800" height="2048" class="bg" />
+    <rect x="0" y="0" width="800" height="2154" class="bg" />
     <text x="40" y="52" font-size="26" font-weight="700" letter-spacing="-0.02em" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="title">Contributors</text>
-    <text x="40" y="76" font-size="12" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="muted">Thanks goes to these 126 wonderful people</text>
+    <text x="40" y="76" font-size="12" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="muted">Thanks goes to these 127 wonderful people</text>
     <a href="https://allcontributors.org/en/reference/emoji-key/" target="_blank" rel="noopener"><text x="760" y="76" text-anchor="end" font-size="12" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-decoration="underline" class="muted">emoji key</text></a>
     <rect x="40" y="92" width="720" height="1" class="rule" />
     <a href="https://github.com/clems4ever" target="_blank" rel="noopener"><title>Clément Michaud</title>
@@ -775,6 +775,12 @@
       <text x="708.6" y="1995" text-anchor="middle" font-size="11" font-weight="500" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="name">Ricardo Rivera</text>
       <text x="708.6" y="2013" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">🐛💻</text>
     </a>
+    <a href="https://www.authelia.com/" target="_blank" rel="noopener"><title>Authelia[bot]</title>
+      <image href="data:image/jpeg;base64,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" x="63.4" y="2028" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+      <circle cx="91.4" cy="2056.0" r="28.5" fill="none" class="ring" stroke-width="1" />
+      <text x="91.4" y="2101" text-anchor="middle" font-size="11" font-weight="500" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="name">Authelia[bot]</text>
+      <text x="91.4" y="2119" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">💡</text>
+    </a>
   </g>
-  <rect x="0.5" y="0.5" width="799" height="2047" rx="11.5" fill="none" class="edge" stroke-width="1" />
+  <rect x="0.5" y="0.5" width="799" height="2153" rx="11.5" fill="none" class="edge" stroke-width="1" />
 </svg>
