@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Access Control"
 description: "Configuring the Access Control or RBAC settings."
 summary: "Authelia supports a comprehensive access control system. This section describes configuring this."

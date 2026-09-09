@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Envoy"
 description: "A guide to integrating Authelia with Envoy in Kubernetes."
 summary: "A guide to integrating Authelia with Envoy in Kubernetes."

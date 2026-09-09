@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Duo / Mobile Push"
 description: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."
 summary: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."

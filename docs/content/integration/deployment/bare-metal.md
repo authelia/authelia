@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Bare-Metal"
 description: "Deploying Authelia on Bare-Metal."
 summary: "Authelia can be deployed on Bare-Metal as long as it sits behind a proxy."

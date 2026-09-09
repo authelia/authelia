@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Miscellaneous"
 description: "Miscellaneous Configuration."
 summary: "Authelia has a few config items that don't fit into their own area. This describes these options."

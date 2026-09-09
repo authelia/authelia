@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Seafile"
 description: "Trusted Header SSO Integration for Seafile"
 summary: ""

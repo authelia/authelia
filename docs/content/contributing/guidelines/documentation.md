@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Documentation"
 description: "Authelia Development Documentation Guidelines"
 summary: "This section covers the guidelines we use when writing documentation."

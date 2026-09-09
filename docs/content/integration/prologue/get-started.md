@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Get started"
 description: "A getting started guide for Authelia."
 summary: "This document serves as a get started guide for Authelia. It contains links to various sections and has some key notes in questions frequently asked by people looking to perform setup for the first time."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Say hello to the new website 👋"
 description: "Introducing the new website"
 summary: "Introducing the new website"

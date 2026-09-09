@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "4.38: Release Notes"
 description: "Authelia 4.38 release notes."
 summary: "Authelia 4.38 has been released and the following is a guide on all the massive changes."

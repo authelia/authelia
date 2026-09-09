@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Multi-Domain Protection"
 description: "Authelia Multi-Domain Protection Implementation"
 summary: "Multi-Domain Protection is one of the most requested Authelia features."

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # .buildkite/libs/common.sh
 #
 # Shared helpers for the pipeline generator and the pre-command hook.

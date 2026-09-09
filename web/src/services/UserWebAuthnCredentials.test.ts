@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { GetWithOptionalData } from "@services/Client";
 import { getUserWebAuthnCredentials } from "@services/UserWebAuthnCredentials";
 

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "OpenID Connect 1.0 Claims"
 description: "An introduction into utilizing the Authelia OpenID Connect 1.0 Claims functionality"
 summary: "An introduction into utilizing the Authelia OpenID Connect 1.0 Claims functionality."

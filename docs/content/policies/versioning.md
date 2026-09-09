@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Versioning Policy"
 description: "The Authelia Versioning Policy which is important reading for administrators"
 summary: ""

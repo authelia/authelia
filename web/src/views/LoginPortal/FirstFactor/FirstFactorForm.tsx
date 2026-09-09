@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { BroadcastChannel } from "broadcast-channel";

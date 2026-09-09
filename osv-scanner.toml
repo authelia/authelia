@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 [[IgnoredVulns]]
 id = "GO-2026-5932"
 reason = "Package golang.org/x/crypto/openpgp is not imported or utilized"

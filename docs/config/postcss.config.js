@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import autoprefixer from "autoprefixer";
 import purgeCSSPlugin from "@fullhuman/postcss-purgecss";
 

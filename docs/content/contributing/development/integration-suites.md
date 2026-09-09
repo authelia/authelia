@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Integration Suites"
 description: "Integration Suites."
 summary: "This section covers the build process and how to perform tests in development."
