@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Schemas"
 description: "A reference guide on the schemas provided by Authelia"
 summary: "This section contains reference documentation for Authelia's schemas."

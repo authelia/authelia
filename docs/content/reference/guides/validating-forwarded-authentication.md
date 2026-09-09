@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Validating Forwarded Authentication"
 description: "A reference guide on validating the Forwarded Authentication Integration"
 summary: "This section contains reference documentation for validating the Forwarded Authentication Integration."
