@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "OpenID Connect 1.0 Provider"
 description: "OpenID Connect 1.0 Provider Configuration"
 summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure this."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Financial"
 description: "Information on contributing financially to the Authelia project."
 summary: "The Authelia team is small and all of the maintainers spend their free time managing the project. Some may wish to contribute financially for various reasons, this page provides information about doing so."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Passwords"
 description: "A reference guide on passwords and hashing etc"
 summary: "This section contains reference documentation for Authelia."

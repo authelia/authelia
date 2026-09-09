@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Dashboard / Control Panel for Users"
 description: "Authelia User Dashboard."
 summary: "A dashboard or control panel for users to adjust their settings is easily one of the most impactful features we can implement."
