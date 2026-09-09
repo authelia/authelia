@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 export const GoogleAuthenticator = {
     appleStore: "https://apps.apple.com/us/app/google-authenticator/id388497605",
     googlePlay: "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en_us",

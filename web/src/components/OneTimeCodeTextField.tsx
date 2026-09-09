@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { type ComponentProps, type Ref, useId } from "react";
 
 import { Input } from "@components/UI/Input";
