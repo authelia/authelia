@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "SQLite3"
 description: "SQLite3 Configuration"
 summary: "The SQLite3 storage provider."

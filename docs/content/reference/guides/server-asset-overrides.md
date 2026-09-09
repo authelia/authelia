@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Server Asset Overrides"
 description: "A reference guide on overriding server assets"
 summary: "This section contains reference documentation for Authelia's server asset override capabilities."
