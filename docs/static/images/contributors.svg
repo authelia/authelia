@@ -1,20 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="5016" viewBox="0 0 800 5016" role="img" aria-label="Authelia contributors">
   <style>
-    .bg { fill: #ffffff } .rule { fill: #e4e4e7 } .edge { stroke: #e4e4e7 }
+    svg { color-scheme: light dark }
+    .rule { fill: #e4e4e7 }
     .title { fill: #18181b } .muted { fill: #71717a } .name { fill: #3f3f46 }
     .ring { stroke: rgba(24, 24, 27, 0.12) }
     @media (prefers-color-scheme: dark) {
-      .bg { fill: #09090b } .rule { fill: #27272a } .edge { stroke: #27272a }
+      .rule { fill: #27272a }
       .title { fill: #fafafa } .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
       .ring { stroke: rgba(250, 250, 250, 0.14) }
     }
   </style>
   <defs>
-    <clipPath id="card"><rect x="0" y="0" width="800" height="5016" rx="12" /></clipPath>
     <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
   </defs>
-  <g clip-path="url(#card)">
-    <rect x="0" y="0" width="800" height="5016" class="bg" />
+  <g>
     <text x="40" y="52" font-size="26" font-weight="700" letter-spacing="-0.02em" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="title">Contributors</text>
     <text x="40" y="76" font-size="12" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="muted">Thanks goes to these 322 wonderful people</text>
     <a href="https://allcontributors.org/en/reference/emoji-key/" target="_blank" rel="noopener"><text x="760" y="76" text-anchor="end" font-size="12" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-decoration="underline" class="muted">emoji key</text></a>
@@ -1952,5 +1951,4 @@
       <text x="708.6" y="4981" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">📖</text>
     </a>
   </g>
-  <rect x="0.5" y="0.5" width="799" height="5015" rx="11.5" fill="none" class="edge" stroke-width="1" />
 </svg>

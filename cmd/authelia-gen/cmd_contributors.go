@@ -271,29 +271,26 @@ func getContributorsCard(contributors []Contributor, avatars []string) string {
 
 	fmt.Fprintf(buf, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="Authelia contributors">
   <style>
-    .bg { fill: #ffffff } .rule { fill: #e4e4e7 } .edge { stroke: #e4e4e7 }
+    svg { color-scheme: light dark }
+    .rule { fill: #e4e4e7 }
     .title { fill: #18181b } .muted { fill: #71717a } .name { fill: #3f3f46 }
     .ring { stroke: rgba(24, 24, 27, 0.12) }
     @media (prefers-color-scheme: dark) {
-      .bg { fill: #09090b } .rule { fill: #27272a } .edge { stroke: #27272a }
+      .rule { fill: #27272a }
       .title { fill: #fafafa } .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
       .ring { stroke: rgba(250, 250, 250, 0.14) }
     }
   </style>
   <defs>
-    <clipPath id="card"><rect x="0" y="0" width="%d" height="%d" rx="12" /></clipPath>
     <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
   </defs>
-  <g clip-path="url(#card)">
-    <rect x="0" y="0" width="%d" height="%d" class="bg" />
+  <g>
     <text x="%d" y="52" font-size="26" font-weight="700" letter-spacing="-0.02em" font-family="%s" class="title">Contributors</text>
     <text x="%d" y="76" font-size="12" font-family="%s" class="muted">Thanks goes to these %d wonderful people</text>
     <a href="%s" target="_blank" rel="noopener"><text x="%d" y="76" text-anchor="end" font-size="12" font-family="%s" text-decoration="underline" class="muted">emoji key</text></a>
     <rect x="%d" y="92" width="%d" height="1" class="rule" />
 `,
 		contributorsWidth, height, contributorsWidth, height,
-		contributorsWidth, height,
-		contributorsWidth, height,
 		contributorsPadding, contributorsFont,
 		contributorsPadding, contributorsFont, len(contributors),
 		contributorsEmojiKey, contributorsWidth-contributorsPadding, contributorsFont,
@@ -317,10 +314,9 @@ func getContributorsCard(contributors []Contributor, avatars []string) string {
 			cx, top+contributorsAvatar+35, contributorsEmojiFont, html.EscapeString(contributorEmoji(contributor.Contributions)))
 	}
 
-	fmt.Fprintf(buf, `  </g>
-  <rect x="0.5" y="0.5" width="%d" height="%d" rx="11.5" fill="none" class="edge" stroke-width="1" />
+	fmt.Fprint(buf, `  </g>
 </svg>
-`, contributorsWidth-1, height-1)
+`)
 
 	return buf.String()
 }
