@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Kubernetes"
 description: "An introduction into integrating Authelia with Kubernetes."
 summary: "An introduction into integrating Authelia with Kubernetes."

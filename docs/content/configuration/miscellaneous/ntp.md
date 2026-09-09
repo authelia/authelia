@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "NTP"
 description: "Configuring the NTP Settings."
 summary: "Authelia checks the system time is in sync with an NTP server. This section describes how to configure and tune this."

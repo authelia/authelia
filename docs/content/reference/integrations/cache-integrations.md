@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Cache Integrations"
 description: "A cache integration reference guide"
 summary: "This section contains a cache integration reference guide for Authelia."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Dashboard / Control Panel and CLI for Administrators"
 description: "Authelia Administrator Dashboard."
 summary: "A dashboard or control panel for administrators to adjust system settings is easily one of the most impactful features we can implement."

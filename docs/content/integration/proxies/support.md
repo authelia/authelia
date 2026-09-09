@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Support"
 description: "An support matrix for Authelia and several supported reverse proxies"
 summary: "This documentation details a support matrix for Authelia features and specific reverse proxies as well as several caveats etc."

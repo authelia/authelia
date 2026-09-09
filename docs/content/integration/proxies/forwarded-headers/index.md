@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Forwarded Headers"
 description: "An introduction into the importance of forwarded headers coming from trusted sources"
 summary: "An introduction into the importance of forwarded headers coming from trusted sources."

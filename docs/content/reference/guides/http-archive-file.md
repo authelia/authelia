@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "HTTP Archive Files"
 description: "This guide describes and helps users create HTTP Archive (HAR) files"
 summary: "This guide describes and helps users create HTTP Archive (HAR) files."

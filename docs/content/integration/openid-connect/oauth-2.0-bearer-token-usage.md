@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "OAuth 2.0 Bearer Token Usage"
 description: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an authorization method"
 summary: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an authorization method."

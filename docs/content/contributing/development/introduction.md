@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Development"
 description: "An introduction into contributing to the Authelia project via development."
 summary: "An introduction into contributing to the Authelia project via development."

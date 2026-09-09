@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "User Attributes"
 description: "User Attributes Definitions Configuration"
 summary: "Authelia allows configuring reusable user attribute definitions."

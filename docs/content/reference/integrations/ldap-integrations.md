@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "LDAP Integrations"
 description: "A LDAP integration reference guide"
 summary: "This section contains a LDAP integration reference guide for Authelia."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Clients"
 description: "OpenID Connect 1.0 Client Integration Guides"
 summary: ""
