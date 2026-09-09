@@ -47,7 +47,7 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
         pnpm -C web report
       fi
 
-      codecovcli "${CODECOV_GLOBAL_ARGS[@]}" upload-process -Z --disable-search -n "${NAME}" -F frontend -f web/coverage/lcov.info
+      codecovcli "${CODECOV_GLOBAL_ARGS[@]}" upload-process -Z -f '!Dockerfile*' -f '!*.go' -f '!*.tar' -f '!*.zst' -n "${NAME}" -F frontend
     fi
   fi
 fi
