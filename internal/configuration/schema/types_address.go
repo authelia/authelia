@@ -362,6 +362,18 @@ func (a *Address) Hostname() string {
 	return a.url.Hostname()
 }
 
+// HostnameLiteral returns the output of the Hostname func except IPv6 addresses are returned in the RFC3986 IP-literal
+// format i.e. surrounded by square brackets. This makes the value safe to directly join with a port.
+func (a *Address) HostnameLiteral() string {
+	hostname := a.Hostname()
+
+	if strings.Contains(hostname, ":") {
+		return "[" + hostname + "]"
+	}
+
+	return hostname
+}
+
 // SetHostname sets the hostname preserving the port.
 func (a *Address) SetHostname(hostname string) {
 	if !a.valid || a.url == nil {

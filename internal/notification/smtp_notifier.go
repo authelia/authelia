@@ -218,7 +218,7 @@ type StandardSMTPClientFactory struct {
 
 // GetClient returns a new SMTPClient.
 func (f *StandardSMTPClientFactory) GetClient() (client SMTPClient, err error) {
-	if client, err = gomail.NewClient(f.config.Address.Hostname(), f.opts...); err != nil {
+	if client, err = gomail.NewClient(f.config.Address.HostnameLiteral(), f.opts...); err != nil {
 		return nil, err
 	}
 
