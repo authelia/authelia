@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import eslintReact from "@eslint-react/eslint-plugin";
 import js from "@eslint/js";
 import tsEslintPlugin from "@typescript-eslint/eslint-plugin";

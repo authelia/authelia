@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { render } from "react-email";
 import * as React from "react";
 import * as fs from "node:fs";
