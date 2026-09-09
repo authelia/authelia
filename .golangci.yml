@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 version: "2"
 linters:
@@ -40,6 +44,8 @@ linters:
         - require-stdlib-doclink
     godot:
       scope: all
+      exclude:
+        - '^\s*SPDX-'
     revive:
       confidence: 0.8
   exclusions:
