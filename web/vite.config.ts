@@ -111,7 +111,7 @@ export default defineConfig(({ mode }) => {
         },
         test: {
             coverage: {
-                include: ["src"],
+                include: ["src/**/*.{js,jsx,ts,tsx}"],
                 provider: "istanbul",
                 reporter: ["text", "html", "clover", "json", "lcovonly"],
             },
