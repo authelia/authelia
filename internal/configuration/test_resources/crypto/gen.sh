@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ## RSA 1024
 go run ./cmd/authelia crypto certificate rsa generate --bits=1024 --directory='./internal/configuration/test_resources/crypto' --file.ca-certificate='ca.rsa.1024.crt' --file.ca-private-key='ca.rsa.1024.pem' -n='Authelia Development RSA 1024 Standalone Root CA' --not-before='Jan 1 00:00:00 2000' --not-after='Jan 1 00:00:00 2100' -o='Authelia' --organizational-unit='Development' --ca --legacy
 go run ./cmd/authelia crypto certificate rsa generate --bits=1024 --directory='./internal/configuration/test_resources/crypto' --path.ca='./internal/configuration/test_resources/crypto' --file.ca-certificate='ca.rsa.1024.crt' --file.ca-private-key='ca.rsa.1024.pem' --file.certificate='rsa.1024.crt' --file.private-key='rsa.1024.pem' --sans='example.com' --not-before 'Jan 1 00:00:00 2000' --not-after='Jan 1 00:00:00 2100' -o='Authelia' --organizational-unit='Development' --legacy
