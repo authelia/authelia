@@ -632,9 +632,8 @@ func (rs *RodSession) SetColorScheme(t *testing.T, page *rod.Page, scheme string
 	require.NoError(t, err)
 }
 
-// FullPageScreenshot captures a PNG of the full scrollable page with scrollbars hidden
-// so width deltas don't flap between runs.
-func (rs *RodSession) FullPageScreenshot(t *testing.T, page *rod.Page) []byte {
+// doHideScrollbars suppresses the scrollbars so width deltas don't flap between runs.
+func (rs *RodSession) doHideScrollbars(t *testing.T, page *rod.Page) {
 	_, err := page.Eval(`() => new Promise(resolve => {
 		const style = document.createElement('style');
 		style.textContent = 'html { scrollbar-width: none; } html::-webkit-scrollbar { display: none; }';
@@ -642,8 +641,28 @@ func (rs *RodSession) FullPageScreenshot(t *testing.T, page *rod.Page) []byte {
 		requestAnimationFrame(() => resolve(true));
 	})`)
 	require.NoError(t, err)
+}
+
+// FullPageScreenshot captures a PNG of the full scrollable page with scrollbars hidden
+// so width deltas don't flap between runs.
+func (rs *RodSession) FullPageScreenshot(t *testing.T, page *rod.Page) []byte {
+	rs.doHideScrollbars(t, page)
 
 	screenshot, err := page.Screenshot(true, &proto.PageCaptureScreenshot{
+		Format: proto.PageCaptureScreenshotFormatPng,
+	})
+	require.NoError(t, err)
+
+	return screenshot
+}
+
+// ViewportScreenshot captures a PNG of the visible viewport with scrollbars hidden. The
+// capture is emitted at the viewport scale factor, so a 450x600 viewport set to a scale of
+// 3 yields a 1350x1800 image.
+func (rs *RodSession) ViewportScreenshot(t *testing.T, page *rod.Page) []byte {
+	rs.doHideScrollbars(t, page)
+
+	screenshot, err := page.Screenshot(false, &proto.PageCaptureScreenshot{
 		Format: proto.PageCaptureScreenshotFormatPng,
 	})
 	require.NoError(t, err)
