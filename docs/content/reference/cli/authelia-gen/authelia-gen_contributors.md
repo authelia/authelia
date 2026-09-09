@@ -1,11 +1,11 @@
 ---
-title: "authelia-gen"
-description: "Reference for the authelia-gen command."
+title: "authelia-gen contributors"
+description: "Reference for the authelia-gen contributors command."
 lead: ""
 date: 2026-09-09T22:15:52+10:00
 draft: false
 images: []
-weight: 910
+weight: 915
 toc: true
 seo:
   title: "" # custom title (optional)
@@ -14,15 +14,21 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia-gen
+## authelia-gen contributors
 
-Authelia's generator tooling
+Generate the contributors card
 
 ```
-authelia-gen [flags]
+authelia-gen contributors [flags]
 ```
 
 ### Options
+
+```
+  -h, --help   help for contributors
+```
+
+### Options inherited from parent commands
 
 ```
   -C, --cwd string                                                 Sets the CWD for git commands
@@ -56,7 +62,6 @@ authelia-gen [flags]
       --file.server.generated string                               Sets the path of the server generated file (default "internal/server/gen.go")
       --file.web.i18n string                                       The i18n typescript configuration file in relation to the web directory (default "src/i18n/index.ts")
       --file.web.package string                                    The node package configuration file in relation to the web directory (default "package.json")
-  -h, --help                                                       help for authelia-gen
       --latest                                                     Enables latest functionality with several generators like the JSON Schema generator
       --next                                                       Enables next functionality with several generators like the JSON Schema generator
       --package.configuration.keys string                          Sets the package name of the keys file (default "schema")
@@ -67,12 +72,5 @@ authelia-gen [flags]
 
 ### SEE ALSO
 
-* [authelia-gen code](authelia-gen_code.md)	 - Generate code
-* [authelia-gen commit-lint](authelia-gen_commit-lint.md)	 - Generate commit lint files
-* [authelia-gen contributors](authelia-gen_contributors.md)	 - Generate the contributors card
-* [authelia-gen docs](authelia-gen_docs.md)	 - Generate docs
-* [authelia-gen github](authelia-gen_github.md)	 - Generate GitHub files
-* [authelia-gen locales](authelia-gen_locales.md)	 - Generate locales files
-* [authelia-gen misc](authelia-gen_misc.md)	 - Generate miscellaneous things
-* [authelia-gen release](authelia-gen_release.md)	 - Prepare a release by updating version references, accepts one argument of either major, minor, or patch
+* [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
 

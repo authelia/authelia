@@ -313,3 +313,17 @@ type OpenIDConnectConformanceSuitePlanResource struct {
 	InstitutionID               string `json:"institution_id,omitempty"`
 	RichAuthorizationRequest    string `json:"richAuthorizationRequest,omitempty"`
 }
+
+// AllContributors represents the .all-contributorsrc configuration file.
+type AllContributors struct {
+	Contributors []Contributor `json:"contributors"`
+}
+
+// Contributor represents an individual contributor within an AllContributors.
+type Contributor struct {
+	Login         string   `json:"login"`
+	Name          string   `json:"name"`
+	AvatarURL     string   `json:"avatar_url"`
+	Profile       string   `json:"profile"`
+	Contributions []string `json:"contributions"`
+}
