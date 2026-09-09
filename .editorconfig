@@ -33,3 +33,5 @@ indent_size = 2
 [web/**]
 indent_style = space
 
+[internal/mocks/LICENSE.header]
+insert_final_newline = false
