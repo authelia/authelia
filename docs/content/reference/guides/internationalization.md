@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Internationalization"
 description: "A collection of internationalization reference information"
 summary: "This section contains internationalization references for Authelia."

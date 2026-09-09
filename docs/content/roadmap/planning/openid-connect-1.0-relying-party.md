@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "OpenID Connect 1.0 Relying Party"
 description: "Authelia OpenID Connect 1.0 Relying Party Implementation"
 summary: "The OpenID Connect 1.0 Relying Party role is a great addition to the existing authentication methods Authelia provides."

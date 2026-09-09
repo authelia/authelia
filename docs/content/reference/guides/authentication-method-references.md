@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Authentication Method Reference Values"
 description: "This guide shows a list of Authentication Method Reference Values based on RFC8176 and how they are implemented within Authelia"
 summary: "This guide shows a list of other frequently asked question documents as well as some general ones."

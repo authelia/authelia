@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Kubernetes Documentation"
 description: "Add better Kubernetes documentation."
 summary: "While there is some documentation for Kubernetes, and several people have it working, better documentation is needed."

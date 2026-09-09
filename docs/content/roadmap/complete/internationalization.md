@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Internationalization"
 description: "Authelia Internationalization Implementation"
 summary: "Implementation of internationalization will make Authelia more accessible to more people."

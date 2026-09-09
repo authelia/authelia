@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Generating Secure Values"
 description: "A reference guide on generating secure values such as password hashes, password strings, and cryptography keys"
 summary: "This section contains reference documentation for generating secure values such as password hashes, password strings, and cryptography keys."

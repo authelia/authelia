@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Files"
 description: "Using the YAML File Configuration Method."
 summary: "Authelia can be configured via files. This section describes utilizing this method."

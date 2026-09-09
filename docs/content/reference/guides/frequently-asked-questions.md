@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Frequently Asked Questions"
 description: "This guide shows a list of other frequently asked question documents as well as some general ones"
 summary: "This guide shows a list of other frequently asked question documents as well as some general ones."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Troubleshooting"
 description: "This guide describes and helps users provide information during troubleshooting including sanitization etc"
 summary: "This guide describes and helps users provide troubleshooting information."

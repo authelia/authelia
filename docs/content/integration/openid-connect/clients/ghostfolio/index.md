@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Ghostfolio"
 description: "Integrating Ghostfolio with the Authelia OpenID Connect 1.0 Provider."
 summary: ""

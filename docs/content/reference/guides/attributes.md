@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Attributes"
 description: "This guide highlights information about attributes available via various methods"
 summary: "This guide highlights information about attributes available via various methods."
