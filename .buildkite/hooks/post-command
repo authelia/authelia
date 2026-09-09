@@ -40,7 +40,7 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
       CODECOV_GLOBAL_ARGS+=("-v")
     fi
 
-    codecovcli "${CODECOV_GLOBAL_ARGS[@]}" upload-process -Z --plugin noop --disable-search -n "${NAME}" -F backend -f coverage.txt
+    codecovcli "${CODECOV_GLOBAL_ARGS[@]}" upload-process -Z --plugin noop --disable-search -n "${NAME}" -F backend -f 'coverage*.txt'
 
     if [[ ! ${NAME} =~ ^(BypassAll|CLI|PAM)$ ]]; then
       if [[ ${BUILDKITE_LABEL} =~ :selenium: ]]; then
