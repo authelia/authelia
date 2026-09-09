@@ -249,7 +249,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 onBlur={() => setIsCapsLockOnOldPW(false)}
                             />
                             <PasswordVisibilityToggle
-                                label={translate("Toggle password visibility", { ns: "portal" })}
+                                label={translate("Toggle old password visibility")}
                                 showPassword={showOldPassword}
                                 {...oldPasswordToggleProps}
                             />
@@ -287,7 +287,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 onBlur={() => setIsCapsLockOnNewPW(false)}
                             />
                             <PasswordVisibilityToggle
-                                label={translate("Toggle password visibility", { ns: "portal" })}
+                                label={translate("Toggle new password visibility")}
                                 showPassword={showNewPassword}
                                 {...newPasswordToggleProps}
                             />
@@ -328,7 +328,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
                             />
                             <PasswordVisibilityToggle
-                                label={translate("Toggle password visibility", { ns: "portal" })}
+                                label={translate("Toggle repeat new password visibility")}
                                 showPassword={showNewPassword}
                                 {...newPasswordToggleProps}
                             />

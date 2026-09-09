@@ -142,6 +142,50 @@ describe("rendering", () => {
     });
 });
 
+describe("password visibility toggle", () => {
+    it("gives each toggle a distinct accessible name", async () => {
+        renderDialog();
+        await waitFor(() => expect(getPolicyMock).toHaveBeenCalled());
+
+        expect(screen.getByLabelText("Toggle old password visibility")).toBeInTheDocument();
+        expect(screen.getByLabelText("Toggle new password visibility")).toBeInTheDocument();
+        expect(screen.getByLabelText("Toggle repeat new password visibility")).toBeInTheDocument();
+    });
+
+    it("reveals only the old password when its toggle is clicked", async () => {
+        renderDialog();
+        await waitFor(() => expect(getPolicyMock).toHaveBeenCalled());
+
+        fireEvent.click(screen.getByLabelText("Toggle old password visibility"));
+
+        expect(getOldPassword()).toHaveAttribute("type", "text");
+        expect(getNewPassword()).toHaveAttribute("type", "password");
+        expect(getRepeatNewPassword()).toHaveAttribute("type", "password");
+    });
+
+    it("reveals the new and repeat passwords together when the new password toggle is clicked", async () => {
+        renderDialog();
+        await waitFor(() => expect(getPolicyMock).toHaveBeenCalled());
+
+        fireEvent.click(screen.getByLabelText("Toggle new password visibility"));
+
+        expect(getOldPassword()).toHaveAttribute("type", "password");
+        expect(getNewPassword()).toHaveAttribute("type", "text");
+        expect(getRepeatNewPassword()).toHaveAttribute("type", "text");
+    });
+
+    it("reveals the new and repeat passwords together when the repeat password toggle is clicked", async () => {
+        renderDialog();
+        await waitFor(() => expect(getPolicyMock).toHaveBeenCalled());
+
+        fireEvent.click(screen.getByLabelText("Toggle repeat new password visibility"));
+
+        expect(getOldPassword()).toHaveAttribute("type", "password");
+        expect(getNewPassword()).toHaveAttribute("type", "text");
+        expect(getRepeatNewPassword()).toHaveAttribute("type", "text");
+    });
+});
+
 describe("password policy", () => {
     it("hides the password meter when the policy is disabled", async () => {
         renderDialog();
