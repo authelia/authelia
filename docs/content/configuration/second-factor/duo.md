@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Duo / Mobile Push"
 description: "Configuring the Duo Mobile Push Notification Second Factor Method."
 summary: ""

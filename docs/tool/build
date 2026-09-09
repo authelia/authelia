@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 BIN_DIR=/opt/build/repo/dart-sass
 
 mkdir -p "${BIN_DIR}"

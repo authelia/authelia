@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Docker"
 description: "A guide on installing Authelia in Docker."
 summary: "This is one of the primary ways we deliver Authelia to users and the recommended path."

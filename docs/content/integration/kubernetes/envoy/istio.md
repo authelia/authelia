@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Istio"
 description: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
 summary: "A guide to integrating Authelia with the Istio Kubernetes Ingress."

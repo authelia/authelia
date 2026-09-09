@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Access Control Rule Guide"
 description: "A reference guide on access control rule operators"
 summary: "This section contains a reference guide on access control rule operators."

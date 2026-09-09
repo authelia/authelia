@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Documentation Contributions"
 description: "Information on contributing documentation to the Authelia project."
 summary: "Authelia has great documentation however there are always things that can be added. This section describes the contribution process for the documentation even though it's incredibly easy."

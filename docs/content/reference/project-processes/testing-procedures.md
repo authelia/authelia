@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Testing"
 description: "A description of testing procedures for Authelia"
 summary: "This section contains reference documentation for Authelia."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Translations"
 description: "Information on contributing translations to the Authelia project."
 summary: "Authelia has translations for many using facing areas of the web portal. Contributing to these translations is a very easy process."

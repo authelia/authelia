@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "NGINX Ingress"
 description: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
 summary: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."

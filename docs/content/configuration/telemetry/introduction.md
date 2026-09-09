@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Telemetry"
 description: "Configuring the Telemetry settings"
 summary: "Configuring the Telemetry settings."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Architecture Decision Log"
 description: "The Authelia Architecture Decision Log"
 summary: "This section contains Architecture Decision Records for Authelia."

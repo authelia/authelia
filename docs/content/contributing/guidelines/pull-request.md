@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Pull Request"
 description: "Authelia Development Pull Request Guidelines"
 summary: "This section covers the pull request guidelines."

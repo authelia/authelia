@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Secrets"
 description: "Using the Secrets Configuration Method."
 summary: "Authelia allows providing configuration via secrets method. This section describes how to implement this."
