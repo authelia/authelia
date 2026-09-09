@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Notifications"
 description: "Configuring the Notifications Settings."
 summary: "Authelia sends messages to users in order to verify their identity. This section describes how to configure this."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Environment"
 description: "How to configure your development environment."
 summary: "This section covers the environment we recommend for development."

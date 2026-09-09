@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Automation"
 description: "Automated Deployment of Authelia."
 summary: "Authelia has several features which make automation easy."

@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Prologue"
 description: "An introduction into contributing to the Authelia project."
 summary: "An introduction into contributing to the Authelia project."
