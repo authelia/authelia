@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 import { KeyboardEvent, Ref, useCallback, useId, useState } from "react";
 
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
