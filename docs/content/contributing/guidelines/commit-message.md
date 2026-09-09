@@ -5,10 +5,13 @@ SPDX-License-Identifier: Apache-2.0
 -->
 
 # SPDX-FileCopyrightText: 2026 Authelia
+
 #
+
 # SPDX-License-Identifier: Apache-2.0
 
 ---
+
 title: "Commit Message"
 description: "Authelia Development Commit Message Guidelines"
 lead: "This section covers the git commit message guidelines we use for development."
@@ -18,13 +21,15 @@ images: []
 weight: 320
 toc: true
 aliases:
-  - /docs/contributing/commitmsg-guidelines.html
-  - /contributing/development/guidelines-commit-message/
-seo:
+
+- /docs/contributing/commitmsg-guidelines.html
+- /contributing/development/guidelines-commit-message/
+  seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
+
 ---
 
 The reasons for these conventions are as follows:
