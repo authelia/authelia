@@ -56,7 +56,7 @@ pre-commit:
             run: trufflehog --fail --log-level=-1 filesystem -x .trufflehog . && echo "0 issues."
 
           - name: typos
-            run: typos -w --format brief && echo "0 issues."
+            run: typos -w --threads 4 --format brief && echo "0 issues."
             stage_fixed: true
 
           - name: yamllint
