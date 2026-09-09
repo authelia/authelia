@@ -124,7 +124,7 @@ func cmdSuitesExternalTestRun(_ *cobra.Command, args []string) {
 	}
 
 	testCmdLine := fmt.Sprintf(
-		"go test -count=1 -v -json -tags=externalsuites ./internal/suites -timeout %s %s-run '^(%s)$'",
+		"go test -count=1 -json -tags=externalsuites ./internal/suites -timeout %s %s-run '^(%s)$'",
 		timeout, failfast, entrypoint,
 	)
 
