@@ -4,17 +4,18 @@
 
 import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
-import { Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Alert, AlertTitle } from "@components/UI/Alert";
 import { Button } from "@components/UI/Button";
 import { Input } from "@components/UI/Input";
 import { Label } from "@components/UI/Label";
+import { PasswordVisibilityToggle } from "@components/UI/PasswordVisibilityToggle";
 import { Spinner } from "@components/UI/Spinner";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useFlow } from "@hooks/Flow";
+import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import { useQueryParam } from "@hooks/QueryParam";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postSecondFactor } from "@services/Password";
@@ -29,13 +30,13 @@ const PasswordForm = function (props: Props) {
 
     const redirectionURL = useQueryParam(RedirectionURL);
     const { flow, id: flowID, subflow } = useFlow();
+    const { showPassword, toggleProps } = usePasswordVisibility();
 
     const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
 
     const passwordRef = useRef<HTMLInputElement | null>(null);
 
@@ -129,32 +130,11 @@ const PasswordForm = function (props: Props) {
                             onKeyDown={handlePasswordKeyDown}
                             onKeyUp={handlePasswordKeyUp}
                         />
-                        <button
-                            type="button"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
-                            aria-label={translate("Toggle password visibility")}
-                            aria-pressed={showPassword}
-                            onMouseDown={() => setShowPassword(true)}
-                            onMouseUp={() => setShowPassword(false)}
-                            onMouseLeave={() => setShowPassword(false)}
-                            onTouchStart={() => setShowPassword(true)}
-                            onTouchEnd={() => setShowPassword(false)}
-                            onTouchCancel={() => setShowPassword(false)}
-                            onKeyDown={(e) => {
-                                if (e.key === " " || e.key === "Enter") {
-                                    setShowPassword(true);
-                                    e.preventDefault();
-                                }
-                            }}
-                            onKeyUp={(e) => {
-                                if (e.key === " " || e.key === "Enter") {
-                                    setShowPassword(false);
-                                    e.preventDefault();
-                                }
-                            }}
-                        >
-                            {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                        </button>
+                        <PasswordVisibilityToggle
+                            label={translate("Toggle password visibility")}
+                            showPassword={showPassword}
+                            {...toggleProps}
+                        />
                     </div>
                 </div>
                 {passwordCapsLock ? (

@@ -289,76 +289,17 @@ describe("caps lock detection", () => {
 });
 
 describe("password visibility toggle", () => {
-    it("reveals the password while the mouse is held down", async () => {
+    it("reveals the password on click and hides it again on a second click", async () => {
         renderForm();
 
         const toggle = screen.getByLabelText("Toggle password visibility");
 
-        fireEvent.mouseDown(toggle);
+        fireEvent.click(toggle);
         await waitFor(() => expect(getPassword()).toHaveAttribute("type", "text"));
         expect(toggle).toHaveAttribute("aria-pressed", "true");
 
-        fireEvent.mouseUp(toggle);
+        fireEvent.click(toggle);
         await waitFor(() => expect(getPassword()).toHaveAttribute("type", "password"));
-    });
-
-    it("hides the password again when the mouse leaves", async () => {
-        renderForm();
-
-        const toggle = screen.getByLabelText("Toggle password visibility");
-
-        fireEvent.mouseDown(toggle);
-        await waitFor(() => expect(getPassword()).toHaveAttribute("type", "text"));
-
-        fireEvent.mouseLeave(toggle);
-        await waitFor(() => expect(getPassword()).toHaveAttribute("type", "password"));
-    });
-
-    it("reveals the password while touched", async () => {
-        renderForm();
-
-        const toggle = screen.getByLabelText("Toggle password visibility");
-
-        fireEvent.touchStart(toggle);
-        await waitFor(() => expect(getPassword()).toHaveAttribute("type", "text"));
-
-        fireEvent.touchEnd(toggle);
-        await waitFor(() => expect(getPassword()).toHaveAttribute("type", "password"));
-    });
-
-    it("hides the password when the touch is cancelled", async () => {
-        renderForm();
-
-        const toggle = screen.getByLabelText("Toggle password visibility");
-
-        fireEvent.touchStart(toggle);
-        await waitFor(() => expect(getPassword()).toHaveAttribute("type", "text"));
-
-        fireEvent.touchCancel(toggle);
-        await waitFor(() => expect(getPassword()).toHaveAttribute("type", "password"));
-    });
-
-    it.each([" ", "Enter"])("reveals the password while %s is held", async (key) => {
-        renderForm();
-
-        const toggle = screen.getByLabelText("Toggle password visibility");
-
-        fireEvent.keyDown(toggle, { key });
-        await waitFor(() => expect(getPassword()).toHaveAttribute("type", "text"));
-
-        fireEvent.keyUp(toggle, { key });
-        await waitFor(() => expect(getPassword()).toHaveAttribute("type", "password"));
-    });
-
-    it("ignores other keys on the toggle", () => {
-        renderForm();
-
-        const toggle = screen.getByLabelText("Toggle password visibility");
-
-        fireEvent.keyDown(toggle, { key: "a" });
-        expect(getPassword()).toHaveAttribute("type", "password");
-
-        fireEvent.keyUp(toggle, { key: "a" });
-        expect(getPassword()).toHaveAttribute("type", "password");
+        expect(toggle).toHaveAttribute("aria-pressed", "false");
     });
 });
