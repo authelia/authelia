@@ -26,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.23](https://github.com/authelia/authelia/releases/tag/v4.39.23)
+  - [v4.39.24](https://github.com/authelia/authelia/releases/tag/v4.39.24)
 - [Arcane]
   - [v1.16.3](https://github.com/ofkm/arcane/releases/tag/v1.16.3)
 
