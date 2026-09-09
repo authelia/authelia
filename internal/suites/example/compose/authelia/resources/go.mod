@@ -8,7 +8,7 @@ go 1.25.1
 
 require (
 	github.com/cespare/reflex v0.3.2
-	github.com/go-delve/delve v1.27.1
+	github.com/go-delve/delve v1.27.2
 )
 
 require (
