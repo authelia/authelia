@@ -28,14 +28,15 @@ enable or disable an individual notification.
 
 ## Events
 
-|            Event            |             Subject             |         Template          |
-| :-------------------------: | :-----------------------------: | :-----------------------: |
-|  Password reset requested   |      `Reset your password`      | `IdentityVerificationJWT` |
-| Session elevation requested |     `Confirm your identity`     | `IdentityVerificationOTC` |
-|  Password reset completed   | `Password changed successfully` |          `Event`          |
-|      Password changed       | `Password changed successfully` |          `Event`          |
-|  Second factor registered   |  `Second Factor Method Added`   |          `Event`          |
-|    Second factor removed    | `Second Factor Method Removed`  |          `Event`          |
+|            Event            |              Subject              |         Template          |
+| :-------------------------: | :-------------------------------: | :-----------------------: |
+|  Password reset requested   |       `Reset your password`       | `IdentityVerificationJWT` |
+| Session elevation requested |      `Confirm your identity`      | `IdentityVerificationOTC` |
+|  Password reset completed   |  `Password changed successfully`  |          `Event`          |
+| Password reset unsuccessful | `Password reset was unsuccessful` |          `Event`          |
+|      Password changed       |  `Password changed successfully`  |          `Event`          |
+|  Second factor registered   |   `Second Factor Method Added`    |          `Event`          |
+|    Second factor removed    |  `Second Factor Method Removed`   |          `Event`          |
 
 The subject line is also used as the `{{ .Title }}` placeholder within the template.
 
@@ -56,6 +57,16 @@ contains a One-Time Code rather than a link, and a link which revokes the elevat
 ### Password reset completed
 
 Sent to the user after their password has been successfully changed via the password reset flow.
+
+### Password reset unsuccessful
+
+Sent when a password reset fails for a reason the user can act on. The body names the cause: the new password did not
+meet the password policy, did not meet the requirements of the authentication backend, matched the password already set
+on the account, or was changed too recently to be changed again.
+
+Nothing is sent for any other cause. A failure the user cannot resolve, such as the authentication backend being
+unreachable, is logged and no notification is sent, so this never discloses the state of the backend to whoever holds
+the mailbox. The response shown in the browser stays generic either way.
 
 ### Password changed
 
