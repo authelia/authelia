@@ -286,6 +286,8 @@ func TestConformanceOverrides_AreWiredToTheirAssertions(t *testing.T) {
 
 		"oidcc-ensure-registered-redirect-uri":          {Index: 0},
 		"oidcc-ensure-request-object-with-redirect-uri": {Index: 0},
+
+		"oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported": {Index: 0},
 	} {
 		override, ok := conformanceOverrides[module]
 
@@ -521,4 +523,78 @@ func TestConformanceLegs_Stalled(t *testing.T) {
 		assert.False(t, errors.As(err, &stall))
 		assert.EqualError(t, err, "module 'm1' stayed in the WAITING state with nothing left to visit or fill")
 	})
+}
+
+func TestConformanceOverrides_UploadErrorPageOnlyWhereThereIsNoPlaceholder(t *testing.T) {
+	// Proving an error page by uploading to the log and stopping the module turns a module stranded on an error page
+	// into a REVIEW, so it is reserved for the module which accepts that page but raises no placeholder for it. A
+	// module with a placeholder is released by filling it, and any other module stranded there has genuinely failed.
+	var actual []string
+
+	for module, override := range conformanceOverrides {
+		if override.UploadErrorPage {
+			require.NotNilf(t, override.Assert, "the '%s' module uploads an error page without asserting one", module)
+			require.NoErrorf(t, override.Assert(ConformanceLeg{AutheliaError: true}), "the '%s' module does not accept an error page", module)
+
+			actual = append(actual, module)
+		}
+	}
+
+	assert.Equal(t, []string{"oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported"}, actual)
+}
+
+func TestConformanceOverride_ProvesErrorPage(t *testing.T) {
+	override := ConformanceOverride{UploadErrorPage: true}
+
+	assert.True(t, override.provesErrorPage(&conformanceLegs{errorURL: "https://login.example.com:8080/consent/completion?error=invalid_request_object"}))
+	assert.False(t, override.provesErrorPage(&conformanceLegs{}), "a leg which reached the client has no error page to prove")
+	assert.False(t, ConformanceOverride{}.provesErrorPage(&conformanceLegs{errorURL: "https://login.example.com:8080/"}), "only an opted in module is released this way")
+}
+
+func TestConformanceRunner_ProveErrorPageUploadsThenStops(t *testing.T) {
+	var (
+		mu          sync.Mutex
+		calls       []string
+		description string
+		body        []byte
+	)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		calls = append(calls, r.Method+" "+r.URL.Path)
+
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/api/log/m1/images":
+			description = r.URL.Query().Get("description")
+			body, _ = io.ReadAll(r.Body)
+		case r.Method == http.MethodDelete && r.URL.Path == "/api/runner/m1":
+		default:
+			t.Errorf("unexpected request %s %s", r.Method, r.URL.Path)
+		}
+
+		_, _ = w.Write([]byte(`{}`))
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	runner := NewConformanceRunner(client, nil, "plan1", nil)
+
+	require.NoError(t, runner.proveErrorPage(ctx, "m1", "https://login.example.com:8080/consent/completion?error=invalid_request_object&error_description=Bad+object."))
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	// The upload has to land first: it is what records the REVIEW, and a module which has already been stopped is no
+	// longer running to have its result updated in place.
+	assert.Equal(t, []string{"POST /api/log/m1/images", "DELETE /api/runner/m1"}, calls)
+	assert.Equal(t, conformancePlaceholderImage, string(body))
+	assert.Contains(t, description, "error 'invalid_request_object', description 'Bad object.'")
 }

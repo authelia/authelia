@@ -433,6 +433,29 @@ func (c *ConformanceClient) UploadPlaceholder(ctx context.Context, id, placehold
 	return c.do(ctx, http.MethodPost, c.uri(nil, "log", id, "images", placeholder), bytes.NewReader([]byte(dataURI)), "text/plain", http.StatusOK, nil)
 }
 
+// UploadImage adds an image to a module's log without a placeholder, as the log page's own upload does. The server
+// marks the module for REVIEW, but does not otherwise release it.
+func (c *ConformanceClient) UploadImage(ctx context.Context, id, description, dataURI string) error {
+	query := url.Values{}
+	query.Set("description", description)
+
+	return c.do(ctx, http.MethodPost, c.uri(query, "log", id, "images"), bytes.NewReader([]byte(dataURI)), "text/plain", http.StatusOK, nil)
+}
+
+// StopTest stops a running module, which ends it as INTERRUPTED without changing its result. A module which is no
+// longer running is already stopped.
+func (c *ConformanceClient) StopTest(ctx context.Context, id string) error {
+	err := c.do(ctx, http.MethodDelete, c.uri(nil, "runner", id), nil, "", http.StatusOK, nil)
+
+	var statusErr *conformanceUnexpectedStatusError
+
+	if errors.As(err, &statusErr) && statusErr.Status == http.StatusNotFound {
+		return nil
+	}
+
+	return err
+}
+
 // ExportPlanHTML writes a plan's HTML export to path, for collection as a CI artifact.
 func (c *ConformanceClient) ExportPlanHTML(ctx context.Context, planID, path string) (err error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.uri(nil, "plan", "exporthtml", planID), nil)

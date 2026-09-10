@@ -243,6 +243,68 @@ func TestConformanceClient_UploadPlaceholder(t *testing.T) {
 	assert.Equal(t, conformancePlaceholderImage, string(body))
 }
 
+func TestConformanceClient_UploadImage(t *testing.T) {
+	var (
+		body        []byte
+		description string
+	)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodPost, r.Method)
+		require.Equal(t, "/api/log/abc/images", r.URL.Path)
+
+		description = r.URL.Query().Get("description")
+		body, _ = io.ReadAll(r.Body)
+
+		_, _ = w.Write([]byte(`{}`))
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	require.NoError(t, client.UploadImage(context.Background(), "abc", "the error page", conformancePlaceholderImage))
+	assert.Equal(t, conformancePlaceholderImage, string(body))
+	assert.Equal(t, "the error page", description)
+}
+
+func TestConformanceClient_StopTest(t *testing.T) {
+	t.Run("ShouldCancelTheRunningModule", func(t *testing.T) {
+		var called bool
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			require.Equal(t, http.MethodDelete, r.Method)
+			require.Equal(t, "/api/runner/abc", r.URL.Path)
+
+			called = true
+
+			_, _ = w.Write([]byte(`{}`))
+		}))
+
+		defer server.Close()
+
+		client, err := NewConformanceClient(server.URL)
+		require.NoError(t, err)
+
+		require.NoError(t, client.StopTest(context.Background(), "abc"))
+		assert.True(t, called)
+	})
+
+	t.Run("ShouldTreatAModuleWhichIsNoLongerRunningAsStopped", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+		}))
+
+		defer server.Close()
+
+		client, err := NewConformanceClient(server.URL)
+		require.NoError(t, err)
+
+		require.NoError(t, client.StopTest(context.Background(), "abc"))
+	})
+}
+
 func TestConformanceClient_CreatePlanRejectsAnEmptyPlanName(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Errorf("the client must not post a nameless plan, got %s", r.URL.String())

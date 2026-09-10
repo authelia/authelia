@@ -80,6 +80,16 @@ type ConformanceOverride struct {
 	// The record carries the leg's index, so an expectation which belongs to the second authorization round trip is
 	// not applied to the first.
 	Assert func(leg ConformanceLeg) error
+
+	// UploadErrorPage is for a module which accepts Authelia's error page as an outcome but raises no placeholder for
+	// it, so it goes on waiting for a callback which is never sent. Once Assert has confirmed the page, the stub image
+	// is uploaded to the module's log, which is what marks it for REVIEW, and the module is stopped.
+	UploadErrorPage bool
+}
+
+// provesErrorPage reports whether the last leg ended on an error page this module is released from by upload.
+func (o ConformanceOverride) provesErrorPage(legs *conformanceLegs) bool {
+	return o.UploadErrorPage && legs.errorURL != ""
 }
 
 // conformanceOverrides holds only what differs from the reactive driver. Anything absent runs on the default path, so
@@ -98,6 +108,10 @@ var conformanceOverrides = map[string]ConformanceOverride{
 	// browser to it. This is the page the module's screenshot placeholder asks for.
 	"oidcc-ensure-registered-redirect-uri":          {Assert: conformanceAssertErrorPage},
 	"oidcc-ensure-request-object-with-redirect-uri": {Assert: conformanceAssertErrorPage},
+
+	// Authelia rejects the unsigned request object on its own error page, which is within the specification, but the
+	// module has no placeholder for that page and only accepts the rejection by a screenshot uploaded to its log.
+	"oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported": {Assert: conformanceAssertErrorPage, UploadErrorPage: true},
 
 	// Every module whose upstream summary says to remove any cookies received from the provider, and no others. The
 	// plans also carry oidcc-registration-logo-uri, -policy-uri and -tos-uri under that instruction, but those are
@@ -324,43 +338,58 @@ func (r *ConformanceRunner) interact(ctx context.Context, id, module string, ove
 			return err
 		}
 
+		if override.provesErrorPage(legs) {
+			return r.proveErrorPage(ctx, id, legs.errorURL)
+		}
+
 		filled, err := r.fillPlaceholders(ctx, id)
 		if err != nil {
 			return err
 		}
 
-		if progressed || filled {
-			deadline = time.Now().Add(conformancePlaceholderTimeout)
-		}
-
-		var state string
-
-		if state, err = r.moduleState(ctx, id, filled); err != nil {
+		done, settled, err := r.advance(ctx, id, filled)
+		if err != nil {
 			return err
 		}
 
-		switch state {
-		case conformanceStatusFinished, conformanceStatusInterrupted:
+		if done {
 			return nil
-		case conformanceStatusWaiting:
-		default:
-			log.Debugf("Conformance module '%s' is in state '%s' between browser legs", id, state)
-
-			if _, err = r.client.WaitState(ctx, id, append([]string{conformanceStatusWaiting}, conformanceTerminalStates...)...); err != nil {
-				return err
-			}
-
-			deadline = time.Now().Add(conformancePlaceholderTimeout)
-
-			continue
 		}
 
-		if time.Now().After(deadline) {
+		if progressed || filled || settled {
+			deadline = time.Now().Add(conformancePlaceholderTimeout)
+		} else if time.Now().After(deadline) {
 			return legs.stalled(id)
 		}
 
 		time.Sleep(conformancePlaceholderInterval)
 	}
+}
+
+// advance reads where the module has got to. A module in a terminal state is done. One which is RUNNING between browser
+// legs is waited on until it is back in WAITING or done, and reported as settled, since it has made progress the
+// caller could not see.
+func (r *ConformanceRunner) advance(ctx context.Context, id string, filled bool) (done, settled bool, err error) {
+	var state string
+
+	if state, err = r.moduleState(ctx, id, filled); err != nil {
+		return false, false, err
+	}
+
+	switch state {
+	case conformanceStatusFinished, conformanceStatusInterrupted:
+		return true, false, nil
+	case conformanceStatusWaiting:
+		return false, false, nil
+	}
+
+	log.Debugf("Conformance module '%s' is in state '%s' between browser legs", id, state)
+
+	if state, err = r.client.WaitState(ctx, id, append([]string{conformanceStatusWaiting}, conformanceTerminalStates...)...); err != nil {
+		return false, false, err
+	}
+
+	return state != conformanceStatusWaiting, true, nil
 }
 
 // conformanceLegs is one module's browser leg bookkeeping, carried across the iterations of interact's poll loop: the
@@ -469,6 +498,25 @@ func (r *ConformanceRunner) visitURLs(ctx context.Context, id, module string, ov
 	}
 
 	return progressed, nil
+}
+
+// proveErrorPage uploads the stub image to the log of a module which has no placeholder for the error page it was
+// shown, then stops the module. The upload goes first: it is what records the REVIEW, and it is recorded in place only
+// while the module is still running.
+func (r *ConformanceRunner) proveErrorPage(ctx context.Context, id, errorURL string) (err error) {
+	log.Debugf("Conformance module '%s' uploading the error page it has no placeholder for", id)
+
+	description := fmt.Sprintf("Authelia's error page, confirmed by the suite: %s", conformanceDescribeErrorPage(errorURL))
+
+	if err = r.client.UploadImage(ctx, id, description, conformancePlaceholderImage); err != nil {
+		return fmt.Errorf("error uploading the error page for module '%s': %w", id, err)
+	}
+
+	if err = r.client.StopTest(ctx, id); err != nil {
+		return fmt.Errorf("error stopping module '%s' after uploading its error page: %w", id, err)
+	}
+
+	return nil
 }
 
 // fillPlaceholders uploads the stub image to every unfilled placeholder, reporting whether it filled any. The image
