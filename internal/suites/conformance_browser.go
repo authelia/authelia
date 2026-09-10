@@ -41,19 +41,19 @@ const (
 	conformanceSelectorConsentAccept           = "#openid-consent-accept"
 	conformanceSelectorConsentReauthentication = "#openid-consent-prompt-login"
 	conformanceSelectorConsentPassword         = "#openid-consent-prompt-login #password-textfield"
-	conformanceSelectorConsentAuthenticate = "#openid-consent-authenticate"
-	conformanceSelectorUsername      = "#username-textfield"
-	conformanceSelectorPassword      = "#password-textfield"
-	conformanceSelectorSignIn        = "#sign-in-button"
-	conformanceCallbackPathFragment  = "/test/a/"
-	conformanceSelectorAutheliaError = `.notification[data-type="error"]`
-	conformanceElementTimeout        = time.Second * 2
-	conformanceDriveInterval         = time.Millisecond * 250
-	conformanceSettleTimeout   = time.Second * 30
-	conformanceLegPatience     = time.Second * 30
-	conformancePageTimeout     = time.Second * 30
-	conformanceSignInAttempts  = 3
-	conformanceConsentAttempts = 3
+	conformanceSelectorConsentAuthenticate     = "#openid-consent-authenticate"
+	conformanceSelectorUsername                = "#username-textfield"
+	conformanceSelectorPassword                = "#password-textfield"
+	conformanceSelectorSignIn                  = "#sign-in-button"
+	conformanceCallbackPathFragment            = "/test/a/"
+	conformanceSelectorAutheliaError           = `.notification[data-type="error"]`
+	conformanceElementTimeout                  = time.Second * 2
+	conformanceDriveInterval                   = time.Millisecond * 250
+	conformanceSettleTimeout                   = time.Second * 30
+	conformanceLegPatience                     = time.Second * 30
+	conformancePageTimeout                     = time.Second * 30
+	conformanceSignInAttempts                  = 3
+	conformanceConsentAttempts                 = 3
 )
 
 // ConformanceClassifyPage decides what the browser is looking at. It takes the observations rather than the page so
@@ -394,8 +394,13 @@ func (b *ConformanceBrowser) submitSignIn(ctx context.Context, pageURL string, a
 	return nil
 }
 
-// submitConsent submits the consent decision form and waits for it to clear, reporting whether the form asked for the
-// password again. It carries the same single-submission guarantee as submitSignIn, and for the same reason.
+// submitConsent submits the consent decision form and waits for what it submitted to go away, reporting whether the
+// form asked for the password again.
+//
+// The wait is on the step, not on the stage. Re-authentication and the consent decision are two steps of one form:
+// they share #openid-consent-decision-stage and they share a URL, and submitting the first moves the form to the
+// second without either changing. Waiting for the stage to clear would therefore wait out the whole budget on a form
+// that had already done exactly what was asked of it.
 func (b *ConformanceBrowser) submitConsent(ctx context.Context, pageURL string, attempt int) (reauthentication bool, err error) {
 	log.Debugf("Conformance driver submitting the consent decision form at '%s' (attempt %d)", pageURL, attempt)
 
@@ -403,9 +408,22 @@ func (b *ConformanceBrowser) submitConsent(ctx context.Context, pageURL string, 
 		return reauthentication, fmt.Errorf("error accepting consent at '%s': %w", pageURL, err)
 	}
 
-	if err = b.settle(ctx, conformanceSelectorConsent, pageURL); err != nil {
+	if err = b.settle(ctx, conformanceConsentSettleSelector(reauthentication), pageURL); err != nil {
 		return reauthentication, fmt.Errorf("error submitting the consent decision form at '%s': %w", pageURL, err)
 	}
 
 	return reauthentication, nil
+}
+
+// conformanceConsentSettleSelector returns the element a consent submission should wait to disappear.
+//
+// Submitting re-authentication moves the form from its authenticate step to its decision step, and both steps render
+// #openid-consent-decision-stage at the same URL, so only the password field's disappearance says the submission
+// landed. Submitting the decision itself leaves the form entirely, so there the stage is the right thing to watch.
+func conformanceConsentSettleSelector(reauthentication bool) string {
+	if reauthentication {
+		return conformanceSelectorConsentReauthentication
+	}
+
+	return conformanceSelectorConsent
 }

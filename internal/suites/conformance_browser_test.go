@@ -75,3 +75,20 @@ func TestConformanceClassifyPage(t *testing.T) {
 		})
 	}
 }
+
+func TestConformanceConsentSettleSelector(t *testing.T) {
+	t.Run("ShouldWatchThePasswordFieldAfterSubmittingReauthentication", func(t *testing.T) {
+		// The stage and the URL are identical either side of this submission, so watching the stage would wait out
+		// the whole budget on a form that had already moved on. This is what oidcc-prompt-login turns on.
+		assert.Equal(t, conformanceSelectorConsentReauthentication, conformanceConsentSettleSelector(true))
+	})
+
+	t.Run("ShouldWatchTheStageAfterSubmittingTheDecision", func(t *testing.T) {
+		// Granting consent leaves the form altogether, so the stage clearing is the signal.
+		assert.Equal(t, conformanceSelectorConsent, conformanceConsentSettleSelector(false))
+	})
+
+	t.Run("ShouldWatchDifferentThingsForTheTwoSteps", func(t *testing.T) {
+		assert.NotEqual(t, conformanceConsentSettleSelector(true), conformanceConsentSettleSelector(false))
+	})
+}
