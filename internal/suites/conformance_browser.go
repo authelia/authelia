@@ -41,12 +41,7 @@ const (
 	conformanceSelectorConsentAccept           = "#openid-consent-accept"
 	conformanceSelectorConsentReauthentication = "#openid-consent-prompt-login"
 	conformanceSelectorConsentPassword         = "#openid-consent-prompt-login #password-textfield"
-
-	// conformanceSelectorConsentAuthenticate submits the re-authentication step. The decision form swaps its buttons
-	// out for that step: accept and deny belong to the normal step and are simply absent while the password is being
-	// asked for, so accepting here means submitting this instead.
 	conformanceSelectorConsentAuthenticate = "#openid-consent-authenticate"
-
 	conformanceSelectorUsername      = "#username-textfield"
 	conformanceSelectorPassword      = "#password-textfield"
 	conformanceSelectorSignIn        = "#sign-in-button"
@@ -54,11 +49,11 @@ const (
 	conformanceSelectorAutheliaError = `.notification[data-type="error"]`
 	conformanceElementTimeout        = time.Second * 2
 	conformanceDriveInterval         = time.Millisecond * 250
-	conformanceSettleTimeout         = time.Second * 5
-	conformanceLegPatience           = time.Second * 30
-	conformancePageTimeout           = time.Second * 30
-	conformanceSignInAttempts        = 3
-	conformanceConsentAttempts       = 3
+	conformanceSettleTimeout   = time.Second * 30
+	conformanceLegPatience     = time.Second * 30
+	conformancePageTimeout     = time.Second * 30
+	conformanceSignInAttempts  = 3
+	conformanceConsentAttempts = 3
 )
 
 // ConformanceClassifyPage decides what the browser is looking at. It takes the observations rather than the page so
@@ -188,20 +183,28 @@ func (b *ConformanceBrowser) title() string {
 // startURL, so a click or form submission's effect has a chance to land before the next reclassification acts on the
 // same page again. It never outlives ctx, and gives up silently on timeout: the caller's loop re-acts in that case,
 // which is the same behavior as if this guard were not here.
-func (b *ConformanceBrowser) settle(ctx context.Context, selector, startURL string) {
+// settle waits for a submitted form to clear, and fails if it does not.
+//
+// Falling through to let the caller act again would mean submitting the same form twice, which is the one thing this
+// driver must not do: each submission carries the consent session's flow back to Authelia, and the second response to
+// an already answered session is rejected. Waiting longer and then failing turns a slow backend into a slow pass or a
+// legible failure, instead of into a server_error attributed to the provider.
+func (b *ConformanceBrowser) settle(ctx context.Context, selector, startURL string) error {
 	deadline := time.Now().Add(conformanceSettleTimeout)
 
 	for time.Now().Before(deadline) {
 		if ctx.Err() != nil {
-			return
+			return ctx.Err()
 		}
 
 		if !b.has(selector) || b.url() != startURL {
-			return
+			return nil
 		}
 
 		time.Sleep(conformanceDriveInterval)
 	}
+
+	return fmt.Errorf("the form at '%s' was submitted but '%s' was still on screen %s later", startURL, selector, conformanceSettleTimeout)
 }
 
 // Drive navigates to uri and works the flow through to the conformance suite's callback. It is deliberately reactive:
@@ -236,20 +239,13 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 		case ConformancePageFirstFactor:
 			leg.FirstFactor = true
 
-			// A form which never clears - a rejected credential, a backend which is not answering - would otherwise
-			// have this loop resubmit it every few seconds for the whole module budget, which is enough failed
-			// attempts to have the regulator ban the account for every other plan running against this Authelia.
 			if attempts++; attempts > conformanceSignInAttempts {
 				return leg, fmt.Errorf("the sign in form at '%s' was still present after %d attempts", pageURL, conformanceSignInAttempts)
 			}
 
-			log.Debugf("Conformance driver signing in at '%s' (attempt %d)", pageURL, attempts)
-
-			if err = b.signIn(); err != nil {
-				return leg, fmt.Errorf("error signing in at '%s': %w", pageURL, err)
+			if err = b.submitSignIn(ctx, pageURL, attempts); err != nil {
+				return leg, err
 			}
-
-			b.settle(ctx, conformanceSelectorFirstFactor, pageURL)
 
 			progress.observe(time.Now(), pageURL, true)
 		case ConformancePageConsent:
@@ -261,15 +257,11 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 
 			var reauthentication bool
 
-			log.Debugf("Conformance driver submitting the consent decision form at '%s' (attempt %d)", pageURL, consents)
-
-			if reauthentication, err = b.consent(); err != nil {
-				return leg, fmt.Errorf("error accepting consent at '%s': %w", pageURL, err)
+			if reauthentication, err = b.submitConsent(ctx, pageURL, consents); err != nil {
+				return leg, err
 			}
 
 			leg.Reauthentication = leg.Reauthentication || reauthentication
-
-			b.settle(ctx, conformanceSelectorConsent, pageURL)
 
 			progress.observe(time.Now(), pageURL, true)
 		case ConformancePageAutheliaError:
@@ -381,4 +373,39 @@ func (p *conformanceProgress) observe(now time.Time, url string, recognized bool
 	}
 
 	return now.After(p.deadline)
+}
+
+// submitSignIn fills the sign in form and waits for it to clear.
+//
+// The form is submitted exactly once per call and the wait is not allowed to fall through: a second submission sends
+// the same consent flow back to Authelia, and the second response to an already answered consent session is rejected
+// as a server_error which looks like the provider's fault.
+func (b *ConformanceBrowser) submitSignIn(ctx context.Context, pageURL string, attempt int) (err error) {
+	log.Debugf("Conformance driver signing in at '%s' (attempt %d)", pageURL, attempt)
+
+	if err = b.signIn(); err != nil {
+		return fmt.Errorf("error signing in at '%s': %w", pageURL, err)
+	}
+
+	if err = b.settle(ctx, conformanceSelectorFirstFactor, pageURL); err != nil {
+		return fmt.Errorf("error signing in at '%s': %w", pageURL, err)
+	}
+
+	return nil
+}
+
+// submitConsent submits the consent decision form and waits for it to clear, reporting whether the form asked for the
+// password again. It carries the same single-submission guarantee as submitSignIn, and for the same reason.
+func (b *ConformanceBrowser) submitConsent(ctx context.Context, pageURL string, attempt int) (reauthentication bool, err error) {
+	log.Debugf("Conformance driver submitting the consent decision form at '%s' (attempt %d)", pageURL, attempt)
+
+	if reauthentication, err = b.consent(); err != nil {
+		return reauthentication, fmt.Errorf("error accepting consent at '%s': %w", pageURL, err)
+	}
+
+	if err = b.settle(ctx, conformanceSelectorConsent, pageURL); err != nil {
+		return reauthentication, fmt.Errorf("error submitting the consent decision form at '%s': %w", pageURL, err)
+	}
+
+	return reauthentication, nil
 }

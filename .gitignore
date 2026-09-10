@@ -56,3 +56,6 @@ graphify-out/
 
 # Added by ggshield
 .cache_ggshield
+
+# Buildkite suite logs pulled down for debugging; these carry real ID tokens from the run.
+authelia_build_*.log

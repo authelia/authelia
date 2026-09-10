@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ^authelia$
+^authelia_build_.*\.log$
 ^.git\/
 ^.claude\/
 ^.github\/workflows\/.*\.yml
