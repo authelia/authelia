@@ -208,6 +208,13 @@ type Provider interface {
 		Implementation for OAuth2.0 Consent Sessions.
 	*/
 
+	// CountStaleOAuth2ConsentSessions returns the number of expired and responded OAuth2.0 consent sessions.
+	CountStaleOAuth2ConsentSessions(ctx context.Context, before time.Time) (count int, err error)
+
+	// DeleteStaleOAuth2ConsentSessions deletes expired and responded OAuth2.0 consent sessions, cascading to the
+	// session tables which reference them.
+	DeleteStaleOAuth2ConsentSessions(ctx context.Context, before time.Time) (deleted int, err error)
+
 	// SaveOAuth2ConsentSession inserts an OAuth2.0 consent session to the storage provider.
 	SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
 

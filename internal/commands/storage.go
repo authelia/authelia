@@ -52,7 +52,44 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageEncryptionCmd(ctx),
 		newStorageUserCmd(ctx),
 		newStorageBansCmd(ctx),
+		newStorageCleanCmd(ctx),
 	)
+
+	return cmd
+}
+
+func newStorageCleanCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "clean",
+		Short:   cmdAutheliaStorageCleanShort,
+		Long:    cmdAutheliaStorageCleanLong,
+		Example: cmdAutheliaStorageCleanExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageCleanOAuth2Cmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageCleanOAuth2Cmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "oauth2",
+		Short:   cmdAutheliaStorageCleanOAuth2Short,
+		Long:    cmdAutheliaStorageCleanOAuth2Long,
+		Example: cmdAutheliaStorageCleanOAuth2Example,
+		RunE:    ctx.StorageCleanOAuth2RunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String(cmdFlagNameBefore, "", "only remove sessions which expired and were responded to before this duration ago")
+	cmd.Flags().Bool(cmdFlagNameDryRun, false, "report what would be removed without removing anything")
 
 	return cmd
 }
