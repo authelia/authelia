@@ -9,7 +9,6 @@ import (
 	"io"
 	"os"
 
-	logrus_stack "github.com/Gurpartap/logrus-stack"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -44,7 +43,7 @@ func initializeStackTracer(config schema.Log) {
 
 	// Ensure the stack trace hook is only initialized once.
 	stacktrace.Do(func() {
-		logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
+		logrus.AddHook(stackHook{CallerLevels: callerLevels, StackLevels: stackLevels})
 	})
 }
 
