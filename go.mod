@@ -9,7 +9,7 @@ go 1.27.0
 toolchain go1.27.1
 
 require (
-	authelia.com/provider/oauth2 v0.3.1
+	authelia.com/provider/oauth2 v0.3.2
 	cel.dev/cel-go v0.32.0
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
@@ -37,7 +37,6 @@ require (
 	github.com/knadh/koanf/providers/rawbytes v1.0.1
 	github.com/knadh/koanf/v2 v2.3.6
 	github.com/mattn/go-sqlite3 v1.14.52
-	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.1
 	github.com/prometheus/client_golang v1.24.1
 	github.com/rpadovani/sqlx-v2 v0.1.2
