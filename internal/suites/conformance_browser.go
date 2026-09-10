@@ -7,6 +7,7 @@ package suites
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -45,8 +46,9 @@ const (
 	conformanceSelectorUsername                = "#username-textfield"
 	conformanceSelectorPassword                = "#password-textfield"
 	conformanceSelectorSignIn                  = "#sign-in-button"
-	conformanceCallbackPathFragment            = "/test/a/"
+	conformanceCallbackPathPrefix              = "/test/a/"
 	conformanceSelectorAutheliaError           = `.notification[data-type="error"]`
+	conformanceSelectorCompletionError         = `[data-testid="openid-completion-outcome"][data-outcome="error"]`
 	conformanceElementTimeout                  = time.Second * 2
 	conformanceDriveInterval                   = time.Millisecond * 250
 	conformanceSettleTimeout                   = time.Second * 30
@@ -60,6 +62,9 @@ const (
 // that the decision is testable without a browser. The callback wins over every stage selector, because a stage left
 // in the DOM of the document being navigated away from would otherwise be read as the current page.
 //
+// The callback is recognized by the path alone. The authorization request carries the callback in its redirect_uri
+// parameter, so matching anywhere in the URL would end the leg while the browser was still on Authelia.
+//
 // The error toast is ranked below both stage selectors rather than above them. It is not a terminal error page: it is
 // a portalled, auto dismissing overlay (web/src/components/UI/Toast.tsx) which co-exists with whatever stage is on
 // screen, so a transient toast raised while the sign in form is up would otherwise end the leg on a page the driver
@@ -67,7 +72,7 @@ const (
 // there to catch.
 func ConformanceClassifyPage(uri string, hasFirstFactor, hasConsent, hasError bool) ConformancePageState {
 	switch {
-	case strings.Contains(uri, conformanceCallbackPathFragment):
+	case conformanceIsCallback(uri):
 		return ConformancePageCallback
 	case hasConsent:
 		return ConformancePageConsent
@@ -78,6 +83,15 @@ func ConformanceClassifyPage(uri string, hasFirstFactor, hasConsent, hasError bo
 	default:
 		return ConformancePageUnknown
 	}
+}
+
+func conformanceIsCallback(uri string) bool {
+	u, err := url.Parse(uri)
+	if err != nil {
+		return false
+	}
+
+	return strings.HasPrefix(u.Path, conformanceCallbackPathPrefix)
 }
 
 // ConformanceLeg is what the driver saw over the course of one browser leg of a module's authorization flow. It is
@@ -160,6 +174,13 @@ func (b *ConformanceBrowser) has(selector string) bool {
 	return err == nil && has
 }
 
+// hasAutheliaError reports whether Authelia is reporting an error: either the error toast, or the consent completion
+// view it redirects to when a request is rejected before it can be sent back to the client, such as one with an
+// unregistered redirect_uri.
+func (b *ConformanceBrowser) hasAutheliaError() bool {
+	return b.has(conformanceSelectorAutheliaError) || b.has(conformanceSelectorCompletionError)
+}
+
 func (b *ConformanceBrowser) url() string {
 	info, err := b.page.Timeout(conformancePageTimeout).Info()
 	if err != nil {
@@ -233,7 +254,7 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 
 		pageURL := b.url()
 
-		switch ConformanceClassifyPage(pageURL, b.has(conformanceSelectorFirstFactor), b.has(conformanceSelectorConsent), b.has(conformanceSelectorAutheliaError)) {
+		switch ConformanceClassifyPage(pageURL, b.has(conformanceSelectorFirstFactor), b.has(conformanceSelectorConsent), b.hasAutheliaError()) {
 		case ConformancePageCallback:
 			return leg, nil
 		case ConformancePageFirstFactor:

@@ -30,6 +30,14 @@ func TestConformanceClassifyPage(t *testing.T) {
 			ConformancePageCallback,
 		},
 		{
+			// The authorization request carries the callback in its redirect_uri parameter, so a check against the
+			// whole URL would end the leg before Authelia had presented anything.
+			"ShouldNotMistakeAnAuthorizationRequestCarryingTheCallbackForTheCallback",
+			"https://login.example.com:8080/api/oidc/authorization?client_id=abc&redirect_uri=https://conformance.example.com:8443/test/a/alias/callback",
+			false, false, false,
+			ConformancePageUnknown,
+		},
+		{
 			"ShouldDetectTheFirstFactorPage",
 			"https://login.example.com:8080/",
 			true, false, false,

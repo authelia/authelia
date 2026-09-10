@@ -18,6 +18,10 @@ const (
 	conformanceStatusWaiting    = "WAITING"
 	conformanceStatusFinished   = "FINISHED"
 
+	// conformanceStatusInterrupted is a module which stopped on a failing condition. Like FINISHED it is never left,
+	// so waiting on FINISHED alone spends the whole module budget on a verdict the server has already reached.
+	conformanceStatusInterrupted = "INTERRUPTED"
+
 	// conformanceModuleTimeout is the budget for one module, browser interaction included.
 	conformanceModuleTimeout = time.Minute * 5
 
@@ -35,7 +39,14 @@ const (
 
 	// conformancePlaceholderInterval is how often the log is re-read while waiting for a placeholder to appear.
 	conformancePlaceholderInterval = time.Second
+
+	// conformanceOutcomeInfoTimeout bounds the status read which completes an outcome. It runs on a context detached
+	// from the module's, because a module which ran out of time is the one whose status is most worth reporting.
+	conformanceOutcomeInfoTimeout = time.Second * 10
 )
+
+// conformanceTerminalStates are the states a module never leaves.
+var conformanceTerminalStates = []string{conformanceStatusFinished, conformanceStatusInterrupted}
 
 // ConformanceOutcome is the result of one module, produced off the test goroutine and asserted on it.
 type ConformanceOutcome struct {
@@ -80,6 +91,11 @@ var conformanceOverrides = map[string]ConformanceOverride{
 
 	// max_age=10000 is longer than the session has existed, so the provider must not ask again.
 	"oidcc-max-age-10000": {Assert: conformanceAssertNoReauthentication},
+
+	// Both send a redirect_uri which is not registered, so Authelia must show its own error page rather than send the
+	// browser to it. This is the page the module's screenshot placeholder asks for.
+	"oidcc-ensure-registered-redirect-uri":          {Assert: conformanceAssertErrorPage},
+	"oidcc-ensure-request-object-with-redirect-uri": {Assert: conformanceAssertErrorPage},
 
 	// Every module whose upstream summary says to remove any cookies received from the provider, and no others. The
 	// plans also carry oidcc-registration-logo-uri, -policy-uri and -tos-uri under that instruction, but those are
@@ -128,6 +144,14 @@ func conformanceAssertNoReauthentication(leg ConformanceLeg) error {
 
 	if leg.Reauthentication || leg.FirstFactor {
 		return errors.New("expected Authelia to reuse the existing session on the second authorization but it asked for the password again")
+	}
+
+	return nil
+}
+
+func conformanceAssertErrorPage(leg ConformanceLeg) error {
+	if !leg.AutheliaError {
+		return errors.New("expected Authelia to show an error page rather than redirect to the client but it did not")
 	}
 
 	return nil
@@ -208,12 +232,15 @@ func (r *ConformanceRunner) run(ctx context.Context, name string, module Conform
 	// Only wait for the module to finish when the interaction succeeded. A module whose browser leg failed will never
 	// leave WAITING, so waiting on it would burn the whole module budget before reporting a failure already known.
 	if outcome.Err == nil {
-		if _, err = r.client.WaitState(ctx, id, conformanceStatusFinished); err != nil {
+		if _, err = r.client.WaitState(ctx, id, conformanceTerminalStates...); err != nil {
 			outcome.Err = err
 		}
 	}
 
-	info, err := r.client.Info(ctx, id)
+	infoCtx, infoCancel := context.WithTimeout(context.WithoutCancel(ctx), conformanceOutcomeInfoTimeout)
+	defer infoCancel()
+
+	info, err := r.client.Info(infoCtx, id)
 	if err != nil {
 		if outcome.Err == nil {
 			outcome.Err = err
@@ -241,7 +268,7 @@ func (r *ConformanceRunner) createAndAdvance(ctx context.Context, module Conform
 		}
 	}
 
-	if state, err = r.client.WaitState(ctx, id, conformanceStatusConfigured, conformanceStatusWaiting, conformanceStatusFinished); err != nil {
+	if state, err = r.client.WaitState(ctx, id, append([]string{conformanceStatusConfigured, conformanceStatusWaiting}, conformanceTerminalStates...)...); err != nil {
 		return id, "", err
 	}
 
@@ -253,14 +280,17 @@ func (r *ConformanceRunner) createAndAdvance(ctx context.Context, module Conform
 		return id, "", err
 	}
 
-	state, err = r.client.WaitState(ctx, id, conformanceStatusWaiting, conformanceStatusFinished)
+	state, err = r.client.WaitState(ctx, id, append([]string{conformanceStatusWaiting}, conformanceTerminalStates...)...)
 
 	return id, state, err
 }
 
-// interact drives every URL the module hands over and fills every placeholder it raises, until the module leaves
-// WAITING. A module such as oidcc-prompt-login performs two authorization round trips, so this loops rather than
-// assuming a single URL.
+// interact drives every URL the module hands over and fills every placeholder it raises, until the module reaches a
+// terminal state. A module such as oidcc-prompt-login performs two authorization round trips, so this loops rather
+// than assuming a single URL.
+//
+// Leaving WAITING is not the end: between two legs the module is RUNNING while it processes the first callback, and
+// only publishes the second URL once it is back in WAITING.
 func (r *ConformanceRunner) interact(ctx context.Context, id, module string, override ConformanceOverride) (err error) {
 	if r.browser == nil {
 		return errors.New("the module needs a browser but the runner has none")
@@ -301,14 +331,26 @@ func (r *ConformanceRunner) interact(ctx context.Context, id, module string, ove
 			deadline = time.Now().Add(conformancePlaceholderTimeout)
 		}
 
-		var waiting bool
+		var state string
 
-		if waiting, err = r.stillWaiting(ctx, id, filled); err != nil {
+		if state, err = r.moduleState(ctx, id, filled); err != nil {
 			return err
 		}
 
-		if !waiting {
+		switch state {
+		case conformanceStatusFinished, conformanceStatusInterrupted:
 			return nil
+		case conformanceStatusWaiting:
+		default:
+			log.Debugf("Conformance module '%s' is in state '%s' between browser legs", id, state)
+
+			if _, err = r.client.WaitState(ctx, id, append([]string{conformanceStatusWaiting}, conformanceTerminalStates...)...); err != nil {
+				return err
+			}
+
+			deadline = time.Now().Add(conformancePlaceholderTimeout)
+
+			continue
 		}
 
 		if time.Now().After(deadline) {
@@ -418,27 +460,25 @@ func (r *ConformanceRunner) awaitPlaceholderSettled(ctx context.Context, id stri
 	}
 }
 
-// stillWaiting reports whether a module is yet to leave the WAITING state. A module whose placeholder was just filled
-// gets its settle window first: a single check straight after an upload would almost always see the old status,
-// because the conformance server takes several seconds to act on the image.
-func (r *ConformanceRunner) stillWaiting(ctx context.Context, id string, filled bool) (waiting bool, err error) {
+// moduleState reports the module's current status. A module whose placeholder was just filled gets its settle window
+// first: a single check straight after an upload would almost always see the old status, because the conformance
+// server takes several seconds to act on the image.
+func (r *ConformanceRunner) moduleState(ctx context.Context, id string, filled bool) (state string, err error) {
 	if filled {
-		var settled string
-
-		if settled, err = r.awaitPlaceholderSettled(ctx, id, conformanceUploadSettleInterval, conformanceUploadSettleTimeout); err != nil {
-			return false, err
+		if state, err = r.awaitPlaceholderSettled(ctx, id, conformanceUploadSettleInterval, conformanceUploadSettleTimeout); err != nil {
+			return "", err
 		}
 
-		log.Debugf("Conformance module '%s' is in state '%s' after its placeholder was filled", id, settled)
+		log.Debugf("Conformance module '%s' is in state '%s' after its placeholder was filled", id, state)
 
-		return settled == conformanceStatusWaiting, nil
+		return state, nil
 	}
 
 	var info *ConformanceTestInfo
 
 	if info, err = r.client.Info(ctx, id); err != nil {
-		return false, err
+		return "", err
 	}
 
-	return info.Status == conformanceStatusWaiting, nil
+	return info.Status, nil
 }

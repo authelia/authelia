@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"sort"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -246,6 +248,18 @@ func TestConformanceOverrideAssertions(t *testing.T) {
 			ConformanceLeg{Index: 1, FirstFactor: false, Consent: true},
 			"",
 		},
+		{
+			"ShouldPassWhenTheLegEndedOnAnAutheliaErrorPage",
+			conformanceAssertErrorPage,
+			ConformanceLeg{Index: 0, AutheliaError: true},
+			"",
+		},
+		{
+			"ShouldFailWhenTheLegReachedTheCallbackInsteadOfAnErrorPage",
+			conformanceAssertErrorPage,
+			ConformanceLeg{Index: 0},
+			"expected Authelia to show an error page rather than redirect to the client but it did not",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -261,13 +275,16 @@ func TestConformanceOverrideAssertions(t *testing.T) {
 	}
 }
 
-func TestConformanceOverrides_AreWiredToTheReauthenticationAssertions(t *testing.T) {
+func TestConformanceOverrides_AreWiredToTheirAssertions(t *testing.T) {
 	// The wiring is what decides which module each expectation is applied to, and it is not otherwise exercised by
 	// anything which runs without a conformance server.
 	for module, expected := range map[string]ConformanceLeg{
 		"oidcc-prompt-login":  {Index: conformanceReauthenticationLeg, FirstFactor: false},
 		"oidcc-max-age-1":     {Index: conformanceReauthenticationLeg, FirstFactor: false},
 		"oidcc-max-age-10000": {Index: conformanceReauthenticationLeg, FirstFactor: true},
+
+		"oidcc-ensure-registered-redirect-uri":          {Index: 0},
+		"oidcc-ensure-request-object-with-redirect-uri": {Index: 0},
 	} {
 		override, ok := conformanceOverrides[module]
 
@@ -324,4 +341,152 @@ func TestConformanceOverrides_ClearCookiesMatchesTheModulesThatRequireIt(t *test
 	sort.Strings(actual)
 
 	assert.Equal(t, expected, actual)
+}
+
+func TestConformanceRunner_TreatsAnInterruptedModuleAsFinished(t *testing.T) {
+	// A module which stops on a failing condition goes to INTERRUPTED and stays there. Waiting on FINISHED alone
+	// spends the whole module budget on a verdict the server reached immediately.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/runner":
+			w.WriteHeader(http.StatusCreated)
+			_, _ = w.Write([]byte(`{"id":"m1"}`))
+		case "/api/runner/m1/wait-state":
+			if !strings.Contains(r.URL.Query().Get("states"), conformanceStatusInterrupted) {
+				time.Sleep(time.Millisecond * 10)
+
+				_, _ = w.Write([]byte(`{"timeout":true}`))
+
+				return
+			}
+
+			_, _ = w.Write([]byte(`{"state":"INTERRUPTED"}`))
+		case "/api/info/m1":
+			_, _ = w.Write([]byte(`{"_id":"m1","status":"INTERRUPTED","result":"FAILED"}`))
+		default:
+			t.Errorf("unexpected path %s", r.URL.Path)
+		}
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	var outcomes []ConformanceOutcome
+
+	for outcome := range NewConformanceRunner(client, nil, "plan1", []ConformancePlanModule{{TestModule: "oidcc-max-age-1"}}).Run(ctx) {
+		outcomes = append(outcomes, outcome)
+	}
+
+	require.Len(t, outcomes, 1)
+	require.NoError(t, outcomes[0].Err)
+
+	assert.Equal(t, conformanceStatusInterrupted, outcomes[0].Status)
+	assert.Equal(t, "FAILED", outcomes[0].Result)
+}
+
+func TestConformanceRunner_InteractKeepsDrivingAModuleWhichIsRunningBetweenLegs(t *testing.T) {
+	// Between two browser legs the module is RUNNING while it processes the first callback, and only then publishes
+	// the second URL. Treating that as the module being done leaves the second leg undriven and the module waiting
+	// on a browser which never arrives.
+	var (
+		mu                  sync.Mutex
+		browserPolls, infos int
+	)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		switch r.URL.Path {
+		case "/api/runner/browser/m1":
+			browserPolls++
+
+			_, _ = w.Write([]byte(`{"urls":[]}`))
+		case "/api/log/m1":
+			_, _ = w.Write([]byte(`[]`))
+		case "/api/info/m1":
+			infos++
+
+			if infos == 1 {
+				_, _ = w.Write([]byte(`{"_id":"m1","status":"RUNNING"}`))
+
+				return
+			}
+
+			_, _ = w.Write([]byte(`{"_id":"m1","status":"FINISHED"}`))
+		case "/api/runner/m1/wait-state":
+			assert.Equal(t, "WAITING,FINISHED,INTERRUPTED", r.URL.Query().Get("states"))
+
+			_, _ = w.Write([]byte(`{"state":"WAITING"}`))
+		default:
+			t.Errorf("unexpected path %s", r.URL.Path)
+		}
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	runner := NewConformanceRunner(client, &ConformanceBrowser{}, "plan1", nil)
+
+	require.NoError(t, runner.interact(ctx, "m1", "oidcc-prompt-none-logged-in", ConformanceOverride{}))
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	assert.Equal(t, 2, browserPolls, "the browser status must be read again once the module is back in WAITING")
+}
+
+func TestConformanceRunner_ReportsTheStatusOfAModuleWhichRanOutOfTime(t *testing.T) {
+	// The module's context has expired by the time its outcome is assembled, so reading its status on that context
+	// fails and the report says the module finished with the status '', which describes nothing.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/runner":
+			w.WriteHeader(http.StatusCreated)
+			_, _ = w.Write([]byte(`{"id":"m1"}`))
+		case "/api/runner/m1/wait-state":
+			if strings.Contains(r.URL.Query().Get("states"), conformanceStatusConfigured) {
+				_, _ = w.Write([]byte(`{"state":"FINISHED"}`))
+
+				return
+			}
+
+			time.Sleep(time.Millisecond * 10)
+
+			_, _ = w.Write([]byte(`{"timeout":true}`))
+		case "/api/info/m1":
+			_, _ = w.Write([]byte(`{"_id":"m1","status":"WAITING"}`))
+		default:
+			t.Errorf("unexpected path %s", r.URL.Path)
+		}
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	var outcomes []ConformanceOutcome
+
+	for outcome := range NewConformanceRunner(client, nil, "plan1", []ConformancePlanModule{{TestModule: "oidcc-server"}}).Run(ctx) {
+		outcomes = append(outcomes, outcome)
+	}
+
+	require.Len(t, outcomes, 1)
+	require.Error(t, outcomes[0].Err)
+
+	assert.Equal(t, conformanceStatusWaiting, outcomes[0].Status)
 }

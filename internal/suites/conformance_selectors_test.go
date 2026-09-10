@@ -53,6 +53,12 @@ func TestConformanceSelectorsExistInThePortal(t *testing.T) {
 		assert.Contains(t, portal, "notification", "the toast no longer carries the notification class")
 		assert.Contains(t, portal, "data-[type=error]", "the toast no longer distinguishes an error by data-type")
 	})
+
+	t.Run("AutheliaCompletionError", func(t *testing.T) {
+		assert.Contains(t, portal, `data-testid={"openid-completion-outcome"}`, "the completion view no longer carries its outcome test id")
+		assert.Contains(t, portal, "data-outcome={outcome}", "the completion view no longer exposes its outcome")
+		assert.Contains(t, portal, `error ? "error"`, "the completion view no longer names the error outcome 'error'")
+	})
 }
 
 // conformanceSelectorIdentifiers returns the id names a CSS selector depends on, so that a descendant selector is
