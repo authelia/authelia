@@ -18,12 +18,21 @@ declare -A SUITE_TIMEOUTS=(
   [OIDCConformance]="120"
 )
 
+declare -A SUITE_NO_FAILFAST=(
+  [OIDCConformance]="true"
+)
+
 for SUITE_NAME in $(authelia-scripts suites list); do
   AGENT="${SUITE_AGENTS[${SUITE_NAME}]:-all}"
   TIMEOUT="${SUITE_TIMEOUTS[${SUITE_NAME}]:-20}"
+  FAILFAST="--failfast"
+
+  if [[ "${SUITE_NO_FAILFAST[${SUITE_NAME}]:-false}" == "true" ]]; then
+    FAILFAST=""
+  fi
 cat << EOF
   - label: ":selenium: ${SUITE_NAME} Suite"
-    command: "authelia-scripts --log-level debug suites test ${SUITE_NAME} --failfast --headless"
+    command: "authelia-scripts --log-level debug suites test ${SUITE_NAME} ${FAILFAST} --headless"
     artifact_paths:
       - "screenshots/**/*.access.log"
       - "screenshots/**/*.console.json"
