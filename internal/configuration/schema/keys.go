@@ -119,6 +119,7 @@ var Keys = []string{
 	"authentication_backend.password_reset.custom_url",
 	"authentication_backend.password_reset.disable",
 	"authentication_backend.refresh_interval",
+	"authentication_backend.registration.custom_url",
 	"certificates_directory",
 	"default_2fa_method",
 	"default_redirection_url",

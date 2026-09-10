@@ -563,6 +563,33 @@ func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenResetURL
 	suite.Len(suite.validator.Errors(), 0)
 }
 
+func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenRegistrationURLIsInvalid() {
+	suite.config.Registration.CustomURL = url.URL{Scheme: "ldap", Host: "google.com"}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Require().Len(suite.validator.Errors(), 1)
+
+	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: registration: option 'custom_url' is configured to 'ldap://google.com' which has the scheme 'ldap' but the scheme must be either 'http' or 'https'")
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenRegistrationURLIsValid() {
+	suite.config.Registration.CustomURL = url.URL{Scheme: schemeHTTPS, Host: "google.com"}
+
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+}
+
+func (suite *FileBasedAuthenticationBackend) TestShouldNotRaiseErrorWhenRegistrationURLIsUnset() {
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Len(suite.validator.Warnings(), 0)
+	suite.Len(suite.validator.Errors(), 0)
+}
+
 func (suite *FileBasedAuthenticationBackend) TestShouldConfigureDisableResetPasswordWhenCustomURL() {
 	suite.config.PasswordReset.CustomURL = url.URL{Scheme: schemeHTTPS, Host: "google.com"}
 	suite.config.PasswordReset.Disable = true

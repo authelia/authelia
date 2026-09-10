@@ -14,6 +14,7 @@ import (
 type AuthenticationBackend struct {
 	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" yaml:"password_reset,omitempty" toml:"password_reset,omitempty" json:"password_reset,omitempty" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behavior."`
 	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" yaml:"password_change,omitempty" toml:"password_change,omitempty" json:"password_change,omitempty" jsonschema:"title=Password Change" jsonschema_description:"Allows configuration of the password change behavior."`
+	Registration   AuthenticationBackendRegistration   `koanf:"registration" yaml:"registration,omitempty" toml:"registration,omitempty" json:"registration,omitempty" jsonschema:"title=Registration" jsonschema_description:"Allows configuration of the registration behavior."`
 
 	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" yaml:"refresh_interval,omitempty" toml:"refresh_interval,omitempty" json:"refresh_interval,omitempty" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend."`
 
@@ -31,6 +32,11 @@ type AuthenticationBackendPasswordChange struct {
 type AuthenticationBackendPasswordReset struct {
 	Disable   bool    `koanf:"disable" yaml:"disable" toml:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the Password Reset option."`
 	CustomURL url.URL `koanf:"custom_url" yaml:"custom_url,omitempty" toml:"custom_url,omitempty" json:"custom_url,omitempty" jsonschema:"title=Custom URL" jsonschema_description:"Disables the internal Password Reset option and instead redirects users to this specified URL."`
+}
+
+// AuthenticationBackendRegistration represents the configuration related to registration functionality.
+type AuthenticationBackendRegistration struct {
+	CustomURL url.URL `koanf:"custom_url" yaml:"custom_url,omitempty" toml:"custom_url,omitempty" json:"custom_url,omitempty" jsonschema:"title=Custom URL" jsonschema_description:"Displays a registration link on the login page which directs users to this specified URL."`
 }
 
 // AuthenticationBackendFile represents the configuration related to file-based backend.

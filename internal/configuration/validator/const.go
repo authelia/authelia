@@ -99,6 +99,8 @@ const (
 		"it must be either in duration common syntax or one of 'disable', or 'always': %w"
 	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
+	errFmtAuthBackendRegistrationCustomURLScheme = "authentication_backend: registration: option 'custom_url' is" +
+		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
 	errFmtFileAuthBackendPathNotConfigured              = "authentication_backend: file: option 'path' is required"
 	errFmtFileAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: file: extra_attributes: %s: option 'value_type' is required"
