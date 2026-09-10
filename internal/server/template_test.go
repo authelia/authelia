@@ -6,6 +6,7 @@ package server
 
 import (
 	"io/fs"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -503,6 +504,55 @@ func TestNewTemplatedFileOptions(t *testing.T) {
 			assert.Equal(t, tc.expectedPasswordChange, opts.PasswordChange)
 			assert.Equal(t, tc.expectedTheme, opts.Theme)
 			assert.Equal(t, tc.expectedPasskeyLogin, opts.PasskeyLogin)
+		})
+	}
+}
+
+func TestNewTemplatedFileOptionsTOTPApps(t *testing.T) {
+	apple := url.URL{Scheme: "https", Host: "apps.apple.com", Path: "/us/app/example/id1"}
+	google := url.URL{Scheme: "https", Host: "play.google.com", Path: "/store/apps/details", RawQuery: "id=org.example.otp"}
+
+	testCases := []struct {
+		name               string
+		apps               schema.TOTPApps
+		expectedAppleStore string
+		expectedGooglePlay string
+	}{
+		{
+			"ShouldReturnBothLinks",
+			schema.TOTPApps{
+				AppleStore: schema.TOTPAppsStore{URL: apple},
+				GooglePlay: schema.TOTPAppsStore{URL: google},
+			},
+			"https://apps.apple.com/us/app/example/id1",
+			"https://play.google.com/store/apps/details?id=org.example.otp",
+		},
+		{
+			"ShouldOmitTheDisabledStore",
+			schema.TOTPApps{
+				AppleStore: schema.TOTPAppsStore{Disable: true, URL: apple},
+				GooglePlay: schema.TOTPAppsStore{URL: google},
+			},
+			"",
+			"https://play.google.com/store/apps/details?id=org.example.otp",
+		},
+		{
+			"ShouldOmitBothWhenBothStoresDisabled",
+			schema.TOTPApps{
+				AppleStore: schema.TOTPAppsStore{Disable: true, URL: apple},
+				GooglePlay: schema.TOTPAppsStore{Disable: true, URL: google},
+			},
+			"",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			opts := NewTemplatedFileOptions(&schema.Configuration{TOTP: schema.TOTP{Apps: tc.apps}})
+
+			assert.Equal(t, tc.expectedAppleStore, opts.TOTPAppAppleStore)
+			assert.Equal(t, tc.expectedGooglePlay, opts.TOTPAppGooglePlay)
 		})
 	}
 }

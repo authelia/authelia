@@ -4389,11 +4389,52 @@
           "title": "Disable Reuse Security Policy",
           "description": "Disables the security policy that prevents reuse of a TOTP code.",
           "default": false
+        },
+        "apps": {
+          "$ref": "#/$defs/TOTPApps",
+          "title": "Apps",
+          "description": "The authenticator applications suggested to users when they register a TOTP credential."
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "TOTP represents the configuration related to TOTP options."
+    },
+    "TOTPApps": {
+      "properties": {
+        "apple_store": {
+          "$ref": "#/$defs/TOTPAppsStore",
+          "title": "Apple App Store",
+          "description": "The Apple App Store listing for the authenticator application suggested to users."
+        },
+        "google_play": {
+          "$ref": "#/$defs/TOTPAppsStore",
+          "title": "Google Play",
+          "description": "The Google Play listing for the authenticator application suggested to users."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "TOTPApps represents the store links suggested to users registering a TOTP credential."
+    },
+    "TOTPAppsStore": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables the badge for this store.",
+          "default": false
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "title": "URL",
+          "description": "The listing for the authenticator application suggested to users."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "TOTPAppsStore represents an individual store listing suggested to users registering a TOTP credential."
     },
     "Telemetry": {
       "properties": {

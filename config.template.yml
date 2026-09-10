@@ -229,6 +229,25 @@
   ## Disable the reuse security policy which prevents replays of one-time password code values.
   # disable_reuse_security_policy: false
 
+  ## The authenticator application suggested to users when they register a one-time password credential. Each link
+  ## must be served over https. Unset links default to the Google Authenticator listing for that store.
+  # apps:
+    ## The Apple App Store listing for the suggested application.
+    # apple_store:
+      ## Disable the Apple App Store badge.
+      # disable: false
+
+      ## The Apple App Store listing url for the suggested application.
+      # url: 'https://apps.apple.com/us/app/google-authenticator/id388497605'
+
+    ## The Google Play listing for the suggested application.
+    # google_play:
+      ## Disable the Google Play badge.
+      # disable: false
+
+      ## The Google Play listing url for the suggested application.
+      # url: 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2'
+
 ##
 ## WebAuthn Configuration
 ##
