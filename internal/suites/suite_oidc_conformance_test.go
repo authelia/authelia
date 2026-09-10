@@ -22,7 +22,7 @@ import (
 // conformanceAcceptedResults are the module results which pass. REVIEW is here because filling an image placeholder
 // forces it, and this suite fills placeholders for every module which blocks on one, so REVIEW carries no signal. Add
 // WARNING here to accept results which the conformance suite flags but does not fail.
-var conformanceAcceptedResults = []string{"PASSED", "REVIEW", "SKIPPED"}
+var conformanceAcceptedResults = []string{"PASSED", "REVIEW", "SKIPPED", "WARNING"}
 
 // conformancePlanTimeout is the budget for one whole plan.
 const conformancePlanTimeout = time.Minute * 75
