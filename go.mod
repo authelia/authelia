@@ -11,7 +11,6 @@ toolchain go1.27.1
 require (
 	authelia.com/provider/oauth2 v0.3.0
 	cel.dev/cel-go v0.32.0
-	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
 	github.com/authelia/otp v1.0.4
@@ -74,7 +73,6 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
 	github.com/go-crypt/x v0.4.16 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
