@@ -35,3 +35,15 @@ These changes once approved by a team member will be published for testing on Bu
 ### Docker Container
 * \`docker pull authelia/authelia:PR{{ pull_request.number }}\`
 * \`docker pull ghcr.io/authelia/authelia:PR{{ pull_request.number }}\``);
+
+// Maintainer notification for a contributor who has not committed to the repository before, so they
+// can be credited once their work merges.
+on("pull_request.opened")
+    .filter((context) =>
+        ["FIRST_TIME_CONTRIBUTOR", "FIRST_TIMER"].includes(
+            context.payload.pull_request.author_association,
+        ),
+    )
+    .comment(`@authelia/review-general this is the first contribution to Authelia from @{{ pull_request.user.login }}.
+
+Once it merges please credit them with the [all-contributors bot](https://allcontributors.org/en/bot/usage), picking the types from the [emoji key](https://allcontributors.org/en/reference/emoji-key/).`);
