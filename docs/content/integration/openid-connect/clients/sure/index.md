@@ -26,7 +26,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.24](https://github.com/authelia/authelia/releases/tag/v4.39.24)
+  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
 - [Sure]
   - [v0.6.6](https://github.com/we-promise/sure/releases/tag/v0.6.6)
 
