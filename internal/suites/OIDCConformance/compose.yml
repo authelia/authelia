@@ -32,13 +32,6 @@ services:
       BASE_URL: 'https://conformance.example.com:8443'
       MONGODB_HOST: 'conformance-mongodb'
       JAVA_EXTRA_ARGS: '-Dfintechlabs.devmode=true'
-      # The image's entrypoint interpolates these four unconditionally, unlike the signing keys beside them which are
-      # wrapped in '${VAR:+...}'. Leaving them unset yields an empty system property rather than an absent one, and a
-      # system property outranks the suite's own application.properties, whose defaults these values reproduce. Spring
-      # then rejects the empty client id while constructing OAuth2ClientProperties and the application context fails
-      # with "Client id of registration 'gitlab' must not be empty" -- before the devmode fallback in
-      # WebSecurityOidcLoginConfig can be reached. Nothing here logs in through Google or GitLab; devmode disables that
-      # login entirely. These exist only so the properties are non-empty.
       OIDC_GOOGLE_CLIENTID: 'google-client'
       OIDC_GOOGLE_SECRET: 'google-secret'
       OIDC_GITLAB_CLIENTID: 'gitlab-client'
