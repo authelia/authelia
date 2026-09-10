@@ -45,6 +45,14 @@ server:
   endpoints:
     enable_pprof: false
     enable_expvars: false
+    health:
+      verbose: false
+      detailed: false
+      providers:
+        - 'storage'
+        - 'session'
+        - 'user'
+      cache: '10 seconds'
     authz: {} ## See the dedicated "Server Authz Endpoints" configuration guide.
     rate_limits: {} ## See the dedicated "Server Endpoint Rate Limits" configuration guide.
 ```
@@ -203,6 +211,71 @@ This is a developer endpoint. **DO NOT** enable it unless you know why you're en
 {{< /callout >}}
 
 Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
+
+#### health
+
+Configures the health check endpoints.
+
+The plain `/api/health` endpoint is not affected by any option in this section. It answers `200` whenever the
+server is accepting requests, which is what a liveness probe wants, and it is deliberately left exactly as it is
+so that existing container health checks keep working.
+
+##### verbose
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables `/api/health/verbose`, which probes each of the configured [providers](#providers) and answers `200` when
+they all pass or `503` when any of them fails. This makes it suitable for a readiness probe, or for a load
+balancer which should stop routing to an instance whose database or authentication backend has gone away.
+
+The response names each provider and how long its probe took:
+
+```json
+{
+  "status": "degraded",
+  "checked_at": "2026-09-10T22:31:04Z",
+  "cached": false,
+  "providers": {
+    "storage": {"status": "ok", "took": "1.802ms"},
+    "session": {"status": "ok", "took": "412µs"},
+    "user": {"status": "error", "took": "5.002s"}
+  }
+}
+```
+
+##### detailed
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="caution" title="Security Note" icon="outline/alert-triangle" >}}
+A provider error message can contain connection strings, host names, and directory base DNs. The verbose endpoint
+does not require authentication, so enabling this publishes that information to anyone who can reach it. Enable it
+while diagnosing a problem and turn it off afterwards.
+{{< /callout >}}
+
+Includes the provider's error message in the response as an `error` member. Without it a failing provider is
+reported only as `"status": "error"`, and the message is written to the log instead.
+
+##### providers
+
+{{< confkey type="list(string)" default="storage, session, user" required="no" >}}
+
+The providers probed by the verbose endpoint, in the order given. The default is the three providers on the
+authentication request path: if any of them is unavailable the instance genuinely cannot serve a login.
+
+Possible values are `storage`, `session`, `user`, `notification`, `ntp`, `expressions`, and `webauthn-metadata`.
+
+Probing `notification` opens a connection to the SMTP server and probing `ntp` contacts an external NTP server, so
+neither is included by default. Consider the [cache](#cache) before adding them.
+
+##### cache
+
+{{< confkey type="string,integer" syntax="duration" default="10 seconds" required="no" >}}
+
+How long a result is reused before the providers are probed again. A readiness probe polling every second would
+otherwise open a connection to every provider every second.
+
+Set to `0` to probe on every request.
 
 #### authz
 
