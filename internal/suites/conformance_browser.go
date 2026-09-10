@@ -59,6 +59,18 @@ const (
 	// URL changed, Drive falls through and re-examines the page as it did before this guard existed.
 	conformanceSettleTimeout = time.Second * 5
 
+	// conformanceLegPatience bounds how long a leg waits on a page the driver has no action for. It is patience
+	// without progress, not a total budget: any change of URL restarts it, so a long redirect chain is fine while a
+	// page that simply sits there is not. Without it the only bound is the module's whole context, so one page the
+	// classifier does not recognize costs five minutes, and a systemic problem costs that for every module in the
+	// plan -- which reads as a hang rather than as a failure.
+	conformanceLegPatience = time.Second * 30
+
+	// conformancePageTimeout bounds a single interaction with the page. rod blocks on a CDP response indefinitely
+	// unless the page carries a deadline, so a navigation or a query against a target that has stopped answering
+	// hangs the run outright, in a way no context above it can interrupt.
+	conformancePageTimeout = time.Second * 30
+
 	// conformanceSignInAttempts caps how many times one leg submits the sign in form. Every plan authenticates as the
 	// same user against one Authelia, so a form which does not clear must not be resubmitted for the whole module
 	// budget: the failed attempts would regulate the account out from under the other plans.
@@ -155,7 +167,7 @@ func (b *ConformanceBrowser) Close() {
 // ClearCookies discards every cookie in this context, for the modules whose instructions are to remove any cookies
 // received from the provider before proceeding.
 func (b *ConformanceBrowser) ClearCookies() error {
-	return proto.NetworkClearBrowserCookies{}.Call(b.page)
+	return proto.NetworkClearBrowserCookies{}.Call(b.page.Timeout(conformancePageTimeout))
 }
 
 func (b *ConformanceBrowser) has(selector string) bool {
@@ -165,12 +177,22 @@ func (b *ConformanceBrowser) has(selector string) bool {
 }
 
 func (b *ConformanceBrowser) url() string {
-	info, err := b.page.Info()
+	info, err := b.page.Timeout(conformancePageTimeout).Info()
 	if err != nil {
 		return ""
 	}
 
 	return info.URL
+}
+
+// title returns the page's title, which is the only description available of a page the classifier has no action for.
+func (b *ConformanceBrowser) title() string {
+	info, err := b.page.Timeout(conformancePageTimeout).Info()
+	if err != nil {
+		return ""
+	}
+
+	return info.Title
 }
 
 // settle waits, bounded by conformanceSettleTimeout, for either selector to leave the page or the URL to move on from
@@ -204,11 +226,13 @@ func (b *ConformanceBrowser) settle(ctx context.Context, selector, startURL stri
 func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (leg ConformanceLeg, err error) {
 	leg = ConformanceLeg{Index: index}
 
-	if err = b.session.doNavigate(b.page, uri); err != nil {
+	if err = b.session.doNavigate(b.page.Timeout(conformancePageTimeout), uri); err != nil {
 		return leg, fmt.Errorf("error navigating to '%s': %w", uri, err)
 	}
 
 	attempts := 0
+
+	progress := newConformanceProgress(conformanceLegPatience, time.Now())
 
 	for {
 		if ctx.Err() != nil {
@@ -235,6 +259,8 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 			}
 
 			b.settle(ctx, conformanceSelectorFirstFactor, pageURL)
+
+			progress.observe(time.Now(), pageURL, true)
 		case ConformancePageConsent:
 			leg.Consent = true
 
@@ -243,6 +269,8 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 			}
 
 			b.settle(ctx, conformanceSelectorConsent, pageURL)
+
+			progress.observe(time.Now(), pageURL, true)
 		case ConformancePageAutheliaError:
 			// An error page can be the point of a module, so it ends the leg without failing. The module's own result
 			// decides whether it was expected.
@@ -250,6 +278,13 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 
 			return leg, nil
 		case ConformancePageUnknown:
+			// Failing here rather than waiting out the module's whole context is what keeps one unrecognized page
+			// from costing five minutes, and a systemic problem from costing that once per module.
+			if progress.observe(time.Now(), pageURL, false) {
+				return leg, fmt.Errorf("the flow beginning at '%s' stopped at '%s' (%q), a page the driver has no action for, and it did not change for %s",
+					uri, pageURL, b.title(), conformanceLegPatience)
+			}
+
 			time.Sleep(conformanceDriveInterval)
 		}
 	}
@@ -299,4 +334,38 @@ func (b *ConformanceBrowser) click(selector string) (err error) {
 	}
 
 	return nil
+}
+
+// conformanceProgress decides when a leg has stopped getting anywhere.
+//
+// It is deliberately separate from the driver so the decision can be tested without a browser: the driver supplies
+// observations, this decides whether to keep waiting. Progress means either a page the driver acted on or a change of
+// URL; anything else is the page sitting still, and patience for that is finite.
+type conformanceProgress struct {
+	patience time.Duration
+	url      string
+	deadline time.Time
+}
+
+// newConformanceProgress returns a conformanceProgress with its patience running from now.
+func newConformanceProgress(patience time.Duration, now time.Time) *conformanceProgress {
+	return &conformanceProgress{patience: patience, deadline: now.Add(patience)}
+}
+
+// observe records what the driver saw and reports whether the leg has stalled. A recognized page or a change of URL is
+// progress and restarts the patience; only an unrecognized page that is not moving can exhaust it.
+func (p *conformanceProgress) observe(now time.Time, url string, recognized bool) (stalled bool) {
+	if url != p.url {
+		p.url, p.deadline = url, now.Add(p.patience)
+
+		return false
+	}
+
+	if recognized {
+		p.deadline = now.Add(p.patience)
+
+		return false
+	}
+
+	return now.After(p.deadline)
 }
