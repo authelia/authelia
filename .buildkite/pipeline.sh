@@ -60,7 +60,7 @@ env:
 
 steps:
   - label: ":service_dog: Linting"
-    command: "lint.sh -reporter=${LINT_REPORTER} -filter-mode=nofilter -fail-level=error"
+    command: "lint.sh -reporter=${LINT_REPORTER} -filter-mode=nofilter -fail-level=error -fail-on-error"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":chrome: External Tests"
