@@ -79,11 +79,17 @@ var conformanceOverrides = map[string]ConformanceOverride{
 	// max_age=10000 is longer than the session has existed, so the provider must not ask again.
 	"oidcc-max-age-10000": {Assert: conformanceAssertNoReauthentication},
 
-	// These carry instructions to remove any cookies received from the provider, so that a normal login page is shown.
-	"oidcc-display-page":   {ClearCookies: true},
-	"oidcc-display-popup":  {ClearCookies: true},
-	"oidcc-ui-locales":     {ClearCookies: true},
-	"oidcc-claims-locales": {ClearCookies: true},
+	// Every module whose upstream summary says to remove any cookies received from the provider, and no others. The
+	// plans also carry oidcc-registration-logo-uri, -policy-uri and -tos-uri under that instruction, but those are
+	// Dynamic OP modules and none of the profiles Authelia is certified for includes them.
+	//
+	// oidcc-prompt-none-not-logged-in is the one where a stale session is not merely untidy: prompt=none against a
+	// live session returns a code, and the module is asserting that the provider errors instead, so it fails.
+	"oidcc-display-page":              {ClearCookies: true},
+	"oidcc-display-popup":             {ClearCookies: true},
+	"oidcc-login-hint":                {ClearCookies: true},
+	"oidcc-prompt-none-not-logged-in": {ClearCookies: true},
+	"oidcc-ui-locales":                {ClearCookies: true},
 }
 
 // conformanceUnattended holds the modules which cannot run without a person, mapped to why. They are reported as

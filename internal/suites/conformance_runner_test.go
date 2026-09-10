@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"testing"
 	"time"
 
@@ -294,4 +295,33 @@ func TestConformanceRunner_VisitURLsDoesNotRedriveOrRecountAVisitedURL(t *testin
 
 	assert.False(t, progressed)
 	assert.Equal(t, 1, legs.count)
+}
+
+// TestConformanceOverrides_ClearCookiesMatchesTheModulesThatRequireIt pins the cookie-clearing set to the modules
+// whose upstream summaries ask for it.
+//
+// A module missing from this set does not fail loudly. It inherits whatever session the plan's browser is carrying
+// from the module before it, and most of them tolerate that -- oidcc-prompt-none-not-logged-in does not, because
+// prompt=none against a live session returns a code where the module is asserting an error. An entry present without
+// an upstream basis is the same problem in reverse: it makes the table look considered when it is guessing.
+func TestConformanceOverrides_ClearCookiesMatchesTheModulesThatRequireIt(t *testing.T) {
+	expected := []string{
+		"oidcc-display-page",
+		"oidcc-display-popup",
+		"oidcc-login-hint",
+		"oidcc-prompt-none-not-logged-in",
+		"oidcc-ui-locales",
+	}
+
+	var actual []string
+
+	for module, override := range conformanceOverrides {
+		if override.ClearCookies {
+			actual = append(actual, module)
+		}
+	}
+
+	sort.Strings(actual)
+
+	assert.Equal(t, expected, actual)
 }
