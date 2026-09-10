@@ -1101,6 +1101,70 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {},
 		},
+		{
+			// The consent form is only shown to an implicit consent client to ask for the password again, and the answer
+			// given there has already been saved, so saving it again finds no unanswered session and fails.
+			name:        "ShouldUseTheResponseAlreadyGivenOnTheConsentForm",
+			issuer:      mustParseURI(t, "https://auth.example.com"),
+			client:      clientTest,
+			userSession: session.UserSession{Username: testValue, FirstFactorAuthnTimestamp: 1000000, SecondFactorAuthnTimestamp: 1000000},
+			subject:     sub,
+			requester: &oauthelia2.AuthorizeRequest{
+				Request: oauthelia2.Request{
+					Client: clientTest,
+					Form: url.Values{
+						oidc.FormParameterMaximumAge: []string{"10"},
+					},
+					RequestedAt: time.Unix(1000000, 0),
+				},
+			},
+			expected: &model.OAuth2ConsentSession{
+				ID:          40,
+				ClientID:    "test",
+				Subject:     uuid.NullUUID{UUID: sub, Valid: true},
+				Authorized:  true,
+				Form:        "max_age=10",
+				RequestedAt: time.Unix(1000000, 0),
+				RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true},
+			},
+			handled: false,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+						Return(&model.OAuth2ConsentSession{ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: true, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
+				)
+			},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {},
+		},
+		{
+			name:        "ShouldDenyWhenTheConsentFormWasRejected",
+			issuer:      mustParseURI(t, "https://auth.example.com"),
+			client:      clientTest,
+			userSession: session.UserSession{Username: testValue, FirstFactorAuthnTimestamp: 1000000, SecondFactorAuthnTimestamp: 1000000},
+			subject:     sub,
+			requester: &oauthelia2.AuthorizeRequest{
+				Request: oauthelia2.Request{
+					Client: clientTest,
+					Form: url.Values{
+						oidc.FormParameterMaximumAge: []string{"10"},
+					},
+					RequestedAt: time.Unix(1000000, 0),
+				},
+			},
+			expected: nil,
+			handled:  true,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
+						Return(&model.OAuth2ConsentSession{ID: 40, ChallengeID: challenge, ClientID: "test", Subject: uuid.NullUUID{UUID: sub, Valid: true}, Authorized: false, Form: "max_age=10", RequestedAt: time.Unix(1000000, 0), RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}, nil),
+				)
+			},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'implicit' could not be processed: error occurred performing consent for consent session with id '11303e1f-f8af-436a-9a72-c7361bfc9f37': the user explicitly rejected this consent session$`), nil)
+			},
+		},
 	}
 
 	for _, tc := range testCases {

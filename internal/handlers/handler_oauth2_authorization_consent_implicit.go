@@ -97,6 +97,20 @@ func handleOAuth2AuthorizationConsentModeImplicitWithID(ctx *middlewares.Autheli
 		return nil, true
 	}
 
+	// The consent form is only presented to an implicit consent client to ask for the password again, and the user's
+	// response to it has already been saved, so it is used as is rather than granted and saved a second time.
+	if consent.Responded() {
+		if !consent.IsAuthorized() {
+			ctx.GetLogger().Errorf(logFmtErrConsentCantGrantRejected, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID)
+
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied)
+
+			return nil, true
+		}
+
+		return consent, false
+	}
+
 	var requests *oidc.ClaimsRequests
 
 	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
