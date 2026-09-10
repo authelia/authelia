@@ -198,4 +198,20 @@ Creating a suite is as easy. Let's take the example of the **Standalone** suite:
 A suite can also be much more complex like setting up a complete Kubernetes ecosystem. You can check the Kubernetes
 suite as example.
 
+## Commit Message Toggles
+
+Our continuous integration reads the following options from the commit message. It reads the message of the commit
+being built, which for a pull request is its most recent commit, so an option has to be in that commit's message. An
+option can appear anywhere in the message; placing it in the body or the footer keeps the header within its format.
+
+- `[skip test]` or `[test skip]`: skips linting, the external tests, the coverage image build, and the integration
+  tests. Every other step, including the unit tests, still runs.
+- `[debug test]` or `[test debug]`: runs the integration suites with their opt-in debug output enabled. The OpenID
+  Connect 1.0 conformance suite groups its build log by plan, with each group holding its tests' `=== RUN` lines and
+  opening by itself when one of them fails, and logs a trace of what it did for each module, stamped with the time in
+  UTC, under that module's subtest. Without this option the build log is left as `go test` writes it. The trace is
+  available locally by setting the `SUITE_DEBUG` environment variable to `true` when running a suite.
+
+A commit whose header begins with `docs` also skips vulnerability scanning.
+
 [delve]: https://github.com/go-delve/delve

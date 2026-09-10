@@ -352,7 +352,7 @@ func runSuiteTests(suiteName string, withEnv bool) error {
 	defer results.Close()
 
 	cmd := utils.CommandWithStdout("bash", "-c", testCmdLine)
-	cmd.Stdout = io.MultiWriter(&testOutputWriter{out: os.Stdout}, results)
+	cmd.Stdout = io.MultiWriter(&testOutputWriter{out: os.Stdout, buildkite: os.Getenv("BUILDKITE") == "true", grouped: os.Getenv("BUILDKITE") == "true" && os.Getenv("SUITE_DEBUG") == "true"}, results)
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
 

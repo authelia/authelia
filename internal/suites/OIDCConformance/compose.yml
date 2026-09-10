@@ -1,0 +1,64 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+services:
+  authelia-backend:
+    environment:
+      X_AUTHELIA_CONFIG_FILTERS: 'template'
+      X_AUTHELIA_CONFIG: '/config/configuration.yml,/tmp/conformance-clients.yml'
+    volumes:
+      - './OIDCConformance/configuration.yml:/config/configuration.yml'
+      - './OIDCConformance/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+      - '${SUITE_TMP:-/tmp}:/tmp'
+
+  conformance-mongodb:
+    image: 'mongo:6.0.13'
+    cpus: 2
+    mem_limit: 2g
+    networks:
+      authelianet: {}
+
+  conformance-server:
+    build:
+      context: '.'
+      dockerfile: 'OIDCConformance/Dockerfile.server'
+    cpus: 4
+    mem_limit: 4g
+    environment:
+      BASE_URL: 'https://conformance.example.com:8443'
+      MONGODB_HOST: 'conformance-mongodb'
+      JAVA_EXTRA_ARGS: '-Dfintechlabs.devmode=true'
+      OIDC_GOOGLE_CLIENTID: 'google-client'
+      OIDC_GOOGLE_SECRET: 'google-secret'
+      OIDC_GITLAB_CLIENTID: 'gitlab-client'
+      OIDC_GITLAB_SECRET: 'gitlab-secret'
+    depends_on:
+      - 'conformance-mongodb'
+      - 'authelia-backend'
+    expose:
+      - 8080
+    networks:
+      authelianet:
+        aliases:
+          # The published nginx image proxies to http://server:8080 and that configuration is baked in.
+          - 'server'
+
+  conformance-nginx:
+    image: 'registry.gitlab.com/openid/conformance-suite/nginx:release-v5.2.4'
+    cpus: 1
+    mem_limit: 512m
+    depends_on:
+      - 'conformance-server'
+    volumes:
+      - './common/pki/public.chain.pem:/etc/ssl/certs/nginx-selfsigned.crt'
+      - './common/pki/private.pem:/etc/ssl/private/nginx-selfsigned.key'
+    networks:
+      authelianet:
+        aliases:
+          - 'conformance.example.com'
+        ipv4_address: ${SUITE_SUBNET:-192.168.240}.140
+...

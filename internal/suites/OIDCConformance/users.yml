@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+users:
+  john:
+    displayname: "John Doe"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
+    given_name: "John"
+    middle_name: "Richard"
+    family_name: "Doe"
+    nickname: "Johnny"
+    gender: "male"
+    birthdate: "1985-07-31"
+    website: "https://john.example.com"
+    profile: "https://john.example.com/profile"
+    picture: "https://john.example.com/picture.png"
+    zoneinfo: "Australia/Melbourne"
+    locale: "en-AU"
+    phone_number: "+61491570156"
+    phone_extension: "1234"
+    email: john.doe@authelia.com
+    address:
+      street_address: "123 Example Street"
+      locality: "Melbourne"
+      region: "Victoria"
+      postal_code: "3000"
+      country: "Australia"
+    groups:
+      - admins
+      - dev
+
+  harry:
+    displayname: "Harry Potter"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
+    email: harry.potter@authelia.com
+    groups: []
+
+  bob:
+    displayname: "Bob Dylan"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
+    email: bob.dylan@authelia.com
+    groups:
+      - dev
+
+  james:
+    displayname: "James Dean"
+    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
+    email: james.dean@authelia.com
+...
