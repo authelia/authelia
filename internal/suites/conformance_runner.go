@@ -29,8 +29,13 @@ const (
 
 // ConformanceOutcome is the result of one module, produced off the test goroutine and asserted on it.
 type ConformanceOutcome struct {
-	Name    string
-	Module  string
+	Name   string
+	Module string
+
+	// ID is the module instance's identifier on the conformance server. It is what fetches the module's log for a
+	// failure message, and it names the module's file inside the exported plan archive.
+	ID string
+
 	Result  string
 	Status  string
 	LogURL  string
@@ -164,7 +169,7 @@ func (r *ConformanceRunner) run(ctx context.Context, name string, module Conform
 
 	id, state, err := r.createAndAdvance(ctx, module, override)
 	if id != "" {
-		outcome.LogURL = r.client.LogDetailURL(id)
+		outcome.ID, outcome.LogURL = id, r.client.LogDetailURL(id)
 	}
 
 	if err != nil {

@@ -17,6 +17,7 @@ import (
 	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/oidc/conformance"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // conformanceAcceptedResults are the module results which pass. REVIEW is here because filling an image placeholder
@@ -25,6 +26,10 @@ import (
 var conformanceAcceptedResults = []string{"PASSED", "REVIEW", "SKIPPED", "WARNING"}
 
 // conformancePlanTimeout is the budget for one whole plan.
+// conformanceDiagnosticTimeout bounds reading one failing module's log for its failure report. It is deliberately
+// independent of the plan context, so that a report is still produced for a plan whose context has expired.
+const conformanceDiagnosticTimeout = time.Second * 30
+
 const conformancePlanTimeout = time.Minute * 75
 
 // conformanceDrainTimeout bounds how long release waits for one runner to notice its context was cancelled and
@@ -187,9 +192,7 @@ func (s *OIDCConformanceSuite) TearDownSuite() {
 		defer cancel()
 
 		for name, id := range s.planIDs {
-			path := fmt.Sprintf("../../screenshots/%s/conformance-%s.zip", oidcConformanceSuiteName, name)
-
-			if err := s.client.ExportPlanHTML(ctx, id, path); err != nil {
+			if err := s.client.ExportPlanHTML(ctx, id, conformanceArchivePath(name)); err != nil {
 				s.T().Logf("Error exporting the '%s' plan log: %v", name, err)
 			}
 		}
@@ -218,8 +221,10 @@ func (s *OIDCConformanceSuite) assertPlan(name string) {
 				return
 			}
 
-			if outcome.LogURL != "" {
-				t.Logf("Conformance log: %s", outcome.LogURL)
+			// Reported before asserting, because a require aborts the subtest and anything logged after it is
+			// never printed -- and this is the run where the detail is wanted most.
+			if failed := outcome.Err != nil || !utils.IsStringInSlice(outcome.Result, conformanceAcceptedResults); failed {
+				s.reportFailure(t, name, outcome)
 			}
 
 			require.NoError(t, outcome.Err)
@@ -229,6 +234,53 @@ func (s *OIDCConformanceSuite) assertPlan(name string) {
 	}
 
 	s.Require().NotZerof(count, "the '%s' plan produced no modules", name)
+}
+
+// reportFailure prints everything known about a module that did not pass, before the assertion that aborts the
+// subtest.
+//
+// The conformance server's own log is the only place a failure explains itself -- the module result is a single word,
+// and the message on a failing condition is usually incomplete without the arguments beside it. That log lives in a
+// container which is torn down with the suite, so the log-detail URL below is useful while a run is in progress and
+// useless by the time anyone reads CI output; the exported archive is the copy that survives, and the module id is
+// what finds this module inside it.
+func (s *OIDCConformanceSuite) reportFailure(t *testing.T, plan string, outcome ConformanceOutcome) {
+	t.Logf("Module '%s' of the '%s' plan finished with the result '%s' and the status '%s'.", outcome.Module, plan, outcome.Result, outcome.Status)
+
+	if outcome.Err != nil {
+		t.Logf("Suite error: %v", outcome.Err)
+	}
+
+	if outcome.ID == "" {
+		t.Log("The module was never created, so the conformance server has no log for it.")
+
+		return
+	}
+
+	// A report must never be the thing that fails: without a client there is nothing to read the log with, and
+	// panicking here would replace a described failure with an undescribed one.
+	if s.client == nil {
+		return
+	}
+
+	t.Logf("Module id %s, in %s of the exported plan archive. Live log while the suite is up: %s",
+		outcome.ID, conformanceArchiveName(plan), outcome.LogURL)
+
+	ctx, cancel := context.WithTimeout(context.Background(), conformanceDiagnosticTimeout)
+	defer cancel()
+
+	entries, err := s.client.Log(ctx, outcome.ID)
+	if err != nil {
+		t.Logf("The module's log could not be read for this report: %v", err)
+
+		return
+	}
+
+	if detail := ConformanceDiagnostics(entries); detail != "" {
+		t.Logf("Conformance log entries that did not pass:%s", detail)
+	} else {
+		t.Logf("The module logged no failing entries, which points at the suite driving it rather than at the provider.")
+	}
 }
 
 // TestConfig runs the Config OP certification profile.
@@ -350,4 +402,15 @@ func TestOIDCConformanceGenerateRoundTrip(t *testing.T) {
 		assert.Truef(t, ids[plan.Plan.ClientAlternate.ID], "the '%s' profile's alternate client '%s' is not in the generated configuration", plan.Name, plan.Plan.ClientAlternate.ID)
 		assert.Truef(t, ids[plan.Plan.ClientSecretPost.ID], "the '%s' profile's secret post client '%s' is not in the generated configuration", plan.Name, plan.Plan.ClientSecretPost.ID)
 	}
+}
+
+// conformanceArchiveName returns the file name of a plan's exported log archive.
+func conformanceArchiveName(plan string) string {
+	return fmt.Sprintf("conformance-%s.zip", plan)
+}
+
+// conformanceArchivePath returns where a plan's exported log archive is written. The directory is the one the CI step
+// collects as an artifact, and the test binary runs in its own package directory, so the path is relative to that.
+func conformanceArchivePath(plan string) string {
+	return fmt.Sprintf("../../screenshots/%s/%s", oidcConformanceSuiteName, conformanceArchiveName(plan))
 }

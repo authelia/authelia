@@ -68,6 +68,11 @@ type ConformanceTestInfo struct {
 }
 
 // ConformanceBrowserStatus describes the URLs a module is waiting for a browser to visit.
+//
+// Only "urls" is decoded, and every entry in it is reached by navigation. The suite's own log-detail UI reads a
+// "urlsWithMethod" list first and falls back to "urls" treating each entry as a GET, but getBrowserStatus emits only
+// id, show_qr_code, urls, visited and runners -- there is no urlsWithMethod on the wire in the pinned release. Should a
+// later version add one, this degrades exactly as the suite's own UI does, to navigating every entry.
 type ConformanceBrowserStatus struct {
 	URLs    []string `json:"urls"`
 	Visited []string `json:"visited"`
@@ -75,10 +80,29 @@ type ConformanceBrowserStatus struct {
 
 // ConformanceLogEntry is one entry of a module's log. An entry with a non-empty Upload is an image placeholder which
 // has not been filled, and which is holding the module in WAITING.
+//
+// Fields holds the entry exactly as it arrived. A failing condition records its own arguments alongside the message —
+// the scope tests, for instance, log expected_scope_items, actual_scope_items and missing_items — and those arguments
+// are usually the whole diagnosis. They cannot be typed ahead of time because every condition logs something
+// different, so they are kept verbatim and rendered on demand.
 type ConformanceLogEntry struct {
 	Msg    string `json:"msg"`
 	Result string `json:"result"`
+	Src    string `json:"src"`
 	Upload string `json:"upload"`
+
+	Fields map[string]any `json:"-"`
+}
+
+// UnmarshalJSON decodes the typed fields and retains the entry whole.
+func (e *ConformanceLogEntry) UnmarshalJSON(data []byte) (err error) {
+	type entry ConformanceLogEntry
+
+	if err = json.Unmarshal(data, (*entry)(e)); err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, &e.Fields)
 }
 
 // ConformanceClient talks to the OpenID Foundation conformance suite's HTTP API. The suite runs with

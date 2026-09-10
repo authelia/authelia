@@ -3,11 +3,36 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ---
+# The conformance plans authenticate as john and no other account, so john carries the attributes and the rest do
+# not. The suite's scope tests compare the claims returned for a requested scope against the standard claim set for
+# that scope and log a miss as a WARNING, which this suite does not accept as a pass -- so an attribute missing here
+# fails oidcc-scope-profile, oidcc-scope-phone, oidcc-scope-address and oidcc-scope-all rather than merely weakening
+# them. name comes from displayname and preferred_username from the username; email_verified, updated_at and
+# phone_number_verified are derived by Authelia, the last of these only when a phone number is present.
 users:
   john:
     displayname: "John Doe"
     password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
+    given_name: "John"
+    middle_name: "Richard"
+    family_name: "Doe"
+    nickname: "Johnny"
+    gender: "male"
+    birthdate: "1985-07-31"
+    website: "https://john.example.com"
+    profile: "https://john.example.com/profile"
+    picture: "https://john.example.com/picture.png"
+    zoneinfo: "Australia/Melbourne"
+    locale: "en-AU"
+    phone_number: "+61491570156"
+    phone_extension: "1234"
     email: john.doe@authelia.com
+    address:
+      street_address: "123 Example Street"
+      locality: "Melbourne"
+      region: "Victoria"
+      postal_code: "3000"
+      country: "Australia"
     groups:
       - admins
       - dev
