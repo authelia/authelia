@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/asaskevich/govalidator"
+	"github.com/asaskevich/govalidator/v12"
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"go.yaml.in/yaml/v4"

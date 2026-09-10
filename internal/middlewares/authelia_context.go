@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asaskevich/govalidator"
+	"github.com/asaskevich/govalidator/v12"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/golang-jwt/jwt/v5"
