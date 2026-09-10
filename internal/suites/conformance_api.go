@@ -49,8 +49,13 @@ type ConformancePlanModule struct {
 }
 
 // ConformanceCreatedPlan is the response to creating a conformance test plan.
+//
+// The identifier arrives as "id", not "_id". The conformance suite hand-builds this response as {name, id, modules}
+// rather than serializing a persisted document, and only the endpoints that return a stored document — /api/info/{id}
+// among them — carry Mongo's "_id". Reading the wrong one decodes silently to an empty string, which surfaces much
+// later as a 400 from /api/runner?plan= and a 404 from the plan export.
 type ConformanceCreatedPlan struct {
-	ID      string                  `json:"_id"`
+	ID      string                  `json:"id"`
 	Modules []ConformancePlanModule `json:"modules"`
 }
 
@@ -232,6 +237,10 @@ func (c *ConformanceClient) CreatePlan(ctx context.Context, name string, variant
 
 	if err = c.do(ctx, http.MethodPost, c.uri(query, "plan"), bytes.NewReader(body), "application/json", http.StatusCreated, created); err != nil {
 		return nil, err
+	}
+
+	if created.ID == "" {
+		return nil, fmt.Errorf("error creating plan '%s': the conformance suite returned no plan identifier", plan.Alias)
 	}
 
 	return created, nil

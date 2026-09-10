@@ -27,7 +27,7 @@ func TestConformanceClient_CreatePlan(t *testing.T) {
 		query = r.URL.RawQuery
 
 		w.WriteHeader(http.StatusCreated)
-		_, _ = w.Write([]byte(`{"_id":"plan1","modules":[{"testModule":"oidcc-server","variant":{"response_type":"code"}}]}`))
+		_, _ = w.Write([]byte(`{"name":"oidcc-basic-certification-test-plan","id":"plan1","modules":[{"testModule":"oidcc-server","variant":{"response_type":"code"}}]}`))
 	}))
 
 	defer server.Close()
@@ -46,6 +46,23 @@ func TestConformanceClient_CreatePlan(t *testing.T) {
 	assert.Equal(t, "code", created.Modules[0].Variant["response_type"])
 	assert.Contains(t, query, "planName=oidcc-basic-certification-test-plan")
 	assert.Contains(t, query, "variant=")
+}
+
+func TestConformanceClient_CreatePlanRejectsAResponseWithoutAnIdentifier(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte(`{"name":"oidcc-basic-certification-test-plan","modules":[{"testModule":"oidcc-server"}]}`))
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	_, err = client.CreatePlan(context.Background(), "oidcc-basic-certification-test-plan", nil, &conformance.Plan{Alias: "the-alias"})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "the-alias")
+	assert.Contains(t, err.Error(), "returned no plan identifier")
 }
 
 func TestConformanceClient_WaitStateReturnsPersistedStatusWhenTestNoLongerRunning(t *testing.T) {
