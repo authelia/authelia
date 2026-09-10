@@ -10,6 +10,14 @@ server:
   address: 'tcp://:9091'
   timeouts:
     read: '30s'
+  endpoints:
+    health:
+      verbose: true
+      providers:
+        - 'storage'
+        - 'session'
+        - 'user'
+      cache: '0'
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'

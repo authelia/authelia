@@ -8,6 +8,8 @@ import (
 	"errors"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 var (
@@ -124,13 +126,13 @@ const (
 	LogMessageStartupCheckError      = "Error occurred running a startup check"
 	LogMessageStartupCheckPerforming = "Performing Startup Check"
 
-	ProviderNameNTP              = "ntp"
-	ProviderNameStorage          = "storage"
-	ProviderNameUser             = "user"
-	ProviderNameSession          = "session"
-	ProviderNameNotification     = "notification"
-	ProviderNameExpressions      = "expressions"
-	ProviderNameWebAuthnMetaData = "webauthn-metadata"
+	ProviderNameNTP              = schema.ProviderNameNTP
+	ProviderNameStorage          = schema.ProviderNameStorage
+	ProviderNameUser             = schema.ProviderNameUser
+	ProviderNameSession          = schema.ProviderNameSession
+	ProviderNameNotification     = schema.ProviderNameNotification
+	ProviderNameExpressions      = schema.ProviderNameExpressions
+	ProviderNameWebAuthnMetaData = schema.ProviderNameWebAuthnMetaData
 )
 
 // Content Type strings.

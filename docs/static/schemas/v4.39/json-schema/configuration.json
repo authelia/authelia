@@ -3411,6 +3411,56 @@
       "type": "object",
       "description": "ServerBuffers represents server buffer configurations."
     },
+    "ServerEndpointHealth": {
+      "properties": {
+        "verbose": {
+          "type": "boolean",
+          "title": "Verbose",
+          "description": "Enables the verbose health check endpoint which probes the configured providers.",
+          "default": false
+        },
+        "detailed": {
+          "type": "boolean",
+          "title": "Detailed",
+          "description": "Includes the provider error message in the verbose health check response which may disclose infrastructure information to unauthenticated clients.",
+          "default": false
+        },
+        "providers": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "storage",
+              "session",
+              "user",
+              "notification",
+              "ntp",
+              "expressions",
+              "webauthn-metadata"
+            ]
+          },
+          "type": "array",
+          "title": "Providers",
+          "description": "The providers probed by the verbose health check endpoint."
+        },
+        "cache": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Cache",
+          "description": "The duration a verbose health check result is reused for before the providers are probed again."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ServerEndpointHealth is the health check endpoint configuration for the HTTP server."
+    },
     "ServerEndpointRateLimit": {
       "properties": {
         "enable": {
@@ -3490,6 +3540,11 @@
           "title": "Session Elevation Start",
           "description": "Configures the rate limiter which applies to the Elevated Session endpoint which initializes the code generation and notification for the elevated session flow."
         },
+        "health": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "Health",
+          "description": "Configures the rate limiter which applies to the verbose health check endpoint."
+        },
         "session_elevation_finish": {
           "$ref": "#/$defs/ServerEndpointRateLimit",
           "title": "Session Elevation Finish",
@@ -3538,6 +3593,11 @@
           "title": "Enable ExpVars",
           "description": "Enables the developer specific ExpVars endpoints which should not be used in production and only used for debugging purposes.",
           "default": false
+        },
+        "health": {
+          "$ref": "#/$defs/ServerEndpointHealth",
+          "title": "Health",
+          "description": "Configures the health check endpoints."
         },
         "rate_limits": {
           "$ref": "#/$defs/ServerEndpointRateLimits",
