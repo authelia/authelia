@@ -134,6 +134,21 @@ func (mr *MockStorageMockRecorder) ConsumeOneTimeCode(ctx, code any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeOneTimeCode", reflect.TypeOf((*MockStorage)(nil).ConsumeOneTimeCode), ctx, code)
 }
 
+// CountStaleOAuth2ConsentSessions mocks base method.
+func (m *MockStorage) CountStaleOAuth2ConsentSessions(ctx context.Context, before time.Time) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountStaleOAuth2ConsentSessions", ctx, before)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountStaleOAuth2ConsentSessions indicates an expected call of CountStaleOAuth2ConsentSessions.
+func (mr *MockStorageMockRecorder) CountStaleOAuth2ConsentSessions(ctx, before any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountStaleOAuth2ConsentSessions", reflect.TypeOf((*MockStorage)(nil).CountStaleOAuth2ConsentSessions), ctx, before)
+}
+
 // DeactivateOAuth2DeviceCodeSession mocks base method.
 func (m *MockStorage) DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) error {
 	m.ctrl.T.Helper()
@@ -202,6 +217,21 @@ func (m *MockStorage) DeletePreferredDuoDevice(ctx context.Context, username str
 func (mr *MockStorageMockRecorder) DeletePreferredDuoDevice(ctx, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePreferredDuoDevice", reflect.TypeOf((*MockStorage)(nil).DeletePreferredDuoDevice), ctx, username)
+}
+
+// DeleteStaleOAuth2ConsentSessions mocks base method.
+func (m *MockStorage) DeleteStaleOAuth2ConsentSessions(ctx context.Context, before time.Time) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteStaleOAuth2ConsentSessions", ctx, before)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteStaleOAuth2ConsentSessions indicates an expected call of DeleteStaleOAuth2ConsentSessions.
+func (mr *MockStorageMockRecorder) DeleteStaleOAuth2ConsentSessions(ctx, before any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteStaleOAuth2ConsentSessions", reflect.TypeOf((*MockStorage)(nil).DeleteStaleOAuth2ConsentSessions), ctx, before)
 }
 
 // DeleteTOTPConfiguration mocks base method.
