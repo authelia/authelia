@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
+	log "github.com/sirupsen/logrus"
 )
 
 // ConformancePageState is what the browser is looking at part way through a conformance module's authorization flow.
@@ -242,6 +243,8 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 				return leg, fmt.Errorf("the sign in form at '%s' was still present after %d attempts", pageURL, conformanceSignInAttempts)
 			}
 
+			log.Debugf("Conformance driver signing in at '%s' (attempt %d)", pageURL, attempts)
+
 			if err = b.signIn(); err != nil {
 				return leg, fmt.Errorf("error signing in at '%s': %w", pageURL, err)
 			}
@@ -257,6 +260,8 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 			}
 
 			var reauthentication bool
+
+			log.Debugf("Conformance driver submitting the consent decision form at '%s' (attempt %d)", pageURL, consents)
 
 			if reauthentication, err = b.consent(); err != nil {
 				return leg, fmt.Errorf("error accepting consent at '%s': %w", pageURL, err)

@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -184,6 +186,9 @@ func (r *ConformanceRunner) run(ctx context.Context, name string, module Conform
 	override := conformanceOverrides[module.TestModule]
 
 	id, state, err := r.createAndAdvance(ctx, module, override)
+
+	log.Debugf("Conformance module '%s' created as '%s' in state '%s'", module.TestModule, id, state)
+
 	if id != "" {
 		outcome.ID, outcome.LogURL = id, r.client.LogDetailURL(id)
 	}
@@ -195,7 +200,7 @@ func (r *ConformanceRunner) run(ctx context.Context, name string, module Conform
 	}
 
 	if state == conformanceStatusWaiting {
-		if err = r.interact(ctx, id, override); err != nil {
+		if err = r.interact(ctx, id, module.TestModule, override); err != nil {
 			outcome.Err = err
 		}
 	}
@@ -256,7 +261,7 @@ func (r *ConformanceRunner) createAndAdvance(ctx context.Context, module Conform
 // interact drives every URL the module hands over and fills every placeholder it raises, until the module leaves
 // WAITING. A module such as oidcc-prompt-login performs two authorization round trips, so this loops rather than
 // assuming a single URL.
-func (r *ConformanceRunner) interact(ctx context.Context, id string, override ConformanceOverride) (err error) {
+func (r *ConformanceRunner) interact(ctx context.Context, id, module string, override ConformanceOverride) (err error) {
 	if r.browser == nil {
 		return errors.New("the module needs a browser but the runner has none")
 	}
@@ -282,7 +287,7 @@ func (r *ConformanceRunner) interact(ctx context.Context, id string, override Co
 			deadline = time.Now().Add(conformancePlaceholderTimeout)
 		}
 
-		progressed, err := r.visitURLs(ctx, id, override, legs, status.URLs)
+		progressed, err := r.visitURLs(ctx, id, module, override, legs, status.URLs)
 		if err != nil {
 			return err
 		}
@@ -324,7 +329,7 @@ type conformanceLegs struct {
 
 // visitURLs drives every URL in urls which has not already been driven, recording each as it goes. It reports whether
 // it drove any URL at all, so the caller can tell a quiet pass (nothing new to visit) from one that made progress.
-func (r *ConformanceRunner) visitURLs(ctx context.Context, id string, override ConformanceOverride, legs *conformanceLegs, urls []string) (progressed bool, err error) {
+func (r *ConformanceRunner) visitURLs(ctx context.Context, id, module string, override ConformanceOverride, legs *conformanceLegs, urls []string) (progressed bool, err error) {
 	for _, uri := range urls {
 		if legs.visited[uri] {
 			continue
@@ -336,10 +341,15 @@ func (r *ConformanceRunner) visitURLs(ctx context.Context, id string, override C
 		index := legs.count
 		legs.count++
 
+		log.Debugf("Conformance module '%s' driving leg %d at '%s'", module, index, uri)
+
 		leg, err := r.browser.Drive(ctx, index, uri)
 		if err != nil {
 			return progressed, err
 		}
+
+		log.Debugf("Conformance module '%s' finished leg %d: first factor %t, consent %t, reauthentication %t, error page %t",
+			module, index, leg.FirstFactor, leg.Consent, leg.Reauthentication, leg.AutheliaError)
 
 		// The assertion is made against what the driver observed over the leg, before the placeholder upload releases
 		// the module. It cannot be made against the live page: Drive only returns once the flow has left Authelia.
@@ -370,6 +380,8 @@ func (r *ConformanceRunner) fillPlaceholders(ctx context.Context, id string) (fi
 		if entry.Upload == "" {
 			continue
 		}
+
+		log.Debugf("Conformance module '%s' filling placeholder '%s'", id, entry.Upload)
 
 		if err = r.client.UploadPlaceholder(ctx, id, entry.Upload, conformancePlaceholderImage); err != nil {
 			return filled, err
@@ -416,6 +428,8 @@ func (r *ConformanceRunner) stillWaiting(ctx context.Context, id string, filled 
 		if settled, err = r.awaitPlaceholderSettled(ctx, id, conformanceUploadSettleInterval, conformanceUploadSettleTimeout); err != nil {
 			return false, err
 		}
+
+		log.Debugf("Conformance module '%s' is in state '%s' after its placeholder was filled", id, settled)
 
 		return settled == conformanceStatusWaiting, nil
 	}

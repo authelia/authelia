@@ -290,7 +290,7 @@ func TestConformanceRunner_VisitURLsDoesNotRedriveOrRecountAVisitedURL(t *testin
 
 	runner := NewConformanceRunner(nil, nil, "plan1", nil)
 
-	progressed, err := runner.visitURLs(context.Background(), "m1", override, legs, []string{"https://conformance.example.com/first"})
+	progressed, err := runner.visitURLs(context.Background(), "m1", "oidcc-server", override, legs, []string{"https://conformance.example.com/first"})
 	require.NoError(t, err)
 
 	assert.False(t, progressed)
