@@ -23,6 +23,14 @@ const (
 	// complete, before its remaining placeholders are considered absent.
 	conformancePlaceholderTimeout = time.Second * 30
 
+	// conformanceUploadSettleInterval and conformanceUploadSettleTimeout govern the wait after a placeholder is
+	// filled. The conformance server does not act on the upload immediately: the module stays in WAITING for several
+	// seconds while it picks the image up, which the suite's own UI shows as a spinner. Polling the status directly
+	// for that window, rather than falling back into the outer loop which re-reads the browser status and the whole
+	// log on every pass, keeps the poll at the once-a-second it is meant to be.
+	conformanceUploadSettleInterval = time.Second
+	conformanceUploadSettleTimeout  = time.Second * 10
+
 	// conformancePlaceholderInterval is how often the log is re-read while waiting for a placeholder to appear.
 	conformancePlaceholderInterval = time.Second
 )
@@ -280,12 +288,13 @@ func (r *ConformanceRunner) interact(ctx context.Context, id string, override Co
 			deadline = time.Now().Add(conformancePlaceholderTimeout)
 		}
 
-		info, err := r.client.Info(ctx, id)
-		if err != nil {
+		var waiting bool
+
+		if waiting, err = r.stillWaiting(ctx, id, filled); err != nil {
 			return err
 		}
 
-		if info.Status != conformanceStatusWaiting {
+		if !waiting {
 			return nil
 		}
 
@@ -362,4 +371,52 @@ func (r *ConformanceRunner) fillPlaceholders(ctx context.Context, id string) (fi
 	}
 
 	return filled, nil
+}
+
+// awaitPlaceholderSettled polls a module's status until it leaves WAITING, or until timeout elapses, and reports the
+// status it last saw. The first read happens before any wait, so a module which has already moved on is not made to
+// wait for it.
+func (r *ConformanceRunner) awaitPlaceholderSettled(ctx context.Context, id string, interval, timeout time.Duration) (current string, err error) {
+	deadline := time.Now().Add(timeout)
+
+	for {
+		var info *ConformanceTestInfo
+
+		if info, err = r.client.Info(ctx, id); err != nil {
+			return "", err
+		}
+
+		if info.Status != conformanceStatusWaiting || time.Now().After(deadline) {
+			return info.Status, nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return "", fmt.Errorf("module '%s' did not leave the %s state after its placeholder was filled: %w", id, conformanceStatusWaiting, ctx.Err())
+		case <-time.After(interval):
+		}
+	}
+}
+
+// stillWaiting reports whether a module is yet to leave the WAITING state. A module whose placeholder was just filled
+// gets its settle window first: a single check straight after an upload would almost always see the old status,
+// because the conformance server takes several seconds to act on the image.
+func (r *ConformanceRunner) stillWaiting(ctx context.Context, id string, filled bool) (waiting bool, err error) {
+	if filled {
+		var settled string
+
+		if settled, err = r.awaitPlaceholderSettled(ctx, id, conformanceUploadSettleInterval, conformanceUploadSettleTimeout); err != nil {
+			return false, err
+		}
+
+		return settled == conformanceStatusWaiting, nil
+	}
+
+	var info *ConformanceTestInfo
+
+	if info, err = r.client.Info(ctx, id); err != nil {
+		return false, err
+	}
+
+	return info.Status == conformanceStatusWaiting, nil
 }
