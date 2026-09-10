@@ -318,6 +318,25 @@ func TestResetPasswordPOST(t *testing.T) {
 				})
 
 				mock.Ctx.Request.SetBodyString(`{"password":"abc"}`)
+
+				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
+					mock.NotifierMock.
+						EXPECT().
+						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: testEmail}, eventLogActionPasswordResetFailure, gomock.Any(), templates.EmailEventValues{
+							Title:       eventLogActionPasswordResetFailure,
+							DisplayName: testDisplayName,
+							RemoteIP:    "0.0.0.0",
+							Details:     map[string]any{"Action": "Password Reset"},
+							BodyPrefix:  eventEmailActionPasswordModifyPrefix,
+							BodyEvent:   eventEmailActionPasswordReset,
+							BodySuffix:  eventEmailReasonPasswordPolicy,
+						}).
+						Return(nil),
+				)
 			},
 			`{"status":"KO","message":"Your supplied password does not meet the password policy requirements."}`,
 			fasthttp.StatusOK,
@@ -336,6 +355,17 @@ func TestResetPasswordPOST(t *testing.T) {
 					EXPECT().
 					UpdatePassword(testUsername, "password123").
 					Return(fmt.Errorf("LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy"))
+
+				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
+					mock.NotifierMock.
+						EXPECT().
+						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: testEmail}, eventLogActionPasswordResetFailure, gomock.Any(), gomock.Any()).
+						Return(nil),
+				)
 			},
 			`{"status":"KO","message":"0000052D."}`,
 			fasthttp.StatusOK,
@@ -359,6 +389,63 @@ func TestResetPasswordPOST(t *testing.T) {
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred updating the user password", "failed to update")
+			},
+		},
+		{
+			"ShouldNotifyUserWhenPasswordIsUnchanged",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				setTestPasswordResetUsername(t, mock)
+
+				mock.Ctx.Request.SetBodyString(`{"password":"password123"}`)
+
+				mock.UserProviderMock.
+					EXPECT().
+					UpdatePassword(testUsername, "password123").
+					Return(fmt.Errorf("LDAP Result Code 19 \"Constraint Violation\": Password is not being changed from existing value"))
+
+				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
+					mock.NotifierMock.
+						EXPECT().
+						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: testEmail}, eventLogActionPasswordResetFailure, gomock.Any(), templates.EmailEventValues{
+							Title:       eventLogActionPasswordResetFailure,
+							DisplayName: testDisplayName,
+							RemoteIP:    "0.0.0.0",
+							Details:     map[string]any{"Action": "Password Reset"},
+							BodyPrefix:  eventEmailActionPasswordModifyPrefix,
+							BodyEvent:   eventEmailActionPasswordReset,
+							BodySuffix:  eventEmailReasonPasswordReuse,
+						}).
+						Return(nil),
+				)
+			},
+			`{"status":"KO","message":"Unable to reset your password."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred updating the user password", "LDAP Result Code 19 \"Constraint Violation\": Password is not being changed from existing value")
+			},
+		},
+		{
+			"ShouldNotNotifyUserOfBackendFailures",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				setTestPasswordResetUsername(t, mock)
+
+				mock.Ctx.Request.SetBodyString(`{"password":"password123"}`)
+
+				// No GetDetails or Send expectation: a cause the user cannot act on must not reach their mailbox,
+				// and gomock fails the test if the handler attempts either.
+				mock.UserProviderMock.
+					EXPECT().
+					UpdatePassword(testUsername, "password123").
+					Return(fmt.Errorf("LDAP Result Code 200 \"Network Error\": dial tcp 10.0.0.1:389: connect: connection refused"))
+			},
+			`{"status":"KO","message":"Unable to reset your password."}`,
+			fasthttp.StatusOK,
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred updating the user password", "LDAP Result Code 200 \"Network Error\": dial tcp 10.0.0.1:389: connect: connection refused")
 			},
 		},
 		{
