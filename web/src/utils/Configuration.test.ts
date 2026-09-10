@@ -70,7 +70,9 @@ it("returns true when passkey login is enabled", () => {
 it("returns the reset password custom URL", () => {
     document.body.dataset.resetpasswordcustomurl = "https://example.com";
     expect(getResetPasswordCustomURL()).toBe("https://example.com");
+});
 
+it("returns the registration URL", () => {
     document.body.dataset.registrationurl = "https://register.example.com";
     expect(getRegistrationURL()).toBe("https://register.example.com");
 });
