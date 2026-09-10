@@ -15,6 +15,7 @@ declare -A SUITE_AGENTS=(
 
 declare -A SUITE_TIMEOUTS=(
   [Kubernetes]="30"
+  [OIDCConformance]="120"
 )
 
 for SUITE_NAME in $(authelia-scripts suites list); do
@@ -30,6 +31,7 @@ cat << EOF
       - "screenshots/**/*.html"
       - "screenshots/**/*.png"
       - "screenshots/**/*.resources.json"
+      - "screenshots/**/*.zip"
       - "test-results-*.json"
       - "test-results-*.xml"
     timeout_in_minutes: ${TIMEOUT}

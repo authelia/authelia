@@ -1,0 +1,70 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+package suites
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestConformanceSubtestNames(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []ConformancePlanModule
+		expected []string
+	}{
+		{
+			"ShouldStripPrefixAndPascalCase",
+			[]ConformancePlanModule{{TestModule: "oidcc-server"}},
+			[]string{"Server"},
+		},
+		{
+			"ShouldPascalCaseEverySegment",
+			[]ConformancePlanModule{{TestModule: "oidcc-ensure-request-without-nonce-succeeds-for-code-flow"}},
+			[]string{"EnsureRequestWithoutNonceSucceedsForCodeFlow"},
+		},
+		{
+			"ShouldKeepDigits",
+			[]ConformancePlanModule{{TestModule: "oidcc-max-age-10000"}},
+			[]string{"MaxAge10000"},
+		},
+		{
+			"ShouldHandleModulesWithoutThePrefix",
+			[]ConformancePlanModule{{TestModule: "oidcc-config-certification"}, {TestModule: "discovery-issuer-not-matching-config"}},
+			[]string{"ConfigCertification", "DiscoveryIssuerNotMatchingConfig"},
+		},
+		{
+			"ShouldNotSuffixUniqueModules",
+			[]ConformancePlanModule{
+				{TestModule: "oidcc-server", Variant: map[string]string{"response_type": "code"}},
+				{TestModule: "oidcc-scope-address", Variant: map[string]string{"response_type": "code"}},
+			},
+			[]string{"Server", "ScopeAddress"},
+		},
+		{
+			"ShouldSuffixRepeatedModulesWithTheirVariant",
+			[]ConformancePlanModule{
+				{TestModule: "oidcc-server", Variant: map[string]string{"response_type": "code id_token"}},
+				{TestModule: "oidcc-server", Variant: map[string]string{"response_type": "code id_token token"}},
+			},
+			[]string{"ServerCodeIdToken", "ServerCodeIdTokenToken"},
+		},
+		{
+			"ShouldOrderVariantKeysDeterministically",
+			[]ConformancePlanModule{
+				{TestModule: "oidcc-server", Variant: map[string]string{"response_type": "code", "response_mode": "form_post"}},
+				{TestModule: "oidcc-server", Variant: map[string]string{"response_type": "code", "response_mode": "query"}},
+			},
+			[]string{"ServerFormPostCode", "ServerQueryCode"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, ConformanceSubtestNames(tc.have))
+		})
+	}
+}

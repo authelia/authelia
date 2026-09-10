@@ -1,0 +1,360 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
+package suites
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+)
+
+const (
+	conformanceStatusConfigured = "CONFIGURED"
+	conformanceStatusWaiting    = "WAITING"
+	conformanceStatusFinished   = "FINISHED"
+
+	// conformanceModuleTimeout is the budget for one module, browser interaction included.
+	conformanceModuleTimeout = time.Minute * 5
+
+	// conformancePlaceholderTimeout is how long a module which fills placeholders is given after its browser legs
+	// complete, before its remaining placeholders are considered absent.
+	conformancePlaceholderTimeout = time.Second * 30
+
+	// conformancePlaceholderInterval is how often the log is re-read while waiting for a placeholder to appear.
+	conformancePlaceholderInterval = time.Second
+)
+
+// ConformanceOutcome is the result of one module, produced off the test goroutine and asserted on it.
+type ConformanceOutcome struct {
+	Name    string
+	Module  string
+	Result  string
+	Status  string
+	LogURL  string
+	Skipped bool
+	Reason  string
+	Err     error
+}
+
+// ConformanceOverride is the per module behavior which differs from the reactive default.
+type ConformanceOverride struct {
+	// ClearCookies discards the context's cookies before the module's first browser leg, for the modules whose
+	// instructions are to remove any cookies received from the provider before proceeding.
+	ClearCookies bool
+
+	// Assert stands in for the screenshot the conformance suite would otherwise want. It is handed what the driver
+	// observed over one browser leg, once that leg has been driven to its end, and its error becomes the module's
+	// verdict. It is given the record rather than the browser because by the time a leg ends the browser is on the
+	// conformance suite's callback, so nothing about Authelia's pages can be established from the live DOM any more.
+	// The record carries the leg's index, so an expectation which belongs to the second authorization round trip is
+	// not applied to the first.
+	Assert func(leg ConformanceLeg) error
+}
+
+// conformanceOverrides holds only what differs from the reactive driver. Anything absent runs on the default path, so
+// a module added by a future conformance suite release runs rather than failing.
+var conformanceOverrides = map[string]ConformanceOverride{
+	// The second authorization carries prompt=login, so Authelia must ask for credentials again despite the session.
+	"oidcc-prompt-login": {Assert: conformanceAssertReauthentication},
+
+	// max_age=1 with a second of delay must force re-authentication and an auth_time claim.
+	"oidcc-max-age-1": {Assert: conformanceAssertReauthentication},
+
+	// max_age=10000 is longer than the session has existed, so the provider must not ask again.
+	"oidcc-max-age-10000": {Assert: conformanceAssertNoReauthentication},
+
+	// These carry instructions to remove any cookies received from the provider, so that a normal login page is shown.
+	"oidcc-display-page":   {ClearCookies: true},
+	"oidcc-display-popup":  {ClearCookies: true},
+	"oidcc-ui-locales":     {ClearCookies: true},
+	"oidcc-claims-locales": {ClearCookies: true},
+}
+
+// conformanceUnattended holds the modules which cannot run without a person, mapped to why. They are reported as
+// skipped rather than failed. Keep this list minimal and justified: a module which leaves it becomes a real failure,
+// which is the point.
+var conformanceUnattended = map[string]string{
+	"oidcc-server-rotate-keys": "requires the provider's signing keys to be rotated by hand while the module waits",
+}
+
+// conformanceReauthenticationLeg is the index of the browser leg the re-authentication expectations apply to. These
+// modules authorize twice: the first round trip only establishes the session, and by the time it runs the plan's
+// browser context may already hold one from an earlier module, so whether the sign in form appears on it says nothing
+// about the parameter under test. The second round trip is the one which carries prompt=login or max_age.
+const conformanceReauthenticationLeg = 1
+
+func conformanceAssertReauthentication(leg ConformanceLeg) error {
+	if leg.Index != conformanceReauthenticationLeg {
+		return nil
+	}
+
+	if !leg.FirstFactor {
+		return errors.New("expected Authelia to present the sign in form on the second authorization but it did not")
+	}
+
+	return nil
+}
+
+func conformanceAssertNoReauthentication(leg ConformanceLeg) error {
+	if leg.Index != conformanceReauthenticationLeg {
+		return nil
+	}
+
+	if leg.FirstFactor {
+		return errors.New("expected Authelia to reuse the existing session on the second authorization but it presented the sign in form again")
+	}
+
+	return nil
+}
+
+// ConformanceRunner walks one plan's modules in order.
+type ConformanceRunner struct {
+	client  *ConformanceClient
+	browser *ConformanceBrowser
+	planID  string
+	modules []ConformancePlanModule
+	names   []string
+}
+
+// NewConformanceRunner returns a ConformanceRunner for one plan. browser may be nil only when no module in modules
+// reaches the WAITING state, which in practice means only in tests.
+func NewConformanceRunner(client *ConformanceClient, browser *ConformanceBrowser, planID string, modules []ConformancePlanModule) *ConformanceRunner {
+	return &ConformanceRunner{
+		client:  client,
+		browser: browser,
+		planID:  planID,
+		modules: modules,
+		names:   ConformanceSubtestNames(modules),
+	}
+}
+
+// Run walks the plan on its own goroutine and returns the channel its outcomes arrive on, one per module in plan
+// order. The channel closes when the plan is done. Nothing here touches [testing.T]: an outcome carries its error so the
+// test goroutine can be the one that fails.
+func (r *ConformanceRunner) Run(ctx context.Context) <-chan ConformanceOutcome {
+	outcomes := make(chan ConformanceOutcome, len(r.modules))
+
+	go func() {
+		defer close(outcomes)
+
+		for i, module := range r.modules {
+			outcomes <- r.run(ctx, r.names[i], module)
+		}
+	}()
+
+	return outcomes
+}
+
+func (r *ConformanceRunner) run(ctx context.Context, name string, module ConformancePlanModule) (outcome ConformanceOutcome) {
+	outcome = ConformanceOutcome{Name: name, Module: module.TestModule}
+
+	if reason, ok := conformanceUnattended[module.TestModule]; ok {
+		outcome.Skipped, outcome.Reason = true, reason
+
+		return outcome
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, conformanceModuleTimeout)
+	defer cancel()
+
+	override := conformanceOverrides[module.TestModule]
+
+	id, state, err := r.createAndAdvance(ctx, module, override)
+	if id != "" {
+		outcome.LogURL = r.client.LogDetailURL(id)
+	}
+
+	if err != nil {
+		outcome.Err = err
+
+		return outcome
+	}
+
+	if state == conformanceStatusWaiting {
+		if err = r.interact(ctx, id, override); err != nil {
+			outcome.Err = err
+		}
+	}
+
+	// Only wait for the module to finish when the interaction succeeded. A module whose browser leg failed will never
+	// leave WAITING, so waiting on it would burn the whole module budget before reporting a failure already known.
+	if outcome.Err == nil {
+		if _, err = r.client.WaitState(ctx, id, conformanceStatusFinished); err != nil {
+			outcome.Err = err
+		}
+	}
+
+	info, err := r.client.Info(ctx, id)
+	if err != nil {
+		if outcome.Err == nil {
+			outcome.Err = err
+		}
+
+		return outcome
+	}
+
+	outcome.Status, outcome.Result = info.Status, info.Result
+
+	return outcome
+}
+
+// createAndAdvance creates module's test instance and, if it starts out CONFIGURED, starts it. It returns the id as
+// soon as CreateTest has succeeded - even alongside a non-nil err from a later step - so the caller can still surface
+// the module's log URL, and the state the module reached: WAITING or FINISHED on success.
+func (r *ConformanceRunner) createAndAdvance(ctx context.Context, module ConformancePlanModule, override ConformanceOverride) (id, state string, err error) {
+	if id, err = r.client.CreateTest(ctx, r.planID, module.TestModule, module.Variant); err != nil {
+		return "", "", fmt.Errorf("error creating module '%s': %w", module.TestModule, err)
+	}
+
+	if override.ClearCookies && r.browser != nil {
+		if err = r.browser.ClearCookies(); err != nil {
+			return id, "", err
+		}
+	}
+
+	if state, err = r.client.WaitState(ctx, id, conformanceStatusConfigured, conformanceStatusWaiting, conformanceStatusFinished); err != nil {
+		return id, "", err
+	}
+
+	if state != conformanceStatusConfigured {
+		return id, state, nil
+	}
+
+	if err = r.client.StartTest(ctx, id); err != nil {
+		return id, "", err
+	}
+
+	state, err = r.client.WaitState(ctx, id, conformanceStatusWaiting, conformanceStatusFinished)
+
+	return id, state, err
+}
+
+// interact drives every URL the module hands over and fills every placeholder it raises, until the module leaves
+// WAITING. A module such as oidcc-prompt-login performs two authorization round trips, so this loops rather than
+// assuming a single URL.
+func (r *ConformanceRunner) interact(ctx context.Context, id string, override ConformanceOverride) (err error) {
+	if r.browser == nil {
+		return errors.New("the module needs a browser but the runner has none")
+	}
+
+	legs := &conformanceLegs{visited: map[string]bool{}}
+
+	// The stall deadline is only meaningful once the module has been asked at least once what it is waiting for, so
+	// it is armed after the first poll rather than before it. A module which publishes its first URL more than
+	// conformancePlaceholderTimeout after entering WAITING would otherwise be reported as stalled.
+	var deadline time.Time
+
+	for {
+		if ctx.Err() != nil {
+			return fmt.Errorf("module '%s' did not leave the WAITING state: %w", id, ctx.Err())
+		}
+
+		status, err := r.client.BrowserStatus(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		if deadline.IsZero() {
+			deadline = time.Now().Add(conformancePlaceholderTimeout)
+		}
+
+		progressed, err := r.visitURLs(ctx, id, override, legs, status.URLs)
+		if err != nil {
+			return err
+		}
+
+		filled, err := r.fillPlaceholders(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		if progressed || filled {
+			deadline = time.Now().Add(conformancePlaceholderTimeout)
+		}
+
+		info, err := r.client.Info(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		if info.Status != conformanceStatusWaiting {
+			return nil
+		}
+
+		if time.Now().After(deadline) {
+			return fmt.Errorf("module '%s' stayed in the WAITING state with nothing left to visit or fill", id)
+		}
+
+		time.Sleep(conformancePlaceholderInterval)
+	}
+}
+
+// conformanceLegs is one module's browser leg bookkeeping, carried across the iterations of interact's poll loop: the
+// URLs already driven, and how many legs have been driven so far. The count is what lets an override distinguish the
+// second authorization round trip of a module such as oidcc-prompt-login from the first.
+type conformanceLegs struct {
+	visited map[string]bool
+	count   int
+}
+
+// visitURLs drives every URL in urls which has not already been driven, recording each as it goes. It reports whether
+// it drove any URL at all, so the caller can tell a quiet pass (nothing new to visit) from one that made progress.
+func (r *ConformanceRunner) visitURLs(ctx context.Context, id string, override ConformanceOverride, legs *conformanceLegs, urls []string) (progressed bool, err error) {
+	for _, uri := range urls {
+		if legs.visited[uri] {
+			continue
+		}
+
+		legs.visited[uri] = true
+		progressed = true
+
+		index := legs.count
+		legs.count++
+
+		leg, err := r.browser.Drive(ctx, index, uri)
+		if err != nil {
+			return progressed, err
+		}
+
+		// The assertion is made against what the driver observed over the leg, before the placeholder upload releases
+		// the module. It cannot be made against the live page: Drive only returns once the flow has left Authelia.
+		if override.Assert != nil {
+			if err = override.Assert(leg); err != nil {
+				return progressed, err
+			}
+		}
+
+		if err = r.client.Visit(ctx, id, uri); err != nil {
+			return progressed, err
+		}
+	}
+
+	return progressed, nil
+}
+
+// fillPlaceholders uploads the stub image to every unfilled placeholder, reporting whether it filled any. The image
+// carries no information: the module's page was already checked by the override's assertion, and the upload exists
+// only because waitForPlaceholders() will not release the module without one.
+func (r *ConformanceRunner) fillPlaceholders(ctx context.Context, id string) (filled bool, err error) {
+	entries, err := r.client.Log(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	for _, entry := range entries {
+		if entry.Upload == "" {
+			continue
+		}
+
+		if err = r.client.UploadPlaceholder(ctx, id, entry.Upload, conformancePlaceholderImage); err != nil {
+			return filled, err
+		}
+
+		filled = true
+	}
+
+	return filled, nil
+}
