@@ -33,7 +33,8 @@ runner:
   typos:
     cmd: .buildkite/steps/lint.sh typos .
     errorformat:
-      - '%f:%l:%c: %m'
+      - '%E%f:%l:%c: %m'
+      - '%C%.%#'
     level: error
 
   yamllint:
