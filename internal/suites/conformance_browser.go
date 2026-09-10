@@ -118,6 +118,10 @@ type ConformanceLeg struct {
 
 	// AutheliaError is whether the leg ended on Authelia reporting an error rather than reaching the callback.
 	AutheliaError bool
+
+	// ErrorURL is the page the leg ended on when AutheliaError is set. Authelia's completion view carries the error in
+	// its query, so this is what describes the error to a report.
+	ErrorURL string
 }
 
 // ConformanceBrowser is one conformance plan's isolated browser context. Every method returns an error rather than
@@ -288,7 +292,7 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 		case ConformancePageAutheliaError:
 			// An error page can be the point of a module, so it ends the leg without failing. The module's own result
 			// decides whether it was expected.
-			leg.AutheliaError = true
+			leg.AutheliaError, leg.ErrorURL = true, pageURL
 
 			return leg, nil
 		case ConformancePageUnknown:

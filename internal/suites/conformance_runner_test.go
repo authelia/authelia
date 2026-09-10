@@ -6,6 +6,7 @@ package suites
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -489,4 +490,35 @@ func TestConformanceRunner_ReportsTheStatusOfAModuleWhichRanOutOfTime(t *testing
 	require.Error(t, outcomes[0].Err)
 
 	assert.Equal(t, conformanceStatusWaiting, outcomes[0].Status)
+}
+
+func TestConformanceLegs_Stalled(t *testing.T) {
+	t.Run("ShouldNameAutheliasErrorWhenTheLastLegEndedOnItsErrorPage", func(t *testing.T) {
+		legs := &conformanceLegs{errorURL: "https://login.example.com:8080/consent/completion?error=invalid_request_object&error_description=The+request+parameter+contains+an+invalid+Request+Object.&error_hint=Could+not+be+validated.&error_debug=Expected+typ+JWT."}
+
+		err := legs.stalled("m1")
+
+		var stall *ConformanceErrorPageStallError
+
+		require.ErrorAs(t, err, &stall)
+		assert.EqualError(t, err, "module 'm1' is waiting for the flow to return to the client, but Authelia ended it on an error page and the module raised no placeholder for one: "+
+			"error 'invalid_request_object', description 'The request parameter contains an invalid Request Object.', hint 'Could not be validated.', debug 'Expected typ JWT.'")
+	})
+
+	t.Run("ShouldFallBackToTheURLWhenTheErrorPageCarriesNoParameters", func(t *testing.T) {
+		legs := &conformanceLegs{errorURL: "https://login.example.com:8080/"}
+
+		assert.EqualError(t, legs.stalled("m1"), "module 'm1' is waiting for the flow to return to the client, but Authelia ended it on an error page and the module raised no placeholder for one: https://login.example.com:8080/")
+	})
+
+	t.Run("ShouldReportAPlainStallOtherwise", func(t *testing.T) {
+		legs := &conformanceLegs{}
+
+		err := legs.stalled("m1")
+
+		var stall *ConformanceErrorPageStallError
+
+		assert.False(t, errors.As(err, &stall))
+		assert.EqualError(t, err, "module 'm1' stayed in the WAITING state with nothing left to visit or fill")
+	})
 }

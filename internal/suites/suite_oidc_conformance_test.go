@@ -6,6 +6,7 @@ package suites
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -212,9 +213,14 @@ func (s *OIDCConformanceSuite) reportFailure(t *testing.T, plan string, outcome 
 		return
 	}
 
-	if detail := ConformanceDiagnostics(entries); detail != "" {
+	var stall *ConformanceErrorPageStallError
+
+	switch detail := ConformanceDiagnostics(entries); {
+	case detail != "":
 		t.Logf("Conformance log entries that did not pass:%s", detail)
-	} else {
+	case errors.As(outcome.Err, &stall):
+		t.Logf("The module logged no failing entries because it is still waiting for the callback Authelia's error page never sent.")
+	default:
 		t.Logf("The module logged no failing entries, which points at the suite driving it rather than at the provider.")
 	}
 }

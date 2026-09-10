@@ -8,6 +8,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -354,7 +356,7 @@ func (r *ConformanceRunner) interact(ctx context.Context, id, module string, ove
 		}
 
 		if time.Now().After(deadline) {
-			return fmt.Errorf("module '%s' stayed in the WAITING state with nothing left to visit or fill", id)
+			return legs.stalled(id)
 		}
 
 		time.Sleep(conformancePlaceholderInterval)
@@ -367,6 +369,64 @@ func (r *ConformanceRunner) interact(ctx context.Context, id, module string, ove
 type conformanceLegs struct {
 	visited map[string]bool
 	count   int
+
+	// errorURL is the page the most recent leg ended on when that was Authelia reporting an error, and empty when it
+	// reached the client.
+	errorURL string
+}
+
+// stalled explains a module which is still waiting with nothing left to drive. When the last leg ended on Authelia's
+// error page the module is waiting for a callback which will not come, and that is Authelia's doing rather than the
+// driver's, so the error says what Authelia reported.
+func (l *conformanceLegs) stalled(id string) error {
+	if l.errorURL != "" {
+		return &ConformanceErrorPageStallError{ID: id, URL: l.errorURL}
+	}
+
+	return fmt.Errorf("module '%s' stayed in the WAITING state with nothing left to visit or fill", id)
+}
+
+// ConformanceErrorPageStallError is a module left waiting for the flow to return to the client after Authelia ended
+// it on an error page, which the module had no placeholder for.
+type ConformanceErrorPageStallError struct {
+	ID  string
+	URL string
+}
+
+// Error names the module and what Authelia's error page reported.
+func (e *ConformanceErrorPageStallError) Error() string {
+	return fmt.Sprintf("module '%s' is waiting for the flow to return to the client, but Authelia ended it on an error page and the module raised no placeholder for one: %s",
+		e.ID, conformanceDescribeErrorPage(e.URL))
+}
+
+// conformanceDescribeErrorPage renders the error parameters Authelia's completion view carries in its query, falling
+// back to the URL for an error page which carries none.
+func conformanceDescribeErrorPage(uri string) string {
+	u, err := url.Parse(uri)
+	if err != nil {
+		return uri
+	}
+
+	query := u.Query()
+
+	var parts []string
+
+	for _, field := range []struct{ label, key string }{
+		{"error", "error"},
+		{"description", "error_description"},
+		{"hint", "error_hint"},
+		{"debug", "error_debug"},
+	} {
+		if value := query.Get(field.key); value != "" {
+			parts = append(parts, fmt.Sprintf("%s '%s'", field.label, value))
+		}
+	}
+
+	if len(parts) == 0 {
+		return uri
+	}
+
+	return strings.Join(parts, ", ")
 }
 
 // visitURLs drives every URL in urls which has not already been driven, recording each as it goes. It reports whether
@@ -392,6 +452,8 @@ func (r *ConformanceRunner) visitURLs(ctx context.Context, id, module string, ov
 
 		log.Debugf("Conformance module '%s' finished leg %d: first factor %t, consent %t, reauthentication %t, error page %t",
 			module, index, leg.FirstFactor, leg.Consent, leg.Reauthentication, leg.AutheliaError)
+
+		legs.errorURL = leg.ErrorURL
 
 		// The assertion is made against what the driver observed over the leg, before the placeholder upload releases
 		// the module. It cannot be made against the live page: Drive only returns once the flow has left Authelia.
