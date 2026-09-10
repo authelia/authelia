@@ -40,15 +40,24 @@ const (
 	conformanceSelectorConsentAccept           = "#openid-consent-accept"
 	conformanceSelectorConsentReauthentication = "#openid-consent-prompt-login"
 	conformanceSelectorConsentPassword         = "#openid-consent-prompt-login #password-textfield"
-	conformanceCallbackPathFragment            = "/test/a/"
-	conformanceSelectorAutheliaError           = `.notification[data-type="error"]`
-	conformanceElementTimeout                  = time.Second * 2
-	conformanceDriveInterval                   = time.Millisecond * 250
-	conformanceSettleTimeout                   = time.Second * 5
-	conformanceLegPatience                     = time.Second * 30
-	conformancePageTimeout                     = time.Second * 30
-	conformanceSignInAttempts                  = 3
-	conformanceConsentAttempts                 = 3
+
+	// conformanceSelectorConsentAuthenticate submits the re-authentication step. The decision form swaps its buttons
+	// out for that step: accept and deny belong to the normal step and are simply absent while the password is being
+	// asked for, so accepting here means submitting this instead.
+	conformanceSelectorConsentAuthenticate = "#openid-consent-authenticate"
+
+	conformanceSelectorUsername      = "#username-textfield"
+	conformanceSelectorPassword      = "#password-textfield"
+	conformanceSelectorSignIn        = "#sign-in-button"
+	conformanceCallbackPathFragment  = "/test/a/"
+	conformanceSelectorAutheliaError = `.notification[data-type="error"]`
+	conformanceElementTimeout        = time.Second * 2
+	conformanceDriveInterval         = time.Millisecond * 250
+	conformanceSettleTimeout         = time.Second * 5
+	conformanceLegPatience           = time.Second * 30
+	conformancePageTimeout           = time.Second * 30
+	conformanceSignInAttempts        = 3
+	conformanceConsentAttempts       = 3
 )
 
 // ConformanceClassifyPage decides what the browser is looking at. It takes the observations rather than the page so
@@ -278,15 +287,15 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 }
 
 func (b *ConformanceBrowser) signIn() (err error) {
-	if err = b.input("#username-textfield", b.username); err != nil {
+	if err = b.input(conformanceSelectorUsername, b.username); err != nil {
 		return err
 	}
 
-	if err = b.input("#password-textfield", b.password); err != nil {
+	if err = b.input(conformanceSelectorPassword, b.password); err != nil {
 		return err
 	}
 
-	return b.click("#sign-in-button")
+	return b.click(conformanceSelectorSignIn)
 }
 
 // consent accepts the decision form, first supplying the password when Authelia is asking for it again, and reports
@@ -296,9 +305,13 @@ func (b *ConformanceBrowser) consent() (reauthentication bool, err error) {
 		if err = b.input(conformanceSelectorConsentPassword, b.password); err != nil {
 			return true, err
 		}
+
+		// Submitting re-authentication is a separate decision from granting consent, and the form offers only one of
+		// them at a time. Whichever step follows this one comes back around the driver's loop.
+		return true, b.click(conformanceSelectorConsentAuthenticate)
 	}
 
-	return reauthentication, b.click(conformanceSelectorConsentAccept)
+	return false, b.click(conformanceSelectorConsentAccept)
 }
 
 func (b *ConformanceBrowser) input(selector, value string) (err error) {
