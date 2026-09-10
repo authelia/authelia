@@ -252,6 +252,10 @@ type HandlersConfig struct {
 	// TokenEndpointBinding is a list of handlers which bind a sender-constrained credential to a token response.
 	TokenEndpointBinding oauthelia2.TokenEndpointBindingHandlers
 
+	// RFC8628DeviceAuthorizeEndpointBinding is a list of handlers which bind a sender-constrained credential to a
+	// device authorization request.
+	RFC8628DeviceAuthorizeEndpointBinding oauthelia2.RFC8628DeviceAuthorizeEndpointBindingHandlers
+
 	// RFC7591ClientRegistrationEndpoint is a list of handlers that are called before the RFC 7591 Dynamic Client
 	// Registration endpoint is served. It is empty as this Authorization Server does not serve that endpoint.
 	RFC7591ClientRegistrationEndpoint oauthelia2.RFC7591ClientRegistrationEndpointHandlers
@@ -1042,6 +1046,13 @@ func (c *Config) GetMTLSEnabled(ctx context.Context) (enabled bool) {
 	return false
 }
 
+// GetOIDCKeyBindingEnabled returns false as OpenID Connect Key Binding 1.0 is not implemented by this Authorization
+// Server. Returning true here would have the provider assert the 'cnf' confirmation in ID Tokens and enforce the
+// profile's rules, neither of which the handlers this implementation registers can satisfy.
+func (c *Config) GetOIDCKeyBindingEnabled(ctx context.Context) (enabled bool) {
+	return false
+}
+
 // GetAllowedIntrospectionAudiences returns the audiences an Access Token used to authenticate a request to the
 // introspection endpoint may carry. An empty list is not a disabled check: it makes the provider expect the URL the
 // request was made to instead, which is the behavior this implementation has always had as it exposes no
@@ -1144,6 +1155,12 @@ func (c *Config) GetAuthorizeEndpointBindingHandlers(ctx context.Context) (handl
 // wires itself.
 func (c *Config) GetTokenEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.TokenEndpointBindingHandlers) {
 	return c.Handlers.TokenEndpointBinding
+}
+
+// GetRFC8628DeviceAuthorizeEndpointBindingHandlers returns the device authorization endpoint binding handlers. None
+// are registered as this Authorization Server implements no sender-constraining binding at that endpoint.
+func (c *Config) GetRFC8628DeviceAuthorizeEndpointBindingHandlers(ctx context.Context) (handlers oauthelia2.RFC8628DeviceAuthorizeEndpointBindingHandlers) {
+	return c.Handlers.RFC8628DeviceAuthorizeEndpointBinding
 }
 
 // The RFC 7591 Dynamic Client Registration and RFC 7592 Dynamic Client Registration Management surfaces below are
