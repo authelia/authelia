@@ -4,12 +4,12 @@
 
 module github.com/authelia/authelia/v4
 
-go 1.26.0
+go 1.27.0
 
 toolchain go1.27.1
 
 require (
-	authelia.com/provider/oauth2 v0.3.0
+	authelia.com/provider/oauth2 v0.3.2
 	cel.dev/cel-go v0.32.0
 	github.com/asaskevich/govalidator/v12 v12.0.0
 	github.com/authelia/jsonschema v0.1.7
@@ -36,7 +36,6 @@ require (
 	github.com/knadh/koanf/providers/rawbytes v1.0.1
 	github.com/knadh/koanf/v2 v2.3.6
 	github.com/mattn/go-sqlite3 v1.14.52
-	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.1
 	github.com/prometheus/client_golang v1.24.1
 	github.com/rpadovani/sqlx-v2 v0.1.2
@@ -110,7 +109,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90 // indirect
-	golang.org/x/oauth2 v0.36.0 // indirect
+	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260311181403-84a4fc48630c // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260311181403-84a4fc48630c // indirect

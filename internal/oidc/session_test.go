@@ -33,6 +33,64 @@ func TestOpenIDSession(t *testing.T) {
 	assert.Nil(t, session.Clone())
 }
 
+func TestSession_Clone(t *testing.T) {
+	session := &oidc.Session{
+		DefaultSession: &openid.DefaultSession{
+			Claims: &jwt.IDTokenClaims{
+				Subject: "abc",
+				Extra:   map[string]any{"a": "b"},
+			},
+			Headers:  &jwt.Headers{Extra: map[string]any{"kid": "123"}},
+			Username: "john",
+		},
+		AccessToken: &oidc.AccessTokenSession{
+			Headers: map[string]any{"typ": "at+jwt"},
+			Claims:  map[string]any{"iss": "https://auth.example.com"},
+		},
+		ChallengeID:           uuid.NullUUID{UUID: uuid.MustParse("0b8a1b7e-1f1e-4c5c-9f4c-3c6f1f8b2d5a"), Valid: true},
+		ClientID:              "client",
+		ClientCredentials:     true,
+		ExcludeNotBeforeClaim: true,
+		AllowedTopLevelClaims: []string{"email"},
+		ClaimRequests: &oidc.ClaimsRequests{
+			IDToken:  map[string]*oidc.ClaimRequest{"email": {Essential: true, Values: []any{"a"}}, "nil": nil},
+			UserInfo: map[string]*oidc.ClaimRequest{"name": {Value: "john"}},
+		},
+		GrantedClaims: []string{"email"},
+		Extra:         map[string]any{"x": "y"},
+	}
+
+	clone, ok := session.Clone().(*oidc.Session)
+	require.True(t, ok)
+
+	assert.Equal(t, session, clone)
+
+	clone.Claims.Extra["a"] = "changed"
+	clone.Headers.Extra["kid"] = "changed"
+	clone.AccessToken.Headers["typ"] = "changed"
+	clone.AccessToken.Claims["iss"] = "changed"
+	clone.AllowedTopLevelClaims[0] = "changed"
+	clone.ClaimRequests.IDToken["email"].Values[0] = "changed"
+	clone.ClaimRequests.UserInfo["name"].Value = "changed"
+	clone.GrantedClaims[0] = "changed"
+	clone.Extra["x"] = "changed"
+
+	assert.Equal(t, "b", session.Claims.Extra["a"])
+	assert.Equal(t, "123", session.Headers.Extra["kid"])
+	assert.Equal(t, "at+jwt", session.AccessToken.Headers["typ"])
+	assert.Equal(t, "https://auth.example.com", session.AccessToken.Claims["iss"])
+	assert.Equal(t, "email", session.AllowedTopLevelClaims[0])
+	assert.Equal(t, "a", session.ClaimRequests.IDToken["email"].Values[0])
+	assert.Equal(t, "john", session.ClaimRequests.UserInfo["name"].Value)
+	assert.Equal(t, "email", session.GrantedClaims[0])
+	assert.Equal(t, "y", session.Extra["x"])
+
+	clone, ok = (&oidc.Session{}).Clone().(*oidc.Session)
+	require.True(t, ok)
+
+	assert.Equal(t, &oidc.Session{}, clone)
+}
+
 func TestSession_ValidIssuer(t *testing.T) {
 	issuer := &url.URL{Scheme: "https", Host: "auth.example.com"}
 

@@ -7,10 +7,10 @@ package oidc
 import (
 	"maps"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/mohae/deepcopy"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
@@ -278,7 +278,59 @@ func (s *Session) Clone() oauthelia2.Session {
 		return nil
 	}
 
-	return deepcopy.Copy(s).(oauthelia2.Session)
+	clone := &Session{
+		ChallengeID:           s.ChallengeID,
+		ClientID:              s.ClientID,
+		ClientCredentials:     s.ClientCredentials,
+		ExcludeNotBeforeClaim: s.ExcludeNotBeforeClaim,
+		AllowedTopLevelClaims: slices.Clone(s.AllowedTopLevelClaims),
+		GrantedClaims:         slices.Clone(s.GrantedClaims),
+		Extra:                 maps.Clone(s.Extra),
+	}
+
+	if s.DefaultSession != nil {
+		clone.DefaultSession, _ = s.DefaultSession.Clone().(*openid.DefaultSession)
+	}
+
+	if s.AccessToken != nil {
+		clone.AccessToken = &AccessTokenSession{
+			Headers: maps.Clone(s.AccessToken.Headers),
+			Claims:  maps.Clone(s.AccessToken.Claims),
+		}
+	}
+
+	if s.ClaimRequests != nil {
+		clone.ClaimRequests = &ClaimsRequests{
+			IDToken:  cloneClaimRequests(s.ClaimRequests.IDToken),
+			UserInfo: cloneClaimRequests(s.ClaimRequests.UserInfo),
+		}
+	}
+
+	return clone
+}
+
+func cloneClaimRequests(requests map[string]*ClaimRequest) (clone map[string]*ClaimRequest) {
+	if requests == nil {
+		return nil
+	}
+
+	clone = make(map[string]*ClaimRequest, len(requests))
+
+	for claim, request := range requests {
+		if request == nil {
+			clone[claim] = nil
+
+			continue
+		}
+
+		clone[claim] = &ClaimRequest{
+			Essential: request.Essential,
+			Value:     request.Value,
+			Values:    slices.Clone(request.Values),
+		}
+	}
+
+	return clone
 }
 
 // ConsentGrantImplicit that handles the implicit consent flow assigning the subject and responded at values then
