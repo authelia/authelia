@@ -10,6 +10,7 @@ import {
     getPrivacyPolicyEnabled,
     getPrivacyPolicyRequireAccept,
     getPrivacyPolicyURL,
+    getRegistrationURL,
     getRememberMe,
     getResetPassword,
     getResetPasswordCustomURL,
@@ -69,6 +70,9 @@ it("returns true when passkey login is enabled", () => {
 it("returns the reset password custom URL", () => {
     document.body.dataset.resetpasswordcustomurl = "https://example.com";
     expect(getResetPasswordCustomURL()).toBe("https://example.com");
+
+    document.body.dataset.registrationurl = "https://register.example.com";
+    expect(getRegistrationURL()).toBe("https://register.example.com");
 });
 
 it("returns true when privacy policy URL is not empty", () => {

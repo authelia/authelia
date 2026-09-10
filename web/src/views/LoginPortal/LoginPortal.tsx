@@ -40,6 +40,7 @@ export interface Props {
     rememberMe: boolean;
     resetPassword: boolean;
     resetPasswordCustomURL: string;
+    registrationURL: string;
 }
 
 const RedirectionErrorMessage =
@@ -201,6 +202,7 @@ const LoginPortal = function (props: Props) {
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
                             resetPasswordCustomURL={props.resetPasswordCustomURL}
+                            registrationURL={props.registrationURL}
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
                             onAuthenticationStop={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}

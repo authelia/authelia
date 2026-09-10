@@ -390,6 +390,11 @@
     "env": "AUTHELIA_AUTHENTICATION_BACKEND_REFRESH_INTERVAL"
   },
   {
+    "path": "authentication_backend.registration.custom_url",
+    "secret": false,
+    "env": "AUTHELIA_AUTHENTICATION_BACKEND_REGISTRATION_CUSTOM_URL"
+  },
+  {
     "path": "certificates_directory",
     "secret": false,
     "env": "AUTHELIA_CERTIFICATES_DIRECTORY"
