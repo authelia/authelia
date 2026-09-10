@@ -35,46 +35,20 @@ const (
 )
 
 const (
-	conformanceSelectorFirstFactor   = "#first-factor-stage"
-	conformanceSelectorConsent       = "#openid-consent-decision-stage"
-	conformanceSelectorConsentAccept = "#openid-consent-accept"
-	conformanceCallbackPathFragment  = "/test/a/"
-
-	// conformanceSelectorAutheliaError selects Authelia's error-level toast specifically. `.notification` alone is the
-	// generic toast container the portal also uses for success messages (see web/src/components/UI/Toast.tsx and
-	// web/src/models/Notifications.ts), so matching it without the level would misread a benign toast mid-flow as the
-	// module's error page.
-	conformanceSelectorAutheliaError = `.notification[data-type="error"]`
-
-	// conformanceElementTimeout is how long a single probe for an element waits. Probes run in a loop, so this is the
-	// resolution of that loop rather than the budget for a page appearing.
-	conformanceElementTimeout = time.Second * 2
-
-	// conformanceDriveInterval is how often the driver re-examines a page which it had no action for, and the poll
-	// interval used while settling after an action.
-	conformanceDriveInterval = time.Millisecond * 250
-
-	// conformanceSettleTimeout bounds how long the driver waits, after signing in or accepting consent, for the DOM to
-	// reflect that action before reclassifying the page. If it expires with neither the acted-on selector gone nor the
-	// URL changed, Drive falls through and re-examines the page as it did before this guard existed.
-	conformanceSettleTimeout = time.Second * 5
-
-	// conformanceLegPatience bounds how long a leg waits on a page the driver has no action for. It is patience
-	// without progress, not a total budget: any change of URL restarts it, so a long redirect chain is fine while a
-	// page that simply sits there is not. Without it the only bound is the module's whole context, so one page the
-	// classifier does not recognize costs five minutes, and a systemic problem costs that for every module in the
-	// plan -- which reads as a hang rather than as a failure.
-	conformanceLegPatience = time.Second * 30
-
-	// conformancePageTimeout bounds a single interaction with the page. rod blocks on a CDP response indefinitely
-	// unless the page carries a deadline, so a navigation or a query against a target that has stopped answering
-	// hangs the run outright, in a way no context above it can interrupt.
-	conformancePageTimeout = time.Second * 30
-
-	// conformanceSignInAttempts caps how many times one leg submits the sign in form. Every plan authenticates as the
-	// same user against one Authelia, so a form which does not clear must not be resubmitted for the whole module
-	// budget: the failed attempts would regulate the account out from under the other plans.
-	conformanceSignInAttempts = 3
+	conformanceSelectorFirstFactor             = "#first-factor-stage"
+	conformanceSelectorConsent                 = "#openid-consent-decision-stage"
+	conformanceSelectorConsentAccept           = "#openid-consent-accept"
+	conformanceSelectorConsentReauthentication = "#openid-consent-prompt-login"
+	conformanceSelectorConsentPassword         = "#openid-consent-prompt-login #password-textfield"
+	conformanceCallbackPathFragment            = "/test/a/"
+	conformanceSelectorAutheliaError           = `.notification[data-type="error"]`
+	conformanceElementTimeout                  = time.Second * 2
+	conformanceDriveInterval                   = time.Millisecond * 250
+	conformanceSettleTimeout                   = time.Second * 5
+	conformanceLegPatience                     = time.Second * 30
+	conformancePageTimeout                     = time.Second * 30
+	conformanceSignInAttempts                  = 3
+	conformanceConsentAttempts                 = 3
 )
 
 // ConformanceClassifyPage decides what the browser is looking at. It takes the observations rather than the page so
@@ -117,6 +91,11 @@ type ConformanceLeg struct {
 
 	// Consent is whether Authelia presented its OpenID Connect 1.0 consent decision stage at any point during the leg.
 	Consent bool
+
+	// Reauthentication is whether Authelia asked for the password again during the leg. This is the signal a
+	// prompt=login or max_age expectation turns on, not FirstFactor: Authelia asks on the consent decision form
+	// rather than by returning to the sign in page.
+	Reauthentication bool
 
 	// AutheliaError is whether the leg ended on Authelia reporting an error rather than reaching the callback.
 	AutheliaError bool
@@ -230,7 +209,7 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 		return leg, fmt.Errorf("error navigating to '%s': %w", uri, err)
 	}
 
-	attempts := 0
+	attempts, consents := 0, 0
 
 	progress := newConformanceProgress(conformanceLegPatience, time.Now())
 
@@ -264,9 +243,17 @@ func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (
 		case ConformancePageConsent:
 			leg.Consent = true
 
-			if err = b.consent(); err != nil {
+			if consents++; consents > conformanceConsentAttempts {
+				return leg, fmt.Errorf("the consent decision form at '%s' was still present after %d attempts", pageURL, conformanceConsentAttempts)
+			}
+
+			var reauthentication bool
+
+			if reauthentication, err = b.consent(); err != nil {
 				return leg, fmt.Errorf("error accepting consent at '%s': %w", pageURL, err)
 			}
+
+			leg.Reauthentication = leg.Reauthentication || reauthentication
 
 			b.settle(ctx, conformanceSelectorConsent, pageURL)
 
@@ -302,8 +289,16 @@ func (b *ConformanceBrowser) signIn() (err error) {
 	return b.click("#sign-in-button")
 }
 
-func (b *ConformanceBrowser) consent() error {
-	return b.click(conformanceSelectorConsentAccept)
+// consent accepts the decision form, first supplying the password when Authelia is asking for it again, and reports
+// whether it was asked.
+func (b *ConformanceBrowser) consent() (reauthentication bool, err error) {
+	if reauthentication = b.has(conformanceSelectorConsentReauthentication); reauthentication {
+		if err = b.input(conformanceSelectorConsentPassword, b.password); err != nil {
+			return true, err
+		}
+	}
+
+	return reauthentication, b.click(conformanceSelectorConsentAccept)
 }
 
 func (b *ConformanceBrowser) input(selector, value string) (err error) {

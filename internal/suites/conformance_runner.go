@@ -104,8 +104,10 @@ func conformanceAssertReauthentication(leg ConformanceLeg) error {
 		return nil
 	}
 
-	if !leg.FirstFactor {
-		return errors.New("expected Authelia to present the sign in form on the second authorization but it did not")
+	// Either route counts as being asked again: Authelia normally asks on the consent decision form, but a session
+	// which has expired outright sends the browser back to the sign in page instead.
+	if !leg.Reauthentication && !leg.FirstFactor {
+		return errors.New("expected Authelia to ask for the password again on the second authorization but it did not")
 	}
 
 	return nil
@@ -116,8 +118,8 @@ func conformanceAssertNoReauthentication(leg ConformanceLeg) error {
 		return nil
 	}
 
-	if leg.FirstFactor {
-		return errors.New("expected Authelia to reuse the existing session on the second authorization but it presented the sign in form again")
+	if leg.Reauthentication || leg.FirstFactor {
+		return errors.New("expected Authelia to reuse the existing session on the second authorization but it asked for the password again")
 	}
 
 	return nil

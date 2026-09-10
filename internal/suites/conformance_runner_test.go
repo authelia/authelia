@@ -197,7 +197,27 @@ func TestConformanceOverrideAssertions(t *testing.T) {
 			"ShouldFailWhenTheSecondLegDidNotPrompt",
 			conformanceAssertReauthentication,
 			ConformanceLeg{Index: 1, FirstFactor: false},
-			"expected Authelia to present the sign in form on the second authorization but it did not",
+			"expected Authelia to ask for the password again on the second authorization but it did not",
+		},
+		{
+			// The route Authelia actually takes: prompt=login redirects to the consent decision endpoint and asks
+			// for the password there, so the first factor stage is never raised.
+			"ShouldPassWhenTheSecondLegReauthenticatedOnTheConsentForm",
+			conformanceAssertReauthentication,
+			ConformanceLeg{Index: 1, Consent: true, Reauthentication: true},
+			"",
+		},
+		{
+			"ShouldFailWhenTheSecondLegShowedConsentWithoutAskingForThePassword",
+			conformanceAssertReauthentication,
+			ConformanceLeg{Index: 1, Consent: true, Reauthentication: false},
+			"expected Authelia to ask for the password again on the second authorization but it did not",
+		},
+		{
+			"ShouldFailWhenTheSecondLegReauthenticatedOnTheConsentFormButShouldNotHave",
+			conformanceAssertNoReauthentication,
+			ConformanceLeg{Index: 1, Consent: true, Reauthentication: true},
+			"expected Authelia to reuse the existing session on the second authorization but it asked for the password again",
 		},
 		{
 			"ShouldIgnoreTheFirstLegWhenNoReauthenticationIsExpected",
@@ -217,7 +237,7 @@ func TestConformanceOverrideAssertions(t *testing.T) {
 			"ShouldFailWhenTheSecondLegPrompted",
 			conformanceAssertNoReauthentication,
 			ConformanceLeg{Index: 1, FirstFactor: true},
-			"expected Authelia to reuse the existing session on the second authorization but it presented the sign in form again",
+			"expected Authelia to reuse the existing session on the second authorization but it asked for the password again",
 		},
 		{
 			"ShouldNotBeConfusedByConsentOnTheSecondLeg",
