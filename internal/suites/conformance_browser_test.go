@@ -76,19 +76,39 @@ func TestConformanceClassifyPage(t *testing.T) {
 	}
 }
 
-func TestConformanceConsentSettleSelector(t *testing.T) {
-	t.Run("ShouldWatchThePasswordFieldAfterSubmittingReauthentication", func(t *testing.T) {
-		// The stage and the URL are identical either side of this submission, so watching the stage would wait out
-		// the whole budget on a form that had already moved on. This is what oidcc-prompt-login turns on.
-		assert.Equal(t, conformanceSelectorConsentReauthentication, conformanceConsentSettleSelector(true))
+func TestConformanceConsentProgress(t *testing.T) {
+	t.Run("ShouldTreatTheRevealedPasswordFieldAsTheReauthenticationStep", func(t *testing.T) {
+		// Accepting switches the step in place: the stage and the URL are unchanged, and only the password field's
+		// appearance says so. Watching for the form to go away instead is what made oidcc-prompt-login wait out its
+		// whole budget on a form that had done exactly what was asked.
+		reauthentication, done := ConformanceConsentProgress(true, true, false)
+		assert.True(t, reauthentication)
+		assert.True(t, done)
 	})
 
-	t.Run("ShouldWatchTheStageAfterSubmittingTheDecision", func(t *testing.T) {
-		// Granting consent leaves the form altogether, so the stage clearing is the signal.
-		assert.Equal(t, conformanceSelectorConsent, conformanceConsentSettleSelector(false))
+	t.Run("ShouldTreatTheStageClearingAsTheFlowLeaving", func(t *testing.T) {
+		reauthentication, done := ConformanceConsentProgress(false, false, false)
+		assert.False(t, reauthentication)
+		assert.True(t, done)
 	})
 
-	t.Run("ShouldWatchDifferentThingsForTheTwoSteps", func(t *testing.T) {
-		assert.NotEqual(t, conformanceConsentSettleSelector(true), conformanceConsentSettleSelector(false))
+	t.Run("ShouldTreatAChangedURLAsTheFlowLeaving", func(t *testing.T) {
+		reauthentication, done := ConformanceConsentProgress(false, true, true)
+		assert.False(t, reauthentication)
+		assert.True(t, done)
+	})
+
+	t.Run("ShouldKeepWaitingWhileTheFormIsStillOnItsDecisionStep", func(t *testing.T) {
+		reauthentication, done := ConformanceConsentProgress(false, true, false)
+		assert.False(t, reauthentication)
+		assert.False(t, done)
+	})
+
+	t.Run("ShouldPreferTheReauthenticationStepOverTheFormLeaving", func(t *testing.T) {
+		// A password field seen alongside a changed URL still means the step was revealed; answering it is what makes
+		// the flow leave, so reporting the departure here would skip the answer.
+		reauthentication, done := ConformanceConsentProgress(true, false, true)
+		assert.True(t, reauthentication)
+		assert.True(t, done)
 	})
 }

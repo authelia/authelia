@@ -295,22 +295,6 @@ func (b *ConformanceBrowser) signIn() (err error) {
 	return b.click(conformanceSelectorSignIn)
 }
 
-// consent accepts the decision form, first supplying the password when Authelia is asking for it again, and reports
-// whether it was asked.
-func (b *ConformanceBrowser) consent() (reauthentication bool, err error) {
-	if reauthentication = b.has(conformanceSelectorConsentReauthentication); reauthentication {
-		if err = b.input(conformanceSelectorConsentPassword, b.password); err != nil {
-			return true, err
-		}
-
-		// Submitting re-authentication is a separate decision from granting consent, and the form offers only one of
-		// them at a time. Whichever step follows this one comes back around the driver's loop.
-		return true, b.click(conformanceSelectorConsentAuthenticate)
-	}
-
-	return false, b.click(conformanceSelectorConsentAccept)
-}
-
 func (b *ConformanceBrowser) input(selector, value string) (err error) {
 	element, err := b.page.Timeout(elementLocateTimeout).Element(selector)
 	if err != nil {
@@ -394,36 +378,79 @@ func (b *ConformanceBrowser) submitSignIn(ctx context.Context, pageURL string, a
 	return nil
 }
 
-// submitConsent submits the consent decision form and waits for what it submitted to go away, reporting whether the
-// form asked for the password again.
+// submitConsent works the consent decision form through to the end and reports whether it asked for the password.
 //
-// The wait is on the step, not on the stage. Re-authentication and the consent decision are two steps of one form:
-// they share #openid-consent-decision-stage and they share a URL, and submitting the first moves the form to the
-// second without either changing. Waiting for the stage to clear would therefore wait out the whole budget on a form
-// that had already done exactly what was asked of it.
+// The form has two steps behind one stage id and one URL. It arrives on its decision step; accepting either finishes
+// the flow or reveals the re-authentication step in place. Only after that second step is submitted does the page
+// leave. Each step is submitted exactly once, which matters because every submission that reaches Authelia responds to
+// the same consent session, and the second response to an answered session is rejected.
 func (b *ConformanceBrowser) submitConsent(ctx context.Context, pageURL string, attempt int) (reauthentication bool, err error) {
-	log.Debugf("Conformance driver submitting the consent decision form at '%s' (attempt %d)", pageURL, attempt)
+	log.Debugf("Conformance driver accepting the consent decision form at '%s' (attempt %d)", pageURL, attempt)
 
-	if reauthentication, err = b.consent(); err != nil {
-		return reauthentication, fmt.Errorf("error accepting consent at '%s': %w", pageURL, err)
+	if err = b.click(conformanceSelectorConsentAccept); err != nil {
+		return false, fmt.Errorf("error accepting consent at '%s': %w", pageURL, err)
 	}
 
-	if err = b.settle(ctx, conformanceConsentSettleSelector(reauthentication), pageURL); err != nil {
-		return reauthentication, fmt.Errorf("error submitting the consent decision form at '%s': %w", pageURL, err)
+	if reauthentication, err = b.awaitConsentAccepted(ctx, pageURL); err != nil {
+		return false, err
 	}
 
-	return reauthentication, nil
+	if !reauthentication {
+		return false, nil
+	}
+
+	log.Debugf("Conformance driver answering the consent form's re-authentication step at '%s'", pageURL)
+
+	if err = b.input(conformanceSelectorConsentPassword, b.password); err != nil {
+		return true, fmt.Errorf("error answering the re-authentication step at '%s': %w", pageURL, err)
+	}
+
+	if err = b.click(conformanceSelectorConsentAuthenticate); err != nil {
+		return true, fmt.Errorf("error answering the re-authentication step at '%s': %w", pageURL, err)
+	}
+
+	if err = b.settle(ctx, conformanceSelectorConsentReauthentication, pageURL); err != nil {
+		return true, fmt.Errorf("error answering the re-authentication step at '%s': %w", pageURL, err)
+	}
+
+	return true, nil
 }
 
-// conformanceConsentSettleSelector returns the element a consent submission should wait to disappear.
-//
-// Submitting re-authentication moves the form from its authenticate step to its decision step, and both steps render
-// #openid-consent-decision-stage at the same URL, so only the password field's disappearance says the submission
-// landed. Submitting the decision itself leaves the form entirely, so there the stage is the right thing to watch.
-func conformanceConsentSettleSelector(reauthentication bool) string {
-	if reauthentication {
-		return conformanceSelectorConsentReauthentication
+// awaitConsentAccepted waits for accepting the decision form to take effect, and reports whether what it revealed was
+// the re-authentication step rather than the end of the flow.
+func (b *ConformanceBrowser) awaitConsentAccepted(ctx context.Context, pageURL string) (reauthentication bool, err error) {
+	deadline := time.Now().Add(conformanceSettleTimeout)
+
+	for time.Now().Before(deadline) {
+		if ctx.Err() != nil {
+			return false, ctx.Err()
+		}
+
+		reauthentication, done := ConformanceConsentProgress(b.has(conformanceSelectorConsentReauthentication), b.has(conformanceSelectorConsent), b.url() != pageURL)
+		if done {
+			return reauthentication, nil
+		}
+
+		time.Sleep(conformanceDriveInterval)
 	}
 
-	return conformanceSelectorConsent
+	return false, fmt.Errorf("the consent decision form at '%s' was accepted but neither left nor asked for the password %s later", pageURL, conformanceSettleTimeout)
+}
+
+// ConformanceConsentProgress reports what accepting the consent decision achieved.
+//
+// The decision form starts in its decision step showing accept and deny (DecisionFormView.tsx, useState<Step> is
+// "decision"). Accepting is what reveals the re-authentication step when the flow requires a fresh login: handleAccept
+// switches the step in place, without a request and without leaving the page, so the stage and the URL are unchanged
+// either side of it. Accepting therefore has two legitimate outcomes, and only one of them looks like the form going
+// away.
+func ConformanceConsentProgress(hasReauthentication, hasStage, urlChanged bool) (reauthentication, done bool) {
+	switch {
+	case hasReauthentication:
+		return true, true
+	case !hasStage || urlChanged:
+		return false, true
+	default:
+		return false, false
+	}
 }
