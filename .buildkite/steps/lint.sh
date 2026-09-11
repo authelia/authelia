@@ -71,9 +71,11 @@ run_typos() {
   # 0 is clean and 2 is typos found; anything else is typos itself failing.
   # reviewdog discards a runner's stderr and any stdout that does not match the
   # errorformat, so re-emit the reason as a finding or it is lost entirely.
+  # Only the first line is given a position: the rest are continuation lines for
+  # the runner's %C errorformat, which keeps the reason as a single finding.
   if [ ${rc} -ne 0 ] && [ ${rc} -ne 2 ]; then
     if [ -s "${err}" ]; then
-      sed -e "s|^|.reviewdog.yml:1:1: typos failed (exit ${rc}): |" "${err}"
+      sed -e "1s|^|.reviewdog.yml:1:1: typos failed (exit ${rc}): |" "${err}"
     else
       echo ".reviewdog.yml:1:1: typos failed (exit ${rc}) without writing a reason"
     fi
