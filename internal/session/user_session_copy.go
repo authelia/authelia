@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package session
 
 import (
@@ -39,7 +43,8 @@ func (w *WebAuthn) deepCopy() (webAuthn *WebAuthn) {
 
 		data.UserID = slices.Clone(w.UserID)
 		data.CredParams = slices.Clone(w.CredParams)
-		data.Extensions = maps.Clone(w.Extensions)
+		data.Extensions.Requested = slices.Clone(w.Extensions.Requested)
+		data.Extensions.Extra = maps.Clone(w.Extensions.Extra)
 
 		if w.AllowedCredentialIDs != nil {
 			data.AllowedCredentialIDs = make([][]byte, len(w.AllowedCredentialIDs))

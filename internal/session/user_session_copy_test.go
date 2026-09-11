@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package session
 
 import (
@@ -40,7 +44,8 @@ func TestUserSessionDeepCopyShouldPreserveNilReferences(t *testing.T) {
 	require.NotNil(t, session.WebAuthn.SessionData)
 	assert.Nil(t, session.WebAuthn.UserID)
 	assert.Nil(t, session.WebAuthn.AllowedCredentialIDs)
-	assert.Nil(t, session.WebAuthn.Extensions)
+	assert.Nil(t, session.WebAuthn.Extensions.Requested)
+	assert.Nil(t, session.WebAuthn.Extensions.Extra)
 	assert.Nil(t, session.WebAuthn.CredParams)
 }
 
@@ -69,7 +74,8 @@ func TestStrategyCacheShouldIsolateMutationsBetweenConsumers(t *testing.T) {
 	first.WebAuthn.Description = "mutated"
 	first.WebAuthn.UserID[0] = 'z'
 	first.WebAuthn.AllowedCredentialIDs[0][0] = 'z'
-	first.WebAuthn.Extensions["extension"] = "mutated"
+	first.WebAuthn.Extensions.Requested[0] = "mutated"
+	first.WebAuthn.Extensions.Extra["extension"] = "mutated"
 	first.Elevations.User.ID = 99
 	first.Elevations.User.RemoteIP[len(first.Elevations.User.RemoteIP)-1] = 9
 
@@ -82,7 +88,8 @@ func TestStrategyCacheShouldIsolateMutationsBetweenConsumers(t *testing.T) {
 	assert.Equal(t, "description", second.WebAuthn.Description)
 	assert.Equal(t, []byte("userid"), second.WebAuthn.UserID)
 	assert.Equal(t, []byte("credential"), second.WebAuthn.AllowedCredentialIDs[0])
-	assert.Equal(t, "value", second.WebAuthn.Extensions["extension"])
+	assert.Equal(t, "extension", second.WebAuthn.Extensions.Requested[0])
+	assert.Equal(t, "value", second.WebAuthn.Extensions.Extra["extension"])
 	assert.Equal(t, 1, second.Elevations.User.ID)
 	assert.Equal(t, "192.0.2.1", second.Elevations.User.RemoteIP.String())
 }
@@ -104,7 +111,7 @@ func newPopulatedUserSession() (session UserSession) {
 			Challenge:            "challenge",
 			UserID:               []byte("userid"),
 			AllowedCredentialIDs: [][]byte{[]byte("credential")},
-			Extensions:           protocol.AuthenticationExtensions{"extension": "value"},
+			Extensions:           protocol.SessionExtensions{Requested: []string{"extension"}, Extra: map[string]any{"extension": "value"}},
 			CredParams:           []protocol.CredentialParameter{{Type: protocol.PublicKeyCredentialType}},
 		},
 	}

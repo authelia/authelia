@@ -360,7 +360,9 @@ func (s *IdentityVerificationFinishProcess) TestShouldNotRegenerateSessionBefore
 
 			defer s.TearDownTest()
 
-			require.NoError(t, s.mock.Ctx.SaveSession(session.NewDefaultUserSession()))
+			userSession := session.NewDefaultUserSession()
+
+			require.NoError(t, s.mock.Ctx.SaveSession(&userSession))
 
 			before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
 
@@ -388,7 +390,9 @@ func (s *IdentityVerificationFinishProcess) TestShouldRegenerateSessionBeforeCon
 		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(model.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(fmt.Errorf("cannot consume"))
 
-	require.NoError(s.T(), s.mock.Ctx.SaveSession(session.NewDefaultUserSession()))
+	userSession := session.NewDefaultUserSession()
+
+	require.NoError(s.T(), s.mock.Ctx.SaveSession(&userSession))
 
 	before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
 
@@ -413,7 +417,9 @@ func (s *IdentityVerificationFinishProcess) TestShouldRegenerateSessionForPreven
 		ConsumeIdentityVerification(s.mock.Ctx, gomock.Eq(verification.JTI.String()), gomock.Eq(model.NewNullIP(s.mock.Ctx.RemoteIP()))).
 		Return(nil)
 
-	require.NoError(s.T(), s.mock.Ctx.SaveSession(session.NewDefaultUserSession()))
+	userSession := session.NewDefaultUserSession()
+
+	require.NoError(s.T(), s.mock.Ctx.SaveSession(&userSession))
 
 	before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
 

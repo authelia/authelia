@@ -15,7 +15,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/session"
 )
 
 type StateGetSuite struct {
@@ -109,11 +108,8 @@ func (s *StateGetSuite) TestShouldReturnForbiddenWhenSessionProviderUnavailable(
 }
 
 func (s *StateGetSuite) TestShouldOmitDefaultRedirectionURLWhenNotConfigured() {
-	config := s.mock.Ctx.Configuration.Session
-
-	config.Cookies[0].DefaultRedirectionURL = nil
-
-	s.mock.Ctx.Providers.SessionProvider = session.NewProvider(config, nil)
+	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = nil
+	s.mock.ResetSessionProvider()
 
 	StateGET(s.mock.Ctx)
 

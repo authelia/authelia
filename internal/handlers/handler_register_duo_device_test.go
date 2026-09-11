@@ -188,7 +188,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnrollWhenNoSupportedDevic
 	response.Result = auth
 	response.Devices = []duo.Device{{Capabilities: []string{"unsupported"}, Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"}}
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
 
 	DuoDevicesGET(duoMock)(s.mock.Ctx)
 
@@ -205,7 +205,7 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondKOOnUnknownPreAuthResult() {
 	response.Result = "not-a-result"
 	response.StatusMessage = "a status message"
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
+	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &s.userSession, gomock.Eq(values)).Return(&response, nil)
 
 	DuoDevicesGET(duoMock)(s.mock.Ctx)
 

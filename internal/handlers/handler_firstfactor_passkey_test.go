@@ -546,7 +546,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
@@ -651,7 +651,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 					},
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				credential := model.WebAuthnCredential{
 					ID:              1,

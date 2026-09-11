@@ -217,17 +217,18 @@ func TestCookieSessionAuthnStrategyGetShouldDestroyCookieWithMismatchedDomain(t 
 	provider, err := mock.Ctx.GetSessionProvider()
 	require.NoError(t, err)
 
-	userSession, err := provider.Get(mock.Ctx)
-	require.NoError(t, err)
+	// The provider refuses to save a session bound to another cookie domain, so the mismatched session is injected at
+	// the manager to exercise the strategy's own check.
+	userSession := provider.NewDefault()
 
 	userSession.Username = testUsername
 	userSession.CookieDomain = "notexample.com"
 
-	require.NoError(t, provider.Save(mock.Ctx, userSession))
+	manager := &mismatchedCookieDomainManager{Manager: session.NewEncapsulatedSession(provider, mock.Ctx), userSession: userSession}
 
 	strategy := NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways())
 
-	authn, err := strategy.Get(mock.Ctx, session.NewEncapsulatedSession(provider, mock.Ctx), &authorization.Object{})
+	authn, err := strategy.Get(mock.Ctx, manager, &authorization.Object{})
 
 	require.NoError(t, err)
 	assert.Equal(t, anonymous, authn.Username)
@@ -255,4 +256,14 @@ func TestHandleAuthzUnauthorizedLegacy(t *testing.T) {
 		assert.Equal(t, fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
 		assert.Regexp(t, `^Basic realm=`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
 	})
+}
+
+type mismatchedCookieDomainManager struct {
+	session.Manager
+
+	userSession session.UserSession
+}
+
+func (m *mismatchedCookieDomainManager) GetSession() (userSession session.UserSession, err error) {
+	return m.userSession, nil
 }

@@ -1498,7 +1498,7 @@ func TestHandleOAuth2AuthorizationConsentModePreConfiguredWithID(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOAuth2AuthorizationConsentModePreConfiguredWithID(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, tc.challenge, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
+			consent, handled := handleOAuth2AuthorizationConsentModePreConfiguredWithID(mock.Ctx, tc.issuer, tc.client, tc.userSession, &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}, tc.subject, tc.challenge, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
 
 			assert.Equal(t, tc.handled, handled)
 

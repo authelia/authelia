@@ -356,7 +356,7 @@ func TestChangePasswordPOST_ShouldFailWhenAuthenticationFails(t *testing.T) {
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
 	assert.NoError(t, err)
@@ -388,7 +388,7 @@ func TestChangePasswordPOST_ShouldFailWhenChangePasswordErrorIsUnknown(t *testin
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
 	assert.NoError(t, err)
@@ -420,7 +420,7 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserDetailsAreUnavailabl
 
 	userSession.Username = testUsername
 
-	assert.NoError(t, mock.Ctx.SaveSession(userSession))
+	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
 	bodyBytes, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
 	assert.NoError(t, err)

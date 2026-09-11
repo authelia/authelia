@@ -49,8 +49,7 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 
 	if err = ctx.RegenerateSession(); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
-
-		ctx.Error(err, messageOperationFailed)
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
@@ -158,8 +157,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	if err = ctx.RegenerateSession(); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred regenerating user session")
-
-		ctx.Error(err, messageUnableToResetPassword)
+		ctx.SetJSONError(messageUnableToResetPassword)
 
 		return
 	}

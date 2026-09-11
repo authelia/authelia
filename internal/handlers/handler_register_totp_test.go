@@ -879,7 +879,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 					Expires:   mock.Clock.Now().Add(time.Minute),
 				}
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				gomock.InOrder(
 					mock.TOTPMock.

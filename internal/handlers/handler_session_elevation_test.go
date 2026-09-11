@@ -555,7 +555,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.Username = testUsername
 				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-				require.NoError(t, mock.Ctx.SaveSession(us))
+				require.NoError(t, mock.Ctx.SaveSession(&us))
 
 				mock.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 			},
@@ -1427,12 +1427,10 @@ func TestUserSessionElevationPOSTShouldRegenerateSessionForPreventingSessionFixa
 	require.NoError(t, err)
 
 	us.Username = testUsername
-	us.DisplayName = testDisplayName
-	us.Emails = []string{"john@example.com"}
 
 	us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-	require.NoError(t, mock.Ctx.SaveSession(us))
+	require.NoError(t, mock.Ctx.SaveSession(&us))
 
 	gomock.InOrder(
 		mock.RandomMock.EXPECT().
@@ -1445,6 +1443,9 @@ func TestUserSessionElevationPOSTShouldRegenerateSessionForPreventingSessionFixa
 		mock.StorageMock.EXPECT().
 			SaveOneTimeCode(mock.Ctx, gomock.Any()).
 			Return("abc123", nil),
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq(testUsername)).
+			Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{"john@example.com"}}, nil),
 		mock.NotifierMock.EXPECT().
 			Send(mock.Ctx, gomock.Any(), "Confirm your identity", gomock.Any(), gomock.Any()).
 			Return(nil),
@@ -1477,12 +1478,10 @@ func TestUserSessionElevationPUTShouldRegenerateSessionForPreventingSessionFixat
 	require.NoError(t, err)
 
 	us.Username = testUsername
-	us.DisplayName = testDisplayName
-	us.Emails = []string{"john@example.com"}
 
 	us.AuthenticationMethodRefs.UsernameAndPassword = true
 
-	require.NoError(t, mock.Ctx.SaveSession(us))
+	require.NoError(t, mock.Ctx.SaveSession(&us))
 
 	code := &model.OneTimeCode{
 		ID:        1,

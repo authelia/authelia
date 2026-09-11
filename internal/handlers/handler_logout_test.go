@@ -100,7 +100,7 @@ func TestLogoutPOST(t *testing.T) {
 
 			us.Username = testUsername
 
-			require.NoError(t, mock.Ctx.SaveSession(us))
+			require.NoError(t, mock.Ctx.SaveSession(&us))
 
 			mock.Ctx.Request.SetBodyString(tc.have)
 
