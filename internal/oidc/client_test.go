@@ -306,9 +306,17 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "", fclient.RequestObjectSigningAlg)
 	assert.Equal(t, "", fclient.GetRequestObjectSigningAlg())
 
+	assert.False(t, fclient.GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType())
+	assert.Nil(t, fclient.GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowTypes())
+
+	fclient.RequestObjectSigningAlg = oidc.SigningAlgNone
+
+	assert.True(t, fclient.GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType(), "an unsigned request object needs no 'typ' header")
+
 	fclient.RequestObjectSigningAlg = oidc.SigningAlgRSAUsingSHA256
 
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlg())
+	assert.False(t, fclient.GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType(), "a signed request object keeps its 'typ' header check")
 
 	assert.Nil(t, fclient.JSONWebKeysURI)
 	assert.Equal(t, "", fclient.GetJSONWebKeysURI())
