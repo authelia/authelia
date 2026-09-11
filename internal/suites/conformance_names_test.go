@@ -5,6 +5,7 @@
 package suites
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -167,4 +168,25 @@ func TestOIDCConformanceRelease(t *testing.T) {
 	assert.Equal(t, "v4.39.24 (commit 7498f635a5f3)", oidcConformanceRelease("7498f635a5f3", "v4.39.24"))
 	assert.Equal(t, "commit 7498f635a5f3", oidcConformanceRelease("7498f635a5f3", ""))
 	assert.Empty(t, oidcConformanceRelease("", ""), "without a commit the builder's own version is left in place")
+}
+
+func TestConformanceOutcomeAccepted(t *testing.T) {
+	testCases := []struct {
+		name     string
+		outcome  ConformanceOutcome
+		expected bool
+	}{
+		{"ShouldAcceptAFinishedPass", ConformanceOutcome{Module: "oidcc-server", Status: "FINISHED", Result: "PASSED"}, true},
+		{"ShouldAcceptAFinishedListedWarning", ConformanceOutcome{Module: "oidcc-ensure-request-with-acr-values-succeeds", Status: "FINISHED", Result: "WARNING"}, true},
+		{"ShouldRejectAnInterruptedReview", ConformanceOutcome{Module: "oidcc-server", Status: "INTERRUPTED", Result: "REVIEW"}, false},
+		{"ShouldRejectAnInterruptedPass", ConformanceOutcome{Module: "oidcc-server", Status: "INTERRUPTED", Result: "PASSED"}, false},
+		{"ShouldRejectAFinishedFailure", ConformanceOutcome{Module: "oidcc-server", Status: "FINISHED", Result: "FAILED"}, false},
+		{"ShouldRejectASuiteError", ConformanceOutcome{Module: "oidcc-server", Status: "FINISHED", Result: "PASSED", Err: errors.New("stalled")}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, conformanceOutcomeAccepted(tc.outcome))
+		})
+	}
 }

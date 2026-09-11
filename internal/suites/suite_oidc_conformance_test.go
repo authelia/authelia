@@ -41,6 +41,13 @@ func conformanceResultAccepted(module, result string) bool {
 	return ok && result == "WARNING"
 }
 
+// conformanceOutcomeAccepted reports whether a module passes: the suite drove it without error, it was not interrupted,
+// and its result is accepted. A module is interrupted when it stops before running to completion, so its result says
+// nothing about the conformance of what it did not get to check.
+func conformanceOutcomeAccepted(outcome ConformanceOutcome) bool {
+	return outcome.Err == nil && outcome.Status != conformanceStatusInterrupted && conformanceResultAccepted(outcome.Module, outcome.Result)
+}
+
 const (
 	conformanceDiagnosticTimeout = time.Second * 30
 	conformancePlanTimeout       = time.Minute * 75
@@ -208,7 +215,7 @@ func (s *OIDCConformanceSuite) assertPlan(name string) {
 				return
 			}
 
-			if outcome.Err != nil || !conformanceResultAccepted(outcome.Module, outcome.Result) {
+			if !conformanceOutcomeAccepted(outcome) {
 				failed++
 
 				s.reportFailure(t, name, outcome)
@@ -221,6 +228,8 @@ func (s *OIDCConformanceSuite) assertPlan(name string) {
 			}
 
 			require.NoError(t, outcome.Err)
+			require.NotEqualf(t, conformanceStatusInterrupted, outcome.Status,
+				"module '%s' was interrupted with the result '%s'", outcome.Module, outcome.Result)
 			require.Truef(t, conformanceResultAccepted(outcome.Module, outcome.Result),
 				"module '%s' finished with the result '%s' and the status '%s'", outcome.Module, outcome.Result, outcome.Status)
 
