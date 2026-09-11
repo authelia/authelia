@@ -40,9 +40,12 @@ const (
 	fileDocsStaticJSONSchemasExportsWebAuthn    = "exports.webauthn"
 	fileDocsStaticJSONSchemasExportsIdentifiers = "exports.identifiers"
 
-	dirDocsStaticImages              = "images"
-	fileDocsStaticImagesContributors = "contributors.svg"
-	fileAllContributors              = ".all-contributorsrc"
+	dirDocsStaticImages             = "images"
+	dirDocsStaticImagesContributors = "contributors"
+	fileAllContributors             = ".all-contributorsrc"
+	fileREADME                      = "README.md"
+
+	extSVG = ".svg"
 
 	fileGitHubIssueTemplateFR = ".github/ISSUE_TEMPLATE/feature-request.yml"
 	fileGitHubIssueTemplateBR = ".github/ISSUE_TEMPLATE/bug-report.yml"
@@ -185,12 +188,10 @@ var (
 )
 
 const (
-	contributorsWidth             = 800
-	contributorsPadding           = 40
-	contributorsColumns           = 7
+	contributorsCellWidth         = 120
+	contributorsCellHeight        = 100
 	contributorsAvatar            = 56
-	contributorsGridTop           = 120
-	contributorsRowHeight         = 106
+	contributorsOverlordAvatar    = 40
 	contributorsMaxEmoji          = 4
 	contributorsMaxName           = 16
 	contributorsAvatarSize        = 112
@@ -199,13 +200,20 @@ const (
 	contributorsAvatarRedirects   = 3
 
 	contributorsAvatarHost = "avatars.githubusercontent.com"
+	contributorsAvatarPath = "/u/"
+
+	contributorsContributionDoc = "doc"
 
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
 
 	contributorsEmojiKey  = "https://allcontributors.org/en/reference/emoji-key/"
+	contributorsImageURL  = "https://www.authelia.com/images/contributors"
 	contributorsFont      = "'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
 	contributorsEmojiFont = "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif"
+
+	contributorsMarkerStart = "<!-- ALL-CONTRIBUTORS-LIST:START -->"
+	contributorsMarkerEnd   = "<!-- ALL-CONTRIBUTORS-LIST:END -->"
 )
 
 // contributorsEmoji maps the all-contributors contribution types to the emoji from their key.

@@ -13,6 +13,7 @@ on:
     paths:
       - '.all-contributorsrc'
       - 'cmd/authelia-gen/cmd_contributors.go'
+      - 'cmd/authelia-gen/const.go'
 
 permissions: {}
 
@@ -52,14 +53,15 @@ jobs:
           BRANCH: ${{ github.head_ref }}
         # yamllint disable rule:indentation
         run: |
-          if git diff --quiet -- docs/static/images/contributors.svg; then
+          git add README.md docs/static/images/contributors
+
+          if git diff --quiet --cached; then
             echo 'The contributors card is already up to date.'
             exit 0
           fi
 
           git config user.name 'autheliabot'
           git config user.email 'autheliabot@users.noreply.github.com'
-          git add docs/static/images/contributors.svg
           git commit -m 'docs: regenerate contributors card'
           git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "HEAD:${BRANCH}"
         # yamllint enable rule:indentation

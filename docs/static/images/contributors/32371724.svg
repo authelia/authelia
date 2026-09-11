@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100" role="img" aria-label="Marcel Marquardt">
+  <style>
+    svg { color-scheme: light dark }
+    .muted { fill: #71717a } .name { fill: #3f3f46 }
+    .ring { stroke: rgba(24, 24, 27, 0.12) }
+    @media (prefers-color-scheme: dark) {
+      .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
+      .ring { stroke: rgba(250, 250, 250, 0.14) }
+    }
+  </style>
+  <defs>
+    <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
+  </defs>
+  <image href="data:image/jpeg;base64,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" x="32.0" y="0" width="56" height="56" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="60.0" cy="28.0" r="28.5" fill="none" class="ring" stroke-width="1" />
+  <text x="60.0" y="73" text-anchor="middle" font-size="11" font-weight="500" font-family="'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" class="name">Marcel Marquardt</text>
+  <text x="60.0" y="91" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif" class="muted">🐛</text>
+</svg>

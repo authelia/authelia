@@ -43,7 +43,7 @@ func newContributorsCmd() *cobra.Command {
 func contributorsRunE(cmd *cobra.Command, args []string) (err error) {
 	var root, pathDocsStatic string
 
-	if root, err = cmd.Flags().GetString(cmdFlagRoot); err != nil {
+	if root, err = getPFlagPath(cmd.Flags(), cmdFlagRoot); err != nil {
 		return err
 	}
 
@@ -63,13 +63,31 @@ func contributorsRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	path := filepath.Join(pathDocsStatic, dirDocsStaticImages, fileDocsStaticImagesContributors)
+	dir := filepath.Join(pathDocsStatic, dirDocsStaticImages, dirDocsStaticImagesContributors)
 
-	if err = os.WriteFile(path, []byte(getContributorsCard(contributors, avatars)), 0600); err != nil {
+	if err = os.MkdirAll(dir, 0750); err != nil {
 		return err
 	}
 
-	fmt.Printf("Generated %s with %d contributors.\n", path, len(contributors))
+	for i, contributor := range contributors {
+		cell := getContributorCell(contributor, avatars[i])
+
+		if isDocumentationOverlord(contributor) {
+			cell = getContributorAvatarCell(contributor, avatars[i])
+		}
+
+		if err = os.WriteFile(filepath.Join(dir, contributor.ID+extSVG), []byte(cell), 0600); err != nil {
+			return err
+		}
+	}
+
+	path := filepath.Join(root, fileREADME)
+
+	if err = writeContributorsCard(path, getContributorsCard(contributors)); err != nil {
+		return err
+	}
+
+	fmt.Printf("Generated the card in %s with %d contributors and their cells in %s.\n", path, len(contributors), dir)
 
 	return nil
 }
@@ -87,8 +105,8 @@ func getContributors(path string) (contributors []Contributor, err error) {
 		return nil, err
 	}
 
-	for _, contributor := range config.Contributors {
-		if err = validateAvatarURL(contributor.AvatarURL); err != nil {
+	for i, contributor := range config.Contributors {
+		if config.Contributors[i].ID, err = getContributorID(contributor.AvatarURL); err != nil {
 			return nil, fmt.Errorf("error occurred validating contributor '%s': %w", contributor.Login, err)
 		}
 
@@ -98,6 +116,36 @@ func getContributors(path string) (contributors []Contributor, err error) {
 	}
 
 	return config.Contributors, nil
+}
+
+// getContributorID returns the account an avatar url names, having checked the url is one the
+// generator should fetch at all. A cell is named after the account rather than the login behind it
+// because a login can be changed by the person holding it, which would leave the README asking for a
+// file the generator no longer writes while the one it replaced lingered beside it. The id is also
+// what makes the name safe: the roster is a file in the repository, so a login would be input rather
+// than a trusted value on its way to becoming a path on disk and a segment in a URL.
+func getContributorID(raw string) (id string, err error) {
+	if err = validateAvatarURL(raw); err != nil {
+		return "", err
+	}
+
+	var parsed *url.URL
+
+	if parsed, err = url.Parse(raw); err != nil {
+		return "", err
+	}
+
+	if id = strings.TrimPrefix(parsed.Path, contributorsAvatarPath); id == parsed.Path || id == "" {
+		return "", fmt.Errorf("avatar url path must be '%s' followed by an account but is '%s'", contributorsAvatarPath, parsed.Path)
+	}
+
+	for _, r := range id {
+		if r < '0' || r > '9' {
+			return "", fmt.Errorf("avatar url account must be numeric but is '%s'", id)
+		}
+	}
+
+	return id, nil
 }
 
 // validateAvatarURL rejects an avatar the generator should not fetch. The roster is a file in the
@@ -118,8 +166,8 @@ func validateAvatarURL(raw string) (err error) {
 }
 
 // validateProfileURL rejects a profile the generator should not link. A profile is a contributor
-// supplied value which becomes an anchor in an SVG the documentation site serves, so a scheme which
-// executes rather than navigates must not reach it.
+// supplied value which becomes an anchor in the README, so a scheme which executes rather than
+// navigates must not reach it.
 func validateProfileURL(raw string) (err error) {
 	var parsed *url.URL
 
@@ -134,9 +182,9 @@ func validateProfileURL(raw string) (err error) {
 	return nil
 }
 
-// getContributorAvatars fetches each avatar at the density the card draws it, flattens any
-// transparency onto white as JPEG has no alpha channel, and re-encodes it. Re-encoding is what keeps
-// the card near a third of the size it would be with the images as GitHub serves them.
+// getContributorAvatars fetches each avatar at the density a cell draws it, flattens any transparency
+// onto white as JPEG has no alpha channel, and re-encodes it. Re-encoding is what keeps a cell near a
+// third of the size it would be with the image as GitHub serves it.
 func getContributorAvatars(contributors []Contributor) (avatars []string, err error) {
 	avatars = make([]string, len(contributors))
 
@@ -221,8 +269,8 @@ func getContributorAvatar(client *http.Client, url string) (avatar string, err e
 
 // downscale reduces an avatar to fit within max pixels on its longest side by averaging each source
 // box into a destination pixel. GitHub ignores the requested size for some avatars and answers with
-// the full sized original, which would otherwise be embedded at many times the density the card
-// draws. An avatar already within the bound is returned untouched rather than enlarged.
+// the full sized original, which would otherwise be embedded at many times the density a cell draws.
+// An avatar already within the bound is returned untouched rather than enlarged.
 func downscale(src *image.RGBA, max int) *image.RGBA {
 	bounds := src.Bounds()
 
@@ -262,67 +310,162 @@ func downscale(src *image.RGBA, max int) *image.RGBA {
 	return dst
 }
 
-func getContributorsCard(contributors []Contributor, avatars []string) string {
-	rows := (len(contributors) + contributorsColumns - 1) / contributorsColumns
-	height := contributorsGridTop + rows*contributorsRowHeight + 20
-	colWidth := float64(contributorsWidth-contributorsPadding*2) / float64(contributorsColumns)
+// getContributorCell draws one contributor as a standalone SVG. GitHub strips the CSS a card would
+// need and leaves nothing which rounds an avatar or sets a typeface, so each cell is drawn here and
+// referenced from the README as an image instead. An SVG behind an <img> element is inert, which is
+// what broke the card this replaces, but a cell needs no link of its own: the README wraps each one
+// in the anchor, and the cell is left to do nothing but draw.
+func getContributorCell(contributor Contributor, avatar string) string {
+	center := float64(contributorsCellWidth) / 2
 
-	buf := &strings.Builder{}
-
-	fmt.Fprintf(buf, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="Authelia contributors">
+	return fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="%s">
   <style>
     svg { color-scheme: light dark }
-    .rule { fill: #e4e4e7 }
-    .title { fill: #18181b } .muted { fill: #71717a } .name { fill: #3f3f46 }
+    .muted { fill: #71717a } .name { fill: #3f3f46 }
     .ring { stroke: rgba(24, 24, 27, 0.12) }
     @media (prefers-color-scheme: dark) {
-      .rule { fill: #27272a }
-      .title { fill: #fafafa } .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
+      .muted { fill: #a1a1aa } .name { fill: #d4d4d8 }
       .ring { stroke: rgba(250, 250, 250, 0.14) }
     }
   </style>
   <defs>
     <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
   </defs>
-  <g>
-    <text x="%d" y="52" font-size="26" font-weight="700" letter-spacing="-0.02em" font-family="%s" class="title">Contributors</text>
-    <text x="%d" y="76" font-size="12" font-family="%s" class="muted">Thanks goes to these %d wonderful people</text>
-    <a href="%s" target="_blank" rel="noopener"><text x="%d" y="76" text-anchor="end" font-size="12" font-family="%s" text-decoration="underline" class="muted">emoji key</text></a>
-    <rect x="%d" y="92" width="%d" height="1" class="rule" />
+  <image href="data:image/jpeg;base64,%s" x="%.1f" y="0" width="%d" height="%d" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="%.1f" cy="%.1f" r="%.1f" fill="none" class="ring" stroke-width="1" />
+  <text x="%.1f" y="%d" text-anchor="middle" font-size="11" font-weight="500" font-family="%s" class="name">%s</text>
+  <text x="%.1f" y="%d" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="%s" class="muted">%s</text>
+</svg>
 `,
-		contributorsWidth, height, contributorsWidth, height,
-		contributorsPadding, contributorsFont,
-		contributorsPadding, contributorsFont, len(contributors),
-		contributorsEmojiKey, contributorsWidth-contributorsPadding, contributorsFont,
-		contributorsPadding, contributorsWidth-contributorsPadding*2)
+		contributorsCellWidth, contributorsCellHeight, contributorsCellWidth, contributorsCellHeight,
+		html.EscapeString(contributor.Name),
+		avatar, center-float64(contributorsAvatar)/2, contributorsAvatar, contributorsAvatar,
+		center, float64(contributorsAvatar)/2, float64(contributorsAvatar)/2+0.5,
+		center, contributorsAvatar+17, contributorsFont, html.EscapeString(truncateName(contributor.Name)),
+		center, contributorsAvatar+35, contributorsEmojiFont, html.EscapeString(contributorEmoji(contributor.Contributions)))
+}
 
-	for i, contributor := range contributors {
-		cx := float64(contributorsPadding) + colWidth*float64(i%contributorsColumns) + colWidth/2
-		top := contributorsGridTop + contributorsRowHeight*(i/contributorsColumns)
+// getContributorAvatarCell draws a contributor as an avatar alone, for the roll the documentation
+// overlords are given. It is the same drawing as a full cell with the name and the emoji left off,
+// as both say the same thing for everybody in that roll.
+func getContributorAvatarCell(contributor Contributor, avatar string) string {
+	center := float64(contributorsOverlordAvatar) / 2
 
-		fmt.Fprintf(buf, `    <a href="%s" target="_blank" rel="noopener"><title>%s</title>
-      <image href="data:image/jpeg;base64,%s" x="%.1f" y="%d" width="%d" height="%d" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
-      <circle cx="%.1f" cy="%.1f" r="%.1f" fill="none" class="ring" stroke-width="1" />
-      <text x="%.1f" y="%d" text-anchor="middle" font-size="11" font-weight="500" font-family="%s" class="name">%s</text>
-      <text x="%.1f" y="%d" text-anchor="middle" font-size="11" letter-spacing="0.5" font-family="%s" class="muted">%s</text>
-    </a>
+	return fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="%s">
+  <style>
+    svg { color-scheme: light dark }
+    .ring { stroke: rgba(24, 24, 27, 0.12) }
+    @media (prefers-color-scheme: dark) {
+      .ring { stroke: rgba(250, 250, 250, 0.14) }
+    }
+  </style>
+  <defs>
+    <clipPath id="avatar" clipPathUnits="objectBoundingBox"><circle cx="0.5" cy="0.5" r="0.5" /></clipPath>
+  </defs>
+  <image href="data:image/jpeg;base64,%s" x="0" y="0" width="%d" height="%d" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar)" />
+  <circle cx="%.1f" cy="%.1f" r="%.1f" fill="none" class="ring" stroke-width="1" />
+</svg>
 `,
-			html.EscapeString(contributor.Profile), html.EscapeString(contributor.Name),
-			avatars[i], cx-float64(contributorsAvatar)/2, top, contributorsAvatar, contributorsAvatar,
-			cx, float64(top)+float64(contributorsAvatar)/2, float64(contributorsAvatar)/2+0.5,
-			cx, top+contributorsAvatar+17, contributorsFont, html.EscapeString(truncateName(contributor.Name)),
-			cx, top+contributorsAvatar+35, contributorsEmojiFont, html.EscapeString(contributorEmoji(contributor.Contributions)))
+		contributorsOverlordAvatar, contributorsOverlordAvatar, contributorsOverlordAvatar, contributorsOverlordAvatar,
+		html.EscapeString(contributor.Name),
+		avatar, contributorsOverlordAvatar, contributorsOverlordAvatar,
+		center, center, center-0.5)
+}
+
+// isDocumentationOverlord reports whether the documentation is the only thing a contributor is
+// credited with. Two thirds of the roster is in that position, and giving every one of them a name
+// and an emoji which only ever reads the same buries the rest of the card beneath them.
+func isDocumentationOverlord(contributor Contributor) bool {
+	for _, contribution := range contributor.Contributions {
+		if contribution != contributorsContributionDoc {
+			return false
+		}
 	}
 
-	fmt.Fprint(buf, `  </g>
-</svg>
-`)
+	return len(contributor.Contributions) != 0
+}
+
+// getContributorsCard renders the roster as the subset of HTML which survives GitHub's markdown
+// sanitizer: a flow of anchors, each wrapping the cell drawn for one contributor. A table would give
+// the grid a border and a striped background on every second row, neither of which can be turned off
+// once the sanitizer has removed the style and class attributes, so the cells are left to wrap on
+// their own instead of being placed in columns.
+//
+// A cell is given a width but deliberately no height. GitHub reserves space for an image whose
+// dimensions it knows by styling it with a muted background and rounded corners until it loads, which
+// a cell would wear as a grey box for as long as the placeholder is painted.
+func getContributorsCard(contributors []Contributor) string {
+	buf := &strings.Builder{}
+
+	var overlords []Contributor
+
+	fmt.Fprintf(buf, `<p align="center"><sub>Thanks goes to these <b>%d</b> wonderful people (<a href="%s">emoji key</a>)</sub></p>
+<p align="center">
+`, len(contributors), contributorsEmojiKey)
+
+	for _, contributor := range contributors {
+		if isDocumentationOverlord(contributor) {
+			overlords = append(overlords, contributor)
+
+			continue
+		}
+
+		writeContributorAnchor(buf, contributor, contributorsCellWidth)
+	}
+
+	fmt.Fprint(buf, "</p>\n")
+
+	if len(overlords) == 0 {
+		return buf.String()
+	}
+
+	fmt.Fprintf(buf, `<p align="center"><b>%s Documentation Overlords</b><br><sub>and these <b>%d</b> wonderful people who keep the documentation worth reading</sub></p>
+<p align="center">
+`, contributorsEmoji[contributorsContributionDoc], len(overlords))
+
+	for _, contributor := range overlords {
+		writeContributorAnchor(buf, contributor, contributorsOverlordAvatar)
+	}
+
+	fmt.Fprint(buf, "</p>\n")
 
 	return buf.String()
 }
 
+// writeContributorAnchor writes the link the README carries for a contributor, around the cell drawn
+// for them.
+func writeContributorAnchor(buf *strings.Builder, contributor Contributor, width int) {
+	fmt.Fprintf(buf, `<a href="%s" title="%s"><img src="%s/%s%s" width="%d" alt="%s"></a>
+`,
+		html.EscapeString(contributor.Profile), html.EscapeString(contributor.Name),
+		contributorsImageURL, contributor.ID, extSVG,
+		width, html.EscapeString(contributor.Name))
+}
+
+// writeContributorsCard replaces the block between the markers, leaving the rest of the README as it
+// was found.
+func writeContributorsCard(path, card string) (err error) {
+	var data []byte
+
+	if data, err = os.ReadFile(path); err != nil {
+		return err
+	}
+
+	content := string(data)
+
+	start, end := strings.Index(content, contributorsMarkerStart), strings.Index(content, contributorsMarkerEnd)
+
+	if start == -1 || end == -1 || end < start {
+		return fmt.Errorf("file '%s' must contain the '%s' and '%s' markers in that order", path, contributorsMarkerStart, contributorsMarkerEnd)
+	}
+
+	content = content[:start+len(contributorsMarkerStart)] + "\n" + card + content[end:]
+
+	return os.WriteFile(path, []byte(content), 0600) //nolint:gosec // The path is the README of the root the generator was pointed at, which is a developer supplied flag rather than user input.
+}
+
 // contributorEmoji renders the all-contributors emoji for a contributor, collapsing a long list into
-// a count so a cell cannot grow wide enough to collide with the one beside it.
+// a count so a cell cannot grow wide enough to overflow the one beside it.
 func contributorEmoji(contributions []string) string {
 	var emoji []string
 
