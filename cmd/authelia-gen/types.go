@@ -321,9 +321,7 @@ type AllContributors struct {
 
 // Contributor represents an individual contributor within an AllContributors.
 type Contributor struct {
-	// ID is the account the avatar URL names, resolved during decoding rather than held in the file.
-	ID string `json:"-"`
-
+	ID            string   `json:"-"`
 	Login         string   `json:"login"`
 	Name          string   `json:"name"`
 	AvatarURL     string   `json:"avatar_url"`
