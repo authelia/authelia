@@ -691,6 +691,20 @@ func (c *RegisteredClient) GetRequestObjectSigningAlg() (alg string) {
 	return c.RequestObjectSigningAlg
 }
 
+// GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType returns true when the client is registered to send
+// unsigned request objects, allowing one without a 'typ' header. Explicit typing guards a signed request object against
+// being confused with another JWT, which an unsigned one carries no signature to be, and OpenID Connect 1.0 does not
+// require the header of a request object.
+func (c *RegisteredClient) GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowEmptyType() (allow bool) {
+	return c.RequestObjectSigningAlg == SigningAlgNone
+}
+
+// GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowTypes returns no types, which leaves the default 'typ'
+// header values a request object may have in place.
+func (c *RegisteredClient) GetJWTSecuredAuthorizationRequestJWTValidationHeaderAllowTypes() (types []string) {
+	return nil
+}
+
 // GetRequestObjectEncryptionKeyID returns the specific key identifier used to satisfy JWE requirements of the
 // request object specifications. If unspecified the other available parameters will be utilized to select an
 // appropriate key.

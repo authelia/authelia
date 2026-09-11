@@ -248,7 +248,12 @@ parameter):
 | PBES2-HS384+A192KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 | PBES2-HS512+A256KW | Symmetric [^1] |        N/A        | `enc` |      `client_secret_jwt`       |
 
+A signed request object must have a `typ` header value of `oauth-authz-req+jwt` or `JWT`. An unsigned request object,
+which is only accepted from a client registered with a [request_object_signing_alg] of `none`, may omit the `typ`
+header.
+
 [Client Authentication Method]: #client-authentication-method
+[request_object_signing_alg]: ../../configuration/identity-providers/openid-connect/clients.md#request_object_signing_alg
 
 ## Encryption Algorithms
 

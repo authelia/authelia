@@ -5,7 +5,11 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"database/sql"
+	"encoding/base64"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -16,6 +20,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
+
+	"authelia.com/provider/oauth2/token/jose"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -119,6 +125,68 @@ func TestOAuth2AuthorizationGET(t *testing.T) {
 		assert.Equal(t, "login.example.com:8080", location.Host)
 		assert.Equal(t, "openid_connect", location.Query().Get("flow"))
 		assert.NotEmpty(t, location.Query().Get("flow_id"))
+	})
+
+	t.Run("ShouldAcceptAnUnsignedRequestObjectWithoutATypeHeader", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		client := newTestOIDCAuthorizationCodeClient(t)
+		client.RequestObjectSigningAlg = oidc.SigningAlgNone
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+
+		setupTestOIDCProvider(t, mock, config)
+		setupTestOIDCConsentStore(t, mock)
+
+		values := newTestOIDCAuthorizationValues()
+		values.Set("request", newTestUnsignedRequestObject(t, values))
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
+
+		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+		require.Equal(t, http.StatusFound, rw.Code)
+
+		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+		require.NoError(t, err)
+
+		assert.Empty(t, location.Query().Get("error"), location.Query().Get("error_debug"))
+		assert.Equal(t, "openid_connect", location.Query().Get("flow"))
+		assert.NotEmpty(t, location.Query().Get("flow_id"))
+	})
+
+	t.Run("ShouldRequireTheTypeHeaderOfASignedRequestObject", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		key, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+
+		client := newTestOIDCAuthorizationCodeClient(t)
+		client.RequestObjectSigningAlg = oidc.SigningAlgRSAUsingSHA256
+		client.JSONWebKeys = []schema.JWK{{KeyID: "client", Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256, Key: &key.PublicKey}}
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		values := newTestOIDCAuthorizationValues()
+		values.Set("request", newTestSignedRequestObject(t, key, "client", values))
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCAuthorizationEndpoint, values)
+
+		OAuth2AuthorizationGET(mock.Ctx, rw, r)
+
+		location, err := url.Parse(rw.Header().Get(fasthttp.HeaderLocation))
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "invalid_request_object", location.Query().Get("error"))
+		assert.Contains(t, mock.Hook.LastEntry().Message, "expects request objects to be signed with the 'typ' header value")
 	})
 
 	t.Run("ShouldHandleInvalidRedirectURI", func(t *testing.T) {
@@ -440,4 +508,43 @@ func newTestOIDCAuthorizationValues() url.Values {
 		oidc.FormParameterScope:        []string{oidc.ScopeOpenID},
 		oidc.FormParameterState:        []string{"abcdefghijklmnopqrstuvwxyz"},
 	}
+}
+
+func newTestUnsignedRequestObject(t *testing.T, values url.Values) string {
+	t.Helper()
+
+	claims := map[string]any{}
+
+	for key := range values {
+		claims[key] = values.Get(key)
+	}
+
+	data, err := json.Marshal(claims)
+	require.NoError(t, err)
+
+	return base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"none"}`)) + "." + base64.RawURLEncoding.EncodeToString(data) + "."
+}
+
+func newTestSignedRequestObject(t *testing.T, key *rsa.PrivateKey, kid string, values url.Values) string {
+	t.Helper()
+
+	claims := map[string]any{}
+
+	for k := range values {
+		claims[k] = values.Get(k)
+	}
+
+	data, err := json.Marshal(claims)
+	require.NoError(t, err)
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.RS256, Key: jose.JSONWebKey{Key: key, KeyID: kid, Algorithm: string(jose.RS256), Use: oidc.KeyUseSignature}}, nil)
+	require.NoError(t, err)
+
+	signed, err := signer.Sign(data)
+	require.NoError(t, err)
+
+	object, err := signed.CompactSerialize()
+	require.NoError(t, err)
+
+	return object
 }
