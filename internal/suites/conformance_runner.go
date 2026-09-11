@@ -42,14 +42,14 @@ var (
 		// again.
 		"oidcc-max-age-10000": {Assert: conformanceAssertNoReauthentication},
 
-		// Both send a redirect_uri which is not registered, so Authelia must show its own error page rather than send the
-		// browser to it. This is the page the module's screenshot placeholder asks for.
-		"oidcc-ensure-registered-redirect-uri":          {Assert: conformanceAssertErrorPage, Screenshot: ConformanceScreenshotErrorPage},
-		"oidcc-ensure-request-object-with-redirect-uri": {Assert: conformanceAssertErrorPage, Screenshot: ConformanceScreenshotErrorPage},
+		// The redirect_uri is not registered, so Authelia must show its own error page rather than send the browser to it.
+		// This is the page the module's screenshot placeholder asks for.
+		"oidcc-ensure-registered-redirect-uri": {Assert: conformanceAssertErrorPage, Screenshot: ConformanceScreenshotErrorPage},
 
-		// Authelia rejects the unsigned request object on its own error page, which is within the specification, but the
-		// module has no placeholder for that page and only accepts the rejection by a screenshot uploaded to its log.
-		"oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported": {Assert: conformanceAssertErrorPage, UploadErrorPage: true, Screenshot: ConformanceScreenshotErrorPage},
+		// The request object carries a registered redirect_uri and the query an unregistered one. The module accepts either
+		// Authelia using the request object's and completing the flow, or showing its error page, and only asks for a
+		// screenshot of the latter.
+		"oidcc-ensure-request-object-with-redirect-uri": {Screenshot: ConformanceScreenshotErrorPage},
 
 		// Every module whose upstream summary says to remove any cookies received from the provider, and no others. The
 		// plans also carry oidcc-registration-logo-uri, -policy-uri and -tos-uri under that instruction, but those are
@@ -97,11 +97,6 @@ type ConformanceOverride struct {
 	// not applied to the first.
 	Assert func(leg ConformanceLeg) error
 
-	// UploadErrorPage is for a module which accepts Authelia's error page as an outcome but raises no placeholder for
-	// it, so it goes on waiting for a callback which is never sent. Once Assert has confirmed the page, a screenshot of
-	// it is uploaded to the module's log, which is what marks it for REVIEW, and the module is stopped.
-	UploadErrorPage bool
-
 	// Screenshot is the page this module's screenshot placeholder asks for. A placeholder is only filled with a capture
 	// of that page, so one from a module without it is left unfilled and the module stalls.
 	Screenshot ConformanceScreenshot
@@ -132,10 +127,6 @@ func (o ConformanceOverride) screenshotOf(leg ConformanceLeg) string {
 	}
 
 	return ""
-}
-
-func (o ConformanceOverride) provesErrorPage(legs *conformanceLegs) bool {
-	return o.UploadErrorPage && legs.errorURL != ""
 }
 
 func conformanceAssertReauthentication(leg ConformanceLeg) error {
@@ -356,10 +347,6 @@ func (r *ConformanceRunner) interact(ctx context.Context, id string, override Co
 			return err
 		}
 
-		if override.provesErrorPage(legs) {
-			return r.proveErrorPage(ctx, id, legs.errorURL, legs.screenshot)
-		}
-
 		filled, pending, err := r.fillPlaceholders(ctx, id, legs.screenshot)
 		if err != nil {
 			return err
@@ -507,26 +494,6 @@ func (r *ConformanceRunner) visitURLs(ctx context.Context, id string, override C
 	}
 
 	return progressed, nil
-}
-
-func (r *ConformanceRunner) proveErrorPage(ctx context.Context, id, errorURL, screenshot string) (err error) {
-	if screenshot == "" {
-		return fmt.Errorf("module '%s' ended on Authelia's error page but no screenshot of it could be taken", id)
-	}
-
-	r.trace.Logf("Module '%s' uploading the error page it has no placeholder for", id)
-
-	description := fmt.Sprintf("Authelia's error page, confirmed by the suite: %s", conformanceDescribeErrorPage(errorURL))
-
-	if err = r.client.UploadImage(ctx, id, description, screenshot); err != nil {
-		return fmt.Errorf("error uploading the error page for module '%s': %w", id, err)
-	}
-
-	if err = r.client.StopTest(ctx, id); err != nil {
-		return fmt.Errorf("error stopping module '%s' after uploading its error page: %w", id, err)
-	}
-
-	return nil
 }
 
 func (r *ConformanceRunner) fillPlaceholders(ctx context.Context, id, screenshot string) (filled, pending bool, err error) {

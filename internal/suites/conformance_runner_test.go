@@ -305,10 +305,7 @@ func TestConformanceOverrides_AreWiredToTheirAssertions(t *testing.T) {
 		"oidcc-max-age-1":     {Index: conformanceReauthenticationLeg, FirstFactor: false},
 		"oidcc-max-age-10000": {Index: conformanceReauthenticationLeg, FirstFactor: true},
 
-		"oidcc-ensure-registered-redirect-uri":          {Index: 0},
-		"oidcc-ensure-request-object-with-redirect-uri": {Index: 0},
-
-		"oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported": {Index: 0},
+		"oidcc-ensure-registered-redirect-uri": {Index: 0},
 	} {
 		override, ok := conformanceOverrides[module]
 
@@ -529,92 +526,6 @@ func TestConformanceLegs_Stalled(t *testing.T) {
 	})
 }
 
-func TestConformanceOverrides_UploadErrorPageOnlyWhereThereIsNoPlaceholder(t *testing.T) {
-	var actual []string
-
-	for module, override := range conformanceOverrides {
-		if override.UploadErrorPage {
-			require.NotNilf(t, override.Assert, "the '%s' module uploads an error page without asserting one", module)
-			require.NoErrorf(t, override.Assert(ConformanceLeg{AutheliaError: true}), "the '%s' module does not accept an error page", module)
-
-			actual = append(actual, module)
-		}
-	}
-
-	assert.Equal(t, []string{"oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported"}, actual)
-}
-
-func TestConformanceOverride_ProvesErrorPage(t *testing.T) {
-	override := ConformanceOverride{UploadErrorPage: true}
-
-	assert.True(t, override.provesErrorPage(&conformanceLegs{errorURL: "https://login.example.com:8080/consent/completion?error=invalid_request_object"}))
-	assert.False(t, override.provesErrorPage(&conformanceLegs{}), "a leg which reached the client has no error page to prove")
-	assert.False(t, ConformanceOverride{}.provesErrorPage(&conformanceLegs{errorURL: "https://login.example.com:8080/"}), "only an opted in module is released this way")
-}
-
-func TestConformanceRunner_ProveErrorPageUploadsThenStops(t *testing.T) {
-	var (
-		mu          sync.Mutex
-		calls       []string
-		description string
-		body        []byte
-	)
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mu.Lock()
-		defer mu.Unlock()
-
-		calls = append(calls, r.Method+" "+r.URL.Path)
-
-		switch {
-		case r.Method == http.MethodPost && r.URL.Path == "/api/log/m1/images":
-			description = r.URL.Query().Get("description")
-			body, _ = io.ReadAll(r.Body)
-		case r.Method == http.MethodDelete && r.URL.Path == "/api/runner/m1":
-		default:
-			t.Errorf("unexpected request %s %s", r.Method, r.URL.Path)
-		}
-
-		_, _ = w.Write([]byte(`{}`))
-	}))
-
-	defer server.Close()
-
-	client, err := NewConformanceClient(server.URL)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
-	runner := NewConformanceRunner(client, nil, "plan1", nil)
-
-	require.NoError(t, runner.proveErrorPage(ctx, "m1", "https://login.example.com:8080/consent/completion?error=invalid_request_object&error_description=Bad+object.", conformanceTestScreenshot))
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	assert.Equal(t, []string{"POST /api/log/m1/images", "DELETE /api/runner/m1"}, calls)
-	assert.Equal(t, conformanceTestScreenshot, string(body))
-	assert.Contains(t, description, "error 'invalid_request_object', description 'Bad object.'")
-}
-
-func TestConformanceRunner_ProveErrorPageRequiresAScreenshot(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Errorf("nothing may be uploaded or stopped without a screenshot, got %s %s", r.Method, r.URL.Path)
-	}))
-
-	defer server.Close()
-
-	client, err := NewConformanceClient(server.URL)
-	require.NoError(t, err)
-
-	runner := NewConformanceRunner(client, nil, "plan1", nil)
-
-	err = runner.proveErrorPage(context.Background(), "m1", "https://login.example.com:8080/consent/completion?error=invalid_request_object", "")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "no screenshot")
-}
-
 func TestConformanceOverride_ScreenshotOf(t *testing.T) {
 	leg := func(index int) ConformanceLeg {
 		return ConformanceLeg{Index: index, LoginScreenshot: fmt.Sprintf("login-%d", index), ErrorScreenshot: fmt.Sprintf("error-%d", index)}
@@ -638,9 +549,8 @@ func TestConformanceOverrides_ScreenshotEachPlaceholderModule(t *testing.T) {
 		"oidcc-prompt-login": ConformanceScreenshotReauthentication,
 		"oidcc-max-age-1":    ConformanceScreenshotReauthentication,
 
-		"oidcc-ensure-registered-redirect-uri":                                         ConformanceScreenshotErrorPage,
-		"oidcc-ensure-request-object-with-redirect-uri":                                ConformanceScreenshotErrorPage,
-		"oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported": ConformanceScreenshotErrorPage,
+		"oidcc-ensure-registered-redirect-uri":          ConformanceScreenshotErrorPage,
+		"oidcc-ensure-request-object-with-redirect-uri": ConformanceScreenshotErrorPage,
 	}
 
 	actual := map[string]ConformanceScreenshot{}
@@ -648,12 +558,21 @@ func TestConformanceOverrides_ScreenshotEachPlaceholderModule(t *testing.T) {
 	for module, override := range conformanceOverrides {
 		if override.Screenshot != ConformanceScreenshotNone {
 			actual[module] = override.Screenshot
-
-			require.NotNilf(t, override.Assert, "the '%s' module is screenshotted without its page being asserted", module)
 		}
 	}
 
 	assert.Equal(t, expected, actual)
+}
+
+func TestConformanceOverrides_RequestObjectModules(t *testing.T) {
+	_, ok := conformanceOverrides["oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported"]
+	assert.False(t, ok)
+
+	override := conformanceOverrides["oidcc-ensure-request-object-with-redirect-uri"]
+
+	assert.Nil(t, override.Assert, "either outcome is accepted by the module")
+	assert.Equal(t, "error", override.screenshotOf(ConformanceLeg{AutheliaError: true, ErrorScreenshot: "error"}))
+	assert.Empty(t, override.screenshotOf(ConformanceLeg{}), "a leg which reached the client has no error page to capture")
 }
 
 func TestConformanceLegs_StalledOnAPlaceholderWithoutAScreenshot(t *testing.T) {
