@@ -18,11 +18,13 @@ type testEvent struct {
 }
 
 type testOutputWriter struct {
-	out       io.Writer
-	buf       bytes.Buffer
-	grouped   bool
-	pending   []testFraming
+	out     io.Writer
+	buf     bytes.Buffer
+	grouped bool
+	pending []testFraming
 	buildkite bool
+	deferring bool
+	deferred  bytes.Buffer
 }
 
 type testFraming struct {
@@ -44,7 +46,7 @@ func (w *testOutputWriter) Write(p []byte) (int, error) {
 		var event testEvent
 
 		if json.Unmarshal(line, &event) != nil {
-			if _, err = w.out.Write(line); err != nil {
+			if err = w.write(string(line)); err != nil {
 				return len(p), err
 			}
 
@@ -76,7 +78,7 @@ func (w *testOutputWriter) handle(event testEvent) (err error) {
 			return err
 		}
 
-		if _, err = io.WriteString(w.out, output); err != nil {
+		if err = w.write(output); err != nil {
 			return err
 		}
 
@@ -91,11 +93,29 @@ func (w *testOutputWriter) handle(event testEvent) (err error) {
 }
 
 func (w *testOutputWriter) write(output string) (err error) {
-	if w.buildkite && isTopLevelTestSummaryLine(output) {
-		output = " " + output
+	if w.buildkite && !w.deferring && isTopLevelTestSummaryLine(output) {
+		w.deferring = true
+	}
+
+	if w.deferring {
+		w.deferred.WriteString(output)
+
+		return nil
 	}
 
 	_, err = io.WriteString(w.out, output)
+
+	return err
+}
+
+func (w *testOutputWriter) Flush() (err error) {
+	if err = w.release(func(testFraming) bool { return true }); err != nil {
+		return err
+	}
+
+	_, err = w.out.Write(w.deferred.Bytes())
+
+	w.deferred.Reset()
 
 	return err
 }
@@ -110,7 +130,7 @@ func (w *testOutputWriter) release(match func(framing testFraming) bool) (err er
 			continue
 		}
 
-		if _, err = io.WriteString(w.out, framing.line); err != nil {
+		if err = w.write(framing.line); err != nil {
 			return err
 		}
 	}

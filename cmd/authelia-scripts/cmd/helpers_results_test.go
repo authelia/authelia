@@ -153,20 +153,23 @@ func TestTestOutputWriterShouldPlaceFramingInsideBuildkiteGroups(t *testing.T) {
 	})
 }
 
-func TestTestOutputWriterShouldKeepTheSummaryFromStartingABuildkiteGroup(t *testing.T) {
-	events := `{"Action":"output","Test":"TestSuite","Output":"--- FAIL: TestSuite (227.08s)\n"}` + "\n" +
-		`{"Action":"output","Test":"TestSuite/TestBasic","Output":"    --- FAIL: TestSuite/TestBasic (116.14s)\n"}` + "\n" +
-		`{"Action":"output","Output":"FAIL\n"}` + "\n"
+func TestTestOutputWriterShouldDeferTheSummaryInBuildkite(t *testing.T) {
+	events := `{"Action":"output","Test":"TestSuite/TestBasic","Output":"    suite_test.go:1: Exported the plan log\n"}` + "\n" +
+		`{"Action":"output","Test":"TestSuite","Output":"--- PASS: TestSuite (227.08s)\n"}` + "\n" +
+		`{"Action":"output","Test":"TestSuite/TestBasic","Output":"    --- PASS: TestSuite/TestBasic (116.14s)\n"}` + "\n" +
+		`{"Action":"output","Output":"PASS\n"}` + "\n"
+
+	summary := "--- PASS: TestSuite (227.08s)\n    --- PASS: TestSuite/TestBasic (116.14s)\nPASS\n"
 
 	testCases := []struct {
 		name      string
 		buildkite bool
 		grouped   bool
-		expected  string
+		before    string
 	}{
-		{"ShouldIndentTheTopLevelSummaryInBuildkite", true, false, " --- FAIL: TestSuite (227.08s)\n    --- FAIL: TestSuite/TestBasic (116.14s)\nFAIL\n"},
-		{"ShouldIndentTheTopLevelSummaryInBuildkiteWhenGrouped", true, true, " --- FAIL: TestSuite (227.08s)\n    --- FAIL: TestSuite/TestBasic (116.14s)\nFAIL\n"},
-		{"ShouldLeaveTheSummaryAloneElsewhere", false, false, "--- FAIL: TestSuite (227.08s)\n    --- FAIL: TestSuite/TestBasic (116.14s)\nFAIL\n"},
+		{"ShouldDeferTheSummaryInBuildkite", true, false, "    suite_test.go:1: Exported the plan log\n"},
+		{"ShouldDeferTheSummaryInBuildkiteWhenGrouped", true, true, "    suite_test.go:1: Exported the plan log\n"},
+		{"ShouldPrintTheSummaryInPlaceElsewhere", false, false, "    suite_test.go:1: Exported the plan log\n" + summary},
 	}
 
 	for _, tc := range testCases {
@@ -175,9 +178,19 @@ func TestTestOutputWriterShouldKeepTheSummaryFromStartingABuildkiteGroup(t *test
 			writer := &testOutputWriter{out: out, buildkite: tc.buildkite, grouped: tc.grouped}
 
 			_, err := writer.Write([]byte(events))
-
 			assert.NoError(t, err)
-			assert.Equal(t, tc.expected, out.String())
+
+			assert.Equal(t, tc.before, out.String())
+
+			out.WriteString("teardown\n")
+
+			assert.NoError(t, writer.Flush())
+
+			if tc.buildkite {
+				assert.Equal(t, tc.before+"teardown\n"+summary, out.String())
+			} else {
+				assert.Equal(t, tc.before+"teardown\n", out.String())
+			}
 		})
 	}
 }
