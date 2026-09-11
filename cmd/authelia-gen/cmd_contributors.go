@@ -65,6 +65,10 @@ func contributorsRunE(cmd *cobra.Command, args []string) (err error) {
 
 	dir := filepath.Join(pathDocsStatic, dirDocsStaticImages, dirDocsStaticImagesContributors)
 
+	if err = os.RemoveAll(dir); err != nil {
+		return err
+	}
+
 	if err = os.MkdirAll(dir, 0750); err != nil {
 		return err
 	}
@@ -397,11 +401,7 @@ func isDocumentationOverlord(contributor Contributor) bool {
 func getContributorsCard(contributors []Contributor) string {
 	buf := &strings.Builder{}
 
-	var overlords []Contributor
-
-	fmt.Fprintf(buf, `<p align="center"><sub>Thanks goes to these <b>%d</b> wonderful people (<a href="%s">emoji key</a>)</sub></p>
-<p align="center">
-`, len(contributors), contributorsEmojiKey)
+	var named, overlords []Contributor
 
 	for _, contributor := range contributors {
 		if isDocumentationOverlord(contributor) {
@@ -410,6 +410,14 @@ func getContributorsCard(contributors []Contributor) string {
 			continue
 		}
 
+		named = append(named, contributor)
+	}
+
+	fmt.Fprintf(buf, `<p align="center"><sub>Thanks goes to these <b>%d</b> wonderful people (<a href="%s">emoji key</a>)</sub></p>
+<p align="center">
+`, len(named), contributorsEmojiKey)
+
+	for _, contributor := range named {
 		writeContributorAnchor(buf, contributor, contributorsCellWidth)
 	}
 

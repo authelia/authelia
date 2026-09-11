@@ -230,7 +230,7 @@ Authelia exists thanks to all the people who contribute so don't be shy, come ch
 or [Discord](#discord) and start contributing too.
 
 <!-- ALL-CONTRIBUTORS-LIST:START -->
-<p align="center"><sub>Thanks goes to these <b>322</b> wonderful people (<a href="https://allcontributors.org/en/reference/emoji-key/">emoji key</a>)</sub></p>
+<p align="center"><sub>Thanks goes to these <b>96</b> wonderful people (<a href="https://allcontributors.org/en/reference/emoji-key/">emoji key</a>)</sub></p>
 <p align="center">
 <a href="https://github.com/clems4ever" title="Clément Michaud"><img src="https://www.authelia.com/images/contributors/3193257.svg" width="120" alt="Clément Michaud"></a>
 <a href="https://github.com/nightah" title="Amir Zarrinkafsh"><img src="https://www.authelia.com/images/contributors/3339418.svg" width="120" alt="Amir Zarrinkafsh"></a>
