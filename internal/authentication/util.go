@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package authentication
 
 // MustGetUserDetailsExtendedSafe returns the extended details for the given username, always returning a usable value

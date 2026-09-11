@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Cache"
 description: "Cache Configuration"
 summary: "Configuring the Cache settings."
@@ -15,7 +19,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-__Authelia__ uses a caching provider with publish / subscribe capabilities to store several things in a highly
+**Authelia** uses a caching provider with publish / subscribe capabilities to store several things in a highly
 available way. This is required to be able to deploy Authelia with high availability. Examples of things stored here
 that at the time of writing are:
 
@@ -42,9 +46,9 @@ cache:
 
 There are currently three providers that can be configured for a cache:
 
-* [Redis](redis.md).
-* [Redis Cluster](redis-cluster.md) (additional high availability support).
-* [Redis Sentinel](redis-sentinel.md) (additional high availability support).
+- [Redis](redis.md).
+- [Redis Cluster](redis-cluster.md) (additional high availability support).
+- [Redis Sentinel](redis-sentinel.md) (additional high availability support).
 
 Only one may be selected at a time and configuring more than one is not supported.
 

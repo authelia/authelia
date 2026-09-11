@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Redis"
 description: "Redis Cache Configuration"
 summary: "Configuring the Redis Cache."
@@ -87,7 +91,7 @@ Configures the address for the [redis] server. The address itself is a connector
 the `unix` scheme or one of the `tcp` schemes. Unlike some other addresses in Authelia a port must be explicitly
 included when using a `tcp` scheme as no port is assumed on your behalf.
 
-__Examples:__
+**Examples:**
 
 ```yaml {title="configuration.yml"}
 cache:
@@ -128,7 +132,7 @@ through the process of setting up [redis ACLs](https://redis.io/topics/acl).
 
 The password for [redis authentication](https://redis.io/commands/auth).
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
@@ -304,14 +308,14 @@ this.
 The `session.redis` section was deprecated and is automatically mapped to this section. The following options were
 renamed as part of that move:
 
-| Deprecated Option                        | Replacement Option              |
-|:-----------------------------------------|:--------------------------------|
-| `timeout`                                | `dial_timeout`                  |
-| `max_retries`                            | `maximum_retries`               |
-| `database_index`                         | `database`                      |
-| `maximum_active_connections`             | `pool_size`                     |
-| `minimum_idle_connections`               | `pool_minimum_idle_connections` |
-| `host` and `port`                        | `address`                       |
+| Deprecated Option            | Replacement Option              |
+| :--------------------------- | :------------------------------ |
+| `timeout`                    | `dial_timeout`                  |
+| `max_retries`                | `maximum_retries`               |
+| `database_index`             | `database`                      |
+| `maximum_active_connections` | `pool_size`                     |
+| `minimum_idle_connections`   | `pool_minimum_idle_connections` |
+| `host` and `port`            | `address`                       |
 
 In addition [session.storage](../session/introduction.md) is set to `cache` when it has not been explicitly configured.
 Configuring both `session.redis` and any `cache` provider at the same time is not supported and raises an error.

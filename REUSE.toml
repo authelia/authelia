@@ -41,12 +41,6 @@ SPDX-FileCopyrightText = "2016 shadcn"
 SPDX-License-Identifier = "MIT"
 
 [[annotations]]
-path = "internal/session/memory/stdlib.go"
-precedence = "override"
-SPDX-FileCopyrightText = "2016 The Go Authors"
-SPDX-License-Identifier = "BSD-3-Clause"
-
-[[annotations]]
 path = [
   "internal/suites/testdata/fonts/LICENSE",
   "internal/suites/testdata/fonts/LiberationSans-Regular.ttf",

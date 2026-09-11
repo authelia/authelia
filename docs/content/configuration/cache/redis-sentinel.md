@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Redis Sentinel"
 description: "Redis Sentinel Cache Configuration"
 summary: "Configuring the Redis Sentinel Cache."
@@ -119,7 +123,7 @@ The username used to authenticate with the Sentinel nodes themselves. This is di
 The password used to authenticate with the Sentinel nodes themselves. This is distinct from
 [password](#password) which authenticates with the [redis] master and replicas.
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
@@ -131,7 +135,7 @@ Configures the addresses of the Sentinel nodes. Each address is a connector and 
 scheme or one of the `tcp` schemes. Unlike some other addresses in Authelia a port must be explicitly included when
 using a `tcp` scheme as no port is assumed on your behalf. The standard Sentinel port is `26379`.
 
-__Examples:__
+**Examples:**
 
 ```yaml {title="configuration.yml"}
 cache:
@@ -191,7 +195,7 @@ to set this unless you went through the process of setting up [redis ACLs](https
 
 The password for [redis authentication](https://redis.io/commands/auth) against the master and replicas.
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 
@@ -366,7 +370,7 @@ The `session.redis` section was deprecated and is automatically mapped to this s
 `session.redis.high_availability.sentinel_name` was configured. The following options were renamed as part of that move:
 
 | Deprecated Option                            | Replacement Option              |
-|:---------------------------------------------|:--------------------------------|
+| :------------------------------------------- | :------------------------------ |
 | `high_availability.sentinel_name`            | `master_name`                   |
 | `high_availability.sentinel_username`        | `sentinel_username`             |
 | `high_availability.sentinel_password`        | `sentinel_password`             |

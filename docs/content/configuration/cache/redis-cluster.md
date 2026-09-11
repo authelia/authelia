@@ -1,4 +1,8 @@
 ---
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
 title: "Redis Cluster"
 description: "Redis Cluster Cache Configuration"
 summary: "Configuring the Redis Cluster Cache."
@@ -95,7 +99,7 @@ Authelia a port must be explicitly included when using a `tcp` scheme as no port
 You do not need to list every node in the cluster, however listing more than one avoids a single point of failure during
 the initial discovery.
 
-__Examples:__
+**Examples:**
 
 ```yaml {title="configuration.yml"}
 cache:
@@ -154,7 +158,7 @@ through the process of setting up [redis ACLs](https://redis.io/topics/acl).
 
 The password for [redis authentication](https://redis.io/commands/auth).
 
-It's __strongly recommended__ this is a
+It's **strongly recommended** this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
 characters and the user password is changed to this value.
 

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Package cache provides the cache backends which store session records, either in process memory or in Redis.
 package cache
 
