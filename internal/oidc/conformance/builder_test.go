@@ -561,3 +561,31 @@ func TestSuiteBuilder_Build(t *testing.T) {
 		})
 	}
 }
+
+func TestBuilders(t *testing.T) {
+	suiteURL := &url.URL{Scheme: "https", Host: "conformance.example.com"}
+	autheliaURL := &url.URL{Scheme: "https", Host: "auth.example.com"}
+
+	builders := Builders("4.40", "implicit", "one_factor", "authelia", suiteURL, autheliaURL)
+
+	names := make([]string, len(builders))
+
+	for i, builder := range builders {
+		names[i] = builder.Name
+
+		assert.True(t, builder.Certification, builder.Name)
+		assert.Equal(t, "authelia", builder.Brand, builder.Name)
+		assert.Equal(t, "4.40", builder.Version, builder.Name)
+		assert.Equal(t, "implicit", builder.Consent, builder.Name)
+		assert.Equal(t, "one_factor", builder.Policy, builder.Name)
+		assert.Equal(t, autheliaURL, builder.AutheliaURL, builder.Name)
+
+		if builder.Name == NameConfig {
+			assert.Nil(t, builder.SuiteURL, "the config profile registers no clients, so it has no suite to redirect to")
+		} else {
+			assert.Equal(t, suiteURL, builder.SuiteURL, builder.Name)
+		}
+	}
+
+	assert.Equal(t, []string{NameConfig, NameBasic, NameBasicFormPost, NameHybrid, NameHybridFormPost, NameImplicit, NameImplicitFormPost}, names)
+}

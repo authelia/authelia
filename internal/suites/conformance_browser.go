@@ -282,9 +282,13 @@ func (b *ConformanceBrowser) settle(ctx context.Context, selector, startURL stri
 func (b *ConformanceBrowser) Drive(ctx context.Context, index int, uri string) (leg ConformanceLeg, err error) {
 	leg = ConformanceLeg{Index: index}
 
+	loaded := b.page.Timeout(conformancePageTimeout).WaitNavigation(proto.PageLifecycleEventNameDOMContentLoaded)
+
 	if err = b.session.doNavigate(b.page.Timeout(conformancePageTimeout), uri); err != nil {
 		return leg, fmt.Errorf("error navigating to '%s': %w", uri, err)
 	}
+
+	loaded()
 
 	attempts, consents := 0, 0
 

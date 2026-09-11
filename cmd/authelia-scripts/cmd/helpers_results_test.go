@@ -6,10 +6,12 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTestOutputWriterShouldReconstructConsoleOutput(t *testing.T) {
@@ -193,4 +195,59 @@ func TestTestOutputWriterShouldDeferTheSummaryInBuildkite(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTestOutputWriterShouldReturnWriteErrors(t *testing.T) {
+	event := func(test, output string) string {
+		return fmt.Sprintf(`{"Action":"output","Test":%q,"Output":%q}`, test, output) + "\n"
+	}
+
+	testCases := []struct {
+		name   string
+		events []string
+	}{
+		{"ShouldReturnTheErrorOfAPlainLine", []string{"not an event\n"}},
+		{"ShouldReturnTheErrorOfHeldFramingBeforeAGroup", []string{
+			event("TestSuite/TestBasic/Codereuse", "=== RUN   TestSuite/TestBasic/Codereuse\n"),
+			event("TestSuite/TestBasicFormPost", "--- OIDC Conformance Plan: basic-form-post\n"),
+		}},
+		{"ShouldReturnTheErrorOfAGroupHeader", []string{
+			event("TestSuite/TestBasic", "--- OIDC Conformance Plan: basic\n"),
+		}},
+		{"ShouldReturnTheErrorOfHeldFramingBeforeOutput", []string{
+			event("TestSuite/TestBasic/Server", "=== RUN   TestSuite/TestBasic/Server\n"),
+			event("TestSuite/TestBasic/Server", "    suite_test.go:1: output\n"),
+		}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			writer := &testOutputWriter{out: testFailingWriter{}, grouped: true}
+
+			var err error
+
+			for _, write := range tc.events {
+				if _, err = writer.Write([]byte(write)); err != nil {
+					break
+				}
+			}
+
+			assert.EqualError(t, err, "write failed")
+		})
+	}
+
+	t.Run("ShouldReturnTheErrorOfHeldFramingWhenFlushing", func(t *testing.T) {
+		writer := &testOutputWriter{out: testFailingWriter{}, grouped: true}
+
+		_, err := writer.Write([]byte(event("TestSuite/TestBasic/Server", "=== RUN   TestSuite/TestBasic/Server\n")))
+		require.NoError(t, err)
+
+		assert.EqualError(t, writer.Flush(), "write failed")
+	})
+}
+
+type testFailingWriter struct{}
+
+func (testFailingWriter) Write(_ []byte) (int, error) {
+	return 0, errors.New("write failed")
 }

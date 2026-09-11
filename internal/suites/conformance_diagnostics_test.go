@@ -122,3 +122,7 @@ func TestConformanceDiagnosticsOmitsTheConformanceUIsBookkeeping(t *testing.T) {
 	assert.NotContains(t, detail, "blockId")
 	assert.NotContains(t, detail, "updatedAt")
 }
+
+func TestConformanceDiagnosticFieldFallsBackForAValueJSONCannotEncode(t *testing.T) {
+	assert.Equal(t, "(1+2i)", conformanceDiagnosticField(complex(1, 2)))
+}

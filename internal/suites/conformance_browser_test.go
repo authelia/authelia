@@ -165,3 +165,7 @@ func TestConformanceScreenshotDataURI(t *testing.T) {
 		assert.ErrorContains(t, err, "target closed")
 	})
 }
+
+func TestConformanceIsCallbackRejectsAnUnparsableURL(t *testing.T) {
+	assert.False(t, conformanceIsCallback("%zz/test/a/alias/callback"))
+}

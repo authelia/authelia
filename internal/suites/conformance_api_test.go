@@ -9,6 +9,9 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -356,4 +359,293 @@ func TestConformanceClient_WaitStateFailsFastOnAnUnrecognizedBody(t *testing.T) 
 			assert.Less(t, time.Since(start), time.Second, "an unrecognized body must fail fast rather than spin")
 		})
 	}
+}
+
+func TestNewConformanceClientRejectsAnInvalidURL(t *testing.T) {
+	_, err := NewConformanceClient("not a url")
+
+	assert.ErrorContains(t, err, "error parsing conformance base url")
+}
+
+func TestConformanceClient_WaitReady(t *testing.T) {
+	t.Run("ShouldReturnOnceTheServerAnswers", func(t *testing.T) {
+		var calls atomic.Int32
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/api/plan", r.URL.Path)
+			assert.Equal(t, "1", r.URL.Query().Get("length"))
+
+			if calls.Add(1) == 1 {
+				w.WriteHeader(http.StatusServiceUnavailable)
+
+				return
+			}
+
+			_, _ = w.Write([]byte(`{"data":[]}`))
+		}))
+
+		defer server.Close()
+
+		client, err := NewConformanceClient(server.URL)
+		require.NoError(t, err)
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+
+		require.NoError(t, client.WaitReady(ctx))
+		assert.Equal(t, int32(2), calls.Load(), "the server is asked again after it could not answer")
+	})
+
+	t.Run("ShouldGiveUpWhenTheContextExpires", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusServiceUnavailable)
+		}))
+
+		defer server.Close()
+
+		client, err := NewConformanceClient(server.URL)
+		require.NoError(t, err)
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
+		defer cancel()
+
+		err = client.WaitReady(ctx)
+
+		assert.ErrorContains(t, err, "conformance suite was not ready")
+		assert.ErrorContains(t, err, "expected status 200 but got 503")
+	})
+}
+
+func TestConformanceClient_Requests(t *testing.T) {
+	var (
+		mu       sync.Mutex
+		requests []string
+	)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+
+		requests = append(requests, r.Method+" "+r.URL.RequestURI())
+		mu.Unlock()
+
+		switch r.URL.Path {
+		case "/api/runner":
+			w.WriteHeader(http.StatusCreated)
+			_, _ = w.Write([]byte(`{"id":"m1"}`))
+		case "/api/runner/m1":
+			_, _ = w.Write([]byte(`{}`))
+		case "/api/runner/browser/m1/visit":
+			w.WriteHeader(http.StatusNoContent)
+		case "/api/plan/exporthtml/p1":
+			_, _ = w.Write([]byte("PK archive"))
+		default:
+			t.Errorf("unexpected path %s", r.URL.Path)
+		}
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	id, err := client.CreateTest(ctx, "p1", "oidcc-server", map[string]string{"response_type": "code"})
+	require.NoError(t, err)
+	assert.Equal(t, "m1", id)
+
+	require.NoError(t, client.StartTest(ctx, "m1"))
+	require.NoError(t, client.Visit(ctx, "m1", "https://login.example.com:8080/api/oidc/authorization?client_id=a&state=b"))
+
+	archive := filepath.Join(t.TempDir(), "plans", "conformance-basic.zip")
+
+	require.NoError(t, client.ExportPlanHTML(ctx, "p1", archive))
+
+	data, err := os.ReadFile(archive)
+	require.NoError(t, err)
+	assert.Equal(t, "PK archive", string(data))
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	assert.Equal(t, []string{
+		"POST /api/runner?plan=p1&test=oidcc-server&variant=%7B%22response_type%22%3A%22code%22%7D",
+		"POST /api/runner/m1",
+		"POST /api/runner/browser/m1/visit?url=https%3A%2F%2Flogin.example.com%3A8080%2Fapi%2Foidc%2Fauthorization%3Fclient_id%3Da%26state%3Db",
+		"GET /api/plan/exporthtml/p1",
+	}, requests)
+}
+
+func TestConformanceClient_ReportsServerErrors(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"error":"broken"}`))
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	_, err = client.CreatePlan(ctx, "oidcc-basic-certification-test-plan", nil, &conformance.Plan{Alias: "alias"})
+	assert.ErrorContains(t, err, "broken")
+
+	_, err = client.Info(ctx, "m1")
+	assert.ErrorContains(t, err, "broken")
+
+	_, err = client.BrowserStatus(ctx, "m1")
+	assert.ErrorContains(t, err, "broken")
+
+	_, err = client.Log(ctx, "m1")
+	assert.ErrorContains(t, err, "broken")
+
+	err = client.ExportPlanHTML(ctx, "p1", filepath.Join(t.TempDir(), "conformance-basic.zip"))
+	assert.EqualError(t, err, "unexpected status 500 exporting plan 'p1'")
+}
+
+func TestConformanceClient_ExportPlanHTMLReportsADirectoryItCannotCreate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("PK archive"))
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	file := filepath.Join(t.TempDir(), "file")
+	require.NoError(t, os.WriteFile(file, nil, 0600))
+
+	assert.Error(t, client.ExportPlanHTML(context.Background(), "p1", filepath.Join(file, "conformance-basic.zip")))
+}
+
+func TestConformanceClient_LogRejectsAMalformedEntry(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`[{"msg":5}]`))
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	_, err = client.Log(context.Background(), "m1")
+	assert.Error(t, err)
+}
+
+func TestConformanceClient_WaitStateFromInfo(t *testing.T) {
+	testCases := []struct {
+		name     string
+		info     func(w http.ResponseWriter)
+		expected string
+	}{
+		{
+			"ShouldReportAPersistedStatusWhichIsNotWaitedFor",
+			func(w http.ResponseWriter) { _, _ = w.Write([]byte(`{"_id":"m1","status":"INTERRUPTED"}`)) },
+			"module 'm1' is no longer running and its persisted status is 'INTERRUPTED', which is not one of [FINISHED]",
+		},
+		{
+			"ShouldReportThatThePersistedStatusCouldNotBeRead",
+			func(w http.ResponseWriter) { w.WriteHeader(http.StatusInternalServerError) },
+			"expected status 200 but got 500",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				switch r.URL.Path {
+				case "/api/runner/m1/wait-state":
+					w.WriteHeader(http.StatusNotFound)
+				case "/api/info/m1":
+					tc.info(w)
+				default:
+					t.Errorf("unexpected path %s", r.URL.Path)
+				}
+			}))
+
+			defer server.Close()
+
+			client, err := NewConformanceClient(server.URL)
+			require.NoError(t, err)
+
+			_, err = client.WaitState(context.Background(), "m1", "FINISHED")
+
+			assert.ErrorContains(t, err, tc.expected)
+		})
+	}
+}
+
+func TestConformanceClient_WaitStateStopsWhenTheContextExpiresBetweenPolls(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(time.Millisecond * 20)
+
+		_, _ = w.Write([]byte(`{"timeout":true}`))
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
+	defer cancel()
+
+	_, err = client.WaitState(ctx, "m1", "FINISHED")
+
+	assert.ErrorContains(t, err, "module 'm1' did not reach one of [FINISHED]")
+}
+
+func TestConformanceClient_ExportPlanHTMLReportsWhatFailed(t *testing.T) {
+	t.Run("ShouldReportAServerWhichCannotBeReached", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+
+		client, err := NewConformanceClient(server.URL)
+		require.NoError(t, err)
+
+		server.Close()
+
+		assert.Error(t, client.ExportPlanHTML(context.Background(), "p1", filepath.Join(t.TempDir(), "conformance-basic.zip")))
+	})
+
+	t.Run("ShouldReportAnArchiveWhichCannotBeCreated", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte("PK archive"))
+		}))
+
+		defer server.Close()
+
+		client, err := NewConformanceClient(server.URL)
+		require.NoError(t, err)
+
+		assert.Error(t, client.ExportPlanHTML(context.Background(), "p1", t.TempDir()), "the path is a directory")
+	})
+}
+
+func TestConformanceClient_WaitStateFromInfoStopsWhenTheContextExpires(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/runner/m1/wait-state" {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+
+		time.Sleep(time.Millisecond * 200)
+
+		_, _ = w.Write([]byte(`{"_id":"m1","status":"FINISHED"}`))
+	}))
+
+	defer server.Close()
+
+	client, err := NewConformanceClient(server.URL)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
+	defer cancel()
+
+	_, err = client.WaitState(ctx, "m1", "FINISHED")
+
+	assert.ErrorContains(t, err, "module 'm1' did not reach one of [FINISHED]")
 }

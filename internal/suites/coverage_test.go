@@ -5,6 +5,7 @@
 package suites
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,4 +53,38 @@ func TestConformanceCoverageScript(t *testing.T) {
 	assert.Contains(t, conformanceCoverageScript, "'beforeunload'")
 	assert.Contains(t, conformanceCoverageScript, "window."+conformanceCoverageBinding+"(")
 	assert.Contains(t, conformanceCoverageScript, "window.__coverage__")
+}
+
+func TestWriteCoverageReportsADirectoryItCannotCreate(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "file")
+
+	require.NoError(t, os.WriteFile(file, nil, 0600))
+
+	assert.Error(t, writeCoverage(filepath.Join(file, ".nyc_output"), `{}`))
+}
+
+func TestEmitBuildkiteMarker(t *testing.T) {
+	capture := func(t *testing.T, marker string) string {
+		t.Helper()
+
+		r, w, err := os.Pipe()
+		require.NoError(t, err)
+
+		stdout := os.Stdout
+		os.Stdout = w
+
+		emitBuildkiteMarker(marker)
+
+		os.Stdout = stdout
+
+		require.NoError(t, w.Close())
+
+		data, err := io.ReadAll(r)
+		require.NoError(t, err)
+
+		return string(data)
+	}
+
+	assert.Equal(t, "--- OIDC Conformance Plan: basic\n", capture(t, "--- OIDC Conformance Plan: basic"))
+	assert.Empty(t, capture(t, ""), "no marker is written outside Buildkite")
 }
