@@ -23,6 +23,7 @@ path = [
 	"docs/data/**",
 	"docs/layouts/**",
 	"docs/static/.well-known/matrix/server",
+	"docs/static/images/contributors/**",
 	"docs/static/keys/**",
 	"internal/configuration/test_resources/**",
 	"internal/storage/migrations/**",
