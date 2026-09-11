@@ -504,14 +504,14 @@ func TestConformanceLegs_Stalled(t *testing.T) {
 		var stall *ConformanceErrorPageStallError
 
 		require.ErrorAs(t, err, &stall)
-		assert.EqualError(t, err, "module 'm1' is waiting for the flow to return to the client, but Authelia ended it on an error page and the module raised no placeholder for one: "+
+		assert.EqualError(t, err, "module 'm1' is waiting for the flow to return to the client, but Authelia ended it on an error page and the module asked for no evidence image of it: "+
 			"error 'invalid_request_object', description 'The request parameter contains an invalid Request Object.', hint 'Could not be validated.', debug 'Expected typ JWT.'")
 	})
 
 	t.Run("ShouldFallBackToTheURLWhenTheErrorPageCarriesNoParameters", func(t *testing.T) {
 		legs := &conformanceLegs{errorURL: "https://login.example.com:8080/"}
 
-		assert.EqualError(t, legs.stalled("m1"), "module 'm1' is waiting for the flow to return to the client, but Authelia ended it on an error page and the module raised no placeholder for one: https://login.example.com:8080/")
+		assert.EqualError(t, legs.stalled("m1"), "module 'm1' is waiting for the flow to return to the client, but Authelia ended it on an error page and the module asked for no evidence image of it: https://login.example.com:8080/")
 	})
 
 	t.Run("ShouldReportAPlainStallOtherwise", func(t *testing.T) {
@@ -583,7 +583,7 @@ func TestConformanceLegs_StalledOnAPlaceholderWithoutAScreenshot(t *testing.T) {
 	var stall *ConformanceErrorPageStallError
 
 	assert.False(t, errors.As(err, &stall), "a module waiting on its placeholder is not stranded for want of one")
-	assert.EqualError(t, err, "module 'm1' is waiting on a screenshot placeholder, but no leg showed the page it asks for")
+	assert.EqualError(t, err, "module 'm1' is waiting for an evidence image, but no leg showed the page it asks for")
 }
 
 func TestConformanceRunner_LetsAFailedModuleFinishBeforeMovingOn(t *testing.T) {

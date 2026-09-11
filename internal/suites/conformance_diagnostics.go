@@ -108,8 +108,8 @@ func conformanceDiagnosticField(value any) string {
 // ConformanceAcceptedWarningReport renders a module's accepted WARNING for its subtest's log: why it is accepted,
 // followed by the graded entries of the module's log, so the warning which was accepted is visible rather than only
 // the fact that one was.
-func ConformanceAcceptedWarningReport(module, reason string, entries []ConformanceLogEntry) string {
-	report := fmt.Sprintf("Module '%s' finished with an accepted WARNING: %s.", module, reason)
+func ConformanceAcceptedWarningReport(module, status, reason string, entries []ConformanceLogEntry) string {
+	report := fmt.Sprintf("Module '%s' finished with the accepted result 'WARNING' and the status '%s': %s.", module, status, reason)
 
 	if detail := ConformanceDiagnostics(entries); detail != "" {
 		return report + " Conformance log entries:" + detail

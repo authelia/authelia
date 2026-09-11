@@ -229,7 +229,7 @@ func (s *OIDCConformanceSuite) assertPlan(name string) {
 
 			require.NoError(t, outcome.Err)
 			require.NotEqualf(t, conformanceStatusInterrupted, outcome.Status,
-				"module '%s' was interrupted with the result '%s'", outcome.Module, outcome.Result)
+				"module '%s' was interrupted with the result '%s' and the status '%s'", outcome.Module, outcome.Result, outcome.Status)
 			require.Truef(t, conformanceResultAccepted(outcome.Module, outcome.Result),
 				"module '%s' finished with the result '%s' and the status '%s'", outcome.Module, outcome.Result, outcome.Status)
 
@@ -250,7 +250,7 @@ func (s *OIDCConformanceSuite) reportAcceptedWarning(outcome ConformanceOutcome)
 	reason := conformanceAcceptedWarnings[outcome.Module]
 
 	if s.client == nil || outcome.ID == "" {
-		s.T().Logf("Module '%s' finished with an accepted WARNING: %s.", outcome.Module, reason)
+		s.T().Logf("Module '%s' finished with the accepted result 'WARNING' and the status '%s': %s.", outcome.Module, outcome.Status, reason)
 
 		return
 	}
@@ -260,12 +260,12 @@ func (s *OIDCConformanceSuite) reportAcceptedWarning(outcome ConformanceOutcome)
 
 	entries, err := s.client.Log(ctx, outcome.ID)
 	if err != nil {
-		s.T().Logf("Module '%s' finished with an accepted WARNING: %s. Its log could not be read: %v", outcome.Module, reason, err)
+		s.T().Logf("Module '%s' finished with the accepted result 'WARNING' and the status '%s': %s. Its log could not be read: %v", outcome.Module, outcome.Status, reason, err)
 
 		return
 	}
 
-	s.T().Log(ConformanceAcceptedWarningReport(outcome.Module, reason, entries))
+	s.T().Log(ConformanceAcceptedWarningReport(outcome.Module, outcome.Status, reason, entries))
 }
 
 func (s *OIDCConformanceSuite) reportFailure(t *testing.T, plan string, outcome ConformanceOutcome) {

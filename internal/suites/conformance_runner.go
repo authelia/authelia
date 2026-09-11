@@ -406,7 +406,7 @@ type conformanceLegs struct {
 
 func (l *conformanceLegs) stalled(id string) error {
 	if l.pendingPlaceholder {
-		return fmt.Errorf("module '%s' is waiting on a screenshot placeholder, but no leg showed the page it asks for", id)
+		return fmt.Errorf("module '%s' is waiting for an evidence image, but no leg showed the page it asks for", id)
 	}
 
 	if l.errorURL != "" {
@@ -425,7 +425,7 @@ type ConformanceErrorPageStallError struct {
 
 // Error names the module and what Authelia's error page reported.
 func (e *ConformanceErrorPageStallError) Error() string {
-	return fmt.Sprintf("module '%s' is waiting for the flow to return to the client, but Authelia ended it on an error page and the module raised no placeholder for one: %s",
+	return fmt.Sprintf("module '%s' is waiting for the flow to return to the client, but Authelia ended it on an error page and the module asked for no evidence image of it: %s",
 		e.ID, conformanceDescribeErrorPage(e.URL))
 }
 
@@ -513,7 +513,7 @@ func (r *ConformanceRunner) fillPlaceholders(ctx context.Context, id, screenshot
 			continue
 		}
 
-		r.trace.Logf("Module '%s' filling placeholder '%s'", id, entry.Upload)
+		r.trace.Logf("Module '%s' uploading evidence image '%s'", id, entry.Upload)
 
 		if err = r.client.UploadPlaceholder(ctx, id, entry.Upload, screenshot); err != nil {
 			return filled, pending, err
@@ -532,7 +532,7 @@ func (r *ConformanceRunner) awaitPlaceholderSettled(ctx context.Context, id stri
 		var info *ConformanceTestInfo
 
 		if info, err = r.client.Info(ctx, id); err != nil {
-			return "", fmt.Errorf("error reading the status of module '%s' while waiting for its placeholder to settle: %w", id, err)
+			return "", fmt.Errorf("error reading the status of module '%s' while waiting for it to take up its evidence image: %w", id, err)
 		}
 
 		if info.Status != conformanceStatusWaiting || time.Now().After(deadline) {
@@ -541,7 +541,7 @@ func (r *ConformanceRunner) awaitPlaceholderSettled(ctx context.Context, id stri
 
 		select {
 		case <-ctx.Done():
-			return "", fmt.Errorf("module '%s' did not leave the %s state after its placeholder was filled: %w", id, conformanceStatusWaiting, ctx.Err())
+			return "", fmt.Errorf("module '%s' did not leave the %s state after its evidence image was uploaded: %w", id, conformanceStatusWaiting, ctx.Err())
 		case <-time.After(interval):
 		}
 	}
@@ -553,7 +553,7 @@ func (r *ConformanceRunner) moduleState(ctx context.Context, id string, filled b
 			return "", err
 		}
 
-		r.trace.Logf("Module '%s' is in state '%s' after its placeholder was filled", id, state)
+		r.trace.Logf("Module '%s' is in state '%s' after its evidence image was uploaded", id, state)
 
 		return state, nil
 	}

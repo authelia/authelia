@@ -100,16 +100,16 @@ func TestConformanceAcceptedWarningReport(t *testing.T) {
 			Fields: map[string]any{"requirements": []any{"OIDCC-3.1.2.1", "OIDCC-15.1"}, "id_token_acr": "0"}},
 	}
 
-	report := ConformanceAcceptedWarningReport("oidcc-ensure-request-with-acr-values-succeeds", "the acr is the fallback", entries)
+	report := ConformanceAcceptedWarningReport("oidcc-ensure-request-with-acr-values-succeeds", "FINISHED", "the acr is the fallback", entries)
 
-	assert.Contains(t, report, "Module 'oidcc-ensure-request-with-acr-values-succeeds' finished with an accepted WARNING: the acr is the fallback.")
+	assert.Contains(t, report, "Module 'oidcc-ensure-request-with-acr-values-succeeds' finished with the accepted result 'WARNING' and the status 'FINISHED': the acr is the fallback.")
 	assert.Contains(t, report, "[WARNING] acr value in id_token is not (one of the) requested values")
 	assert.Contains(t, report, "condition: ValidateIdTokenACRClaimAgainstAcrValuesRequest")
 	assert.Contains(t, report, "id_token_acr: 0")
 	assert.NotContains(t, report, "Checked the id_token", "only the graded entries are reported")
 
-	assert.Equal(t, "Module 'oidcc-server' finished with an accepted WARNING: reason. The module logged no warning entries.",
-		ConformanceAcceptedWarningReport("oidcc-server", "reason", nil))
+	assert.Equal(t, "Module 'oidcc-server' finished with the accepted result 'WARNING' and the status 'FINISHED': reason. The module logged no warning entries.",
+		ConformanceAcceptedWarningReport("oidcc-server", "FINISHED", "reason", nil))
 }
 
 func TestConformanceDiagnosticsOmitsTheConformanceUIsBookkeeping(t *testing.T) {

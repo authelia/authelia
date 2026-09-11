@@ -74,7 +74,7 @@ func TestConformanceRunner_AwaitPlaceholderSettledStopsWhenTheContextExpires(t *
 	_, err := runner.awaitPlaceholderSettled(ctx, "m1", time.Millisecond*20, time.Minute)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "m1")
-	assert.Contains(t, err.Error(), "placeholder")
+	assert.Contains(t, err.Error(), "evidence image")
 }
 
 func TestConformanceUploadSettleMatchesTheIntendedCadence(t *testing.T) {

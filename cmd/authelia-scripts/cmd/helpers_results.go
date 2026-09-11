@@ -18,10 +18,10 @@ type testEvent struct {
 }
 
 type testOutputWriter struct {
-	out     io.Writer
-	buf     bytes.Buffer
-	grouped bool
-	pending []testFraming
+	out       io.Writer
+	buf       bytes.Buffer
+	grouped   bool
+	pending   []testFraming
 	buildkite bool
 	deferring bool
 	deferred  bytes.Buffer
