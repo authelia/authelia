@@ -933,7 +933,22 @@
       "profile": "https://github.com/Crowley723",
       "contributions": [
         "doc",
-        "design"
+        "design",
+        "a11y",
+        "bug",
+        "blog",
+        "code",
+        "content",
+        "data",
+        "example",
+        "ideas",
+        "maintenance",
+        "projectManagement",
+        "review",
+        "security",
+        "tool",
+        "test",
+        "tutorial"
       ]
     },
     {
