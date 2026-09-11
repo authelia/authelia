@@ -25,7 +25,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
 - [Kiali]
   - [v2.12.0](https://kiali.io/news/release-notes/#v2120)
 

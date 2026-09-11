@@ -27,7 +27,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.25](https://github.com/authelia/authelia/releases/tag/v4.39.25)
+  - [v4.39.26](https://github.com/authelia/authelia/releases/tag/v4.39.26)
 - [Passbolt]
   - [v5.3.2](https://www.passbolt.com/changelog/api-bext/somebody-to-love-browser-extension-api)
 
