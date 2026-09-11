@@ -21,11 +21,13 @@ import (
 )
 
 const (
-	oidcConformanceSuiteName   = "OIDCConformance"
-	oidcConformanceBaseURL     = "https://conformance.example.com:8443"
-	oidcConformanceAutheliaURL = "https://login.example.com:8080"
-	oidcConformancePlansFile   = "conformance-plans.json"
-	oidcConformanceClientsFile = "conformance-clients.yml"
+	oidcConformanceSuiteName          = "OIDCConformance"
+	oidcConformanceBaseURL            = "https://conformance.example.com:8443"
+	oidcConformanceAutheliaURL        = "https://login.example.com:8080"
+	oidcConformancePlansFile          = "conformance-plans.json"
+	oidcConformanceClientsFile        = "conformance-clients.yml"
+	oidcConformanceMongoDBHostEnv     = "SUITE_OIDC_CONFORMANCE_MONGODB_HOST"
+	oidcConformanceMongoDBComposeFile = "OIDCConformance/compose.mongodb.yml"
 )
 
 // OIDCConformancePlanFile is one entry of the plans file exchanged between the setup and test processes. The API plan
@@ -111,6 +113,36 @@ func oidcConformanceRelease(commit, tag string) string {
 	}
 }
 
+func oidcConformanceComposeFiles(mongodbHost string) (files []string) {
+	files = []string{
+		"internal/suites/compose.yml",
+		"internal/suites/OIDCConformance/compose.yml",
+		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
+		"internal/suites/example/compose/nginx/backend/compose.yml",
+		"internal/suites/example/compose/nginx/portal/compose.yml",
+		"internal/suites/example/compose/smtp/compose.yml",
+		"internal/suites/example/compose/redis/compose.yml",
+		"internal/suites/example/compose/postgres/compose.yml",
+	}
+
+	if mongodbHost == "" {
+		files = append(files, "internal/suites/"+oidcConformanceMongoDBComposeFile)
+	}
+
+	return files
+}
+
+func oidcConformanceLogServices(mongodbHost string) (services []string) {
+	services = []string{"authelia-backend", "authelia-frontend", "postgres"}
+
+	if mongodbHost == "" {
+		services = append(services, "conformance-mongodb")
+	}
+
+	return append(services, "conformance-server", "conformance-nginx")
+}
+
 func oidcConformanceWriteYAML(path string, value any) (err error) {
 	f, err := os.OpenFile(path, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
@@ -164,17 +196,9 @@ func oidcConformanceReadPlans() (plans []OIDCConformancePlanFile, err error) {
 }
 
 func init() {
-	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/compose.yml",
-		"internal/suites/OIDCConformance/compose.yml",
-		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/compose.yml",
-		"internal/suites/example/compose/nginx/portal/compose.yml",
-		"internal/suites/example/compose/smtp/compose.yml",
-		"internal/suites/example/compose/redis/compose.yml",
-		"internal/suites/example/compose/postgres/compose.yml",
-	})
+	mongodbHost := os.Getenv(oidcConformanceMongoDBHostEnv)
+
+	dockerEnvironment := NewDockerEnvironment(oidcConformanceComposeFiles(mongodbHost))
 
 	setup := func(suitePath string) (err error) {
 		if err = oidcConformanceGenerate(); err != nil {
@@ -205,7 +229,7 @@ func init() {
 	}
 
 	displayLogs := func() error {
-		return dockerEnvironment.PrintLogs("authelia-backend", "authelia-frontend", "postgres", "conformance-mongodb", "conformance-server", "conformance-nginx")
+		return dockerEnvironment.PrintLogs(oidcConformanceLogServices(mongodbHost)...)
 	}
 
 	teardown := func(suitePath string) error {

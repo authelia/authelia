@@ -15,13 +15,6 @@ services:
       - './common/pki/public.crt:/certs/public.crt'
       - '${SUITE_TMP:-/tmp}:/tmp'
 
-  conformance-mongodb:
-    image: 'mongo:6.0.13'
-    cpus: 2
-    mem_limit: 2g
-    networks:
-      authelianet: {}
-
   conformance-server:
     build:
       context: '.'
@@ -30,14 +23,13 @@ services:
     mem_limit: 4g
     environment:
       BASE_URL: 'https://conformance.example.com:8443'
-      MONGODB_HOST: 'conformance-mongodb'
+      MONGODB_HOST: '${SUITE_OIDC_CONFORMANCE_MONGODB_HOST:-conformance-mongodb}'
       JAVA_EXTRA_ARGS: '-Dfintechlabs.devmode=true'
       OIDC_GOOGLE_CLIENTID: 'google-client'
       OIDC_GOOGLE_SECRET: 'google-secret'
       OIDC_GITLAB_CLIENTID: 'gitlab-client'
       OIDC_GITLAB_SECRET: 'gitlab-secret'
     depends_on:
-      - 'conformance-mongodb'
       - 'authelia-backend'
     expose:
       - 8080
