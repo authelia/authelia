@@ -11,12 +11,17 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/otp"
+	"github.com/authelia/otp/totp"
 
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -169,6 +174,77 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, "")
 
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-method")
+}
+
+func (s *StandaloneWebDriverSuite) TestShouldPromptToRedirectAfterFirstMFAEnrollment() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	username := "harry"
+	password := "password"
+	targetURL := fmt.Sprintf("%s/secret.html", SecureBaseURL)
+
+	// Clean up any TOTP secret already in DB.
+	provider, err := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	require.NoError(s.T(), err)
+
+	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
+
+	// Visiting a resource that requires 2FA while unauthenticated lands on the login page with rd set; logging in
+	// with only one factor then lands on the second factor page with rd preserved.
+	s.doLoginOneFactor(s.T(), s.Context(ctx), username, password, false, BaseDomain, targetURL)
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+
+	// Clicking register navigates to the settings page, preserving rd.
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "register-link")
+
+	credential := s.GetOneTimePassword(username)
+
+	s.doRegisterTOTPStart(s.T(), s.Context(ctx), username)
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "dialog-next")
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "qr-toggle")
+
+	values := s.doWaitSecretURL(s.T(), s.Context(ctx)).Query()
+
+	credential.Secret = values.Get("secret")
+
+	algorithm := otp.AlgorithmSHA1
+
+	switch strings.ToUpper(values.Get("algorithm")) {
+	case SHA1:
+		algorithm = otp.AlgorithmSHA1
+	case SHA256:
+		algorithm = otp.AlgorithmSHA256
+	case SHA512:
+		algorithm = otp.AlgorithmSHA512
+	}
+
+	period, err := strconv.ParseUint(values.Get("period"), 10, 32)
+	require.NoError(s.T(), err)
+
+	digits, err := strconv.ParseInt(values.Get("digits"), 10, 32)
+	require.NoError(s.T(), err)
+
+	credential.ValidationOptions = totp.ValidateOpts{
+		Period:    uint(period),
+		Skew:      1,
+		Digits:    otp.Digits(digits),
+		Algorithm: algorithm,
+	}
+
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "dialog-next")
+
+	s.doRegisterTOTPFinish(s.T(), s.Context(ctx), username, credential)
+
+	// This was the user's first MFA device while rd was set, so the redirect prompt should appear.
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "dialog-continue")
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "dialog-continue")
+
+	s.verifyURLIs(s.T(), s.Context(ctx), targetURL)
 }
 
 type StandaloneSuite struct {
