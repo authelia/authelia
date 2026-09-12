@@ -1,13 +1,9 @@
-# SPDX-FileCopyrightText: 2026 Authelia
-#
-# SPDX-License-Identifier: Apache-2.0
-
 allowBuilds:
   esbuild: true
   sharp: true
 overrides:
   "@babel/traverse": 8.0.4
-  baseline-browser-mapping: 2.11.21
+  baseline-browser-mapping: 2.11.22
   fast-uri: 4.1.4
   next: 16.3.4
   postcss: 8.5.28
