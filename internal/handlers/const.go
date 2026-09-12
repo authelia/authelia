@@ -59,9 +59,10 @@ const (
 	queryArgState                 = oidc.FormParameterState
 	queryArgCode                  = "code"
 	queryArgISS                   = "iss"
-	queryArgError                 = "error"
-	queryArgErrorDescription      = "error_description"
-	queryArgErrorHint             = "error_hint"
+	queryArgError                 = oidc.FrontendQueryArgError
+	queryArgErrorDescription      = oidc.FrontendQueryArgErrorDescription
+	queryArgErrorHint             = oidc.FrontendQueryArgErrorHint
+	queryArgErrorDebug            = oidc.FrontendQueryArgErrorDebug
 	queryArgLinkProvider          = "link_provider"
 	queryArgExternalIdentityError = "external_identity_error"
 )
