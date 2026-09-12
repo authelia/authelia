@@ -42,8 +42,6 @@ const TwoFactorAuthenticationView = function () {
     const hadDevicesBeforeRef = useRef<boolean | null>(null);
     const pendingRegistrationSuccessRef = useRef(false);
 
-    // Track whether the user had any MFA devices when the view first loaded.
-    // This lets us detect "first device" registration.
     useEffect(() => {
         if (!userInfo || hadDevicesBeforeRef.current !== null) {
             return;
