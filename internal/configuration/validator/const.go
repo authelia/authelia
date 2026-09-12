@@ -455,6 +455,7 @@ const (
 	errFmtServerEndpointsAuthzInvalidName               = "server: endpoints: authz: %s: contains invalid characters"
 
 	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"
+	errFmtServerEndpointsAuthzLegacyHeadersCookieSession  = "server: endpoints: authz: %s: headers: option 'cookie_session' can't be enabled for an endpoint with the '%s' implementation"
 )
 
 const (

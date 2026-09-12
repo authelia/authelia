@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // MethodList is the list of available methods.
@@ -230,3 +232,51 @@ type handlerAuthorizationConsent func(
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
 	requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool)
+
+// NewCookies creates a new Cookies from the raw value of a Cookie header.
+func NewCookies(raw []byte) (cookies Cookies) {
+	if len(raw) == 0 {
+		return nil
+	}
+
+	values := strings.Split(string(raw), ";")
+
+	cookies = make(Cookies, 0, len(values))
+
+	for _, value := range values {
+		if value = strings.TrimSpace(value); value == "" {
+			continue
+		}
+
+		name, val, _ := strings.Cut(value, "=")
+
+		cookies = append(cookies, Cookie{Name: name, Value: val})
+	}
+
+	return cookies
+}
+
+// Cookie is an individual cookie pair from a Cookie header.
+type Cookie struct {
+	Name  string
+	Value string
+}
+
+// Cookies is an ordered representation of provided Cookies that can be encoded using standard semantics.
+type Cookies []Cookie
+
+// Encode the Cookies in the format relevant for a Cookie header, omitting any cookie whose name matches one of the
+// given skip values. The original order of the cookies is preserved.
+func (c Cookies) Encode(skip ...string) string {
+	parts := make([]string, 0, len(c))
+
+	for _, cookie := range c {
+		if utils.IsStringInSlice(cookie.Name, skip) {
+			continue
+		}
+
+		parts = append(parts, cookie.Name+"="+cookie.Value)
+	}
+
+	return strings.Join(parts, "; ")
+}

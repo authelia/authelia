@@ -40,7 +40,7 @@ type Authz struct {
 type HandlerAuthzUnauthorized func(ctx AuthzContext, authn *Authn, redirectionURL *url.URL)
 
 // HandlerAuthzAuthorized is a Authz handler func that handles authorized responses.
-type HandlerAuthzAuthorized func(ctx AuthzContext, authn *Authn)
+type HandlerAuthzAuthorized func(ctx AuthzContext, manager session.Manager, authn *Authn)
 
 // HandlerAuthzGetAutheliaURL is a Authz handler func that handles retrieval of the Portal URL.
 type HandlerAuthzGetAutheliaURL func(ctx AuthzContext) (portalURL *url.URL, err error)
@@ -100,6 +100,8 @@ type AuthzConfig struct {
 	// StatusCodeBadRequest is sent for configuration issues prior to performing authorization checks. It's set by the
 	// builder.
 	StatusCodeBadRequest int
+
+	CookieHeader bool
 }
 
 // AuthzBuilder is a builder pattern for the Authz type.
