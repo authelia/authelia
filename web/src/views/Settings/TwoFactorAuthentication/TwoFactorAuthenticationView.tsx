@@ -54,7 +54,6 @@ const TwoFactorAuthenticationView = function () {
 
             if (hadDevicesBeforeRef.current === false) {
                 setRedirectDialogOpen(true);
-                // Mark so we don't show again for subsequent registrations in the same session.
                 hadDevicesBeforeRef.current = true;
             }
         }
