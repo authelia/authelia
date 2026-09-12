@@ -140,7 +140,7 @@ func oidcConformanceLogServices(mongodbHost string) (services []string) {
 		services = append(services, "conformance-mongodb")
 	}
 
-	return append(services, "conformance-server", "conformance-nginx")
+	return append(services, "conformance-server")
 }
 
 func oidcConformanceWriteYAML(path string, value any) (err error) {

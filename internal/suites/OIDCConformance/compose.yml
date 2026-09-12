@@ -34,23 +34,6 @@ services:
     expose:
       - 8080
     networks:
-      authelianet:
-        aliases:
-          # The published nginx image proxies to http://server:8080 and that configuration is baked in.
-          - 'server'
+      authelianet: {}
 
-  conformance-nginx:
-    image: 'registry.gitlab.com/openid/conformance-suite/nginx:release-v5.2.4'
-    cpus: 1
-    mem_limit: 512m
-    depends_on:
-      - 'conformance-server'
-    volumes:
-      - './common/pki/public.chain.pem:/etc/ssl/certs/nginx-selfsigned.crt'
-      - './common/pki/private.pem:/etc/ssl/private/nginx-selfsigned.key'
-    networks:
-      authelianet:
-        aliases:
-          - 'conformance.example.com'
-        ipv4_address: ${SUITE_SUBNET:-192.168.240}.140
 ...
