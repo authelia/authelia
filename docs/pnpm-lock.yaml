@@ -163,7 +163,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  adm-zip: 0.6.0
+  adm-zip: 0.6.1
   brace-expansion: 5.0.9
   picomatch: 4.0.7
   semver: 7.8.5
@@ -1168,8 +1168,8 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  adm-zip@0.6.0:
-    resolution: {integrity: sha512-XleryMhbuksdKtofnWZ9Sk+4CUTbms4Mb/EU32SZwToAyZ5RgVos/ki8n+yr0LWHOGKuakbXTuuYNHLQjhddgg==}
+  adm-zip@0.6.1:
+    resolution: {integrity: sha512-Xwrja8nx9e5o2N1my4DsKCeKpdrnACyr1wtbPxBDgGzKzKyE9kRtBFA8mWldI+RVlD7CBZNWY/wQ2+ydwOR6kQ==}
     engines: {node: '>=14.0'}
 
   ajv@6.15.0:
@@ -3508,7 +3508,7 @@ snapshots:
 
   acorn@8.18.0: {}
 
-  adm-zip@0.6.0:
+  adm-zip@0.6.1:
     optional: true
 
   ajv@6.15.0:
@@ -3913,7 +3913,7 @@ snapshots:
 
   hugo-extended@0.165.0:
     dependencies:
-      adm-zip: 0.6.0
+      adm-zip: 0.6.1
       tar: 7.5.22
     optional: true
 
