@@ -355,4 +355,18 @@ describe("redirect after enrollment", () => {
         expect(mockRedirectDialogProps).not.toHaveBeenCalled();
         expect(screen.getByTestId("redirect-dialog")).toBeInTheDocument();
     });
+
+    it("replays a registration success that happens before user info resolves", () => {
+        mocks.userInfo = undefined;
+
+        const { rerender } = render(<TwoFactorAuthenticationView />);
+
+        fireEvent.click(screen.getByTestId("otp-register-success"));
+        expect(screen.queryByTestId("redirect-dialog")).not.toBeInTheDocument();
+
+        mocks.userInfo = { ...userInfo, has_totp: false, has_webauthn: false };
+        rerender(<TwoFactorAuthenticationView />);
+
+        expect(screen.getByTestId("redirect-dialog")).toBeInTheDocument();
+    });
 });

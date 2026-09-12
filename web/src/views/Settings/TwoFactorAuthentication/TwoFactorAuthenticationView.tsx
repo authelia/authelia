@@ -40,16 +40,37 @@ const TwoFactorAuthenticationView = function () {
 
     const [redirectDialogOpen, setRedirectDialogOpen] = useState(false);
     const hadDevicesBeforeRef = useRef<boolean | null>(null);
+    // Set when a registration succeeds before hadDevicesBeforeRef is known, so it can be replayed once userInfo resolves.
+    const pendingRegistrationSuccessRef = useRef(false);
 
     // Track whether the user had any MFA devices when the view first loaded.
     // This lets us detect "first device" registration.
     useEffect(() => {
-        if (userInfo && hadDevicesBeforeRef.current === null) {
-            hadDevicesBeforeRef.current = userInfo.has_totp || userInfo.has_webauthn;
+        if (!userInfo || hadDevicesBeforeRef.current !== null) {
+            return;
+        }
+
+        hadDevicesBeforeRef.current = userInfo.has_totp || userInfo.has_webauthn;
+
+        if (pendingRegistrationSuccessRef.current) {
+            pendingRegistrationSuccessRef.current = false;
+
+            if (hadDevicesBeforeRef.current === false) {
+                setRedirectDialogOpen(true);
+                // Mark so we don't show again for subsequent registrations in the same session.
+                hadDevicesBeforeRef.current = true;
+            }
         }
     }, [userInfo]);
 
     const handleRegistrationSuccess = useCallback(() => {
+        if (hadDevicesBeforeRef.current === null) {
+            // userInfo hasn't resolved yet; defer the decision until it does.
+            pendingRegistrationSuccessRef.current = true;
+
+            return;
+        }
+
         if (hadDevicesBeforeRef.current === false) {
             setRedirectDialogOpen(true);
             // Mark so we don't show again for subsequent registrations in the same session.
