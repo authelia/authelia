@@ -317,7 +317,19 @@ const (
 	FrontendEndpointPathConsent                    = "/consent/openid"
 	FrontendEndpointPathConsentDecision            = FrontendEndpointPathConsent + "/decision"
 	FrontendEndpointPathConsentDeviceAuthorization = FrontendEndpointPathConsent + "/" + EndpointDeviceAuthorization
+)
 
+// Query parameters of the frontend consent completion endpoint.
+const (
+	FrontendQueryArgError            = "error"
+	FrontendQueryArgErrorDescription = "error_description"
+	FrontendQueryArgErrorStatusCode  = "error_status_code"
+	FrontendQueryArgErrorHint        = "error_hint"
+	FrontendQueryArgErrorDebug       = "error_debug"
+)
+
+// Paths.
+const (
 	EndpointPathWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
 	EndpointPathWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
 	EndpointPathJWKs                              = "/jwks.json"
