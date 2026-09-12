@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +15,7 @@ import { useUserInfoTOTPConfigurationOptional } from "@hooks/UserInfoTOTPConfigu
 import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
 import { SecondFactorMethod } from "@models/Methods";
 import OneTimePasswordPanel from "@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel";
+import RedirectAfterEnrollmentDialog from "@views/Settings/TwoFactorAuthentication/RedirectAfterEnrollmentDialog";
 import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
 import WebAuthnCredentialsDisabledPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsDisabledPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
@@ -36,6 +37,25 @@ const TwoFactorAuthenticationView = function () {
 
     const hasTOTP = userInfo?.has_totp ?? false;
     const hasWebAuthn = userInfo?.has_webauthn ?? false;
+
+    const [redirectDialogOpen, setRedirectDialogOpen] = useState(false);
+    const hadDevicesBeforeRef = useRef<boolean | null>(null);
+
+    // Track whether the user had any MFA devices when the view first loaded.
+    // This lets us detect "first device" registration.
+    useEffect(() => {
+        if (userInfo && hadDevicesBeforeRef.current === null) {
+            hadDevicesBeforeRef.current = userInfo.has_totp || userInfo.has_webauthn;
+        }
+    }, [userInfo]);
+
+    const handleRegistrationSuccess = useCallback(() => {
+        if (hadDevicesBeforeRef.current === false) {
+            setRedirectDialogOpen(true);
+            // Mark so we don't show again for subsequent registrations in the same session.
+            hadDevicesBeforeRef.current = true;
+        }
+    }, []);
 
     const handleRefreshWebAuthnState = () => {
         setRefreshState((refreshState) => refreshState + 1);
@@ -148,6 +168,7 @@ const TwoFactorAuthenticationView = function () {
                         info={userInfo}
                         config={userTOTPConfig}
                         handleRefreshState={handleRefreshTOTPState}
+                        onRegistrationSuccess={handleRegistrationSuccess}
                     />
                 </div>
             ) : null}
@@ -158,6 +179,7 @@ const TwoFactorAuthenticationView = function () {
                             info={userInfo}
                             credentials={userWebAuthnCredentials}
                             handleRefreshState={handleRefreshWebAuthnState}
+                            onRegistrationSuccess={handleRegistrationSuccess}
                         />
                     ) : (
                         <WebAuthnCredentialsDisabledPanel />
@@ -173,6 +195,7 @@ const TwoFactorAuthenticationView = function () {
                     />
                 </div>
             ) : null}
+            <RedirectAfterEnrollmentDialog open={redirectDialogOpen} setClosed={() => setRedirectDialogOpen(false)} />
         </div>
     );
 };
