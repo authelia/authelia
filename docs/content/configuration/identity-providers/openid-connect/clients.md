@@ -1218,6 +1218,51 @@ Per the text:
 The client MUST NOT use more than one authentication method in each request.
 {{< /callout >}}
 
+### client_assertion_jwt_validation_header_allow_empty_type
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Enabling this option is insecure and should only be used when a client cannot be configured to send the JWT `typ`
+header. Explicit typing guards a client assertion against being confused with another JWT issued for a different
+purpose.
+{{< /callout >}}
+
+Permits this client to send [Client Assertions] which omit the JWT `typ` header entirely. By default Authelia requires
+the header to be present.
+
+This is an escape hatch for clients which do not implement
+[RFC7523bis: Section 4](https://www.ietf.org/archive/id/draft-ietf-oauth-rfc7523bis-03.html#section-4).
+
+### client_assertion_jwt_validation_header_allow_types
+
+{{< confkey type="list(string)" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Including the generic `JWT` type is insecure and should only be used when a client cannot be configured to send the
+explicit `client-authentication+jwt` type. The generic type does not distinguish a client assertion from another JWT.
+{{< /callout >}}
+
+The JWT `typ` header values this client is permitted to send [Client Assertions] with. When unconfigured this defaults
+to only the explicit `client-authentication+jwt` type described by
+[RFC7523bis: Section 4](https://www.ietf.org/archive/id/draft-ietf-oauth-rfc7523bis-03.html#section-4).
+
+This is an escape hatch for clients which send another value. Most notably many JWT libraries default to the generic
+`JWT` type, which requires the following configuration:
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    clients:
+      - client_id: 'example'
+        client_assertion_jwt_validation_header_allow_types:
+          - 'client-authentication+jwt'
+          - 'JWT'
+```
+
+Note that configuring this option replaces the default rather than adding to it, so the explicit
+`client-authentication+jwt` type must be listed if it should remain permitted.
+
 ### jwks_uri
 
 {{< confkey type="string" required="situational" >}}
@@ -1368,5 +1413,6 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
+[Client Assertions]: https://datatracker.ietf.org/doc/html/rfc7523#section-2.2
 [jwks]: provider.md#jwks
 [JSON Web Key]: provider.md#jwks
