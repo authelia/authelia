@@ -218,7 +218,13 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
+	// TODO: The 'sid' claim identifies the End-User session at this provider. It's required by OpenID Connect
+	// Back-Channel Logout 1.0 to end a single session rather than every session belonging to the subject, and
+	// clients which register 'backchannel_logout_session_required' are only notified when it's present. The user
+	// session does not yet carry a stable identifier to supply here. See the session rewrite.
+	sid := ""
+
+	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, sid, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
 	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
 		session.Claims.Audience = append([]string{client.GetID()}, oauthelia2.JoinGrantedAudienceAndResource(requester.GetGrantedAudience(), requester.GetGrantedResource())...)

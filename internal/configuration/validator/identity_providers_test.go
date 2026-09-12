@@ -1844,6 +1844,122 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldNotRaiseErrorOnValidBackChannelLogoutURI",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "https://app.example.com/logout/backchannel"
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, "https://app.example.com/logout/backchannel", have.Clients[0].BackChannelLogoutURI)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldNotRaiseErrorOnAbsentBackChannelLogoutURIWithSessionRequired",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutSessionRequired = true
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Empty(t, have.Clients[0].BackChannelLogoutURI)
+				assert.True(t, have.Clients[0].BackChannelLogoutSessionRequired)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURIMalformedURI",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "http://abc@%two"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'http://abc@%two' could not be parsed: parse \"http://abc@%two\": invalid URL escape \"%tw\"",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURINotAbsolute",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "app.example.com/logout/backchannel"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'app.example.com/logout/backchannel' must have a scheme but it's absent",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidBackChannelLogoutURIWithFragment",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].BackChannelLogoutURI = "https://app.example.com/logout/backchannel#fragment"
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'backchannel_logout_uri' has an invalid value: backchannel logout uri 'https://app.example.com/logout/backchannel#fragment' must not have a fragment but it has a 'fragment' fragment",
+			},
+		},
+		{
 			"ShouldNotSetDefaultTokenEndpointClientAuthMethodConfidentialClientType",
 			nil,
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {

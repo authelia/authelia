@@ -285,6 +285,13 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 			},
 		},
 		OpenIDConnectRPInitiatedLogoutDiscoveryOptions: &OpenIDConnectRPInitiatedLogoutDiscoveryOptions{},
+		OpenIDConnectBackChannelLogoutDiscoveryOptions: &OpenIDConnectBackChannelLogoutDiscoveryOptions{
+			BackChannelLogoutSupported: true,
+
+			// TODO: Set to true once this provider tracks a session identifier it can include as the 'sid' claim
+			// in both ID Tokens and Logout Tokens. See the session rewrite.
+			BackChannelLogoutSessionSupported: false,
+		},
 	}
 
 	if c.EnablePKCEPlainChallenge {

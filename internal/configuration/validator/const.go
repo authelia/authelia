@@ -258,6 +258,14 @@ const (
 	errFmtOIDCClientPostLogoutRedirectURIFragment = errFmtOIDCClientPostLogoutRedirectURIHas +
 		"an invalid value: post logout redirect uri '%s' must not have a fragment but it has a '%s' fragment"
 
+	errFmtOIDCClientBackChannelLogoutURIHas          = errFmtOIDCClientOption + "'backchannel_logout_uri' has "
+	errFmtOIDCClientBackChannelLogoutURICantBeParsed = errFmtOIDCClientBackChannelLogoutURIHas +
+		"an invalid value: backchannel logout uri '%s' could not be parsed: %v"
+	errFmtOIDCClientBackChannelLogoutURIAbsolute = errFmtOIDCClientBackChannelLogoutURIHas +
+		"an invalid value: backchannel logout uri '%s' must have a scheme but it's absent"
+	errFmtOIDCClientBackChannelLogoutURIFragment = errFmtOIDCClientBackChannelLogoutURIHas +
+		"an invalid value: backchannel logout uri '%s' must not have a fragment but it has a '%s' fragment"
+
 	errFmtOIDCClientRequestURIHas          = errFmtOIDCClientOption + "'request_uris' has "
 	errFmtOIDCClientRequestURICantBeParsed = errFmtOIDCClientRequestURIHas +
 		"an invalid value: request uri '%s' could not be parsed: %v"

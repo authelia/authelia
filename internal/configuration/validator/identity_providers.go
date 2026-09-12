@@ -739,6 +739,7 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDCClientGrantTypes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientRedirectURIs(c, config, validator, errDeprecatedFunc)
 	validateOIDCClientPostLogoutRedirectURIs(c, config, validator, errDeprecatedFunc)
+	validateOIDCClientBackChannelLogoutURI(c, config, validator)
 	validateOIDCClientRequestURIs(c, config, validator)
 
 	validateOIDDClientSigningAlgs(c, config, validator)
@@ -1339,6 +1340,42 @@ func validateOIDCClientPostLogoutRedirectURIs(c int, config *schema.IdentityProv
 		errDeprecatedFunc()
 
 		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCPostLogoutRedirectURIs, utils.StringJoinAnd(duplicates)))
+	}
+}
+
+// validateOIDCClientBackChannelLogoutURI validates the 'backchannel_logout_uri' client metadata used by OpenID
+// Connect Back-Channel Logout 1.0. The URI is requested by this provider rather than the User Agent, so it must
+// be absolute, and the specification forbids a fragment.
+//
+// The 'backchannel_logout_session_required' option is deliberately not validated here. A client which requires
+// the 'sid' claim is skipped at delivery time with a logged reason while this provider has no session identifier
+// to supply, which makes the configuration ineffective rather than invalid.
+func validateOIDCClientBackChannelLogoutURI(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	uri := config.Clients[c].BackChannelLogoutURI
+
+	if uri == "" {
+		return
+	}
+
+	var (
+		parsed *url.URL
+		err    error
+	)
+
+	if parsed, err = url.Parse(uri); err != nil {
+		validator.Push(fmt.Errorf(errFmtOIDCClientBackChannelLogoutURICantBeParsed, config.Clients[c].ID, uri, err))
+
+		return
+	}
+
+	if !parsed.IsAbs() || parsed.Scheme == "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientBackChannelLogoutURIAbsolute, config.Clients[c].ID, uri))
+
+		return
+	}
+
+	if parsed.Fragment != "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientBackChannelLogoutURIFragment, config.Clients[c].ID, uri, parsed.Fragment))
 	}
 }
 

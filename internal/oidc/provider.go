@@ -104,3 +104,29 @@ func (p *OpenIDConnectProvider) NewRPInitiatedLogoutRequest(ctx context.Context,
 
 	return provider.NewRPInitiatedLogoutRequest(ctx, r)
 }
+
+// BackChannelLogoutProvider is implemented by an oauthelia2.Provider which supports delivering Logout Tokens to
+// Relying Parties as per OpenID Connect Back-Channel Logout 1.0.
+type BackChannelLogoutProvider interface {
+	SendBackChannelLogout(ctx context.Context, requester oauthelia2.BackChannelLogoutRequester) (results []oauthelia2.BackChannelLogoutResult, err error)
+}
+
+// SendBackChannelLogout delivers a Logout Token to each of the clients named by the requester, as per OpenID
+// Connect Back-Channel Logout 1.0.
+//
+// The clients are supplied by the caller: neither this provider nor the underlying library records which clients
+// participated in a session, and neither ends any session. Delivery is best effort, so a Relying Party which is
+// unreachable or which rejects its Logout Token is reported in its own result rather than failing the call. Only
+// whole-operation failures are returned as err, and a result is returned for every client supplied, in the order
+// supplied.
+//
+// OpenID Connect Back-Channel Logout 1.0 (https://openid.net/specs/openid-connect-backchannel-1_0.html)
+func (p *OpenIDConnectProvider) SendBackChannelLogout(ctx context.Context, requester oauthelia2.BackChannelLogoutRequester) (results []oauthelia2.BackChannelLogoutResult, err error) {
+	provider, ok := p.Provider.(BackChannelLogoutProvider)
+	if !ok {
+		return nil, oauthelia2.ErrServerError.
+			WithDebug("The OpenID Connect 1.0 Provider does not support Back-Channel Logout.")
+	}
+
+	return provider.SendBackChannelLogout(ctx, requester)
+}

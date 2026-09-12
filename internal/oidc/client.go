@@ -33,9 +33,13 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		RedirectURIs:           config.RedirectURIs,
 		RequestURIs:            config.RequestURIs,
 		PostLogoutRedirectURIs: config.PostLogoutRedirectURIs,
-		GrantTypes:             config.GrantTypes,
-		ResponseTypes:          config.ResponseTypes,
-		ResponseModes:          []oauthelia2.ResponseModeType{},
+
+		BackChannelLogoutURI:             config.BackChannelLogoutURI,
+		BackChannelLogoutSessionRequired: config.BackChannelLogoutSessionRequired,
+
+		GrantTypes:    config.GrantTypes,
+		ResponseTypes: config.ResponseTypes,
+		ResponseModes: []oauthelia2.ResponseModeType{},
 
 		ClaimsStrategy: NewCustomClaimsStrategyFromClient(config, c.Scopes, c.ClaimsPolicies),
 
@@ -188,6 +192,21 @@ func (c *RegisteredClient) GetRedirectURIs() (redirectURIs []string) {
 // GetPostLogoutRedirectURIs returns the PostLogoutRedirectURIs.
 func (c *RegisteredClient) GetPostLogoutRedirectURIs() (redirectURIs []string) {
 	return c.PostLogoutRedirectURIs
+}
+
+// GetBackChannelLogoutURI returns the BackChannelLogoutURI. A client with no URI registered does not participate
+// in OpenID Connect Back-Channel Logout 1.0 and is skipped when Logout Tokens are delivered.
+func (c *RegisteredClient) GetBackChannelLogoutURI() (uri string) {
+	return c.BackChannelLogoutURI
+}
+
+// GetBackChannelLogoutSessionRequired returns the BackChannelLogoutSessionRequired value which indicates the
+// client requires the 'sid' claim in the Logout Tokens delivered to it.
+//
+// TODO: A client which requires the 'sid' claim is always skipped until this provider tracks a session identifier
+// it can supply. See the session rewrite.
+func (c *RegisteredClient) GetBackChannelLogoutSessionRequired() (required bool) {
+	return c.BackChannelLogoutSessionRequired
 }
 
 // GetGrantTypes returns the GrantTypes.
