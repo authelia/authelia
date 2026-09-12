@@ -22,6 +22,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -378,6 +379,10 @@ func TestResetPasswordPOST(t *testing.T) {
 						GetDetails(testUsername).
 						Return(nil, fmt.Errorf("failed to get details")),
 				)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserPassword(events.TypeUserPasswordReset, false))).
+					Times(1)
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
@@ -407,6 +412,11 @@ func TestResetPasswordPOST(t *testing.T) {
 						GetDetails(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName}, nil),
 				)
+
+				// The password was still reset, so the event is emitted with the notification recorded as not sent.
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserPassword(events.TypeUserPasswordReset, false))).
+					Times(1)
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,
@@ -434,6 +444,9 @@ func TestResetPasswordPOST(t *testing.T) {
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: testEmail}, "Password changed successfully", gomock.Any(), gomock.Any()).
 						Return(fmt.Errorf("failed to notify")),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserPassword(events.TypeUserPasswordReset, false))),
 				)
 			},
 			`{"status":"OK"}`,
@@ -470,6 +483,9 @@ func TestResetPasswordPOST(t *testing.T) {
 							BodySuffix:  eventEmailActionPasswordModifySuffix,
 						}).
 						Return(nil),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserPassword(events.TypeUserPasswordReset, true))),
 				)
 			},
 			``,
