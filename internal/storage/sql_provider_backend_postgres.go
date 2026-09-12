@@ -197,6 +197,13 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
 
+	provider.sqlInsertOAuth2SessionID = provider.db.Rebind(provider.sqlInsertOAuth2SessionID)
+	provider.sqlSelectOAuth2SessionIDBySector = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDBySector)
+	provider.sqlSelectOAuth2SessionIDBySessionID = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDBySessionID)
+	provider.sqlSelectOAuth2SessionIDsOldest = provider.db.Rebind(provider.sqlSelectOAuth2SessionIDsOldest)
+	provider.sqlDeleteOAuth2SessionID = provider.db.Rebind(provider.sqlDeleteOAuth2SessionID)
+	provider.sqlDeleteOAuth2SessionIDByPublicID = provider.db.Rebind(provider.sqlDeleteOAuth2SessionIDByPublicID)
+
 	provider.schema = config.Storage.PostgreSQL.Schema
 
 	return provider, nil

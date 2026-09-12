@@ -66,6 +66,11 @@ type Strategy interface {
 	// GetConfig returns the session cookie configuration this Strategy was constructed with.
 	GetConfig() (config schema.SessionCookie)
 
+	// GetIssuer returns the issuer this Strategy keys its Repository entries by, which is the signature of the
+	// Authelia URL, falling back to the cookie domain when no Authelia URL is configured. Consumers which persist
+	// a reference to a session need it to resolve that reference later.
+	GetIssuer() (issuer string)
+
 	// New returns a session for the given username bound to the cookie domain of this Strategy. Naming the user at
 	// construction is the only supported way to give a session a username, as changing it on an existing session would
 	// hand the session of one user to another.
@@ -117,7 +122,9 @@ type Repository interface {
 
 	// GetByPublicID returns the session record stored against the public identifier for the issuer. The record carries
 	// the identifier it is stored against, which the caller requires to open it and can't derive from the public
-	// identifier.
+	// identifier. As with Get, a nil record without an error means there is no such session or it has expired; a
+	// consumer using that to decide whether the session is definitively gone, such as the OpenID Connect session id
+	// garbage collector, depends on this being returned only when the backend genuinely has no record, never on error.
 	GetByPublicID(ctx context.Context, issuer string, pid string) (record Record, err error)
 
 	// GetIDsByUsername returns the identifiers of every session of the given username for the issuer, which allows the

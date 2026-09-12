@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { signOut } from "@services/SignOut";
+import { cancelSignOut, getSignOutPending, signOut } from "@services/SignOut";
 import SignOut from "@views/LoginPortal/SignOut/SignOut";
 
 const mocks = vi.hoisted(() => ({
@@ -16,7 +16,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("react-i18next", () => ({
-    useTranslation: () => ({ t: (key: string) => key }),
+    useTranslation: () => ({
+        t: (key: string, options?: Record<string, string>) =>
+            options ? key.replace(/{{(\w+)}}/g, (_, name: string) => options[name] ?? "") : key,
+    }),
 }));
 
 vi.mock("react-router", () => ({
@@ -28,6 +31,7 @@ vi.mock("@constants/Routes", () => ({
 }));
 
 vi.mock("@constants/SearchParams", () => ({
+    FlowID: "flow_id",
     RedirectionRestoreURL: "rd_restore",
     RedirectionURL: "rd",
 }));
@@ -55,9 +59,13 @@ vi.mock("@layouts/MinimalLayout", () => ({
 }));
 
 vi.mock("@services/SignOut", () => ({
+    cancelSignOut: vi.fn(),
+    getSignOutPending: vi.fn(),
     signOut: vi.fn(),
 }));
 
+const cancelSignOutMock = vi.mocked(cancelSignOut);
+const getSignOutPendingMock = vi.mocked(getSignOutPending);
 const signOutMock = vi.mocked(signOut);
 
 async function advance(ms: number) {
@@ -73,6 +81,8 @@ beforeEach(() => {
     mocks.redirectionURL = null;
     mocks.searchParams = new URLSearchParams();
     signOutMock.mockResolvedValue({ safeTargetURL: false } as any);
+    getSignOutPendingMock.mockResolvedValue({ pending: false });
+    cancelSignOutMock.mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -84,8 +94,8 @@ describe("rendering", () => {
     it("renders sign out message", async () => {
         render(<SignOut />);
 
-        expect(screen.getByText(/You're being signed out and redirected/)).toBeInTheDocument();
         await waitFor(() => expect(signOutMock).toHaveBeenCalled());
+        expect(screen.getByText(/You're being signed out and redirected/)).toBeInTheDocument();
     });
 
     it("signs out with the redirection URL", async () => {
@@ -208,5 +218,149 @@ describe("failures", () => {
         await advance(2000);
 
         expect(mocks.navigate).not.toHaveBeenCalled();
+    });
+});
+
+describe("confirmation without a flow", () => {
+    it("signs out immediately without checking for a pending logout", async () => {
+        render(<SignOut />);
+
+        await waitFor(() => expect(signOutMock).toHaveBeenCalledWith(null, expect.anything()));
+        expect(getSignOutPendingMock).not.toHaveBeenCalled();
+        expect(screen.queryByText(/Are you sure you want to sign out\?/)).not.toBeInTheDocument();
+    });
+
+    it("never asks for confirmation even when the server has a logout pending", async () => {
+        getSignOutPendingMock.mockResolvedValue({ clientID: "app", pending: true });
+
+        render(<SignOut />);
+
+        await waitFor(() => expect(signOutMock).toHaveBeenCalled());
+        expect(screen.queryByText("Cancel")).not.toBeInTheDocument();
+    });
+});
+
+describe("confirmation with a flow", () => {
+    beforeEach(() => {
+        mocks.searchParams = new URLSearchParams({ flow_id: "flow-1" });
+    });
+
+    it("signs out immediately when the flow's logout is no longer pending", async () => {
+        render(<SignOut />);
+
+        await waitFor(() => expect(signOutMock).toHaveBeenCalledWith(null, expect.anything()));
+        expect(getSignOutPendingMock).toHaveBeenCalledWith("flow-1", expect.anything());
+        expect(screen.queryByText(/Are you sure you want to sign out\?/)).not.toBeInTheDocument();
+    });
+
+    it("does not sign out before it knows whether the logout is pending", async () => {
+        getSignOutPendingMock.mockReturnValue(new Promise(() => {}));
+
+        render(<SignOut />);
+
+        await waitFor(() => expect(getSignOutPendingMock).toHaveBeenCalled());
+        expect(signOutMock).not.toHaveBeenCalled();
+        expect(screen.queryByText("Sign out")).not.toBeInTheDocument();
+    });
+
+    it("asks for confirmation when the logout is pending", async () => {
+        getSignOutPendingMock.mockResolvedValue({ clientID: "app", clientName: "My App", pending: true });
+
+        render(<SignOut />);
+
+        expect(await screen.findByText(/Are you sure you want to sign out\?/)).toBeInTheDocument();
+        expect(screen.getByText(/My App has requested that you sign out/)).toBeInTheDocument();
+        expect(signOutMock).not.toHaveBeenCalled();
+    });
+
+    it("names the client by its identifier when it has no name", async () => {
+        getSignOutPendingMock.mockResolvedValue({ clientID: "app", pending: true });
+
+        render(<SignOut />);
+
+        expect(await screen.findByText(/app has requested that you sign out/)).toBeInTheDocument();
+    });
+
+    it("asks for confirmation when it can't determine whether the logout is pending", async () => {
+        getSignOutPendingMock.mockRejectedValue(new Error("boom"));
+
+        render(<SignOut />);
+
+        expect(await screen.findByText(/Are you sure you want to sign out\?/)).toBeInTheDocument();
+        expect(signOutMock).not.toHaveBeenCalled();
+    });
+
+    it("signs out with the flow once the confirmation is accepted", async () => {
+        getSignOutPendingMock.mockResolvedValue({ clientID: "app", pending: true });
+
+        render(<SignOut />);
+
+        const button = await screen.findByText("Sign out");
+
+        await act(async () => {
+            fireEvent.click(button);
+        });
+
+        await waitFor(() => expect(signOutMock).toHaveBeenCalledWith(null, expect.anything(), "flow-1"));
+        expect(screen.getByText(/You're being signed out and redirected/)).toBeInTheDocument();
+    });
+
+    it("redirects to the URL the server returns once signed out", async () => {
+        vi.useFakeTimers();
+        getSignOutPendingMock.mockResolvedValue({ clientID: "app", pending: true });
+        signOutMock.mockResolvedValue({
+            redirectURL: "https://app.example.com/logged-out?state=abc",
+            safeTargetURL: false,
+        });
+
+        render(<SignOut />);
+
+        const button = await vi.waitFor(() => screen.getByText("Sign out"));
+
+        await act(async () => {
+            fireEvent.click(button);
+        });
+
+        await vi.waitFor(() => expect(signOutMock).toHaveBeenCalled());
+
+        await advance(2000);
+
+        expect(mocks.redirector).toHaveBeenCalledWith("https://app.example.com/logged-out?state=abc");
+        expect(mocks.navigate).not.toHaveBeenCalled();
+    });
+
+    it("cancels the flow's logout and stays signed in when the confirmation is rejected", async () => {
+        getSignOutPendingMock.mockResolvedValue({ clientID: "app", pending: true });
+
+        render(<SignOut />);
+
+        const button = await screen.findByText("Cancel");
+
+        await act(async () => {
+            fireEvent.click(button);
+        });
+
+        await waitFor(() => expect(cancelSignOutMock).toHaveBeenCalledWith("flow-1"));
+        expect(signOutMock).not.toHaveBeenCalled();
+        expect(mocks.navigate).toHaveBeenCalledWith("/");
+        expect(mocks.redirector).not.toHaveBeenCalled();
+    });
+
+    it("notifies when cancelling fails but still leaves the page", async () => {
+        getSignOutPendingMock.mockResolvedValue({ clientID: "app", pending: true });
+        cancelSignOutMock.mockRejectedValue(new Error("boom"));
+
+        render(<SignOut />);
+
+        const button = await screen.findByText("Cancel");
+
+        await act(async () => {
+            fireEvent.click(button);
+        });
+
+        await waitFor(() =>
+            expect(mocks.createErrorNotification).toHaveBeenCalledWith("There was an issue cancelling the sign out"),
+        );
+        expect(mocks.navigate).toHaveBeenCalledWith("/");
     });
 });

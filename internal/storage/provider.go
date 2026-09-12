@@ -301,6 +301,27 @@ type Provider interface {
 	LoadOAuth2BlacklistedJTI(ctx context.Context, signature string) (blacklistedJTI *model.OAuth2BlacklistedJTI, err error)
 
 	/*
+		Implementation for OAuth2.0 Session ID's.
+	*/
+
+	// GetOrCreateOAuth2SessionID returns the session id mapping for the issuer, sector, and public identifier,
+	// creating it when absent.
+	GetOrCreateOAuth2SessionID(ctx context.Context, issuer, sectorID, publicID string) (record *model.OAuth2SessionID, err error)
+
+	// LoadOAuth2SessionIDBySessionID returns the session id mapping for the issuer and 'sid' claim value, returning
+	// a nil record and no error when there is no such mapping.
+	LoadOAuth2SessionIDBySessionID(ctx context.Context, issuer, sid string) (record *model.OAuth2SessionID, err error)
+
+	// LoadOAuth2SessionIDsOldest pages the session id mappings ordered by ascending id.
+	LoadOAuth2SessionIDsOldest(ctx context.Context, after, limit int) (records []model.OAuth2SessionID, err error)
+
+	// DeleteOAuth2SessionID removes the session id mapping matching the issuer and 'sid' claim value.
+	DeleteOAuth2SessionID(ctx context.Context, issuer, sid string) (err error)
+
+	// DeleteOAuth2SessionIDByPublicID removes every session id mapping for the issuer and session public identifier.
+	DeleteOAuth2SessionIDByPublicID(ctx context.Context, issuer, publicID string) (err error)
+
+	/*
 		Implementation for User Sessions.
 	*/
 

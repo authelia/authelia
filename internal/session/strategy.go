@@ -58,6 +58,11 @@ func (p *DefaultStrategy) GetConfig() (config schema.SessionCookie) {
 	return p.config
 }
 
+// GetIssuer implements the Strategy interface.
+func (p *DefaultStrategy) GetIssuer() (issuer string) {
+	return p.issuer
+}
+
 // New returns a session for the given username bound to this strategies cookie domain. Giving a session a username at
 // construction is the only supported way to do so, see NewUserSession.
 func (p *DefaultStrategy) New(username string) (userSession UserSession) {
