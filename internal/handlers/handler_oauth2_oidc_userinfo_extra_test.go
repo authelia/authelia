@@ -41,6 +41,7 @@ func TestOpenIDConnectUserinfoExtra(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		subject := mustGetTestOIDCSubject(t, mock, testOIDCAuthorizationCodeID)
@@ -294,6 +295,8 @@ func TestOpenIDConnectUserinfoClaimsErrors(t *testing.T) {
 
 				return &value, nil
 			})
+
+		setupTestOIDCSessionIDStore(t, mock)
 
 		token := mustGetStandardFlowToken(t, mock)
 

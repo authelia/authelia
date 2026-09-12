@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -22,6 +23,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 func TestOAuth2DeviceAuthorizationPOST(t *testing.T) {
@@ -222,6 +224,7 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
@@ -257,6 +260,7 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
@@ -286,8 +290,9 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
-		setupTestOIDCSessionStore(t, mock)
+		store := setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
@@ -317,6 +322,22 @@ func TestOAuth2DeviceAuthorizationPUT(t *testing.T) {
 		OAuth2DeviceAuthorizationPUT(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusOK, rw.Code)
+
+		oidcSessions := store.Sessions[storage.OAuth2SessionTypeOpenIDConnect]
+
+		require.Len(t, oidcSessions, 1)
+
+		for _, saved := range oidcSessions {
+			issued := &oidc.Session{}
+
+			require.NoError(t, json.Unmarshal(saved.Session, issued))
+
+			require.NotEmpty(t, issued.GetID())
+
+			_, err := uuid.Parse(issued.GetID())
+
+			assert.NoError(t, err)
+		}
 	})
 }
 
@@ -339,6 +360,7 @@ func TestOAuth2DeviceAuthorizationPUTExtra(t *testing.T) {
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSessionStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		userCode = mustGetTestOIDCUserCode(t, mock)
 
@@ -522,6 +544,7 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		rwd, rd := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCDeviceAuthorizationEndpoint, url.Values{
@@ -571,6 +594,7 @@ func TestOAuth2DeviceAuthorizationErrorPaths(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 		setupTestOIDCUserDetails(t, mock)
 
 		userCode := mustGetTestOIDCUserCode(t, mock)

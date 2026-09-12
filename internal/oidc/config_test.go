@@ -134,6 +134,12 @@ func TestConfig_Misc(t *testing.T) {
 	assert.False(t, config.DisableRefreshTokenValidation)
 	assert.False(t, config.GetDisableRefreshTokenValidation(ctx))
 
+	assert.False(t, config.GetDisableRefreshTokenRotation(ctx), "refresh tokens must continue to be rotated")
+	assert.Equal(t, time.Duration(0), config.GetJWTClockSkew(ctx), "a JWT issued in the future must continue to be rejected")
+	assert.False(t, config.GetRequireRedirectURIPushedAuthorizationRequests(ctx))
+	assert.False(t, config.GetRequireRequestObjectAudienceAndLifetime(ctx))
+	assert.Equal(t, time.Duration(0), config.GetRequestObjectMaximumLifetime(ctx))
+
 	assert.Equal(t, "", config.Issuers.AccessToken)
 	assert.Equal(t, "", config.GetAccessTokenIssuer(ctx))
 

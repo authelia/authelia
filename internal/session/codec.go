@@ -49,15 +49,16 @@ type SecureCodec struct {
 }
 
 // GeneratePublicID returns a new random public identifier for a session. The public identifier is the value shared
-// with consumers which need to reference a session without being able to derive its signature.
+// with consumers which need to reference a session without being able to derive its signature. It is a UUIDv7 as the
+// storage backends index it, and time ordered values keep those inserts local.
 func (c *SecureCodec) GeneratePublicID() (id string, err error) {
 	var pid uuid.UUID
 
-	if pid, err = uuid.NewRandom(); err != nil {
+	if pid, err = uuid.NewV7(); err != nil {
 		return "", err
-	} else {
-		return pid.String(), nil
 	}
+
+	return pid.String(), nil
 }
 
 // GenerateSessionID returns a new random session identifier which is the value stored in the session cookie.

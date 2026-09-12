@@ -221,6 +221,7 @@ func TestOAuth2ConsentDeviceAuthorizationPOST(t *testing.T) {
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCConsentStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		userCode := mustGetTestOIDCUserCode(t, mock)
 
@@ -248,6 +249,7 @@ func TestOAuth2ConsentDeviceAuthorizationPOST(t *testing.T) {
 		setupTestOIDCProvider(t, mock, config)
 		setupTestOIDCDeviceCodeStore(t, mock)
 		setupTestOIDCSubjectStore(t, mock)
+		setupTestOIDCSessionIDStore(t, mock)
 
 		var saved bool
 

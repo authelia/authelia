@@ -153,6 +153,13 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
+		sqlInsertOAuth2SessionID:            fmt.Sprintf(queryFmtInsertOAuth2SessionID, tableOAuth2SessionID),
+		sqlSelectOAuth2SessionIDBySector:    fmt.Sprintf(queryFmtSelectOAuth2SessionIDBySector, tableOAuth2SessionID),
+		sqlSelectOAuth2SessionIDBySessionID: fmt.Sprintf(queryFmtSelectOAuth2SessionIDBySessionID, tableOAuth2SessionID),
+		sqlSelectOAuth2SessionIDsOldest:     fmt.Sprintf(queryFmtSelectOAuth2SessionIDsOldest, tableOAuth2SessionID),
+		sqlDeleteOAuth2SessionID:            fmt.Sprintf(queryFmtDeleteOAuth2SessionID, tableOAuth2SessionID),
+		sqlDeleteOAuth2SessionIDByPublicID:  fmt.Sprintf(queryFmtDeleteOAuth2SessionIDByPublicID, tableOAuth2SessionID),
+
 		sqlInsertOAuth2PARContext: fmt.Sprintf(queryFmtInsertOAuth2PARContext, tableOAuth2PARContext),
 		sqlUpdateOAuth2PARContext: fmt.Sprintf(queryFmtUpdateOAuth2PARContext, tableOAuth2PARContext),
 		sqlSelectOAuth2PARContext: fmt.Sprintf(queryFmtSelectOAuth2PARContext, tableOAuth2PARContext),
@@ -416,6 +423,14 @@ type SQLProvider struct {
 
 	sqlUpsertOAuth2BlacklistedJTI string
 	sqlSelectOAuth2BlacklistedJTI string
+
+	// Table: oauth2_session_id.
+	sqlInsertOAuth2SessionID            string
+	sqlSelectOAuth2SessionIDBySector    string
+	sqlSelectOAuth2SessionIDBySessionID string
+	sqlSelectOAuth2SessionIDsOldest     string
+	sqlDeleteOAuth2SessionID            string
+	sqlDeleteOAuth2SessionIDByPublicID  string
 
 	// Utility.
 	sqlSelectExistingTables string
