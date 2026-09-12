@@ -6,9 +6,11 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -18,6 +20,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -483,13 +486,24 @@ func doMarkAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, 
 		}
 	}
 
-	doMarkAuthenticationAttemptWithRequest(ctx, successful, ban, authType, requestURI, requestMethod, errAuth)
+	doMarkAuthenticationAttemptWithRequest(ctx, successful, ban, ban.Value(), authType, requestURI, requestMethod, errAuth)
 }
 
-func doMarkAuthenticationAttemptWithRequest(ctx markContext, successful bool, ban *regulation.Ban, authType, requestURI, requestMethod string, errAuth error) {
+func doMarkAuthenticationAttemptWithRequest(ctx markContext, successful bool, ban *regulation.Ban, username, authType, requestURI, requestMethod string, errAuth error) {
 	ctx.GetLogger().Debugf("Mark %s authentication attempt made by user '%s'", authType, ban.Value())
 
 	ctx.GetProviders().Regulator.HandleAttempt(ctx, successful, ban, requestURI, requestMethod, authType)
+
+	stage, method := doGetAuthenticationEventStageAndMethod(authType)
+
+	ctx.GetProviders().Events.Emit(ctx, events.NewEvent(&events.DataAuthentication{
+		Type:     doGetAuthenticationEventType(successful),
+		Username: username,
+		RemoteIP: ctx.RemoteIP().String(),
+		Stage:    stage,
+		Method:   method,
+		Reason:   doGetAuthenticationEventReason(successful, ban, errAuth),
+	}))
 
 	if successful {
 		ctx.GetLogger().Debugf("Successful %s authentication attempt made by user '%s'", authType, ban.Value())
@@ -503,6 +517,89 @@ func doMarkAuthenticationAttemptWithRequest(ctx markContext, successful bool, ba
 			ctx.GetLogger().Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
 		}
 	}
+}
+
+// doGetAuthenticationEventType returns the event type name for an authentication outcome.
+func doGetAuthenticationEventType(successful bool) string {
+	if successful {
+		return events.TypeSecurityAuthenticationSucceeded
+	}
+
+	return events.TypeSecurityAuthenticationFailed
+}
+
+// doGetAuthenticationEventStageAndMethod maps a regulation.AuthType to the event stage and method it represents. The
+// passkey type is a first factor stage because it replaces the password entirely, and a WebAuthn method because the
+// credential presented is a WebAuthn credential. Every declared regulation.AuthType is covered, which
+// TestAuthenticationEventStageAndMethodCoversEveryAuthType enforces.
+func doGetAuthenticationEventStageAndMethod(authType string) (stage, method string) {
+	switch authType {
+	case regulation.AuthType1FA:
+		return events.StageFirstFactor, events.MethodPassword
+	case regulation.AuthTypePasskey:
+		return events.StageFirstFactor, events.MethodWebAuthn
+	case regulation.AuthTypePassword:
+		return events.StageSecondFactor, events.MethodPassword
+	case regulation.AuthTypeTOTP:
+		return events.StageSecondFactor, events.MethodTOTP
+	case regulation.AuthTypeWebAuthn:
+		return events.StageSecondFactor, events.MethodWebAuthn
+	case regulation.AuthTypeDuo:
+		return events.StageSecondFactor, events.MethodDuo
+	default:
+		return events.StageSecondFactor, strings.ToLower(authType)
+	}
+}
+
+// doGetAuthenticationEventReason classifies an authentication failure. The ban takes precedence so that the reason
+// always agrees with the banned dimension recorded by the metrics. An error which a site has marked as a rejection is
+// the user or their authenticator refusing the attempt, and is classified ahead of the backend sentinel because only
+// the raising site knows that distinction and it states it deliberately, whereas a wrapped sentinel could be an
+// accident of wrapping. The authentication backend's not found sentinel is then carved out of the remaining errors so
+// that a submitted username which does not exist is not reported as a fault, leaving internal for the errors which
+// genuinely are one, such as an unreachable authentication backend. An unreachable backend does not match the sentinel
+// and so is still classified as internal.
+func doGetAuthenticationEventReason(successful bool, ban *regulation.Ban, errAuth error) string {
+	var rejected *errAuthenticationRejected
+
+	switch {
+	case successful:
+		return ""
+	case ban.IsBanned():
+		return events.ReasonBanned
+	case errors.As(errAuth, &rejected):
+		return events.ReasonInvalidCredentials
+	case errors.Is(errAuth, authentication.ErrUserNotFound):
+		return events.ReasonUserNotFound
+	case errAuth != nil:
+		return events.ReasonInternalError
+	default:
+		return events.ReasonInvalidCredentials
+	}
+}
+
+// newErrAuthenticationRejected marks an authentication error as caused by the user or their authenticator rather than
+// by a fault, i.e. a declined push, a failed assertion, or a credential which is not theirs. Only the site raising the
+// error knows which of the two it is, and every site hands the choke point the same non-nil error, so the distinction
+// has to be carried rather than inferred there.
+func newErrAuthenticationRejected(err error) error {
+	return &errAuthenticationRejected{err: err}
+}
+
+// errAuthenticationRejected is an authentication error caused by the user or their authenticator. It renders exactly
+// as the error it wraps so that the log lines which already display these errors are unchanged.
+type errAuthenticationRejected struct {
+	err error
+}
+
+// Error returns the message of the wrapped error.
+func (e *errAuthenticationRejected) Error() string {
+	return e.err.Error()
+}
+
+// Unwrap returns the wrapped error.
+func (e *errAuthenticationRejected) Unwrap() error {
+	return e.err
 }
 
 func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
@@ -527,5 +624,6 @@ type markContext interface {
 	GetLogger() *logrus.Entry
 	GetProviders() middlewares.Providers
 	RecordAuthn(success bool, banned bool, authType string)
+	EmitEvent(event *events.Event)
 	RemoteIP() (ip net.IP)
 }

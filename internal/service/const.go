@@ -15,8 +15,9 @@ const (
 	logFieldProvider  = "provider"
 	logFieldFrequency = "frequency"
 
-	serviceTypeServer  = "server"
-	serviceTypeWatcher = "watcher"
-	serviceTypeSignal  = "signal"
-	serviceTypeGC      = "gc"
+	serviceTypeServer   = "server"
+	serviceTypeWatcher  = "watcher"
+	serviceTypeSignal   = "signal"
+	serviceTypeGC       = "gc"
+	serviceTypeWebhooks = "webhooks"
 )

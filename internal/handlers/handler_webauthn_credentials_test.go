@@ -15,6 +15,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -577,7 +578,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadWebAuthnCredentialByID(mock.Ctx, 1).
-						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername, KID: model.NewBase64([]byte("abc"))}, nil),
+						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername, Description: "test", KID: model.NewBase64([]byte("abc"))}, nil),
 					mock.StorageMock.EXPECT().
 						DeleteWebAuthnCredential(mock.Ctx, model.NewBase64([]byte("abc")).String()).
 						Return(nil),
@@ -587,6 +588,8 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 					mock.NotifierMock.EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Removed", gomock.Any(), gomock.Any()).
 						Return(nil),
+					mock.EventsMock.EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialWebAuthnRemoved, "test", true))),
 				)
 			},
 			`{"status":"OK"}`,
@@ -608,7 +611,7 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						LoadWebAuthnCredentialByID(mock.Ctx, 1).
-						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername, KID: model.NewBase64([]byte("abc"))}, nil),
+						Return(&model.WebAuthnCredential{ID: 1, Username: testUsername, Description: "test", KID: model.NewBase64([]byte("abc"))}, nil),
 					mock.StorageMock.EXPECT().
 						DeleteWebAuthnCredential(mock.Ctx, model.NewBase64([]byte("abc")).String()).
 						Return(nil),
@@ -618,6 +621,8 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 					mock.NotifierMock.EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: "john@example.com"}, "Second Factor Method Removed", gomock.Any(), gomock.Any()).
 						Return(fmt.Errorf("bad conn")),
+					mock.EventsMock.EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialWebAuthnRemoved, "test", false))),
 				)
 			},
 			`{"status":"OK"}`,
@@ -649,6 +654,10 @@ func TestWebAuthnCredentialsDELETE(t *testing.T) {
 						GetDetails(testUsername).
 						Return(nil, fmt.Errorf("bad user")),
 				)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialWebAuthnRemoved, "", false))).
+					Times(1)
 			},
 			`{"status":"OK"}`,
 			fasthttp.StatusOK,

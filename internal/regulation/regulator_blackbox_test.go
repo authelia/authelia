@@ -18,6 +18,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -73,6 +74,23 @@ func (s *RegulatorSuite) AssertLogEntryMessageAndError(message, err string) {
 
 func (s *RegulatorSuite) TearDownTest() {
 	s.mock.Ctrl.Finish()
+}
+
+// ExpectBanApplied expects a single ban applied event describing exactly the ban which was saved, i.e. the value it
+// applies to, whether that value is a user or an IP, and the moment it lapses.
+func (s *RegulatorSuite) ExpectBanApplied(username, target, targetType string, expires time.Time) {
+	s.mock.EventsMock.EXPECT().
+		Emit(s.mock.Ctx, gomock.Cond(func(event *events.Event) bool {
+			data, ok := event.Data.(*events.DataBan)
+			if !ok {
+				return false
+			}
+
+			return event.Type == events.TypeSecurityBanApplied && data.Username == username &&
+				data.Target == target && data.TargetType == targetType &&
+				data.Expires == expires.Format(time.RFC3339) && data.RemoteIP == s.mock.Ctx.RemoteIP().String()
+		})).
+		Times(1)
 }
 
 func (s *RegulatorSuite) TestShouldHandleBanCheckIPError() {
@@ -357,6 +375,8 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckIPNotBannedButFailedAttempt() {
 			LoadRegulationRecordsByUser(s.mock.Ctx, "john", since, s.mock.Ctx.Configuration.Regulation.MaxRetries).
 			Return(nil, nil),
 	)
+
+	s.ExpectBanApplied("", "127.0.0.1", events.TargetTypeIP, sqlban.Expires.Time)
 
 	ban, value, expires, err := regulator.BanCheck(s.mock.Ctx, "john")
 
@@ -663,6 +683,8 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckUserNotBannedButFailedAttempt()
 			Return(nil),
 	)
 
+	s.ExpectBanApplied("john", "john", events.TargetTypeUser, sqlban.Expires.Time)
+
 	ban, value, expires, err := regulator.BanCheck(s.mock.Ctx, "john")
 
 	s.Equal(regulation.BanTypeNone, ban)
@@ -790,6 +812,8 @@ func (s *RegulatorSuite) TestShouldBanUserIfLatestAttemptsAreWithinFindTime() {
 			SaveBannedUser(s.mock.Ctx, gomock.Eq(banned)).
 			Return(nil),
 	)
+
+	s.ExpectBanApplied("john", "john", events.TargetTypeUser, banexp)
 
 	regulator := s.Regulator()
 

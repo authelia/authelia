@@ -6,7 +6,7 @@
 title: "Events"
 description: "A reference of every notification Authelia sends."
 summary: "Authelia sends a fixed set of notifications. This section lists each one, when it is sent, and which template renders it."
-date: 2026-09-10T10:00:00+10:00
+date: 2026-09-10T09:30:24+00:00
 draft: false
 images: []
 weight: 108400
@@ -38,6 +38,11 @@ enable or disable an individual notification.
 |    Second factor removed    | `Second Factor Method Removed`  |          `Event`          |
 
 The subject line is also used as the `{{ .Title }}` placeholder within the template.
+
+Every notification listed above also produces a webhook event when the
+[webhooks](../miscellaneous/webhooks.md) subsystem is configured. The webhook payload carries the notification's
+attribute values but never its rendered text or HTML body. See the
+[webhook events reference](../../reference/guides/webhook-events.md).
 
 ### Password reset requested
 

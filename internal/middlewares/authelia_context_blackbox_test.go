@@ -17,6 +17,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/metrics"
@@ -1367,5 +1368,29 @@ func TestAutheliaCtx_RecordAuthn(t *testing.T) {
 
 	assert.NotPanics(t, func() {
 		ctx.RecordAuthn(true, true, "password")
+	})
+}
+
+func TestAutheliaCtx_EmitEvent(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	event := events.NewEvent(&events.DataBan{
+		Type:       events.TypeSecurityBanApplied,
+		Target:     "127.0.0.1",
+		TargetType: events.TargetTypeIP,
+	})
+
+	mock.EventsMock.EXPECT().
+		Emit(mock.Ctx, gomock.Eq(event)).
+		Times(1)
+
+	mock.Ctx.EmitEvent(event)
+
+	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.NewProvidersBasic())
+
+	assert.NotPanics(t, func() {
+		ctx.EmitEvent(event)
 	})
 }
