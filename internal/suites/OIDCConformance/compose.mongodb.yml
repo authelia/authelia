@@ -5,7 +5,7 @@
 ---
 services:
   conformance-mongodb:
-    image: 'mongo:6.0.13'
+    image: 'mongo:8.3.9'
     cpus: 2
     mem_limit: 2g
     networks:
