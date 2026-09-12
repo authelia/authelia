@@ -2,7 +2,7 @@ allowBuilds:
   esbuild: true
   sharp: true
 overrides:
-  "@babel/traverse": 8.0.4
+  "@babel/traverse": 8.0.5
   baseline-browser-mapping: 2.11.22
   fast-uri: 4.1.4
   next: 16.3.4
