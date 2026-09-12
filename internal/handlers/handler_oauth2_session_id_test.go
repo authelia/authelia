@@ -66,11 +66,46 @@ func TestOIDCSessionIDShouldMintForOpenIDScope(t *testing.T) {
 		Times(1).
 		Return(record, nil)
 
+	mock.StorageMock.EXPECT().
+		SaveOAuth2SessionIDClient(gomock.Eq(mock.Ctx), gomock.Eq(provider.GetIssuer()), gomock.Eq(userSession.PublicID), gomock.Eq(record.SessionID.String()), gomock.Eq("client-id")).
+		Times(1).
+		Return(nil)
+
 	sid, err := oidcSessionID(mock.Ctx, client, requester, &userSession)
 
 	require.NoError(t, err)
 	assert.Equal(t, record.SessionID.String(), sid)
 	assert.NotEmpty(t, sid)
+}
+
+func TestOIDCSessionIDShouldPropagateParticipationStorageError(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtxWithUserSession(t, session.UserSession{Username: "john", PublicID: "public-id"})
+	defer mock.Close()
+
+	client := oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{ID: "client-id"}, &schema.IdentityProvidersOpenIDConnect{}, nil)
+
+	requester := oauthelia2.NewRequest()
+	requester.GrantScope(oidc.ScopeOpenID)
+
+	userSession, err := mock.Ctx.GetSession()
+	require.NoError(t, err)
+
+	expected := errors.New("storage failure")
+
+	mock.StorageMock.EXPECT().
+		GetOrCreateOAuth2SessionID(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Times(1).
+		Return(&model.OAuth2SessionID{SessionID: uuid.Must(uuid.NewRandom())}, nil)
+
+	mock.StorageMock.EXPECT().
+		SaveOAuth2SessionIDClient(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Times(1).
+		Return(expected)
+
+	sid, err := oidcSessionID(mock.Ctx, client, requester, &userSession)
+
+	assert.ErrorIs(t, err, expected)
+	assert.Empty(t, sid)
 }
 
 func TestOIDCSessionIDShouldBeEmptyForAnonymousSession(t *testing.T) {

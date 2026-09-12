@@ -331,12 +331,15 @@ See also [Beta 10](#beta-10).
 
 #### OpenID Connect Back-Channel Logout 1.0
 
-{{< roadmap-status >}}
+{{< roadmap-status stage="in-progress" version="v4.40.0" >}}
 
 For more information see the [OpenID Connect 1.0] website for the [OpenID Connect Back-Channel Logout 1.0]
 specification.
 
-Should be implemented at a similar time to [Dynamic Client Registration](#openid-connect-dynamic-client-registration-10).
+The provider discovery metadata, the `backchannel_logout_uri` and `backchannel_logout_session_required` client
+metadata, and the delivery of signed Logout Tokens including the `sid` claim to every client which participated in a
+session when the End-User logs out are implemented. Sessions which end by expiring or through inactivity do not yet
+notify the participating clients.
 
 See also [Beta 10](#beta-10).
 

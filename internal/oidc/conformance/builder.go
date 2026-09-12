@@ -101,10 +101,15 @@ func (b *SuiteBuilder) Build() Suite {
 		responseTypes          []string
 		responseModes          []string
 		postLogoutRedirectURIs []string
+		backChannelLogoutURI   string
 	)
 
-	if b.Name == NameRPInitiatedLogout {
+	switch b.Name {
+	case NameRPInitiatedLogout:
 		postLogoutRedirectURIs = []string{b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "post_logout_redirect").String()}
+	case NameBackChannelLogout:
+		postLogoutRedirectURIs = []string{b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "post_logout_redirect").String()}
+		backChannelLogoutURI = b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "backchannel_logout").String()
 	}
 
 	switch b.Name {
@@ -133,6 +138,7 @@ func (b *SuiteBuilder) Build() Suite {
 			Secret:                  MustHash(suite.Plan.Client.Secret),
 			RedirectURIs:            []string{b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
 			PostLogoutRedirectURIs:  postLogoutRedirectURIs,
+			BackChannelLogoutURI:    backChannelLogoutURI,
 			AuthorizationPolicy:     b.Policy,
 			ConsentMode:             b.Consent,
 			Public:                  false,
@@ -149,6 +155,7 @@ func (b *SuiteBuilder) Build() Suite {
 			Secret:                  MustHash(suite.Plan.ClientAlternate.Secret),
 			RedirectURIs:            []string{b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
 			PostLogoutRedirectURIs:  postLogoutRedirectURIs,
+			BackChannelLogoutURI:    backChannelLogoutURI,
 			AuthorizationPolicy:     b.Policy,
 			ConsentMode:             b.Consent,
 			Public:                  false,
@@ -165,6 +172,7 @@ func (b *SuiteBuilder) Build() Suite {
 			Secret:                  MustHash(suite.Plan.ClientSecretPost.Secret),
 			RedirectURIs:            []string{b.SuiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
 			PostLogoutRedirectURIs:  postLogoutRedirectURIs,
+			BackChannelLogoutURI:    backChannelLogoutURI,
 			AuthorizationPolicy:     b.Policy,
 			ConsentMode:             b.Consent,
 			Public:                  false,
@@ -198,6 +206,11 @@ func (b *SuiteBuilder) plan() (name string, variant *PlanVariant) {
 		name = "oidcc-formpost-implicit-certification-test-plan"
 	case NameRPInitiatedLogout:
 		return "oidcc-rp-initiated-logout-certification-test-plan", &PlanVariant{
+			ClientRegistration: "static_client",
+			ResponseType:       oidc.ResponseTypeAuthorizationCodeFlow,
+		}
+	case NameBackChannelLogout:
+		return "oidcc-backchannel-rp-initiated-logout-certification-test-plan", &PlanVariant{
 			ClientRegistration: "static_client",
 			ResponseType:       oidc.ResponseTypeAuthorizationCodeFlow,
 		}
@@ -239,5 +252,6 @@ func Builders(version, consent, policy, brand string, suiteURL, autheliaURL *url
 		{brand, NameImplicit, "Implicit", true, version, consent, policy, suiteURL, autheliaURL},
 		{brand, NameImplicitFormPost, "Implicit (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
 		{brand, NameRPInitiatedLogout, "RP-Initiated Logout", true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, NameBackChannelLogout, "Back-Channel Logout", true, version, consent, policy, suiteURL, autheliaURL},
 	}
 }

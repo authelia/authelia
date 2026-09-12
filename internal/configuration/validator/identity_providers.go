@@ -739,6 +739,7 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDCClientGrantTypes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientRedirectURIs(c, config, validator, errDeprecatedFunc)
 	validateOIDCClientPostLogoutRedirectURIs(c, config, validator, errDeprecatedFunc)
+	validateOIDCClientBackChannelLogoutURI(c, config, validator)
 	validateOIDCClientRequestURIs(c, config, validator)
 
 	validateOIDDClientSigningAlgs(c, config, validator)
@@ -1350,6 +1351,57 @@ func validateOIDCClientPostLogoutRedirectURIs(c int, config *schema.IdentityProv
 		errDeprecatedFunc()
 
 		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCPostLogoutRedirectURIs, utils.StringJoinAnd(duplicates)))
+	}
+}
+
+func validateOIDCClientBackChannelLogoutURI(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	uri := config.Clients[c].BackChannelLogoutURI
+
+	if uri == "" {
+		return
+	}
+
+	var (
+		parsed *url.URL
+		err    error
+	)
+
+	if parsed, err = url.Parse(uri); err != nil {
+		validator.Push(fmt.Errorf(errFmtOIDCClientBackChannelLogoutURICantBeParsed, config.Clients[c].ID, uri, err))
+
+		return
+	}
+
+	if !parsed.IsAbs() {
+		validator.Push(fmt.Errorf(errFmtOIDCClientBackChannelLogoutURIAbsolute, config.Clients[c].ID, uri))
+
+		return
+	}
+
+	switch parsed.Scheme {
+	case schemeHTTPS:
+		break
+	case schemeHTTP:
+		if config.Clients[c].Public {
+			validator.Push(fmt.Errorf(errFmtOIDCClientBackChannelLogoutURIPublicHTTP, config.Clients[c].ID, uri))
+		}
+	default:
+		validator.Push(fmt.Errorf(errFmtOIDCClientBackChannelLogoutURIScheme, config.Clients[c].ID, uri, parsed.Scheme))
+
+		return
+	}
+
+	if parsed.Host == "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientBackChannelLogoutURIHost, config.Clients[c].ID, uri))
+	}
+
+	// The parse succeeded so any '#' is the fragment delimiter, which also catches an empty fragment.
+	if strings.Contains(uri, "#") {
+		validator.Push(fmt.Errorf(errFmtOIDCClientBackChannelLogoutURIFragment, config.Clients[c].ID, uri))
+	}
+
+	if _, err = url.ParseQuery(parsed.RawQuery); err != nil {
+		validator.Push(fmt.Errorf(errFmtOIDCClientBackChannelLogoutURIQuery, config.Clients[c].ID, uri, err))
 	}
 }
 

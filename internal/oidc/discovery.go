@@ -285,6 +285,10 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 			},
 		},
 		OpenIDConnectRPInitiatedLogoutDiscoveryOptions: &OpenIDConnectRPInitiatedLogoutDiscoveryOptions{},
+		OpenIDConnectBackChannelLogoutDiscoveryOptions: &OpenIDConnectBackChannelLogoutDiscoveryOptions{
+			BackChannelLogoutSupported:        true,
+			BackChannelLogoutSessionSupported: true,
+		},
 	}
 
 	if c.EnablePKCEPlainChallenge {

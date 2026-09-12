@@ -90,6 +90,8 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 		if logout := logoutPending(ctx, userSession, body.FlowID); logout != nil {
 			responseBody.RedirectURL = logoutRedirectURL(logout)
 		}
+
+		oidcBackChannelLogout(ctx, &userSession)
 	}
 
 	if err = ctx.DestroySession(); err != nil {

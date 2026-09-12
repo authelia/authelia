@@ -734,6 +734,29 @@ const (
 	queryFmtDeleteOAuth2SessionIDByPublicID = `
 		DELETE FROM %s
 		WHERE issuer = ? AND public_id = ?;`
+
+	queryFmtInsertOAuth2SessionIDClient = `
+		INSERT INTO %s (issuer, public_id, sid, client_id, created_at)
+		VALUES(?, ?, ?, ?, ?);`
+
+	queryFmtSelectOAuth2SessionIDClientExists = `
+		SELECT COUNT(id)
+		FROM %s
+		WHERE issuer = ? AND sid = ? AND client_id = ?;`
+
+	queryFmtSelectOAuth2SessionIDClientsByPublicID = `
+		SELECT id, issuer, public_id, sid, client_id, created_at
+		FROM %s
+		WHERE issuer = ? AND public_id = ?
+		ORDER BY id;`
+
+	queryFmtDeleteOAuth2SessionIDClient = `
+		DELETE FROM %s
+		WHERE issuer = ? AND sid = ?;`
+
+	queryFmtDeleteOAuth2SessionIDClientByPublicID = `
+		DELETE FROM %s
+		WHERE issuer = ? AND public_id = ?;`
 )
 
 const (

@@ -160,6 +160,12 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlDeleteOAuth2SessionID:            fmt.Sprintf(queryFmtDeleteOAuth2SessionID, tableOAuth2SessionID),
 		sqlDeleteOAuth2SessionIDByPublicID:  fmt.Sprintf(queryFmtDeleteOAuth2SessionIDByPublicID, tableOAuth2SessionID),
 
+		sqlInsertOAuth2SessionIDClient:            fmt.Sprintf(queryFmtInsertOAuth2SessionIDClient, tableOAuth2SessionIDClient),
+		sqlSelectOAuth2SessionIDClientExists:      fmt.Sprintf(queryFmtSelectOAuth2SessionIDClientExists, tableOAuth2SessionIDClient),
+		sqlSelectOAuth2SessionIDClientsByPublicID: fmt.Sprintf(queryFmtSelectOAuth2SessionIDClientsByPublicID, tableOAuth2SessionIDClient),
+		sqlDeleteOAuth2SessionIDClient:            fmt.Sprintf(queryFmtDeleteOAuth2SessionIDClient, tableOAuth2SessionIDClient),
+		sqlDeleteOAuth2SessionIDClientByPublicID:  fmt.Sprintf(queryFmtDeleteOAuth2SessionIDClientByPublicID, tableOAuth2SessionIDClient),
+
 		sqlInsertOAuth2PARContext: fmt.Sprintf(queryFmtInsertOAuth2PARContext, tableOAuth2PARContext),
 		sqlUpdateOAuth2PARContext: fmt.Sprintf(queryFmtUpdateOAuth2PARContext, tableOAuth2PARContext),
 		sqlSelectOAuth2PARContext: fmt.Sprintf(queryFmtSelectOAuth2PARContext, tableOAuth2PARContext),
@@ -431,6 +437,13 @@ type SQLProvider struct {
 	sqlSelectOAuth2SessionIDsOldest     string
 	sqlDeleteOAuth2SessionID            string
 	sqlDeleteOAuth2SessionIDByPublicID  string
+
+	// Table: oauth2_session_id_client.
+	sqlInsertOAuth2SessionIDClient            string
+	sqlSelectOAuth2SessionIDClientExists      string
+	sqlSelectOAuth2SessionIDClientsByPublicID string
+	sqlDeleteOAuth2SessionIDClient            string
+	sqlDeleteOAuth2SessionIDClientByPublicID  string
 
 	// Utility.
 	sqlSelectExistingTables string

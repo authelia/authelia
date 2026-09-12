@@ -4565,14 +4565,14 @@ components:
             If omitted, the default value is false.
           type: boolean
           examples:
-            - false
+            - true
         backchannel_logout_supported:
           description: >
             Boolean value specifying whether the OP supports back-channel logout, with true indicating support. If
             omitted, the default value is false.
           type: boolean
           examples:
-            - false
+            - true
         claims_parameter_supported:
           description: >
             Boolean value specifying whether the OP supports use of the claims parameter, with true indicating support.
