@@ -84,7 +84,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 				IssuerPrivateKey: keyRSA2048,
 				CORS: schema.IdentityProvidersOpenIDConnectCORS{
-					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, oidc.EndpointEndSession},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
@@ -110,7 +110,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 				IssuerPrivateKey: keyRSA2048,
 				CORS: schema.IdentityProvidersOpenIDConnectCORS{
-					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, oidc.EndpointEndSession, "invalid_endpoint"},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
@@ -126,7 +126,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', or 'userinfo'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', 'userinfo', or 'end-session'")
 }
 
 //nolint:gosec // Test Credentials.
@@ -1713,6 +1713,133 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'redirect_uris' must have unique values but the values 'https://google.com' are duplicated",
+			},
+			nil,
+		},
+		{
+			"ShouldNotRaiseErrorOnValidPostLogoutRedirectURIs",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].PostLogoutRedirectURIs = []string{
+					"https://app.example.com/logged-out",
+					"http://localhost:8080/logged-out",
+				}
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{"https://app.example.com/logged-out", "http://localhost:8080/logged-out"}), have.Clients[0].PostLogoutRedirectURIs)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnInvalidPostLogoutRedirectURIsMalformedURI",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].PostLogoutRedirectURIs = []string{
+					"http://abc@%two",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'http://abc@%two' could not be parsed: parse \"http://abc@%two\": invalid URL escape \"%tw\"",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidPostLogoutRedirectURIsNotAbsolute",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].PostLogoutRedirectURIs = []string{
+					"google.com",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'google.com' must have a scheme but it's absent",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidPostLogoutRedirectURIsWithFragment",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].PostLogoutRedirectURIs = []string{
+					"https://app.example.com/logged-out#fragment",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' has an invalid value: post logout redirect uri 'https://app.example.com/logged-out#fragment' must not have a fragment but it has a 'fragment' fragment",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnDuplicatePostLogoutRedirectURI",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].PostLogoutRedirectURIs = []string{
+					"https://app.example.com/logged-out",
+					"https://app.example.com/logged-out",
+				}
+			},
+			nil,
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'post_logout_redirect_uris' must have unique values but the values 'https://app.example.com/logged-out' are duplicated",
 			},
 			nil,
 		},

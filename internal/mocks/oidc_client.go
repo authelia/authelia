@@ -585,6 +585,20 @@ func (mr *MockOIDCClientMockRecorder) GetPKCEChallengeMethod() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPKCEChallengeMethod", reflect.TypeOf((*MockOIDCClient)(nil).GetPKCEChallengeMethod))
 }
 
+// GetPostLogoutRedirectURIs mocks base method.
+func (m *MockOIDCClient) GetPostLogoutRedirectURIs() []string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostLogoutRedirectURIs")
+	ret0, _ := ret[0].([]string)
+	return ret0
+}
+
+// GetPostLogoutRedirectURIs indicates an expected call of GetPostLogoutRedirectURIs.
+func (mr *MockOIDCClientMockRecorder) GetPostLogoutRedirectURIs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostLogoutRedirectURIs", reflect.TypeOf((*MockOIDCClient)(nil).GetPostLogoutRedirectURIs))
+}
+
 // GetRedirectURIs mocks base method.
 func (m *MockOIDCClient) GetRedirectURIs() []string {
 	m.ctrl.T.Helper()

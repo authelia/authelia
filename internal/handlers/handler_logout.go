@@ -37,7 +37,7 @@ func LogoutPOST(ctx *middlewares.AutheliaCtx) {
 
 	redirectionURL, err := url.ParseRequestURI(body.TargetURL)
 	if err == nil {
-		responseBody.SafeTargetURL = ctx.IsSafeRedirectionTargetURI(redirectionURL)
+		responseBody.SafeTargetURL = ctx.IsSafePostLogoutRedirectionTargetURI(redirectionURL)
 	}
 
 	if body.TargetURL != "" {

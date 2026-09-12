@@ -1369,3 +1369,111 @@ func TestAutheliaCtx_RecordAuthn(t *testing.T) {
 		ctx.RecordAuthn(true, true, "password")
 	})
 }
+
+func TestAutheliaCtx_IsSafePostLogoutRedirectionTargetURI(t *testing.T) {
+	const (
+		registeredSecure   = "https://app.example.net/logged-out"
+		registeredInsecure = "http://legacy.example.net/logged-out"
+	)
+
+	testCases := []struct {
+		name       string
+		have       string
+		safe       bool
+		safeLogout bool
+	}{
+		{
+			"ShouldAllowRegisteredOffDomainURIForLogoutOnly",
+			registeredSecure,
+			false,
+			true,
+		},
+		{
+			"ShouldAllowRegisteredInsecureURIForLogoutOnly",
+			registeredInsecure,
+			false,
+			true,
+		},
+		{
+			"ShouldAllowWithinCookieDomainForBoth",
+			"https://app.example.com/logged-out",
+			true,
+			true,
+		},
+		{
+			"ShouldRejectUnregisteredOffDomainURIForBoth",
+			"https://evil.example.net/logged-out",
+			false,
+			false,
+		},
+		{
+			"ShouldRejectInsecureWithinCookieDomainForBoth",
+			"http://app.example.com/logged-out",
+			false,
+			false,
+		},
+		{
+			"ShouldRejectPrefixOfRegisteredURIForBoth",
+			registeredSecure + "/../evil",
+			false,
+			false,
+		},
+		{
+			"ShouldRejectRegisteredURIWithAppendedPathForBoth",
+			registeredSecure + "/extra",
+			false,
+			false,
+		},
+		{
+			"ShouldRejectRegisteredURIWithDifferentHostForBoth",
+			"https://app.example.net.evil.test/logged-out",
+			false,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration.Session.Cookies = []schema.SessionCookie{
+				{Domain: "example.com"},
+			}
+
+			mock.Ctx.Configuration.IdentityProviders.OIDC = &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                     "test",
+						PostLogoutRedirectURIs: []string{registeredSecure, registeredInsecure},
+					},
+				},
+			}
+
+			have, err := url.Parse(tc.have)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.safe, mock.Ctx.IsSafeRedirectionTargetURI(have))
+			assert.Equal(t, tc.safeLogout, mock.Ctx.IsSafePostLogoutRedirectionTargetURI(have))
+		})
+	}
+
+	t.Run("ShouldHandleNilURI", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		assert.False(t, mock.Ctx.IsSafePostLogoutRedirectionTargetURI(nil))
+	})
+
+	t.Run("ShouldHandleNilOIDCConfiguration", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		mock.Ctx.Configuration.IdentityProviders.OIDC = nil
+
+		have, err := url.Parse(registeredSecure)
+		require.NoError(t, err)
+
+		assert.False(t, mock.Ctx.IsSafePostLogoutRedirectionTargetURI(have))
+	})
+}
