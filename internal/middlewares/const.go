@@ -34,6 +34,7 @@ var (
 	headerAccessControlAllowHeaders     = []byte(fasthttp.HeaderAccessControlAllowHeaders)
 	headerAccessControlAllowMethods     = []byte(fasthttp.HeaderAccessControlAllowMethods)
 	headerAccessControlAllowOrigin      = []byte(fasthttp.HeaderAccessControlAllowOrigin)
+	headerAccessControlExposeHeaders    = []byte(fasthttp.HeaderAccessControlExposeHeaders)
 	headerAccessControlMaxAge           = []byte(fasthttp.HeaderAccessControlMaxAge)
 	headerAccessControlRequestHeaders   = []byte(fasthttp.HeaderAccessControlRequestHeaders)
 	headerAccessControlRequestMethod    = []byte(fasthttp.HeaderAccessControlRequestMethod)
@@ -87,11 +88,12 @@ var (
 )
 
 const (
-	strProtoHTTP2 = "HTTP/2"
-	strProtoHTTPS = "https"
-	strProtoHTTP  = "http"
-	strSlash      = "/"
-	localhost     = "127.0.0.1"
+	strProtoHTTP2  = "HTTP/2"
+	strProtoHTTP11 = "HTTP/1.1"
+	strProtoHTTPS  = "https"
+	strProtoHTTP   = "http"
+	strSlash       = "/"
+	localhost      = "127.0.0.1"
 
 	queryArgRedirect    = "rd"
 	queryArgAutheliaURL = "authelia_url"

@@ -647,6 +647,14 @@ type OAuth2PushedAuthorizationDiscoveryOptions struct {
 	RequirePushedAuthorizationRequests bool `json:"require_pushed_authorization_requests"`
 }
 
+// OAuth2DemonstratingProofOfPossessionDiscoveryOptions represents the well known discovery document specific to the
+// OAuth 2.0 Demonstrating Proof of Possession (RFC9449) implementation.
+//
+// OAuth 2.0 Demonstrating Proof of Possession: https://datatracker.ietf.org/doc/html/rfc9449#name-authorization-server-metada
+type OAuth2DemonstratingProofOfPossessionDiscoveryOptions struct {
+	DPoPSigningAlgValuesSupported []string `json:"dpop_signing_alg_values_supported,omitempty"`
+}
+
 // OpenIDConnectDiscoveryOptions represents the discovery options specific to OpenID Connect.
 type OpenIDConnectDiscoveryOptions struct {
 	/*
@@ -1065,6 +1073,7 @@ type OAuth2WellKnownConfiguration struct {
 	*OAuth2JWTIntrospectionResponseDiscoveryOptions
 	*OAuth2JWTSecuredAuthorizationRequestDiscoveryOptions
 	*OAuth2PushedAuthorizationDiscoveryOptions
+	*OAuth2DemonstratingProofOfPossessionDiscoveryOptions
 }
 
 // OAuth2WellKnownSignedConfiguration represents the signed well known discovery document specific to OAuth 2.0.
@@ -1159,6 +1168,9 @@ var (
 	_ oauthelia2.RequestedAudienceImplicitClient                          = (*RegisteredClient)(nil)
 	_ oauthelia2.JWTProfileClient                                         = (*RegisteredClient)(nil)
 	_ oauthelia2.IntrospectionJWTResponseClient                           = (*RegisteredClient)(nil)
+	_ oauthelia2.DPoPClient                                               = (*RegisteredClient)(nil)
+
+	_ oauthelia2.DPoPBoundSession = (*Session)(nil)
 
 	_ RequesterFormSession = (*model.OAuth2ConsentSession)(nil)
 	_ RequesterFormSession = (*model.OAuth2DeviceCodeSession)(nil)

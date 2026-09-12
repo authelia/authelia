@@ -15,6 +15,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"authelia.com/provider/oauth2/handler/oauth2"
+	"authelia.com/provider/oauth2/handler/oidckb"
+	"authelia.com/provider/oauth2/handler/rfc8628"
+	"authelia.com/provider/oauth2/handler/rfc9449"
 	"authelia.com/provider/oauth2/token/jwt"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -270,6 +273,186 @@ func TestNewConfig(t *testing.T) {
 	config.LoadHandlers(nil)
 
 	assert.Len(t, config.Handlers.TokenIntrospection, 2)
+}
+
+func TestConfig_LoadHandlersBinding(t *testing.T) {
+	testCases := []struct {
+		name       string
+		dpop       bool
+		keyBinding bool
+		expected   int
+	}{
+		{
+			"ShouldRegisterBindingHandlersWhenDPoPEnabled",
+			true,
+			false,
+			1,
+		},
+		{
+			"ShouldRegisterKeyBindingHandlersWhenBothEnabled",
+			true,
+			true,
+			2,
+		},
+		{
+			"ShouldNotRegisterBindingHandlersWhenDPoPDisabled",
+			false,
+			false,
+			0,
+		},
+		{
+			"ShouldNotRegisterKeyBindingHandlersWhenDPoPDisabled",
+			false,
+			true,
+			0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			config := &oidc.Config{}
+			config.DPoP.Enabled = tc.dpop
+			config.DPoP.KeyBinding = tc.keyBinding
+
+			config.LoadHandlers(&oidc.Store{})
+
+			assert.Len(t, config.GetAuthorizeEndpointBindingHandlers(ctx), tc.expected)
+			assert.Len(t, config.GetRFC8628DeviceAuthorizeEndpointBindingHandlers(ctx), tc.expected)
+			assert.Len(t, config.GetTokenEndpointBindingHandlers(ctx), tc.expected)
+
+			// The device flow records the 'bound_key' grant at the user authorization endpoint rather than a binding
+			// list, as that is where consent has decided it. It is registered from the same condition, so a key
+			// binding deployment which never reaches it issues device flow ID Tokens with no confirmation.
+			var userAuthorize bool
+
+			for _, handler := range config.GetRFC8628UserAuthorizeEndpointHandlers(ctx) {
+				if _, ok := handler.(*oidckb.UserAuthorizeHandler); ok {
+					userAuthorize = true
+				}
+			}
+
+			assert.Equal(t, tc.dpop && tc.keyBinding, userAuthorize)
+		})
+	}
+}
+
+func TestConfig_GetDPoPProofLifespan(t *testing.T) {
+	ctx := context.Background()
+
+	testCases := []struct {
+		name     string
+		have     time.Duration
+		expected time.Duration
+	}{
+		{"ShouldUseTheConfiguredValue", time.Second * 45, time.Second * 45},
+		{"ShouldFallBackWhenUnset", 0, time.Second * 10},
+		{"ShouldFallBackWhenNegative", -time.Second, time.Second * 10},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &oidc.Config{}
+			config.DPoP.ProofLifespan = tc.have
+
+			assert.Equal(t, tc.expected, config.GetDPoPProofLifespan(ctx))
+		})
+	}
+}
+
+func TestDPoPSigningAlgValuesSupported(t *testing.T) {
+	ctx := context.Background()
+
+	algs := oidc.DPoPSigningAlgValuesSupported()
+
+	assert.NotEmpty(t, algs)
+
+	// A proof is signed by a key the client holds, which a shared secret cannot demonstrate possession of.
+	for _, alg := range algs {
+		assert.NotContains(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}, alg)
+	}
+
+	// The advertised value and the value proofs are validated against must not be able to disagree.
+	config := oidc.NewConfig(&schema.IdentityProvidersOpenIDConnect{
+		DPoP: schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true},
+	}, nil, nil)
+
+	assert.Equal(t, algs, config.GetDPoPAllowedJWSAlgorithms(ctx))
+
+	wellknown := oidc.NewOpenIDConnectWellKnownConfiguration(&schema.IdentityProvidersOpenIDConnect{
+		DPoP: schema.IdentityProvidersOpenIDConnectDPoP{Enabled: true},
+	})
+
+	assert.Equal(t, algs, wellknown.DPoPSigningAlgValuesSupported)
+}
+
+func TestConfig_LoadHandlersKeyBindingOrder(t *testing.T) {
+	ctx := context.Background()
+
+	config := &oidc.Config{}
+	config.DPoP.Enabled = true
+	config.DPoP.KeyBinding = true
+
+	config.LoadHandlers(&oidc.Store{})
+
+	dpop, binding := -1, -1
+
+	for i, handler := range config.GetTokenEndpointBindingHandlers(ctx) {
+		switch handler.(type) {
+		case *rfc9449.Handler:
+			dpop = i
+		case *oidckb.Handler:
+			binding = i
+		}
+	}
+
+	require.NotEqual(t, -1, dpop)
+	require.NotEqual(t, -1, binding)
+	assert.Less(t, dpop, binding)
+
+	device, granted := -1, -1
+
+	for i, handler := range config.Handlers.RFC8628UserAuthorizeEndpoint {
+		switch handler.(type) {
+		case *rfc8628.UserAuthorizeHandler:
+			device = i
+		case *oidckb.UserAuthorizeHandler:
+			granted = i
+		}
+	}
+
+	require.NotEqual(t, -1, device)
+	require.NotEqual(t, -1, granted)
+	assert.Less(t, granted, device)
+}
+
+func TestConfig_GetOIDCKeyBindingEnabled(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     bool
+		expected bool
+	}{
+		{
+			"ShouldReturnFalseByDefault",
+			false,
+			false,
+		},
+		{
+			"ShouldReturnTrueWhenEnabled",
+			true,
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &oidc.Config{}
+			config.DPoP.KeyBinding = tc.have
+
+			assert.Equal(t, tc.expected, config.GetOIDCKeyBindingEnabled(context.Background()))
+		})
+	}
 }
 
 //nolint:gosec // Test Credentials.
