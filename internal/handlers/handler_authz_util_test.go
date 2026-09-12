@@ -7,12 +7,15 @@ package handlers
 import (
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/mocks"
 )
 
@@ -369,6 +372,151 @@ func TestGetSafeAutheliaURL(t *testing.T) {
 				assert.EqualError(t, err, tc.Error)
 				assert.Nil(t, actual)
 			}
+		})
+	}
+}
+
+func TestAuthzHeaderValue(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     any
+		Expected string
+	}{
+		{
+			Name:     "ShouldHandleNil",
+			Have:     nil,
+			Expected: "",
+		},
+		{
+			Name:     "ShouldHandleString",
+			Have:     "john",
+			Expected: "john",
+		},
+		{
+			Name:     "ShouldJoinStringSlice",
+			Have:     []string{"admins", "dev"},
+			Expected: "admins,dev",
+		},
+		{
+			Name:     "ShouldJoinEmptyStringSlice",
+			Have:     []string{},
+			Expected: "",
+		},
+		{
+			Name:     "ShouldJoinAnySliceOfStrings",
+			Have:     []any{"admins", "dev"},
+			Expected: "admins,dev",
+		},
+		{
+			Name:     "ShouldJoinAnySliceOfMixedValues",
+			Have:     []any{"admins", 5, true, nil, 1.5},
+			Expected: "admins,5,true,,1.5",
+		},
+		{
+			Name:     "ShouldHandleBool",
+			Have:     false,
+			Expected: "false",
+		},
+		{
+			Name:     "ShouldHandleInt",
+			Have:     10000000,
+			Expected: "10000000",
+		},
+		{
+			Name:     "ShouldHandleInt64",
+			Have:     int64(-5),
+			Expected: "-5",
+		},
+		{
+			Name:     "ShouldHandleUint",
+			Have:     uint(5),
+			Expected: "5",
+		},
+		{
+			Name:     "ShouldHandleFloat64WithoutScientificNotation",
+			Have:     float64(10000000),
+			Expected: "10000000",
+		},
+		{
+			Name:     "ShouldHandleFloat64WithFraction",
+			Have:     1.5,
+			Expected: "1.5",
+		},
+		{
+			Name:     "ShouldHandleFloat32",
+			Have:     float32(1.5),
+			Expected: "1.5",
+		},
+		{
+			Name:     "ShouldHandleTime",
+			Have:     time.Date(2026, 9, 12, 17, 0, 0, 0, time.UTC),
+			Expected: "2026-09-12T17:00:00Z",
+		},
+		{
+			Name:     "ShouldFallbackToDefaultFormatting",
+			Have:     map[string]string{"abc": "123"},
+			Expected: "map[abc:123]",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, authzHeaderValue(tc.Have))
+		})
+	}
+}
+
+func TestAuthzHeadersRequireExtendedUserDetails(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Have     []AuthzHeader
+		Expected bool
+	}{
+		{
+			Name:     "ShouldNotRequireExtendedForNoHeaders",
+			Have:     nil,
+			Expected: false,
+		},
+		{
+			Name: "ShouldNotRequireExtendedForDefaultHeaders",
+			Have: []AuthzHeader{
+				{Key: []byte(schema.HeaderRemoteUser), Attribute: expression.AttributeUserUsername},
+				{Key: []byte(schema.HeaderRemoteGroups), Attribute: expression.AttributeUserGroups},
+				{Key: []byte(schema.HeaderRemoteName), Attribute: expression.AttributeUserDisplayName},
+				{Key: []byte(schema.HeaderRemoteEmail), Attribute: expression.AttributeUserEmail},
+			},
+			Expected: false,
+		},
+		{
+			Name: "ShouldNotRequireExtendedForOtherSessionAttributes",
+			Have: []AuthzHeader{
+				{Key: []byte("Remote-Emails"), Attribute: expression.AttributeUserEmails},
+				{Key: []byte("Remote-Emails-Extra"), Attribute: expression.AttributeUserEmailsExtra},
+				{Key: []byte("Remote-Email-Verified"), Attribute: expression.AttributeUserEmailVerified},
+				{Key: []byte("Remote-Updated-At"), Attribute: expression.AttributeUserUpdatedAt},
+			},
+			Expected: false,
+		},
+		{
+			Name: "ShouldRequireExtendedForStandardExtendedAttribute",
+			Have: []AuthzHeader{
+				{Key: []byte(schema.HeaderRemoteUser), Attribute: expression.AttributeUserUsername},
+				{Key: []byte("Remote-Given-Name"), Attribute: expression.AttributeUserGivenName},
+			},
+			Expected: true,
+		},
+		{
+			Name: "ShouldRequireExtendedForCustomAttribute",
+			Have: []AuthzHeader{
+				{Key: []byte("Remote-Teams"), Attribute: "teams"},
+			},
+			Expected: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, authzHeadersRequireExtendedUserDetails(tc.Have))
 		})
 	}
 }
