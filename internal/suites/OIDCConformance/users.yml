@@ -18,7 +18,7 @@ users:
     picture: "https://john.example.com/picture.png"
     zoneinfo: "Australia/Melbourne"
     locale: "en-AU"
-    phone_number: "+61491570156"
+    phone_number: "+610000000000"
     phone_extension: "1234"
     email: john.doe@authelia.com
     address:
