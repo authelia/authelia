@@ -7,8 +7,11 @@ package oidc
 import (
 	"context"
 	"crypto/sha512"
+	"crypto/tls"
+	"crypto/x509"
 	"hash"
 	"html/template"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -55,9 +58,11 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 			Enable:                       config.Discovery.JWTResponseAccessTokens,
 			EnableStatelessIntrospection: config.EnableJWTAccessTokenStatelessIntrospection,
 		},
-		Strategy:                        StrategyConfig{},
-		JWTSecuredAuthorizationLifespan: config.Lifespans.JWTSecuredAuthorization,
-		RevokeRefreshTokensExplicit:     true,
+		BackChannelLogoutLifespan:                          config.BackChannelLogout.Lifespan,
+		BackChannelLogoutConcurrency:                       config.BackChannelLogout.Concurrency,
+		Strategy:                                           StrategyConfig{},
+		JWTSecuredAuthorizationLifespan:                    config.Lifespans.JWTSecuredAuthorization,
+		RevokeRefreshTokensExplicit:                        true,
 		EnforceRevokeFlowRevokeRefreshTokensExplicitClient: true,
 		EnforceClientAssertionIssuerAudience:               false,
 		ClientCredentialsFlowImplicitGrantRequested:        true,
@@ -75,10 +80,14 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 		c.Strategy.Core = oauth2.NewCoreStrategy(c, fmtAutheliaOpaqueOAuth2Token, nil)
 	}
 
-	c.Strategy.OpenID = &openid.DefaultStrategy{
+	strategyOpenID := &openid.DefaultStrategy{
 		Strategy: c.Strategy.JWT,
 		Config:   c,
 	}
+
+	// The one strategy satisfies both interfaces; they are separate fields because
+	// openid.OpenIDConnectTokenStrategy only describes ID Token generation.
+	c.Strategy.OpenID, c.Strategy.BackChannelLogout = strategyOpenID, strategyOpenID
 
 	c.Strategy.IDTokenValidation = &openid.DefaultIDTokenValidationStrategy{
 		Strategy: c.Strategy.JWT,
@@ -196,6 +205,7 @@ type StrategyConfig struct {
 	RevocationEndpointClientAuth    oauthelia2.EndpointClientAuthStrategy
 	IntrospectionEndpointClientAuth oauthelia2.EndpointClientAuthStrategy
 	IDTokenValidation               oauthelia2.TokenValidationStrategy
+	BackChannelLogout               oauthelia2.BackChannelLogoutTokenStrategy
 }
 
 // JWTAccessTokenConfig represents the JWT Access Token config.
@@ -729,6 +739,22 @@ func (c *Config) GetRotatedGlobalSecrets(ctx context.Context) (secrets [][]byte,
 	return c.RotatedGlobalSecrets, nil
 }
 
+// NewHTTPClient returns the client used for the requests this provider makes to other parties, such as delivering
+// Logout Tokens to a client's 'backchannel_logout_uri', which trusts the given certificate pool. A nil pool trusts the
+// system certificate pool.
+func NewHTTPClient(pool *x509.CertPool) (client *retryablehttp.Client) {
+	client = retryablehttp.NewClient()
+
+	if transport, ok := client.HTTPClient.Transport.(*http.Transport); ok {
+		transport.TLSClientConfig = &tls.Config{
+			RootCAs:    pool,
+			MinVersion: tls.VersionTLS12,
+		}
+	}
+
+	return client
+}
+
 // GetHTTPClient returns the HTTP client provider.
 func (c *Config) GetHTTPClient(ctx context.Context) (client *retryablehttp.Client) {
 	if c.HTTPClient == nil {
@@ -1152,10 +1178,10 @@ func (c *Config) GetIDTokenValidationStrategy(ctx context.Context) (strategy oau
 	return c.Strategy.IDTokenValidation
 }
 
-// GetBackChannelLogoutTokenStrategy returns the Back-Channel Logout token strategy. It is nil as this Authorization
-// Server does not implement OpenID Connect Back-Channel Logout 1.0.
+// GetBackChannelLogoutTokenStrategy returns the Back-Channel Logout token strategy used to generate the Logout
+// Tokens delivered to Relying Parties.
 func (c *Config) GetBackChannelLogoutTokenStrategy(ctx context.Context) (strategy oauthelia2.BackChannelLogoutTokenStrategy) {
-	return nil
+	return c.Strategy.BackChannelLogout
 }
 
 // GetBackChannelLogoutLifespan returns the lifespan of a Back-Channel Logout Token.

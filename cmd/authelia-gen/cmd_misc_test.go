@@ -21,7 +21,7 @@ func TestMiscOIDCConformanceBuildSuites(t *testing.T) {
 		{
 			"ShouldHandleDefault",
 			nil,
-			[]string{"conformance-config", "conformance-basic", "conformance-basic-form-post", "conformance-hybrid", "conformance-hybrid-form-post", "conformance-implicit", "conformance-implicit-form-post", "conformance-rp-initiated-logout"},
+			[]string{"conformance-config", "conformance-basic", "conformance-basic-form-post", "conformance-hybrid", "conformance-hybrid-form-post", "conformance-implicit", "conformance-implicit-form-post", "conformance-rp-initiated-logout", "conformance-backchannel-logout"},
 		},
 		{
 			"ShouldHandleSingle",

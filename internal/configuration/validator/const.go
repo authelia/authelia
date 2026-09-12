@@ -263,6 +263,23 @@ const (
 		"an invalid value: post logout redirect uri '%s' must not use the 'http' scheme when option 'public' is true " +
 		"as this scheme is only permitted for the openid connect confidential client type"
 
+	errFmtOIDCClientBackChannelLogoutURIHas          = errFmtOIDCClientOption + "'backchannel_logout_uri' has "
+	errFmtOIDCClientBackChannelLogoutURICantBeParsed = errFmtOIDCClientBackChannelLogoutURIHas +
+		"an invalid value: backchannel logout uri '%s' could not be parsed: %v"
+	errFmtOIDCClientBackChannelLogoutURIAbsolute = errFmtOIDCClientBackChannelLogoutURIHas +
+		"an invalid value: backchannel logout uri '%s' must have a scheme but it's absent"
+	errFmtOIDCClientBackChannelLogoutURIFragment = errFmtOIDCClientBackChannelLogoutURIHas +
+		"an invalid value: backchannel logout uri '%s' must not have a fragment component"
+	errFmtOIDCClientBackChannelLogoutURIScheme = errFmtOIDCClientBackChannelLogoutURIHas +
+		"an invalid value: backchannel logout uri '%s' must use the 'https' or 'http' scheme but it uses the '%s' scheme"
+	errFmtOIDCClientBackChannelLogoutURIPublicHTTP = errFmtOIDCClientBackChannelLogoutURIHas +
+		"an invalid value: backchannel logout uri '%s' must not use the 'http' scheme when option 'public' is true " +
+		"as this scheme is only permitted for the openid connect confidential client type"
+	errFmtOIDCClientBackChannelLogoutURIHost = errFmtOIDCClientBackChannelLogoutURIHas +
+		"an invalid value: backchannel logout uri '%s' must have a host but it's absent"
+	errFmtOIDCClientBackChannelLogoutURIQuery = errFmtOIDCClientBackChannelLogoutURIHas +
+		"an invalid value: backchannel logout uri '%s' must have an 'application/x-www-form-urlencoded' formatted query component: %v"
+
 	errFmtOIDCClientRequestURIHas          = errFmtOIDCClientOption + "'request_uris' has "
 	errFmtOIDCClientRequestURICantBeParsed = errFmtOIDCClientRequestURIHas +
 		"an invalid value: request uri '%s' could not be parsed: %v"

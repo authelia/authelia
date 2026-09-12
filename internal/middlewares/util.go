@@ -81,7 +81,9 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 		providers.Notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	}
 
-	providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, providers.StorageProvider, providers.Templates)
+	if providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, providers.StorageProvider, providers.Templates); providers.OpenIDConnect != nil {
+		providers.OpenIDConnect.HTTPClient = oidc.NewHTTPClient(caCertPool)
+	}
 
 	if config.Telemetry.Metrics.Enabled {
 		if providers.Metrics, err = metrics.NewPrometheus(); err != nil {

@@ -82,6 +82,7 @@ func TestLogoutPOST(t *testing.T) {
 			require.NoError(t, err)
 			require.NotEmpty(t, us.PublicID)
 
+			mock.StorageMock.EXPECT().LoadOAuth2SessionIDClientsByPublicID(gomock.Any(), provider.GetIssuer(), us.PublicID).AnyTimes().Return(nil, nil)
 			mock.StorageMock.EXPECT().DeleteOAuth2SessionIDByPublicID(gomock.Any(), provider.GetIssuer(), us.PublicID).Return(nil)
 
 			mock.Ctx.Request.SetBodyString(tc.have)
@@ -265,6 +266,7 @@ func TestLogoutPOSTWithPendingLogout(t *testing.T) {
 			provider, err := mock.Ctx.GetSessionProvider()
 			require.NoError(t, err)
 
+			mock.StorageMock.EXPECT().LoadOAuth2SessionIDClientsByPublicID(gomock.Any(), provider.GetIssuer(), us.PublicID).AnyTimes().Return(nil, nil)
 			mock.StorageMock.EXPECT().DeleteOAuth2SessionIDByPublicID(gomock.Any(), provider.GetIssuer(), us.PublicID).Return(nil)
 
 			mock.Ctx.Request.SetBodyString(tc.body)
@@ -362,6 +364,7 @@ func TestLogoutPOSTShouldLogAndContinueWhenSessionIDDeleteFails(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, us.PublicID)
 
+	mock.StorageMock.EXPECT().LoadOAuth2SessionIDClientsByPublicID(gomock.Any(), provider.GetIssuer(), us.PublicID).AnyTimes().Return(nil, nil)
 	mock.StorageMock.EXPECT().DeleteOAuth2SessionIDByPublicID(gomock.Any(), provider.GetIssuer(), us.PublicID).Return(errors.New("connection refused"))
 
 	mock.Ctx.Request.SetBodyString(`{}`)
@@ -436,6 +439,7 @@ func (s *LogoutSuite) SetupTest() {
 	s.Assert().NoError(provider.Save(s.mock.Ctx, userSession))
 	s.Require().NotEmpty(userSession.PublicID)
 
+	s.mock.StorageMock.EXPECT().LoadOAuth2SessionIDClientsByPublicID(gomock.Any(), provider.GetIssuer(), userSession.PublicID).AnyTimes().Return(nil, nil)
 	s.mock.StorageMock.EXPECT().DeleteOAuth2SessionIDByPublicID(gomock.Any(), provider.GetIssuer(), userSession.PublicID).Return(nil)
 }
 

@@ -315,11 +315,21 @@ type Provider interface {
 	// LoadOAuth2SessionIDsOldest pages the session id mappings ordered by ascending id.
 	LoadOAuth2SessionIDsOldest(ctx context.Context, after, limit int) (records []model.OAuth2SessionID, err error)
 
-	// DeleteOAuth2SessionID removes the session id mapping matching the issuer and 'sid' claim value.
+	// DeleteOAuth2SessionID removes the session id mapping matching the issuer and 'sid' claim value, along with the
+	// clients recorded as participating in it.
 	DeleteOAuth2SessionID(ctx context.Context, issuer, sid string) (err error)
 
-	// DeleteOAuth2SessionIDByPublicID removes every session id mapping for the issuer and session public identifier.
+	// DeleteOAuth2SessionIDByPublicID removes every session id mapping for the issuer and session public identifier,
+	// along with the clients recorded as participating in them.
 	DeleteOAuth2SessionIDByPublicID(ctx context.Context, issuer, publicID string) (err error)
+
+	// SaveOAuth2SessionIDClient records that a client was issued the 'sid' claim value for the issuer and session
+	// public identifier. Recording the same client for the same 'sid' more than once is not an error.
+	SaveOAuth2SessionIDClient(ctx context.Context, issuer, publicID, sid, clientID string) (err error)
+
+	// LoadOAuth2SessionIDClientsByPublicID returns every client recorded as participating in the session with the
+	// issuer and session public identifier.
+	LoadOAuth2SessionIDClientsByPublicID(ctx context.Context, issuer, publicID string) (records []model.OAuth2SessionIDClient, err error)
 
 	/*
 		Implementation for User Sessions.

@@ -80,6 +80,9 @@ type RegisteredClient struct {
 	GrantTypes             []string
 	ResponseTypes          []string
 
+	BackChannelLogoutURI             string
+	BackChannelLogoutSessionRequired bool
+
 	ResponseModes []oauthelia2.ResponseModeType
 
 	Lifespans      schema.IdentityProvidersOpenIDConnectLifespan
@@ -158,6 +161,9 @@ type Client interface {
 
 	GetRedirectURIs() (redirectURIs []string)
 	GetPostLogoutRedirectURIs() (redirectURIs []string)
+
+	GetBackChannelLogoutURI() (uri string)
+	GetBackChannelLogoutSessionRequired() (required bool)
 
 	GetClaimsStrategy() (strategy ClaimsStrategy)
 

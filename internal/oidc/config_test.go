@@ -6,7 +6,10 @@ package oidc_test
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
@@ -511,4 +514,30 @@ func (t *testConfigContext) GetUserProvider() authentication.UserProvider { retu
 
 func (t *testConfigContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
 	return nil
+}
+
+func TestNewHTTPClientShouldTrustCertificatePool(t *testing.T) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+	}))
+
+	defer server.Close()
+
+	pool := x509.NewCertPool()
+	pool.AddCert(server.Certificate())
+
+	trusted := oidc.NewHTTPClient(pool)
+	trusted.RetryMax = 0
+
+	response, err := trusted.Get(server.URL)
+	require.NoError(t, err)
+	require.NoError(t, response.Body.Close())
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+
+	untrusted := oidc.NewHTTPClient(x509.NewCertPool())
+	untrusted.RetryMax = 0
+
+	_, err = untrusted.Get(server.URL)
+	assert.ErrorContains(t, err, "certificate")
 }

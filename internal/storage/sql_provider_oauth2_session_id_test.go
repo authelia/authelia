@@ -136,3 +136,79 @@ func TestSQLProviderOAuth2SessionID(t *testing.T) {
 		assert.Equal(t, "paging-public-id-2", next[0].PublicID)
 	})
 }
+
+func TestSQLProviderOAuth2SessionIDClient(t *testing.T) {
+	provider := newTestSQLiteProvider(t)
+	require.NoError(t, provider.StartupCheck())
+
+	ctx := context.Background()
+
+	clientIDs := func(records []model.OAuth2SessionIDClient) (ids []string) {
+		for _, record := range records {
+			ids = append(ids, record.ClientID)
+		}
+
+		return ids
+	}
+
+	t.Run("ShouldRecordEachClientOnce", func(t *testing.T) {
+		record, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "", "clients-public-id")
+		require.NoError(t, err)
+
+		sid := record.SessionID.String()
+
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "clients-public-id", sid, "client-a"))
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "clients-public-id", sid, "client-b"))
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "clients-public-id", sid, "client-a"))
+
+		records, err := provider.LoadOAuth2SessionIDClientsByPublicID(ctx, "issuer", "clients-public-id")
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"client-a", "client-b"}, clientIDs(records))
+
+		for _, r := range records {
+			assert.Equal(t, record.SessionID, r.SessionID)
+			assert.Equal(t, "issuer", r.Issuer)
+			assert.Equal(t, "clients-public-id", r.PublicID)
+		}
+	})
+
+	t.Run("ShouldRemoveClientsWithSessionID", func(t *testing.T) {
+		a, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "https://a.example.com", "delete-public-id")
+		require.NoError(t, err)
+
+		b, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "https://b.example.com", "delete-public-id")
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "delete-public-id", a.SessionID.String(), "client-a"))
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "delete-public-id", b.SessionID.String(), "client-b"))
+
+		require.NoError(t, provider.DeleteOAuth2SessionID(ctx, "issuer", a.SessionID.String()))
+
+		records, err := provider.LoadOAuth2SessionIDClientsByPublicID(ctx, "issuer", "delete-public-id")
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"client-b"}, clientIDs(records))
+	})
+
+	t.Run("ShouldRemoveClientsWithPublicID", func(t *testing.T) {
+		record, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "", "logout-public-id")
+		require.NoError(t, err)
+
+		other, err := provider.GetOrCreateOAuth2SessionID(ctx, "issuer", "", "other-public-id")
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "logout-public-id", record.SessionID.String(), "client-a"))
+		require.NoError(t, provider.SaveOAuth2SessionIDClient(ctx, "issuer", "other-public-id", other.SessionID.String(), "client-a"))
+
+		require.NoError(t, provider.DeleteOAuth2SessionIDByPublicID(ctx, "issuer", "logout-public-id"))
+
+		records, err := provider.LoadOAuth2SessionIDClientsByPublicID(ctx, "issuer", "logout-public-id")
+		require.NoError(t, err)
+		assert.Empty(t, records)
+
+		records, err = provider.LoadOAuth2SessionIDClientsByPublicID(ctx, "issuer", "other-public-id")
+		require.NoError(t, err)
+		assert.Equal(t, []string{"client-a"}, clientIDs(records))
+	})
+}
