@@ -422,6 +422,11 @@ func validateLDAPAuthenticationBackendImplementation(config *schema.Authenticati
 			MaximumVersion: implementation.TLS.MaximumVersion,
 		}
 
+		if config.LDAP.Implementation == schema.LDAPImplementationActiveDirectory && config.PasswordChange.Disable &&
+			config.LDAP.UsersFilter == "" {
+			config.LDAP.UsersFilter = schema.LDAPUsersFilterActiveDirectoryExcludeMustChange
+		}
+
 		setDefaultImplementationLDAPAuthenticationBackendProfileAttributes(config.LDAP, implementation)
 	}
 
@@ -584,4 +589,48 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 	if (pMemberOfDN || pMemberOfRDN) && config.LDAP.Attributes.MemberOf == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
 	}
+}
+
+func validateAuthenticationBackendPasswordChange(config *schema.Configuration, validator *schema.StructValidator) {
+	name, clear := config.AuthenticationBackend.PasswordChange.RequiredAttribute, config.AuthenticationBackend.PasswordChange.ClearAttribute
+
+	if name == "" {
+		if clear != "" {
+			validator.Push(errors.New(errFmtAuthBackendPasswordChangeClearAttributeRequired))
+		}
+
+		return
+	}
+
+	if config.AuthenticationBackend.PasswordChange.Disable {
+		validator.Push(errors.New(errFmtAuthBackendPasswordChangeRequiredAttributeDisabled))
+
+		return
+	}
+
+	if !isUserAttributeValid(name, config) {
+		validator.Push(fmt.Errorf(errFmtAuthBackendPasswordChangeRequiredAttributeUnknown, name))
+	}
+
+	if clear != "" && !isAuthenticationBackendExtraAttribute(clear, config) {
+		validator.Push(fmt.Errorf(errFmtAuthBackendPasswordChangeClearAttributeUnknown, clear))
+	}
+}
+
+func isAuthenticationBackendExtraAttribute(name string, config *schema.Configuration) (valid bool) {
+	if config.AuthenticationBackend.File != nil {
+		_, valid = config.AuthenticationBackend.File.ExtraAttributes[name]
+
+		return valid
+	}
+
+	if config.AuthenticationBackend.LDAP != nil {
+		for attribute, properties := range config.AuthenticationBackend.LDAP.Attributes.Extra {
+			if properties.Name == name || (properties.Name == "" && attribute == name) {
+				return true
+			}
+		}
+	}
+
+	return false
 }

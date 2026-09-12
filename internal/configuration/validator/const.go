@@ -86,7 +86,11 @@ const (
 )
 
 const (
-	errFmtDefinitionsUserAttributesReservedOrDefined = "definitions: user_attributes: %s: attribute name '%s' is either reserved or already defined in the authentication backend"
+	errFmtDefinitionsUserAttributesReservedOrDefined         = "definitions: user_attributes: %s: attribute name '%s' is either reserved or already defined in the authentication backend"
+	errFmtAuthBackendPasswordChangeRequiredAttributeUnknown  = "authentication_backend: password_change: option 'required_attribute' is configured as '%s' but that attribute is not defined"
+	errFmtAuthBackendPasswordChangeRequiredAttributeDisabled = "authentication_backend: password_change: option 'required_attribute' can't be configured when option 'disable' is true"
+	errFmtAuthBackendPasswordChangeClearAttributeUnknown     = "authentication_backend: password_change: option 'clear_attribute' is configured as '%s' but that attribute is not a configured extra attribute"
+	errFmtAuthBackendPasswordChangeClearAttributeRequired    = "authentication_backend: password_change: option 'clear_attribute' can't be configured without option 'required_attribute'"
 )
 
 // Authentication Backend Error constants.

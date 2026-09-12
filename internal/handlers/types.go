@@ -193,6 +193,8 @@ type StateResponse struct {
 	AuthenticationLevel   authentication.Level `json:"authentication_level"`
 	FactorKnowledge       bool                 `json:"factor_knowledge"`
 	DefaultRedirectionURL string               `json:"default_redirection_url,omitempty"`
+
+	PasswordChangeRequired bool `json:"password_change_required,omitempty"`
 }
 
 type resetPasswordStep1RequestBody struct {

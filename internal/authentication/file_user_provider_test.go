@@ -645,6 +645,71 @@ func TestShouldChangePasswordSaveError(t *testing.T) {
 	})
 }
 
+func TestFileUserProviderClearExtraAttribute(t *testing.T) {
+	testCases := []struct {
+		name      string
+		username  string
+		attribute string
+		expected  map[string]any
+		err       string
+	}{
+		{
+			"ShouldClearAnAttributeWhichIsSet",
+			"john",
+			"example",
+			map[string]any{},
+			"",
+		},
+		{
+			"ShouldSkipAnAttributeWhichIsNotSet",
+			"john",
+			"nonexistent",
+			map[string]any{"example": "123"},
+			"",
+		},
+		{
+			"ShouldErrorOnAnUnknownUser",
+			"nonexistent",
+			"example",
+			nil,
+			"user not found : user not found",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			WithDatabase(t, UserDatabaseContentExtra, func(path string) {
+				config := DefaultFileAuthenticationBackendConfiguration
+				config.Path = path
+				config.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{"example": {ValueType: "string"}}
+
+				provider := NewFileUserProvider(&config)
+
+				require.NoError(t, provider.StartupCheck())
+
+				err := provider.ClearExtraAttribute(tc.username, tc.attribute)
+
+				if tc.err != "" {
+					assert.EqualError(t, err, tc.err)
+
+					return
+				}
+
+				require.NoError(t, err)
+
+				database := NewFileUserDatabase(path, false, false, getExtra(&config))
+
+				require.NoError(t, database.Load())
+
+				details, err := database.GetUserDetails(tc.username)
+
+				require.NoError(t, err)
+				assert.Equal(t, tc.expected, details.Extra)
+			})
+		})
+	}
+}
+
 func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 	WithDatabase(t, MalformedUserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration

@@ -88,12 +88,22 @@ the following conditions:
 
 - The account is disabled or locked:
   - `(!(userAccountControl:1.2.840.113556.1.4.803:=2))`
-- Their password is expired:
-  - `(!(pwdLastSet=0))`
 - Their account is expired:
   - `(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt}))`
+- They must change their password at their next sign in, but only when they have no way to perform that change:
+  - `(!(pwdLastSet=0))`
 
 ##### Users Filter
+
+```text
+(&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))
+```
+
+A user who must change their password is refused a bind by Active Directory rather than being told so in an
+attribute, and Authelia reads that refusal and holds them at the password change form. Excluding them from the
+filter would mean they are never found and so never held, which is why the default admits them. When
+[password_change.disable](../../configuration/first-factor/introduction.md#disable) is `true` there is no form to
+hold them at, so the default excludes them instead:
 
 ```text
 (&(|({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))

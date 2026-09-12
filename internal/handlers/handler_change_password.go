@@ -98,7 +98,15 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		WithFields(map[string]any{"username": username}).
 		Debug("User has changed their password")
 
-	if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+	if userSession.IsPasswordChangeRequired() {
+		clearPasswordChangeRequired(ctx, username)
+
+		if err = provider.DestroySession(ctx.RequestCtx); err != nil {
+			ctx.GetLogger().WithError(err).
+				WithFields(map[string]any{"username": username}).
+				Error("Unable to destroy the session which was held pending a required password change")
+		}
+	} else if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 		ctx.GetLogger().WithError(err).
 			WithFields(map[string]any{"username": username}).
 			Error("Unable to update password change state")

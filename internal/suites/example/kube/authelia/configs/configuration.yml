@@ -10,6 +10,24 @@ server:
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
+  endpoints:
+    rate_limits:
+      reset_password_start:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      reset_password_finish:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      session_elevation_start:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      session_elevation_finish:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
 
 log:
   level: 'debug'
@@ -46,7 +64,14 @@ session:
     host: 'redis-service'
     port: 6379
 
+definitions:
+  user_attributes:
+    must_change_password:
+      expression: 'pwdReset == "TRUE"'
+
 authentication_backend:
+  password_change:
+    required_attribute: 'must_change_password'
   ldap:
     address: 'ldaps://ldap-service'
     tls:
@@ -64,6 +89,9 @@ authentication_backend:
       mail: 'mail'
       member_of: 'memberOf'
       group_name: 'cn'
+      extra:
+        pwdReset:
+          value_type: 'string'
 
 totp:
   issuer: example.com

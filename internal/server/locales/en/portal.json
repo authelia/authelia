@@ -13,9 +13,12 @@
 	"Authenticated": "Authenticated",
 	"Automatically refresh these permissions without user interaction": "Automatically refresh these permissions without user interaction",
 	"Cancel": "Cancel",
+	"Change password": "Change password",
+	"Change your password": "Change your password",
 	"Close": "Close",
 	"Contact your administrator to register a device": "Contact your administrator to register a device",
 	"Could not obtain user settings": "Could not obtain user settings",
+	"Current password": "Current password",
 	"Deny": "Deny",
 	"Device selection was bypassed by Duo policy": "Device selection was bypassed by Duo policy",
 	"Device selection was denied by Duo policy": "Device selection was denied by Duo policy",
@@ -87,6 +90,7 @@
 	"The resource you're attempting to access requires two-factor authentication": "The resource you're attempting to access requires two-factor authentication",
 	"The server rejected the security key": "The server rejected the security key",
 	"The server responded with an invalid Facet ID for the URL": "The server responded with an invalid Facet ID for the URL",
+	"There was an issue changing the password": "There was an issue changing the password",
 	"There was an issue completing sign in process": "There was an issue completing sign in process",
 	"There was an issue completing the process the verification token might have expired": "There was an issue completing the process the verification token might have expired",
 	"There was an issue fetching Duo device(s)": "There was an issue fetching Duo device(s)",
@@ -111,6 +115,7 @@
 	"You must view and accept the Privacy Policy before using {{authelia}}.": "You must view and accept the \u003cpolicy\u003ePrivacy Policy\u003c/policy\u003e before using {{authelia}}",
 	"You're being signed out and redirected": "You're being signed out and redirected",
 	"Your browser does not support the WebAuthn protocol": "Your browser does not support the WebAuthn protocol",
+	"Your password must be changed before you can continue": "Your password must be changed before you can continue",
 	"Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements",
 	"or": "or"
 }

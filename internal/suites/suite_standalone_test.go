@@ -346,7 +346,7 @@ func (s *StandaloneSuite) TestResetPasswordScenario() {
 }
 
 func (s *StandaloneSuite) TestChangePasswordScenario() {
-	suite.Run(s.T(), NewChangePasswordScenario())
+	suite.Run(s.T(), NewChangePasswordScenario(NewPasswordChangeRequiredFileBackend()))
 }
 
 func (s *StandaloneSuite) TestRequestMethodScenario() {
