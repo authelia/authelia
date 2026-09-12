@@ -191,6 +191,7 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].jwks_uri",
 	"identity_providers.oidc.clients[].lifespan",
 	"identity_providers.oidc.clients[].pkce_challenge_method",
+	"identity_providers.oidc.clients[].post_logout_redirect_uris",
 	"identity_providers.oidc.clients[].pre_configured_consent_duration",
 	"identity_providers.oidc.clients[].public",
 	"identity_providers.oidc.clients[].pushed_authorization_request_endpoint_auth_method",
