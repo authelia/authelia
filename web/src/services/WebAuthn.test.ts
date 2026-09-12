@@ -29,6 +29,7 @@ beforeEach(() => {
 });
 
 vi.mock("@services/Api", () => ({
+    FirstFactorPasskeyConditionalPath: "/firstfactor/passkey/conditional",
     FirstFactorPasskeyPath: "/firstfactor/passkey",
     validateStatusAuthentication: vi.fn(),
     validateStatusWebAuthnCreation: vi.fn(),
@@ -58,6 +59,7 @@ it("handles successful webauthn result", async () => {
 
     const result = await getWebAuthnResult({} as any);
     expect(result.result).toBe(AssertionResult.Success);
+    expect(startAuthentication).toHaveBeenLastCalledWith({ optionsJSON: {}, useBrowserAutofill: false });
     expect(result.response).toBe("response");
 });
 
@@ -135,6 +137,14 @@ it("handles successful webauthn passkey options", async () => {
 
     const result = await getWebAuthnPasskeyOptions();
     expect(result).toEqual({ options: "options", status: 200 });
+});
+
+it("requests browser autofill for a conditionally mediated webauthn result", async () => {
+    (startAuthentication as any).mockResolvedValue("response");
+
+    const result = await getWebAuthnResult({} as any, true);
+    expect(result.result).toBe(AssertionResult.Success);
+    expect(startAuthentication).toHaveBeenLastCalledWith({ optionsJSON: {}, useBrowserAutofill: true });
 });
 
 it("handles webauthn passkey options with no data", async () => {
@@ -281,6 +291,9 @@ it("forwards the abort signal through GET, assertion POST and passkey POST", asy
 
     await getWebAuthnPasskeyOptions(signal);
     expect(axios.get).toHaveBeenLastCalledWith("/firstfactor/passkey", { signal });
+
+    await getWebAuthnPasskeyOptions(signal, true);
+    expect(axios.get).toHaveBeenLastCalledWith("/firstfactor/passkey/conditional", { signal });
 
     await postWebAuthnResponse("authResponse" as any, "url", "flow", "flowtype", "sub", "code", signal);
     expect(axios.post).toHaveBeenLastCalledWith("/webauthn/assertion", expect.any(Object), { signal });
