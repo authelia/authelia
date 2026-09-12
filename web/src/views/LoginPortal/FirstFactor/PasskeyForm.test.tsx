@@ -72,6 +72,18 @@ function getButton() {
     return document.getElementById("passkey-sign-in-button") as HTMLButtonElement;
 }
 
+function getRememberMeDialog() {
+    return document.getElementById("remember-me-dialog");
+}
+
+async function answerRememberMe(rememberMe: boolean) {
+    const id = rememberMe ? "dialog-remember-me-yes" : "dialog-remember-me-no";
+
+    await waitFor(() => expect(document.getElementById(id)).toBeInTheDocument());
+
+    fireEvent.click(document.getElementById(id) as HTMLButtonElement);
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
     mocks.autofillSupported = false;
@@ -122,6 +134,8 @@ describe("sign in", () => {
         renderForm({ rememberMe: true });
 
         fireEvent.click(getButton());
+
+        await answerRememberMe(true);
 
         await waitFor(() =>
             expect(postResponseMock).toHaveBeenCalledWith(
@@ -343,10 +357,12 @@ describe("conditional mediation", () => {
         expect(props.onAuthenticationStop).toHaveBeenCalled();
     });
 
-    it("forwards the remember me flag from a conditional ceremony", async () => {
+    it("prompts for remember me once a credential is picked from autofill", async () => {
         mocks.autofillSupported = true;
 
         renderForm({ rememberMe: true });
+
+        await answerRememberMe(true);
 
         await waitFor(() => expect(postResponseMock).toHaveBeenCalled());
         expect(postResponseMock.mock.calls[0][1]).toBe(true);
@@ -401,6 +417,36 @@ describe("conditional mediation", () => {
         );
     });
 
+    it("does not clear the busy state of an explicit ceremony that superseded it", async () => {
+        mocks.autofillSupported = true;
+
+        let rejectConditional: (reason?: unknown) => void = () => {};
+        let resolveExplicit: (value: unknown) => void = () => {};
+
+        getResultMock
+            .mockReturnValueOnce(new Promise((_, reject) => (rejectConditional = reject)) as any)
+            .mockReturnValueOnce(new Promise((r) => (resolveExplicit = r)) as any);
+
+        const { props } = renderForm();
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(1));
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(props.onAuthenticationStart).toHaveBeenCalled());
+
+        // The browser aborts the conditional ceremony as soon as the explicit one starts.
+        rejectConditional(new DOMException("aborted", "AbortError"));
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalledTimes(2));
+
+        expect(props.onAuthenticationStop).not.toHaveBeenCalled();
+
+        resolveExplicit({ response: assertionResponse, result: AssertionResult.Success });
+
+        await waitFor(() => expect(props.onAuthenticationSuccess).toHaveBeenCalled());
+    });
+
     it("does not start a ceremony when the component unmounts first", async () => {
         mocks.autofillSupported = true;
 
@@ -409,5 +455,95 @@ describe("conditional mediation", () => {
         unmount();
 
         await waitFor(() => expect(getOptionsMock).not.toHaveBeenCalled());
+    });
+});
+
+describe("remember me", () => {
+    it("does not prompt and never remembers when the feature is disabled", async () => {
+        const { props } = renderForm({ rememberMe: false });
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalled());
+
+        expect(getRememberMeDialog()).not.toBeInTheDocument();
+        expect(postResponseMock.mock.calls[0][1]).toBe(false);
+        expect(props.onAuthenticationSuccess).toHaveBeenCalled();
+    });
+
+    it("prompts only after the assertion has produced a credential", async () => {
+        let resolve: (value: unknown) => void = () => {};
+        getResultMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        renderForm({ rememberMe: true });
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(getResultMock).toHaveBeenCalled());
+
+        expect(getRememberMeDialog()).not.toBeInTheDocument();
+
+        resolve({ response: assertionResponse, result: AssertionResult.Success });
+
+        await waitFor(() => expect(getRememberMeDialog()).toBeInTheDocument());
+        expect(postResponseMock).not.toHaveBeenCalled();
+    });
+
+    it("remembers the session when the user answers yes", async () => {
+        renderForm({ rememberMe: true });
+
+        fireEvent.click(getButton());
+
+        await answerRememberMe(true);
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalled());
+        expect(postResponseMock.mock.calls[0][1]).toBe(true);
+    });
+
+    it("does not remember the session when the user answers no", async () => {
+        renderForm({ rememberMe: true });
+
+        fireEvent.click(getButton());
+
+        await answerRememberMe(false);
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalled());
+        expect(postResponseMock.mock.calls[0][1]).toBe(false);
+    });
+
+    it("does not remember the session when the prompt is dismissed", async () => {
+        renderForm({ rememberMe: true });
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(getRememberMeDialog()).toBeInTheDocument());
+
+        fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+
+        await waitFor(() => expect(postResponseMock).toHaveBeenCalled());
+        expect(postResponseMock.mock.calls[0][1]).toBe(false);
+    });
+
+    it("closes the prompt once it has been answered", async () => {
+        renderForm({ rememberMe: true });
+
+        fireEvent.click(getButton());
+
+        await answerRememberMe(true);
+
+        await waitFor(() => expect(getRememberMeDialog()).not.toBeInTheDocument());
+    });
+
+    it("does not prompt when the ceremony fails before producing a credential", async () => {
+        getResultMock.mockResolvedValue({ result: AssertionResult.FailureUserConsent } as any);
+
+        const { props } = renderForm({ rememberMe: true });
+
+        fireEvent.click(getButton());
+
+        await waitFor(() => expect(props.onAuthenticationError).toHaveBeenCalled());
+
+        expect(getRememberMeDialog()).not.toBeInTheDocument();
+        expect(postResponseMock).not.toHaveBeenCalled();
     });
 });

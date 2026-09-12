@@ -95,10 +95,34 @@ func (s *PasskeyScenario) TestShouldAuthorizeAfterPasskeyLogin() {
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
+func (s *PasskeyScenario) TestShouldPromptRememberMeAfterPasskeyAssertion() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
+
+	s.doVisitLoginPage(s.T(), s.Context(ctx), BaseDomain, targetURL)
+
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "passkey-sign-in-button")
+
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "remember-me-dialog")
+
+	s.doAnswerPasskeyRememberMe(s.T(), s.Context(ctx), true)
+
+	s.verifyIsSecondFactorPasswordPage(s.T(), s.Context(ctx))
+	s.doFillPasswordAndClick(s.T(), s.Context(ctx), "password")
+
+	s.verifySecretAuthorized(s.T(), s.Context(ctx))
+}
+
 func TestRunPasskey(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewTwoFactorWebAuthnScenario())
+	suite.Run(t, NewPasskeyScenario())
 }
