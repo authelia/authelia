@@ -58,11 +58,12 @@ func init() {
 
 	GlobalRegistry.Register(envoySuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
 		TestTimeout:     150 * time.Second,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
+		TearDownTimeout: 1 * time.Minute,
+		Description:     "This suite has been created to test Authelia as an authorization server behind the Envoy reverse proxy.",
 	})
 }

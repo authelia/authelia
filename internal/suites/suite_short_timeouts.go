@@ -43,12 +43,12 @@ func init() {
 
 	GlobalRegistry.Register(shortTimeoutsSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    2 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
 		TestTimeout:     3 * time.Minute,
 		TearDown:        teardown,
-		TearDownTimeout: 2 * time.Minute,
+		TearDownTimeout: 1 * time.Minute,
 		Description: `This suite has been created to configure Authelia with short timeouts for sessions expiration
 in order to test the inactivity feature and the remember me feature.`,
 	})
